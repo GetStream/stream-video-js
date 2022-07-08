@@ -2,7 +2,7 @@ import {
   TwirpFetchTransport,
   TwirpOptions,
 } from '@protobuf-ts/twirp-transport';
-import { CallCoordinatorServiceClient } from '../gen/video_coordinator_rpc/coordinator_service.client';
+import { CallCoordinatorServiceClient } from './gen/video_coordinator_rpc/coordinator_service.client';
 
 const defaultOptions: TwirpOptions = {
   baseUrl: '',

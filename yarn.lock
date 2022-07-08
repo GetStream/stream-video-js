@@ -2277,6 +2277,7 @@ __metadata:
   resolution: "@stream-io/video-client@workspace:packages/client"
   dependencies:
     "@protobuf-ts/plugin": ^2.7.0
+    "@protobuf-ts/protoc": ^2.7.0
     "@protobuf-ts/twirp-transport": ^2.7.0
     typescript: ^4.7.4
   languageName: unknown

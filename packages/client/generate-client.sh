@@ -1,6 +1,9 @@
 set -e
 
-OUT_DIR="gen"
+PROTO_DIR="../../video/protobuf"
+OUT_DIR="src/gen"
+
+echo "Begin generating protobuf client"
 rm -rf $OUT_DIR && mkdir -p $OUT_DIR
 
 # for the full list of available opts, see: https://github.com/timostamm/protobuf-ts/blob/master/MANUAL.md
@@ -10,5 +13,7 @@ npx protoc \
   --ts_opt generate_dependencies \
   --ts_opt client_generic \
   --ts_opt server_none \
-  --proto_path protobuf \
-  protobuf/video_coordinator_rpc/coordinator_service.proto
+  --proto_path $PROTO_DIR \
+  $PROTO_DIR/video_coordinator_rpc/coordinator_service.proto
+
+echo "Finished generating protobuf client"
