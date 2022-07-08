@@ -3,6 +3,7 @@ set -e
 OUT_DIR="gen"
 rm -rf $OUT_DIR && mkdir -p $OUT_DIR
 
+# for the full list of available opts, see: https://github.com/timostamm/protobuf-ts/blob/master/MANUAL.md
 npx protoc \
   --ts_out $OUT_DIR \
   --ts_opt long_type_string \
