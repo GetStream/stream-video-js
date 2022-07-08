@@ -7,5 +7,5 @@
 4. Run the application `yarn start` (make sure the server is already running)
 
 ## Notes
-Protobuf files are currently manually copied from the [GetStream/video](GetStream/video)
+Protobuf files are currently manually copied from the [GetStream/video](https://github.com/GetStream/video)
 to `packages/client/protobuf`. The process will be automated soon.
