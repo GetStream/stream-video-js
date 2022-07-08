@@ -1,0 +1,19 @@
+{
+  "name": "@stream-io/video-react",
+  "description": "The React Video SDK",
+  "author": "https://getstream.io",
+  "packageManager": "yarn@3.2.1",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start:client": "yarn workspace @stream-io/video-client run start",
+    "start:app": "yarn workspace @stream-io/video-react-app run start",
+    "start": "yarn workspaces foreach -vp run start",
+    "build": "yarn workspaces foreach -vt run build"
+  },
+  "devDependencies": {
+    "prettier": "^2.7.1"
+  }
+}
