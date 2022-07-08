@@ -1,4 +1,7 @@
-set -e
+#!/bin/bash
+set -o pipefail
+set -o nounset
+set -ex
 
 PROTO_DIR="../../video/protobuf"
 OUT_DIR="src/gen"
