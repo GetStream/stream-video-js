@@ -12,7 +12,7 @@ const defaultOptions: TwirpOptions = {
 export const createClient = (options?: TwirpOptions) => {
   const transport = new TwirpFetchTransport({
     ...defaultOptions,
-    options,
+    ...options,
   });
 
   return new CallCoordinatorServiceClient(transport);

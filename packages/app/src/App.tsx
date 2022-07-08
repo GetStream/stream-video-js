@@ -18,7 +18,11 @@ const request = {
 
 const useSelectEdgeServerCall = () => {
   const client = React.useMemo(() => {
-    return createClient();
+    return createClient({
+      // requests are proxied to http://localhost:26991
+      baseUrl: '/',
+      sendJson: true,
+    });
   }, []);
 
   const [edgeServersResponse, setEdgeServersResponse] = useState<
