@@ -10,7 +10,6 @@
   "scripts": {
     "start:client": "yarn workspace @stream-io/video-client run start",
     "start:app": "yarn workspace @stream-io/video-react-app run start",
-    "start": "yarn workspaces foreach -vp run start",
     "build": "yarn workspaces foreach -vt run build"
   },
   "devDependencies": {
