@@ -1,0 +1,16 @@
+{
+  "name": "@stream-io/video-components-react",
+  "packageManager": "yarn@3.2.1",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "start": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "@livekit/react-components": "^1.0.0",
+    "livekit-client": "^1.2.0"
+  }
+}

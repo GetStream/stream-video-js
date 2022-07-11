@@ -11,4 +11,4 @@
 #.pnp.*
 
 node_modules
-packages/client/dist
+dist

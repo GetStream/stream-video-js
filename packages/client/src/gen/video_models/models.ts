@@ -187,27 +187,23 @@ export interface Device {
      */
     id: string;
     /**
-     * @generated from protobuf field: string push_provider = 3;
-     */
-    pushProvider: string;
-    /**
-     * @generated from protobuf field: bool disabled = 4;
+     * @generated from protobuf field: bool disabled = 3;
      */
     disabled: boolean;
     /**
-     * @generated from protobuf field: string disabled_reason = 5;
+     * @generated from protobuf field: string disabled_reason = 4;
      */
     disabledReason: string;
     /**
-     * @generated from protobuf field: string push_provider_name = 6;
+     * @generated from protobuf field: string push_provider_name = 5;
      */
     pushProviderName: string;
     /**
-     * @generated from protobuf field: string created_at = 7;
+     * @generated from protobuf field: string created_at = 6;
      */
     createdAt: string;
     /**
-     * @generated from protobuf field: string updated_at = 8;
+     * @generated from protobuf field: string updated_at = 7;
      */
     updatedAt: string;
 }
@@ -381,13 +377,7 @@ export interface Participant {
  */
 export interface CallState {
     /**
-     * Little different to member/watcher concept. Both are in the participant list
-     *
-     * @generated from protobuf field: string call_id = 1;
-     */
-    callId: string;
-    /**
-     * @generated from protobuf field: repeated stream.video.Participant participants = 2;
+     * @generated from protobuf field: repeated stream.video.Participant participants = 1;
      */
     participants: Participant[];
 }
@@ -396,22 +386,32 @@ export interface CallState {
  */
 export interface Call {
     /**
-     * @generated from protobuf field: string id = 1;
+     * the call type
+     *
+     * @generated from protobuf field: string type = 1;
+     */
+    type: string;
+    /**
+     * the call id
+     *
+     * @generated from protobuf field: string id = 2;
      */
     id: string;
     /**
-     * @generated from protobuf field: string name = 2;
-     */
-    name: string;
-    /**
+     * the id of the user that created this call
+     *
      * @generated from protobuf field: string created_by_user_id = 3;
      */
     createdByUserId: string;
     /**
+     * call creation date as RFC3339 string
+     *
      * @generated from protobuf field: string created_at = 4;
      */
     createdAt: string;
     /**
+     * call last update date as RFC3339 string
+     *
      * @generated from protobuf field: string updated_at = 5;
      */
     updatedAt: string;
@@ -992,16 +992,15 @@ class Device$Type extends MessageType<Device> {
         super("stream.video.Device", [
             { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "push_provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "disabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 5, name: "disabled_reason", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "push_provider_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 7, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "disabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 4, name: "disabled_reason", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "push_provider_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Device>): Device {
-        const message = { userId: "", id: "", pushProvider: "", disabled: false, disabledReason: "", pushProviderName: "", createdAt: "", updatedAt: "" };
+        const message = { userId: "", id: "", disabled: false, disabledReason: "", pushProviderName: "", createdAt: "", updatedAt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Device>(this, message, value);
@@ -1018,22 +1017,19 @@ class Device$Type extends MessageType<Device> {
                 case /* string id */ 2:
                     message.id = reader.string();
                     break;
-                case /* string push_provider */ 3:
-                    message.pushProvider = reader.string();
-                    break;
-                case /* bool disabled */ 4:
+                case /* bool disabled */ 3:
                     message.disabled = reader.bool();
                     break;
-                case /* string disabled_reason */ 5:
+                case /* string disabled_reason */ 4:
                     message.disabledReason = reader.string();
                     break;
-                case /* string push_provider_name */ 6:
+                case /* string push_provider_name */ 5:
                     message.pushProviderName = reader.string();
                     break;
-                case /* string created_at */ 7:
+                case /* string created_at */ 6:
                     message.createdAt = reader.string();
                     break;
-                case /* string updated_at */ 8:
+                case /* string updated_at */ 7:
                     message.updatedAt = reader.string();
                     break;
                 default:
@@ -1054,24 +1050,21 @@ class Device$Type extends MessageType<Device> {
         /* string id = 2; */
         if (message.id !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.id);
-        /* string push_provider = 3; */
-        if (message.pushProvider !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.pushProvider);
-        /* bool disabled = 4; */
+        /* bool disabled = 3; */
         if (message.disabled !== false)
-            writer.tag(4, WireType.Varint).bool(message.disabled);
-        /* string disabled_reason = 5; */
+            writer.tag(3, WireType.Varint).bool(message.disabled);
+        /* string disabled_reason = 4; */
         if (message.disabledReason !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.disabledReason);
-        /* string push_provider_name = 6; */
+            writer.tag(4, WireType.LengthDelimited).string(message.disabledReason);
+        /* string push_provider_name = 5; */
         if (message.pushProviderName !== "")
-            writer.tag(6, WireType.LengthDelimited).string(message.pushProviderName);
-        /* string created_at = 7; */
+            writer.tag(5, WireType.LengthDelimited).string(message.pushProviderName);
+        /* string created_at = 6; */
         if (message.createdAt !== "")
-            writer.tag(7, WireType.LengthDelimited).string(message.createdAt);
-        /* string updated_at = 8; */
+            writer.tag(6, WireType.LengthDelimited).string(message.createdAt);
+        /* string updated_at = 7; */
         if (message.updatedAt !== "")
-            writer.tag(8, WireType.LengthDelimited).string(message.updatedAt);
+            writer.tag(7, WireType.LengthDelimited).string(message.updatedAt);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1501,12 +1494,11 @@ export const Participant = new Participant$Type();
 class CallState$Type extends MessageType<CallState> {
     constructor() {
         super("stream.video.CallState", [
-            { no: 1, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "participants", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Participant }
+            { no: 1, name: "participants", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Participant }
         ]);
     }
     create(value?: PartialMessage<CallState>): CallState {
-        const message = { callId: "", participants: [] };
+        const message = { participants: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CallState>(this, message, value);
@@ -1517,10 +1509,7 @@ class CallState$Type extends MessageType<CallState> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_id */ 1:
-                    message.callId = reader.string();
-                    break;
-                case /* repeated stream.video.Participant participants */ 2:
+                case /* repeated stream.video.Participant participants */ 1:
                     message.participants.push(Participant.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
@@ -1535,12 +1524,9 @@ class CallState$Type extends MessageType<CallState> {
         return message;
     }
     internalBinaryWrite(message: CallState, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_id = 1; */
-        if (message.callId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callId);
-        /* repeated stream.video.Participant participants = 2; */
+        /* repeated stream.video.Participant participants = 1; */
         for (let i = 0; i < message.participants.length; i++)
-            Participant.internalBinaryWrite(message.participants[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+            Participant.internalBinaryWrite(message.participants[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1555,11 +1541,11 @@ export const CallState = new CallState$Type();
 class Call$Type extends MessageType<Call> {
     constructor() {
         super("stream.video.Call", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
-            { no: 2, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "created_by_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 1, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 2, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 3, name: "created_by_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 4, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 5, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
             { no: 6, name: "broadcast", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 7, name: "broadcast_options", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => BroadcastOptions },
             { no: 8, name: "transcribe", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
@@ -1567,7 +1553,7 @@ class Call$Type extends MessageType<Call> {
         ]);
     }
     create(value?: PartialMessage<Call>): Call {
-        const message = { id: "", name: "", createdByUserId: "", createdAt: "", updatedAt: "", broadcast: false, broadcastOptions: [], transcribe: false };
+        const message = { type: "", id: "", createdByUserId: "", createdAt: "", updatedAt: "", broadcast: false, broadcastOptions: [], transcribe: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Call>(this, message, value);
@@ -1578,11 +1564,11 @@ class Call$Type extends MessageType<Call> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
+                case /* string type */ 1:
+                    message.type = reader.string();
                     break;
-                case /* string name */ 2:
-                    message.name = reader.string();
+                case /* string id */ 2:
+                    message.id = reader.string();
                     break;
                 case /* string created_by_user_id */ 3:
                     message.createdByUserId = reader.string();
@@ -1617,12 +1603,12 @@ class Call$Type extends MessageType<Call> {
         return message;
     }
     internalBinaryWrite(message: Call, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
+        /* string type = 1; */
+        if (message.type !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.type);
+        /* string id = 2; */
         if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* string name = 2; */
-        if (message.name !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.name);
+            writer.tag(2, WireType.LengthDelimited).string(message.id);
         /* string created_by_user_id = 3; */
         if (message.createdByUserId !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.createdByUserId);

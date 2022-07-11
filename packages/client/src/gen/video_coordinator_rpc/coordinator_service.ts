@@ -21,35 +21,9 @@ import { EdgeServer } from "../video_models/models";
 import { Latency } from "../video_models/models";
 import { TranscribeOptions } from "../video_models/models";
 import { BroadcastOptions } from "../video_models/models";
+import { BoolValue } from "../google/protobuf/wrappers";
 import { CallState } from "../video_models/models";
 import { Call } from "../video_models/models";
-// PROTO questions
-
-// 
-// Best way to model map<string, interface?>
-// Best way to support generic error handling
-// And response duration time tracking
-// Auth headers
-
-/**
- * TODO: how do we include a common error to all responses?
- *
- * @generated from protobuf message stream.video.Error
- */
-export interface Error {
-    /**
-     * @generated from protobuf field: int64 code = 1;
-     */
-    code: string;
-    /**
-     * @generated from protobuf field: string description = 2;
-     */
-    description: string;
-    /**
-     * @generated from protobuf field: bytes data = 3;
-     */
-    data: Uint8Array;
-}
 /**
  * @generated from protobuf message stream.video.GetCallRequest
  */
@@ -99,50 +73,65 @@ export interface CreateOrUpdateCallsResponse {
  */
 export interface CreateCallRequest {
     /**
-     * @generated from protobuf field: string id = 1;
-     */
-    id: string;
-    /**
-     * @generated from protobuf field: string type = 2;
+     * the call type
+     *
+     * @generated from protobuf field: string type = 1;
      */
     type: string;
     /**
-     * @generated from protobuf field: bytes jsonencoded_custom_data = 3;
+     * the call id
+     *
+     * @generated from protobuf field: string id = 2;
      */
-    jsonencodedCustomData: Uint8Array;
+    id: string;
     /**
+     * call custom data json encoded
+     *
+     * @generated from protobuf field: bytes json_encoded_custom_data = 3;
+     */
+    jsonEncodedCustomData: Uint8Array;
+    /**
+     * the list of participant ids
+     *
      * @generated from protobuf field: repeated string participants = 4;
      */
     participants: string[];
     /**
-     * TODO: additional options and overrides to default settings
-     * enable broadcasting
+     * broadcasting, overrides the default call type setting if provided
      *
-     * @generated from protobuf field: bool broadcast = 6;
+     * @generated from protobuf field: google.protobuf.BoolValue broadcast = 6;
      */
-    broadcast: boolean;
+    broadcast?: BoolValue;
     /**
+     * the broadcasting options, only relevant if broadcast is enabled
+     *
      * @generated from protobuf field: repeated stream.video.BroadcastOptions broadcast_options = 7;
      */
     broadcastOptions: BroadcastOptions[];
     /**
-     * enable transcription
+     * transcription, overrides the default call type setting if provided
      *
-     * @generated from protobuf field: bool transcribe = 8;
+     * @generated from protobuf field: google.protobuf.BoolValue transcribe = 8;
      */
-    transcribe: boolean;
+    transcribe?: BoolValue;
     /**
+     * the transcription options for this call, only relevant if transcribe is enabled
+     *
      * @generated from protobuf field: stream.video.TranscribeOptions transcribe_options = 9;
      */
     transcribeOptions?: TranscribeOptions;
     /**
-     * @generated from protobuf field: bool recording = 10;
+     * the recording option, overrides the default call type setting if provided
+     *
+     * @generated from protobuf field: google.protobuf.BoolValue recording = 10;
      */
-    recording: boolean;
+    recording?: BoolValue;
     /**
-     * @generated from protobuf field: bool ring = 11;
+     * the ring option, overrides the default call type setting if provided
+     *
+     * @generated from protobuf field: google.protobuf.BoolValue ring = 11;
      */
-    ring: boolean; // if true, will call/ring on the browser and phone. default is false
+    ring?: BoolValue;
 }
 /**
  * @generated from protobuf message stream.video.CreateCallResponse
@@ -166,13 +155,9 @@ export interface UpdateCallRequest {
      */
     type: string;
     /**
-     * @generated from protobuf field: bytes jsonencoded_custom_data = 3;
+     * @generated from protobuf field: bytes json_encoded_custom_data = 3;
      */
-    jsonencodedCustomData: Uint8Array;
-    /**
-     * @generated from protobuf field: string auth_token = 4;
-     */
-    authToken: string; // TODO: additional options and overrides to default settings
+    jsonEncodedCustomData: Uint8Array; // TODO: additional options and overrides to default settings
 }
 /**
  * @generated from protobuf message stream.video.UpdateCallResponse
@@ -206,10 +191,6 @@ export interface SelectEdgeServerRequest {
      */
     callId: string;
     /**
-     * @generated from protobuf field: string user_id = 2;
-     */
-    userId: string;
-    /**
      * @generated from protobuf field: map<string, stream.video.Latency> latency_by_edge = 3;
      */
     latencyByEdge: {
@@ -221,42 +202,40 @@ export interface SelectEdgeServerRequest {
  */
 export interface SelectEdgeServerResponse {
     /**
+     * the edge server hosting the video call
+     *
      * @generated from protobuf field: stream.video.EdgeServer edge_server = 1;
      */
     edgeServer?: EdgeServer;
     /**
+     * the auth token needed to authenticate to the edge server
+     *
      * @generated from protobuf field: string token = 2;
      */
-    token: string; // this is the token livekit needs, not the same token
+    token: string;
 }
 /**
  * @generated from protobuf message stream.video.AddDeviceRequest
  */
 export interface AddDeviceRequest {
     /**
-     * @generated from protobuf field: string user_id = 1;
-     */
-    userId: string;
-    /**
-     * @generated from protobuf field: string id = 2;
+     * the device id to register
+     *
+     * @generated from protobuf field: string id = 1;
      */
     id: string;
     /**
-     * @generated from protobuf field: string push_provider = 3;
-     */
-    pushProvider: string;
-    /**
-     * @generated from protobuf field: bool disabled = 4;
-     */
-    disabled: boolean;
-    /**
-     * @generated from protobuf field: string disabled_reason = 5;
-     */
-    disabledReason: string;
-    /**
-     * @generated from protobuf field: string push_provider_name = 6;
+     * the name of the push notification provider (eg. apn-production)
+     *
+     * @generated from protobuf field: string push_provider_name = 2;
      */
     pushProviderName: string;
+    /**
+     * the id of the user the device is registered to, only server-side requests can provide this
+     *
+     * @generated from protobuf field: string user_id = 3;
+     */
+    userId: string;
 }
 /**
  * @generated from protobuf message stream.video.AddDeviceResponse
@@ -282,6 +261,8 @@ export interface RemoveDeviceResponse {
  */
 export interface ListDevicesRequest {
     /**
+     * the id of the user, only server-side requests can provide this
+     *
      * @generated from protobuf field: string user_id = 1;
      */
     userId: string;
@@ -563,67 +544,6 @@ export interface GetRecordingsRequest {
 export interface GetRecordingsResponse {
 }
 // @generated message type with reflection information, may provide speed optimized methods
-class Error$Type extends MessageType<Error> {
-    constructor() {
-        super("stream.video.Error", [
-            { no: 1, name: "code", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
-            { no: 2, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "data", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
-        ]);
-    }
-    create(value?: PartialMessage<Error>): Error {
-        const message = { code: "0", description: "", data: new Uint8Array(0) };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<Error>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Error): Error {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* int64 code */ 1:
-                    message.code = reader.int64().toString();
-                    break;
-                case /* string description */ 2:
-                    message.description = reader.string();
-                    break;
-                case /* bytes data */ 3:
-                    message.data = reader.bytes();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: Error, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* int64 code = 1; */
-        if (message.code !== "0")
-            writer.tag(1, WireType.Varint).int64(message.code);
-        /* string description = 2; */
-        if (message.description !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.description);
-        /* bytes data = 3; */
-        if (message.data.length)
-            writer.tag(3, WireType.LengthDelimited).bytes(message.data);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.Error
- */
-export const Error = new Error$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class GetCallRequest$Type extends MessageType<GetCallRequest> {
     constructor() {
         super("stream.video.GetCallRequest", [
@@ -829,20 +749,20 @@ export const CreateOrUpdateCallsResponse = new CreateOrUpdateCallsResponse$Type(
 class CreateCallRequest$Type extends MessageType<CreateCallRequest> {
     constructor() {
         super("stream.video.CreateCallRequest", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "jsonencoded_custom_data", kind: "scalar", T: 12 /*ScalarType.BYTES*/ },
+            { no: 1, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "json_encoded_custom_data", kind: "scalar", T: 12 /*ScalarType.BYTES*/ },
             { no: 4, name: "participants", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "broadcast", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 6, name: "broadcast", kind: "message", T: () => BoolValue },
             { no: 7, name: "broadcast_options", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => BroadcastOptions },
-            { no: 8, name: "transcribe", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 8, name: "transcribe", kind: "message", T: () => BoolValue },
             { no: 9, name: "transcribe_options", kind: "message", T: () => TranscribeOptions },
-            { no: 10, name: "recording", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 11, name: "ring", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 10, name: "recording", kind: "message", T: () => BoolValue },
+            { no: 11, name: "ring", kind: "message", T: () => BoolValue }
         ]);
     }
     create(value?: PartialMessage<CreateCallRequest>): CreateCallRequest {
-        const message = { id: "", type: "", jsonencodedCustomData: new Uint8Array(0), participants: [], broadcast: false, broadcastOptions: [], transcribe: false, recording: false, ring: false };
+        const message = { type: "", id: "", jsonEncodedCustomData: new Uint8Array(0), participants: [], broadcastOptions: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateCallRequest>(this, message, value);
@@ -853,35 +773,35 @@ class CreateCallRequest$Type extends MessageType<CreateCallRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                case /* string type */ 2:
+                case /* string type */ 1:
                     message.type = reader.string();
                     break;
-                case /* bytes jsonencoded_custom_data */ 3:
-                    message.jsonencodedCustomData = reader.bytes();
+                case /* string id */ 2:
+                    message.id = reader.string();
+                    break;
+                case /* bytes json_encoded_custom_data */ 3:
+                    message.jsonEncodedCustomData = reader.bytes();
                     break;
                 case /* repeated string participants */ 4:
                     message.participants.push(reader.string());
                     break;
-                case /* bool broadcast */ 6:
-                    message.broadcast = reader.bool();
+                case /* google.protobuf.BoolValue broadcast */ 6:
+                    message.broadcast = BoolValue.internalBinaryRead(reader, reader.uint32(), options, message.broadcast);
                     break;
                 case /* repeated stream.video.BroadcastOptions broadcast_options */ 7:
                     message.broadcastOptions.push(BroadcastOptions.internalBinaryRead(reader, reader.uint32(), options));
                     break;
-                case /* bool transcribe */ 8:
-                    message.transcribe = reader.bool();
+                case /* google.protobuf.BoolValue transcribe */ 8:
+                    message.transcribe = BoolValue.internalBinaryRead(reader, reader.uint32(), options, message.transcribe);
                     break;
                 case /* stream.video.TranscribeOptions transcribe_options */ 9:
                     message.transcribeOptions = TranscribeOptions.internalBinaryRead(reader, reader.uint32(), options, message.transcribeOptions);
                     break;
-                case /* bool recording */ 10:
-                    message.recording = reader.bool();
+                case /* google.protobuf.BoolValue recording */ 10:
+                    message.recording = BoolValue.internalBinaryRead(reader, reader.uint32(), options, message.recording);
                     break;
-                case /* bool ring */ 11:
-                    message.ring = reader.bool();
+                case /* google.protobuf.BoolValue ring */ 11:
+                    message.ring = BoolValue.internalBinaryRead(reader, reader.uint32(), options, message.ring);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -895,36 +815,36 @@ class CreateCallRequest$Type extends MessageType<CreateCallRequest> {
         return message;
     }
     internalBinaryWrite(message: CreateCallRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* string type = 2; */
+        /* string type = 1; */
         if (message.type !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.type);
-        /* bytes jsonencoded_custom_data = 3; */
-        if (message.jsonencodedCustomData.length)
-            writer.tag(3, WireType.LengthDelimited).bytes(message.jsonencodedCustomData);
+            writer.tag(1, WireType.LengthDelimited).string(message.type);
+        /* string id = 2; */
+        if (message.id !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.id);
+        /* bytes json_encoded_custom_data = 3; */
+        if (message.jsonEncodedCustomData.length)
+            writer.tag(3, WireType.LengthDelimited).bytes(message.jsonEncodedCustomData);
         /* repeated string participants = 4; */
         for (let i = 0; i < message.participants.length; i++)
             writer.tag(4, WireType.LengthDelimited).string(message.participants[i]);
-        /* bool broadcast = 6; */
-        if (message.broadcast !== false)
-            writer.tag(6, WireType.Varint).bool(message.broadcast);
+        /* google.protobuf.BoolValue broadcast = 6; */
+        if (message.broadcast)
+            BoolValue.internalBinaryWrite(message.broadcast, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
         /* repeated stream.video.BroadcastOptions broadcast_options = 7; */
         for (let i = 0; i < message.broadcastOptions.length; i++)
             BroadcastOptions.internalBinaryWrite(message.broadcastOptions[i], writer.tag(7, WireType.LengthDelimited).fork(), options).join();
-        /* bool transcribe = 8; */
-        if (message.transcribe !== false)
-            writer.tag(8, WireType.Varint).bool(message.transcribe);
+        /* google.protobuf.BoolValue transcribe = 8; */
+        if (message.transcribe)
+            BoolValue.internalBinaryWrite(message.transcribe, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
         /* stream.video.TranscribeOptions transcribe_options = 9; */
         if (message.transcribeOptions)
             TranscribeOptions.internalBinaryWrite(message.transcribeOptions, writer.tag(9, WireType.LengthDelimited).fork(), options).join();
-        /* bool recording = 10; */
-        if (message.recording !== false)
-            writer.tag(10, WireType.Varint).bool(message.recording);
-        /* bool ring = 11; */
-        if (message.ring !== false)
-            writer.tag(11, WireType.Varint).bool(message.ring);
+        /* google.protobuf.BoolValue recording = 10; */
+        if (message.recording)
+            BoolValue.internalBinaryWrite(message.recording, writer.tag(10, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.BoolValue ring = 11; */
+        if (message.ring)
+            BoolValue.internalBinaryWrite(message.ring, writer.tag(11, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -988,12 +908,11 @@ class UpdateCallRequest$Type extends MessageType<UpdateCallRequest> {
         super("stream.video.UpdateCallRequest", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "jsonencoded_custom_data", kind: "scalar", T: 12 /*ScalarType.BYTES*/ },
-            { no: 4, name: "auth_token", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "json_encoded_custom_data", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
         ]);
     }
     create(value?: PartialMessage<UpdateCallRequest>): UpdateCallRequest {
-        const message = { id: "", type: "", jsonencodedCustomData: new Uint8Array(0), authToken: "" };
+        const message = { id: "", type: "", jsonEncodedCustomData: new Uint8Array(0) };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<UpdateCallRequest>(this, message, value);
@@ -1010,11 +929,8 @@ class UpdateCallRequest$Type extends MessageType<UpdateCallRequest> {
                 case /* string type */ 2:
                     message.type = reader.string();
                     break;
-                case /* bytes jsonencoded_custom_data */ 3:
-                    message.jsonencodedCustomData = reader.bytes();
-                    break;
-                case /* string auth_token */ 4:
-                    message.authToken = reader.string();
+                case /* bytes json_encoded_custom_data */ 3:
+                    message.jsonEncodedCustomData = reader.bytes();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1034,12 +950,9 @@ class UpdateCallRequest$Type extends MessageType<UpdateCallRequest> {
         /* string type = 2; */
         if (message.type !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.type);
-        /* bytes jsonencoded_custom_data = 3; */
-        if (message.jsonencodedCustomData.length)
-            writer.tag(3, WireType.LengthDelimited).bytes(message.jsonencodedCustomData);
-        /* string auth_token = 4; */
-        if (message.authToken !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.authToken);
+        /* bytes json_encoded_custom_data = 3; */
+        if (message.jsonEncodedCustomData.length)
+            writer.tag(3, WireType.LengthDelimited).bytes(message.jsonEncodedCustomData);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1175,12 +1088,11 @@ class SelectEdgeServerRequest$Type extends MessageType<SelectEdgeServerRequest> 
     constructor() {
         super("stream.video.SelectEdgeServerRequest", [
             { no: 1, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "latency_by_edge", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "message", T: () => Latency } }
         ]);
     }
     create(value?: PartialMessage<SelectEdgeServerRequest>): SelectEdgeServerRequest {
-        const message = { callId: "", userId: "", latencyByEdge: {} };
+        const message = { callId: "", latencyByEdge: {} };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<SelectEdgeServerRequest>(this, message, value);
@@ -1193,9 +1105,6 @@ class SelectEdgeServerRequest$Type extends MessageType<SelectEdgeServerRequest> 
             switch (fieldNo) {
                 case /* string call_id */ 1:
                     message.callId = reader.string();
-                    break;
-                case /* string user_id */ 2:
-                    message.userId = reader.string();
                     break;
                 case /* map<string, stream.video.Latency> latency_by_edge */ 3:
                     this.binaryReadMap3(message.latencyByEdge, reader, options);
@@ -1231,9 +1140,6 @@ class SelectEdgeServerRequest$Type extends MessageType<SelectEdgeServerRequest> 
         /* string call_id = 1; */
         if (message.callId !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.callId);
-        /* string user_id = 2; */
-        if (message.userId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.userId);
         /* map<string, stream.video.Latency> latency_by_edge = 3; */
         for (let k of Object.keys(message.latencyByEdge)) {
             writer.tag(3, WireType.LengthDelimited).fork().tag(1, WireType.LengthDelimited).string(k);
@@ -1309,16 +1215,13 @@ export const SelectEdgeServerResponse = new SelectEdgeServerResponse$Type();
 class AddDeviceRequest$Type extends MessageType<AddDeviceRequest> {
     constructor() {
         super("stream.video.AddDeviceRequest", [
-            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "push_provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "disabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 5, name: "disabled_reason", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "push_provider_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "push_provider_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<AddDeviceRequest>): AddDeviceRequest {
-        const message = { userId: "", id: "", pushProvider: "", disabled: false, disabledReason: "", pushProviderName: "" };
+        const message = { id: "", pushProviderName: "", userId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<AddDeviceRequest>(this, message, value);
@@ -1329,23 +1232,14 @@ class AddDeviceRequest$Type extends MessageType<AddDeviceRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string user_id */ 1:
-                    message.userId = reader.string();
-                    break;
-                case /* string id */ 2:
+                case /* string id */ 1:
                     message.id = reader.string();
                     break;
-                case /* string push_provider */ 3:
-                    message.pushProvider = reader.string();
-                    break;
-                case /* bool disabled */ 4:
-                    message.disabled = reader.bool();
-                    break;
-                case /* string disabled_reason */ 5:
-                    message.disabledReason = reader.string();
-                    break;
-                case /* string push_provider_name */ 6:
+                case /* string push_provider_name */ 2:
                     message.pushProviderName = reader.string();
+                    break;
+                case /* string user_id */ 3:
+                    message.userId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1359,24 +1253,15 @@ class AddDeviceRequest$Type extends MessageType<AddDeviceRequest> {
         return message;
     }
     internalBinaryWrite(message: AddDeviceRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string user_id = 1; */
-        if (message.userId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.userId);
-        /* string id = 2; */
+        /* string id = 1; */
         if (message.id !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.id);
-        /* string push_provider = 3; */
-        if (message.pushProvider !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.pushProvider);
-        /* bool disabled = 4; */
-        if (message.disabled !== false)
-            writer.tag(4, WireType.Varint).bool(message.disabled);
-        /* string disabled_reason = 5; */
-        if (message.disabledReason !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.disabledReason);
-        /* string push_provider_name = 6; */
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string push_provider_name = 2; */
         if (message.pushProviderName !== "")
-            writer.tag(6, WireType.LengthDelimited).string(message.pushProviderName);
+            writer.tag(2, WireType.LengthDelimited).string(message.pushProviderName);
+        /* string user_id = 3; */
+        if (message.userId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.userId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

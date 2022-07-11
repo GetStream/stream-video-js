@@ -1,65 +1,123 @@
-import React, { useEffect, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import {
   createClient,
   SelectEdgeServerResponse,
+  withBearerToken,
 } from '@stream-io/video-client';
+import { Room, RoomType } from '@stream-io/video-components-react';
+
+const useStreamVideoClient = (userToken: string) => {
+  const baseUrl = '/'; // proxied to http://localhost:26991
+  return React.useMemo(() => {
+    return createClient({
+      baseUrl,
+      sendJson: true,
+      interceptors: [withBearerToken(userToken)],
+    });
+  }, [baseUrl, userToken]);
+};
+
+// use different browser tabs
+const participants = [
+  [
+    'alice',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWxpY2UifQ.WZkPaUZb84fLkQoEEFw078Xd1RzwR42XjvBISgM2BAk',
+  ],
+  [
+    'bob',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYm9iIn0.6fqa74FESB2DMUcsIiArBDJR2ckkdSvWiSb7qRLVU6U',
+  ],
+  [
+    'trudy',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidHJ1ZHkifQ.yhwq7Dv7znpFiIZrAb9bOYiEXM_PHtgqoq5pgFeOL78',
+  ],
+];
 
 const request = {
-  callId: 'testroom',
+  callId: 'react-test-room',
   latencyByEdge: {
     a: {
       measurements: [10, 20],
     },
   },
-  userId: 'ol',
-};
-
-const useSelectEdgeServerCall = () => {
-  const client = React.useMemo(() => {
-    return createClient({
-      // requests are proxied to http://localhost:26991
-      baseUrl: '/',
-      sendJson: true,
-    });
-  }, []);
-
-  const [edgeServersResponse, setEdgeServersResponse] = useState<
-    SelectEdgeServerResponse | undefined
-  >(undefined);
-  useEffect(() => {
-    const abort = new AbortController();
-    const selectEdgeServer = async () => {
-      try {
-        const { response } = await client.selectEdgeServer(request, {
-          abort: abort.signal,
-        });
-        setEdgeServersResponse(response);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
-    selectEdgeServer();
-    return () => {
-      abort.abort();
-    };
-  }, [client]);
-  return edgeServersResponse;
 };
 
 const App = () => {
-  const edgeServers = useSelectEdgeServerCall();
+  const userToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoib2xpdmVybGF6In0.vn3Ysp3yeIy41yCqNWa42H2Lj3TIcLbGWtw1djeLrss`;
+  const client = useStreamVideoClient(userToken);
+  const [connectedUser, setConnectedUser] = useState<string | null>(null);
+  const [edge, setEdge] = useState<SelectEdgeServerResponse | null>(null);
+  const roomRef = useRef<RoomType | null>(null);
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>SelectEdgeServer RPC response:</p>
-        <pre className="App-server-response">
-          {JSON.stringify(edgeServers, null, 2)}
-        </pre>
       </header>
+      <main className="App-main">
+        {participants
+          .map(
+            ([user, token]) =>
+              !connectedUser && (
+                <button
+                  key={user}
+                  type="button"
+                  disabled={user === connectedUser}
+                  onClick={() => {
+                    client
+                      .selectEdgeServer(request, {
+                        interceptors: [withBearerToken(token)],
+                      })
+                      .then(({ response }) => {
+                        setEdge(response);
+                        setConnectedUser(user);
+                      })
+                      .catch((e) => {
+                        console.error('Failed to connect: ', e);
+                        setConnectedUser(null);
+                      });
+                  }}
+                >
+                  Connect as: {user}
+                </button>
+              ),
+          )
+          .filter(Boolean)}
+        {connectedUser && (
+          <button
+            type="button"
+            onClick={() => {
+              roomRef.current
+                ?.disconnect()
+                .then(() => {
+                  setConnectedUser(null);
+                  setEdge(null);
+                })
+                .catch(console.error);
+            }}
+          >
+            Disconnect: {connectedUser}
+          </button>
+        )}
+        {edge && edge.edgeServer && (
+          <Room
+            url={'wss://' + edge.edgeServer.url}
+            token={edge.token}
+            onConnected={(room) => {
+              room.localParticipant
+                .enableCameraAndMicrophone()
+                .then(() => {
+                  console.log('Camera and Mic enabled');
+                })
+                .catch((e) => {
+                  console.error('Failed to get Camera and Mic permissions', e);
+                });
+              roomRef.current = room;
+            }}
+          />
+        )}
+      </main>
     </div>
   );
 };
