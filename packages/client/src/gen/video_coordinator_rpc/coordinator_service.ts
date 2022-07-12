@@ -375,9 +375,13 @@ export interface SendCustomEventResponse {
  */
 export interface JoinCallRequest {
     /**
-     * @generated from protobuf field: string call_id = 1;
+     * @generated from protobuf field: string id = 1;
      */
-    callId: string;
+    id: string;
+    /**
+     * @generated from protobuf field: string type = 2;
+     */
+    type: string;
 }
 /**
  * @generated from protobuf message stream.video.UserCapability
@@ -1925,11 +1929,12 @@ export const SendCustomEventResponse = new SendCustomEventResponse$Type();
 class JoinCallRequest$Type extends MessageType<JoinCallRequest> {
     constructor() {
         super("stream.video.JoinCallRequest", [
-            { no: 1, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<JoinCallRequest>): JoinCallRequest {
-        const message = { callId: "" };
+        const message = { id: "", type: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<JoinCallRequest>(this, message, value);
@@ -1940,8 +1945,11 @@ class JoinCallRequest$Type extends MessageType<JoinCallRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_id */ 1:
-                    message.callId = reader.string();
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string type */ 2:
+                    message.type = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1955,9 +1963,12 @@ class JoinCallRequest$Type extends MessageType<JoinCallRequest> {
         return message;
     }
     internalBinaryWrite(message: JoinCallRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_id = 1; */
-        if (message.callId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callId);
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string type = 2; */
+        if (message.type !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.type);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
