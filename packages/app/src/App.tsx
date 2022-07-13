@@ -1,108 +1,157 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import {
-  createClient,
   SelectEdgeServerResponse,
-  withBearerToken,
+  StreamVideoClient,
 } from '@stream-io/video-client';
 import { Room, RoomType } from '@stream-io/video-components-react';
 
-const useStreamVideoClient = (userToken: string) => {
+const useStreamVideoClient = (userId: string, userToken: string) => {
   const baseUrl = '/'; // proxied to http://localhost:26991
-  return React.useMemo(() => {
-    return createClient({
+  return useMemo(() => {
+    return new StreamVideoClient('api-key', {
       baseUrl,
       sendJson: true,
-      interceptors: [withBearerToken(userToken)],
+      user: {
+        userId,
+        token: userToken,
+      },
     });
-  }, [baseUrl, userToken]);
+  }, [userId, userToken]);
 };
 
 // use different browser tabs
 const participants = [
   [
-    'alice',
+    'Alice',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWxpY2UifQ.WZkPaUZb84fLkQoEEFw078Xd1RzwR42XjvBISgM2BAk',
   ],
   [
-    'bob',
+    'Bob',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYm9iIn0.6fqa74FESB2DMUcsIiArBDJR2ckkdSvWiSb7qRLVU6U',
   ],
   [
-    'trudy',
+    'Trudy',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidHJ1ZHkifQ.yhwq7Dv7znpFiIZrAb9bOYiEXM_PHtgqoq5pgFeOL78',
   ],
 ];
 
-const request = {
-  callId: 'react-test-room',
-  latencyByEdge: {
-    a: {
-      measurements: [10, 20],
-    },
-  },
-};
-
 const App = () => {
-  const userToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoib2xpdmVybGF6In0.vn3Ysp3yeIy41yCqNWa42H2Lj3TIcLbGWtw1djeLrss`;
-  const client = useStreamVideoClient(userToken);
-  const [connectedUser, setConnectedUser] = useState<string | null>(null);
-  const [edge, setEdge] = useState<SelectEdgeServerResponse | null>(null);
-  const roomRef = useRef<RoomType | null>(null);
+  const [currentUser, setCurrentUser] = useState(participants[0][0]);
+  const [currentUserToken, setCurrentUserToken] = useState(participants[0][1]);
+  const [joinCallId, setJoinCallId] = useState<string>('random-id');
+  const [edge, setEdge] = useState<SelectEdgeServerResponse | undefined>();
+  const client = useStreamVideoClient(currentUser, currentUserToken);
+  const roomRef = useRef<RoomType>();
+
+  const joinCall = useCallback(
+    async (id: string) => {
+      try {
+        const joinedCall = await client.joinCall({ id, type: 'video' });
+        setJoinCallId(id);
+        setEdge(joinedCall);
+      } catch (err) {
+        console.error(`Failed to join call`, err);
+      }
+    },
+    [client],
+  );
+
+  const initiateCall = useCallback(
+    async (id: string) => {
+      try {
+        const createdCall = await client.createCall({
+          id,
+          type: 'video',
+          participants: [],
+          broadcastOptions: [],
+          jsonEncodedCustomData: new Uint8Array(),
+        });
+
+        await joinCall(createdCall?.id ?? '');
+      } catch (err) {
+        console.error(`Failed to create a call`, err);
+      }
+    },
+    [client, joinCall],
+  );
+
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
       </header>
       <main className="App-main">
-        {participants
-          .map(
-            ([user, token]) =>
-              !connectedUser && (
-                <button
-                  key={user}
-                  type="button"
-                  disabled={user === connectedUser}
-                  onClick={() => {
-                    client
-                      .selectEdgeServer(request, {
-                        interceptors: [withBearerToken(token)],
-                      })
-                      .then(({ response }) => {
-                        setEdge(response);
-                        setConnectedUser(user);
-                      })
-                      .catch((e) => {
-                        console.error('Failed to connect: ', e);
-                        setConnectedUser(null);
-                      });
-                  }}
-                >
-                  Connect as: {user}
-                </button>
-              ),
-          )
-          .filter(Boolean)}
-        {connectedUser && (
-          <button
-            type="button"
-            onClick={() => {
-              roomRef.current
-                ?.disconnect()
-                .then(() => {
-                  setConnectedUser(null);
-                  setEdge(null);
-                })
-                .catch(console.error);
-            }}
-          >
-            Disconnect: {connectedUser}
-          </button>
-        )}
+        <div className="App-call-control">
+          <div className="left">
+            <div>
+              I am:{' '}
+              <select
+                value={currentUserToken}
+                onChange={(e) => {
+                  setCurrentUser(e.target.textContent || '');
+                  setCurrentUserToken(e.target.value);
+                }}
+              >
+                {participants.map(([id, token]) => (
+                  <option key={id} value={token}>
+                    {id}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="right">
+            <div>
+              Call ID:{' '}
+              <input
+                type="text"
+                value={joinCallId}
+                onChange={(e) => {
+                  setJoinCallId(e.target.value);
+                }}
+              />
+            </div>
+            <div>
+              <button
+                type="button"
+                onClick={() => {
+                  initiateCall(joinCallId);
+                }}
+              >
+                Initiate Call
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (joinCallId) {
+                    joinCall(joinCallId);
+                  }
+                }}
+              >
+                Join Call
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  roomRef.current
+                    ?.disconnect()
+                    .then(() => {
+                      console.log(`Disconnected from call: ${joinCallId}`);
+                      setEdge(undefined);
+                    })
+                    .catch(console.error);
+                }}
+              >
+                Disconnect
+              </button>
+            </div>
+          </div>
+        </div>
         {edge && edge.edgeServer && (
           <Room
-            url={'wss://' + edge.edgeServer.url}
+            url={`wss://${edge.edgeServer.url}`}
             token={edge.token}
             onConnected={(room) => {
               room.localParticipant

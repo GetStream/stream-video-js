@@ -32,6 +32,34 @@
   background-color: #282c34;
   color: white;
   height: 80vh;
+  padding: 0 150px;
+}
+
+.App-call-control {
+  display: flex;
+}
+
+.App-call-control > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 10px;
+}
+
+.App-call-control > div button {
+  margin-right: 5px;
+}
+
+.App-call-control > div.left {
+  align-items: end;
+}
+
+.App-call-control > div.right {
+  align-items: start;
+}
+
+.App-call-control > div div {
+  padding: 5px 0;
 }
 
 @keyframes App-logo-spin {
