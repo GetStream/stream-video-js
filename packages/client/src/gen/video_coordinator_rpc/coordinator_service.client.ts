@@ -59,12 +59,17 @@ import type { RpcOptions } from "@protobuf-ts/runtime-rpc";
  */
 export interface ICallCoordinatorServiceClient {
     /**
-     * basic CRUD operations on calls
+     * CreateCall creates a new call that is unique for the combination of type and id fields
+     * If a call with the same type and id already exists then the call will be updated based on the request (if allowed and if needed)
+     * The user calling this endpoint will be created if necessary ({id: id})
+     * The users listed in the participants field will also be created if necessary ({id: id})
      *
      * @generated from protobuf rpc: CreateCall(stream.video.CreateCallRequest) returns (stream.video.CreateCallResponse);
      */
     createCall(input: CreateCallRequest, options?: RpcOptions): UnaryCall<CreateCallRequest, CreateCallResponse>;
     /**
+     * GetCall retrieves the state for one call, the user calling this endpoint is created if missing
+     *
      * @generated from protobuf rpc: GetCall(stream.video.GetCallRequest) returns (stream.video.GetCallResponse);
      */
     getCall(input: GetCallRequest, options?: RpcOptions): UnaryCall<GetCallRequest, GetCallResponse>;
@@ -77,7 +82,8 @@ export interface ICallCoordinatorServiceClient {
      */
     deleteCall(input: DeleteCallRequest, options?: RpcOptions): UnaryCall<DeleteCallRequest, DeleteCallResponse>;
     /**
-     * join call
+     * JoinCall returns the call state and the list of edges that the user should be check for latency
+     * this endpoint is meant to be used to prepare the information needed to call the SelectEdgeServer endpoint
      *
      * @generated from protobuf rpc: JoinCall(stream.video.JoinCallRequest) returns (stream.video.JoinCallResponse);
      */
@@ -95,7 +101,9 @@ export interface ICallCoordinatorServiceClient {
      */
     endCall(input: EndCallRequest, options?: RpcOptions): UnaryCall<EndCallRequest, EndCallResponse>;
     /**
-     * register mobile device for push
+     * AddDevice registers the mobile device for push notifications
+     * this endpoint will create the user if missing
+     * if a device with the same id and push_provider_name exists, then the operation will be ignored
      *
      * @generated from protobuf rpc: AddDevice(stream.video.AddDeviceRequest) returns (stream.video.AddDeviceResponse);
      */
@@ -200,7 +208,10 @@ export class CallCoordinatorServiceClient implements ICallCoordinatorServiceClie
     constructor(private readonly _transport: RpcTransport) {
     }
     /**
-     * basic CRUD operations on calls
+     * CreateCall creates a new call that is unique for the combination of type and id fields
+     * If a call with the same type and id already exists then the call will be updated based on the request (if allowed and if needed)
+     * The user calling this endpoint will be created if necessary ({id: id})
+     * The users listed in the participants field will also be created if necessary ({id: id})
      *
      * @generated from protobuf rpc: CreateCall(stream.video.CreateCallRequest) returns (stream.video.CreateCallResponse);
      */
@@ -209,6 +220,8 @@ export class CallCoordinatorServiceClient implements ICallCoordinatorServiceClie
         return stackIntercept<CreateCallRequest, CreateCallResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * GetCall retrieves the state for one call, the user calling this endpoint is created if missing
+     *
      * @generated from protobuf rpc: GetCall(stream.video.GetCallRequest) returns (stream.video.GetCallResponse);
      */
     getCall(input: GetCallRequest, options?: RpcOptions): UnaryCall<GetCallRequest, GetCallResponse> {
@@ -230,7 +243,8 @@ export class CallCoordinatorServiceClient implements ICallCoordinatorServiceClie
         return stackIntercept<DeleteCallRequest, DeleteCallResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * join call
+     * JoinCall returns the call state and the list of edges that the user should be check for latency
+     * this endpoint is meant to be used to prepare the information needed to call the SelectEdgeServer endpoint
      *
      * @generated from protobuf rpc: JoinCall(stream.video.JoinCallRequest) returns (stream.video.JoinCallResponse);
      */
@@ -260,7 +274,9 @@ export class CallCoordinatorServiceClient implements ICallCoordinatorServiceClie
         return stackIntercept<EndCallRequest, EndCallResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * register mobile device for push
+     * AddDevice registers the mobile device for push notifications
+     * this endpoint will create the user if missing
+     * if a device with the same id and push_provider_name exists, then the operation will be ignored
      *
      * @generated from protobuf rpc: AddDevice(stream.video.AddDeviceRequest) returns (stream.video.AddDeviceResponse);
      */

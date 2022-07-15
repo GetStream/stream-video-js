@@ -162,9 +162,9 @@ export interface User {
      */
     teams: string[];
     /**
-     * @generated from protobuf field: string type = 3;
+     * @generated from protobuf field: string role = 3;
      */
-    type: string;
+    role: string;
     /**
      * @generated from protobuf field: string created_at = 7;
      */
@@ -917,13 +917,13 @@ class User$Type extends MessageType<User> {
         super("stream.video.User", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
             { no: 2, name: "teams", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 8, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<User>): User {
-        const message = { id: "", teams: [], type: "", createdAt: "", updatedAt: "" };
+        const message = { id: "", teams: [], role: "", createdAt: "", updatedAt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<User>(this, message, value);
@@ -940,8 +940,8 @@ class User$Type extends MessageType<User> {
                 case /* repeated string teams */ 2:
                     message.teams.push(reader.string());
                     break;
-                case /* string type */ 3:
-                    message.type = reader.string();
+                case /* string role */ 3:
+                    message.role = reader.string();
                     break;
                 case /* string created_at */ 7:
                     message.createdAt = reader.string();
@@ -967,9 +967,9 @@ class User$Type extends MessageType<User> {
         /* repeated string teams = 2; */
         for (let i = 0; i < message.teams.length; i++)
             writer.tag(2, WireType.LengthDelimited).string(message.teams[i]);
-        /* string type = 3; */
-        if (message.type !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.type);
+        /* string role = 3; */
+        if (message.role !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.role);
         /* string created_at = 7; */
         if (message.createdAt !== "")
             writer.tag(7, WireType.LengthDelimited).string(message.createdAt);

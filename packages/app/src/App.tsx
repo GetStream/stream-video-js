@@ -64,7 +64,7 @@ const App = () => {
         const createdCall = await client.createCall({
           id,
           type: 'video',
-          participants: [],
+          participantIds: [],
           broadcastOptions: [],
           jsonEncodedCustomData: new Uint8Array(),
         });

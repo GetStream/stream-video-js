@@ -17,6 +17,7 @@ npx protoc \
   --ts_opt client_generic \
   --ts_opt server_none \
   --proto_path $PROTO_DIR \
+  $PROTO_DIR/video_events/events.proto \
   $PROTO_DIR/video_coordinator_rpc/coordinator_service.proto
 
 echo "Finished generating protobuf client"
