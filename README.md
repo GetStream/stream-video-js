@@ -2,7 +2,7 @@
 
 ## Notes
 
-This repository contains a submodule link to [GetStream/video](https://github.com/GetStream/video).
+This repository contains a Git sub-module link to [GetStream/video](https://github.com/GetStream/video).
 This link is then used for sourcing the `.proto` files during protobuf code generation process.
 
 ## Setup
