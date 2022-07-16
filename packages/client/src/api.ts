@@ -43,7 +43,7 @@ export class StreamVideoClient {
     const latencyByEdge: { [e: string]: Latency } = {};
     for (const edge of edges) {
       latencyByEdge[edge.name] = {
-        measurements: await measureLatencyTo(edge.latencyUrl),
+        measurementsSeconds: await measureLatencyTo(edge.latencyUrl),
       };
     }
 

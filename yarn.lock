@@ -2429,8 +2429,13 @@ __metadata:
   resolution: "@stream-io/video-components-react@workspace:packages/components"
   dependencies:
     "@livekit/react-components": ^1.0.0
-    livekit-client: ^1.2.0
+    livekit-client: ^1.2.2
+    react: ^18.2.0
+    react-dom: ^18.2.0
     typescript: ^4.7.4
+  peerDependencies:
+    react: ^18.0.0
+    react-dom: ^18.0.0
   languageName: unknown
   linkType: soft
 
@@ -2444,7 +2449,7 @@ __metadata:
     "@testing-library/react": ^13.3.0
     "@testing-library/user-event": ^13.5.0
     "@types/jest": ^27.5.2
-    "@types/node": ^18.0.3
+    "@types/node": ^18.0.5
     "@types/react": ^18.0.15
     "@types/react-dom": ^18.0.6
     react: ^18.2.0
@@ -2930,10 +2935,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:>=13.7.0, @types/node@npm:^18.0.3":
+"@types/node@npm:>=13.7.0":
   version: 18.0.3
   resolution: "@types/node@npm:18.0.3"
   checksum: 5dec59fbbc1186c808b53df1ca717dad034dbd6a901c75f5b052c845618b531b05f27217122c6254db99529a68618e4cfc534ae3dbf4e88754e9e572df80defa
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^18.0.5":
+  version: 18.0.5
+  resolution: "@types/node@npm:18.0.5"
+  checksum: cc9c67d0074252f798d226dd95a22e0e8851cf7fc623ef4a603d9ad2c2b46650f930147062ea33719008b1de67f08f499ad693307d02f8396e6f1fead8144329
   languageName: node
   linkType: hard
 
@@ -8279,9 +8291,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"livekit-client@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "livekit-client@npm:1.2.0"
+"livekit-client@npm:^1.2.2":
+  version: 1.2.2
+  resolution: "livekit-client@npm:1.2.2"
   dependencies:
     async-await-queue: ^1.2.1
     events: ^3.3.0
@@ -8290,7 +8302,7 @@ __metadata:
     ts-debounce: ^3.0.0
     typed-emitter: ^2.1.0
     webrtc-adapter: ^8.1.1
-  checksum: a8b64172d91e0745b8f13a2ea0a30d160c375e600b3f095a46a6dc700741d13a7b7d34afb2b1404cccd3c7faef573330566066abdc3e3b400c48b1263045c9a6
+  checksum: c1e08f299408e20391a5f1c0254560554c042974e649eba0ab3b585c48765f71a7fce6a5fde525cc25a27bad7ebdde6bade2d9cf6507dfc816b3d1304c982d86
   languageName: node
   linkType: hard
 

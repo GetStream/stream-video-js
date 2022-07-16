@@ -48,9 +48,9 @@ export interface EdgeServer {
  */
 export interface Latency {
     /**
-     * @generated from protobuf field: repeated float measurements = 1;
+     * @generated from protobuf field: repeated float measurements_seconds = 1;
      */
-    measurements: number[];
+    measurementsSeconds: number[];
 }
 /**
  * 3 different type of broadcast
@@ -567,11 +567,11 @@ export const EdgeServer = new EdgeServer$Type();
 class Latency$Type extends MessageType<Latency> {
     constructor() {
         super("stream.video.Latency", [
-            { no: 1, name: "measurements", kind: "scalar", repeat: 1 /*RepeatType.PACKED*/, T: 2 /*ScalarType.FLOAT*/ }
+            { no: 1, name: "measurements_seconds", kind: "scalar", repeat: 1 /*RepeatType.PACKED*/, T: 2 /*ScalarType.FLOAT*/ }
         ]);
     }
     create(value?: PartialMessage<Latency>): Latency {
-        const message = { measurements: [] };
+        const message = { measurementsSeconds: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Latency>(this, message, value);
@@ -582,12 +582,12 @@ class Latency$Type extends MessageType<Latency> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated float measurements */ 1:
+                case /* repeated float measurements_seconds */ 1:
                     if (wireType === WireType.LengthDelimited)
                         for (let e = reader.int32() + reader.pos; reader.pos < e;)
-                            message.measurements.push(reader.float());
+                            message.measurementsSeconds.push(reader.float());
                     else
-                        message.measurements.push(reader.float());
+                        message.measurementsSeconds.push(reader.float());
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -601,11 +601,11 @@ class Latency$Type extends MessageType<Latency> {
         return message;
     }
     internalBinaryWrite(message: Latency, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated float measurements = 1; */
-        if (message.measurements.length) {
+        /* repeated float measurements_seconds = 1; */
+        if (message.measurementsSeconds.length) {
             writer.tag(1, WireType.LengthDelimited).fork();
-            for (let i = 0; i < message.measurements.length; i++)
-                writer.float(message.measurements[i]);
+            for (let i = 0; i < message.measurementsSeconds.length; i++)
+                writer.float(message.measurementsSeconds[i]);
             writer.join();
         }
         let u = options.writeUnknownFields;

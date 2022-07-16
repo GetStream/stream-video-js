@@ -159,7 +159,7 @@ const App = () => {
                 .then(() => {
                   console.log('Camera and Mic enabled');
                 })
-                .catch((e) => {
+                .catch((e: Error) => {
                   console.error('Failed to get Camera and Mic permissions', e);
                 });
               roomRef.current = room;
