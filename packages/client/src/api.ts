@@ -9,10 +9,21 @@ import { CallCoordinatorServiceClient } from './gen/video_coordinator_rpc/coordi
 import type { Latency } from './gen/video_models/models';
 import type { StreamVideoClientOptions } from './types';
 
+const defaultOptions: Partial<StreamVideoClientOptions> = {
+  sendJson: false,
+  latencyMeasurementRounds: 3,
+};
+
 export class StreamVideoClient {
   private client: CallCoordinatorServiceClient;
+  private options: StreamVideoClientOptions;
 
-  constructor(apiKey: string, options: StreamVideoClientOptions) {
+  constructor(apiKey: string, opts: StreamVideoClientOptions) {
+    const options = {
+      ...defaultOptions,
+      ...opts,
+    };
+    this.options = options;
     const { user } = options;
     const token = typeof user.token === 'function' ? user.token() : user.token;
     this.client = createClient({
@@ -43,7 +54,10 @@ export class StreamVideoClient {
     const latencyByEdge: { [e: string]: Latency } = {};
     for (const edge of edges) {
       latencyByEdge[edge.name] = {
-        measurementsSeconds: await measureLatencyTo(edge.latencyUrl),
+        measurementsSeconds: await measureLatencyTo(
+          edge.latencyUrl,
+          this.options.latencyMeasurementRounds!,
+        ),
       };
     }
 
