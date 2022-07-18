@@ -2429,7 +2429,7 @@ __metadata:
   resolution: "@stream-io/video-components-react@workspace:packages/components"
   dependencies:
     "@livekit/react-components": ^1.0.0
-    livekit-client: ^1.2.2
+    livekit-client: ^1.2.4
     react: ^18.2.0
     react-dom: ^18.2.0
     typescript: ^4.7.4
@@ -2449,7 +2449,7 @@ __metadata:
     "@testing-library/react": ^13.3.0
     "@testing-library/user-event": ^13.5.0
     "@types/jest": ^27.5.2
-    "@types/node": ^18.0.5
+    "@types/node": ^18.0.6
     "@types/react": ^18.0.15
     "@types/react-dom": ^18.0.6
     react: ^18.2.0
@@ -2942,10 +2942,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^18.0.5":
-  version: 18.0.5
-  resolution: "@types/node@npm:18.0.5"
-  checksum: cc9c67d0074252f798d226dd95a22e0e8851cf7fc623ef4a603d9ad2c2b46650f930147062ea33719008b1de67f08f499ad693307d02f8396e6f1fead8144329
+"@types/node@npm:^18.0.6":
+  version: 18.0.6
+  resolution: "@types/node@npm:18.0.6"
+  checksum: 780f8885a6b6eb12f4c0246617747fdc37a451931b3c01ce8148d356c0903b705dcb16cc6a914de63d48b0dc1b002c7a3dfae681f580e1761aa551d3cd996813
   languageName: node
   linkType: hard
 
@@ -8291,18 +8291,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"livekit-client@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "livekit-client@npm:1.2.2"
+"livekit-client@npm:^1.2.4":
+  version: 1.2.4
+  resolution: "livekit-client@npm:1.2.4"
   dependencies:
     async-await-queue: ^1.2.1
     events: ^3.3.0
     loglevel: ^1.8.0
     protobufjs: ^6.11.2
+    sdp-transform: ^2.14.1
     ts-debounce: ^3.0.0
     typed-emitter: ^2.1.0
     webrtc-adapter: ^8.1.1
-  checksum: c1e08f299408e20391a5f1c0254560554c042974e649eba0ab3b585c48765f71a7fce6a5fde525cc25a27bad7ebdde6bade2d9cf6507dfc816b3d1304c982d86
+  checksum: db6ddc8dff8e7eabfe628f3f97ee03729756396a5abc612dc327995cc15a70c9a2b38b1f7660c00a4b61a7d2e03b67792614f524293a3bae85a3d8dac6375f55
   languageName: node
   linkType: hard
 
@@ -11169,6 +11170,15 @@ __metadata:
     ajv-formats: ^2.1.1
     ajv-keywords: ^5.0.0
   checksum: c843e92fdd1a5c145dbb6ffdae33e501867f9703afac67bdf35a685e49f85b1dcc10ea250033175a64bd9d31f0555bc6785b8359da0c90bcea30cf6dfbb55a8f
+  languageName: node
+  linkType: hard
+
+"sdp-transform@npm:^2.14.1":
+  version: 2.14.1
+  resolution: "sdp-transform@npm:2.14.1"
+  bin:
+    sdp-verify: checker.js
+  checksum: 8b3179786db1a0f1ebfdacb1ac0dfe2833e63e8c64b638884cec212455061d53beaa8d9c8bf76fdbd5f844b7885f3892adec27e87734cfbc2b3e5c65e18a489b
   languageName: node
   linkType: hard
 

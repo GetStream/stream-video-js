@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@livekit/react-components": "^1.0.0",
-    "livekit-client": "^1.2.2"
+    "livekit-client": "^1.2.4"
   },
   "peerDependencies": {
     "react": "^18.0.0",
