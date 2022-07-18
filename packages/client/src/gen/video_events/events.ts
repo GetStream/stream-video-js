@@ -13,8 +13,9 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Broadcast } from "../video_models/models";
 import { Participant } from "../video_models/models";
-import { User } from "../video_models/models";
 import { Call } from "../video_models/models";
+import { Device } from "../video_models/models";
+import { User } from "../video_models/models";
 /**
  * @generated from protobuf message stream.video.WebsocketEvent
  */
@@ -107,6 +108,12 @@ export interface WebsocketEvent {
          */
         broadcastEnded: BroadcastEnded;
     } | {
+        oneofKind: "authPayload";
+        /**
+         * @generated from protobuf field: stream.video.AuthPayload auth_payload = 15;
+         */
+        authPayload: AuthPayload;
+    } | {
         oneofKind: undefined;
     };
 }
@@ -118,6 +125,27 @@ export interface Healthcheck {
      * @generated from protobuf field: string user_id = 1;
      */
     userId: string;
+    /**
+     * @generated from protobuf field: string client_id = 2;
+     */
+    clientId: string;
+}
+/**
+ * @generated from protobuf message stream.video.AuthPayload
+ */
+export interface AuthPayload {
+    /**
+     * @generated from protobuf field: stream.video.User user = 1;
+     */
+    user?: User;
+    /**
+     * @generated from protobuf field: stream.video.Device device = 2;
+     */
+    device?: Device;
+    /**
+     * @generated from protobuf field: string token = 3;
+     */
+    token: string;
 }
 /**
  * *
@@ -260,7 +288,8 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
             { no: 11, name: "participant_joined", kind: "message", oneof: "eventPayload", T: () => ParticipantJoined },
             { no: 12, name: "participant_left", kind: "message", oneof: "eventPayload", T: () => ParticipantLeft },
             { no: 13, name: "broadcast_started", kind: "message", oneof: "eventPayload", T: () => BroadcastStarted },
-            { no: 14, name: "broadcast_ended", kind: "message", oneof: "eventPayload", T: () => BroadcastEnded }
+            { no: 14, name: "broadcast_ended", kind: "message", oneof: "eventPayload", T: () => BroadcastEnded },
+            { no: 15, name: "auth_payload", kind: "message", oneof: "eventPayload", T: () => AuthPayload }
         ]);
     }
     create(value?: PartialMessage<WebsocketEvent>): WebsocketEvent {
@@ -359,6 +388,12 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
                         broadcastEnded: BroadcastEnded.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).broadcastEnded)
                     };
                     break;
+                case /* stream.video.AuthPayload auth_payload */ 15:
+                    message.eventPayload = {
+                        oneofKind: "authPayload",
+                        authPayload: AuthPayload.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).authPayload)
+                    };
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -413,6 +448,9 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
         /* stream.video.BroadcastEnded broadcast_ended = 14; */
         if (message.eventPayload.oneofKind === "broadcastEnded")
             BroadcastEnded.internalBinaryWrite(message.eventPayload.broadcastEnded, writer.tag(14, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.AuthPayload auth_payload = 15; */
+        if (message.eventPayload.oneofKind === "authPayload")
+            AuthPayload.internalBinaryWrite(message.eventPayload.authPayload, writer.tag(15, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -427,11 +465,12 @@ export const WebsocketEvent = new WebsocketEvent$Type();
 class Healthcheck$Type extends MessageType<Healthcheck> {
     constructor() {
         super("stream.video.Healthcheck", [
-            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "client_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Healthcheck>): Healthcheck {
-        const message = { userId: "" };
+        const message = { userId: "", clientId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Healthcheck>(this, message, value);
@@ -444,6 +483,9 @@ class Healthcheck$Type extends MessageType<Healthcheck> {
             switch (fieldNo) {
                 case /* string user_id */ 1:
                     message.userId = reader.string();
+                    break;
+                case /* string client_id */ 2:
+                    message.clientId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -460,6 +502,9 @@ class Healthcheck$Type extends MessageType<Healthcheck> {
         /* string user_id = 1; */
         if (message.userId !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.userId);
+        /* string client_id = 2; */
+        if (message.clientId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.clientId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -470,6 +515,67 @@ class Healthcheck$Type extends MessageType<Healthcheck> {
  * @generated MessageType for protobuf message stream.video.Healthcheck
  */
 export const Healthcheck = new Healthcheck$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AuthPayload$Type extends MessageType<AuthPayload> {
+    constructor() {
+        super("stream.video.AuthPayload", [
+            { no: 1, name: "user", kind: "message", T: () => User },
+            { no: 2, name: "device", kind: "message", T: () => Device },
+            { no: 3, name: "token", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AuthPayload>): AuthPayload {
+        const message = { token: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AuthPayload>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AuthPayload): AuthPayload {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.User user */ 1:
+                    message.user = User.internalBinaryRead(reader, reader.uint32(), options, message.user);
+                    break;
+                case /* stream.video.Device device */ 2:
+                    message.device = Device.internalBinaryRead(reader, reader.uint32(), options, message.device);
+                    break;
+                case /* string token */ 3:
+                    message.token = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AuthPayload, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.User user = 1; */
+        if (message.user)
+            User.internalBinaryWrite(message.user, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.Device device = 2; */
+        if (message.device)
+            Device.internalBinaryWrite(message.device, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* string token = 3; */
+        if (message.token !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.token);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.AuthPayload
+ */
+export const AuthPayload = new AuthPayload$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CallRinging$Type extends MessageType<CallRinging> {
     constructor() {

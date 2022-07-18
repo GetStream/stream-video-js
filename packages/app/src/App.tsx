@@ -66,7 +66,6 @@ const App = () => {
           type: 'video',
           participantIds: [],
           broadcastOptions: [],
-          jsonEncodedCustomData: new Uint8Array(),
         });
 
         await joinCall(createdCall?.id ?? '');

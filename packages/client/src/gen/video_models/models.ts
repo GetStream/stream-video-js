@@ -11,6 +11,7 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
+import { Struct } from "../google/protobuf/struct";
 /**
  * Edges are where we deploy video servers
  *
@@ -156,8 +157,6 @@ export interface User {
      */
     id: string;
     /**
-     * TODO: zoom allows you to invite any of your colleagues in their invite screen
-     *
      * @generated from protobuf field: repeated string teams = 2;
      */
     teams: string[];
@@ -166,10 +165,26 @@ export interface User {
      */
     role: string;
     /**
+     * @generated from protobuf field: google.protobuf.Struct custom = 4;
+     */
+    custom?: Struct;
+    /**
+     * @generated from protobuf field: string name = 5;
+     */
+    name: string;
+    /**
+     * @generated from protobuf field: string profile_image_url = 6;
+     */
+    profileImageUrl: string;
+    /**
+     * user creation date as RFC3339 string
+     *
      * @generated from protobuf field: string created_at = 7;
      */
     createdAt: string;
     /**
+     * user last update date as RFC3339 string
+     *
      * @generated from protobuf field: string updated_at = 8;
      */
     updatedAt: string;
@@ -404,35 +419,41 @@ export interface Call {
      */
     createdByUserId: string;
     /**
+     * call custom data
+     *
+     * @generated from protobuf field: google.protobuf.Struct custom = 4;
+     */
+    custom?: Struct;
+    /**
      * call creation date as RFC3339 string
      *
-     * @generated from protobuf field: string created_at = 4;
+     * @generated from protobuf field: string created_at = 5;
      */
     createdAt: string;
     /**
      * call last update date as RFC3339 string
      *
-     * @generated from protobuf field: string updated_at = 5;
+     * @generated from protobuf field: string updated_at = 6;
      */
     updatedAt: string;
     /**
      * enable broadcasting by default when creating a call of this type
      *
-     * @generated from protobuf field: bool broadcast = 6;
+     * @generated from protobuf field: bool broadcast = 7;
      */
     broadcast: boolean;
     /**
-     * @generated from protobuf field: repeated stream.video.BroadcastOptions broadcast_options = 7;
+     * @generated from protobuf field: repeated stream.video.BroadcastOptions broadcast_options = 8;
      */
     broadcastOptions: BroadcastOptions[];
     /**
      * enable transcription by default
      *
-     * @generated from protobuf field: bool transcribe = 8;
+     * @generated from protobuf field: bool transcribe = 9;
      */
     transcribe: boolean;
     /**
-     * @generated from protobuf field: stream.video.TranscribeOptions transcribe_options = 9;
+     * @generated from protobuf field: stream.video.TranscribeOptions transcribe_options = 10;
      */
     transcribeOptions?: TranscribeOptions;
 }
@@ -918,12 +939,15 @@ class User$Type extends MessageType<User> {
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
             { no: 2, name: "teams", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "custom", kind: "message", T: () => Struct },
+            { no: 5, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "profile_image_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 8, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<User>): User {
-        const message = { id: "", teams: [], role: "", createdAt: "", updatedAt: "" };
+        const message = { id: "", teams: [], role: "", name: "", profileImageUrl: "", createdAt: "", updatedAt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<User>(this, message, value);
@@ -942,6 +966,15 @@ class User$Type extends MessageType<User> {
                     break;
                 case /* string role */ 3:
                     message.role = reader.string();
+                    break;
+                case /* google.protobuf.Struct custom */ 4:
+                    message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
+                    break;
+                case /* string name */ 5:
+                    message.name = reader.string();
+                    break;
+                case /* string profile_image_url */ 6:
+                    message.profileImageUrl = reader.string();
                     break;
                 case /* string created_at */ 7:
                     message.createdAt = reader.string();
@@ -970,6 +1003,15 @@ class User$Type extends MessageType<User> {
         /* string role = 3; */
         if (message.role !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.role);
+        /* google.protobuf.Struct custom = 4; */
+        if (message.custom)
+            Struct.internalBinaryWrite(message.custom, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* string name = 5; */
+        if (message.name !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.name);
+        /* string profile_image_url = 6; */
+        if (message.profileImageUrl !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.profileImageUrl);
         /* string created_at = 7; */
         if (message.createdAt !== "")
             writer.tag(7, WireType.LengthDelimited).string(message.createdAt);
@@ -1544,12 +1586,13 @@ class Call$Type extends MessageType<Call> {
             { no: 1, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
             { no: 2, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
             { no: 3, name: "created_by_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
-            { no: 4, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
-            { no: 5, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
-            { no: 6, name: "broadcast", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 7, name: "broadcast_options", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => BroadcastOptions },
-            { no: 8, name: "transcribe", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 9, name: "transcribe_options", kind: "message", T: () => TranscribeOptions }
+            { no: 4, name: "custom", kind: "message", T: () => Struct },
+            { no: 5, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 6, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 7, name: "broadcast", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 8, name: "broadcast_options", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => BroadcastOptions },
+            { no: 9, name: "transcribe", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 10, name: "transcribe_options", kind: "message", T: () => TranscribeOptions }
         ]);
     }
     create(value?: PartialMessage<Call>): Call {
@@ -1573,22 +1616,25 @@ class Call$Type extends MessageType<Call> {
                 case /* string created_by_user_id */ 3:
                     message.createdByUserId = reader.string();
                     break;
-                case /* string created_at */ 4:
+                case /* google.protobuf.Struct custom */ 4:
+                    message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
+                    break;
+                case /* string created_at */ 5:
                     message.createdAt = reader.string();
                     break;
-                case /* string updated_at */ 5:
+                case /* string updated_at */ 6:
                     message.updatedAt = reader.string();
                     break;
-                case /* bool broadcast */ 6:
+                case /* bool broadcast */ 7:
                     message.broadcast = reader.bool();
                     break;
-                case /* repeated stream.video.BroadcastOptions broadcast_options */ 7:
+                case /* repeated stream.video.BroadcastOptions broadcast_options */ 8:
                     message.broadcastOptions.push(BroadcastOptions.internalBinaryRead(reader, reader.uint32(), options));
                     break;
-                case /* bool transcribe */ 8:
+                case /* bool transcribe */ 9:
                     message.transcribe = reader.bool();
                     break;
-                case /* stream.video.TranscribeOptions transcribe_options */ 9:
+                case /* stream.video.TranscribeOptions transcribe_options */ 10:
                     message.transcribeOptions = TranscribeOptions.internalBinaryRead(reader, reader.uint32(), options, message.transcribeOptions);
                     break;
                 default:
@@ -1612,24 +1658,27 @@ class Call$Type extends MessageType<Call> {
         /* string created_by_user_id = 3; */
         if (message.createdByUserId !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.createdByUserId);
-        /* string created_at = 4; */
+        /* google.protobuf.Struct custom = 4; */
+        if (message.custom)
+            Struct.internalBinaryWrite(message.custom, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* string created_at = 5; */
         if (message.createdAt !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.createdAt);
-        /* string updated_at = 5; */
+            writer.tag(5, WireType.LengthDelimited).string(message.createdAt);
+        /* string updated_at = 6; */
         if (message.updatedAt !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.updatedAt);
-        /* bool broadcast = 6; */
+            writer.tag(6, WireType.LengthDelimited).string(message.updatedAt);
+        /* bool broadcast = 7; */
         if (message.broadcast !== false)
-            writer.tag(6, WireType.Varint).bool(message.broadcast);
-        /* repeated stream.video.BroadcastOptions broadcast_options = 7; */
+            writer.tag(7, WireType.Varint).bool(message.broadcast);
+        /* repeated stream.video.BroadcastOptions broadcast_options = 8; */
         for (let i = 0; i < message.broadcastOptions.length; i++)
-            BroadcastOptions.internalBinaryWrite(message.broadcastOptions[i], writer.tag(7, WireType.LengthDelimited).fork(), options).join();
-        /* bool transcribe = 8; */
+            BroadcastOptions.internalBinaryWrite(message.broadcastOptions[i], writer.tag(8, WireType.LengthDelimited).fork(), options).join();
+        /* bool transcribe = 9; */
         if (message.transcribe !== false)
-            writer.tag(8, WireType.Varint).bool(message.transcribe);
-        /* stream.video.TranscribeOptions transcribe_options = 9; */
+            writer.tag(9, WireType.Varint).bool(message.transcribe);
+        /* stream.video.TranscribeOptions transcribe_options = 10; */
         if (message.transcribeOptions)
-            TranscribeOptions.internalBinaryWrite(message.transcribeOptions, writer.tag(9, WireType.LengthDelimited).fork(), options).join();
+            TranscribeOptions.internalBinaryWrite(message.transcribeOptions, writer.tag(10, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

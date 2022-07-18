@@ -22,6 +22,7 @@ import { Latency } from "../video_models/models";
 import { TranscribeOptions } from "../video_models/models";
 import { BroadcastOptions } from "../video_models/models";
 import { BoolValue } from "../google/protobuf/wrappers";
+import { Struct } from "../google/protobuf/struct";
 import { CallState } from "../video_models/models";
 import { Call } from "../video_models/models";
 /**
@@ -85,11 +86,11 @@ export interface CreateCallRequest {
      */
     id: string;
     /**
-     * call custom data json encoded
+     * call custom data
      *
-     * @generated from protobuf field: bytes json_encoded_custom_data = 3;
+     * @generated from protobuf field: google.protobuf.Struct custom = 3;
      */
-    jsonEncodedCustomData: Uint8Array;
+    custom?: Struct;
     /**
      * the list of participant ids
      *
@@ -755,7 +756,7 @@ class CreateCallRequest$Type extends MessageType<CreateCallRequest> {
         super("stream.video.CreateCallRequest", [
             { no: 1, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "json_encoded_custom_data", kind: "scalar", T: 12 /*ScalarType.BYTES*/ },
+            { no: 3, name: "custom", kind: "message", T: () => Struct },
             { no: 4, name: "participant_ids", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "broadcast", kind: "message", T: () => BoolValue },
             { no: 7, name: "broadcast_options", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => BroadcastOptions },
@@ -766,7 +767,7 @@ class CreateCallRequest$Type extends MessageType<CreateCallRequest> {
         ]);
     }
     create(value?: PartialMessage<CreateCallRequest>): CreateCallRequest {
-        const message = { type: "", id: "", jsonEncodedCustomData: new Uint8Array(0), participantIds: [], broadcastOptions: [] };
+        const message = { type: "", id: "", participantIds: [], broadcastOptions: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateCallRequest>(this, message, value);
@@ -783,8 +784,8 @@ class CreateCallRequest$Type extends MessageType<CreateCallRequest> {
                 case /* string id */ 2:
                     message.id = reader.string();
                     break;
-                case /* bytes json_encoded_custom_data */ 3:
-                    message.jsonEncodedCustomData = reader.bytes();
+                case /* google.protobuf.Struct custom */ 3:
+                    message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
                     break;
                 case /* repeated string participant_ids */ 4:
                     message.participantIds.push(reader.string());
@@ -825,9 +826,9 @@ class CreateCallRequest$Type extends MessageType<CreateCallRequest> {
         /* string id = 2; */
         if (message.id !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.id);
-        /* bytes json_encoded_custom_data = 3; */
-        if (message.jsonEncodedCustomData.length)
-            writer.tag(3, WireType.LengthDelimited).bytes(message.jsonEncodedCustomData);
+        /* google.protobuf.Struct custom = 3; */
+        if (message.custom)
+            Struct.internalBinaryWrite(message.custom, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
         /* repeated string participant_ids = 4; */
         for (let i = 0; i < message.participantIds.length; i++)
             writer.tag(4, WireType.LengthDelimited).string(message.participantIds[i]);
