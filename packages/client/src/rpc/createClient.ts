@@ -2,12 +2,12 @@ import {
   TwirpFetchTransport,
   TwirpOptions,
 } from '@protobuf-ts/twirp-transport';
-import { CallCoordinatorServiceClient } from './gen/video_coordinator_rpc/coordinator_service.client';
+import { CallCoordinatorServiceClient } from '../gen/video_coordinator_rpc/coordinator_service.client';
 import type {
-  RpcOptions,
-  RpcInterceptor,
-  NextUnaryFn,
   MethodInfo,
+  NextUnaryFn,
+  RpcInterceptor,
+  RpcOptions,
   UnaryCall,
 } from '@protobuf-ts/runtime-rpc';
 

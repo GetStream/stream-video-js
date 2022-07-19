@@ -1,4 +1,4 @@
-import { createClient, withBearerToken } from './createClient';
+import { createClient, withBearerToken } from './rpc/createClient';
 import { measureLatencyTo } from './latency';
 import {
   CreateCallRequest,
