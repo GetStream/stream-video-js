@@ -2,6 +2,8 @@ import * as React from 'react';
 import { DisplayContext, LiveKitRoom } from '@livekit/react-components';
 import type { Room as LiveKitRoomType } from 'livekit-client';
 
+import '@livekit/react-components/dist/index.css';
+
 export type RoomProps = {
   url: string;
   token: string;
