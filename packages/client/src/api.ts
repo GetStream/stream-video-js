@@ -1,5 +1,5 @@
 import { createClient, withBearerToken } from './rpc/createClient';
-import { measureLatencyTo } from './latency';
+import { measureResourceLoadLatencyTo } from './latency';
 import {
   CreateCallRequest,
   JoinCallRequest,
@@ -54,9 +54,9 @@ export class StreamVideoClient {
     const latencyByEdge: { [e: string]: Latency } = {};
     for (const edge of edges) {
       latencyByEdge[edge.name] = {
-        measurementsSeconds: await measureLatencyTo(
+        measurementsSeconds: await measureResourceLoadLatencyTo(
           edge.latencyUrl,
-          this.options.latencyMeasurementRounds!,
+          Math.max(this.options.latencyMeasurementRounds || 0, 3),
         ),
       };
     }
