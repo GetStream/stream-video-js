@@ -42,6 +42,7 @@ const App = () => {
   const [currentUserToken, setCurrentUserToken] = useState(participants[0][1]);
   const [joinCallId, setJoinCallId] = useState<string>('random-id');
   const [edge, setEdge] = useState<SelectEdgeServerResponse | undefined>();
+  const [errorMessage, setErrorMessage] = useState('');
   const client = useStreamVideoClient(currentUser, currentUserToken);
   const roomRef = useRef<RoomType>();
 
@@ -51,8 +52,10 @@ const App = () => {
         const joinedCall = await client.joinCall({ id, type: 'video' });
         setJoinCallId(id);
         setEdge(joinedCall);
+        setErrorMessage('');
       } catch (err) {
         console.error(`Failed to join call`, err);
+        setErrorMessage((err as Error).message);
       }
     },
     [client],
@@ -69,8 +72,10 @@ const App = () => {
         });
 
         await joinCall(createdCall?.id ?? '');
+        setErrorMessage('');
       } catch (err) {
         console.error(`Failed to create a call`, err);
+        setErrorMessage((err as Error).message);
       }
     },
     [client, joinCall],
@@ -111,16 +116,16 @@ const App = () => {
                   setJoinCallId(e.target.value);
                 }}
               />
-            </div>
-            <div>
               <button
                 type="button"
                 onClick={() => {
                   initiateCall(joinCallId);
                 }}
               >
-                Initiate Call
+                Create Call
               </button>
+            </div>
+            <div>
               <button
                 type="button"
                 onClick={() => {
@@ -147,6 +152,9 @@ const App = () => {
               </button>
             </div>
           </div>
+        </div>
+        <div className="App-errors">
+          {errorMessage && <p className="error">Error: {errorMessage}</p>}
         </div>
         {edge && edge.edgeServer && (
           <Room
