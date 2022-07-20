@@ -1,11 +1,21 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import logo from './logo.svg';
 import './App.css';
 import {
+  connect,
   SelectEdgeServerResponse,
   StreamVideoClient,
+  StreamWSClient,
+  UserRequest,
 } from '@stream-io/video-client';
 import { Room, RoomType } from '@stream-io/video-components-react';
+import { Struct } from '@stream-io/video-client/dist/src/gen/google/protobuf/struct';
 
 const useStreamVideoClient = (userId: string, userToken: string) => {
   const baseUrl = '/'; // proxied to http://localhost:26991
@@ -19,6 +29,29 @@ const useStreamVideoClient = (userId: string, userToken: string) => {
       },
     });
   }, [userId, userToken]);
+};
+
+const useStreamWebSocketClient = (token: string, user: UserRequest) => {
+  const endpoint = 'ws://localhost:8989';
+  const [wsClient, setWsClient] = useState<StreamWSClient>();
+  useEffect(() => {
+    let didInterruptConnect = false;
+    const connectPromise = connect(endpoint, token, user).then((client) => {
+      if (!didInterruptConnect) {
+        setWsClient(client);
+      }
+      return client;
+    });
+    return () => {
+      didInterruptConnect = true;
+      connectPromise.then((client) => {
+        setWsClient(undefined);
+        client.disconnect();
+      });
+    };
+  }, [endpoint, token, user]);
+
+  return wsClient;
 };
 
 // use different browser tabs
@@ -44,6 +77,22 @@ const App = () => {
   const [edge, setEdge] = useState<SelectEdgeServerResponse | undefined>();
   const [errorMessage, setErrorMessage] = useState('');
   const client = useStreamVideoClient(currentUser, currentUserToken);
+
+  const user = useMemo<UserRequest>(
+    () => ({
+      id: currentUser,
+      name: currentUser,
+      role: 'role',
+      custom: Struct.fromJson({
+        hello: 'world',
+      }),
+      teams: ['team-1', 'team-2'],
+      profileImageUrl: '/test.jpg',
+    }),
+    [currentUser],
+  );
+
+  useStreamWebSocketClient(currentUserToken, user);
   const roomRef = useRef<RoomType>();
 
   const joinCall = useCallback(

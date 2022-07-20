@@ -1,12 +1,12 @@
-import { createClient, withBearerToken } from './rpc/createClient';
+import { createClient, withBearerToken } from './createClient';
 import { measureResourceLoadLatencyTo } from './latency';
 import {
   CreateCallRequest,
   JoinCallRequest,
-} from './gen/video_coordinator_rpc/coordinator_service';
-import { CallCoordinatorServiceClient } from './gen/video_coordinator_rpc/coordinator_service.client';
+} from '../gen/video_coordinator_rpc/coordinator_service';
+import { CallCoordinatorServiceClient } from '../gen/video_coordinator_rpc/coordinator_service.client';
 
-import type { Latency } from './gen/video_models/models';
+import type { Latency } from '../gen/video_models/models';
 import type { StreamVideoClientOptions } from './types';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
@@ -32,10 +32,6 @@ export class StreamVideoClient {
       interceptors: [withBearerToken(token)],
     });
   }
-
-  connect = () => {
-    // TODO: establish WS connection
-  };
 
   createCall = async (data: CreateCallRequest) => {
     const callToCreate = await this.client.createCall(data);
