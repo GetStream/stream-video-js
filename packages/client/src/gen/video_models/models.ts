@@ -190,6 +190,35 @@ export interface User {
     updatedAt: string;
 }
 /**
+ * @generated from protobuf message stream.video.UserRequest
+ */
+export interface UserRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: repeated string teams = 2;
+     */
+    teams: string[];
+    /**
+     * @generated from protobuf field: string role = 3;
+     */
+    role: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Struct custom = 4;
+     */
+    custom?: Struct;
+    /**
+     * @generated from protobuf field: string name = 5;
+     */
+    name: string;
+    /**
+     * @generated from protobuf field: string profile_image_url = 6;
+     */
+    profileImageUrl: string;
+}
+/**
  * @generated from protobuf message stream.video.Device
  */
 export interface Device {
@@ -221,6 +250,31 @@ export interface Device {
      * @generated from protobuf field: string updated_at = 7;
      */
     updatedAt: string;
+}
+/**
+ * @generated from protobuf message stream.video.DeviceRequest
+ */
+export interface DeviceRequest {
+    /**
+     * @generated from protobuf field: string user_id = 1;
+     */
+    userId: string;
+    /**
+     * @generated from protobuf field: string id = 2;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: bool disabled = 3;
+     */
+    disabled: boolean;
+    /**
+     * @generated from protobuf field: string disabled_reason = 4;
+     */
+    disabledReason: string;
+    /**
+     * @generated from protobuf field: string push_provider_name = 5;
+     */
+    pushProviderName: string;
 }
 /**
  * @generated from protobuf message stream.video.RecordingStorageOptions
@@ -386,6 +440,53 @@ export interface Participant {
      * @generated from protobuf field: bool online = 3;
      */
     online: boolean;
+    /**
+     * @generated from protobuf field: google.protobuf.Struct custom = 4;
+     */
+    custom?: Struct;
+    /**
+     * call creation date as RFC3339 string
+     *
+     * @generated from protobuf field: string created_at = 5;
+     */
+    createdAt: string;
+    /**
+     * call last update date as RFC3339 string
+     *
+     * @generated from protobuf field: string updated_at = 6;
+     */
+    updatedAt: string;
+}
+/**
+ * @generated from protobuf message stream.video.ParticipantRequest
+ */
+export interface ParticipantRequest {
+    /**
+     * @generated from protobuf field: string user_id = 1;
+     */
+    userId: string;
+    /**
+     * @generated from protobuf field: string role = 2;
+     */
+    role: string;
+    /**
+     * call custom data
+     *
+     * @generated from protobuf field: google.protobuf.Struct custom = 3;
+     */
+    custom?: Struct;
+    /**
+     * call creation date as RFC3339 string
+     *
+     * @generated from protobuf field: string created_at = 4;
+     */
+    createdAt: string;
+    /**
+     * call last update date as RFC3339 string
+     *
+     * @generated from protobuf field: string updated_at = 5;
+     */
+    updatedAt: string;
 }
 /**
  * @generated from protobuf message stream.video.CallState
@@ -1029,6 +1130,88 @@ class User$Type extends MessageType<User> {
  */
 export const User = new User$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class UserRequest$Type extends MessageType<UserRequest> {
+    constructor() {
+        super("stream.video.UserRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 2, name: "teams", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "custom", kind: "message", T: () => Struct },
+            { no: 5, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "profile_image_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<UserRequest>): UserRequest {
+        const message = { id: "", teams: [], role: "", name: "", profileImageUrl: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UserRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UserRequest): UserRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* repeated string teams */ 2:
+                    message.teams.push(reader.string());
+                    break;
+                case /* string role */ 3:
+                    message.role = reader.string();
+                    break;
+                case /* google.protobuf.Struct custom */ 4:
+                    message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
+                    break;
+                case /* string name */ 5:
+                    message.name = reader.string();
+                    break;
+                case /* string profile_image_url */ 6:
+                    message.profileImageUrl = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UserRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* repeated string teams = 2; */
+        for (let i = 0; i < message.teams.length; i++)
+            writer.tag(2, WireType.LengthDelimited).string(message.teams[i]);
+        /* string role = 3; */
+        if (message.role !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.role);
+        /* google.protobuf.Struct custom = 4; */
+        if (message.custom)
+            Struct.internalBinaryWrite(message.custom, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* string name = 5; */
+        if (message.name !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.name);
+        /* string profile_image_url = 6; */
+        if (message.profileImageUrl !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.profileImageUrl);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.UserRequest
+ */
+export const UserRequest = new UserRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class Device$Type extends MessageType<Device> {
     constructor() {
         super("stream.video.Device", [
@@ -1117,6 +1300,81 @@ class Device$Type extends MessageType<Device> {
  * @generated MessageType for protobuf message stream.video.Device
  */
 export const Device = new Device$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeviceRequest$Type extends MessageType<DeviceRequest> {
+    constructor() {
+        super("stream.video.DeviceRequest", [
+            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "disabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 4, name: "disabled_reason", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "push_provider_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<DeviceRequest>): DeviceRequest {
+        const message = { userId: "", id: "", disabled: false, disabledReason: "", pushProviderName: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<DeviceRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DeviceRequest): DeviceRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string user_id */ 1:
+                    message.userId = reader.string();
+                    break;
+                case /* string id */ 2:
+                    message.id = reader.string();
+                    break;
+                case /* bool disabled */ 3:
+                    message.disabled = reader.bool();
+                    break;
+                case /* string disabled_reason */ 4:
+                    message.disabledReason = reader.string();
+                    break;
+                case /* string push_provider_name */ 5:
+                    message.pushProviderName = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: DeviceRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string user_id = 1; */
+        if (message.userId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.userId);
+        /* string id = 2; */
+        if (message.id !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.id);
+        /* bool disabled = 3; */
+        if (message.disabled !== false)
+            writer.tag(3, WireType.Varint).bool(message.disabled);
+        /* string disabled_reason = 4; */
+        if (message.disabledReason !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.disabledReason);
+        /* string push_provider_name = 5; */
+        if (message.pushProviderName !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.pushProviderName);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.DeviceRequest
+ */
+export const DeviceRequest = new DeviceRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class RecordingStorageOptions$Type extends MessageType<RecordingStorageOptions> {
     constructor() {
@@ -1477,11 +1735,14 @@ class Participant$Type extends MessageType<Participant> {
         super("stream.video.Participant", [
             { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "online", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 3, name: "online", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 4, name: "custom", kind: "message", T: () => Struct },
+            { no: 5, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 6, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } }
         ]);
     }
     create(value?: PartialMessage<Participant>): Participant {
-        const message = { userId: "", role: "", online: false };
+        const message = { userId: "", role: "", online: false, createdAt: "", updatedAt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Participant>(this, message, value);
@@ -1500,6 +1761,15 @@ class Participant$Type extends MessageType<Participant> {
                     break;
                 case /* bool online */ 3:
                     message.online = reader.bool();
+                    break;
+                case /* google.protobuf.Struct custom */ 4:
+                    message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
+                    break;
+                case /* string created_at */ 5:
+                    message.createdAt = reader.string();
+                    break;
+                case /* string updated_at */ 6:
+                    message.updatedAt = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1522,6 +1792,15 @@ class Participant$Type extends MessageType<Participant> {
         /* bool online = 3; */
         if (message.online !== false)
             writer.tag(3, WireType.Varint).bool(message.online);
+        /* google.protobuf.Struct custom = 4; */
+        if (message.custom)
+            Struct.internalBinaryWrite(message.custom, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* string created_at = 5; */
+        if (message.createdAt !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.createdAt);
+        /* string updated_at = 6; */
+        if (message.updatedAt !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.updatedAt);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1532,6 +1811,81 @@ class Participant$Type extends MessageType<Participant> {
  * @generated MessageType for protobuf message stream.video.Participant
  */
 export const Participant = new Participant$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ParticipantRequest$Type extends MessageType<ParticipantRequest> {
+    constructor() {
+        super("stream.video.ParticipantRequest", [
+            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "custom", kind: "message", T: () => Struct },
+            { no: 4, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 5, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } }
+        ]);
+    }
+    create(value?: PartialMessage<ParticipantRequest>): ParticipantRequest {
+        const message = { userId: "", role: "", createdAt: "", updatedAt: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ParticipantRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ParticipantRequest): ParticipantRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string user_id */ 1:
+                    message.userId = reader.string();
+                    break;
+                case /* string role */ 2:
+                    message.role = reader.string();
+                    break;
+                case /* google.protobuf.Struct custom */ 3:
+                    message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
+                    break;
+                case /* string created_at */ 4:
+                    message.createdAt = reader.string();
+                    break;
+                case /* string updated_at */ 5:
+                    message.updatedAt = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ParticipantRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string user_id = 1; */
+        if (message.userId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.userId);
+        /* string role = 2; */
+        if (message.role !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.role);
+        /* google.protobuf.Struct custom = 3; */
+        if (message.custom)
+            Struct.internalBinaryWrite(message.custom, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* string created_at = 4; */
+        if (message.createdAt !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.createdAt);
+        /* string updated_at = 5; */
+        if (message.updatedAt !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.updatedAt);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.ParticipantRequest
+ */
+export const ParticipantRequest = new ParticipantRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {
     constructor() {

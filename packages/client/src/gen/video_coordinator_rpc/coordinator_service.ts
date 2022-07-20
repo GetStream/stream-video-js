@@ -242,6 +242,10 @@ export interface AddDeviceRequest {
  * @generated from protobuf message stream.video.AddDeviceResponse
  */
 export interface AddDeviceResponse {
+    /**
+     * @generated from protobuf field: stream.video.Device device = 1;
+     */
+    device?: Device;
 }
 /**
  * @generated from protobuf message stream.video.RemoveDeviceRequest
@@ -1280,7 +1284,9 @@ export const AddDeviceRequest = new AddDeviceRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class AddDeviceResponse$Type extends MessageType<AddDeviceResponse> {
     constructor() {
-        super("stream.video.AddDeviceResponse", []);
+        super("stream.video.AddDeviceResponse", [
+            { no: 1, name: "device", kind: "message", T: () => Device }
+        ]);
     }
     create(value?: PartialMessage<AddDeviceResponse>): AddDeviceResponse {
         const message = {};
@@ -1290,9 +1296,28 @@ class AddDeviceResponse$Type extends MessageType<AddDeviceResponse> {
         return message;
     }
     internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AddDeviceResponse): AddDeviceResponse {
-        return target ?? this.create();
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.Device device */ 1:
+                    message.device = Device.internalBinaryRead(reader, reader.uint32(), options, message.device);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
     }
     internalBinaryWrite(message: AddDeviceResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.Device device = 1; */
+        if (message.device)
+            Device.internalBinaryWrite(message.device, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

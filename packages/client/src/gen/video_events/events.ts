@@ -13,9 +13,10 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Broadcast } from "../video_models/models";
 import { Participant } from "../video_models/models";
-import { Call } from "../video_models/models";
-import { Device } from "../video_models/models";
 import { User } from "../video_models/models";
+import { Call } from "../video_models/models";
+import { DeviceRequest } from "../video_models/models";
+import { UserRequest } from "../video_models/models";
 /**
  * @generated from protobuf message stream.video.WebsocketEvent
  */
@@ -135,13 +136,13 @@ export interface Healthcheck {
  */
 export interface AuthPayload {
     /**
-     * @generated from protobuf field: stream.video.User user = 1;
+     * @generated from protobuf field: stream.video.UserRequest user = 1;
      */
-    user?: User;
+    user?: UserRequest;
     /**
-     * @generated from protobuf field: stream.video.Device device = 2;
+     * @generated from protobuf field: stream.video.DeviceRequest device = 2;
      */
-    device?: Device;
+    device?: DeviceRequest;
     /**
      * @generated from protobuf field: string token = 3;
      */
@@ -519,8 +520,8 @@ export const Healthcheck = new Healthcheck$Type();
 class AuthPayload$Type extends MessageType<AuthPayload> {
     constructor() {
         super("stream.video.AuthPayload", [
-            { no: 1, name: "user", kind: "message", T: () => User },
-            { no: 2, name: "device", kind: "message", T: () => Device },
+            { no: 1, name: "user", kind: "message", T: () => UserRequest },
+            { no: 2, name: "device", kind: "message", T: () => DeviceRequest },
             { no: 3, name: "token", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
@@ -536,11 +537,11 @@ class AuthPayload$Type extends MessageType<AuthPayload> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* stream.video.User user */ 1:
-                    message.user = User.internalBinaryRead(reader, reader.uint32(), options, message.user);
+                case /* stream.video.UserRequest user */ 1:
+                    message.user = UserRequest.internalBinaryRead(reader, reader.uint32(), options, message.user);
                     break;
-                case /* stream.video.Device device */ 2:
-                    message.device = Device.internalBinaryRead(reader, reader.uint32(), options, message.device);
+                case /* stream.video.DeviceRequest device */ 2:
+                    message.device = DeviceRequest.internalBinaryRead(reader, reader.uint32(), options, message.device);
                     break;
                 case /* string token */ 3:
                     message.token = reader.string();
@@ -557,12 +558,12 @@ class AuthPayload$Type extends MessageType<AuthPayload> {
         return message;
     }
     internalBinaryWrite(message: AuthPayload, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.User user = 1; */
+        /* stream.video.UserRequest user = 1; */
         if (message.user)
-            User.internalBinaryWrite(message.user, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.Device device = 2; */
+            UserRequest.internalBinaryWrite(message.user, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.DeviceRequest device = 2; */
         if (message.device)
-            Device.internalBinaryWrite(message.device, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+            DeviceRequest.internalBinaryWrite(message.device, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         /* string token = 3; */
         if (message.token !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.token);
