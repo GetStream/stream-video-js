@@ -52,7 +52,7 @@ export const measureResourceLoadLatencyTo = async (
       img.onabort = reject;
 
       const src = new URL(endpoint);
-      src.searchParams.set('rand', `react_${Math.random() * 10000000}}`);
+      src.searchParams.set('rand', `react_${Math.random() * 10000000}`);
       img.src = src.toString();
     });
 
