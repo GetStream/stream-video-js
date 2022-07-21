@@ -8,6 +8,7 @@ import { CallCoordinatorServiceClient } from '../gen/video_coordinator_rpc/coord
 
 import type { Latency } from '../gen/video_models/models';
 import type { StreamVideoClientOptions } from './types';
+import {StreamWebSocketClient} from "../ws/StreamWebSocketClient";
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   sendJson: false,
@@ -17,7 +18,7 @@ const defaultOptions: Partial<StreamVideoClientOptions> = {
 export class StreamVideoClient {
   private client: CallCoordinatorServiceClient;
   private options: StreamVideoClientOptions;
-
+  private wsClient: StreamWebSocketClient;
   constructor(apiKey: string, opts: StreamVideoClientOptions) {
     const options = {
       ...defaultOptions,
@@ -31,6 +32,21 @@ export class StreamVideoClient {
       sendJson: options.sendJson,
       interceptors: [withBearerToken(token)],
     });
+
+    this.wsClient = new StreamWebSocketClient( 'ws://localhost:8989', token, {
+      name: "",
+      profileImageUrl: "",
+      role: "user",
+      teams: [],
+      id:user.userId});
+  }
+
+  connect = async (): Promise<void> => {
+    return this.wsClient.ensureAuthenticated();
+  }
+
+  disconnect = async (): Promise<void> => {
+    return this.wsClient.disconnect();
   }
 
   createCall = async (data: CreateCallRequest) => {
@@ -63,5 +79,12 @@ export class StreamVideoClient {
     });
 
     return edgeServer.response;
+  };
+  on = (event: string, fn: EventListener) => {
+   this.wsClient.on(event, fn);
+  };
+
+  off = (event: string, fn: EventListener) => {
+    this.wsClient.off(event, fn);
   };
 }

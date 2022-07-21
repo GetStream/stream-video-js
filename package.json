@@ -10,9 +10,37 @@
   "scripts": {
     "start:client": "yarn workspace @stream-io/video-client run start",
     "start:app": "yarn workspace @stream-io/video-react-app run start",
-    "build:all": "yarn workspaces foreach -vt run build"
+    "build:all": "yarn workspaces foreach -vt run build",
+    "test": "mocha test/*.ts test/**/*.ts"
   },
   "devDependencies": {
+    "@protobuf-ts/plugin": "^2.7.0",
     "prettier": "^2.7.1"
+  },
+  "mocha": {
+    "exit": true,
+    "timeout": 60000,
+    "require": [
+      "ts-node/register/transpile-only"
+    ]
+  },
+  "dependencies": {
+    "@protobuf-ts/twirp-transport": "^2.7.0",
+    "abort-controller": "^3.0.0",
+    "browserify-zlib": "^0.2.0",
+    "crypto": "^1.0.1",
+    "fetch": "^1.1.0",
+    "fetch-polyfill": "^0.8.2",
+    "http": "^0.0.1-security",
+    "https": "^1.0.0",
+    "isomorphic-ws": "^5.0.0",
+    "net": "^1.0.2",
+    "node-fetch": "^2.6.1",
+    "stream": "^0.0.2",
+    "tls": "^0.0.1",
+    "ts-node": "^10.9.1",
+    "url": "^0.11.0",
+    "ws": "^8.8.1",
+    "zlib": "^1.0.5"
   }
 }

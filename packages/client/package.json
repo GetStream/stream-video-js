@@ -9,7 +9,21 @@
     "generate-client": "./generate-client.sh"
   },
   "dependencies": {
-    "@protobuf-ts/twirp-transport": "^2.7.0"
+    "@protobuf-ts/twirp-transport": "^2.7.0",
+    "@types/node-fetch": "^2.6.2",
+    "abort-controller": "^3.0.0",
+    "buffer": "^6.0.3",
+    "graceful-fs": "^4.2.10",
+    "node-fetch": "^2.6.1",
+    "stream-browserify": "^3.0.0",
+    "url": "^0.11.0"
+  },
+  "mocha": {
+    "exit": true,
+    "timeout": 60000,
+    "require": [
+      "ts-node/register/transpile-only"
+    ]
   },
   "devDependencies": {
     "@protobuf-ts/plugin": "^2.7.0",

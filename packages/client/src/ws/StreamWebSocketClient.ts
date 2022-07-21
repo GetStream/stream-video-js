@@ -2,6 +2,7 @@ import { keepAlive } from './keepAlive';
 import { UserRequest } from '../gen/video_models/models';
 import { AuthPayload, WebsocketEvent } from '../gen/video_events/events';
 
+import  WebSocket from 'isomorphic-ws';
 import type { StreamWSClient } from './types';
 
 export class StreamWebSocketClient implements StreamWSClient {
@@ -25,35 +26,35 @@ export class StreamWebSocketClient implements StreamWSClient {
     this.token = token;
     this.user = user;
     this.ws = ws;
-    this.schedulePing = keepAlive(this, 35 * 1000); // seconds
+    this.schedulePing = keepAlive(this, 27 * 1000); // seconds
   }
 
-  private onConnectionError = (e: Event) => {
-    console.error(`An error has occurred`, e);
+  private onConnectionError = (event: WebSocket.Event) => {
+    console.error(`An error has occurred`, event);
   };
 
-  private onConnectionClose = (e: CloseEvent) => {
-    console.warn(`Connection closed`, e);
+  private onConnectionClose = (event: WebSocket.CloseEvent) => {
+    console.warn(`Connection closed`, event);
   };
 
-  private onConnectionOpen = (e: Event) => {
-    console.log(`Connection established`, this.ws.url, e);
+  private onConnectionOpen = (event: WebSocket.Event) => {
+    console.log(`Connection established`, this.ws.url, event);
 
     this.authenticate();
   };
 
-  private onMessage = (e: MessageEvent) => {
-    console.debug(`Message received`, e.data);
+  private onMessage = (event: WebSocket.MessageEvent) => {
+    console.debug(`Message received`, event.data);
     this.schedulePing();
 
-    if (!(e.data instanceof ArrayBuffer)) {
+    if (!(event.data instanceof ArrayBuffer)) {
       console.error(`This socket only accepts exchanging binary data`);
       return;
     }
 
-    const data = new Uint8Array(e.data);
+    const data = new Uint8Array(event.data);
     const message = WebsocketEvent.fromBinary(data);
-    console.log('Message', message);
+    console.log('FUCKING MESSAGE');
 
     // submit the message for processing
     this.dispatchMessage(message);
@@ -70,10 +71,18 @@ export class StreamWebSocketClient implements StreamWSClient {
   };
 
   // TODO fix types
-  private dispatchMessage = (message: object) => {
+  private dispatchMessage = (message: WebsocketEvent) => {
     console.log('Dispatching', message);
-
     // FIXME OL: POC: temporary flag, used for auth checks
+
+    // @ts-ignore
+
+    console.log('Dispatching', message.eventPayload.oneofKind);
+    // @ts-ignore
+    this.subscribers[message.eventPayload.oneofKind]?.forEach((m: WebsocketEvent) =>{
+      console.log('Dispatching to', m);
+    });
+
     this.hasReceivedMessage = true;
   };
 
@@ -112,6 +121,8 @@ export class StreamWebSocketClient implements StreamWSClient {
     const listeners = this.subscribers[event] || [];
     listeners.push(fn);
     this.subscribers[event] = listeners;
+    console.log('listeners to', this.subscribers);
+
     return () => {
       this.off(event, fn);
     };

@@ -16,6 +16,12 @@ const defaultOptions: TwirpOptions = {
   sendJson: true,
 };
 
+import {default as fetch, Headers} from "node-fetch";
+
+// fetch polyfill via https://github.com/node-fetch/node-fetch
+globalThis.fetch = fetch as any;
+globalThis.Headers = Headers as any;
+
 export const withBearerToken = (token: string): RpcInterceptor => {
   return {
     interceptUnary(
