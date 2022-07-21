@@ -16,6 +16,5 @@
     "strict": true,
     "strictNullChecks": true,
     "sourceMap": true,
-    "jsx": "react-jsxdev"
   }
 }

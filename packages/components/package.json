@@ -4,11 +4,12 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "start": "tsc --watch",
-    "build": "tsc"
+    "start": "tsc --project tsconfig.json --watch",
+    "build": "tsc --project tsconfig.production.json"
   },
   "dependencies": {
     "@livekit/react-components": "^1.0.0",
+    "@stream-io/video-client": "workspace:^",
     "livekit-client": "^1.2.4"
   },
   "peerDependencies": {

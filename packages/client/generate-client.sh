@@ -16,6 +16,7 @@ npx protoc \
   --ts_opt generate_dependencies \
   --ts_opt client_generic \
   --ts_opt server_none \
+  --ts_opt eslint_disable \
   --proto_path $PROTO_DIR \
   $PROTO_DIR/video_events/events.proto \
   $PROTO_DIR/video_coordinator_rpc/coordinator_service.proto

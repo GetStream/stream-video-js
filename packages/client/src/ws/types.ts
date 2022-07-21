@@ -1,4 +1,4 @@
-export type EventListener = (event: any) => {};
+export type EventListener = (event: MessageEvent) => void;
 
 export interface StreamWSClient {
   sendMessage: (data: Uint8Array) => void;
