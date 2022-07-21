@@ -15,6 +15,7 @@
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
+    "sourceMap": true,
     "jsx": "react"
   }
 }
