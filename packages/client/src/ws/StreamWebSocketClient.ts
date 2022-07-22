@@ -9,10 +9,12 @@ export class StreamWebSocketClient implements StreamWSClient {
   private readonly token: string;
   private readonly user: UserRequest;
 
-  private readonly schedulePing: () => void;
-
   private subscribers: { [event: string]: StreamEventListener[] } = {};
   private hasReceivedMessage = false;
+  private keepAlive: {
+    cancelPendingPing: () => void;
+    schedulePing: (data?: Uint8Array) => void;
+  };
 
   constructor(endpoint: string, token: string, user: UserRequest) {
     const ws = new WebSocket(endpoint);
@@ -25,7 +27,8 @@ export class StreamWebSocketClient implements StreamWSClient {
     this.token = token;
     this.user = user;
     this.ws = ws;
-    this.schedulePing = keepAlive(
+
+    this.keepAlive = keepAlive(
       this,
       8 * 1000, // in seconds
       UserRequest.toBinary(user),
@@ -48,7 +51,7 @@ export class StreamWebSocketClient implements StreamWSClient {
 
   private onMessage = (e: MessageEvent) => {
     console.debug(`Message received`, e.data);
-    this.schedulePing();
+    this.keepAlive.schedulePing();
 
     if (!(e.data instanceof ArrayBuffer)) {
       console.error(`This socket only accepts exchanging binary data`);
@@ -57,7 +60,6 @@ export class StreamWebSocketClient implements StreamWSClient {
 
     const data = new Uint8Array(e.data);
     const message = WebsocketEvent.fromBinary(data);
-    console.log('Message', message);
 
     // submit the message for processing
     this.dispatchMessage(message);
@@ -75,12 +77,11 @@ export class StreamWebSocketClient implements StreamWSClient {
 
   // TODO fix types
   private dispatchMessage = (message: WebsocketEvent) => {
-    console.log('Dispatching', message);
-
     // FIXME OL: POC: temporary flag, used for auth checks
     this.hasReceivedMessage = true;
 
     const eventKind = message.eventPayload.oneofKind;
+    console.log('Dispatching', eventKind, message.eventPayload);
     if (eventKind) {
       // @ts-ignore TODO: fix types
       const wrappedMessage = message.eventPayload[eventKind];
@@ -98,6 +99,7 @@ export class StreamWebSocketClient implements StreamWSClient {
   disconnect = () => {
     // FIXME: OL: do proper cleanup of resources here.
     console.log(`Disconnect requested`);
+    this.keepAlive.cancelPendingPing();
     this.ws.close(1000, `Disconnect requested`);
   };
 
@@ -123,7 +125,7 @@ export class StreamWebSocketClient implements StreamWSClient {
 
   sendMessage = (data: Uint8Array) => {
     this.ws.send(data);
-    this.schedulePing();
+    this.keepAlive.schedulePing();
   };
 
   on = (event: string, fn: StreamEventListener) => {
