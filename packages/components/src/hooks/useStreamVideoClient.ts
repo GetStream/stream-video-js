@@ -6,8 +6,9 @@ export const useStreamVideoClient = (
   apiKey: string,
   token: string,
   user: UserRequest,
-) => {
+): [StreamVideoClient | undefined, Error | undefined] => {
   const [client, setClient] = useState<StreamVideoClient | undefined>();
+  const [error, setError] = useState<Error | undefined>();
   useEffect(() => {
     const client = new StreamVideoClient(apiKey, {
       baseUrl,
@@ -21,10 +22,12 @@ export const useStreamVideoClient = (
       .then(() => {
         if (!didInterruptConnect) {
           setClient(client);
+          setError(undefined);
         }
       })
       .catch((err) => {
         console.error(`Failed to establish connection`, err);
+        setError(err);
       });
 
     return () => {
@@ -34,13 +37,15 @@ export const useStreamVideoClient = (
           .disconnect()
           .then(() => {
             setClient(undefined);
+            setError(undefined);
           })
           .catch((err) => {
             console.error(`Failed to disconnect`, err);
+            setError(err);
           });
       });
     };
   }, [apiKey, baseUrl, token, user]);
 
-  return client;
+  return [client, error];
 };

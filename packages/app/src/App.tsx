@@ -58,7 +58,7 @@ const App = () => {
     [currentUser],
   );
 
-  const client = useStreamVideoClient(
+  const [client, connectionError] = useStreamVideoClient(
     '/', // proxied to http://localhost:26991
     'api-key',
     currentUserToken,
@@ -113,6 +113,12 @@ const App = () => {
         <img src={logo} className="App-logo" alt="logo" />
       </header>
       <main className="App-main">
+        {!client && !connectionError && <p>Connecting...</p>}
+        {!client && connectionError && (
+          <div className="App-errors">
+            <p className="error">Error: {connectionError.toString()}</p>
+          </div>
+        )}
         {client && (
           <StreamVideo client={client}>
             <div className="App-call-control">
