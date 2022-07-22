@@ -1,16 +1,15 @@
-import { Healthcheck } from '../gen/video_events/events';
 import type { StreamWSClient } from './types';
 
-export const keepAlive = (client: StreamWSClient, timeThreshold: number) => {
+export const keepAlive = (
+  client: StreamWSClient,
+  timeThreshold: number,
+  defaultData: Uint8Array,
+) => {
   let timeoutId: NodeJS.Timeout;
-  return function schedulePing() {
+  return function schedulePing(data: Uint8Array = defaultData) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
-      const healthCheck = Healthcheck.toBinary({
-        userId: 'alice',
-        clientId: 'alice-alice',
-      });
-      client.sendMessage(healthCheck);
+      client.sendMessage(data);
     }, timeThreshold);
   };
 };

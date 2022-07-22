@@ -1,10 +1,17 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import logo from './logo.svg';
 import './App.css';
 import {
   SelectEdgeServerResponse,
   Struct,
   UserRequest,
+  WebsocketEvent,
 } from '@stream-io/video-client';
 import {
   Room,
@@ -35,6 +42,7 @@ const App = () => {
   const [joinCallId, setJoinCallId] = useState<string>('random-id');
   const [edge, setEdge] = useState<SelectEdgeServerResponse | undefined>();
   const [errorMessage, setErrorMessage] = useState('');
+  const roomRef = useRef<RoomType>();
 
   const user = useMemo<UserRequest>(
     () => ({
@@ -57,7 +65,12 @@ const App = () => {
     user,
   );
 
-  const roomRef = useRef<RoomType>();
+  useEffect(() => {
+    const onHealthCheck = (message: WebsocketEvent) => {
+      console.log(`Healthcheck received`, message);
+    };
+    return client?.on('healthCheck', onHealthCheck);
+  }, [client]);
 
   const joinCall = useCallback(
     async (id: string) => {

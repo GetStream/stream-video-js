@@ -2,7 +2,7 @@ import { keepAlive } from './keepAlive';
 import { UserRequest } from '../gen/video_models/models';
 import { AuthPayload, WebsocketEvent } from '../gen/video_events/events';
 
-import type { StreamWSClient } from './types';
+import type { StreamWSClient, StreamEventListener } from './types';
 
 export class StreamWebSocketClient implements StreamWSClient {
   private readonly ws: WebSocket;
@@ -11,7 +11,7 @@ export class StreamWebSocketClient implements StreamWSClient {
 
   private readonly schedulePing: () => void;
 
-  private subscribers: { [event: string]: EventListener[] } = {};
+  private subscribers: { [event: string]: StreamEventListener[] } = {};
   private hasReceivedMessage = false;
 
   constructor(endpoint: string, token: string, user: UserRequest) {
@@ -25,8 +25,11 @@ export class StreamWebSocketClient implements StreamWSClient {
     this.token = token;
     this.user = user;
     this.ws = ws;
-    // @ts-ignore
-    this.schedulePing = keepAlive(this, 35 * 1000); // seconds
+    this.schedulePing = keepAlive(
+      this,
+      8 * 1000, // in seconds
+      UserRequest.toBinary(user),
+    );
   }
 
   private onConnectionError = (e: Event) => {
@@ -71,11 +74,25 @@ export class StreamWebSocketClient implements StreamWSClient {
   };
 
   // TODO fix types
-  private dispatchMessage = (message: object) => {
+  private dispatchMessage = (message: WebsocketEvent) => {
     console.log('Dispatching', message);
 
     // FIXME OL: POC: temporary flag, used for auth checks
     this.hasReceivedMessage = true;
+
+    const eventKind = message.eventPayload.oneofKind;
+    if (eventKind) {
+      // @ts-ignore TODO: fix types
+      const wrappedMessage = message.eventPayload[eventKind];
+      const eventListeners = this.subscribers[eventKind];
+      eventListeners?.forEach((fn: StreamEventListener) => {
+        try {
+          fn(wrappedMessage);
+        } catch (e) {
+          console.warn(`Listener failed with error`, e);
+        }
+      });
+    }
   };
 
   disconnect = () => {
@@ -109,8 +126,7 @@ export class StreamWebSocketClient implements StreamWSClient {
     this.schedulePing();
   };
 
-  // @ts-ignore
-  on = (event: string, fn: EventListener) => {
+  on = (event: string, fn: StreamEventListener) => {
     const listeners = this.subscribers[event] || [];
     listeners.push(fn);
     this.subscribers[event] = listeners;
@@ -119,8 +135,7 @@ export class StreamWebSocketClient implements StreamWSClient {
     };
   };
 
-  // @ts-ignore
-  off = (event: string, fn: EventListener) => {
+  off = (event: string, fn: StreamEventListener) => {
     this.subscribers[event] = (this.subscribers[event] || []).filter(
       (f) => f !== fn,
     );

@@ -4,7 +4,11 @@ import {
   measureResourceLoadLatencyTo,
   StreamVideoClientOptions,
 } from './rpc';
-import { createSocketConnection, EventListener, StreamWSClient } from './ws';
+import {
+  createSocketConnection,
+  StreamEventListener,
+  StreamWSClient,
+} from './ws';
 import {
   CreateCallRequest,
   JoinCallRequest,
@@ -48,11 +52,11 @@ export class StreamVideoClient {
     this.ws = undefined;
   };
 
-  on = (event: string, fn: EventListener) => {
+  on = (event: string, fn: StreamEventListener) => {
     return this.ws?.on(event, fn);
   };
 
-  off = (event: string, fn: EventListener) => {
+  off = (event: string, fn: StreamEventListener) => {
     return this.ws?.off(event, fn);
   };
 
