@@ -1,8 +1,3 @@
-export type UserIdentifier = {
-  userId: string;
-  token: string | (() => string);
-};
-
 export type StreamVideoClientOptions = {
   /**
    * The baseURL for the RPC calls
@@ -22,7 +17,7 @@ export type StreamVideoClientOptions = {
   latencyMeasurementRounds?: number;
 
   /**
-   * User information.
+   * Auth token.
    */
-  user: UserIdentifier;
+  token: string | (() => string);
 };

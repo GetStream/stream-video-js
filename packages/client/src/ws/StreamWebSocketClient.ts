@@ -25,6 +25,7 @@ export class StreamWebSocketClient implements StreamWSClient {
     this.token = token;
     this.user = user;
     this.ws = ws;
+    // @ts-ignore
     this.schedulePing = keepAlive(this, 35 * 1000); // seconds
   }
 
@@ -108,6 +109,7 @@ export class StreamWebSocketClient implements StreamWSClient {
     this.schedulePing();
   };
 
+  // @ts-ignore
   on = (event: string, fn: EventListener) => {
     const listeners = this.subscribers[event] || [];
     listeners.push(fn);
@@ -117,6 +119,7 @@ export class StreamWebSocketClient implements StreamWSClient {
     };
   };
 
+  // @ts-ignore
   off = (event: string, fn: EventListener) => {
     this.subscribers[event] = (this.subscribers[event] || []).filter(
       (f) => f !== fn,

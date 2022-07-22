@@ -1,13 +1,16 @@
-import { createClient, withBearerToken } from './createClient';
-import { measureResourceLoadLatencyTo } from './latency';
+import {
+  createClient,
+  withBearerToken,
+  measureResourceLoadLatencyTo,
+  StreamVideoClientOptions,
+} from './rpc';
+import { createSocketConnection, EventListener, StreamWSClient } from './ws';
 import {
   CreateCallRequest,
   JoinCallRequest,
-} from '../gen/video_coordinator_rpc/coordinator_service';
-import { CallCoordinatorServiceClient } from '../gen/video_coordinator_rpc/coordinator_service.client';
-
-import type { Latency } from '../gen/video_models/models';
-import type { StreamVideoClientOptions } from './types';
+} from './gen/video_coordinator_rpc/coordinator_service';
+import { CallCoordinatorServiceClient } from './gen/video_coordinator_rpc/coordinator_service.client';
+import type { Latency, UserRequest } from './gen/video_models/models';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   sendJson: false,
@@ -17,6 +20,7 @@ const defaultOptions: Partial<StreamVideoClientOptions> = {
 export class StreamVideoClient {
   private client: CallCoordinatorServiceClient;
   private options: StreamVideoClientOptions;
+  private ws: StreamWSClient | undefined;
 
   constructor(apiKey: string, opts: StreamVideoClientOptions) {
     const options = {
@@ -24,14 +28,33 @@ export class StreamVideoClient {
       ...opts,
     };
     this.options = options;
-    const { user } = options;
-    const token = typeof user.token === 'function' ? user.token() : user.token;
+    const { token } = options;
+    const authToken = typeof token === 'function' ? token() : token;
     this.client = createClient({
       baseUrl: options.baseUrl || '/',
       sendJson: options.sendJson,
-      interceptors: [withBearerToken(token)],
+      interceptors: [withBearerToken(authToken)],
     });
   }
+
+  connect = async (token: string, user: UserRequest) => {
+    if (this.ws) return;
+    this.ws = await createSocketConnection('ws://localhost:8989', token, user);
+  };
+
+  disconnect = async () => {
+    if (!this.ws) return;
+    this.ws.disconnect();
+    this.ws = undefined;
+  };
+
+  on = (event: string, fn: EventListener) => {
+    return this.ws?.on(event, fn);
+  };
+
+  off = (event: string, fn: EventListener) => {
+    return this.ws?.off(event, fn);
+  };
 
   createCall = async (data: CreateCallRequest) => {
     const callToCreate = await this.client.createCall(data);

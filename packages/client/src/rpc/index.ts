@@ -1,2 +1,4 @@
+export * from './createClient';
+export * from './latency';
+
 export * from './types';
-export * from './StreamVideoClient';
