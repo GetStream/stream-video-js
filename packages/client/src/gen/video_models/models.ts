@@ -46,6 +46,21 @@ export interface EdgeServer {
     url: string;
 }
 /**
+ * Returns information about the server location
+ *
+ * @generated from protobuf message stream.video.EdgeServer.Coordinates
+ */
+export interface EdgeServer_Coordinates {
+    /**
+     * @generated from protobuf field: float lat = 1;
+     */
+    lat: number;
+    /**
+     * @generated from protobuf field: float long = 2;
+     */
+    long: number;
+}
+/**
  * @generated from protobuf message stream.video.Latency
  */
 export interface Latency {
@@ -53,67 +68,6 @@ export interface Latency {
      * @generated from protobuf field: repeated float measurements_seconds = 1;
      */
     measurementsSeconds: number[];
-}
-/**
- * 3 different type of broadcast
- *
- * @generated from protobuf message stream.video.Broadcast
- */
-export interface Broadcast {
-    /**
-     * @generated from protobuf field: string id = 1;
-     */
-    id: string;
-    /**
-     * @generated from protobuf oneof: Details
-     */
-    details: {
-        oneofKind: "rtmp";
-        /**
-         * @generated from protobuf field: stream.video.RTMPBroadcast rtmp = 2;
-         */
-        rtmp: RTMPBroadcast;
-    } | {
-        oneofKind: "hls";
-        /**
-         * @generated from protobuf field: stream.video.HLSBroadcast hls = 3;
-         */
-        hls: HLSBroadcast;
-    } | {
-        oneofKind: "record";
-        /**
-         * @generated from protobuf field: stream.video.RecordBroadcast record = 4;
-         */
-        record: RecordBroadcast;
-    } | {
-        oneofKind: undefined;
-    };
-}
-/**
- * @generated from protobuf message stream.video.RTMPBroadcast
- */
-export interface RTMPBroadcast {
-    /**
-     * @generated from protobuf field: string call_id = 1;
-     */
-    callId: string;
-    /**
-     * @generated from protobuf field: repeated string rtmpurls = 2;
-     */
-    rtmpurls: string[];
-    /**
-     * @generated from protobuf field: int32 width = 3;
-     */
-    width: number;
-    /**
-     * @generated from protobuf field: int32 height = 4;
-     */
-    height: number;
-}
-/**
- * @generated from protobuf message stream.video.HLSBroadcast
- */
-export interface HLSBroadcast {
 }
 /**
  * @generated from protobuf message stream.video.File
@@ -307,13 +261,22 @@ export interface RecordingStorageOptions {
     path: string;
 }
 /**
- * @generated from protobuf message stream.video.BroadcastOptions
+ * @generated from protobuf message stream.video.RTMPOptions
  */
-export interface BroadcastOptions {
+export interface RTMPOptions {
     /**
-     * @generated from protobuf field: string rtmp_url = 1;
+     * @generated from protobuf field: repeated string urls = 1;
      */
-    rtmpUrl: string;
+    urls: string[];
+}
+/**
+ * @generated from protobuf message stream.video.Broadcast
+ */
+export interface Broadcast {
+    /**
+     * @generated from protobuf field: stream.video.RTMPOptions rtmp = 1;
+     */
+    rtmp?: RTMPOptions;
     /**
      * @generated from protobuf field: string hls_url = 2;
      */
@@ -329,39 +292,45 @@ export interface TranscribeOptions {
  */
 export interface CallType {
     /**
+     * the unique name for the call type
+     *
      * @generated from protobuf field: string name = 1;
      */
     name: string;
     /**
+     * TODO: maybe we need to move this to permissions / own_capabilities
+     *
      * @generated from protobuf field: stream.video.Security security = 2;
      */
     security?: Security;
     /**
-     * enable broadcasting by default when creating a call of this type
+     * when recording is true, calls are recorded on S3
      *
-     * @generated from protobuf field: bool broadcast = 3;
+     * @generated from protobuf field: bool recording = 4;
      */
-    broadcast: boolean;
+    recording: boolean;
     /**
-     * @generated from protobuf field: repeated stream.video.BroadcastOptions broadcast_options = 4;
+     * when enabled, calls get an HLS URL by default
+     *
+     * @generated from protobuf field: bool hls_broadcast = 5;
      */
-    broadcastOptions: BroadcastOptions[];
+    hlsBroadcast: boolean;
     /**
      * enable transcription by default
      *
-     * @generated from protobuf field: bool transcribe = 5;
+     * @generated from protobuf field: bool transcribe = 6;
      */
     transcribe: boolean;
     /**
-     * @generated from protobuf field: stream.video.TranscribeOptions transcribe_options = 6;
+     * @generated from protobuf field: stream.video.TranscribeOptions transcribe_options = 7;
      */
     transcribeOptions?: TranscribeOptions;
     /**
-     * @generated from protobuf field: string created_at = 7;
+     * @generated from protobuf field: string created_at = 8;
      */
     createdAt: string;
     /**
-     * @generated from protobuf field: string updated_at = 8;
+     * @generated from protobuf field: string updated_at = 9;
      */
     updatedAt: string;
 }
@@ -521,8 +490,6 @@ export interface Call {
      */
     createdByUserId: string;
     /**
-     * call custom data
-     *
      * @generated from protobuf field: google.protobuf.Struct custom = 4;
      */
     custom?: Struct;
@@ -539,15 +506,17 @@ export interface Call {
      */
     updatedAt: string;
     /**
-     * enable broadcasting by default when creating a call of this type
+     * when recording is true, calls are recorded on S3
      *
-     * @generated from protobuf field: bool broadcast = 7;
+     * @generated from protobuf field: bool recording = 7;
      */
-    broadcast: boolean;
+    recording: boolean;
     /**
-     * @generated from protobuf field: repeated stream.video.BroadcastOptions broadcast_options = 8;
+     * broadcast settings for this call
+     *
+     * @generated from protobuf field: stream.video.Broadcast broadcast = 8;
      */
-    broadcastOptions: BroadcastOptions[];
+    broadcast?: Broadcast;
     /**
      * enable transcription by default
      *
@@ -687,6 +656,60 @@ class EdgeServer$Type extends MessageType<EdgeServer> {
  */
 export const EdgeServer = new EdgeServer$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class EdgeServer_Coordinates$Type extends MessageType<EdgeServer_Coordinates> {
+    constructor() {
+        super("stream.video.EdgeServer.Coordinates", [
+            { no: 1, name: "lat", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ },
+            { no: 2, name: "long", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ }
+        ]);
+    }
+    create(value?: PartialMessage<EdgeServer_Coordinates>): EdgeServer_Coordinates {
+        const message = { lat: 0, long: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<EdgeServer_Coordinates>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: EdgeServer_Coordinates): EdgeServer_Coordinates {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* float lat */ 1:
+                    message.lat = reader.float();
+                    break;
+                case /* float long */ 2:
+                    message.long = reader.float();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: EdgeServer_Coordinates, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* float lat = 1; */
+        if (message.lat !== 0)
+            writer.tag(1, WireType.Bit32).float(message.lat);
+        /* float long = 2; */
+        if (message.long !== 0)
+            writer.tag(2, WireType.Bit32).float(message.long);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.EdgeServer.Coordinates
+ */
+export const EdgeServer_Coordinates = new EdgeServer_Coordinates$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class Latency$Type extends MessageType<Latency> {
     constructor() {
         super("stream.video.Latency", [
@@ -741,177 +764,6 @@ class Latency$Type extends MessageType<Latency> {
  * @generated MessageType for protobuf message stream.video.Latency
  */
 export const Latency = new Latency$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class Broadcast$Type extends MessageType<Broadcast> {
-    constructor() {
-        super("stream.video.Broadcast", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "rtmp", kind: "message", oneof: "details", T: () => RTMPBroadcast },
-            { no: 3, name: "hls", kind: "message", oneof: "details", T: () => HLSBroadcast },
-            { no: 4, name: "record", kind: "message", oneof: "details", T: () => RecordBroadcast }
-        ]);
-    }
-    create(value?: PartialMessage<Broadcast>): Broadcast {
-        const message = { id: "", details: { oneofKind: undefined } };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<Broadcast>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Broadcast): Broadcast {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                case /* stream.video.RTMPBroadcast rtmp */ 2:
-                    message.details = {
-                        oneofKind: "rtmp",
-                        rtmp: RTMPBroadcast.internalBinaryRead(reader, reader.uint32(), options, (message.details as any).rtmp)
-                    };
-                    break;
-                case /* stream.video.HLSBroadcast hls */ 3:
-                    message.details = {
-                        oneofKind: "hls",
-                        hls: HLSBroadcast.internalBinaryRead(reader, reader.uint32(), options, (message.details as any).hls)
-                    };
-                    break;
-                case /* stream.video.RecordBroadcast record */ 4:
-                    message.details = {
-                        oneofKind: "record",
-                        record: RecordBroadcast.internalBinaryRead(reader, reader.uint32(), options, (message.details as any).record)
-                    };
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: Broadcast, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* stream.video.RTMPBroadcast rtmp = 2; */
-        if (message.details.oneofKind === "rtmp")
-            RTMPBroadcast.internalBinaryWrite(message.details.rtmp, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.HLSBroadcast hls = 3; */
-        if (message.details.oneofKind === "hls")
-            HLSBroadcast.internalBinaryWrite(message.details.hls, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.RecordBroadcast record = 4; */
-        if (message.details.oneofKind === "record")
-            RecordBroadcast.internalBinaryWrite(message.details.record, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.Broadcast
- */
-export const Broadcast = new Broadcast$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class RTMPBroadcast$Type extends MessageType<RTMPBroadcast> {
-    constructor() {
-        super("stream.video.RTMPBroadcast", [
-            { no: 1, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "rtmpurls", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "width", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 4, name: "height", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
-        ]);
-    }
-    create(value?: PartialMessage<RTMPBroadcast>): RTMPBroadcast {
-        const message = { callId: "", rtmpurls: [], width: 0, height: 0 };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<RTMPBroadcast>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RTMPBroadcast): RTMPBroadcast {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string call_id */ 1:
-                    message.callId = reader.string();
-                    break;
-                case /* repeated string rtmpurls */ 2:
-                    message.rtmpurls.push(reader.string());
-                    break;
-                case /* int32 width */ 3:
-                    message.width = reader.int32();
-                    break;
-                case /* int32 height */ 4:
-                    message.height = reader.int32();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: RTMPBroadcast, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_id = 1; */
-        if (message.callId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callId);
-        /* repeated string rtmpurls = 2; */
-        for (let i = 0; i < message.rtmpurls.length; i++)
-            writer.tag(2, WireType.LengthDelimited).string(message.rtmpurls[i]);
-        /* int32 width = 3; */
-        if (message.width !== 0)
-            writer.tag(3, WireType.Varint).int32(message.width);
-        /* int32 height = 4; */
-        if (message.height !== 0)
-            writer.tag(4, WireType.Varint).int32(message.height);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.RTMPBroadcast
- */
-export const RTMPBroadcast = new RTMPBroadcast$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class HLSBroadcast$Type extends MessageType<HLSBroadcast> {
-    constructor() {
-        super("stream.video.HLSBroadcast", []);
-    }
-    create(value?: PartialMessage<HLSBroadcast>): HLSBroadcast {
-        const message = {};
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<HLSBroadcast>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: HLSBroadcast): HLSBroadcast {
-        return target ?? this.create();
-    }
-    internalBinaryWrite(message: HLSBroadcast, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.HLSBroadcast
- */
-export const HLSBroadcast = new HLSBroadcast$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class File$Type extends MessageType<File> {
     constructor() {
@@ -1459,27 +1311,74 @@ class RecordingStorageOptions$Type extends MessageType<RecordingStorageOptions> 
  */
 export const RecordingStorageOptions = new RecordingStorageOptions$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class BroadcastOptions$Type extends MessageType<BroadcastOptions> {
+class RTMPOptions$Type extends MessageType<RTMPOptions> {
     constructor() {
-        super("stream.video.BroadcastOptions", [
-            { no: 1, name: "rtmp_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "hls_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        super("stream.video.RTMPOptions", [
+            { no: 1, name: "urls", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<BroadcastOptions>): BroadcastOptions {
-        const message = { rtmpUrl: "", hlsUrl: "" };
+    create(value?: PartialMessage<RTMPOptions>): RTMPOptions {
+        const message = { urls: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<BroadcastOptions>(this, message, value);
+            reflectionMergePartial<RTMPOptions>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: BroadcastOptions): BroadcastOptions {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RTMPOptions): RTMPOptions {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string rtmp_url */ 1:
-                    message.rtmpUrl = reader.string();
+                case /* repeated string urls */ 1:
+                    message.urls.push(reader.string());
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: RTMPOptions, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated string urls = 1; */
+        for (let i = 0; i < message.urls.length; i++)
+            writer.tag(1, WireType.LengthDelimited).string(message.urls[i]);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.RTMPOptions
+ */
+export const RTMPOptions = new RTMPOptions$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Broadcast$Type extends MessageType<Broadcast> {
+    constructor() {
+        super("stream.video.Broadcast", [
+            { no: 1, name: "rtmp", kind: "message", T: () => RTMPOptions },
+            { no: 2, name: "hls_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Broadcast>): Broadcast {
+        const message = { hlsUrl: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Broadcast>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Broadcast): Broadcast {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.RTMPOptions rtmp */ 1:
+                    message.rtmp = RTMPOptions.internalBinaryRead(reader, reader.uint32(), options, message.rtmp);
                     break;
                 case /* string hls_url */ 2:
                     message.hlsUrl = reader.string();
@@ -1495,10 +1394,10 @@ class BroadcastOptions$Type extends MessageType<BroadcastOptions> {
         }
         return message;
     }
-    internalBinaryWrite(message: BroadcastOptions, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string rtmp_url = 1; */
-        if (message.rtmpUrl !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.rtmpUrl);
+    internalBinaryWrite(message: Broadcast, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.RTMPOptions rtmp = 1; */
+        if (message.rtmp)
+            RTMPOptions.internalBinaryWrite(message.rtmp, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         /* string hls_url = 2; */
         if (message.hlsUrl !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.hlsUrl);
@@ -1509,9 +1408,9 @@ class BroadcastOptions$Type extends MessageType<BroadcastOptions> {
     }
 }
 /**
- * @generated MessageType for protobuf message stream.video.BroadcastOptions
+ * @generated MessageType for protobuf message stream.video.Broadcast
  */
-export const BroadcastOptions = new BroadcastOptions$Type();
+export const Broadcast = new Broadcast$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class TranscribeOptions$Type extends MessageType<TranscribeOptions> {
     constructor() {
@@ -1544,16 +1443,16 @@ class CallType$Type extends MessageType<CallType> {
         super("stream.video.CallType", [
             { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "security", kind: "message", T: () => Security },
-            { no: 3, name: "broadcast", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 4, name: "broadcast_options", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => BroadcastOptions },
-            { no: 5, name: "transcribe", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 6, name: "transcribe_options", kind: "message", T: () => TranscribeOptions },
-            { no: 7, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 4, name: "recording", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 5, name: "hls_broadcast", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 6, name: "transcribe", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 7, name: "transcribe_options", kind: "message", T: () => TranscribeOptions },
+            { no: 8, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CallType>): CallType {
-        const message = { name: "", broadcast: false, broadcastOptions: [], transcribe: false, createdAt: "", updatedAt: "" };
+        const message = { name: "", recording: false, hlsBroadcast: false, transcribe: false, createdAt: "", updatedAt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CallType>(this, message, value);
@@ -1570,22 +1469,22 @@ class CallType$Type extends MessageType<CallType> {
                 case /* stream.video.Security security */ 2:
                     message.security = Security.internalBinaryRead(reader, reader.uint32(), options, message.security);
                     break;
-                case /* bool broadcast */ 3:
-                    message.broadcast = reader.bool();
+                case /* bool recording */ 4:
+                    message.recording = reader.bool();
                     break;
-                case /* repeated stream.video.BroadcastOptions broadcast_options */ 4:
-                    message.broadcastOptions.push(BroadcastOptions.internalBinaryRead(reader, reader.uint32(), options));
+                case /* bool hls_broadcast */ 5:
+                    message.hlsBroadcast = reader.bool();
                     break;
-                case /* bool transcribe */ 5:
+                case /* bool transcribe */ 6:
                     message.transcribe = reader.bool();
                     break;
-                case /* stream.video.TranscribeOptions transcribe_options */ 6:
+                case /* stream.video.TranscribeOptions transcribe_options */ 7:
                     message.transcribeOptions = TranscribeOptions.internalBinaryRead(reader, reader.uint32(), options, message.transcribeOptions);
                     break;
-                case /* string created_at */ 7:
+                case /* string created_at */ 8:
                     message.createdAt = reader.string();
                     break;
-                case /* string updated_at */ 8:
+                case /* string updated_at */ 9:
                     message.updatedAt = reader.string();
                     break;
                 default:
@@ -1606,24 +1505,24 @@ class CallType$Type extends MessageType<CallType> {
         /* stream.video.Security security = 2; */
         if (message.security)
             Security.internalBinaryWrite(message.security, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* bool broadcast = 3; */
-        if (message.broadcast !== false)
-            writer.tag(3, WireType.Varint).bool(message.broadcast);
-        /* repeated stream.video.BroadcastOptions broadcast_options = 4; */
-        for (let i = 0; i < message.broadcastOptions.length; i++)
-            BroadcastOptions.internalBinaryWrite(message.broadcastOptions[i], writer.tag(4, WireType.LengthDelimited).fork(), options).join();
-        /* bool transcribe = 5; */
+        /* bool recording = 4; */
+        if (message.recording !== false)
+            writer.tag(4, WireType.Varint).bool(message.recording);
+        /* bool hls_broadcast = 5; */
+        if (message.hlsBroadcast !== false)
+            writer.tag(5, WireType.Varint).bool(message.hlsBroadcast);
+        /* bool transcribe = 6; */
         if (message.transcribe !== false)
-            writer.tag(5, WireType.Varint).bool(message.transcribe);
-        /* stream.video.TranscribeOptions transcribe_options = 6; */
+            writer.tag(6, WireType.Varint).bool(message.transcribe);
+        /* stream.video.TranscribeOptions transcribe_options = 7; */
         if (message.transcribeOptions)
-            TranscribeOptions.internalBinaryWrite(message.transcribeOptions, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
-        /* string created_at = 7; */
+            TranscribeOptions.internalBinaryWrite(message.transcribeOptions, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
+        /* string created_at = 8; */
         if (message.createdAt !== "")
-            writer.tag(7, WireType.LengthDelimited).string(message.createdAt);
-        /* string updated_at = 8; */
+            writer.tag(8, WireType.LengthDelimited).string(message.createdAt);
+        /* string updated_at = 9; */
         if (message.updatedAt !== "")
-            writer.tag(8, WireType.LengthDelimited).string(message.updatedAt);
+            writer.tag(9, WireType.LengthDelimited).string(message.updatedAt);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1944,14 +1843,14 @@ class Call$Type extends MessageType<Call> {
             { no: 4, name: "custom", kind: "message", T: () => Struct },
             { no: 5, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
             { no: 6, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
-            { no: 7, name: "broadcast", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 8, name: "broadcast_options", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => BroadcastOptions },
+            { no: 7, name: "recording", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 8, name: "broadcast", kind: "message", T: () => Broadcast },
             { no: 9, name: "transcribe", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 10, name: "transcribe_options", kind: "message", T: () => TranscribeOptions }
         ]);
     }
     create(value?: PartialMessage<Call>): Call {
-        const message = { type: "", id: "", createdByUserId: "", createdAt: "", updatedAt: "", broadcast: false, broadcastOptions: [], transcribe: false };
+        const message = { type: "", id: "", createdByUserId: "", createdAt: "", updatedAt: "", recording: false, transcribe: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Call>(this, message, value);
@@ -1980,11 +1879,11 @@ class Call$Type extends MessageType<Call> {
                 case /* string updated_at */ 6:
                     message.updatedAt = reader.string();
                     break;
-                case /* bool broadcast */ 7:
-                    message.broadcast = reader.bool();
+                case /* bool recording */ 7:
+                    message.recording = reader.bool();
                     break;
-                case /* repeated stream.video.BroadcastOptions broadcast_options */ 8:
-                    message.broadcastOptions.push(BroadcastOptions.internalBinaryRead(reader, reader.uint32(), options));
+                case /* stream.video.Broadcast broadcast */ 8:
+                    message.broadcast = Broadcast.internalBinaryRead(reader, reader.uint32(), options, message.broadcast);
                     break;
                 case /* bool transcribe */ 9:
                     message.transcribe = reader.bool();
@@ -2022,12 +1921,12 @@ class Call$Type extends MessageType<Call> {
         /* string updated_at = 6; */
         if (message.updatedAt !== "")
             writer.tag(6, WireType.LengthDelimited).string(message.updatedAt);
-        /* bool broadcast = 7; */
-        if (message.broadcast !== false)
-            writer.tag(7, WireType.Varint).bool(message.broadcast);
-        /* repeated stream.video.BroadcastOptions broadcast_options = 8; */
-        for (let i = 0; i < message.broadcastOptions.length; i++)
-            BroadcastOptions.internalBinaryWrite(message.broadcastOptions[i], writer.tag(8, WireType.LengthDelimited).fork(), options).join();
+        /* bool recording = 7; */
+        if (message.recording !== false)
+            writer.tag(7, WireType.Varint).bool(message.recording);
+        /* stream.video.Broadcast broadcast = 8; */
+        if (message.broadcast)
+            Broadcast.internalBinaryWrite(message.broadcast, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
         /* bool transcribe = 9; */
         if (message.transcribe !== false)
             writer.tag(9, WireType.Varint).bool(message.transcribe);
