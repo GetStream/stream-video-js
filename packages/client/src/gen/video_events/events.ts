@@ -12,7 +12,6 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
-import { Broadcast } from "../video_models/models";
 import { Participant } from "../video_models/models";
 import { User } from "../video_models/models";
 import { Call } from "../video_models/models";
@@ -116,6 +115,54 @@ export interface WebsocketEvent {
          */
         authPayload: AuthPayload;
     } | {
+        oneofKind: "audioMuted";
+        /**
+         * @generated from protobuf field: stream.video.AudioMuted audio_muted = 16;
+         */
+        audioMuted: AudioMuted;
+    } | {
+        oneofKind: "audioUnmuted";
+        /**
+         * @generated from protobuf field: stream.video.AudioUnmuted audio_unmuted = 17;
+         */
+        audioUnmuted: AudioUnmuted;
+    } | {
+        oneofKind: "videoStarted";
+        /**
+         * @generated from protobuf field: stream.video.VideoStarted video_started = 18;
+         */
+        videoStarted: VideoStarted;
+    } | {
+        oneofKind: "videoStopped";
+        /**
+         * @generated from protobuf field: stream.video.VideoStopped video_stopped = 19;
+         */
+        videoStopped: VideoStopped;
+    } | {
+        oneofKind: "screenshareStarted";
+        /**
+         * @generated from protobuf field: stream.video.ScreenshareStarted screenshare_started = 20;
+         */
+        screenshareStarted: ScreenshareStarted;
+    } | {
+        oneofKind: "screenshareStopped";
+        /**
+         * @generated from protobuf field: stream.video.ScreenshareStopped screenshare_stopped = 21;
+         */
+        screenshareStopped: ScreenshareStopped;
+    } | {
+        oneofKind: "recordingStarted";
+        /**
+         * @generated from protobuf field: stream.video.RecordingStarted recording_started = 22;
+         */
+        recordingStarted: RecordingStarted;
+    } | {
+        oneofKind: "recordingStopped";
+        /**
+         * @generated from protobuf field: stream.video.RecordingStopped recording_stopped = 23;
+         */
+        recordingStopped: RecordingStopped;
+    } | {
         oneofKind: undefined;
     };
 }
@@ -131,6 +178,22 @@ export interface Healthcheck {
      * @generated from protobuf field: string client_id = 2;
      */
     clientId: string;
+    /**
+     * @generated from protobuf field: string call_type = 3;
+     */
+    callType: string;
+    /**
+     * @generated from protobuf field: string call_id = 4;
+     */
+    callId: string;
+    /**
+     * @generated from protobuf field: bool video = 5;
+     */
+    video: boolean;
+    /**
+     * @generated from protobuf field: bool audio = 6;
+     */
+    audio: boolean;
 }
 /**
  * @generated from protobuf message stream.video.AuthPayload
@@ -202,6 +265,116 @@ export interface CallDeleted {
     call?: Call;
 }
 /**
+ * @generated from protobuf message stream.video.AudioMuted
+ */
+export interface AudioMuted {
+    /**
+     * @generated from protobuf field: stream.video.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf oneof: target
+     */
+    target: {
+        oneofKind: "userId";
+        /**
+         * @generated from protobuf field: string user_id = 2;
+         */
+        userId: string;
+    } | {
+        oneofKind: "allUsers";
+        /**
+         * @generated from protobuf field: bool all_users = 3;
+         */
+        allUsers: boolean;
+    } | {
+        oneofKind: undefined;
+    };
+}
+/**
+ * @generated from protobuf message stream.video.AudioUnmuted
+ */
+export interface AudioUnmuted {
+    /**
+     * @generated from protobuf field: stream.video.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: string user_id = 2;
+     */
+    userId: string;
+}
+/**
+ * @generated from protobuf message stream.video.VideoStarted
+ */
+export interface VideoStarted {
+    /**
+     * @generated from protobuf field: stream.video.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: string user_id = 2;
+     */
+    userId: string;
+}
+/**
+ * @generated from protobuf message stream.video.VideoStopped
+ */
+export interface VideoStopped {
+    /**
+     * @generated from protobuf field: stream.video.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: string user_id = 2;
+     */
+    userId: string;
+}
+/**
+ * @generated from protobuf message stream.video.ScreenshareStarted
+ */
+export interface ScreenshareStarted {
+    /**
+     * @generated from protobuf field: stream.video.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: string user_id = 2;
+     */
+    userId: string;
+}
+/**
+ * @generated from protobuf message stream.video.ScreenshareStopped
+ */
+export interface ScreenshareStopped {
+    /**
+     * @generated from protobuf field: stream.video.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: string user_id = 2;
+     */
+    userId: string;
+}
+/**
+ * @generated from protobuf message stream.video.RecordingStarted
+ */
+export interface RecordingStarted {
+    /**
+     * @generated from protobuf field: stream.video.Call call = 1;
+     */
+    call?: Call;
+}
+/**
+ * @generated from protobuf message stream.video.RecordingStopped
+ */
+export interface RecordingStopped {
+    /**
+     * @generated from protobuf field: stream.video.Call call = 1;
+     */
+    call?: Call;
+}
+/**
  * @generated from protobuf message stream.video.UserUpdated
  */
 export interface UserUpdated {
@@ -215,7 +388,11 @@ export interface UserUpdated {
  */
 export interface ParticipantInvited {
     /**
-     * @generated from protobuf field: stream.video.Participant participant = 1;
+     * @generated from protobuf field: stream.video.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.Participant participant = 2;
      */
     participant?: Participant;
 }
@@ -224,7 +401,11 @@ export interface ParticipantInvited {
  */
 export interface ParticipantUpdated {
     /**
-     * @generated from protobuf field: stream.video.Participant participant = 1;
+     * @generated from protobuf field: stream.video.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.Participant participant = 2;
      */
     participant?: Participant;
 }
@@ -233,7 +414,11 @@ export interface ParticipantUpdated {
  */
 export interface ParticipantDeleted {
     /**
-     * @generated from protobuf field: string user_id = 1;
+     * @generated from protobuf field: stream.video.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: string user_id = 2;
      */
     userId: string;
 }
@@ -242,7 +427,11 @@ export interface ParticipantDeleted {
  */
 export interface ParticipantJoined {
     /**
-     * @generated from protobuf field: stream.video.Participant participant = 1;
+     * @generated from protobuf field: stream.video.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.Participant participant = 2;
      */
     participant?: Participant;
 }
@@ -251,7 +440,11 @@ export interface ParticipantJoined {
  */
 export interface ParticipantLeft {
     /**
-     * @generated from protobuf field: stream.video.Participant participant = 1;
+     * @generated from protobuf field: stream.video.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.Participant participant = 2;
      */
     participant?: Participant;
 }
@@ -260,18 +453,18 @@ export interface ParticipantLeft {
  */
 export interface BroadcastStarted {
     /**
-     * @generated from protobuf field: stream.video.Broadcast broadcast = 1;
+     * @generated from protobuf field: stream.video.Call call = 1;
      */
-    broadcast?: Broadcast;
+    call?: Call;
 }
 /**
  * @generated from protobuf message stream.video.BroadcastEnded
  */
 export interface BroadcastEnded {
     /**
-     * @generated from protobuf field: stream.video.Broadcast broadcast = 1;
+     * @generated from protobuf field: stream.video.Call call = 1;
      */
-    broadcast?: Broadcast;
+    call?: Call;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
@@ -291,7 +484,15 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
             { no: 12, name: "participant_left", kind: "message", oneof: "eventPayload", T: () => ParticipantLeft },
             { no: 13, name: "broadcast_started", kind: "message", oneof: "eventPayload", T: () => BroadcastStarted },
             { no: 14, name: "broadcast_ended", kind: "message", oneof: "eventPayload", T: () => BroadcastEnded },
-            { no: 15, name: "auth_payload", kind: "message", oneof: "eventPayload", T: () => AuthPayload }
+            { no: 15, name: "auth_payload", kind: "message", oneof: "eventPayload", T: () => AuthPayload },
+            { no: 16, name: "audio_muted", kind: "message", oneof: "eventPayload", T: () => AudioMuted },
+            { no: 17, name: "audio_unmuted", kind: "message", oneof: "eventPayload", T: () => AudioUnmuted },
+            { no: 18, name: "video_started", kind: "message", oneof: "eventPayload", T: () => VideoStarted },
+            { no: 19, name: "video_stopped", kind: "message", oneof: "eventPayload", T: () => VideoStopped },
+            { no: 20, name: "screenshare_started", kind: "message", oneof: "eventPayload", T: () => ScreenshareStarted },
+            { no: 21, name: "screenshare_stopped", kind: "message", oneof: "eventPayload", T: () => ScreenshareStopped },
+            { no: 22, name: "recording_started", kind: "message", oneof: "eventPayload", T: () => RecordingStarted },
+            { no: 23, name: "recording_stopped", kind: "message", oneof: "eventPayload", T: () => RecordingStopped }
         ]);
     }
     create(value?: PartialMessage<WebsocketEvent>): WebsocketEvent {
@@ -396,6 +597,54 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
                         authPayload: AuthPayload.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).authPayload)
                     };
                     break;
+                case /* stream.video.AudioMuted audio_muted */ 16:
+                    message.eventPayload = {
+                        oneofKind: "audioMuted",
+                        audioMuted: AudioMuted.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).audioMuted)
+                    };
+                    break;
+                case /* stream.video.AudioUnmuted audio_unmuted */ 17:
+                    message.eventPayload = {
+                        oneofKind: "audioUnmuted",
+                        audioUnmuted: AudioUnmuted.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).audioUnmuted)
+                    };
+                    break;
+                case /* stream.video.VideoStarted video_started */ 18:
+                    message.eventPayload = {
+                        oneofKind: "videoStarted",
+                        videoStarted: VideoStarted.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).videoStarted)
+                    };
+                    break;
+                case /* stream.video.VideoStopped video_stopped */ 19:
+                    message.eventPayload = {
+                        oneofKind: "videoStopped",
+                        videoStopped: VideoStopped.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).videoStopped)
+                    };
+                    break;
+                case /* stream.video.ScreenshareStarted screenshare_started */ 20:
+                    message.eventPayload = {
+                        oneofKind: "screenshareStarted",
+                        screenshareStarted: ScreenshareStarted.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).screenshareStarted)
+                    };
+                    break;
+                case /* stream.video.ScreenshareStopped screenshare_stopped */ 21:
+                    message.eventPayload = {
+                        oneofKind: "screenshareStopped",
+                        screenshareStopped: ScreenshareStopped.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).screenshareStopped)
+                    };
+                    break;
+                case /* stream.video.RecordingStarted recording_started */ 22:
+                    message.eventPayload = {
+                        oneofKind: "recordingStarted",
+                        recordingStarted: RecordingStarted.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).recordingStarted)
+                    };
+                    break;
+                case /* stream.video.RecordingStopped recording_stopped */ 23:
+                    message.eventPayload = {
+                        oneofKind: "recordingStopped",
+                        recordingStopped: RecordingStopped.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).recordingStopped)
+                    };
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -453,6 +702,30 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
         /* stream.video.AuthPayload auth_payload = 15; */
         if (message.eventPayload.oneofKind === "authPayload")
             AuthPayload.internalBinaryWrite(message.eventPayload.authPayload, writer.tag(15, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.AudioMuted audio_muted = 16; */
+        if (message.eventPayload.oneofKind === "audioMuted")
+            AudioMuted.internalBinaryWrite(message.eventPayload.audioMuted, writer.tag(16, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.AudioUnmuted audio_unmuted = 17; */
+        if (message.eventPayload.oneofKind === "audioUnmuted")
+            AudioUnmuted.internalBinaryWrite(message.eventPayload.audioUnmuted, writer.tag(17, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.VideoStarted video_started = 18; */
+        if (message.eventPayload.oneofKind === "videoStarted")
+            VideoStarted.internalBinaryWrite(message.eventPayload.videoStarted, writer.tag(18, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.VideoStopped video_stopped = 19; */
+        if (message.eventPayload.oneofKind === "videoStopped")
+            VideoStopped.internalBinaryWrite(message.eventPayload.videoStopped, writer.tag(19, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.ScreenshareStarted screenshare_started = 20; */
+        if (message.eventPayload.oneofKind === "screenshareStarted")
+            ScreenshareStarted.internalBinaryWrite(message.eventPayload.screenshareStarted, writer.tag(20, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.ScreenshareStopped screenshare_stopped = 21; */
+        if (message.eventPayload.oneofKind === "screenshareStopped")
+            ScreenshareStopped.internalBinaryWrite(message.eventPayload.screenshareStopped, writer.tag(21, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.RecordingStarted recording_started = 22; */
+        if (message.eventPayload.oneofKind === "recordingStarted")
+            RecordingStarted.internalBinaryWrite(message.eventPayload.recordingStarted, writer.tag(22, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.RecordingStopped recording_stopped = 23; */
+        if (message.eventPayload.oneofKind === "recordingStopped")
+            RecordingStopped.internalBinaryWrite(message.eventPayload.recordingStopped, writer.tag(23, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -468,11 +741,15 @@ class Healthcheck$Type extends MessageType<Healthcheck> {
     constructor() {
         super("stream.video.Healthcheck", [
             { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "client_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "client_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "video", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 6, name: "audio", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Healthcheck>): Healthcheck {
-        const message = { userId: "", clientId: "" };
+        const message = { userId: "", clientId: "", callType: "", callId: "", video: false, audio: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Healthcheck>(this, message, value);
@@ -488,6 +765,18 @@ class Healthcheck$Type extends MessageType<Healthcheck> {
                     break;
                 case /* string client_id */ 2:
                     message.clientId = reader.string();
+                    break;
+                case /* string call_type */ 3:
+                    message.callType = reader.string();
+                    break;
+                case /* string call_id */ 4:
+                    message.callId = reader.string();
+                    break;
+                case /* bool video */ 5:
+                    message.video = reader.bool();
+                    break;
+                case /* bool audio */ 6:
+                    message.audio = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -507,6 +796,18 @@ class Healthcheck$Type extends MessageType<Healthcheck> {
         /* string client_id = 2; */
         if (message.clientId !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.clientId);
+        /* string call_type = 3; */
+        if (message.callType !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.callType);
+        /* string call_id = 4; */
+        if (message.callId !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.callId);
+        /* bool video = 5; */
+        if (message.video !== false)
+            writer.tag(5, WireType.Varint).bool(message.video);
+        /* bool audio = 6; */
+        if (message.audio !== false)
+            writer.tag(6, WireType.Varint).bool(message.audio);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -814,6 +1115,437 @@ class CallDeleted$Type extends MessageType<CallDeleted> {
  */
 export const CallDeleted = new CallDeleted$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class AudioMuted$Type extends MessageType<AudioMuted> {
+    constructor() {
+        super("stream.video.AudioMuted", [
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "user_id", kind: "scalar", oneof: "target", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "all_users", kind: "scalar", oneof: "target", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AudioMuted>): AudioMuted {
+        const message = { target: { oneofKind: undefined } };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AudioMuted>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AudioMuted): AudioMuted {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* string user_id */ 2:
+                    message.target = {
+                        oneofKind: "userId",
+                        userId: reader.string()
+                    };
+                    break;
+                case /* bool all_users */ 3:
+                    message.target = {
+                        oneofKind: "allUsers",
+                        allUsers: reader.bool()
+                    };
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AudioMuted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string user_id = 2; */
+        if (message.target.oneofKind === "userId")
+            writer.tag(2, WireType.LengthDelimited).string(message.target.userId);
+        /* bool all_users = 3; */
+        if (message.target.oneofKind === "allUsers")
+            writer.tag(3, WireType.Varint).bool(message.target.allUsers);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.AudioMuted
+ */
+export const AudioMuted = new AudioMuted$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AudioUnmuted$Type extends MessageType<AudioUnmuted> {
+    constructor() {
+        super("stream.video.AudioUnmuted", [
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AudioUnmuted>): AudioUnmuted {
+        const message = { userId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AudioUnmuted>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AudioUnmuted): AudioUnmuted {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* string user_id */ 2:
+                    message.userId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AudioUnmuted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string user_id = 2; */
+        if (message.userId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.userId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.AudioUnmuted
+ */
+export const AudioUnmuted = new AudioUnmuted$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class VideoStarted$Type extends MessageType<VideoStarted> {
+    constructor() {
+        super("stream.video.VideoStarted", [
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<VideoStarted>): VideoStarted {
+        const message = { userId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<VideoStarted>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: VideoStarted): VideoStarted {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* string user_id */ 2:
+                    message.userId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: VideoStarted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string user_id = 2; */
+        if (message.userId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.userId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.VideoStarted
+ */
+export const VideoStarted = new VideoStarted$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class VideoStopped$Type extends MessageType<VideoStopped> {
+    constructor() {
+        super("stream.video.VideoStopped", [
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<VideoStopped>): VideoStopped {
+        const message = { userId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<VideoStopped>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: VideoStopped): VideoStopped {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* string user_id */ 2:
+                    message.userId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: VideoStopped, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string user_id = 2; */
+        if (message.userId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.userId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.VideoStopped
+ */
+export const VideoStopped = new VideoStopped$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ScreenshareStarted$Type extends MessageType<ScreenshareStarted> {
+    constructor() {
+        super("stream.video.ScreenshareStarted", [
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ScreenshareStarted>): ScreenshareStarted {
+        const message = { userId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ScreenshareStarted>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ScreenshareStarted): ScreenshareStarted {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* string user_id */ 2:
+                    message.userId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ScreenshareStarted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string user_id = 2; */
+        if (message.userId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.userId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.ScreenshareStarted
+ */
+export const ScreenshareStarted = new ScreenshareStarted$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ScreenshareStopped$Type extends MessageType<ScreenshareStopped> {
+    constructor() {
+        super("stream.video.ScreenshareStopped", [
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ScreenshareStopped>): ScreenshareStopped {
+        const message = { userId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ScreenshareStopped>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ScreenshareStopped): ScreenshareStopped {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* string user_id */ 2:
+                    message.userId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ScreenshareStopped, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string user_id = 2; */
+        if (message.userId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.userId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.ScreenshareStopped
+ */
+export const ScreenshareStopped = new ScreenshareStopped$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class RecordingStarted$Type extends MessageType<RecordingStarted> {
+    constructor() {
+        super("stream.video.RecordingStarted", [
+            { no: 1, name: "call", kind: "message", T: () => Call }
+        ]);
+    }
+    create(value?: PartialMessage<RecordingStarted>): RecordingStarted {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<RecordingStarted>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RecordingStarted): RecordingStarted {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: RecordingStarted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.RecordingStarted
+ */
+export const RecordingStarted = new RecordingStarted$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class RecordingStopped$Type extends MessageType<RecordingStopped> {
+    constructor() {
+        super("stream.video.RecordingStopped", [
+            { no: 1, name: "call", kind: "message", T: () => Call }
+        ]);
+    }
+    create(value?: PartialMessage<RecordingStopped>): RecordingStopped {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<RecordingStopped>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RecordingStopped): RecordingStopped {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: RecordingStopped, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.RecordingStopped
+ */
+export const RecordingStopped = new RecordingStopped$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class UserUpdated$Type extends MessageType<UserUpdated> {
     constructor() {
         super("stream.video.UserUpdated", [
@@ -864,7 +1596,8 @@ export const UserUpdated = new UserUpdated$Type();
 class ParticipantInvited$Type extends MessageType<ParticipantInvited> {
     constructor() {
         super("stream.video.ParticipantInvited", [
-            { no: 1, name: "participant", kind: "message", T: () => Participant }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "participant", kind: "message", T: () => Participant }
         ]);
     }
     create(value?: PartialMessage<ParticipantInvited>): ParticipantInvited {
@@ -879,7 +1612,10 @@ class ParticipantInvited$Type extends MessageType<ParticipantInvited> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* stream.video.Participant participant */ 1:
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.Participant participant */ 2:
                     message.participant = Participant.internalBinaryRead(reader, reader.uint32(), options, message.participant);
                     break;
                 default:
@@ -894,9 +1630,12 @@ class ParticipantInvited$Type extends MessageType<ParticipantInvited> {
         return message;
     }
     internalBinaryWrite(message: ParticipantInvited, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.Participant participant = 1; */
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.Participant participant = 2; */
         if (message.participant)
-            Participant.internalBinaryWrite(message.participant, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+            Participant.internalBinaryWrite(message.participant, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -911,7 +1650,8 @@ export const ParticipantInvited = new ParticipantInvited$Type();
 class ParticipantUpdated$Type extends MessageType<ParticipantUpdated> {
     constructor() {
         super("stream.video.ParticipantUpdated", [
-            { no: 1, name: "participant", kind: "message", T: () => Participant }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "participant", kind: "message", T: () => Participant }
         ]);
     }
     create(value?: PartialMessage<ParticipantUpdated>): ParticipantUpdated {
@@ -926,7 +1666,10 @@ class ParticipantUpdated$Type extends MessageType<ParticipantUpdated> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* stream.video.Participant participant */ 1:
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.Participant participant */ 2:
                     message.participant = Participant.internalBinaryRead(reader, reader.uint32(), options, message.participant);
                     break;
                 default:
@@ -941,9 +1684,12 @@ class ParticipantUpdated$Type extends MessageType<ParticipantUpdated> {
         return message;
     }
     internalBinaryWrite(message: ParticipantUpdated, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.Participant participant = 1; */
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.Participant participant = 2; */
         if (message.participant)
-            Participant.internalBinaryWrite(message.participant, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+            Participant.internalBinaryWrite(message.participant, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -958,7 +1704,8 @@ export const ParticipantUpdated = new ParticipantUpdated$Type();
 class ParticipantDeleted$Type extends MessageType<ParticipantDeleted> {
     constructor() {
         super("stream.video.ParticipantDeleted", [
-            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<ParticipantDeleted>): ParticipantDeleted {
@@ -973,7 +1720,10 @@ class ParticipantDeleted$Type extends MessageType<ParticipantDeleted> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string user_id */ 1:
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* string user_id */ 2:
                     message.userId = reader.string();
                     break;
                 default:
@@ -988,9 +1738,12 @@ class ParticipantDeleted$Type extends MessageType<ParticipantDeleted> {
         return message;
     }
     internalBinaryWrite(message: ParticipantDeleted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string user_id = 1; */
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string user_id = 2; */
         if (message.userId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.userId);
+            writer.tag(2, WireType.LengthDelimited).string(message.userId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1005,7 +1758,8 @@ export const ParticipantDeleted = new ParticipantDeleted$Type();
 class ParticipantJoined$Type extends MessageType<ParticipantJoined> {
     constructor() {
         super("stream.video.ParticipantJoined", [
-            { no: 1, name: "participant", kind: "message", T: () => Participant }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "participant", kind: "message", T: () => Participant }
         ]);
     }
     create(value?: PartialMessage<ParticipantJoined>): ParticipantJoined {
@@ -1020,7 +1774,10 @@ class ParticipantJoined$Type extends MessageType<ParticipantJoined> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* stream.video.Participant participant */ 1:
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.Participant participant */ 2:
                     message.participant = Participant.internalBinaryRead(reader, reader.uint32(), options, message.participant);
                     break;
                 default:
@@ -1035,9 +1792,12 @@ class ParticipantJoined$Type extends MessageType<ParticipantJoined> {
         return message;
     }
     internalBinaryWrite(message: ParticipantJoined, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.Participant participant = 1; */
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.Participant participant = 2; */
         if (message.participant)
-            Participant.internalBinaryWrite(message.participant, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+            Participant.internalBinaryWrite(message.participant, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1052,7 +1812,8 @@ export const ParticipantJoined = new ParticipantJoined$Type();
 class ParticipantLeft$Type extends MessageType<ParticipantLeft> {
     constructor() {
         super("stream.video.ParticipantLeft", [
-            { no: 1, name: "participant", kind: "message", T: () => Participant }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "participant", kind: "message", T: () => Participant }
         ]);
     }
     create(value?: PartialMessage<ParticipantLeft>): ParticipantLeft {
@@ -1067,7 +1828,10 @@ class ParticipantLeft$Type extends MessageType<ParticipantLeft> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* stream.video.Participant participant */ 1:
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.Participant participant */ 2:
                     message.participant = Participant.internalBinaryRead(reader, reader.uint32(), options, message.participant);
                     break;
                 default:
@@ -1082,9 +1846,12 @@ class ParticipantLeft$Type extends MessageType<ParticipantLeft> {
         return message;
     }
     internalBinaryWrite(message: ParticipantLeft, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.Participant participant = 1; */
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.Participant participant = 2; */
         if (message.participant)
-            Participant.internalBinaryWrite(message.participant, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+            Participant.internalBinaryWrite(message.participant, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1099,7 +1866,7 @@ export const ParticipantLeft = new ParticipantLeft$Type();
 class BroadcastStarted$Type extends MessageType<BroadcastStarted> {
     constructor() {
         super("stream.video.BroadcastStarted", [
-            { no: 1, name: "broadcast", kind: "message", T: () => Broadcast }
+            { no: 1, name: "call", kind: "message", T: () => Call }
         ]);
     }
     create(value?: PartialMessage<BroadcastStarted>): BroadcastStarted {
@@ -1114,8 +1881,8 @@ class BroadcastStarted$Type extends MessageType<BroadcastStarted> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* stream.video.Broadcast broadcast */ 1:
-                    message.broadcast = Broadcast.internalBinaryRead(reader, reader.uint32(), options, message.broadcast);
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1129,9 +1896,9 @@ class BroadcastStarted$Type extends MessageType<BroadcastStarted> {
         return message;
     }
     internalBinaryWrite(message: BroadcastStarted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.Broadcast broadcast = 1; */
-        if (message.broadcast)
-            Broadcast.internalBinaryWrite(message.broadcast, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1146,7 +1913,7 @@ export const BroadcastStarted = new BroadcastStarted$Type();
 class BroadcastEnded$Type extends MessageType<BroadcastEnded> {
     constructor() {
         super("stream.video.BroadcastEnded", [
-            { no: 1, name: "broadcast", kind: "message", T: () => Broadcast }
+            { no: 1, name: "call", kind: "message", T: () => Call }
         ]);
     }
     create(value?: PartialMessage<BroadcastEnded>): BroadcastEnded {
@@ -1161,8 +1928,8 @@ class BroadcastEnded$Type extends MessageType<BroadcastEnded> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* stream.video.Broadcast broadcast */ 1:
-                    message.broadcast = Broadcast.internalBinaryRead(reader, reader.uint32(), options, message.broadcast);
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1176,9 +1943,9 @@ class BroadcastEnded$Type extends MessageType<BroadcastEnded> {
         return message;
     }
     internalBinaryWrite(message: BroadcastEnded, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.Broadcast broadcast = 1; */
-        if (message.broadcast)
-            Broadcast.internalBinaryWrite(message.broadcast, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

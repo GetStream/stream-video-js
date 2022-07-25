@@ -85,6 +85,7 @@ export class StreamVideoClient {
     }
 
     const edgeServer = await this.client.selectEdgeServer({
+      callType: 'default',
       callId: call.id,
       latencyByEdge,
     });
