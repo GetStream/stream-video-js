@@ -18,7 +18,7 @@ import {
   Room,
   RoomType,
   StreamVideo,
-  useStreamVideoClient,
+  useCreateStreamVideoClient,
 } from '@stream-io/video-components-react';
 
 // use different browser tabs
@@ -59,7 +59,7 @@ const App = () => {
     [currentUser],
   );
 
-  const [client, connectionError] = useStreamVideoClient(
+  const [client, connectionError] = useCreateStreamVideoClient(
     '/', // proxied to http://localhost:26991
     'api-key',
     currentUserToken,

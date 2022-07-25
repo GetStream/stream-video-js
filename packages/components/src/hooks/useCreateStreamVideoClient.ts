@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StreamVideoClient, UserRequest } from '@stream-io/video-client';
 
-export const useStreamVideoClient = (
+export const useCreateStreamVideoClient = (
   baseUrl: string,
   apiKey: string,
   token: string,

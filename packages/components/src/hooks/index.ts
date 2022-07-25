@@ -1,2 +1,2 @@
-export * from './useStreamVideoClient';
+export * from './useCreateStreamVideoClient';
 export * from './useWebRtcStats';
