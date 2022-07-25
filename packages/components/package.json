@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@livekit/react-components": "^1.0.0",
+    "@peermetrics/webrtc-stats": "^5.6.0",
     "@stream-io/video-client": "workspace:^",
     "livekit-client": "^1.2.4"
   },

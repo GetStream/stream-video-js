@@ -2150,6 +2150,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@peermetrics/webrtc-stats@npm:^5.6.0":
+  version: 5.6.0
+  resolution: "@peermetrics/webrtc-stats@npm:5.6.0"
+  dependencies:
+    uuid: 8.3.2
+  checksum: 2aecc7044de52ad478ea2293f05c0c05beefefc6b390b6dfc5142c9cd54a3d10f433bb24675b204b3acc1deef993cc6b9b3f78c1dd4ae4d02e12232bd32623e9
+  languageName: node
+  linkType: hard
+
 "@pmmmwh/react-refresh-webpack-plugin@npm:^0.5.3":
   version: 0.5.7
   resolution: "@pmmmwh/react-refresh-webpack-plugin@npm:0.5.7"
@@ -2429,6 +2438,7 @@ __metadata:
   resolution: "@stream-io/video-components-react@workspace:packages/components"
   dependencies:
     "@livekit/react-components": ^1.0.0
+    "@peermetrics/webrtc-stats": ^5.6.0
     "@stream-io/video-client": "workspace:^"
     livekit-client: ^1.2.4
     react: ^18.2.0
@@ -12505,7 +12515,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^8.3.2":
+"uuid@npm:8.3.2, uuid@npm:^8.3.2":
   version: 8.3.2
   resolution: "uuid@npm:8.3.2"
   bin:

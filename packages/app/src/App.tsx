@@ -194,6 +194,7 @@ const App = () => {
               <Room
                 url={`wss://${edge.edgeServer.url}`}
                 token={edge.token}
+                publishStats
                 onConnected={(room) => {
                   room.localParticipant
                     .enableCameraAndMicrophone()
