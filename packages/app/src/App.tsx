@@ -8,6 +8,7 @@ import React, {
 import logo from './logo.svg';
 import './App.css';
 import {
+  CallCreated,
   SelectEdgeServerResponse,
   Struct,
   UserRequest,
@@ -90,22 +91,35 @@ const App = () => {
   const initiateCall = useCallback(
     async (id: string) => {
       try {
-        const createdCall = await client?.createCall({
+        await client?.createCall({
           id,
           type: 'video',
-          participantIds: [],
+          participantIds: ['Alice', 'Bob', 'Trudy'],
           broadcastOptions: [],
         });
 
-        await joinCall(createdCall?.id ?? '');
         setErrorMessage('');
       } catch (err) {
         console.error(`Failed to create a call`, err);
         setErrorMessage((err as Error).message);
       }
     },
-    [client, joinCall],
+    [client],
   );
+
+  useEffect(() => {
+    const onCallCreated = (message: CallCreated) => {
+      console.log(`Call created`, message);
+      const { call } = message;
+      if (call && call.id) {
+        joinCall(call?.id).then(() => {
+          console.log(`Join call (ws-event):`, call.id);
+        });
+      }
+    };
+    // @ts-ignore
+    return client?.on('callCreated', onCallCreated);
+  }, [client, joinCall]);
 
   return (
     <div className="App">
@@ -128,7 +142,11 @@ const App = () => {
                   <select
                     value={currentUserToken}
                     onChange={(e) => {
-                      setCurrentUser(e.target.textContent || '');
+                      const selectedToken = e.target.value;
+                      const [user] = participants.find(
+                        ([, token]) => token === selectedToken,
+                      ) || ['Alice'];
+                      setCurrentUser(user);
                       setCurrentUserToken(e.target.value);
                     }}
                   >
