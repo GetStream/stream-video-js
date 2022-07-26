@@ -3,7 +3,6 @@ import { DisplayContext, LiveKitRoom } from '@livekit/react-components';
 import { useWebRtcStats } from '../hooks';
 
 import type { Room as LiveKitRoomType } from 'livekit-client';
-import type { StatsEvent } from '@peermetrics/webrtc-stats/src/types';
 import '@livekit/react-components/dist/index.css';
 
 export type RoomProps = {
@@ -22,7 +21,7 @@ export const Room = (props: RoomProps) => {
   const webRtcStats = useWebRtcStats(liveKitRoom);
   useEffect(() => {
     if (!publishStats) return;
-    const logStats = (stats: StatsEvent) => {
+    const logStats = (stats: object) => {
       console.log(stats);
     };
     webRtcStats.addListener('stats', logStats);

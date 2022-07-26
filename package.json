@@ -8,6 +8,7 @@
     "packages/*"
   ],
   "scripts": {
+    "start:components": "yarn workspace @stream-io/video-components-react run start",
     "start:client": "yarn workspace @stream-io/video-client run start",
     "start:app": "yarn workspace @stream-io/video-react-app run start",
     "build:all": "yarn workspaces foreach -vt run build",

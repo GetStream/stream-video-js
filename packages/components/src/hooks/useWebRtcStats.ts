@@ -2,7 +2,19 @@ import { useEffect, useMemo } from 'react';
 import type { Room } from 'livekit-client';
 // @ts-ignore
 import { WebRTCStats } from '@peermetrics/webrtc-stats';
-import type { WebRTCStatsConstructorOptions } from '@peermetrics/webrtc-stats/src/types';
+
+// NOTE: OL: redeclared from @peermetrics/webrtc-stats as the internal types
+// are incompatible with newer TS versions.
+export interface WebRTCStatsConstructorOptions {
+  getStatsInterval: number;
+  rawStats: boolean;
+  statsObject: boolean;
+  filteredStats: boolean;
+  wrapGetUserMedia: boolean;
+  debug: boolean;
+  remote: boolean;
+  logLevel: 'none' | 'error' | 'warn' | 'info' | 'debug';
+}
 
 export const useWebRtcStats = (
   room?: Room,
