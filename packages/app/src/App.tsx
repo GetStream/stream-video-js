@@ -45,7 +45,10 @@ const theme = createTheme({
 });
 
 const App = () => {
-  const [currentUser, setCurrentUser] = useState('Alice');
+  const [currentUser, setCurrentUser] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('user') || 'Alice';
+  });
   const [currentCall, setCurrentCall] = useState<Call | undefined>();
   const [isCurrentCallAccepted, setIsCurrentCallAccepted] = useState(false);
   const [edge, setEdge] = useState<SelectEdgeServerResponse | undefined>();
@@ -53,15 +56,27 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
   const user = useMemo<CreateUserRequest>(
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const previousUser = params.get('user');
+    if (previousUser !== currentUser) {
+      params.set('user', currentUser);
+      window.location.search = params.toString();
+    }
+  }, [currentUser]);
+
+  const user = useMemo<CreateUserRequest>(
     () => ({
       id: currentUser,
       name: currentUser,
-      role: 'role',
+      role: 'user-role',
+      teams: ['team-1, team-2'],
+      imageUrl: '/profile.png',
       custom: Struct.fromJson({
+        key: 'value',
         hello: 'world',
       }),
       teams: ['team-1', 'team-2'],
-      imageUrl: '/test.jpg',
     }),
     [currentUser],
   );

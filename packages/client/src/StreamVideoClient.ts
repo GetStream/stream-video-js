@@ -15,7 +15,7 @@ import {
   JoinCallRequest,
 } from './gen/video_coordinator_rpc/coordinator_service';
 import { CallCoordinatorServiceClient } from './gen/video_coordinator_rpc/coordinator_service.client';
-import type { Latency, UserRequest } from './gen/video_models/models';
+import type { Latency } from './gen/video_models/models';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   sendJson: false,

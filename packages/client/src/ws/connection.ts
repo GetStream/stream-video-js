@@ -1,5 +1,5 @@
 import { StreamWebSocketClient } from './StreamWebSocketClient';
-import { UserRequest } from '../gen/video_models/models';
+import type { CreateUserRequest } from '../gen/video_coordinator_rpc/coordinator_service';
 import type { StreamWSClient } from './types';
 import { CreateUserRequest } from '../gen/video_coordinator_rpc/coordinator_service';
 

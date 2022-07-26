@@ -18,5 +18,9 @@
     "strictNullChecks": true,
     "sourceMap": true,
     "jsx": "react-jsxdev"
-  }
+  },
+  "include": [
+    "./src",
+    "index.ts"
+  ]
 }
