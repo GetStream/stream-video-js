@@ -1,5 +1,4 @@
 import { keepAlive } from './keepAlive';
-import { UserRequest } from '../gen/video_models/models';
 import { AuthPayload, WebsocketEvent } from '../gen/video_events/events';
 
 import type { StreamWSClient, StreamEventListener } from './types';
