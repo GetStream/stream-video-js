@@ -11,6 +11,5 @@ export const createSocketConnection = async (
   await wsClient.ensureAuthenticated();
   console.log('Authenticated!');
 
-  // @ts-ignore
   return wsClient;
 };

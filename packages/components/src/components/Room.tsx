@@ -9,13 +9,14 @@ export type RoomProps = {
   url: string;
   token: string;
   onConnected?: (room: LiveKitRoomType) => void;
+  onLeave?: (room: LiveKitRoomType) => void;
   publishStats?: boolean;
 };
 
 export type RoomType = LiveKitRoomType;
 
 export const Room = (props: RoomProps) => {
-  const { url, token, onConnected, publishStats } = props;
+  const { url, token, onConnected, onLeave, publishStats } = props;
   const [liveKitRoom, setLiveKitRoom] = useState<LiveKitRoomType | undefined>();
 
   const webRtcStats = useWebRtcStats(liveKitRoom);
@@ -37,13 +38,14 @@ export const Room = (props: RoomProps) => {
         <LiveKitRoom
           url={url}
           token={token}
+          roomOptions={{ adaptiveStream: true }}
+          onLeave={onLeave}
           onConnected={(room) => {
             setLiveKitRoom(room);
             if (onConnected) {
               onConnected(room);
             }
           }}
-          roomOptions={{ adaptiveStream: true }}
         />
       </DisplayContext.Provider>
     </div>
