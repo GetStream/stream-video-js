@@ -24,6 +24,7 @@
   },
   "proxy": "http://localhost:26991",
   "scripts": {
+    "clean": "rimraf build && rimraf node_modules/.cache",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -45,5 +46,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/rimraf": "^3.0.2",
+    "rimraf": "^3.0.2"
   }
 }

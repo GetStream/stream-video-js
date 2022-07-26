@@ -4,6 +4,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
+    "clean": "rimraf dist",
     "start": "tsc --project tsconfig.json --watch",
     "build": "tsc --project tsconfig.production.json"
   },
@@ -18,8 +19,10 @@
     "react-dom": "^18.0.0"
   },
   "devDependencies": {
+    "@types/rimraf": "^3.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "rimraf": "^3.0.2",
     "typescript": "^4.7.4"
   }
 }
