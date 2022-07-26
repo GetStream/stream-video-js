@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Call,
   CallCreated,
   SelectEdgeServerResponse,
   Struct,
@@ -21,6 +22,7 @@ import {
 import { NavigationBar } from './components/NavigationBar';
 import { ParticipantControls } from './components/ParticipantControls';
 import { StageView } from './components/StageView';
+import { Ringer } from './components/Ringer';
 
 // use different browser tabs
 export type Participants = { [name: string]: string };
@@ -44,6 +46,8 @@ const theme = createTheme({
 
 const App = () => {
   const [currentUser, setCurrentUser] = useState('Alice');
+  const [currentCall, setCurrentCall] = useState<Call | undefined>();
+  const [isCurrentCallAccepted, setIsCurrentCallAccepted] = useState(false);
   const [edge, setEdge] = useState<SelectEdgeServerResponse | undefined>();
   const [room, setRoom] = useState<RoomType | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState('');
@@ -94,15 +98,19 @@ const App = () => {
     const onCallCreated = (message: CallCreated) => {
       console.log(`Call created`, message);
       const { call } = message;
-      if (call && call.id) {
-        joinCall(call?.id).then(() => {
-          console.log(`Join call (ws-event):`, call.id);
+      // initiator, immediately joins the call
+      if (call?.createdByUserId === currentUser.toLowerCase()) {
+        joinCall(call.id).then(() => {
+          console.log(`Joining call with id:${call.id}`);
         });
       }
+
+      setCurrentCall(call);
+      setIsCurrentCallAccepted(false);
     };
     // @ts-ignore
     return client?.on('callCreated', onCallCreated);
-  }, [client, joinCall]);
+  }, [client, currentUser, joinCall]);
 
   return (
     <div className="stream-video-sample-app">
@@ -116,6 +124,25 @@ const App = () => {
           <ThemeProvider theme={theme}>
             <Box sx={{ display: 'flex' }}>
               <CssBaseline />
+              {currentCall &&
+                !isCurrentCallAccepted &&
+                currentCall.createdByUserId !== currentUser.toLowerCase() && (
+                  <Ringer
+                    caller={currentCall.createdByUserId}
+                    onReject={() => {
+                      setCurrentCall(undefined);
+                      setIsCurrentCallAccepted(false);
+                    }}
+                    onAccept={() => {
+                      setIsCurrentCallAccepted(true);
+                      if (currentCall) {
+                        joinCall(currentCall.id).then(() => {
+                          console.log(`Joining call with id:${currentCall.id}`);
+                        });
+                      }
+                    }}
+                  />
+                )}
               <NavigationBar />
               <ParticipantControls
                 participants={participants}
