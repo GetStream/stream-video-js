@@ -55,6 +55,15 @@ const App = () => {
   const [room, setRoom] = useState<RoomType | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState('');
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const previousUser = params.get('user');
+    if (previousUser !== currentUser) {
+      params.set('user', currentUser);
+      window.location.search = params.toString();
+    }
+  }, [currentUser]);
+
   const user = useMemo<CreateUserRequest>(
     () => ({
       id: currentUser,
