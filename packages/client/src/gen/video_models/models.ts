@@ -415,15 +415,23 @@ export interface Participant {
      */
     custom?: Struct;
     /**
+     * @generated from protobuf field: bool video = 5;
+     */
+    video: boolean;
+    /**
+     * @generated from protobuf field: bool audio = 6;
+     */
+    audio: boolean;
+    /**
      * call creation date as RFC3339 string
      *
-     * @generated from protobuf field: string created_at = 5;
+     * @generated from protobuf field: string created_at = 7;
      */
     createdAt: string;
     /**
      * call last update date as RFC3339 string
      *
-     * @generated from protobuf field: string updated_at = 6;
+     * @generated from protobuf field: string updated_at = 8;
      */
     updatedAt: string;
 }
@@ -1637,12 +1645,14 @@ class Participant$Type extends MessageType<Participant> {
             { no: 2, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "online", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 4, name: "custom", kind: "message", T: () => Struct },
-            { no: 5, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
-            { no: 6, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } }
+            { no: 5, name: "video", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 6, name: "audio", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 7, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 8, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } }
         ]);
     }
     create(value?: PartialMessage<Participant>): Participant {
-        const message = { userId: "", role: "", online: false, createdAt: "", updatedAt: "" };
+        const message = { userId: "", role: "", online: false, video: false, audio: false, createdAt: "", updatedAt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Participant>(this, message, value);
@@ -1665,10 +1675,16 @@ class Participant$Type extends MessageType<Participant> {
                 case /* google.protobuf.Struct custom */ 4:
                     message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
                     break;
-                case /* string created_at */ 5:
+                case /* bool video */ 5:
+                    message.video = reader.bool();
+                    break;
+                case /* bool audio */ 6:
+                    message.audio = reader.bool();
+                    break;
+                case /* string created_at */ 7:
                     message.createdAt = reader.string();
                     break;
-                case /* string updated_at */ 6:
+                case /* string updated_at */ 8:
                     message.updatedAt = reader.string();
                     break;
                 default:
@@ -1695,12 +1711,18 @@ class Participant$Type extends MessageType<Participant> {
         /* google.protobuf.Struct custom = 4; */
         if (message.custom)
             Struct.internalBinaryWrite(message.custom, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
-        /* string created_at = 5; */
+        /* bool video = 5; */
+        if (message.video !== false)
+            writer.tag(5, WireType.Varint).bool(message.video);
+        /* bool audio = 6; */
+        if (message.audio !== false)
+            writer.tag(6, WireType.Varint).bool(message.audio);
+        /* string created_at = 7; */
         if (message.createdAt !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.createdAt);
-        /* string updated_at = 6; */
+            writer.tag(7, WireType.LengthDelimited).string(message.createdAt);
+        /* string updated_at = 8; */
         if (message.updatedAt !== "")
-            writer.tag(6, WireType.LengthDelimited).string(message.updatedAt);
+            writer.tag(8, WireType.LengthDelimited).string(message.updatedAt);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

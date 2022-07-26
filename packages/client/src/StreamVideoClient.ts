@@ -11,10 +11,11 @@ import {
 } from './ws';
 import {
   CreateCallRequest,
+  CreateUserRequest,
   JoinCallRequest,
 } from './gen/video_coordinator_rpc/coordinator_service';
 import { CallCoordinatorServiceClient } from './gen/video_coordinator_rpc/coordinator_service.client';
-import type { Latency, UserRequest } from './gen/video_models/models';
+import type { Latency } from './gen/video_models/models';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   sendJson: false,
@@ -41,7 +42,7 @@ export class StreamVideoClient {
     });
   }
 
-  connect = async (token: string, user: UserRequest) => {
+  connect = async (token: string, user: CreateUserRequest) => {
     if (this.ws) return;
     this.ws = await createSocketConnection('ws://localhost:8989', token, user);
   };

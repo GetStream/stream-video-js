@@ -3,11 +3,12 @@ import { UserRequest } from '../gen/video_models/models';
 import { AuthPayload, WebsocketEvent } from '../gen/video_events/events';
 
 import type { StreamWSClient, StreamEventListener } from './types';
+import { CreateUserRequest } from '../gen/video_coordinator_rpc/coordinator_service';
 
 export class StreamWebSocketClient implements StreamWSClient {
   private readonly ws: WebSocket;
   private readonly token: string;
-  private readonly user: UserRequest;
+  private readonly user: CreateUserRequest;
 
   private subscribers: { [event: string]: StreamEventListener[] } = {};
   private hasReceivedMessage = false;
@@ -16,7 +17,7 @@ export class StreamWebSocketClient implements StreamWSClient {
     schedulePing: (data?: Uint8Array) => void;
   };
 
-  constructor(endpoint: string, token: string, user: UserRequest) {
+  constructor(endpoint: string, token: string, user: CreateUserRequest) {
     const ws = new WebSocket(endpoint);
     ws.binaryType = 'arraybuffer';
     ws.onerror = this.onConnectionError;
@@ -31,7 +32,7 @@ export class StreamWebSocketClient implements StreamWSClient {
     this.keepAlive = keepAlive(
       this,
       8 * 1000, // in seconds
-      UserRequest.toBinary(user),
+      CreateUserRequest.toBinary(user),
     );
   }
 
