@@ -56,16 +56,6 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
   const user = useMemo<CreateUserRequest>(
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const previousUser = params.get('user');
-    if (previousUser !== currentUser) {
-      params.set('user', currentUser);
-      window.location.search = params.toString();
-    }
-  }, [currentUser]);
-
-  const user = useMemo<CreateUserRequest>(
     () => ({
       id: currentUser,
       name: currentUser,
@@ -76,7 +66,6 @@ const App = () => {
         key: 'value',
         hello: 'world',
       }),
-      teams: ['team-1', 'team-2'],
     }),
     [currentUser],
   );
