@@ -1,11 +1,12 @@
 import { StreamWebSocketClient } from './StreamWebSocketClient';
 import { UserRequest } from '../gen/video_models/models';
 import type { StreamWSClient } from './types';
+import { CreateUserRequest } from '../gen/video_coordinator_rpc/coordinator_service';
 
 export const createSocketConnection = async (
   endpoint: string,
   token: string,
-  user: UserRequest,
+  user: CreateUserRequest,
 ): Promise<StreamWSClient> => {
   const wsClient = new StreamWebSocketClient(endpoint, token, user);
   await wsClient.ensureAuthenticated();

@@ -297,6 +297,26 @@ export interface CreateUserRequest {
      * @generated from protobuf field: string id = 1;
      */
     id: string;
+    /**
+     * @generated from protobuf field: repeated string teams = 2;
+     */
+    teams: string[];
+    /**
+     * @generated from protobuf field: string role = 3;
+     */
+    role: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Struct custom = 4;
+     */
+    custom?: Struct;
+    /**
+     * @generated from protobuf field: string name = 5;
+     */
+    name: string;
+    /**
+     * @generated from protobuf field: string image_url = 6;
+     */
+    imageUrl: string;
 }
 /**
  * @generated from protobuf message stream.video.CreateOrUpdateUsersRequest
@@ -1623,11 +1643,16 @@ export const ListDevicesResponse = new ListDevicesResponse$Type();
 class CreateUserRequest$Type extends MessageType<CreateUserRequest> {
     constructor() {
         super("stream.video.CreateUserRequest", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "teams", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "custom", kind: "message", T: () => Struct },
+            { no: 5, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "image_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateUserRequest>): CreateUserRequest {
-        const message = { id: "" };
+        const message = { id: "", teams: [], role: "", name: "", imageUrl: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateUserRequest>(this, message, value);
@@ -1640,6 +1665,21 @@ class CreateUserRequest$Type extends MessageType<CreateUserRequest> {
             switch (fieldNo) {
                 case /* string id */ 1:
                     message.id = reader.string();
+                    break;
+                case /* repeated string teams */ 2:
+                    message.teams.push(reader.string());
+                    break;
+                case /* string role */ 3:
+                    message.role = reader.string();
+                    break;
+                case /* google.protobuf.Struct custom */ 4:
+                    message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
+                    break;
+                case /* string name */ 5:
+                    message.name = reader.string();
+                    break;
+                case /* string image_url */ 6:
+                    message.imageUrl = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1656,6 +1696,21 @@ class CreateUserRequest$Type extends MessageType<CreateUserRequest> {
         /* string id = 1; */
         if (message.id !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* repeated string teams = 2; */
+        for (let i = 0; i < message.teams.length; i++)
+            writer.tag(2, WireType.LengthDelimited).string(message.teams[i]);
+        /* string role = 3; */
+        if (message.role !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.role);
+        /* google.protobuf.Struct custom = 4; */
+        if (message.custom)
+            Struct.internalBinaryWrite(message.custom, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* string name = 5; */
+        if (message.name !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.name);
+        /* string image_url = 6; */
+        if (message.imageUrl !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.imageUrl);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
