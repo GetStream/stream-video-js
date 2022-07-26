@@ -1,5 +1,9 @@
 import { keepAlive } from './keepAlive';
-import { AuthPayload, WebsocketEvent } from '../gen/video_events/events';
+import {
+  AuthPayload,
+  Healthcheck,
+  WebsocketEvent,
+} from '../gen/video_events/events';
 
 import type { StreamWSClient, StreamEventListener } from './types';
 import { CreateUserRequest } from '../gen/video_coordinator_rpc/coordinator_service';
@@ -31,7 +35,14 @@ export class StreamWebSocketClient implements StreamWSClient {
     this.keepAlive = keepAlive(
       this,
       8 * 1000, // in seconds
-      CreateUserRequest.toBinary(user),
+      Healthcheck.toBinary({
+        audio: true,
+        callId: 'random-id',
+        clientId: 'abc123',
+        userId: user.id,
+        video: true,
+        callType: 'video',
+      }),
     );
   }
 
