@@ -17,7 +17,7 @@ export const StageView = (props: StageViewProps) => {
     <Room
       url={`wss://${edge.edgeServer.url}`}
       token={edge.token}
-      // publishStats
+      publishStats
       onLeave={onLeave}
       onConnected={(room) => {
         onConnected(room);
