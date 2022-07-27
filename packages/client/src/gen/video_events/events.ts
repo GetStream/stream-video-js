@@ -423,6 +423,8 @@ export interface ParticipantDeleted {
     userId: string;
 }
 /**
+ * ParticipantJoined is fired when a user joins a call
+ *
  * @generated from protobuf message stream.video.ParticipantJoined
  */
 export interface ParticipantJoined {

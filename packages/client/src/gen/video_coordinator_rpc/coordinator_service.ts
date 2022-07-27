@@ -78,13 +78,13 @@ export interface CreateCallRequest {
      *
      * @generated from protobuf field: string type = 1;
      */
-    type: string;
+    type: string; // required
     /**
      * the call id, if not provided a unique value will be generated based on UUID v4
      *
      * @generated from protobuf field: string id = 2;
      */
-    id: string;
+    id: string; // required
     /**
      * call custom data
      *

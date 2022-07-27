@@ -399,9 +399,9 @@ export enum Security_IsAllowed {
  */
 export interface Participant {
     /**
-     * @generated from protobuf field: string user_id = 1;
+     * @generated from protobuf field: stream.video.User user = 1;
      */
-    userId: string;
+    user?: User;
     /**
      * @generated from protobuf field: string role = 2;
      */
@@ -1641,7 +1641,7 @@ export const Security = new Security$Type();
 class Participant$Type extends MessageType<Participant> {
     constructor() {
         super("stream.video.Participant", [
-            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 1, name: "user", kind: "message", T: () => User },
             { no: 2, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "online", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 4, name: "custom", kind: "message", T: () => Struct },
@@ -1652,7 +1652,7 @@ class Participant$Type extends MessageType<Participant> {
         ]);
     }
     create(value?: PartialMessage<Participant>): Participant {
-        const message = { userId: "", role: "", online: false, video: false, audio: false, createdAt: "", updatedAt: "" };
+        const message = { role: "", online: false, video: false, audio: false, createdAt: "", updatedAt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Participant>(this, message, value);
@@ -1663,8 +1663,8 @@ class Participant$Type extends MessageType<Participant> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string user_id */ 1:
-                    message.userId = reader.string();
+                case /* stream.video.User user */ 1:
+                    message.user = User.internalBinaryRead(reader, reader.uint32(), options, message.user);
                     break;
                 case /* string role */ 2:
                     message.role = reader.string();
@@ -1699,9 +1699,9 @@ class Participant$Type extends MessageType<Participant> {
         return message;
     }
     internalBinaryWrite(message: Participant, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string user_id = 1; */
-        if (message.userId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.userId);
+        /* stream.video.User user = 1; */
+        if (message.user)
+            User.internalBinaryWrite(message.user, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         /* string role = 2; */
         if (message.role !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.role);
