@@ -3,9 +3,9 @@ import {
   Call,
   CallCreated,
   CreateUserRequest,
+  Healthcheck,
   SelectEdgeServerResponse,
   Struct,
-  WebsocketEvent,
 } from '@stream-io/video-client';
 import {
   RoomType,
@@ -101,7 +101,7 @@ const App = () => {
   );
 
   useEffect(() => {
-    const onHealthCheck = (message: WebsocketEvent) => {
+    const onHealthCheck = (message: Healthcheck) => {
       console.log(`Healthcheck received`, message);
     };
     return client?.on('healthCheck', onHealthCheck);
@@ -121,7 +121,6 @@ const App = () => {
       setCurrentCall(call);
       setIsCurrentCallAccepted(false);
     };
-    // @ts-ignore
     return client?.on('callCreated', onCallCreated);
   }, [client, currentUser, joinCall]);
 

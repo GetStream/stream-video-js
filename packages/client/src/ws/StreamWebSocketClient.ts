@@ -1,4 +1,4 @@
-import { keepAlive } from './keepAlive';
+import { KeepAlive, keepAlive } from './keepAlive';
 import {
   AuthPayload,
   Healthcheck,
@@ -13,12 +13,9 @@ export class StreamWebSocketClient implements StreamWSClient {
   private readonly token: string;
   private readonly user: CreateUserRequest;
 
-  private subscribers: { [event: string]: StreamEventListener[] } = {};
+  private subscribers: { [event: string]: StreamEventListener<any>[] } = {};
   private hasReceivedMessage = false;
-  private keepAlive: {
-    cancelPendingPing: () => void;
-    schedulePing: (data?: Uint8Array) => void;
-  };
+  private keepAlive: KeepAlive;
 
   constructor(endpoint: string, token: string, user: CreateUserRequest) {
     const ws = new WebSocket(endpoint);
@@ -97,7 +94,7 @@ export class StreamWebSocketClient implements StreamWSClient {
       // @ts-ignore TODO: fix types
       const wrappedMessage = message.eventPayload[eventKind];
       const eventListeners = this.subscribers[eventKind];
-      eventListeners?.forEach((fn: StreamEventListener) => {
+      eventListeners?.forEach((fn: StreamEventListener<unknown>) => {
         try {
           fn(wrappedMessage);
         } catch (e) {
@@ -139,7 +136,7 @@ export class StreamWebSocketClient implements StreamWSClient {
     this.keepAlive.schedulePing();
   };
 
-  on = (event: string, fn: StreamEventListener) => {
+  on = <T>(event: string, fn: StreamEventListener<T>) => {
     const listeners = this.subscribers[event] || [];
     listeners.push(fn);
     this.subscribers[event] = listeners;
@@ -148,7 +145,7 @@ export class StreamWebSocketClient implements StreamWSClient {
     };
   };
 
-  off = (event: string, fn: StreamEventListener) => {
+  off = <T>(event: string, fn: StreamEventListener<T>) => {
     this.subscribers[event] = (this.subscribers[event] || []).filter(
       (f) => f !== fn,
     );

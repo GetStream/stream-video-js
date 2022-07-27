@@ -53,11 +53,11 @@ export class StreamVideoClient {
     this.ws = undefined;
   };
 
-  on = (event: string, fn: StreamEventListener) => {
+  on = <T>(event: string, fn: StreamEventListener<T>) => {
     return this.ws?.on(event, fn);
   };
 
-  off = (event: string, fn: StreamEventListener) => {
+  off = <T>(event: string, fn: StreamEventListener<T>) => {
     return this.ws?.off(event, fn);
   };
 
