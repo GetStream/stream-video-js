@@ -47,7 +47,7 @@ const theme = createTheme({
 const App = () => {
   const [currentUser, setCurrentUser] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.get('user') || 'Alice';
+    return params.get('user') || 'alice';
   });
   const [currentCall, setCurrentCall] = useState<Call | undefined>();
   const [isCurrentCallAccepted, setIsCurrentCallAccepted] = useState(false);
@@ -112,7 +112,7 @@ const App = () => {
       console.log(`Call created`, message);
       const { call } = message;
       // initiator, immediately joins the call
-      if (call?.createdByUserId === currentUser.toLowerCase()) {
+      if (call?.createdByUserId === currentUser) {
         joinCall(call.id).then(() => {
           console.log(`Joining call with id:${call.id}`);
         });
@@ -139,7 +139,7 @@ const App = () => {
               <CssBaseline />
               {currentCall &&
                 !isCurrentCallAccepted &&
-                currentCall.createdByUserId !== currentUser.toLowerCase() && (
+                currentCall.createdByUserId !== currentUser && (
                   <Ringer
                     caller={currentCall.createdByUserId}
                     onReject={() => {
