@@ -160,6 +160,7 @@ const App = () => {
               <ParticipantControls
                 participants={participants}
                 room={room}
+                currentCall={currentCall}
                 currentUser={currentUser}
                 setCurrentUser={setCurrentUser}
                 joinCall={joinCall}
@@ -174,6 +175,7 @@ const App = () => {
                   onLeave={() => {
                     setRoom(undefined);
                     setEdge(undefined);
+                    setCurrentCall(undefined);
                   }}
                 />
               </Box>

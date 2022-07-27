@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   List,
@@ -7,10 +7,19 @@ import {
   TextField,
 } from '@mui/material';
 import SwitchVideo from '@mui/icons-material/SwitchVideo';
+import { Call } from '@stream-io/video-client';
 
-export const JoinCall = (props: { joinCall?: (id: string) => void }) => {
-  const { joinCall } = props;
+export const JoinCall = (props: {
+  joinCall?: (id: string) => void;
+  currentCall?: Call;
+}) => {
+  const { joinCall, currentCall } = props;
   const [callId, setCallId] = useState('');
+  useEffect(() => {
+    if (currentCall?.id) {
+      setCallId(currentCall.id);
+    }
+  }, [currentCall]);
   return (
     <>
       <List
