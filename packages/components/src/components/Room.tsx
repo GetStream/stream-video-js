@@ -26,7 +26,7 @@ export const Room = (props: RoomProps) => {
         <LiveKitRoom
           url={url}
           token={token}
-          roomOptions={{ adaptiveStream: true }}
+          roomOptions={{ adaptiveStream: true, dynacast: true }}
           onLeave={(room) => {
             if (onLeave) {
               onLeave(room);
