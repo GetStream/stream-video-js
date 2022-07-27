@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { DisplayContext, LiveKitRoom } from '@livekit/react-components';
-import { useWebRtcStats } from '../hooks';
-
 import type { Room as LiveKitRoomType } from 'livekit-client';
+
+import { Stats } from './Stats';
+
 import '@livekit/react-components/dist/index.css';
 
 export type RoomProps = {
@@ -19,19 +20,6 @@ export const Room = (props: RoomProps) => {
   const { url, token, onConnected, onLeave, publishStats } = props;
   const [liveKitRoom, setLiveKitRoom] = useState<LiveKitRoomType | undefined>();
 
-  const webRtcStats = useWebRtcStats(liveKitRoom);
-  useEffect(() => {
-    if (!publishStats) return;
-    const logStats = (stats: object) => {
-      console.log(stats);
-    };
-    webRtcStats.addListener('stats', logStats);
-    return () => {
-      if (!publishStats) return;
-      webRtcStats.removeListener('stats', logStats);
-    };
-  }, [publishStats, webRtcStats]);
-
   return (
     <div className="str-video__room">
       <DisplayContext.Provider value={{ stageLayout: 'grid', showStats: true }}>
@@ -39,7 +27,12 @@ export const Room = (props: RoomProps) => {
           url={url}
           token={token}
           roomOptions={{ adaptiveStream: true }}
-          onLeave={onLeave}
+          onLeave={(room) => {
+            if (onLeave) {
+              onLeave(room);
+            }
+            setLiveKitRoom(undefined);
+          }}
           onConnected={(room) => {
             setLiveKitRoom(room);
             if (onConnected) {
@@ -47,6 +40,7 @@ export const Room = (props: RoomProps) => {
             }
           }}
         />
+        {publishStats && liveKitRoom && <Stats room={liveKitRoom} />}
       </DisplayContext.Provider>
     </div>
   );
