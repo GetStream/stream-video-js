@@ -43,7 +43,7 @@ export const useWebRtcStats = (
 ) => {
   const webRtcStats = useMemo(() => {
     const opts: Partial<WebRTCStatsConstructorOptions> = {
-      getStatsInterval: 5000,
+      getStatsInterval: 15000,
       rawStats: true,
       ...options,
     };
