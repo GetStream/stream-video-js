@@ -31,7 +31,7 @@ export class StreamWebSocketClient implements StreamWSClient {
 
     this.keepAlive = keepAlive(
       this,
-      8 * 1000, // in seconds
+      30 * 1000, // in seconds
       Healthcheck.toBinary({
         audio: true,
         callId: 'random-id',
