@@ -5,6 +5,14 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { CallCoordinatorService } from "./coordinator_service";
+import type { ReportIssueResponse } from "./coordinator_service";
+import type { ReportIssueRequest } from "./coordinator_service";
+import type { ReviewCallResponse } from "./coordinator_service";
+import type { ReviewCallRequest } from "./coordinator_service";
+import type { GetCallStatsResponse } from "./coordinator_service";
+import type { GetCallStatsRequest } from "./coordinator_service";
+import type { StoreCallStatsResponse } from "./coordinator_service";
+import type { StoreCallStatsRequest } from "./coordinator_service";
 import type { ExportUserResponse } from "./coordinator_service";
 import type { ExportUserRequest } from "./coordinator_service";
 import type { DeleteUserResponse } from "./coordinator_service";
@@ -206,6 +214,32 @@ export interface ICallCoordinatorServiceClient {
      * @generated from protobuf rpc: ExportUser(stream.video.ExportUserRequest) returns (stream.video.ExportUserResponse);
      */
     exportUser(input: ExportUserRequest, options?: RpcOptions): UnaryCall<ExportUserRequest, ExportUserResponse>;
+    // TODO: endpoints needed to build a good dashboard experience
+    // - listing calls and filtering based on their attributes
+    // - listing users and filtering based on their attributes
+
+    /**
+     * endpoint for storing stats (perhaps we should move this to the SFU layer though)
+     *
+     * @generated from protobuf rpc: StoreCallStats(stream.video.StoreCallStatsRequest) returns (stream.video.StoreCallStatsResponse);
+     */
+    storeCallStats(input: StoreCallStatsRequest, options?: RpcOptions): UnaryCall<StoreCallStatsRequest, StoreCallStatsResponse>;
+    /**
+     * @generated from protobuf rpc: GetCallStats(stream.video.GetCallStatsRequest) returns (stream.video.GetCallStatsResponse);
+     */
+    getCallStats(input: GetCallStatsRequest, options?: RpcOptions): UnaryCall<GetCallStatsRequest, GetCallStatsResponse>;
+    /**
+     * endpoint for reviewing/rating the quality of calls
+     *
+     * @generated from protobuf rpc: ReviewCall(stream.video.ReviewCallRequest) returns (stream.video.ReviewCallResponse);
+     */
+    reviewCall(input: ReviewCallRequest, options?: RpcOptions): UnaryCall<ReviewCallRequest, ReviewCallResponse>;
+    /**
+     * endpoint for users to report issues with a call
+     *
+     * @generated from protobuf rpc: ReportIssue(stream.video.ReportIssueRequest) returns (stream.video.ReportIssueResponse);
+     */
+    reportIssue(input: ReportIssueRequest, options?: RpcOptions): UnaryCall<ReportIssueRequest, ReportIssueResponse>;
 }
 /**
  * @generated from protobuf service stream.video.CallCoordinatorService
@@ -434,5 +468,43 @@ export class CallCoordinatorServiceClient implements ICallCoordinatorServiceClie
     exportUser(input: ExportUserRequest, options?: RpcOptions): UnaryCall<ExportUserRequest, ExportUserResponse> {
         const method = this.methods[24], opt = this._transport.mergeOptions(options);
         return stackIntercept<ExportUserRequest, ExportUserResponse>("unary", this._transport, method, opt, input);
+    }
+    // TODO: endpoints needed to build a good dashboard experience
+    // - listing calls and filtering based on their attributes
+    // - listing users and filtering based on their attributes
+
+    /**
+     * endpoint for storing stats (perhaps we should move this to the SFU layer though)
+     *
+     * @generated from protobuf rpc: StoreCallStats(stream.video.StoreCallStatsRequest) returns (stream.video.StoreCallStatsResponse);
+     */
+    storeCallStats(input: StoreCallStatsRequest, options?: RpcOptions): UnaryCall<StoreCallStatsRequest, StoreCallStatsResponse> {
+        const method = this.methods[25], opt = this._transport.mergeOptions(options);
+        return stackIntercept<StoreCallStatsRequest, StoreCallStatsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetCallStats(stream.video.GetCallStatsRequest) returns (stream.video.GetCallStatsResponse);
+     */
+    getCallStats(input: GetCallStatsRequest, options?: RpcOptions): UnaryCall<GetCallStatsRequest, GetCallStatsResponse> {
+        const method = this.methods[26], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetCallStatsRequest, GetCallStatsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * endpoint for reviewing/rating the quality of calls
+     *
+     * @generated from protobuf rpc: ReviewCall(stream.video.ReviewCallRequest) returns (stream.video.ReviewCallResponse);
+     */
+    reviewCall(input: ReviewCallRequest, options?: RpcOptions): UnaryCall<ReviewCallRequest, ReviewCallResponse> {
+        const method = this.methods[27], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ReviewCallRequest, ReviewCallResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * endpoint for users to report issues with a call
+     *
+     * @generated from protobuf rpc: ReportIssue(stream.video.ReportIssueRequest) returns (stream.video.ReportIssueResponse);
+     */
+    reportIssue(input: ReportIssueRequest, options?: RpcOptions): UnaryCall<ReportIssueRequest, ReportIssueResponse> {
+        const method = this.methods[28], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ReportIssueRequest, ReportIssueResponse>("unary", this._transport, method, opt, input);
     }
 }

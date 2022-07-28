@@ -128,9 +128,9 @@ export interface User {
      */
     name: string;
     /**
-     * @generated from protobuf field: string profile_image_url = 6;
+     * @generated from protobuf field: string image_url = 6;
      */
-    profileImageUrl: string;
+    imageUrl: string;
     /**
      * user creation date as RFC3339 string
      *
@@ -903,13 +903,13 @@ class User$Type extends MessageType<User> {
             { no: 3, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "custom", kind: "message", T: () => Struct },
             { no: 5, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "profile_image_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "image_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 8, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<User>): User {
-        const message = { id: "", teams: [], role: "", name: "", profileImageUrl: "", createdAt: "", updatedAt: "" };
+        const message = { id: "", teams: [], role: "", name: "", imageUrl: "", createdAt: "", updatedAt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<User>(this, message, value);
@@ -935,8 +935,8 @@ class User$Type extends MessageType<User> {
                 case /* string name */ 5:
                     message.name = reader.string();
                     break;
-                case /* string profile_image_url */ 6:
-                    message.profileImageUrl = reader.string();
+                case /* string image_url */ 6:
+                    message.imageUrl = reader.string();
                     break;
                 case /* string created_at */ 7:
                     message.createdAt = reader.string();
@@ -971,9 +971,9 @@ class User$Type extends MessageType<User> {
         /* string name = 5; */
         if (message.name !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.name);
-        /* string profile_image_url = 6; */
-        if (message.profileImageUrl !== "")
-            writer.tag(6, WireType.LengthDelimited).string(message.profileImageUrl);
+        /* string image_url = 6; */
+        if (message.imageUrl !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.imageUrl);
         /* string created_at = 7; */
         if (message.createdAt !== "")
             writer.tag(7, WireType.LengthDelimited).string(message.createdAt);

@@ -319,6 +319,9 @@ export interface CreateUserRequest {
     imageUrl: string;
 }
 /**
+ * CreateOrUpdateUsersRequest runs a partial update or create on the list of users
+ * specify replace = true to do a hard update instead of partial update
+ *
  * @generated from protobuf message stream.video.CreateOrUpdateUsersRequest
  */
 export interface CreateOrUpdateUsersRequest {
@@ -326,6 +329,10 @@ export interface CreateOrUpdateUsersRequest {
      * @generated from protobuf field: repeated stream.video.CreateUserRequest users = 1;
      */
     users: CreateUserRequest[];
+    /**
+     * @generated from protobuf field: bool full_update = 2;
+     */
+    fullUpdate: boolean; // full update (defaults to false and does a partial update)
 }
 /**
  * @generated from protobuf message stream.video.CreateOrUpdateUsersResponse
@@ -566,6 +573,165 @@ export interface StartRecordingRequest {
     callId: string;
 }
 /**
+ * @generated from protobuf message stream.video.StoreCallStatsRequest
+ */
+export interface StoreCallStatsRequest {
+    /**
+     * The call type
+     *
+     * @generated from protobuf field: string call_type = 1;
+     */
+    callType: string;
+    /**
+     * The call id
+     *
+     * @generated from protobuf field: string call_id = 2;
+     */
+    callId: string;
+    /**
+     * A WebRTC Stats object, as specified by https://www.w3.org/TR/webrtc-stats/#dfn-stats-object
+     *
+     * @generated from protobuf field: google.protobuf.Struct stats = 3;
+     */
+    stats?: Struct;
+}
+/**
+ * @generated from protobuf message stream.video.CallStatEvent
+ */
+export interface CallStatEvent {
+    /**
+     * @generated from protobuf field: stream.video.CallStatEventType type = 1;
+     */
+    type: CallStatEventType;
+    /**
+     * call creation date as RFC3339 string
+     *
+     * @generated from protobuf field: string time = 2;
+     */
+    time: string;
+}
+/**
+ * @generated from protobuf message stream.video.ReportIssueRequest
+ */
+export interface ReportIssueRequest {
+    /**
+     * @generated from protobuf field: string call_type = 1;
+     */
+    callType: string;
+    /**
+     * @generated from protobuf field: string call_id = 2;
+     */
+    callId: string;
+    /**
+     * optional description
+     *
+     * @generated from protobuf field: string description = 3;
+     */
+    description: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Struct custom = 4;
+     */
+    custom?: Struct;
+}
+/**
+ * @generated from protobuf message stream.video.ReviewCallRequest
+ */
+export interface ReviewCallRequest {
+    /**
+     * @generated from protobuf field: string call_type = 1;
+     */
+    callType: string;
+    /**
+     * @generated from protobuf field: string call_id = 2;
+     */
+    callId: string;
+    /**
+     * rating between 0 and 5 stars
+     *
+     * @generated from protobuf field: float stars = 3;
+     */
+    stars: number;
+    /**
+     * optional description
+     *
+     * @generated from protobuf field: string description = 4;
+     */
+    description: string;
+    /**
+     * optional custom data
+     *
+     * @generated from protobuf field: google.protobuf.Struct custom = 5;
+     */
+    custom?: Struct;
+}
+/**
+ * @generated from protobuf message stream.video.ReviewCallResponse
+ */
+export interface ReviewCallResponse {
+}
+/**
+ * @generated from protobuf message stream.video.ReportIssueResponse
+ */
+export interface ReportIssueResponse {
+}
+/**
+ * @generated from protobuf message stream.video.ParticipantCallStatEvent
+ */
+export interface ParticipantCallStatEvent {
+    /**
+     * @generated from protobuf field: string participant_id = 1;
+     */
+    participantId: string;
+    /**
+     * @generated from protobuf field: repeated stream.video.CallStatEvent call_timeline = 2;
+     */
+    callTimeline: CallStatEvent[];
+}
+/**
+ * @generated from protobuf message stream.video.GetCallStatsRequest
+ */
+export interface GetCallStatsRequest {
+    /**
+     * @generated from protobuf field: string call_type = 1;
+     */
+    callType: string;
+    /**
+     * @generated from protobuf field: string call_id = 2;
+     */
+    callId: string;
+}
+/**
+ * @generated from protobuf message stream.video.CallStats
+ */
+export interface CallStats {
+    /**
+     * @generated from protobuf field: repeated stream.video.CallStatEvent call_timeline = 1;
+     */
+    callTimeline: CallStatEvent[];
+    /**
+     * @generated from protobuf field: repeated stream.video.ParticipantCallStatEvent participant_timelines = 2;
+     */
+    participantTimelines: ParticipantCallStatEvent[];
+}
+/**
+ * @generated from protobuf message stream.video.GetCallStatsResponse
+ */
+export interface GetCallStatsResponse {
+    /**
+     * @generated from protobuf field: stream.video.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.CallStats call_stats = 2;
+     */
+    callStats?: CallStats;
+}
+/**
+ * @generated from protobuf message stream.video.StoreCallStatsResponse
+ */
+export interface StoreCallStatsResponse {
+}
+/**
  * @generated from protobuf message stream.video.StartRecordingResponse
  */
 export interface StartRecordingResponse {
@@ -660,6 +826,31 @@ export interface SendEventRequest {
  * @generated from protobuf message stream.video.SendEventResponse
  */
 export interface SendEventResponse {
+}
+/**
+ * @generated from protobuf enum stream.video.CallStatEventType
+ */
+export enum CallStatEventType {
+    /**
+     * @generated from protobuf enum value: AUDIO_FROZEN = 0;
+     */
+    AUDIO_FROZEN = 0,
+    /**
+     * @generated from protobuf enum value: AUDIO_DELAY = 1;
+     */
+    AUDIO_DELAY = 1,
+    /**
+     * @generated from protobuf enum value: VIDEO_FROZEN = 2;
+     */
+    VIDEO_FROZEN = 2,
+    /**
+     * @generated from protobuf enum value: VIDEO_DELAY = 3;
+     */
+    VIDEO_DELAY = 3,
+    /**
+     * @generated from protobuf enum value: VIDEO_NOT_OPTIMAL = 4;
+     */
+    VIDEO_NOT_OPTIMAL = 4
 }
 /**
  * @generated from protobuf enum stream.video.UserEventType
@@ -1725,11 +1916,12 @@ export const CreateUserRequest = new CreateUserRequest$Type();
 class CreateOrUpdateUsersRequest$Type extends MessageType<CreateOrUpdateUsersRequest> {
     constructor() {
         super("stream.video.CreateOrUpdateUsersRequest", [
-            { no: 1, name: "users", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => CreateUserRequest }
+            { no: 1, name: "users", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => CreateUserRequest },
+            { no: 2, name: "full_update", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<CreateOrUpdateUsersRequest>): CreateOrUpdateUsersRequest {
-        const message = { users: [] };
+        const message = { users: [], fullUpdate: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateOrUpdateUsersRequest>(this, message, value);
@@ -1742,6 +1934,9 @@ class CreateOrUpdateUsersRequest$Type extends MessageType<CreateOrUpdateUsersReq
             switch (fieldNo) {
                 case /* repeated stream.video.CreateUserRequest users */ 1:
                     message.users.push(CreateUserRequest.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* bool full_update */ 2:
+                    message.fullUpdate = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1758,6 +1953,9 @@ class CreateOrUpdateUsersRequest$Type extends MessageType<CreateOrUpdateUsersReq
         /* repeated stream.video.CreateUserRequest users = 1; */
         for (let i = 0; i < message.users.length; i++)
             CreateUserRequest.internalBinaryWrite(message.users[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* bool full_update = 2; */
+        if (message.fullUpdate !== false)
+            writer.tag(2, WireType.Varint).bool(message.fullUpdate);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2795,6 +2993,558 @@ class StartRecordingRequest$Type extends MessageType<StartRecordingRequest> {
  */
 export const StartRecordingRequest = new StartRecordingRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class StoreCallStatsRequest$Type extends MessageType<StoreCallStatsRequest> {
+    constructor() {
+        super("stream.video.StoreCallStatsRequest", [
+            { no: 1, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "stats", kind: "message", T: () => Struct }
+        ]);
+    }
+    create(value?: PartialMessage<StoreCallStatsRequest>): StoreCallStatsRequest {
+        const message = { callType: "", callId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<StoreCallStatsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StoreCallStatsRequest): StoreCallStatsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string call_type */ 1:
+                    message.callType = reader.string();
+                    break;
+                case /* string call_id */ 2:
+                    message.callId = reader.string();
+                    break;
+                case /* google.protobuf.Struct stats */ 3:
+                    message.stats = Struct.internalBinaryRead(reader, reader.uint32(), options, message.stats);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: StoreCallStatsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string call_type = 1; */
+        if (message.callType !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callType);
+        /* string call_id = 2; */
+        if (message.callId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.callId);
+        /* google.protobuf.Struct stats = 3; */
+        if (message.stats)
+            Struct.internalBinaryWrite(message.stats, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.StoreCallStatsRequest
+ */
+export const StoreCallStatsRequest = new StoreCallStatsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CallStatEvent$Type extends MessageType<CallStatEvent> {
+    constructor() {
+        super("stream.video.CallStatEvent", [
+            { no: 1, name: "type", kind: "enum", T: () => ["stream.video.CallStatEventType", CallStatEventType] },
+            { no: 2, name: "time", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } }
+        ]);
+    }
+    create(value?: PartialMessage<CallStatEvent>): CallStatEvent {
+        const message = { type: 0, time: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CallStatEvent>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallStatEvent): CallStatEvent {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.CallStatEventType type */ 1:
+                    message.type = reader.int32();
+                    break;
+                case /* string time */ 2:
+                    message.time = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CallStatEvent, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.CallStatEventType type = 1; */
+        if (message.type !== 0)
+            writer.tag(1, WireType.Varint).int32(message.type);
+        /* string time = 2; */
+        if (message.time !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.time);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.CallStatEvent
+ */
+export const CallStatEvent = new CallStatEvent$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ReportIssueRequest$Type extends MessageType<ReportIssueRequest> {
+    constructor() {
+        super("stream.video.ReportIssueRequest", [
+            { no: 1, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "custom", kind: "message", T: () => Struct }
+        ]);
+    }
+    create(value?: PartialMessage<ReportIssueRequest>): ReportIssueRequest {
+        const message = { callType: "", callId: "", description: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ReportIssueRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ReportIssueRequest): ReportIssueRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string call_type */ 1:
+                    message.callType = reader.string();
+                    break;
+                case /* string call_id */ 2:
+                    message.callId = reader.string();
+                    break;
+                case /* string description */ 3:
+                    message.description = reader.string();
+                    break;
+                case /* google.protobuf.Struct custom */ 4:
+                    message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ReportIssueRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string call_type = 1; */
+        if (message.callType !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callType);
+        /* string call_id = 2; */
+        if (message.callId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.callId);
+        /* string description = 3; */
+        if (message.description !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.description);
+        /* google.protobuf.Struct custom = 4; */
+        if (message.custom)
+            Struct.internalBinaryWrite(message.custom, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.ReportIssueRequest
+ */
+export const ReportIssueRequest = new ReportIssueRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ReviewCallRequest$Type extends MessageType<ReviewCallRequest> {
+    constructor() {
+        super("stream.video.ReviewCallRequest", [
+            { no: 1, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "stars", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ },
+            { no: 4, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "custom", kind: "message", T: () => Struct }
+        ]);
+    }
+    create(value?: PartialMessage<ReviewCallRequest>): ReviewCallRequest {
+        const message = { callType: "", callId: "", stars: 0, description: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ReviewCallRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ReviewCallRequest): ReviewCallRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string call_type */ 1:
+                    message.callType = reader.string();
+                    break;
+                case /* string call_id */ 2:
+                    message.callId = reader.string();
+                    break;
+                case /* float stars */ 3:
+                    message.stars = reader.float();
+                    break;
+                case /* string description */ 4:
+                    message.description = reader.string();
+                    break;
+                case /* google.protobuf.Struct custom */ 5:
+                    message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ReviewCallRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string call_type = 1; */
+        if (message.callType !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callType);
+        /* string call_id = 2; */
+        if (message.callId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.callId);
+        /* float stars = 3; */
+        if (message.stars !== 0)
+            writer.tag(3, WireType.Bit32).float(message.stars);
+        /* string description = 4; */
+        if (message.description !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.description);
+        /* google.protobuf.Struct custom = 5; */
+        if (message.custom)
+            Struct.internalBinaryWrite(message.custom, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.ReviewCallRequest
+ */
+export const ReviewCallRequest = new ReviewCallRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ReviewCallResponse$Type extends MessageType<ReviewCallResponse> {
+    constructor() {
+        super("stream.video.ReviewCallResponse", []);
+    }
+    create(value?: PartialMessage<ReviewCallResponse>): ReviewCallResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ReviewCallResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ReviewCallResponse): ReviewCallResponse {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: ReviewCallResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.ReviewCallResponse
+ */
+export const ReviewCallResponse = new ReviewCallResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ReportIssueResponse$Type extends MessageType<ReportIssueResponse> {
+    constructor() {
+        super("stream.video.ReportIssueResponse", []);
+    }
+    create(value?: PartialMessage<ReportIssueResponse>): ReportIssueResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ReportIssueResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ReportIssueResponse): ReportIssueResponse {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: ReportIssueResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.ReportIssueResponse
+ */
+export const ReportIssueResponse = new ReportIssueResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ParticipantCallStatEvent$Type extends MessageType<ParticipantCallStatEvent> {
+    constructor() {
+        super("stream.video.ParticipantCallStatEvent", [
+            { no: 1, name: "participant_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "call_timeline", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => CallStatEvent }
+        ]);
+    }
+    create(value?: PartialMessage<ParticipantCallStatEvent>): ParticipantCallStatEvent {
+        const message = { participantId: "", callTimeline: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ParticipantCallStatEvent>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ParticipantCallStatEvent): ParticipantCallStatEvent {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string participant_id */ 1:
+                    message.participantId = reader.string();
+                    break;
+                case /* repeated stream.video.CallStatEvent call_timeline */ 2:
+                    message.callTimeline.push(CallStatEvent.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ParticipantCallStatEvent, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string participant_id = 1; */
+        if (message.participantId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.participantId);
+        /* repeated stream.video.CallStatEvent call_timeline = 2; */
+        for (let i = 0; i < message.callTimeline.length; i++)
+            CallStatEvent.internalBinaryWrite(message.callTimeline[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.ParticipantCallStatEvent
+ */
+export const ParticipantCallStatEvent = new ParticipantCallStatEvent$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetCallStatsRequest$Type extends MessageType<GetCallStatsRequest> {
+    constructor() {
+        super("stream.video.GetCallStatsRequest", [
+            { no: 1, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetCallStatsRequest>): GetCallStatsRequest {
+        const message = { callType: "", callId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetCallStatsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetCallStatsRequest): GetCallStatsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string call_type */ 1:
+                    message.callType = reader.string();
+                    break;
+                case /* string call_id */ 2:
+                    message.callId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetCallStatsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string call_type = 1; */
+        if (message.callType !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callType);
+        /* string call_id = 2; */
+        if (message.callId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.callId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.GetCallStatsRequest
+ */
+export const GetCallStatsRequest = new GetCallStatsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CallStats$Type extends MessageType<CallStats> {
+    constructor() {
+        super("stream.video.CallStats", [
+            { no: 1, name: "call_timeline", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => CallStatEvent },
+            { no: 2, name: "participant_timelines", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => ParticipantCallStatEvent }
+        ]);
+    }
+    create(value?: PartialMessage<CallStats>): CallStats {
+        const message = { callTimeline: [], participantTimelines: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CallStats>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallStats): CallStats {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated stream.video.CallStatEvent call_timeline */ 1:
+                    message.callTimeline.push(CallStatEvent.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated stream.video.ParticipantCallStatEvent participant_timelines */ 2:
+                    message.participantTimelines.push(ParticipantCallStatEvent.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CallStats, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated stream.video.CallStatEvent call_timeline = 1; */
+        for (let i = 0; i < message.callTimeline.length; i++)
+            CallStatEvent.internalBinaryWrite(message.callTimeline[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* repeated stream.video.ParticipantCallStatEvent participant_timelines = 2; */
+        for (let i = 0; i < message.participantTimelines.length; i++)
+            ParticipantCallStatEvent.internalBinaryWrite(message.participantTimelines[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.CallStats
+ */
+export const CallStats = new CallStats$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetCallStatsResponse$Type extends MessageType<GetCallStatsResponse> {
+    constructor() {
+        super("stream.video.GetCallStatsResponse", [
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_stats", kind: "message", T: () => CallStats }
+        ]);
+    }
+    create(value?: PartialMessage<GetCallStatsResponse>): GetCallStatsResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetCallStatsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetCallStatsResponse): GetCallStatsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.CallStats call_stats */ 2:
+                    message.callStats = CallStats.internalBinaryRead(reader, reader.uint32(), options, message.callStats);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetCallStatsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.CallStats call_stats = 2; */
+        if (message.callStats)
+            CallStats.internalBinaryWrite(message.callStats, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.GetCallStatsResponse
+ */
+export const GetCallStatsResponse = new GetCallStatsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class StoreCallStatsResponse$Type extends MessageType<StoreCallStatsResponse> {
+    constructor() {
+        super("stream.video.StoreCallStatsResponse", []);
+    }
+    create(value?: PartialMessage<StoreCallStatsResponse>): StoreCallStatsResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<StoreCallStatsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StoreCallStatsResponse): StoreCallStatsResponse {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: StoreCallStatsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.StoreCallStatsResponse
+ */
+export const StoreCallStatsResponse = new StoreCallStatsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class StartRecordingResponse$Type extends MessageType<StartRecordingResponse> {
     constructor() {
         super("stream.video.StartRecordingResponse", []);
@@ -3191,5 +3941,9 @@ export const CallCoordinatorService = new ServiceType("stream.video.CallCoordina
     { name: "GetRecordings", options: {}, I: GetRecordingsRequest, O: GetRecordingsResponse },
     { name: "CreateUser", options: {}, I: CreateUserRequest, O: CreateUserResponse },
     { name: "DeleteUser", options: {}, I: DeleteUserRequest, O: DeleteUserResponse },
-    { name: "ExportUser", options: {}, I: ExportUserRequest, O: ExportUserResponse }
+    { name: "ExportUser", options: {}, I: ExportUserRequest, O: ExportUserResponse },
+    { name: "StoreCallStats", options: {}, I: StoreCallStatsRequest, O: StoreCallStatsResponse },
+    { name: "GetCallStats", options: {}, I: GetCallStatsRequest, O: GetCallStatsResponse },
+    { name: "ReviewCall", options: {}, I: ReviewCallRequest, O: ReviewCallResponse },
+    { name: "ReportIssue", options: {}, I: ReportIssueRequest, O: ReportIssueResponse }
 ]);
