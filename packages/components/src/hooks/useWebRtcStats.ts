@@ -16,6 +16,27 @@ export interface WebRTCStatsConstructorOptions {
   logLevel: 'none' | 'error' | 'warn' | 'info' | 'debug';
 }
 
+export type TimelineTag =
+  | 'getUserMedia'
+  | 'peer'
+  | 'connection'
+  | 'track'
+  | 'datachannel'
+  | 'stats';
+
+export interface StatsEvent {
+  event: string;
+  tag: TimelineTag;
+  timestamp?: Date;
+  data: any;
+  peerId: string;
+  connectionId: string;
+  timeTaken: number;
+  rawStats?: RTCStatsReport;
+  statsObject?: any;
+  filteredStats?: any;
+}
+
 export const useWebRtcStats = (
   room?: Room,
   options?: WebRTCStatsConstructorOptions,
@@ -23,6 +44,7 @@ export const useWebRtcStats = (
   const webRtcStats = useMemo(() => {
     const opts: Partial<WebRTCStatsConstructorOptions> = {
       getStatsInterval: 5000,
+      rawStats: true,
       ...options,
     };
     return new WebRTCStats(opts);

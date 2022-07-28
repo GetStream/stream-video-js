@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useWebRtcStats } from '../hooks';
+import { StatsEvent, useWebRtcStats } from '../hooks';
 import { RoomType } from './Room';
 
 export interface StatsProps {
@@ -9,8 +9,10 @@ export interface StatsProps {
 export const Stats = ({ room }: StatsProps) => {
   const webRtcStats = useWebRtcStats(room);
   useEffect(() => {
-    const logStats = (stats: object) => {
-      console.log(stats);
+    const logStats = (stats: StatsEvent) => {
+      const rawStats: { [n: string]: object } = {};
+      stats.rawStats?.forEach((v, k) => (rawStats[k] = v));
+      console.log(stats, rawStats);
     };
     webRtcStats.addListener('stats', logStats);
     return () => {
