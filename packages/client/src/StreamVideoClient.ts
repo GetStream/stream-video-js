@@ -13,6 +13,7 @@ import {
   CreateCallRequest,
   CreateUserRequest,
   JoinCallRequest,
+  SendEventRequest,
 } from './gen/video_coordinator_rpc/coordinator_service';
 import { CallCoordinatorServiceClient } from './gen/video_coordinator_rpc/coordinator_service.client';
 import type { Call, Edge, Latency } from './gen/video_models/models';
@@ -91,5 +92,10 @@ export class StreamVideoClient {
     });
 
     return edgeServer.response;
+  };
+
+  sendEvent = async (event: SendEventRequest) => {
+    const eventResponse = await this.client.sendEvent(event);
+    return eventResponse.response;
   };
 }

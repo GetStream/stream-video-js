@@ -1,23 +1,26 @@
 import React from 'react';
 import { Room, RoomType } from '@stream-io/video-components-react';
-import { SelectEdgeServerResponse } from '@stream-io/video-client';
+import { Call } from '@stream-io/video-client';
 
 export type StageViewProps = {
-  edge?: SelectEdgeServerResponse;
+  edgeUrl: string;
+  edgeToken: string;
+  currentCall?: Call;
+  currentUser?: string;
   onConnected: (room: RoomType) => void;
   onLeave?: (room: RoomType) => void;
 };
 
 export const StageView = (props: StageViewProps) => {
-  const { edge, onConnected, onLeave } = props;
-  if (!edge || !edge.edgeServer) {
-    return null;
-  }
+  const { edgeUrl, edgeToken, onConnected, onLeave, currentCall, currentUser } =
+    props;
   return (
     <Room
-      url={`wss://${edge.edgeServer.url}`}
-      token={edge.token}
+      url={`wss://${edgeUrl}`}
+      token={edgeToken}
       publishStats
+      currentCall={currentCall}
+      currentUser={currentUser}
       onLeave={onLeave}
       onConnected={(room) => {
         onConnected(room);

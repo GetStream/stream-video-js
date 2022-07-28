@@ -181,16 +181,21 @@ const App = () => {
                 component="main"
                 sx={{ flexGrow: 1, p: 3, marginTop: '64px' }}
               >
-                <StageView
-                  edge={edge}
-                  onConnected={setRoom}
-                  onLeave={() => {
-                    setRoom(undefined);
-                    setEdge(undefined);
-                    setCurrentCall(undefined);
-                    setCurrentCallState(undefined);
-                  }}
-                />
+                {edge && edge.edgeServer && (
+                  <StageView
+                    edgeToken={edge.token}
+                    edgeUrl={edge.edgeServer.url}
+                    currentCall={currentCall}
+                    currentUser={currentUser}
+                    onConnected={setRoom}
+                    onLeave={() => {
+                      setRoom(undefined);
+                      setEdge(undefined);
+                      setCurrentCall(undefined);
+                      setCurrentCallState(undefined);
+                    }}
+                  />
+                )}
               </Box>
             </Box>
           </ThemeProvider>

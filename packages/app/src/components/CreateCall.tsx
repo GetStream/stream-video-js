@@ -13,7 +13,16 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import CallAccept from '@mui/icons-material/Call';
 import VideoCall from '@mui/icons-material/VideoCall';
-import { CallState, ParticipantJoined } from '@stream-io/video-client';
+import MicOff from '@mui/icons-material/MicOff';
+import CameraOff from '@mui/icons-material/VideocamOff';
+import {
+  AudioMuted,
+  AudioUnmuted,
+  CallState,
+  ParticipantJoined,
+  VideoStarted,
+  VideoStopped,
+} from '@stream-io/video-client';
 import { useStreamVideoClient } from '@stream-io/video-components-react';
 import type { Participants } from '../App';
 
@@ -28,17 +37,31 @@ export const CreateCall = (props: {
   );
 
   const [inCallParticipants, setInCallParticipants] = useState<string[]>([]);
+  const [audioMuteParticipants, setAudioMuteParticipants] = useState<string[]>(
+    [],
+  );
+  const [videoMuteParticipants, setVideoMuteParticipants] = useState<string[]>(
+    [],
+  );
 
   useEffect(() => {
     const inCall: string[] = [];
+    const audioMute: string[] = [];
+    const videoMute: string[] = [];
     if (currentCallState) {
       currentCallState.participants.forEach((p) => {
-        if (p.online && p.user?.id) {
-          inCall.push(p.user?.id);
+        const userId = p.user?.id;
+        if (userId && p.online) {
+          inCall.push(userId);
+          // TODO OL: enable once we can send the initial participant state to the controller server
+          // !p.audio && audioMute.push(userId);
+          // !p.video && videoMute.push(userId);
         }
       });
     }
     setInCallParticipants(inCall);
+    setAudioMuteParticipants(audioMute);
+    setVideoMuteParticipants(videoMute);
   }, [currentCallState]);
 
   const toggleParticipant = useCallback(
@@ -82,6 +105,49 @@ export const CreateCall = (props: {
     return client?.on('participantJoined', handleParticipantJoined);
   }, [client, inCallParticipants]);
 
+  useEffect(() => {
+    const handleMute = (e: AudioMuted) => {
+      // TODO: Handle MuteAll users
+      // @ts-ignore
+      const userId = e.target?.userId;
+      if (!audioMuteParticipants.includes(userId)) {
+        setAudioMuteParticipants((ps) => [...ps, userId]);
+      }
+    };
+
+    const handleUnmute = (e: AudioUnmuted) => {
+      const { userId } = e;
+      setAudioMuteParticipants((ps) => ps.filter((id) => id !== userId));
+    };
+
+    client?.on('audioMuted', handleMute);
+    client?.on('audioUnmuted', handleUnmute);
+    return () => {
+      client?.off('audioMuted', handleMute);
+      client?.off('audioUnmuted', handleUnmute);
+    };
+  }, [client, audioMuteParticipants]);
+
+  useEffect(() => {
+    const handleVideoStopped = (e: VideoStarted) => {
+      const { userId } = e;
+      if (!videoMuteParticipants.includes(userId)) {
+        setVideoMuteParticipants((ps) => [...ps, userId]);
+      }
+    };
+    const handleVideoStarted = (e: VideoStopped) => {
+      const { userId } = e;
+      setVideoMuteParticipants((ps) => ps.filter((id) => id !== userId));
+    };
+
+    client?.on('videoStopped', handleVideoStopped);
+    client?.on('videoStarted', handleVideoStarted);
+    return () => {
+      client?.off('videoStopped', handleVideoStopped);
+      client?.off('videoStarted', handleVideoStarted);
+    };
+  }, [client, videoMuteParticipants]);
+
   return (
     <>
       <List
@@ -113,6 +179,12 @@ export const CreateCall = (props: {
                     </Avatar>
                   </ListItemAvatar>
                   <ListItemText primary={name} />
+                  {audioMuteParticipants.includes(name) && (
+                    <MicOff fontSize="small" />
+                  )}
+                  {videoMuteParticipants.includes(name) && (
+                    <CameraOff fontSize="small" />
+                  )}
                 </ListItemButton>
               </ListItem>
               <Divider variant="inset" component="li" />
@@ -125,7 +197,7 @@ export const CreateCall = (props: {
         fullWidth
         disabled={!currentUser}
         startIcon={<VideoCall />}
-        onClick={() => initiateCall('random-id-' + Date.now())}
+        onClick={() => initiateCall('id-' + Date.now())}
       >
         Call
       </Button>

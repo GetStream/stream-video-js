@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { DisplayContext, LiveKitRoom } from '@livekit/react-components';
-import type { Room as LiveKitRoomType } from 'livekit-client';
-
+import { Call } from '@stream-io/video-client';
 import { Stats } from './Stats';
+import { useSendEvent } from '../hooks';
 
+import type { Room as LiveKitRoomType } from 'livekit-client';
 import '@livekit/react-components/dist/index.css';
 
 export type RoomProps = {
@@ -12,13 +13,24 @@ export type RoomProps = {
   onConnected?: (room: LiveKitRoomType) => void;
   onLeave?: (room: LiveKitRoomType) => void;
   publishStats?: boolean;
+  currentCall?: Call;
+  currentUser?: string;
 };
 
 export type RoomType = LiveKitRoomType;
 
 export const Room = (props: RoomProps) => {
-  const { url, token, onConnected, onLeave, publishStats } = props;
+  const {
+    url,
+    token,
+    onConnected,
+    onLeave,
+    publishStats,
+    currentCall,
+    currentUser,
+  } = props;
   const [liveKitRoom, setLiveKitRoom] = useState<LiveKitRoomType | undefined>();
+  useSendEvent(liveKitRoom, currentCall, currentUser);
 
   return (
     <div className="str-video__room">
