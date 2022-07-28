@@ -180,10 +180,10 @@ export const CreateCall = (props: {
                   </ListItemAvatar>
                   <ListItemText primary={name} />
                   {audioMuteParticipants.includes(name) && (
-                    <MicOff fontSize="small" />
+                    <MicOff fontSize="medium" />
                   )}
                   {videoMuteParticipants.includes(name) && (
-                    <CameraOff fontSize="small" />
+                    <CameraOff fontSize="medium" />
                   )}
                 </ListItemButton>
               </ListItem>
