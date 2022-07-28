@@ -13,20 +13,33 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import CallAccept from '@mui/icons-material/Call';
 import VideoCall from '@mui/icons-material/VideoCall';
-import { ParticipantJoined } from '@stream-io/video-client';
+import { CallState, ParticipantJoined } from '@stream-io/video-client';
 import { useStreamVideoClient } from '@stream-io/video-components-react';
 import type { Participants } from '../App';
 
 export const CreateCall = (props: {
   participants: Participants;
+  currentCallState?: CallState;
   currentUser: string;
 }) => {
-  const { participants, currentUser } = props;
+  const { participants, currentUser, currentCallState } = props;
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>(
     Object.keys(participants),
   );
 
   const [inCallParticipants, setInCallParticipants] = useState<string[]>([]);
+
+  useEffect(() => {
+    const inCall: string[] = [];
+    if (currentCallState) {
+      currentCallState.participants.forEach((p) => {
+        if (p.online && p.user?.id) {
+          inCall.push(p.user?.id);
+        }
+      });
+    }
+    setInCallParticipants(inCall);
+  }, [currentCallState]);
 
   const toggleParticipant = useCallback(
     (name: string) => {

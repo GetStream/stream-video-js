@@ -24,13 +24,14 @@ import { CreateCall } from './CreateCall';
 import { JoinCall } from './JoinCall';
 import type { Participants } from '../App';
 import { RoomType } from '@stream-io/video-components-react';
-import { Call } from '@stream-io/video-client';
+import { Call, CallState } from '@stream-io/video-client';
 
 export type ParticipantsProps = {
   participants: Participants;
   currentUser: string;
   setCurrentUser: (name: string) => void;
   currentCall?: Call;
+  currentCallState?: CallState;
   room?: RoomType;
   joinCall?: (callId: string) => void;
 };
@@ -39,6 +40,7 @@ export const ParticipantControls = (props: ParticipantsProps) => {
   const {
     participants,
     currentCall,
+    currentCallState,
     currentUser,
     setCurrentUser,
     room,
@@ -96,7 +98,11 @@ export const ParticipantControls = (props: ParticipantsProps) => {
           {isCreateCallExpanded ? <ExpandLess /> : <ExpandMore />}
         </ListItemButton>
         <Collapse in={isCreateCallExpanded} timeout="auto" unmountOnExit>
-          <CreateCall participants={participants} currentUser={currentUser} />
+          <CreateCall
+            participants={participants}
+            currentUser={currentUser}
+            currentCallState={currentCallState}
+          />
         </Collapse>
 
         <Divider sx={{ my: 2 }} />

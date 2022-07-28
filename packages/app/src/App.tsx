@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Call,
   CallCreated,
+  CallState,
   CreateUserRequest,
   Healthcheck,
   SelectEdgeServerResponse,
@@ -50,6 +51,9 @@ const App = () => {
     return params.get('user') || 'alice';
   });
   const [currentCall, setCurrentCall] = useState<Call | undefined>();
+  const [currentCallState, setCurrentCallState] = useState<
+    CallState | undefined
+  >();
   const [isCurrentCallAccepted, setIsCurrentCallAccepted] = useState(false);
   const [edge, setEdge] = useState<SelectEdgeServerResponse | undefined>();
   const [room, setRoom] = useState<RoomType | undefined>(undefined);
@@ -87,10 +91,18 @@ const App = () => {
   );
 
   const joinCall = useCallback(
-    async (id: string) => {
+    async (id: string, type: string = 'video') => {
       try {
-        const joinedCall = await client?.joinCall({ id, type: 'video' });
-        setEdge(joinedCall);
+        const callToJoin = await client?.joinCall({ id, type });
+        if (callToJoin && callToJoin.call) {
+          const edge = await client?.selectEdgeServer(
+            callToJoin.call,
+            callToJoin.edges,
+          );
+          setCurrentCall(callToJoin.call);
+          setCurrentCallState(callToJoin.callState);
+          setEdge(edge);
+        }
         setErrorMessage('');
       } catch (err) {
         console.error(`Failed to join call`, err);
@@ -116,9 +128,9 @@ const App = () => {
         joinCall(call.id).then(() => {
           console.log(`Joining call with id:${call.id}`);
         });
+      } else {
+        setCurrentCall(call);
       }
-
-      setCurrentCall(call);
       setIsCurrentCallAccepted(false);
     };
     return client?.on('callCreated', onCallCreated);
@@ -160,6 +172,7 @@ const App = () => {
                 participants={participants}
                 room={room}
                 currentCall={currentCall}
+                currentCallState={currentCallState}
                 currentUser={currentUser}
                 setCurrentUser={setCurrentUser}
                 joinCall={joinCall}
@@ -175,6 +188,7 @@ const App = () => {
                     setRoom(undefined);
                     setEdge(undefined);
                     setCurrentCall(undefined);
+                    setCurrentCallState(undefined);
                   }}
                 />
               </Box>

@@ -15,7 +15,7 @@ import {
   JoinCallRequest,
 } from './gen/video_coordinator_rpc/coordinator_service';
 import { CallCoordinatorServiceClient } from './gen/video_coordinator_rpc/coordinator_service.client';
-import type { Latency } from './gen/video_models/models';
+import type { Call, Edge, Latency } from './gen/video_models/models';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   sendJson: false,
@@ -69,11 +69,10 @@ export class StreamVideoClient {
 
   joinCall = async (data: JoinCallRequest) => {
     const callToJoin = await this.client.joinCall(data);
-    const { call, edges } = callToJoin.response;
-    if (!call) {
-      throw new Error(`Call with id ${data.id} can't be found`);
-    }
+    return callToJoin.response;
+  };
 
+  selectEdgeServer = async (call: Call, edges: Edge[]) => {
     // TODO: maybe run the measurements in parallel
     const latencyByEdge: { [e: string]: Latency } = {};
     for (const edge of edges) {
