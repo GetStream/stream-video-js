@@ -4,7 +4,6 @@ import {
   CallCreated,
   CallState,
   CreateUserRequest,
-  Healthcheck,
   SelectEdgeServerResponse,
   Struct,
 } from '@stream-io/video-client';
@@ -111,13 +110,6 @@ const App = () => {
     },
     [client],
   );
-
-  useEffect(() => {
-    const onHealthCheck = (message: Healthcheck) => {
-      console.log(`Healthcheck received`, message);
-    };
-    return client?.on('healthCheck', onHealthCheck);
-  }, [client]);
 
   useEffect(() => {
     const onCallCreated = (message: CallCreated) => {

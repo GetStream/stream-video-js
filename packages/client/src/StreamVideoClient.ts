@@ -62,6 +62,10 @@ export class StreamVideoClient {
     return this.ws?.off(event, fn);
   };
 
+  setHealthcheckPayload = (payload: Uint8Array) => {
+    this.ws?.keepAlive.setPayload(payload);
+  };
+
   createCall = async (data: CreateCallRequest) => {
     const callToCreate = await this.client.createCall(data);
     const { call } = callToCreate.response;

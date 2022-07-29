@@ -1,3 +1,5 @@
+import type { KeepAlive } from './keepAlive';
+
 export type StreamEventListener<T> = (eventMessage: T) => void;
 
 export interface StreamWSClient {
@@ -5,4 +7,6 @@ export interface StreamWSClient {
   on: <T>(event: string, fn: StreamEventListener<T>) => () => void;
   off: <T>(event: string, fn: StreamEventListener<T>) => void;
   disconnect: () => void;
+
+  keepAlive: KeepAlive;
 }

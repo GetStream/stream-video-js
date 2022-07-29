@@ -14,8 +14,8 @@ export class StreamWebSocketClient implements StreamWSClient {
   private readonly user: CreateUserRequest;
 
   private subscribers: { [event: string]: StreamEventListener<any>[] } = {};
-  private hasReceivedMessage = false;
-  private keepAlive: KeepAlive;
+  private hasReceivedHealthCheck = false;
+  public keepAlive: KeepAlive;
 
   constructor(endpoint: string, token: string, user: CreateUserRequest) {
     const ws = new WebSocket(endpoint);
@@ -32,14 +32,6 @@ export class StreamWebSocketClient implements StreamWSClient {
     this.keepAlive = keepAlive(
       this,
       20 * 1000, // in seconds
-      Healthcheck.toBinary({
-        audio: true,
-        callId: 'random-id',
-        clientId: 'abc123',
-        userId: user.id,
-        video: true,
-        callType: 'video',
-      }),
     );
   }
 
@@ -75,6 +67,16 @@ export class StreamWebSocketClient implements StreamWSClient {
 
   private authenticate = () => {
     console.log('Authenticating...');
+
+    const catchOneHealthcheckMessage = (hc: Healthcheck) => {
+      this.keepAlive.setPayload(Healthcheck.toBinary(hc));
+
+      // FIXME OL: POC: temporary flag, used for auth checks
+      this.hasReceivedHealthCheck = true;
+      this.off('healthCheck', catchOneHealthcheckMessage);
+    };
+    this.on('healthCheck', catchOneHealthcheckMessage);
+
     this.sendMessage(
       AuthPayload.toBinary({
         token: this.token,
@@ -85,9 +87,6 @@ export class StreamWebSocketClient implements StreamWSClient {
 
   // TODO fix types
   private dispatchMessage = (message: WebsocketEvent) => {
-    // FIXME OL: POC: temporary flag, used for auth checks
-    this.hasReceivedMessage = true;
-
     const eventKind = message.eventPayload.oneofKind;
     console.log('Dispatching', eventKind, message.eventPayload);
     if (eventKind) {
@@ -119,7 +118,7 @@ export class StreamWebSocketClient implements StreamWSClient {
       let attempts = giveUpAfterMs / frequency;
       let q = setInterval(() => {
         console.log('Checking...');
-        if (this.hasReceivedMessage) {
+        if (this.hasReceivedHealthCheck) {
           clearInterval(q);
           resolve();
         } else if (attempts < 1) {

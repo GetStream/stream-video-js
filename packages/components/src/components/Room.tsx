@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { DisplayContext, LiveKitRoom } from '@livekit/react-components';
 import { Call } from '@stream-io/video-client';
+import { Ping } from './Ping';
 import { Stats } from './Stats';
 import { useSendEvent } from '../hooks';
 
@@ -34,6 +35,9 @@ export const Room = (props: RoomProps) => {
 
   return (
     <div className="str-video__room">
+      <Ping currentUser={currentUser} currentCall={currentCall} />
+      {publishStats && liveKitRoom && <Stats room={liveKitRoom} />}
+
       <DisplayContext.Provider value={{ stageLayout: 'grid', showStats: true }}>
         <LiveKitRoom
           url={url}
@@ -52,7 +56,6 @@ export const Room = (props: RoomProps) => {
             }
           }}
         />
-        {publishStats && liveKitRoom && <Stats room={liveKitRoom} />}
       </DisplayContext.Provider>
     </div>
   );
