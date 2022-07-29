@@ -589,7 +589,7 @@ export interface StoreCallStatsRequest {
      */
     callId: string;
     /**
-     * A WebRTC Stats object, as specified by https://www.w3.org/TR/webrtc-stats/#dfn-stats-object
+     * A WebRTC Stats report, as defined in https://www.w3.org/TR/webrtc/#dom-rtcstatsreport
      *
      * @generated from protobuf field: google.protobuf.Struct stats = 3;
      */
