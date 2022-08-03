@@ -1,8 +1,8 @@
-import React from 'react';
+import { Call, StreamVideoClient } from '@stream-io/video-client';
 import { Room, RoomType } from '@stream-io/video-components-react';
-import { Call } from '@stream-io/video-client';
 
 export type StageViewProps = {
+  client: StreamVideoClient;
   edgeUrl: string;
   edgeToken: string;
   currentCall?: Call;
@@ -12,10 +12,18 @@ export type StageViewProps = {
 };
 
 export const StageView = (props: StageViewProps) => {
-  const { edgeUrl, edgeToken, onConnected, onLeave, currentCall, currentUser } =
-    props;
+  const {
+    client,
+    edgeUrl,
+    edgeToken,
+    onConnected,
+    onLeave,
+    currentCall,
+    currentUser,
+  } = props;
   return (
     <Room
+      client={client}
       url={`wss://${edgeUrl}`}
       token={edgeToken}
       publishStats

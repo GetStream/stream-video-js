@@ -1,24 +1,46 @@
+import { Call, StreamVideoClient, Struct } from '@stream-io/video-client';
 import { useEffect } from 'react';
-import { StatsEvent, useWebRtcStats } from '../hooks';
 import { RoomType } from './Room';
 
 export interface StatsProps {
+  client: StreamVideoClient;
   room: RoomType;
+  call: Call;
 }
 
-export const Stats = ({ room }: StatsProps) => {
-  const webRtcStats = useWebRtcStats(room);
+const intervalMs = 15000;
+
+async function getStats(pc: RTCPeerConnection): Promise<Struct> {
+  const stats = await pc.getStats();
+  const s: Record<string, any> = {};
+  stats.forEach((v) => (s[v.id] = v));
+  return Struct.fromJson(s);
+}
+
+export const Stats = ({ client, room, call }: StatsProps) => {
   useEffect(() => {
-    const logStats = (stats: StatsEvent) => {
-      const rawStats: { [n: string]: object } = {};
-      stats.rawStats?.forEach((v, k) => (rawStats[k] = v));
-      console.log(stats, rawStats);
+    let handle: NodeJS.Timeout;
+    const reportStats = async () => {
+      [room.engine.subscriber?.pc, room.engine.publisher?.pc].forEach(
+        async (pc) =>
+          pc &&
+          client.reportCallStats({
+            callType: call.id,
+            callId: call.type,
+            stats: await getStats(pc),
+          }),
+      );
+      handle = setTimeout(reportStats, intervalMs);
     };
-    webRtcStats.addListener('stats', logStats);
-    return () => {
-      webRtcStats.removeListener('stats', logStats);
-    };
-  }, [webRtcStats]);
+    reportStats();
+    return () => clearTimeout(handle);
+  }, [
+    call.id,
+    call.type,
+    client,
+    room.engine.publisher?.pc,
+    room.engine.subscriber?.pc,
+  ]);
 
   return null;
 };

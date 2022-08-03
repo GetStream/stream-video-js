@@ -175,6 +175,7 @@ const App = () => {
               >
                 {edge && edge.edgeServer && (
                   <StageView
+                    client={client}
                     edgeToken={edge.token}
                     edgeUrl={edge.edgeServer.url}
                     currentCall={currentCall}
