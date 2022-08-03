@@ -1,14 +1,15 @@
-import { useState } from 'react';
 import { DisplayContext, LiveKitRoom } from '@livekit/react-components';
-import { Call } from '@stream-io/video-client';
+import { Call, StreamVideoClient } from '@stream-io/video-client';
+import { useState } from 'react';
+import { useSendEvent } from '../hooks';
 import { Ping } from './Ping';
 import { Stats } from './Stats';
-import { useSendEvent } from '../hooks';
 
-import type { Room as LiveKitRoomType } from 'livekit-client';
 import '@livekit/react-components/dist/index.css';
+import type { Room as LiveKitRoomType } from 'livekit-client';
 
 export type RoomProps = {
+  client: StreamVideoClient;
   url: string;
   token: string;
   onConnected?: (room: LiveKitRoomType) => void;
@@ -22,6 +23,7 @@ export type RoomType = LiveKitRoomType;
 
 export const Room = (props: RoomProps) => {
   const {
+    client,
     url,
     token,
     onConnected,
@@ -36,7 +38,9 @@ export const Room = (props: RoomProps) => {
   return (
     <div className="str-video__room">
       <Ping currentUser={currentUser} currentCall={currentCall} />
-      {publishStats && liveKitRoom && <Stats room={liveKitRoom} />}
+      {publishStats && liveKitRoom && currentCall && (
+        <Stats room={liveKitRoom} call={currentCall} client={client} />
+      )}
 
       <DisplayContext.Provider value={{ stageLayout: 'grid', showStats: true }}>
         <LiveKitRoom

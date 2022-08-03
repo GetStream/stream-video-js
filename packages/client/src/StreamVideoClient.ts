@@ -2,6 +2,8 @@ import {
   CreateCallRequest,
   CreateUserRequest,
   JoinCallRequest,
+  ReportCallStatsRequest,
+  ReportCallStatsResponse,
   SendEventRequest,
 } from './gen/video_coordinator_rpc/coordinator_service';
 import { CallCoordinatorServiceClient } from './gen/video_coordinator_rpc/coordinator_service.client';
@@ -106,5 +108,12 @@ export class StreamVideoClient {
   sendEvent = async (event: SendEventRequest) => {
     const eventResponse = await this.client.sendEvent(event);
     return eventResponse.response;
+  };
+
+  reportCallStats = async (
+    stats: ReportCallStatsRequest,
+  ): Promise<ReportCallStatsResponse> => {
+    const response = await this.client.reportCallStats(stats);
+    return response.response;
   };
 }
