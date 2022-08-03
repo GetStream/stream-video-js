@@ -9,15 +9,30 @@ import type { StreamWSClient, StreamEventListener } from './types';
 import { CreateUserRequest } from '../gen/video_coordinator_rpc/coordinator_service';
 
 export class StreamWebSocketClient implements StreamWSClient {
-  private readonly ws: WebSocket;
+  private readonly endpoint: string;
   private readonly token: string;
   private readonly user: CreateUserRequest;
 
   private subscribers: { [event: string]: StreamEventListener<any>[] } = {};
-  private hasReceivedHealthCheck = false;
+  private authenticated: Promise<boolean> | undefined;
+
+  private ws: WebSocket;
   public keepAlive: KeepAlive;
 
   constructor(endpoint: string, token: string, user: CreateUserRequest) {
+    this.endpoint = endpoint;
+    this.token = token;
+    this.user = user;
+
+    this.ws = this.connectTo(endpoint);
+    this.keepAlive = keepAlive(
+      this,
+      20 * 1000, // in seconds
+    );
+  }
+
+  private connectTo = (endpoint: string) => {
+    // open new socket connection
     const ws = new WebSocket(endpoint);
     ws.binaryType = 'arraybuffer';
     ws.onerror = this.onConnectionError;
@@ -25,15 +40,8 @@ export class StreamWebSocketClient implements StreamWSClient {
     ws.onopen = this.onConnectionOpen;
     ws.onmessage = this.onMessage;
 
-    this.token = token;
-    this.user = user;
-    this.ws = ws;
-
-    this.keepAlive = keepAlive(
-      this,
-      20 * 1000, // in seconds
-    );
-  }
+    return ws;
+  };
 
   private onConnectionError = (e: Event) => {
     console.error(`An error has occurred`, e);
@@ -50,7 +58,6 @@ export class StreamWebSocketClient implements StreamWSClient {
   };
 
   private onMessage = (e: MessageEvent) => {
-    console.debug(`Message received`, e.data);
     this.keepAlive.schedulePing();
 
     if (!(e.data instanceof ArrayBuffer)) {
@@ -58,8 +65,8 @@ export class StreamWebSocketClient implements StreamWSClient {
       return;
     }
 
-    const data = new Uint8Array(e.data);
-    const message = WebsocketEvent.fromBinary(data);
+    const protoBinaryData = new Uint8Array(e.data);
+    const message = WebsocketEvent.fromBinary(protoBinaryData);
 
     // submit the message for processing
     this.dispatchMessage(message);
@@ -68,16 +75,37 @@ export class StreamWebSocketClient implements StreamWSClient {
   private authenticate = () => {
     console.log('Authenticating...');
 
+    let hasReceivedHealthCheck = false;
     const catchOneHealthcheckMessage = (hc: Healthcheck) => {
+      hasReceivedHealthCheck = true;
       this.keepAlive.setPayload(Healthcheck.toBinary(hc));
-
-      // FIXME OL: POC: temporary flag, used for auth checks
-      this.hasReceivedHealthCheck = true;
       this.off('healthCheck', catchOneHealthcheckMessage);
     };
     this.on('healthCheck', catchOneHealthcheckMessage);
 
-    this.sendMessage(
+    // FIXME OL: POC: find more elegant way to accomplish this.
+    this.authenticated = new Promise<boolean>((resolve, reject) => {
+      const giveUpAfterMs = 3500;
+      const frequency = 250;
+      let attempts = giveUpAfterMs / frequency;
+      const intervalId = setInterval(() => {
+        console.log('Checking auth...');
+        if (hasReceivedHealthCheck) {
+          console.log('Authenticated!');
+          clearInterval(intervalId);
+          resolve(true);
+        } else if (attempts < 1) {
+          clearInterval(intervalId);
+          reject('Unsuccessful authentication');
+        }
+        attempts--;
+      }, frequency);
+    });
+
+    // send the authorization message, in case all is good, the server
+    // will respond with `Healthcheck`. Upon receiving the message, we consider
+    // successful authorization
+    this.ws.send(
       AuthPayload.toBinary({
         token: this.token,
         user: this.user,
@@ -88,10 +116,10 @@ export class StreamWebSocketClient implements StreamWSClient {
   // TODO fix types
   private dispatchMessage = (message: WebsocketEvent) => {
     const eventKind = message.eventPayload.oneofKind;
-    console.log('Dispatching', eventKind, message.eventPayload);
+    // @ts-ignore TODO: fix types
+    const wrappedMessage = message.eventPayload[eventKind];
+    console.log('Dispatching', eventKind, wrappedMessage);
     if (eventKind) {
-      // @ts-ignore TODO: fix types
-      const wrappedMessage = message.eventPayload[eventKind];
       const eventListeners = this.subscribers[eventKind];
       eventListeners?.forEach((fn: StreamEventListener<unknown>) => {
         try {
@@ -107,30 +135,17 @@ export class StreamWebSocketClient implements StreamWSClient {
     // FIXME: OL: do proper cleanup of resources here.
     console.log(`Disconnect requested`);
     this.keepAlive.cancelPendingPing();
-    this.ws.close(1000, `Disconnect requested`);
+    this.ws.close(12345, `Disconnect requested`);
+    this.authenticated = undefined;
   };
 
   ensureAuthenticated = async () => {
-    // FIXME OL: POC: find more elegant way to accomplish this.
-    return new Promise<void>((resolve, reject) => {
-      const giveUpAfterMs = 3000;
-      const frequency = 100;
-      let attempts = giveUpAfterMs / frequency;
-      let q = setInterval(() => {
-        console.log('Checking...');
-        if (this.hasReceivedHealthCheck) {
-          clearInterval(q);
-          resolve();
-        } else if (attempts < 1) {
-          clearInterval(q);
-          reject('Unsuccessful authentication');
-        }
-        attempts--;
-      }, frequency);
-    });
+    return this.authenticated;
   };
 
-  sendMessage = (data: Uint8Array) => {
+  sendMessage = async (data: Uint8Array) => {
+    await this.ensureAuthenticated();
+
     this.ws.send(data);
     this.keepAlive.schedulePing();
   };

@@ -9,7 +9,6 @@ export const createSocketConnection = async (
 ): Promise<StreamWSClient> => {
   const wsClient = new StreamWebSocketClient(endpoint, token, user);
   await wsClient.ensureAuthenticated();
-  console.log('Authenticated!');
 
   return wsClient;
 };
