@@ -2,7 +2,7 @@
   "name": "@stream-io/video-react",
   "description": "The React Video SDK",
   "author": "https://getstream.io",
-  "packageManager": "yarn@3.2.1",
+  "packageManager": "yarn@3.2.2",
   "private": true,
   "workspaces": [
     "packages/*"
