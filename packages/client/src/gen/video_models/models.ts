@@ -288,6 +288,106 @@ export interface Broadcast {
 export interface TranscribeOptions {
 }
 /**
+ * @generated from protobuf message stream.video.Permission
+ */
+export interface Permission {
+    /**
+     * the unique permission identifier
+     *
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * the human readable version of the permission
+     *
+     * @generated from protobuf field: string name = 2;
+     */
+    name: string;
+    /**
+     * the description of the permission
+     *
+     * @generated from protobuf field: string description = 3;
+     */
+    description: string;
+    /**
+     * the action that this permission grants
+     *
+     * @generated from protobuf field: stream.video.Action action = 4;
+     */
+    action: Action;
+    /**
+     * if true, the permission only applies if the user is the owner of the resource (eg. the creator of a call)
+     *
+     * @generated from protobuf field: bool owner = 5;
+     */
+    owner: boolean;
+    /**
+     * if true, the permission only applies if user and resource are from the same team
+     *
+     * @generated from protobuf field: bool same_team = 6;
+     */
+    sameTeam: boolean;
+}
+/**
+ * @generated from protobuf message stream.video.Permissions
+ */
+export interface Permissions {
+    /**
+     * @generated from protobuf field: repeated stream.video.Permission permissions = 1;
+     */
+    permissions: Permission[];
+}
+/**
+ * @generated from protobuf message stream.video.Grant
+ */
+export interface Grant {
+    /**
+     * @generated from protobuf field: string call_type = 1;
+     */
+    callType: string;
+    /**
+     * if provided we store this at the call level and merge with call_type
+     *
+     * @generated from protobuf field: string call_id = 2;
+     */
+    callId: string;
+    /**
+     * @generated from protobuf field: string role = 3;
+     */
+    role: string;
+    /**
+     * @generated from protobuf field: repeated stream.video.Action actions = 5;
+     */
+    actions: Action[];
+}
+/**
+ * @generated from protobuf message stream.video.Features
+ */
+export interface Features {
+    /**
+     * recording calls
+     *
+     * @generated from protobuf field: stream.video.FeatureToggle recording = 1;
+     */
+    recording: FeatureToggle;
+    /**
+     * HLS stream broadcast
+     *
+     * @generated from protobuf field: stream.video.FeatureToggle hls_broadcast = 3;
+     */
+    hlsBroadcast: FeatureToggle;
+    /**
+     * call transcription
+     *
+     * @generated from protobuf field: stream.video.FeatureToggle transcribe = 4;
+     */
+    transcribe: FeatureToggle;
+    /**
+     * @generated from protobuf field: stream.video.TranscribeOptions transcribe_options = 5;
+     */
+    transcribeOptions?: TranscribeOptions;
+}
+/**
  * @generated from protobuf message stream.video.CallType
  */
 export interface CallType {
@@ -298,99 +398,27 @@ export interface CallType {
      */
     name: string;
     /**
-     * TODO: maybe we need to move this to permissions / own_capabilities
+     * the permissions set for this call type
      *
-     * @generated from protobuf field: stream.video.Security security = 2;
+     * @generated from protobuf field: map<string, stream.video.Permissions> permissions = 2;
      */
-    security?: Security;
+    permissions: {
+        [key: string]: Permissions;
+    };
     /**
-     * when recording is true, calls are recorded on S3
+     * the features enabled by default for this type of calls
      *
-     * @generated from protobuf field: bool recording = 4;
+     * @generated from protobuf field: stream.video.Features features = 3;
      */
-    recording: boolean;
+    features?: Features;
     /**
-     * when enabled, calls get an HLS URL by default
-     *
-     * @generated from protobuf field: bool hls_broadcast = 5;
-     */
-    hlsBroadcast: boolean;
-    /**
-     * enable transcription by default
-     *
-     * @generated from protobuf field: bool transcribe = 6;
-     */
-    transcribe: boolean;
-    /**
-     * @generated from protobuf field: stream.video.TranscribeOptions transcribe_options = 7;
-     */
-    transcribeOptions?: TranscribeOptions;
-    /**
-     * @generated from protobuf field: string created_at = 8;
+     * @generated from protobuf field: string created_at = 4;
      */
     createdAt: string;
     /**
-     * @generated from protobuf field: string updated_at = 9;
+     * @generated from protobuf field: string updated_at = 5;
      */
     updatedAt: string;
-}
-/**
- * @generated from protobuf message stream.video.Security
- */
-export interface Security {
-    /**
-     * @generated from protobuf field: bool hide_profile_pictures = 1;
-     */
-    hideProfilePictures: boolean;
-    /**
-     * @generated from protobuf field: stream.video.Security.IsAllowed share_screen = 2;
-     */
-    shareScreen: Security_IsAllowed;
-    /**
-     * @generated from protobuf field: bool rename_user = 3;
-     */
-    renameUser: boolean;
-    /**
-     * @generated from protobuf field: stream.video.Security.IsAllowed unmute = 4;
-     */
-    unmute: Security_IsAllowed;
-    /**
-     * @generated from protobuf field: stream.video.Security.IsAllowed start_video = 5;
-     */
-    startVideo: Security_IsAllowed;
-    /**
-     * @generated from protobuf field: stream.video.Security.IsAllowed screen_share = 6;
-     */
-    screenShare: Security_IsAllowed;
-    /**
-     * @generated from protobuf field: stream.video.Security.IsAllowed record = 7;
-     */
-    record: Security_IsAllowed;
-    /**
-     * @generated from protobuf field: stream.video.Security.IsAllowed broadcast = 8;
-     */
-    broadcast: Security_IsAllowed;
-}
-/**
- * TODO this is actually one of the most complex UI things in zoom :)
- * controls if regular users are allowed to do the following
- * yes/no/request
- *
- * @generated from protobuf enum stream.video.Security.IsAllowed
- */
-export enum Security_IsAllowed {
-    /**
-     * @generated from protobuf enum value: IS_ALLOWED_YES_UNSPECIFIED = 0;
-     */
-    YES_UNSPECIFIED = 0,
-    /**
-     * @generated from protobuf enum value: IS_ALLOWED_NO = 1;
-     */
-    NO = 1,
-    /**
-     * @generated from protobuf enum value: IS_ALLOWED_REQUEST = 2;
-     */
-    REQUEST = 2
 }
 /**
  * those who are online in the call
@@ -498,43 +526,208 @@ export interface Call {
      */
     createdByUserId: string;
     /**
-     * @generated from protobuf field: google.protobuf.Struct custom = 4;
+     * the id of the current host for this call
+     *
+     * @generated from protobuf field: string host_user_id = 4;
+     */
+    hostUserId: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Struct custom = 5;
      */
     custom?: Struct;
     /**
      * call creation date as RFC3339 string
      *
-     * @generated from protobuf field: string created_at = 5;
+     * @generated from protobuf field: string created_at = 6;
      */
     createdAt: string;
     /**
      * call last update date as RFC3339 string
      *
-     * @generated from protobuf field: string updated_at = 6;
+     * @generated from protobuf field: string updated_at = 7;
      */
     updatedAt: string;
     /**
      * when recording is true, calls are recorded on S3
      *
-     * @generated from protobuf field: bool recording = 7;
+     * @generated from protobuf field: bool recording = 8;
      */
     recording: boolean;
     /**
      * broadcast settings for this call
      *
-     * @generated from protobuf field: stream.video.Broadcast broadcast = 8;
+     * @generated from protobuf field: stream.video.Broadcast broadcast = 9;
      */
     broadcast?: Broadcast;
     /**
      * enable transcription by default
      *
-     * @generated from protobuf field: bool transcribe = 9;
+     * @generated from protobuf field: bool transcribe = 10;
      */
     transcribe: boolean;
     /**
-     * @generated from protobuf field: stream.video.TranscribeOptions transcribe_options = 10;
+     * @generated from protobuf field: stream.video.TranscribeOptions transcribe_options = 11;
      */
     transcribeOptions?: TranscribeOptions;
+}
+/**
+ * @generated from protobuf message stream.video.ApnSettings
+ */
+export interface ApnSettings {
+    /**
+     * @generated from protobuf field: string auth_key = 1;
+     */
+    authKey: string;
+    /**
+     * @generated from protobuf field: string key_id = 2;
+     */
+    keyId: string;
+    /**
+     * @generated from protobuf field: string apn_topic = 3;
+     */
+    apnTopic: string;
+    /**
+     * @generated from protobuf field: string team_id = 4;
+     */
+    teamId: string;
+    /**
+     * @generated from protobuf field: bool development = 5;
+     */
+    development: boolean;
+}
+/**
+ * @generated from protobuf message stream.video.FirebaseSettings
+ */
+export interface FirebaseSettings {
+    /**
+     * @generated from protobuf field: string server_key = 1;
+     */
+    serverKey: string;
+    /**
+     * @generated from protobuf field: string credentials_json = 2;
+     */
+    credentialsJson: string;
+}
+/**
+ * @generated from protobuf message stream.video.HuaweiSettings
+ */
+export interface HuaweiSettings {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string secret = 2;
+     */
+    secret: string;
+}
+/**
+ * @generated from protobuf message stream.video.XiaomiSettings
+ */
+export interface XiaomiSettings {
+    /**
+     * @generated from protobuf field: string package_name = 1;
+     */
+    packageName: string;
+    /**
+     * @generated from protobuf field: string secret = 2;
+     */
+    secret: string;
+}
+/**
+ * @generated from protobuf message stream.video.SqsSettings
+ */
+export interface SqsSettings {
+    /**
+     * @generated from protobuf field: string url = 1;
+     */
+    url: string;
+    /**
+     * @generated from protobuf field: string key = 2;
+     */
+    key: string;
+    /**
+     * @generated from protobuf field: string secret = 3;
+     */
+    secret: string;
+}
+/**
+ * @generated from protobuf message stream.video.PushProvider
+ */
+export interface PushProvider {
+    /**
+     * the name for this push provider, unique for this application
+     * @example apn_production
+     * @example firebase_staging
+     *
+     * @generated from protobuf field: string name = 1;
+     */
+    name: string;
+    /**
+     * @generated from protobuf oneof: settings
+     */
+    settings: {
+        oneofKind: "apnSettings";
+        /**
+         * apn push configs
+         *
+         * @generated from protobuf field: stream.video.ApnSettings apn_settings = 2;
+         */
+        apnSettings: ApnSettings;
+    } | {
+        oneofKind: "firebaseSettings";
+        /**
+         * firebase push configs
+         *
+         * @generated from protobuf field: stream.video.FirebaseSettings firebase_settings = 3;
+         */
+        firebaseSettings: FirebaseSettings;
+    } | {
+        oneofKind: "huaweiSettings";
+        /**
+         * huawei push configs
+         *
+         * @generated from protobuf field: stream.video.HuaweiSettings huawei_settings = 4;
+         */
+        huaweiSettings: HuaweiSettings;
+    } | {
+        oneofKind: "xiaomiSettings";
+        /**
+         * xiaomi push configs
+         *
+         * @generated from protobuf field: stream.video.XiaomiSettings xiaomi_settings = 5;
+         */
+        xiaomiSettings: XiaomiSettings;
+    } | {
+        oneofKind: undefined;
+    };
+    /**
+     * @generated from protobuf field: bool disabled = 6;
+     */
+    disabled: boolean;
+}
+/**
+ * @generated from protobuf message stream.video.ApplicationSettings
+ */
+export interface ApplicationSettings {
+    /**
+     * the webhook URL
+     *
+     * @generated from protobuf field: string webhook_url = 1;
+     */
+    webhookUrl: string;
+    /**
+     * push providers configured
+     *
+     * @generated from protobuf field: repeated stream.video.PushProvider push_providers = 2;
+     */
+    pushProviders: PushProvider[];
+    /**
+     * sqs settings
+     *
+     * @generated from protobuf field: stream.video.SqsSettings sqs_settings = 3;
+     */
+    sqsSettings?: SqsSettings;
 }
 /**
  * @generated from protobuf enum stream.video.Codec
@@ -561,6 +754,82 @@ export enum RecordingStorage {
      * @generated from protobuf enum value: RECORDING_STORAGE_S3_UNSPECIFIED = 0;
      */
     S3_UNSPECIFIED = 0
+}
+/**
+ * @generated from protobuf enum stream.video.Action
+ */
+export enum Action {
+    /**
+     * @generated from protobuf enum value: ACTION_EMPTY_UNSPECIFIED = 0;
+     */
+    EMPTY_UNSPECIFIED = 0,
+    /**
+     * @generated from protobuf enum value: ACTION_CREATE_CALL = 1;
+     */
+    CREATE_CALL = 1,
+    /**
+     * @generated from protobuf enum value: ACTION_DELETE_CALL = 2;
+     */
+    DELETE_CALL = 2,
+    /**
+     * @generated from protobuf enum value: ACTION_SCREENSHARE = 3;
+     */
+    SCREENSHARE = 3,
+    /**
+     * @generated from protobuf enum value: ACTION_RECORD_CALL = 4;
+     */
+    RECORD_CALL = 4,
+    /**
+     * @generated from protobuf enum value: ACTION_START_TRANSCRIBE = 5;
+     */
+    START_TRANSCRIBE = 5,
+    /**
+     * @generated from protobuf enum value: ACTION_RENAME_USER = 6;
+     */
+    RENAME_USER = 6,
+    /**
+     * @generated from protobuf enum value: ACTION_HIDE_PROFILE_PICTURES = 7;
+     */
+    HIDE_PROFILE_PICTURES = 7,
+    /**
+     * @generated from protobuf enum value: ACTION_UNMUTE = 8;
+     */
+    UNMUTE = 8,
+    /**
+     * @generated from protobuf enum value: ACTION_MUTE_OTHER_USER = 9;
+     */
+    MUTE_OTHER_USER = 9,
+    /**
+     * @generated from protobuf enum value: ACTION_START_VIDEO = 10;
+     */
+    START_VIDEO = 10,
+    /**
+     * @generated from protobuf enum value: ACTION_BROADCAST_CALL = 11;
+     */
+    BROADCAST_CALL = 11
+}
+/**
+ * @generated from protobuf enum stream.video.FeatureToggle
+ */
+export enum FeatureToggle {
+    /**
+     * the feature is available and enabled by default
+     *
+     * @generated from protobuf enum value: FEATURE_TOGGLE_FEATURE_FLAG_ENABLED_UNSPECIFIED = 0;
+     */
+    FEATURE_FLAG_ENABLED_UNSPECIFIED = 0,
+    /**
+     * the feature is available but needs to be turned on the call level
+     *
+     * @generated from protobuf enum value: FEATURE_TOGGLE_FEATURE_FLAG_AVAILABLE = 1;
+     */
+    FEATURE_FLAG_AVAILABLE = 1,
+    /**
+     * the feature is disabled and cannot be turned on
+     *
+     * @generated from protobuf enum value: FEATURE_TOGGLE_FEATURE_FLAG_DISABLED = 2;
+     */
+    FEATURE_FLAG_DISABLED = 2
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class Edge$Type extends MessageType<Edge> {
@@ -1446,21 +1715,291 @@ class TranscribeOptions$Type extends MessageType<TranscribeOptions> {
  */
 export const TranscribeOptions = new TranscribeOptions$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class Permission$Type extends MessageType<Permission> {
+    constructor() {
+        super("stream.video.Permission", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "action", kind: "enum", T: () => ["stream.video.Action", Action, "ACTION_"] },
+            { no: 5, name: "owner", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 6, name: "same_team", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Permission>): Permission {
+        const message = { id: "", name: "", description: "", action: 0, owner: false, sameTeam: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Permission>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Permission): Permission {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string name */ 2:
+                    message.name = reader.string();
+                    break;
+                case /* string description */ 3:
+                    message.description = reader.string();
+                    break;
+                case /* stream.video.Action action */ 4:
+                    message.action = reader.int32();
+                    break;
+                case /* bool owner */ 5:
+                    message.owner = reader.bool();
+                    break;
+                case /* bool same_team */ 6:
+                    message.sameTeam = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Permission, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string name = 2; */
+        if (message.name !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.name);
+        /* string description = 3; */
+        if (message.description !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.description);
+        /* stream.video.Action action = 4; */
+        if (message.action !== 0)
+            writer.tag(4, WireType.Varint).int32(message.action);
+        /* bool owner = 5; */
+        if (message.owner !== false)
+            writer.tag(5, WireType.Varint).bool(message.owner);
+        /* bool same_team = 6; */
+        if (message.sameTeam !== false)
+            writer.tag(6, WireType.Varint).bool(message.sameTeam);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.Permission
+ */
+export const Permission = new Permission$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Permissions$Type extends MessageType<Permissions> {
+    constructor() {
+        super("stream.video.Permissions", [
+            { no: 1, name: "permissions", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Permission }
+        ]);
+    }
+    create(value?: PartialMessage<Permissions>): Permissions {
+        const message = { permissions: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Permissions>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Permissions): Permissions {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated stream.video.Permission permissions */ 1:
+                    message.permissions.push(Permission.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Permissions, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated stream.video.Permission permissions = 1; */
+        for (let i = 0; i < message.permissions.length; i++)
+            Permission.internalBinaryWrite(message.permissions[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.Permissions
+ */
+export const Permissions = new Permissions$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Grant$Type extends MessageType<Grant> {
+    constructor() {
+        super("stream.video.Grant", [
+            { no: 1, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "actions", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["stream.video.Action", Action, "ACTION_"] }
+        ]);
+    }
+    create(value?: PartialMessage<Grant>): Grant {
+        const message = { callType: "", callId: "", role: "", actions: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Grant>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Grant): Grant {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string call_type */ 1:
+                    message.callType = reader.string();
+                    break;
+                case /* string call_id */ 2:
+                    message.callId = reader.string();
+                    break;
+                case /* string role */ 3:
+                    message.role = reader.string();
+                    break;
+                case /* repeated stream.video.Action actions */ 5:
+                    if (wireType === WireType.LengthDelimited)
+                        for (let e = reader.int32() + reader.pos; reader.pos < e;)
+                            message.actions.push(reader.int32());
+                    else
+                        message.actions.push(reader.int32());
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Grant, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string call_type = 1; */
+        if (message.callType !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callType);
+        /* string call_id = 2; */
+        if (message.callId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.callId);
+        /* string role = 3; */
+        if (message.role !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.role);
+        /* repeated stream.video.Action actions = 5; */
+        if (message.actions.length) {
+            writer.tag(5, WireType.LengthDelimited).fork();
+            for (let i = 0; i < message.actions.length; i++)
+                writer.int32(message.actions[i]);
+            writer.join();
+        }
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.Grant
+ */
+export const Grant = new Grant$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Features$Type extends MessageType<Features> {
+    constructor() {
+        super("stream.video.Features", [
+            { no: 1, name: "recording", kind: "enum", T: () => ["stream.video.FeatureToggle", FeatureToggle, "FEATURE_TOGGLE_"] },
+            { no: 3, name: "hls_broadcast", kind: "enum", T: () => ["stream.video.FeatureToggle", FeatureToggle, "FEATURE_TOGGLE_"] },
+            { no: 4, name: "transcribe", kind: "enum", T: () => ["stream.video.FeatureToggle", FeatureToggle, "FEATURE_TOGGLE_"] },
+            { no: 5, name: "transcribe_options", kind: "message", T: () => TranscribeOptions }
+        ]);
+    }
+    create(value?: PartialMessage<Features>): Features {
+        const message = { recording: 0, hlsBroadcast: 0, transcribe: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Features>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Features): Features {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.FeatureToggle recording */ 1:
+                    message.recording = reader.int32();
+                    break;
+                case /* stream.video.FeatureToggle hls_broadcast */ 3:
+                    message.hlsBroadcast = reader.int32();
+                    break;
+                case /* stream.video.FeatureToggle transcribe */ 4:
+                    message.transcribe = reader.int32();
+                    break;
+                case /* stream.video.TranscribeOptions transcribe_options */ 5:
+                    message.transcribeOptions = TranscribeOptions.internalBinaryRead(reader, reader.uint32(), options, message.transcribeOptions);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Features, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.FeatureToggle recording = 1; */
+        if (message.recording !== 0)
+            writer.tag(1, WireType.Varint).int32(message.recording);
+        /* stream.video.FeatureToggle hls_broadcast = 3; */
+        if (message.hlsBroadcast !== 0)
+            writer.tag(3, WireType.Varint).int32(message.hlsBroadcast);
+        /* stream.video.FeatureToggle transcribe = 4; */
+        if (message.transcribe !== 0)
+            writer.tag(4, WireType.Varint).int32(message.transcribe);
+        /* stream.video.TranscribeOptions transcribe_options = 5; */
+        if (message.transcribeOptions)
+            TranscribeOptions.internalBinaryWrite(message.transcribeOptions, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.Features
+ */
+export const Features = new Features$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class CallType$Type extends MessageType<CallType> {
     constructor() {
         super("stream.video.CallType", [
             { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "security", kind: "message", T: () => Security },
-            { no: 4, name: "recording", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 5, name: "hls_broadcast", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 6, name: "transcribe", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 7, name: "transcribe_options", kind: "message", T: () => TranscribeOptions },
-            { no: 8, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 9, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "permissions", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "message", T: () => Permissions } },
+            { no: 3, name: "features", kind: "message", T: () => Features },
+            { no: 4, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CallType>): CallType {
-        const message = { name: "", recording: false, hlsBroadcast: false, transcribe: false, createdAt: "", updatedAt: "" };
+        const message = { name: "", permissions: {}, createdAt: "", updatedAt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CallType>(this, message, value);
@@ -1474,25 +2013,16 @@ class CallType$Type extends MessageType<CallType> {
                 case /* string name */ 1:
                     message.name = reader.string();
                     break;
-                case /* stream.video.Security security */ 2:
-                    message.security = Security.internalBinaryRead(reader, reader.uint32(), options, message.security);
+                case /* map<string, stream.video.Permissions> permissions */ 2:
+                    this.binaryReadMap2(message.permissions, reader, options);
                     break;
-                case /* bool recording */ 4:
-                    message.recording = reader.bool();
+                case /* stream.video.Features features */ 3:
+                    message.features = Features.internalBinaryRead(reader, reader.uint32(), options, message.features);
                     break;
-                case /* bool hls_broadcast */ 5:
-                    message.hlsBroadcast = reader.bool();
-                    break;
-                case /* bool transcribe */ 6:
-                    message.transcribe = reader.bool();
-                    break;
-                case /* stream.video.TranscribeOptions transcribe_options */ 7:
-                    message.transcribeOptions = TranscribeOptions.internalBinaryRead(reader, reader.uint32(), options, message.transcribeOptions);
-                    break;
-                case /* string created_at */ 8:
+                case /* string created_at */ 4:
                     message.createdAt = reader.string();
                     break;
-                case /* string updated_at */ 9:
+                case /* string updated_at */ 5:
                     message.updatedAt = reader.string();
                     break;
                 default:
@@ -1506,31 +2036,42 @@ class CallType$Type extends MessageType<CallType> {
         }
         return message;
     }
+    private binaryReadMap2(map: CallType["permissions"], reader: IBinaryReader, options: BinaryReadOptions): void {
+        let len = reader.uint32(), end = reader.pos + len, key: keyof CallType["permissions"] | undefined, val: CallType["permissions"][any] | undefined;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case 1:
+                    key = reader.string();
+                    break;
+                case 2:
+                    val = Permissions.internalBinaryRead(reader, reader.uint32(), options);
+                    break;
+                default: throw new globalThis.Error("unknown map entry field for field stream.video.CallType.permissions");
+            }
+        }
+        map[key ?? ""] = val ?? Permissions.create();
+    }
     internalBinaryWrite(message: CallType, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string name = 1; */
         if (message.name !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.name);
-        /* stream.video.Security security = 2; */
-        if (message.security)
-            Security.internalBinaryWrite(message.security, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* bool recording = 4; */
-        if (message.recording !== false)
-            writer.tag(4, WireType.Varint).bool(message.recording);
-        /* bool hls_broadcast = 5; */
-        if (message.hlsBroadcast !== false)
-            writer.tag(5, WireType.Varint).bool(message.hlsBroadcast);
-        /* bool transcribe = 6; */
-        if (message.transcribe !== false)
-            writer.tag(6, WireType.Varint).bool(message.transcribe);
-        /* stream.video.TranscribeOptions transcribe_options = 7; */
-        if (message.transcribeOptions)
-            TranscribeOptions.internalBinaryWrite(message.transcribeOptions, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
-        /* string created_at = 8; */
+        /* map<string, stream.video.Permissions> permissions = 2; */
+        for (let k of Object.keys(message.permissions)) {
+            writer.tag(2, WireType.LengthDelimited).fork().tag(1, WireType.LengthDelimited).string(k);
+            writer.tag(2, WireType.LengthDelimited).fork();
+            Permissions.internalBinaryWrite(message.permissions[k], writer, options);
+            writer.join().join();
+        }
+        /* stream.video.Features features = 3; */
+        if (message.features)
+            Features.internalBinaryWrite(message.features, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* string created_at = 4; */
         if (message.createdAt !== "")
-            writer.tag(8, WireType.LengthDelimited).string(message.createdAt);
-        /* string updated_at = 9; */
+            writer.tag(4, WireType.LengthDelimited).string(message.createdAt);
+        /* string updated_at = 5; */
         if (message.updatedAt !== "")
-            writer.tag(9, WireType.LengthDelimited).string(message.updatedAt);
+            writer.tag(5, WireType.LengthDelimited).string(message.updatedAt);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1541,102 +2082,6 @@ class CallType$Type extends MessageType<CallType> {
  * @generated MessageType for protobuf message stream.video.CallType
  */
 export const CallType = new CallType$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class Security$Type extends MessageType<Security> {
-    constructor() {
-        super("stream.video.Security", [
-            { no: 1, name: "hide_profile_pictures", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 2, name: "share_screen", kind: "enum", T: () => ["stream.video.Security.IsAllowed", Security_IsAllowed, "IS_ALLOWED_"] },
-            { no: 3, name: "rename_user", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 4, name: "unmute", kind: "enum", T: () => ["stream.video.Security.IsAllowed", Security_IsAllowed, "IS_ALLOWED_"] },
-            { no: 5, name: "start_video", kind: "enum", T: () => ["stream.video.Security.IsAllowed", Security_IsAllowed, "IS_ALLOWED_"] },
-            { no: 6, name: "screen_share", kind: "enum", T: () => ["stream.video.Security.IsAllowed", Security_IsAllowed, "IS_ALLOWED_"] },
-            { no: 7, name: "record", kind: "enum", T: () => ["stream.video.Security.IsAllowed", Security_IsAllowed, "IS_ALLOWED_"] },
-            { no: 8, name: "broadcast", kind: "enum", T: () => ["stream.video.Security.IsAllowed", Security_IsAllowed, "IS_ALLOWED_"] }
-        ]);
-    }
-    create(value?: PartialMessage<Security>): Security {
-        const message = { hideProfilePictures: false, shareScreen: 0, renameUser: false, unmute: 0, startVideo: 0, screenShare: 0, record: 0, broadcast: 0 };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<Security>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Security): Security {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* bool hide_profile_pictures */ 1:
-                    message.hideProfilePictures = reader.bool();
-                    break;
-                case /* stream.video.Security.IsAllowed share_screen */ 2:
-                    message.shareScreen = reader.int32();
-                    break;
-                case /* bool rename_user */ 3:
-                    message.renameUser = reader.bool();
-                    break;
-                case /* stream.video.Security.IsAllowed unmute */ 4:
-                    message.unmute = reader.int32();
-                    break;
-                case /* stream.video.Security.IsAllowed start_video */ 5:
-                    message.startVideo = reader.int32();
-                    break;
-                case /* stream.video.Security.IsAllowed screen_share */ 6:
-                    message.screenShare = reader.int32();
-                    break;
-                case /* stream.video.Security.IsAllowed record */ 7:
-                    message.record = reader.int32();
-                    break;
-                case /* stream.video.Security.IsAllowed broadcast */ 8:
-                    message.broadcast = reader.int32();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: Security, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* bool hide_profile_pictures = 1; */
-        if (message.hideProfilePictures !== false)
-            writer.tag(1, WireType.Varint).bool(message.hideProfilePictures);
-        /* stream.video.Security.IsAllowed share_screen = 2; */
-        if (message.shareScreen !== 0)
-            writer.tag(2, WireType.Varint).int32(message.shareScreen);
-        /* bool rename_user = 3; */
-        if (message.renameUser !== false)
-            writer.tag(3, WireType.Varint).bool(message.renameUser);
-        /* stream.video.Security.IsAllowed unmute = 4; */
-        if (message.unmute !== 0)
-            writer.tag(4, WireType.Varint).int32(message.unmute);
-        /* stream.video.Security.IsAllowed start_video = 5; */
-        if (message.startVideo !== 0)
-            writer.tag(5, WireType.Varint).int32(message.startVideo);
-        /* stream.video.Security.IsAllowed screen_share = 6; */
-        if (message.screenShare !== 0)
-            writer.tag(6, WireType.Varint).int32(message.screenShare);
-        /* stream.video.Security.IsAllowed record = 7; */
-        if (message.record !== 0)
-            writer.tag(7, WireType.Varint).int32(message.record);
-        /* stream.video.Security.IsAllowed broadcast = 8; */
-        if (message.broadcast !== 0)
-            writer.tag(8, WireType.Varint).int32(message.broadcast);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.Security
- */
-export const Security = new Security$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Participant$Type extends MessageType<Participant> {
     constructor() {
@@ -1862,17 +2307,18 @@ class Call$Type extends MessageType<Call> {
             { no: 1, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
             { no: 2, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
             { no: 3, name: "created_by_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
-            { no: 4, name: "custom", kind: "message", T: () => Struct },
-            { no: 5, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
-            { no: 6, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
-            { no: 7, name: "recording", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 8, name: "broadcast", kind: "message", T: () => Broadcast },
-            { no: 9, name: "transcribe", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 10, name: "transcribe_options", kind: "message", T: () => TranscribeOptions }
+            { no: 4, name: "host_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "custom", kind: "message", T: () => Struct },
+            { no: 6, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 7, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 8, name: "recording", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 9, name: "broadcast", kind: "message", T: () => Broadcast },
+            { no: 10, name: "transcribe", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 11, name: "transcribe_options", kind: "message", T: () => TranscribeOptions }
         ]);
     }
     create(value?: PartialMessage<Call>): Call {
-        const message = { type: "", id: "", createdByUserId: "", createdAt: "", updatedAt: "", recording: false, transcribe: false };
+        const message = { type: "", id: "", createdByUserId: "", hostUserId: "", createdAt: "", updatedAt: "", recording: false, transcribe: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Call>(this, message, value);
@@ -1892,25 +2338,28 @@ class Call$Type extends MessageType<Call> {
                 case /* string created_by_user_id */ 3:
                     message.createdByUserId = reader.string();
                     break;
-                case /* google.protobuf.Struct custom */ 4:
+                case /* string host_user_id */ 4:
+                    message.hostUserId = reader.string();
+                    break;
+                case /* google.protobuf.Struct custom */ 5:
                     message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
                     break;
-                case /* string created_at */ 5:
+                case /* string created_at */ 6:
                     message.createdAt = reader.string();
                     break;
-                case /* string updated_at */ 6:
+                case /* string updated_at */ 7:
                     message.updatedAt = reader.string();
                     break;
-                case /* bool recording */ 7:
+                case /* bool recording */ 8:
                     message.recording = reader.bool();
                     break;
-                case /* stream.video.Broadcast broadcast */ 8:
+                case /* stream.video.Broadcast broadcast */ 9:
                     message.broadcast = Broadcast.internalBinaryRead(reader, reader.uint32(), options, message.broadcast);
                     break;
-                case /* bool transcribe */ 9:
+                case /* bool transcribe */ 10:
                     message.transcribe = reader.bool();
                     break;
-                case /* stream.video.TranscribeOptions transcribe_options */ 10:
+                case /* stream.video.TranscribeOptions transcribe_options */ 11:
                     message.transcribeOptions = TranscribeOptions.internalBinaryRead(reader, reader.uint32(), options, message.transcribeOptions);
                     break;
                 default:
@@ -1934,27 +2383,30 @@ class Call$Type extends MessageType<Call> {
         /* string created_by_user_id = 3; */
         if (message.createdByUserId !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.createdByUserId);
-        /* google.protobuf.Struct custom = 4; */
+        /* string host_user_id = 4; */
+        if (message.hostUserId !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.hostUserId);
+        /* google.protobuf.Struct custom = 5; */
         if (message.custom)
-            Struct.internalBinaryWrite(message.custom, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
-        /* string created_at = 5; */
+            Struct.internalBinaryWrite(message.custom, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        /* string created_at = 6; */
         if (message.createdAt !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.createdAt);
-        /* string updated_at = 6; */
+            writer.tag(6, WireType.LengthDelimited).string(message.createdAt);
+        /* string updated_at = 7; */
         if (message.updatedAt !== "")
-            writer.tag(6, WireType.LengthDelimited).string(message.updatedAt);
-        /* bool recording = 7; */
+            writer.tag(7, WireType.LengthDelimited).string(message.updatedAt);
+        /* bool recording = 8; */
         if (message.recording !== false)
-            writer.tag(7, WireType.Varint).bool(message.recording);
-        /* stream.video.Broadcast broadcast = 8; */
+            writer.tag(8, WireType.Varint).bool(message.recording);
+        /* stream.video.Broadcast broadcast = 9; */
         if (message.broadcast)
-            Broadcast.internalBinaryWrite(message.broadcast, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
-        /* bool transcribe = 9; */
+            Broadcast.internalBinaryWrite(message.broadcast, writer.tag(9, WireType.LengthDelimited).fork(), options).join();
+        /* bool transcribe = 10; */
         if (message.transcribe !== false)
-            writer.tag(9, WireType.Varint).bool(message.transcribe);
-        /* stream.video.TranscribeOptions transcribe_options = 10; */
+            writer.tag(10, WireType.Varint).bool(message.transcribe);
+        /* stream.video.TranscribeOptions transcribe_options = 11; */
         if (message.transcribeOptions)
-            TranscribeOptions.internalBinaryWrite(message.transcribeOptions, writer.tag(10, WireType.LengthDelimited).fork(), options).join();
+            TranscribeOptions.internalBinaryWrite(message.transcribeOptions, writer.tag(11, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1965,3 +2417,456 @@ class Call$Type extends MessageType<Call> {
  * @generated MessageType for protobuf message stream.video.Call
  */
 export const Call = new Call$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ApnSettings$Type extends MessageType<ApnSettings> {
+    constructor() {
+        super("stream.video.ApnSettings", [
+            { no: 1, name: "auth_key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "key_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "apn_topic", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "team_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "development", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ApnSettings>): ApnSettings {
+        const message = { authKey: "", keyId: "", apnTopic: "", teamId: "", development: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ApnSettings>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ApnSettings): ApnSettings {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string auth_key */ 1:
+                    message.authKey = reader.string();
+                    break;
+                case /* string key_id */ 2:
+                    message.keyId = reader.string();
+                    break;
+                case /* string apn_topic */ 3:
+                    message.apnTopic = reader.string();
+                    break;
+                case /* string team_id */ 4:
+                    message.teamId = reader.string();
+                    break;
+                case /* bool development */ 5:
+                    message.development = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ApnSettings, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string auth_key = 1; */
+        if (message.authKey !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.authKey);
+        /* string key_id = 2; */
+        if (message.keyId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.keyId);
+        /* string apn_topic = 3; */
+        if (message.apnTopic !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.apnTopic);
+        /* string team_id = 4; */
+        if (message.teamId !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.teamId);
+        /* bool development = 5; */
+        if (message.development !== false)
+            writer.tag(5, WireType.Varint).bool(message.development);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.ApnSettings
+ */
+export const ApnSettings = new ApnSettings$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class FirebaseSettings$Type extends MessageType<FirebaseSettings> {
+    constructor() {
+        super("stream.video.FirebaseSettings", [
+            { no: 1, name: "server_key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "credentials_json", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<FirebaseSettings>): FirebaseSettings {
+        const message = { serverKey: "", credentialsJson: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<FirebaseSettings>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: FirebaseSettings): FirebaseSettings {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string server_key */ 1:
+                    message.serverKey = reader.string();
+                    break;
+                case /* string credentials_json */ 2:
+                    message.credentialsJson = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: FirebaseSettings, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string server_key = 1; */
+        if (message.serverKey !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.serverKey);
+        /* string credentials_json = 2; */
+        if (message.credentialsJson !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.credentialsJson);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.FirebaseSettings
+ */
+export const FirebaseSettings = new FirebaseSettings$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class HuaweiSettings$Type extends MessageType<HuaweiSettings> {
+    constructor() {
+        super("stream.video.HuaweiSettings", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "secret", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<HuaweiSettings>): HuaweiSettings {
+        const message = { id: "", secret: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<HuaweiSettings>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: HuaweiSettings): HuaweiSettings {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string secret */ 2:
+                    message.secret = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: HuaweiSettings, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string secret = 2; */
+        if (message.secret !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.secret);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.HuaweiSettings
+ */
+export const HuaweiSettings = new HuaweiSettings$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class XiaomiSettings$Type extends MessageType<XiaomiSettings> {
+    constructor() {
+        super("stream.video.XiaomiSettings", [
+            { no: 1, name: "package_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "secret", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<XiaomiSettings>): XiaomiSettings {
+        const message = { packageName: "", secret: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<XiaomiSettings>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: XiaomiSettings): XiaomiSettings {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string package_name */ 1:
+                    message.packageName = reader.string();
+                    break;
+                case /* string secret */ 2:
+                    message.secret = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: XiaomiSettings, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string package_name = 1; */
+        if (message.packageName !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.packageName);
+        /* string secret = 2; */
+        if (message.secret !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.secret);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.XiaomiSettings
+ */
+export const XiaomiSettings = new XiaomiSettings$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SqsSettings$Type extends MessageType<SqsSettings> {
+    constructor() {
+        super("stream.video.SqsSettings", [
+            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "secret", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SqsSettings>): SqsSettings {
+        const message = { url: "", key: "", secret: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SqsSettings>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SqsSettings): SqsSettings {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string url */ 1:
+                    message.url = reader.string();
+                    break;
+                case /* string key */ 2:
+                    message.key = reader.string();
+                    break;
+                case /* string secret */ 3:
+                    message.secret = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SqsSettings, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string url = 1; */
+        if (message.url !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.url);
+        /* string key = 2; */
+        if (message.key !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.key);
+        /* string secret = 3; */
+        if (message.secret !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.secret);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.SqsSettings
+ */
+export const SqsSettings = new SqsSettings$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PushProvider$Type extends MessageType<PushProvider> {
+    constructor() {
+        super("stream.video.PushProvider", [
+            { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "apn_settings", kind: "message", oneof: "settings", T: () => ApnSettings },
+            { no: 3, name: "firebase_settings", kind: "message", oneof: "settings", T: () => FirebaseSettings },
+            { no: 4, name: "huawei_settings", kind: "message", oneof: "settings", T: () => HuaweiSettings },
+            { no: 5, name: "xiaomi_settings", kind: "message", oneof: "settings", T: () => XiaomiSettings },
+            { no: 6, name: "disabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PushProvider>): PushProvider {
+        const message = { name: "", settings: { oneofKind: undefined }, disabled: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PushProvider>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PushProvider): PushProvider {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string name */ 1:
+                    message.name = reader.string();
+                    break;
+                case /* stream.video.ApnSettings apn_settings */ 2:
+                    message.settings = {
+                        oneofKind: "apnSettings",
+                        apnSettings: ApnSettings.internalBinaryRead(reader, reader.uint32(), options, (message.settings as any).apnSettings)
+                    };
+                    break;
+                case /* stream.video.FirebaseSettings firebase_settings */ 3:
+                    message.settings = {
+                        oneofKind: "firebaseSettings",
+                        firebaseSettings: FirebaseSettings.internalBinaryRead(reader, reader.uint32(), options, (message.settings as any).firebaseSettings)
+                    };
+                    break;
+                case /* stream.video.HuaweiSettings huawei_settings */ 4:
+                    message.settings = {
+                        oneofKind: "huaweiSettings",
+                        huaweiSettings: HuaweiSettings.internalBinaryRead(reader, reader.uint32(), options, (message.settings as any).huaweiSettings)
+                    };
+                    break;
+                case /* stream.video.XiaomiSettings xiaomi_settings */ 5:
+                    message.settings = {
+                        oneofKind: "xiaomiSettings",
+                        xiaomiSettings: XiaomiSettings.internalBinaryRead(reader, reader.uint32(), options, (message.settings as any).xiaomiSettings)
+                    };
+                    break;
+                case /* bool disabled */ 6:
+                    message.disabled = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PushProvider, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string name = 1; */
+        if (message.name !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.name);
+        /* stream.video.ApnSettings apn_settings = 2; */
+        if (message.settings.oneofKind === "apnSettings")
+            ApnSettings.internalBinaryWrite(message.settings.apnSettings, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.FirebaseSettings firebase_settings = 3; */
+        if (message.settings.oneofKind === "firebaseSettings")
+            FirebaseSettings.internalBinaryWrite(message.settings.firebaseSettings, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.HuaweiSettings huawei_settings = 4; */
+        if (message.settings.oneofKind === "huaweiSettings")
+            HuaweiSettings.internalBinaryWrite(message.settings.huaweiSettings, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.XiaomiSettings xiaomi_settings = 5; */
+        if (message.settings.oneofKind === "xiaomiSettings")
+            XiaomiSettings.internalBinaryWrite(message.settings.xiaomiSettings, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        /* bool disabled = 6; */
+        if (message.disabled !== false)
+            writer.tag(6, WireType.Varint).bool(message.disabled);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.PushProvider
+ */
+export const PushProvider = new PushProvider$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ApplicationSettings$Type extends MessageType<ApplicationSettings> {
+    constructor() {
+        super("stream.video.ApplicationSettings", [
+            { no: 1, name: "webhook_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "push_providers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => PushProvider },
+            { no: 3, name: "sqs_settings", kind: "message", T: () => SqsSettings }
+        ]);
+    }
+    create(value?: PartialMessage<ApplicationSettings>): ApplicationSettings {
+        const message = { webhookUrl: "", pushProviders: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ApplicationSettings>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ApplicationSettings): ApplicationSettings {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string webhook_url */ 1:
+                    message.webhookUrl = reader.string();
+                    break;
+                case /* repeated stream.video.PushProvider push_providers */ 2:
+                    message.pushProviders.push(PushProvider.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* stream.video.SqsSettings sqs_settings */ 3:
+                    message.sqsSettings = SqsSettings.internalBinaryRead(reader, reader.uint32(), options, message.sqsSettings);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ApplicationSettings, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string webhook_url = 1; */
+        if (message.webhookUrl !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.webhookUrl);
+        /* repeated stream.video.PushProvider push_providers = 2; */
+        for (let i = 0; i < message.pushProviders.length; i++)
+            PushProvider.internalBinaryWrite(message.pushProviders[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.SqsSettings sqs_settings = 3; */
+        if (message.sqsSettings)
+            SqsSettings.internalBinaryWrite(message.sqsSettings, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.ApplicationSettings
+ */
+export const ApplicationSettings = new ApplicationSettings$Type();
