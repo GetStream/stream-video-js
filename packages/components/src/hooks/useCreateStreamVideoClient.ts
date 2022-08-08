@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import { CreateUserRequest, StreamVideoClient } from '@stream-io/video-client';
+import { useEffect, useState } from 'react';
 
 export const useCreateStreamVideoClient = (
   baseUrl: string,
@@ -18,7 +18,7 @@ export const useCreateStreamVideoClient = (
 
     let didInterruptConnect = false;
     const connection = client
-      .connect(token, user)
+      .connect(apiKey, token, user)
       .then(() => {
         if (!didInterruptConnect) {
           setClient(client);

@@ -1,15 +1,16 @@
-import { KeepAlive, keepAlive } from './keepAlive';
 import {
   AuthPayload,
   Healthcheck,
   WebsocketEvent,
 } from '../gen/video_events/events';
+import { KeepAlive, keepAlive } from './keepAlive';
 
-import type { StreamWSClient, StreamEventListener } from './types';
 import { CreateUserRequest } from '../gen/video_coordinator_rpc/coordinator_service';
+import type { StreamEventListener, StreamWSClient } from './types';
 
 export class StreamWebSocketClient implements StreamWSClient {
   private readonly endpoint: string;
+  private readonly apiKey: string;
   private readonly token: string;
   private readonly user: CreateUserRequest;
 
@@ -19,8 +20,14 @@ export class StreamWebSocketClient implements StreamWSClient {
   private ws: WebSocket;
   public keepAlive: KeepAlive;
 
-  constructor(endpoint: string, token: string, user: CreateUserRequest) {
+  constructor(
+    endpoint: string,
+    apiKey: string,
+    token: string,
+    user: CreateUserRequest,
+  ) {
     this.endpoint = endpoint;
+    this.apiKey = apiKey;
     this.token = token;
     this.user = user;
 
@@ -109,6 +116,7 @@ export class StreamWebSocketClient implements StreamWSClient {
       AuthPayload.toBinary({
         token: this.token,
         user: this.user,
+        apiKey: this.apiKey,
       }),
     );
   };

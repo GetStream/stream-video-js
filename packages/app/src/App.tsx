@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Alert,
+  Box,
+  createTheme,
+  CssBaseline,
+  ThemeProvider,
+} from '@mui/material';
 import {
   Call,
   CallCreated,
@@ -12,28 +18,22 @@ import {
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-components-react';
-import {
-  Alert,
-  Box,
-  createTheme,
-  CssBaseline,
-  ThemeProvider,
-} from '@mui/material';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { NavigationBar } from './components/NavigationBar';
 import { ParticipantControls } from './components/ParticipantControls';
-import { StageView } from './components/StageView';
 import { Ringer } from './components/Ringer';
+import { StageView } from './components/StageView';
 
 // use different browser tabs
 export type Participants = { [name: string]: string };
 const participants: Participants = {
   alice:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWxpY2UifQ.WZkPaUZb84fLkQoEEFw078Xd1RzwR42XjvBISgM2BAk',
-  bob: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYm9iIn0.6fqa74FESB2DMUcsIiArBDJR2ckkdSvWiSb7qRLVU6U',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWxpY2UifQ.p0_t4y5AU8T5Ib6qEvcKG6r2wduwt0n0SW6cD867SY8',
+  bob: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYm9iIn0.YZtLYNIPbxjvpzvWX4Vz3xXerTSbjcl4F3kFkC5sY3s',
   charlie:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiY2hhcmxpZSJ9.pEADCJqcZLvbIsYJwkyAJ6iR-UyVjEmZWjGp5xZRp04',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiY2hhcmxpZSJ9.JWa5dEyKWCwpw6BmgWtebXoSPbgQgE3GP0l92AbDqIo',
   trudy:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidHJ1ZHkifQ.yhwq7Dv7znpFiIZrAb9bOYiEXM_PHtgqoq5pgFeOL78',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidHJ1ZHkifQ.dcoph9LxfiGBkTCJjIyf7ENtGQInSsB-rt8-98Ll2UY',
 };
 
 const theme = createTheme({
@@ -84,7 +84,7 @@ const App = () => {
 
   const [client, connectionError] = useCreateStreamVideoClient(
     '/', // proxied to http://localhost:26991
-    'api-key',
+    'key1',
     participants[currentUser],
     user,
   );
