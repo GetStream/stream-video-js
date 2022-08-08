@@ -4,10 +4,11 @@ import { CreateUserRequest } from '../gen/video_coordinator_rpc/coordinator_serv
 
 export const createSocketConnection = async (
   endpoint: string,
+  apiKey: string,
   token: string,
   user: CreateUserRequest,
 ): Promise<StreamWSClient> => {
-  const wsClient = new StreamWebSocketClient(endpoint, token, user);
+  const wsClient = new StreamWebSocketClient(endpoint, apiKey, token, user);
   await wsClient.ensureAuthenticated();
 
   return wsClient;

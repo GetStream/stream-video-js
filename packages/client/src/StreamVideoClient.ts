@@ -1,15 +1,4 @@
 import {
-  createClient,
-  withBearerToken,
-  measureResourceLoadLatencyTo,
-  StreamVideoClientOptions,
-} from './rpc';
-import {
-  createSocketConnection,
-  StreamEventListener,
-  StreamWSClient,
-} from './ws';
-import {
   CreateCallRequest,
   CreateUserRequest,
   JoinCallRequest,
@@ -17,6 +6,17 @@ import {
 } from './gen/video_coordinator_rpc/coordinator_service';
 import { CallCoordinatorServiceClient } from './gen/video_coordinator_rpc/coordinator_service.client';
 import type { Call, Edge, Latency } from './gen/video_models/models';
+import {
+  createClient,
+  measureResourceLoadLatencyTo,
+  StreamVideoClientOptions,
+  withBearerToken,
+} from './rpc';
+import {
+  createSocketConnection,
+  StreamEventListener,
+  StreamWSClient,
+} from './ws';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   sendJson: false,
@@ -43,9 +43,14 @@ export class StreamVideoClient {
     });
   }
 
-  connect = async (token: string, user: CreateUserRequest) => {
+  connect = async (apiKey: string, token: string, user: CreateUserRequest) => {
     if (this.ws) return;
-    this.ws = await createSocketConnection('ws://localhost:8989', token, user);
+    this.ws = await createSocketConnection(
+      'ws://localhost:8989',
+      apiKey,
+      token,
+      user,
+    );
   };
 
   disconnect = async () => {
