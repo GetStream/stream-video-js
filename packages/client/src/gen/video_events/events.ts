@@ -208,7 +208,11 @@ export interface AuthPayload {
      */
     device?: DeviceRequest;
     /**
-     * @generated from protobuf field: string token = 3;
+     * @generated from protobuf field: string api_key = 3;
+     */
+    apiKey: string;
+    /**
+     * @generated from protobuf field: string token = 4;
      */
     token: string;
 }
@@ -826,11 +830,12 @@ class AuthPayload$Type extends MessageType<AuthPayload> {
         super("stream.video.AuthPayload", [
             { no: 1, name: "user", kind: "message", T: () => CreateUserRequest },
             { no: 2, name: "device", kind: "message", T: () => DeviceRequest },
-            { no: 3, name: "token", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "api_key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "token", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<AuthPayload>): AuthPayload {
-        const message = { token: "" };
+        const message = { apiKey: "", token: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<AuthPayload>(this, message, value);
@@ -847,7 +852,10 @@ class AuthPayload$Type extends MessageType<AuthPayload> {
                 case /* stream.video.DeviceRequest device */ 2:
                     message.device = DeviceRequest.internalBinaryRead(reader, reader.uint32(), options, message.device);
                     break;
-                case /* string token */ 3:
+                case /* string api_key */ 3:
+                    message.apiKey = reader.string();
+                    break;
+                case /* string token */ 4:
                     message.token = reader.string();
                     break;
                 default:
@@ -868,9 +876,12 @@ class AuthPayload$Type extends MessageType<AuthPayload> {
         /* stream.video.DeviceRequest device = 2; */
         if (message.device)
             DeviceRequest.internalBinaryWrite(message.device, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* string token = 3; */
+        /* string api_key = 3; */
+        if (message.apiKey !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.apiKey);
+        /* string token = 4; */
         if (message.token !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.token);
+            writer.tag(4, WireType.LengthDelimited).string(message.token);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

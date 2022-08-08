@@ -11,8 +11,24 @@ import type { ReviewCallResponse } from "./coordinator_service";
 import type { ReviewCallRequest } from "./coordinator_service";
 import type { GetCallStatsResponse } from "./coordinator_service";
 import type { GetCallStatsRequest } from "./coordinator_service";
-import type { StoreCallStatsResponse } from "./coordinator_service";
-import type { StoreCallStatsRequest } from "./coordinator_service";
+import type { ReportCallStatsResponse } from "./coordinator_service";
+import type { ReportCallStatsRequest } from "./coordinator_service";
+import type { DeletePushProviderRequest } from "./coordinator_service";
+import type { UpdatePushProviderRequest } from "./coordinator_service";
+import type { AddPushProviderRequest } from "./coordinator_service";
+import type { DeleteRoleResponse } from "./coordinator_service";
+import type { DeleteRoleRequest } from "./coordinator_service";
+import type { CreateRoleResponse } from "./coordinator_service";
+import type { CreateRoleRequest } from "./coordinator_service";
+import type { ListPermissionsResponse } from "./coordinator_service";
+import type { ListPermissionsRequest } from "./coordinator_service";
+import type { DeleteCallTypeResponse } from "./coordinator_service";
+import type { DeleteCallTypeRequest } from "./coordinator_service";
+import type { CallTypeResponse } from "./coordinator_service";
+import type { CallTypeRequestInput } from "./coordinator_service";
+import type { Empty } from "../google/protobuf/empty";
+import type { AppSettingsResponse } from "./coordinator_service";
+import type { UpdateAppSettingsRequest } from "./coordinator_service";
 import type { ExportUserResponse } from "./coordinator_service";
 import type { ExportUserRequest } from "./coordinator_service";
 import type { DeleteUserResponse } from "./coordinator_service";
@@ -214,16 +230,82 @@ export interface ICallCoordinatorServiceClient {
      * @generated from protobuf rpc: ExportUser(stream.video.ExportUserRequest) returns (stream.video.ExportUserResponse);
      */
     exportUser(input: ExportUserRequest, options?: RpcOptions): UnaryCall<ExportUserRequest, ExportUserResponse>;
-    // TODO: endpoints needed to build a good dashboard experience
+    /**
+     * update application settings
+     *
+     * @generated from protobuf rpc: UpdateAppSettings(stream.video.UpdateAppSettingsRequest) returns (stream.video.AppSettingsResponse);
+     */
+    updateAppSettings(input: UpdateAppSettingsRequest, options?: RpcOptions): UnaryCall<UpdateAppSettingsRequest, AppSettingsResponse>;
+    /**
+     * get application settings
+     *
+     * @generated from protobuf rpc: GetAppSettings(google.protobuf.Empty) returns (stream.video.AppSettingsResponse);
+     */
+    getAppSettings(input: Empty, options?: RpcOptions): UnaryCall<Empty, AppSettingsResponse>;
+    /**
+     * create a call type
+     *
+     * @generated from protobuf rpc: CreateCallType(stream.video.CallTypeRequestInput) returns (stream.video.CallTypeResponse);
+     */
+    createCallType(input: CallTypeRequestInput, options?: RpcOptions): UnaryCall<CallTypeRequestInput, CallTypeResponse>;
+    /**
+     * updates an existing call type
+     *
+     * @generated from protobuf rpc: UpdateCallType(stream.video.CallTypeRequestInput) returns (stream.video.CallTypeResponse);
+     */
+    updateCallType(input: CallTypeRequestInput, options?: RpcOptions): UnaryCall<CallTypeRequestInput, CallTypeResponse>;
+    /**
+     * deletes a call type, returns an error if there are calls for this type
+     *
+     * @generated from protobuf rpc: DeleteCallType(stream.video.DeleteCallTypeRequest) returns (stream.video.DeleteCallTypeResponse);
+     */
+    deleteCallType(input: DeleteCallTypeRequest, options?: RpcOptions): UnaryCall<DeleteCallTypeRequest, DeleteCallTypeResponse>;
+    /**
+     * returns the list of permissions for a call type
+     *
+     * @generated from protobuf rpc: ListPermissions(stream.video.ListPermissionsRequest) returns (stream.video.ListPermissionsResponse);
+     */
+    listPermissions(input: ListPermissionsRequest, options?: RpcOptions): UnaryCall<ListPermissionsRequest, ListPermissionsResponse>;
+    /**
+     * creates a custom user role
+     *
+     * @generated from protobuf rpc: CreateRole(stream.video.CreateRoleRequest) returns (stream.video.CreateRoleResponse);
+     */
+    createRole(input: CreateRoleRequest, options?: RpcOptions): UnaryCall<CreateRoleRequest, CreateRoleResponse>;
+    /**
+     * creates a custom user role
+     *
+     * @generated from protobuf rpc: DeleteRole(stream.video.DeleteRoleRequest) returns (stream.video.DeleteRoleResponse);
+     */
+    deleteRole(input: DeleteRoleRequest, options?: RpcOptions): UnaryCall<DeleteRoleRequest, DeleteRoleResponse>;
+    /**
+     * adds a new push provider
+     *
+     * @generated from protobuf rpc: AddPushProvider(stream.video.AddPushProviderRequest) returns (stream.video.AppSettingsResponse);
+     */
+    addPushProvider(input: AddPushProviderRequest, options?: RpcOptions): UnaryCall<AddPushProviderRequest, AppSettingsResponse>;
+    /**
+     * updates a push provider
+     *
+     * @generated from protobuf rpc: UpdatePushProvider(stream.video.UpdatePushProviderRequest) returns (stream.video.AppSettingsResponse);
+     */
+    updatePushProvider(input: UpdatePushProviderRequest, options?: RpcOptions): UnaryCall<UpdatePushProviderRequest, AppSettingsResponse>;
+    /**
+     * deletes an existing push provider
+     *
+     * @generated from protobuf rpc: DeletePushProvider(stream.video.DeletePushProviderRequest) returns (stream.video.AppSettingsResponse);
+     */
+    deletePushProvider(input: DeletePushProviderRequest, options?: RpcOptions): UnaryCall<DeletePushProviderRequest, AppSettingsResponse>;
+    // endpoints needed to build a good dashboard experience
     // - listing calls and filtering based on their attributes
     // - listing users and filtering based on their attributes
 
     /**
      * endpoint for storing stats (perhaps we should move this to the SFU layer though)
      *
-     * @generated from protobuf rpc: StoreCallStats(stream.video.StoreCallStatsRequest) returns (stream.video.StoreCallStatsResponse);
+     * @generated from protobuf rpc: ReportCallStats(stream.video.ReportCallStatsRequest) returns (stream.video.ReportCallStatsResponse);
      */
-    storeCallStats(input: StoreCallStatsRequest, options?: RpcOptions): UnaryCall<StoreCallStatsRequest, StoreCallStatsResponse>;
+    reportCallStats(input: ReportCallStatsRequest, options?: RpcOptions): UnaryCall<ReportCallStatsRequest, ReportCallStatsResponse>;
     /**
      * @generated from protobuf rpc: GetCallStats(stream.video.GetCallStatsRequest) returns (stream.video.GetCallStatsResponse);
      */
@@ -469,24 +551,123 @@ export class CallCoordinatorServiceClient implements ICallCoordinatorServiceClie
         const method = this.methods[24], opt = this._transport.mergeOptions(options);
         return stackIntercept<ExportUserRequest, ExportUserResponse>("unary", this._transport, method, opt, input);
     }
-    // TODO: endpoints needed to build a good dashboard experience
+    /**
+     * update application settings
+     *
+     * @generated from protobuf rpc: UpdateAppSettings(stream.video.UpdateAppSettingsRequest) returns (stream.video.AppSettingsResponse);
+     */
+    updateAppSettings(input: UpdateAppSettingsRequest, options?: RpcOptions): UnaryCall<UpdateAppSettingsRequest, AppSettingsResponse> {
+        const method = this.methods[25], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UpdateAppSettingsRequest, AppSettingsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * get application settings
+     *
+     * @generated from protobuf rpc: GetAppSettings(google.protobuf.Empty) returns (stream.video.AppSettingsResponse);
+     */
+    getAppSettings(input: Empty, options?: RpcOptions): UnaryCall<Empty, AppSettingsResponse> {
+        const method = this.methods[26], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, AppSettingsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * create a call type
+     *
+     * @generated from protobuf rpc: CreateCallType(stream.video.CallTypeRequestInput) returns (stream.video.CallTypeResponse);
+     */
+    createCallType(input: CallTypeRequestInput, options?: RpcOptions): UnaryCall<CallTypeRequestInput, CallTypeResponse> {
+        const method = this.methods[27], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CallTypeRequestInput, CallTypeResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * updates an existing call type
+     *
+     * @generated from protobuf rpc: UpdateCallType(stream.video.CallTypeRequestInput) returns (stream.video.CallTypeResponse);
+     */
+    updateCallType(input: CallTypeRequestInput, options?: RpcOptions): UnaryCall<CallTypeRequestInput, CallTypeResponse> {
+        const method = this.methods[28], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CallTypeRequestInput, CallTypeResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * deletes a call type, returns an error if there are calls for this type
+     *
+     * @generated from protobuf rpc: DeleteCallType(stream.video.DeleteCallTypeRequest) returns (stream.video.DeleteCallTypeResponse);
+     */
+    deleteCallType(input: DeleteCallTypeRequest, options?: RpcOptions): UnaryCall<DeleteCallTypeRequest, DeleteCallTypeResponse> {
+        const method = this.methods[29], opt = this._transport.mergeOptions(options);
+        return stackIntercept<DeleteCallTypeRequest, DeleteCallTypeResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * returns the list of permissions for a call type
+     *
+     * @generated from protobuf rpc: ListPermissions(stream.video.ListPermissionsRequest) returns (stream.video.ListPermissionsResponse);
+     */
+    listPermissions(input: ListPermissionsRequest, options?: RpcOptions): UnaryCall<ListPermissionsRequest, ListPermissionsResponse> {
+        const method = this.methods[30], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ListPermissionsRequest, ListPermissionsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * creates a custom user role
+     *
+     * @generated from protobuf rpc: CreateRole(stream.video.CreateRoleRequest) returns (stream.video.CreateRoleResponse);
+     */
+    createRole(input: CreateRoleRequest, options?: RpcOptions): UnaryCall<CreateRoleRequest, CreateRoleResponse> {
+        const method = this.methods[31], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreateRoleRequest, CreateRoleResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * creates a custom user role
+     *
+     * @generated from protobuf rpc: DeleteRole(stream.video.DeleteRoleRequest) returns (stream.video.DeleteRoleResponse);
+     */
+    deleteRole(input: DeleteRoleRequest, options?: RpcOptions): UnaryCall<DeleteRoleRequest, DeleteRoleResponse> {
+        const method = this.methods[32], opt = this._transport.mergeOptions(options);
+        return stackIntercept<DeleteRoleRequest, DeleteRoleResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * adds a new push provider
+     *
+     * @generated from protobuf rpc: AddPushProvider(stream.video.AddPushProviderRequest) returns (stream.video.AppSettingsResponse);
+     */
+    addPushProvider(input: AddPushProviderRequest, options?: RpcOptions): UnaryCall<AddPushProviderRequest, AppSettingsResponse> {
+        const method = this.methods[33], opt = this._transport.mergeOptions(options);
+        return stackIntercept<AddPushProviderRequest, AppSettingsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * updates a push provider
+     *
+     * @generated from protobuf rpc: UpdatePushProvider(stream.video.UpdatePushProviderRequest) returns (stream.video.AppSettingsResponse);
+     */
+    updatePushProvider(input: UpdatePushProviderRequest, options?: RpcOptions): UnaryCall<UpdatePushProviderRequest, AppSettingsResponse> {
+        const method = this.methods[34], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UpdatePushProviderRequest, AppSettingsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * deletes an existing push provider
+     *
+     * @generated from protobuf rpc: DeletePushProvider(stream.video.DeletePushProviderRequest) returns (stream.video.AppSettingsResponse);
+     */
+    deletePushProvider(input: DeletePushProviderRequest, options?: RpcOptions): UnaryCall<DeletePushProviderRequest, AppSettingsResponse> {
+        const method = this.methods[35], opt = this._transport.mergeOptions(options);
+        return stackIntercept<DeletePushProviderRequest, AppSettingsResponse>("unary", this._transport, method, opt, input);
+    }
+    // endpoints needed to build a good dashboard experience
     // - listing calls and filtering based on their attributes
     // - listing users and filtering based on their attributes
 
     /**
      * endpoint for storing stats (perhaps we should move this to the SFU layer though)
      *
-     * @generated from protobuf rpc: StoreCallStats(stream.video.StoreCallStatsRequest) returns (stream.video.StoreCallStatsResponse);
+     * @generated from protobuf rpc: ReportCallStats(stream.video.ReportCallStatsRequest) returns (stream.video.ReportCallStatsResponse);
      */
-    storeCallStats(input: StoreCallStatsRequest, options?: RpcOptions): UnaryCall<StoreCallStatsRequest, StoreCallStatsResponse> {
-        const method = this.methods[25], opt = this._transport.mergeOptions(options);
-        return stackIntercept<StoreCallStatsRequest, StoreCallStatsResponse>("unary", this._transport, method, opt, input);
+    reportCallStats(input: ReportCallStatsRequest, options?: RpcOptions): UnaryCall<ReportCallStatsRequest, ReportCallStatsResponse> {
+        const method = this.methods[36], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ReportCallStatsRequest, ReportCallStatsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetCallStats(stream.video.GetCallStatsRequest) returns (stream.video.GetCallStatsResponse);
      */
     getCallStats(input: GetCallStatsRequest, options?: RpcOptions): UnaryCall<GetCallStatsRequest, GetCallStatsResponse> {
-        const method = this.methods[26], opt = this._transport.mergeOptions(options);
+        const method = this.methods[37], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetCallStatsRequest, GetCallStatsResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -495,7 +676,7 @@ export class CallCoordinatorServiceClient implements ICallCoordinatorServiceClie
      * @generated from protobuf rpc: ReviewCall(stream.video.ReviewCallRequest) returns (stream.video.ReviewCallResponse);
      */
     reviewCall(input: ReviewCallRequest, options?: RpcOptions): UnaryCall<ReviewCallRequest, ReviewCallResponse> {
-        const method = this.methods[27], opt = this._transport.mergeOptions(options);
+        const method = this.methods[38], opt = this._transport.mergeOptions(options);
         return stackIntercept<ReviewCallRequest, ReviewCallResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -504,7 +685,7 @@ export class CallCoordinatorServiceClient implements ICallCoordinatorServiceClie
      * @generated from protobuf rpc: ReportIssue(stream.video.ReportIssueRequest) returns (stream.video.ReportIssueResponse);
      */
     reportIssue(input: ReportIssueRequest, options?: RpcOptions): UnaryCall<ReportIssueRequest, ReportIssueResponse> {
-        const method = this.methods[28], opt = this._transport.mergeOptions(options);
+        const method = this.methods[39], opt = this._transport.mergeOptions(options);
         return stackIntercept<ReportIssueRequest, ReportIssueResponse>("unary", this._transport, method, opt, input);
     }
 }
