@@ -25,8 +25,8 @@ export const Stats = ({ client, room, call }: StatsProps) => {
         async (pc) =>
           pc &&
           client.reportCallStats({
-            callType: call.id,
-            callId: call.type,
+            callType: call.type,
+            callId: call.id,
             stats: await getStats(pc),
           }),
       );
