@@ -1,8 +1,3 @@
-import {
-  TwirpFetchTransport,
-  TwirpOptions,
-} from '@protobuf-ts/twirp-transport';
-import { CallCoordinatorServiceClient } from '../gen/video_coordinator_rpc/coordinator_service.client';
 import type {
   MethodInfo,
   NextUnaryFn,
@@ -10,13 +5,18 @@ import type {
   RpcOptions,
   UnaryCall,
 } from '@protobuf-ts/runtime-rpc';
+import {
+  TwirpFetchTransport,
+  TwirpOptions,
+} from '@protobuf-ts/twirp-transport';
+import { CallCoordinatorServiceClient } from '../gen/video_coordinator_rpc/coordinator_service.client';
 
 const defaultOptions: TwirpOptions = {
   baseUrl: '',
   sendJson: true,
 };
 
-export const withBearerToken = (token: string): RpcInterceptor => {
+export const withAuth = (apiKey: string, token: string): RpcInterceptor => {
   return {
     interceptUnary(
       next: NextUnaryFn,
@@ -27,6 +27,7 @@ export const withBearerToken = (token: string): RpcInterceptor => {
       if (!options.meta) {
         options.meta = {};
       }
+      options.meta['api_key'] = apiKey;
       options.meta['Authorization'] = `Bearer ${token}`;
       return next(method, input, options);
     },

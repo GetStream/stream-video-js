@@ -10,7 +10,7 @@ import {
   createClient,
   measureResourceLoadLatencyTo,
   StreamVideoClientOptions,
-  withBearerToken,
+  withAuth,
 } from './rpc';
 import {
   createSocketConnection,
@@ -39,7 +39,7 @@ export class StreamVideoClient {
     this.client = createClient({
       baseUrl: options.baseUrl || '/',
       sendJson: options.sendJson,
-      interceptors: [withBearerToken(authToken)],
+      interceptors: [withAuth(apiKey, authToken)],
     });
   }
 
