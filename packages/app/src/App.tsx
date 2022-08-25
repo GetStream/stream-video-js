@@ -9,9 +9,8 @@ import {
   Call,
   CallCreated,
   CallState,
-  CreateUserRequest,
   SelectEdgeServerResponse,
-  Struct,
+  UserInput,
 } from '@stream-io/video-client';
 import {
   RoomType,
@@ -67,23 +66,25 @@ const App = () => {
     }
   }, [currentUser]);
 
-  const user = useMemo<CreateUserRequest>(
+  const user = useMemo<UserInput>(
     () => ({
       id: currentUser,
       name: currentUser,
       role: 'user-role',
       teams: ['team-1, team-2'],
       imageUrl: '/profile.png',
-      custom: Struct.fromJson({
-        key: 'value',
-        hello: 'world',
-      }),
+      customJson: new TextEncoder().encode(
+        JSON.stringify({
+          key: 'value',
+          hello: 'world',
+        }),
+      ),
     }),
     [currentUser],
   );
 
   const [client, connectionError] = useCreateStreamVideoClient(
-    '/', // proxied to http://localhost:26991
+    '/rpc', // proxied to http://localhost:26991
     'key1',
     participants[currentUser],
     user,

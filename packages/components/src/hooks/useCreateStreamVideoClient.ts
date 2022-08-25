@@ -1,11 +1,12 @@
-import { CreateUserRequest, StreamVideoClient } from '@stream-io/video-client';
+import { StreamVideoClient } from '@stream-io/video-client';
+import { UserInput } from '@stream-io/video-client/src/gen/user_v1/user';
 import { useEffect, useState } from 'react';
 
 export const useCreateStreamVideoClient = (
   baseUrl: string,
   apiKey: string,
   token: string,
-  user: CreateUserRequest,
+  user: UserInput,
 ): [StreamVideoClient | undefined, Error | undefined] => {
   const [client, setClient] = useState<StreamVideoClient | undefined>();
   const [error, setError] = useState<Error | undefined>();

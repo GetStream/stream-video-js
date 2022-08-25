@@ -1,18 +1,15 @@
-import {
-  AuthPayload,
-  Healthcheck,
-  WebsocketEvent,
-} from '../gen/video_events/events';
+import { WebsocketAuthRequest } from '../gen/client_v1_rpc/client_rpc';
+import { Healthcheck, WebsocketEvent } from '../gen/event_v1/event';
+import { UserInput } from '../gen/user_v1/user';
 import { KeepAlive, keepAlive } from './keepAlive';
 
-import { CreateUserRequest } from '../gen/video_coordinator_rpc/coordinator_service';
 import type { StreamEventListener, StreamWSClient } from './types';
 
 export class StreamWebSocketClient implements StreamWSClient {
   private readonly endpoint: string;
   private readonly apiKey: string;
   private readonly token: string;
-  private readonly user: CreateUserRequest;
+  private readonly user: UserInput;
 
   private subscribers: { [event: string]: StreamEventListener<any>[] } = {};
   private authenticated: Promise<boolean> | undefined;
@@ -24,7 +21,7 @@ export class StreamWebSocketClient implements StreamWSClient {
     endpoint: string,
     apiKey: string,
     token: string,
-    user: CreateUserRequest,
+    user: UserInput,
   ) {
     this.endpoint = endpoint;
     this.apiKey = apiKey;
@@ -75,6 +72,8 @@ export class StreamWebSocketClient implements StreamWSClient {
     const protoBinaryData = new Uint8Array(e.data);
     const message = WebsocketEvent.fromBinary(protoBinaryData);
 
+    console.info(message);
+
     // submit the message for processing
     this.dispatchMessage(message);
   };
@@ -113,7 +112,7 @@ export class StreamWebSocketClient implements StreamWSClient {
     // will respond with `Healthcheck`. Upon receiving the message, we consider
     // successful authorization
     this.ws.send(
-      AuthPayload.toBinary({
+      WebsocketAuthRequest.toBinary({
         token: this.token,
         user: this.user,
         apiKey: this.apiKey,
