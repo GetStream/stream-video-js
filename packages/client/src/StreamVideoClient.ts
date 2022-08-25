@@ -1,13 +1,15 @@
+import { Latency } from './gen/broadcast_v1/broadcast';
+import { Call } from './gen/call_v1/call';
 import {
   CreateCallRequest,
-  CreateUserRequest,
   JoinCallRequest,
   ReportCallStatsRequest,
   ReportCallStatsResponse,
   SendEventRequest,
-} from './gen/video_coordinator_rpc/coordinator_service';
-import { CallCoordinatorServiceClient } from './gen/video_coordinator_rpc/coordinator_service.client';
-import type { Call, Edge, Latency } from './gen/video_models/models';
+} from './gen/client_v1_rpc/client_rpc';
+import { ClientRPCClient } from './gen/client_v1_rpc/client_rpc.client';
+import { Edge } from './gen/edge_v1/edge';
+import { UserInput } from './gen/user_v1/user';
 import {
   createClient,
   measureResourceLoadLatencyTo,
@@ -26,7 +28,7 @@ const defaultOptions: Partial<StreamVideoClientOptions> = {
 };
 
 export class StreamVideoClient {
-  private client: CallCoordinatorServiceClient;
+  private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWSClient | undefined;
 
@@ -45,7 +47,7 @@ export class StreamVideoClient {
     });
   }
 
-  connect = async (apiKey: string, token: string, user: CreateUserRequest) => {
+  connect = async (apiKey: string, token: string, user: UserInput) => {
     if (this.ws) return;
     this.ws = await createSocketConnection(
       'ws://localhost:8989',
