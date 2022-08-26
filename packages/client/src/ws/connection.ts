@@ -1,4 +1,4 @@
-import { UserInput } from '../gen/user_v1/user';
+import { UserInput } from '../gen/video/coordinator/user_v1/user';
 import { StreamWebSocketClient } from './StreamWebSocketClient';
 import type { StreamWSClient } from './types';
 

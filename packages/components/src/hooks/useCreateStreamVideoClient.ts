@@ -1,5 +1,5 @@
 import { StreamVideoClient } from '@stream-io/video-client';
-import { UserInput } from '@stream-io/video-client/src/gen/user_v1/user';
+import { UserInput } from '@stream-io/video-client/src/gen/video/coordinator/user_v1/user';
 import { useEffect, useState } from 'react';
 
 export const useCreateStreamVideoClient = (
