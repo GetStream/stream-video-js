@@ -18,6 +18,6 @@ npx protoc \
   --ts_opt server_none \
   --ts_opt eslint_disable \
   --proto_path $PROTO_DIR \
-  $PROTO_DIR/client_v1_rpc/client_rpc.proto $PROTO_DIR/event_v1/event.proto
+  $PROTO_DIR/video/coordinator/client_v1_rpc/client_rpc.proto $PROTO_DIR/video/coordinator/event_v1/event.proto
 
 echo "Finished generating protobuf client"

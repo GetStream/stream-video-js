@@ -1,15 +1,15 @@
-import { Latency } from './gen/broadcast_v1/broadcast';
-import { Call } from './gen/call_v1/call';
+import { Latency } from './gen/video/coordinator/broadcast_v1/broadcast';
+import { Call } from './gen/video/coordinator/call_v1/call';
 import {
   CreateCallRequest,
   JoinCallRequest,
   ReportCallStatsRequest,
   ReportCallStatsResponse,
   SendEventRequest,
-} from './gen/client_v1_rpc/client_rpc';
-import { ClientRPCClient } from './gen/client_v1_rpc/client_rpc.client';
-import { Edge } from './gen/edge_v1/edge';
-import { UserInput } from './gen/user_v1/user';
+} from './gen/video/coordinator/client_v1_rpc/client_rpc';
+import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
+import { Edge } from './gen/video/coordinator/edge_v1/edge';
+import { UserInput } from './gen/video/coordinator/user_v1/user';
 import {
   createClient,
   measureResourceLoadLatencyTo,

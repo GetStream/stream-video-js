@@ -1,6 +1,9 @@
-import { WebsocketAuthRequest } from '../gen/client_v1_rpc/client_rpc';
-import { Healthcheck, WebsocketEvent } from '../gen/event_v1/event';
-import { UserInput } from '../gen/user_v1/user';
+import { WebsocketAuthRequest } from '../gen/video/coordinator/client_v1_rpc/client_rpc';
+import {
+  Healthcheck,
+  WebsocketEvent,
+} from '../gen/video/coordinator/event_v1/event';
+import { UserInput } from '../gen/video/coordinator/user_v1/user';
 import { KeepAlive, keepAlive } from './keepAlive';
 
 import type { StreamEventListener, StreamWSClient } from './types';

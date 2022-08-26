@@ -9,7 +9,7 @@ import {
   TwirpFetchTransport,
   TwirpOptions,
 } from '@protobuf-ts/twirp-transport';
-import { ClientRPCClient } from '../gen/client_v1_rpc/client_rpc.client';
+import { ClientRPCClient } from '../gen/video/coordinator/client_v1_rpc/client_rpc.client';
 
 const defaultOptions: TwirpOptions = {
   baseUrl: '',
