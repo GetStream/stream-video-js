@@ -1,7 +1,7 @@
 import { Latency } from './gen/video/coordinator/broadcast_v1/broadcast';
 import { Call } from './gen/video/coordinator/call_v1/call';
 import {
-  CreateCallRequest,
+  CreateRoomRequest,
   JoinCallRequest,
   ReportCallStatsRequest,
   ReportCallStatsResponse,
@@ -75,10 +75,10 @@ export class StreamVideoClient {
     this.ws?.keepAlive.setPayload(payload);
   };
 
-  createCall = async (data: CreateCallRequest) => {
-    const callToCreate = await this.client.createCall(data);
-    const { call } = callToCreate.response;
-    return call;
+  createRoom = async (data: CreateRoomRequest) => {
+    const callToCreate = await this.client.createRoom(data);
+    const { room } = callToCreate.response;
+    return room;
   };
 
   joinCall = async (data: JoinCallRequest) => {

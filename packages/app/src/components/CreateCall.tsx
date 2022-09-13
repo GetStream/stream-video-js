@@ -1,3 +1,7 @@
+import CallAccept from '@mui/icons-material/Call';
+import MicOff from '@mui/icons-material/MicOff';
+import VideoCall from '@mui/icons-material/VideoCall';
+import CameraOff from '@mui/icons-material/VideocamOff';
 import {
   Avatar,
   Button,
@@ -10,11 +14,6 @@ import {
   ListItemText,
   ListSubheader,
 } from '@mui/material';
-import React, { useCallback, useEffect, useState } from 'react';
-import CallAccept from '@mui/icons-material/Call';
-import VideoCall from '@mui/icons-material/VideoCall';
-import MicOff from '@mui/icons-material/MicOff';
-import CameraOff from '@mui/icons-material/VideocamOff';
 import {
   AudioMuted,
   AudioUnmuted,
@@ -24,6 +23,7 @@ import {
   VideoStopped,
 } from '@stream-io/video-client';
 import { useStreamVideoClient } from '@stream-io/video-components-react';
+import React, { useCallback, useEffect, useState } from 'react';
 import type { Participants } from '../App';
 
 export const CreateCall = (props: {
@@ -81,16 +81,16 @@ export const CreateCall = (props: {
   const initiateCall = useCallback(
     async (id: string) => {
       try {
-        await client?.createCall({
+        await client?.createRoom({
           id,
           type: 'video',
-          participantIds: selectedParticipants,
+          // participantIds: selectedParticipants,
         });
       } catch (err) {
         console.error(`Failed to create a call`, err);
       }
     },
-    [client, selectedParticipants],
+    [client],
   );
 
   useEffect(() => {
