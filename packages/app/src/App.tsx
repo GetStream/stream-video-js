@@ -69,7 +69,7 @@ const App = () => {
   const user = useMemo<UserInput>(
     () => ({
       name: currentUser,
-      role: 'user-role',
+      role: 'admin',
       teams: ['team-1, team-2'],
       imageUrl: '/profile.png',
       customJson: new TextEncoder().encode(
