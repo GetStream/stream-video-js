@@ -16,9 +16,9 @@
     "lint:all": "eslint --fix 'packages/**/*.{ts,tsx}'"
   },
   "devDependencies": {
-    "@types/eslint": "^8.4.5",
-    "@typescript-eslint/eslint-plugin": "^5.32.0",
-    "@typescript-eslint/parser": "^5.32.0",
+    "@types/eslint": "^8.4.6",
+    "@typescript-eslint/eslint-plugin": "^5.37.0",
+    "@typescript-eslint/parser": "^5.37.0",
     "eslint": "^8.21.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-prettier": "^4.2.1",
