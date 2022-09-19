@@ -1,1 +1,1 @@
-export * from './Room';
+export * from './LiveKitRoom';

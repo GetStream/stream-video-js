@@ -83,7 +83,7 @@ export const CreateCall = (props: {
       try {
         await client?.createRoom({
           id,
-          type: 'video',
+          type: 'my-room-type',
           // participantIds: selectedParticipants,
         });
       } catch (err) {
