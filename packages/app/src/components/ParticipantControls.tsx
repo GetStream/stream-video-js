@@ -24,16 +24,17 @@ import { CreateCall } from './CreateCall';
 import { JoinCall } from './JoinCall';
 import type { Participants } from '../App';
 import { RoomType } from '@stream-io/video-components-react';
-import { Call, CallState } from '@stream-io/video-client';
+import { Call, SfuModels } from '@stream-io/video-client';
 
 export type ParticipantsProps = {
   participants: Participants;
   currentUser: string;
   setCurrentUser: (name: string) => void;
   currentCall?: Call;
-  currentCallState?: CallState;
+  currentCallState?: SfuModels.CallState;
   room?: RoomType;
   joinCall?: (callId: string) => void;
+  onCreateCall?: (callId: string, participants: string[]) => void;
 };
 
 export const ParticipantControls = (props: ParticipantsProps) => {
@@ -45,6 +46,7 @@ export const ParticipantControls = (props: ParticipantsProps) => {
     setCurrentUser,
     room,
     joinCall,
+    onCreateCall,
   } = props;
   const [isCreateCallExpanded, setIsCreateCallExpanded] = useState(true);
   const [isJoinCallExpanded, setIsJoinCallExpanded] = useState(false);
@@ -102,6 +104,7 @@ export const ParticipantControls = (props: ParticipantsProps) => {
             participants={participants}
             currentUser={currentUser}
             currentCallState={currentCallState}
+            onCreateCall={onCreateCall}
           />
         </Collapse>
 

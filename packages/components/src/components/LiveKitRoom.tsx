@@ -1,4 +1,7 @@
-import { DisplayContext, LiveKitRoom } from '@livekit/react-components';
+import {
+  DisplayContext,
+  LiveKitRoom as LKRoom,
+} from '@livekit/react-components';
 import { Call, StreamVideoClient } from '@stream-io/video-client';
 import { useState } from 'react';
 import { useSendEvent } from '../hooks';
@@ -21,7 +24,7 @@ export type RoomProps = {
 
 export type RoomType = LiveKitRoomType;
 
-export const Room = (props: RoomProps) => {
+export const LiveKitRoom = (props: RoomProps) => {
   const {
     client,
     url,
@@ -43,7 +46,7 @@ export const Room = (props: RoomProps) => {
       )}
 
       <DisplayContext.Provider value={{ stageLayout: 'grid', showStats: true }}>
-        <LiveKitRoom
+        <LKRoom
           url={url}
           token={token}
           roomOptions={{ adaptiveStream: true, dynacast: true }}

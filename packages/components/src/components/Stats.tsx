@@ -1,6 +1,6 @@
 import { Call, StreamVideoClient, Struct } from '@stream-io/video-client';
 import { useEffect } from 'react';
-import { RoomType } from './Room';
+import { RoomType } from './LiveKitRoom';
 
 export interface StatsProps {
   client: StreamVideoClient;

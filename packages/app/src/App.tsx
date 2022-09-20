@@ -7,10 +7,11 @@ import {
 } from '@mui/material';
 import {
   Call,
-  CallCreated,
-  CallState,
-  SelectEdgeServerResponse,
+  GetCallEdgeServerResponse,
+  MemberInput,
+  Struct,
   UserInput,
+  SfuModels,
 } from '@stream-io/video-client';
 import {
   RoomType,
@@ -21,18 +22,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { NavigationBar } from './components/NavigationBar';
 import { ParticipantControls } from './components/ParticipantControls';
 import { Ringer } from './components/Ringer';
-import { StageView } from './components/StageView';
 
 // use different browser tabs
 export type Participants = { [name: string]: string };
 const participants: Participants = {
-  alice:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWxpY2UifQ.p0_t4y5AU8T5Ib6qEvcKG6r2wduwt0n0SW6cD867SY8',
-  bob: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYm9iIn0.YZtLYNIPbxjvpzvWX4Vz3xXerTSbjcl4F3kFkC5sY3s',
-  charlie:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiY2hhcmxpZSJ9.JWa5dEyKWCwpw6BmgWtebXoSPbgQgE3GP0l92AbDqIo',
-  trudy:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidHJ1ZHkifQ.dcoph9LxfiGBkTCJjIyf7ENtGQInSsB-rt8-98Ll2UY',
+  marcelo:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdHJlYW0tdmlkZW8tZ29AdjAuMS4wIiwic3ViIjoidXNlci9tYXJjZWxvIiwiZXhwIjoxNjYzNzc0NTcwLCJpYXQiOjE2NjM2ODgxNzAsInVzZXJfaWQiOiJtYXJjZWxvIn0.Xh9MDZjaSzwbIiQO8hM4h-VJJEUE9pzTxAXdPCEnYxU',
+  anatoly:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdHJlYW0tdmlkZW8tZ29AdjAuMS4wIiwic3ViIjoidXNlci9hbmF0b2x5IiwiZXhwIjoxNjYzNzc0NTk1LCJpYXQiOjE2NjM2ODgxOTUsInVzZXJfaWQiOiJhbmF0b2x5In0.__yRmLSrxsEseHaUkbkq2cXNXsyd1ySqdmKUhYHKshs',
+  tommaso:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdHJlYW0tdmlkZW8tZ29AdjAuMS4wIiwic3ViIjoidXNlci90b21tYXNvIiwiZXhwIjoxNjYzNzc0NjIwLCJpYXQiOjE2NjM2ODgyMjAsInVzZXJfaWQiOiJ0b21tYXNvIn0.9Gr7t6KyRVU6piiHtK8Q73_hfahPpq4a_xNrAPy0Upc',
 };
 
 const theme = createTheme({
@@ -46,14 +45,14 @@ const theme = createTheme({
 const App = () => {
   const [currentUser, setCurrentUser] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.get('user') || 'alice';
+    return params.get('user') || 'marcelo';
   });
   const [currentCall, setCurrentCall] = useState<Call | undefined>();
   const [currentCallState, setCurrentCallState] = useState<
-    CallState | undefined
+    SfuModels.CallState | undefined
   >();
   const [isCurrentCallAccepted, setIsCurrentCallAccepted] = useState(false);
-  const [edge, setEdge] = useState<SelectEdgeServerResponse | undefined>();
+  const [edge, setEdge] = useState<GetCallEdgeServerResponse | undefined>();
   const [room, setRoom] = useState<RoomType | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -69,22 +68,17 @@ const App = () => {
   const user = useMemo<UserInput>(
     () => ({
       name: currentUser,
-      role: 'user-role',
+      role: 'admin',
       teams: ['team-1, team-2'],
       imageUrl: '/profile.png',
-      customJson: new TextEncoder().encode(
-        JSON.stringify({
-          key: 'value',
-          hello: 'world',
-        }),
-      ),
+      customJson: new Uint8Array(),
     }),
     [currentUser],
   );
 
   const [client, connectionError] = useCreateStreamVideoClient(
     '/rpc', // proxied to http://localhost:26991
-    'key1',
+    'key10', // see <video>/data/fixtures/apps.yaml for API secret
     participants[currentUser],
     user,
   );
@@ -92,14 +86,21 @@ const App = () => {
   const joinCall = useCallback(
     async (id: string, type: string = 'video') => {
       try {
-        const callToJoin = await client?.joinCall({ id, type });
-        if (callToJoin && callToJoin.call) {
-          const edge = await client?.selectEdgeServer(
-            callToJoin.call,
-            callToJoin.edges,
+        const callToJoin = await client?.joinCall({
+          id,
+          type,
+          // FIXME: OL: this needs to come from somewhere
+          datacenterId: 'milan',
+        });
+        if (callToJoin) {
+          const { call: callEnvelope, latencyClaim } = callToJoin;
+          if (!callEnvelope || !callEnvelope.call || !latencyClaim) return;
+          const edge = await client?.getCallEdgeServer(
+            callEnvelope.call,
+            latencyClaim,
           );
-          setCurrentCall(callToJoin.call);
-          setCurrentCallState(callToJoin.callState);
+          setCurrentCall(callEnvelope.call);
+          // setCurrentCallState(callEnvelope.call.callState);
           setEdge(edge);
         }
         setErrorMessage('');
@@ -111,22 +112,52 @@ const App = () => {
     [client],
   );
 
-  useEffect(() => {
-    const onCallCreated = (message: CallCreated) => {
-      console.log(`Call created`, message);
-      const { call } = message;
-      // initiator, immediately joins the call
-      if (call?.createdByUserId === currentUser) {
-        joinCall(call.id).then(() => {
-          console.log(`Joining call with id:${call.id}`);
-        });
-      } else {
+  const createCall = useCallback(
+    async (id: string, participants: string[]) => {
+      const createdCall = await client?.createCall({
+        id,
+        type: 'default',
+        input: {
+          members: participants.reduce<{ [key: string]: MemberInput }>(
+            (acc, current) => {
+              acc[current] = {
+                role: 'admin',
+                customJson: Struct.toBinary(Struct.fromJson({})),
+              };
+              return acc;
+            },
+            {},
+          ),
+        },
+      });
+      if (createdCall && createdCall.call) {
+        console.log('Call created', createdCall);
+        const { call } = createdCall;
         setCurrentCall(call);
+        setIsCurrentCallAccepted(false);
+
+        await joinCall(call.id, call.type);
       }
-      setIsCurrentCallAccepted(false);
-    };
-    return client?.on('callCreated', onCallCreated);
-  }, [client, currentUser, joinCall]);
+    },
+    [client, joinCall],
+  );
+
+  // useEffect(() => {
+  //   const onCallCreated = (message: CallCreated) => {
+  //     console.log(`Call created`, message);
+  //     const { call } = message;
+  //     // initiator, immediately joins the call
+  //     if (call?.createdByUserId === currentUser) {
+  //       joinCall(call.id).then(() => {
+  //         console.log(`Joining call with id:${call.id}`);
+  //       });
+  //     } else {
+  //       setCurrentCall(call);
+  //     }
+  //     setIsCurrentCallAccepted(false);
+  //   };
+  //   return client?.on('callCreated', onCallCreated);
+  // }, [client, currentUser, joinCall]);
 
   return (
     <div className="stream-video-sample-app">
@@ -168,26 +199,28 @@ const App = () => {
                 currentUser={currentUser}
                 setCurrentUser={setCurrentUser}
                 joinCall={joinCall}
+                onCreateCall={createCall}
               />
               <Box
                 component="main"
                 sx={{ flexGrow: 1, p: 3, marginTop: '64px' }}
               >
-                {edge && edge.edgeServer && (
-                  <StageView
-                    client={client}
-                    edgeToken={edge.token}
-                    edgeUrl={edge.edgeServer.url}
-                    currentCall={currentCall}
-                    currentUser={currentUser}
-                    onConnected={setRoom}
-                    onLeave={() => {
-                      setRoom(undefined);
-                      setEdge(undefined);
-                      setCurrentCall(undefined);
-                      setCurrentCallState(undefined);
-                    }}
-                  />
+                {edge && edge.credentials && (
+                  <pre>{JSON.stringify(edge)}</pre>
+                  // <StageView
+                  //   client={client}
+                  //   edgeToken={edge.token}
+                  //   edgeUrl={edge.edgeServer.url}
+                  //   currentCall={currentCall}
+                  //   currentUser={currentUser}
+                  //   onConnected={setRoom}
+                  //   onLeave={() => {
+                  //     setRoom(undefined);
+                  //     setEdge(undefined);
+                  //     setCurrentCall(undefined);
+                  //     setCurrentCallState(undefined);
+                  //   }}
+                  // />
                 )}
               </Box>
             </Box>

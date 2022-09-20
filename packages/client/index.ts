@@ -1,3 +1,8 @@
+import * as SfuEvents from './src/gen/video/sfu/event_v1/events';
+import * as SfuModels from './src/gen/video/sfu/models_v1/models';
+
+export { SfuModels, SfuEvents };
+
 export * from './src/gen/google/protobuf/struct';
 export * from './src/gen/video/coordinator/call_v1/call';
 export * from './src/gen/video/coordinator/client_v1_rpc/client_rpc';
