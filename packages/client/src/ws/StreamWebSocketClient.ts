@@ -1,8 +1,8 @@
-import { WebsocketAuthRequest } from '../gen/video/coordinator/client_v1_rpc/client_rpc';
 import {
-  Healthcheck,
+  WebsocketClientEvent,
   WebsocketEvent,
-} from '../gen/video/coordinator/event_v1/event';
+  WebsocketHealthcheck,
+} from '../gen/video/coordinator/client_v1_rpc/websocket';
 import { UserInput } from '../gen/video/coordinator/user_v1/user';
 import { KeepAlive, keepAlive } from './keepAlive';
 
@@ -85,12 +85,12 @@ export class StreamWebSocketClient implements StreamWSClient {
     console.log('Authenticating...');
 
     let hasReceivedHealthCheck = false;
-    const catchOneHealthcheckMessage = (hc: Healthcheck) => {
+    const catchOneHealthcheckMessage = (hc: WebsocketHealthcheck) => {
       hasReceivedHealthCheck = true;
-      this.keepAlive.setPayload(Healthcheck.toBinary(hc));
-      this.off('healthCheck', catchOneHealthcheckMessage);
+      this.keepAlive.setPayload(WebsocketHealthcheck.toBinary(hc));
+      this.off('healthcheck', catchOneHealthcheckMessage);
     };
-    this.on('healthCheck', catchOneHealthcheckMessage);
+    this.on('healthcheck', catchOneHealthcheckMessage);
 
     // FIXME OL: POC: find more elegant way to accomplish this.
     this.authenticated = new Promise<boolean>((resolve, reject) => {
@@ -115,19 +115,24 @@ export class StreamWebSocketClient implements StreamWSClient {
     // will respond with `Healthcheck`. Upon receiving the message, we consider
     // successful authorization
     this.ws.send(
-      WebsocketAuthRequest.toBinary({
-        token: this.token,
-        user: this.user,
-        apiKey: this.apiKey,
+      WebsocketClientEvent.toBinary({
+        event: {
+          oneofKind: 'authRequest',
+          authRequest: {
+            token: this.token,
+            user: this.user,
+            apiKey: this.apiKey,
+          },
+        },
       }),
     );
   };
 
   // TODO fix types
   private dispatchMessage = (message: WebsocketEvent) => {
-    const eventKind = message.eventPayload.oneofKind;
+    const eventKind = message.event.oneofKind;
     // @ts-ignore TODO: fix types
-    const wrappedMessage = message.eventPayload[eventKind];
+    const wrappedMessage = message.event[eventKind];
     console.log('Dispatching', eventKind, wrappedMessage);
     if (eventKind) {
       const eventListeners = this.subscribers[eventKind];

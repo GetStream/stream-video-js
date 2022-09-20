@@ -1,14 +1,16 @@
-import { Latency } from './gen/video/coordinator/broadcast_v1/broadcast';
 import { Call } from './gen/video/coordinator/call_v1/call';
 import {
-  CreateRoomRequest,
+  CreateCallRequest,
   JoinCallRequest,
   ReportCallStatsRequest,
   ReportCallStatsResponse,
-  SendEventRequest,
+  SendCustomEventRequest,
 } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
-import { Edge } from './gen/video/coordinator/edge_v1/edge';
+import {
+  Latency,
+  LatencyMeasurementClaim,
+} from './gen/video/coordinator/edge_v1/edge';
 import { UserInput } from './gen/video/coordinator/user_v1/user';
 import {
   createClient,
@@ -75,10 +77,10 @@ export class StreamVideoClient {
     this.ws?.keepAlive.setPayload(payload);
   };
 
-  createRoom = async (data: CreateRoomRequest) => {
-    const callToCreate = await this.client.createRoom(data);
-    const { room } = callToCreate.response;
-    return room;
+  createCall = async (data: CreateCallRequest) => {
+    const callToCreate = await this.client.createCall(data);
+    const { call: callEnvelope } = callToCreate.response;
+    return callEnvelope;
   };
 
   joinCall = async (data: JoinCallRequest) => {
@@ -86,29 +88,31 @@ export class StreamVideoClient {
     return callToJoin.response;
   };
 
-  selectEdgeServer = async (call: Call, edges: Edge[]) => {
+  getCallEdgeServer = async (call: Call, edges: LatencyMeasurementClaim) => {
     // TODO: maybe run the measurements in parallel
     const latencyByEdge: { [e: string]: Latency } = {};
-    for (const edge of edges) {
-      latencyByEdge[edge.name] = {
+    for (const edge of edges.endpoints) {
+      latencyByEdge[edge.id] = {
         measurementsSeconds: await measureResourceLoadLatencyTo(
-          edge.latencyUrl,
+          edge.url,
           Math.max(this.options.latencyMeasurementRounds || 0, 3),
         ),
       };
     }
 
-    const edgeServer = await this.client.selectEdgeServer({
-      callType: 'default',
-      callId: call.id,
-      latencyByEdge,
+    const edgeServer = await this.client.getCallEdgeServer({
+      callCid: call.callCid,
+      // TODO: OL: check the double wrapping
+      measurements: {
+        measurements: latencyByEdge,
+      },
     });
 
     return edgeServer.response;
   };
 
-  sendEvent = async (event: SendEventRequest) => {
-    const eventResponse = await this.client.sendEvent(event);
+  sendEvent = async (event: SendCustomEventRequest) => {
+    const eventResponse = await this.client.sendCustomEvent(event);
     return eventResponse.response;
   };
 

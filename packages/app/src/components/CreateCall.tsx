@@ -14,24 +14,19 @@ import {
   ListItemText,
   ListSubheader,
 } from '@mui/material';
-import {
-  AudioMuted,
-  AudioUnmuted,
-  CallState,
-  ParticipantJoined,
-  VideoStarted,
-  VideoStopped,
-} from '@stream-io/video-client';
 import { useStreamVideoClient } from '@stream-io/video-components-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Participants } from '../App';
 
+import { SfuEvents, SfuModels } from '@stream-io/video-client';
+
 export const CreateCall = (props: {
   participants: Participants;
-  currentCallState?: CallState;
+  currentCallState?: SfuModels.CallState;
   currentUser: string;
+  onCreateCall?: (callId: string, participants: string[]) => void;
 }) => {
-  const { participants, currentUser, currentCallState } = props;
+  const { participants, currentUser, currentCallState, onCreateCall } = props;
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>(
     Object.keys(participants),
   );
@@ -50,8 +45,8 @@ export const CreateCall = (props: {
     const videoMute: string[] = [];
     if (currentCallState) {
       currentCallState.participants.forEach((p) => {
-        const userId = p.user?.id;
-        if (userId && p.online) {
+        const userId = p.userId;
+        if (userId) {
           inCall.push(userId);
           // TODO OL: enable once we can send the initial participant state to the controller server
           // !p.audio && audioMute.push(userId);
@@ -78,45 +73,29 @@ export const CreateCall = (props: {
   );
 
   const client = useStreamVideoClient();
-  const initiateCall = useCallback(
-    async (id: string) => {
-      try {
-        await client?.createRoom({
-          id,
-          type: 'my-room-type',
-          // participantIds: selectedParticipants,
-        });
-      } catch (err) {
-        console.error(`Failed to create a call`, err);
-      }
-    },
-    [client],
-  );
 
   useEffect(() => {
-    const handleParticipantJoined = (join: ParticipantJoined) => {
+    const handleParticipantJoined = (join: SfuEvents.ParticipantConnected) => {
       if (!join.participant) return;
-      const { user } = join.participant;
-      if (user && !inCallParticipants.includes(user.id)) {
-        setInCallParticipants((ps) => [...ps, user.id]);
+      const { userId } = join.participant;
+      if (!inCallParticipants.includes(userId)) {
+        setInCallParticipants((ps) => [...ps, userId]);
       }
     };
-    // @ts-ignore
     return client?.on('participantJoined', handleParticipantJoined);
   }, [client, inCallParticipants]);
 
   useEffect(() => {
-    const handleMute = (e: AudioMuted) => {
-      // TODO: Handle MuteAll users
-      // @ts-ignore
-      const userId = e.target?.userId;
-      if (!audioMuteParticipants.includes(userId)) {
+    const handleMute = (e: SfuEvents.MuteStateChanged) => {
+      const userId = e.participant?.userId;
+      if (userId && !audioMuteParticipants.includes(userId)) {
         setAudioMuteParticipants((ps) => [...ps, userId]);
       }
     };
 
-    const handleUnmute = (e: AudioUnmuted) => {
-      const { userId } = e;
+    // FIXME: OL: these two methods need to be merged
+    const handleUnmute = (e: SfuEvents.MuteStateChanged) => {
+      const userId = e.participant?.userId;
       setAudioMuteParticipants((ps) => ps.filter((id) => id !== userId));
     };
 
@@ -128,25 +107,26 @@ export const CreateCall = (props: {
     };
   }, [client, audioMuteParticipants]);
 
-  useEffect(() => {
-    const handleVideoStopped = (e: VideoStarted) => {
-      const { userId } = e;
-      if (!videoMuteParticipants.includes(userId)) {
-        setVideoMuteParticipants((ps) => [...ps, userId]);
-      }
-    };
-    const handleVideoStarted = (e: VideoStopped) => {
-      const { userId } = e;
-      setVideoMuteParticipants((ps) => ps.filter((id) => id !== userId));
-    };
-
-    client?.on('videoStopped', handleVideoStopped);
-    client?.on('videoStarted', handleVideoStarted);
-    return () => {
-      client?.off('videoStopped', handleVideoStopped);
-      client?.off('videoStarted', handleVideoStarted);
-    };
-  }, [client, videoMuteParticipants]);
+  // TODO: OL: these events don't exist anymore
+  // useEffect(() => {
+  //   const handleVideoStopped = (e: VideoStarted) => {
+  //     const { userId } = e;
+  //     if (!videoMuteParticipants.includes(userId)) {
+  //       setVideoMuteParticipants((ps) => [...ps, userId]);
+  //     }
+  //   };
+  //   const handleVideoStarted = (e: VideoStopped) => {
+  //     const { userId } = e;
+  //     setVideoMuteParticipants((ps) => ps.filter((id) => id !== userId));
+  //   };
+  //
+  //   client?.on('videoStopped', handleVideoStopped);
+  //   client?.on('videoStarted', handleVideoStarted);
+  //   return () => {
+  //     client?.off('videoStopped', handleVideoStopped);
+  //     client?.off('videoStarted', handleVideoStarted);
+  //   };
+  // }, [client, videoMuteParticipants]);
 
   return (
     <>
@@ -197,7 +177,7 @@ export const CreateCall = (props: {
         fullWidth
         disabled={!currentUser}
         startIcon={<VideoCall />}
-        onClick={() => initiateCall('id-' + Date.now())}
+        onClick={() => onCreateCall?.('id-' + Date.now(), selectedParticipants)}
       >
         Call
       </Button>
