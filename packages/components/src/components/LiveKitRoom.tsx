@@ -11,7 +11,7 @@ import { Stats } from './Stats';
 import '@livekit/react-components/dist/index.css';
 import type { Room as LiveKitRoomType } from 'livekit-client';
 
-export type RoomProps = {
+export type LiveKitRoomProps = {
   client: StreamVideoClient;
   url: string;
   token: string;
@@ -24,7 +24,7 @@ export type RoomProps = {
 
 export type RoomType = LiveKitRoomType;
 
-export const LiveKitRoom = (props: RoomProps) => {
+export const LiveKitRoom = (props: LiveKitRoomProps) => {
   const {
     client,
     url,

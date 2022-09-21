@@ -5,7 +5,7 @@ import {
   defaultVideoLayers,
   OptimalVideoLayer,
 } from './videoLayers';
-import { Client } from '../rpc/Client';
+import { Client } from '../rpc';
 import {
   defaultVideoPublishEncodings,
   getPreferredCodecs,
@@ -14,6 +14,7 @@ import {
 } from './codecs';
 import { createPublisher } from './publisher';
 import { Dispatcher } from './Dispatcher';
+import { VideoDimension } from '../gen/sfu_models/models';
 
 export class Room {
   private readonly dispatcher = new Dispatcher();
@@ -249,5 +250,11 @@ export class Room {
     if (changed) {
       await videoSender.setParameters(params);
     }
+  };
+
+  updateSubscriptions = async (subscriptions: {
+    [key: string]: VideoDimension;
+  }) => {
+    return this.client.updateSubscriptions(subscriptions);
   };
 }

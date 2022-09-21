@@ -1,2 +1,2 @@
-export * from './createClient';
+export * from './Client';
 export * from './types';

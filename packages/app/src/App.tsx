@@ -15,6 +15,7 @@ import {
 } from '@stream-io/video-client';
 import {
   RoomType,
+  VideoRoom,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-components-react';
@@ -27,7 +28,7 @@ import { Ringer } from './components/Ringer';
 export type Participants = { [name: string]: string };
 const participants: Participants = {
   marcelo:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdHJlYW0tdmlkZW8tZ29AdjAuMS4wIiwic3ViIjoidXNlci9tYXJjZWxvIiwiZXhwIjoxNjYzNzc0NTcwLCJpYXQiOjE2NjM2ODgxNzAsInVzZXJfaWQiOiJtYXJjZWxvIn0.Xh9MDZjaSzwbIiQO8hM4h-VJJEUE9pzTxAXdPCEnYxU',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdHJlYW0tdmlkZW8tZ29AdjAuMS4wIiwic3ViIjoidXNlci9tYXJjZWxvIiwiaWF0IjoxNjYzNzc1MjA4LCJ1c2VyX2lkIjoibWFyY2VsbyJ9.1g7cO9RV4f89zeaRXa7ED2WyAKQ6DX3Pj1Qlbt5N8hg',
   anatoly:
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdHJlYW0tdmlkZW8tZ29AdjAuMS4wIiwic3ViIjoidXNlci9hbmF0b2x5IiwiZXhwIjoxNjYzNzc0NTk1LCJpYXQiOjE2NjM2ODgxOTUsInVzZXJfaWQiOiJhbmF0b2x5In0.__yRmLSrxsEseHaUkbkq2cXNXsyd1ySqdmKUhYHKshs',
   tommaso:
@@ -206,7 +207,15 @@ const App = () => {
                 sx={{ flexGrow: 1, p: 3, marginTop: '64px' }}
               >
                 {edge && edge.credentials && (
-                  <pre>{JSON.stringify(edge, null, 2)}</pre>
+                  <>
+                    {currentCall && (
+                      <VideoRoom
+                        call={currentCall}
+                        credentials={edge.credentials}
+                      />
+                    )}
+                    <pre>{JSON.stringify(edge, null, 2)}</pre>
+                  </>
                   // <StageView
                   //   client={client}
                   //   edgeToken={edge.token}
