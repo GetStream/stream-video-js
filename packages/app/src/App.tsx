@@ -206,7 +206,7 @@ const App = () => {
                 sx={{ flexGrow: 1, p: 3, marginTop: '64px' }}
               >
                 {edge && edge.credentials && (
-                  <pre>{JSON.stringify(edge)}</pre>
+                  <pre>{JSON.stringify(edge, null, 2)}</pre>
                   // <StageView
                   //   client={client}
                   //   edgeToken={edge.token}
