@@ -49,9 +49,9 @@ export interface WebsocketEvent {
         [key: string]: Call;
     };
     /**
-     * All calls envelopes for calls mentioned in the event payload, indexed by Call.call_cid
-     * The envelope may not contain some of the entities (like, members),
-     * but the message is guaranteed to be present if there's a matching Call in calls map
+     * All calls details for calls mentioned in the event payload, indexed by Call.call_cid
+     * Call details cotnain contextual data. For example, for MembersDeleted event, call_details[cid].Members will contain a list of
+     * members that were deleted.
      *
      * @generated from protobuf field: map<string, stream.video.coordinator.call_v1.CallDetails> call_details = 3;
      */
