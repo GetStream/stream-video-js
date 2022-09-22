@@ -6,8 +6,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "start": "tsc --watch",
-    "build": "tsc",
-    "generate-client": "./generate-client.sh"
+    "build": "tsc"
   },
   "dependencies": {
     "@protobuf-ts/runtime": "^2.8.1",
