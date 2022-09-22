@@ -14,19 +14,6 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 /**
  * *
- * CallRinging is fired when a call is created with the ring=true option
- * Or when you manually call call.ring()
- *
- * @generated from protobuf message stream.video.coordinator.event_v1.CallRinging
- */
-export interface CallRinging {
-    /**
-     * @generated from protobuf field: string call_id = 1;
-     */
-    callId: string;
-}
-/**
- * *
  * CallCreated is fired when a call is created
  *
  * @generated from protobuf message stream.video.coordinator.event_v1.CallCreated
@@ -45,6 +32,15 @@ export interface CallCreated {
  * @generated from protobuf message stream.video.coordinator.event_v1.CallUpdated
  */
 export interface CallUpdated {
+    /**
+     * @generated from protobuf field: string call_cid = 1;
+     */
+    callCid: string;
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.event_v1.CallStarted
+ */
+export interface CallStarted {
     /**
      * @generated from protobuf field: string call_cid = 1;
      */
@@ -139,53 +135,6 @@ export interface CallMembersDeleted {
      */
     callMemberUserIds: string[];
 }
-// @generated message type with reflection information, may provide speed optimized methods
-class CallRinging$Type extends MessageType<CallRinging> {
-    constructor() {
-        super("stream.video.coordinator.event_v1.CallRinging", [
-            { no: 1, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<CallRinging>): CallRinging {
-        const message = { callId: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<CallRinging>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallRinging): CallRinging {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string call_id */ 1:
-                    message.callId = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: CallRinging, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_id = 1; */
-        if (message.callId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callId);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.coordinator.event_v1.CallRinging
- */
-export const CallRinging = new CallRinging$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CallCreated$Type extends MessageType<CallCreated> {
     constructor() {
@@ -287,6 +236,53 @@ class CallUpdated$Type extends MessageType<CallUpdated> {
  * @generated MessageType for protobuf message stream.video.coordinator.event_v1.CallUpdated
  */
 export const CallUpdated = new CallUpdated$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CallStarted$Type extends MessageType<CallStarted> {
+    constructor() {
+        super("stream.video.coordinator.event_v1.CallStarted", [
+            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CallStarted>): CallStarted {
+        const message = { callCid: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CallStarted>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallStarted): CallStarted {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string call_cid */ 1:
+                    message.callCid = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CallStarted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string call_cid = 1; */
+        if (message.callCid !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.event_v1.CallStarted
+ */
+export const CallStarted = new CallStarted$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CallEnded$Type extends MessageType<CallEnded> {
     constructor() {

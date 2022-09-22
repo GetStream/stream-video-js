@@ -75,8 +75,6 @@ export class StreamWebSocketClient implements StreamWSClient {
     const protoBinaryData = new Uint8Array(e.data);
     const message = WebsocketEvent.fromBinary(protoBinaryData);
 
-    console.info(message);
-
     // submit the message for processing
     this.dispatchMessage(message);
   };

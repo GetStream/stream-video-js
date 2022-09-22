@@ -14,16 +14,12 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { DeviceInput } from "../push_v1/push";
 import { UserInput } from "../user_v1/user";
+import { UserUpdated } from "../event_v1/event";
+import { CallEnded } from "../event_v1/event";
+import { CallStarted } from "../event_v1/event";
 import { CallMembersDeleted } from "../event_v1/event";
 import { CallMembersUpdated } from "../event_v1/event";
-import { RecordingStopped } from "../event_v1/event";
-import { RecordingStarted } from "../event_v1/event";
-import { BroadcastEnded } from "../event_v1/event";
-import { BroadcastStarted } from "../event_v1/event";
-import { UserUpdated } from "../event_v1/event";
-import { CallRinging } from "../event_v1/event";
 import { CallDeleted } from "../event_v1/event";
-import { CallEnded } from "../event_v1/event";
 import { CallUpdated } from "../event_v1/event";
 import { CallCreated } from "../event_v1/event";
 import { CallDetails } from "../call_v1/call";
@@ -54,7 +50,8 @@ export interface WebsocketEvent {
     };
     /**
      * All calls envelopes for calls mentioned in the event payload, indexed by Call.call_cid
-     * The envelope may not contain some of the entities (like, members), but the message is guaranteed to be present if there's a matching Call in calls map
+     * The envelope may not contain some of the entities (like, members),
+     * but the message is guaranteed to be present if there's a matching Call in calls map
      *
      * @generated from protobuf field: map<string, stream.video.coordinator.call_v1.CallDetails> call_details = 3;
      */
@@ -72,76 +69,56 @@ export interface WebsocketEvent {
         healthcheck: WebsocketHealthcheck;
     } | {
         oneofKind: "callCreated";
+        // Call events
+
         /**
-         * @generated from protobuf field: stream.video.coordinator.event_v1.CallCreated call_created = 21;
+         * @generated from protobuf field: stream.video.coordinator.event_v1.CallCreated call_created = 30;
          */
         callCreated: CallCreated;
     } | {
         oneofKind: "callUpdated";
         /**
-         * @generated from protobuf field: stream.video.coordinator.event_v1.CallUpdated call_updated = 22;
+         * @generated from protobuf field: stream.video.coordinator.event_v1.CallUpdated call_updated = 31;
          */
         callUpdated: CallUpdated;
     } | {
-        oneofKind: "callEnded";
-        /**
-         * @generated from protobuf field: stream.video.coordinator.event_v1.CallEnded call_ended = 23;
-         */
-        callEnded: CallEnded;
-    } | {
         oneofKind: "callDeleted";
         /**
-         * @generated from protobuf field: stream.video.coordinator.event_v1.CallDeleted call_deleted = 24;
+         * @generated from protobuf field: stream.video.coordinator.event_v1.CallDeleted call_deleted = 32;
          */
         callDeleted: CallDeleted;
     } | {
-        oneofKind: "callRinging";
-        /**
-         * @generated from protobuf field: stream.video.coordinator.event_v1.CallRinging call_ringing = 25;
-         */
-        callRinging: CallRinging;
-    } | {
-        oneofKind: "userUpdated";
-        /**
-         * @generated from protobuf field: stream.video.coordinator.event_v1.UserUpdated user_updated = 26;
-         */
-        userUpdated: UserUpdated;
-    } | {
-        oneofKind: "broadcastStarted";
-        /**
-         * @generated from protobuf field: stream.video.coordinator.event_v1.BroadcastStarted broadcast_started = 27;
-         */
-        broadcastStarted: BroadcastStarted;
-    } | {
-        oneofKind: "broadcastEnded";
-        /**
-         * @generated from protobuf field: stream.video.coordinator.event_v1.BroadcastEnded broadcast_ended = 28;
-         */
-        broadcastEnded: BroadcastEnded;
-    } | {
-        oneofKind: "recordingStarted";
-        /**
-         * @generated from protobuf field: stream.video.coordinator.event_v1.RecordingStarted recording_started = 29;
-         */
-        recordingStarted: RecordingStarted;
-    } | {
-        oneofKind: "recordingStopped";
-        /**
-         * @generated from protobuf field: stream.video.coordinator.event_v1.RecordingStopped recording_stopped = 30;
-         */
-        recordingStopped: RecordingStopped;
-    } | {
         oneofKind: "callMembersUpdated";
         /**
-         * @generated from protobuf field: stream.video.coordinator.event_v1.CallMembersUpdated call_members_updated = 31;
+         * @generated from protobuf field: stream.video.coordinator.event_v1.CallMembersUpdated call_members_updated = 33;
          */
         callMembersUpdated: CallMembersUpdated;
     } | {
         oneofKind: "callMembersDeleted";
         /**
-         * @generated from protobuf field: stream.video.coordinator.event_v1.CallMembersDeleted call_members_deleted = 32;
+         * @generated from protobuf field: stream.video.coordinator.event_v1.CallMembersDeleted call_members_deleted = 34;
          */
         callMembersDeleted: CallMembersDeleted;
+    } | {
+        oneofKind: "callStarted";
+        /**
+         * @generated from protobuf field: stream.video.coordinator.event_v1.CallStarted call_started = 35;
+         */
+        callStarted: CallStarted;
+    } | {
+        oneofKind: "callEnded";
+        /**
+         * @generated from protobuf field: stream.video.coordinator.event_v1.CallEnded call_ended = 36;
+         */
+        callEnded: CallEnded;
+    } | {
+        oneofKind: "userUpdated";
+        // User events
+
+        /**
+         * @generated from protobuf field: stream.video.coordinator.event_v1.UserUpdated user_updated = 40;
+         */
+        userUpdated: UserUpdated;
     } | {
         oneofKind: undefined;
     };
@@ -246,18 +223,14 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
             { no: 2, name: "calls", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "message", T: () => Call } },
             { no: 3, name: "call_details", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "message", T: () => CallDetails } },
             { no: 20, name: "healthcheck", kind: "message", oneof: "event", T: () => WebsocketHealthcheck },
-            { no: 21, name: "call_created", kind: "message", oneof: "event", T: () => CallCreated },
-            { no: 22, name: "call_updated", kind: "message", oneof: "event", T: () => CallUpdated },
-            { no: 23, name: "call_ended", kind: "message", oneof: "event", T: () => CallEnded },
-            { no: 24, name: "call_deleted", kind: "message", oneof: "event", T: () => CallDeleted },
-            { no: 25, name: "call_ringing", kind: "message", oneof: "event", T: () => CallRinging },
-            { no: 26, name: "user_updated", kind: "message", oneof: "event", T: () => UserUpdated },
-            { no: 27, name: "broadcast_started", kind: "message", oneof: "event", T: () => BroadcastStarted },
-            { no: 28, name: "broadcast_ended", kind: "message", oneof: "event", T: () => BroadcastEnded },
-            { no: 29, name: "recording_started", kind: "message", oneof: "event", T: () => RecordingStarted },
-            { no: 30, name: "recording_stopped", kind: "message", oneof: "event", T: () => RecordingStopped },
-            { no: 31, name: "call_members_updated", kind: "message", oneof: "event", T: () => CallMembersUpdated },
-            { no: 32, name: "call_members_deleted", kind: "message", oneof: "event", T: () => CallMembersDeleted }
+            { no: 30, name: "call_created", kind: "message", oneof: "event", T: () => CallCreated },
+            { no: 31, name: "call_updated", kind: "message", oneof: "event", T: () => CallUpdated },
+            { no: 32, name: "call_deleted", kind: "message", oneof: "event", T: () => CallDeleted },
+            { no: 33, name: "call_members_updated", kind: "message", oneof: "event", T: () => CallMembersUpdated },
+            { no: 34, name: "call_members_deleted", kind: "message", oneof: "event", T: () => CallMembersDeleted },
+            { no: 35, name: "call_started", kind: "message", oneof: "event", T: () => CallStarted },
+            { no: 36, name: "call_ended", kind: "message", oneof: "event", T: () => CallEnded },
+            { no: 40, name: "user_updated", kind: "message", oneof: "event", T: () => UserUpdated }
         ]);
     }
     create(value?: PartialMessage<WebsocketEvent>): WebsocketEvent {
@@ -287,76 +260,52 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
                         healthcheck: WebsocketHealthcheck.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).healthcheck)
                     };
                     break;
-                case /* stream.video.coordinator.event_v1.CallCreated call_created */ 21:
+                case /* stream.video.coordinator.event_v1.CallCreated call_created */ 30:
                     message.event = {
                         oneofKind: "callCreated",
                         callCreated: CallCreated.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callCreated)
                     };
                     break;
-                case /* stream.video.coordinator.event_v1.CallUpdated call_updated */ 22:
+                case /* stream.video.coordinator.event_v1.CallUpdated call_updated */ 31:
                     message.event = {
                         oneofKind: "callUpdated",
                         callUpdated: CallUpdated.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callUpdated)
                     };
                     break;
-                case /* stream.video.coordinator.event_v1.CallEnded call_ended */ 23:
-                    message.event = {
-                        oneofKind: "callEnded",
-                        callEnded: CallEnded.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callEnded)
-                    };
-                    break;
-                case /* stream.video.coordinator.event_v1.CallDeleted call_deleted */ 24:
+                case /* stream.video.coordinator.event_v1.CallDeleted call_deleted */ 32:
                     message.event = {
                         oneofKind: "callDeleted",
                         callDeleted: CallDeleted.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callDeleted)
                     };
                     break;
-                case /* stream.video.coordinator.event_v1.CallRinging call_ringing */ 25:
-                    message.event = {
-                        oneofKind: "callRinging",
-                        callRinging: CallRinging.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callRinging)
-                    };
-                    break;
-                case /* stream.video.coordinator.event_v1.UserUpdated user_updated */ 26:
-                    message.event = {
-                        oneofKind: "userUpdated",
-                        userUpdated: UserUpdated.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).userUpdated)
-                    };
-                    break;
-                case /* stream.video.coordinator.event_v1.BroadcastStarted broadcast_started */ 27:
-                    message.event = {
-                        oneofKind: "broadcastStarted",
-                        broadcastStarted: BroadcastStarted.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).broadcastStarted)
-                    };
-                    break;
-                case /* stream.video.coordinator.event_v1.BroadcastEnded broadcast_ended */ 28:
-                    message.event = {
-                        oneofKind: "broadcastEnded",
-                        broadcastEnded: BroadcastEnded.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).broadcastEnded)
-                    };
-                    break;
-                case /* stream.video.coordinator.event_v1.RecordingStarted recording_started */ 29:
-                    message.event = {
-                        oneofKind: "recordingStarted",
-                        recordingStarted: RecordingStarted.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).recordingStarted)
-                    };
-                    break;
-                case /* stream.video.coordinator.event_v1.RecordingStopped recording_stopped */ 30:
-                    message.event = {
-                        oneofKind: "recordingStopped",
-                        recordingStopped: RecordingStopped.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).recordingStopped)
-                    };
-                    break;
-                case /* stream.video.coordinator.event_v1.CallMembersUpdated call_members_updated */ 31:
+                case /* stream.video.coordinator.event_v1.CallMembersUpdated call_members_updated */ 33:
                     message.event = {
                         oneofKind: "callMembersUpdated",
                         callMembersUpdated: CallMembersUpdated.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callMembersUpdated)
                     };
                     break;
-                case /* stream.video.coordinator.event_v1.CallMembersDeleted call_members_deleted */ 32:
+                case /* stream.video.coordinator.event_v1.CallMembersDeleted call_members_deleted */ 34:
                     message.event = {
                         oneofKind: "callMembersDeleted",
                         callMembersDeleted: CallMembersDeleted.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callMembersDeleted)
+                    };
+                    break;
+                case /* stream.video.coordinator.event_v1.CallStarted call_started */ 35:
+                    message.event = {
+                        oneofKind: "callStarted",
+                        callStarted: CallStarted.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callStarted)
+                    };
+                    break;
+                case /* stream.video.coordinator.event_v1.CallEnded call_ended */ 36:
+                    message.event = {
+                        oneofKind: "callEnded",
+                        callEnded: CallEnded.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callEnded)
+                    };
+                    break;
+                case /* stream.video.coordinator.event_v1.UserUpdated user_updated */ 40:
+                    message.event = {
+                        oneofKind: "userUpdated",
+                        userUpdated: UserUpdated.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).userUpdated)
                     };
                     break;
                 default:
@@ -443,42 +392,30 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
         /* stream.video.coordinator.client_v1_rpc.WebsocketHealthcheck healthcheck = 20; */
         if (message.event.oneofKind === "healthcheck")
             WebsocketHealthcheck.internalBinaryWrite(message.event.healthcheck, writer.tag(20, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.event_v1.CallCreated call_created = 21; */
+        /* stream.video.coordinator.event_v1.CallCreated call_created = 30; */
         if (message.event.oneofKind === "callCreated")
-            CallCreated.internalBinaryWrite(message.event.callCreated, writer.tag(21, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.event_v1.CallUpdated call_updated = 22; */
+            CallCreated.internalBinaryWrite(message.event.callCreated, writer.tag(30, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.event_v1.CallUpdated call_updated = 31; */
         if (message.event.oneofKind === "callUpdated")
-            CallUpdated.internalBinaryWrite(message.event.callUpdated, writer.tag(22, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.event_v1.CallEnded call_ended = 23; */
-        if (message.event.oneofKind === "callEnded")
-            CallEnded.internalBinaryWrite(message.event.callEnded, writer.tag(23, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.event_v1.CallDeleted call_deleted = 24; */
+            CallUpdated.internalBinaryWrite(message.event.callUpdated, writer.tag(31, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.event_v1.CallDeleted call_deleted = 32; */
         if (message.event.oneofKind === "callDeleted")
-            CallDeleted.internalBinaryWrite(message.event.callDeleted, writer.tag(24, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.event_v1.CallRinging call_ringing = 25; */
-        if (message.event.oneofKind === "callRinging")
-            CallRinging.internalBinaryWrite(message.event.callRinging, writer.tag(25, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.event_v1.UserUpdated user_updated = 26; */
-        if (message.event.oneofKind === "userUpdated")
-            UserUpdated.internalBinaryWrite(message.event.userUpdated, writer.tag(26, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.event_v1.BroadcastStarted broadcast_started = 27; */
-        if (message.event.oneofKind === "broadcastStarted")
-            BroadcastStarted.internalBinaryWrite(message.event.broadcastStarted, writer.tag(27, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.event_v1.BroadcastEnded broadcast_ended = 28; */
-        if (message.event.oneofKind === "broadcastEnded")
-            BroadcastEnded.internalBinaryWrite(message.event.broadcastEnded, writer.tag(28, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.event_v1.RecordingStarted recording_started = 29; */
-        if (message.event.oneofKind === "recordingStarted")
-            RecordingStarted.internalBinaryWrite(message.event.recordingStarted, writer.tag(29, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.event_v1.RecordingStopped recording_stopped = 30; */
-        if (message.event.oneofKind === "recordingStopped")
-            RecordingStopped.internalBinaryWrite(message.event.recordingStopped, writer.tag(30, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.event_v1.CallMembersUpdated call_members_updated = 31; */
+            CallDeleted.internalBinaryWrite(message.event.callDeleted, writer.tag(32, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.event_v1.CallMembersUpdated call_members_updated = 33; */
         if (message.event.oneofKind === "callMembersUpdated")
-            CallMembersUpdated.internalBinaryWrite(message.event.callMembersUpdated, writer.tag(31, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.event_v1.CallMembersDeleted call_members_deleted = 32; */
+            CallMembersUpdated.internalBinaryWrite(message.event.callMembersUpdated, writer.tag(33, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.event_v1.CallMembersDeleted call_members_deleted = 34; */
         if (message.event.oneofKind === "callMembersDeleted")
-            CallMembersDeleted.internalBinaryWrite(message.event.callMembersDeleted, writer.tag(32, WireType.LengthDelimited).fork(), options).join();
+            CallMembersDeleted.internalBinaryWrite(message.event.callMembersDeleted, writer.tag(34, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.event_v1.CallStarted call_started = 35; */
+        if (message.event.oneofKind === "callStarted")
+            CallStarted.internalBinaryWrite(message.event.callStarted, writer.tag(35, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.event_v1.CallEnded call_ended = 36; */
+        if (message.event.oneofKind === "callEnded")
+            CallEnded.internalBinaryWrite(message.event.callEnded, writer.tag(36, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.event_v1.UserUpdated user_updated = 40; */
+        if (message.event.oneofKind === "userUpdated")
+            UserUpdated.internalBinaryWrite(message.event.userUpdated, writer.tag(40, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

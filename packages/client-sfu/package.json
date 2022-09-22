@@ -9,6 +9,7 @@
     "build": "tsc"
   },
   "dependencies": {
+    "@protobuf-ts/runtime": "^2.8.1",
     "@protobuf-ts/runtime-rpc": "^2.8.1",
     "@protobuf-ts/twirp-transport": "^2.8.1",
     "sdp-transform": "^2.14.1",
@@ -16,8 +17,6 @@
     "webrtc-adapter": "^8.1.2"
   },
   "devDependencies": {
-    "@protobuf-ts/plugin": "^2.8.1",
-    "@protobuf-ts/protoc": "^2.8.1",
     "@types/rimraf": "^3.0.2",
     "@types/sdp-transform": "^2.4.5",
     "@types/uuid": "^8.3.4",

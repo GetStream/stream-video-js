@@ -16,9 +16,6 @@ import { MessageType } from "@protobuf-ts/runtime";
 import { Struct } from "../../../google/protobuf/struct";
 import { Device } from "../push_v1/push";
 import { DeviceInput } from "../push_v1/push";
-import { CallParticipantTimeline } from "../stat_v1/stat";
-import { Timestamp } from "../../../google/protobuf/timestamp";
-import { Duration } from "../../../google/protobuf/duration";
 import { Credentials } from "../edge_v1/edge";
 import { LatencyMeasurements } from "../edge_v1/edge";
 import { MembersEnvelope } from "./envelopes";
@@ -375,67 +372,6 @@ export interface GetCallEdgeServerResponse {
      * @generated from protobuf field: stream.video.coordinator.edge_v1.Credentials credentials = 2;
      */
     credentials?: Credentials;
-}
-/**
- * A request message for the QueryCallTimelineEvents endpoint
- * Specifies a subset of events to request
- *
- * @generated from protobuf message stream.video.coordinator.client_v1_rpc.QueryCallTimelineEventsRequest
- */
-export interface QueryCallTimelineEventsRequest {
-    /**
-     * The call type.
-     *
-     * @generated from protobuf field: string type = 1;
-     */
-    type: string;
-    /**
-     * The call id.
-     *
-     * @generated from protobuf field: string id = 2;
-     */
-    id: string;
-    /**
-     * Limits event timespan of the response. Default: 10m, max: 30m
-     *
-     * @generated from protobuf field: google.protobuf.Duration duration = 3;
-     */
-    duration?: Duration;
-    /**
-     * since which date to query events. Default: time of the first event of the call
-     *
-     * @generated from protobuf field: google.protobuf.Timestamp since = 4;
-     */
-    since?: Timestamp;
-}
-/**
- * @generated from protobuf message stream.video.coordinator.client_v1_rpc.QueryCallTimelineEventsResponse
- */
-export interface QueryCallTimelineEventsResponse {
-    /**
-     * timeline inclusive start time
-     *
-     * @generated from protobuf field: google.protobuf.Timestamp start = 1;
-     */
-    start?: Timestamp;
-    /**
-     * timeline inclusive end time
-     *
-     * @generated from protobuf field: google.protobuf.Timestamp end = 2;
-     */
-    end?: Timestamp;
-    /**
-     * contains cursor to use to request the next page
-     *
-     * @generated from protobuf field: google.protobuf.Timestamp next = 3;
-     */
-    next?: Timestamp;
-    /**
-     * list of events for each participant from requested time period
-     *
-     * @generated from protobuf field: repeated stream.video.coordinator.stat_v1.CallParticipantTimeline participant_events = 4;
-     */
-    participantEvents: CallParticipantTimeline[];
 }
 /**
  * @generated from protobuf message stream.video.coordinator.client_v1_rpc.CreateDeviceRequest
@@ -1872,142 +1808,6 @@ class GetCallEdgeServerResponse$Type extends MessageType<GetCallEdgeServerRespon
  */
 export const GetCallEdgeServerResponse = new GetCallEdgeServerResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class QueryCallTimelineEventsRequest$Type extends MessageType<QueryCallTimelineEventsRequest> {
-    constructor() {
-        super("stream.video.coordinator.client_v1_rpc.QueryCallTimelineEventsRequest", [
-            { no: 1, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "duration", kind: "message", T: () => Duration },
-            { no: 4, name: "since", kind: "message", T: () => Timestamp }
-        ]);
-    }
-    create(value?: PartialMessage<QueryCallTimelineEventsRequest>): QueryCallTimelineEventsRequest {
-        const message = { type: "", id: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<QueryCallTimelineEventsRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: QueryCallTimelineEventsRequest): QueryCallTimelineEventsRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string type */ 1:
-                    message.type = reader.string();
-                    break;
-                case /* string id */ 2:
-                    message.id = reader.string();
-                    break;
-                case /* google.protobuf.Duration duration */ 3:
-                    message.duration = Duration.internalBinaryRead(reader, reader.uint32(), options, message.duration);
-                    break;
-                case /* google.protobuf.Timestamp since */ 4:
-                    message.since = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.since);
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: QueryCallTimelineEventsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string type = 1; */
-        if (message.type !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.type);
-        /* string id = 2; */
-        if (message.id !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.id);
-        /* google.protobuf.Duration duration = 3; */
-        if (message.duration)
-            Duration.internalBinaryWrite(message.duration, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        /* google.protobuf.Timestamp since = 4; */
-        if (message.since)
-            Timestamp.internalBinaryWrite(message.since, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.QueryCallTimelineEventsRequest
- */
-export const QueryCallTimelineEventsRequest = new QueryCallTimelineEventsRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class QueryCallTimelineEventsResponse$Type extends MessageType<QueryCallTimelineEventsResponse> {
-    constructor() {
-        super("stream.video.coordinator.client_v1_rpc.QueryCallTimelineEventsResponse", [
-            { no: 1, name: "start", kind: "message", T: () => Timestamp },
-            { no: 2, name: "end", kind: "message", T: () => Timestamp },
-            { no: 3, name: "next", kind: "message", T: () => Timestamp },
-            { no: 4, name: "participant_events", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => CallParticipantTimeline }
-        ]);
-    }
-    create(value?: PartialMessage<QueryCallTimelineEventsResponse>): QueryCallTimelineEventsResponse {
-        const message = { participantEvents: [] };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<QueryCallTimelineEventsResponse>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: QueryCallTimelineEventsResponse): QueryCallTimelineEventsResponse {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* google.protobuf.Timestamp start */ 1:
-                    message.start = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.start);
-                    break;
-                case /* google.protobuf.Timestamp end */ 2:
-                    message.end = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.end);
-                    break;
-                case /* google.protobuf.Timestamp next */ 3:
-                    message.next = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.next);
-                    break;
-                case /* repeated stream.video.coordinator.stat_v1.CallParticipantTimeline participant_events */ 4:
-                    message.participantEvents.push(CallParticipantTimeline.internalBinaryRead(reader, reader.uint32(), options));
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: QueryCallTimelineEventsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* google.protobuf.Timestamp start = 1; */
-        if (message.start)
-            Timestamp.internalBinaryWrite(message.start, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* google.protobuf.Timestamp end = 2; */
-        if (message.end)
-            Timestamp.internalBinaryWrite(message.end, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* google.protobuf.Timestamp next = 3; */
-        if (message.next)
-            Timestamp.internalBinaryWrite(message.next, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        /* repeated stream.video.coordinator.stat_v1.CallParticipantTimeline participant_events = 4; */
-        for (let i = 0; i < message.participantEvents.length; i++)
-            CallParticipantTimeline.internalBinaryWrite(message.participantEvents[i], writer.tag(4, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.QueryCallTimelineEventsResponse
- */
-export const QueryCallTimelineEventsResponse = new QueryCallTimelineEventsResponse$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class CreateDeviceRequest$Type extends MessageType<CreateDeviceRequest> {
     constructor() {
         super("stream.video.coordinator.client_v1_rpc.CreateDeviceRequest", [
@@ -2679,7 +2479,6 @@ export const ClientRPC = new ServiceType("stream.video.coordinator.client_v1_rpc
     { name: "QueryDevices", options: {}, I: QueryDevicesRequest, O: QueryDevicesResponse },
     { name: "UpdateCallMembers", options: {}, I: UpdateCallMembersRequest, O: UpdateCallMembersResponse },
     { name: "DeleteCallMembers", options: {}, I: DeleteCallMembersRequest, O: DeleteCallMembersResponse },
-    { name: "QueryCallTimelineEvents", options: {}, I: QueryCallTimelineEventsRequest, O: QueryCallTimelineEventsResponse },
     { name: "SendCustomEvent", options: {}, I: SendCustomEventRequest, O: SendCustomEventResponse },
     { name: "ReportCallStats", options: {}, I: ReportCallStatsRequest, O: ReportCallStatsResponse },
     { name: "ReviewCall", options: {}, I: ReviewCallRequest, O: ReviewCallResponse },

@@ -2553,41 +2553,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@protobuf-ts/plugin-framework@npm:^2.8.1":
-  version: 2.8.1
-  resolution: "@protobuf-ts/plugin-framework@npm:2.8.1"
-  dependencies:
-    "@protobuf-ts/runtime": ^2.8.1
-    typescript: ^3.9
-  checksum: 0c17968671ff598693243fb8ac3dd02db3aa10826ccb6b9c8985803ea8f344fd334cc712183f7dc01d43b05b8904afd0c53c1391ed9be6f7cdbdf193caae5fc6
-  languageName: node
-  linkType: hard
-
-"@protobuf-ts/plugin@npm:^2.8.1":
-  version: 2.8.1
-  resolution: "@protobuf-ts/plugin@npm:2.8.1"
-  dependencies:
-    "@protobuf-ts/plugin-framework": ^2.8.1
-    "@protobuf-ts/protoc": ^2.8.1
-    "@protobuf-ts/runtime": ^2.8.1
-    "@protobuf-ts/runtime-rpc": ^2.8.1
-    typescript: ^3.9
-  bin:
-    protoc-gen-dump: bin/protoc-gen-dump
-    protoc-gen-ts: bin/protoc-gen-ts
-  checksum: 61fdf4054134e9c80a8b1b854ba288df8f34803c2bca105247576bf657e1c3b2514c3ef56e6f5b04aa863e5cfc35c65a80547dd49ca91c7398c4f54c56302f8f
-  languageName: node
-  linkType: hard
-
-"@protobuf-ts/protoc@npm:^2.8.1":
-  version: 2.8.1
-  resolution: "@protobuf-ts/protoc@npm:2.8.1"
-  bin:
-    protoc: protoc.js
-  checksum: 2b163a03cd416bc63c9042bbe085792d9495ba08c44ba742452ee3df4f9a10e70d6c6187e9cf55600aade91a71994fad5ce64a883de0d7c4944358b9ade44645
-  languageName: node
-  linkType: hard
-
 "@protobuf-ts/runtime-rpc@npm:^2.8.1":
   version: 2.8.1
   resolution: "@protobuf-ts/runtime-rpc@npm:2.8.1"
@@ -2781,8 +2746,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-client-sfu@workspace:packages/client-sfu"
   dependencies:
-    "@protobuf-ts/plugin": ^2.8.1
-    "@protobuf-ts/protoc": ^2.8.1
+    "@protobuf-ts/runtime": ^2.8.1
     "@protobuf-ts/runtime-rpc": ^2.8.1
     "@protobuf-ts/twirp-transport": ^2.8.1
     "@types/rimraf": ^3.0.2
@@ -2800,8 +2764,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-client@workspace:packages/client"
   dependencies:
-    "@protobuf-ts/plugin": ^2.8.1
-    "@protobuf-ts/protoc": ^2.8.1
+    "@protobuf-ts/runtime": ^2.8.1
+    "@protobuf-ts/runtime-rpc": ^2.8.1
     "@protobuf-ts/twirp-transport": ^2.8.1
     "@types/rimraf": ^3.0.2
     rimraf: ^3.0.2
@@ -12800,16 +12764,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^3.9":
-  version: 3.9.10
-  resolution: "typescript@npm:3.9.10"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 46c842e2cd4797b88b66ef06c9c41dd21da48b95787072ccf39d5f2aa3124361bc4c966aa1c7f709fae0509614d76751455b5231b12dbb72eb97a31369e1ff92
-  languageName: node
-  linkType: hard
-
 "typescript@npm:^4.8.3":
   version: 4.8.3
   resolution: "typescript@npm:4.8.3"
@@ -12817,16 +12771,6 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 8286a5edcaf3d68e65c451aa1e7150ad1cf53ee0813c07ec35b7abdfdb10f355ecaa13c6a226a694ae7a67785fd7eeebf89f845da0b4f7e4a35561ddc459aba0
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@^3.9#~builtin<compat/typescript>":
-  version: 3.9.10
-  resolution: "typescript@patch:typescript@npm%3A3.9.10#~builtin<compat/typescript>::version=3.9.10&hash=f456af"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: dc7141ab555b23a8650a6787f98845fc11692063d02b75ff49433091b3af2fe3d773650dea18389d7c21f47d620fb3b110ea363dab4ab039417a6ccbbaf96fc2
   languageName: node
   linkType: hard
 
