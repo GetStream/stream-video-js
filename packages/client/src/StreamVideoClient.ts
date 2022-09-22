@@ -52,7 +52,7 @@ export class StreamVideoClient {
   connect = async (apiKey: string, token: string, user: UserInput) => {
     if (this.ws) return;
     this.ws = await createSocketConnection(
-      'ws://localhost:8989',
+      'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
       apiKey,
       token,
       user,
