@@ -12,10 +12,10 @@ export type RoomProps = {
 export const VideoRoom = ({ credentials }: RoomProps) => {
   const room = useMemo(() => {
     const user = new User('marcelo', credentials.token);
-    const serverUrl = 'http://localhost:3031/twirp';
+    const serverUrl = credentials.server?.url || 'http://localhost:3031/twirp';
     const client = new Client(serverUrl, user);
     return new Room(client);
-  }, [credentials.token]);
+  }, [credentials.server?.url, credentials.token]);
 
   const [sfuCallState, setSfuCallState] = useState<CallState>();
   const { mediaStream } = useMediaDevices();
