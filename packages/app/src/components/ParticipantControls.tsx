@@ -33,7 +33,7 @@ export type ParticipantsProps = {
   currentCall?: Call;
   currentCallState?: SfuModels.CallState;
   room?: RoomType;
-  joinCall?: (callId: string) => void;
+  joinCall?: (callId: string, type: string) => void;
   onCreateCall?: (callId: string, participants: string[]) => void;
 };
 

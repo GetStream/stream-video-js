@@ -128,27 +128,29 @@ export class StreamWebSocketClient implements StreamWSClient {
 
   // TODO fix types
   private dispatchMessage = (message: WebsocketEvent) => {
-    const eventKind = message.event.oneofKind;
-    // @ts-ignore TODO: fix types
-    const wrappedMessage = message.event[eventKind];
-    console.log('Dispatching', eventKind, wrappedMessage);
-    if (eventKind) {
-      const eventListeners = this.subscribers[eventKind];
-      eventListeners?.forEach((fn: StreamEventListener<unknown>) => {
-        try {
-          fn(wrappedMessage);
-        } catch (e) {
-          console.warn(`Listener failed with error`, e);
-        }
-      });
-    }
+    const { event, ...envelopes } = message;
+    const eventKind = event.oneofKind;
+    if (!eventKind) return;
+
+    // @ts-ignore
+    const wrappedMessage = event[eventKind];
+    console.log('Dispatching', eventKind, message);
+
+    const eventListeners = this.subscribers[eventKind];
+    eventListeners?.forEach((fn) => {
+      try {
+        fn(wrappedMessage, envelopes);
+      } catch (e) {
+        console.warn(`Listener failed with error`, e);
+      }
+    });
   };
 
   disconnect = () => {
     // FIXME: OL: do proper cleanup of resources here.
     console.log(`Disconnect requested`);
     this.keepAlive.cancelPendingPing();
-    this.ws.close(12345, `Disconnect requested`);
+    this.ws.close(1111, `Disconnect requested`);
     this.authenticated = undefined;
   };
 

@@ -12,6 +12,9 @@ import {
   Struct,
   UserInput,
   SfuModels,
+  CallCreated,
+  Envelopes,
+  CallStarted,
 } from '@stream-io/video-client';
 import {
   RoomType,
@@ -85,7 +88,7 @@ const App = () => {
   );
 
   const joinCall = useCallback(
-    async (id: string, type: string = 'video') => {
+    async (id: string, type: string) => {
       try {
         const callToJoin = await client?.joinCall({
           id,
@@ -101,6 +104,7 @@ const App = () => {
             latencyClaim,
           );
           setCurrentCall(callEnvelope.call);
+          setIsCurrentCallAccepted(true);
           // setCurrentCallState(callEnvelope.call.callState);
           setEdge(edge);
         }
@@ -115,7 +119,7 @@ const App = () => {
 
   const createCall = useCallback(
     async (id: string, participants: string[]) => {
-      const createdCall = await client?.createCall({
+      await client?.createCall({
         id,
         type: 'default',
         input: {
@@ -131,34 +135,51 @@ const App = () => {
           ),
         },
       });
-      if (createdCall && createdCall.call) {
-        console.log('Call created', createdCall);
-        const { call } = createdCall;
-        setCurrentCall(call);
-        setIsCurrentCallAccepted(false);
-
-        await joinCall(call.id, call.type);
-      }
     },
-    [client, joinCall],
+    [client],
   );
 
-  // useEffect(() => {
-  //   const onCallCreated = (message: CallCreated) => {
-  //     console.log(`Call created`, message);
-  //     const { call } = message;
-  //     // initiator, immediately joins the call
-  //     if (call?.createdByUserId === currentUser) {
-  //       joinCall(call.id).then(() => {
-  //         console.log(`Joining call with id:${call.id}`);
-  //       });
-  //     } else {
-  //       setCurrentCall(call);
-  //     }
-  //     setIsCurrentCallAccepted(false);
-  //   };
-  //   return client?.on('callCreated', onCallCreated);
-  // }, [client, currentUser, joinCall]);
+  useEffect(() => {
+    const onCallCreated = (event: CallCreated, envelopes?: Envelopes) => {
+      const { callCid } = event;
+      const call = envelopes?.calls[callCid];
+      if (!call) {
+        console.warn(`Can't find call with id: ${callCid}`);
+        return;
+      }
+
+      console.log(`Call created`, event, call);
+
+      // initiator, immediately joins the call
+      if (call.createdByUserId === currentUser) {
+        joinCall(call.id, call.type).then(() => {
+          console.log(`Joining call with id:${call.id}`);
+        });
+        setCurrentCall(call);
+      }
+    };
+    return client?.on('callCreated', onCallCreated);
+  }, [client, currentUser, joinCall]);
+
+  useEffect(() => {
+    return client?.on(
+      'callStarted',
+      (event: CallStarted, envelopes?: Envelopes) => {
+        const { callCid } = event;
+        const call = envelopes?.calls[callCid];
+        if (!call) {
+          console.warn(`Can't find call with id: ${callCid}`);
+          return;
+        }
+
+        console.log(`Call started`, event, call);
+        if (call.createdByUserId !== currentUser) {
+          setCurrentCall(call);
+          setIsCurrentCallAccepted(false);
+        }
+      },
+    );
+  });
 
   return (
     <div className="stream-video-sample-app">
@@ -184,7 +205,7 @@ const App = () => {
                     onAccept={() => {
                       setIsCurrentCallAccepted(true);
                       if (currentCall) {
-                        joinCall(currentCall.id).then(() => {
+                        joinCall(currentCall.id, currentCall.type).then(() => {
                           console.log(`Joining call with id:${currentCall.id}`);
                         });
                       }
@@ -209,27 +230,10 @@ const App = () => {
                 {edge && edge.credentials && (
                   <>
                     {currentCall && (
-                      <VideoRoom
-                        call={currentCall}
-                        credentials={edge.credentials}
-                      />
+                      <VideoRoom credentials={edge.credentials} />
                     )}
                     <pre>{JSON.stringify(edge, null, 2)}</pre>
                   </>
-                  // <StageView
-                  //   client={client}
-                  //   edgeToken={edge.token}
-                  //   edgeUrl={edge.edgeServer.url}
-                  //   currentCall={currentCall}
-                  //   currentUser={currentUser}
-                  //   onConnected={setRoom}
-                  //   onLeave={() => {
-                  //     setRoom(undefined);
-                  //     setEdge(undefined);
-                  //     setCurrentCall(undefined);
-                  //     setCurrentCallState(undefined);
-                  //   }}
-                  // />
                 )}
               </Box>
             </Box>
