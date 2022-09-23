@@ -50,7 +50,7 @@ type ParticipantProps = {
   videoStream?: MediaStream;
 };
 const ParticipantBox = (props: ParticipantProps) => {
-  const { audioStream, videoStream } = props;
+  const { audioStream, videoStream, participant } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -68,6 +68,7 @@ const ParticipantBox = (props: ParticipantProps) => {
         style={{ width: '640px', height: '480px' }}
         ref={videoRef}
       />
+      <span>{participant.user?.id}</span>
     </div>
   );
 };

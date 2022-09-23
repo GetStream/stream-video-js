@@ -168,6 +168,15 @@ export class Room {
     }
   };
 
+  isPublishing = (...kinds: Array<'audio' | 'video'>): boolean => {
+    if (!this.publisher) return false;
+    const senders = this.publisher.getSenders();
+    if (kinds.length === 0 && senders.length > 0) return true;
+    return senders.some(
+      (s) => s.track && kinds.includes(s.track.kind as 'audio' | 'video'),
+    );
+  };
+
   changeInputDevice = async (
     kind: Exclude<MediaDeviceKind, 'audiooutput'>,
     deviceId: string,

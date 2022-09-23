@@ -10,7 +10,7 @@ import SwitchVideo from '@mui/icons-material/SwitchVideo';
 import { Call } from '@stream-io/video-client';
 
 export const JoinCall = (props: {
-  joinCall?: (id: string) => void;
+  joinCall?: (id: string, type: string) => void;
   currentCall?: Call;
 }) => {
   const { joinCall, currentCall } = props;
@@ -43,7 +43,7 @@ export const JoinCall = (props: {
         disabled={!callId || !joinCall}
         onClick={() => {
           if (joinCall && callId) {
-            joinCall(callId);
+            joinCall(callId, currentCall?.type ?? 'default');
           }
         }}
       >
