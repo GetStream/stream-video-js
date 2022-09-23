@@ -14,6 +14,7 @@ import {
   SfuModels,
   CallCreated,
   Envelopes,
+  CallStarted,
 } from '@stream-io/video-client';
 import {
   RoomType,
@@ -103,6 +104,7 @@ const App = () => {
             latencyClaim,
           );
           setCurrentCall(callEnvelope.call);
+          setIsCurrentCallAccepted(true);
           // setCurrentCallState(callEnvelope.call.callState);
           setEdge(edge);
         }
@@ -158,6 +160,26 @@ const App = () => {
     };
     return client?.on('callCreated', onCallCreated);
   }, [client, currentUser, joinCall]);
+
+  useEffect(() => {
+    return client?.on(
+      'callStarted',
+      (event: CallStarted, envelopes?: Envelopes) => {
+        const { callCid } = event;
+        const call = envelopes?.calls[callCid];
+        if (!call) {
+          console.warn(`Can't find call with id: ${callCid}`);
+          return;
+        }
+
+        console.log(`Call started`, event, call);
+        if (call.createdByUserId !== currentUser) {
+          setCurrentCall(call);
+          setIsCurrentCallAccepted(false);
+        }
+      },
+    );
+  });
 
   return (
     <div className="stream-video-sample-app">

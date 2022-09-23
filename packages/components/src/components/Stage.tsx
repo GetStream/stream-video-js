@@ -5,10 +5,12 @@ import {
 import { useEffect, useRef } from 'react';
 import { Room } from '@stream-io/video-client-sfu';
 import { useParticipantStreams } from '../hooks/useParticipantStreams';
+import { useParticipants } from '../hooks/useParticipants';
 
 export const Stage = (props: { room: Room; participants: Participant[] }) => {
-  const { room, participants } = props;
+  const { room, participants: initialParticipants } = props;
   const { userAudioStreams, userVideoStreams } = useParticipantStreams(room);
+  const participants = useParticipants(room, initialParticipants);
   useEffect(() => {
     const subscriptions = participants.reduce<{
       [key: string]: VideoDimension;

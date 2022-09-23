@@ -21,7 +21,8 @@ export const VideoRoom = ({ credentials }: RoomProps) => {
   const { mediaStream } = useMediaDevices();
   useEffect(() => {
     const joinRoom = async () => {
-      const callState = await room.join(mediaStream);
+      // TODO: OL: announce bitrates by passing down MediaStream to .join()
+      const callState = await room.join();
       setSfuCallState(callState);
     };
 
@@ -33,7 +34,7 @@ export const VideoRoom = ({ credentials }: RoomProps) => {
     return () => {
       room.leave();
     };
-  }, [room, mediaStream]);
+  }, [room]);
 
   useEffect(() => {
     if (mediaStream) {
