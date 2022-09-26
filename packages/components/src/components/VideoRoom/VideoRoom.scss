@@ -1,0 +1,40 @@
+.str-video__video-room {
+  background-color: #272a30;
+  color: #fff;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  .str-video__stage {
+    display: grid;
+    grid-auto-rows: auto min-content;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    align-items: center;
+    justify-items: center;
+    gap: 10px;
+    height: 100%;
+
+    .str-video__participant {
+      width: 100%;
+
+      .str-video__remote-video {
+        border-radius: 12px;
+        border: 2px solid #005fff;
+        background-size: contain;
+        width: 100%;
+      }
+
+      .str-video__participant_details {
+        margin-top: -35px;
+        margin-left: 16px;
+      }
+
+      .str-video__participant_name {
+        color: #ffffff;
+        padding: 6px;
+        border-radius: 6px;
+      }
+    }
+  }
+}

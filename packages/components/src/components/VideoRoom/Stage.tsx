@@ -4,8 +4,8 @@ import {
 } from '@stream-io/video-client-sfu/dist/src/gen/sfu_models/models';
 import { useEffect, useRef } from 'react';
 import { Room } from '@stream-io/video-client-sfu';
-import { useParticipantStreams } from '../hooks/useParticipantStreams';
-import { useParticipants } from '../hooks/useParticipants';
+import { useParticipantStreams } from '../../hooks/useParticipantStreams';
+import { useParticipants } from '../../hooks/useParticipants';
 
 export const Stage = (props: { room: Room; participants: Participant[] }) => {
   const { room, participants: initialParticipants } = props;
@@ -60,17 +60,14 @@ const ParticipantBox = (props: ParticipantProps) => {
   useAttachMediaStream(videoRef.current, videoStream);
 
   return (
-    <div className="str-video__participant-box">
+    <div className="str-video__participant">
       <audio autoPlay ref={audioRef} />
-      <video
-        className="str-video__remote-video"
-        autoPlay
-        height="auto"
-        width="100%"
-        style={{ width: '640px', height: '480px' }}
-        ref={videoRef}
-      />
-      <span>{participant.user?.id}</span>
+      <video className="str-video__remote-video" autoPlay ref={videoRef} />
+      <div className="str-video__participant_details">
+        <span className="str-video__participant_name">
+          {participant.user?.id}
+        </span>
+      </div>
     </div>
   );
 };

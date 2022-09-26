@@ -6,7 +6,9 @@
   "scripts": {
     "clean": "rimraf dist",
     "start": "tsc --project tsconfig.json --watch",
-    "build": "tsc --project tsconfig.production.json"
+    "start:styles": "sass --watch index.scss ./dist/css/styles.css",
+    "build": "tsc --project tsconfig.production.json && yarn build:styles",
+    "build:styles": "sass index.scss ./dist/css/styles.css"
   },
   "dependencies": {
     "@livekit/react-components": "^1.0.2",
@@ -24,6 +26,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rimraf": "^3.0.2",
+    "sass": "^1.55.0",
     "typescript": "^4.8.3"
   }
 }

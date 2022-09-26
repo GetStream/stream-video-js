@@ -1,7 +1,7 @@
 import { Credentials } from '@stream-io/video-client';
 import { Client, Room, User } from '@stream-io/video-client-sfu';
 import { useEffect, useMemo, useState } from 'react';
-import { useMediaDevices } from '../hooks/useMediaDevices';
+import { useMediaDevices } from '../../hooks/useMediaDevices';
 import { CallState } from '@stream-io/video-client-sfu/dist/src/gen/sfu_models/models';
 import { Stage } from './Stage';
 
@@ -12,7 +12,8 @@ export type RoomProps = {
 export const VideoRoom = ({ credentials }: RoomProps) => {
   const room = useMemo(() => {
     const user = new User('marcelo', credentials.token);
-    const serverUrl = credentials.server?.url || 'http://localhost:3031/twirp';
+    const serverUrl =
+      /* credentials.server?.url || */ 'http://localhost:3031/twirp';
     const client = new Client(serverUrl, user);
     return new Room(client);
   }, [credentials.server?.url, credentials.token]);
@@ -43,7 +44,7 @@ export const VideoRoom = ({ credentials }: RoomProps) => {
   }, [mediaStream, room]);
 
   return (
-    <div className="str-video__room">
+    <div className="str-video__video-room">
       {sfuCallState && (
         <Stage participants={sfuCallState.participants} room={room} />
       )}

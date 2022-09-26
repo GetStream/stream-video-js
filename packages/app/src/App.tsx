@@ -40,6 +40,7 @@ const participants: Participants = {
 
 const theme = createTheme({
   palette: {
+    mode: 'dark',
     primary: {
       main: '#006cff',
     },
@@ -172,7 +173,7 @@ const App = () => {
           return;
         }
 
-        console.log(`Call started`, event, call);
+        console.log(`Call started`, event, envelopes);
         if (call.createdByUserId !== currentUser) {
           setCurrentCall(call);
           setIsCurrentCallAccepted(false);
@@ -225,14 +226,17 @@ const App = () => {
               />
               <Box
                 component="main"
-                sx={{ flexGrow: 1, p: 3, marginTop: '64px' }}
+                sx={{
+                  flexGrow: 1,
+                  marginTop: '64px',
+                  height: 'calc(100vh - 64px)',
+                }}
               >
                 {edge && edge.credentials && (
                   <>
                     {currentCall && (
                       <VideoRoom credentials={edge.credentials} />
                     )}
-                    <pre>{JSON.stringify(edge, null, 2)}</pre>
                   </>
                 )}
               </Box>
