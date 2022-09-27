@@ -22,7 +22,7 @@ import { MembersEnvelope } from "./envelopes";
 import { CallsEnvelope } from "./envelopes";
 import { Sort } from "../utils_v1/utils";
 import { CallOptions } from "../call_v1/call";
-import { LatencyMeasurementClaim } from "../edge_v1/edge";
+import { Edge } from "../edge_v1/edge";
 import { CallEnvelope } from "./envelopes";
 /**
  * @generated from protobuf message stream.video.coordinator.client_v1_rpc.GetCallRequest
@@ -216,9 +216,9 @@ export interface JoinCallResponse {
     /**
      * A list of endpoints to measure latency
      *
-     * @generated from protobuf field: stream.video.coordinator.edge_v1.LatencyMeasurementClaim latency_claim = 3;
+     * @generated from protobuf field: repeated stream.video.coordinator.edge_v1.Edge edges = 3;
      */
-    latencyClaim?: LatencyMeasurementClaim;
+    edges: Edge[];
 }
 /**
  * Represents all updatable room fields
@@ -1172,11 +1172,11 @@ class JoinCallResponse$Type extends MessageType<JoinCallResponse> {
         super("stream.video.coordinator.client_v1_rpc.JoinCallResponse", [
             { no: 1, name: "call", kind: "message", T: () => CallEnvelope },
             { no: 2, name: "created", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 3, name: "latency_claim", kind: "message", T: () => LatencyMeasurementClaim }
+            { no: 3, name: "edges", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Edge }
         ]);
     }
     create(value?: PartialMessage<JoinCallResponse>): JoinCallResponse {
-        const message = { created: false };
+        const message = { created: false, edges: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<JoinCallResponse>(this, message, value);
@@ -1193,8 +1193,8 @@ class JoinCallResponse$Type extends MessageType<JoinCallResponse> {
                 case /* bool created */ 2:
                     message.created = reader.bool();
                     break;
-                case /* stream.video.coordinator.edge_v1.LatencyMeasurementClaim latency_claim */ 3:
-                    message.latencyClaim = LatencyMeasurementClaim.internalBinaryRead(reader, reader.uint32(), options, message.latencyClaim);
+                case /* repeated stream.video.coordinator.edge_v1.Edge edges */ 3:
+                    message.edges.push(Edge.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1214,9 +1214,9 @@ class JoinCallResponse$Type extends MessageType<JoinCallResponse> {
         /* bool created = 2; */
         if (message.created !== false)
             writer.tag(2, WireType.Varint).bool(message.created);
-        /* stream.video.coordinator.edge_v1.LatencyMeasurementClaim latency_claim = 3; */
-        if (message.latencyClaim)
-            LatencyMeasurementClaim.internalBinaryWrite(message.latencyClaim, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* repeated stream.video.coordinator.edge_v1.Edge edges = 3; */
+        for (let i = 0; i < message.edges.length; i++)
+            Edge.internalBinaryWrite(message.edges[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

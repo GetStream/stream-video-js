@@ -24,6 +24,7 @@ export const StreamCall = ({
     const user = new User(currentUser, credentials.token);
     const serverUrl = credentials.server?.url || 'http://localhost:3031/twirp';
     const client = new Client(serverUrl, user);
+    // TODO: OL: provide the `credentials.iceServers` to the Call object.
     return new Call(client);
   }, [credentials.server?.url, credentials.token, currentUser]);
 

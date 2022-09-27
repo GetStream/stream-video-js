@@ -6,10 +6,7 @@ import {
   ReportCallStatsResponse,
 } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
-import {
-  Latency,
-  LatencyMeasurementClaim,
-} from './gen/video/coordinator/edge_v1/edge';
+import { Edge, Latency } from './gen/video/coordinator/edge_v1/edge';
 import { UserInput } from './gen/video/coordinator/user_v1/user';
 import {
   createClient,
@@ -87,13 +84,13 @@ export class StreamVideoClient {
     return callToJoin.response;
   };
 
-  getCallEdgeServer = async (call: Call, edges: LatencyMeasurementClaim) => {
+  getCallEdgeServer = async (call: Call, edges: Edge[]) => {
     // TODO: maybe run the measurements in parallel
     const latencyByEdge: { [e: string]: Latency } = {};
-    for (const edge of edges.endpoints) {
-      latencyByEdge[edge.id] = {
+    for (const edge of edges) {
+      latencyByEdge[edge.name] = {
         measurementsSeconds: await measureResourceLoadLatencyTo(
-          edge.url,
+          edge.latencyUrl,
           Math.max(this.options.latencyMeasurementRounds || 0, 3),
         ),
       };

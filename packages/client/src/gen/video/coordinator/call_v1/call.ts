@@ -129,10 +129,6 @@ export interface CallOptions {
      * @generated from protobuf field: stream.video.coordinator.call_v1.BroadcastingOptions broadcasting = 2;
      */
     broadcasting?: BroadcastingOptions;
-    /**
-     * @generated from protobuf field: stream.video.coordinator.call_v1.TranscriptionOptions transcription = 3;
-     */
-    transcription?: TranscriptionOptions;
 }
 /**
  * Contains all options regarding to call recording
@@ -156,20 +152,6 @@ export interface RecordingOptions {
 export interface BroadcastingOptions {
     /**
      * Whether broadcasting feature is enabled
-     * Default: false
-     *
-     * @generated from protobuf field: optional bool enabled = 1;
-     */
-    enabled?: boolean;
-}
-/**
- * Contains all options regarding to call transcription
- *
- * @generated from protobuf message stream.video.coordinator.call_v1.TranscriptionOptions
- */
-export interface TranscriptionOptions {
-    /**
-     * Whether transcription feature is enabled
      * Default: false
      *
      * @generated from protobuf field: optional bool enabled = 1;
@@ -426,8 +408,7 @@ class CallOptions$Type extends MessageType<CallOptions> {
     constructor() {
         super("stream.video.coordinator.call_v1.CallOptions", [
             { no: 1, name: "recording", kind: "message", T: () => RecordingOptions },
-            { no: 2, name: "broadcasting", kind: "message", T: () => BroadcastingOptions },
-            { no: 3, name: "transcription", kind: "message", T: () => TranscriptionOptions }
+            { no: 2, name: "broadcasting", kind: "message", T: () => BroadcastingOptions }
         ]);
     }
     create(value?: PartialMessage<CallOptions>): CallOptions {
@@ -448,9 +429,6 @@ class CallOptions$Type extends MessageType<CallOptions> {
                 case /* stream.video.coordinator.call_v1.BroadcastingOptions broadcasting */ 2:
                     message.broadcasting = BroadcastingOptions.internalBinaryRead(reader, reader.uint32(), options, message.broadcasting);
                     break;
-                case /* stream.video.coordinator.call_v1.TranscriptionOptions transcription */ 3:
-                    message.transcription = TranscriptionOptions.internalBinaryRead(reader, reader.uint32(), options, message.transcription);
-                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -469,9 +447,6 @@ class CallOptions$Type extends MessageType<CallOptions> {
         /* stream.video.coordinator.call_v1.BroadcastingOptions broadcasting = 2; */
         if (message.broadcasting)
             BroadcastingOptions.internalBinaryWrite(message.broadcasting, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.call_v1.TranscriptionOptions transcription = 3; */
-        if (message.transcription)
-            TranscriptionOptions.internalBinaryWrite(message.transcription, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -576,50 +551,3 @@ class BroadcastingOptions$Type extends MessageType<BroadcastingOptions> {
  * @generated MessageType for protobuf message stream.video.coordinator.call_v1.BroadcastingOptions
  */
 export const BroadcastingOptions = new BroadcastingOptions$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class TranscriptionOptions$Type extends MessageType<TranscriptionOptions> {
-    constructor() {
-        super("stream.video.coordinator.call_v1.TranscriptionOptions", [
-            { no: 1, name: "enabled", kind: "scalar", opt: true, T: 8 /*ScalarType.BOOL*/ }
-        ]);
-    }
-    create(value?: PartialMessage<TranscriptionOptions>): TranscriptionOptions {
-        const message = {};
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<TranscriptionOptions>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TranscriptionOptions): TranscriptionOptions {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* optional bool enabled */ 1:
-                    message.enabled = reader.bool();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: TranscriptionOptions, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* optional bool enabled = 1; */
-        if (message.enabled !== undefined)
-            writer.tag(1, WireType.Varint).bool(message.enabled);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.coordinator.call_v1.TranscriptionOptions
- */
-export const TranscriptionOptions = new TranscriptionOptions$Type();

@@ -92,11 +92,11 @@ const App = () => {
           datacenterId: 'milan',
         });
         if (callToJoin) {
-          const { call: callEnvelope, latencyClaim } = callToJoin;
-          if (!callEnvelope || !callEnvelope.call || !latencyClaim) return;
+          const { call: callEnvelope, edges } = callToJoin;
+          if (!callEnvelope || !callEnvelope.call || !edges) return;
           const edge = await client?.getCallEdgeServer(
             callEnvelope.call,
-            latencyClaim,
+            edges,
           );
           setCurrentCall(callEnvelope.call);
           setIsCurrentCallAccepted(true);

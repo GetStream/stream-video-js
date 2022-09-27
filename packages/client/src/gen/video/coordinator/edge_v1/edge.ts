@@ -13,66 +13,27 @@ import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 /**
- * @generated from protobuf message stream.video.coordinator.edge_v1.LatencyEndpoint
- */
-export interface LatencyEndpoint {
-    /**
-     * @generated from protobuf field: string id = 1;
-     */
-    id: string;
-    /**
-     * @generated from protobuf field: string url = 2;
-     */
-    url: string;
-    /**
-     * @generated from protobuf field: double proximity = 3;
-     */
-    proximity: number;
-    /**
-     * @generated from protobuf field: double latency = 4;
-     */
-    latency: number;
-}
-/**
- * @generated from protobuf message stream.video.coordinator.edge_v1.Server
- */
-export interface Server {
-    /**
-     * @generated from protobuf field: string id = 1;
-     */
-    id: string;
-    /**
-     * @generated from protobuf field: string url = 2;
-     */
-    url: string;
-}
-/**
  * @generated from protobuf message stream.video.coordinator.edge_v1.Credentials
  */
 export interface Credentials {
     /**
      * Edge server to connect to
      *
-     * @generated from protobuf field: stream.video.coordinator.edge_v1.Server server = 1;
+     * @generated from protobuf field: stream.video.coordinator.edge_v1.EdgeServer server = 1;
      */
-    server?: Server;
+    server?: EdgeServer;
     /**
      * The auth token needed to authenticate to the edge server
      *
      * @generated from protobuf field: string token = 2;
      */
     token: string;
-}
-/**
- * TODO: better name for this
- *
- * @generated from protobuf message stream.video.coordinator.edge_v1.LatencyMeasurementClaim
- */
-export interface LatencyMeasurementClaim {
     /**
-     * @generated from protobuf field: repeated stream.video.coordinator.edge_v1.LatencyEndpoint endpoints = 1;
+     * The list of ICE servers
+     *
+     * @generated from protobuf field: repeated stream.video.coordinator.edge_v1.ICEServer ice_servers = 3;
      */
-    endpoints: LatencyEndpoint[];
+    iceServers: ICEServer[];
 }
 /**
  * @generated from protobuf message stream.video.coordinator.edge_v1.LatencyMeasurements
@@ -95,6 +56,19 @@ export interface Latency {
     measurementsSeconds: number[];
 }
 /**
+ * @generated from protobuf message stream.video.coordinator.edge_v1.Coordinates
+ */
+export interface Coordinates {
+    /**
+     * @generated from protobuf field: float lat = 1;
+     */
+    lat: number;
+    /**
+     * @generated from protobuf field: float long = 2;
+     */
+    long: number;
+}
+/**
  * Edges are where we deploy video servers
  *
  * @generated from protobuf message stream.video.coordinator.edge_v1.Edge
@@ -108,16 +82,29 @@ export interface Edge {
      * @generated from protobuf field: string latency_url = 2;
      */
     latencyUrl: string;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.edge_v1.Coordinates coordinates = 3;
+     */
+    coordinates?: Coordinates;
 }
-// TODO: to discuss. do we keep a log per call of
-// - people joining
-// - reactions
-// - etc?
-// - maybe it only makes sense when you transcribe the call
-
 /**
- * Edges are where we deploy video servers
- *
+ * @generated from protobuf message stream.video.coordinator.edge_v1.ICEServer
+ */
+export interface ICEServer {
+    /**
+     * @generated from protobuf field: repeated string urls = 1;
+     */
+    urls: string[];
+    /**
+     * @generated from protobuf field: string username = 2;
+     */
+    username: string;
+    /**
+     * @generated from protobuf field: string password = 3;
+     */
+    password: string;
+}
+/**
  * @generated from protobuf message stream.video.coordinator.edge_v1.EdgeServer
  */
 export interface EdgeServer {
@@ -125,154 +112,22 @@ export interface EdgeServer {
      * @generated from protobuf field: string url = 1;
      */
     url: string;
-}
-/**
- * Returns information about the server location
- *
- * @generated from protobuf message stream.video.coordinator.edge_v1.EdgeServer.Coordinates
- */
-export interface EdgeServer_Coordinates {
     /**
-     * @generated from protobuf field: float lat = 1;
+     * @generated from protobuf field: string edge_name = 2;
      */
-    lat: number;
-    /**
-     * @generated from protobuf field: float long = 2;
-     */
-    long: number;
+    edgeName: string;
 }
-// @generated message type with reflection information, may provide speed optimized methods
-class LatencyEndpoint$Type extends MessageType<LatencyEndpoint> {
-    constructor() {
-        super("stream.video.coordinator.edge_v1.LatencyEndpoint", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "proximity", kind: "scalar", T: 1 /*ScalarType.DOUBLE*/ },
-            { no: 4, name: "latency", kind: "scalar", T: 1 /*ScalarType.DOUBLE*/ }
-        ]);
-    }
-    create(value?: PartialMessage<LatencyEndpoint>): LatencyEndpoint {
-        const message = { id: "", url: "", proximity: 0, latency: 0 };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<LatencyEndpoint>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LatencyEndpoint): LatencyEndpoint {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                case /* string url */ 2:
-                    message.url = reader.string();
-                    break;
-                case /* double proximity */ 3:
-                    message.proximity = reader.double();
-                    break;
-                case /* double latency */ 4:
-                    message.latency = reader.double();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: LatencyEndpoint, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* string url = 2; */
-        if (message.url !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.url);
-        /* double proximity = 3; */
-        if (message.proximity !== 0)
-            writer.tag(3, WireType.Bit64).double(message.proximity);
-        /* double latency = 4; */
-        if (message.latency !== 0)
-            writer.tag(4, WireType.Bit64).double(message.latency);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.coordinator.edge_v1.LatencyEndpoint
- */
-export const LatencyEndpoint = new LatencyEndpoint$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class Server$Type extends MessageType<Server> {
-    constructor() {
-        super("stream.video.coordinator.edge_v1.Server", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<Server>): Server {
-        const message = { id: "", url: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<Server>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Server): Server {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                case /* string url */ 2:
-                    message.url = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: Server, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* string url = 2; */
-        if (message.url !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.url);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.coordinator.edge_v1.Server
- */
-export const Server = new Server$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Credentials$Type extends MessageType<Credentials> {
     constructor() {
         super("stream.video.coordinator.edge_v1.Credentials", [
-            { no: 1, name: "server", kind: "message", T: () => Server, options: { "validate.rules": { message: { required: true } } } },
-            { no: 2, name: "token", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } }
+            { no: 1, name: "server", kind: "message", T: () => EdgeServer, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "token", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 3, name: "ice_servers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => ICEServer }
         ]);
     }
     create(value?: PartialMessage<Credentials>): Credentials {
-        const message = { token: "" };
+        const message = { token: "", iceServers: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Credentials>(this, message, value);
@@ -283,11 +138,14 @@ class Credentials$Type extends MessageType<Credentials> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* stream.video.coordinator.edge_v1.Server server */ 1:
-                    message.server = Server.internalBinaryRead(reader, reader.uint32(), options, message.server);
+                case /* stream.video.coordinator.edge_v1.EdgeServer server */ 1:
+                    message.server = EdgeServer.internalBinaryRead(reader, reader.uint32(), options, message.server);
                     break;
                 case /* string token */ 2:
                     message.token = reader.string();
+                    break;
+                case /* repeated stream.video.coordinator.edge_v1.ICEServer ice_servers */ 3:
+                    message.iceServers.push(ICEServer.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -301,12 +159,15 @@ class Credentials$Type extends MessageType<Credentials> {
         return message;
     }
     internalBinaryWrite(message: Credentials, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.coordinator.edge_v1.Server server = 1; */
+        /* stream.video.coordinator.edge_v1.EdgeServer server = 1; */
         if (message.server)
-            Server.internalBinaryWrite(message.server, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+            EdgeServer.internalBinaryWrite(message.server, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         /* string token = 2; */
         if (message.token !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.token);
+        /* repeated stream.video.coordinator.edge_v1.ICEServer ice_servers = 3; */
+        for (let i = 0; i < message.iceServers.length; i++)
+            ICEServer.internalBinaryWrite(message.iceServers[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -317,53 +178,6 @@ class Credentials$Type extends MessageType<Credentials> {
  * @generated MessageType for protobuf message stream.video.coordinator.edge_v1.Credentials
  */
 export const Credentials = new Credentials$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class LatencyMeasurementClaim$Type extends MessageType<LatencyMeasurementClaim> {
-    constructor() {
-        super("stream.video.coordinator.edge_v1.LatencyMeasurementClaim", [
-            { no: 1, name: "endpoints", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => LatencyEndpoint }
-        ]);
-    }
-    create(value?: PartialMessage<LatencyMeasurementClaim>): LatencyMeasurementClaim {
-        const message = { endpoints: [] };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<LatencyMeasurementClaim>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LatencyMeasurementClaim): LatencyMeasurementClaim {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* repeated stream.video.coordinator.edge_v1.LatencyEndpoint endpoints */ 1:
-                    message.endpoints.push(LatencyEndpoint.internalBinaryRead(reader, reader.uint32(), options));
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: LatencyMeasurementClaim, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated stream.video.coordinator.edge_v1.LatencyEndpoint endpoints = 1; */
-        for (let i = 0; i < message.endpoints.length; i++)
-            LatencyEndpoint.internalBinaryWrite(message.endpoints[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.coordinator.edge_v1.LatencyMeasurementClaim
- */
-export const LatencyMeasurementClaim = new LatencyMeasurementClaim$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class LatencyMeasurements$Type extends MessageType<LatencyMeasurements> {
     constructor() {
@@ -487,122 +301,21 @@ class Latency$Type extends MessageType<Latency> {
  */
 export const Latency = new Latency$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class Edge$Type extends MessageType<Edge> {
+class Coordinates$Type extends MessageType<Coordinates> {
     constructor() {
-        super("stream.video.coordinator.edge_v1.Edge", [
-            { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
-            { no: 2, name: "latency_url", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } }
-        ]);
-    }
-    create(value?: PartialMessage<Edge>): Edge {
-        const message = { name: "", latencyUrl: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<Edge>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Edge): Edge {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string name */ 1:
-                    message.name = reader.string();
-                    break;
-                case /* string latency_url */ 2:
-                    message.latencyUrl = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: Edge, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string name = 1; */
-        if (message.name !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.name);
-        /* string latency_url = 2; */
-        if (message.latencyUrl !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.latencyUrl);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.coordinator.edge_v1.Edge
- */
-export const Edge = new Edge$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class EdgeServer$Type extends MessageType<EdgeServer> {
-    constructor() {
-        super("stream.video.coordinator.edge_v1.EdgeServer", [
-            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<EdgeServer>): EdgeServer {
-        const message = { url: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<EdgeServer>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: EdgeServer): EdgeServer {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string url */ 1:
-                    message.url = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: EdgeServer, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string url = 1; */
-        if (message.url !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.url);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.coordinator.edge_v1.EdgeServer
- */
-export const EdgeServer = new EdgeServer$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class EdgeServer_Coordinates$Type extends MessageType<EdgeServer_Coordinates> {
-    constructor() {
-        super("stream.video.coordinator.edge_v1.EdgeServer.Coordinates", [
+        super("stream.video.coordinator.edge_v1.Coordinates", [
             { no: 1, name: "lat", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ },
             { no: 2, name: "long", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ }
         ]);
     }
-    create(value?: PartialMessage<EdgeServer_Coordinates>): EdgeServer_Coordinates {
+    create(value?: PartialMessage<Coordinates>): Coordinates {
         const message = { lat: 0, long: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<EdgeServer_Coordinates>(this, message, value);
+            reflectionMergePartial<Coordinates>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: EdgeServer_Coordinates): EdgeServer_Coordinates {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Coordinates): Coordinates {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -624,7 +337,7 @@ class EdgeServer_Coordinates$Type extends MessageType<EdgeServer_Coordinates> {
         }
         return message;
     }
-    internalBinaryWrite(message: EdgeServer_Coordinates, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: Coordinates, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* float lat = 1; */
         if (message.lat !== 0)
             writer.tag(1, WireType.Bit32).float(message.lat);
@@ -638,6 +351,182 @@ class EdgeServer_Coordinates$Type extends MessageType<EdgeServer_Coordinates> {
     }
 }
 /**
- * @generated MessageType for protobuf message stream.video.coordinator.edge_v1.EdgeServer.Coordinates
+ * @generated MessageType for protobuf message stream.video.coordinator.edge_v1.Coordinates
  */
-export const EdgeServer_Coordinates = new EdgeServer_Coordinates$Type();
+export const Coordinates = new Coordinates$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Edge$Type extends MessageType<Edge> {
+    constructor() {
+        super("stream.video.coordinator.edge_v1.Edge", [
+            { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 2, name: "latency_url", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 3, name: "coordinates", kind: "message", T: () => Coordinates }
+        ]);
+    }
+    create(value?: PartialMessage<Edge>): Edge {
+        const message = { name: "", latencyUrl: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Edge>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Edge): Edge {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string name */ 1:
+                    message.name = reader.string();
+                    break;
+                case /* string latency_url */ 2:
+                    message.latencyUrl = reader.string();
+                    break;
+                case /* stream.video.coordinator.edge_v1.Coordinates coordinates */ 3:
+                    message.coordinates = Coordinates.internalBinaryRead(reader, reader.uint32(), options, message.coordinates);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Edge, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string name = 1; */
+        if (message.name !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.name);
+        /* string latency_url = 2; */
+        if (message.latencyUrl !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.latencyUrl);
+        /* stream.video.coordinator.edge_v1.Coordinates coordinates = 3; */
+        if (message.coordinates)
+            Coordinates.internalBinaryWrite(message.coordinates, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.edge_v1.Edge
+ */
+export const Edge = new Edge$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ICEServer$Type extends MessageType<ICEServer> {
+    constructor() {
+        super("stream.video.coordinator.edge_v1.ICEServer", [
+            { no: 1, name: "urls", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "username", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "password", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ICEServer>): ICEServer {
+        const message = { urls: [], username: "", password: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ICEServer>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ICEServer): ICEServer {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated string urls */ 1:
+                    message.urls.push(reader.string());
+                    break;
+                case /* string username */ 2:
+                    message.username = reader.string();
+                    break;
+                case /* string password */ 3:
+                    message.password = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ICEServer, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated string urls = 1; */
+        for (let i = 0; i < message.urls.length; i++)
+            writer.tag(1, WireType.LengthDelimited).string(message.urls[i]);
+        /* string username = 2; */
+        if (message.username !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.username);
+        /* string password = 3; */
+        if (message.password !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.password);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.edge_v1.ICEServer
+ */
+export const ICEServer = new ICEServer$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class EdgeServer$Type extends MessageType<EdgeServer> {
+    constructor() {
+        super("stream.video.coordinator.edge_v1.EdgeServer", [
+            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "edge_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<EdgeServer>): EdgeServer {
+        const message = { url: "", edgeName: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<EdgeServer>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: EdgeServer): EdgeServer {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string url */ 1:
+                    message.url = reader.string();
+                    break;
+                case /* string edge_name */ 2:
+                    message.edgeName = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: EdgeServer, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string url = 1; */
+        if (message.url !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.url);
+        /* string edge_name = 2; */
+        if (message.edgeName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.edgeName);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.edge_v1.EdgeServer
+ */
+export const EdgeServer = new EdgeServer$Type();
