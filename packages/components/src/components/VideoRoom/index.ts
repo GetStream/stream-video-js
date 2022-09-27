@@ -1,1 +1,1 @@
-export * from './VideoRoom';
+export * from './StreamCall';

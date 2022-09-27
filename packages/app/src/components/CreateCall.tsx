@@ -18,15 +18,14 @@ import { useStreamVideoClient } from '@stream-io/video-components-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Participants } from '../App';
 
-import { SfuEvents, SfuModels } from '@stream-io/video-client';
+import { SfuEvents } from '@stream-io/video-client';
 
 export const CreateCall = (props: {
   participants: Participants;
-  currentCallState?: SfuModels.CallState;
   currentUser: string;
   onCreateCall?: (callId: string, participants: string[]) => void;
 }) => {
-  const { participants, currentUser, currentCallState, onCreateCall } = props;
+  const { participants, currentUser, onCreateCall } = props;
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>(
     Object.keys(participants),
   );
@@ -39,25 +38,25 @@ export const CreateCall = (props: {
     [],
   );
 
-  useEffect(() => {
-    const inCall: string[] = [];
-    const audioMute: string[] = [];
-    const videoMute: string[] = [];
-    if (currentCallState) {
-      currentCallState.participants.forEach((p) => {
-        const userId = p.userId;
-        if (userId) {
-          inCall.push(userId);
-          // TODO OL: enable once we can send the initial participant state to the controller server
-          // !p.audio && audioMute.push(userId);
-          // !p.video && videoMute.push(userId);
-        }
-      });
-    }
-    setInCallParticipants(inCall);
-    setAudioMuteParticipants(audioMute);
-    setVideoMuteParticipants(videoMute);
-  }, [currentCallState]);
+  // useEffect(() => {
+  //   const inCall: string[] = [];
+  //   const audioMute: string[] = [];
+  //   const videoMute: string[] = [];
+  //   if (currentCallState) {
+  //     currentCallState.participants.forEach((p) => {
+  //       const userId = p.userId;
+  //       if (userId) {
+  //         inCall.push(userId);
+  //         // TODO OL: enable once we can send the initial participant state to the controller server
+  //         // !p.audio && audioMute.push(userId);
+  //         // !p.video && videoMute.push(userId);
+  //       }
+  //     });
+  //   }
+  //   setInCallParticipants(inCall);
+  //   setAudioMuteParticipants(audioMute);
+  //   setVideoMuteParticipants(videoMute);
+  // }, [currentCallState]);
 
   const toggleParticipant = useCallback(
     (name: string) => {

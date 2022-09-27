@@ -11,14 +11,12 @@ import {
   MemberInput,
   Struct,
   UserInput,
-  SfuModels,
   CallCreated,
   Envelopes,
   CallStarted,
 } from '@stream-io/video-client';
 import {
-  RoomType,
-  VideoRoom,
+  StreamCall,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-components-react';
@@ -53,12 +51,8 @@ const App = () => {
     return params.get('user') || 'marcelo';
   });
   const [currentCall, setCurrentCall] = useState<Call | undefined>();
-  const [currentCallState, setCurrentCallState] = useState<
-    SfuModels.CallState | undefined
-  >();
   const [isCurrentCallAccepted, setIsCurrentCallAccepted] = useState(false);
   const [edge, setEdge] = useState<GetCallEdgeServerResponse | undefined>();
-  const [room, setRoom] = useState<RoomType | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
@@ -106,7 +100,6 @@ const App = () => {
           );
           setCurrentCall(callEnvelope.call);
           setIsCurrentCallAccepted(true);
-          // setCurrentCallState(callEnvelope.call.callState);
           setEdge(edge);
         }
         setErrorMessage('');
@@ -216,9 +209,7 @@ const App = () => {
               <NavigationBar />
               <ParticipantControls
                 participants={participants}
-                room={room}
                 currentCall={currentCall}
-                currentCallState={currentCallState}
                 currentUser={currentUser}
                 setCurrentUser={setCurrentUser}
                 joinCall={joinCall}
@@ -235,7 +226,10 @@ const App = () => {
                 {edge && edge.credentials && (
                   <>
                     {currentCall && (
-                      <VideoRoom credentials={edge.credentials} />
+                      <StreamCall
+                        currentUser={currentUser}
+                        credentials={edge.credentials}
+                      />
                     )}
                   </>
                 )}

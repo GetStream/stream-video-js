@@ -3,14 +3,14 @@ import {
   VideoDimension,
 } from '@stream-io/video-client-sfu/dist/src/gen/sfu_models/models';
 import { useEffect, useRef } from 'react';
-import { Room } from '@stream-io/video-client-sfu';
+import { Call } from '@stream-io/video-client-sfu';
 import { useParticipantStreams } from '../../hooks/useParticipantStreams';
 import { useParticipants } from '../../hooks/useParticipants';
 
-export const Stage = (props: { room: Room; participants: Participant[] }) => {
-  const { room, participants: initialParticipants } = props;
-  const { userAudioStreams, userVideoStreams } = useParticipantStreams(room);
-  const participants = useParticipants(room, initialParticipants);
+export const Stage = (props: { call: Call; participants: Participant[] }) => {
+  const { call, participants: initialParticipants } = props;
+  const { userAudioStreams, userVideoStreams } = useParticipantStreams(call);
+  const participants = useParticipants(call, initialParticipants);
   useEffect(() => {
     const subscriptions = participants.reduce<{
       [key: string]: VideoDimension;
@@ -23,10 +23,10 @@ export const Stage = (props: { room: Room; participants: Participant[] }) => {
       return acc;
     }, {});
 
-    room.updateSubscriptions(subscriptions).catch((e: Error) => {
+    call.updateSubscriptions(subscriptions).catch((e: Error) => {
       console.error(`Failed to update subscriptions`, e);
     });
-  }, [room, participants]);
+  }, [call, participants]);
   return (
     <div className="str-video__stage">
       {participants.map((participant) => {

@@ -23,16 +23,13 @@ import VideoCall from '@mui/icons-material/VideoCall';
 import { CreateCall } from './CreateCall';
 import { JoinCall } from './JoinCall';
 import type { Participants } from '../App';
-import { RoomType } from '@stream-io/video-components-react';
-import { Call, SfuModels } from '@stream-io/video-client';
+import { Call } from '@stream-io/video-client';
 
 export type ParticipantsProps = {
   participants: Participants;
   currentUser: string;
   setCurrentUser: (name: string) => void;
   currentCall?: Call;
-  currentCallState?: SfuModels.CallState;
-  room?: RoomType;
   joinCall?: (callId: string, type: string) => void;
   onCreateCall?: (callId: string, participants: string[]) => void;
 };
@@ -41,10 +38,8 @@ export const ParticipantControls = (props: ParticipantsProps) => {
   const {
     participants,
     currentCall,
-    currentCallState,
     currentUser,
     setCurrentUser,
-    room,
     joinCall,
     onCreateCall,
   } = props;
@@ -103,7 +98,6 @@ export const ParticipantControls = (props: ParticipantsProps) => {
           <CreateCall
             participants={participants}
             currentUser={currentUser}
-            currentCallState={currentCallState}
             onCreateCall={onCreateCall}
           />
         </Collapse>
@@ -130,12 +124,12 @@ export const ParticipantControls = (props: ParticipantsProps) => {
         variant={'contained'}
         fullWidth
         color="error"
-        disabled={!room}
+        disabled
         startIcon={<VideocamOffIcon />}
         onClick={() => {
-          room?.disconnect().then(() => {
-            console.log(`Disconnected from call`);
-          });
+          // room?.disconnect().then(() => {
+          //   console.log(`Disconnected from call`);
+          // });
         }}
       >
         Disconnect

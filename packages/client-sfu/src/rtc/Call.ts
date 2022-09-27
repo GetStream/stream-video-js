@@ -16,7 +16,7 @@ import { createPublisher } from './publisher';
 import { Dispatcher } from './Dispatcher';
 import { VideoDimension } from '../gen/sfu_models/models';
 
-export class Room {
+export class Call {
   private readonly dispatcher = new Dispatcher();
   private readonly client: Client;
 
