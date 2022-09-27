@@ -1,2 +1,2 @@
 export * from './LiveKitRoom';
-export * from './VideoRoom';
+export * from './StreamCall';
