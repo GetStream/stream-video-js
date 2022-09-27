@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Room } from '@stream-io/video-client-sfu';
+import { Call } from '@stream-io/video-client-sfu';
 
 export type UserStreamMap = {
   [userId: string]: MediaStream | undefined;
 };
 
-export const useParticipantStreams = (room: Room) => {
+export const useParticipantStreams = (call: Call) => {
   const [userAudioStreams, setUserAudioStreams] = useState<UserStreamMap>({});
   const [userVideoStreams, setUserVideoStreams] = useState<UserStreamMap>({});
   useEffect(() => {
     // FIXME: OL: rework this!
-    room.handleOnTrack = (e: RTCTrackEvent) => {
+    call.handleOnTrack = (e: RTCTrackEvent) => {
       e.track.addEventListener('mute', () => {
         console.log(`Track muted`, e.track.id, e.track);
       });
@@ -39,12 +39,12 @@ export const useParticipantStreams = (room: Room) => {
       }
     };
     return () => {
-      room.handleOnTrack = undefined;
+      call.handleOnTrack = undefined;
     };
-  }, [room]);
+  }, [call]);
 
   useEffect(() => {
-    return room.on('participantLeft', (e) => {
+    return call.on('participantLeft', (e) => {
       if (e.eventPayload.oneofKind !== 'participantLeft') return;
       const { participant } = e.eventPayload.participantLeft;
       if (participant) {
@@ -59,7 +59,7 @@ export const useParticipantStreams = (room: Room) => {
         }));
       }
     });
-  }, [room]);
+  }, [call]);
 
   return useMemo(
     () => ({ userAudioStreams, userVideoStreams }),
