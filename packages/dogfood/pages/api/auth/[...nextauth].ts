@@ -1,6 +1,6 @@
-import NextAuth from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import type { NextAuthOptions } from "next-auth";
+import NextAuth from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
+import type { NextAuthOptions } from 'next-auth';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -11,8 +11,9 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ account, profile }) {
-      if (account.provider === "google") {
-        return (profile?.email_verified && profile?.email?.endsWith("@getstream.io")) as boolean;
+      if (account.provider === 'google') {
+        return (profile?.email_verified &&
+          profile?.email?.endsWith('@getstream.io')) as boolean;
       }
       return false;
     },
