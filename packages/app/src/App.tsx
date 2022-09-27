@@ -50,9 +50,9 @@ const App = () => {
     const params = new URLSearchParams(window.location.search);
     return params.get('user') || 'marcelo';
   });
-  const [currentCall, setCurrentCall] = useState<Call | undefined>();
+  const [currentCall, setCurrentCall] = useState<Call>();
   const [isCurrentCallAccepted, setIsCurrentCallAccepted] = useState(false);
-  const [edge, setEdge] = useState<GetCallEdgeServerResponse | undefined>();
+  const [edge, setEdge] = useState<GetCallEdgeServerResponse>();
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
@@ -227,6 +227,7 @@ const App = () => {
                   <>
                     {currentCall && (
                       <StreamCall
+                        activeCall={currentCall}
                         currentUser={currentUser}
                         credentials={edge.credentials}
                       />

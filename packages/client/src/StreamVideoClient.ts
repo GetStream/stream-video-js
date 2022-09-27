@@ -4,7 +4,6 @@ import {
   JoinCallRequest,
   ReportCallStatsRequest,
   ReportCallStatsResponse,
-  SendCustomEventRequest,
 } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
 import {
@@ -109,11 +108,6 @@ export class StreamVideoClient {
     });
 
     return edgeServer.response;
-  };
-
-  sendEvent = async (event: SendCustomEventRequest) => {
-    const eventResponse = await this.client.sendCustomEvent(event);
-    return eventResponse.response;
   };
 
   reportCallStats = async (

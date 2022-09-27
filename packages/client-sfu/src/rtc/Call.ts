@@ -238,6 +238,17 @@ export class Call {
     return sender?.track?.getConstraints().deviceId as string;
   };
 
+  getStats = async (kind: 'subscriber' | 'publisher') => {
+    if (kind === 'subscriber' && this.subscriber) {
+      return this.subscriber.getStats();
+    } else if (kind === 'publisher' && this.publisher) {
+      return this.publisher.getStats();
+    } else {
+      console.warn(`Can't retrieve RTC stats for`, kind);
+      return undefined;
+    }
+  };
+
   updatePublishQuality = async (enabledRids: string[]) => {
     const videoSender = this.publisher
       ?.getSenders()

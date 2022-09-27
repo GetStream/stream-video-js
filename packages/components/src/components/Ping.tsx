@@ -1,32 +1,29 @@
-// import { useEffect, useState } from 'react';
-// import { useStreamVideoClient } from '../StreamVideo';
+import { useEffect, useState } from 'react';
+import { useStreamVideoClient } from '../StreamVideo';
 import { Call } from '@stream-io/video-client';
+import { WebsocketHealthcheck } from '@stream-io/video-client/dist/src/gen/video/coordinator/client_v1_rpc/websocket';
 
-export const Ping = (props: { currentUser?: string; currentCall?: Call }) => {
-  // const { currentUser } = props;
-  // const client = useStreamVideoClient();
-  //
-  // // FIXME: OL should be initialized with value coming from user default preferences
+export const Ping = (props: { currentUser: string; activeCall: Call }) => {
+  const { currentUser, activeCall } = props;
+  const client = useStreamVideoClient();
+
+  // FIXME: OL should be initialized with value coming from user default preferences
   // const [hasAudio, setHasAudio] = useState(true);
   // const [hasVideo, setHasVideo] = useState(true);
-  //
-  // const [healthcheck, setHealthcheck] = useState<Healthcheck>();
-  // const [currentCall, setCurrentCall] = useState<Call | undefined>(
-  //   props.currentCall,
-  // );
-  //
-  // // keep track of server-side updates
-  // useEffect(() => {
-  //   const onHealthCheck = (message: Healthcheck) => {
-  //     console.log(`Healthcheck received`, message);
-  //     setHealthcheck(message);
-  //   };
-  //
-  //   return client?.on('healthCheck', onHealthCheck);
-  // }, [client]);
-  //
-  // // keep track on calls created in meantime
-  // // FIXME: ideally, this event should fire on 'JoinCall'
+
+  const [healthcheck, setHealthcheck] = useState<WebsocketHealthcheck>();
+  // keep track of server-side updates
+  useEffect(() => {
+    const onHealthCheck = (message: WebsocketHealthcheck) => {
+      console.log(`Healthcheck received`, message);
+      setHealthcheck(message);
+    };
+
+    return client?.on('healthcheck', onHealthCheck);
+  }, [client]);
+
+  // keep track on calls created in meantime
+  // FIXME: ideally, this event should fire on 'JoinCall'
   // useEffect(() => {
   //   const onCallCreated = (e: CallCreated) => {
   //     setCurrentCall(e.call);
@@ -75,39 +72,33 @@ export const Ping = (props: { currentUser?: string; currentCall?: Call }) => {
   //     client?.off('videoStarted', handleVideoStarted);
   //   };
   // }, [client, currentUser]);
-  //
-  // useEffect(() => {
-  //   if (!healthcheck || !currentUser) return;
-  //   const payload: Healthcheck = {
-  //     ...healthcheck,
-  //     // FIXME OL: workaround around missing optionality
-  //     callId: currentCall?.id ?? '',
-  //     callType: currentCall?.type ?? 'video',
-  //     audio: hasAudio,
-  //     video: hasVideo,
-  //   };
-  //
-  //   client?.setHealthcheckPayload(Healthcheck.toBinary(payload));
-  //   return () => {
-  //     // FIXME OL: we need better way to handle HealthCheck modes
-  //     const plainHealthcheck: Healthcheck = {
-  //       ...healthcheck,
-  //       callId: '',
-  //       callType: '',
-  //       video: false,
-  //       audio: false,
-  //     };
-  //     client?.setHealthcheckPayload(Healthcheck.toBinary(plainHealthcheck));
-  //   };
-  // }, [
-  //   client,
-  //   currentCall?.id,
-  //   currentCall?.type,
-  //   currentUser,
-  //   hasAudio,
-  //   hasVideo,
-  //   healthcheck,
-  // ]);
+
+  useEffect(() => {
+    if (!healthcheck || !currentUser) return;
+    const payload: WebsocketHealthcheck = {
+      ...healthcheck,
+      // FIXME OL: workaround around missing optionality
+      callId: activeCall.id,
+      callType: activeCall.type,
+      audio: true,
+      video: true,
+    };
+
+    client?.setHealthcheckPayload(WebsocketHealthcheck.toBinary(payload));
+    return () => {
+      // FIXME OL: we need better way to handle HealthCheck modes
+      const plainHealthcheck: WebsocketHealthcheck = {
+        ...healthcheck,
+        callId: '',
+        callType: '',
+        video: false,
+        audio: false,
+      };
+      client?.setHealthcheckPayload(
+        WebsocketHealthcheck.toBinary(plainHealthcheck),
+      );
+    };
+  }, [client, activeCall.id, activeCall.type, currentUser, healthcheck]);
 
   return null;
 };
