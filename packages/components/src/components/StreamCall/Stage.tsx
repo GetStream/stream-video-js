@@ -27,8 +27,10 @@ export const Stage = (props: { call: Call; participants: Participant[] }) => {
       console.error(`Failed to update subscriptions`, e);
     });
   }, [call, participants]);
+
+  const grid = `str-video__grid-${participants.length || 1}`;
   return (
-    <div className="str-video__stage">
+    <div className={`str-video__stage ${grid}`}>
       {participants.map((participant) => {
         const userId = participant.user!.id;
         const audioStream = userAudioStreams[userId];
