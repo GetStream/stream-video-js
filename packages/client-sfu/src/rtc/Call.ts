@@ -16,9 +16,14 @@ import { createPublisher } from './publisher';
 import { Dispatcher } from './Dispatcher';
 import { VideoDimension } from '../gen/sfu_models/models';
 
+export type CallOptions = {
+  connectionConfig: RTCConfiguration | undefined;
+};
+
 export class Call {
   private readonly dispatcher = new Dispatcher();
   private readonly client: Client;
+  private readonly options: CallOptions;
 
   private videoLayers?: OptimalVideoLayer[];
   private subscriber?: RTCPeerConnection;
@@ -27,8 +32,9 @@ export class Call {
   // FIXME: OL: convert to regular event
   handleOnTrack?: (e: RTCTrackEvent) => void;
 
-  constructor(client: Client) {
+  constructor(client: Client, options: CallOptions) {
     this.client = client;
+    this.options = options;
   }
 
   on = this.dispatcher.on;
@@ -55,9 +61,9 @@ export class Call {
     console.log(`Setting up subscriber`);
 
     this.subscriber = createSubscriber({
-      sfuUrl: 'localhost',
       rpcClient: this.client,
       dispatcher: this.dispatcher,
+      connectionConfig: this.options.connectionConfig,
       onTrack: (e) => {
         console.log('Got remote track:', e.track);
         this.handleOnTrack?.(e);
@@ -132,8 +138,8 @@ export class Call {
     console.log(`Setting up publisher`);
 
     this.publisher = createPublisher({
-      sfuUrl: 'localhost',
       rpcClient: this.client,
+      connectionConfig: this.options.connectionConfig,
     });
 
     if (videoStream) {

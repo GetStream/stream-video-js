@@ -1,33 +1,21 @@
-import { Client } from '../rpc/Client';
+import { Client } from '../rpc';
 import { Dispatcher } from './Dispatcher';
 import { PeerType } from '../gen/sfu_models/models';
 
 export type SubscriberOpts = {
-  sfuUrl: string;
   rpcClient: Client;
   dispatcher: Dispatcher;
+  connectionConfig?: RTCConfiguration;
   onTrack?: (e: RTCTrackEvent) => void;
 };
 
 export const createSubscriber = ({
-  sfuUrl,
   rpcClient,
   dispatcher,
+  connectionConfig,
   onTrack,
 }: SubscriberOpts) => {
-  const subscriber = new RTCPeerConnection({
-    iceServers: [
-      {
-        urls: 'stun:stun.l.google.com:19302',
-      },
-      {
-        urls: `turn:${sfuUrl}:3478`,
-        username: 'video',
-        credential: 'video',
-      },
-    ],
-  });
-
+  const subscriber = new RTCPeerConnection(connectionConfig);
   subscriber.addEventListener('icecandidate', async (e) => {
     const { candidate } = e;
     if (!candidate) {

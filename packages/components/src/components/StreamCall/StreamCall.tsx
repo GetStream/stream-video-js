@@ -1,4 +1,4 @@
-import { Credentials } from '@stream-io/video-client';
+import { Credentials, ICEServer } from '@stream-io/video-client';
 import { Client, Call, User } from '@stream-io/video-client-sfu';
 import { useEffect, useMemo, useState } from 'react';
 import { useMediaDevices } from '../../hooks/useMediaDevices';
@@ -24,9 +24,17 @@ export const StreamCall = ({
     const user = new User(currentUser, credentials.token);
     const serverUrl = credentials.server?.url || 'http://localhost:3031/twirp';
     const client = new Client(serverUrl, user);
-    // TODO: OL: provide the `credentials.iceServers` to the Call object.
-    return new Call(client);
-  }, [credentials.server?.url, credentials.token, currentUser]);
+    return new Call(client, {
+      connectionConfig:
+        toRtcConfiguration(credentials.iceServers) ||
+        defaultRtcConfiguration(serverUrl),
+    });
+  }, [
+    credentials.iceServers,
+    credentials.server?.url,
+    credentials.token,
+    currentUser,
+  ]);
 
   const [sfuCallState, setSfuCallState] = useState<CallState>();
   const { mediaStream } = useMediaDevices();
@@ -67,4 +75,38 @@ export const StreamCall = ({
       )}
     </div>
   );
+};
+
+const toRtcConfiguration = (config?: ICEServer[]) => {
+  if (!config || config.length === 0) return undefined;
+  const rtcConfig: RTCConfiguration = {
+    iceServers: config.map((ice) => ({
+      urls: ice.urls,
+      username: ice.username,
+      credential: ice.password,
+    })),
+  };
+  return rtcConfig;
+};
+
+const defaultRtcConfiguration = (sfuUrl: string): RTCConfiguration => ({
+  iceServers: [
+    {
+      urls: 'stun:stun.l.google.com:19302',
+    },
+    {
+      urls: `turn:${hostnameFromUrl(sfuUrl)}:3478`,
+      username: 'video',
+      credential: 'video',
+    },
+  ],
+});
+
+const hostnameFromUrl = (url: string) => {
+  try {
+    return new URL(url).hostname;
+  } catch (e) {
+    console.warn(`Invalid URL. Can't extract hostname from it.`, e);
+    return url;
+  }
 };

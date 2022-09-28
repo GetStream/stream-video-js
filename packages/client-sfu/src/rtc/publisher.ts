@@ -1,24 +1,15 @@
-import { Client } from '../rpc/Client';
+import { Client } from '../rpc';
 
 export type PublisherOpts = {
-  sfuUrl: string;
   rpcClient: Client;
+  connectionConfig?: RTCConfiguration;
 };
 
-export const createPublisher = ({ sfuUrl, rpcClient }: PublisherOpts) => {
-  const publisher = new RTCPeerConnection({
-    iceServers: [
-      {
-        urls: 'stun:stun.l.google.com:19302',
-      },
-      {
-        urls: `turn:${sfuUrl}:3478`,
-        username: 'video',
-        credential: 'video',
-      },
-    ],
-  });
-
+export const createPublisher = ({
+  connectionConfig,
+  rpcClient,
+}: PublisherOpts) => {
+  const publisher = new RTCPeerConnection(connectionConfig);
   publisher.addEventListener('icecandidate', async (e) => {
     const { candidate } = e;
     if (!candidate) {
