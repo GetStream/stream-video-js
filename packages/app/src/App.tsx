@@ -54,7 +54,7 @@ const App = () => {
   });
   const [currentCall, setCurrentCall] = useState<Call>();
   const [isCurrentCallAccepted, setIsCurrentCallAccepted] = useState(false);
-  const [edge, setEdge] = useState<GetCallEdgeServerResponse>();
+  const [, setEdge] = useState<GetCallEdgeServerResponse>();
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {

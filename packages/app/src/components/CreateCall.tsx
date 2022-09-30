@@ -34,9 +34,7 @@ export const CreateCall = (props: {
   const [audioMuteParticipants, setAudioMuteParticipants] = useState<string[]>(
     [],
   );
-  const [videoMuteParticipants, setVideoMuteParticipants] = useState<string[]>(
-    [],
-  );
+  const [videoMuteParticipants] = useState<string[]>([]);
 
   // useEffect(() => {
   //   const inCall: string[] = [];
