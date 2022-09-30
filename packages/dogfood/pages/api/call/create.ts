@@ -32,11 +32,16 @@ const createCallSlackHookAPI = async (
 
       const joinUrl = [protocol, req.headers.host, '/join/', call.id].join('');
       return res.status(200).json({
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `(Join Stream Video)[${joinUrl}]`,
-        },
+        response_type: 'in_channel',
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `(Join Stream Video)[${joinUrl}]`,
+            },
+          },
+        ],
       });
     }
     return res.status(400).json({ error: 'Failed to getOrCreate call' });
