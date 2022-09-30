@@ -79,6 +79,7 @@ export const getServerSideProps = async (
     };
   }
 
+  const coordinatorRpcUrl = process.env.STREAM_COORDINATOR_RPC_URL;
   const coordinatorWsUrl = process.env.STREAM_COORDINATOR_WS_URL;
   const apiKey = process.env.STREAM_API_KEY as string;
   const secretKey = process.env.STREAM_SECRET_KEY as string;
@@ -88,7 +89,7 @@ export const getServerSideProps = async (
   ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
   return {
     props: {
-      coordinatorRpcUrl: '/rpc',
+      coordinatorRpcUrl,
       coordinatorWsUrl,
       apiKey,
       userToken: createToken(userName, secretKey),
