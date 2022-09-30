@@ -78,9 +78,10 @@ const App = () => {
   );
 
   const client = useCreateStreamVideoClient({
-    coordinatorRpcUrl: '/rpc', // proxied to http://localhost:26991
+    coordinatorRpcUrl:
+      'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc', // proxied to http://localhost:26991
     coordinatorWsUrl:
-      'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+      'ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
     apiKey: 'key10', // see <video>/data/fixtures/apps.yaml for API secret
     token: participants[currentUser],
     user,
