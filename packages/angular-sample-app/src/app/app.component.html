@@ -7,7 +7,7 @@
     autoplay
   ></video>
   Others:
-  <ng-container *ngFor="let participantMediaStreams of mediaStreamsOfParticipants">
+  <ng-container *ngFor="let participantMediaStreams of participantStreams$  | async">
     <div>{{participantMediaStreams.name}}</div>
     <audio autoplay [srcObject]="participantMediaStreams.audio"></audio>
     <video
