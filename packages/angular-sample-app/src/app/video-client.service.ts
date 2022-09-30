@@ -26,15 +26,19 @@ export class VideoClientService {
     this.userSubject.next(user);
     this.client?.on('healthcheck', (message: WebsocketHealthcheck) => {
       this.webSocketHealthCheck = message;
-      const payload: WebsocketHealthcheck = {
-        ...this.webSocketHealthCheck!,
-        callId: '',
-        callType: 'default',
-        audio: true,
-        video: true,
-      };
-
-      this.client?.setHealthcheckPayload(WebsocketHealthcheck.toBinary(payload));
+      this.setHealthcheckPayload();
     });
+  }
+
+  setHealthcheckPayload(callId?: string) {
+    this.webSocketHealthCheck = {
+      ...this.webSocketHealthCheck!,
+      callId: callId || '',
+      callType: 'default',
+      audio: true,
+      video: true,
+    };
+
+    this.client?.setHealthcheckPayload(WebsocketHealthcheck.toBinary(this.webSocketHealthCheck));
   }
 }

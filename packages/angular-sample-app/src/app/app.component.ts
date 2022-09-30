@@ -22,9 +22,11 @@ export class AppComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     await this.connect();
     await this.getOwnMediaStream();
-    this.subscriptions.push(this.activatedRoute.queryParams.subscribe(params => {
+    this.subscriptions.push(this.activatedRoute.queryParams.subscribe(async params => {
       if (params['callid']) {
-        this.joinCall(params['callid']);
+        const callId = params['callid'];
+        await this.joinCall(callId);
+        this.clientService.setHealthcheckPayload(callId);
       }
     }));
   }
@@ -34,7 +36,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private async joinCall(id: string, type = 'default') {
-    this.callService.joinCall(id, type, this.ownMediaStream!);
+    await this.callService.joinCall(id, type, this.ownMediaStream!);
   }
 
   private connect() {
