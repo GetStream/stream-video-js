@@ -13,10 +13,12 @@ import { VideoClientService } from './video-client.service';
 export class AppComponent implements OnInit, OnDestroy {
   ownMediaStream?: MediaStream;
   participantStreams$: Observable<ParticipantStream[]>;
+  user$: Observable<any>;
   private subscriptions: Subscription[] = [];
 
   constructor(private activatedRoute: ActivatedRoute, private clientService: VideoClientService, private callService: CallService) {
     this.participantStreams$ = this.callService.participantStreams$;
+    this.user$ = this.clientService.user$;
   }
 
   async ngOnInit() {
