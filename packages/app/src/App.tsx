@@ -230,6 +230,7 @@ const App = () => {
                     callId={currentCall.id}
                     callType={currentCall.type}
                     currentUser={currentUser}
+                    includeSelf
                   />
                 )}
               </Box>

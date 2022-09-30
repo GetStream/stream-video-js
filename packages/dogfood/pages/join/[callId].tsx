@@ -55,6 +55,7 @@ const JoinCall = (props: JoinCallProps) => {
         callId={callId}
         callType={callType}
         autoJoin={true}
+        includeSelf={false}
       />
     </StreamVideo>
   );

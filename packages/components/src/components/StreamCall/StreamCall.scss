@@ -71,6 +71,10 @@
         border: 2px solid #005fff;
         background-size: contain;
         width: 100%;
+
+        &.mirror {
+          transform: rotateY(180deg);
+        }
       }
 
       .str-video__participant_details {

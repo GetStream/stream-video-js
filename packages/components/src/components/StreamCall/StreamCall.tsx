@@ -14,6 +14,7 @@ export type RoomProps = {
   callId: string;
   callType: string;
   autoJoin?: boolean;
+  includeSelf?: boolean;
 };
 
 export const StreamCall = ({
@@ -21,6 +22,7 @@ export const StreamCall = ({
   callId,
   callType,
   autoJoin = true,
+  includeSelf = false,
 }: RoomProps) => {
   const { activeCall, credentials } = useCall({
     callId,
@@ -75,7 +77,13 @@ export const StreamCall = ({
       {sfuCallState && (
         <>
           {call && (
-            <Stage participants={sfuCallState.participants} call={call} />
+            <Stage
+              participants={sfuCallState.participants}
+              call={call}
+              includeSelf={includeSelf}
+              localStream={mediaStream}
+              currentUserId={currentUser}
+            />
           )}
           {activeCall && (
             <Ping activeCall={activeCall} currentUser={currentUser} />

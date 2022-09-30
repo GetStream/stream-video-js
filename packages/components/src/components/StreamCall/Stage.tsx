@@ -7,8 +7,20 @@ import { Call } from '@stream-io/video-client-sfu';
 import { useParticipantStreams } from '../../hooks/useParticipantStreams';
 import { useParticipants } from '../../hooks/useParticipants';
 
-export const Stage = (props: { call: Call; participants: Participant[] }) => {
-  const { call, participants: initialParticipants } = props;
+export const Stage = (props: {
+  call: Call;
+  participants: Participant[];
+  includeSelf: boolean;
+  currentUserId: string;
+  localStream?: MediaStream;
+}) => {
+  const {
+    call,
+    participants: initialParticipants,
+    includeSelf,
+    localStream,
+    currentUserId,
+  } = props;
   const { userAudioStreams, userVideoStreams } = useParticipantStreams(call);
   const participants = useParticipants(call, initialParticipants);
 
@@ -30,6 +42,7 @@ export const Stage = (props: { call: Call; participants: Participant[] }) => {
       Object.entries(videoElementsByUserId.current).forEach(
         ([userId, element]) => {
           if (!element) return;
+          if (!includeSelf && userId === currentUserId) return;
           const width = element.clientWidth;
           const height = element.clientHeight;
           subscriptions[userId] = {
@@ -54,19 +67,26 @@ export const Stage = (props: { call: Call; participants: Participant[] }) => {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [call, participants]);
+  }, [call, currentUserId, includeSelf, participants]);
 
   const grid = `str-video__grid-${participants.length || 1}`;
   return (
     <div className={`str-video__stage ${grid}`} ref={gridRef}>
       {participants.map((participant) => {
         const userId = participant.user!.id;
-        const audioStream = userAudioStreams[userId];
-        const videoStream = userVideoStreams[userId];
+        const isLocalParticipant = currentUserId === userId;
+        const audioStream = isLocalParticipant
+          ? undefined
+          : userAudioStreams[userId];
+        const videoStream = isLocalParticipant
+          ? localStream
+          : userVideoStreams[userId];
+
         return (
           <ParticipantBox
             key={userId}
             participant={participant}
+            isLocalParticipant={isLocalParticipant}
             audioStream={audioStream}
             videoStream={videoStream}
             setVideoRef={(ref) => {
@@ -79,14 +99,20 @@ export const Stage = (props: { call: Call; participants: Participant[] }) => {
   );
 };
 
-type ParticipantProps = {
+const ParticipantBox = (props: {
   participant: Participant;
+  isLocalParticipant: boolean;
   audioStream?: MediaStream;
   videoStream?: MediaStream;
   setVideoRef: (ref: RefObject<HTMLVideoElement | undefined>) => void;
-};
-const ParticipantBox = (props: ParticipantProps) => {
-  const { audioStream, videoStream, participant, setVideoRef } = props;
+}) => {
+  const {
+    audioStream,
+    videoStream,
+    participant,
+    isLocalParticipant,
+    setVideoRef,
+  } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>();
 
@@ -97,7 +123,9 @@ const ParticipantBox = (props: ParticipantProps) => {
     <div className="str-video__participant">
       <audio autoPlay ref={audioRef} />
       <video
-        className="str-video__remote-video"
+        className={`str-video__remote-video ${
+          isLocalParticipant ? 'mirror' : ''
+        }`}
         autoPlay
         ref={(ref) => {
           if (ref) {
