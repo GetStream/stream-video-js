@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@stream-io/video-client": "workspace:^",
-    "@stream-io/video-client-sfu": "workspace:^",
     "@stream-io/video-components-react": "workspace:^",
     "jsonwebtoken": "^8.5.1",
     "next": "^12.3.1",

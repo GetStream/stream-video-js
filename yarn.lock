@@ -2751,7 +2751,6 @@ __metadata:
   resolution: "@stream-io/video-dogfood@workspace:packages/dogfood"
   dependencies:
     "@stream-io/video-client": "workspace:^"
-    "@stream-io/video-client-sfu": "workspace:^"
     "@stream-io/video-components-react": "workspace:^"
     "@types/jsonwebtoken": ^8.5.9
     "@types/uuid": ^8.3.4
