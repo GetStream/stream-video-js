@@ -1,4 +1,6 @@
 {
+  "name": "@stream-io/video-dogfood",
+  "packageManager": "yarn@3.2.2",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -6,9 +8,18 @@
     "start": "next start"
   },
   "dependencies": {
+    "@stream-io/video-client": "workspace:^",
+    "@stream-io/video-client-sfu": "workspace:^",
+    "@stream-io/video-components-react": "workspace:^",
+    "jsonwebtoken": "^8.5.1",
     "next": "^12.3.1",
-    "next-auth": "^4.12.1",
+    "next-auth": "^4.12.2",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^8.5.9",
+    "@types/uuid": "^8.3.4"
   }
 }

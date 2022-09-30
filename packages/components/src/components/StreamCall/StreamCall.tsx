@@ -1,26 +1,36 @@
-import { Credentials, ICEServer } from '@stream-io/video-client';
+import { ICEServer } from '@stream-io/video-client';
 import { Client, Call, User } from '@stream-io/video-client-sfu';
 import { useEffect, useMemo, useState } from 'react';
 import { useMediaDevices } from '../../hooks/useMediaDevices';
 import { CallState } from '@stream-io/video-client-sfu/src/gen/sfu_models/models';
-import { Call as ActiveCall } from '@stream-io/video-client';
 import { Stage } from './Stage';
 import { Stats } from '../Stats';
 import { useStreamVideoClient } from '../../StreamVideo';
 import { Ping } from '../Ping';
+import { useCall } from '../../hooks/useCall';
 
 export type RoomProps = {
   currentUser: string;
-  activeCall: ActiveCall;
-  credentials: Credentials;
+  callId: string;
+  callType: string;
+  autoJoin?: boolean;
 };
 
 export const StreamCall = ({
   currentUser,
-  credentials,
-  activeCall,
+  callId,
+  callType,
+  autoJoin = true,
 }: RoomProps) => {
+  const { activeCall, credentials } = useCall({
+    callId,
+    callType,
+    currentUser,
+    autoJoin,
+  });
+
   const call = useMemo(() => {
+    if (!credentials) return undefined;
     const user = new User(currentUser, credentials.token);
     const serverUrl = credentials.server?.url || 'http://localhost:3031/twirp';
     const client = new Client(serverUrl, user);
@@ -29,35 +39,33 @@ export const StreamCall = ({
         toRtcConfiguration(credentials.iceServers) ||
         defaultRtcConfiguration(serverUrl),
     });
-  }, [
-    credentials.iceServers,
-    credentials.server?.url,
-    credentials.token,
-    currentUser,
-  ]);
+  }, [credentials, currentUser]);
 
   const [sfuCallState, setSfuCallState] = useState<CallState>();
   const { mediaStream } = useMediaDevices();
   useEffect(() => {
     const joinCall = async () => {
       // TODO: OL: announce bitrates by passing down MediaStream to .join()
-      const callState = await call.join();
+      const callState = await call?.join();
       setSfuCallState(callState);
     };
 
-    joinCall().catch((e) => {
-      console.error(`Error happened while joining a call`, e);
-      setSfuCallState(undefined);
-    });
+    if (activeCall?.createdByUserId === currentUser || autoJoin) {
+      // initiator, immediately joins the call
+      joinCall().catch((e) => {
+        console.error(`Error happened while joining a call`, e);
+        setSfuCallState(undefined);
+      });
+    }
 
     return () => {
-      call.leave();
+      call?.leave();
     };
-  }, [call]);
+  }, [activeCall?.createdByUserId, autoJoin, call, currentUser]);
 
   useEffect(() => {
     if (mediaStream) {
-      call.publish(mediaStream, mediaStream);
+      call?.publish(mediaStream, mediaStream);
     }
   }, [mediaStream, call]);
 
@@ -66,9 +74,13 @@ export const StreamCall = ({
     <div className="str-video__call">
       {sfuCallState && (
         <>
-          <Stage participants={sfuCallState.participants} call={call} />
-          <Ping activeCall={activeCall} currentUser={currentUser} />
-          {videoClient && (
+          {call && (
+            <Stage participants={sfuCallState.participants} call={call} />
+          )}
+          {activeCall && (
+            <Ping activeCall={activeCall} currentUser={currentUser} />
+          )}
+          {videoClient && activeCall && call && (
             <Stats client={videoClient} call={call} activeCall={activeCall} />
           )}
         </>

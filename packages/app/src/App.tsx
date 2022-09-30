@@ -25,6 +25,8 @@ import { NavigationBar } from './components/NavigationBar';
 import { ParticipantControls } from './components/ParticipantControls';
 import { Ringer } from './components/Ringer';
 
+import '@stream-io/video-components-react/dist/css/styles.css';
+
 // use different browser tabs
 export type Participants = { [name: string]: string };
 const participants: Participants = {
@@ -75,12 +77,14 @@ const App = () => {
     [currentUser],
   );
 
-  const [client, connectionError] = useCreateStreamVideoClient(
-    '/rpc', // proxied to http://localhost:26991
-    'key10', // see <video>/data/fixtures/apps.yaml for API secret
-    participants[currentUser],
+  const client = useCreateStreamVideoClient({
+    coordinatorRpcUrl: '/rpc', // proxied to http://localhost:26991
+    coordinatorWsUrl:
+      'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+    apiKey: 'key10', // see <video>/data/fixtures/apps.yaml for API secret
+    token: participants[currentUser],
     user,
-  );
+  });
 
   const joinCall = useCallback(
     async (id: string, type: string) => {
@@ -178,9 +182,6 @@ const App = () => {
   return (
     <div className="stream-video-sample-app">
       {!client && <Alert severity="info">Connecting...</Alert>}
-      {connectionError && (
-        <Alert severity="error">{connectionError.message}</Alert>
-      )}
       {errorMessage && <Alert severity="warning">{errorMessage}</Alert>}
       {client && (
         <StreamVideo client={client}>
@@ -223,16 +224,12 @@ const App = () => {
                   height: 'calc(100vh - 64px)',
                 }}
               >
-                {edge && edge.credentials && (
-                  <>
-                    {currentCall && (
-                      <StreamCall
-                        activeCall={currentCall}
-                        currentUser={currentUser}
-                        credentials={edge.credentials}
-                      />
-                    )}
-                  </>
+                {currentCall && (
+                  <StreamCall
+                    callId={currentCall.id}
+                    callType={currentCall.type}
+                    currentUser={currentUser}
+                  />
                 )}
               </Box>
             </Box>

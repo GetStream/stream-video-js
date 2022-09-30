@@ -1,3 +1,6 @@
+/**
+ * @type {import('next').NextConfig}
+ */
 const nextConfig = {
   async headers() {
     return [
@@ -12,6 +15,16 @@ const nextConfig = {
       },
     ];
   },
+
+  async rewrites() {
+    const coordinatorApiUrl = process.env.STREAM_COORDINATOR_RPC_URL;
+    return [
+      {
+        source: '/rpc/:path*',
+        destination: `${coordinatorApiUrl}:path*`
+      }
+    ]
+  }
 };
 
 export default nextConfig;

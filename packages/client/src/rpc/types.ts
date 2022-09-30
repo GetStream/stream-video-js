@@ -2,7 +2,12 @@ export type StreamVideoClientOptions = {
   /**
    * The baseURL for the RPC calls
    */
-  baseUrl?: string;
+  coordinatorRpcUrl?: string;
+
+  /**
+   * The baseURL for the Coordinator WS endpoint.
+   */
+  coordinatorWsUrl?: string;
 
   /**
    * Switch to using JSON messages for RPC calls.

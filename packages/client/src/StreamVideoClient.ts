@@ -1,6 +1,7 @@
 import { Call } from './gen/video/coordinator/call_v1/call';
 import {
   CreateCallRequest,
+  GetOrCreateCallRequest,
   JoinCallRequest,
   ReportCallStatsRequest,
   ReportCallStatsResponse,
@@ -21,6 +22,10 @@ import {
 } from './ws';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
+  coordinatorRpcUrl:
+    'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
+  coordinatorWsUrl:
+    'ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
   sendJson: false,
   latencyMeasurementRounds: 3,
 };
@@ -39,7 +44,7 @@ export class StreamVideoClient {
     const { token } = options;
     const authToken = typeof token === 'function' ? token() : token;
     this.client = createClient({
-      baseUrl: options.baseUrl || '/',
+      baseUrl: options.coordinatorRpcUrl || '/',
       sendJson: options.sendJson,
       interceptors: [withAuth(apiKey, authToken)],
     });
@@ -48,7 +53,7 @@ export class StreamVideoClient {
   connect = async (apiKey: string, token: string, user: UserInput) => {
     if (this.ws) return;
     this.ws = await createSocketConnection(
-      'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+      this.options.coordinatorWsUrl!,
       apiKey,
       token,
       user,
@@ -71,6 +76,11 @@ export class StreamVideoClient {
 
   setHealthcheckPayload = (payload: Uint8Array) => {
     this.ws?.keepAlive.setPayload(payload);
+  };
+
+  getOrCreateCall = async (data: GetOrCreateCallRequest) => {
+    const call = await this.client.getOrCreateCall(data);
+    return call.response;
   };
 
   createCall = async (data: CreateCallRequest) => {

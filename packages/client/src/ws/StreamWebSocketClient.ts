@@ -150,7 +150,7 @@ export class StreamWebSocketClient implements StreamWSClient {
     // FIXME: OL: do proper cleanup of resources here.
     console.log(`Disconnect requested`);
     this.keepAlive.cancelPendingPing();
-    this.ws.close(1111, `Disconnect requested`);
+    this.ws.close(3939, `Disconnect requested`);
     this.authenticated = undefined;
   };
 
@@ -166,6 +166,7 @@ export class StreamWebSocketClient implements StreamWSClient {
   };
 
   on = <T>(event: string, fn: StreamEventListener<T>) => {
+    console.log('Attaching listener for', event);
     const listeners = this.subscribers[event] || [];
     listeners.push(fn);
     this.subscribers[event] = listeners;
