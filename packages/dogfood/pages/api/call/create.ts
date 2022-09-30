@@ -38,7 +38,7 @@ const createCallSlackHookAPI = async (
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: `(Join Stream Video)[${joinUrl}]`,
+              text: `[Join Stream Video](${joinUrl})`,
             },
           },
         ],
