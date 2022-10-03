@@ -1,0 +1,36 @@
+video {
+  max-width: 100%;
+}
+
+.str-call__participant {
+  position: relative;
+  display: flex;
+  height: 100%;
+
+  .str-call__participant-name,
+  .str-call__no-audio {
+    position: absolute;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.25rem;
+  }
+
+  .str-call__participant-name {
+    inset-inline-end: 0;
+  }
+
+  .str-call__no-audio {
+    inset-inline-start: 0;
+  }
+
+  .str-call__no-video {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    background-color: lightgray;
+    font-size: 1.25rem;
+    align-items: center;
+    justify-content: center;
+  }
+}
