@@ -51,8 +51,9 @@ export class AppComponent implements OnInit, OnDestroy {
       imageUrl: '/profile.png',
       customJson: new Uint8Array(),
     };
-    const baseUrl = '/rpc';
-    return this.clientService.connect(apiKey, token, user, baseUrl);
+    const baseCoordinatorUrl = '/rpc';
+    const baseWsUrl = 'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect';
+    return this.clientService.connect(apiKey, token, user, baseCoordinatorUrl, baseWsUrl);
   }
 
   private async getOwnMediaStream() {

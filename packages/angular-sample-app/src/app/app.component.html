@@ -1,4 +1,4 @@
-<div>Connected as {{(user$ | async).name}}</div>
+<div>Connected as {{(user$ | async)?.name}}</div>
 <div class="str-video__participant">
   <div>You</div>
   <audio autoplay [srcObject]="ownMediaStream"></audio>

@@ -16,9 +16,10 @@ export class VideoClientService {
     this.user$ = this.userSubject.asObservable();
   }
 
-  async connect(apiKey: string, token: string, user: any, baseUrl: string) {
+  async connect(apiKey: string, token: string, user: any, baseCoordinatorUrl: string, baseWsUrl: string) {
     this.client = new StreamVideoClient(apiKey, {
-      baseUrl,
+      coordinatorRpcUrl: baseCoordinatorUrl,
+      coordinatorWsUrl: baseWsUrl,
       sendJson: true,
       token,
     });

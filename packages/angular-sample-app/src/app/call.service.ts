@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { VideoClientService } from './video-client.service';
 import { Call, Client, User } from '@stream-io/video-client-sfu';
 import { BehaviorSubject, Observable, take } from 'rxjs';
-import { Participant } from '@stream-io/video-client-sfu/dist/src/gen/sfu_models/models';
 import { ParticipantStream } from './types';
+import { Participant } from '@stream-io/video-client-sfu/src/gen/sfu_models/models';
 
 @Injectable({
   providedIn: 'root'
