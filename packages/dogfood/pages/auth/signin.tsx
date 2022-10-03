@@ -13,7 +13,8 @@ export default function SignIn({ providers }: { providers: Providers }) {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      router.push('/');
+      const returnUrl = (router.query['callbackUrl'] as string) || '/';
+      router.push(returnUrl);
     }
   }, [router, status]);
 

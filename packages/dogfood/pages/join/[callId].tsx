@@ -73,9 +73,10 @@ export const getServerSideProps = async (
   );
 
   if (!session) {
+    const url = context.req.url;
     return {
       redirect: {
-        destination: '/auth/signin',
+        destination: `/auth/signin?callbackUrl=${url}`,
       },
     };
   }
