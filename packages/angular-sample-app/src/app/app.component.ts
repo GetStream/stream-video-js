@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
+import { environment } from 'src/environments/environment';
 import { CallService } from './call.service';
 import { ParticipantStream } from './types';
 import { VideoClientService } from './video-client.service';
@@ -42,17 +43,11 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private connect() {
-    const apiKey = 'key10';
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdHJlYW0tdmlkZW8tZ29AdjAuMS4wIiwic3ViIjoidXNlci9tYXJjZWxvIiwiaWF0IjoxNjYzNzc1MjA4LCJ1c2VyX2lkIjoibWFyY2VsbyJ9.1g7cO9RV4f89zeaRXa7ED2WyAKQ6DX3Pj1Qlbt5N8hg';
-    const user = {
-      name: 'marcelo',
-      role: 'admin',
-      teams: ['team-1, team-2'],
-      imageUrl: '/profile.png',
-      customJson: new Uint8Array(),
-    };
-    const baseCoordinatorUrl = '/rpc';
-    const baseWsUrl = 'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect';
+    const apiKey = environment.apiKey;
+    const token = environment.token;
+    const user = environment.user
+    const baseCoordinatorUrl = environment.coordinatorUrl;
+    const baseWsUrl = environment.wsUrl;
     return this.clientService.connect(apiKey, token, user, baseCoordinatorUrl, baseWsUrl);
   }
 
