@@ -1,1 +1,1 @@
-export type ParticipantStream = {name?: string, audio?: MediaStream, video?: MediaStream};
+export type CallParticipant = {name: string, audio?: MediaStream, video?: MediaStream, isLoggedInUser: boolean};

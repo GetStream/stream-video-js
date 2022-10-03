@@ -1,0 +1,16 @@
+<div class="str-call__participant">
+    <div class="str-call__participant-name">{{participant?.name}}<span *ngIf="participant?.isLoggedInUser">&nbsp;(You)</span></div>
+    <audio *ngIf="participant?.audio; else noAudio" autoplay [srcObject]="participant?.audio"></audio>
+    <ng-template #noAudio>
+        <div class="str-call__no-audio">Audio unavailable</div>
+    </ng-template>
+    <video
+        *ngIf="participant?.video; else noVideo"
+        [srcObject]="participant?.video"
+        class="str-video__remote-video"
+        autoplay
+    ></video>
+    <ng-template #noVideo>
+        <div class="str-call__no-video">No video</div>
+    </ng-template>
+</div>

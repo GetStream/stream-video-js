@@ -3,10 +3,14 @@ import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
 
 import { AppComponent } from './app.component';
+import { CallComponent } from './call/call.component';
+import { ParticipantComponent } from './participant/participant.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    CallComponent,
+    ParticipantComponent
   ],
   imports: [
     BrowserModule,

@@ -3,7 +3,6 @@ import { ActivatedRoute } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { CallService } from './call.service';
-import { ParticipantStream } from './types';
 import { VideoClientService } from './video-client.service';
 
 @Component({
@@ -13,12 +12,10 @@ import { VideoClientService } from './video-client.service';
 })
 export class AppComponent implements OnInit, OnDestroy {
   ownMediaStream?: MediaStream;
-  participantStreams$: Observable<ParticipantStream[]>;
   user$: Observable<any>;
   private subscriptions: Subscription[] = [];
 
   constructor(private activatedRoute: ActivatedRoute, private clientService: VideoClientService, private callService: CallService) {
-    this.participantStreams$ = this.callService.participantStreams$;
     this.user$ = this.clientService.user$;
   }
 

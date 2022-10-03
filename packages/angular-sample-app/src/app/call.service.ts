@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { VideoClientService } from './video-client.service';
 import { Call, Client, User } from '@stream-io/video-client-sfu';
 import { BehaviorSubject, Observable, take } from 'rxjs';
-import { ParticipantStream } from './types';
+import { CallParticipant } from './types';
 import { Participant } from '@stream-io/video-client-sfu/src/gen/sfu_models/models';
 import { environment } from 'src/environments/environment';
 
@@ -11,13 +11,13 @@ import { environment } from 'src/environments/environment';
 })
 export class CallService {
   call$: Observable<Call | undefined>;
-  participantStreams$: Observable<ParticipantStream[]>;
+  participants$: Observable<CallParticipant[]>;
   private callSubject = new BehaviorSubject<Call | undefined>(undefined);
-  private participantStreamsSubject = new BehaviorSubject<ParticipantStream[]>([]);
+  private participantsSubject = new BehaviorSubject<CallParticipant[]>([]);
 
   constructor(private clientService: VideoClientService) {
     this.call$ = this.callSubject.asObservable();
-    this.participantStreams$ = this.participantStreamsSubject.asObservable();
+    this.participants$ = this.participantsSubject.asObservable();
   }
 
   async joinCall(id: string, type: string, ownMediaStream: MediaStream) {
@@ -46,20 +46,28 @@ export class CallService {
       call.handleOnTrack = ((e: RTCTrackEvent) => {
         const [primaryStream] = e.streams;
         const [name] = primaryStream.id.split(':');
-        let participantStream = this.participantStreams.find(s => s.name === name);
+        let participantStream = this.participants.find(s => s.name === name);
         if (!participantStream) {
-          participantStream = {name};
-          this.participantStreams.push(participantStream);
+          participantStream = {name, isLoggedInUser: false};
+          this.participants.push(participantStream);
         }
         participantStream![e.track.kind as 'video' | 'audio'] = primaryStream;
       });
+      this.participantsSubject.next([{name: this.user.name as string, isLoggedInUser: true, audio: ownMediaStream, video: ownMediaStream}]);
       call.on('participantLeft', e => {
         const participantLeft = (e.eventPayload as any).participantLeft.participant;
+        if (participantLeft.user.id === this.user?.name) {
+          return;
+        }
         this.updateTrackSubscriptions((callState?.participants || []).filter(p => p.user?.id !== participantLeft.user.id));
-        this.participantStreamsSubject.next(this.participantStreams.filter(s => s.name !== participantLeft.user.id));
+        this.participantsSubject.next(this.participants.filter(s => s.name !== participantLeft.user.id));
       });
       call.on('participantJoined', e => {
-        this.updateTrackSubscriptions([(e.eventPayload as any).participantJoined.participant, ...(callState?.participants || [])]);
+        const participantJoined = (e.eventPayload as any).participantJoined.participant;
+        if (participantJoined.user.id === this.user?.name) {
+          return;
+        }
+        this.updateTrackSubscriptions([...(callState?.participants || []), participantJoined]);
       });
       const callState = await call.join();
       this.call!.publish(ownMediaStream, ownMediaStream);
@@ -124,7 +132,7 @@ export class CallService {
     return this.callSubject.getValue();
   }
 
-  private get participantStreams() {
-    return this.participantStreamsSubject.getValue();
+  private get participants() {
+    return this.participantsSubject.getValue();
   }
 }
