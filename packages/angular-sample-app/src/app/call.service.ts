@@ -4,6 +4,7 @@ import { Call, Client, User } from '@stream-io/video-client-sfu';
 import { BehaviorSubject, Observable, take } from 'rxjs';
 import { ParticipantStream } from './types';
 import { Participant } from '@stream-io/video-client-sfu/src/gen/sfu_models/models';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -34,7 +35,7 @@ export class CallService {
         edges,
       );
       const user = new User(this.user.name, edge!.credentials!.token);
-      const serverUrl = 'http://localhost:3031/twirp';
+      const serverUrl = environment.sfuRpcUrl;
       const client = new Client(serverUrl, user);
       const call = new Call(client, {
         connectionConfig:
