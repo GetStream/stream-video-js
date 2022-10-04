@@ -1,11 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { StreamVideoClient } from '@stream-io/video-client';
-import { v4 as uuidv4 } from 'uuid';
+import { customAlphabet } from 'nanoid';
 import { createToken } from '../../../helpers/jwt';
 
 const coordinatorApiUrl = process.env.STREAM_COORDINATOR_RPC_URL as string;
 const apiKey = process.env.STREAM_API_KEY as string;
 const secretKey = process.env.STREAM_SECRET_KEY as string;
+
+const nanoid = customAlphabet(
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
+  10,
+);
 
 const createCallSlackHookAPI = async (
   req: NextApiRequest,
@@ -18,10 +23,11 @@ const createCallSlackHookAPI = async (
   });
 
   console.log(`Received input`, req.body);
+  const initiator = req.body.user_name || 'Stream';
 
   try {
     const response = await client.getOrCreateCall({
-      id: uuidv4(),
+      id: nanoid(12),
       type: 'default',
     });
     if (response.call) {
@@ -38,7 +44,17 @@ const createCallSlackHookAPI = async (
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: `[Join Stream Video](${joinUrl})`,
+              text: `${initiator} has invited for a new Stream Call \n ${joinUrl}`,
+            },
+            accessory: {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: 'Join Now',
+                emoji: true,
+              },
+              url: joinUrl,
+              action_id: 'button-action',
             },
           },
         ],
