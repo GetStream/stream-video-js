@@ -9,7 +9,7 @@ export const createSocketConnection = async (
   user: UserInput,
 ): Promise<StreamWSClient> => {
   const wsClient = new StreamWebSocketClient(endpoint, apiKey, token, user);
-  await wsClient.ensureAuthenticated();
+  await wsClient.connect();
 
   return wsClient;
 };

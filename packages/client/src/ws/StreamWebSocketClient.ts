@@ -1,5 +1,5 @@
 import {
-  WebsocketClientEvent,
+  WebsocketAuthRequest,
   WebsocketEvent,
   WebsocketHealthcheck,
 } from '../gen/video/coordinator/client_v1_rpc/websocket';
@@ -7,6 +7,9 @@ import { UserInput } from '../gen/video/coordinator/user_v1/user';
 import { KeepAlive, keepAlive } from './keepAlive';
 
 import type { StreamEventListener, StreamWSClient } from './types';
+import { createCoordinatorWebSocket } from './socket';
+
+const WS_STATE_OPEN = 1;
 
 export class StreamWebSocketClient implements StreamWSClient {
   private readonly endpoint: string;
@@ -15,9 +18,8 @@ export class StreamWebSocketClient implements StreamWSClient {
   private readonly user: UserInput;
 
   private subscribers: { [event: string]: StreamEventListener<any>[] } = {};
-  private authenticated: Promise<boolean> | undefined;
 
-  private ws: WebSocket;
+  private ws?: WebSocket;
   public keepAlive: KeepAlive;
 
   constructor(
@@ -31,99 +33,52 @@ export class StreamWebSocketClient implements StreamWSClient {
     this.token = token;
     this.user = user;
 
-    this.ws = this.connectTo(endpoint);
     this.keepAlive = keepAlive(
       this,
       20 * 1000, // in seconds
     );
   }
 
-  private connectTo = (endpoint: string) => {
-    // open new socket connection
-    const ws = new WebSocket(endpoint);
-    ws.binaryType = 'arraybuffer';
-    ws.onerror = this.onConnectionError;
-    ws.onclose = this.onConnectionClose;
-    ws.onopen = this.onConnectionOpen;
-    ws.onmessage = this.onMessage;
-
-    return ws;
-  };
-
-  private onConnectionError = (e: Event) => {
-    console.error(`An error has occurred`, e);
-  };
-
-  private onConnectionClose = (e: CloseEvent) => {
-    console.warn(`Connection closed`, e);
-  };
-
-  private onConnectionOpen = (e: Event) => {
-    console.log(`Connection established`, this.ws.url, e);
-
-    this.authenticate();
-  };
-
-  private onMessage = (e: MessageEvent) => {
-    this.keepAlive.schedulePing();
-
-    if (!(e.data instanceof ArrayBuffer)) {
-      console.error(`This socket only accepts exchanging binary data`);
+  connect = async () => {
+    if (this.ws) {
+      console.warn(
+        `WebSocket connection is already established. Disconnect first.`,
+      );
       return;
     }
 
-    const protoBinaryData = new Uint8Array(e.data);
-    const message = WebsocketEvent.fromBinary(protoBinaryData);
-
-    // submit the message for processing
-    this.dispatchMessage(message);
-  };
-
-  private authenticate = () => {
-    console.log('Authenticating...');
-
-    let hasReceivedHealthCheck = false;
     const catchOneHealthcheckMessage = (hc: WebsocketHealthcheck) => {
-      hasReceivedHealthCheck = true;
       this.keepAlive.setPayload(WebsocketHealthcheck.toBinary(hc));
       this.off('healthcheck', catchOneHealthcheckMessage);
     };
     this.on('healthcheck', catchOneHealthcheckMessage);
 
-    // FIXME OL: POC: find more elegant way to accomplish this.
-    this.authenticated = new Promise<boolean>((resolve, reject) => {
-      const giveUpAfterMs = 3500;
-      const frequency = 250;
-      let attempts = giveUpAfterMs / frequency;
-      const intervalId = setInterval(() => {
-        console.log('Checking auth...');
-        if (hasReceivedHealthCheck) {
-          console.log('Authenticated!');
-          clearInterval(intervalId);
-          resolve(true);
-        } else if (attempts < 1) {
-          clearInterval(intervalId);
-          reject('Unsuccessful authentication');
-        }
-        attempts--;
-      }, frequency);
-    });
+    const authRequest: WebsocketAuthRequest = {
+      token: this.token,
+      user: this.user,
+      apiKey: this.apiKey,
+    };
 
-    // send the authorization message, in case all is good, the server
-    // will respond with `Healthcheck`. Upon receiving the message, we consider
-    // successful authorization
-    this.ws.send(
-      WebsocketClientEvent.toBinary({
-        event: {
-          oneofKind: 'authRequest',
-          authRequest: {
-            token: this.token,
-            user: this.user,
-            apiKey: this.apiKey,
-          },
-        },
-      }),
-    );
+    this.ws = await createCoordinatorWebSocket(this.endpoint, authRequest, {
+      onMessage: (message: WebsocketEvent) => {
+        this.keepAlive.schedulePing();
+        this.dispatchMessage(message);
+      },
+
+      onOpen: (e) => {
+        console.log(`Connection established`, this.ws?.url, e);
+      },
+
+      onClose: (e) => {
+        console.warn(`Connection closed`, e);
+        this.off('healthcheck', catchOneHealthcheckMessage);
+      },
+
+      onError: (e) => {
+        console.error(`An error has occurred`, e);
+        this.off('healthcheck', catchOneHealthcheckMessage);
+      },
+    });
   };
 
   // TODO fix types
@@ -150,17 +105,15 @@ export class StreamWebSocketClient implements StreamWSClient {
     // FIXME: OL: do proper cleanup of resources here.
     console.log(`Disconnect requested`);
     this.keepAlive.cancelPendingPing();
-    this.ws.close(3939, `Disconnect requested`);
-    this.authenticated = undefined;
+    this.ws?.close(3939, `Disconnect requested`);
+    this.ws = undefined;
   };
 
-  ensureAuthenticated = async () => {
-    return this.authenticated;
-  };
-
-  sendMessage = async (data: Uint8Array) => {
-    await this.ensureAuthenticated();
-
+  sendMessage = (data: Uint8Array) => {
+    if (!this.ws || this.ws.readyState !== WS_STATE_OPEN) {
+      console.warn(`WebSocket isn't ready to send messages`);
+      return;
+    }
     this.ws.send(data);
     this.keepAlive.schedulePing();
   };
