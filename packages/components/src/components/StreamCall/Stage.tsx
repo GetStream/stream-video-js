@@ -121,11 +121,12 @@ const ParticipantBox = (props: {
 
   return (
     <div className="str-video__participant">
-      <audio autoPlay ref={audioRef} />
+      <audio autoPlay ref={audioRef} muted={isLocalParticipant} />
       <video
         className={`str-video__remote-video ${
           isLocalParticipant ? 'mirror' : ''
         }`}
+        muted={isLocalParticipant}
         autoPlay
         ref={(ref) => {
           if (ref) {
