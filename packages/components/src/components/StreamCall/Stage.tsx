@@ -2,7 +2,7 @@ import {
   Participant,
   VideoDimension,
 } from '@stream-io/video-client-sfu/dist/src/gen/sfu_models/models';
-import { RefObject, useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Call } from '@stream-io/video-client-sfu';
 import { useParticipantStreams } from '../../hooks/useParticipantStreams';
 import { useParticipants } from '../../hooks/useParticipants';
@@ -28,15 +28,14 @@ export const Stage = (props: {
     [userId: string]: HTMLVideoElement | undefined;
   }>({});
   const updateVideoElementForUserId = useCallback(
-    (userId: string, ref: RefObject<HTMLVideoElement | undefined>) => {
-      videoElementsByUserId.current[userId] = ref.current!;
+    (userId: string, el: HTMLVideoElement | null) => {
+      videoElementsByUserId.current[userId] = el!;
     },
     [],
   );
 
   const gridRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!gridRef.current) return;
     const requestSubscriptions = async () => {
       const subscriptions: { [key: string]: VideoDimension } = {};
       Object.entries(videoElementsByUserId.current).forEach(
@@ -57,13 +56,15 @@ export const Stage = (props: {
         });
       }
     };
+    requestSubscriptions().catch((e) => {
+      console.error(e);
+    });
+
+    if (!gridRef.current) return;
     const resizeObserver = new ResizeObserver(
       debounce(requestSubscriptions, 1200),
     );
     resizeObserver.observe(gridRef.current);
-    requestSubscriptions().catch((e) => {
-      console.error(e);
-    });
     return () => {
       resizeObserver.disconnect();
     };
@@ -75,12 +76,16 @@ export const Stage = (props: {
       {participants.map((participant) => {
         const userId = participant.user!.id;
         const isLocalParticipant = currentUserId === userId;
-        const audioStream = isLocalParticipant
-          ? undefined
-          : userAudioStreams[userId];
-        const videoStream = isLocalParticipant
-          ? localStream
-          : userVideoStreams[userId];
+
+        const audioStream =
+          isLocalParticipant && !includeSelf
+            ? undefined
+            : userAudioStreams[userId];
+
+        const videoStream =
+          isLocalParticipant && !includeSelf
+            ? localStream
+            : userVideoStreams[userId];
 
         return (
           <ParticipantBox
@@ -89,9 +94,7 @@ export const Stage = (props: {
             isLocalParticipant={isLocalParticipant}
             audioStream={audioStream}
             videoStream={videoStream}
-            setVideoRef={(ref) => {
-              updateVideoElementForUserId(userId, ref);
-            }}
+            updateVideoElementForUserId={updateVideoElementForUserId}
           />
         );
       })}
@@ -104,20 +107,52 @@ const ParticipantBox = (props: {
   isLocalParticipant: boolean;
   audioStream?: MediaStream;
   videoStream?: MediaStream;
-  setVideoRef: (ref: RefObject<HTMLVideoElement | undefined>) => void;
+  updateVideoElementForUserId: (
+    userId: string,
+    element: HTMLVideoElement | null,
+  ) => void;
 }) => {
   const {
     audioStream,
     videoStream,
     participant,
     isLocalParticipant,
-    setVideoRef,
+    updateVideoElementForUserId,
   } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
-  const videoRef = useRef<HTMLVideoElement>();
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  useAttachMediaStream(audioRef.current, audioStream);
-  useAttachMediaStream(videoRef.current, videoStream);
+  useEffect(() => {
+    const userId = participant.user!.id;
+    updateVideoElementForUserId(userId, videoRef.current);
+    return () => {
+      updateVideoElementForUserId(userId, null);
+    };
+  }, [participant.user, updateVideoElementForUserId]);
+
+  useEffect(() => {
+    const $el = videoRef.current;
+    console.log(`Attaching video stream`, $el, videoStream);
+    if (!$el) return;
+    if (videoStream) {
+      $el.srcObject = videoStream;
+    }
+    return () => {
+      $el.srcObject = null;
+    };
+  }, [videoStream]);
+
+  useEffect(() => {
+    const $el = audioRef.current;
+    console.log(`Attaching audio stream`, $el, audioStream);
+    if (!$el) return;
+    if (audioStream) {
+      $el.srcObject = audioStream;
+    }
+    return () => {
+      $el.srcObject = null;
+    };
+  }, [audioStream]);
 
   return (
     <div className="str-video__participant">
@@ -128,12 +163,7 @@ const ParticipantBox = (props: {
         }`}
         muted={isLocalParticipant}
         autoPlay
-        ref={(ref) => {
-          if (ref) {
-            videoRef.current = ref;
-            setVideoRef(videoRef);
-          }
-        }}
+        ref={videoRef}
       />
       <div className="str-video__participant_details">
         <span className="str-video__participant_name">
@@ -142,21 +172,6 @@ const ParticipantBox = (props: {
       </div>
     </div>
   );
-};
-
-const useAttachMediaStream = (
-  $el?: HTMLMediaElement | null,
-  mediaStream?: MediaStream,
-) => {
-  useEffect(() => {
-    if (!$el) return;
-    if (mediaStream) {
-      $el.srcObject = mediaStream;
-    }
-    return () => {
-      $el.srcObject = null;
-    };
-  }, [$el, mediaStream]);
 };
 
 const debounce = (fn: () => void, timeoutMs: number) => {
