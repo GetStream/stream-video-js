@@ -2,7 +2,6 @@ import { VideoDimension, VideoQuality } from '../gen/sfu_models/models';
 import { SignalServerClient } from '../gen/sfu_signal_rpc/signal.client';
 import { createClient, withBearerToken } from './createClient';
 import { Logger } from './types';
-import { v4 as uuidv4 } from 'uuid';
 import { IceCandidateRequest } from '../gen/sfu_signal_rpc/signal';
 
 export class User {
@@ -36,7 +35,7 @@ export class Client {
 
   logger: Logger;
 
-  constructor(url: string, user: User) {
+  constructor(url: string, user: User, sessionId: string) {
     this.user = user;
     this.sfuHost = hostnameFromUrl(url);
     this.rpc = createClient({
@@ -44,7 +43,7 @@ export class Client {
       interceptors: [withBearerToken(user.token)],
     });
 
-    this.sessionId = uuidv4();
+    this.sessionId = sessionId;
 
     this.logger = (l, m, e) => {
       console.log(m);

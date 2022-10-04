@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@stream-io/video-client": "workspace:^",
-    "@stream-io/video-client-sfu": "workspace:^"
+    "@stream-io/video-client-sfu": "workspace:^",
+    "uuid": "^9.0.0"
   },
   "peerDependencies": {
     "react": "^18.0.0",
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@types/rimraf": "^3.0.2",
+    "@types/uuid": "^8.3.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rimraf": "^3.0.2",

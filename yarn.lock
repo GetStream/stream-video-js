@@ -3965,11 +3965,9 @@ __metadata:
     "@protobuf-ts/twirp-transport": ^2.8.1
     "@types/rimraf": ^3.0.2
     "@types/sdp-transform": ^2.4.5
-    "@types/uuid": ^8.3.4
     rimraf: ^3.0.2
     sdp-transform: ^2.14.1
     typescript: ^4.8.4
-    uuid: ^9.0.0
     webrtc-adapter: ^8.1.2
   languageName: unknown
   linkType: soft
@@ -3994,11 +3992,13 @@ __metadata:
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-client-sfu": "workspace:^"
     "@types/rimraf": ^3.0.2
+    "@types/uuid": ^8.3.4
     react: ^18.2.0
     react-dom: ^18.2.0
     rimraf: ^3.0.2
     sass: ^1.55.0
     typescript: ^4.8.4
+    uuid: ^9.0.0
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0

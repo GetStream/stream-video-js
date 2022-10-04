@@ -1,6 +1,7 @@
 import { ICEServer } from '@stream-io/video-client';
-import { Client, Call, User } from '@stream-io/video-client-sfu';
+import { Call, Client, User } from '@stream-io/video-client-sfu';
 import { useEffect, useMemo, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { useMediaDevices } from '../../hooks/useMediaDevices';
 import { CallState } from '@stream-io/video-client-sfu/src/gen/sfu_models/models';
 import { Stage } from './Stage';
@@ -31,17 +32,18 @@ export const StreamCall = ({
     autoJoin,
   });
 
+  const sessionId = useSessionId(callId, currentUser);
   const call = useMemo(() => {
-    if (!credentials) return undefined;
+    if (!credentials) return;
     const user = new User(currentUser, credentials.token);
     const serverUrl = credentials.server?.url || 'http://localhost:3031/twirp';
-    const client = new Client(serverUrl, user);
+    const client = new Client(serverUrl, user, sessionId);
     return new Call(client, {
       connectionConfig:
         toRtcConfiguration(credentials.iceServers) ||
         defaultRtcConfiguration(serverUrl),
     });
-  }, [credentials, currentUser]);
+  }, [credentials, currentUser, sessionId]);
 
   const [sfuCallState, setSfuCallState] = useState<CallState>();
   const { mediaStream } = useMediaDevices();
@@ -129,4 +131,25 @@ const hostnameFromUrl = (url: string) => {
     console.warn(`Invalid URL. Can't extract hostname from it.`, e);
     return url;
   }
+};
+
+const useSessionId = (callId: string, currentUser: string) => {
+  return useMemo(() => {
+    const callKey = callId + '|' + currentUser;
+    let sessions: { [callKey: string]: string };
+    try {
+      sessions = JSON.parse(
+        localStorage.getItem('@stream.io/sessions') || '{}',
+      );
+    } catch (e) {
+      sessions = {};
+    }
+
+    if (!sessions[callKey]) {
+      sessions[callKey] = uuidv4();
+      localStorage.setItem('@stream.io/sessions', JSON.stringify(sessions));
+    }
+
+    return sessions[callKey];
+  }, [callId, currentUser]);
 };
