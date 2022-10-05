@@ -1,11 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { VideoClientService } from './video-client.service';
 import { Call, Client, User } from '@stream-io/video-client-sfu';
-import { BehaviorSubject, Observable, take } from 'rxjs';
+import { BehaviorSubject, Observable, take, tap } from 'rxjs';
 import { CallParticipant } from './types';
-import { Participant } from '@stream-io/video-client-sfu/src/gen/sfu_models/models';
 import { environment } from 'src/environments/environment';
 import { v4 as uuidv4 } from 'uuid';
+import { VideoDimension } from '@stream-io/video-client-sfu/dist/src/gen/sfu_models/models';
 
 @Injectable({
   providedIn: 'root'
@@ -15,64 +15,109 @@ export class CallService {
   participants$: Observable<CallParticipant[]>;
   private callSubject = new BehaviorSubject<Call | undefined>(undefined);
   private participantsSubject = new BehaviorSubject<CallParticipant[]>([]);
+  private trackSubscriptions: {[key: string]: {width: number, height: number}} = {};
 
-  constructor(private clientService: VideoClientService) {
+  constructor(private clientService: VideoClientService, private ngZone: NgZone) {
     this.call$ = this.callSubject.asObservable();
     this.participants$ = this.participantsSubject.asObservable();
+    this.participants$.pipe(tap(() => {
+      this.updateTrackSubscriptions();
+    })).subscribe();
   }
 
   async joinCall(id: string, type: string, ownMediaStream: MediaStream) {
-    const callToJoin = await this.clientService.client?.joinCall({
-      id,
-      type,
-      // FIXME: OL: this needs to come from somewhere
-      datacenterId: 'milan',
+    const callToJoin = await this.ngZone.runOutsideAngular(async () => {
+      return await this.clientService.client?.joinCall({
+        id,
+        type,
+        // FIXME: OL: this needs to come from somewhere
+        datacenterId: 'milan',
+      });
     });
     if (callToJoin) {
       const { call: callEnvelope, edges } = callToJoin;
       if (!callEnvelope || !callEnvelope.call || !edges) return;
-      const edge = await this.clientService.client?.getCallEdgeServer(
-        callEnvelope.call,
-        edges,
-      );
+      const edge = await this.ngZone.runOutsideAngular(async () => {
+        return await this.clientService.client?.getCallEdgeServer(
+          callEnvelope.call!,
+          edges,
+        );
+      });
       const user = new User(this.user.name, edge!.credentials!.token);
       const serverUrl = environment.sfuRpcUrl;
       const client = new Client(serverUrl, user, uuidv4());
-      const call = new Call(client, {
-        connectionConfig:
-          this.toRtcConfiguration(edge!.credentials!.iceServers) ||
-          this.defaultRtcConfiguration(serverUrl),
+      const call = this.ngZone.runOutsideAngular(() => {
+        return new Call(client, {
+          connectionConfig:
+            this.toRtcConfiguration(edge!.credentials!.iceServers) ||
+            this.defaultRtcConfiguration(serverUrl),
+        });
       });
       this.callSubject.next(call);
       call.handleOnTrack = ((e: RTCTrackEvent) => {
-        const [primaryStream] = e.streams;
-        const [name] = primaryStream.id.split(':');
-        let participantStream = this.participants.find(s => s.name === name);
-        if (!participantStream) {
-          participantStream = {name, isLoggedInUser: false};
-          this.participants.push(participantStream);
-        }
-        participantStream![e.track.kind as 'video' | 'audio'] = primaryStream;
+        this.ngZone.run(() => {
+          const [primaryStream] = e.streams;
+          const [name] = primaryStream.id.split(':');
+          let participant = this.participants.find(s => s.name === name);
+          participant![e.track.kind as 'video' | 'audio'] = primaryStream;
+          this.participantsSubject.next([...this.participants]);
+        });
       });
       this.participantsSubject.next([{name: this.user.name as string, isLoggedInUser: true, audio: ownMediaStream, video: ownMediaStream}]);
-      call.on('participantLeft', e => {
+      this.watchForCallEvents();
+      const callState = await this.ngZone.runOutsideAngular(async () => {
+        return await call.join();
+      })
+      this.participantsSubject.next([...this.participants, ...(callState?.participants || []).filter(p => p.user?.id !== this.user.name).map(p => ({name: p.user?.id || '', isLoggedInUser: false}))]);
+      this.ngZone.runOutsideAngular(() => {
+        this.call!.publish(ownMediaStream, ownMediaStream);
+      });
+    }
+  }
+
+  updateVideoDimensionOfCallParticipants(videoDimensions: {name: string, videoDimension: VideoDimension}[]) {
+    this.participantsSubject.next(this.participants.map(p => {
+      const videoDimension = videoDimensions.find(vd => vd.name === p.name)?.videoDimension || p.videoDimension;
+      return {...p, videoDimension};
+    }));
+  }
+
+  private watchForCallEvents() {
+    if (!this.call) {
+      return;
+    }
+    this.call.on('dominantSpeakerChanged', console.warn);
+    this.call.on('participantLeft', e => {
+      this.ngZone.run(() => {
         const participantLeft = (e.eventPayload as any).participantLeft.participant;
         if (participantLeft.user.id === this.user?.name) {
           return;
         }
-        this.updateTrackSubscriptions((callState?.participants || []).filter(p => p.user?.id !== participantLeft.user.id));
         this.participantsSubject.next(this.participants.filter(s => s.name !== participantLeft.user.id));
-      });
-      call.on('participantJoined', e => {
+        });
+    });
+    this.call.on('participantJoined', e => {
+      this.ngZone.run(() => {
         const participantJoined = (e.eventPayload as any).participantJoined.participant;
         if (participantJoined.user.id === this.user?.name) {
           return;
         }
-        this.updateTrackSubscriptions([...(callState?.participants || []), participantJoined]);
-      });
-      const callState = await call.join();
-      this.call!.publish(ownMediaStream, ownMediaStream);
-      this.updateTrackSubscriptions(callState?.participants || []);
+        this.participantsSubject.next([...this.participants, {name: participantJoined?.user?.id, isLoggedInUser: false}]);
+        });
+    });
+  }
+
+  private updateTrackSubscriptions() {
+    const subscriptions: {[key: string]: {width: number, height: number}} = {};
+    this.participants.forEach(p => {
+      if (p.name !== this.user?.name && p.videoDimension) {
+        subscriptions[p.name] = {width: p.videoDimension.width, height: p.videoDimension.height}
+      }
+    })
+    if (Object.keys(subscriptions).length > 0 && this.call && JSON.stringify(subscriptions) !== JSON.stringify(this.trackSubscriptions)) {
+      console.log('Updating subscriptions', subscriptions);
+      this.trackSubscriptions = subscriptions;
+      this.call.updateSubscriptions(this.trackSubscriptions);
     }
   }
 
@@ -111,16 +156,6 @@ export class CallService {
       console.warn(`Invalid URL. Can't extract hostname from it.`, e);
       return url;
     }
-  }
-
-  private updateTrackSubscriptions(participants: Participant[]) {
-    const subscriptions: {[key: string]: {width: number, height: number}} = {};
-    participants.forEach(p => {
-      if (p.user!.id !== this.user?.name) {
-        subscriptions[p.user!.id] = {width: 640, height: 480}
-      }
-    })
-    this.call?.updateSubscriptions(subscriptions);
   }
 
   private get user() {

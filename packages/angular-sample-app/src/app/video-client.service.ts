@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { StreamVideoClient } from '@stream-io/video-client';
 import { WebsocketHealthcheck } from '@stream-io/video-client/dist/src/gen/video/coordinator/client_v1_rpc/websocket';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -12,18 +12,20 @@ export class VideoClientService {
   private userSubject = new BehaviorSubject<any | undefined>(undefined);
   private webSocketHealthCheck?: WebsocketHealthcheck;
 
-  constructor() {
+  constructor(private ngZone: NgZone) {
     this.user$ = this.userSubject.asObservable();
   }
 
   async connect(apiKey: string, token: string, user: any, baseCoordinatorUrl: string, baseWsUrl: string) {
-    this.client = new StreamVideoClient(apiKey, {
-      coordinatorRpcUrl: baseCoordinatorUrl,
-      coordinatorWsUrl: baseWsUrl,
-      sendJson: true,
-      token,
+    await this.ngZone.runOutsideAngular(async () => {
+      this.client = new StreamVideoClient(apiKey, {
+        coordinatorRpcUrl: baseCoordinatorUrl,
+        coordinatorWsUrl: baseWsUrl,
+        sendJson: true,
+        token,
+      });
+      await this.client.connect(apiKey, token, user);
     });
-    await this.client.connect(apiKey, token, user);
     this.userSubject.next(user);
     this.client?.on('healthcheck', (message: WebsocketHealthcheck) => {
       this.webSocketHealthCheck = message;
