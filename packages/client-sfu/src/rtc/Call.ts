@@ -15,6 +15,7 @@ import {
 import { createPublisher } from './publisher';
 import { Dispatcher } from './Dispatcher';
 import { VideoDimension } from '../gen/sfu_models/models';
+import { registerEventHandlers } from './callEventHandlers';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -35,6 +36,7 @@ export class Call {
   constructor(client: Client, options: CallOptions) {
     this.client = client;
     this.options = options;
+    registerEventHandlers(this);
   }
 
   on = this.dispatcher.on;
@@ -247,6 +249,7 @@ export class Call {
   };
 
   updatePublishQuality = async (enabledRids: string[]) => {
+    console.log('Updating publish quality, qualities requested by SFU:', enabledRids)
     const videoSender = this.publisher
       ?.getSenders()
       .find((s) => s.track?.kind === 'video');
@@ -265,6 +268,9 @@ export class Call {
       }
     });
     if (changed) {
+      if (params.encodings.length === 0) {
+        console.warn('No suitable video encoding quality found');
+      }
       await videoSender.setParameters(params);
     }
   };
