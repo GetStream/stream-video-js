@@ -8,6 +8,7 @@
         *ngIf="participant?.video; else noVideo"
         [srcObject]="participant?.video"
         class="str-video__remote-video"
+        [class.str-video__mirrored-remote-video]="participant?.isLoggedInUser"
         autoplay
     ></video>
     <ng-template #noVideo>
