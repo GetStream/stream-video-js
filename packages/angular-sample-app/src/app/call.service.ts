@@ -5,6 +5,7 @@ import { BehaviorSubject, Observable, take } from 'rxjs';
 import { CallParticipant } from './types';
 import { Participant } from '@stream-io/video-client-sfu/src/gen/sfu_models/models';
 import { environment } from 'src/environments/environment';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable({
   providedIn: 'root'
@@ -36,7 +37,7 @@ export class CallService {
       );
       const user = new User(this.user.name, edge!.credentials!.token);
       const serverUrl = environment.sfuRpcUrl;
-      const client = new Client(serverUrl, user);
+      const client = new Client(serverUrl, user, uuidv4());
       const call = new Call(client, {
         connectionConfig:
           this.toRtcConfiguration(edge!.credentials!.iceServers) ||
