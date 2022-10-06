@@ -51,7 +51,7 @@ export class Client {
   }
 
   updateAudioMuteState = async (muted: boolean) => {
-    return this.rpc.updateMuteState({
+    const { response } = this.rpc.updateMuteState({
       sessionId: this.sessionId,
       mute: {
         oneofKind: 'audioMuteChanged',
@@ -60,10 +60,11 @@ export class Client {
         },
       },
     });
+    return response;
   };
 
   updateVideoMuteState = async (muted: boolean) => {
-    return this.rpc.updateMuteState({
+    const { response } = await this.rpc.updateMuteState({
       sessionId: this.sessionId,
       mute: {
         oneofKind: 'videoMuteChanged',
@@ -72,6 +73,7 @@ export class Client {
         },
       },
     });
+    return response;
   };
 
   requestVideoQuality = async (forUserId: string, quality: VideoQuality) => {

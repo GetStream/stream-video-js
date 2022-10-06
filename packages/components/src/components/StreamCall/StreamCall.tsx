@@ -10,6 +10,7 @@ import { Ping } from '../Ping';
 import { useCall } from '../../hooks/useCall';
 import { DeviceSettings } from './DeviceSettings';
 import { MediaDevicesProvider } from '../../contexts/MediaDevicesContext';
+import { CallControls } from './CallControls';
 
 export type RoomProps = {
   currentUser: string;
@@ -82,12 +83,15 @@ export const StreamCall = ({
               </div>
             )}
             {call && (
-              <Stage
-                participants={sfuCallState.participants}
-                call={call}
-                includeSelf={includeSelf}
-                currentUserId={currentUser}
-              />
+              <>
+                <Stage
+                  participants={sfuCallState.participants}
+                  call={call}
+                  includeSelf={includeSelf}
+                  currentUserId={currentUser}
+                />
+                <CallControls call={call} />
+              </>
             )}
             {activeCall && (
               <Ping activeCall={activeCall} currentUser={currentUser} />

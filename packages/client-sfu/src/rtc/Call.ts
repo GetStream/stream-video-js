@@ -39,6 +39,10 @@ export class Call {
     registerEventHandlers(this);
   }
 
+  get currentUserId() {
+    return this.client.user.name;
+  }
+
   on = this.dispatcher.on;
   off = this.dispatcher.off;
 
@@ -47,6 +51,7 @@ export class Call {
     this.subscriber = undefined;
 
     this.publisher?.getSenders().forEach((s) => {
+      s.track?.stop();
       this.publisher?.removeTrack(s);
     });
     this.publisher?.close();
@@ -254,8 +259,26 @@ export class Call {
     }
   };
 
+  updateMuteState = (trackKind: 'audio' | 'video', isMute: boolean) => {
+    if (!this.publisher) return;
+    const senders = this.publisher.getSenders();
+    const sender = senders.find((s) => s.track?.kind === trackKind);
+    if (sender && sender.track) {
+      sender.track.enabled = !isMute;
+
+      if (trackKind === 'audio') {
+        return this.client.updateAudioMuteState(isMute);
+      } else if (trackKind === 'video') {
+        return this.client.updateVideoMuteState(isMute);
+      }
+    }
+  };
+
   updatePublishQuality = async (enabledRids: string[]) => {
-    console.log('Updating publish quality, qualities requested by SFU:', enabledRids)
+    console.log(
+      'Updating publish quality, qualities requested by SFU:',
+      enabledRids,
+    );
     const videoSender = this.publisher
       ?.getSenders()
       .find((s) => s.track?.kind === 'video');

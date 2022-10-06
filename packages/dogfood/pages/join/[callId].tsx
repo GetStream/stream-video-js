@@ -48,15 +48,17 @@ const JoinCall = (props: JoinCallProps) => {
   }
 
   return (
-    <StreamVideo client={client}>
-      <StreamCall
-        currentUser={loggedInUser.name}
-        callId={callId}
-        callType={callType}
-        autoJoin={autoJoin}
-        includeSelf={includeSelf}
-      />
-    </StreamVideo>
+    <div style={{ height: '100vh' }}>
+      <StreamVideo client={client}>
+        <StreamCall
+          currentUser={loggedInUser.name}
+          callId={callId}
+          callType={callType}
+          autoJoin={autoJoin}
+          includeSelf={includeSelf}
+        />
+      </StreamVideo>
+    </div>
   );
 };
 

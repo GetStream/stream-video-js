@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import {
   Participant,
   VideoDimension,
@@ -169,9 +170,10 @@ const ParticipantBox = (props: {
     <div className="str-video__participant">
       <audio autoPlay ref={audioRef} muted={isMuted} />
       <video
-        className={`str-video__remote-video ${
-          isLocalParticipant ? 'mirror' : ''
-        }`}
+        className={clsx(
+          'str-video__remote-video',
+          isLocalParticipant && 'mirror',
+        )}
         muted={isMuted}
         autoPlay
         ref={videoRef}
