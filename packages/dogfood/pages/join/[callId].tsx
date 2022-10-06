@@ -24,6 +24,7 @@ const JoinCall = (props: JoinCallProps) => {
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
   const includeSelf = Boolean(router.query['include_self']);
+  const autoJoin = Boolean(router.query['auto_join']) || true;
 
   const { userToken, user, coordinatorRpcUrl, coordinatorWsUrl, apiKey } =
     props;
@@ -48,14 +49,11 @@ const JoinCall = (props: JoinCallProps) => {
 
   return (
     <StreamVideo client={client}>
-      <h1>
-        {callType}:{callId}
-      </h1>
       <StreamCall
         currentUser={loggedInUser.name}
         callId={callId}
         callType={callType}
-        autoJoin={true}
+        autoJoin={autoJoin}
         includeSelf={includeSelf}
       />
     </StreamVideo>

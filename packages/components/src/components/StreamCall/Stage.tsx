@@ -6,23 +6,30 @@ import { useCallback, useEffect, useRef } from 'react';
 import { Call } from '@stream-io/video-client-sfu';
 import { useParticipantStreams } from '../../hooks/useParticipantStreams';
 import { useParticipants } from '../../hooks/useParticipants';
+import { useMediaDevices } from '../../contexts/MediaDevicesContext';
 
 export const Stage = (props: {
   call: Call;
   participants: Participant[];
   includeSelf: boolean;
   currentUserId: string;
-  localStream?: MediaStream;
 }) => {
   const {
     call,
     participants: initialParticipants,
     includeSelf,
-    localStream,
     currentUserId,
   } = props;
   const { userAudioStreams, userVideoStreams } = useParticipantStreams(call);
   const participants = useParticipants(call, initialParticipants);
+  const { audioStream: localAudioStream, videoStream: localVideoStream } =
+    useMediaDevices();
+
+  useEffect(() => {
+    if (!call.publisher && localAudioStream && localVideoStream) {
+      call.publish(localAudioStream, localVideoStream);
+    }
+  }, [call, localAudioStream, localVideoStream]);
 
   const videoElementsByUserId = useRef<{
     [userId: string]: HTMLVideoElement | undefined;
@@ -76,15 +83,16 @@ export const Stage = (props: {
       {participants.map((participant) => {
         const userId = participant.user!.id;
         const isLocalParticipant = currentUserId === userId;
+        const isAutoMuted = isLocalParticipant && !includeSelf;
 
         const audioStream =
           isLocalParticipant && !includeSelf
-            ? undefined
+            ? localAudioStream
             : userAudioStreams[userId];
 
         const videoStream =
           isLocalParticipant && !includeSelf
-            ? localStream
+            ? localVideoStream
             : userVideoStreams[userId];
 
         return (
@@ -92,6 +100,7 @@ export const Stage = (props: {
             key={userId}
             participant={participant}
             isLocalParticipant={isLocalParticipant}
+            isMuted={isAutoMuted}
             audioStream={audioStream}
             videoStream={videoStream}
             updateVideoElementForUserId={updateVideoElementForUserId}
@@ -105,6 +114,7 @@ export const Stage = (props: {
 const ParticipantBox = (props: {
   participant: Participant;
   isLocalParticipant: boolean;
+  isMuted?: boolean;
   audioStream?: MediaStream;
   videoStream?: MediaStream;
   updateVideoElementForUserId: (
@@ -117,6 +127,7 @@ const ParticipantBox = (props: {
     videoStream,
     participant,
     isLocalParticipant,
+    isMuted = false,
     updateVideoElementForUserId,
   } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -156,12 +167,12 @@ const ParticipantBox = (props: {
 
   return (
     <div className="str-video__participant">
-      <audio autoPlay ref={audioRef} muted={isLocalParticipant} />
+      <audio autoPlay ref={audioRef} muted={isMuted} />
       <video
         className={`str-video__remote-video ${
           isLocalParticipant ? 'mirror' : ''
         }`}
-        muted={isLocalParticipant}
+        muted={isMuted}
         autoPlay
         ref={videoRef}
       />

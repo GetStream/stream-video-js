@@ -2,13 +2,14 @@ import { ICEServer } from '@stream-io/video-client';
 import { Call, Client, User } from '@stream-io/video-client-sfu';
 import { useEffect, useMemo, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { useMediaDevices } from '../../hooks/useMediaDevices';
 import { CallState } from '@stream-io/video-client-sfu/src/gen/sfu_models/models';
 import { Stage } from './Stage';
 import { Stats } from '../Stats';
 import { useStreamVideoClient } from '../../StreamVideo';
 import { Ping } from '../Ping';
 import { useCall } from '../../hooks/useCall';
+import { DeviceSettings } from './DeviceSettings';
+import { MediaDevicesProvider } from '../../contexts/MediaDevicesContext';
 
 export type RoomProps = {
   currentUser: string;
@@ -46,7 +47,6 @@ export const StreamCall = ({
   }, [credentials, currentUser, sessionId]);
 
   const [sfuCallState, setSfuCallState] = useState<CallState>();
-  const { mediaStream } = useMediaDevices();
   useEffect(() => {
     const joinCall = async () => {
       // TODO: OL: announce bitrates by passing down MediaStream to .join()
@@ -67,35 +67,38 @@ export const StreamCall = ({
     };
   }, [activeCall?.createdByUserId, autoJoin, call, currentUser]);
 
-  useEffect(() => {
-    if (mediaStream) {
-      call?.publish(mediaStream, mediaStream);
-    }
-  }, [mediaStream, call]);
-
   const videoClient = useStreamVideoClient();
   return (
-    <div className="str-video__call">
-      {sfuCallState && (
-        <>
-          {call && (
-            <Stage
-              participants={sfuCallState.participants}
-              call={call}
-              includeSelf={includeSelf}
-              localStream={mediaStream}
-              currentUserId={currentUser}
-            />
-          )}
-          {activeCall && (
-            <Ping activeCall={activeCall} currentUser={currentUser} />
-          )}
-          {videoClient && activeCall && call && (
-            <Stats client={videoClient} call={call} activeCall={activeCall} />
-          )}
-        </>
-      )}
-    </div>
+    <MediaDevicesProvider call={call}>
+      <div className="str-video__call">
+        {sfuCallState && (
+          <>
+            {activeCall && (
+              <div className="str-video__call__header">
+                <h4 className="str-video__call__header-title">
+                  {activeCall.type}:{activeCall.id}
+                </h4>
+                <DeviceSettings />
+              </div>
+            )}
+            {call && (
+              <Stage
+                participants={sfuCallState.participants}
+                call={call}
+                includeSelf={includeSelf}
+                currentUserId={currentUser}
+              />
+            )}
+            {activeCall && (
+              <Ping activeCall={activeCall} currentUser={currentUser} />
+            )}
+            {videoClient && activeCall && call && (
+              <Stats client={videoClient} call={call} activeCall={activeCall} />
+            )}
+          </>
+        )}
+      </div>
+    </MediaDevicesProvider>
   );
 };
 

@@ -232,8 +232,14 @@ export class Call {
   getActiveInputDeviceId = (kind: MediaDeviceKind) => {
     if (!this.publisher) return;
 
+    const trackKind =
+      kind === 'audioinput'
+        ? 'audio'
+        : kind === 'videoinput'
+        ? 'video'
+        : 'unknown';
     const senders = this.publisher.getSenders();
-    const sender = senders.find((s) => s.track?.kind === kind);
+    const sender = senders.find((s) => s.track?.kind === trackKind);
     return sender?.track?.getConstraints().deviceId as string;
   };
 

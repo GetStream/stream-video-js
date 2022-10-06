@@ -11,8 +11,10 @@
     "build:styles": "sass index.scss ./dist/css/styles.css"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.6",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-client-sfu": "workspace:^",
+    "react-popper": "^2.3.0",
     "uuid": "^9.0.0"
   },
   "peerDependencies": {
