@@ -26,7 +26,7 @@ export const Stage = (props: {
     useMediaDevices();
 
   useEffect(() => {
-    if (!call.publisher && localAudioStream && localVideoStream) {
+    if (localAudioStream && localVideoStream) {
       call.publish(localAudioStream, localVideoStream);
     }
   }, [call, localAudioStream, localVideoStream]);
