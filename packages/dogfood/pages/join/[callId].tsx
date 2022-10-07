@@ -48,7 +48,7 @@ const JoinCall = (props: JoinCallProps) => {
     return <h2>Connecting...</h2>;
   }
   return (
-    <div style={{ height: '100vh' }}>
+    <div style={{ flexGrow: 1 }}>
       <StreamVideo client={client}>
         <StreamCall
           currentUser={loggedInUser.name}

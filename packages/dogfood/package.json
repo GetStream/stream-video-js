@@ -8,6 +8,10 @@
     "start": "next start"
   },
   "dependencies": {
+    "@emotion/react": "11.10.4",
+    "@emotion/styled": "11.10.4",
+    "@mui/icons-material": "5.10.6",
+    "@mui/material": "5.10.8",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-components-react": "workspace:^",
     "jsonwebtoken": "^8.5.1",

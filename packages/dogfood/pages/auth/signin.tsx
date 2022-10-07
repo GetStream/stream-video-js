@@ -1,6 +1,7 @@
 import { getProviders, signIn, useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { Button, Divider, Stack, Typography } from '@mui/material';
 
 type Providers = ReturnType<typeof getProviders> extends Promise<infer R>
   ? R
@@ -20,14 +21,29 @@ export default function SignIn({ providers }: { providers: Providers }) {
 
   return (
     <>
-      <h1>Stream calls dogfooding</h1>
-      {Object.values(providers).map((provider) => (
-        <div key={provider.name}>
-          <button onClick={() => signIn(provider.id)}>
-            Sign in with your Google Stream account
-          </button>
-        </div>
-      ))}
+      <Stack
+        direction="row"
+        justifyContent="center"
+        alignItems="center"
+        spacing={2}
+        flexGrow={1}
+      >
+        <Stack spacing={2}>
+          <Typography variant="h2">Stream Meetings</Typography>
+          <Divider />
+          {Object.values(providers).map((provider) => (
+            <div key={provider.name}>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={() => signIn(provider.id)}
+              >
+                Sign in with your Google Stream account
+              </Button>
+            </div>
+          ))}
+        </Stack>
+      </Stack>
     </>
   );
 }

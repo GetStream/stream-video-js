@@ -1,16 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { StreamVideoClient } from '@stream-io/video-client';
-import { customAlphabet } from 'nanoid';
 import { createToken } from '../../../helpers/jwt';
+import { meetingId } from '../../../lib/meetingId';
 
 const coordinatorApiUrl = process.env.STREAM_COORDINATOR_RPC_URL as string;
 const apiKey = process.env.STREAM_API_KEY as string;
 const secretKey = process.env.STREAM_SECRET_KEY as string;
-
-const nanoid = customAlphabet(
-  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
-  10,
-);
 
 const createCallSlackHookAPI = async (
   req: NextApiRequest,
@@ -27,7 +22,7 @@ const createCallSlackHookAPI = async (
 
   try {
     const response = await client.getOrCreateCall({
-      id: nanoid(12),
+      id: meetingId(),
       type: 'default',
     });
     if (response.call) {
