@@ -1,7 +1,7 @@
 import { useStreamVideoClient } from '../StreamVideo';
 import { useCallback, useEffect, useState } from 'react';
 import {
-  Call,
+  CallMeta,
   CallCreated,
   CallStarted,
   Credentials,
@@ -22,7 +22,7 @@ export const useCall = ({
   autoJoin,
 }: UseCallParams) => {
   const client = useStreamVideoClient();
-  const [activeCall, setActiveCall] = useState<Call>();
+  const [activeCall, setActiveCall] = useState<CallMeta.Call>();
   const [credentials, setCredentials] = useState<Credentials>();
 
   const joinCall = useCallback(

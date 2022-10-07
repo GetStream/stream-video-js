@@ -10,13 +10,16 @@ import {
   TwirpOptions,
 } from '@protobuf-ts/twirp-transport';
 import { ClientRPCClient } from '../gen/video/coordinator/client_v1_rpc/client_rpc.client';
+import { SignalServerClient } from '../gen-sfu/sfu_signal_rpc/signal.client';
 
 const defaultOptions: TwirpOptions = {
   baseUrl: '',
   sendJson: true,
 };
 
-export const withAuth = (apiKey: string, token: string): RpcInterceptor => {
+export const withHeaders = (
+  headers: Record<string, string>,
+): RpcInterceptor => {
   return {
     interceptUnary(
       next: NextUnaryFn,
@@ -27,18 +30,29 @@ export const withAuth = (apiKey: string, token: string): RpcInterceptor => {
       if (!options.meta) {
         options.meta = {};
       }
-      options.meta['api_key'] = apiKey;
-      options.meta['Authorization'] = `Bearer ${token}`;
+      Object.entries(headers).forEach(([header, value]) => {
+        // @ts-ignore
+        options.meta[header] = value;
+      });
       return next(method, input, options);
     },
   };
 };
 
-export const createClient = (options?: TwirpOptions) => {
+export const createCoordinatorClient = (options?: TwirpOptions) => {
   const transport = new TwirpFetchTransport({
     ...defaultOptions,
     ...options,
   });
 
   return new ClientRPCClient(transport);
+};
+
+export const createSignalClient = (options?: TwirpOptions) => {
+  const transport = new TwirpFetchTransport({
+    ...defaultOptions,
+    ...options,
+  });
+
+  return new SignalServerClient(transport);
 };

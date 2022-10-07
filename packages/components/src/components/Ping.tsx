@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useStreamVideoClient } from '../StreamVideo';
-import { Call } from '@stream-io/video-client';
+import { CallMeta } from '@stream-io/video-client';
 import { WebsocketHealthcheck } from '@stream-io/video-client/dist/src/gen/video/coordinator/client_v1_rpc/websocket';
 
-export const Ping = (props: { currentUser: string; activeCall: Call }) => {
+export const Ping = (props: {
+  currentUser: string;
+  activeCall: CallMeta.Call;
+}) => {
   const { currentUser, activeCall } = props;
   const client = useStreamVideoClient();
 

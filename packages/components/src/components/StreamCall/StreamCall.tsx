@@ -1,8 +1,8 @@
 import { ICEServer } from '@stream-io/video-client';
-import { Call, Client, User } from '@stream-io/video-client-sfu';
+import { Call, StreamSfuRpcClient } from '@stream-io/video-client';
 import { useEffect, useMemo, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { CallState } from '@stream-io/video-client-sfu/src/gen/sfu_models/models';
+import { CallState } from '@stream-io/video-client/src/gen-sfu/sfu_models/models';
 import { Stage } from './Stage';
 import { Stats } from '../Stats';
 import { useStreamVideoClient } from '../../StreamVideo';
@@ -12,7 +12,7 @@ import { DeviceSettings } from './DeviceSettings';
 import { MediaDevicesProvider } from '../../contexts/MediaDevicesContext';
 import { CallControls } from './CallControls';
 
-export type RoomProps = {
+export type CallProps = {
   currentUser: string;
   callId: string;
   callType: string;
@@ -26,7 +26,7 @@ export const StreamCall = ({
   callType,
   autoJoin = true,
   includeSelf = false,
-}: RoomProps) => {
+}: CallProps) => {
   const { activeCall, credentials } = useCall({
     callId,
     callType,
@@ -37,10 +37,13 @@ export const StreamCall = ({
   const sessionId = useSessionId(callId, currentUser);
   const call = useMemo(() => {
     if (!credentials) return;
-    const user = new User(currentUser, credentials.token);
     const serverUrl = credentials.server?.url || 'http://localhost:3031/twirp';
-    const client = new Client(serverUrl, user, sessionId);
-    return new Call(client, {
+    const client = new StreamSfuRpcClient(
+      serverUrl,
+      credentials.token,
+      sessionId,
+    );
+    return new Call(client, currentUser, {
       connectionConfig:
         toRtcConfiguration(credentials.iceServers) ||
         defaultRtcConfiguration(serverUrl),

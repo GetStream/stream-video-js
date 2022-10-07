@@ -7,11 +7,11 @@ import {
   TextField,
 } from '@mui/material';
 import SwitchVideo from '@mui/icons-material/SwitchVideo';
-import { Call } from '@stream-io/video-client';
+import { CallMeta } from '@stream-io/video-client';
 
 export const JoinCall = (props: {
   joinCall?: (id: string, type: string) => void;
-  currentCall?: Call;
+  currentCall?: CallMeta.Call;
 }) => {
   const { joinCall, currentCall } = props;
   const [callId, setCallId] = useState('');

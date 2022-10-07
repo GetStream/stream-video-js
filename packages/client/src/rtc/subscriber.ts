@@ -1,9 +1,9 @@
-import { Client } from '../rpc';
+import { StreamSfuRpcClient } from '../StreamSfuRpcClient';
 import { Dispatcher } from './Dispatcher';
-import { PeerType } from '../gen/sfu_models/models';
+import { PeerType } from '../gen-sfu/sfu_models/models';
 
 export type SubscriberOpts = {
-  rpcClient: Client;
+  rpcClient: StreamSfuRpcClient;
   dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
   onTrack?: (e: RTCTrackEvent) => void;

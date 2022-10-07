@@ -1,4 +1,4 @@
-import { SfuEvent } from '../gen/sfu_events/events';
+import { SfuEvent } from '../gen-sfu/sfu_events/events';
 
 export type SfuEventListener = (event: SfuEvent) => void;
 

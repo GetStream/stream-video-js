@@ -6,7 +6,7 @@ import {
   ThemeProvider,
 } from '@mui/material';
 import {
-  Call,
+  CallMeta,
   GetCallEdgeServerResponse,
   MemberInput,
   Struct,
@@ -52,7 +52,7 @@ const App = () => {
     const params = new URLSearchParams(window.location.search);
     return params.get('user') || 'marcelo';
   });
-  const [currentCall, setCurrentCall] = useState<Call>();
+  const [currentCall, setCurrentCall] = useState<CallMeta.Call>();
   const [isCurrentCallAccepted, setIsCurrentCallAccepted] = useState(false);
   const [, setEdge] = useState<GetCallEdgeServerResponse>();
   const [errorMessage, setErrorMessage] = useState('');
@@ -78,10 +78,10 @@ const App = () => {
   );
 
   const client = useCreateStreamVideoClient({
-    coordinatorRpcUrl:
-      'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc', // proxied to http://localhost:26991
+    // proxied to http://localhost:26991
+    coordinatorRpcUrl: '/rpc',
     coordinatorWsUrl:
-      'ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+      'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
     apiKey: 'key10', // see <video>/data/fixtures/apps.yaml for API secret
     token: participants[currentUser],
     user,

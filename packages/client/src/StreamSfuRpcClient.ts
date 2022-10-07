@@ -1,18 +1,7 @@
-import { VideoDimension, VideoQuality } from '../gen/sfu_models/models';
-import { SignalServerClient } from '../gen/sfu_signal_rpc/signal.client';
-import { createClient, withBearerToken } from './createClient';
-import { Logger } from './types';
-import { IceCandidateRequest } from '../gen/sfu_signal_rpc/signal';
-
-export class User {
-  name: string;
-  token: string;
-
-  constructor(name: string, token: string) {
-    this.name = name;
-    this.token = token;
-  }
-}
+import { VideoDimension, VideoQuality } from './gen-sfu/sfu_models/models';
+import { SignalServerClient } from './gen-sfu/sfu_signal_rpc/signal.client';
+import { IceCandidateRequest } from './gen-sfu/sfu_signal_rpc/signal';
+import { createSignalClient, withHeaders } from './rpc';
 
 const hostnameFromUrl = (url: string) => {
   try {
@@ -23,31 +12,25 @@ const hostnameFromUrl = (url: string) => {
   }
 };
 
-export class Client {
-  // A user object
-  user: User;
-
+export class StreamSfuRpcClient {
   sfuHost: string;
   // we generate uuid session id client side
   sessionId: string;
   // Client to make Twirp style API calls
   rpc: SignalServerClient;
 
-  logger: Logger;
-
-  constructor(url: string, user: User, sessionId: string) {
-    this.user = user;
+  constructor(url: string, token: string, sessionId: string) {
     this.sfuHost = hostnameFromUrl(url);
-    this.rpc = createClient({
+    this.rpc = createSignalClient({
       baseUrl: url,
-      interceptors: [withBearerToken(user.token)],
+      interceptors: [
+        withHeaders({
+          Authorization: `Bearer ${token}`,
+        }),
+      ],
     });
 
     this.sessionId = sessionId;
-
-    this.logger = (l, m, e) => {
-      console.log(m);
-    };
   }
 
   updateAudioMuteState = async (muted: boolean) => {

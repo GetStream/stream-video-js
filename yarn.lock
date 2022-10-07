@@ -3956,9 +3956,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/video-client-sfu@workspace:^, @stream-io/video-client-sfu@workspace:packages/client-sfu":
+"@stream-io/video-client@workspace:^, @stream-io/video-client@workspace:packages/client":
   version: 0.0.0-use.local
-  resolution: "@stream-io/video-client-sfu@workspace:packages/client-sfu"
+  resolution: "@stream-io/video-client@workspace:packages/client"
   dependencies:
     "@protobuf-ts/runtime": ^2.8.1
     "@protobuf-ts/runtime-rpc": ^2.8.1
@@ -3972,26 +3972,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/video-client@workspace:^, @stream-io/video-client@workspace:packages/client":
-  version: 0.0.0-use.local
-  resolution: "@stream-io/video-client@workspace:packages/client"
-  dependencies:
-    "@protobuf-ts/runtime": ^2.8.1
-    "@protobuf-ts/runtime-rpc": ^2.8.1
-    "@protobuf-ts/twirp-transport": ^2.8.1
-    "@types/rimraf": ^3.0.2
-    rimraf: ^3.0.2
-    typescript: ^4.8.4
-  languageName: unknown
-  linkType: soft
-
 "@stream-io/video-components-react@workspace:^, @stream-io/video-components-react@workspace:packages/components":
   version: 0.0.0-use.local
   resolution: "@stream-io/video-components-react@workspace:packages/components"
   dependencies:
     "@popperjs/core": ^2.11.6
     "@stream-io/video-client": "workspace:^"
-    "@stream-io/video-client-sfu": "workspace:^"
     "@types/rimraf": ^3.0.2
     "@types/uuid": ^8.3.4
     clsx: ^1.2.1
@@ -5363,7 +5349,6 @@ __metadata:
     "@angular/platform-browser-dynamic": ^14.1.0
     "@angular/router": ^14.1.0
     "@stream-io/video-client": "workspace:^"
-    "@stream-io/video-client-sfu": "workspace:^"
     "@types/jasmine": ~4.0.0
     "@types/uuid": ^8.3.4
     jasmine-core: ~4.2.0
