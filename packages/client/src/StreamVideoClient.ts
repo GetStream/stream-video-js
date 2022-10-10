@@ -10,10 +10,10 @@ import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rp
 import { Edge, Latency } from './gen/video/coordinator/edge_v1/edge';
 import { UserInput } from './gen/video/coordinator/user_v1/user';
 import {
-  createClient,
+  createCoordinatorClient,
   measureResourceLoadLatencyTo,
   StreamVideoClientOptions,
-  withAuth,
+  withHeaders,
 } from './rpc';
 import {
   createSocketConnection,
@@ -43,10 +43,15 @@ export class StreamVideoClient {
     this.options = options;
     const { token } = options;
     const authToken = typeof token === 'function' ? token() : token;
-    this.client = createClient({
+    this.client = createCoordinatorClient({
       baseUrl: options.coordinatorRpcUrl || '/',
       sendJson: options.sendJson,
-      interceptors: [withAuth(apiKey, authToken)],
+      interceptors: [
+        withHeaders({
+          api_key: apiKey,
+          Authorization: `Bearer ${authToken}`,
+        }),
+      ],
     });
   }
 

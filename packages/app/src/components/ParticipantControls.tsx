@@ -23,13 +23,13 @@ import VideoCall from '@mui/icons-material/VideoCall';
 import { CreateCall } from './CreateCall';
 import { JoinCall } from './JoinCall';
 import type { Participants } from '../App';
-import { Call } from '@stream-io/video-client';
+import { CallMeta } from '@stream-io/video-client';
 
 export type ParticipantsProps = {
   participants: Participants;
   currentUser: string;
   setCurrentUser: (name: string) => void;
-  currentCall?: Call;
+  currentCall?: CallMeta.Call;
   joinCall?: (callId: string, type: string) => void;
   onCreateCall?: (callId: string, participants: string[]) => void;
 };

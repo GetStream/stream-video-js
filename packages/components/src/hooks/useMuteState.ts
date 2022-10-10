@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Call } from '@stream-io/video-client-sfu';
+import { Call } from '@stream-io/video-client';
 
 // TODO OL: move into the shared state module
 export const useMuteState = (call: Call, track?: MediaStreamTrack) => {

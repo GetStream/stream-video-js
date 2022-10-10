@@ -1,12 +1,12 @@
 import { StreamVideoClient, Struct } from '@stream-io/video-client';
 import { useEffect } from 'react';
-import { Call as ActiveCall } from '@stream-io/video-client';
-import { Call } from '@stream-io/video-client-sfu';
+import { CallMeta } from '@stream-io/video-client';
+import { Call } from '@stream-io/video-client';
 
 export interface StatsProps {
   client: StreamVideoClient;
   call: Call;
-  activeCall: ActiveCall;
+  activeCall: CallMeta.Call;
 }
 
 const intervalMs = 15000;

@@ -14,10 +14,9 @@
     "start:angular-sample-app": "yarn workspace angular-sample-app run start",
     "build:all": "yarn workspaces foreach -vt run build",
     "build:components": "yarn workspace @stream-io/video-components-react run build",
-    "build:client-sfu": "yarn workspace @stream-io/video-client-sfu run build",
     "build:client": "yarn workspace @stream-io/video-client run build",
     "build:dogfood": "yarn workspace @stream-io/video-dogfood run build",
-    "build:vercel": "yarn build:client-sfu && yarn build:client && yarn build:components && yarn build:dogfood",
+    "build:vercel": "yarn build:client && yarn build:components && yarn build:dogfood",
     "clean:all": "yarn workspaces foreach -vt run clean",
     "lint:all": "eslint --fix 'packages/**/*.{ts,tsx}'"
   },

@@ -43,10 +43,10 @@ const JoinCall = (props: JoinCallProps) => {
     token: userToken,
     user: loggedInUser,
   });
+
   if (!client) {
     return <h2>Connecting...</h2>;
   }
-
   return (
     <div style={{ flexGrow: 1 }}>
       <StreamVideo client={client}>

@@ -2,9 +2,9 @@ import clsx from 'clsx';
 import {
   Participant,
   VideoDimension,
-} from '@stream-io/video-client-sfu/dist/src/gen/sfu_models/models';
+} from '@stream-io/video-client/dist/src/gen-sfu/sfu_models/models';
 import { useCallback, useEffect, useRef } from 'react';
-import { Call } from '@stream-io/video-client-sfu';
+import { Call } from '@stream-io/video-client';
 import { useParticipantStreams } from '../../hooks/useParticipantStreams';
 import { useParticipants } from '../../hooks/useParticipants';
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';

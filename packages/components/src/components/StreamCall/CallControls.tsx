@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { Call } from '@stream-io/video-client-sfu';
+import { Call } from '@stream-io/video-client';
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';
 import { useMuteState } from '../../hooks/useMuteState';
 export const CallControls = (props: { call: Call }) => {

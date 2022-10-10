@@ -5,7 +5,7 @@ import {
   defaultVideoLayers,
   OptimalVideoLayer,
 } from './videoLayers';
-import { Client } from '../rpc';
+import { StreamSfuClient } from '../StreamSfuClient';
 import {
   defaultVideoPublishEncodings,
   getPreferredCodecs,
@@ -14,7 +14,7 @@ import {
 } from './codecs';
 import { createPublisher } from './publisher';
 import { Dispatcher } from './Dispatcher';
-import { VideoDimension } from '../gen/sfu_models/models';
+import { VideoDimension } from '../gen-sfu/sfu_models/models';
 import { registerEventHandlers } from './callEventHandlers';
 
 export type CallOptions = {
@@ -23,24 +23,27 @@ export type CallOptions = {
 
 export class Call {
   private readonly dispatcher = new Dispatcher();
-  private readonly client: Client;
+  private readonly client: StreamSfuClient;
   private readonly options: CallOptions;
 
   private videoLayers?: OptimalVideoLayer[];
   private subscriber?: RTCPeerConnection;
   private publisher?: RTCPeerConnection;
 
+  readonly currentUserId: string;
+
   // FIXME: OL: convert to regular event
   handleOnTrack?: (e: RTCTrackEvent) => void;
 
-  constructor(client: Client, options: CallOptions) {
+  constructor(
+    client: StreamSfuClient,
+    currentUserId: string,
+    options: CallOptions,
+  ) {
     this.client = client;
+    this.currentUserId = currentUserId;
     this.options = options;
     registerEventHandlers(this);
-  }
-
-  get currentUserId() {
-    return this.client.user.name;
   }
 
   on = this.dispatcher.on;
