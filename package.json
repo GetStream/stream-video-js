@@ -1,6 +1,6 @@
 {
-  "name": "@stream-io/video-react",
-  "description": "The React Video SDK",
+  "name": "@stream-io/video-js-root",
+  "description": "Stream Video JS SDKs",
   "author": "https://getstream.io",
   "packageManager": "yarn@3.2.2",
   "private": true,
@@ -8,15 +8,15 @@
     "packages/*"
   ],
   "scripts": {
-    "start:components": "yarn workspace @stream-io/video-components-react run start",
+    "start:react:sdk": "yarn workspace @stream-io/video-react-sdk run start",
+    "start:react:app": "yarn workspace @stream-io/video-react-sample-app run start",
+    "build:react:dogfood": "yarn workspace @stream-io/video-react-dogfood run build",
+    "build:react:sdk": "yarn workspace @stream-io/video-react-sdk run build",
+    "build:vercel": "yarn build:client && yarn build:react:sdk && yarn build:react:dogfood",
+    "build:client": "yarn workspace @stream-io/video-client run build",
     "start:client": "yarn workspace @stream-io/video-client run start",
-    "start:app": "yarn workspace @stream-io/video-react-app run start",
     "start:angular-sample-app": "yarn workspace angular-sample-app run start",
     "build:all": "yarn workspaces foreach -vt run build",
-    "build:components": "yarn workspace @stream-io/video-components-react run build",
-    "build:client": "yarn workspace @stream-io/video-client run build",
-    "build:dogfood": "yarn workspace @stream-io/video-dogfood run build",
-    "build:vercel": "yarn build:client && yarn build:components && yarn build:dogfood",
     "clean:all": "yarn workspaces foreach -vt run clean",
     "lint:all": "eslint --fix 'packages/**/*.{ts,tsx}'"
   },

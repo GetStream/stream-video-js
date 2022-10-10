@@ -1,4 +1,4 @@
-# Stream Video React SDK
+# Stream Video JS SDK
 
 ## Dependencies
 
@@ -19,11 +19,11 @@ clone them and follow their appropriate READMEs found in their root.
 
 ### React
 
-Run the application `yarn start:app` (make sure the server is already running)
+Run the application `yarn start:react:app` (make sure the server is already running)
 
 1.  It could happen that the compiler emits compile error due to corrupted babel cache
-2.  Run: `rm -rf packages/app/node_modules/.cache`
-3.  Re-run the app `yarn start:app`
+2.  Run: `rm -rf packages/react-sample-app/node_modules/.cache`
+3.  Re-run the app `yarn start:react:app`
 
 ### Angular
 
