@@ -16,6 +16,6 @@ export * from './src/gen/video/coordinator/user_v1/user';
 export * from './src/rpc/types';
 export * from './src/ws/types';
 export * from './src/StreamVideoClient';
-export * from './src/StreamSfuRpcClient';
+export * from './src/StreamSfuClient';
 
 export * from './src/rtc/Call';

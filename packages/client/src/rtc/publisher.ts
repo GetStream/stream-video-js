@@ -1,7 +1,7 @@
-import { StreamSfuRpcClient } from '../StreamSfuRpcClient';
+import { StreamSfuClient } from '../StreamSfuClient';
 
 export type PublisherOpts = {
-  rpcClient: StreamSfuRpcClient;
+  rpcClient: StreamSfuClient;
   connectionConfig?: RTCConfiguration;
 };
 

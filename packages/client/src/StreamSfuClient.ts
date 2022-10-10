@@ -12,7 +12,7 @@ const hostnameFromUrl = (url: string) => {
   }
 };
 
-export class StreamSfuRpcClient {
+export class StreamSfuClient {
   sfuHost: string;
   // we generate uuid session id client side
   sessionId: string;

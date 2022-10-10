@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { VideoClientService } from './video-client.service';
-import { Call, StreamSfuRpcClient } from '@stream-io/video-client';
+import { Call, StreamSfuClient } from '@stream-io/video-client';
 import { BehaviorSubject, Observable, take, tap } from 'rxjs';
 import { CallParticipant } from './types';
 import { environment } from 'src/environments/environment';
@@ -53,7 +53,7 @@ export class CallService {
         );
       });
       const serverUrl = environment.sfuRpcUrl;
-      const client = new StreamSfuRpcClient(
+      const client = new StreamSfuClient(
         serverUrl,
         edge!.credentials!.token,
         uuidv4(),

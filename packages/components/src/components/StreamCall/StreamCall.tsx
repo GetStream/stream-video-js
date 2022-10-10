@@ -1,5 +1,5 @@
 import { ICEServer } from '@stream-io/video-client';
-import { Call, StreamSfuRpcClient } from '@stream-io/video-client';
+import { Call, StreamSfuClient } from '@stream-io/video-client';
 import { useEffect, useMemo, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { CallState } from '@stream-io/video-client/src/gen-sfu/sfu_models/models';
@@ -38,11 +38,7 @@ export const StreamCall = ({
   const call = useMemo(() => {
     if (!credentials) return;
     const serverUrl = credentials.server?.url || 'http://localhost:3031/twirp';
-    const client = new StreamSfuRpcClient(
-      serverUrl,
-      credentials.token,
-      sessionId,
-    );
+    const client = new StreamSfuClient(serverUrl, credentials.token, sessionId);
     return new Call(client, currentUser, {
       connectionConfig:
         toRtcConfiguration(credentials.iceServers) ||

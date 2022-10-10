@@ -5,7 +5,7 @@ import {
   defaultVideoLayers,
   OptimalVideoLayer,
 } from './videoLayers';
-import { StreamSfuRpcClient } from '../StreamSfuRpcClient';
+import { StreamSfuClient } from '../StreamSfuClient';
 import {
   defaultVideoPublishEncodings,
   getPreferredCodecs,
@@ -23,7 +23,7 @@ export type CallOptions = {
 
 export class Call {
   private readonly dispatcher = new Dispatcher();
-  private readonly client: StreamSfuRpcClient;
+  private readonly client: StreamSfuClient;
   private readonly options: CallOptions;
 
   private videoLayers?: OptimalVideoLayer[];
@@ -36,7 +36,7 @@ export class Call {
   handleOnTrack?: (e: RTCTrackEvent) => void;
 
   constructor(
-    client: StreamSfuRpcClient,
+    client: StreamSfuClient,
     currentUserId: string,
     options: CallOptions,
   ) {
