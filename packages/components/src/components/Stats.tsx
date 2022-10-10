@@ -1,7 +1,10 @@
-import { StreamVideoClient, Struct } from '@stream-io/video-client';
+import {
+  StreamVideoClient,
+  Struct,
+  CallMeta,
+  Call,
+} from '@stream-io/video-client';
 import { useEffect } from 'react';
-import { CallMeta } from '@stream-io/video-client';
-import { Call } from '@stream-io/video-client';
 
 export interface StatsProps {
   client: StreamVideoClient;

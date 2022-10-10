@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import '../style/app.css';
 import '@stream-io/video-components-react/dist/css/styles.css';
-import { SessionProvider } from 'next-auth/react';
+import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -13,7 +13,6 @@ import {
   createTheme,
   ThemeProvider,
 } from '@mui/material';
-import { useSession, signOut } from 'next-auth/react';
 
 const theme = createTheme({
   palette: {

@@ -1,15 +1,12 @@
-import { useSession, signIn, signOut } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 
 import PhotoCameraFrontIcon from '@mui/icons-material/PhotoCameraFront';
 import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 import {
-  CssBaseline,
   Box,
   Stack,
-  Container,
   Typography,
   Button,
   Divider,
@@ -17,29 +14,10 @@ import {
   InputLabel,
   OutlinedInput,
   InputAdornment,
-  createTheme,
-  ThemeProvider,
   Unstable_Grid2 as Grid,
 } from '@mui/material';
 import Link from 'next/link';
 import { meetingId } from '../lib/meetingId';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      light: '#757ce8',
-      main: '#0361FC',
-      dark: '#002884',
-      contrastText: '#fff',
-    },
-    secondary: {
-      light: '#ff7961',
-      main: '#f44336',
-      dark: '#ba000d',
-      contrastText: '#000',
-    },
-  },
-});
 
 const subtitles = [
   'Because we love seeing each other.',

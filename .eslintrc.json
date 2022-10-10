@@ -8,12 +8,19 @@
     "sourceType": "module"
   },
   "extends": [
-    "react-app"
+    "react-app",
+    "plugin:import/typescript"
   ],
+  "settings": {
+    "import/resolver": {
+      "typescript": true
+    }
+  },
   "plugins": [
     "prettier"
   ],
   "rules": {
-    "prettier/prettier": "error"
+    "prettier/prettier": "error",
+    "import/no-extraneous-dependencies": "error"
   }
 }

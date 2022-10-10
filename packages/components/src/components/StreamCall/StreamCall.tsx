@@ -1,5 +1,4 @@
-import { ICEServer } from '@stream-io/video-client';
-import { Call, StreamSfuClient } from '@stream-io/video-client';
+import { ICEServer, Call, StreamSfuClient } from '@stream-io/video-client';
 import { useEffect, useMemo, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { CallState } from '@stream-io/video-client/src/gen-sfu/sfu_models/models';
