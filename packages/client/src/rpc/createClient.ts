@@ -27,13 +27,7 @@ export const withHeaders = (
       input: object,
       options: RpcOptions,
     ): UnaryCall {
-      if (!options.meta) {
-        options.meta = {};
-      }
-      Object.entries(headers).forEach(([header, value]) => {
-        // @ts-ignore
-        options.meta[header] = value;
-      });
+      options.meta = { ...options.meta, ...headers };
       return next(method, input, options);
     },
   };
