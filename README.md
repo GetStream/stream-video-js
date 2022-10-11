@@ -27,7 +27,7 @@ Run the application `yarn start:react:app` (make sure the server is already runn
 
 ### Angular
 
-Run the application `yarn start:angular-sample-app` (make sure the server is already running)
+Run the application `yarn start:angular:app` (make sure the server is already running)
 
 You can override the default config params in `packages/angular-sample-app/src/environments/environment.ts`
 

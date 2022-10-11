@@ -1,5 +1,5 @@
 {
-  "name": "angular-sample-app",
+  "name": "@stream-io/video-angular-sample-app",
   "version": "0.0.0",
   "packageManager": "yarn@3.2.2",
   "scripts": {

@@ -3245,6 +3245,38 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stream-io/video-angular-sample-app@workspace:packages/angular-sample-app":
+  version: 0.0.0-use.local
+  resolution: "@stream-io/video-angular-sample-app@workspace:packages/angular-sample-app"
+  dependencies:
+    "@angular-devkit/build-angular": ^14.1.0
+    "@angular/animations": ^14.1.0
+    "@angular/cli": ~14.1.0
+    "@angular/common": ^14.1.0
+    "@angular/compiler": ^14.1.0
+    "@angular/compiler-cli": ^14.1.0
+    "@angular/core": ^14.1.0
+    "@angular/forms": ^14.1.0
+    "@angular/platform-browser": ^14.1.0
+    "@angular/platform-browser-dynamic": ^14.1.0
+    "@angular/router": ^14.1.0
+    "@stream-io/video-client": "workspace:^"
+    "@types/jasmine": ~4.0.0
+    "@types/uuid": ^8.3.4
+    jasmine-core: ~4.2.0
+    karma: ~6.4.0
+    karma-chrome-launcher: ~3.1.0
+    karma-coverage: ~2.2.0
+    karma-jasmine: ~5.1.0
+    karma-jasmine-html-reporter: ~2.0.0
+    rxjs: ~7.5.0
+    tslib: ^2.3.0
+    typescript: ~4.7.2
+    uuid: ^9.0.0
+    zone.js: ~0.11.4
+  languageName: unknown
+  linkType: soft
+
 "@stream-io/video-client@workspace:^, @stream-io/video-client@workspace:packages/client":
   version: 0.0.0-use.local
   resolution: "@stream-io/video-client@workspace:packages/client"
@@ -4627,38 +4659,6 @@ __metadata:
   checksum: 874972efe5c4202ab0a68379481fbd3d1b5d0a7bd6d3cc21d40d3536ebff3352a2a1fabb632d4fd2cc7fe4cbdcd5ed6782084c9bbf7f32a1536d18f9da5007d4
   languageName: node
   linkType: hard
-
-"angular-sample-app@workspace:packages/angular-sample-app":
-  version: 0.0.0-use.local
-  resolution: "angular-sample-app@workspace:packages/angular-sample-app"
-  dependencies:
-    "@angular-devkit/build-angular": ^14.1.0
-    "@angular/animations": ^14.1.0
-    "@angular/cli": ~14.1.0
-    "@angular/common": ^14.1.0
-    "@angular/compiler": ^14.1.0
-    "@angular/compiler-cli": ^14.1.0
-    "@angular/core": ^14.1.0
-    "@angular/forms": ^14.1.0
-    "@angular/platform-browser": ^14.1.0
-    "@angular/platform-browser-dynamic": ^14.1.0
-    "@angular/router": ^14.1.0
-    "@stream-io/video-client": "workspace:^"
-    "@types/jasmine": ~4.0.0
-    "@types/uuid": ^8.3.4
-    jasmine-core: ~4.2.0
-    karma: ~6.4.0
-    karma-chrome-launcher: ~3.1.0
-    karma-coverage: ~2.2.0
-    karma-jasmine: ~5.1.0
-    karma-jasmine-html-reporter: ~2.0.0
-    rxjs: ~7.5.0
-    tslib: ^2.3.0
-    typescript: ~4.7.2
-    uuid: ^9.0.0
-    zone.js: ~0.11.4
-  languageName: unknown
-  linkType: soft
 
 "ansi-colors@npm:4.1.3":
   version: 4.1.3
