@@ -14,7 +14,7 @@ import {
 } from './codecs';
 import { createPublisher } from './publisher';
 import { Dispatcher } from './Dispatcher';
-import { VideoDimension } from '../gen-sfu/sfu_models/models';
+import { VideoDimension } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 
 export type CallOptions = {

@@ -15,8 +15,10 @@ import { MessageType } from "@protobuf-ts/runtime";
 import { DeviceInput } from "../push_v1/push";
 import { UserInput } from "../user_v1/user";
 import { UserUpdated } from "../event_v1/event";
+import { CallCancelled } from "../event_v1/event";
+import { CallRejected } from "../event_v1/event";
+import { CallAccepted } from "../event_v1/event";
 import { CallEnded } from "../event_v1/event";
-import { CallStarted } from "../event_v1/event";
 import { CallMembersDeleted } from "../event_v1/event";
 import { CallMembersUpdated } from "../event_v1/event";
 import { CallDeleted } from "../event_v1/event";
@@ -50,7 +52,7 @@ export interface WebsocketEvent {
     };
     /**
      * All calls details for calls mentioned in the event payload, indexed by Call.call_cid
-     * Call details cotnain contextual data. For example, for MembersDeleted event, call_details[cid].Members will contain a list of
+     * Call details contain contextual data. For example, for MembersDeleted event, call_details[cid].Members will contain a list of
      * members that were deleted.
      *
      * @generated from protobuf field: map<string, stream.video.coordinator.call_v1.CallDetails> call_details = 3;
@@ -58,6 +60,13 @@ export interface WebsocketEvent {
     callDetails: {
         [key: string]: CallDetails;
     };
+    /**
+     * The ID of the user sending the event, this field is populated only for events that are initiated by users
+     * such as accepting, rejecting or canceling a call
+     *
+     * @generated from protobuf field: string event_sender_id = 4;
+     */
+    eventSenderId: string;
     /**
      * @generated from protobuf oneof: event
      */
@@ -69,9 +78,9 @@ export interface WebsocketEvent {
         healthcheck: WebsocketHealthcheck;
     } | {
         oneofKind: "callCreated";
-        // Call events
-
         /**
+         * Call events
+         *
          * @generated from protobuf field: stream.video.coordinator.event_v1.CallCreated call_created = 30;
          */
         callCreated: CallCreated;
@@ -100,23 +109,37 @@ export interface WebsocketEvent {
          */
         callMembersDeleted: CallMembersDeleted;
     } | {
-        oneofKind: "callStarted";
-        /**
-         * @generated from protobuf field: stream.video.coordinator.event_v1.CallStarted call_started = 35;
-         */
-        callStarted: CallStarted;
-    } | {
         oneofKind: "callEnded";
         /**
          * @generated from protobuf field: stream.video.coordinator.event_v1.CallEnded call_ended = 36;
          */
         callEnded: CallEnded;
     } | {
-        oneofKind: "userUpdated";
-        // User events
-
+        oneofKind: "callAccepted";
         /**
-         * @generated from protobuf field: stream.video.coordinator.event_v1.UserUpdated user_updated = 40;
+         * User initiated call events
+         *
+         * @generated from protobuf field: stream.video.coordinator.event_v1.CallAccepted call_accepted = 40;
+         */
+        callAccepted: CallAccepted;
+    } | {
+        oneofKind: "callRejected";
+        /**
+         * @generated from protobuf field: stream.video.coordinator.event_v1.CallRejected call_rejected = 41;
+         */
+        callRejected: CallRejected;
+    } | {
+        oneofKind: "callCancelled";
+        /**
+         * @generated from protobuf field: stream.video.coordinator.event_v1.CallCancelled call_cancelled = 42;
+         */
+        callCancelled: CallCancelled;
+    } | {
+        oneofKind: "userUpdated";
+        /**
+         * User events
+         *
+         * @generated from protobuf field: stream.video.coordinator.event_v1.UserUpdated user_updated = 50;
          */
         userUpdated: UserUpdated;
     } | {
@@ -183,7 +206,7 @@ export interface WebsocketAuthRequest {
     device?: DeviceInput;
 }
 /**
- * Healthckeck is sent back and forth between websocket client and server
+ * Healthcheck is sent back and forth between websocket client and server
  * When server sends a healthcheck, it is wrapped into WebsocketEvent
  * When client sends healthcheck, it should be wrapped into WebsocketClientEvent
  *
@@ -222,19 +245,22 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
             { no: 1, name: "users", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "message", T: () => User } },
             { no: 2, name: "calls", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "message", T: () => Call } },
             { no: 3, name: "call_details", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "message", T: () => CallDetails } },
+            { no: 4, name: "event_sender_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 20, name: "healthcheck", kind: "message", oneof: "event", T: () => WebsocketHealthcheck },
             { no: 30, name: "call_created", kind: "message", oneof: "event", T: () => CallCreated },
             { no: 31, name: "call_updated", kind: "message", oneof: "event", T: () => CallUpdated },
             { no: 32, name: "call_deleted", kind: "message", oneof: "event", T: () => CallDeleted },
             { no: 33, name: "call_members_updated", kind: "message", oneof: "event", T: () => CallMembersUpdated },
             { no: 34, name: "call_members_deleted", kind: "message", oneof: "event", T: () => CallMembersDeleted },
-            { no: 35, name: "call_started", kind: "message", oneof: "event", T: () => CallStarted },
             { no: 36, name: "call_ended", kind: "message", oneof: "event", T: () => CallEnded },
-            { no: 40, name: "user_updated", kind: "message", oneof: "event", T: () => UserUpdated }
+            { no: 40, name: "call_accepted", kind: "message", oneof: "event", T: () => CallAccepted },
+            { no: 41, name: "call_rejected", kind: "message", oneof: "event", T: () => CallRejected },
+            { no: 42, name: "call_cancelled", kind: "message", oneof: "event", T: () => CallCancelled },
+            { no: 50, name: "user_updated", kind: "message", oneof: "event", T: () => UserUpdated }
         ]);
     }
     create(value?: PartialMessage<WebsocketEvent>): WebsocketEvent {
-        const message = { users: {}, calls: {}, callDetails: {}, event: { oneofKind: undefined } };
+        const message = { users: {}, calls: {}, callDetails: {}, eventSenderId: "", event: { oneofKind: undefined } };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<WebsocketEvent>(this, message, value);
@@ -253,6 +279,9 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
                     break;
                 case /* map<string, stream.video.coordinator.call_v1.CallDetails> call_details */ 3:
                     this.binaryReadMap3(message.callDetails, reader, options);
+                    break;
+                case /* string event_sender_id */ 4:
+                    message.eventSenderId = reader.string();
                     break;
                 case /* stream.video.coordinator.client_v1_rpc.WebsocketHealthcheck healthcheck */ 20:
                     message.event = {
@@ -290,19 +319,31 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
                         callMembersDeleted: CallMembersDeleted.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callMembersDeleted)
                     };
                     break;
-                case /* stream.video.coordinator.event_v1.CallStarted call_started */ 35:
-                    message.event = {
-                        oneofKind: "callStarted",
-                        callStarted: CallStarted.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callStarted)
-                    };
-                    break;
                 case /* stream.video.coordinator.event_v1.CallEnded call_ended */ 36:
                     message.event = {
                         oneofKind: "callEnded",
                         callEnded: CallEnded.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callEnded)
                     };
                     break;
-                case /* stream.video.coordinator.event_v1.UserUpdated user_updated */ 40:
+                case /* stream.video.coordinator.event_v1.CallAccepted call_accepted */ 40:
+                    message.event = {
+                        oneofKind: "callAccepted",
+                        callAccepted: CallAccepted.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callAccepted)
+                    };
+                    break;
+                case /* stream.video.coordinator.event_v1.CallRejected call_rejected */ 41:
+                    message.event = {
+                        oneofKind: "callRejected",
+                        callRejected: CallRejected.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callRejected)
+                    };
+                    break;
+                case /* stream.video.coordinator.event_v1.CallCancelled call_cancelled */ 42:
+                    message.event = {
+                        oneofKind: "callCancelled",
+                        callCancelled: CallCancelled.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callCancelled)
+                    };
+                    break;
+                case /* stream.video.coordinator.event_v1.UserUpdated user_updated */ 50:
                     message.event = {
                         oneofKind: "userUpdated",
                         userUpdated: UserUpdated.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).userUpdated)
@@ -389,6 +430,9 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
             CallDetails.internalBinaryWrite(message.callDetails[k], writer, options);
             writer.join().join();
         }
+        /* string event_sender_id = 4; */
+        if (message.eventSenderId !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.eventSenderId);
         /* stream.video.coordinator.client_v1_rpc.WebsocketHealthcheck healthcheck = 20; */
         if (message.event.oneofKind === "healthcheck")
             WebsocketHealthcheck.internalBinaryWrite(message.event.healthcheck, writer.tag(20, WireType.LengthDelimited).fork(), options).join();
@@ -407,15 +451,21 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
         /* stream.video.coordinator.event_v1.CallMembersDeleted call_members_deleted = 34; */
         if (message.event.oneofKind === "callMembersDeleted")
             CallMembersDeleted.internalBinaryWrite(message.event.callMembersDeleted, writer.tag(34, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.event_v1.CallStarted call_started = 35; */
-        if (message.event.oneofKind === "callStarted")
-            CallStarted.internalBinaryWrite(message.event.callStarted, writer.tag(35, WireType.LengthDelimited).fork(), options).join();
         /* stream.video.coordinator.event_v1.CallEnded call_ended = 36; */
         if (message.event.oneofKind === "callEnded")
             CallEnded.internalBinaryWrite(message.event.callEnded, writer.tag(36, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.event_v1.UserUpdated user_updated = 40; */
+        /* stream.video.coordinator.event_v1.CallAccepted call_accepted = 40; */
+        if (message.event.oneofKind === "callAccepted")
+            CallAccepted.internalBinaryWrite(message.event.callAccepted, writer.tag(40, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.event_v1.CallRejected call_rejected = 41; */
+        if (message.event.oneofKind === "callRejected")
+            CallRejected.internalBinaryWrite(message.event.callRejected, writer.tag(41, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.event_v1.CallCancelled call_cancelled = 42; */
+        if (message.event.oneofKind === "callCancelled")
+            CallCancelled.internalBinaryWrite(message.event.callCancelled, writer.tag(42, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.event_v1.UserUpdated user_updated = 50; */
         if (message.event.oneofKind === "userUpdated")
-            UserUpdated.internalBinaryWrite(message.event.userUpdated, writer.tag(40, WireType.LengthDelimited).fork(), options).join();
+            UserUpdated.internalBinaryWrite(message.event.userUpdated, writer.tag(50, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

@@ -1,5 +1,5 @@
-import { Call } from './gen/video/coordinator/call_v1/call';
-import {
+import type { Call } from './gen/video/coordinator/call_v1/call';
+import type {
   CreateCallRequest,
   GetOrCreateCallRequest,
   JoinCallRequest,
@@ -7,8 +7,8 @@ import {
   ReportCallStatsResponse,
 } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
-import { Edge, Latency } from './gen/video/coordinator/edge_v1/edge';
-import { UserInput } from './gen/video/coordinator/user_v1/user';
+import type { Edge, Latency } from './gen/video/coordinator/edge_v1/edge';
+import type { UserInput } from './gen/video/coordinator/user_v1/user';
 import {
   createCoordinatorClient,
   measureResourceLoadLatencyTo,

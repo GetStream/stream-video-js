@@ -10,7 +10,7 @@ import {
   TwirpOptions,
 } from '@protobuf-ts/twirp-transport';
 import { ClientRPCClient } from '../gen/video/coordinator/client_v1_rpc/client_rpc.client';
-import { SignalServerClient } from '../gen-sfu/sfu_signal_rpc/signal.client';
+import { SignalServerClient } from '../gen/video/sfu/signal_rpc/signal.client';
 
 const defaultOptions: TwirpOptions = {
   baseUrl: '',

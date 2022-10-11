@@ -83,20 +83,15 @@ export interface CallCreated {
      * @generated from protobuf field: string call_cid = 1;
      */
     callCid: string;
+    /**
+     * @generated from protobuf field: bool ringing = 2;
+     */
+    ringing: boolean;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.event_v1.CallUpdated
  */
 export interface CallUpdated {
-    /**
-     * @generated from protobuf field: string call_cid = 1;
-     */
-    callCid: string;
-}
-/**
- * @generated from protobuf message stream.video.coordinator.event_v1.CallStarted
- */
-export interface CallStarted {
     /**
      * @generated from protobuf field: string call_cid = 1;
      */
@@ -119,6 +114,21 @@ export interface CallDeleted {
      * @generated from protobuf field: string call_cid = 1;
      */
     callCid: string;
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.event_v1.CallAccepted
+ */
+export interface CallAccepted {
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.event_v1.CallRejected
+ */
+export interface CallRejected {
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.event_v1.CallCancelled
+ */
+export interface CallCancelled {
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class RecordingStarted$Type extends MessageType<RecordingStarted> {
@@ -453,11 +463,12 @@ export const CallMembersDeleted = new CallMembersDeleted$Type();
 class CallCreated$Type extends MessageType<CallCreated> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallCreated", [
-            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "ringing", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<CallCreated>): CallCreated {
-        const message = { callCid: "" };
+        const message = { callCid: "", ringing: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CallCreated>(this, message, value);
@@ -470,6 +481,9 @@ class CallCreated$Type extends MessageType<CallCreated> {
             switch (fieldNo) {
                 case /* string call_cid */ 1:
                     message.callCid = reader.string();
+                    break;
+                case /* bool ringing */ 2:
+                    message.ringing = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -486,6 +500,9 @@ class CallCreated$Type extends MessageType<CallCreated> {
         /* string call_cid = 1; */
         if (message.callCid !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* bool ringing = 2; */
+        if (message.ringing !== false)
+            writer.tag(2, WireType.Varint).bool(message.ringing);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -543,53 +560,6 @@ class CallUpdated$Type extends MessageType<CallUpdated> {
  * @generated MessageType for protobuf message stream.video.coordinator.event_v1.CallUpdated
  */
 export const CallUpdated = new CallUpdated$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class CallStarted$Type extends MessageType<CallStarted> {
-    constructor() {
-        super("stream.video.coordinator.event_v1.CallStarted", [
-            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<CallStarted>): CallStarted {
-        const message = { callCid: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<CallStarted>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallStarted): CallStarted {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string call_cid */ 1:
-                    message.callCid = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: CallStarted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_cid = 1; */
-        if (message.callCid !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.coordinator.event_v1.CallStarted
- */
-export const CallStarted = new CallStarted$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CallEnded$Type extends MessageType<CallEnded> {
     constructor() {
@@ -684,3 +654,81 @@ class CallDeleted$Type extends MessageType<CallDeleted> {
  * @generated MessageType for protobuf message stream.video.coordinator.event_v1.CallDeleted
  */
 export const CallDeleted = new CallDeleted$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CallAccepted$Type extends MessageType<CallAccepted> {
+    constructor() {
+        super("stream.video.coordinator.event_v1.CallAccepted", []);
+    }
+    create(value?: PartialMessage<CallAccepted>): CallAccepted {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CallAccepted>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallAccepted): CallAccepted {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: CallAccepted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.event_v1.CallAccepted
+ */
+export const CallAccepted = new CallAccepted$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CallRejected$Type extends MessageType<CallRejected> {
+    constructor() {
+        super("stream.video.coordinator.event_v1.CallRejected", []);
+    }
+    create(value?: PartialMessage<CallRejected>): CallRejected {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CallRejected>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallRejected): CallRejected {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: CallRejected, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.event_v1.CallRejected
+ */
+export const CallRejected = new CallRejected$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CallCancelled$Type extends MessageType<CallCancelled> {
+    constructor() {
+        super("stream.video.coordinator.event_v1.CallCancelled", []);
+    }
+    create(value?: PartialMessage<CallCancelled>): CallCancelled {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CallCancelled>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallCancelled): CallCancelled {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: CallCancelled, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.event_v1.CallCancelled
+ */
+export const CallCancelled = new CallCancelled$Type();

@@ -1,5 +1,5 @@
 import * as SDPTransform from 'sdp-transform';
-import { Codec } from '../gen-sfu/sfu_models/models';
+import type { Codec } from '../gen/video/sfu/models/models';
 
 export const defaultVideoPublishEncodings: RTCRtpEncodingParameters[] = [
   {

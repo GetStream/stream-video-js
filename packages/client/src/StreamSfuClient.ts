@@ -1,6 +1,9 @@
-import { VideoDimension, VideoQuality } from './gen-sfu/sfu_models/models';
-import { SignalServerClient } from './gen-sfu/sfu_signal_rpc/signal.client';
-import { IceCandidateRequest } from './gen-sfu/sfu_signal_rpc/signal';
+import {
+  type VideoDimension,
+  VideoQuality,
+} from './gen/video/sfu/models/models';
+import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
+import type { IceCandidateRequest } from './gen/video/sfu/signal_rpc/signal';
 import { createSignalClient, withHeaders } from './rpc';
 
 const hostnameFromUrl = (url: string) => {
@@ -59,6 +62,7 @@ export class StreamSfuClient {
     return response;
   };
 
+  // FIXME: OL: introduced as a dev-tool. Do we need to keep it?
   requestVideoQuality = async (forUserId: string, quality: VideoQuality) => {
     return this.rpc.requestVideoQuality({
       sessionId: this.sessionId,

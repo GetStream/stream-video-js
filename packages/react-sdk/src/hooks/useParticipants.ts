@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Call } from '@stream-io/video-client';
-import { Participant } from '@stream-io/video-client/dist/src/gen-sfu/sfu_models/models';
+import { Participant } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 
 export const useParticipants = (
   call: Call,
