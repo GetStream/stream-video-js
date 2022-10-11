@@ -55,11 +55,26 @@ const createCallSlackHookAPI = async (
         ],
       });
     }
-    return res.status(400).json({ error: 'Failed to getOrCreate call' });
+    return res.status(200).json(notifyError('Failed to getOrCreateCall'));
   } catch (e) {
     console.error(e);
-    return res.status(400).json({ error: e.message });
+    return res.status(200).json(notifyError(e.message));
   }
+};
+
+const notifyError = (message) => {
+  return {
+    response_type: 'ephemeral', // notify just the initiator
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `An error occurred: [\`${message}\`]`,
+        },
+      },
+    ],
+  };
 };
 
 export default createCallSlackHookAPI;
