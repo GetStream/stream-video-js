@@ -1,6 +1,8 @@
-import NextAuth from 'next-auth';
+import NextAuth, { CallbacksOptions, Profile } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import type { NextAuthOptions } from 'next-auth';
+
+type Options = CallbacksOptions<Profile & { email_verified: boolean }>;
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -17,7 +19,7 @@ export const authOptions: NextAuthOptions = {
       }
       return false;
     },
-  },
+  } as Partial<Options>,
   pages: {
     signIn: '/auth/signin',
   },
