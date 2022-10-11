@@ -15,6 +15,7 @@ import {
   StreamVideoClientOptions,
   withHeaders,
 } from './rpc';
+import { writeableStateStore } from './state-store';
 import {
   createSocketConnection,
   StreamEventListener,
@@ -63,12 +64,14 @@ export class StreamVideoClient {
       token,
       user,
     );
+    writeableStateStore.connectedUserSubject.next(user);
   };
 
   disconnect = async () => {
     if (!this.ws) return;
     this.ws.disconnect();
     this.ws = undefined;
+    writeableStateStore.connectedUserSubject.next(undefined);
   };
 
   on = <T>(event: string, fn: StreamEventListener<T>) => {
