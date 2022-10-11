@@ -3261,38 +3261,32 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/video-components-react@workspace:^, @stream-io/video-components-react@workspace:packages/components":
+"@stream-io/video-js-root@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@stream-io/video-components-react@workspace:packages/components"
+  resolution: "@stream-io/video-js-root@workspace:."
   dependencies:
-    "@popperjs/core": ^2.11.6
-    "@stream-io/video-client": "workspace:^"
-    "@types/rimraf": ^3.0.2
-    "@types/uuid": ^8.3.4
-    clsx: ^1.2.1
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    react-popper: ^2.3.0
-    rimraf: ^3.0.2
-    sass: ^1.55.0
-    typescript: ^4.8.4
-    uuid: ^9.0.0
-  peerDependencies:
-    react: ^18.0.0
-    react-dom: ^18.0.0
+    "@types/eslint": ^8.4.6
+    "@typescript-eslint/eslint-plugin": ^5.39.0
+    "@typescript-eslint/parser": ^5.39.0
+    eslint: ^8.25.0
+    eslint-config-react-app: ^7.0.1
+    eslint-import-resolver-typescript: ^3.5.1
+    eslint-plugin-import: ^2.26.0
+    eslint-plugin-prettier: ^4.2.1
+    prettier: ^2.7.1
   languageName: unknown
   linkType: soft
 
-"@stream-io/video-dogfood@workspace:packages/dogfood":
+"@stream-io/video-react-dogfood@workspace:packages/react-dogfood":
   version: 0.0.0-use.local
-  resolution: "@stream-io/video-dogfood@workspace:packages/dogfood"
+  resolution: "@stream-io/video-react-dogfood@workspace:packages/react-dogfood"
   dependencies:
     "@emotion/react": 11.10.4
     "@emotion/styled": 11.10.4
     "@mui/icons-material": 5.10.6
     "@mui/material": 5.10.8
     "@stream-io/video-client": "workspace:^"
-    "@stream-io/video-components-react": "workspace:^"
+    "@stream-io/video-react-sdk": "workspace:^"
     "@types/jsonwebtoken": ^8.5.9
     jsonwebtoken: ^8.5.1
     nanoid: ^4.0.0
@@ -3303,16 +3297,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/video-react-app@workspace:packages/app":
+"@stream-io/video-react-sample-app@workspace:packages/react-sample-app":
   version: 0.0.0-use.local
-  resolution: "@stream-io/video-react-app@workspace:packages/app"
+  resolution: "@stream-io/video-react-sample-app@workspace:packages/react-sample-app"
   dependencies:
     "@emotion/react": ^11.10.4
     "@emotion/styled": ^11.10.4
     "@mui/icons-material": ^5.10.6
     "@mui/material": ^5.10.8
     "@stream-io/video-client": "workspace:^"
-    "@stream-io/video-components-react": "workspace:^"
+    "@stream-io/video-react-sdk": "workspace:^"
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^13.4.0
     "@testing-library/user-event": ^13.5.0
@@ -3330,19 +3324,25 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/video-react@workspace:.":
+"@stream-io/video-react-sdk@workspace:^, @stream-io/video-react-sdk@workspace:packages/react-sdk":
   version: 0.0.0-use.local
-  resolution: "@stream-io/video-react@workspace:."
+  resolution: "@stream-io/video-react-sdk@workspace:packages/react-sdk"
   dependencies:
-    "@types/eslint": ^8.4.6
-    "@typescript-eslint/eslint-plugin": ^5.39.0
-    "@typescript-eslint/parser": ^5.39.0
-    eslint: ^8.25.0
-    eslint-config-react-app: ^7.0.1
-    eslint-import-resolver-typescript: ^3.5.1
-    eslint-plugin-import: ^2.26.0
-    eslint-plugin-prettier: ^4.2.1
-    prettier: ^2.7.1
+    "@popperjs/core": ^2.11.6
+    "@stream-io/video-client": "workspace:^"
+    "@types/rimraf": ^3.0.2
+    "@types/uuid": ^8.3.4
+    clsx: ^1.2.1
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    react-popper: ^2.3.0
+    rimraf: ^3.0.2
+    sass: ^1.55.0
+    typescript: ^4.8.4
+    uuid: ^9.0.0
+  peerDependencies:
+    react: ^18.0.0
+    react-dom: ^18.0.0
   languageName: unknown
   linkType: soft
 

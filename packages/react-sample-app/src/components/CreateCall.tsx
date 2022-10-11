@@ -14,7 +14,7 @@ import {
   ListItemText,
   ListSubheader,
 } from '@mui/material';
-import { useStreamVideoClient } from '@stream-io/video-components-react';
+import { useStreamVideoClient } from '@stream-io/video-react-sdk';
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Participants } from '../App';
 

@@ -1,5 +1,5 @@
 {
-  "name": "@stream-io/video-dogfood",
+  "name": "@stream-io/video-react-dogfood",
   "packageManager": "yarn@3.2.2",
   "private": true,
   "scripts": {
@@ -13,7 +13,7 @@
     "@mui/icons-material": "5.10.6",
     "@mui/material": "5.10.8",
     "@stream-io/video-client": "workspace:^",
-    "@stream-io/video-components-react": "workspace:^",
+    "@stream-io/video-react-sdk": "workspace:^",
     "jsonwebtoken": "^8.5.1",
     "nanoid": "^4.0.0",
     "next": "^12.3.1",

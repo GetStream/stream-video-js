@@ -7,7 +7,7 @@ import {
   useCreateStreamVideoClient,
   StreamVideo,
   StreamCall,
-} from '@stream-io/video-components-react';
+} from '@stream-io/video-react-sdk';
 import { UserInput } from '@stream-io/video-client';
 import { useMemo } from 'react';
 

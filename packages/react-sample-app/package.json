@@ -1,5 +1,5 @@
 {
-  "name": "@stream-io/video-react-app",
+  "name": "@stream-io/video-react-sample-app",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -8,7 +8,7 @@
     "@mui/icons-material": "^5.10.6",
     "@mui/material": "^5.10.8",
     "@stream-io/video-client": "workspace:^",
-    "@stream-io/video-components-react": "workspace:^",
+    "@stream-io/video-react-sdk": "workspace:^",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
