@@ -31,6 +31,9 @@ const defaultOptions: Partial<StreamVideoClientOptions> = {
   latencyMeasurementRounds: 3,
 };
 
+/**
+ * Document me
+ */
 export class StreamVideoClient {
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
@@ -56,6 +59,13 @@ export class StreamVideoClient {
     });
   }
 
+  /**
+   * Connects the given user to the video client
+   * @param apiKey
+   * @param token
+   * @param user
+   * @returns
+   */
   connect = async (apiKey: string, token: string, user: UserInput) => {
     if (this.ws) return;
     this.ws = await createSocketConnection(
