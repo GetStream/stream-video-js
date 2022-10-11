@@ -1,7 +1,5 @@
 import { AfterViewChecked, Component, OnInit } from '@angular/core';
-import { VideoDimension } from '@stream-io/video-client/dist/src/gen-sfu/sfu_models/models';
-import { Observable } from 'rxjs';
-import { CallService } from '../call.service';
+import { Observable, of } from 'rxjs';
 import { CallParticipant } from '../types';
 
 @Component({
@@ -12,23 +10,14 @@ import { CallParticipant } from '../types';
 export class CallComponent implements OnInit, AfterViewChecked {
   participants$: Observable<CallParticipant[]>;
 
-  constructor(private callService: CallService) {
-    this.participants$ = this.callService.participants$;
+  constructor() {
+    this.participants$ = of([]);
   }
 
   ngOnInit(): void {}
 
   ngAfterViewChecked(): void {
     console.log('change detector ran');
-  }
-
-  updateParticipantVideoDimensions(
-    videoDimension: VideoDimension,
-    name: string,
-  ) {
-    this.callService.updateVideoDimensionOfCallParticipants([
-      { videoDimension, name },
-    ]);
   }
 
   trackByParticipantName(_: number, item: CallParticipant) {
