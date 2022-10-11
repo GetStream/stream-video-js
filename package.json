@@ -15,7 +15,7 @@
     "build:vercel": "yarn build:client && yarn build:react:sdk && yarn build:react:dogfood",
     "build:client": "yarn workspace @stream-io/video-client run build",
     "start:client": "yarn workspace @stream-io/video-client run start",
-    "start:angular-sample-app": "yarn workspace angular-sample-app run start",
+    "start:angular:app": "yarn workspace @stream-io/video-angular-sample-app run start",
     "build:all": "yarn workspaces foreach -vt run build",
     "clean:all": "yarn workspaces foreach -vt run clean",
     "lint:all": "eslint --fix 'packages/**/*.{ts,tsx}'"
