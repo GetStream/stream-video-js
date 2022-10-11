@@ -72,11 +72,11 @@ export const CreateCall = (props: {
   const client = useStreamVideoClient();
 
   useEffect(() => {
-    const handleParticipantJoined = (join: SfuEvents.ParticipantConnected) => {
+    const handleParticipantJoined = (join: SfuEvents.ParticipantJoined) => {
       if (!join.participant) return;
-      const { userId } = join.participant;
-      if (!inCallParticipants.includes(userId)) {
-        setInCallParticipants((ps) => [...ps, userId]);
+      const { user } = join.participant;
+      if (!inCallParticipants.includes(user!.id)) {
+        setInCallParticipants((ps) => [...ps, user!.id]);
       }
     };
     return client?.on('participantJoined', handleParticipantJoined);
@@ -84,7 +84,7 @@ export const CreateCall = (props: {
 
   useEffect(() => {
     const handleMute = (e: SfuEvents.MuteStateChanged) => {
-      const userId = e.participant?.userId;
+      const userId = e.userId;
       if (userId && !audioMuteParticipants.includes(userId)) {
         setAudioMuteParticipants((ps) => [...ps, userId]);
       }
@@ -92,7 +92,7 @@ export const CreateCall = (props: {
 
     // FIXME: OL: these two methods need to be merged
     const handleUnmute = (e: SfuEvents.MuteStateChanged) => {
-      const userId = e.participant?.userId;
+      const userId = e.userId;
       setAudioMuteParticipants((ps) => ps.filter((id) => id !== userId));
     };
 

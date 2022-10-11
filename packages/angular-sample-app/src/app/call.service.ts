@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable, take, tap } from 'rxjs';
 import { CallParticipant } from './types';
 import { environment } from 'src/environments/environment';
 import { v4 as uuidv4 } from 'uuid';
-import { VideoDimension } from '@stream-io/video-client/dist/src/gen-sfu/sfu_models/models';
+import { VideoDimension } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 
 @Injectable({
   providedIn: 'root',

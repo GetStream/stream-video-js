@@ -1,4 +1,4 @@
-import { SfuEvent } from '../gen-sfu/sfu_events/events';
+import { SfuEvent } from '../gen/video/sfu/event/events';
 
 export type SignalChannelOpts = {
   label: string;

@@ -1,6 +1,6 @@
 import { StreamSfuClient } from '../StreamSfuClient';
 import { Dispatcher } from './Dispatcher';
-import { PeerType } from '../gen-sfu/sfu_models/models';
+import { PeerType } from '../gen/video/sfu/models/models';
 
 export type SubscriberOpts = {
   rpcClient: StreamSfuClient;

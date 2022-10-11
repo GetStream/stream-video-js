@@ -42,7 +42,7 @@ export const createCoordinatorWebSocket = (
         } else if (attempts < 1) {
           clearInterval(intervalId);
           console.warn('Unsuccessful authentication');
-          ws.close(1111, 'Unsuccessful authentication');
+          ws.close(1000, 'Unsuccessful authentication');
           reject('Unsuccessful authentication');
         }
         attempts--;

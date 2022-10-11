@@ -1,10 +1,5 @@
-import {
-  StreamVideoClient,
-  Struct,
-  CallMeta,
-  Call,
-} from '@stream-io/video-client';
 import { useEffect } from 'react';
+import { Call, CallMeta, StreamVideoClient } from '@stream-io/video-client';
 
 export interface StatsProps {
   client: StreamVideoClient;
@@ -19,7 +14,8 @@ const getStats = (stats: RTCStatsReport) => {
   stats.forEach((v) => {
     s[v.id] = v;
   });
-  return Struct.fromJson(s);
+
+  return new TextEncoder().encode(JSON.stringify(s));
 };
 
 export const Stats = ({ client, call, activeCall }: StatsProps) => {
@@ -35,7 +31,7 @@ export const Stats = ({ client, call, activeCall }: StatsProps) => {
         await client.reportCallStats({
           callType: activeCall.type,
           callId: activeCall.id,
-          stats: getStats(s),
+          statsJson: getStats(s),
         });
       }
     }, intervalMs);

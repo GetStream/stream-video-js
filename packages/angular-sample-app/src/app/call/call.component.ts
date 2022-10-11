@@ -1,5 +1,5 @@
 import { AfterViewChecked, Component, OnInit } from '@angular/core';
-import { VideoDimension } from '@stream-io/video-client/dist/src/gen-sfu/sfu_models/models';
+import { VideoDimension } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 import { Observable } from 'rxjs';
 import { CallService } from '../call.service';
 import { CallParticipant } from '../types';

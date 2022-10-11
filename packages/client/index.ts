@@ -1,7 +1,7 @@
 import 'webrtc-adapter';
 
-import * as SfuEvents from './src/gen/video/sfu/event_v1/events';
-import * as SfuModels from './src/gen/video/sfu/models_v1/models';
+import * as SfuEvents from './src/gen/video/sfu/event/events';
+import * as SfuModels from './src/gen/video/sfu/models/models';
 import * as CallMeta from './src/gen/video/coordinator/call_v1/call';
 
 export { SfuModels, SfuEvents };

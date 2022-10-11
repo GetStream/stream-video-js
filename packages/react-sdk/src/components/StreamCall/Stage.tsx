@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import {
   Participant,
   VideoDimension,
-} from '@stream-io/video-client/dist/src/gen-sfu/sfu_models/models';
+} from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 import { useCallback, useEffect, useRef } from 'react';
 import { Call } from '@stream-io/video-client';
 import { useParticipantStreams } from '../../hooks/useParticipantStreams';
