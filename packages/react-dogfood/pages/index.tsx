@@ -57,7 +57,7 @@ export default function Home() {
         <Divider />
         <Grid container alignItems="center" rowSpacing={3} columnSpacing={3}>
           <Grid xs={12} md={5}>
-            <Link href={`/join/${meetingId(6)}`}>
+            <Link href={`/join/${meetingId()}`}>
               <Button variant="contained" fullWidth>
                 <PhotoCameraFrontIcon sx={{ mr: 1 }} />
                 New meeting
@@ -90,7 +90,7 @@ const JoinCall = () => {
               inputRef={ref}
               onChange={(e) =>
                 setDisabled(() => {
-                  return e.target.value.length !== 6;
+                  return e.target.value.length < 3;
                 })
               }
               size="small"

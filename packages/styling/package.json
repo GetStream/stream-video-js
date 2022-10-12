@@ -1,0 +1,15 @@
+{
+  "name": "@stream-io/video-styling",
+  "packageManager": "yarn@3.2.4",
+  "private": true,
+  "scripts": {
+    "clean": "rimraf dist",
+    "start": "sass --watch index.scss ./dist/css/styles.css",
+    "build": "sass index.scss ./dist/css/styles.css"
+  },
+  "devDependencies": {
+    "@types/rimraf": "^3.0.2",
+    "rimraf": "^3.0.2",
+    "sass": "^1.55.0"
+  }
+}

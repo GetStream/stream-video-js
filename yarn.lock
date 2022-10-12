@@ -3341,6 +3341,7 @@ __metadata:
     "@mui/material": 5.10.9
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
+    "@stream-io/video-styling": "workspace:^"
     "@types/jsonwebtoken": ^8.5.9
     jsonwebtoken: ^8.5.1
     nanoid: ^4.0.0
@@ -3361,6 +3362,7 @@ __metadata:
     "@mui/material": ^5.10.9
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
+    "@stream-io/video-styling": "workspace:^"
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^13.4.0
     "@testing-library/user-event": ^13.5.0
@@ -3384,6 +3386,7 @@ __metadata:
   dependencies:
     "@popperjs/core": ^2.11.6
     "@stream-io/video-client": "workspace:^"
+    "@stream-io/video-styling": "workspace:^"
     "@types/rimraf": ^3.0.2
     "@types/uuid": ^8.3.4
     clsx: ^1.2.1
@@ -3391,12 +3394,21 @@ __metadata:
     react-dom: ^18.2.0
     react-popper: ^2.3.0
     rimraf: ^3.0.2
-    sass: ^1.55.0
     typescript: ^4.8.4
     uuid: ^9.0.0
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
+  languageName: unknown
+  linkType: soft
+
+"@stream-io/video-styling@workspace:^, @stream-io/video-styling@workspace:packages/styling":
+  version: 0.0.0-use.local
+  resolution: "@stream-io/video-styling@workspace:packages/styling"
+  dependencies:
+    "@types/rimraf": ^3.0.2
+    rimraf: ^3.0.2
+    sass: ^1.55.0
   languageName: unknown
   linkType: soft
 
