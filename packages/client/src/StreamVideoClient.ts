@@ -15,6 +15,7 @@ import {
   StreamVideoClientOptions,
   withHeaders,
 } from './rpc';
+import { writeableStateStore } from './state-store';
 import {
   createSocketConnection,
   StreamEventListener,
@@ -30,6 +31,9 @@ const defaultOptions: Partial<StreamVideoClientOptions> = {
   latencyMeasurementRounds: 3,
 };
 
+/**
+ * Document me
+ */
 export class StreamVideoClient {
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
@@ -55,6 +59,13 @@ export class StreamVideoClient {
     });
   }
 
+  /**
+   * Connects the given user to the video client
+   * @param apiKey
+   * @param token
+   * @param user
+   * @returns
+   */
   connect = async (apiKey: string, token: string, user: UserInput) => {
     if (this.ws) return;
     this.ws = await createSocketConnection(
@@ -63,12 +74,14 @@ export class StreamVideoClient {
       token,
       user,
     );
+    writeableStateStore.connectedUserSubject.next(user);
   };
 
   disconnect = async () => {
     if (!this.ws) return;
     this.ws.disconnect();
     this.ws = undefined;
+    writeableStateStore.connectedUserSubject.next(undefined);
   };
 
   on = <T>(event: string, fn: StreamEventListener<T>) => {
