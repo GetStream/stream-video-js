@@ -22,8 +22,6 @@ export class ParticipantComponent implements OnInit, AfterViewInit {
   private videoPlaceholder!: ElementRef<HTMLElement>;
   @Output() videoDimensionsChange = new EventEmitter<VideoDimension>();
 
-  constructor() {}
-
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {

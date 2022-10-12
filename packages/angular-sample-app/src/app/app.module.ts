@@ -7,16 +7,12 @@ import { CallComponent } from './call/call.component';
 import { ParticipantComponent } from './participant/participant.component';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    CallComponent,
-    ParticipantComponent
-  ],
+  declarations: [AppComponent, CallComponent, ParticipantComponent],
   imports: [
     BrowserModule,
-    RouterModule.forRoot([{path: '', component: AppComponent}])
+    RouterModule.forRoot([{ path: '', component: AppComponent }]),
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

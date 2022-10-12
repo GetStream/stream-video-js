@@ -4,6 +4,12 @@ import * as SfuEvents from './src/gen/video/sfu/event/events';
 import * as SfuModels from './src/gen/video/sfu/models/models';
 import * as CallMeta from './src/gen/video/coordinator/call_v1/call';
 
+// Exporting writeableStateStore temporary to ease SDK transition
+import {
+  readOnlyStateStore as streamVideoReadonlyStateStore,
+  writeableStateStore as streamVideoWriteableStateStore,
+} from './src/state-store';
+
 export { SfuModels, SfuEvents };
 export { CallMeta }; // due to name collision with `/rtc/Call.ts`
 
@@ -19,10 +25,4 @@ export * from './src/StreamVideoClient';
 export * from './src/StreamSfuClient';
 
 export * from './src/rtc/Call';
-
-// Exporting writeableStateStore temporary to ease SDK transition
-import {
-  readOnlyStateStore as streamVideoReadonlyStateStore,
-  writeableStateStore as streamVideoWriteableStateStore,
-} from './src/state-store';
 export { streamVideoReadonlyStateStore, streamVideoWriteableStateStore };

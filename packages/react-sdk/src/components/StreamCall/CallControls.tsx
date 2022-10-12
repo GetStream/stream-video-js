@@ -41,6 +41,7 @@ const Button = (props: {
   onClick?: () => void;
 }) => {
   const { icon, variant, onClick } = props;
+  /* eslint-disable jsx-a11y/anchor-has-content, jsx-a11y/anchor-is-valid */
   return (
     <a
       href="#"
@@ -55,4 +56,5 @@ const Button = (props: {
       )}
     />
   );
+  /* eslint-enable jsx-a11y/anchor-has-content, jsx-a11y/anchor-is-valid */
 };

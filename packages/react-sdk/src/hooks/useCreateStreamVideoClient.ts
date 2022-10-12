@@ -18,40 +18,44 @@ export const useCreateStreamVideoClient = ({
   user,
 }: StreamVideoClientInit) => {
   const [client, setClient] = useState<StreamVideoClient>();
-  useEffect(() => {
-    const client = new StreamVideoClient(apiKey, {
-      coordinatorWsUrl,
-      coordinatorRpcUrl,
-      sendJson: true,
-      token,
-    });
-
-    let didInterruptConnect = false;
-    const connection = client
-      .connect(apiKey, token, user)
-      .then(() => {
-        if (!didInterruptConnect) {
-          setClient(client);
-        }
-      })
-      .catch((err) => {
-        console.error(`Failed to establish connection`, err);
+  useEffect(
+    () => {
+      const client = new StreamVideoClient(apiKey, {
+        coordinatorWsUrl,
+        coordinatorRpcUrl,
+        sendJson: true,
+        token,
       });
 
-    return () => {
-      didInterruptConnect = true;
-      connection.then(() => {
-        client
-          .disconnect()
-          .then(() => {
-            setClient(undefined);
-          })
-          .catch((err) => {
-            console.error(`Failed to disconnect`, err);
-          });
-      });
-    };
-  }, [apiKey, coordinatorRpcUrl, coordinatorWsUrl, token, user.name]);
+      let didInterruptConnect = false;
+      const connection = client
+        .connect(apiKey, token, user)
+        .then(() => {
+          if (!didInterruptConnect) {
+            setClient(client);
+          }
+        })
+        .catch((err) => {
+          console.error(`Failed to establish connection`, err);
+        });
+
+      return () => {
+        didInterruptConnect = true;
+        connection.then(() => {
+          client
+            .disconnect()
+            .then(() => {
+              setClient(undefined);
+            })
+            .catch((err) => {
+              console.error(`Failed to disconnect`, err);
+            });
+        });
+      };
+    },
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    [apiKey, coordinatorRpcUrl, coordinatorWsUrl, token, user.name],
+  );
 
   return client;
 };
