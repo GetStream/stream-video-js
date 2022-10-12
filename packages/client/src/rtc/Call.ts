@@ -1,24 +1,29 @@
-import { createSubscriber } from './subscriber';
-import {
-  defaultVideoLayers,
-  findOptimalVideoLayers,
-  OptimalVideoLayer,
-} from './videoLayers';
+import { debounceTime, Subject } from 'rxjs';
+import { SfuRequest } from '../gen/video/sfu/event/events';
+import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
+import { StreamVideoWriteableStateStore } from '../stateStore';
 import { StreamSfuClient } from '../StreamSfuClient';
+import { registerEventHandlers } from './callEventHandlers';
 import {
   defaultVideoPublishEncodings,
   getPreferredCodecs,
   getReceiverCodecs,
   getSenderCodecs,
 } from './codecs';
-import { createPublisher } from './publisher';
-import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
-import { registerEventHandlers } from './callEventHandlers';
-import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
-import { StreamVideoWriteableStateStore } from '../stateStore';
+import { createPublisher } from './publisher';
+import { createSubscriber } from './subscriber';
 import type { StreamVideoParticipant, SubscriptionChanges } from './types';
-import { debounceTime, Subject } from 'rxjs';
+import {
+  defaultVideoLayers,
+  findOptimalVideoLayers,
+  OptimalVideoLayer,
+} from './videoLayers';
+
+export type TrackChangedListener = (
+  track: MediaStreamTrack,
+  change: 'started' | 'ended',
+) => void;
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -40,6 +45,7 @@ export class Call {
   }>();
 
   private joinResponseReady?: Promise<CallState | undefined>;
+  private trackChangedListeners: TrackChangedListener[];
 
   constructor(
     private readonly client: StreamSfuClient,
@@ -66,6 +72,8 @@ export class Call {
       candidates: iceTrickleBuffer.publisherCandidates,
     });
 
+    this.trackChangedListeners = [];
+
     registerEventHandlers(this, this.stateStore, dispatcher);
 
     this.trackSubscriptionsSubject
@@ -87,7 +95,10 @@ export class Call {
     this.subscriber.close();
 
     this.publisher.getSenders().forEach((s) => {
-      s.track?.stop();
+      if (s.track) {
+        s.track.stop();
+        this.publishTrackChanged(s.track, 'ended');
+      }
       this.publisher.removeTrack(s);
     });
     this.publisher.close();
@@ -216,6 +227,8 @@ export class Call {
           console.log(`set codec preferences`, codecPreferences);
           videoTransceiver.setCodecPreferences(codecPreferences);
         }
+
+        this.publishTrackChanged(videoTrack, 'started');
       }
 
       this.stateStore.setCurrentValue(
@@ -252,6 +265,7 @@ export class Call {
           return p;
         }),
       );
+      this.publishTrackChanged(audioTrack, 'started');
     }
   };
 
@@ -380,6 +394,22 @@ export class Call {
     }
   };
 
+  onTrackChanged = (fn: TrackChangedListener) => {
+    this.trackChangedListeners.push(fn);
+  };
+  offTrackChanged = (fn: TrackChangedListener) => {
+    this.trackChangedListeners = this.trackChangedListeners.filter(
+      (f) => f !== fn,
+    );
+  };
+  private publishTrackChanged = (
+    track: MediaStreamTrack,
+    change: 'started' | 'ended',
+  ) => {
+    console.log('ASDASDASD', this.trackChangedListeners);
+    this.trackChangedListeners.forEach((fn) => fn(track, change));
+  };
+
   updateMuteState = (trackKind: 'audio' | 'video', isMute: boolean) => {
     if (!this.publisher) return;
     const senders = this.publisher.getSenders();
@@ -392,6 +422,8 @@ export class Call {
       } else if (trackKind === 'video') {
         return this.client.updateVideoMuteState(isMute);
       }
+
+      this.publishTrackChanged(sender.track, isMute ? 'ended' : 'started');
     }
   };
 

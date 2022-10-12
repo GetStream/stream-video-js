@@ -1,5 +1,10 @@
+import {
+  Call,
+  CallMeta,
+  StreamVideoClient,
+  TrackChangedListener,
+} from '@stream-io/video-client';
 import { useEffect } from 'react';
-import { Call, CallMeta, StreamVideoClient } from '@stream-io/video-client';
 
 export interface StatsProps {
   client: StreamVideoClient;
@@ -39,6 +44,15 @@ export const Stats = ({ client, call, activeCall }: StatsProps) => {
       clearInterval(intervalId);
     };
   }, [activeCall.callCid, activeCall.id, activeCall.type, call, client]);
+
+  useEffect(() => {
+    call.onTrackChanged(handleTrackChanged);
+    return () => call.offTrackChanged(handleTrackChanged);
+  }, [call]);
+
+  const handleTrackChanged: TrackChangedListener = (track, change) => {
+    console.log('TRACK CHANGED', track, change);
+  };
 
   return null;
 };
