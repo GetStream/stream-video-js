@@ -19,3 +19,10 @@ export * from './src/StreamVideoClient';
 export * from './src/StreamSfuClient';
 
 export * from './src/rtc/Call';
+
+// Exporting writeableStateStore temporary to ease SDK transition
+import {
+  readOnlyStateStore as streamVideoReadonlyStateStore,
+  writeableStateStore as streamVideoWriteableStateStore,
+} from './src/state-store';
+export { streamVideoReadonlyStateStore, streamVideoWriteableStateStore };
