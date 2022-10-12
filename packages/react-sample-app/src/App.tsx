@@ -24,7 +24,7 @@ import { NavigationBar } from './components/NavigationBar';
 import { ParticipantControls } from './components/ParticipantControls';
 import { Ringer } from './components/Ringer';
 
-import '@stream-io/video-react-sdk/dist/css/styles.css';
+import '@stream-io/video-styling/dist/css/styles.css';
 
 // use different browser tabs
 export type Participants = { [name: string]: string };

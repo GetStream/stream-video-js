@@ -6,13 +6,12 @@
   "scripts": {
     "clean": "rimraf dist",
     "start": "tsc --project tsconfig.json --watch",
-    "start:styles": "sass --watch index.scss ./dist/css/styles.css",
-    "build": "tsc --project tsconfig.production.json && yarn build:styles",
-    "build:styles": "sass index.scss ./dist/css/styles.css"
+    "build": "tsc --project tsconfig.production.json"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.6",
     "@stream-io/video-client": "workspace:^",
+    "@stream-io/video-styling": "workspace:^",
     "clsx": "^1.2.1",
     "react-popper": "^2.3.0",
     "uuid": "^9.0.0"
@@ -27,7 +26,6 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rimraf": "^3.0.2",
-    "sass": "^1.55.0",
     "typescript": "^4.8.4"
   }
 }
