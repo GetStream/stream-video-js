@@ -1,10 +1,6 @@
 import { Injectable } from '@angular/core';
-import {
-  StreamVideoClient,
-  streamVideoReadonlyStateStore,
-  UserInput,
-} from '@stream-io/video-client';
-import { Observable } from 'rxjs';
+import { StreamVideoClient, UserInput } from '@stream-io/video-client';
+import { Observable, ReplaySubject, Subscription } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -12,9 +8,13 @@ import { Observable } from 'rxjs';
 export class StreamVideoService {
   user$: Observable<UserInput | undefined>;
   videoClient: StreamVideoClient | undefined;
+  private userSubject: ReplaySubject<UserInput | undefined> = new ReplaySubject(
+    1,
+  );
+  private subscriptions: Subscription[] = [];
 
   constructor() {
-    this.user$ = streamVideoReadonlyStateStore.connectedUser$;
+    this.user$ = this.userSubject.asObservable();
   }
 
   init(
@@ -23,11 +23,26 @@ export class StreamVideoService {
     baseCoordinatorUrl: string,
     baseWsUrl: string,
   ) {
-    return new StreamVideoClient(apiKey, {
+    if (this.videoClient) {
+      console.warn(
+        `Multiple init calls detected, this is usually unnecessary, make sure you know what you're doing`,
+      );
+      this.videoClient.disconnect();
+      this.subscriptions.forEach((s) => s.unsubscribe());
+    }
+    this.videoClient = new StreamVideoClient(apiKey, {
       coordinatorRpcUrl: baseCoordinatorUrl,
       coordinatorWsUrl: baseWsUrl,
       sendJson: true,
       token,
     });
+
+    this.subscriptions.push(
+      this.videoClient.readOnlyStateStore?.connectedUser$.subscribe(
+        this.userSubject,
+      ),
+    );
+
+    return this.videoClient;
   }
 }
