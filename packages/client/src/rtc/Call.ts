@@ -20,10 +20,12 @@ import {
   OptimalVideoLayer,
 } from './videoLayers';
 
-export type TrackChangedListener = (
-  track: MediaStreamTrack,
-  change: 'started' | 'ended',
-) => void;
+export type TrackChangedEvent = {
+  track: MediaStreamTrack;
+  change: 'started' | 'ended';
+};
+
+export type TrackChangedListener = (event: TrackChangedEvent) => void;
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -97,7 +99,7 @@ export class Call {
     this.publisher.getSenders().forEach((s) => {
       if (s.track) {
         s.track.stop();
-        this.publishTrackChanged(s.track, 'ended');
+        this.publishTrackChanged({ track: s.track, change: 'ended' });
       }
       this.publisher.removeTrack(s);
     });
@@ -228,7 +230,7 @@ export class Call {
           videoTransceiver.setCodecPreferences(codecPreferences);
         }
 
-        this.publishTrackChanged(videoTrack, 'started');
+        this.publishTrackChanged({ track: videoTrack, change: 'started' });
       }
 
       this.stateStore.setCurrentValue(
@@ -265,7 +267,7 @@ export class Call {
           return p;
         }),
       );
-      this.publishTrackChanged(audioTrack, 'started');
+      this.publishTrackChanged({ track: audioTrack, change: 'started' });
     }
   };
 
@@ -402,12 +404,8 @@ export class Call {
       (f) => f !== fn,
     );
   };
-  private publishTrackChanged = (
-    track: MediaStreamTrack,
-    change: 'started' | 'ended',
-  ) => {
-    console.log('ASDASDASD', this.trackChangedListeners);
-    this.trackChangedListeners.forEach((fn) => fn(track, change));
+  private publishTrackChanged = (event: TrackChangedEvent) => {
+    this.trackChangedListeners.forEach((fn) => fn(event));
   };
 
   updateMuteState = (trackKind: 'audio' | 'video', isMute: boolean) => {
@@ -423,7 +421,10 @@ export class Call {
         return this.client.updateVideoMuteState(isMute);
       }
 
-      this.publishTrackChanged(sender.track, isMute ? 'ended' : 'started');
+      this.publishTrackChanged({
+        track: sender.track,
+        change: isMute ? 'ended' : 'started',
+      });
     }
   };
 

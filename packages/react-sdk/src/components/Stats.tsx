@@ -50,7 +50,7 @@ export const Stats = ({ client, call, activeCall }: StatsProps) => {
     return () => call.offTrackChanged(handleTrackChanged);
   }, [call]);
 
-  const handleTrackChanged: TrackChangedListener = (track, change) => {
+  const handleTrackChanged: TrackChangedListener = ({ track, change }) => {
     console.log('TRACK CHANGED', track, change);
   };
 
