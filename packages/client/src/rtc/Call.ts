@@ -1,5 +1,5 @@
 import { createSubscriber } from './subscriber';
-import { createSignalChannel } from './signal';
+import { createWebSocketSignalChannel } from './signal';
 import {
   findOptimalVideoLayers,
   defaultVideoLayers,
@@ -16,6 +16,7 @@ import { createPublisher } from './publisher';
 import { Dispatcher } from './Dispatcher';
 import { VideoDimension } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
+import { RequestEvent } from '../gen/video/sfu/event/events';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -29,6 +30,7 @@ export class Call {
   private videoLayers?: OptimalVideoLayer[];
   private subscriber?: RTCPeerConnection;
   private publisher?: RTCPeerConnection;
+  private readonly signal: WebSocket;
 
   readonly currentUserId: string;
 
@@ -43,6 +45,15 @@ export class Call {
     this.client = client;
     this.currentUserId = currentUserId;
     this.options = options;
+    this.signal = createWebSocketSignalChannel({
+      // FIXME: OL: refactor sfuHost
+      endpoint: `${this.client.sfuHost}/ws`,
+      onMessage: (message) => {
+        console.log('Received Signal event', message.eventPayload);
+        this.dispatcher.dispatch(message);
+      },
+    });
+
     registerEventHandlers(this);
   }
 
@@ -60,6 +71,7 @@ export class Call {
     this.publisher?.close();
     this.publisher = undefined;
 
+    this.signal?.close();
     this.dispatcher.offAll();
   };
 
@@ -72,20 +84,12 @@ export class Call {
 
     this.subscriber = createSubscriber({
       rpcClient: this.client,
+      signal: this.signal,
       dispatcher: this.dispatcher,
       connectionConfig: this.options.connectionConfig,
       onTrack: (e) => {
         console.log('Got remote track:', e.track);
         this.handleOnTrack?.(e);
-      },
-    });
-
-    createSignalChannel({
-      label: 'signalling',
-      pc: this.subscriber,
-      onMessage: (message) => {
-        console.log('Received event', message.eventPayload);
-        this.dispatcher.dispatch(message);
       },
     });
 
@@ -107,30 +111,62 @@ export class Call {
       ? await findOptimalVideoLayers(videoStream)
       : defaultVideoLayers;
 
-    const { response: sfu } = await this.client.rpc.join({
-      sessionId: this.client.sessionId,
-      subscriberSdpOffer: offer.sdp,
-      // FIXME OL: encode parameters and video layers should be announced when
-      // initiating "publish" operation
-      codecSettings: {
-        audio: {
-          encode: audioEncode,
-          decode: audioDecode,
-        },
-        video: {
-          encode: videoEncode,
-          decode: videoDecode,
-        },
-        layers: this.videoLayers.map((layer) => ({
-          rid: layer.rid!,
-          bitrate: layer.maxBitrate!,
-          videoDimension: {
-            width: layer.width,
-            height: layer.height,
+    this.signal.send(
+      RequestEvent.toJsonString({
+        eventPayload: {
+          oneofKind: 'join',
+          join: {
+            sessionId: this.client.sessionId,
+            publish: true,
+            // FIXME OL: encode parameters and video layers should be announced when
+            // initiating "publish" operation
+            codecSettings: {
+              audio: {
+                encode: audioEncode,
+                decode: audioDecode,
+              },
+              video: {
+                encode: videoEncode,
+                decode: videoDecode,
+              },
+              layers: this.videoLayers.map((layer) => ({
+                rid: layer.rid!,
+                bitrate: layer.maxBitrate!,
+                videoDimension: {
+                  width: layer.width,
+                  height: layer.height,
+                },
+              })),
+            },
           },
-        })),
-      },
-    });
+        },
+      }),
+    );
+
+    // const { response: sfu } = await this.client.rpc.join({
+    //   sessionId: this.client.sessionId,
+    //   subscriberSdpOffer: offer.sdp,
+    //   // FIXME OL: encode parameters and video layers should be announced when
+    //   // initiating "publish" operation
+    //   codecSettings: {
+    //     audio: {
+    //       encode: audioEncode,
+    //       decode: audioDecode,
+    //     },
+    //     video: {
+    //       encode: videoEncode,
+    //       decode: videoDecode,
+    //     },
+    //     layers: this.videoLayers.map((layer) => ({
+    //       rid: layer.rid!,
+    //       bitrate: layer.maxBitrate!,
+    //       videoDimension: {
+    //         width: layer.width,
+    //         height: layer.height,
+    //       },
+    //     })),
+    //   },
+    // });
 
     await this.subscriber.setRemoteDescription({
       type: 'answer',
@@ -148,6 +184,7 @@ export class Call {
     console.log(`Setting up publisher`);
 
     this.publisher = createPublisher({
+      signal: this.signal,
       rpcClient: this.client,
       connectionConfig: this.options.connectionConfig,
     });

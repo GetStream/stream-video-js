@@ -1,12 +1,14 @@
 import { StreamSfuClient } from '../StreamSfuClient';
 import { Dispatcher } from './Dispatcher';
 import { PeerType } from '../gen/video/sfu/models/models';
+import { RequestEvent } from '../gen/video/sfu/event/events';
 
 export type SubscriberOpts = {
   rpcClient: StreamSfuClient;
   dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
   onTrack?: (e: RTCTrackEvent) => void;
+  signal: WebSocket;
 };
 
 export const createSubscriber = ({
@@ -14,22 +16,36 @@ export const createSubscriber = ({
   dispatcher,
   connectionConfig,
   onTrack,
+  signal,
 }: SubscriberOpts) => {
   const subscriber = new RTCPeerConnection(connectionConfig);
-  subscriber.addEventListener('icecandidate', async (e) => {
+  subscriber.addEventListener('icecandidate', (e) => {
     const { candidate } = e;
     if (!candidate) {
       console.log('null ice candidate');
       return;
     }
-    await rpcClient.rpc.sendIceCandidate({
-      sessionId: rpcClient.sessionId,
-      publisher: false,
-      candidate: candidate.candidate,
-      sdpMid: candidate.sdpMid ?? undefined,
-      sdpMLineIndex: candidate.sdpMLineIndex ?? undefined,
-      usernameFragment: candidate.usernameFragment ?? undefined,
-    });
+
+    signal.send(
+      RequestEvent.toJsonString({
+        eventPayload: {
+          oneofKind: 'iceTrickle',
+          iceTrickle: {
+            iceCandidate: candidate.candidate,
+            peerType: PeerType.SUBSCRIBER,
+          },
+        },
+      }),
+    );
+
+    // await rpcClient.rpc.sendIceCandidate({
+    //   sessionId: rpcClient.sessionId,
+    //   publisher: false,
+    //   candidate: candidate.candidate,
+    //   sdpMid: candidate.sdpMid ?? undefined,
+    //   sdpMLineIndex: candidate.sdpMLineIndex ?? undefined,
+    //   usernameFragment: candidate.usernameFragment ?? undefined,
+    // });
   });
 
   if (onTrack) {
@@ -48,11 +64,24 @@ export const createSubscriber = ({
 
     const answer = await subscriber.createAnswer();
     await subscriber.setLocalDescription(answer);
-    await rpcClient.rpc.sendAnswer({
-      sessionId: rpcClient.sessionId,
-      peerType: PeerType.SUBSCRIBER,
-      sdp: answer.sdp || '',
-    });
+
+    signal.send(
+      RequestEvent.toJsonString({
+        eventPayload: {
+          oneofKind: 'answer',
+          answer: {
+            sessionId: rpcClient.sessionId,
+            peerType: PeerType.SUBSCRIBER,
+            sdp: answer.sdp || '',
+          },
+        },
+      }),
+    );
+    // await rpcClient.rpc.sendAnswer({
+    //   sessionId: rpcClient.sessionId,
+    //   peerType: PeerType.SUBSCRIBER,
+    //   sdp: answer.sdp || '',
+    // });
   });
 
   return subscriber;
