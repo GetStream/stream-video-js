@@ -1,4 +1,8 @@
 import { debounceTime, Subject } from 'rxjs';
+import {
+  MediaStateChange,
+  MediaStateChangeReason,
+} from '../gen/video/coordinator/stat_v1/stat';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
 import { StreamVideoWriteableStateStore } from '../stateStore';
@@ -22,7 +26,8 @@ import {
 
 export type TrackChangedEvent = {
   track: MediaStreamTrack;
-  change: 'started' | 'ended';
+  change: MediaStateChange;
+  reason: MediaStateChangeReason;
 };
 
 export type TrackChangedListener = (event: TrackChangedEvent) => void;
@@ -99,7 +104,11 @@ export class Call {
     this.publisher.getSenders().forEach((s) => {
       if (s.track) {
         s.track.stop();
-        this.publishTrackChanged({ track: s.track, change: 'ended' });
+        this.publishTrackChanged({
+          track: s.track,
+          change: MediaStateChange.STARTED,
+          reason: MediaStateChangeReason.CONNECTION,
+        });
       }
       this.publisher.removeTrack(s);
     });
@@ -230,7 +239,11 @@ export class Call {
           videoTransceiver.setCodecPreferences(codecPreferences);
         }
 
-        this.publishTrackChanged({ track: videoTrack, change: 'started' });
+        this.publishTrackChanged({
+          track: videoTrack,
+          change: MediaStateChange.STARTED,
+          reason: MediaStateChangeReason.CONNECTION,
+        });
       }
 
       this.stateStore.setCurrentValue(
@@ -267,7 +280,11 @@ export class Call {
           return p;
         }),
       );
-      this.publishTrackChanged({ track: audioTrack, change: 'started' });
+      this.publishTrackChanged({
+        track: audioTrack,
+        change: MediaStateChange.STARTED,
+        reason: MediaStateChangeReason.CONNECTION,
+      });
     }
   };
 
@@ -423,7 +440,8 @@ export class Call {
 
       this.publishTrackChanged({
         track: sender.track,
-        change: isMute ? 'ended' : 'started',
+        change: isMute ? MediaStateChange.ENDED : MediaStateChange.STARTED,
+        reason: MediaStateChangeReason.MUTE,
       });
     }
   };

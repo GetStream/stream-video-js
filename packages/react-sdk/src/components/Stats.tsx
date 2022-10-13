@@ -1,7 +1,10 @@
 import {
   Call,
   CallMeta,
+  MediaDirection,
+  MediaType,
   StreamVideoClient,
+  Timestamp,
   TrackChangedListener,
 } from '@stream-io/video-client';
 import { useEffect } from 'react';
@@ -46,13 +49,33 @@ export const Stats = ({ client, call, activeCall }: StatsProps) => {
   }, [activeCall.callCid, activeCall.id, activeCall.type, call, client]);
 
   useEffect(() => {
+    const handleTrackChanged: TrackChangedListener = ({
+      track,
+      change,
+      reason,
+    }) => {
+      const mediaTypes: Record<MediaStreamTrack['kind'], MediaType> = {
+        audio: MediaType.AUDIO,
+        video: MediaType.VIDEO,
+      };
+      client.reportCallStatEvent({
+        callCid: activeCall.callCid,
+        timestamp: Timestamp.fromDate(new Date()),
+        event: {
+          oneofKind: 'mediaStateChanged',
+          mediaStateChanged: {
+            change,
+            reason,
+            mediaType: mediaTypes[track.kind],
+            direction: MediaDirection.SEND,
+          },
+        },
+      });
+    };
+
     call.onTrackChanged(handleTrackChanged);
     return () => call.offTrackChanged(handleTrackChanged);
-  }, [call]);
-
-  const handleTrackChanged: TrackChangedListener = ({ track, change }) => {
-    console.log('TRACK CHANGED', track, change);
-  };
+  }, [activeCall.id, activeCall.type, call, client]);
 
   return null;
 };

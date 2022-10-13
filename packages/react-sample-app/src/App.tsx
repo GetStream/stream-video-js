@@ -5,7 +5,7 @@ import {
   CssBaseline,
   ThemeProvider,
 } from '@mui/material';
-import { CreateCallInput, Struct, UserInput } from '@stream-io/video-client';
+import { CreateCallInput, UserInput } from '@stream-io/video-client';
 import {
   StreamCall,
   StreamVideo,
@@ -85,7 +85,7 @@ const App = () => {
     setCallInput({
       members: participants.map((userId) => ({
         role: 'admin',
-        customJson: Struct.toBinary(Struct.fromJson({})),
+        customJson: new TextEncoder().encode(JSON.stringify({})),
         userId,
       })),
     });
