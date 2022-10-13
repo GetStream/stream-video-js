@@ -1,3 +1,7 @@
+import {
+  StreamVideoWriteableStateStore,
+  StreamVideoReadOnlyStateStore,
+} from './stateStore';
 import type { Call } from './gen/video/coordinator/call_v1/call';
 import type {
   CreateCallRequest,
@@ -15,7 +19,6 @@ import {
   StreamVideoClientOptions,
   withHeaders,
 } from './rpc';
-import { writeableStateStore } from './state-store';
 import {
   createSocketConnection,
   StreamEventListener,
@@ -35,6 +38,9 @@ const defaultOptions: Partial<StreamVideoClientOptions> = {
  * Document me
  */
 export class StreamVideoClient {
+  readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
+  // Make it public temporary to ease SDK transition
+  readonly writeableStateStore: StreamVideoWriteableStateStore;
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWSClient | undefined;
@@ -57,6 +63,10 @@ export class StreamVideoClient {
         }),
       ],
     });
+    this.writeableStateStore = new StreamVideoWriteableStateStore();
+    this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
+      this.writeableStateStore,
+    );
   }
 
   /**
@@ -74,14 +84,14 @@ export class StreamVideoClient {
       token,
       user,
     );
-    writeableStateStore.connectedUserSubject.next(user);
+    this.writeableStateStore.connectedUserSubject.next(user);
   };
 
   disconnect = async () => {
     if (!this.ws) return;
     this.ws.disconnect();
     this.ws = undefined;
-    writeableStateStore.connectedUserSubject.next(undefined);
+    this.writeableStateStore.connectedUserSubject.next(undefined);
   };
 
   on = <T>(event: string, fn: StreamEventListener<T>) => {
