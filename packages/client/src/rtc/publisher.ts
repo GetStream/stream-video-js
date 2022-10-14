@@ -29,7 +29,7 @@ export const createPublisher = ({
         eventPayload: {
           oneofKind: 'iceTrickle',
           iceTrickle: {
-            iceCandidate: candidate.candidate,
+            iceCandidate: JSON.stringify(candidate.toJSON()),
             peerType: PeerType.PUBLISHER_UNSPECIFIED,
           },
         },

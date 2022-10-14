@@ -28,13 +28,11 @@ export const handleICETrickle =
     if (e.eventPayload.oneofKind !== 'iceTrickle') return;
     const { iceTrickle } = e.eventPayload;
     if (iceTrickle.peerType === PeerType.SUBSCRIBER) {
-      await subscriber.addIceCandidate({
-        candidate: iceTrickle.iceCandidate,
-      });
+
+      console.log(JSON.parse(iceTrickle.iceCandidate))
+      await subscriber.addIceCandidate(JSON.parse(iceTrickle.iceCandidate))
     } else if (iceTrickle.peerType === PeerType.PUBLISHER_UNSPECIFIED) {
-      await publisher.addIceCandidate({
-        candidate: iceTrickle.iceCandidate,
-      });
+      await publisher.addIceCandidate(JSON.parse(iceTrickle.iceCandidate));
     } else {
       console.warn(`ICETrickle, unknown peer type`, iceTrickle);
     }

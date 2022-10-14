@@ -31,7 +31,7 @@ export const createSubscriber = ({
         eventPayload: {
           oneofKind: 'iceTrickle',
           iceTrickle: {
-            iceCandidate: candidate.candidate,
+            iceCandidate: JSON.stringify(candidate.toJSON()),
             peerType: PeerType.SUBSCRIBER,
           },
         },
