@@ -431,21 +431,15 @@ export interface QueryDevicesResponse {
  */
 export interface SendEventRequest {
     /**
-     * The call type
+     * The call cid
      *
-     * @generated from protobuf field: string call_type = 1;
+     * @generated from protobuf field: string call_cid = 1;
      */
-    callType: string;
+    callCid: string;
     /**
-     * The call id
+     * The type of event
      *
-     * @generated from protobuf field: string call_id = 2;
-     */
-    callId: string;
-    /**
-     * The event type
-     *
-     * @generated from protobuf field: stream.video.coordinator.client_v1_rpc.UserEventType event_type = 3;
+     * @generated from protobuf field: stream.video.coordinator.client_v1_rpc.UserEventType event_type = 2;
      */
     eventType: UserEventType;
 }
@@ -459,13 +453,23 @@ export interface SendEventResponse {
  */
 export interface SendCustomEventRequest {
     /**
-     * @generated from protobuf field: string type = 1;
+     * The call cid
+     *
+     * @generated from protobuf field: string call_cid = 1;
+     */
+    callCid: string;
+    /**
+     * The type of event
+     *
+     * @generated from protobuf field: string type = 2;
      */
     type: string;
     /**
-     * @generated from protobuf field: bytes data = 2;
+     * The data of the event
+     *
+     * @generated from protobuf field: bytes data_json = 3;
      */
-    data: Uint8Array;
+    dataJson: Uint8Array;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.client_v1_rpc.SendCustomEventResponse
@@ -2114,13 +2118,12 @@ export const QueryDevicesResponse = new QueryDevicesResponse$Type();
 class SendEventRequest$Type extends MessageType<SendEventRequest> {
     constructor() {
         super("stream.video.coordinator.client_v1_rpc.SendEventRequest", [
-            { no: 1, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "event_type", kind: "enum", T: () => ["stream.video.coordinator.client_v1_rpc.UserEventType", UserEventType, "USER_EVENT_TYPE_"] }
+            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "event_type", kind: "enum", T: () => ["stream.video.coordinator.client_v1_rpc.UserEventType", UserEventType, "USER_EVENT_TYPE_"] }
         ]);
     }
     create(value?: PartialMessage<SendEventRequest>): SendEventRequest {
-        const message = { callType: "", callId: "", eventType: 0 };
+        const message = { callCid: "", eventType: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<SendEventRequest>(this, message, value);
@@ -2131,13 +2134,10 @@ class SendEventRequest$Type extends MessageType<SendEventRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_type */ 1:
-                    message.callType = reader.string();
+                case /* string call_cid */ 1:
+                    message.callCid = reader.string();
                     break;
-                case /* string call_id */ 2:
-                    message.callId = reader.string();
-                    break;
-                case /* stream.video.coordinator.client_v1_rpc.UserEventType event_type */ 3:
+                case /* stream.video.coordinator.client_v1_rpc.UserEventType event_type */ 2:
                     message.eventType = reader.int32();
                     break;
                 default:
@@ -2152,15 +2152,12 @@ class SendEventRequest$Type extends MessageType<SendEventRequest> {
         return message;
     }
     internalBinaryWrite(message: SendEventRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_type = 1; */
-        if (message.callType !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callType);
-        /* string call_id = 2; */
-        if (message.callId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.callId);
-        /* stream.video.coordinator.client_v1_rpc.UserEventType event_type = 3; */
+        /* string call_cid = 1; */
+        if (message.callCid !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* stream.video.coordinator.client_v1_rpc.UserEventType event_type = 2; */
         if (message.eventType !== 0)
-            writer.tag(3, WireType.Varint).int32(message.eventType);
+            writer.tag(2, WireType.Varint).int32(message.eventType);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2201,12 +2198,13 @@ export const SendEventResponse = new SendEventResponse$Type();
 class SendCustomEventRequest$Type extends MessageType<SendCustomEventRequest> {
     constructor() {
         super("stream.video.coordinator.client_v1_rpc.SendCustomEventRequest", [
-            { no: 1, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "data", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "data_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
         ]);
     }
     create(value?: PartialMessage<SendCustomEventRequest>): SendCustomEventRequest {
-        const message = { type: "", data: new Uint8Array(0) };
+        const message = { callCid: "", type: "", dataJson: new Uint8Array(0) };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<SendCustomEventRequest>(this, message, value);
@@ -2217,11 +2215,14 @@ class SendCustomEventRequest$Type extends MessageType<SendCustomEventRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string type */ 1:
+                case /* string call_cid */ 1:
+                    message.callCid = reader.string();
+                    break;
+                case /* string type */ 2:
                     message.type = reader.string();
                     break;
-                case /* bytes data */ 2:
-                    message.data = reader.bytes();
+                case /* bytes data_json */ 3:
+                    message.dataJson = reader.bytes();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2235,12 +2236,15 @@ class SendCustomEventRequest$Type extends MessageType<SendCustomEventRequest> {
         return message;
     }
     internalBinaryWrite(message: SendCustomEventRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string type = 1; */
+        /* string call_cid = 1; */
+        if (message.callCid !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* string type = 2; */
         if (message.type !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.type);
-        /* bytes data = 2; */
-        if (message.data.length)
-            writer.tag(2, WireType.LengthDelimited).bytes(message.data);
+            writer.tag(2, WireType.LengthDelimited).string(message.type);
+        /* bytes data_json = 3; */
+        if (message.dataJson.length)
+            writer.tag(3, WireType.LengthDelimited).bytes(message.dataJson);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

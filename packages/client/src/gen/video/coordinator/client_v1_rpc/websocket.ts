@@ -14,6 +14,7 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { DeviceInput } from "../push_v1/push";
 import { UserInput } from "../user_v1/user";
+import { CallCustom } from "../event_v1/event";
 import { UserUpdated } from "../event_v1/event";
 import { CallCancelled } from "../event_v1/event";
 import { CallRejected } from "../event_v1/event";
@@ -24,8 +25,6 @@ import { CallMembersUpdated } from "../event_v1/event";
 import { CallDeleted } from "../event_v1/event";
 import { CallUpdated } from "../event_v1/event";
 import { CallCreated } from "../event_v1/event";
-import { CallDetails } from "../call_v1/call";
-import { Call } from "../call_v1/call";
 import { User } from "../user_v1/user";
 /**
  * WebsocketEvent only includes events that are sent to the client via websocket connection
@@ -42,31 +41,6 @@ export interface WebsocketEvent {
     users: {
         [key: string]: User;
     };
-    /**
-     * All calls mentioned in the event payload, indexed by Call.call_cid
-     *
-     * @generated from protobuf field: map<string, stream.video.coordinator.call_v1.Call> calls = 2;
-     */
-    calls: {
-        [key: string]: Call;
-    };
-    /**
-     * All calls details for calls mentioned in the event payload, indexed by Call.call_cid
-     * Call details contain contextual data. For example, for MembersDeleted event, call_details[cid].Members will contain a list of
-     * members that were deleted.
-     *
-     * @generated from protobuf field: map<string, stream.video.coordinator.call_v1.CallDetails> call_details = 3;
-     */
-    callDetails: {
-        [key: string]: CallDetails;
-    };
-    /**
-     * The ID of the user sending the event, this field is populated only for events that are initiated by users
-     * such as accepting, rejecting or canceling a call
-     *
-     * @generated from protobuf field: string event_sender_id = 4;
-     */
-    eventSenderId: string;
     /**
      * @generated from protobuf oneof: event
      */
@@ -142,6 +116,14 @@ export interface WebsocketEvent {
          * @generated from protobuf field: stream.video.coordinator.event_v1.UserUpdated user_updated = 50;
          */
         userUpdated: UserUpdated;
+    } | {
+        oneofKind: "callCustom";
+        /**
+         * Custom event
+         *
+         * @generated from protobuf field: stream.video.coordinator.event_v1.CallCustom call_custom = 99;
+         */
+        callCustom: CallCustom;
     } | {
         oneofKind: undefined;
     };
@@ -243,9 +225,6 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
     constructor() {
         super("stream.video.coordinator.client_v1_rpc.WebsocketEvent", [
             { no: 1, name: "users", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "message", T: () => User } },
-            { no: 2, name: "calls", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "message", T: () => Call } },
-            { no: 3, name: "call_details", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "message", T: () => CallDetails } },
-            { no: 4, name: "event_sender_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 20, name: "healthcheck", kind: "message", oneof: "event", T: () => WebsocketHealthcheck },
             { no: 30, name: "call_created", kind: "message", oneof: "event", T: () => CallCreated },
             { no: 31, name: "call_updated", kind: "message", oneof: "event", T: () => CallUpdated },
@@ -256,11 +235,12 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
             { no: 40, name: "call_accepted", kind: "message", oneof: "event", T: () => CallAccepted },
             { no: 41, name: "call_rejected", kind: "message", oneof: "event", T: () => CallRejected },
             { no: 42, name: "call_cancelled", kind: "message", oneof: "event", T: () => CallCancelled },
-            { no: 50, name: "user_updated", kind: "message", oneof: "event", T: () => UserUpdated }
+            { no: 50, name: "user_updated", kind: "message", oneof: "event", T: () => UserUpdated },
+            { no: 99, name: "call_custom", kind: "message", oneof: "event", T: () => CallCustom }
         ]);
     }
     create(value?: PartialMessage<WebsocketEvent>): WebsocketEvent {
-        const message = { users: {}, calls: {}, callDetails: {}, eventSenderId: "", event: { oneofKind: undefined } };
+        const message = { users: {}, event: { oneofKind: undefined } };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<WebsocketEvent>(this, message, value);
@@ -273,15 +253,6 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
             switch (fieldNo) {
                 case /* map<string, stream.video.coordinator.user_v1.User> users */ 1:
                     this.binaryReadMap1(message.users, reader, options);
-                    break;
-                case /* map<string, stream.video.coordinator.call_v1.Call> calls */ 2:
-                    this.binaryReadMap2(message.calls, reader, options);
-                    break;
-                case /* map<string, stream.video.coordinator.call_v1.CallDetails> call_details */ 3:
-                    this.binaryReadMap3(message.callDetails, reader, options);
-                    break;
-                case /* string event_sender_id */ 4:
-                    message.eventSenderId = reader.string();
                     break;
                 case /* stream.video.coordinator.client_v1_rpc.WebsocketHealthcheck healthcheck */ 20:
                     message.event = {
@@ -349,6 +320,12 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
                         userUpdated: UserUpdated.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).userUpdated)
                     };
                     break;
+                case /* stream.video.coordinator.event_v1.CallCustom call_custom */ 99:
+                    message.event = {
+                        oneofKind: "callCustom",
+                        callCustom: CallCustom.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).callCustom)
+                    };
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -376,38 +353,6 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
         }
         map[key ?? ""] = val ?? User.create();
     }
-    private binaryReadMap2(map: WebsocketEvent["calls"], reader: IBinaryReader, options: BinaryReadOptions): void {
-        let len = reader.uint32(), end = reader.pos + len, key: keyof WebsocketEvent["calls"] | undefined, val: WebsocketEvent["calls"][any] | undefined;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case 1:
-                    key = reader.string();
-                    break;
-                case 2:
-                    val = Call.internalBinaryRead(reader, reader.uint32(), options);
-                    break;
-                default: throw new globalThis.Error("unknown map entry field for field stream.video.coordinator.client_v1_rpc.WebsocketEvent.calls");
-            }
-        }
-        map[key ?? ""] = val ?? Call.create();
-    }
-    private binaryReadMap3(map: WebsocketEvent["callDetails"], reader: IBinaryReader, options: BinaryReadOptions): void {
-        let len = reader.uint32(), end = reader.pos + len, key: keyof WebsocketEvent["callDetails"] | undefined, val: WebsocketEvent["callDetails"][any] | undefined;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case 1:
-                    key = reader.string();
-                    break;
-                case 2:
-                    val = CallDetails.internalBinaryRead(reader, reader.uint32(), options);
-                    break;
-                default: throw new globalThis.Error("unknown map entry field for field stream.video.coordinator.client_v1_rpc.WebsocketEvent.call_details");
-            }
-        }
-        map[key ?? ""] = val ?? CallDetails.create();
-    }
     internalBinaryWrite(message: WebsocketEvent, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* map<string, stream.video.coordinator.user_v1.User> users = 1; */
         for (let k of Object.keys(message.users)) {
@@ -416,23 +361,6 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
             User.internalBinaryWrite(message.users[k], writer, options);
             writer.join().join();
         }
-        /* map<string, stream.video.coordinator.call_v1.Call> calls = 2; */
-        for (let k of Object.keys(message.calls)) {
-            writer.tag(2, WireType.LengthDelimited).fork().tag(1, WireType.LengthDelimited).string(k);
-            writer.tag(2, WireType.LengthDelimited).fork();
-            Call.internalBinaryWrite(message.calls[k], writer, options);
-            writer.join().join();
-        }
-        /* map<string, stream.video.coordinator.call_v1.CallDetails> call_details = 3; */
-        for (let k of Object.keys(message.callDetails)) {
-            writer.tag(3, WireType.LengthDelimited).fork().tag(1, WireType.LengthDelimited).string(k);
-            writer.tag(2, WireType.LengthDelimited).fork();
-            CallDetails.internalBinaryWrite(message.callDetails[k], writer, options);
-            writer.join().join();
-        }
-        /* string event_sender_id = 4; */
-        if (message.eventSenderId !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.eventSenderId);
         /* stream.video.coordinator.client_v1_rpc.WebsocketHealthcheck healthcheck = 20; */
         if (message.event.oneofKind === "healthcheck")
             WebsocketHealthcheck.internalBinaryWrite(message.event.healthcheck, writer.tag(20, WireType.LengthDelimited).fork(), options).join();
@@ -466,6 +394,9 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
         /* stream.video.coordinator.event_v1.UserUpdated user_updated = 50; */
         if (message.event.oneofKind === "userUpdated")
             UserUpdated.internalBinaryWrite(message.event.userUpdated, writer.tag(50, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.event_v1.CallCustom call_custom = 99; */
+        if (message.event.oneofKind === "callCustom")
+            CallCustom.internalBinaryWrite(message.event.callCustom, writer.tag(99, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
