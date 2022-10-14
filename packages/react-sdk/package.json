@@ -1,5 +1,6 @@
 {
   "name": "@stream-io/video-react-sdk",
+  "version": "0.0.0",
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -10,8 +11,8 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.11.6",
-    "@stream-io/video-client": "workspace:^",
-    "@stream-io/video-styling": "workspace:^",
+    "@stream-io/video-client": "0.0.0",
+    "@stream-io/video-styling": "0.0.0",
     "clsx": "^1.2.1",
     "react-popper": "^2.3.0",
     "uuid": "^9.0.0"
