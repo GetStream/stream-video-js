@@ -1,5 +1,4 @@
 import { createSubscriber } from './subscriber';
-import { createWebSocketSignalChannel } from './signal';
 import {
   findOptimalVideoLayers,
   defaultVideoLayers,
@@ -28,10 +27,8 @@ export class Call {
   private readonly options: CallOptions;
 
   private videoLayers?: OptimalVideoLayer[];
-  private subscriber?: RTCPeerConnection;
-  private publisher?: RTCPeerConnection;
-  private signal?: WebSocket;
-  private readonly connectionReady: Promise<unknown>;
+  private readonly subscriber: RTCPeerConnection;
+  private readonly publisher: RTCPeerConnection;
 
   readonly currentUserId: string;
 
@@ -47,36 +44,23 @@ export class Call {
     this.currentUserId = currentUserId;
     this.options = options;
 
-    this.connectionReady = createWebSocketSignalChannel({
-      // FIXME: OL: refactor sfuHost
-      endpoint: `ws://${this.client.sfuHost}:3031/ws`,
-      onMessage: (message) => {
-        console.log('Received Signal event', message.eventPayload);
-        this.dispatcher.dispatch(message);
+    this.subscriber = createSubscriber({
+      rpcClient: this.client,
+      dispatcher: this.dispatcher,
+      connectionConfig: this.options.connectionConfig,
+      onTrack: (e) => {
+        console.log('Got remote track:', e.track);
+        this.handleOnTrack?.(e);
       },
-    }).then((signal) => {
-      this.signal = signal;
-      this.subscriber = createSubscriber({
-        rpcClient: this.client,
-        signal: this.signal,
-        dispatcher: this.dispatcher,
-        connectionConfig: this.options.connectionConfig,
-        onTrack: (e) => {
-          console.log('Got remote track:', e.track);
-          this.handleOnTrack?.(e);
-        },
-      });
-
-      this.publisher = createPublisher({
-        signal: this.signal,
-        dispatcher: this.dispatcher,
-        rpcClient: this.client,
-        connectionConfig: this.options.connectionConfig,
-      });
-
-      this.on('iceTrickle', handleICETrickle(this.subscriber, this.publisher));
     });
 
+    this.publisher = createPublisher({
+      dispatcher: this.dispatcher,
+      rpcClient: this.client,
+      connectionConfig: this.options.connectionConfig,
+    });
+
+    this.on('iceTrickle', handleICETrickle(this.subscriber, this.publisher));
     registerEventHandlers(this);
   }
 
@@ -86,25 +70,17 @@ export class Call {
   leave = () => {
     this.subscriber?.close();
 
-    this.publisher?.getSenders().forEach((s) => {
+    this.publisher.getSenders().forEach((s) => {
       s.track?.stop();
       this.publisher?.removeTrack(s);
     });
-    this.publisher?.close();
+    this.publisher.close();
 
-    this.signal?.close();
+    this.client.close();
     this.dispatcher.offAll();
   };
 
   join = async (videoStream?: MediaStream) => {
-    // const offer = await this.subscriber.createOffer();
-    // if (!offer.sdp) {
-    //   throw new Error(`Failed to configure protocol, null SDP`);
-    // }
-    // await this.subscriber.setLocalDescription(offer);
-
-    await this.connectionReady;
-
     const [audioEncode, audioDecode, videoEncode, videoDecode] =
       await Promise.all([
         getSenderCodecs('audio'),
@@ -117,8 +93,8 @@ export class Call {
       ? await findOptimalVideoLayers(videoStream)
       : defaultVideoLayers;
 
-    this.signal?.send(
-      RequestEvent.toBinary({
+    this.client.send(
+      RequestEvent.create({
         eventPayload: {
           oneofKind: 'join',
           join: {
@@ -150,37 +126,6 @@ export class Call {
       }),
     );
 
-    // const { response: sfu } = await this.client.rpc.join({
-    //   sessionId: this.client.sessionId,
-    //   subscriberSdpOffer: offer.sdp,
-    //   // FIXME OL: encode parameters and video layers should be announced when
-    //   // initiating "publish" operation
-    //   codecSettings: {
-    //     audio: {
-    //       encode: audioEncode,
-    //       decode: audioDecode,
-    //     },
-    //     video: {
-    //       encode: videoEncode,
-    //       decode: videoDecode,
-    //     },
-    //     layers: this.videoLayers.map((layer) => ({
-    //       rid: layer.rid!,
-    //       bitrate: layer.maxBitrate!,
-    //       videoDimension: {
-    //         width: layer.width,
-    //         height: layer.height,
-    //       },
-    //     })),
-    //   },
-    // });
-
-    // await this.subscriber.setRemoteDescription({
-    //   type: 'answer',
-    //   sdp: sfu.sdp,
-    // });
-    // return sfu.callState;
-
     // FIXME OL: await until joined
     return CallState.create();
   };
@@ -193,7 +138,7 @@ export class Call {
           : defaultVideoPublishEncodings;
 
       const [videoTrack] = videoStream.getVideoTracks();
-      if (videoTrack && this.publisher) {
+      if (videoTrack) {
         const videoTransceiver = this.publisher.addTransceiver(videoTrack, {
           direction: 'sendonly',
           streams: [videoStream],
@@ -210,7 +155,7 @@ export class Call {
 
     if (audioStream) {
       const [audioTrack] = audioStream.getAudioTracks();
-      if (audioTrack && this.publisher) {
+      if (audioTrack) {
         this.publisher.addTransceiver(audioTrack, {
           direction: 'sendonly',
         });

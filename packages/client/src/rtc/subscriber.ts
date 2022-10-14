@@ -8,7 +8,6 @@ export type SubscriberOpts = {
   dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
   onTrack?: (e: RTCTrackEvent) => void;
-  signal: WebSocket;
 };
 
 export const createSubscriber = ({
@@ -16,7 +15,6 @@ export const createSubscriber = ({
   dispatcher,
   connectionConfig,
   onTrack,
-  signal,
 }: SubscriberOpts) => {
   const subscriber = new RTCPeerConnection(connectionConfig);
   subscriber.addEventListener('icecandidate', (e) => {
@@ -26,8 +24,8 @@ export const createSubscriber = ({
       return;
     }
 
-    signal.send(
-      RequestEvent.toBinary({
+    rpcClient.send(
+      RequestEvent.create({
         eventPayload: {
           oneofKind: 'iceTrickle',
           iceTrickle: {
@@ -56,8 +54,8 @@ export const createSubscriber = ({
     const answer = await subscriber.createAnswer();
     await subscriber.setLocalDescription(answer);
 
-    signal.send(
-      RequestEvent.toBinary({
+    rpcClient.send(
+      RequestEvent.create({
         eventPayload: {
           oneofKind: 'answer',
           answer: {

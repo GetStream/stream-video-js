@@ -7,14 +7,12 @@ export type PublisherOpts = {
   rpcClient: StreamSfuClient;
   connectionConfig?: RTCConfiguration;
   dispatcher: Dispatcher;
-  signal: WebSocket;
 };
 
 export const createPublisher = ({
   connectionConfig,
   rpcClient,
   dispatcher,
-  signal,
 }: PublisherOpts) => {
   const publisher = new RTCPeerConnection(connectionConfig);
   publisher.addEventListener('icecandidate', (e) => {
@@ -24,8 +22,8 @@ export const createPublisher = ({
       return;
     }
 
-    signal.send(
-      RequestEvent.toBinary({
+    rpcClient.send(
+      RequestEvent.create({
         eventPayload: {
           oneofKind: 'iceTrickle',
           iceTrickle: {
@@ -43,8 +41,8 @@ export const createPublisher = ({
     const offer = await publisher.createOffer();
     await publisher.setLocalDescription(offer);
 
-    signal.send(
-      RequestEvent.toBinary({
+    rpcClient.send(
+      RequestEvent.create({
         eventPayload: {
           oneofKind: 'publish',
           publish: {

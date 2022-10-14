@@ -42,6 +42,12 @@ export const createCoordinatorClient = (options?: TwirpOptions) => {
   return new ClientRPCClient(transport);
 };
 
+/**
+ * Creates new SignalServerClient instance.
+ *
+ * @deprecated RPC will be replaced with WebSocket signalling channel.
+ * @param options the twirp options.
+ */
 export const createSignalClient = (options?: TwirpOptions) => {
   const transport = new TwirpFetchTransport({
     ...defaultOptions,
