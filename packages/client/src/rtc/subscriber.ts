@@ -27,7 +27,7 @@ export const createSubscriber = ({
     }
 
     signal.send(
-      RequestEvent.toJsonString({
+      RequestEvent.toBinary({
         eventPayload: {
           oneofKind: 'iceTrickle',
           iceTrickle: {
@@ -66,11 +66,12 @@ export const createSubscriber = ({
     await subscriber.setLocalDescription(answer);
 
     signal.send(
-      RequestEvent.toJsonString({
+      RequestEvent.toBinary({
         eventPayload: {
           oneofKind: 'answer',
           answer: {
             sessionId: rpcClient.sessionId,
+            token: rpcClient.token,
             peerType: PeerType.SUBSCRIBER,
             sdp: answer.sdp || '',
           },

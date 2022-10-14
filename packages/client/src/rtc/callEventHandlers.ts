@@ -1,5 +1,6 @@
 import type { SfuEvent } from '../gen/video/sfu/event/events';
 import { Call } from './Call';
+import { PeerType } from '../gen/video/sfu/models/models';
 
 export const registerEventHandlers = (call: Call) => {
   watchForPublishQualityChangeEvents(call);
@@ -8,7 +9,7 @@ export const registerEventHandlers = (call: Call) => {
 const watchForPublishQualityChangeEvents = (call: Call) => {
   call.on('changePublishQuality', (event: SfuEvent) => {
     if (event.eventPayload.oneofKind === 'changePublishQuality') {
-      const videoSenders = event.eventPayload.changePublishQuality?.videoSender;
+      const { videoSenders } = event.eventPayload.changePublishQuality;
       if (videoSenders && videoSenders.length > 0) {
         videoSenders.forEach((videoSender) => {
           const { layers } = videoSender;
@@ -20,3 +21,21 @@ const watchForPublishQualityChangeEvents = (call: Call) => {
     }
   });
 };
+
+export const handleICETrickle =
+  (subscriber: RTCPeerConnection, publisher: RTCPeerConnection) =>
+  async (e: SfuEvent) => {
+    if (e.eventPayload.oneofKind !== 'iceTrickle') return;
+    const { iceTrickle } = e.eventPayload;
+    if (iceTrickle.peerType === PeerType.SUBSCRIBER) {
+      await subscriber.addIceCandidate({
+        candidate: iceTrickle.iceCandidate,
+      });
+    } else if (iceTrickle.peerType === PeerType.PUBLISHER_UNSPECIFIED) {
+      await publisher.addIceCandidate({
+        candidate: iceTrickle.iceCandidate,
+      });
+    } else {
+      console.warn(`ICETrickle, unknown peer type`, iceTrickle);
+    }
+  };

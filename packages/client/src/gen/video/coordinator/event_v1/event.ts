@@ -12,23 +12,33 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
+import { CallDetails } from "../call_v1/call";
+import { Call } from "../call_v1/call";
 /**
  * @generated from protobuf message stream.video.coordinator.event_v1.RecordingStarted
  */
 export interface RecordingStarted {
     /**
-     * @generated from protobuf field: string call_cid = 1;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
      */
-    callCid: string;
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.event_v1.RecordingStopped
  */
 export interface RecordingStopped {
     /**
-     * @generated from protobuf field: string call_cid = 1;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
      */
-    callCid: string;
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.event_v1.UserUpdated
@@ -44,47 +54,67 @@ export interface UserUpdated {
  */
 export interface BroadcastStarted {
     /**
-     * @generated from protobuf field: string call_cid = 1;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
      */
-    callCid: string;
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.event_v1.BroadcastEnded
  */
 export interface BroadcastEnded {
     /**
-     * @generated from protobuf field: string call_cid = 1;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
      */
-    callCid: string;
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.event_v1.CallMembersUpdated
  */
 export interface CallMembersUpdated {
     /**
-     * @generated from protobuf field: string call_cid = 1;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
      */
-    callCid: string;
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.event_v1.CallMembersDeleted
  */
 export interface CallMembersDeleted {
     /**
-     * @generated from protobuf field: string call_cid = 1;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
      */
-    callCid: string;
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.event_v1.CallCreated
  */
 export interface CallCreated {
     /**
-     * @generated from protobuf field: string call_cid = 1;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
      */
-    callCid: string;
+    call?: Call;
     /**
-     * @generated from protobuf field: bool ringing = 2;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
+    /**
+     * @generated from protobuf field: bool ringing = 3;
      */
     ringing: boolean;
 }
@@ -93,52 +123,134 @@ export interface CallCreated {
  */
 export interface CallUpdated {
     /**
-     * @generated from protobuf field: string call_cid = 1;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
      */
-    callCid: string;
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.event_v1.CallEnded
  */
 export interface CallEnded {
     /**
-     * @generated from protobuf field: string call_cid = 1;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
      */
-    callCid: string;
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.event_v1.CallDeleted
  */
 export interface CallDeleted {
     /**
-     * @generated from protobuf field: string call_cid = 1;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
      */
-    callCid: string;
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.event_v1.CallAccepted
  */
 export interface CallAccepted {
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
+    /**
+     * The ID of the user sending the event
+     *
+     * @generated from protobuf field: string sender_user_id = 3;
+     */
+    senderUserId: string;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.event_v1.CallRejected
  */
 export interface CallRejected {
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
+    /**
+     * @generated from protobuf field: string sender_user_id = 3;
+     */
+    senderUserId: string;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.event_v1.CallCancelled
  */
 export interface CallCancelled {
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
+    /**
+     * @generated from protobuf field: string sender_user_id = 3;
+     */
+    senderUserId: string;
+}
+/**
+ * A custom event type
+ *
+ * @generated from protobuf message stream.video.coordinator.event_v1.CallCustom
+ */
+export interface CallCustom {
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
+    /**
+     * @generated from protobuf field: string sender_user_id = 3;
+     */
+    senderUserId: string;
+    /**
+     * The type of the event
+     *
+     * @generated from protobuf field: string type = 4;
+     */
+    type: string;
+    /**
+     * The data in the event
+     *
+     * @generated from protobuf field: bytes data_json = 5;
+     */
+    dataJson: Uint8Array;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class RecordingStarted$Type extends MessageType<RecordingStarted> {
     constructor() {
         super("stream.video.coordinator.event_v1.RecordingStarted", [
-            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
         ]);
     }
     create(value?: PartialMessage<RecordingStarted>): RecordingStarted {
-        const message = { callCid: "" };
+        const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<RecordingStarted>(this, message, value);
@@ -149,8 +261,11 @@ class RecordingStarted$Type extends MessageType<RecordingStarted> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_cid */ 1:
-                    message.callCid = reader.string();
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -164,9 +279,12 @@ class RecordingStarted$Type extends MessageType<RecordingStarted> {
         return message;
     }
     internalBinaryWrite(message: RecordingStarted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_cid = 1; */
-        if (message.callCid !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -181,11 +299,12 @@ export const RecordingStarted = new RecordingStarted$Type();
 class RecordingStopped$Type extends MessageType<RecordingStopped> {
     constructor() {
         super("stream.video.coordinator.event_v1.RecordingStopped", [
-            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
         ]);
     }
     create(value?: PartialMessage<RecordingStopped>): RecordingStopped {
-        const message = { callCid: "" };
+        const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<RecordingStopped>(this, message, value);
@@ -196,8 +315,11 @@ class RecordingStopped$Type extends MessageType<RecordingStopped> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_cid */ 1:
-                    message.callCid = reader.string();
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -211,9 +333,12 @@ class RecordingStopped$Type extends MessageType<RecordingStopped> {
         return message;
     }
     internalBinaryWrite(message: RecordingStopped, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_cid = 1; */
-        if (message.callCid !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -275,11 +400,12 @@ export const UserUpdated = new UserUpdated$Type();
 class BroadcastStarted$Type extends MessageType<BroadcastStarted> {
     constructor() {
         super("stream.video.coordinator.event_v1.BroadcastStarted", [
-            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
         ]);
     }
     create(value?: PartialMessage<BroadcastStarted>): BroadcastStarted {
-        const message = { callCid: "" };
+        const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<BroadcastStarted>(this, message, value);
@@ -290,8 +416,11 @@ class BroadcastStarted$Type extends MessageType<BroadcastStarted> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_cid */ 1:
-                    message.callCid = reader.string();
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -305,9 +434,12 @@ class BroadcastStarted$Type extends MessageType<BroadcastStarted> {
         return message;
     }
     internalBinaryWrite(message: BroadcastStarted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_cid = 1; */
-        if (message.callCid !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -322,11 +454,12 @@ export const BroadcastStarted = new BroadcastStarted$Type();
 class BroadcastEnded$Type extends MessageType<BroadcastEnded> {
     constructor() {
         super("stream.video.coordinator.event_v1.BroadcastEnded", [
-            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
         ]);
     }
     create(value?: PartialMessage<BroadcastEnded>): BroadcastEnded {
-        const message = { callCid: "" };
+        const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<BroadcastEnded>(this, message, value);
@@ -337,8 +470,11 @@ class BroadcastEnded$Type extends MessageType<BroadcastEnded> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_cid */ 1:
-                    message.callCid = reader.string();
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -352,9 +488,12 @@ class BroadcastEnded$Type extends MessageType<BroadcastEnded> {
         return message;
     }
     internalBinaryWrite(message: BroadcastEnded, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_cid = 1; */
-        if (message.callCid !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -369,11 +508,12 @@ export const BroadcastEnded = new BroadcastEnded$Type();
 class CallMembersUpdated$Type extends MessageType<CallMembersUpdated> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallMembersUpdated", [
-            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
         ]);
     }
     create(value?: PartialMessage<CallMembersUpdated>): CallMembersUpdated {
-        const message = { callCid: "" };
+        const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CallMembersUpdated>(this, message, value);
@@ -384,8 +524,11 @@ class CallMembersUpdated$Type extends MessageType<CallMembersUpdated> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_cid */ 1:
-                    message.callCid = reader.string();
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -399,9 +542,12 @@ class CallMembersUpdated$Type extends MessageType<CallMembersUpdated> {
         return message;
     }
     internalBinaryWrite(message: CallMembersUpdated, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_cid = 1; */
-        if (message.callCid !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -416,11 +562,12 @@ export const CallMembersUpdated = new CallMembersUpdated$Type();
 class CallMembersDeleted$Type extends MessageType<CallMembersDeleted> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallMembersDeleted", [
-            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
         ]);
     }
     create(value?: PartialMessage<CallMembersDeleted>): CallMembersDeleted {
-        const message = { callCid: "" };
+        const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CallMembersDeleted>(this, message, value);
@@ -431,8 +578,11 @@ class CallMembersDeleted$Type extends MessageType<CallMembersDeleted> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_cid */ 1:
-                    message.callCid = reader.string();
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -446,9 +596,12 @@ class CallMembersDeleted$Type extends MessageType<CallMembersDeleted> {
         return message;
     }
     internalBinaryWrite(message: CallMembersDeleted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_cid = 1; */
-        if (message.callCid !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -463,12 +616,13 @@ export const CallMembersDeleted = new CallMembersDeleted$Type();
 class CallCreated$Type extends MessageType<CallCreated> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallCreated", [
-            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "ringing", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails },
+            { no: 3, name: "ringing", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<CallCreated>): CallCreated {
-        const message = { callCid: "", ringing: false };
+        const message = { ringing: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CallCreated>(this, message, value);
@@ -479,10 +633,13 @@ class CallCreated$Type extends MessageType<CallCreated> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_cid */ 1:
-                    message.callCid = reader.string();
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
                     break;
-                case /* bool ringing */ 2:
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
+                    break;
+                case /* bool ringing */ 3:
                     message.ringing = reader.bool();
                     break;
                 default:
@@ -497,12 +654,15 @@ class CallCreated$Type extends MessageType<CallCreated> {
         return message;
     }
     internalBinaryWrite(message: CallCreated, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_cid = 1; */
-        if (message.callCid !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
-        /* bool ringing = 2; */
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* bool ringing = 3; */
         if (message.ringing !== false)
-            writer.tag(2, WireType.Varint).bool(message.ringing);
+            writer.tag(3, WireType.Varint).bool(message.ringing);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -517,11 +677,12 @@ export const CallCreated = new CallCreated$Type();
 class CallUpdated$Type extends MessageType<CallUpdated> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallUpdated", [
-            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
         ]);
     }
     create(value?: PartialMessage<CallUpdated>): CallUpdated {
-        const message = { callCid: "" };
+        const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CallUpdated>(this, message, value);
@@ -532,8 +693,11 @@ class CallUpdated$Type extends MessageType<CallUpdated> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_cid */ 1:
-                    message.callCid = reader.string();
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -547,9 +711,12 @@ class CallUpdated$Type extends MessageType<CallUpdated> {
         return message;
     }
     internalBinaryWrite(message: CallUpdated, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_cid = 1; */
-        if (message.callCid !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -564,11 +731,12 @@ export const CallUpdated = new CallUpdated$Type();
 class CallEnded$Type extends MessageType<CallEnded> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallEnded", [
-            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
         ]);
     }
     create(value?: PartialMessage<CallEnded>): CallEnded {
-        const message = { callCid: "" };
+        const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CallEnded>(this, message, value);
@@ -579,8 +747,11 @@ class CallEnded$Type extends MessageType<CallEnded> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_cid */ 1:
-                    message.callCid = reader.string();
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -594,9 +765,12 @@ class CallEnded$Type extends MessageType<CallEnded> {
         return message;
     }
     internalBinaryWrite(message: CallEnded, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_cid = 1; */
-        if (message.callCid !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -611,11 +785,12 @@ export const CallEnded = new CallEnded$Type();
 class CallDeleted$Type extends MessageType<CallDeleted> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallDeleted", [
-            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
         ]);
     }
     create(value?: PartialMessage<CallDeleted>): CallDeleted {
-        const message = { callCid: "" };
+        const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CallDeleted>(this, message, value);
@@ -626,8 +801,11 @@ class CallDeleted$Type extends MessageType<CallDeleted> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_cid */ 1:
-                    message.callCid = reader.string();
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -641,9 +819,12 @@ class CallDeleted$Type extends MessageType<CallDeleted> {
         return message;
     }
     internalBinaryWrite(message: CallDeleted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_cid = 1; */
-        if (message.callCid !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -657,19 +838,54 @@ export const CallDeleted = new CallDeleted$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CallAccepted$Type extends MessageType<CallAccepted> {
     constructor() {
-        super("stream.video.coordinator.event_v1.CallAccepted", []);
+        super("stream.video.coordinator.event_v1.CallAccepted", [
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails },
+            { no: 3, name: "sender_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
     }
     create(value?: PartialMessage<CallAccepted>): CallAccepted {
-        const message = {};
+        const message = { senderUserId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CallAccepted>(this, message, value);
         return message;
     }
     internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallAccepted): CallAccepted {
-        return target ?? this.create();
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
+                    break;
+                case /* string sender_user_id */ 3:
+                    message.senderUserId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
     }
     internalBinaryWrite(message: CallAccepted, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* string sender_user_id = 3; */
+        if (message.senderUserId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.senderUserId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -683,19 +899,54 @@ export const CallAccepted = new CallAccepted$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CallRejected$Type extends MessageType<CallRejected> {
     constructor() {
-        super("stream.video.coordinator.event_v1.CallRejected", []);
+        super("stream.video.coordinator.event_v1.CallRejected", [
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails },
+            { no: 3, name: "sender_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
     }
     create(value?: PartialMessage<CallRejected>): CallRejected {
-        const message = {};
+        const message = { senderUserId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CallRejected>(this, message, value);
         return message;
     }
     internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallRejected): CallRejected {
-        return target ?? this.create();
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
+                    break;
+                case /* string sender_user_id */ 3:
+                    message.senderUserId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
     }
     internalBinaryWrite(message: CallRejected, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* string sender_user_id = 3; */
+        if (message.senderUserId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.senderUserId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -709,19 +960,54 @@ export const CallRejected = new CallRejected$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CallCancelled$Type extends MessageType<CallCancelled> {
     constructor() {
-        super("stream.video.coordinator.event_v1.CallCancelled", []);
+        super("stream.video.coordinator.event_v1.CallCancelled", [
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails },
+            { no: 3, name: "sender_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
     }
     create(value?: PartialMessage<CallCancelled>): CallCancelled {
-        const message = {};
+        const message = { senderUserId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CallCancelled>(this, message, value);
         return message;
     }
     internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallCancelled): CallCancelled {
-        return target ?? this.create();
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
+                    break;
+                case /* string sender_user_id */ 3:
+                    message.senderUserId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
     }
     internalBinaryWrite(message: CallCancelled, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* string sender_user_id = 3; */
+        if (message.senderUserId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.senderUserId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -732,3 +1018,78 @@ class CallCancelled$Type extends MessageType<CallCancelled> {
  * @generated MessageType for protobuf message stream.video.coordinator.event_v1.CallCancelled
  */
 export const CallCancelled = new CallCancelled$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CallCustom$Type extends MessageType<CallCustom> {
+    constructor() {
+        super("stream.video.coordinator.event_v1.CallCustom", [
+            { no: 1, name: "call", kind: "message", T: () => Call },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails },
+            { no: 3, name: "sender_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "data_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CallCustom>): CallCustom {
+        const message = { senderUserId: "", type: "", dataJson: new Uint8Array(0) };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CallCustom>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallCustom): CallCustom {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
+                    break;
+                case /* string sender_user_id */ 3:
+                    message.senderUserId = reader.string();
+                    break;
+                case /* string type */ 4:
+                    message.type = reader.string();
+                    break;
+                case /* bytes data_json */ 5:
+                    message.dataJson = reader.bytes();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CallCustom, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* string sender_user_id = 3; */
+        if (message.senderUserId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.senderUserId);
+        /* string type = 4; */
+        if (message.type !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.type);
+        /* bytes data_json = 5; */
+        if (message.dataJson.length)
+            writer.tag(5, WireType.LengthDelimited).bytes(message.dataJson);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.event_v1.CallCustom
+ */
+export const CallCustom = new CallCustom$Type();

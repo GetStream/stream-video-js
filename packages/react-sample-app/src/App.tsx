@@ -138,11 +138,10 @@ const App = () => {
   );
 
   useEffect(() => {
-    const onCallCreated = (event: CallCreated, envelopes?: Envelopes) => {
-      const { callCid } = event;
-      const call = envelopes?.calls[callCid];
+    const onCallCreated = (event: CallCreated) => {
+      const { call } = event;
       if (!call) {
-        console.warn(`Can't find call with id: ${callCid}`);
+        console.warn(`Null Call received`, event);
         return;
       }
 

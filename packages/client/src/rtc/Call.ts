@@ -14,8 +14,8 @@ import {
 } from './codecs';
 import { createPublisher } from './publisher';
 import { Dispatcher } from './Dispatcher';
-import { VideoDimension } from '../gen/video/sfu/models/models';
-import { registerEventHandlers } from './callEventHandlers';
+import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
+import { handleICETrickle, registerEventHandlers } from './callEventHandlers';
 import { RequestEvent } from '../gen/video/sfu/event/events';
 
 export type CallOptions = {
@@ -30,7 +30,8 @@ export class Call {
   private videoLayers?: OptimalVideoLayer[];
   private subscriber?: RTCPeerConnection;
   private publisher?: RTCPeerConnection;
-  private readonly signal: WebSocket;
+  private signal?: WebSocket;
+  private readonly connectionReady: Promise<unknown>;
 
   readonly currentUserId: string;
 
@@ -45,13 +46,35 @@ export class Call {
     this.client = client;
     this.currentUserId = currentUserId;
     this.options = options;
-    this.signal = createWebSocketSignalChannel({
+
+    this.connectionReady = createWebSocketSignalChannel({
       // FIXME: OL: refactor sfuHost
-      endpoint: `${this.client.sfuHost}/ws`,
+      endpoint: `ws://${this.client.sfuHost}:3031/ws`,
       onMessage: (message) => {
         console.log('Received Signal event', message.eventPayload);
         this.dispatcher.dispatch(message);
       },
+    }).then((signal) => {
+      this.signal = signal;
+      this.subscriber = createSubscriber({
+        rpcClient: this.client,
+        signal: this.signal,
+        dispatcher: this.dispatcher,
+        connectionConfig: this.options.connectionConfig,
+        onTrack: (e) => {
+          console.log('Got remote track:', e.track);
+          this.handleOnTrack?.(e);
+        },
+      });
+
+      this.publisher = createPublisher({
+        signal: this.signal,
+        dispatcher: this.dispatcher,
+        rpcClient: this.client,
+        connectionConfig: this.options.connectionConfig,
+      });
+
+      this.on('iceTrickle', handleICETrickle(this.subscriber, this.publisher));
     });
 
     registerEventHandlers(this);
@@ -62,42 +85,25 @@ export class Call {
 
   leave = () => {
     this.subscriber?.close();
-    this.subscriber = undefined;
 
     this.publisher?.getSenders().forEach((s) => {
       s.track?.stop();
       this.publisher?.removeTrack(s);
     });
     this.publisher?.close();
-    this.publisher = undefined;
 
     this.signal?.close();
     this.dispatcher.offAll();
   };
 
   join = async (videoStream?: MediaStream) => {
-    if (this.subscriber) {
-      this.subscriber.close();
-      this.subscriber = undefined;
-    }
-    console.log(`Setting up subscriber`);
+    // const offer = await this.subscriber.createOffer();
+    // if (!offer.sdp) {
+    //   throw new Error(`Failed to configure protocol, null SDP`);
+    // }
+    // await this.subscriber.setLocalDescription(offer);
 
-    this.subscriber = createSubscriber({
-      rpcClient: this.client,
-      signal: this.signal,
-      dispatcher: this.dispatcher,
-      connectionConfig: this.options.connectionConfig,
-      onTrack: (e) => {
-        console.log('Got remote track:', e.track);
-        this.handleOnTrack?.(e);
-      },
-    });
-
-    const offer = await this.subscriber.createOffer();
-    if (!offer.sdp) {
-      throw new Error(`Failed to configure protocol, null SDP`);
-    }
-    await this.subscriber.setLocalDescription(offer);
+    await this.connectionReady;
 
     const [audioEncode, audioDecode, videoEncode, videoDecode] =
       await Promise.all([
@@ -111,23 +117,24 @@ export class Call {
       ? await findOptimalVideoLayers(videoStream)
       : defaultVideoLayers;
 
-    this.signal.send(
-      RequestEvent.toJsonString({
+    this.signal?.send(
+      RequestEvent.toBinary({
         eventPayload: {
           oneofKind: 'join',
           join: {
             sessionId: this.client.sessionId,
+            token: this.client.token,
             publish: true,
             // FIXME OL: encode parameters and video layers should be announced when
             // initiating "publish" operation
             codecSettings: {
               audio: {
-                encode: audioEncode,
-                decode: audioDecode,
+                encodes: audioEncode,
+                decodes: audioDecode,
               },
               video: {
-                encode: videoEncode,
-                decode: videoDecode,
+                encodes: videoEncode,
+                decodes: videoDecode,
               },
               layers: this.videoLayers.map((layer) => ({
                 rid: layer.rid!,
@@ -168,27 +175,17 @@ export class Call {
     //   },
     // });
 
-    await this.subscriber.setRemoteDescription({
-      type: 'answer',
-      sdp: sfu.sdp,
-    });
+    // await this.subscriber.setRemoteDescription({
+    //   type: 'answer',
+    //   sdp: sfu.sdp,
+    // });
+    // return sfu.callState;
 
-    return sfu.callState;
+    // FIXME OL: await until joined
+    return CallState.create();
   };
 
   publish = (audioStream?: MediaStream, videoStream?: MediaStream) => {
-    if (this.publisher) {
-      this.publisher.close();
-      this.publisher = undefined;
-    }
-    console.log(`Setting up publisher`);
-
-    this.publisher = createPublisher({
-      signal: this.signal,
-      rpcClient: this.client,
-      connectionConfig: this.options.connectionConfig,
-    });
-
     if (videoStream) {
       const videoEncodings: RTCRtpEncodingParameters[] =
         this.videoLayers && this.videoLayers.length > 0
@@ -196,7 +193,7 @@ export class Call {
           : defaultVideoPublishEncodings;
 
       const [videoTrack] = videoStream.getVideoTracks();
-      if (videoTrack) {
+      if (videoTrack && this.publisher) {
         const videoTransceiver = this.publisher.addTransceiver(videoTrack, {
           direction: 'sendonly',
           streams: [videoStream],
@@ -213,7 +210,7 @@ export class Call {
 
     if (audioStream) {
       const [audioTrack] = audioStream.getAudioTracks();
-      if (audioTrack) {
+      if (audioTrack && this.publisher) {
         this.publisher.addTransceiver(audioTrack, {
           direction: 'sendonly',
         });

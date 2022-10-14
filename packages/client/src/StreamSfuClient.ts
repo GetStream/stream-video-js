@@ -21,9 +21,12 @@ export class StreamSfuClient {
   sessionId: string;
   // Client to make Twirp style API calls
   rpc: SignalServerClient;
+  // Current JWT token
+  token: string;
 
   constructor(url: string, token: string, sessionId: string) {
     this.sfuHost = hostnameFromUrl(url);
+    this.token = token;
     this.rpc = createSignalClient({
       baseUrl: url,
       interceptors: [

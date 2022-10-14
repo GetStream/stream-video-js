@@ -1,16 +1,19 @@
 import { StreamSfuClient } from '../StreamSfuClient';
 import { RequestEvent } from '../gen/video/sfu/event/events';
 import { PeerType } from '../gen/video/sfu/models/models';
+import { Dispatcher } from './Dispatcher';
 
 export type PublisherOpts = {
   rpcClient: StreamSfuClient;
   connectionConfig?: RTCConfiguration;
+  dispatcher: Dispatcher;
   signal: WebSocket;
 };
 
 export const createPublisher = ({
   connectionConfig,
   rpcClient,
+  dispatcher,
   signal,
 }: PublisherOpts) => {
   const publisher = new RTCPeerConnection(connectionConfig);
@@ -22,12 +25,12 @@ export const createPublisher = ({
     }
 
     signal.send(
-      RequestEvent.toJsonString({
+      RequestEvent.toBinary({
         eventPayload: {
           oneofKind: 'iceTrickle',
           iceTrickle: {
             iceCandidate: candidate.candidate,
-            peerType: PeerType.PUBLISHER,
+            peerType: PeerType.PUBLISHER_UNSPECIFIED,
           },
         },
       }),
@@ -50,27 +53,37 @@ export const createPublisher = ({
     await publisher.setLocalDescription(offer);
 
     signal.send(
-      RequestEvent.toJsonString({
+      RequestEvent.toBinary({
         eventPayload: {
           oneofKind: 'publish',
           publish: {
             sdp: offer.sdp || '',
             sessionId: rpcClient.sessionId,
-            ase: 'asd',
+            token: rpcClient.token,
           },
         },
       }),
     );
 
-    const { response: sfu } = await rpcClient.rpc.setPublisher({
-      sessionId: rpcClient.sessionId,
-      sdp: offer.sdp || '',
-    });
+    // const { response: sfu } = await rpcClient.rpc.setPublisher({
+    //   sessionId: rpcClient.sessionId,
+    //   sdp: offer.sdp || '',
+    // });
+    //
+    // // TODO listen for an event
+    // await publisher.setRemoteDescription({
+    //   type: 'answer',
+    //   sdp: sfu.sdp,
+    // });
+  });
 
-    // TODO listen for an event
+  dispatcher.on('publisherAnswer', async (message) => {
+    if (message.eventPayload.oneofKind !== 'publisherAnswer') return;
+    const { publisherAnswer } = message.eventPayload;
+
     await publisher.setRemoteDescription({
       type: 'answer',
-      sdp: sfu.sdp,
+      sdp: publisherAnswer.sdp,
     });
   });
 
