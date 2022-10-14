@@ -6,13 +6,13 @@ import {
   ThemeProvider,
 } from '@mui/material';
 import {
+  CallCreated,
   CallMeta,
+  Envelopes,
   GetCallEdgeServerResponse,
   MemberInput,
   Struct,
   UserInput,
-  CallCreated,
-  Envelopes,
 } from '@stream-io/video-client';
 import {
   StreamCall,
@@ -139,10 +139,9 @@ const App = () => {
 
   useEffect(() => {
     const onCallCreated = (event: CallCreated, envelopes?: Envelopes) => {
-      const { callCid } = event;
-      const call = envelopes?.calls[callCid];
+      const { call } = event;
       if (!call) {
-        console.warn(`Can't find call with id: ${callCid}`);
+        console.warn("Can't find call in CallCreated event");
         return;
       }
 

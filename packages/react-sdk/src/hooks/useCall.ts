@@ -1,11 +1,11 @@
-import { useStreamVideoClient } from '../StreamVideo';
-import { useCallback, useEffect, useState } from 'react';
 import {
-  CallMeta,
   CallCreated,
+  CallMeta,
   Credentials,
   Envelopes,
 } from '@stream-io/video-client';
+import { useCallback, useEffect, useState } from 'react';
+import { useStreamVideoClient } from '../StreamVideo';
 
 export type UseCallParams = {
   callId: string;
@@ -66,10 +66,9 @@ export const useCall = ({
 
   useEffect(() => {
     const onCallCreated = (event: CallCreated, envelopes?: Envelopes) => {
-      const { callCid } = event;
-      const call = envelopes?.calls[callCid];
+      const { call } = event;
       if (!call) {
-        console.warn(`Can't find call with id: ${callCid}`);
+        console.warn("Can't find call in CallCreated event");
         return;
       }
 

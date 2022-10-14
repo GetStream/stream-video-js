@@ -251,7 +251,7 @@ export interface AudioLayerSetting {
  */
 export interface AudioMediaRequest {
     /**
-     * @generated from protobuf field: int32 channelCount = 1;
+     * @generated from protobuf field: int32 channel_count = 1;
      */
     channelCount: number;
 }
@@ -260,7 +260,7 @@ export interface AudioMediaRequest {
  */
 export interface AudioSender {
     /**
-     * @generated from protobuf field: stream.video.sfu.event.AudioMediaRequest mediaRequest = 1;
+     * @generated from protobuf field: stream.video.sfu.event.AudioMediaRequest media_request = 1;
      */
     mediaRequest?: AudioMediaRequest;
     /**
@@ -277,15 +277,15 @@ export interface AudioSender {
  */
 export interface VideoMediaRequest {
     /**
-     * @generated from protobuf field: int32 idealHeight = 1;
+     * @generated from protobuf field: int32 ideal_height = 1;
      */
     idealHeight: number;
     /**
-     * @generated from protobuf field: int32 idealWidth = 2;
+     * @generated from protobuf field: int32 ideal_width = 2;
      */
     idealWidth: number;
     /**
-     * @generated from protobuf field: int32 idealFrameRate = 3;
+     * @generated from protobuf field: int32 ideal_frame_rate = 3;
      */
     idealFrameRate: number;
 }
@@ -302,11 +302,11 @@ export interface VideoLayerSetting {
      */
     active: boolean;
     /**
-     * @generated from protobuf field: int32 maxBitrate = 3;
+     * @generated from protobuf field: int32 max_bitrate = 3;
      */
     maxBitrate: number;
     /**
-     * @generated from protobuf field: float scaleResolutionDownBy = 4;
+     * @generated from protobuf field: float scale_resolution_down_by = 4;
      */
     scaleResolutionDownBy: number;
     /**
@@ -323,19 +323,19 @@ export interface VideoLayerSetting {
  */
 export enum VideoLayerSetting_Priority {
     /**
-     * @generated from protobuf enum value: HIGH = 0;
+     * @generated from protobuf enum value: PRIORITY_HIGH_UNSPECIFIED = 0;
      */
-    HIGH = 0,
+    HIGH_UNSPECIFIED = 0,
     /**
-     * @generated from protobuf enum value: LOW = 1;
+     * @generated from protobuf enum value: PRIORITY_LOW = 1;
      */
     LOW = 1,
     /**
-     * @generated from protobuf enum value: MEDIUM = 2;
+     * @generated from protobuf enum value: PRIORITY_MEDIUM = 2;
      */
     MEDIUM = 2,
     /**
-     * @generated from protobuf enum value: VERY_LOW = 3;
+     * @generated from protobuf enum value: PRIORITY_VERY_LOW = 3;
      */
     VERY_LOW = 3
 }
@@ -344,7 +344,7 @@ export enum VideoLayerSetting_Priority {
  */
 export interface VideoSender {
     /**
-     * @generated from protobuf field: stream.video.sfu.event.VideoMediaRequest mediaRequest = 1;
+     * @generated from protobuf field: stream.video.sfu.event.VideoMediaRequest media_request = 1;
      */
     mediaRequest?: VideoMediaRequest;
     /**
@@ -363,13 +363,13 @@ export interface VideoSender {
  */
 export interface ChangePublishQuality {
     /**
-     * @generated from protobuf field: repeated stream.video.sfu.event.AudioSender audio_sender = 1;
+     * @generated from protobuf field: repeated stream.video.sfu.event.AudioSender audio_senders = 1;
      */
-    audioSender: AudioSender[];
+    audioSenders: AudioSender[];
     /**
-     * @generated from protobuf field: repeated stream.video.sfu.event.VideoSender video_sender = 2;
+     * @generated from protobuf field: repeated stream.video.sfu.event.VideoSender video_senders = 2;
      */
-    videoSender: VideoSender[];
+    videoSenders: VideoSender[];
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class SfuEvent$Type extends MessageType<SfuEvent> {
@@ -893,7 +893,7 @@ class ConnectionQualityChanged$Type extends MessageType<ConnectionQualityChanged
     constructor() {
         super("stream.video.sfu.event.ConnectionQualityChanged", [
             { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "connection_quality", kind: "enum", T: () => ["stream.video.sfu.models.ConnectionQuality", ConnectionQuality] }
+            { no: 2, name: "connection_quality", kind: "enum", T: () => ["stream.video.sfu.models.ConnectionQuality", ConnectionQuality, "CONNECTION_QUALITY_"] }
         ]);
     }
     create(value?: PartialMessage<ConnectionQualityChanged>): ConnectionQualityChanged {
@@ -1120,7 +1120,7 @@ export const AudioLayerSetting = new AudioLayerSetting$Type();
 class AudioMediaRequest$Type extends MessageType<AudioMediaRequest> {
     constructor() {
         super("stream.video.sfu.event.AudioMediaRequest", [
-            { no: 1, name: "channelCount", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+            { no: 1, name: "channel_count", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
         ]);
     }
     create(value?: PartialMessage<AudioMediaRequest>): AudioMediaRequest {
@@ -1135,7 +1135,7 @@ class AudioMediaRequest$Type extends MessageType<AudioMediaRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* int32 channelCount */ 1:
+                case /* int32 channel_count */ 1:
                     message.channelCount = reader.int32();
                     break;
                 default:
@@ -1150,7 +1150,7 @@ class AudioMediaRequest$Type extends MessageType<AudioMediaRequest> {
         return message;
     }
     internalBinaryWrite(message: AudioMediaRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* int32 channelCount = 1; */
+        /* int32 channel_count = 1; */
         if (message.channelCount !== 0)
             writer.tag(1, WireType.Varint).int32(message.channelCount);
         let u = options.writeUnknownFields;
@@ -1167,7 +1167,7 @@ export const AudioMediaRequest = new AudioMediaRequest$Type();
 class AudioSender$Type extends MessageType<AudioSender> {
     constructor() {
         super("stream.video.sfu.event.AudioSender", [
-            { no: 1, name: "mediaRequest", kind: "message", T: () => AudioMediaRequest },
+            { no: 1, name: "media_request", kind: "message", T: () => AudioMediaRequest },
             { no: 2, name: "codec", kind: "message", T: () => Codec },
             { no: 3, name: "layers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => AudioLayerSetting }
         ]);
@@ -1184,7 +1184,7 @@ class AudioSender$Type extends MessageType<AudioSender> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* stream.video.sfu.event.AudioMediaRequest mediaRequest */ 1:
+                case /* stream.video.sfu.event.AudioMediaRequest media_request */ 1:
                     message.mediaRequest = AudioMediaRequest.internalBinaryRead(reader, reader.uint32(), options, message.mediaRequest);
                     break;
                 case /* stream.video.sfu.models.Codec codec */ 2:
@@ -1205,7 +1205,7 @@ class AudioSender$Type extends MessageType<AudioSender> {
         return message;
     }
     internalBinaryWrite(message: AudioSender, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.sfu.event.AudioMediaRequest mediaRequest = 1; */
+        /* stream.video.sfu.event.AudioMediaRequest media_request = 1; */
         if (message.mediaRequest)
             AudioMediaRequest.internalBinaryWrite(message.mediaRequest, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         /* stream.video.sfu.models.Codec codec = 2; */
@@ -1228,9 +1228,9 @@ export const AudioSender = new AudioSender$Type();
 class VideoMediaRequest$Type extends MessageType<VideoMediaRequest> {
     constructor() {
         super("stream.video.sfu.event.VideoMediaRequest", [
-            { no: 1, name: "idealHeight", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 2, name: "idealWidth", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 3, name: "idealFrameRate", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+            { no: 1, name: "ideal_height", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "ideal_width", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 3, name: "ideal_frame_rate", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
         ]);
     }
     create(value?: PartialMessage<VideoMediaRequest>): VideoMediaRequest {
@@ -1245,13 +1245,13 @@ class VideoMediaRequest$Type extends MessageType<VideoMediaRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* int32 idealHeight */ 1:
+                case /* int32 ideal_height */ 1:
                     message.idealHeight = reader.int32();
                     break;
-                case /* int32 idealWidth */ 2:
+                case /* int32 ideal_width */ 2:
                     message.idealWidth = reader.int32();
                     break;
-                case /* int32 idealFrameRate */ 3:
+                case /* int32 ideal_frame_rate */ 3:
                     message.idealFrameRate = reader.int32();
                     break;
                 default:
@@ -1266,13 +1266,13 @@ class VideoMediaRequest$Type extends MessageType<VideoMediaRequest> {
         return message;
     }
     internalBinaryWrite(message: VideoMediaRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* int32 idealHeight = 1; */
+        /* int32 ideal_height = 1; */
         if (message.idealHeight !== 0)
             writer.tag(1, WireType.Varint).int32(message.idealHeight);
-        /* int32 idealWidth = 2; */
+        /* int32 ideal_width = 2; */
         if (message.idealWidth !== 0)
             writer.tag(2, WireType.Varint).int32(message.idealWidth);
-        /* int32 idealFrameRate = 3; */
+        /* int32 ideal_frame_rate = 3; */
         if (message.idealFrameRate !== 0)
             writer.tag(3, WireType.Varint).int32(message.idealFrameRate);
         let u = options.writeUnknownFields;
@@ -1291,9 +1291,9 @@ class VideoLayerSetting$Type extends MessageType<VideoLayerSetting> {
         super("stream.video.sfu.event.VideoLayerSetting", [
             { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "active", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 3, name: "maxBitrate", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 4, name: "scaleResolutionDownBy", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ },
-            { no: 5, name: "priority", kind: "enum", T: () => ["stream.video.sfu.event.VideoLayerSetting.Priority", VideoLayerSetting_Priority] },
+            { no: 3, name: "max_bitrate", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 4, name: "scale_resolution_down_by", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ },
+            { no: 5, name: "priority", kind: "enum", T: () => ["stream.video.sfu.event.VideoLayerSetting.Priority", VideoLayerSetting_Priority, "PRIORITY_"] },
             { no: 6, name: "codec", kind: "message", T: () => Codec }
         ]);
     }
@@ -1315,10 +1315,10 @@ class VideoLayerSetting$Type extends MessageType<VideoLayerSetting> {
                 case /* bool active */ 2:
                     message.active = reader.bool();
                     break;
-                case /* int32 maxBitrate */ 3:
+                case /* int32 max_bitrate */ 3:
                     message.maxBitrate = reader.int32();
                     break;
-                case /* float scaleResolutionDownBy */ 4:
+                case /* float scale_resolution_down_by */ 4:
                     message.scaleResolutionDownBy = reader.float();
                     break;
                 case /* stream.video.sfu.event.VideoLayerSetting.Priority priority */ 5:
@@ -1345,10 +1345,10 @@ class VideoLayerSetting$Type extends MessageType<VideoLayerSetting> {
         /* bool active = 2; */
         if (message.active !== false)
             writer.tag(2, WireType.Varint).bool(message.active);
-        /* int32 maxBitrate = 3; */
+        /* int32 max_bitrate = 3; */
         if (message.maxBitrate !== 0)
             writer.tag(3, WireType.Varint).int32(message.maxBitrate);
-        /* float scaleResolutionDownBy = 4; */
+        /* float scale_resolution_down_by = 4; */
         if (message.scaleResolutionDownBy !== 0)
             writer.tag(4, WireType.Bit32).float(message.scaleResolutionDownBy);
         /* stream.video.sfu.event.VideoLayerSetting.Priority priority = 5; */
@@ -1371,7 +1371,7 @@ export const VideoLayerSetting = new VideoLayerSetting$Type();
 class VideoSender$Type extends MessageType<VideoSender> {
     constructor() {
         super("stream.video.sfu.event.VideoSender", [
-            { no: 1, name: "mediaRequest", kind: "message", T: () => VideoMediaRequest },
+            { no: 1, name: "media_request", kind: "message", T: () => VideoMediaRequest },
             { no: 2, name: "codec", kind: "message", T: () => Codec },
             { no: 3, name: "layers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => VideoLayerSetting }
         ]);
@@ -1388,7 +1388,7 @@ class VideoSender$Type extends MessageType<VideoSender> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* stream.video.sfu.event.VideoMediaRequest mediaRequest */ 1:
+                case /* stream.video.sfu.event.VideoMediaRequest media_request */ 1:
                     message.mediaRequest = VideoMediaRequest.internalBinaryRead(reader, reader.uint32(), options, message.mediaRequest);
                     break;
                 case /* stream.video.sfu.models.Codec codec */ 2:
@@ -1409,7 +1409,7 @@ class VideoSender$Type extends MessageType<VideoSender> {
         return message;
     }
     internalBinaryWrite(message: VideoSender, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.sfu.event.VideoMediaRequest mediaRequest = 1; */
+        /* stream.video.sfu.event.VideoMediaRequest media_request = 1; */
         if (message.mediaRequest)
             VideoMediaRequest.internalBinaryWrite(message.mediaRequest, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         /* stream.video.sfu.models.Codec codec = 2; */
@@ -1432,12 +1432,12 @@ export const VideoSender = new VideoSender$Type();
 class ChangePublishQuality$Type extends MessageType<ChangePublishQuality> {
     constructor() {
         super("stream.video.sfu.event.ChangePublishQuality", [
-            { no: 1, name: "audio_sender", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => AudioSender },
-            { no: 2, name: "video_sender", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => VideoSender }
+            { no: 1, name: "audio_senders", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => AudioSender },
+            { no: 2, name: "video_senders", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => VideoSender }
         ]);
     }
     create(value?: PartialMessage<ChangePublishQuality>): ChangePublishQuality {
-        const message = { audioSender: [], videoSender: [] };
+        const message = { audioSenders: [], videoSenders: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ChangePublishQuality>(this, message, value);
@@ -1448,11 +1448,11 @@ class ChangePublishQuality$Type extends MessageType<ChangePublishQuality> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated stream.video.sfu.event.AudioSender audio_sender */ 1:
-                    message.audioSender.push(AudioSender.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated stream.video.sfu.event.AudioSender audio_senders */ 1:
+                    message.audioSenders.push(AudioSender.internalBinaryRead(reader, reader.uint32(), options));
                     break;
-                case /* repeated stream.video.sfu.event.VideoSender video_sender */ 2:
-                    message.videoSender.push(VideoSender.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated stream.video.sfu.event.VideoSender video_senders */ 2:
+                    message.videoSenders.push(VideoSender.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1466,12 +1466,12 @@ class ChangePublishQuality$Type extends MessageType<ChangePublishQuality> {
         return message;
     }
     internalBinaryWrite(message: ChangePublishQuality, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated stream.video.sfu.event.AudioSender audio_sender = 1; */
-        for (let i = 0; i < message.audioSender.length; i++)
-            AudioSender.internalBinaryWrite(message.audioSender[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* repeated stream.video.sfu.event.VideoSender video_sender = 2; */
-        for (let i = 0; i < message.videoSender.length; i++)
-            VideoSender.internalBinaryWrite(message.videoSender[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* repeated stream.video.sfu.event.AudioSender audio_senders = 1; */
+        for (let i = 0; i < message.audioSenders.length; i++)
+            AudioSender.internalBinaryWrite(message.audioSenders[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* repeated stream.video.sfu.event.VideoSender video_senders = 2; */
+        for (let i = 0; i < message.videoSenders.length; i++)
+            VideoSender.internalBinaryWrite(message.videoSenders[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
