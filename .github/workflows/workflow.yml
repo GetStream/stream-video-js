@@ -29,4 +29,11 @@ jobs:
       - name: Test packages
         run: yarn test:ci:all
       - name: Release packages
-        run: echo 'TODO'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ${{ github.ref_name }} = main ]; then
+            yarn release
+          else
+            echo 'No release as we are not on "main" branch'
+          fi

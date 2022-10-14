@@ -21,7 +21,9 @@
     "clean:all": "yarn workspaces foreach -vt run clean",
     "lint:all": "eslint --fix 'packages/**/*.{ts,tsx}'",
     "lint:ci:all": "eslint 'packages/**/*.{ts,tsx}'",
-    "test:ci:all": "yarn workspaces foreach -vt run test:ci"
+    "test:ci:all": "yarn workspaces foreach -vt run test:ci",
+    "release": "yarn version && echo 'TODO release'",
+    "version": "lerna version --conventional-commits --allow-branch main --create-release github --message \"chore: publish %s [skip ci]\" --yes"
   },
   "devDependencies": {
     "@types/eslint": "^8.4.6",
