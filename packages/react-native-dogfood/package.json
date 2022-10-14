@@ -1,0 +1,61 @@
+{
+  "name": "StreamReactNativeVideoSDKSample",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "sfu": "cd ../../ && go run cmd/video-sfu/main.go\n",
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "ios-device": "react-native run-ios --device",
+    "start": "react-native start",
+    "generate-client": "./generate-client.sh",
+    "clean-install": "rm -rf node_modules && yarn cache clean && yarn install",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@protobuf-ts/twirp-transport": "^2.8.0",
+    "@react-native-async-storage/async-storage": "^1.17.10",
+    "@react-native-clipboard/clipboard": "^1.11.1",
+    "@stardazed/streams-polyfill": "^2.4.0",
+    "js-base64": "^3.7.2",
+    "lodash": "^4.17.21",
+    "react": "18.0.0",
+    "react-native": "0.69.5",
+    "react-native-get-random-values": "^1.8.0",
+    "react-native-incall-manager": "^4.0.0",
+    "react-native-polyfill-globals": "^3.1.0",
+    "react-native-safe-area-context": "^4.3.4",
+    "react-native-svg": "^13.2.0",
+    "react-native-webrtc": "106.0.0-beta.3",
+    "sdp-transform": "^2.14.1",
+    "text-encoding-polyfill": "^0.6.7"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.9",
+    "@babel/runtime": "^7.12.5",
+    "@protobuf-ts/plugin": "^2.8.0",
+    "@protobuf-ts/protoc": "^2.8.0",
+    "@react-native-community/eslint-config": "^2.0.0",
+    "@types/jest": "^29.0.0",
+    "@types/lodash": "^4.14.184",
+    "@types/react": "^18.0.18",
+    "@types/react-native": "^0.69.6",
+    "@types/react-native-incall-manager": "^3.2.1",
+    "@types/react-native-webrtc": "^1.75.5",
+    "@types/react-test-renderer": "^18.0.0",
+    "@types/sdp-transform": "^2.4.5",
+    "@types/uuid": "^8.3.4",
+    "babel-jest": "^26.6.3",
+    "eslint": "^7.32.0",
+    "jest": "^26.6.3",
+    "lint-staged": "^13.0.3",
+    "metro-react-native-babel-preset": "^0.70.3",
+    "patch-package": "^6.4.7",
+    "prettier": "2.7.1",
+    "typescript": "^4.8.2"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
