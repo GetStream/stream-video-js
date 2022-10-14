@@ -27,12 +27,13 @@ export const handleICETrickle =
   async (e: SfuEvent) => {
     if (e.eventPayload.oneofKind !== 'iceTrickle') return;
     const { iceTrickle } = e.eventPayload;
+    const iceCandidate: RTCIceCandidateInit = JSON.parse(
+      iceTrickle.iceCandidate,
+    );
     if (iceTrickle.peerType === PeerType.SUBSCRIBER) {
-
-      console.log(JSON.parse(iceTrickle.iceCandidate))
-      await subscriber.addIceCandidate(JSON.parse(iceTrickle.iceCandidate))
+      await subscriber.addIceCandidate(iceCandidate);
     } else if (iceTrickle.peerType === PeerType.PUBLISHER_UNSPECIFIED) {
-      await publisher.addIceCandidate(JSON.parse(iceTrickle.iceCandidate));
+      await publisher.addIceCandidate(iceCandidate);
     } else {
       console.warn(`ICETrickle, unknown peer type`, iceTrickle);
     }

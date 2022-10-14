@@ -12,7 +12,6 @@ import {
   Struct,
   UserInput,
   CallCreated,
-  Envelopes,
 } from '@stream-io/video-client';
 import {
   StreamCall,

@@ -37,15 +37,6 @@ export const createSubscriber = ({
         },
       }),
     );
-
-    // await rpcClient.rpc.sendIceCandidate({
-    //   sessionId: rpcClient.sessionId,
-    //   publisher: false,
-    //   candidate: candidate.candidate,
-    //   sdpMid: candidate.sdpMid ?? undefined,
-    //   sdpMLineIndex: candidate.sdpMLineIndex ?? undefined,
-    //   usernameFragment: candidate.usernameFragment ?? undefined,
-    // });
   });
 
   if (onTrack) {
@@ -78,11 +69,6 @@ export const createSubscriber = ({
         },
       }),
     );
-    // await rpcClient.rpc.sendAnswer({
-    //   sessionId: rpcClient.sessionId,
-    //   peerType: PeerType.SUBSCRIBER,
-    //   sdp: answer.sdp || '',
-    // });
   });
 
   return subscriber;

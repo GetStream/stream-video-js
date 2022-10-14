@@ -42,7 +42,6 @@ export const createWebSocketSignalChannel = (opts: {
     const ws = new WebSocket(endpoint);
     ws.binaryType = 'arraybuffer'; // do we need this?
     ws.addEventListener('open', () => {
-      // ws.send('ss');
       return resolve(ws);
     });
 
