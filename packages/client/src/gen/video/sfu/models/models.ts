@@ -273,6 +273,23 @@ export interface CodecSettings {
     layers: VideoLayer[];
 }
 /**
+ * @generated from protobuf message stream.video.sfu.models.ICETrickle
+ */
+export interface ICETrickle {
+    /**
+     * @generated from protobuf field: stream.video.sfu.models.PeerType peer_type = 1;
+     */
+    peerType: PeerType;
+    /**
+     * @generated from protobuf field: string ice_candidate = 2;
+     */
+    iceCandidate: string;
+    /**
+     * @generated from protobuf field: string session_id = 3;
+     */
+    sessionId: string;
+}
+/**
  * @generated from protobuf enum stream.video.sfu.models.PeerType
  */
 export enum PeerType {
@@ -1121,3 +1138,64 @@ class CodecSettings$Type extends MessageType<CodecSettings> {
  * @generated MessageType for protobuf message stream.video.sfu.models.CodecSettings
  */
 export const CodecSettings = new CodecSettings$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ICETrickle$Type extends MessageType<ICETrickle> {
+    constructor() {
+        super("stream.video.sfu.models.ICETrickle", [
+            { no: 1, name: "peer_type", kind: "enum", T: () => ["stream.video.sfu.models.PeerType", PeerType, "PEER_TYPE_"] },
+            { no: 2, name: "ice_candidate", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ICETrickle>): ICETrickle {
+        const message = { peerType: 0, iceCandidate: "", sessionId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ICETrickle>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ICETrickle): ICETrickle {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.sfu.models.PeerType peer_type */ 1:
+                    message.peerType = reader.int32();
+                    break;
+                case /* string ice_candidate */ 2:
+                    message.iceCandidate = reader.string();
+                    break;
+                case /* string session_id */ 3:
+                    message.sessionId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ICETrickle, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.sfu.models.PeerType peer_type = 1; */
+        if (message.peerType !== 0)
+            writer.tag(1, WireType.Varint).int32(message.peerType);
+        /* string ice_candidate = 2; */
+        if (message.iceCandidate !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.iceCandidate);
+        /* string session_id = 3; */
+        if (message.sessionId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.sessionId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.ICETrickle
+ */
+export const ICETrickle = new ICETrickle$Type();
