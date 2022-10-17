@@ -8,6 +8,7 @@ export type PublisherOpts = {
   connectionConfig?: RTCConfiguration;
   dispatcher: Dispatcher;
   signal: WebSocket;
+  candidates: RTCIceCandidateInit[];
 };
 
 export const createPublisher = ({
@@ -15,6 +16,7 @@ export const createPublisher = ({
   rpcClient,
   dispatcher,
   signal,
+  candidates,
 }: PublisherOpts) => {
   const publisher = new RTCPeerConnection(connectionConfig);
   publisher.addEventListener('icecandidate', (e) => {
@@ -85,6 +87,11 @@ export const createPublisher = ({
       type: 'answer',
       sdp: publisherAnswer.sdp,
     });
+
+    await candidates.forEach( (candidate) => {
+       publisher.addIceCandidate(candidate)
+    })
+    candidates = [];
   });
 
   return publisher;

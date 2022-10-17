@@ -9,6 +9,7 @@ export type SubscriberOpts = {
   connectionConfig?: RTCConfiguration;
   onTrack?: (e: RTCTrackEvent) => void;
   signal: WebSocket;
+  candidates: RTCIceCandidateInit[];
 };
 
 export const createSubscriber = ({
@@ -17,6 +18,7 @@ export const createSubscriber = ({
   connectionConfig,
   onTrack,
   signal,
+  candidates,
 }: SubscriberOpts) => {
   const subscriber = new RTCPeerConnection(connectionConfig);
   subscriber.addEventListener('icecandidate', (e) => {
@@ -37,15 +39,6 @@ export const createSubscriber = ({
         },
       }),
     );
-
-    // await rpcClient.rpc.sendIceCandidate({
-    //   sessionId: rpcClient.sessionId,
-    //   publisher: false,
-    //   candidate: candidate.candidate,
-    //   sdpMid: candidate.sdpMid ?? undefined,
-    //   sdpMLineIndex: candidate.sdpMLineIndex ?? undefined,
-    //   usernameFragment: candidate.usernameFragment ?? undefined,
-    // });
   });
 
   if (onTrack) {
@@ -62,6 +55,12 @@ export const createSubscriber = ({
       sdp: subscriberOffer.sdp,
     });
 
+    await candidates.forEach((candidate) => {
+      subscriber.addIceCandidate(candidate)
+    })
+    candidates = []
+
+    // apply ice candidates
     const answer = await subscriber.createAnswer();
     await subscriber.setLocalDescription(answer);
 

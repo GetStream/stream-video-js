@@ -28,8 +28,10 @@ export class Call {
   private readonly options: CallOptions;
 
   private videoLayers?: OptimalVideoLayer[];
-  private subscriber?: RTCPeerConnection;
-  private publisher?: RTCPeerConnection;
+  subscriber?: RTCPeerConnection;
+  publisher?: RTCPeerConnection;
+  publisherCandidates: RTCIceCandidateInit[] = [];
+  subscriberCandidates: RTCIceCandidateInit[] = [];
   private signal?: WebSocket;
   private readonly connectionReady: Promise<unknown>;
 
@@ -65,6 +67,7 @@ export class Call {
           console.log('Got remote track:', e.track);
           this.handleOnTrack?.(e);
         },
+        candidates: this.subscriberCandidates,
       });
 
       this.publisher = createPublisher({
@@ -72,9 +75,10 @@ export class Call {
         dispatcher: this.dispatcher,
         rpcClient: this.client,
         connectionConfig: this.options.connectionConfig,
+        candidates: this.publisherCandidates,
       });
 
-      this.on('iceTrickle', handleICETrickle(this.subscriber, this.publisher));
+      this.on('iceTrickle', handleICETrickle(this));
     });
 
     registerEventHandlers(this);

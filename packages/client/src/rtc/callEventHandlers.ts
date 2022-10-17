@@ -1,6 +1,6 @@
-import type { SfuEvent } from '../gen/video/sfu/event/events';
+import type { SfuEvent } from '../gen/video/sfu/event/events_pb';
 import { Call } from './Call';
-import { PeerType } from '../gen/video/sfu/models/models';
+import { PeerType } from '../gen/video/sfu/models/models_pb';
 
 export const registerEventHandlers = (call: Call) => {
   watchForPublishQualityChangeEvents(call);
@@ -23,16 +23,28 @@ const watchForPublishQualityChangeEvents = (call: Call) => {
 };
 
 export const handleICETrickle =
-  (subscriber: RTCPeerConnection, publisher: RTCPeerConnection) =>
+  (call: Call) =>
   async (e: SfuEvent) => {
     if (e.eventPayload.oneofKind !== 'iceTrickle') return;
     const { iceTrickle } = e.eventPayload;
+
+   const candidate = JSON.parse(iceTrickle.iceCandidate)
     if (iceTrickle.peerType === PeerType.SUBSCRIBER) {
 
-      console.log(JSON.parse(iceTrickle.iceCandidate))
-      await subscriber.addIceCandidate(JSON.parse(iceTrickle.iceCandidate))
+      if (call.subscriber?.remoteDescription){
+        await call.subscriber?.addIceCandidate(candidate)
+      }else{
+        call.subscriberCandidates.push(candidate)
+      }
+
+      // enqueue ICE candidate if remote description is not set yet
+      //https://stackoverflow.com/questions/38198751/domexception-error-processing-ice-candidate
     } else if (iceTrickle.peerType === PeerType.PUBLISHER_UNSPECIFIED) {
-      await publisher.addIceCandidate(JSON.parse(iceTrickle.iceCandidate));
+      if (call.publisher?.remoteDescription){
+        await call.publisher?.addIceCandidate(candidate);
+      }else{
+        call.publisherCandidates.push(candidate)
+      }
     } else {
       console.warn(`ICETrickle, unknown peer type`, iceTrickle);
     }
