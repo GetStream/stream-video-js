@@ -1,7 +1,7 @@
 import { StreamSfuClient } from '../StreamSfuClient';
 import { Dispatcher } from './Dispatcher';
 import { PeerType } from '../gen/video/sfu/models/models';
-import { RequestEvent } from '../gen/video/sfu/event/events';
+import {  } from '../gen/video/sfu/event/events';
 
 export type SubscriberOpts = {
   rpcClient: StreamSfuClient;
@@ -21,23 +21,18 @@ export const createSubscriber = ({
   candidates,
 }: SubscriberOpts) => {
   const subscriber = new RTCPeerConnection(connectionConfig);
-  subscriber.addEventListener('icecandidate', (e) => {
+  subscriber.addEventListener('icecandidate', async(e) => {
     const { candidate } = e;
     if (!candidate) {
       console.log('null ice candidate');
       return;
     }
 
-    rpcClient.send(
-      RequestEvent.create({
-        eventPayload: {
-          oneofKind: 'iceTrickle',
-          iceTrickle: {
+   await rpcClient.rpc.iceTrickle({
+            sessionId: rpcClient.sessionId,
             iceCandidate: JSON.stringify(candidate.toJSON()),
             peerType: PeerType.SUBSCRIBER,
           },
-        },
-      }),
     );
   });
 
@@ -64,18 +59,12 @@ export const createSubscriber = ({
     const answer = await subscriber.createAnswer();
     await subscriber.setLocalDescription(answer);
 
-    rpcClient.send(
-      RequestEvent.create({
-        eventPayload: {
-          oneofKind: 'answer',
-          answer: {
+   await rpcClient.rpc.sendAnswer(
+      {
             sessionId: rpcClient.sessionId,
-            token: rpcClient.token,
             peerType: PeerType.SUBSCRIBER,
             sdp: answer.sdp || '',
           },
-        },
-      }),
     );
   });
 

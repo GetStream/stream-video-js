@@ -15,7 +15,8 @@ import { createPublisher } from './publisher';
 import { Dispatcher } from './Dispatcher';
 import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
 import { handleICETrickle, registerEventHandlers } from './callEventHandlers';
-import { RequestEvent } from '../gen/video/sfu/event/events';
+import {SfuEvent, SfuRequest} from '../gen/video/sfu/event/events';
+import {createWebSocketSignalChannel} from "./signal";
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -31,8 +32,8 @@ export class Call {
   subscriberCandidates: RTCIceCandidateInit[] = [];
   private signal?: WebSocket;
   private readonly connectionReady: Promise<unknown>;
-  private readonly subscriber: RTCPeerConnection;
-  private readonly publisher: RTCPeerConnection;
+  subscriber: RTCPeerConnection | undefined;
+  publisher: RTCPeerConnection | undefined;
 
   readonly currentUserId: string;
 
@@ -89,11 +90,11 @@ export class Call {
   leave = () => {
     this.subscriber?.close();
 
-    this.publisher.getSenders().forEach((s) => {
+    this.publisher?.getSenders().forEach((s) => {
       s.track?.stop();
       this.publisher?.removeTrack(s);
     });
-    this.publisher.close();
+    this.publisher?.close();
 
     this.client.close();
     this.dispatcher.offAll();
@@ -113,13 +114,15 @@ export class Call {
       : defaultVideoLayers;
 
     this.client.send(
-      RequestEvent.create({
-        eventPayload: {
-          oneofKind: 'join',
-          join: {
+      SfuRequest.create({
+        requestPayload: {
+          oneofKind: 'joinRequest',
+          joinRequest: {
             sessionId: this.client.sessionId,
             token: this.client.token,
-            publish: true,
+            // todo fix-me
+            publish:'',
+            // publish: true,
             // FIXME OL: encode parameters and video layers should be announced when
             // initiating "publish" operation
             codecSettings: {
@@ -158,13 +161,14 @@ export class Call {
 
       const [videoTrack] = videoStream.getVideoTracks();
       if (videoTrack) {
-        const videoTransceiver = this.publisher.addTransceiver(videoTrack, {
+        const videoTransceiver = this.publisher?.addTransceiver(videoTrack, {
           direction: 'sendonly',
           streams: [videoStream],
           sendEncodings: videoEncodings,
         });
 
         const codecPreferences = getPreferredCodecs('video', 'vp8');
+        // @ts-ignore
         if ('setCodecPreferences' in videoTransceiver && codecPreferences) {
           console.log(`set codec preferences`, codecPreferences);
           videoTransceiver.setCodecPreferences(codecPreferences);
@@ -175,7 +179,7 @@ export class Call {
     if (audioStream) {
       const [audioTrack] = audioStream.getAudioTracks();
       if (audioTrack) {
-        this.publisher.addTransceiver(audioTrack, {
+        this.publisher?.addTransceiver(audioTrack, {
           direction: 'sendonly',
         });
       }

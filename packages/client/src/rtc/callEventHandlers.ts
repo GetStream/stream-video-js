@@ -31,8 +31,8 @@ export const handleICETrickle =
    const candidate = JSON.parse(iceTrickle.iceCandidate)
     if (iceTrickle.peerType === PeerType.SUBSCRIBER) {
 
-      if (call.subscriber.remoteDescription){
-        await call.subscriber.addIceCandidate(candidate)
+      if (call.subscriber?.remoteDescription){
+        await call.subscriber?.addIceCandidate(candidate)
       }else{
         call.subscriberCandidates.push(candidate)
       }
@@ -40,7 +40,7 @@ export const handleICETrickle =
       // enqueue ICE candidate if remote description is not set yet
       //https://stackoverflow.com/questions/38198751/domexception-error-processing-ice-candidate
     } else if (iceTrickle.peerType === PeerType.PUBLISHER_UNSPECIFIED) {
-      if (call.publisher.remoteDescription){
+      if (call.publisher?.remoteDescription){
         await call.publisher.addIceCandidate(candidate);
       }else{
         call.publisherCandidates.push(candidate)

@@ -1,5 +1,5 @@
 import { StreamSfuClient } from '../StreamSfuClient';
-import { RequestEvent } from '../gen/video/sfu/event/events';
+import { SfuEvent } from '../gen/video/sfu/event/events';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { Dispatcher } from './Dispatcher';
 
@@ -19,23 +19,18 @@ export const createPublisher = ({
   candidates,
 }: PublisherOpts) => {
   const publisher = new RTCPeerConnection(connectionConfig);
-  publisher.addEventListener('icecandidate', (e) => {
+  publisher.addEventListener('icecandidate', async (e) => {
     const { candidate } = e;
     if (!candidate) {
       console.log('null ice candidate');
       return;
     }
-
-    rpcClient.send(
-      RequestEvent.create({
-        eventPayload: {
-          oneofKind: 'iceTrickle',
-          iceTrickle: {
-            iceCandidate: JSON.stringify(candidate.toJSON()),
-            peerType: PeerType.PUBLISHER_UNSPECIFIED,
-          },
-        },
-      }),
+      await rpcClient.rpc.iceTrickle(
+      {
+        sessionId: rpcClient.sessionId,
+        iceCandidate: JSON.stringify(candidate.toJSON()),
+        peerType: PeerType.PUBLISHER_UNSPECIFIED,
+      },
     );
   });
 
@@ -45,34 +40,22 @@ export const createPublisher = ({
     const offer = await publisher.createOffer();
     await publisher.setLocalDescription(offer);
 
-    rpcClient.send(
-      RequestEvent.create({
-        eventPayload: {
-          oneofKind: 'publish',
-          publish: {
+   const response=await rpcClient.rpc.setPublisher({
             sdp: offer.sdp || '',
             sessionId: rpcClient.sessionId,
-            token: rpcClient.token,
-          },
-        },
-      }),
-    );
-  });
+          });
 
-  dispatcher.on('publisherAnswer', async (message) => {
-    if (message.eventPayload.oneofKind !== 'publisherAnswer') return;
-
-    const { publisherAnswer } = message.eventPayload;
     await publisher.setRemoteDescription({
       type: 'answer',
-      sdp: publisherAnswer.sdp,
+      sdp: response.response.sdp,
     });
 
     await candidates.forEach( (candidate) => {
-       publisher.addIceCandidate(candidate)
+      publisher.addIceCandidate(candidate)
     })
     candidates = [];
   });
+
 
   return publisher;
 };

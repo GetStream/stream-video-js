@@ -2,10 +2,10 @@ import {
   type VideoDimension,
   VideoQuality,
 } from './gen/video/sfu/models/models';
-import { RequestEvent } from './gen/video/sfu/event/events';
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
 import { createSignalClient, withHeaders } from './rpc';
 import { createWebSocketSignalChannel } from './rtc/signal';
+import {SfuRequest} from "./gen/video/sfu/event/events";
 
 const hostnameFromUrl = (url: string) => {
   try {
@@ -21,10 +21,6 @@ export class StreamSfuClient {
   // we generate uuid session id client side
   sessionId: string;
 
-  /**
-   * RPC signal client.
-   * @deprecated use signal.
-   */
   rpc: SignalServerClient;
   // Current JWT token
   token: string;
@@ -104,9 +100,9 @@ export class StreamSfuClient {
     });
   };
 
-  send = (message: RequestEvent) => {
+  send = (message: SfuRequest) => {
     this.signalReady.then((signal) => {
-      signal.send(RequestEvent.toBinary(message));
+      signal.send(SfuRequest.toBinary(message));
     });
   };
 }

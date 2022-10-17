@@ -45,7 +45,6 @@ export const createCoordinatorClient = (options?: TwirpOptions) => {
 /**
  * Creates new SignalServerClient instance.
  *
- * @deprecated RPC will be replaced with WebSocket signalling channel.
  * @param options the twirp options.
  */
 export const createSignalClient = (options?: TwirpOptions) => {
