@@ -26,8 +26,8 @@ export const createPublisher = ({
       return;
     }
 
-    signal.send(
-      RequestEvent.toBinary({
+    rpcClient.send(
+      RequestEvent.create({
         eventPayload: {
           oneofKind: 'iceTrickle',
           iceTrickle: {
@@ -37,15 +37,6 @@ export const createPublisher = ({
         },
       }),
     );
-
-    // await rpcClient.rpc.sendIceCandidate({
-    //   publisher: true,
-    //   sessionId: rpcClient.sessionId,
-    //   candidate: candidate.candidate,
-    //   sdpMid: candidate.sdpMid ?? undefined,
-    //   sdpMLineIndex: candidate.sdpMLineIndex ?? undefined,
-    //   usernameFragment: candidate.usernameFragment ?? undefined,
-    // });
   });
 
   // will fire once media is attached to the peer connection
@@ -54,8 +45,8 @@ export const createPublisher = ({
     const offer = await publisher.createOffer();
     await publisher.setLocalDescription(offer);
 
-    signal.send(
-      RequestEvent.toBinary({
+    rpcClient.send(
+      RequestEvent.create({
         eventPayload: {
           oneofKind: 'publish',
           publish: {
@@ -66,23 +57,12 @@ export const createPublisher = ({
         },
       }),
     );
-
-    // const { response: sfu } = await rpcClient.rpc.setPublisher({
-    //   sessionId: rpcClient.sessionId,
-    //   sdp: offer.sdp || '',
-    // });
-    //
-    // // TODO listen for an event
-    // await publisher.setRemoteDescription({
-    //   type: 'answer',
-    //   sdp: sfu.sdp,
-    // });
   });
 
   dispatcher.on('publisherAnswer', async (message) => {
     if (message.eventPayload.oneofKind !== 'publisherAnswer') return;
-    const { publisherAnswer } = message.eventPayload;
 
+    const { publisherAnswer } = message.eventPayload;
     await publisher.setRemoteDescription({
       type: 'answer',
       sdp: publisherAnswer.sdp,

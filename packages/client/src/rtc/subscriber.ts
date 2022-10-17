@@ -28,8 +28,8 @@ export const createSubscriber = ({
       return;
     }
 
-    signal.send(
-      RequestEvent.toBinary({
+    rpcClient.send(
+      RequestEvent.create({
         eventPayload: {
           oneofKind: 'iceTrickle',
           iceTrickle: {
@@ -64,8 +64,8 @@ export const createSubscriber = ({
     const answer = await subscriber.createAnswer();
     await subscriber.setLocalDescription(answer);
 
-    signal.send(
-      RequestEvent.toBinary({
+    rpcClient.send(
+      RequestEvent.create({
         eventPayload: {
           oneofKind: 'answer',
           answer: {
@@ -77,11 +77,6 @@ export const createSubscriber = ({
         },
       }),
     );
-    // await rpcClient.rpc.sendAnswer({
-    //   sessionId: rpcClient.sessionId,
-    //   peerType: PeerType.SUBSCRIBER,
-    //   sdp: answer.sdp || '',
-    // });
   });
 
   return subscriber;

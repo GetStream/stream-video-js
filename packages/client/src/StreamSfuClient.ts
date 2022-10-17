@@ -2,9 +2,10 @@ import {
   type VideoDimension,
   VideoQuality,
 } from './gen/video/sfu/models/models';
+import { RequestEvent } from './gen/video/sfu/event/events';
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
-import type { IceCandidateRequest } from './gen/video/sfu/signal_rpc/signal';
 import { createSignalClient, withHeaders } from './rpc';
+import { createWebSocketSignalChannel } from './rtc/signal';
 
 const hostnameFromUrl = (url: string) => {
   try {
@@ -19,13 +20,19 @@ export class StreamSfuClient {
   sfuHost: string;
   // we generate uuid session id client side
   sessionId: string;
-  // Client to make Twirp style API calls
+
+  /**
+   * RPC signal client.
+   * @deprecated use signal.
+   */
   rpc: SignalServerClient;
   // Current JWT token
   token: string;
+  signalReady: Promise<WebSocket>;
 
   constructor(url: string, token: string, sessionId: string) {
     this.sfuHost = hostnameFromUrl(url);
+    this.sessionId = sessionId;
     this.token = token;
     this.rpc = createSignalClient({
       baseUrl: url,
@@ -36,8 +43,18 @@ export class StreamSfuClient {
       ],
     });
 
-    this.sessionId = sessionId;
+    this.signalReady = createWebSocketSignalChannel({
+      endpoint: `ws://${this.sfuHost}:3031/ws`,
+    });
   }
+
+  close = () => {
+    this.signalReady.then((s) => {
+      this.signalReady = Promise.reject('Connection closed');
+      s.close(1000, 'Requested signal connection close');
+      // TODO OL: re-connect flow
+    });
+  };
 
   updateAudioMuteState = async (muted: boolean) => {
     const { response } = this.rpc.updateMuteState({
@@ -87,10 +104,9 @@ export class StreamSfuClient {
     });
   };
 
-  sendIceCandidate = async (data: Omit<IceCandidateRequest, 'sessionId'>) => {
-    return this.rpc.sendIceCandidate({
-      ...data,
-      sessionId: this.sessionId,
+  send = (message: RequestEvent) => {
+    this.signalReady.then((signal) => {
+      signal.send(RequestEvent.toBinary(message));
     });
   };
 }

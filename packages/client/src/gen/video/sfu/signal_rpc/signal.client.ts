@@ -11,15 +11,13 @@ import type { UpdateMuteStateResponse } from "./signal";
 import type { UpdateMuteStateRequest } from "./signal";
 import type { UpdateSubscriptionsResponse } from "./signal";
 import type { UpdateSubscriptionsRequest } from "./signal";
-import type { IceCandidateResponse } from "./signal";
-import type { IceCandidateRequest } from "./signal";
+import type { ICETrickleResponse } from "./signal";
+import type { ICETrickle } from "../models/models";
 import type { SendAnswerResponse } from "./signal";
 import type { SendAnswerRequest } from "./signal";
+import { stackIntercept } from "@protobuf-ts/runtime-rpc";
 import type { SetPublisherResponse } from "./signal";
 import type { SetPublisherRequest } from "./signal";
-import { stackIntercept } from "@protobuf-ts/runtime-rpc";
-import type { JoinResponse } from "./signal";
-import type { JoinRequest } from "./signal";
 import type { UnaryCall } from "@protobuf-ts/runtime-rpc";
 import type { RpcOptions } from "@protobuf-ts/runtime-rpc";
 /**
@@ -27,26 +25,23 @@ import type { RpcOptions } from "@protobuf-ts/runtime-rpc";
  */
 export interface ISignalServerClient {
     /**
-     * Join sets up the peer connection that is used to subscribe to A/V and the data channel for signaling
-     * in WebRTC terms, this contains the SDP offer for the user peer connection
-     *
-     * @generated from protobuf rpc: Join(stream.video.sfu.signal.JoinRequest) returns (stream.video.sfu.signal.JoinResponse);
-     */
-    join(input: JoinRequest, options?: RpcOptions): UnaryCall<JoinRequest, JoinResponse>;
-    /**
      * SetPublisher sends the WebRTC offer for the peer connection used to publish A/V
      *
      * @generated from protobuf rpc: SetPublisher(stream.video.sfu.signal.SetPublisherRequest) returns (stream.video.sfu.signal.SetPublisherResponse);
      */
     setPublisher(input: SetPublisherRequest, options?: RpcOptions): UnaryCall<SetPublisherRequest, SetPublisherResponse>;
     /**
+     * answer is sent by the client to the SFU after receiving a subscriber_offer.
+     *
      * @generated from protobuf rpc: SendAnswer(stream.video.sfu.signal.SendAnswerRequest) returns (stream.video.sfu.signal.SendAnswerResponse);
      */
     sendAnswer(input: SendAnswerRequest, options?: RpcOptions): UnaryCall<SendAnswerRequest, SendAnswerResponse>;
     /**
-     * @generated from protobuf rpc: SendIceCandidate(stream.video.sfu.signal.IceCandidateRequest) returns (stream.video.sfu.signal.IceCandidateResponse);
+     * SendICECandidate sends an ICE candidate to the client
+     *
+     * @generated from protobuf rpc: IceTrickle(stream.video.sfu.models.ICETrickle) returns (stream.video.sfu.signal.ICETrickleResponse);
      */
-    sendIceCandidate(input: IceCandidateRequest, options?: RpcOptions): UnaryCall<IceCandidateRequest, IceCandidateResponse>;
+    iceTrickle(input: ICETrickle, options?: RpcOptions): UnaryCall<ICETrickle, ICETrickleResponse>;
     /**
      * UpdateSubscribers is used to notify the SFU about the list of video subscriptions
      * TODO: sync subscriptions based on this + update tracks using the dimension info sent by the user
@@ -73,37 +68,31 @@ export class SignalServerClient implements ISignalServerClient, ServiceInfo {
     constructor(private readonly _transport: RpcTransport) {
     }
     /**
-     * Join sets up the peer connection that is used to subscribe to A/V and the data channel for signaling
-     * in WebRTC terms, this contains the SDP offer for the user peer connection
-     *
-     * @generated from protobuf rpc: Join(stream.video.sfu.signal.JoinRequest) returns (stream.video.sfu.signal.JoinResponse);
-     */
-    join(input: JoinRequest, options?: RpcOptions): UnaryCall<JoinRequest, JoinResponse> {
-        const method = this.methods[0], opt = this._transport.mergeOptions(options);
-        return stackIntercept<JoinRequest, JoinResponse>("unary", this._transport, method, opt, input);
-    }
-    /**
      * SetPublisher sends the WebRTC offer for the peer connection used to publish A/V
      *
      * @generated from protobuf rpc: SetPublisher(stream.video.sfu.signal.SetPublisherRequest) returns (stream.video.sfu.signal.SetPublisherResponse);
      */
     setPublisher(input: SetPublisherRequest, options?: RpcOptions): UnaryCall<SetPublisherRequest, SetPublisherResponse> {
-        const method = this.methods[1], opt = this._transport.mergeOptions(options);
+        const method = this.methods[0], opt = this._transport.mergeOptions(options);
         return stackIntercept<SetPublisherRequest, SetPublisherResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * answer is sent by the client to the SFU after receiving a subscriber_offer.
+     *
      * @generated from protobuf rpc: SendAnswer(stream.video.sfu.signal.SendAnswerRequest) returns (stream.video.sfu.signal.SendAnswerResponse);
      */
     sendAnswer(input: SendAnswerRequest, options?: RpcOptions): UnaryCall<SendAnswerRequest, SendAnswerResponse> {
-        const method = this.methods[2], opt = this._transport.mergeOptions(options);
+        const method = this.methods[1], opt = this._transport.mergeOptions(options);
         return stackIntercept<SendAnswerRequest, SendAnswerResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: SendIceCandidate(stream.video.sfu.signal.IceCandidateRequest) returns (stream.video.sfu.signal.IceCandidateResponse);
+     * SendICECandidate sends an ICE candidate to the client
+     *
+     * @generated from protobuf rpc: IceTrickle(stream.video.sfu.models.ICETrickle) returns (stream.video.sfu.signal.ICETrickleResponse);
      */
-    sendIceCandidate(input: IceCandidateRequest, options?: RpcOptions): UnaryCall<IceCandidateRequest, IceCandidateResponse> {
-        const method = this.methods[3], opt = this._transport.mergeOptions(options);
-        return stackIntercept<IceCandidateRequest, IceCandidateResponse>("unary", this._transport, method, opt, input);
+    iceTrickle(input: ICETrickle, options?: RpcOptions): UnaryCall<ICETrickle, ICETrickleResponse> {
+        const method = this.methods[2], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ICETrickle, ICETrickleResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * UpdateSubscribers is used to notify the SFU about the list of video subscriptions
@@ -112,21 +101,21 @@ export class SignalServerClient implements ISignalServerClient, ServiceInfo {
      * @generated from protobuf rpc: UpdateSubscriptions(stream.video.sfu.signal.UpdateSubscriptionsRequest) returns (stream.video.sfu.signal.UpdateSubscriptionsResponse);
      */
     updateSubscriptions(input: UpdateSubscriptionsRequest, options?: RpcOptions): UnaryCall<UpdateSubscriptionsRequest, UpdateSubscriptionsResponse> {
-        const method = this.methods[4], opt = this._transport.mergeOptions(options);
+        const method = this.methods[3], opt = this._transport.mergeOptions(options);
         return stackIntercept<UpdateSubscriptionsRequest, UpdateSubscriptionsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: UpdateMuteState(stream.video.sfu.signal.UpdateMuteStateRequest) returns (stream.video.sfu.signal.UpdateMuteStateResponse);
      */
     updateMuteState(input: UpdateMuteStateRequest, options?: RpcOptions): UnaryCall<UpdateMuteStateRequest, UpdateMuteStateResponse> {
-        const method = this.methods[5], opt = this._transport.mergeOptions(options);
+        const method = this.methods[4], opt = this._transport.mergeOptions(options);
         return stackIntercept<UpdateMuteStateRequest, UpdateMuteStateResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: RequestVideoQuality(stream.video.sfu.signal.UpdateVideoQualityRequest) returns (stream.video.sfu.signal.UpdateVideoQualityResponse);
      */
     requestVideoQuality(input: UpdateVideoQualityRequest, options?: RpcOptions): UnaryCall<UpdateVideoQualityRequest, UpdateVideoQualityResponse> {
-        const method = this.methods[6], opt = this._transport.mergeOptions(options);
+        const method = this.methods[5], opt = this._transport.mergeOptions(options);
         return stackIntercept<UpdateVideoQualityRequest, UpdateVideoQualityResponse>("unary", this._transport, method, opt, input);
     }
 }
