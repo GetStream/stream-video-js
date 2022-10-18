@@ -1,7 +1,6 @@
 import { StreamSfuClient } from '../StreamSfuClient';
 import { Dispatcher } from './Dispatcher';
 import { PeerType } from '../gen/video/sfu/models/models';
-import {} from '../gen/video/sfu/event/events';
 
 export type SubscriberOpts = {
   rpcClient: StreamSfuClient;
@@ -47,10 +46,11 @@ export const createSubscriber = ({
       sdp: subscriberOffer.sdp,
     });
 
-    await candidates.forEach((candidate) => {
-      subscriber.addIceCandidate(candidate);
-    });
-    candidates = [];
+    // ICE candidates have to be added after remoteDescription is set
+    for (const candidate of candidates) {
+      await subscriber.addIceCandidate(candidate);
+    }
+    candidates = []; // FIXME: clean the call object accordingly
 
     // apply ice candidates
     const answer = await subscriber.createAnswer();

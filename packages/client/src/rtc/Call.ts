@@ -12,7 +12,6 @@ import {
   getSenderCodecs,
 } from './codecs';
 import { createPublisher } from './publisher';
-import { Dispatcher } from './Dispatcher';
 import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
 import { handleICETrickle, registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
@@ -22,7 +21,6 @@ export type CallOptions = {
 };
 
 export class Call {
-  private readonly dispatcher = new Dispatcher();
   private readonly client: StreamSfuClient;
   private readonly options: CallOptions;
 
@@ -46,10 +44,13 @@ export class Call {
     this.currentUserId = currentUserId;
     this.options = options;
 
+    this.client.dispatcher.on('iceTrickle', handleICETrickle(this));
+
     this.subscriber = createSubscriber({
       rpcClient: this.client,
 
-      dispatcher: this.dispatcher,
+      // FIXME: don't do this
+      dispatcher: client.dispatcher,
       connectionConfig: this.options.connectionConfig,
       onTrack: (e) => {
         console.log('Got remote track:', e.track);
@@ -64,13 +65,21 @@ export class Call {
       candidates: this.publisherCandidates,
     });
 
-    this.on('iceTrickle', handleICETrickle(this));
-
     registerEventHandlers(this);
   }
 
-  on = this.dispatcher.on;
-  off = this.dispatcher.off;
+  // FIXME: change the call-sites in the SDK
+  // @ts-ignore
+  on = (...args) => {
+    // @ts-ignore
+    this.client.dispatcher.on(...args);
+  };
+  // FIXME: change the call-sites in the SDK
+  // @ts-ignore
+  off = (...args) => {
+    // @ts-ignore
+    this.client.dispatcher.off(...args);
+  };
 
   leave = () => {
     this.subscriber?.close();
@@ -82,10 +91,11 @@ export class Call {
     this.publisher?.close();
 
     this.client.close();
-    this.dispatcher.offAll();
   };
 
   join = async (videoStream?: MediaStream) => {
+    await this.client.signalReady;
+
     const [audioEncode, audioDecode, videoEncode, videoDecode] =
       await Promise.all([
         getSenderCodecs('audio'),

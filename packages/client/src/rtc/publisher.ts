@@ -42,10 +42,11 @@ export const createPublisher = ({
       sdp: response.response.sdp,
     });
 
-    await candidates.forEach((candidate) => {
-      publisher.addIceCandidate(candidate);
-    });
-    candidates = [];
+    // ICE candidates have to be added after remoteDescription is set
+    for (const candidate of candidates) {
+      await publisher.addIceCandidate(candidate);
+    }
+    candidates = []; // FIXME: clean the call object accordingly
   });
 
   return publisher;

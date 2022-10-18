@@ -5,7 +5,8 @@ import {
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
 import { createSignalClient, withHeaders } from './rpc';
 import { createWebSocketSignalChannel } from './rtc/signal';
-import {SfuRequest} from "./gen/video/sfu/event/events";
+import { SfuEvent, SfuRequest } from './gen/video/sfu/event/events';
+import { Dispatcher } from './rtc/Dispatcher';
 
 const hostnameFromUrl = (url: string) => {
   try {
@@ -17,6 +18,7 @@ const hostnameFromUrl = (url: string) => {
 };
 
 export class StreamSfuClient {
+  readonly dispatcher = new Dispatcher();
   sfuHost: string;
   // we generate uuid session id client side
   sessionId: string;
@@ -41,14 +43,19 @@ export class StreamSfuClient {
 
     this.signalReady = createWebSocketSignalChannel({
       endpoint: `ws://${this.sfuHost}:3031/ws`,
+      onMessage: (message) => {
+        this.dispatcher.dispatch(message);
+      },
     });
   }
 
   close = () => {
-    this.signalReady.then((s) => {
+    this.signalReady.then((ws) => {
       this.signalReady = Promise.reject('Connection closed');
-      s.close(1000, 'Requested signal connection close');
       // TODO OL: re-connect flow
+      ws.close(1000, 'Requested signal connection close');
+
+      this.dispatcher.offAll();
     });
   };
 
