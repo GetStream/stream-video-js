@@ -1,14 +1,13 @@
 import { StreamSfuClient } from '../StreamSfuClient';
 import { Dispatcher } from './Dispatcher';
 import { PeerType } from '../gen/video/sfu/models/models';
-import {  } from '../gen/video/sfu/event/events';
+import {} from '../gen/video/sfu/event/events';
 
 export type SubscriberOpts = {
   rpcClient: StreamSfuClient;
   dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
   onTrack?: (e: RTCTrackEvent) => void;
-  signal: WebSocket;
   candidates: RTCIceCandidateInit[];
 };
 
@@ -17,23 +16,21 @@ export const createSubscriber = ({
   dispatcher,
   connectionConfig,
   onTrack,
-  signal,
   candidates,
 }: SubscriberOpts) => {
   const subscriber = new RTCPeerConnection(connectionConfig);
-  subscriber.addEventListener('icecandidate', async(e) => {
+  subscriber.addEventListener('icecandidate', async (e) => {
     const { candidate } = e;
     if (!candidate) {
       console.log('null ice candidate');
       return;
     }
 
-   await rpcClient.rpc.iceTrickle({
-            sessionId: rpcClient.sessionId,
-            iceCandidate: JSON.stringify(candidate.toJSON()),
-            peerType: PeerType.SUBSCRIBER,
-          },
-    );
+    await rpcClient.rpc.iceTrickle({
+      sessionId: rpcClient.sessionId,
+      iceCandidate: JSON.stringify(candidate.toJSON()),
+      peerType: PeerType.SUBSCRIBER,
+    });
   });
 
   if (onTrack) {
@@ -51,21 +48,19 @@ export const createSubscriber = ({
     });
 
     await candidates.forEach((candidate) => {
-      subscriber.addIceCandidate(candidate)
-    })
-    candidates = []
+      subscriber.addIceCandidate(candidate);
+    });
+    candidates = [];
 
     // apply ice candidates
     const answer = await subscriber.createAnswer();
     await subscriber.setLocalDescription(answer);
 
-   await rpcClient.rpc.sendAnswer(
-      {
-            sessionId: rpcClient.sessionId,
-            peerType: PeerType.SUBSCRIBER,
-            sdp: answer.sdp || '',
-          },
-    );
+    await rpcClient.rpc.sendAnswer({
+      sessionId: rpcClient.sessionId,
+      peerType: PeerType.SUBSCRIBER,
+      sdp: answer.sdp || '',
+    });
   });
 
   return subscriber;

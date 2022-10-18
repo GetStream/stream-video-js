@@ -15,8 +15,7 @@ import { createPublisher } from './publisher';
 import { Dispatcher } from './Dispatcher';
 import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
 import { handleICETrickle, registerEventHandlers } from './callEventHandlers';
-import {SfuEvent, SfuRequest} from '../gen/video/sfu/event/events';
-import {createWebSocketSignalChannel} from "./signal";
+import { SfuRequest } from '../gen/video/sfu/event/events';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -30,8 +29,6 @@ export class Call {
   private videoLayers?: OptimalVideoLayer[];
   publisherCandidates: RTCIceCandidateInit[] = [];
   subscriberCandidates: RTCIceCandidateInit[] = [];
-  private signal?: WebSocket;
-  private readonly connectionReady: Promise<unknown>;
   subscriber: RTCPeerConnection | undefined;
   publisher: RTCPeerConnection | undefined;
 
@@ -49,37 +46,25 @@ export class Call {
     this.currentUserId = currentUserId;
     this.options = options;
 
-    this.connectionReady = createWebSocketSignalChannel({
-      // FIXME: OL: refactor sfuHost
-      endpoint: `ws://${this.client.sfuHost}:3031/ws`,
-      onMessage: (message) => {
-        console.log('Received Signal event', message.eventPayload);
-        this.dispatcher.dispatch(message);
+    this.subscriber = createSubscriber({
+      rpcClient: this.client,
+
+      dispatcher: this.dispatcher,
+      connectionConfig: this.options.connectionConfig,
+      onTrack: (e) => {
+        console.log('Got remote track:', e.track);
+        this.handleOnTrack?.(e);
       },
-    }).then((signal) => {
-      this.signal = signal;
-      this.subscriber = createSubscriber({
-        rpcClient: this.client,
-        signal: this.signal,
-        dispatcher: this.dispatcher,
-        connectionConfig: this.options.connectionConfig,
-        onTrack: (e) => {
-          console.log('Got remote track:', e.track);
-          this.handleOnTrack?.(e);
-        },
-        candidates: this.subscriberCandidates,
-      });
-
-      this.publisher = createPublisher({
-        signal: this.signal,
-        dispatcher: this.dispatcher,
-        rpcClient: this.client,
-        connectionConfig: this.options.connectionConfig,
-        candidates: this.publisherCandidates,
-      });
-
-      this.on('iceTrickle', handleICETrickle(this));
+      candidates: this.subscriberCandidates,
     });
+
+    this.publisher = createPublisher({
+      rpcClient: this.client,
+      connectionConfig: this.options.connectionConfig,
+      candidates: this.publisherCandidates,
+    });
+
+    this.on('iceTrickle', handleICETrickle(this));
 
     registerEventHandlers(this);
   }
@@ -121,7 +106,7 @@ export class Call {
             sessionId: this.client.sessionId,
             token: this.client.token,
             // todo fix-me
-            publish:'',
+            publish: '',
             // publish: true,
             // FIXME OL: encode parameters and video layers should be announced when
             // initiating "publish" operation
