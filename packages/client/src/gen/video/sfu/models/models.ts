@@ -234,26 +234,26 @@ export interface Codec {
  */
 export interface AudioCodecs {
     /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.Codec encode = 1;
+     * @generated from protobuf field: repeated stream.video.sfu.models.Codec encodes = 1;
      */
-    encode: Codec[];
+    encodes: Codec[];
     /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.Codec decode = 2;
+     * @generated from protobuf field: repeated stream.video.sfu.models.Codec decodes = 2;
      */
-    decode: Codec[];
+    decodes: Codec[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.VideoCodecs
  */
 export interface VideoCodecs {
     /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.Codec encode = 1;
+     * @generated from protobuf field: repeated stream.video.sfu.models.Codec encodes = 1;
      */
-    encode: Codec[];
+    encodes: Codec[];
     /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.Codec decode = 2;
+     * @generated from protobuf field: repeated stream.video.sfu.models.Codec decodes = 2;
      */
-    decode: Codec[];
+    decodes: Codec[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.CodecSettings
@@ -277,11 +277,11 @@ export interface CodecSettings {
  */
 export enum PeerType {
     /**
-     * @generated from protobuf enum value: PUBLISHER = 0;
+     * @generated from protobuf enum value: PEER_TYPE_PUBLISHER_UNSPECIFIED = 0;
      */
-    PUBLISHER = 0,
+    PUBLISHER_UNSPECIFIED = 0,
     /**
-     * @generated from protobuf enum value: SUBSCRIBER = 1;
+     * @generated from protobuf enum value: PEER_TYPE_SUBSCRIBER = 1;
      */
     SUBSCRIBER = 1
 }
@@ -290,15 +290,15 @@ export enum PeerType {
  */
 export enum ConnectionQuality {
     /**
-     * @generated from protobuf enum value: BAD = 0;
+     * @generated from protobuf enum value: CONNECTION_QUALITY_BAD_UNSPECIFIED = 0;
      */
-    BAD = 0,
+    BAD_UNSPECIFIED = 0,
     /**
-     * @generated from protobuf enum value: POOR = 1;
+     * @generated from protobuf enum value: CONNECTION_QUALITY_POOR = 1;
      */
     POOR = 1,
     /**
-     * @generated from protobuf enum value: GOOD = 2;
+     * @generated from protobuf enum value: CONNECTION_QUALITY_GOOD = 2;
      */
     GOOD = 2
 }
@@ -307,15 +307,15 @@ export enum ConnectionQuality {
  */
 export enum VideoQuality {
     /**
-     * @generated from protobuf enum value: LOW = 0;
+     * @generated from protobuf enum value: VIDEO_QUALITY_LOW_UNSPECIFIED = 0;
      */
-    LOW = 0,
+    LOW_UNSPECIFIED = 0,
     /**
-     * @generated from protobuf enum value: MID = 1;
+     * @generated from protobuf enum value: VIDEO_QUALITY_MID = 1;
      */
     MID = 1,
     /**
-     * @generated from protobuf enum value: HIGH = 2;
+     * @generated from protobuf enum value: VIDEO_QUALITY_HIGH = 2;
      */
     HIGH = 2
 }
@@ -651,7 +651,7 @@ export const User = new User$Type();
 class StreamQuality$Type extends MessageType<StreamQuality> {
     constructor() {
         super("stream.video.sfu.models.StreamQuality", [
-            { no: 1, name: "video_quality", kind: "enum", T: () => ["stream.video.sfu.models.VideoQuality", VideoQuality] },
+            { no: 1, name: "video_quality", kind: "enum", T: () => ["stream.video.sfu.models.VideoQuality", VideoQuality, "VIDEO_QUALITY_"] },
             { no: 2, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
@@ -956,12 +956,12 @@ export const Codec = new Codec$Type();
 class AudioCodecs$Type extends MessageType<AudioCodecs> {
     constructor() {
         super("stream.video.sfu.models.AudioCodecs", [
-            { no: 1, name: "encode", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec },
-            { no: 2, name: "decode", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec }
+            { no: 1, name: "encodes", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec },
+            { no: 2, name: "decodes", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec }
         ]);
     }
     create(value?: PartialMessage<AudioCodecs>): AudioCodecs {
-        const message = { encode: [], decode: [] };
+        const message = { encodes: [], decodes: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<AudioCodecs>(this, message, value);
@@ -972,11 +972,11 @@ class AudioCodecs$Type extends MessageType<AudioCodecs> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated stream.video.sfu.models.Codec encode */ 1:
-                    message.encode.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated stream.video.sfu.models.Codec encodes */ 1:
+                    message.encodes.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
                     break;
-                case /* repeated stream.video.sfu.models.Codec decode */ 2:
-                    message.decode.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated stream.video.sfu.models.Codec decodes */ 2:
+                    message.decodes.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -990,12 +990,12 @@ class AudioCodecs$Type extends MessageType<AudioCodecs> {
         return message;
     }
     internalBinaryWrite(message: AudioCodecs, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated stream.video.sfu.models.Codec encode = 1; */
-        for (let i = 0; i < message.encode.length; i++)
-            Codec.internalBinaryWrite(message.encode[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* repeated stream.video.sfu.models.Codec decode = 2; */
-        for (let i = 0; i < message.decode.length; i++)
-            Codec.internalBinaryWrite(message.decode[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* repeated stream.video.sfu.models.Codec encodes = 1; */
+        for (let i = 0; i < message.encodes.length; i++)
+            Codec.internalBinaryWrite(message.encodes[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* repeated stream.video.sfu.models.Codec decodes = 2; */
+        for (let i = 0; i < message.decodes.length; i++)
+            Codec.internalBinaryWrite(message.decodes[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1010,12 +1010,12 @@ export const AudioCodecs = new AudioCodecs$Type();
 class VideoCodecs$Type extends MessageType<VideoCodecs> {
     constructor() {
         super("stream.video.sfu.models.VideoCodecs", [
-            { no: 1, name: "encode", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec },
-            { no: 2, name: "decode", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec }
+            { no: 1, name: "encodes", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec },
+            { no: 2, name: "decodes", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec }
         ]);
     }
     create(value?: PartialMessage<VideoCodecs>): VideoCodecs {
-        const message = { encode: [], decode: [] };
+        const message = { encodes: [], decodes: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<VideoCodecs>(this, message, value);
@@ -1026,11 +1026,11 @@ class VideoCodecs$Type extends MessageType<VideoCodecs> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated stream.video.sfu.models.Codec encode */ 1:
-                    message.encode.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated stream.video.sfu.models.Codec encodes */ 1:
+                    message.encodes.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
                     break;
-                case /* repeated stream.video.sfu.models.Codec decode */ 2:
-                    message.decode.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated stream.video.sfu.models.Codec decodes */ 2:
+                    message.decodes.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1044,12 +1044,12 @@ class VideoCodecs$Type extends MessageType<VideoCodecs> {
         return message;
     }
     internalBinaryWrite(message: VideoCodecs, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated stream.video.sfu.models.Codec encode = 1; */
-        for (let i = 0; i < message.encode.length; i++)
-            Codec.internalBinaryWrite(message.encode[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* repeated stream.video.sfu.models.Codec decode = 2; */
-        for (let i = 0; i < message.decode.length; i++)
-            Codec.internalBinaryWrite(message.decode[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* repeated stream.video.sfu.models.Codec encodes = 1; */
+        for (let i = 0; i < message.encodes.length; i++)
+            Codec.internalBinaryWrite(message.encodes[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* repeated stream.video.sfu.models.Codec decodes = 2; */
+        for (let i = 0; i < message.decodes.length; i++)
+            Codec.internalBinaryWrite(message.decodes[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

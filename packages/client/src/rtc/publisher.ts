@@ -21,7 +21,7 @@ export const createPublisher = ({
       sessionId: rpcClient.sessionId,
       candidate: candidate.candidate,
       sdpMid: candidate.sdpMid ?? undefined,
-      sdpMLineIndex: candidate.sdpMLineIndex ?? undefined,
+      sdpMlineIndex: candidate.sdpMLineIndex ?? undefined,
       usernameFragment: candidate.usernameFragment ?? undefined,
     });
   });

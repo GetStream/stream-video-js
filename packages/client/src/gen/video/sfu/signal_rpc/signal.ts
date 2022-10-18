@@ -140,15 +140,15 @@ export interface IceCandidateRequest {
      */
     candidate: string;
     /**
-     * @generated from protobuf field: optional string sdpMid = 3;
+     * @generated from protobuf field: optional string sdp_mid = 3;
      */
     sdpMid?: string;
     /**
-     * @generated from protobuf field: optional uint32 sdpMLineIndex = 4;
+     * @generated from protobuf field: optional uint32 sdp_mline_index = 4;
      */
-    sdpMLineIndex?: number;
+    sdpMlineIndex?: number;
     /**
-     * @generated from protobuf field: optional string usernameFragment = 5;
+     * @generated from protobuf field: optional string username_fragment = 5;
      */
     usernameFragment?: string;
     /**
@@ -704,7 +704,7 @@ export const UpdateSubscriptionsRequest = new UpdateSubscriptionsRequest$Type();
 class SendAnswerRequest$Type extends MessageType<SendAnswerRequest> {
     constructor() {
         super("stream.video.sfu.signal.SendAnswerRequest", [
-            { no: 1, name: "peer_type", kind: "enum", T: () => ["stream.video.sfu.models.PeerType", PeerType] },
+            { no: 1, name: "peer_type", kind: "enum", T: () => ["stream.video.sfu.models.PeerType", PeerType, "PEER_TYPE_"] },
             { no: 2, name: "sdp", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
@@ -793,9 +793,9 @@ class IceCandidateRequest$Type extends MessageType<IceCandidateRequest> {
         super("stream.video.sfu.signal.IceCandidateRequest", [
             { no: 1, name: "publisher", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 2, name: "candidate", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "sdpMid", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "sdpMLineIndex", kind: "scalar", opt: true, T: 13 /*ScalarType.UINT32*/ },
-            { no: 5, name: "usernameFragment", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "sdp_mid", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "sdp_mline_index", kind: "scalar", opt: true, T: 13 /*ScalarType.UINT32*/ },
+            { no: 5, name: "username_fragment", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
@@ -817,13 +817,13 @@ class IceCandidateRequest$Type extends MessageType<IceCandidateRequest> {
                 case /* string candidate */ 2:
                     message.candidate = reader.string();
                     break;
-                case /* optional string sdpMid */ 3:
+                case /* optional string sdp_mid */ 3:
                     message.sdpMid = reader.string();
                     break;
-                case /* optional uint32 sdpMLineIndex */ 4:
-                    message.sdpMLineIndex = reader.uint32();
+                case /* optional uint32 sdp_mline_index */ 4:
+                    message.sdpMlineIndex = reader.uint32();
                     break;
-                case /* optional string usernameFragment */ 5:
+                case /* optional string username_fragment */ 5:
                     message.usernameFragment = reader.string();
                     break;
                 case /* string session_id */ 7:
@@ -847,13 +847,13 @@ class IceCandidateRequest$Type extends MessageType<IceCandidateRequest> {
         /* string candidate = 2; */
         if (message.candidate !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.candidate);
-        /* optional string sdpMid = 3; */
+        /* optional string sdp_mid = 3; */
         if (message.sdpMid !== undefined)
             writer.tag(3, WireType.LengthDelimited).string(message.sdpMid);
-        /* optional uint32 sdpMLineIndex = 4; */
-        if (message.sdpMLineIndex !== undefined)
-            writer.tag(4, WireType.Varint).uint32(message.sdpMLineIndex);
-        /* optional string usernameFragment = 5; */
+        /* optional uint32 sdp_mline_index = 4; */
+        if (message.sdpMlineIndex !== undefined)
+            writer.tag(4, WireType.Varint).uint32(message.sdpMlineIndex);
+        /* optional string username_fragment = 5; */
         if (message.usernameFragment !== undefined)
             writer.tag(5, WireType.LengthDelimited).string(message.usernameFragment);
         /* string session_id = 7; */

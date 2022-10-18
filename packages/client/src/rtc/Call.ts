@@ -1,21 +1,21 @@
-import { createSubscriber } from './subscriber';
-import { createSignalChannel } from './signal';
-import {
-  findOptimalVideoLayers,
-  defaultVideoLayers,
-  OptimalVideoLayer,
-} from './videoLayers';
+import { VideoDimension } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
+import { registerEventHandlers } from './callEventHandlers';
 import {
   defaultVideoPublishEncodings,
   getPreferredCodecs,
   getReceiverCodecs,
   getSenderCodecs,
 } from './codecs';
-import { createPublisher } from './publisher';
 import { Dispatcher } from './Dispatcher';
-import { VideoDimension } from '../gen/video/sfu/models/models';
-import { registerEventHandlers } from './callEventHandlers';
+import { createPublisher } from './publisher';
+import { createSignalChannel } from './signal';
+import { createSubscriber } from './subscriber';
+import {
+  defaultVideoLayers,
+  findOptimalVideoLayers,
+  OptimalVideoLayer,
+} from './videoLayers';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -114,12 +114,12 @@ export class Call {
       // initiating "publish" operation
       codecSettings: {
         audio: {
-          encode: audioEncode,
-          decode: audioDecode,
+          encodes: audioEncode,
+          decodes: audioDecode,
         },
         video: {
-          encode: videoEncode,
-          decode: videoDecode,
+          encodes: videoEncode,
+          decodes: videoDecode,
         },
         layers: this.videoLayers.map((layer) => ({
           rid: layer.rid!,
