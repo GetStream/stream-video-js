@@ -140,8 +140,14 @@ export class Call {
       }),
     );
 
-    // FIXME OL: await until joined
-    return CallState.create();
+    // FIXME: make it nicer
+    return new Promise((resolve) => {
+      this.client.dispatcher.on('joinResponse', (event) => {
+        if (event.eventPayload.oneofKind === 'joinResponse') {
+          resolve(event.eventPayload.joinResponse.callState);
+        }
+      });
+    });
   };
 
   publish = (audioStream?: MediaStream, videoStream?: MediaStream) => {
