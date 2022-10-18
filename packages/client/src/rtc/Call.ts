@@ -14,7 +14,8 @@ import {
 import { createPublisher } from './publisher';
 import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
 import { handleICETrickle, registerEventHandlers } from './callEventHandlers';
-import { SfuRequest } from '../gen/video/sfu/event/events';
+import { SfuEvent, SfuRequest } from '../gen/video/sfu/event/events';
+import { SfuEventListener } from './Dispatcher';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -69,16 +70,12 @@ export class Call {
   }
 
   // FIXME: change the call-sites in the SDK
-  // @ts-ignore
-  on = (...args) => {
-    // @ts-ignore
-    this.client.dispatcher.on(...args);
+  on = (eventName: string, fn: SfuEventListener) => {
+    return this.client.dispatcher.on(eventName, fn);
   };
   // FIXME: change the call-sites in the SDK
-  // @ts-ignore
-  off = (...args) => {
-    // @ts-ignore
-    this.client.dispatcher.off(...args);
+  off = (eventName: string, fn: SfuEventListener) => {
+    return this.client.dispatcher.off(eventName, fn);
   };
 
   leave = () => {
