@@ -24,6 +24,7 @@ export type CallOptions = {
 export class Call {
   private readonly client: StreamSfuClient;
   private readonly options: CallOptions;
+  participantMapping: { [key: string]: string } = {};
 
   private videoLayers?: OptimalVideoLayer[];
   publisherCandidates: RTCIceCandidateInit[] = [];
@@ -113,7 +114,7 @@ export class Call {
             sessionId: this.client.sessionId,
             token: this.client.token,
             // todo fix-me
-            publish: '',
+            publish: true,
             // publish: true,
             // FIXME OL: encode parameters and video layers should be announced when
             // initiating "publish" operation
@@ -144,6 +145,11 @@ export class Call {
     return new Promise<CallState | undefined>((resolve) => {
       this.client.dispatcher.on('joinResponse', (event) => {
         if (event.eventPayload.oneofKind === 'joinResponse') {
+          const callState = event.eventPayload.joinResponse.callState;
+          callState?.participants.forEach((p) => {
+            this.participantMapping[p.trackLookupPrefix!] = p.user!.id;
+          });
+          resolve(callState);
           resolve(event.eventPayload.joinResponse.callState);
         }
       });

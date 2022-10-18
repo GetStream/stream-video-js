@@ -46,6 +46,7 @@ export const useCall = ({
         type: callType,
       });
       if (callMetadata) {
+        // ?
         if (autoJoin) {
           joinCall(callId, callType);
         } else {

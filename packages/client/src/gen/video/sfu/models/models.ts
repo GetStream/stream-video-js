@@ -102,6 +102,14 @@ export interface Participant {
      * @generated from protobuf field: google.protobuf.Timestamp updated_at = 8;
      */
     updatedAt?: Timestamp;
+    /**
+     * @generated from protobuf field: string session_id = 9;
+     */
+    sessionId: string;
+    /**
+     * @generated from protobuf field: string track_lookup_prefix = 10;
+     */
+    trackLookupPrefix: string;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.User
@@ -483,11 +491,13 @@ class Participant$Type extends MessageType<Participant> {
             { no: 5, name: "video", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 6, name: "audio", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 7, name: "created_at", kind: "message", T: () => Timestamp },
-            { no: 8, name: "updated_at", kind: "message", T: () => Timestamp }
+            { no: 8, name: "updated_at", kind: "message", T: () => Timestamp },
+            { no: 9, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "track_lookup_prefix", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Participant>): Participant {
-        const message = { role: "", online: false, video: false, audio: false };
+        const message = { role: "", online: false, video: false, audio: false, sessionId: "", trackLookupPrefix: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Participant>(this, message, value);
@@ -521,6 +531,12 @@ class Participant$Type extends MessageType<Participant> {
                     break;
                 case /* google.protobuf.Timestamp updated_at */ 8:
                     message.updatedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.updatedAt);
+                    break;
+                case /* string session_id */ 9:
+                    message.sessionId = reader.string();
+                    break;
+                case /* string track_lookup_prefix */ 10:
+                    message.trackLookupPrefix = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -558,6 +574,12 @@ class Participant$Type extends MessageType<Participant> {
         /* google.protobuf.Timestamp updated_at = 8; */
         if (message.updatedAt)
             Timestamp.internalBinaryWrite(message.updatedAt, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
+        /* string session_id = 9; */
+        if (message.sessionId !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.sessionId);
+        /* string track_lookup_prefix = 10; */
+        if (message.trackLookupPrefix !== "")
+            writer.tag(10, WireType.LengthDelimited).string(message.trackLookupPrefix);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

@@ -143,9 +143,9 @@ export interface JoinRequest {
      */
     sessionId: string;
     /**
-     * @generated from protobuf field: string publish = 3;
+     * @generated from protobuf field: bool publish = 3;
      */
-    publish: string;
+    publish: boolean;
     /**
      * @generated from protobuf field: stream.video.sfu.models.CodecSettings codec_settings = 4;
      */
@@ -159,7 +159,11 @@ export interface JoinResponse {
     /**
      * @generated from protobuf field: stream.video.sfu.models.CallState call_state = 1;
      */
-    callState?: CallState; // TODO: include full list of participants with track and audio info
+    callState?: CallState;
+    /**
+     * @generated from protobuf field: string own_session_id = 2;
+     */
+    ownSessionId: string; // TODO: include full list of participants with track and audio info
 }
 /**
  * ParticipantJoined is fired when a user joins a call
@@ -667,12 +671,12 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
         super("stream.video.sfu.event.JoinRequest", [
             { no: 1, name: "token", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "publish", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "publish", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 4, name: "codec_settings", kind: "message", T: () => CodecSettings }
         ]);
     }
     create(value?: PartialMessage<JoinRequest>): JoinRequest {
-        const message = { token: "", sessionId: "", publish: "" };
+        const message = { token: "", sessionId: "", publish: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<JoinRequest>(this, message, value);
@@ -689,8 +693,8 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
                 case /* string session_id */ 2:
                     message.sessionId = reader.string();
                     break;
-                case /* string publish */ 3:
-                    message.publish = reader.string();
+                case /* bool publish */ 3:
+                    message.publish = reader.bool();
                     break;
                 case /* stream.video.sfu.models.CodecSettings codec_settings */ 4:
                     message.codecSettings = CodecSettings.internalBinaryRead(reader, reader.uint32(), options, message.codecSettings);
@@ -713,9 +717,9 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
         /* string session_id = 2; */
         if (message.sessionId !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
-        /* string publish = 3; */
-        if (message.publish !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.publish);
+        /* bool publish = 3; */
+        if (message.publish !== false)
+            writer.tag(3, WireType.Varint).bool(message.publish);
         /* stream.video.sfu.models.CodecSettings codec_settings = 4; */
         if (message.codecSettings)
             CodecSettings.internalBinaryWrite(message.codecSettings, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
@@ -733,11 +737,12 @@ export const JoinRequest = new JoinRequest$Type();
 class JoinResponse$Type extends MessageType<JoinResponse> {
     constructor() {
         super("stream.video.sfu.event.JoinResponse", [
-            { no: 1, name: "call_state", kind: "message", T: () => CallState }
+            { no: 1, name: "call_state", kind: "message", T: () => CallState },
+            { no: 2, name: "own_session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<JoinResponse>): JoinResponse {
-        const message = {};
+        const message = { ownSessionId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<JoinResponse>(this, message, value);
@@ -750,6 +755,9 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
             switch (fieldNo) {
                 case /* stream.video.sfu.models.CallState call_state */ 1:
                     message.callState = CallState.internalBinaryRead(reader, reader.uint32(), options, message.callState);
+                    break;
+                case /* string own_session_id */ 2:
+                    message.ownSessionId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -766,6 +774,9 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
         /* stream.video.sfu.models.CallState call_state = 1; */
         if (message.callState)
             CallState.internalBinaryWrite(message.callState, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string own_session_id = 2; */
+        if (message.ownSessionId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.ownSessionId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

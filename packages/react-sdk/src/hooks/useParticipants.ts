@@ -12,6 +12,8 @@ export const useParticipants = (
       if (e.eventPayload.oneofKind !== 'participantJoined') return;
       const { participant } = e.eventPayload.participantJoined;
       if (participant) {
+        call.participantMapping[participant.trackLookupPrefix] =
+          participant.user!.id;
         setParticipants((ps) => [...ps, participant]);
       }
     });
