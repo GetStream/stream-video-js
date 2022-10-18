@@ -141,7 +141,7 @@ export class Call {
     );
 
     // FIXME: make it nicer
-    return new Promise((resolve) => {
+    return new Promise<CallState | undefined>((resolve) => {
       this.client.dispatcher.on('joinResponse', (event) => {
         if (event.eventPayload.oneofKind === 'joinResponse') {
           resolve(event.eventPayload.joinResponse.callState);
