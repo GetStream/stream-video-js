@@ -81,33 +81,51 @@ export const Stage = (props: {
   const grid = `str-video__grid-${participants.length || 1}`;
   return (
     <div className={`str-video__stage ${grid}`} ref={gridRef}>
-      {participants.map((participant) => {
-        const userId = participant.user!.id;
-        const isLocalParticipant = currentUserId === userId;
-        const isAutoMuted = isLocalParticipant && !includeSelf;
-
-        const audioStream =
-          isLocalParticipant && !includeSelf
-            ? localAudioStream
-            : userAudioStreams[userId];
-
-        const videoStream =
-          isLocalParticipant && !includeSelf
-            ? localVideoStream
-            : userVideoStreams[userId];
-
+      {Object.entries(userVideoStreams).map(([userId, videoStream]) => {
         return (
           <ParticipantBox
             key={userId}
-            participant={participant}
-            isLocalParticipant={isLocalParticipant}
-            isMuted={isAutoMuted}
-            audioStream={audioStream}
+            participant={{
+              // @ts-ignore
+              user: {
+                id: userId,
+              },
+            }}
+            isLocalParticipant={false}
+            isMuted={false}
+            audioStream={undefined}
             videoStream={videoStream}
             updateVideoElementForUserId={updateVideoElementForUserId}
           />
         );
       })}
+      {/*{participants.map((participant) => {*/}
+      {/*  const userId = participant.user!.id;*/}
+      {/*  const isLocalParticipant = currentUserId === userId;*/}
+      {/*  const isAutoMuted = isLocalParticipant && !includeSelf;*/}
+
+      {/*  const audioStream =*/}
+      {/*    isLocalParticipant && !includeSelf*/}
+      {/*      ? localAudioStream*/}
+      {/*      : userAudioStreams[userId];*/}
+
+      {/*  const videoStream =*/}
+      {/*    isLocalParticipant && !includeSelf*/}
+      {/*      ? localVideoStream*/}
+      {/*      : userVideoStreams[userId];*/}
+
+      {/*  return (*/}
+      {/*    <ParticipantBox*/}
+      {/*      key={userId}*/}
+      {/*      participant={participant}*/}
+      {/*      isLocalParticipant={isLocalParticipant}*/}
+      {/*      isMuted={isAutoMuted}*/}
+      {/*      audioStream={audioStream}*/}
+      {/*      videoStream={videoStream}*/}
+      {/*      updateVideoElementForUserId={updateVideoElementForUserId}*/}
+      {/*    />*/}
+      {/*  );*/}
+      {/*})}*/}
     </div>
   );
 };
@@ -134,13 +152,13 @@ const ParticipantBox = (props: {
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  const userId = participant.user!.id;
   useEffect(() => {
-    const userId = participant.user!.id;
     updateVideoElementForUserId(userId, videoRef.current);
     return () => {
       updateVideoElementForUserId(userId, null);
     };
-  }, [participant.user, updateVideoElementForUserId]);
+  }, [userId, updateVideoElementForUserId]);
 
   useEffect(() => {
     const $el = videoRef.current;
