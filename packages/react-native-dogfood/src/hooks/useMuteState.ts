@@ -1,11 +1,11 @@
 import {MediaStream} from 'react-native-webrtc';
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {Call} from '../modules/Call';
-import {SfuEvent} from '../../gen/sfu_events/events';
+import {SfuEvent} from '../gen/video/sfu/event/events';
 
 export const useMuteState = (
   userId: string,
-  call: Call,
+  call: Call | undefined,
   mediaStream: MediaStream | undefined,
 ) => {
   const [isAudioMuted, setIsAudioMuted] = useState(
@@ -15,30 +15,32 @@ export const useMuteState = (
     () => mediaStream?.getVideoTracks().some(t => !t.enabled) ?? false,
   );
 
-  const resetAudioAndVideoMuted = () => {
+  const resetAudioAndVideoMuted = useCallback(() => {
     setIsAudioMuted(false);
     setIsVideoMuted(false);
-  };
+  }, []);
 
   useEffect(() => {
-    const {unsubscribe} = call.on('muteStateChanged', (e: SfuEvent) => {
-      if (e.eventPayload.oneofKind !== 'muteStateChanged') {
-        return;
-      }
+    if (call) {
+      const {unsubscribe} = call.on('muteStateChanged', (e: SfuEvent) => {
+        if (e.eventPayload.oneofKind !== 'muteStateChanged') {
+          return;
+        }
 
-      const muteState = e.eventPayload.muteStateChanged;
-      if (userId === muteState.userId) {
-        setIsAudioMuted(muteState.audioMuted);
-        mediaStream?.getAudioTracks().forEach(t => {
-          t.enabled = !muteState.audioMuted;
-        });
-        setIsVideoMuted(muteState.videoMuted);
-        mediaStream?.getVideoTracks().forEach(t => {
-          t.enabled = !muteState.videoMuted;
-        });
-      }
-    });
-    return unsubscribe;
+        const muteState = e.eventPayload.muteStateChanged;
+        if (userId === muteState.userId) {
+          setIsAudioMuted(muteState.audioMuted);
+          mediaStream?.getAudioTracks().forEach(t => {
+            t.enabled = !muteState.audioMuted;
+          });
+          setIsVideoMuted(muteState.videoMuted);
+          mediaStream?.getVideoTracks().forEach(t => {
+            t.enabled = !muteState.videoMuted;
+          });
+        }
+      });
+      return unsubscribe;
+    }
   }, [mediaStream, call, userId]);
 
   return {isAudioMuted, isVideoMuted, resetAudioAndVideoMuted};

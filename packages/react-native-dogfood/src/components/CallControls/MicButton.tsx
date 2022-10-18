@@ -2,24 +2,18 @@ import React from 'react';
 import Mic from '../../icons/Mic';
 import MicOff from '../../icons/MicOff';
 import ButtonContainer from './ButtonContainer';
-import {MediaStream} from 'react-native-webrtc';
-import {Client} from '../../modules/Client';
+import {useAppValueContext} from '../../contexts/AppContext';
 
-type Props = {
-  isAudioMuted: boolean;
-  client: Client;
-  localMediaStream?: MediaStream;
-};
-
-const MicButton = ({isAudioMuted, client, localMediaStream}: Props) => {
+const MicButton = () => {
+  const {isAudioMuted, sfuClient, localMediaStream} = useAppValueContext();
   const toggleAudioState = async () => {
-    if (localMediaStream) {
+    if (localMediaStream && sfuClient) {
       localMediaStream.getAudioTracks().forEach(track => {
         track.enabled = isAudioMuted;
         track.muted = isAudioMuted;
       });
+      await sfuClient.updateAudioMuteState(!isAudioMuted);
     }
-    await client.updateAudioMuteState(!isAudioMuted);
   };
 
   return (

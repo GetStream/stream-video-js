@@ -1,46 +1,39 @@
-import {StyleSheet} from 'react-native';
-import {MediaStream, RTCView} from 'react-native-webrtc';
+import {StyleSheet, Text, View} from 'react-native';
+import {RTCView} from 'react-native-webrtc';
 import ParticipantVideosContainer from './ParticipantVideosContainer';
 import React from 'react';
-import {Call} from '../modules/Call';
-import {Client} from '../modules/Client';
-import {CallState, Participant} from '../gen/sfu_models/models';
+import {useAppValueContext} from '../contexts/AppContext';
 
-type VideoRenderProps = {
-  localMediaStream: MediaStream | undefined;
-  isVideoMuted: boolean;
-  call: Call;
-  client: Client;
-  callState: CallState | undefined;
-  participants: Participant[];
-  loopbackMyVideo: boolean;
-};
-
-const VideoRenderer = ({
-  localMediaStream,
-  isVideoMuted,
-  call,
-  callState,
-  client,
-  participants,
-  loopbackMyVideo,
-}: VideoRenderProps) => {
+const VideoRenderer = () => {
+  const {localMediaStream, isVideoMuted, callState, participants, username} =
+    useAppValueContext();
   return (
     <>
-      <ParticipantVideosContainer
-        call={call}
-        client={client}
-        participants={participants}
-        loopbackMyVideo={loopbackMyVideo}
-      />
-      {localMediaStream && !isVideoMuted && (
+      <ParticipantVideosContainer />
+      {localMediaStream && !isVideoMuted ? (
         <RTCView
           mirror
           streamURL={localMediaStream.toURL()}
-          style={callState ? styles.selfView : styles.stream}
+          style={
+            callState && participants.length > 1
+              ? styles.selfView
+              : styles.stream
+          }
           objectFit="cover"
           zOrder={1}
         />
+      ) : (
+        <View
+          style={[
+            callState && participants.length > 1
+              ? styles.selfView
+              : styles.stream,
+            styles.avatarContainer,
+          ]}>
+          <View style={styles.roundedView}>
+            <Text style={styles.userText}>{username}</Text>
+          </View>
+        </View>
       )}
     </>
   );
@@ -49,14 +42,8 @@ const VideoRenderer = ({
 const styles = StyleSheet.create({
   stream: {
     flex: 1,
-  },
-  container: {
-    justifyContent: 'center',
-    backgroundColor: 'black',
-    flexDirection: 'row',
-    alignItems: 'center',
-    display: 'flex',
-    flex: 1,
+    maxHeight: '100%',
+    marginBottom: -25,
   },
   selfView: {
     height: 180,
@@ -65,6 +52,25 @@ const styles = StyleSheet.create({
     right: 20,
     top: 100,
     borderRadius: 10,
+  },
+  roundedView: {
+    borderRadius: 50,
+    backgroundColor: 'teal',
+    height: 80,
+    width: 80,
+    justifyContent: 'center',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    marginTop: 'auto',
+    marginBottom: 'auto',
+  },
+  userText: {
+    textAlign: 'center',
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  avatarContainer: {
+    backgroundColor: 'black',
   },
 });
 

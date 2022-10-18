@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Call} from '../modules/Call';
-import {Participant, VideoDimension} from '../../gen/sfu_models/models';
-import {Client} from '../modules/Client';
+import {VideoDimension} from '../gen/video/sfu/models/models';
 import {MediaStream, RTCView} from 'react-native-webrtc';
 import {
   StyleSheet,
@@ -14,6 +13,7 @@ import {
 import {useMuteState} from '../hooks/useMuteState';
 import MicOff from '../icons/MicOff';
 import Mic from '../icons/Mic';
+import {useAppValueContext} from '../contexts/AppContext';
 
 type UserStreamMap = {
   [userId: string]: MediaStream | undefined;
@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     flexDirection: 'column',
     justifyContent: 'center',
+    marginBottom: -25,
   },
   stream: {
     flex: 1,
@@ -64,15 +65,19 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#005FFF',
   },
+  lastParticipant: {
+    bottom: 35,
+  },
 });
 
-const ParticipantVideosContainer = (props: {
-  client: Client;
-  call: Call;
-  participants: Participant[];
-  loopbackMyVideo: boolean;
-}) => {
-  const {call, client, participants, loopbackMyVideo} = props;
+const ParticipantVideosContainer = () => {
+  const {
+    call,
+    sfuClient,
+    participants,
+    loopbackMyVideo,
+    username: currentUserName,
+  } = useAppValueContext();
   const [userAudioStreams, setUserAudioStreams] = useState<UserStreamMap>({});
   const [userVideoStreams, setUserVideoStreams] = useState<UserStreamMap>({});
   const [videoViewByUserId, setVideoViewByUserId] = useState<{
@@ -93,6 +98,7 @@ const ParticipantVideosContainer = (props: {
   };
 
   useEffect(() => {
+    if (!call) return;
     call.handleOnTrack = (e: any) => {
       const [primaryStream] = e.streams;
       const [name] = primaryStream.id.split(':');
@@ -116,9 +122,12 @@ const ParticipantVideosContainer = (props: {
 
   useEffect(() => {
     const updateSubscriptions = async () => {
+      if (!sfuClient) {
+        return;
+      }
       const subscriptions: {[key: string]: VideoDimension} = {};
       Object.entries(videoViewByUserId).forEach(([userId, videoView]) => {
-        if (!loopbackMyVideo && userId === client.user.name) {
+        if (!loopbackMyVideo && userId === currentUserName) {
           return;
         }
         if (userId) {
@@ -129,13 +138,14 @@ const ParticipantVideosContainer = (props: {
         }
       });
       if (Object.keys(subscriptions).length !== 0) {
-        await client.updateSubscriptions(subscriptions);
+        await sfuClient.updateSubscriptions(subscriptions);
       }
     };
     updateSubscriptions();
-  }, [client, loopbackMyVideo, videoViewByUserId]);
+  }, [sfuClient, currentUserName, loopbackMyVideo, videoViewByUserId]);
 
   useEffect(() => {
+    if (!call) return;
     call.on('audioLevelChanged', event => {
       if (event.eventPayload.oneofKind !== 'audioLevelChanged') {
         return;
@@ -165,18 +175,18 @@ const ParticipantVideosContainer = (props: {
         }))
         .filter(
           // dont show user's own stream
-          ({id}) => !!id && client.user.name !== id,
+          ({id}) => !!id && currentUserName !== id,
         ),
     ).values(),
   );
 
-  if (uniqueUsers.length === 0) {
+  if (!call || uniqueUsers.length === 0) {
     return null;
   }
 
   return (
     <View style={styles.container}>
-      {uniqueUsers.map(user => {
+      {uniqueUsers.map((user, index) => {
         if (!user.id) {
           return null;
         }
@@ -193,6 +203,7 @@ const ParticipantVideosContainer = (props: {
             videoStream={videoStream}
             audioStream={audioStream}
             onLayoutHandler={onLayoutHandler}
+            lastParticipant={index === uniqueUsers.length - 1}
           />
         );
       })}
@@ -207,6 +218,7 @@ const ParticipantVideoContainer = ({
   videoStream,
   audioStream,
   onLayoutHandler,
+  lastParticipant,
 }: {
   user: {id: string; avatar: string; name: string};
   call: Call;
@@ -214,6 +226,7 @@ const ParticipantVideoContainer = ({
   audioStream?: MediaStream;
   isSpeaking: boolean;
   onLayoutHandler: (nativeEvent: LayoutChangeEvent, userId?: string) => void;
+  lastParticipant: boolean;
 }) => {
   const mediaStream =
     audioStream &&
@@ -238,7 +251,11 @@ const ParticipantVideoContainer = ({
         <Image source={{uri: user.avatar}} style={styles.avatar} />
       )}
       {audioStream && <RTCView streamURL={audioStream.toURL()} />}
-      <View style={styles.status}>
+      <View
+        style={[
+          styles.status,
+          lastParticipant ? styles.lastParticipant : null,
+        ]}>
         <Text style={styles.userName}>{user.name || user.id}</Text>
         <View style={styles.svgContainer}>
           {isAudioMuted ? <MicOff color="red" /> : <Mic color="red" />}

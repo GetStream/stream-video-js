@@ -1,6 +1,5 @@
 import {MediaStream} from 'react-native-webrtc';
-
-import {VideoLayer} from '../../gen/sfu_models/models';
+import {VideoLayer} from '../gen/video/sfu/models/models';
 
 export const findOptimalVideoLayers = async (mediaStream: MediaStream) => {
   //  width, height, maxBitrate

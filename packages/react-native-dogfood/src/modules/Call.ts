@@ -1,35 +1,72 @@
-import {Client} from './Client';
 // @ts-ignore
 import {
   EventOnCandidate,
   MediaStream,
   MediaStreamTrack,
+  RTCPeerConnectionConfiguration,
 } from 'react-native-webrtc';
 import {EventHandler, RTCDataChannel} from '../../types';
-import {Participant} from './Participant';
-import {SfuEvent} from '../../gen/sfu_events/events';
-import {Codec, PeerType, VideoLayer} from '../../gen/sfu_models/models';
+import {SfuEvent} from '../gen/video/sfu/event/events';
+import {Codec, PeerType, VideoLayer} from '../gen/video/sfu/models/models';
 import {
   RTCPeerConnection,
   RTCRtpTransceiver,
   RTCSessionDescription,
 } from 'react-native-webrtc/src';
 import * as SDPTransform from 'sdp-transform';
-import {JoinRequest} from '../../gen/sfu_signal_rpc/signal';
+import {JoinRequest} from '../gen/video/sfu/signal_rpc/signal';
 import {DEFAULT_VIDEO_LAYERS, findOptimalVideoLayers} from './VideoLayers';
+import {createSignalChannel} from './Signal';
+import {StreamSfuClient} from './StreamSfuClient';
+import {Credentials, ICEServer} from '../gen/video/coordinator/edge_v1/edge';
+
+const hostnameFromUrl = (url: string) => {
+  try {
+    return new URL(url).hostname;
+  } catch (e) {
+    console.warn("Invalid URL. Can't extract hostname from it.", e);
+    return url;
+  }
+};
+
+const toRtcConfiguration = (config?: ICEServer[]) => {
+  if (!config || config.length === 0) {
+    return undefined;
+  }
+  const rtcConfig: RTCPeerConnectionConfiguration = {
+    iceServers: config.map(ice => ({
+      urls: ice.urls,
+      username: ice.username,
+      credential: ice.password,
+    })),
+  };
+  return rtcConfig;
+};
+
+const defaultRtcConfiguration = (
+  sfuUrl: string,
+): RTCPeerConnectionConfiguration => ({
+  iceServers: [
+    {
+      urls: 'stun:stun.l.google.com:19302',
+    },
+    {
+      urls: `turn:${hostnameFromUrl(sfuUrl)}:3478`,
+      username: 'video',
+      credential: 'video',
+    },
+  ],
+});
 
 export class Call {
-  type: string;
-  id: string;
-  cid: string;
-  client: Client;
-  remoteParticipants: Participant[];
+  private readonly client: StreamSfuClient;
+  private readonly connectionConfig: RTCPeerConnectionConfiguration | undefined;
+  readonly currentUserId: string;
 
   /** the current user's upload and download tracks. We use 2 peer connections to avoid glare */
   publisher: RTCPeerConnection | undefined;
   subscriber: RTCPeerConnection | undefined;
   signalChannel: RTCDataChannel | undefined;
-  peerConnectionSettings: object;
   transceiver: RTCRtpTransceiver | undefined;
   videoLayers: VideoLayer[] = DEFAULT_VIDEO_LAYERS;
 
@@ -40,36 +77,26 @@ export class Call {
 
   handleOnTrack?: (e: any) => void;
 
-  constructor(client: Client, type: string, id: string) {
+  constructor(
+    client: StreamSfuClient,
+    currentUserId: string,
+    serverUrl: string,
+    credentials: Credentials,
+  ) {
     this.client = client;
-    this.type = type;
-    this.id = id;
-    this.cid = type + ':' + id;
-    this.remoteParticipants = [];
-    this.peerConnectionSettings = {
-      iceServers: [
-        {
-          urls: 'stun:stun.l.google.com:19302',
-        },
-        {
-          urls: `turn:${this.client.sfuHost}:3478`,
-          username: 'video',
-          credential: 'video',
-        },
-      ],
-    };
+    this.currentUserId = currentUserId;
+    this.connectionConfig =
+      toRtcConfiguration(credentials.iceServers) ||
+      defaultRtcConfiguration(serverUrl);
   }
 
   /** Join the call and if publish is true start broadcasting video */
   async join(publish: boolean = true, stream: MediaStream | undefined) {
     // first set up the download track and signal
 
-    this.subscriber = new RTCPeerConnection(this.peerConnectionSettings);
+    this.subscriber = new RTCPeerConnection(this.connectionConfig);
 
-    this.signalChannel = this.subscriber.createDataChannel(
-      'signaling',
-    ) as unknown as RTCDataChannel;
-    this.signalChannel.binaryType = 'arraybuffer';
+    this.subscriber.onicecandidate = this.onSubscriberIceCandidate;
 
     this.subscriber.addEventListener('track', (event: any) => {
       if (this.handleOnTrack) {
@@ -77,20 +104,14 @@ export class Call {
       }
     });
 
-    this.signalChannel.addEventListener('open', () =>
-      this.signalChannel?.send('ss'),
-    );
-    // @ts-ignore
-    this.signalChannel.addEventListener('message', (event: {data: any}) => {
-      if (!(event.data instanceof ArrayBuffer)) {
-        console.error('This socket only accepts exchanging binary data');
-        return;
-      }
-      const message = SfuEvent.fromBinary(new Uint8Array(event.data));
-      this.handleEvent(message);
+    this.signalChannel = createSignalChannel({
+      label: 'signaling',
+      pc: this.subscriber,
+      onMessage: message => {
+        this.handleEvent(message);
+      },
     });
 
-    this.subscriber.onicecandidate = this.onSubscriberIceCandidate;
     const subscriberOfferSDP = (await this.subscriber.createOffer(
       {},
     )) as RTCSessionDescription;
@@ -120,12 +141,12 @@ export class Call {
       subscriberSdpOffer: sdp,
       codecSettings: {
         audio: {
-          encode: audioEncode,
-          decode: audioDecode,
+          encodes: audioEncode,
+          decodes: audioDecode,
         },
         video: {
-          encode: videoEncode,
-          decode: videoDecode,
+          encodes: videoEncode,
+          decodes: videoDecode,
         },
         layers: this.videoLayers,
       },
@@ -142,7 +163,7 @@ export class Call {
     );
 
     if (publish) {
-      this.publisher = new RTCPeerConnection(this.peerConnectionSettings);
+      this.publisher = new RTCPeerConnection(this.connectionConfig);
       this.publisher.onicecandidate = this.onPublisherIceCandidate;
       this.publisher.onnegotiationneeded = this.onNegotiationNeeded;
     }
@@ -209,6 +230,17 @@ export class Call {
     }
   };
 
+  getStats = async (kind: 'subscriber' | 'publisher') => {
+    if (kind === 'subscriber' && this.subscriber) {
+      return this.subscriber.getStats();
+    } else if (kind === 'publisher' && this.publisher) {
+      return this.publisher.getStats();
+    } else {
+      console.warn("Can't retrieve RTC stats for", kind);
+      return undefined;
+    }
+  };
+
   /** Handle events from the signalling channel */
   async handleEvent(event: SfuEvent) {
     const eventKind = event.eventPayload.oneofKind;
@@ -217,11 +249,11 @@ export class Call {
         if (eventKind !== 'changePublishQuality') {
           return;
         }
-        const {videoSender} = event.eventPayload.changePublishQuality;
+        const {videoSenders} = event.eventPayload.changePublishQuality;
 
-        if (videoSender && videoSender.length > 0) {
+        if (videoSenders && videoSenders.length > 0) {
           const enabledRids: string[] = [];
-          videoSender.forEach(video => {
+          videoSenders.forEach(video => {
             const {layers} = video;
             layers.forEach(l => l.active && enabledRids.push(l.name));
           });
@@ -298,6 +330,13 @@ export class Call {
       // Gathering of candidates has finished.
       return;
     }
+    /* example candidate
+    "candidate":{
+      "candidate":"candidate:470786752 1 udp 2122260223 192.168.50.171 65335 typ host generation 0 ufrag vW0o network-id 1 network-cost 10",
+      "sdpMLineIndex":0,
+      "sdpMid":"0"
+    }
+    */
     const splittedCandidate = candidate.candidate.split(' ');
     const ufragIndex =
       splittedCandidate.findIndex((s: string) => s === 'ufrag') + 1;
@@ -308,7 +347,7 @@ export class Call {
       sessionId: this.client.sessionId,
       candidate: candidate.candidate,
       sdpMid: candidate.sdpMid ?? undefined,
-      sdpMLineIndex: candidate.sdpMLineIndex ?? undefined,
+      sdpMlineIndex: candidate.sdpMLineIndex ?? undefined,
       usernameFragment,
     });
   };
@@ -329,7 +368,7 @@ export class Call {
       sessionId: this.client.sessionId,
       candidate: candidate.candidate,
       sdpMid: candidate.sdpMid ?? undefined,
-      sdpMLineIndex: candidate.sdpMLineIndex ?? undefined,
+      sdpMlineIndex: candidate.sdpMLineIndex ?? undefined,
       usernameFragment,
     });
   };
@@ -339,7 +378,7 @@ export class Call {
     direction: string,
     stream: MediaStream,
   ) => {
-    const pc = new RTCPeerConnection(this.peerConnectionSettings);
+    const pc = new RTCPeerConnection(this.connectionConfig);
     const [primaryVideoTrack] = stream.getVideoTracks();
     const [primaryAudioTrack] = stream.getAudioTracks();
     const track = kind === 'video' ? primaryVideoTrack : primaryAudioTrack;
@@ -419,7 +458,10 @@ export class Call {
   }
 
   disconnect = () => {
-    this.publisher?.close();
     this.subscriber?.close();
+    this.subscriber = undefined;
+    this.publisher?.close();
+    this.publisher = undefined;
+    this.signalChannel?.close();
   };
 }

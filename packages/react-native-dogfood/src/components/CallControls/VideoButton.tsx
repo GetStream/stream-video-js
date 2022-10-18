@@ -1,24 +1,18 @@
 import React from 'react';
 import ButtonContainer from './ButtonContainer';
-import {MediaStream} from 'react-native-webrtc';
-import {Client} from '../../modules/Client';
 import VideoSlash from '../../icons/VideoSlash';
 import Video from '../../icons/Video';
+import {useAppValueContext} from '../../contexts/AppContext';
 
-type Props = {
-  isVideoMuted: boolean;
-  client: Client;
-  localMediaStream?: MediaStream;
-};
-
-const VideoButton = ({isVideoMuted, client, localMediaStream}: Props) => {
+const VideoButton = () => {
+  const {isVideoMuted, sfuClient, localMediaStream} = useAppValueContext();
   const toggleVideoState = async () => {
-    if (localMediaStream) {
+    if (localMediaStream && sfuClient) {
       localMediaStream.getVideoTracks().forEach(track => {
         track.enabled = isVideoMuted;
         track.muted = isVideoMuted;
       });
-      await client.updateVideoMuteState(!isVideoMuted);
+      await sfuClient.updateVideoMuteState(!isVideoMuted);
     }
   };
   return (
