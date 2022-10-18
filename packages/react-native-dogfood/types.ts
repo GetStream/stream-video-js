@@ -1,4 +1,4 @@
-import {SfuEvent} from './gen/sfu_events/events';
+import {SfuEvent} from './src/gen/video/sfu/event/events';
 
 type BinaryType = 'arraybuffer' | 'blob';
 export type RTCDataChannelState = 'closed' | 'closing' | 'connecting' | 'open';
@@ -105,3 +105,8 @@ export interface RTCDataChannel extends EventTarget {
 }
 
 export type EventHandler = (event: SfuEvent) => void;
+
+export type RootStackParamList = {
+  Home: undefined;
+  ActiveCall: undefined;
+};
