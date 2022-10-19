@@ -6,7 +6,6 @@ on:
       - 'packages/react-native-dogfood/**'
     branches:
       - main
-      - fix/broken-rn-auto-deployment
 
 concurrency:
   group: react-native-release
