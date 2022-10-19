@@ -9,7 +9,8 @@ export const registerEventHandlers = (call: Call) => {
 const watchForPublishQualityChangeEvents = (call: Call) => {
   call.on('changePublishQuality', (event: SfuEvent) => {
     if (event.eventPayload.oneofKind === 'changePublishQuality') {
-      const { videoSenders } = event.eventPayload.changePublishQuality;
+      const videoSenders =
+        event.eventPayload.changePublishQuality?.videoSenders;
       if (videoSenders && videoSenders.length > 0) {
         videoSenders.forEach((videoSender) => {
           const { layers } = videoSender;
