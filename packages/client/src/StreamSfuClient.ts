@@ -52,7 +52,7 @@ export class StreamSfuClient {
 
     // FIXME: OL: this should come from the coordinator API
     let wsEndpoint = `ws://${this.sfuHost}:3031/ws`;
-    if (this.sfuHost !== 'localhost') {
+    if (!['localhost', '127.0.0.1'].includes(this.sfuHost)) {
       const sfuUrl = toURL(url);
       if (sfuUrl) {
         sfuUrl.protocol = 'wss:';
