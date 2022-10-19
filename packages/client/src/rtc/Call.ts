@@ -149,6 +149,7 @@ export class Call {
           callState?.participants.forEach((p) => {
             this.participantMapping[p.trackLookupPrefix!] = p.user!.id;
           });
+          this.client.keepAlive();
           resolve(callState);
           resolve(event.eventPayload.joinResponse.callState);
         }

@@ -48,7 +48,6 @@ export class StreamSfuClient {
         this.dispatcher.dispatch(message);
       },
     });
-    this.keepAlive();
   }
 
   close = () => {
@@ -116,7 +115,8 @@ export class StreamSfuClient {
     });
   };
 
-  private async keepAlive() {
+  // FIXME: make this private
+  async keepAlive() {
     await this.signalReady;
     console.log('Registering healthcheck for SFU');
     this.keepAliveInterval = setInterval(() => {
