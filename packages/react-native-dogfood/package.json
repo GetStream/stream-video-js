@@ -63,5 +63,8 @@
   },
   "jest": {
     "preset": "react-native"
+  },
+  "installConfig": {
+    "hoistingLimits": "workspaces"
   }
 }
