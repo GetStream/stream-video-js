@@ -25,7 +25,9 @@ export const useCall = ({
 
   const joinCall = useCallback(
     async (id: string, type: string) => {
-      if (!videoClient) return;
+      if (!videoClient) {
+        return;
+      }
       const {call: callEnvelope, edges} = await videoClient.joinCall({
         id,
         type,

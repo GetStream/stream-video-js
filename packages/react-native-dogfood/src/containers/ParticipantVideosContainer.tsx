@@ -98,7 +98,9 @@ const ParticipantVideosContainer = () => {
   };
 
   useEffect(() => {
-    if (!call) return;
+    if (!call) {
+      return;
+    }
     call.handleOnTrack = (e: any) => {
       const [primaryStream] = e.streams;
       const [name] = primaryStream.id.split(':');
@@ -145,7 +147,9 @@ const ParticipantVideosContainer = () => {
   }, [sfuClient, currentUserName, loopbackMyVideo, videoViewByUserId]);
 
   useEffect(() => {
-    if (!call) return;
+    if (!call) {
+      return;
+    }
     call.on('audioLevelChanged', event => {
       if (event.eventPayload.oneofKind !== 'audioLevelChanged') {
         return;

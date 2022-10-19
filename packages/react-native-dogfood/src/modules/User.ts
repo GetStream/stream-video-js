@@ -24,7 +24,7 @@ export const generateToken = (userId: string, callId: string) => {
   const urlSafe = true;
   return [
     'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9',
-    encode(claims, urlSafe).replace(/=/g, ""),
+    encode(claims, urlSafe).replace(/[=]/g, ''),
     'Qxta03Hncph0yoYy3hMxUc3dEhUjxckoRXo8VT-IefY6Lm3d7UUQDwld1zcpTz73GezmPLYKqo0oWsHZFOMVow',
   ].join('.');
 };
