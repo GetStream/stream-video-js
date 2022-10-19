@@ -13,7 +13,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@protobuf-ts/twirp-transport": "^2.8.0",
+    "@protobuf-ts/twirp-transport": "^2.8.1",
     "@react-native-async-storage/async-storage": "^1.17.10",
     "@react-native-clipboard/clipboard": "^1.11.1",
     "@react-navigation/native": "^6.0.13",
