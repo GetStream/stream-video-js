@@ -5,7 +5,7 @@ import {
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
 import { createSignalClient, withHeaders } from './rpc';
 import { createWebSocketSignalChannel } from './rtc/signal';
-import { SfuEvent, SfuRequest } from './gen/video/sfu/event/events';
+import { SfuRequest } from './gen/video/sfu/event/events';
 import { Dispatcher } from './rtc/Dispatcher';
 
 const hostnameFromUrl = (url: string) => {
@@ -14,6 +14,14 @@ const hostnameFromUrl = (url: string) => {
   } catch (e) {
     console.warn(`Invalid URL. Can't extract hostname from it.`, e);
     return url;
+  }
+};
+
+const toURL = (url: string) => {
+  try {
+    return new URL(url);
+  } catch (e) {
+    return null;
   }
 };
 
@@ -42,8 +50,19 @@ export class StreamSfuClient {
       ],
     });
 
+    // FIXME: OL: this should come from the coordinator API
+    let wsEndpoint = `ws://${this.sfuHost}:3031/ws`;
+    if (this.sfuHost !== 'localhost') {
+      const sfuUrl = toURL(url);
+      if (sfuUrl) {
+        sfuUrl.protocol = 'wss:';
+        sfuUrl.pathname = '/ws';
+        wsEndpoint = sfuUrl.toString();
+      }
+    }
+
     this.signalReady = createWebSocketSignalChannel({
-      endpoint: `ws://${this.sfuHost}:3031/ws`,
+      endpoint: wsEndpoint,
       onMessage: (message) => {
         this.dispatcher.dispatch(message);
       },
