@@ -51,7 +51,6 @@ jobs:
             bundle exec pod install;
       - name: Build and deploy
         env:
-          ITMSTRANSPORTER_FORCE_ITMS_PACKAGE_UPLOAD: true
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
