@@ -85,7 +85,9 @@ export class StreamWebSocketClient implements StreamWSClient {
   private dispatchMessage = (message: WebsocketEvent) => {
     const {event, ...envelopes} = message;
     const eventKind = event.oneofKind;
-    if (!eventKind) return;
+    if (!eventKind) {
+      return;
+    }
 
     // @ts-ignore
     const wrappedMessage = event[eventKind];
