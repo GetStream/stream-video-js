@@ -108,6 +108,12 @@ export interface SfuEvent {
          */
         joinResponse: JoinResponse;
     } | {
+        oneofKind: "healthCheckResponse";
+        /**
+         * @generated from protobuf field: stream.video.sfu.event.HealthCheckResponse health_check_response = 15;
+         */
+        healthCheckResponse: HealthCheckResponse;
+    } | {
         oneofKind: undefined;
     };
 }
@@ -127,8 +133,32 @@ export interface SfuRequest {
          */
         joinRequest: JoinRequest;
     } | {
+        oneofKind: "healthCheckRequest";
+        /**
+         * @generated from protobuf field: stream.video.sfu.event.HealthCheckRequest health_check_request = 2;
+         */
+        healthCheckRequest: HealthCheckRequest;
+    } | {
         oneofKind: undefined;
     };
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.HealthCheckRequest
+ */
+export interface HealthCheckRequest {
+    /**
+     * @generated from protobuf field: string session_id = 1;
+     */
+    sessionId: string;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.HealthCheckResponse
+ */
+export interface HealthCheckResponse {
+    /**
+     * @generated from protobuf field: string session_id = 1;
+     */
+    sessionId: string;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.JoinRequest
@@ -461,7 +491,8 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
             { no: 10, name: "participant_joined", kind: "message", oneof: "eventPayload", T: () => ParticipantJoined },
             { no: 11, name: "participant_left", kind: "message", oneof: "eventPayload", T: () => ParticipantLeft },
             { no: 12, name: "dominant_speaker_changed", kind: "message", oneof: "eventPayload", T: () => DominantSpeakerChanged },
-            { no: 13, name: "join_response", kind: "message", oneof: "eventPayload", T: () => JoinResponse }
+            { no: 13, name: "join_response", kind: "message", oneof: "eventPayload", T: () => JoinResponse },
+            { no: 15, name: "health_check_response", kind: "message", oneof: "eventPayload", T: () => HealthCheckResponse }
         ]);
     }
     create(value?: PartialMessage<SfuEvent>): SfuEvent {
@@ -554,6 +585,12 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
                         joinResponse: JoinResponse.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).joinResponse)
                     };
                     break;
+                case /* stream.video.sfu.event.HealthCheckResponse health_check_response */ 15:
+                    message.eventPayload = {
+                        oneofKind: "healthCheckResponse",
+                        healthCheckResponse: HealthCheckResponse.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).healthCheckResponse)
+                    };
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -605,6 +642,9 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         /* stream.video.sfu.event.JoinResponse join_response = 13; */
         if (message.eventPayload.oneofKind === "joinResponse")
             JoinResponse.internalBinaryWrite(message.eventPayload.joinResponse, writer.tag(13, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.sfu.event.HealthCheckResponse health_check_response = 15; */
+        if (message.eventPayload.oneofKind === "healthCheckResponse")
+            HealthCheckResponse.internalBinaryWrite(message.eventPayload.healthCheckResponse, writer.tag(15, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -619,7 +659,8 @@ export const SfuEvent = new SfuEvent$Type();
 class SfuRequest$Type extends MessageType<SfuRequest> {
     constructor() {
         super("stream.video.sfu.event.SfuRequest", [
-            { no: 1, name: "join_request", kind: "message", oneof: "requestPayload", T: () => JoinRequest }
+            { no: 1, name: "join_request", kind: "message", oneof: "requestPayload", T: () => JoinRequest },
+            { no: 2, name: "health_check_request", kind: "message", oneof: "requestPayload", T: () => HealthCheckRequest }
         ]);
     }
     create(value?: PartialMessage<SfuRequest>): SfuRequest {
@@ -640,6 +681,12 @@ class SfuRequest$Type extends MessageType<SfuRequest> {
                         joinRequest: JoinRequest.internalBinaryRead(reader, reader.uint32(), options, (message.requestPayload as any).joinRequest)
                     };
                     break;
+                case /* stream.video.sfu.event.HealthCheckRequest health_check_request */ 2:
+                    message.requestPayload = {
+                        oneofKind: "healthCheckRequest",
+                        healthCheckRequest: HealthCheckRequest.internalBinaryRead(reader, reader.uint32(), options, (message.requestPayload as any).healthCheckRequest)
+                    };
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -655,6 +702,9 @@ class SfuRequest$Type extends MessageType<SfuRequest> {
         /* stream.video.sfu.event.JoinRequest join_request = 1; */
         if (message.requestPayload.oneofKind === "joinRequest")
             JoinRequest.internalBinaryWrite(message.requestPayload.joinRequest, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.sfu.event.HealthCheckRequest health_check_request = 2; */
+        if (message.requestPayload.oneofKind === "healthCheckRequest")
+            HealthCheckRequest.internalBinaryWrite(message.requestPayload.healthCheckRequest, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -665,6 +715,100 @@ class SfuRequest$Type extends MessageType<SfuRequest> {
  * @generated MessageType for protobuf message stream.video.sfu.event.SfuRequest
  */
 export const SfuRequest = new SfuRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class HealthCheckRequest$Type extends MessageType<HealthCheckRequest> {
+    constructor() {
+        super("stream.video.sfu.event.HealthCheckRequest", [
+            { no: 1, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<HealthCheckRequest>): HealthCheckRequest {
+        const message = { sessionId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<HealthCheckRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: HealthCheckRequest): HealthCheckRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string session_id */ 1:
+                    message.sessionId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: HealthCheckRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string session_id = 1; */
+        if (message.sessionId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.HealthCheckRequest
+ */
+export const HealthCheckRequest = new HealthCheckRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class HealthCheckResponse$Type extends MessageType<HealthCheckResponse> {
+    constructor() {
+        super("stream.video.sfu.event.HealthCheckResponse", [
+            { no: 1, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<HealthCheckResponse>): HealthCheckResponse {
+        const message = { sessionId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<HealthCheckResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: HealthCheckResponse): HealthCheckResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string session_id */ 1:
+                    message.sessionId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: HealthCheckResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string session_id = 1; */
+        if (message.sessionId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.HealthCheckResponse
+ */
+export const HealthCheckResponse = new HealthCheckResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class JoinRequest$Type extends MessageType<JoinRequest> {
     constructor() {

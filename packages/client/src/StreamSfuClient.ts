@@ -27,6 +27,7 @@ export class StreamSfuClient {
   // Current JWT token
   token: string;
   signalReady: Promise<WebSocket>;
+  private keepAliveInterval: any;
 
   constructor(url: string, token: string, sessionId: string) {
     this.sfuHost = hostnameFromUrl(url);
@@ -47,6 +48,7 @@ export class StreamSfuClient {
         this.dispatcher.dispatch(message);
       },
     });
+    this.keepAlive();
   }
 
   close = () => {
@@ -56,6 +58,7 @@ export class StreamSfuClient {
       ws.close(1000, 'Requested signal connection close');
 
       this.dispatcher.offAll();
+      clearInterval(this.keepAliveInterval);
     });
   };
 
@@ -112,4 +115,21 @@ export class StreamSfuClient {
       signal.send(SfuRequest.toBinary(message));
     });
   };
+
+  private async keepAlive() {
+    await this.signalReady;
+    console.log('Registering healthcheck for SFU');
+    this.keepAliveInterval = setInterval(() => {
+      const message = SfuRequest.create({
+        requestPayload: {
+          oneofKind: 'healthCheckRequest',
+          healthCheckRequest: {
+            sessionId: this.sessionId,
+          },
+        },
+      });
+      console.log('Sending healthCheckRequest to SFU', message);
+      this.send(message);
+    }, 27000);
+  }
 }
