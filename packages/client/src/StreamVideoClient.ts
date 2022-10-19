@@ -2,7 +2,7 @@ import {
   StreamVideoWriteableStateStore,
   StreamVideoReadOnlyStateStore,
 } from './stateStore';
-import type { Call } from './gen/video/coordinator/call_v1/call';
+import type { Call as CallMeta } from './gen/video/coordinator/call_v1/call';
 import type {
   CreateCallRequest,
   GetOrCreateCallRequest,
@@ -11,7 +11,11 @@ import type {
   ReportCallStatsResponse,
 } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
-import type { Edge, Latency } from './gen/video/coordinator/edge_v1/edge';
+import type {
+  Edge,
+  ICEServer,
+  Latency,
+} from './gen/video/coordinator/edge_v1/edge';
 import type { UserInput } from './gen/video/coordinator/user_v1/user';
 import {
   createCoordinatorClient,
@@ -24,6 +28,8 @@ import {
   StreamEventListener,
   StreamWSClient,
 } from './ws';
+import { StreamSfuClient } from './StreamSfuClient';
+import { Call } from './rtc/Call';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   coordinatorRpcUrl:
@@ -107,8 +113,13 @@ export class StreamVideoClient {
   };
 
   getOrCreateCall = async (data: GetOrCreateCallRequest) => {
-    const call = await this.client.getOrCreateCall(data);
-    return call.response;
+    const { response } = await this.client.getOrCreateCall(data);
+    if (response.call) {
+      return response.call;
+    } else {
+      // TODO: handle error?
+      return undefined;
+    }
   };
 
   createCall = async (data: CreateCallRequest) => {
@@ -117,12 +128,52 @@ export class StreamVideoClient {
     return callEnvelope;
   };
 
-  joinCall = async (data: JoinCallRequest) => {
-    const callToJoin = await this.client.joinCall(data);
-    return callToJoin.response;
+  joinCall = async (data: JoinCallRequest, sessionId?: string) => {
+    const { response } = await this.client.joinCall({
+      ...data,
+      // FIXME: OL this needs to come from somewhere
+      datacenterId: 'amsterdam',
+    });
+    if (response.call && response.call.call && response.edges) {
+      const edge = await this.getCallEdgeServer(
+        response.call.call,
+        response.edges,
+      );
+      if (edge && edge.credentials && edge.credentials.server) {
+        const sfuClient = new StreamSfuClient(
+          edge.credentials.server.url,
+          edge.credentials.token,
+          sessionId,
+        );
+        const call = new Call(
+          sfuClient,
+          {
+            connectionConfig:
+              this.toRtcConfiguration(edge.credentials.iceServers) ||
+              this.defaultRtcConfiguration(edge.credentials.server.url),
+          },
+          this.writeableStateStore,
+        );
+        this.writeableStateStore.activeCallSubject.next(call);
+        return call;
+      } else {
+        // TODO: handle error?
+        return undefined;
+      }
+    } else {
+      // TODO: handle error?
+      return undefined;
+    }
   };
 
-  getCallEdgeServer = async (call: Call, edges: Edge[]) => {
+  reportCallStats = async (
+    stats: ReportCallStatsRequest,
+  ): Promise<ReportCallStatsResponse> => {
+    const response = await this.client.reportCallStats(stats);
+    return response.response;
+  };
+
+  private getCallEdgeServer = async (call: CallMeta, edges: Edge[]) => {
     // TODO: maybe run the measurements in parallel
     const latencyByEdge: { [e: string]: Latency } = {};
     for (const edge of edges) {
@@ -145,10 +196,37 @@ export class StreamVideoClient {
     return edgeServer.response;
   };
 
-  reportCallStats = async (
-    stats: ReportCallStatsRequest,
-  ): Promise<ReportCallStatsResponse> => {
-    const response = await this.client.reportCallStats(stats);
-    return response.response;
+  private toRtcConfiguration = (config?: ICEServer[]) => {
+    if (!config || config.length === 0) return undefined;
+    const rtcConfig: RTCConfiguration = {
+      iceServers: config.map((ice) => ({
+        urls: ice.urls,
+        username: ice.username,
+        credential: ice.password,
+      })),
+    };
+    return rtcConfig;
+  };
+
+  private defaultRtcConfiguration = (sfuUrl: string): RTCConfiguration => ({
+    iceServers: [
+      {
+        urls: 'stun:stun.l.google.com:19302',
+      },
+      {
+        urls: `turn:${this.hostnameFromUrl(sfuUrl)}:3478`,
+        username: 'video',
+        credential: 'video',
+      },
+    ],
+  });
+
+  private hostnameFromUrl = (url: string) => {
+    try {
+      return new URL(url).hostname;
+    } catch (e) {
+      console.warn(`Invalid URL. Can't extract hostname from it.`, e);
+      return url;
+    }
   };
 }

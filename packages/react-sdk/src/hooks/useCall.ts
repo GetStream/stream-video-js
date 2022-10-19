@@ -1,12 +1,18 @@
 import { useStreamVideoClient } from '../StreamVideo';
 import { useCallback, useEffect, useState } from 'react';
-import { CallMeta, CallCreated, Credentials } from '@stream-io/video-client';
+import {
+  CallMeta,
+  CallCreated,
+  Call,
+  CreateCallInput,
+} from '@stream-io/video-client';
 
 export type UseCallParams = {
   callId: string;
   callType: string;
   currentUser: string;
   autoJoin: boolean;
+  input?: CreateCallInput;
 };
 
 export const useCall = ({
@@ -14,26 +20,22 @@ export const useCall = ({
   callType,
   currentUser,
   autoJoin,
+  input,
 }: UseCallParams) => {
   const client = useStreamVideoClient();
-  const [activeCall, setActiveCall] = useState<CallMeta.Call>();
-  const [credentials, setCredentials] = useState<Credentials>();
+  const [activeCallMeta, setActiveCallMeta] = useState<CallMeta.Call>();
+  const [activeCall, setActiveCall] = useState<Call>();
 
   const joinCall = useCallback(
     async (id: string, type: string) => {
       if (!client) return;
-      const { call: callEnvelope, edges } = await client.joinCall({
+      const call = await client.joinCall({
         id,
         type,
         // FIXME: OL this needs to come from somewhere
         datacenterId: 'amsterdam',
       });
-
-      if (callEnvelope && callEnvelope.call && edges) {
-        const edge = await client.getCallEdgeServer(callEnvelope.call, edges);
-        setActiveCall(callEnvelope.call);
-        setCredentials(edge.credentials);
-      }
+      setActiveCall(call);
     },
     [client],
   );
@@ -41,17 +43,13 @@ export const useCall = ({
   useEffect(() => {
     if (!client) return;
     const getOrCreateCall = async () => {
-      const { call: callMetadata } = await client.getOrCreateCall({
+      const callMetadata = await client.getOrCreateCall({
         id: callId,
         type: callType,
+        input,
       });
       if (callMetadata) {
-        // ?
-        if (autoJoin) {
-          joinCall(callId, callType);
-        } else {
-          setActiveCall(callMetadata.call);
-        }
+        setActiveCallMeta(callMetadata.call);
       }
     };
 
@@ -100,5 +98,5 @@ export const useCall = ({
   //   );
   // }, [callId, client, callType, autoJoin, joinCall]);
 
-  return { activeCall, credentials };
+  return { activeCallMeta, activeCall };
 };

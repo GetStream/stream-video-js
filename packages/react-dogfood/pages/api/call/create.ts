@@ -26,7 +26,7 @@ const createCallSlackHookAPI = async (
       type: 'default',
     });
     if (response.call) {
-      const { call } = response.call;
+      const call = response.call;
       const protocol = req.headers['x-forwarded-proto']
         ? 'https://'
         : 'http://';

@@ -6,22 +6,19 @@ import {
   ThemeProvider,
 } from '@mui/material';
 import {
-  CallMeta,
-  GetCallEdgeServerResponse,
+  CreateCallInput,
   MemberInput,
   Struct,
   UserInput,
-  CallCreated,
 } from '@stream-io/video-client';
 import {
   StreamCall,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { NavigationBar } from './components/NavigationBar';
 import { ParticipantControls } from './components/ParticipantControls';
-import { Ringer } from './components/Ringer';
 
 import '@stream-io/video-styling/dist/css/styles.css';
 
@@ -50,10 +47,12 @@ const App = () => {
     const params = new URLSearchParams(window.location.search);
     return params.get('user') || 'marcelo';
   });
-  const [currentCall, setCurrentCall] = useState<CallMeta.Call>();
-  const [isCurrentCallAccepted, setIsCurrentCallAccepted] = useState(false);
-  const [, setEdge] = useState<GetCallEdgeServerResponse>();
-  const [errorMessage, setErrorMessage] = useState('');
+  const [callId, setCallId] = useState<string | undefined>(undefined);
+  const [callType, setCallType] = useState<string>('default');
+  const [callInput, setCallInput] = useState<CreateCallInput | undefined>(
+    undefined,
+  );
+  const [errorMessage] = useState('');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -85,77 +84,26 @@ const App = () => {
     user,
   });
 
-  const joinCall = useCallback(
-    async (id: string, type: string) => {
-      try {
-        const callToJoin = await client?.joinCall({
-          id,
-          type,
-          // FIXME: OL: this needs to come from somewhere
-          datacenterId: 'milan',
-        });
-        if (callToJoin) {
-          const { call: callEnvelope, edges } = callToJoin;
-          if (!callEnvelope || !callEnvelope.call || !edges) return;
-          const edge = await client?.getCallEdgeServer(
-            callEnvelope.call,
-            edges,
-          );
-          setCurrentCall(callEnvelope.call);
-          setIsCurrentCallAccepted(true);
-          setEdge(edge);
-        }
-        setErrorMessage('');
-      } catch (err) {
-        console.error(`Failed to join call`, err);
-        setErrorMessage((err as Error).message);
-      }
-    },
-    [client],
-  );
-
-  const createCall = useCallback(
-    async (id: string, participants: string[]) => {
-      await client?.createCall({
-        id,
-        type: 'default',
-        input: {
-          members: participants.reduce<{ [key: string]: MemberInput }>(
-            (acc, current) => {
-              acc[current] = {
-                role: 'admin',
-                customJson: Struct.toBinary(Struct.fromJson({})),
-              };
-              return acc;
-            },
-            {},
-          ),
+  const createCall = async (id: string, participants: string[]) => {
+    setCallId(id);
+    setCallType('default');
+    setCallInput({
+      members: participants.reduce<{ [key: string]: MemberInput }>(
+        (acc, current) => {
+          acc[current] = {
+            role: 'admin',
+            customJson: Struct.toBinary(Struct.fromJson({})),
+          };
+          return acc;
         },
-      });
-    },
-    [client],
-  );
+        {},
+      ),
+    });
+  };
 
-  useEffect(() => {
-    const onCallCreated = (event: CallCreated) => {
-      const { call } = event;
-      if (!call) {
-        console.warn(`Null Call received`, event);
-        return;
-      }
-
-      console.log(`Call created`, event, call);
-
-      // initiator, immediately joins the call
-      if (call.createdByUserId === currentUser) {
-        joinCall(call.id, call.type).then(() => {
-          console.log(`Joining call with id:${call.id}`);
-        });
-        setCurrentCall(call);
-      }
-    };
-    return client?.on('callCreated', onCallCreated);
-  }, [client, currentUser, joinCall]);
+  const joinCall = (id: string) => {
+    setCallId(id);
+  };
 
   // useEffect(() => {
   //   return client?.on(
@@ -186,7 +134,7 @@ const App = () => {
           <ThemeProvider theme={theme}>
             <Box sx={{ display: 'flex' }}>
               <CssBaseline />
-              {currentCall &&
+              {/* {currentCall &&
                 !isCurrentCallAccepted &&
                 currentCall.createdByUserId !== currentUser && (
                   <Ringer
@@ -204,11 +152,11 @@ const App = () => {
                       }
                     }}
                   />
-                )}
+                )} */}
               <NavigationBar />
               <ParticipantControls
                 participants={participants}
-                currentCall={currentCall}
+                currentCallId={callId}
                 currentUser={currentUser}
                 setCurrentUser={setCurrentUser}
                 joinCall={joinCall}
@@ -222,12 +170,12 @@ const App = () => {
                   height: 'calc(100vh - 64px)',
                 }}
               >
-                {currentCall && (
+                {callId && (
                   <StreamCall
-                    callId={currentCall.id}
-                    callType={currentCall.type}
+                    callId={callId}
+                    callType={callType}
+                    input={callInput}
                     currentUser={currentUser}
-                    includeSelf
                   />
                 )}
               </Box>

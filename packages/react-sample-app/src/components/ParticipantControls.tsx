@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Button,
   Collapse,
@@ -23,21 +23,20 @@ import VideoCall from '@mui/icons-material/VideoCall';
 import { CreateCall } from './CreateCall';
 import { JoinCall } from './JoinCall';
 import type { Participants } from '../App';
-import { CallMeta } from '@stream-io/video-client';
 
 export type ParticipantsProps = {
   participants: Participants;
   currentUser: string;
   setCurrentUser: (name: string) => void;
-  currentCall?: CallMeta.Call;
-  joinCall?: (callId: string, type: string) => void;
+  currentCallId?: string;
+  joinCall?: (callId: string) => void;
   onCreateCall?: (callId: string, participants: string[]) => void;
 };
 
 export const ParticipantControls = (props: ParticipantsProps) => {
   const {
     participants,
-    currentCall,
+    currentCallId,
     currentUser,
     setCurrentUser,
     joinCall,
@@ -114,7 +113,7 @@ export const ParticipantControls = (props: ParticipantsProps) => {
           {isJoinCallExpanded ? <ExpandLess /> : <ExpandMore />}
         </ListItemButton>
         <Collapse in={isJoinCallExpanded} timeout="auto" unmountOnExit>
-          <JoinCall currentCall={currentCall} joinCall={joinCall} />
+          <JoinCall currentCallId={currentCallId} joinCall={joinCall} />
         </Collapse>
       </List>
 

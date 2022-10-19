@@ -14,8 +14,9 @@ import {
 import { createPublisher } from './publisher';
 import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
 import { handleICETrickle, registerEventHandlers } from './callEventHandlers';
-import { SfuEvent, SfuRequest } from '../gen/video/sfu/event/events';
+import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
+import { StreamVideoWriteableStateStore } from '../stateStore';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -26,25 +27,28 @@ export class Call {
   private readonly options: CallOptions;
   participantMapping: { [key: string]: string } = {};
 
+  /**@deprecated use store for this data */
+  currentUserId: string;
+
   private videoLayers?: OptimalVideoLayer[];
   publisherCandidates: RTCIceCandidateInit[] = [];
   subscriberCandidates: RTCIceCandidateInit[] = [];
   subscriber: RTCPeerConnection | undefined;
   publisher: RTCPeerConnection | undefined;
 
-  readonly currentUserId: string;
-
   // FIXME: OL: convert to regular event
   handleOnTrack?: (e: RTCTrackEvent) => void;
 
   constructor(
     client: StreamSfuClient,
-    currentUserId: string,
     options: CallOptions,
+    private stateStore: StreamVideoWriteableStateStore,
   ) {
     this.client = client;
-    this.currentUserId = currentUserId;
     this.options = options;
+    this.currentUserId = stateStore.getCurrentValue(
+      stateStore.connectedUserSubject,
+    )!.name;
 
     this.client.dispatcher.on('iceTrickle', handleICETrickle(this));
 
@@ -89,6 +93,8 @@ export class Call {
     this.publisher?.close();
 
     this.client.close();
+
+    this.stateStore.activeCallSubject.next(undefined);
   };
 
   join = async (videoStream?: MediaStream) => {
