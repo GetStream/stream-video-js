@@ -1,5 +1,5 @@
 {
-  "name": "StreamReactNativeVideoSDKSample",
+  "name": "@stream-io/video-react-native-dogfood",
   "version": "0.0.1",
   "private": true,
   "scripts": {
