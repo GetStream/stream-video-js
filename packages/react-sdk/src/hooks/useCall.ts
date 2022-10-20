@@ -61,25 +61,6 @@ export const useCall = ({
     });
   }, [callId, client, callType, autoJoin, joinCall]);
 
-  useEffect(() => {
-    const onCallCreated = (event: CallCreated) => {
-      const { call } = event;
-      if (!call) {
-        console.warn(`Null Call object received`, event);
-        return;
-      }
-
-      console.log(`Call created`, event, call);
-      // initiator, immediately joins the call
-      if (call.createdByUserId === currentUser || autoJoin) {
-        joinCall(call.id, call.type).then(() => {
-          console.log(`Joining call with id:${call.id}`);
-        });
-      }
-    };
-    return client?.on('callCreated', onCallCreated);
-  }, [client, currentUser, joinCall]);
-
   // useEffect(() => {
   //   return client?.on(
   //     'callStarted',
