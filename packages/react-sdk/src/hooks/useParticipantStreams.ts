@@ -24,8 +24,10 @@ export const useParticipantStreams = (call: Call) => {
       });
 
       const [primaryStream] = e.streams;
-      // format: <user-id>:<session-id>:<kind>
-      const [name] = primaryStream.id.split(':');
+      console.log(primaryStream, e.track);
+      // format: <uuid>
+      const [trackId] = primaryStream.id.split(':');
+      const name = call.participantMapping[trackId];
       if (e.track.kind === 'video') {
         setUserVideoStreams((s) => ({
           ...s,

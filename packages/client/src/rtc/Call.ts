@@ -1,34 +1,36 @@
-import { VideoDimension } from '../gen/video/sfu/models/models';
+import { createSubscriber } from './subscriber';
+import {
+  findOptimalVideoLayers,
+  defaultVideoLayers,
+  OptimalVideoLayer,
+} from './videoLayers';
 import { StreamSfuClient } from '../StreamSfuClient';
-import { registerEventHandlers } from './callEventHandlers';
 import {
   defaultVideoPublishEncodings,
   getPreferredCodecs,
   getReceiverCodecs,
   getSenderCodecs,
 } from './codecs';
-import { Dispatcher } from './Dispatcher';
 import { createPublisher } from './publisher';
-import { createSignalChannel } from './signal';
-import { createSubscriber } from './subscriber';
-import {
-  defaultVideoLayers,
-  findOptimalVideoLayers,
-  OptimalVideoLayer,
-} from './videoLayers';
+import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
+import { handleICETrickle, registerEventHandlers } from './callEventHandlers';
+import { SfuEvent, SfuRequest } from '../gen/video/sfu/event/events';
+import { SfuEventListener } from './Dispatcher';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
 };
 
 export class Call {
-  private readonly dispatcher = new Dispatcher();
   private readonly client: StreamSfuClient;
   private readonly options: CallOptions;
+  participantMapping: { [key: string]: string } = {};
 
   private videoLayers?: OptimalVideoLayer[];
-  private subscriber?: RTCPeerConnection;
-  private publisher?: RTCPeerConnection;
+  publisherCandidates: RTCIceCandidateInit[] = [];
+  subscriberCandidates: RTCIceCandidateInit[] = [];
+  subscriber: RTCPeerConnection | undefined;
+  publisher: RTCPeerConnection | undefined;
 
   readonly currentUserId: string;
 
@@ -43,57 +45,54 @@ export class Call {
     this.client = client;
     this.currentUserId = currentUserId;
     this.options = options;
+
+    this.client.dispatcher.on('iceTrickle', handleICETrickle(this));
+
+    this.subscriber = createSubscriber({
+      rpcClient: this.client,
+
+      // FIXME: don't do this
+      dispatcher: client.dispatcher,
+      connectionConfig: this.options.connectionConfig,
+      onTrack: (e) => {
+        console.log('Got remote track:', e.track);
+        this.handleOnTrack?.(e);
+      },
+      candidates: this.subscriberCandidates,
+    });
+
+    this.publisher = createPublisher({
+      rpcClient: this.client,
+      connectionConfig: this.options.connectionConfig,
+      candidates: this.publisherCandidates,
+    });
+
     registerEventHandlers(this);
   }
 
-  on = this.dispatcher.on;
-  off = this.dispatcher.off;
+  // FIXME: change the call-sites in the SDK
+  on = (eventName: string, fn: SfuEventListener) => {
+    return this.client.dispatcher.on(eventName, fn);
+  };
+  // FIXME: change the call-sites in the SDK
+  off = (eventName: string, fn: SfuEventListener) => {
+    return this.client.dispatcher.off(eventName, fn);
+  };
 
   leave = () => {
     this.subscriber?.close();
-    this.subscriber = undefined;
 
     this.publisher?.getSenders().forEach((s) => {
       s.track?.stop();
       this.publisher?.removeTrack(s);
     });
     this.publisher?.close();
-    this.publisher = undefined;
 
-    this.dispatcher.offAll();
+    this.client.close();
   };
 
   join = async (videoStream?: MediaStream) => {
-    if (this.subscriber) {
-      this.subscriber.close();
-      this.subscriber = undefined;
-    }
-    console.log(`Setting up subscriber`);
-
-    this.subscriber = createSubscriber({
-      rpcClient: this.client,
-      dispatcher: this.dispatcher,
-      connectionConfig: this.options.connectionConfig,
-      onTrack: (e) => {
-        console.log('Got remote track:', e.track);
-        this.handleOnTrack?.(e);
-      },
-    });
-
-    createSignalChannel({
-      label: 'signalling',
-      pc: this.subscriber,
-      onMessage: (message) => {
-        console.log('Received event', message.eventPayload);
-        this.dispatcher.dispatch(message);
-      },
-    });
-
-    const offer = await this.subscriber.createOffer();
-    if (!offer.sdp) {
-      throw new Error(`Failed to configure protocol, null SDP`);
-    }
-    await this.subscriber.setLocalDescription(offer);
+    await this.client.signalReady;
 
     const [audioEncode, audioDecode, videoEncode, videoDecode] =
       await Promise.all([
@@ -107,51 +106,58 @@ export class Call {
       ? await findOptimalVideoLayers(videoStream)
       : defaultVideoLayers;
 
-    const { response: sfu } = await this.client.rpc.join({
-      sessionId: this.client.sessionId,
-      subscriberSdpOffer: offer.sdp,
-      // FIXME OL: encode parameters and video layers should be announced when
-      // initiating "publish" operation
-      codecSettings: {
-        audio: {
-          encodes: audioEncode,
-          decodes: audioDecode,
-        },
-        video: {
-          encodes: videoEncode,
-          decodes: videoDecode,
-        },
-        layers: this.videoLayers.map((layer) => ({
-          rid: layer.rid!,
-          bitrate: layer.maxBitrate!,
-          videoDimension: {
-            width: layer.width,
-            height: layer.height,
+    this.client.send(
+      SfuRequest.create({
+        requestPayload: {
+          oneofKind: 'joinRequest',
+          joinRequest: {
+            sessionId: this.client.sessionId,
+            token: this.client.token,
+            // todo fix-me
+            publish: true,
+            // publish: true,
+            // FIXME OL: encode parameters and video layers should be announced when
+            // initiating "publish" operation
+            codecSettings: {
+              audio: {
+                encodes: audioEncode,
+                decodes: audioDecode,
+              },
+              video: {
+                encodes: videoEncode,
+                decodes: videoDecode,
+              },
+              layers: this.videoLayers.map((layer) => ({
+                rid: layer.rid!,
+                bitrate: layer.maxBitrate!,
+                videoDimension: {
+                  width: layer.width,
+                  height: layer.height,
+                },
+              })),
+            },
           },
-        })),
-      },
-    });
+        },
+      }),
+    );
 
-    await this.subscriber.setRemoteDescription({
-      type: 'answer',
-      sdp: sfu.sdp,
+    // FIXME: make it nicer
+    return new Promise<CallState | undefined>((resolve) => {
+      this.client.dispatcher.on('joinResponse', (event) => {
+        if (event.eventPayload.oneofKind === 'joinResponse') {
+          const callState = event.eventPayload.joinResponse.callState;
+          callState?.participants.forEach((p) => {
+            this.participantMapping[p.trackLookupPrefix!] = p.user!.id;
+          });
+          this.client.keepAlive();
+          resolve(callState);
+          resolve(event.eventPayload.joinResponse.callState);
+        }
+      });
     });
-
-    return sfu.callState;
   };
 
   publish = (audioStream?: MediaStream, videoStream?: MediaStream) => {
-    if (this.publisher) {
-      this.publisher.close();
-      this.publisher = undefined;
-    }
-    console.log(`Setting up publisher`);
-
-    this.publisher = createPublisher({
-      rpcClient: this.client,
-      connectionConfig: this.options.connectionConfig,
-    });
-
     if (videoStream) {
       const videoEncodings: RTCRtpEncodingParameters[] =
         this.videoLayers && this.videoLayers.length > 0
@@ -160,13 +166,14 @@ export class Call {
 
       const [videoTrack] = videoStream.getVideoTracks();
       if (videoTrack) {
-        const videoTransceiver = this.publisher.addTransceiver(videoTrack, {
+        const videoTransceiver = this.publisher?.addTransceiver(videoTrack, {
           direction: 'sendonly',
           streams: [videoStream],
           sendEncodings: videoEncodings,
         });
 
         const codecPreferences = getPreferredCodecs('video', 'vp8');
+        // @ts-ignore
         if ('setCodecPreferences' in videoTransceiver && codecPreferences) {
           console.log(`set codec preferences`, codecPreferences);
           videoTransceiver.setCodecPreferences(codecPreferences);
@@ -177,7 +184,7 @@ export class Call {
     if (audioStream) {
       const [audioTrack] = audioStream.getAudioTracks();
       if (audioTrack) {
-        this.publisher.addTransceiver(audioTrack, {
+        this.publisher?.addTransceiver(audioTrack, {
           direction: 'sendonly',
         });
       }

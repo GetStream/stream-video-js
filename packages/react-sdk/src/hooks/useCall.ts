@@ -1,11 +1,6 @@
-import {
-  CallCreated,
-  CallMeta,
-  Credentials,
-  Envelopes,
-} from '@stream-io/video-client';
-import { useCallback, useEffect, useState } from 'react';
 import { useStreamVideoClient } from '../StreamVideo';
+import { useCallback, useEffect, useState } from 'react';
+import { CallMeta, CallCreated, Credentials } from '@stream-io/video-client';
 
 export type UseCallParams = {
   callId: string;
@@ -51,6 +46,7 @@ export const useCall = ({
         type: callType,
       });
       if (callMetadata) {
+        // ?
         if (autoJoin) {
           joinCall(callId, callType);
         } else {
@@ -65,10 +61,10 @@ export const useCall = ({
   }, [callId, client, callType, autoJoin, joinCall]);
 
   useEffect(() => {
-    const onCallCreated = (event: CallCreated, envelopes?: Envelopes) => {
+    const onCallCreated = (event: CallCreated) => {
       const { call } = event;
       if (!call) {
-        console.warn("Can't find call in CallCreated event");
+        console.warn(`Null Call object received`, event);
         return;
       }
 

@@ -1,13 +1,16 @@
 import { StreamSfuClient } from '../StreamSfuClient';
+import { PeerType } from '../gen/video/sfu/models/models';
 
 export type PublisherOpts = {
   rpcClient: StreamSfuClient;
   connectionConfig?: RTCConfiguration;
+  candidates: RTCIceCandidateInit[];
 };
 
 export const createPublisher = ({
   connectionConfig,
   rpcClient,
+  candidates,
 }: PublisherOpts) => {
   const publisher = new RTCPeerConnection(connectionConfig);
   publisher.addEventListener('icecandidate', async (e) => {
@@ -16,13 +19,10 @@ export const createPublisher = ({
       console.log('null ice candidate');
       return;
     }
-    await rpcClient.rpc.sendIceCandidate({
-      publisher: true,
+    await rpcClient.rpc.iceTrickle({
       sessionId: rpcClient.sessionId,
-      candidate: candidate.candidate,
-      sdpMid: candidate.sdpMid ?? undefined,
-      sdpMlineIndex: candidate.sdpMLineIndex ?? undefined,
-      usernameFragment: candidate.usernameFragment ?? undefined,
+      iceCandidate: JSON.stringify(candidate.toJSON()),
+      peerType: PeerType.PUBLISHER_UNSPECIFIED,
     });
   });
 
@@ -32,15 +32,21 @@ export const createPublisher = ({
     const offer = await publisher.createOffer();
     await publisher.setLocalDescription(offer);
 
-    const { response: sfu } = await rpcClient.rpc.setPublisher({
-      sessionId: rpcClient.sessionId,
+    const response = await rpcClient.rpc.setPublisher({
       sdp: offer.sdp || '',
+      sessionId: rpcClient.sessionId,
     });
 
     await publisher.setRemoteDescription({
       type: 'answer',
-      sdp: sfu.sdp,
+      sdp: response.response.sdp,
     });
+
+    // ICE candidates have to be added after remoteDescription is set
+    for (const candidate of candidates) {
+      await publisher.addIceCandidate(candidate);
+    }
+    candidates = []; // FIXME: clean the call object accordingly
   });
 
   return publisher;

@@ -1,34 +1,34 @@
 import { SfuEvent } from '../gen/video/sfu/event/events';
 
-export type SignalChannelOpts = {
-  label: string;
-  pc: RTCPeerConnection;
+export const createWebSocketSignalChannel = (opts: {
+  endpoint: string;
   onMessage?: (message: SfuEvent) => void;
-};
-export const createSignalChannel = ({
-  label,
-  pc,
-  onMessage,
-}: SignalChannelOpts) => {
-  const signal = pc.createDataChannel(label);
-  signal.binaryType = 'arraybuffer';
+}) => {
+  return new Promise<WebSocket>((resolve) => {
+    const { endpoint, onMessage } = opts;
+    const ws = new WebSocket(endpoint);
+    ws.binaryType = 'arraybuffer'; // do we need this?
+    ws.addEventListener('open', () => {
+      return resolve(ws);
+    });
 
-  signal.addEventListener('open', () => {
-    signal.send('ss');
-  });
+    ws.addEventListener('error', (e) => {
+      console.error('Error', e);
+    });
 
-  signal.addEventListener('message', (e) => {
-    if (!(e.data instanceof ArrayBuffer)) {
-      console.error(`This socket only accepts exchanging binary data`);
-      return;
-    }
+    ws.addEventListener('close', (e) => {
+      console.warn('Signalling channel is closed', e);
+    });
 
     if (onMessage) {
-      const binaryData = new Uint8Array(e.data);
-      const message = SfuEvent.fromBinary(binaryData);
-      onMessage(message);
+      ws.addEventListener('message', (e) => {
+        const message =
+          e.data instanceof ArrayBuffer
+            ? SfuEvent.fromBinary(new Uint8Array(e.data))
+            : SfuEvent.fromJsonString(e.data);
+
+        onMessage(message);
+      });
     }
   });
-
-  return signal;
 };
