@@ -1,5 +1,5 @@
-import {MediaStream} from 'react-native-webrtc';
-import {VideoLayer} from '../gen/video/sfu/models/models';
+import { MediaStream } from 'react-native-webrtc';
+import { SfuModels } from '@stream-io/video-client';
 
 export const findOptimalVideoLayers = async (mediaStream: MediaStream) => {
   //  width, height, maxBitrate
@@ -12,7 +12,7 @@ export const findOptimalVideoLayers = async (mediaStream: MediaStream) => {
     [426, 240, 300000], // 240p
   ];
 
-  const optimalVideoLayers: VideoLayer[] = [];
+  const optimalVideoLayers: SfuModels.VideoLayer[] = [];
   for (let stepIndex = 0; stepIndex < steps.length; stepIndex++) {
     const [w, h] = steps[stepIndex];
     const [videoTrack] = mediaStream.getVideoTracks();
@@ -45,7 +45,7 @@ export const findOptimalVideoLayers = async (mediaStream: MediaStream) => {
   return optimalVideoLayers;
 };
 
-export const DEFAULT_VIDEO_LAYERS: VideoLayer[] = [
+export const DEFAULT_VIDEO_LAYERS: SfuModels.VideoLayer[] = [
   {
     rid: 'f',
     bitrate: 1000000,

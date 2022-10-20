@@ -1,11 +1,11 @@
-import {StyleSheet, Text, View} from 'react-native';
-import {RTCView} from 'react-native-webrtc';
+import { StyleSheet, Text, View } from 'react-native';
+import { RTCView } from 'react-native-webrtc';
 import ParticipantVideosContainer from './ParticipantVideosContainer';
 import React from 'react';
-import {useAppValueContext} from '../contexts/AppContext';
+import { useAppValueContext } from '../contexts/AppContext';
 
 const VideoRenderer = () => {
-  const {localMediaStream, isVideoMuted, callState, participants, username} =
+  const { localMediaStream, isVideoMuted, callState, participants, username } =
     useAppValueContext();
   return (
     <>
@@ -29,7 +29,8 @@ const VideoRenderer = () => {
               ? styles.selfView
               : styles.stream,
             styles.avatarContainer,
-          ]}>
+          ]}
+        >
           <View style={styles.roundedView}>
             <Text style={styles.userText}>{username}</Text>
           </View>

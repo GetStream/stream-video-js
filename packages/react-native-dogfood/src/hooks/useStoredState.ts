@@ -1,4 +1,4 @@
-import {Dispatch, SetStateAction, useEffect, useRef, useState} from 'react';
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

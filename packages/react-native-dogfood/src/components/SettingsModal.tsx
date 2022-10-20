@@ -68,7 +68,7 @@ export default ({
             placeholder={'Type your name here...'}
             placeholderTextColor={'#8C8C8CFF'}
             value={username}
-            onChangeText={text => setUsername(text.replace(/\s/g, '-'))} // replace spaces with dashes as spaces are not allowed in usernames
+            onChangeText={(text) => setUsername(text.replace(/\s/g, '-'))} // replace spaces with dashes as spaces are not allowed in usernames
           />
           <TextInput
             style={styles.textInput}
@@ -84,7 +84,7 @@ export default ({
             <Switch
               value={loopbackMyVideo}
               onChange={() => {
-                setLoopbackMyVideo(prevState => !prevState);
+                setLoopbackMyVideo((prevState) => !prevState);
               }}
             />
           </View>

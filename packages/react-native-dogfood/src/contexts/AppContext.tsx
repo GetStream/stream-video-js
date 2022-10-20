@@ -9,15 +9,14 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import {Linking} from 'react-native';
-import {mediaDevices, MediaStream} from 'react-native-webrtc';
-import {CallState, Participant} from '../gen/video/sfu/models/models';
-import {Call as CallMeta} from '../gen/video/coordinator/call_v1/call';
-import {useMuteState} from '../hooks/useMuteState';
-import {useStoredState} from '../hooks/useStoredState';
-import {Call} from '../modules/Call';
-import {StreamSfuClient} from '../modules/StreamSfuClient';
-import {StreamVideoClient} from '../modules/StreamVideoClient';
+import { Linking } from 'react-native';
+import { mediaDevices, MediaStream } from 'react-native-webrtc';
+import { CallState, Participant } from '../gen/video/sfu/models/models';
+import { Call as CallMeta } from '../gen/video/coordinator/call_v1/call';
+import { useMuteState } from '../hooks/useMuteState';
+import { useStoredState } from '../hooks/useStoredState';
+import { Call } from '../modules/Call';
+import { StreamSfuClient, StreamVideoClient } from '@stream-io/video-client';
 
 export interface AppValueContextProps {
   callID: string;
@@ -64,7 +63,7 @@ export const AppContextProvider = (props: PropsWithChildren<{}>) => {
   const [callState, setCallState] = useState<CallState>();
 
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const {isAudioMuted, isVideoMuted, resetAudioAndVideoMuted} = useMuteState(
+  const { isAudioMuted, isVideoMuted, resetAudioAndVideoMuted } = useMuteState(
     username,
     call,
     localMediaStream,
@@ -75,7 +74,7 @@ export const AppContextProvider = (props: PropsWithChildren<{}>) => {
       const [primaryVideoTrack] = localMediaStream.getVideoTracks();
       if (cameraBackFacingMode) {
         primaryVideoTrack._switchCamera();
-        setCameraBackFacingMode(prevState => !prevState);
+        setCameraBackFacingMode((prevState) => !prevState);
       }
     }
     setCallState(undefined);
@@ -102,7 +101,7 @@ export const AppContextProvider = (props: PropsWithChildren<{}>) => {
       setLocalMediaStream(mediaStream);
 
       // listen to url changes and parse the callID
-      Linking.addEventListener('url', ({url}) => {
+      Linking.addEventListener('url', ({ url }) => {
         parseAndSetCallID(url);
       });
       const url = await Linking.getInitialURL();

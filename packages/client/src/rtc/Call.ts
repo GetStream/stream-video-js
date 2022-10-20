@@ -1,7 +1,7 @@
 import { createSubscriber } from './subscriber';
 import {
-  findOptimalVideoLayers,
   defaultVideoLayers,
+  findOptimalVideoLayers,
   OptimalVideoLayer,
 } from './videoLayers';
 import { StreamSfuClient } from '../StreamSfuClient';
@@ -14,7 +14,7 @@ import {
 import { createPublisher } from './publisher';
 import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
 import { handleICETrickle, registerEventHandlers } from './callEventHandlers';
-import { SfuEvent, SfuRequest } from '../gen/video/sfu/event/events';
+import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 
 export type CallOptions = {
