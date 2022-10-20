@@ -1,9 +1,12 @@
-import {useCallback, useEffect, useState} from 'react';
-import * as CallMeta from '../gen/video/coordinator/call_v1/call'; // due to name collision with `/rtc/Call.ts`
-import {Credentials} from '../gen/video/coordinator/edge_v1/edge';
-import {CallCreated} from '../gen/video/coordinator/event_v1/event';
-import {StreamVideoClient} from '../modules/StreamVideoClient';
-import {Envelopes} from '../modules/ws';
+import { useCallback, useEffect, useState } from 'react';
+// import * as CallMeta from '../gen/video/coordinator/call_v1/call'; // due to name collision with `/rtc/Call.ts`
+import {
+  Call,
+  CallCreated,
+  Credentials,
+  Envelopes,
+  StreamVideoClient,
+} from '@stream-io/video-client';
 
 export type UseCallParams = {
   videoClient: StreamVideoClient | undefined;
@@ -28,7 +31,7 @@ export const useCall = ({
       if (!videoClient) {
         return;
       }
-      const {call: callEnvelope, edges} = await videoClient.joinCall({
+      const { call: callEnvelope, edges } = await videoClient.joinCall({
         id,
         type,
         // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
@@ -51,7 +54,7 @@ export const useCall = ({
     if (!videoClient) {
       return;
     }
-    const {call: callMetadata} = await videoClient.getOrCreateCall({
+    const { call: callMetadata } = await videoClient.getOrCreateCall({
       id: callId,
       type: callType,
     });
@@ -66,7 +69,7 @@ export const useCall = ({
 
   useEffect(() => {
     const onCallCreated = (event: CallCreated, _envelopes?: Envelopes) => {
-      const {call} = event;
+      const { call } = event;
       if (!call) {
         console.warn("Can't find call in CallCreated event");
         return;
@@ -104,5 +107,5 @@ export const useCall = ({
   //   );
   // }, [callId, client, callType, autoJoin, joinCall]);
 
-  return {activeCall, credentials, getOrCreateCall};
+  return { activeCall, credentials, getOrCreateCall };
 };

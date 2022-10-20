@@ -1,11 +1,11 @@
-import {RTCPeerConnection} from 'react-native-webrtc';
-import {RTCDataChannel} from '../../types';
-import {SfuEvent} from '../gen/video/sfu/event/events';
+import { RTCPeerConnection } from 'react-native-webrtc';
+import { RTCDataChannel } from '../../types';
+import { SfuEvents } from '@stream-io/video-client';
 
 export type SignalChannelType = {
   label: string;
   pc: RTCPeerConnection;
-  onMessage?: (message: SfuEvent) => void;
+  onMessage?: (message: SfuEvents.SfuEvent) => void;
 };
 export const createSignalChannel = ({
   label,
@@ -20,8 +20,7 @@ export const createSignalChannel = ({
     signal.send('ss');
   });
 
-  // @ts-ignore
-  signal.addEventListener('message', e => {
+  signal.addEventListener('message', (e) => {
     if (!(e.data instanceof ArrayBuffer)) {
       console.error('This socket only accepts exchanging binary data');
       return;
@@ -29,7 +28,7 @@ export const createSignalChannel = ({
 
     if (onMessage) {
       const binaryData = new Uint8Array(e.data);
-      const message = SfuEvent.fromBinary(binaryData);
+      const message = SfuEvents.SfuEvent.fromBinary(binaryData);
       onMessage(message);
     }
   });

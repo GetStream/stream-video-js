@@ -1,30 +1,33 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {StyleSheet, TextInput, View, Text, Switch, Button} from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import {
+  StyleSheet,
+  TextInput,
+  View,
+  Text,
+  Switch,
+  Button,
+} from 'react-native';
 import InCallManager from 'react-native-incall-manager';
-import type {NativeStackScreenProps} from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Clipboard from '@react-native-clipboard/clipboard';
-import {RootStackParamList} from '../../types';
-import {Call} from '../modules/Call';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {UserInput} from '../gen/video/coordinator/user_v1/user';
-import {useCreateStreamVideoClient} from '../hooks/useCreateStreamVideoClient';
-import {useCall} from '../hooks/useCall';
-import {useSessionId} from '../hooks/useSessionId';
-import {StreamSfuClient} from '../modules/StreamSfuClient';
-import {useAppSetterContext, useAppValueContext} from '../contexts/AppContext';
+import { RootStackParamList } from '../../types';
+import { Call } from '../modules/Call';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCreateStreamVideoClient } from '../hooks/useCreateStreamVideoClient';
+import { useCall } from '../hooks/useCall';
+import { useSessionId } from '../hooks/useSessionId';
+import {
+  useAppSetterContext,
+  useAppValueContext,
+} from '../contexts/AppContext';
+import { StreamSfuClient, UserInput } from '@stream-io/video-client';
 
-// export const SFU_HOSTNAME = "192.168.2.24";
-// const SFU_URL = `http://${SFU_HOSTNAME}:3031/twirp`;
-// export const SFU_HOSTNAME = 'sfu2.fra1.gtstrm.com';
-// const SFU_URL = 'https://sfu2.fra1.gtstrm.com/rpc/twirp';
-// const DEFAULT_USER_NAME = 'steve';
-// const DEFAULT_CALL_ID = '123';
 const APP_ID = 'streamrnvideosample';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-export default ({navigation}: Props) => {
-  const {username, callID, loopbackMyVideo, localMediaStream} =
+export default ({ navigation }: Props) => {
+  const { username, callID, loopbackMyVideo, localMediaStream } =
     useAppValueContext();
   const {
     setCall,
@@ -60,7 +63,7 @@ export default ({navigation}: Props) => {
     user,
   });
 
-  const {activeCall, credentials, getOrCreateCall} = useCall({
+  const { activeCall, credentials, getOrCreateCall } = useCall({
     videoClient,
     callId: callID,
     callType: 'default', // TODO: SANTHOSH -- what is this?
@@ -83,9 +86,12 @@ export default ({navigation}: Props) => {
     const call = new Call(sfuClient, username, serverUrl, credentials);
     const joinSfuCall = async () => {
       try {
-        const {callState: _callState} = await call.join(true, localMediaStream);
+        const { callState: _callState } = await call.join(
+          true,
+          localMediaStream,
+        );
         if (_callState && localMediaStream) {
-          InCallManager.start({media: 'video'});
+          InCallManager.start({ media: 'video' });
           InCallManager.setForceSpeakerphoneOn(true);
           await call.publish(localMediaStream);
           setSfuClient(sfuClient);
@@ -126,7 +132,7 @@ export default ({navigation}: Props) => {
         placeholder={'Type your name here...'}
         placeholderTextColor={'#8C8C8CFF'}
         value={username}
-        onChangeText={text => {
+        onChangeText={(text) => {
           setUsername(text.trim().replace(/\s/g, '-')); // replace spaces with dashes as spaces are not allowed in usernames
         }}
       />
@@ -149,7 +155,7 @@ export default ({navigation}: Props) => {
         <Switch
           value={loopbackMyVideo}
           onChange={() => {
-            setLoopbackMyVideo(prevState => !prevState);
+            setLoopbackMyVideo((prevState) => !prevState);
           }}
         />
       </View>

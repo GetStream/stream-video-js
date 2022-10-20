@@ -1,24 +1,27 @@
-// @ts-ignore
 import {
+  // @ts-ignore
   EventOnCandidate,
   MediaStream,
   MediaStreamTrack,
+  // @ts-ignore
   RTCPeerConnectionConfiguration,
 } from 'react-native-webrtc';
-import {EventHandler, RTCDataChannel} from '../../types';
-import {SfuEvent} from '../gen/video/sfu/event/events';
-import {Codec, PeerType, VideoLayer} from '../gen/video/sfu/models/models';
+import { EventHandler, RTCDataChannel } from '../../types';
 import {
   RTCPeerConnection,
   RTCRtpTransceiver,
   RTCSessionDescription,
 } from 'react-native-webrtc/src';
 import * as SDPTransform from 'sdp-transform';
-import {JoinRequest} from '../gen/video/sfu/signal_rpc/signal';
-import {DEFAULT_VIDEO_LAYERS, findOptimalVideoLayers} from './VideoLayers';
-import {createSignalChannel} from './Signal';
-import {StreamSfuClient} from './StreamSfuClient';
-import {Credentials, ICEServer} from '../gen/video/coordinator/edge_v1/edge';
+import { DEFAULT_VIDEO_LAYERS, findOptimalVideoLayers } from './VideoLayers';
+import { createSignalChannel } from './Signal';
+import {
+  Credentials,
+  ICEServer,
+  StreamSfuClient,
+  SfuModels,
+  SfuEvents,
+} from '@stream-io/video-client';
 
 const hostnameFromUrl = (url: string) => {
   try {
@@ -34,7 +37,7 @@ const toRtcConfiguration = (config?: ICEServer[]) => {
     return undefined;
   }
   const rtcConfig: RTCPeerConnectionConfiguration = {
-    iceServers: config.map(ice => ({
+    iceServers: config.map((ice) => ({
       urls: ice.urls,
       username: ice.username,
       credential: ice.password,
@@ -68,7 +71,7 @@ export class Call {
   subscriber: RTCPeerConnection | undefined;
   signalChannel: RTCDataChannel | undefined;
   transceiver: RTCRtpTransceiver | undefined;
-  videoLayers: VideoLayer[] = DEFAULT_VIDEO_LAYERS;
+  videoLayers: SfuModels.VideoLayer[] = DEFAULT_VIDEO_LAYERS;
 
   // listeners for events
   listeners: {
@@ -107,7 +110,7 @@ export class Call {
     this.signalChannel = createSignalChannel({
       label: 'signaling',
       pc: this.subscriber,
-      onMessage: message => {
+      onMessage: (message) => {
         this.handleEvent(message);
       },
     });
@@ -115,13 +118,13 @@ export class Call {
     const subscriberOfferSDP = (await this.subscriber.createOffer(
       {},
     )) as RTCSessionDescription;
-    const {sdp} = subscriberOfferSDP;
+    const { sdp } = subscriberOfferSDP;
     await this.subscriber.setLocalDescription(subscriberOfferSDP);
     if (sdp == null) {
       throw new Error('null sdp');
     }
     if (!stream) {
-      return {callState: null};
+      return { callState: null };
     }
 
     const [audioEncode, audioDecode, videoEncode, videoDecode] =
@@ -136,9 +139,11 @@ export class Call {
       this.videoLayers = await findOptimalVideoLayers(stream);
     }
 
-    const joinInput: JoinRequest = {
+    const joinInput: SfuEvents.JoinRequest = {
+      publish: true,
+      //TODO: SV can you add the token here please?
+      token: '',
       sessionId: this.client.sessionId,
-      subscriberSdpOffer: sdp,
       codecSettings: {
         audio: {
           encodes: audioEncode,
@@ -151,7 +156,7 @@ export class Call {
         layers: this.videoLayers,
       },
     };
-    const {response: joinResponse} = await this.client.rpc.join(joinInput);
+    const { response: joinResponse } = await this.client.rpc.join(joinInput);
 
     const subscriberAnswerSessionDescription = {
       // @ts-ignore
@@ -195,7 +200,7 @@ export class Call {
   updatePublishQuality = async (enabledRids: string[]) => {
     const videoSender = this.publisher
       ?.getSenders()
-      .find(s => s.track?.kind === 'video');
+      .find((s) => s.track?.kind === 'video');
     if (!videoSender) {
       return;
     }
@@ -242,20 +247,20 @@ export class Call {
   };
 
   /** Handle events from the signalling channel */
-  async handleEvent(event: SfuEvent) {
+  async handleEvent(event: SfuEvents.SfuEvent) {
     const eventKind = event.eventPayload.oneofKind;
     switch (eventKind) {
       case 'changePublishQuality':
         if (eventKind !== 'changePublishQuality') {
           return;
         }
-        const {videoSenders} = event.eventPayload.changePublishQuality;
+        const { videoSenders } = event.eventPayload.changePublishQuality;
 
         if (videoSenders && videoSenders.length > 0) {
           const enabledRids: string[] = [];
-          videoSenders.forEach(video => {
-            const {layers} = video;
-            layers.forEach(l => l.active && enabledRids.push(l.name));
+          videoSenders.forEach((video) => {
+            const { layers } = video;
+            layers.forEach((l) => l.active && enabledRids.push(l.name));
           });
           // TODO: enable this when simulcast is working
           // await this.updatePublishQuality(enabledRids);
@@ -283,7 +288,7 @@ export class Call {
 
           await this.client.rpc.sendAnswer({
             sessionId: this.client.sessionId,
-            peerType: PeerType.SUBSCRIBER,
+            peerType: SfuModels.PeerType.SUBSCRIBER,
             sdp: answer.sdp || '',
           });
         } catch (error) {
@@ -298,7 +303,7 @@ export class Call {
   }
 
   // dispatch the event to listeners
-  dispatchEvent = (event: SfuEvent) => {
+  dispatchEvent = (event: SfuEvents.SfuEvent) => {
     const call = this;
     // gather and call the listeners
     const listeners = [];
@@ -324,7 +329,7 @@ export class Call {
 
   /** Receive the ice candidates for the subscriber track */
   onSubscriberIceCandidate = async (event: EventOnCandidate) => {
-    const {candidate} = event;
+    const { candidate } = event;
     if (!candidate) {
       // When you find a null candidate then there are no more candidates.
       // Gathering of candidates has finished.
@@ -353,7 +358,7 @@ export class Call {
   };
 
   /** Receive the ice candidates for the publisher track */
-  onPublisherIceCandidate = async ({candidate}: EventOnCandidate) => {
+  onPublisherIceCandidate = async ({ candidate }: EventOnCandidate) => {
     if (!candidate) {
       // When you find a null candidate then there are no more candidates.
       // Gathering of candidates has finished.
@@ -389,11 +394,11 @@ export class Call {
     transceiver.direction = direction;
     const offer = (await pc.createOffer({})) as RTCSessionDescription;
     const parsedSdp = SDPTransform.parse(offer.sdp);
-    const supportedCodecs: Codec[] = [];
-    parsedSdp.media.forEach(media => {
+    const supportedCodecs: SfuModels.Codec[] = [];
+    parsedSdp.media.forEach((media) => {
       if (media.type === kind) {
-        media.rtp.forEach(rtp => {
-          const index = media.fmtp.findIndex(f => f.payload === rtp.payload);
+        media.rtp.forEach((rtp) => {
+          const index = media.fmtp.findIndex((f) => f.payload === rtp.payload);
           const fmtpLine = media.fmtp[index]?.config ?? '';
           supportedCodecs.push({
             hwAccelerated: true,
@@ -435,12 +440,12 @@ export class Call {
   on(
     eventType: string | EventHandler,
     callback?: EventHandler | undefined,
-  ): {unsubscribe: () => void};
+  ): { unsubscribe: () => void };
   // eslint-disable-next-line no-dupe-class-members
   on(
     callbackOrString: EventHandler | string,
     callbackOrNothing?: EventHandler | undefined,
-  ): {unsubscribe: () => void} {
+  ): { unsubscribe: () => void } {
     const key = callbackOrNothing ? (callbackOrString as string) : 'all';
     const callback = callbackOrNothing
       ? callbackOrNothing
@@ -452,7 +457,9 @@ export class Call {
     this.listeners[key].push(callback);
     return {
       unsubscribe: () => {
-        this.listeners[key] = this.listeners[key].filter(el => el !== callback);
+        this.listeners[key] = this.listeners[key].filter(
+          (el) => el !== callback,
+        );
       },
     };
   }

@@ -2,17 +2,17 @@ import React from 'react';
 import InCallManager from 'react-native-incall-manager';
 import ButtonContainer from './ButtonContainer';
 import PhoneDown from '../../icons/PhoneDown';
-import {NavigationProp, useNavigation} from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import {
   useAppSetterContext,
   useAppValueContext,
 } from '../../contexts/AppContext';
-import {RootStackParamList} from '../../../types';
+import { RootStackParamList } from '../../../types';
 
 const PhoneButton = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const {call} = useAppValueContext();
-  const {resetCallState} = useAppSetterContext();
+  const { call } = useAppValueContext();
+  const { resetCallState } = useAppSetterContext();
 
   const hangup = async () => {
     if (!call) {

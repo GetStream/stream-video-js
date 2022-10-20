@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import MicButton from './MicButton';
 import PhoneButton from './PhoneButton';
 import VideoButton from './VideoButton';

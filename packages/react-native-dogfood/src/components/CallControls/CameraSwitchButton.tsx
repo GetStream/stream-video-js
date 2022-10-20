@@ -7,15 +7,15 @@ import {
 } from '../../contexts/AppContext';
 
 const CameraSwitchButton = () => {
-  const {localMediaStream} = useAppValueContext();
-  const {setCameraBackFacingMode} = useAppSetterContext();
+  const { localMediaStream } = useAppValueContext();
+  const { setCameraBackFacingMode } = useAppSetterContext();
 
   const toggleCamera = async () => {
     if (localMediaStream) {
       const [primaryVideoTrack] = localMediaStream.getVideoTracks();
       // @ts-ignore: using private method until apply constraints is supported in react-native-webrtc https://github.com/react-native-webrtc/react-native-webrtc/issues/1170
       primaryVideoTrack._switchCamera();
-      setCameraBackFacingMode(prevState => !prevState);
+      setCameraBackFacingMode((prevState) => !prevState);
 
       // TODO: once applyConstraints is supported in react-native-webrtc, use the following instead
       //   const constraints =
