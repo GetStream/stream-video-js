@@ -2,17 +2,33 @@ import {StyleSheet, Text, View} from 'react-native';
 import {RTCView} from 'react-native-webrtc';
 import ParticipantVideosContainer from './ParticipantVideosContainer';
 import React from 'react';
-import {useAppValueContext} from '../contexts/AppContext';
+import {useAppGlobalStore} from '../contexts/AppContext';
 
 const VideoRenderer = () => {
-  const {localMediaStream, isVideoMuted, callState, participants, username} =
-    useAppValueContext();
+  const [
+    {
+      localMediaStream,
+      isVideoMuted,
+      callState,
+      participants,
+      username,
+      cameraBackFacingMode,
+    },
+  ] = useAppGlobalStore(store => ({
+    localMediaStream: store.localMediaStream,
+    isVideoMuted: store.isVideoMuted,
+    callState: store.callState,
+    participants: store.participants,
+    username: store.username,
+    cameraBackFacingMode: store.cameraBackFacingMode,
+  }));
   return (
     <>
       <ParticipantVideosContainer />
       {localMediaStream && !isVideoMuted ? (
         <RTCView
-          mirror
+          // @ts-ignore
+          mirror={!cameraBackFacingMode}
           streamURL={localMediaStream.toURL()}
           style={
             callState && participants.length > 1

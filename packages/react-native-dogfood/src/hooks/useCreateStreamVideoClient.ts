@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import {useAppSetterContext, useAppValueContext} from '../contexts/AppContext';
+import {useAppGlobalStore} from '../contexts/AppContext';
 import {UserInput} from '../gen/video/coordinator/user_v1/user';
 import {createToken} from '../modules/helpers/jwt';
 import {StreamVideoClient} from '../modules/StreamVideoClient';
@@ -19,9 +19,13 @@ export const useCreateStreamVideoClient = ({
   apiSecret,
   user,
 }: StreamVideoClientInit) => {
-  const {videoClient} = useAppValueContext();
-  const {setVideoClient} = useAppSetterContext();
+  const [{videoClient}, setState] = useAppGlobalStore(store => ({
+    videoClient: store.videoClient,
+  }));
   useEffect(() => {
+    const setVideoClient = (client: StreamVideoClient | undefined) => {
+      setState({videoClient: client});
+    };
     const connectionRef: {
       interrupted: boolean;
       connected: boolean;
@@ -64,14 +68,7 @@ export const useCreateStreamVideoClient = ({
           });
       }
     };
-  }, [
-    apiKey,
-    apiSecret,
-    coordinatorRpcUrl,
-    coordinatorWsUrl,
-    setVideoClient,
-    user,
-  ]);
+  }, [apiKey, apiSecret, coordinatorRpcUrl, coordinatorWsUrl, setState, user]);
 
   return videoClient;
 };

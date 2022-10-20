@@ -1,5 +1,5 @@
 import {MediaStream} from 'react-native-webrtc';
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Call} from '../modules/Call';
 import {SfuEvent} from '../gen/video/sfu/event/events';
 
@@ -14,11 +14,6 @@ export const useMuteState = (
   const [isVideoMuted, setIsVideoMuted] = useState(
     () => mediaStream?.getVideoTracks().some(t => !t.enabled) ?? false,
   );
-
-  const resetAudioAndVideoMuted = useCallback(() => {
-    setIsAudioMuted(false);
-    setIsVideoMuted(false);
-  }, []);
 
   useEffect(() => {
     if (call) {
@@ -43,5 +38,5 @@ export const useMuteState = (
     }
   }, [mediaStream, call, userId]);
 
-  return {isAudioMuted, isVideoMuted, resetAudioAndVideoMuted};
+  return {isAudioMuted, isVideoMuted};
 };

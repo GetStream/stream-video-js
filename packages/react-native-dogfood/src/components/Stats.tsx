@@ -1,14 +1,5 @@
 import {useEffect} from 'react';
-import {useAppValueContext} from '../contexts/AppContext';
-import {Call as CallMeta} from '../gen/video/coordinator/call_v1/call';
-import {Call} from '../modules/Call';
-import {StreamVideoClient} from '../modules/StreamVideoClient';
-
-export interface StatsProps {
-  client: StreamVideoClient;
-  call: Call;
-  activeCall: CallMeta;
-}
+import {useAppGlobalStore} from '../contexts/AppContext';
 
 const intervalMs = 15000;
 
@@ -22,7 +13,11 @@ const getStats = (stats: RTCStatsReport) => {
 };
 
 export const Stats = () => {
-  const {videoClient, call, activeCall} = useAppValueContext();
+  const [{videoClient, call, activeCall}] = useAppGlobalStore(store => ({
+    videoClient: store.videoClient,
+    call: store.call,
+    activeCall: store.activeCall,
+  }));
   useEffect(() => {
     if (videoClient && call && activeCall) {
       const intervalId = setInterval(async () => {

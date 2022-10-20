@@ -10,10 +10,10 @@ import {
   LayoutRectangle,
   Text,
 } from 'react-native';
-import {useMuteState} from '../hooks/useMuteState';
 import MicOff from '../icons/MicOff';
 import Mic from '../icons/Mic';
-import {useAppValueContext} from '../contexts/AppContext';
+import {useAppGlobalStore} from '../contexts/AppContext';
+import {useMuteState} from '../hooks/useMuteState';
 
 type UserStreamMap = {
   [userId: string]: MediaStream | undefined;
@@ -71,13 +71,16 @@ const styles = StyleSheet.create({
 });
 
 const ParticipantVideosContainer = () => {
-  const {
-    call,
-    sfuClient,
-    participants,
-    loopbackMyVideo,
-    username: currentUserName,
-  } = useAppValueContext();
+  const [
+    {call, sfuClient, participants, loopbackMyVideo, username: currentUserName},
+  ] = useAppGlobalStore(store => ({
+    call: store.call,
+    username: store.username,
+    isAudioMuted: store.isAudioMuted,
+    sfuClient: store.sfuClient,
+    participants: store.participants,
+    loopbackMyVideo: store.loopbackMyVideo,
+  }));
   const [userAudioStreams, setUserAudioStreams] = useState<UserStreamMap>({});
   const [userVideoStreams, setUserVideoStreams] = useState<UserStreamMap>({});
   const [videoViewByUserId, setVideoViewByUserId] = useState<{
@@ -118,7 +121,12 @@ const ParticipantVideosContainer = () => {
     };
 
     return () => {
+      // cleanup
       call.handleOnTrack = undefined;
+      setUserAudioStreams({});
+      setUserVideoStreams({});
+      setVideoViewByUserId({});
+      setSpeakers([]);
     };
   }, [call]);
 
@@ -246,6 +254,7 @@ const ParticipantVideoContainer = ({
       }>
       {videoStream !== undefined ? (
         <RTCView
+          // @ts-ignore
           mirror
           streamURL={videoStream.toURL()}
           style={styles.stream}
@@ -254,6 +263,7 @@ const ParticipantVideoContainer = ({
       ) : (
         <Image source={{uri: user.avatar}} style={styles.avatar} />
       )}
+      {/* @ts-ignore */}
       {audioStream && <RTCView streamURL={audioStream.toURL()} />}
       <View
         style={[

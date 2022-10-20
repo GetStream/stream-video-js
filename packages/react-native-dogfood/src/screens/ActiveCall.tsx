@@ -6,14 +6,13 @@ import CallControls from '../components/CallControls';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import VideoRenderer from '../containers/VideoRenderer';
 import {RootStackParamList} from '../../types';
-import {useAppSetterContext, useAppValueContext} from '../contexts/AppContext';
 import {Stats} from '../components/Stats';
+import {useAppGlobalStore} from '../contexts/AppContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ActiveCall'>;
 
 export default (_props: Props) => {
-  const {call} = useAppValueContext();
-  const {setParticipants} = useAppSetterContext();
+  const [{call}, setState] = useAppGlobalStore(store => ({call: store.call}));
 
   useEffect(() => {
     if (!call) {
@@ -28,10 +27,9 @@ export default (_props: Props) => {
 
         const {participant} = e.eventPayload.participantJoined;
         if (participant) {
-          setParticipants(prevParticipants => [
-            ...prevParticipants,
-            participant,
-          ]);
+          setState(prev => ({
+            participants: [...prev.participants, participant],
+          }));
         }
       },
     ).unsubscribe;
@@ -42,9 +40,11 @@ export default (_props: Props) => {
 
       const {participant} = e.eventPayload.participantLeft;
       if (participant) {
-        setParticipants(ps =>
-          ps.filter(p => p.user!.id !== participant.user!.id),
-        );
+        setState(prev => ({
+          participants: prev.participants.filter(
+            p => p.user!.id !== participant.user!.id,
+          ),
+        }));
       }
     }).unsubscribe;
 
@@ -52,7 +52,7 @@ export default (_props: Props) => {
       unsubscribeParticipantJoined();
       unsubscribeParticipantLeft();
     };
-  }, [call, setParticipants]);
+  }, [call, setState]);
 
   return (
     <SafeAreaView style={styles.body} edges={['right', 'left']}>
