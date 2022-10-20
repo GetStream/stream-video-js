@@ -7,6 +7,7 @@ export type SubscriberOpts = {
   dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
   onTrack?: (e: RTCTrackEvent) => void;
+  candidates: RTCIceCandidateInit[];
 };
 
 export const createSubscriber = ({
@@ -14,6 +15,7 @@ export const createSubscriber = ({
   dispatcher,
   connectionConfig,
   onTrack,
+  candidates,
 }: SubscriberOpts) => {
   const subscriber = new RTCPeerConnection(connectionConfig);
   subscriber.addEventListener('icecandidate', async (e) => {
@@ -22,13 +24,11 @@ export const createSubscriber = ({
       console.log('null ice candidate');
       return;
     }
-    await rpcClient.rpc.sendIceCandidate({
+
+    await rpcClient.rpc.iceTrickle({
       sessionId: rpcClient.sessionId,
-      publisher: false,
-      candidate: candidate.candidate,
-      sdpMid: candidate.sdpMid ?? undefined,
-      sdpMlineIndex: candidate.sdpMLineIndex ?? undefined,
-      usernameFragment: candidate.usernameFragment ?? undefined,
+      iceCandidate: JSON.stringify(candidate.toJSON()),
+      peerType: PeerType.SUBSCRIBER,
     });
   });
 
@@ -46,8 +46,16 @@ export const createSubscriber = ({
       sdp: subscriberOffer.sdp,
     });
 
+    // ICE candidates have to be added after remoteDescription is set
+    for (const candidate of candidates) {
+      await subscriber.addIceCandidate(candidate);
+    }
+    candidates = []; // FIXME: clean the call object accordingly
+
+    // apply ice candidates
     const answer = await subscriber.createAnswer();
     await subscriber.setLocalDescription(answer);
+
     await rpcClient.rpc.sendAnswer({
       sessionId: rpcClient.sessionId,
       peerType: PeerType.SUBSCRIBER,

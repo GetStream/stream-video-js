@@ -3566,7 +3566,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@protobuf-ts/twirp-transport@npm:^2.8.0, @protobuf-ts/twirp-transport@npm:^2.8.1":
+"@protobuf-ts/twirp-transport@npm:^2.8.1":
   version: 2.8.1
   resolution: "@protobuf-ts/twirp-transport@npm:2.8.1"
   dependencies:
@@ -4169,7 +4169,7 @@ __metadata:
     "@babel/runtime": ^7.12.5
     "@protobuf-ts/plugin": ^2.8.0
     "@protobuf-ts/protoc": ^2.8.0
-    "@protobuf-ts/twirp-transport": ^2.8.0
+    "@protobuf-ts/twirp-transport": ^2.8.1
     "@react-native-async-storage/async-storage": ^1.17.10
     "@react-native-clipboard/clipboard": ^1.11.1
     "@react-native-community/eslint-config": ^2.0.0
@@ -17587,12 +17587,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-pure-jwt@npm:^3.0.1":
+"react-native-pure-jwt@npm:3.0.1":
   version: 3.0.1
   resolution: "react-native-pure-jwt@npm:3.0.1"
   peerDependencies:
     react-native: ">=0.41.2"
   checksum: 79f7af0416ac655957eb746305fc8efae3ec047fc4e7c3a4b396a57477c9d914eb158a646379791f7a49220ed1a01985b8b7cbf8450d5addbbf7f93986d45b56
+  languageName: node
+  linkType: hard
+
+"react-native-pure-jwt@patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch::locator=%40stream-io%2Fvideo-js-root%40workspace%3A.":
+  version: 3.0.1
+  resolution: "react-native-pure-jwt@patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch::version=3.0.1&hash=555da9&locator=%40stream-io%2Fvideo-js-root%40workspace%3A."
+  peerDependencies:
+    react-native: ">=0.41.2"
+  checksum: fd9452acfa80f7777c41bdf792cb560e8044125708e1e5a61c478d9e8da283c40e9c3769900d4a1a1d7f7fc58e9e6025feefaf07f48b6a92bd698b3363d47176
   languageName: node
   linkType: hard
 

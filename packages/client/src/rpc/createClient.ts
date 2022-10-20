@@ -42,6 +42,11 @@ export const createCoordinatorClient = (options?: TwirpOptions) => {
   return new ClientRPCClient(transport);
 };
 
+/**
+ * Creates new SignalServerClient instance.
+ *
+ * @param options the twirp options.
+ */
 export const createSignalClient = (options?: TwirpOptions) => {
   const transport = new TwirpFetchTransport({
     ...defaultOptions,
