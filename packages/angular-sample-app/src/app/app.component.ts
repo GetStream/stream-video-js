@@ -38,7 +38,6 @@ export class AppComponent implements OnInit, OnDestroy {
       this.activatedRoute.queryParams.subscribe(async (params) => {
         if (params['callid']) {
           const callId = params['callid'];
-          await this.getOwnMediaStream();
           await this.joinCall(callId);
         }
       }),
@@ -55,19 +54,10 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private async joinCall(id: string, type = 'default') {
-    const call = await this.videoService.videoClient?.joinCall({
+    await this.videoService.videoClient?.joinCall({
       id,
       type,
       datacenterId: 'amsterdam',
     });
-    await call?.join();
-    console.log('joined call');
-  }
-
-  private async getOwnMediaStream() {
-    const constraints = { audio: true, video: { width: 1280, height: 720 } };
-    this.ownMediaStream = await navigator.mediaDevices.getUserMedia(
-      constraints,
-    );
   }
 }

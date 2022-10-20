@@ -12,11 +12,17 @@ import {
   getSenderCodecs,
 } from './codecs';
 import { createPublisher } from './publisher';
-import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
+import {
+  CallState,
+  Participant,
+  VideoDimension,
+} from '../gen/video/sfu/models/models';
 import { handleICETrickle, registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
+import { StreamVideoParticipant } from './types';
+import { UserInput } from '../..';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -25,7 +31,6 @@ export type CallOptions = {
 export class Call {
   private readonly client: StreamSfuClient;
   private readonly options: CallOptions;
-  participantMapping: { [key: string]: string } = {};
 
   /**@deprecated use store for this data */
   currentUserId: string;
@@ -36,8 +41,7 @@ export class Call {
   subscriber: RTCPeerConnection | undefined;
   publisher: RTCPeerConnection | undefined;
 
-  // FIXME: OL: convert to regular event
-  handleOnTrack?: (e: RTCTrackEvent) => void;
+  private participants: StreamVideoParticipant[] = [];
 
   constructor(
     client: StreamSfuClient,
@@ -97,7 +101,7 @@ export class Call {
     this.stateStore.activeCallSubject.next(undefined);
   };
 
-  join = async (videoStream?: MediaStream) => {
+  join = async (videoStream?: MediaStream, audioStream?: MediaStream) => {
     await this.client.signalReady;
 
     const [audioEncode, audioDecode, videoEncode, videoDecode] =
@@ -152,9 +156,18 @@ export class Call {
       this.client.dispatcher.on('joinResponse', (event) => {
         if (event.eventPayload.oneofKind === 'joinResponse') {
           const callState = event.eventPayload.joinResponse.callState;
-          callState?.participants.forEach((p) => {
-            this.participantMapping[p.trackLookupPrefix!] = p.user!.id;
-          });
+          this.stateStore.activeCallSubject.next(this);
+          this.participants.push(...(callState?.participants || []));
+          const ownParticipant = this.localParticipant;
+          if (ownParticipant) {
+            ownParticipant.isLoggedInUser = true;
+            ownParticipant.audioTrack = audioStream;
+            ownParticipant.videoTrack = videoStream;
+          }
+          this.stateStore.activeCallParticipantsSubject.next([
+            ...this.participants,
+          ]);
+          this.updateSubscriptions();
           this.client.keepAlive();
           resolve(callState);
           resolve(event.eventPayload.joinResponse.callState);
@@ -185,6 +198,13 @@ export class Call {
           videoTransceiver.setCodecPreferences(codecPreferences);
         }
       }
+
+      if (this.localParticipant) {
+        this.localParticipant.videoTrack = videoStream;
+        this.stateStore.activeCallParticipantsSubject.next([
+          ...this.participants,
+        ]);
+      }
     }
 
     if (audioStream) {
@@ -194,8 +214,28 @@ export class Call {
           direction: 'sendonly',
         });
       }
+
+      if (this.localParticipant) {
+        this.localParticipant.audioTrack = audioStream;
+        this.stateStore.activeCallParticipantsSubject.next([
+          ...this.participants,
+        ]);
+      }
     }
   };
+
+  updateVideoDimension(
+    participant: StreamVideoParticipant,
+    videoDimension: VideoDimension,
+  ) {
+    const particpantToUpdate = this.findParticipant(participant);
+    if (!particpantToUpdate) {
+      return;
+    }
+    particpantToUpdate!.videoDimension = videoDimension;
+    this.stateStore.activeCallParticipantsSubject.next([...this.participants]);
+    this.updateSubscriptions();
+  }
 
   changeInputDevice = async (
     kind: Exclude<MediaDeviceKind, 'audiooutput'>,
@@ -320,9 +360,73 @@ export class Call {
     }
   };
 
-  updateSubscriptions = async (subscriptions: {
-    [key: string]: VideoDimension;
-  }) => {
+  /**
+   * Add new participant from 'participantJoined' event
+   * @param participant
+   */
+  participantJoined(participant: Participant) {
+    this.participants.push(participant);
+    this.stateStore.activeCallParticipantsSubject.next([...this.participants]);
+    this.updateSubscriptions();
+  }
+
+  /**
+   * Remove participant adter 'participantLeft' event
+   * @param participant
+   */
+  participantLeft(participant: Participant) {
+    this.stateStore.activeCallParticipantsSubject.next(
+      this.participants.filter((p) => p !== this.findParticipant(participant)),
+    );
+  }
+
+  private updateSubscriptions = async () => {
+    const subscriptions: { [key: string]: VideoDimension } = {};
+    this.participants.forEach((p) => {
+      subscriptions[p.user!.id] = p.videoDimension || { height: 0, width: 0 };
+    });
     return this.client.updateSubscriptions(subscriptions);
   };
+
+  private findParticipant(participant: {
+    user?: { id: string };
+    sessionId: string;
+  }) {
+    return this.participants.find(
+      (p) =>
+        p.user?.id === participant.user?.id &&
+        p.sessionId === participant.sessionId,
+    );
+  }
+
+  private get localParticipant() {
+    return this.findParticipant({
+      user: { id: this.currentUserId },
+      sessionId: this.client.sessionId,
+    });
+  }
+
+  private handleOnTrack(e: RTCTrackEvent) {
+    const [primaryStream] = e.streams;
+    const [trackId] = primaryStream.id.split(':');
+    console.log(trackId, this.participants);
+    const participant = this.participants.find(
+      (p) => p.trackLookupPrefix === trackId,
+    );
+    if (!participant) {
+      console.warn('Received track from not existing participant', trackId);
+      return;
+    }
+    if (e.track.kind === 'video') {
+      participant.videoTrack = primaryStream;
+      this.stateStore.activeCallParticipantsSubject.next([
+        ...this.participants,
+      ]);
+    } else if (e.track.kind === 'audio') {
+      participant.audioTrack = primaryStream;
+      this.stateStore.activeCallParticipantsSubject.next([
+        ...this.participants,
+      ]);
+    }
+  }
 }

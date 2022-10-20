@@ -41,6 +41,7 @@ export class StreamSfuClient {
   constructor(url: string, token: string, sessionId?: string) {
     this.sfuHost = hostnameFromUrl(url);
     this.sessionId = sessionId || uuidv4();
+    console.warn(this.sessionId);
     this.token = token;
     this.rpc = createSignalClient({
       baseUrl: url,

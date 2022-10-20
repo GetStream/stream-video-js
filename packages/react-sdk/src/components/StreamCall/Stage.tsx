@@ -1,28 +1,34 @@
 import clsx from 'clsx';
-import {
-  Participant,
-  VideoDimension,
-} from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
+import { Participant } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 import { useCallback, useEffect, useRef } from 'react';
-import { Call } from '@stream-io/video-client';
-import { useParticipantStreams } from '../../hooks/useParticipantStreams';
+import { Call, StreamVideoParticipant } from '@stream-io/video-client';
 import { useParticipants } from '../../hooks/useParticipants';
+import { useStreamVideoClient } from '../../StreamVideo';
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';
 
 export const Stage = (props: {
   call: Call;
   participants: Participant[];
   includeSelf: boolean;
-  currentUserId: string;
 }) => {
-  const {
-    call,
-    participants: initialParticipants,
-    includeSelf,
-    currentUserId,
-  } = props;
-  const { userAudioStreams, userVideoStreams } = useParticipantStreams(call);
-  const participants = useParticipants(call, initialParticipants);
+  const { call, includeSelf } = props;
+  // FIXME: SZZ: this doesn't seem like the Reacty way
+  const client = useStreamVideoClient()!;
+  const participants = useParticipants(client);
+
+  const updateVideoElementForParticipant = useCallback(
+    (participant: StreamVideoParticipant, el: HTMLVideoElement | null) => {
+      if (!el) {
+        return;
+      }
+      call.updateVideoDimension(participant, {
+        width: el.clientWidth,
+        height: el.clientHeight,
+      });
+    },
+    [],
+  );
+
   const { audioStream: localAudioStream, videoStream: localVideoStream } =
     useMediaDevices();
 
@@ -32,79 +38,19 @@ export const Stage = (props: {
     }
   }, [call, localAudioStream, localVideoStream]);
 
-  const videoElementsByUserId = useRef<{
-    [userId: string]: HTMLVideoElement | undefined;
-  }>({});
-  const updateVideoElementForUserId = useCallback(
-    (userId: string, el: HTMLVideoElement | null) => {
-      videoElementsByUserId.current[userId] = el!;
-    },
-    [],
-  );
-
-  const gridRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const requestSubscriptions = async () => {
-      const subscriptions: { [key: string]: VideoDimension } = {};
-      Object.entries(videoElementsByUserId.current).forEach(
-        ([userId, element]) => {
-          if (!element) return;
-          if (!includeSelf && userId === currentUserId) return;
-          const width = element.clientWidth;
-          const height = element.clientHeight;
-          subscriptions[userId] = {
-            width,
-            height,
-          };
-        },
-      );
-      if (Object.keys(subscriptions).length > 0) {
-        call.updateSubscriptions(subscriptions).catch((e: Error) => {
-          console.error(`Failed to update subscriptions`, e);
-        });
-      }
-    };
-    requestSubscriptions().catch((e) => {
-      console.error(e);
-    });
-
-    if (!gridRef.current) return;
-    const resizeObserver = new ResizeObserver(
-      debounce(requestSubscriptions, 1200),
-    );
-    resizeObserver.observe(gridRef.current);
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [call, currentUserId, includeSelf, participants]);
-
   const grid = `str-video__grid-${participants.length || 1}`;
   return (
-    <div className={`str-video__stage ${grid}`} ref={gridRef}>
+    <div className={`str-video__stage ${grid}`}>
       {participants.map((participant) => {
         const userId = participant.user!.id;
-        const isLocalParticipant = currentUserId === userId;
+        const isLocalParticipant = participant.isLoggedInUser;
         const isAutoMuted = isLocalParticipant && !includeSelf;
-
-        const audioStream =
-          isLocalParticipant && !includeSelf
-            ? localAudioStream
-            : userAudioStreams[userId];
-
-        const videoStream =
-          isLocalParticipant && !includeSelf
-            ? localVideoStream
-            : userVideoStreams[userId];
-
         return (
           <ParticipantBox
             key={userId}
             participant={participant}
-            isLocalParticipant={isLocalParticipant}
             isMuted={isAutoMuted}
-            audioStream={audioStream}
-            videoStream={videoStream}
-            updateVideoElementForUserId={updateVideoElementForUserId}
+            updateVideoElementForParticipant={updateVideoElementForParticipant}
           />
         );
       })}
@@ -113,34 +59,38 @@ export const Stage = (props: {
 };
 
 const ParticipantBox = (props: {
-  participant: Participant;
-  isLocalParticipant: boolean;
+  participant: StreamVideoParticipant;
   isMuted?: boolean;
-  audioStream?: MediaStream;
-  videoStream?: MediaStream;
-  updateVideoElementForUserId: (
-    userId: string,
+  updateVideoElementForParticipant: (
+    participant: StreamVideoParticipant,
     element: HTMLVideoElement | null,
   ) => void;
 }) => {
   const {
-    audioStream,
-    videoStream,
     participant,
-    isLocalParticipant,
     isMuted = false,
-    updateVideoElementForUserId,
+    updateVideoElementForParticipant,
   } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const videoStream = participant.videoTrack;
+  const audioStream = participant.audioTrack;
+  const isLocalParticipant = participant.isLoggedInUser;
 
   useEffect(() => {
-    const userId = participant.user!.id;
-    updateVideoElementForUserId(userId, videoRef.current);
+    if (!videoRef.current) return;
+    updateVideoElementForParticipant(participant, videoRef.current);
+    const resizeObserver = new ResizeObserver(
+      debounce(
+        () => updateVideoElementForParticipant(participant, videoRef.current),
+        1200,
+      ),
+    );
+    resizeObserver.observe(videoRef.current);
     return () => {
-      updateVideoElementForUserId(userId, null);
+      resizeObserver.disconnect();
     };
-  }, [participant.user, updateVideoElementForUserId]);
+  }, [participant, videoRef]);
 
   useEffect(() => {
     const $el = videoRef.current;

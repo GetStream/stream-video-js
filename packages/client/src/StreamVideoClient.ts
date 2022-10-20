@@ -154,7 +154,10 @@ export class StreamVideoClient {
           },
           this.writeableStateStore,
         );
-        this.writeableStateStore.activeCallSubject.next(call);
+        this.writeableStateStore.pendingCallsSubject.next([
+          ...this.writeableStateStore.pendingCallsSubject.getValue(),
+          call,
+        ]);
         return call;
       } else {
         // TODO: handle error?
