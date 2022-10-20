@@ -1,35 +1,22 @@
 import { useEffect, useState } from 'react';
-import { Call } from '@stream-io/video-client';
-import { Participant } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
+import {
+  StreamVideoClient,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
 
-export const useParticipants = (
-  call: Call,
-  initialParticipants: Participant[],
-) => {
-  const [participants, setParticipants] = useState(initialParticipants);
+export const useParticipants = (client: StreamVideoClient) => {
+  const [participants, setParticipants] = useState<StreamVideoParticipant[]>(
+    client.readOnlyStateStore.getCurrentValue(
+      client.readOnlyStateStore.activeCallParticipants$,
+    ),
+  );
   useEffect(() => {
-    return call.on('participantJoined', (e) => {
-      if (e.eventPayload.oneofKind !== 'participantJoined') return;
-      const { participant } = e.eventPayload.participantJoined;
-      if (participant) {
-        call.participantMapping[participant.trackLookupPrefix] =
-          participant.user!.id;
-        setParticipants((ps) => [...ps, participant]);
-      }
-    });
-  }, [call]);
+    const subscription =
+      client.readOnlyStateStore.activeCallParticipants$.subscribe(
+        (participants) => setParticipants(participants),
+      );
 
-  useEffect(() => {
-    return call.on('participantLeft', (e) => {
-      if (e.eventPayload.oneofKind !== 'participantLeft') return;
-      const { participant } = e.eventPayload.participantLeft;
-      if (participant) {
-        setParticipants((ps) =>
-          ps.filter((p) => p.user!.id !== participant.user!.id),
-        );
-      }
-    });
-  }, [call]);
-
+    return () => subscription.unsubscribe();
+  }, [client]);
   return participants;
 };

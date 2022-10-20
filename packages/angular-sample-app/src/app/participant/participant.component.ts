@@ -9,7 +9,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { VideoDimension } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
-import { CallParticipant } from '../types';
+import { StreamVideoParticipant } from '@stream-io/video-client/dist/src/rtc/types';
 
 @Component({
   selector: 'app-participant',
@@ -17,7 +17,7 @@ import { CallParticipant } from '../types';
   styleUrls: ['./participant.component.scss'],
 })
 export class ParticipantComponent implements OnInit, AfterViewInit {
-  @Input() participant?: CallParticipant;
+  @Input() participant?: StreamVideoParticipant;
   @ViewChild('videoPlaceholder')
   private videoPlaceholder!: ElementRef<HTMLElement>;
   @Output() videoDimensionsChange = new EventEmitter<VideoDimension>();

@@ -4,6 +4,7 @@ import { PeerType } from '../gen/video/sfu/models/models';
 
 export const registerEventHandlers = (call: Call) => {
   watchForPublishQualityChangeEvents(call);
+  watchForParticipantEvents(call);
 };
 
 const watchForPublishQualityChangeEvents = (call: Call) => {
@@ -16,6 +17,24 @@ const watchForPublishQualityChangeEvents = (call: Call) => {
           layers.filter((l) => l.active).map((l) => l.name),
         );
       });
+    }
+  });
+};
+
+const watchForParticipantEvents = (call: Call) => {
+  call.on('participantJoined', (e) => {
+    if (e.eventPayload.oneofKind !== 'participantJoined') return;
+    const { participant } = e.eventPayload.participantJoined;
+    if (participant) {
+      call.participantJoined(participant);
+    }
+  });
+
+  call.on('participantLeft', (e) => {
+    if (e.eventPayload.oneofKind !== 'participantLeft') return;
+    const { participant } = e.eventPayload.participantLeft;
+    if (participant) {
+      call.participantLeft(participant);
     }
   });
 };

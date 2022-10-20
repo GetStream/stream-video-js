@@ -6,7 +6,10 @@ import { useStreamVideoClient } from '../../StreamVideo';
 import { Ping } from '../Ping';
 import { useCall } from '../../hooks/useCall';
 import { DeviceSettings } from './DeviceSettings';
-import { MediaDevicesProvider } from '../../contexts/MediaDevicesContext';
+import {
+  MediaDevicesProvider,
+  useMediaDevices,
+} from '../../contexts/MediaDevicesContext';
 import { CallControls } from './CallControls';
 import { CreateCallInput } from '@stream-io/video-client';
 
@@ -75,7 +78,6 @@ export const StreamCall = ({
                   participants={sfuCallState.participants}
                   call={activeCall}
                   includeSelf={includeSelf}
-                  currentUserId={currentUser}
                 />
                 <CallControls call={activeCall} />
               </>
