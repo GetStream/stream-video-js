@@ -1,9 +1,14 @@
-import {MediaStream} from 'react-native-webrtc';
-import {CallState, Participant} from '../gen/video/sfu/models/models';
-import {Call as CallMeta} from '../gen/video/coordinator/call_v1/call';
-import {Call} from '../modules/Call';
-import {StreamSfuClient} from '../modules/StreamSfuClient';
-import {StreamVideoClient} from '../modules/StreamVideoClient';
+import {
+  StreamVideoClient,
+  StreamSfuClient,
+  CallMeta,
+} from '@stream-io/video-client';
+import {
+  CallState,
+  Participant,
+} from '@stream-io/video-client/src/gen/video/sfu/models/models';
+import { MediaStream } from 'react-native-webrtc';
+import { Call } from '../modules/Call';
 import createStoreContext from './createStoreContext';
 
 interface AppGlobalStore {
@@ -12,7 +17,7 @@ interface AppGlobalStore {
   videoClient: StreamVideoClient | undefined;
   sfuClient: StreamSfuClient | undefined;
   call: Call | undefined;
-  activeCall: CallMeta | undefined;
+  activeCall: CallMeta.Call | undefined;
   localMediaStream: MediaStream | undefined;
   isAudioMuted: boolean;
   isVideoMuted: boolean;
@@ -22,19 +27,21 @@ interface AppGlobalStore {
   participants: Participant[];
 }
 
-export const {Provider: AppGlobalContextProvider, useStore: useAppGlobalStore} =
-  createStoreContext<AppGlobalStore>({
-    callID: '',
-    username: '',
-    videoClient: undefined,
-    sfuClient: undefined,
-    localMediaStream: undefined,
-    call: undefined,
-    activeCall: undefined,
-    loopbackMyVideo: false,
-    callState: undefined,
-    participants: [],
-    isAudioMuted: false,
-    isVideoMuted: false,
-    cameraBackFacingMode: false,
-  });
+export const {
+  Provider: AppGlobalContextProvider,
+  useStore: useAppGlobalStore,
+} = createStoreContext<AppGlobalStore>({
+  callID: '',
+  username: '',
+  videoClient: undefined,
+  sfuClient: undefined,
+  localMediaStream: undefined,
+  call: undefined,
+  activeCall: undefined,
+  loopbackMyVideo: false,
+  callState: undefined,
+  participants: [],
+  isAudioMuted: false,
+  isVideoMuted: false,
+  cameraBackFacingMode: false,
+});

@@ -17,6 +17,8 @@
     "build:client": "yarn workspace @stream-io/video-client run build",
     "start:client": "yarn workspace @stream-io/video-client run start",
     "start:angular:app": "yarn workspace @stream-io/video-angular-sample-app run start",
+    "start:react-native:ios:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run ios",
+    "start:react-native:android:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run android",
     "build:all": "yarn workspaces foreach -vt run build",
     "clean:all": "yarn workspaces foreach -vt run clean",
     "lint:all": "eslint --fix 'packages/**/*.{ts,tsx}'",

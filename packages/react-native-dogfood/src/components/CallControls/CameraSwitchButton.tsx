@@ -1,10 +1,10 @@
 import React from 'react';
 import ButtonContainer from './ButtonContainer';
 import CameraSwitch from '../../icons/CameraSwitch';
-import {useAppGlobalStore} from '../../contexts/AppContext';
+import { useAppGlobalStore } from '../../contexts/AppContext';
 
 const CameraSwitchButton = () => {
-  const [{localMediaStream}, setState] = useAppGlobalStore(store => ({
+  const [{ localMediaStream }, setState] = useAppGlobalStore((store) => ({
     localMediaStream: store.localMediaStream,
   }));
 
@@ -13,9 +13,16 @@ const CameraSwitchButton = () => {
       const [primaryVideoTrack] = localMediaStream.getVideoTracks();
       // @ts-ignore: using private method until apply constraints is supported in react-native-webrtc https://github.com/react-native-webrtc/react-native-webrtc/issues/1170
       primaryVideoTrack._switchCamera();
-      setState(prevState => ({
+      setState((prevState) => ({
         cameraBackFacingMode: !prevState.cameraBackFacingMode,
       }));
+      // TODO: once applyConstraints is supported in react-native-webrtc, use the following instead
+      //   const constraints =
+      //     primaryVideoTrack.getConstraints() as unknown as MediaTrackConstraints;
+      //   const newFacingMode: MediaTrackConstraints['facingMode'] =
+      //     constraints.facingMode === 'user' ? 'environment' : 'user';
+      //   constraints.facingMode = newFacingMode;
+      //   primaryVideoTrack.applyConstraints(constraints);
     }
   };
   return (

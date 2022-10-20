@@ -174,16 +174,17 @@ export class StreamVideoClient {
   };
 
   private getCallEdgeServer = async (call: CallMeta, edges: Edge[]) => {
-    // TODO: maybe run the measurements in parallel
     const latencyByEdge: { [e: string]: Latency } = {};
-    for (const edge of edges) {
-      latencyByEdge[edge.name] = {
-        measurementsSeconds: await measureResourceLoadLatencyTo(
-          edge.latencyUrl,
-          Math.max(this.options.latencyMeasurementRounds || 0, 3),
-        ),
-      };
-    }
+    await Promise.all(
+      edges.map(async (edge) => {
+        latencyByEdge[edge.name] = {
+          measurementsSeconds: await measureResourceLoadLatencyTo(
+            edge.latencyUrl,
+            Math.max(this.options.latencyMeasurementRounds || 0, 3),
+          ),
+        };
+      }),
+    );
 
     const edgeServer = await this.client.getCallEdgeServer({
       callCid: call.callCid,

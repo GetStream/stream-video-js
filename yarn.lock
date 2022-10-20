@@ -4178,6 +4178,7 @@ __metadata:
     "@react-navigation/native": ^6.0.13
     "@react-navigation/native-stack": ^6.9.1
     "@stardazed/streams-polyfill": ^2.4.0
+    "@stream-io/video-client": "workspace:^"
     "@types/jest": ^29.0.0
     "@types/lodash": ^4.14.184
     "@types/react": ^18.0.18
@@ -4190,6 +4191,7 @@ __metadata:
     "@types/uuid": ^8.3.4
     babel-jest: ^26.6.3
     eslint: ^7.32.0
+    get-yarn-workspaces: ^1.0.2
     jest: ^26.6.3
     js-base64: ^3.7.2
     lint-staged: ^13.0.3
@@ -10318,6 +10320,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"flatten@npm:^1.0.2":
+  version: 1.0.3
+  resolution: "flatten@npm:1.0.3"
+  checksum: 5c57379816f1692aaa79fbc6390e0a0644e5e8442c5783ed57c6d315468eddbc53a659eaa03c9bb1e771b0f4a9bd8dd8a2620286bf21fd6538a7857321fdfb20
+  languageName: node
+  linkType: hard
+
 "flow-parser@npm:0.*":
   version: 0.190.0
   resolution: "flow-parser@npm:0.190.0"
@@ -10667,6 +10676,17 @@ __metadata:
   version: 2.0.6
   resolution: "get-value@npm:2.0.6"
   checksum: 5c3b99cb5398ea8016bf46ff17afc5d1d286874d2ad38ca5edb6e87d75c0965b0094cb9a9dddef2c59c23d250702323539a7fbdd870620db38c7e7d7ec87c1eb
+  languageName: node
+  linkType: hard
+
+"get-yarn-workspaces@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "get-yarn-workspaces@npm:1.0.2"
+  dependencies:
+    find-root: ^1.1.0
+    flatten: ^1.0.2
+    glob: ^7.1.2
+  checksum: 884a6fcb141b1a68fb0d93fdd5cbae3ef552156c1a9d35cde11bd9c706a153e1cb3b5f88314554c802c528bd2e1c69cc48fa542891db286e47ae89c85dc091ae
   languageName: node
   linkType: hard
 

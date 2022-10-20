@@ -1,6 +1,6 @@
-import React, {useRef, createContext, useContext} from 'react';
+import React, { useRef, createContext, useContext } from 'react';
 
-import {useSyncExternalStore} from 'use-sync-external-store/shim';
+import { useSyncExternalStore } from 'use-sync-external-store';
 
 export default function createStoreContext<StoreType>(initialState: StoreType) {
   type SetStateFuncType = (
@@ -23,7 +23,7 @@ export default function createStoreContext<StoreType>(initialState: StoreType) {
 
     const subscribersRef = useRef(new Set<() => void>());
 
-    const setState = useRef<SetStateFuncType>(partialStateOrFunc => {
+    const setState = useRef<SetStateFuncType>((partialStateOrFunc) => {
       if (typeof partialStateOrFunc === 'function') {
         const value = partialStateOrFunc(storeRef.current);
         storeRef.current = {
@@ -31,9 +31,9 @@ export default function createStoreContext<StoreType>(initialState: StoreType) {
           ...value,
         };
       } else {
-        storeRef.current = {...storeRef.current, ...partialStateOrFunc};
+        storeRef.current = { ...storeRef.current, ...partialStateOrFunc };
       }
-      subscribersRef.current.forEach(callback => callback());
+      subscribersRef.current.forEach((callback) => callback());
     }).current;
 
     const subscribe = useRef((callback: () => void) => {
@@ -52,7 +52,7 @@ export default function createStoreContext<StoreType>(initialState: StoreType) {
 
   const StoreContext = createContext<HookReturnType | null>(null);
 
-  function Provider({children}: {children: React.ReactNode}) {
+  function Provider({ children }: { children: React.ReactNode }) {
     return (
       <StoreContext.Provider value={useStoreData()}>
         {children}

@@ -1,18 +1,20 @@
-import React, {useEffect} from 'react';
-import {StyleSheet} from 'react-native';
-import type {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {Colors} from 'react-native/Libraries/NewAppScreen';
+import React, { useEffect } from 'react';
+import { StyleSheet } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 import CallControls from '../components/CallControls';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import VideoRenderer from '../containers/VideoRenderer';
-import {RootStackParamList} from '../../types';
-import {Stats} from '../components/Stats';
-import {useAppGlobalStore} from '../contexts/AppContext';
+import { RootStackParamList } from '../../types';
+import { Stats } from '../components/Stats';
+import { useAppGlobalStore } from '../contexts/AppContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ActiveCall'>;
 
 export default (_props: Props) => {
-  const [{call}, setState] = useAppGlobalStore(store => ({call: store.call}));
+  const [{ call }, setState] = useAppGlobalStore((store) => ({
+    call: store.call,
+  }));
 
   useEffect(() => {
     if (!call) {
@@ -20,29 +22,29 @@ export default (_props: Props) => {
     }
     const unsubscribeParticipantJoined = call.on(
       'participantJoined',
-      async e => {
+      async (e) => {
         if (e.eventPayload.oneofKind !== 'participantJoined') {
           return;
         }
 
-        const {participant} = e.eventPayload.participantJoined;
+        const { participant } = e.eventPayload.participantJoined;
         if (participant) {
-          setState(prev => ({
+          setState((prev) => ({
             participants: [...prev.participants, participant],
           }));
         }
       },
     ).unsubscribe;
-    const unsubscribeParticipantLeft = call.on('participantLeft', e => {
+    const unsubscribeParticipantLeft = call.on('participantLeft', (e) => {
       if (e.eventPayload.oneofKind !== 'participantLeft') {
         return;
       }
 
-      const {participant} = e.eventPayload.participantLeft;
+      const { participant } = e.eventPayload.participantLeft;
       if (participant) {
-        setState(prev => ({
+        setState((prev) => ({
           participants: prev.participants.filter(
-            p => p.user!.id !== participant.user!.id,
+            (p) => p.user!.id !== participant.user!.id,
           ),
         }));
       }

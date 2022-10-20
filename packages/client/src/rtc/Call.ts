@@ -1,7 +1,7 @@
 import { createSubscriber } from './subscriber';
 import {
-  findOptimalVideoLayers,
   defaultVideoLayers,
+  findOptimalVideoLayers,
   OptimalVideoLayer,
 } from './videoLayers';
 import { StreamSfuClient } from '../StreamSfuClient';

@@ -1,4 +1,4 @@
-import {SfuEvent} from './src/gen/video/sfu/event/events';
+import { SfuEvent } from './src/gen/video/sfu/event/events';
 
 type BinaryType = 'arraybuffer' | 'blob';
 export type RTCDataChannelState = 'closed' | 'closing' | 'connecting' | 'open';

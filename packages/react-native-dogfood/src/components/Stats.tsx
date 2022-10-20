@@ -1,5 +1,5 @@
-import {useEffect} from 'react';
-import {useAppGlobalStore} from '../contexts/AppContext';
+import { useEffect } from 'react';
+import { useAppGlobalStore } from '../contexts/AppContext';
 
 const intervalMs = 15000;
 
@@ -13,7 +13,7 @@ const getStats = (stats: RTCStatsReport) => {
 };
 
 export const Stats = () => {
-  const [{videoClient, call, activeCall}] = useAppGlobalStore(store => ({
+  const [{ videoClient, call, activeCall }] = useAppGlobalStore((store) => ({
     videoClient: store.videoClient,
     call: store.call,
     activeCall: store.activeCall,

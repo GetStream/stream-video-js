@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "sfu": "cd ../../ && go run cmd/video-sfu/main.go\n",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "ios-device": "react-native run-ios --device",
@@ -19,6 +18,7 @@
     "@react-navigation/native": "^6.0.13",
     "@react-navigation/native-stack": "^6.9.1",
     "@stardazed/streams-polyfill": "^2.4.0",
+    "@stream-io/video-client": "workspace:^",
     "js-base64": "^3.7.2",
     "lodash": "^4.17.21",
     "react": "18.0.0",
@@ -56,6 +56,7 @@
     "@types/uuid": "^8.3.4",
     "babel-jest": "^26.6.3",
     "eslint": "^7.32.0",
+    "get-yarn-workspaces": "^1.0.2",
     "jest": "^26.6.3",
     "lint-staged": "^13.0.3",
     "metro-react-native-babel-preset": "^0.70.3",

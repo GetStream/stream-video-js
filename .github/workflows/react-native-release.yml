@@ -31,8 +31,12 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           command: |
-            cd packages/react-native-dogfood;
             yarn install --frozen-lockfile;
+      - name: Build packages
+        env:
+          STREAM_COORDINATOR_RPC_URL: http://localhost:26991/rpc/
+          STREAM_COORDINATOR_WS_URL: ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect
+        run: yarn build:all
       - name: Cache pods
         uses: actions/cache@v2
         with:
@@ -77,6 +81,12 @@ jobs:
           distribution: 'zulu'
           java-version: '11'
           check-latest: true
+
+      - name: Build packages
+        env:
+          STREAM_COORDINATOR_RPC_URL: http://localhost:26991/rpc/
+          STREAM_COORDINATOR_WS_URL: ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect
+        run: yarn build:all
       - name: Install Yarn dependencies
         uses: nick-invision/retry@v2
         with:

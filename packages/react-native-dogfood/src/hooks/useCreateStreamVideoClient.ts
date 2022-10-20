@@ -1,8 +1,7 @@
-import {useEffect} from 'react';
-import {useAppGlobalStore} from '../contexts/AppContext';
-import {UserInput} from '../gen/video/coordinator/user_v1/user';
-import {createToken} from '../modules/helpers/jwt';
-import {StreamVideoClient} from '../modules/StreamVideoClient';
+import { useEffect } from 'react';
+import { useAppGlobalStore } from '../contexts/AppContext';
+import { createToken } from '../modules/helpers/jwt';
+import { StreamVideoClient, UserInput } from '@stream-io/video-client';
 
 export type StreamVideoClientInit = {
   apiKey: string;
@@ -19,13 +18,10 @@ export const useCreateStreamVideoClient = ({
   apiSecret,
   user,
 }: StreamVideoClientInit) => {
-  const [{videoClient}, setState] = useAppGlobalStore(store => ({
+  const [{ videoClient }, setState] = useAppGlobalStore((store) => ({
     videoClient: store.videoClient,
   }));
   useEffect(() => {
-    const setVideoClient = (client: StreamVideoClient | undefined) => {
-      setState({videoClient: client});
-    };
     const connectionRef: {
       interrupted: boolean;
       connected: boolean;
@@ -48,7 +44,7 @@ export const useCreateStreamVideoClient = ({
         await client.connect(apiKey, token, user);
         connectionRef.connected = true;
         if (!connectionRef.interrupted) {
-          setVideoClient(client);
+          setState({ videoClient: client });
         }
       } catch (err) {
         console.error('Failed to establish connection', err);
@@ -61,9 +57,9 @@ export const useCreateStreamVideoClient = ({
         connectionRef.client
           ?.disconnect()
           .then(() => {
-            setVideoClient(undefined);
+            setState({ videoClient: undefined });
           })
-          .catch(err => {
+          .catch((err) => {
             console.error('Failed to disconnect', err);
           });
       }
