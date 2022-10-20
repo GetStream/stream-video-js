@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Button,
   List,
@@ -7,19 +7,18 @@ import {
   TextField,
 } from '@mui/material';
 import SwitchVideo from '@mui/icons-material/SwitchVideo';
-import { CallMeta } from '@stream-io/video-client';
 
 export const JoinCall = (props: {
-  joinCall?: (id: string, type: string) => void;
-  currentCall?: CallMeta.Call;
+  joinCall?: (id: string) => void;
+  currentCallId?: string;
 }) => {
-  const { joinCall, currentCall } = props;
+  const { joinCall, currentCallId } = props;
   const [callId, setCallId] = useState('');
   useEffect(() => {
-    if (currentCall?.id) {
-      setCallId(currentCall.id);
+    if (currentCallId) {
+      setCallId(currentCallId);
     }
-  }, [currentCall]);
+  }, [currentCallId]);
   return (
     <>
       <List
@@ -43,7 +42,7 @@ export const JoinCall = (props: {
         disabled={!callId || !joinCall}
         onClick={() => {
           if (joinCall && callId) {
-            joinCall(callId, currentCall?.type ?? 'default');
+            joinCall(callId);
           }
         }}
       >

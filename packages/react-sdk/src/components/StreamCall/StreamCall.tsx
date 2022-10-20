@@ -1,6 +1,4 @@
-import { ICEServer, Call, StreamSfuClient } from '@stream-io/video-client';
-import { useEffect, useMemo, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { useEffect, useState } from 'react';
 import { CallState } from '@stream-io/video-client/src/gen/video/sfu/models/models';
 import { Stage } from './Stage';
 import { Stats } from '../Stats';
@@ -10,6 +8,7 @@ import { useCall } from '../../hooks/useCall';
 import { DeviceSettings } from './DeviceSettings';
 import { MediaDevicesProvider } from '../../contexts/MediaDevicesContext';
 import { CallControls } from './CallControls';
+import { CreateCallInput } from '@stream-io/video-client';
 
 export type CallProps = {
   currentUser: string;
@@ -17,6 +16,7 @@ export type CallProps = {
   callType: string;
   autoJoin?: boolean;
   includeSelf?: boolean;
+  input?: CreateCallInput;
 };
 
 export const StreamCall = ({
@@ -25,35 +25,25 @@ export const StreamCall = ({
   callType,
   autoJoin = true,
   includeSelf = false,
+  input,
 }: CallProps) => {
-  const { activeCall, credentials } = useCall({
+  const { activeCall, activeCallMeta } = useCall({
     callId,
     callType,
     currentUser,
     autoJoin,
+    input,
   });
-
-  const sessionId = useSessionId(callId, currentUser);
-  const call = useMemo(() => {
-    if (!credentials) return;
-    const serverUrl = credentials.server?.url || 'http://localhost:3031/twirp';
-    const client = new StreamSfuClient(serverUrl, credentials.token, sessionId);
-    return new Call(client, currentUser, {
-      connectionConfig:
-        toRtcConfiguration(credentials.iceServers) ||
-        defaultRtcConfiguration(serverUrl),
-    });
-  }, [credentials, currentUser, sessionId]);
 
   const [sfuCallState, setSfuCallState] = useState<CallState>();
   useEffect(() => {
     const joinCall = async () => {
       // TODO: OL: announce bitrates by passing down MediaStream to .join()
-      const callState = await call?.join();
+      const callState = await activeCall?.join();
       setSfuCallState(callState);
     };
 
-    if (activeCall?.createdByUserId === currentUser || autoJoin) {
+    if (activeCallMeta?.createdByUserId === currentUser || autoJoin) {
       // initiator, immediately joins the call
       joinCall().catch((e) => {
         console.error(`Error happened while joining a call`, e);
@@ -62,99 +52,48 @@ export const StreamCall = ({
     }
 
     return () => {
-      call?.leave();
+      activeCall?.leave();
     };
-  }, [activeCall?.createdByUserId, autoJoin, call, currentUser]);
+  }, [activeCall, autoJoin, activeCallMeta, currentUser]);
 
   const videoClient = useStreamVideoClient();
   return (
-    <MediaDevicesProvider call={call}>
+    <MediaDevicesProvider call={activeCall}>
       <div className="str-video__call">
         {sfuCallState && (
           <>
-            {activeCall && (
+            {activeCallMeta && (
               <div className="str-video__call__header">
                 <h4 className="str-video__call__header-title">
-                  {activeCall.type}:{activeCall.id}
+                  {activeCallMeta.type}:{activeCallMeta.id}
                 </h4>
                 <DeviceSettings />
               </div>
             )}
-            {call && (
+            {activeCall && (
               <>
                 <Stage
                   participants={sfuCallState.participants}
-                  call={call}
+                  call={activeCall}
                   includeSelf={includeSelf}
                   currentUserId={currentUser}
                 />
-                <CallControls call={call} />
+                <CallControls call={activeCall} />
               </>
             )}
-            {activeCall && (
-              <Ping activeCall={activeCall} currentUser={currentUser} />
+            {activeCallMeta && (
+              <Ping activeCall={activeCallMeta} currentUser={currentUser} />
             )}
-            {videoClient && activeCall && call && (
-              <Stats client={videoClient} call={call} activeCall={activeCall} />
+            {videoClient && activeCall && activeCallMeta && (
+              <Stats
+                client={videoClient}
+                call={activeCall}
+                activeCall={activeCallMeta}
+              />
             )}
           </>
         )}
       </div>
     </MediaDevicesProvider>
   );
-};
-
-const toRtcConfiguration = (config?: ICEServer[]) => {
-  if (!config || config.length === 0) return undefined;
-  const rtcConfig: RTCConfiguration = {
-    iceServers: config.map((ice) => ({
-      urls: ice.urls,
-      username: ice.username,
-      credential: ice.password,
-    })),
-  };
-  return rtcConfig;
-};
-
-const defaultRtcConfiguration = (sfuUrl: string): RTCConfiguration => ({
-  iceServers: [
-    {
-      urls: 'stun:stun.l.google.com:19302',
-    },
-    {
-      urls: `turn:${hostnameFromUrl(sfuUrl)}:3478`,
-      username: 'video',
-      credential: 'video',
-    },
-  ],
-});
-
-const hostnameFromUrl = (url: string) => {
-  try {
-    return new URL(url).hostname;
-  } catch (e) {
-    console.warn(`Invalid URL. Can't extract hostname from it.`, e);
-    return url;
-  }
-};
-
-const useSessionId = (callId: string, currentUser: string) => {
-  return useMemo(() => {
-    const callKey = callId + '|' + currentUser;
-    let sessions: { [callKey: string]: string };
-    try {
-      sessions = JSON.parse(
-        localStorage.getItem('@stream.io/sessions') || '{}',
-      );
-    } catch (e) {
-      sessions = {};
-    }
-
-    if (!sessions[callKey]) {
-      sessions[callKey] = uuidv4();
-      localStorage.setItem('@stream.io/sessions', JSON.stringify(sessions));
-    }
-
-    return sessions[callKey];
-  }, [callId, currentUser]);
 };

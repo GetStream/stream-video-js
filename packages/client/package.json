@@ -16,11 +16,13 @@
     "@protobuf-ts/twirp-transport": "^2.8.1",
     "rxjs": "^7.5.7",
     "sdp-transform": "^2.14.1",
+    "uuid": "^9.0.0",
     "webrtc-adapter": "^8.1.2"
   },
   "devDependencies": {
     "@types/rimraf": "^3.0.2",
     "@types/sdp-transform": "^2.4.5",
+    "@types/uuid": "^8.3.4",
     "rimraf": "^3.0.2",
     "typedoc": "^0.23.16",
     "typedoc-plugin-markdown": "^3.13.6",

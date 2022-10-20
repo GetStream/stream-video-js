@@ -7,6 +7,7 @@ import { createSignalClient, withHeaders } from './rpc';
 import { createWebSocketSignalChannel } from './rtc/signal';
 import { SfuRequest } from './gen/video/sfu/event/events';
 import { Dispatcher } from './rtc/Dispatcher';
+import { v4 as uuidv4 } from 'uuid';
 
 const hostnameFromUrl = (url: string) => {
   try {
@@ -37,9 +38,9 @@ export class StreamSfuClient {
   signalReady: Promise<WebSocket>;
   private keepAliveInterval: any;
 
-  constructor(url: string, token: string, sessionId: string) {
+  constructor(url: string, token: string, sessionId?: string) {
     this.sfuHost = hostnameFromUrl(url);
-    this.sessionId = sessionId;
+    this.sessionId = sessionId || uuidv4();
     this.token = token;
     this.rpc = createSignalClient({
       baseUrl: url,

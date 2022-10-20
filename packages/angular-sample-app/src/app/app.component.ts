@@ -43,6 +43,11 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       }),
     );
+    this.subscriptions.push(
+      this.videoService.activeCall$.subscribe((c) =>
+        console.log('Store changed', c),
+      ),
+    );
   }
 
   ngOnDestroy(): void {
@@ -50,7 +55,13 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private async joinCall(id: string, type = 'default') {
-    // call client.joinCall which should take care of everything
+    const call = await this.videoService.videoClient?.joinCall({
+      id,
+      type,
+      datacenterId: 'amsterdam',
+    });
+    await call?.join();
+    console.log('joined call');
   }
 
   private async getOwnMediaStream() {
