@@ -3,7 +3,7 @@ name: React Native Dogfood Release
 on:
   push:
     paths:
-      - "packages/react-native-dogfood/**"
+      - 'packages/react-native-dogfood/**'
     branches:
       - main
 
@@ -74,8 +74,8 @@ jobs:
           bundler-cache: true
       - uses: actions/setup-java@v3
         with:
-          distribution: "zulu"
-          java-version: "11"
+          distribution: 'zulu'
+          java-version: '11'
           check-latest: true
       - name: Install Yarn dependencies
         uses: nick-invision/retry@v2
