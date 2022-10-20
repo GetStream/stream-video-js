@@ -50,6 +50,9 @@ export const useCall = ({
       });
       if (callMetadata) {
         setActiveCallMeta(callMetadata.call);
+        if (autoJoin) {
+          joinCall(callId, callType);
+        }
       }
     };
 
@@ -68,7 +71,7 @@ export const useCall = ({
 
       console.log(`Call created`, event, call);
       // initiator, immediately joins the call
-      if (call.createdByUserId === currentUser) {
+      if (call.createdByUserId === currentUser || autoJoin) {
         joinCall(call.id, call.type).then(() => {
           console.log(`Joining call with id:${call.id}`);
         });
