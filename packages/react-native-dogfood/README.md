@@ -5,8 +5,9 @@
 1. Clone the repo
 2. Run `yarn` to install dependencies
 3. Run `yarn build:all` to build all dependencies
-4. Run `npx pod-install` to install pods (ios only)
-5. Run `start:react-native:ios:dogfood` and/or `start:react-native:android:dogfood` to run the app
+4. Run `cd packages/react-native-dogfood/` to start the app
+5. Run `npx pod-install` to install pods (ios only)
+6. Run `start:react-native:ios:dogfood` and/or `start:react-native:android:dogfood` to run the app
 
 ## Invite links to install app on devices
 
