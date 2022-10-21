@@ -31,6 +31,12 @@ export const createSubscriber = ({
       peerType: PeerType.SUBSCRIBER,
     });
   });
+  subscriber.addEventListener('icecandidateerror', (e) => {
+    console.error(`Subscriber: ICE Candidate error`, e);
+  });
+  subscriber.addEventListener('iceconnectionstatechange', (e) => {
+    console.log(`Subscriber: ICE Connection state changed`, e);
+  });
 
   if (onTrack) {
     subscriber.addEventListener('track', onTrack);
