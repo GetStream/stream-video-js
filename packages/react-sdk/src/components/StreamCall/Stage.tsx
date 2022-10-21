@@ -98,7 +98,7 @@ export const Stage = (props: {
 
         return (
           <ParticipantBox
-            key={userId}
+            key={`${userId}/${participant.sessionId}`}
             participant={participant}
             isLocalParticipant={isLocalParticipant}
             isMuted={isAutoMuted}
