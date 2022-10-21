@@ -32,3 +32,8 @@ Run the application `yarn start:angular:app` (make sure the server is already ru
 You can override the default config params in `packages/angular-sample-app/src/environments/environment.ts`
 
 Navigate to `localhost:4200?callid=<call-id>` to join an existing call
+
+
+### React Native
+
+Run the application by following these [steps](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-dogfood/README.md)
