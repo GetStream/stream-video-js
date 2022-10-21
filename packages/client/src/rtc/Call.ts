@@ -151,13 +151,12 @@ export class Call {
     return new Promise<CallState | undefined>((resolve) => {
       this.client.dispatcher.on('joinResponse', (event) => {
         if (event.eventPayload.oneofKind === 'joinResponse') {
-          const callState = event.eventPayload.joinResponse.callState;
+          const { callState } = event.eventPayload.joinResponse;
           callState?.participants.forEach((p) => {
             this.participantMapping[p.trackLookupPrefix!] = p.user!.id;
           });
           this.client.keepAlive();
           resolve(callState);
-          resolve(event.eventPayload.joinResponse.callState);
         }
       });
     });
