@@ -37,11 +37,6 @@ jobs:
       - name: Release packages
         run: echo 'TODO'
 
-  vercel-deploy:
-    runs-on: ubuntu-latest
-    needs:
-      - test-and-build
-    steps:
       - name: Deploy Stream Calls to Vercel
         run: |
           cd packages/react-dogfood
