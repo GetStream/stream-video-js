@@ -1,32 +1,50 @@
 name: Test and release
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 on: [push]
 
 jobs:
-  workflow:
+  test-and-build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [18.x]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
       - name: Node ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
+
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
+
       - name: Lint Packages
         run: yarn lint:ci:all
+
       - name: Build packages
-        env:
-          STREAM_COORDINATOR_RPC_URL: http://localhost:26991/rpc/
-          STREAM_COORDINATOR_WS_URL: ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect
         run: yarn build:all
+
       - name: Test packages
         run: yarn test:ci:all
+
       - name: Release packages
         run: echo 'TODO'
+
+  vercel-deploy:
+    runs-on: ubuntu-latest
+    needs:
+      - test-and-build
+    steps:
+      - name: Deploy Stream Calls to Vercel
+        run: |
+          cd packages/react-dogfood
+          npx vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          npx vercel build --token=${{ secrets.VERCEL_TOKEN }}
+          npx vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}

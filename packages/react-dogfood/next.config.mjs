@@ -17,7 +17,7 @@ const nextConfig = {
   },
 
   async rewrites() {
-    const coordinatorApiUrl = process.env.STREAM_COORDINATOR_RPC_URL;
+    const coordinatorApiUrl = process.env.STREAM_COORDINATOR_RPC_URL || '/';
     return [
       {
         source: '/rpc/:path*',
