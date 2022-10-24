@@ -23,7 +23,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Lint Packages
         run: yarn lint:ci:all
@@ -39,7 +39,5 @@ jobs:
 
       - name: Deploy Stream Calls to Vercel
         run: |
-          cd packages/react-dogfood
-          npx vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-          npx vercel build --token=${{ secrets.VERCEL_TOKEN }}
-          npx vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+          npx vercel pull --cwd=./packages/react-dogfood --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          npx vercel deploy --cwd=./packages/react-dogfood --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
