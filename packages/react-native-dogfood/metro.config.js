@@ -1,27 +1,17 @@
-const path = require('path');
+const { makeMetroConfig } = require('@rnx-kit/metro-config');
+const MetroSymlinksResolver = require('@rnx-kit/metro-resolver-symlinks');
+const { getDefaultConfig } = require('metro-config');
 
-const getWorkspaces = require('get-yarn-workspaces');
-const exclusionList = require('metro-config/src/defaults/exclusionList');
-
-const workspaces = getWorkspaces(__dirname);
-
-module.exports = {
-  projectRoot: path.resolve(__dirname, '.'),
-
-  watchFolders: [path.resolve(__dirname, '../../node_modules'), ...workspaces],
-
-  resolver: {
-    blacklistRE: exclusionList(
-      workspaces.map(
-        (workspacePath) =>
-          `/${workspacePath.replace(
-            /\//g,
-            '[/\\\\]',
-          )}[/\\\\]node_modules[/\\\\]react-native[/\\\\].*/`,
-      ),
-    ),
-    extraNodeModules: {
-      'react-native': path.resolve(__dirname, 'node_modules/react-native'),
+const getConfig = async () => {
+  const defaultConfig = await getDefaultConfig();
+  const config = makeMetroConfig({
+    resolver: {
+      resolveRequest: MetroSymlinksResolver(),
+      // add any custom asset options here (if any).. example "bin"
+      assetExts: [...defaultConfig.resolver.assetExts],
     },
-  },
+  });
+  return config;
 };
+
+module.exports = getConfig();
