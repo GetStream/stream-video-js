@@ -4338,7 +4338,7 @@ __metadata:
     react-native-screens: ^3.18.1
     react-native-svg: ^13.2.0
     react-native-url-polyfill: ^1.3.0
-    react-native-webrtc: 106.0.0-beta.3
+    react-native-webrtc: 106.0.0-beta.5
     rxjs: ^7.5.7
     sdp-transform: ^2.14.1
     text-encoding-polyfill: ^0.6.7
@@ -17808,9 +17808,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-webrtc@npm:106.0.0-beta.3":
-  version: 106.0.0-beta.3
-  resolution: "react-native-webrtc@npm:106.0.0-beta.3"
+"react-native-webrtc@npm:106.0.0-beta.5":
+  version: 106.0.0-beta.5
+  resolution: "react-native-webrtc@npm:106.0.0-beta.5"
   dependencies:
     adm-zip: 0.5.9
     base64-js: 1.5.1
@@ -17819,7 +17819,7 @@ __metadata:
     tar: 6.1.11
   peerDependencies:
     react-native: ">=0.60.0"
-  checksum: 4101610cd6c24add488b5889527110695712da49d8392b6e013007c15b0ed56a4b8c650891b3eb65b9d3cded7c19d6db2c5551dedf3a9ac28b1cb481d669a656
+  checksum: c5003ac000afc9f72d74deca89d30dd2a5f5a0d31152758094cbf962883dbd467cec30b70ee0f6cae127923b8970fe1589043e6d9bd7e6f73d071eec6f46d9e7
   languageName: node
   linkType: hard
 
