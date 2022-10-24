@@ -37,7 +37,11 @@ jobs:
       - name: Release packages
         run: echo 'TODO'
 
-      - name: Deploy Stream Calls to Vercel
-        run: |
-          npx vercel pull --cwd=./packages/react-dogfood --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-          npx vercel deploy --cwd=./packages/react-dogfood --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Pull Vercel config
+        run: yarn vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Vercel Build
+        run: yarn vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Vercel Deploy
+        run: yarn vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
