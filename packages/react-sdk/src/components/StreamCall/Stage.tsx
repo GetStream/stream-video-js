@@ -3,11 +3,15 @@ import {
   Participant,
   VideoDimension,
 } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Call } from '@stream-io/video-client';
 import { useParticipantStreams } from '../../hooks/useParticipantStreams';
 import { useParticipants } from '../../hooks/useParticipants';
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';
+import { useIsDebugMode } from '../../hooks/useIsDebugMode';
+import { SfuEvent } from '@stream-io/video-client/dist/src/gen/video/sfu/event/events';
+
+type UserSubscriptions = { [key: string]: VideoDimension };
 
 export const Stage = (props: {
   call: Call;
@@ -43,9 +47,9 @@ export const Stage = (props: {
   );
 
   const gridRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const requestSubscriptions = async () => {
-      const subscriptions: { [key: string]: VideoDimension } = {};
+  const requestSubscriptions = useCallback(
+    async (overrides?: UserSubscriptions) => {
+      const subscriptions: UserSubscriptions = {};
       Object.entries(videoElementsByUserId.current).forEach(
         ([userId, element]) => {
           if (!element) return;
@@ -58,12 +62,19 @@ export const Stage = (props: {
           };
         },
       );
+
+      Object.assign(subscriptions, overrides);
+
       if (Object.keys(subscriptions).length > 0) {
         call.updateSubscriptions(subscriptions).catch((e: Error) => {
           console.error(`Failed to update subscriptions`, e);
         });
       }
-    };
+    },
+    [call, currentUserId, includeSelf],
+  );
+
+  useEffect(() => {
     requestSubscriptions().catch((e) => {
       console.error(e);
     });
@@ -76,7 +87,7 @@ export const Stage = (props: {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [call, currentUserId, includeSelf, participants]);
+  }, [requestSubscriptions]);
 
   const grid = `str-video__grid-${participants.length || 1}`;
   return (
@@ -105,6 +116,8 @@ export const Stage = (props: {
             audioStream={audioStream}
             videoStream={videoStream}
             updateVideoElementForUserId={updateVideoElementForUserId}
+            call={call}
+            updateSubscriptionsPartial={requestSubscriptions}
           />
         );
       })}
@@ -122,6 +135,10 @@ const ParticipantBox = (props: {
     userId: string,
     element: HTMLVideoElement | null,
   ) => void;
+  call: Call;
+  updateSubscriptionsPartial?: (
+    partialSubscriptions: UserSubscriptions,
+  ) => Promise<void>;
 }) => {
   const {
     audioStream,
@@ -130,6 +147,8 @@ const ParticipantBox = (props: {
     isLocalParticipant,
     isMuted = false,
     updateVideoElementForUserId,
+    call,
+    updateSubscriptionsPartial,
   } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -166,6 +185,7 @@ const ParticipantBox = (props: {
     };
   }, [audioStream]);
 
+  const isDebugMode = useIsDebugMode();
   return (
     <div className="str-video__participant">
       <audio autoPlay ref={audioRef} muted={isMuted} />
@@ -182,8 +202,83 @@ const ParticipantBox = (props: {
         <span className="str-video__participant_name">
           {participant.user?.id}
         </span>
+        {isDebugMode && (
+          <span>
+            <DebugParticipantPublishQuality
+              updateSubscriptionsPartial={updateSubscriptionsPartial}
+              userId={participant.user!.id}
+              call={call}
+            />
+          </span>
+        )}
       </div>
     </div>
+  );
+};
+
+const DebugParticipantPublishQuality = (props: {
+  userId: string;
+  call: Call;
+  updateSubscriptionsPartial?: (
+    partialSubscriptions: UserSubscriptions,
+  ) => Promise<void>;
+}) => {
+  const { call, userId, updateSubscriptionsPartial } = props;
+  const [quality, setQuality] = useState<string>();
+  const [publishStats, setPublishStats] = useState(() => ({
+    f: true,
+    h: true,
+    q: true,
+  }));
+
+  useEffect(() => {
+    return call.on('changePublishQuality', (event: SfuEvent) => {
+      if (event.eventPayload.oneofKind !== 'changePublishQuality') return;
+      const { videoSenders } = event.eventPayload.changePublishQuality;
+      // FIXME OL: support additional layers (like screenshare)
+      const [videoLayer] = videoSenders.map(({ layers }) => {
+        return layers.map((l) => ({ [l.name]: l.active }));
+      });
+      // @ts-ignore
+      setPublishStats((s) => ({
+        ...s,
+        ...videoLayer,
+      }));
+    });
+  }, [call]);
+
+  return (
+    <select
+      title={`Published tracks: ${JSON.stringify(publishStats)}`}
+      value={quality}
+      onChange={(e) => {
+        const value = e.target.value;
+        setQuality(value);
+        if (updateSubscriptionsPartial) {
+          let w = 1280;
+          let h = 720;
+          if (value === 'h') {
+            w = 640;
+            h = 480;
+          } else if (value === 'q') {
+            w = 320;
+            h = 240;
+          }
+          updateSubscriptionsPartial({
+            [userId]: {
+              width: w,
+              height: h,
+            },
+          }).catch((e) => {
+            console.warn(`Failed to update partial user subscriptions`, e);
+          });
+        }
+      }}
+    >
+      <option value="f">High (f)</option>
+      <option value="h">Medium (h)</option>
+      <option value="q">Low (q)</option>
+    </select>
   );
 };
 
