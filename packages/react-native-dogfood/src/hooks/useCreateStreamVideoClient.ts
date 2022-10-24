@@ -1,5 +1,8 @@
 import { useEffect } from 'react';
-import { useAppGlobalStore } from '../contexts/AppContext';
+import {
+  useAppGlobalStoreValue,
+  useAppGlobalStoreSetState,
+} from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/jwt';
 import { StreamVideoClient, UserInput } from '@stream-io/video-client';
 
@@ -18,9 +21,8 @@ export const useCreateStreamVideoClient = ({
   apiSecret,
   user,
 }: StreamVideoClientInit) => {
-  const [{ videoClient }, setState] = useAppGlobalStore((store) => ({
-    videoClient: store.videoClient,
-  }));
+  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const setState = useAppGlobalStoreSetState();
   useEffect(() => {
     const connectionRef: {
       interrupted: boolean;

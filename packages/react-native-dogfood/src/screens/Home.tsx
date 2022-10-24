@@ -17,7 +17,10 @@ import { StreamSfuClient, UserInput } from '@stream-io/video-client';
 import { useCreateStreamVideoClient } from '../hooks/useCreateStreamVideoClient';
 import { useCall } from '../hooks/useCall';
 import { useSessionId } from '../hooks/useSessionId';
-import { useAppGlobalStore } from '../contexts/AppContext';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../contexts/AppContext';
 
 // export const SFU_HOSTNAME = "192.168.2.24";
 // const SFU_URL = `http://${SFU_HOSTNAME}:3031/twirp`;
@@ -30,13 +33,15 @@ const APP_ID = 'streamrnvideosample';
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export default ({ navigation }: Props) => {
-  const [{ username, callID, loopbackMyVideo, localMediaStream }, setState] =
-    useAppGlobalStore((store) => ({
-      username: store.username,
-      callID: store.callID,
-      loopbackMyVideo: store.loopbackMyVideo,
-      localMediaStream: store.localMediaStream,
-    }));
+  const username = useAppGlobalStoreValue((store) => store.username);
+  const callID = useAppGlobalStoreValue((store) => store.callID);
+  const loopbackMyVideo = useAppGlobalStoreValue(
+    (store) => store.loopbackMyVideo,
+  );
+  const localMediaStream = useAppGlobalStoreValue(
+    (store) => store.localMediaStream,
+  );
+  const setState = useAppGlobalStoreSetState();
 
   const user = useMemo<UserInput>(
     () => ({

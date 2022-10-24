@@ -7,14 +7,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import VideoRenderer from '../containers/VideoRenderer';
 import { RootStackParamList } from '../../types';
 import { Stats } from '../components/Stats';
-import { useAppGlobalStore } from '../contexts/AppContext';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../contexts/AppContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ActiveCall'>;
 
 export default (_props: Props) => {
-  const [{ call }, setState] = useAppGlobalStore((store) => ({
-    call: store.call,
-  }));
+  const call = useAppGlobalStoreValue((store) => store.call);
+  const setState = useAppGlobalStoreSetState();
 
   useEffect(() => {
     if (!call) {

@@ -3,14 +3,16 @@ import InCallManager from 'react-native-incall-manager';
 import ButtonContainer from './ButtonContainer';
 import PhoneDown from '../../icons/PhoneDown';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { useAppGlobalStore } from '../../contexts/AppContext';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../../contexts/AppContext';
 import { RootStackParamList } from '../../../types';
 
 const PhoneButton = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const [{ call }, setState] = useAppGlobalStore((store) => ({
-    call: store.call,
-  }));
+  const setState = useAppGlobalStoreSetState();
+  const call = useAppGlobalStoreValue((store) => store.call);
   const resetCallState = useRef(() => {
     setState((prevState) => {
       const newState: Partial<typeof prevState> = {};

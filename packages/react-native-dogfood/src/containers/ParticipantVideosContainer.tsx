@@ -12,8 +12,8 @@ import {
 import { useMuteState } from '../hooks/useMuteState';
 import MicOff from '../icons/MicOff';
 import Mic from '../icons/Mic';
-import { useAppGlobalStore } from '../contexts/AppContext';
 import { VideoDimension } from '@stream-io/video-client/src/gen/video/sfu/models/models';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
 
 type UserStreamMap = {
   [userId: string]: MediaStream | undefined;
@@ -71,22 +71,13 @@ const styles = StyleSheet.create({
 });
 
 const ParticipantVideosContainer = () => {
-  const [
-    {
-      call,
-      sfuClient,
-      participants,
-      loopbackMyVideo,
-      username: currentUserName,
-    },
-  ] = useAppGlobalStore((store) => ({
-    call: store.call,
-    username: store.username,
-    isAudioMuted: store.isAudioMuted,
-    sfuClient: store.sfuClient,
-    participants: store.participants,
-    loopbackMyVideo: store.loopbackMyVideo,
-  }));
+  const call = useAppGlobalStoreValue((store) => store.call);
+  const sfuClient = useAppGlobalStoreValue((store) => store.sfuClient);
+  const participants = useAppGlobalStoreValue((store) => store.participants);
+  const currentUserName = useAppGlobalStoreValue((store) => store.username);
+  const loopbackMyVideo = useAppGlobalStoreValue(
+    (store) => store.loopbackMyVideo,
+  );
   const [userAudioStreams, setUserAudioStreams] = useState<UserStreamMap>({});
   const [userVideoStreams, setUserVideoStreams] = useState<UserStreamMap>({});
   const [videoViewByUserId, setVideoViewByUserId] = useState<{

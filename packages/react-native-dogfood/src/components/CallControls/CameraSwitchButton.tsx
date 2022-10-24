@@ -1,13 +1,16 @@
 import React from 'react';
 import ButtonContainer from './ButtonContainer';
 import CameraSwitch from '../../icons/CameraSwitch';
-import { useAppGlobalStore } from '../../contexts/AppContext';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../../contexts/AppContext';
 
 const CameraSwitchButton = () => {
-  const [{ localMediaStream }, setState] = useAppGlobalStore((store) => ({
-    localMediaStream: store.localMediaStream,
-  }));
-
+  const setState = useAppGlobalStoreSetState();
+  const localMediaStream = useAppGlobalStoreValue(
+    (store) => store.localMediaStream,
+  );
   const toggleCamera = async () => {
     if (localMediaStream) {
       const [primaryVideoTrack] = localMediaStream.getVideoTracks();

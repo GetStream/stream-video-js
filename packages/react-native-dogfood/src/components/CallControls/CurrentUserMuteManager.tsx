@@ -1,17 +1,17 @@
 import { useEffect } from 'react';
-import { useAppGlobalStore } from '../../contexts/AppContext';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../../contexts/AppContext';
 import { useMuteState } from '../../hooks/useMuteState';
 
 const CurrentUserMuteManager = () => {
-  const [{ call, localMediaStream, username }, setState] = useAppGlobalStore(
-    (store) => ({
-      call: store.call,
-      localMediaStream: store.localMediaStream,
-      isAudioMuted: store.isAudioMuted,
-      isVideoMuted: store.isVideoMuted,
-      username: store.username,
-    }),
+  const localMediaStream = useAppGlobalStoreValue(
+    (store) => store.localMediaStream,
   );
+  const call = useAppGlobalStoreValue((store) => store.call);
+  const username = useAppGlobalStoreValue((store) => store.username);
+  const setState = useAppGlobalStoreSetState();
   const { isAudioMuted, isVideoMuted } = useMuteState(
     username,
     call,

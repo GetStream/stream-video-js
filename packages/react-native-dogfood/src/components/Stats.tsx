@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAppGlobalStore } from '../contexts/AppContext';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
 
 const intervalMs = 15000;
 
@@ -13,11 +13,9 @@ const getStats = (stats: RTCStatsReport) => {
 };
 
 export const Stats = () => {
-  const [{ videoClient, call, activeCall }] = useAppGlobalStore((store) => ({
-    videoClient: store.videoClient,
-    call: store.call,
-    activeCall: store.activeCall,
-  }));
+  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const call = useAppGlobalStoreValue((store) => store.call);
+  const activeCall = useAppGlobalStoreValue((store) => store.activeCall);
   useEffect(() => {
     if (videoClient && call && activeCall) {
       const intervalId = setInterval(async () => {

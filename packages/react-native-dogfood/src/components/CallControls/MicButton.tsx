@@ -2,15 +2,13 @@ import React from 'react';
 import Mic from '../../icons/Mic';
 import MicOff from '../../icons/MicOff';
 import ButtonContainer from './ButtonContainer';
-import { useAppGlobalStore } from '../../contexts/AppContext';
+import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 
 const MicButton = () => {
-  const [{ isAudioMuted, sfuClient, localMediaStream }] = useAppGlobalStore(
-    (store) => ({
-      isAudioMuted: store.isAudioMuted,
-      sfuClient: store.sfuClient,
-      localMediaStream: store.localMediaStream,
-    }),
+  const isAudioMuted = useAppGlobalStoreValue((store) => store.isAudioMuted);
+  const sfuClient = useAppGlobalStoreValue((store) => store.sfuClient);
+  const localMediaStream = useAppGlobalStoreValue(
+    (store) => store.localMediaStream,
   );
   const toggleAudioState = async () => {
     if (localMediaStream && sfuClient) {

@@ -29,19 +29,23 @@ interface AppGlobalStore {
 
 export const {
   Provider: AppGlobalContextProvider,
-  useStore: useAppGlobalStore,
-} = createStoreContext<AppGlobalStore>({
-  callID: '',
-  username: '',
-  videoClient: undefined,
-  sfuClient: undefined,
-  localMediaStream: undefined,
-  call: undefined,
-  activeCall: undefined,
-  loopbackMyVideo: false,
-  callState: undefined,
-  participants: [],
-  isAudioMuted: false,
-  isVideoMuted: false,
-  cameraBackFacingMode: false,
-});
+  useStoreValue: useAppGlobalStoreValue,
+  useStoreSetState: useAppGlobalStoreSetState,
+} = createStoreContext<AppGlobalStore>(
+  {
+    callID: '',
+    username: '',
+    videoClient: undefined,
+    sfuClient: undefined,
+    localMediaStream: undefined,
+    call: undefined,
+    activeCall: undefined,
+    loopbackMyVideo: false,
+    callState: undefined,
+    participants: [],
+    isAudioMuted: false,
+    isVideoMuted: false,
+    cameraBackFacingMode: false,
+  },
+  ['callID', 'username'],
+);

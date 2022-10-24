@@ -2,15 +2,13 @@ import React from 'react';
 import ButtonContainer from './ButtonContainer';
 import VideoSlash from '../../icons/VideoSlash';
 import Video from '../../icons/Video';
-import { useAppGlobalStore } from '../../contexts/AppContext';
+import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 
 const VideoButton = () => {
-  const [{ isVideoMuted, sfuClient, localMediaStream }] = useAppGlobalStore(
-    (store) => ({
-      isVideoMuted: store.isVideoMuted,
-      sfuClient: store.sfuClient,
-      localMediaStream: store.localMediaStream,
-    }),
+  const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
+  const sfuClient = useAppGlobalStoreValue((store) => store.sfuClient);
+  const localMediaStream = useAppGlobalStoreValue(
+    (store) => store.localMediaStream,
   );
   const toggleVideoState = async () => {
     if (localMediaStream && sfuClient) {
