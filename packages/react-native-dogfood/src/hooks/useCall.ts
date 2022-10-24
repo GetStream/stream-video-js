@@ -30,20 +30,18 @@ export const useCall = ({
       if (!videoClient) {
         return;
       }
-      const { call: callEnvelope, edges } = await videoClient.joinCall({
+      const result = await videoClient.joinCallRaw({
         id,
         type,
         // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
         datacenterId: 'amsterdam',
       });
-
-      if (callEnvelope && callEnvelope.call && edges) {
-        const edge = await videoClient.getCallEdgeServer(
-          callEnvelope.call,
-          edges,
-        );
-        setActiveCall(callEnvelope.call);
-        setCredentials(edge.credentials);
+      if (result) {
+        const { response, edge } = result;
+        if (response.call && response.call.call && response.edges) {
+          setActiveCall(response.call.call);
+          setCredentials(edge?.credentials);
+        }
       }
     },
     [videoClient],
@@ -53,7 +51,7 @@ export const useCall = ({
     if (!videoClient) {
       return;
     }
-    const { call: callMetadata } = await videoClient.getOrCreateCall({
+    const callMetadata = await videoClient.getOrCreateCall({
       id: callId,
       type: callType,
     });
@@ -73,8 +71,6 @@ export const useCall = ({
         console.warn("Can't find call in CallCreated event");
         return;
       }
-
-      console.log('Call created', event, call);
       // initiator, immediately joins the call
       if (call.createdByUserId === currentUser) {
         joinCall(call.id, call.type).then(() => {
