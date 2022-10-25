@@ -68,7 +68,6 @@ export class Call {
   signalChannel: RTCDataChannel | undefined;
   transceiver: RTCRtpTransceiver | undefined;
   videoLayers: SfuModels.VideoLayer[] = DEFAULT_VIDEO_LAYERS;
-  // FIXME: SANTHOSH - this was copied from shared client, had no use when copied
   publisherCandidates: any[] = [];
   subscriberCandidates: any[] = [];
   participantMapping: { [key: string]: string } = {};
