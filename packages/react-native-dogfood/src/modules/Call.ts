@@ -102,12 +102,14 @@ export class Call {
         console.log('Got remote track:', e.track);
         this.handleOnTrack?.(e);
       },
-      candidates: this.subscriberCandidates,
+      getCandidates: () => this.subscriberCandidates,
+      clearCandidates: () => (this.subscriberCandidates = []),
     });
     this.publisher = createPublisher({
       rpcClient: this.client,
       connectionConfig: this.connectionConfig,
-      candidates: this.publisherCandidates,
+      getCandidates: () => this.publisherCandidates,
+      clearCandidates: () => (this.publisherCandidates = []),
     });
     registerEventHandlers(this);
   }
@@ -179,14 +181,12 @@ export class Call {
     // FIXME: make it nicer
     return new Promise<CallState | undefined>((resolve) => {
       this.client.dispatcher.on('joinResponse', (event) => {
-        console.log(' got join response ', event);
         if (event.eventPayload.oneofKind === 'joinResponse') {
           const callState = event.eventPayload.joinResponse.callState;
           callState?.participants.forEach((p) => {
             this.participantMapping[p.trackLookupPrefix!] = p.user!.id;
           });
           this.client.keepAlive();
-          console.log('resolved callState');
           resolve(callState);
         }
       });

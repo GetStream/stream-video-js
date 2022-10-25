@@ -6,20 +6,21 @@ import { RTCConfiguration } from '../../types';
 export type PublisherOpts = {
   rpcClient: StreamSfuClient;
   connectionConfig?: RTCConfiguration;
-  candidates: any[];
+  getCandidates: () => any[];
+  clearCandidates: () => void;
 };
 
 export const createPublisher = ({
   connectionConfig,
   rpcClient,
-  candidates,
+  getCandidates,
+  clearCandidates,
 }: PublisherOpts) => {
   const publisher = new RTCPeerConnection(connectionConfig);
   publisher.addEventListener('icecandidate', async (e) => {
     // @ts-ignore
     const { candidate } = e;
     if (!candidate) {
-      console.log('null ice candidate');
       return;
     }
 
@@ -27,8 +28,6 @@ export const createPublisher = ({
     const ufragIndex =
       splittedCandidate.findIndex((s: string) => s === 'ufrag') + 1;
     const usernameFragment = splittedCandidate[ufragIndex];
-    console.log('********/n splittedCandidate', splittedCandidate);
-    console.log('********/n usernameFragment', usernameFragment);
     await rpcClient.rpc.iceTrickle({
       sessionId: rpcClient.sessionId,
       iceCandidate: JSON.stringify({ ...candidate, usernameFragment }),
@@ -52,11 +51,12 @@ export const createPublisher = ({
       sdp: response.response.sdp,
     });
 
+    const candidates = getCandidates();
     // ICE candidates have to be added after remoteDescription is set
     for (const candidate of candidates) {
       await publisher.addIceCandidate(candidate);
     }
-    candidates = []; // FIXME: clean the call object accordingly
+    clearCandidates();
   });
 
   return publisher;

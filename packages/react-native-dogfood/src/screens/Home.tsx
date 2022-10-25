@@ -125,9 +125,7 @@ export default ({ navigation }: Props) => {
     const joinSfuCall = async () => {
       try {
         const callState = await call.join(localMediaStream);
-        console.log('Joined SFU call', callState, localMediaStream);
         if (callState && localMediaStream) {
-          console.log('Got callstate', callState);
           InCallManager.start({ media: 'video' });
           InCallManager.setForceSpeakerphoneOn(true);
           await call.publish(localMediaStream);

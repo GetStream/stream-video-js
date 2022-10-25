@@ -9,7 +9,8 @@ export type SubscriberOpts = {
   dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
   onTrack?: (e: any) => void;
-  candidates: any[];
+  getCandidates: () => any[];
+  clearCandidates: () => void;
 };
 
 export const createSubscriber = ({
@@ -17,14 +18,14 @@ export const createSubscriber = ({
   dispatcher,
   connectionConfig,
   onTrack,
-  candidates,
+  getCandidates,
+  clearCandidates,
 }: SubscriberOpts) => {
   const subscriber = new RTCPeerConnection(connectionConfig);
   subscriber.addEventListener('icecandidate', async (e) => {
     // @ts-ignore
     const { candidate } = e;
     if (!candidate) {
-      console.log('null ice candidate');
       return;
     }
 
@@ -46,18 +47,18 @@ export const createSubscriber = ({
   dispatcher.on('subscriberOffer', async (message) => {
     if (message.eventPayload.oneofKind !== 'subscriberOffer') return;
     const { subscriberOffer } = message.eventPayload;
-    console.log('Received subscriberOffer', subscriberOffer);
 
     await subscriber.setRemoteDescription({
       type: 'offer',
       sdp: subscriberOffer.sdp,
     });
+    const candidates = getCandidates();
 
     // ICE candidates have to be added after remoteDescription is set
     for (const candidate of candidates) {
       await subscriber.addIceCandidate(candidate);
     }
-    candidates = []; // FIXME: clean the call object accordingly
+    clearCandidates();
 
     // apply ice candidates
     const answer = (await subscriber.createAnswer()) as RTCSessionDescription;
