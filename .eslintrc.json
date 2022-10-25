@@ -19,6 +19,7 @@
   "plugins": [
     "prettier"
   ],
+  "ignorePatterns": ["node_modules"],
   "rules": {
     "prettier/prettier": "error",
     "import/no-extraneous-dependencies": "error"
