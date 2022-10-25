@@ -45,9 +45,10 @@ export default (_props: Props) => {
         if (e.eventPayload.oneofKind !== 'participantJoined') {
           return;
         }
-
         const { participant } = e.eventPayload.participantJoined;
         if (participant) {
+          call.participantMapping[participant.trackLookupPrefix] =
+            participant.user!.id;
           setState((prev) => ({
             participants: [...prev.participants, participant],
           }));
@@ -61,6 +62,7 @@ export default (_props: Props) => {
 
       const { participant } = e.eventPayload.participantLeft;
       if (participant) {
+        delete call.participantMapping[participant.trackLookupPrefix];
         setState((prev) => ({
           participants: prev.participants.filter(
             (p) => p.user!.id !== participant.user!.id,

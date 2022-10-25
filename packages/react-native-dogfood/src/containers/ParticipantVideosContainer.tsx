@@ -103,7 +103,8 @@ const ParticipantVideosContainer = () => {
     }
     call.handleOnTrack = (e: any) => {
       const [primaryStream] = e.streams;
-      const [name] = primaryStream.id.split(':');
+      const [trackId] = primaryStream.id.split(':');
+      const name = call.participantMapping[trackId];
       if (e.track.kind === 'video') {
         setUserVideoStreams((s) => ({
           ...s,
@@ -117,6 +118,22 @@ const ParticipantVideosContainer = () => {
       }
     };
 
+    const unsubscribeParticipantLeft = call.on('participantLeft', (e) => {
+      if (e.eventPayload.oneofKind !== 'participantLeft') return;
+      const { participant } = e.eventPayload.participantLeft;
+      if (participant) {
+        const userId = participant.user!.id;
+        setUserVideoStreams((s) => ({
+          ...s,
+          [userId]: undefined,
+        }));
+        setUserAudioStreams((s) => ({
+          ...s,
+          [userId]: undefined,
+        }));
+      }
+    });
+
     return () => {
       // cleanup
       call.handleOnTrack = undefined;
@@ -124,6 +141,7 @@ const ParticipantVideosContainer = () => {
       setUserVideoStreams({});
       setVideoViewByUserId({});
       setSpeakers([]);
+      unsubscribeParticipantLeft();
     };
   }, [call]);
 
@@ -258,9 +276,9 @@ const ParticipantVideoContainer = ({
           style={styles.stream}
           objectFit="cover"
         />
-      ) : (
+      ) : user.avatar ? (
         <Image source={{ uri: user.avatar }} style={styles.avatar} />
-      )}
+      ) : null}
       {/* @ts-ignore */}
       {audioStream && <RTCView streamURL={audioStream.toURL()} />}
       <View
