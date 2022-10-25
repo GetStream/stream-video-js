@@ -10,26 +10,19 @@
   "scripts": {
     "start:react:sdk": "yarn workspace @stream-io/video-react-sdk run start",
     "build:react:sdk": "yarn workspace @stream-io/video-react-sdk run build",
-
     "build:react:dogfood": "yarn workspace @stream-io/video-react-dogfood run build",
     "start:react:dogfood": "yarn workspace @stream-io/video-react-dogfood run dev",
-
     "build:styling": "yarn workspace @stream-io/video-styling run build",
     "start:styling": "yarn workspace @stream-io/video-styling run start",
-
     "build:client": "yarn workspace @stream-io/video-client run build",
     "start:client": "yarn workspace @stream-io/video-client run start",
-
     "start:react:app": "yarn workspace @stream-io/video-react-sample-app run start",
     "start:angular:app": "yarn workspace @stream-io/video-angular-sample-app run start",
-
     "build:vercel": "yarn build:client && yarn build:styling && yarn build:react:sdk && yarn build:react:dogfood",
     "build:all": "yarn workspaces foreach -vt run build",
     "clean:all": "yarn workspaces foreach -vt run clean",
-
     "lint:all": "eslint --fix 'packages/**/*.{ts,tsx}'",
     "lint:ci:all": "eslint 'packages/**/*.{ts,tsx}'",
-
     "test:ci:all": "yarn workspaces foreach -vt run test:ci"
   },
   "devDependencies": {
