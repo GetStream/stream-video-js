@@ -17,7 +17,10 @@ clone them and follow their appropriate READMEs found in their root.
 
 ## Running the apps
 
-### React
+### React Dogfood app (aka: Stream Calls)
+1. Follow the setup procedure in [packages/react-dogfood](packages/react-dogfood/README.md)
+
+### React Sample app
 
 Run the application `yarn start:react:app` (make sure the server is already running)
 
