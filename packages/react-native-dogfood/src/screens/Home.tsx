@@ -171,7 +171,7 @@ export default ({ navigation }: Props) => {
         placeholderTextColor={'#8C8C8CFF'}
         value={username}
         onChangeText={(text) => {
-          setState({ username: text.trim().replace(/\s/g, '-') }); // replace spaces with dashes as spaces are not allowed in usernames
+          setState({ username: text.replace(/\s/g, '-') }); // replace spaces with dashes as spaces are not allowed in usernames
         }}
       />
       <Text style={styles.headerText}>{'Whats the call ID?'}</Text>
