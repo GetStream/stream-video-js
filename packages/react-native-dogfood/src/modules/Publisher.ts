@@ -22,9 +22,16 @@ export const createPublisher = ({
       console.log('null ice candidate');
       return;
     }
+
+    const splittedCandidate = candidate.candidate.split(' ');
+    const ufragIndex =
+      splittedCandidate.findIndex((s: string) => s === 'ufrag') + 1;
+    const usernameFragment = splittedCandidate[ufragIndex];
+    console.log('********/n splittedCandidate', splittedCandidate);
+    console.log('********/n usernameFragment', usernameFragment);
     await rpcClient.rpc.iceTrickle({
       sessionId: rpcClient.sessionId,
-      iceCandidate: JSON.stringify(candidate.toJSON()),
+      iceCandidate: JSON.stringify({ ...candidate, usernameFragment }),
       peerType: PeerType.PUBLISHER_UNSPECIFIED,
     });
   });

@@ -5,8 +5,8 @@ import { DEFAULT_VIDEO_LAYERS, findOptimalVideoLayers } from './VideoLayers';
 import {
   Credentials,
   ICEServer,
-  StreamSfuClient,
   SfuModels,
+  StreamSfuClient,
 } from '@stream-io/video-client';
 import { createSubscriber } from './Subscriber';
 import { createPublisher } from './Publisher';
@@ -17,7 +17,7 @@ import {
   CallState,
   VideoDimension,
 } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
-import { getSenderCodecs, getReceiverCodecs } from './Codecs';
+import { getReceiverCodecs, getSenderCodecs } from './Codecs';
 
 const hostnameFromUrl = (url: string) => {
   try {
@@ -205,7 +205,7 @@ export class Call {
           return {
             rid: layer.rid,
             maxBitrate: layer.bitrate,
-            scaleResolutionDownBy: Math.pow(2, index).toFixed(1),
+            scaleResolutionDownBy: Number(Math.pow(2, index).toFixed(1)),
           };
         }),
       });

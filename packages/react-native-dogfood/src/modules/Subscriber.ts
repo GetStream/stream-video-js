@@ -28,9 +28,13 @@ export const createSubscriber = ({
       return;
     }
 
+    const splittedCandidate = candidate.candidate.split(' ');
+    const ufragIndex =
+      splittedCandidate.findIndex((s: string) => s === 'ufrag') + 1;
+    const usernameFragment = splittedCandidate[ufragIndex];
     await rpcClient.rpc.iceTrickle({
       sessionId: rpcClient.sessionId,
-      iceCandidate: JSON.stringify(candidate.toJSON()),
+      iceCandidate: JSON.stringify({ ...candidate, usernameFragment }),
       peerType: PeerType.SUBSCRIBER,
     });
   });

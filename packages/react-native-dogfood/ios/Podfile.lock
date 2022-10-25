@@ -299,7 +299,7 @@ PODS:
     - RCTTypeSafety
     - React-Core
     - ReactCommon/turbomodule/core
-  - react-native-webrtc (106.0.0-beta.3):
+  - react-native-webrtc (106.0.0-beta.5):
     - JitsiWebRTC (~> 106.0.0)
     - React-Core
   - React-perflogger (0.69.5)
@@ -595,7 +595,7 @@ SPEC CHECKSUMS:
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-pure-jwt: 94a3662655c6d677acb7b16048ed69b88b93073d
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
-  react-native-webrtc: 791266737d4af19fad19cbc11d1d795a52ee21d2
+  react-native-webrtc: 7f85c08633e02fbb4dfcfd502ee034c5bf4f04e1
   React-perflogger: 367418425c5e4a9f0f80385ee1eaacd2a7348f8e
   React-RCTActionSheet: e4885e7136f98ded1137cd3daccc05eaed97d5a6
   React-RCTAnimation: 7c5a74f301c9b763343ba98a3dd776ed2676993f
