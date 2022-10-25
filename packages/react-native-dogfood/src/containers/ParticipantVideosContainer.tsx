@@ -155,7 +155,7 @@ const ParticipantVideosContainer = () => {
     if (!call) {
       return;
     }
-    call.on('audioLevelChanged', (event) => {
+    return call.on('audioLevelChanged', (event) => {
       if (event.eventPayload.oneofKind !== 'audioLevelChanged') {
         return;
       }

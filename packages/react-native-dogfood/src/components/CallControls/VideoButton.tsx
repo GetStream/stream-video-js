@@ -6,19 +6,9 @@ import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 
 const VideoButton = () => {
   const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
-  const sfuClient = useAppGlobalStoreValue((store) => store.sfuClient);
-  const localMediaStream = useAppGlobalStoreValue(
-    (store) => store.localMediaStream,
-  );
+  const call = useAppGlobalStoreValue((store) => store.call);
   const toggleVideoState = async () => {
-    if (localMediaStream && sfuClient) {
-      localMediaStream.getVideoTracks().forEach((track) => {
-        track.enabled = isVideoMuted;
-        // @ts-ignore
-        track.muted = isVideoMuted;
-      });
-      await sfuClient.updateVideoMuteState(!isVideoMuted);
-    }
+    call?.updateMuteState('video', !isVideoMuted);
   };
   return (
     <ButtonContainer

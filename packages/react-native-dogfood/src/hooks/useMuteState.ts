@@ -17,7 +17,7 @@ export const useMuteState = (
 
   useEffect(() => {
     if (call) {
-      const { unsubscribe } = call.on('muteStateChanged', (e: SfuEvent) => {
+      return call.on('muteStateChanged', (e: SfuEvent) => {
         if (e.eventPayload.oneofKind !== 'muteStateChanged') {
           return;
         }
@@ -34,7 +34,6 @@ export const useMuteState = (
           });
         }
       });
-      return unsubscribe;
     }
   }, [mediaStream, call, userId]);
 

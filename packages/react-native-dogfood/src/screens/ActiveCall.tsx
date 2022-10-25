@@ -19,6 +19,18 @@ export default (_props: Props) => {
   const setState = useAppGlobalStoreSetState();
 
   useEffect(() => {
+    return () => {
+      setState((prevState) => {
+        prevState.call?.leave();
+        return {
+          call: undefined,
+        };
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (!call) {
       return;
     }
@@ -36,7 +48,7 @@ export default (_props: Props) => {
           }));
         }
       },
-    ).unsubscribe;
+    );
     const unsubscribeParticipantLeft = call.on('participantLeft', (e) => {
       if (e.eventPayload.oneofKind !== 'participantLeft') {
         return;
@@ -50,7 +62,7 @@ export default (_props: Props) => {
           ),
         }));
       }
-    }).unsubscribe;
+    });
 
     return () => {
       unsubscribeParticipantJoined();

@@ -32,9 +32,11 @@ const PhoneButton = () => {
 
   const hangup = async () => {
     if (!call) {
+      console.warn('failed to leave call: ', 'call is undefined');
       return;
     }
     try {
+      await call.leave();
       resetCallState();
       InCallManager.stop();
       navigation.navigate('Home');

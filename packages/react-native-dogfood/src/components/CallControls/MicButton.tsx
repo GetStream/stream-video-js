@@ -6,19 +6,9 @@ import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 
 const MicButton = () => {
   const isAudioMuted = useAppGlobalStoreValue((store) => store.isAudioMuted);
-  const sfuClient = useAppGlobalStoreValue((store) => store.sfuClient);
-  const localMediaStream = useAppGlobalStoreValue(
-    (store) => store.localMediaStream,
-  );
+  const call = useAppGlobalStoreValue((store) => store.call);
   const toggleAudioState = async () => {
-    if (localMediaStream && sfuClient) {
-      localMediaStream.getAudioTracks().forEach((track) => {
-        track.enabled = isAudioMuted;
-        // @ts-ignore
-        track.muted = isAudioMuted;
-      });
-      await sfuClient.updateAudioMuteState(!isAudioMuted);
-    }
+    call?.updateMuteState('audio', !isAudioMuted);
   };
 
   return (

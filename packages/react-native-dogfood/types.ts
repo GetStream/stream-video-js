@@ -1,7 +1,15 @@
-import { SfuEvent } from './src/gen/video/sfu/event/events';
+import { SfuEvent } from '@stream-io/video-client/dist/src/gen/video/sfu/event/events';
 
 type BinaryType = 'arraybuffer' | 'blob';
 export type RTCDataChannelState = 'closed' | 'closing' | 'connecting' | 'open';
+
+export type RTCConfiguration = {
+  iceServers?: {
+    urls: string | string[];
+    username?: string;
+    credential?: string;
+  }[];
+};
 
 export interface MessageEvent<T = any> extends Event {
   /** Returns the data of the message. */

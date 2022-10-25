@@ -6,6 +6,7 @@ import {
   Text,
   Switch,
   Button,
+  Linking,
 } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -21,6 +22,7 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
+import { mediaDevices } from 'react-native-webrtc';
 
 // export const SFU_HOSTNAME = "192.168.2.24";
 // const SFU_URL = `http://${SFU_HOSTNAME}:3031/twirp`;
@@ -42,6 +44,38 @@ export default ({ navigation }: Props) => {
     (store) => store.localMediaStream,
   );
   const setState = useAppGlobalStoreSetState();
+
+  // run only once per app lifecycle
+  useEffect(() => {
+    const parseAndSetCallID = (url: string | null) => {
+      const matchResponse = url?.match(/.*callID\/(.*)\//);
+      if (!matchResponse || matchResponse.length < 1) {
+        return null;
+      }
+
+      setState({
+        callID: matchResponse[1],
+      });
+    };
+    const configure = async () => {
+      const mediaStream = await mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      });
+      setState({
+        localMediaStream: mediaStream,
+      });
+
+      // listen to url changes and parse the callID
+      Linking.addEventListener('url', ({ url }) => {
+        parseAndSetCallID(url);
+      });
+      const url = await Linking.getInitialURL();
+      parseAndSetCallID(url);
+    };
+
+    configure();
+  }, [setState]);
 
   const user = useMemo<UserInput>(
     () => ({
@@ -90,8 +124,10 @@ export default ({ navigation }: Props) => {
     const call = new Call(sfuClient, username, serverUrl, credentials);
     const joinSfuCall = async () => {
       try {
-        const { callState } = await call.join(true, localMediaStream);
+        const callState = await call.join(localMediaStream);
+        console.log('Joined SFU call', callState, localMediaStream);
         if (callState && localMediaStream) {
+          console.log('Got callstate', callState);
           InCallManager.start({ media: 'video' });
           InCallManager.setForceSpeakerphoneOn(true);
           await call.publish(localMediaStream);
