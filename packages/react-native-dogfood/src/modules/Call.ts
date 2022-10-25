@@ -10,7 +10,7 @@ import {
 } from '@stream-io/video-client';
 import { createSubscriber } from './Subscriber';
 import { createPublisher } from './Publisher';
-import { registerEventHandlers } from './CallEventHandlers';
+import { handleICETrickle, registerEventHandlers } from './CallEventHandlers';
 import { SfuEventListener } from '@stream-io/video-client/dist/src/rtc/Dispatcher';
 import { SfuRequest } from '@stream-io/video-client/dist/src/gen/video/sfu/event/events';
 import {
@@ -91,6 +91,7 @@ export class Call {
     this.connectionConfig =
       toRtcConfiguration(credentials.iceServers) ??
       defaultRtcConfiguration(serverUrl);
+    this.client.dispatcher.on('iceTrickle', handleICETrickle(this));
     this.subscriber = createSubscriber({
       rpcClient: this.client,
 
