@@ -11,7 +11,6 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
-import { CallState } from '@stream-io/video-client/src/gen/video/sfu/models/models';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ActiveCall'>;
 
