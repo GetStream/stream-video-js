@@ -11,7 +11,7 @@ clone them and follow their appropriate READMEs found in their root.
 
 ## Setup
 
-1. Clone this repository `git clone https://github.com/GetStream/stream-video-react.git`
+1. Clone this repository `git clone https://github.com/GetStream/stream-video-js.git`
 2. Install dependencies by running `yarn install` in the root of this repo
 3. Build all packages `yarn clean:all && yarn build:all`
 
