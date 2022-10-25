@@ -11,11 +11,13 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
+import { CallState } from '@stream-io/video-client/src/gen/video/sfu/models/models';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ActiveCall'>;
 
 export default (_props: Props) => {
   const call = useAppGlobalStoreValue((store) => store.call);
+  const callState = useAppGlobalStoreValue((store) => store.callState);
   const setState = useAppGlobalStoreSetState();
 
   useEffect(() => {
@@ -29,6 +31,10 @@ export default (_props: Props) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    setState({ participants: callState?.participants });
+  }, [callState?.participants, setState]);
 
   useEffect(() => {
     if (!call) {
