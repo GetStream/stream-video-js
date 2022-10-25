@@ -32,7 +32,7 @@ export default (_props: Props) => {
   }, []);
 
   useEffect(() => {
-    setState({ participants: callState?.participants });
+    setState({ participants: callState?.participants ?? [] });
   }, [callState?.participants, setState]);
 
   useEffect(() => {
