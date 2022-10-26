@@ -63,7 +63,7 @@ export default function createStoreContext<StoreType extends object>(
               persistStateKeys.map(async (key) => {
                 const storedValue = await AsyncStorage.getItem(key as string);
                 if (storedValue) {
-                  // @ts-ignore, we only string values to be persisted, so this is fine
+                  // @ts-ignore, we only allow string values to be persisted, so this is fine
                   storeRef.current[key] = storedValue;
                 }
               }),
