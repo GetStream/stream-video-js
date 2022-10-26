@@ -30,7 +30,6 @@ export const StreamCall = ({
   const { activeCall, activeCallMeta } = useCall({
     callId,
     callType,
-    currentUser,
     autoJoin,
     input,
   });
