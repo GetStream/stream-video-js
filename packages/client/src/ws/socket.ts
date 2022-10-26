@@ -34,6 +34,9 @@ export const createCoordinatorWebSocket = (
       const giveUpAfterMs = 5000;
       const frequency = 250;
       let attempts = giveUpAfterMs / frequency;
+      if (intervalIdRef.current !== undefined) {
+        clearInterval(intervalIdRef.current);
+      }
       intervalIdRef.current = setInterval(() => {
         console.log('Checking auth...');
         if (hasHealthcheckReceived) {
