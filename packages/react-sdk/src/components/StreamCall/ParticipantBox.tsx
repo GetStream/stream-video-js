@@ -117,12 +117,20 @@ const StatsView = (props: {
   const { styles, attributes } = usePopper(anchor, popover);
   const [isPopperOpen, setIsPopperOpen] = useState(false);
 
+  const [videoTrack] = mediaStream?.getVideoTracks() ?? [];
+  const settings = videoTrack?.getSettings();
   return (
     <>
       <span
         className="str-video__debug__track-stats-icon"
         tabIndex={0}
         ref={setAnchor}
+        title={
+          settings &&
+          `${settings.width}x${settings.height}@${Math.round(
+            settings.frameRate || 0,
+          )}`
+        }
         onClick={() => {
           setIsPopperOpen((v) => !v);
         }}
