@@ -25,6 +25,12 @@ export const createPublisher = ({
       peerType: PeerType.PUBLISHER_UNSPECIFIED,
     });
   });
+  publisher.addEventListener('icecandidateerror', (e) => {
+    console.error(`Publisher: ICE Candidate error`, e);
+  });
+  publisher.addEventListener('iceconnectionstatechange', (e) => {
+    console.log(`Publisher: ICE Connection state changed`, e);
+  });
 
   // will fire once media is attached to the peer connection
   publisher.addEventListener('negotiationneeded', async () => {
