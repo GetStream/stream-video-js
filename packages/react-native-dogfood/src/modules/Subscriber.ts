@@ -45,7 +45,9 @@ export const createSubscriber = ({
   }
 
   dispatcher.on('subscriberOffer', async (message) => {
-    if (message.eventPayload.oneofKind !== 'subscriberOffer') return;
+    if (message.eventPayload.oneofKind !== 'subscriberOffer') {
+      return;
+    }
     const { subscriberOffer } = message.eventPayload;
 
     await subscriber.setRemoteDescription({
