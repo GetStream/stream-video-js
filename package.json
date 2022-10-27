@@ -24,7 +24,7 @@
     "build:all": "yarn workspaces foreach -vt run build",
     "clean:all": "yarn workspaces foreach -vt run clean",
     "lint:all": "eslint --fix 'packages/**/*.{ts,tsx}'",
-    "lint:ci:all": "eslint --cache --cache-location='./.eslintcache' 'packages/**/*.{ts,tsx}'",
+    "lint:ci:all": "eslint --cache 'packages/**/*.{ts,tsx}'",
     "test:ci:all": "yarn workspaces foreach -vt run test:ci"
   },
   "devDependencies": {
