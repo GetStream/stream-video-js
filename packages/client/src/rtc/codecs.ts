@@ -5,19 +5,19 @@ export const defaultVideoPublishEncodings: RTCRtpEncodingParameters[] = [
   {
     rid: 'f',
     active: true,
-    maxBitrate: 1_200_000,
+    maxBitrate: 1_280_000,
   },
   {
     rid: 'h',
     active: true,
     scaleResolutionDownBy: 2.0,
-    maxBitrate: 500_000,
+    maxBitrate: 768_000,
   },
   {
     rid: 'q',
     active: true,
     scaleResolutionDownBy: 4.0,
-    maxBitrate: 125_000,
+    maxBitrate: 384_000,
   },
 ];
 

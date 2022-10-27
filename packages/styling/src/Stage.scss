@@ -80,6 +80,9 @@
       position: absolute;
       left: 10px;
       bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
     .str-video__participant_name {

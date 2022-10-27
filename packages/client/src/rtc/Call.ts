@@ -263,11 +263,14 @@ export class Call {
     return sender?.track?.getConstraints().deviceId as string;
   };
 
-  getStats = async (kind: 'subscriber' | 'publisher') => {
+  getStats = async (
+    kind: 'subscriber' | 'publisher',
+    selector?: MediaStreamTrack,
+  ) => {
     if (kind === 'subscriber' && this.subscriber) {
-      return this.subscriber.getStats();
+      return this.subscriber.getStats(selector);
     } else if (kind === 'publisher' && this.publisher) {
-      return this.publisher.getStats();
+      return this.publisher.getStats(selector);
     } else {
       console.warn(`Can't retrieve RTC stats for`, kind);
       return undefined;

@@ -52,11 +52,13 @@ export const defaultVideoLayers: OptimalVideoLayer[] = [
     maxBitrate: 768_000,
     width: 640,
     height: 480,
+    scaleResolutionDownBy: 2.0,
   },
   {
     rid: 'q',
     maxBitrate: 384_000,
     width: 480,
     height: 360,
+    scaleResolutionDownBy: 4.0,
   },
 ];
