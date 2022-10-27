@@ -18,3 +18,5 @@ dist
 .angular
 docs
 .env
+
+.eslintcache

@@ -22,6 +22,12 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
 
+      - name: ESLint Cache
+        uses: actions/cache@v3
+        with:
+          path: .eslintcache
+          key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}
+
       - name: Install Dependencies
         run: yarn install --immutable
 
