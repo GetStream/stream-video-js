@@ -1,17 +1,28 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {StyleSheet, TextInput, View, Text, Switch, Button} from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import {
+  StyleSheet,
+  TextInput,
+  View,
+  Text,
+  Switch,
+  Button,
+  Linking,
+} from 'react-native';
 import InCallManager from 'react-native-incall-manager';
-import type {NativeStackScreenProps} from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Clipboard from '@react-native-clipboard/clipboard';
-import {RootStackParamList} from '../../types';
-import {Call} from '../modules/Call';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {UserInput} from '../gen/video/coordinator/user_v1/user';
-import {useCreateStreamVideoClient} from '../hooks/useCreateStreamVideoClient';
-import {useCall} from '../hooks/useCall';
-import {useSessionId} from '../hooks/useSessionId';
-import {StreamSfuClient} from '../modules/StreamSfuClient';
-import {useAppSetterContext, useAppValueContext} from '../contexts/AppContext';
+import { RootStackParamList } from '../../types';
+import { Call } from '../modules/Call';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StreamSfuClient, UserInput } from '@stream-io/video-client';
+import { useCreateStreamVideoClient } from '../hooks/useCreateStreamVideoClient';
+import { useCall } from '../hooks/useCall';
+import { useSessionId } from '../hooks/useSessionId';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../contexts/AppContext';
+import { mediaDevices } from 'react-native-webrtc';
 
 // export const SFU_HOSTNAME = "192.168.2.24";
 // const SFU_URL = `http://${SFU_HOSTNAME}:3031/twirp`;
@@ -23,18 +34,48 @@ const APP_ID = 'streamrnvideosample';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-export default ({navigation}: Props) => {
-  const {username, callID, loopbackMyVideo, localMediaStream} =
-    useAppValueContext();
-  const {
-    setCall,
-    setCallState,
-    setSfuClient,
-    setUsername,
-    setCallID,
-    setLoopbackMyVideo,
-    setActiveCall,
-  } = useAppSetterContext();
+export default ({ navigation }: Props) => {
+  const username = useAppGlobalStoreValue((store) => store.username);
+  const callID = useAppGlobalStoreValue((store) => store.callID);
+  const loopbackMyVideo = useAppGlobalStoreValue(
+    (store) => store.loopbackMyVideo,
+  );
+  const localMediaStream = useAppGlobalStoreValue(
+    (store) => store.localMediaStream,
+  );
+  const setState = useAppGlobalStoreSetState();
+
+  // run only once per app lifecycle
+  useEffect(() => {
+    const parseAndSetCallID = (url: string | null) => {
+      const matchResponse = url?.match(/.*callID\/(.*)\//);
+      if (!matchResponse || matchResponse.length < 1) {
+        return null;
+      }
+
+      setState({
+        callID: matchResponse[1],
+      });
+    };
+    const configure = async () => {
+      const mediaStream = await mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      });
+      setState({
+        localMediaStream: mediaStream,
+      });
+
+      // listen to url changes and parse the callID
+      Linking.addEventListener('url', ({ url }) => {
+        parseAndSetCallID(url);
+      });
+      const url = await Linking.getInitialURL();
+      parseAndSetCallID(url);
+    };
+
+    configure();
+  }, [setState]);
 
   const user = useMemo<UserInput>(
     () => ({
@@ -60,7 +101,7 @@ export default ({navigation}: Props) => {
     user,
   });
 
-  const {activeCall, credentials, getOrCreateCall} = useCall({
+  const { activeCall, credentials, getOrCreateCall } = useCall({
     videoClient,
     callId: callID,
     callType: 'default', // TODO: SANTHOSH -- what is this?
@@ -83,20 +124,24 @@ export default ({navigation}: Props) => {
     const call = new Call(sfuClient, username, serverUrl, credentials);
     const joinSfuCall = async () => {
       try {
-        const {callState: _callState} = await call.join(true, localMediaStream);
-        if (_callState && localMediaStream) {
-          InCallManager.start({media: 'video'});
+        const callState = await call.join(localMediaStream);
+        if (callState && localMediaStream) {
+          InCallManager.start({ media: 'video' });
           InCallManager.setForceSpeakerphoneOn(true);
           await call.publish(localMediaStream);
-          setSfuClient(sfuClient);
-          setCall(call);
-          setCallState(_callState);
-          setActiveCall(activeCall);
+          setState({
+            activeCall,
+            callState,
+            sfuClient,
+            call,
+          });
           navigation.navigate('ActiveCall');
         }
       } catch (err) {
         console.warn('failed to join call', err);
-        setCallState(undefined);
+        setState({
+          callState: undefined,
+        });
       }
     };
     joinSfuCall();
@@ -106,10 +151,7 @@ export default ({navigation}: Props) => {
     localMediaStream,
     navigation,
     sessionId,
-    setActiveCall,
-    setCall,
-    setCallState,
-    setSfuClient,
+    setState,
     username,
   ]);
 
@@ -126,8 +168,8 @@ export default ({navigation}: Props) => {
         placeholder={'Type your name here...'}
         placeholderTextColor={'#8C8C8CFF'}
         value={username}
-        onChangeText={text => {
-          setUsername(text.trim().replace(/\s/g, '-')); // replace spaces with dashes as spaces are not allowed in usernames
+        onChangeText={(text) => {
+          setState({ username: text.replace(/\s/g, '-') }); // replace spaces with dashes as spaces are not allowed in usernames
         }}
       />
       <Text style={styles.headerText}>{'Whats the call ID?'}</Text>
@@ -136,7 +178,7 @@ export default ({navigation}: Props) => {
         placeholder={'Type your call ID here...'}
         placeholderTextColor={'#8C8C8CFF'}
         value={callID}
-        onChangeText={setCallID}
+        onChangeText={(text) => setState({ callID: text.trim() })}
       />
       <Button
         title={'Create or Join call with callID: ' + callID}
@@ -149,7 +191,9 @@ export default ({navigation}: Props) => {
         <Switch
           value={loopbackMyVideo}
           onChange={() => {
-            setLoopbackMyVideo(prevState => !prevState);
+            setState((prevState) => ({
+              loopbackMyVideo: !prevState.loopbackMyVideo,
+            }));
           }}
         />
       </View>

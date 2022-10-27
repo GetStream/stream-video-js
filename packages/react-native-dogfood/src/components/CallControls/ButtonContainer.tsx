@@ -52,9 +52,9 @@ type Props = {
 };
 
 const ButtonContainer = (props: React.PropsWithChildren<Props>) => {
-  const {onPress, children, colorKey} = props;
+  const { onPress, children, colorKey } = props;
 
-  const style: PressableProps['style'] = ({pressed}) => [
+  const style: PressableProps['style'] = ({ pressed }) => [
     styles.container,
     {
       backgroundColor: colorKeyToBgColor(colorKey),

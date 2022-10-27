@@ -1,18 +1,27 @@
-import {StyleSheet, Text, View} from 'react-native';
-import {RTCView} from 'react-native-webrtc';
+import { StyleSheet, Text, View } from 'react-native';
+import { RTCView } from 'react-native-webrtc';
 import ParticipantVideosContainer from './ParticipantVideosContainer';
 import React from 'react';
-import {useAppValueContext} from '../contexts/AppContext';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
 
 const VideoRenderer = () => {
-  const {localMediaStream, isVideoMuted, callState, participants, username} =
-    useAppValueContext();
+  const localMediaStream = useAppGlobalStoreValue(
+    (store) => store.localMediaStream,
+  );
+  const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
+  const callState = useAppGlobalStoreValue((store) => store.callState);
+  const participants = useAppGlobalStoreValue((store) => store.participants);
+  const username = useAppGlobalStoreValue((store) => store.username);
+  const cameraBackFacingMode = useAppGlobalStoreValue(
+    (store) => store.cameraBackFacingMode,
+  );
   return (
     <>
       <ParticipantVideosContainer />
       {localMediaStream && !isVideoMuted ? (
         <RTCView
-          mirror
+          // @ts-ignore
+          mirror={!cameraBackFacingMode}
           streamURL={localMediaStream.toURL()}
           style={
             callState && participants.length > 1
@@ -29,7 +38,8 @@ const VideoRenderer = () => {
               ? styles.selfView
               : styles.stream,
             styles.avatarContainer,
-          ]}>
+          ]}
+        >
           <View style={styles.roundedView}>
             <Text style={styles.userText}>{username}</Text>
           </View>

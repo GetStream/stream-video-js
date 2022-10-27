@@ -2,30 +2,12 @@
 
 ## Steps to run the app
 
-1. Clone the repo
+1. Move to the root folder of the repo
 2. Run `yarn` to install dependencies
-3. Run `npx pod-install` to install pods (ios only)
-4. Run `yarn start` to start the metro bundler
-5. Run `yarn ios` or `yarn android` to run the app
-
-## Start a call
-
-1. Choose a user
-2. Click the "Join Call" button
-
-## CLI command to deploy the app
-
-### iOS
-
-```
-bundle exec fastlane ios deploy_to_testflight_qa
-```
-
-### Android
-
-```
-bundle exec fastlane android deploy_to_firebase
-```
+3. Run `yarn build:client` to build the js client
+4. Move to `cd packages/react-native-dogfood/`
+5. Run `npx pod-install` to install pods (ios only)
+6. Run `yarn start ios` and/or `yarn start ios` to run the app
 
 ## Invite links to install app on devices
 

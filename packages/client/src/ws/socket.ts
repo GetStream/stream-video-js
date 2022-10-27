@@ -17,6 +17,7 @@ export const createCoordinatorWebSocket = (
   opts: SocketOpts,
 ) => {
   const { onOpen, onClose, onError, onMessage } = opts;
+  let intervalIdRef = { current: undefined as NodeJS.Timeout | undefined };
   return new Promise<WebSocket>((resolve, reject) => {
     let hasHealthcheckReceived = false;
     const authenticate = () => {
@@ -33,14 +34,17 @@ export const createCoordinatorWebSocket = (
       const giveUpAfterMs = 5000;
       const frequency = 250;
       let attempts = giveUpAfterMs / frequency;
-      const intervalId = setInterval(() => {
+      if (intervalIdRef.current !== undefined) {
+        clearInterval(intervalIdRef.current);
+      }
+      intervalIdRef.current = setInterval(() => {
         console.log('Checking auth...');
         if (hasHealthcheckReceived) {
           console.log('Authenticated!');
-          clearInterval(intervalId);
+          clearInterval(intervalIdRef.current);
           resolve(ws);
         } else if (attempts < 1) {
-          clearInterval(intervalId);
+          clearInterval(intervalIdRef.current);
           console.warn('Unsuccessful authentication');
           ws.close(1000, 'Unsuccessful authentication');
           reject('Unsuccessful authentication');
@@ -52,7 +56,12 @@ export const createCoordinatorWebSocket = (
     const ws = new WebSocket(endpoint);
     ws.binaryType = 'arraybuffer';
     ws.onerror = onError;
-    ws.onclose = onClose;
+    ws.onclose = (e: CloseEvent) => {
+      clearInterval(intervalIdRef.current);
+      if (onClose) {
+        onClose.call(ws, e);
+      }
+    };
     ws.onopen = (e: Event) => {
       authenticate();
 

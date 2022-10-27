@@ -128,6 +128,22 @@ export class StreamVideoClient {
     return callEnvelope;
   };
 
+  // TODO: remove this method (it's only used in react-native for now until the sfu-Call object is merged)
+  joinCallRaw = async (data: JoinCallRequest, sessionId?: string) => {
+    const { response } = await this.client.joinCall({
+      ...data,
+      // FIXME: OL this needs to come from somewhere
+      datacenterId: 'amsterdam',
+    });
+    if (response.call && response.call.call && response.edges) {
+      const edge = await this.getCallEdgeServer(
+        response.call.call,
+        response.edges,
+      );
+      return { response, edge };
+    }
+  };
+
   joinCall = async (data: JoinCallRequest, sessionId?: string) => {
     const { response } = await this.client.joinCall({
       ...data,
@@ -174,16 +190,17 @@ export class StreamVideoClient {
   };
 
   private getCallEdgeServer = async (call: CallMeta, edges: Edge[]) => {
-    // TODO: maybe run the measurements in parallel
     const latencyByEdge: { [e: string]: Latency } = {};
-    for (const edge of edges) {
-      latencyByEdge[edge.name] = {
-        measurementsSeconds: await measureResourceLoadLatencyTo(
-          edge.latencyUrl,
-          Math.max(this.options.latencyMeasurementRounds || 0, 3),
-        ),
-      };
-    }
+    await Promise.all(
+      edges.map(async (edge) => {
+        latencyByEdge[edge.name] = {
+          measurementsSeconds: await measureResourceLoadLatencyTo(
+            edge.latencyUrl,
+            Math.max(this.options.latencyMeasurementRounds || 0, 3),
+          ),
+        };
+      }),
+    );
 
     const edgeServer = await this.client.getCallEdgeServer({
       callCid: call.callCid,

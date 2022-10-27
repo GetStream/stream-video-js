@@ -1,7 +1,7 @@
 import React from 'react';
-import Svg, {Path} from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 
-export const Settings = ({height = 24, width = 24}) => {
+export const Settings = ({ height = 24, width = 24 }) => {
   return (
     <Svg fill="none" height={height} viewBox="0 0 24 24" width={width}>
       <Path
