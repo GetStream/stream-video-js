@@ -1,6 +1,5 @@
 {
   "name": "@stream-io/video-react-sample-app",
-  "packageManager": "yarn@3.2.4",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
