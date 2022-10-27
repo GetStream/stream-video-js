@@ -119,7 +119,9 @@ const ParticipantVideosContainer = () => {
     };
 
     const unsubscribeParticipantLeft = call.on('participantLeft', (e) => {
-      if (e.eventPayload.oneofKind !== 'participantLeft') return;
+      if (e.eventPayload.oneofKind !== 'participantLeft') {
+        return;
+      }
       const { participant } = e.eventPayload.participantLeft;
       if (participant) {
         const userId = participant.user!.id;
