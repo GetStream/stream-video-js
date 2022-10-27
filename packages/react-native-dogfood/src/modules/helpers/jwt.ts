@@ -1,4 +1,4 @@
-import {sign} from 'react-native-pure-jwt';
+import { sign } from 'react-native-pure-jwt';
 
 export const createToken = async (userId: string, jwtSecret: string) => {
   return await sign(

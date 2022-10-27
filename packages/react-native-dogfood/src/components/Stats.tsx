@@ -1,14 +1,5 @@
-import {useEffect} from 'react';
-import {useAppValueContext} from '../contexts/AppContext';
-import {Call as CallMeta} from '../gen/video/coordinator/call_v1/call';
-import {Call} from '../modules/Call';
-import {StreamVideoClient} from '../modules/StreamVideoClient';
-
-export interface StatsProps {
-  client: StreamVideoClient;
-  call: Call;
-  activeCall: CallMeta;
-}
+import { useEffect } from 'react';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
 
 const intervalMs = 15000;
 
@@ -17,12 +8,14 @@ type RTCStatsReport = ReadonlyMap<string, any>;
 const getStats = (stats: RTCStatsReport) => {
   const objectFromMap = Object.fromEntries(stats);
   // this is polyfilled
-  // eslint-disable-next-line no-undef
+
   return new TextEncoder().encode(JSON.stringify(objectFromMap));
 };
 
 export const Stats = () => {
-  const {videoClient, call, activeCall} = useAppValueContext();
+  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const call = useAppGlobalStoreValue((store) => store.call);
+  const activeCall = useAppGlobalStoreValue((store) => store.activeCall);
   useEffect(() => {
     if (videoClient && call && activeCall) {
       const intervalId = setInterval(async () => {
