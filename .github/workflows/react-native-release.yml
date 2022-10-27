@@ -66,7 +66,6 @@ jobs:
         run: |
           cd packages/react-native-dogfood;
           bundle exec fastlane ios deploy_to_testflight_qa;
-
   deploy_android:
     name: Deploy Android to Firebase App Distribution
     runs-on: ubuntu-latest
