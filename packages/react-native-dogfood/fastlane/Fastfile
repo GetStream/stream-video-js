@@ -59,7 +59,7 @@ platform :ios do
 
       gym(
           workspace: "./ios/StreamReactNativeVideoSDKSample.xcworkspace",
-          scheme: "WaterCoolerReactNative",
+          scheme: "StreamReactNativeVideoSDKSample",
           export_method: "app-store",
           export_options: "./fastlane/testflight_gym_export_options.plist",
           silent: true,
@@ -101,7 +101,7 @@ platform :android do
       latest_app_distribution_release = firebase_app_distribution_get_latest_release(
         app: "1:296557120037:android:b5d44592a3a4b44af60dcc"
       )
-      latest_app_distribution_version_code = latest_app_distribution_release[:buildVersion].to_i 
+      latest_app_distribution_version_code = latest_app_distribution_release[:buildVersion].to_i
       increment_version_code(
         gradle_file_path:"./android/app/build.gradle",
         version_code: latest_app_distribution_version_code + 1
