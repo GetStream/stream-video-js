@@ -26,7 +26,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .eslintcache
-          key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}
+          key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}-${{ hashFiles('.eslintcache') }}
 
       - name: Install Dependencies
         run: yarn install --immutable
