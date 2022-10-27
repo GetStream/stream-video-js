@@ -34,8 +34,12 @@ jobs:
             yarn install --frozen-lockfile;
       - name: Build packages
         env:
-          STREAM_COORDINATOR_RPC_URL: http://localhost:26991/rpc/
-          STREAM_COORDINATOR_WS_URL: ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect
+          STREAM_COORDINATOR_RPC_URL: https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc/
+          STREAM_COORDINATOR_WS_URL: ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          STREAM_API_KEY: ${{ secrets.STREAM_API_KEY }}
+          STREAM_SECRET_KEY: ${{ secrets.STREAM_SECRET_KEY }}
         run: yarn build:all
       - name: Cache pods
         uses: actions/cache@v2
@@ -84,8 +88,12 @@ jobs:
 
       - name: Build packages
         env:
-          STREAM_COORDINATOR_RPC_URL: http://localhost:26991/rpc/
-          STREAM_COORDINATOR_WS_URL: ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect
+          STREAM_COORDINATOR_RPC_URL: https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc/
+          STREAM_COORDINATOR_WS_URL: ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          STREAM_API_KEY: ${{ secrets.STREAM_API_KEY }}
+          STREAM_SECRET_KEY: ${{ secrets.STREAM_SECRET_KEY }}
         run: yarn build:all
       - name: Install Yarn dependencies
         uses: nick-invision/retry@v2
