@@ -1,9 +1,11 @@
-import {useCallback, useEffect, useState} from 'react';
-import * as CallMeta from '../gen/video/coordinator/call_v1/call'; // due to name collision with `/rtc/Call.ts`
-import {Credentials} from '../gen/video/coordinator/edge_v1/edge';
-import {CallCreated} from '../gen/video/coordinator/event_v1/event';
-import {StreamVideoClient} from '../modules/StreamVideoClient';
-import {Envelopes} from '../modules/ws';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  CallCreated,
+  CallMeta,
+  Credentials,
+  Envelopes,
+  StreamVideoClient,
+} from '@stream-io/video-client';
 
 export type UseCallParams = {
   videoClient: StreamVideoClient | undefined;
@@ -28,20 +30,18 @@ export const useCall = ({
       if (!videoClient) {
         return;
       }
-      const {call: callEnvelope, edges} = await videoClient.joinCall({
+      const result = await videoClient.joinCallRaw({
         id,
         type,
         // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
         datacenterId: 'amsterdam',
       });
-
-      if (callEnvelope && callEnvelope.call && edges) {
-        const edge = await videoClient.getCallEdgeServer(
-          callEnvelope.call,
-          edges,
-        );
-        setActiveCall(callEnvelope.call);
-        setCredentials(edge.credentials);
+      if (result) {
+        const { response, edge } = result;
+        if (response.call && response.call.call && response.edges) {
+          setActiveCall(response.call.call);
+          setCredentials(edge?.credentials);
+        }
       }
     },
     [videoClient],
@@ -51,7 +51,7 @@ export const useCall = ({
     if (!videoClient) {
       return;
     }
-    const {call: callMetadata} = await videoClient.getOrCreateCall({
+    const callMetadata = await videoClient.getOrCreateCall({
       id: callId,
       type: callType,
     });
@@ -66,13 +66,11 @@ export const useCall = ({
 
   useEffect(() => {
     const onCallCreated = (event: CallCreated, _envelopes?: Envelopes) => {
-      const {call} = event;
+      const { call } = event;
       if (!call) {
         console.warn("Can't find call in CallCreated event");
         return;
       }
-
-      console.log('Call created', event, call);
       // initiator, immediately joins the call
       if (call.createdByUserId === currentUser) {
         joinCall(call.id, call.type).then(() => {
@@ -104,5 +102,5 @@ export const useCall = ({
   //   );
   // }, [callId, client, callType, autoJoin, joinCall]);
 
-  return {activeCall, credentials, getOrCreateCall};
+  return { activeCall, credentials, getOrCreateCall };
 };

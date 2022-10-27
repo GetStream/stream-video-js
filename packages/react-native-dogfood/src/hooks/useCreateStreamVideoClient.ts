@@ -1,8 +1,10 @@
-import {useEffect} from 'react';
-import {useAppSetterContext, useAppValueContext} from '../contexts/AppContext';
-import {UserInput} from '../gen/video/coordinator/user_v1/user';
-import {createToken} from '../modules/helpers/jwt';
-import {StreamVideoClient} from '../modules/StreamVideoClient';
+import { useEffect } from 'react';
+import {
+  useAppGlobalStoreValue,
+  useAppGlobalStoreSetState,
+} from '../contexts/AppContext';
+import { createToken } from '../modules/helpers/jwt';
+import { StreamVideoClient, UserInput } from '@stream-io/video-client';
 
 export type StreamVideoClientInit = {
   apiKey: string;
@@ -19,8 +21,8 @@ export const useCreateStreamVideoClient = ({
   apiSecret,
   user,
 }: StreamVideoClientInit) => {
-  const {videoClient} = useAppValueContext();
-  const {setVideoClient} = useAppSetterContext();
+  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const setState = useAppGlobalStoreSetState();
   useEffect(() => {
     const connectionRef: {
       interrupted: boolean;
@@ -44,7 +46,7 @@ export const useCreateStreamVideoClient = ({
         await client.connect(apiKey, token, user);
         connectionRef.connected = true;
         if (!connectionRef.interrupted) {
-          setVideoClient(client);
+          setState({ videoClient: client });
         }
       } catch (err) {
         console.error('Failed to establish connection', err);
@@ -57,21 +59,14 @@ export const useCreateStreamVideoClient = ({
         connectionRef.client
           ?.disconnect()
           .then(() => {
-            setVideoClient(undefined);
+            setState({ videoClient: undefined });
           })
-          .catch(err => {
+          .catch((err) => {
             console.error('Failed to disconnect', err);
           });
       }
     };
-  }, [
-    apiKey,
-    apiSecret,
-    coordinatorRpcUrl,
-    coordinatorWsUrl,
-    setVideoClient,
-    user,
-  ]);
+  }, [apiKey, apiSecret, coordinatorRpcUrl, coordinatorWsUrl, setState, user]);
 
   return videoClient;
 };

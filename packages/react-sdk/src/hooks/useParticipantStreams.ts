@@ -25,18 +25,21 @@ export const useParticipantStreams = (call: Call) => {
 
       const [primaryStream] = e.streams;
       console.log(primaryStream, e.track);
-      // format: <uuid>
+      // format: <trackId:streamId:kind:random>
       const [trackId] = primaryStream.id.split(':');
-      const name = call.participantMapping[trackId];
+      const userId = call.participantMapping[trackId];
+      if (!userId) {
+        console.warn(`Can't determine userId for trackId`, trackId);
+      }
       if (e.track.kind === 'video') {
         setUserVideoStreams((s) => ({
           ...s,
-          [name]: primaryStream,
+          [userId]: primaryStream,
         }));
       } else if (e.track.kind === 'audio') {
         setUserAudioStreams((s) => ({
           ...s,
-          [name]: primaryStream,
+          [userId]: primaryStream,
         }));
       }
     };

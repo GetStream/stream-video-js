@@ -1,16 +1,10 @@
 import { useStreamVideoClient } from '../StreamVideo';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  CallMeta,
-  CallCreated,
-  Call,
-  CreateCallInput,
-} from '@stream-io/video-client';
+import { CallMeta, Call, CreateCallInput } from '@stream-io/video-client';
 
 export type UseCallParams = {
   callId: string;
   callType: string;
-  currentUser: string;
   autoJoin: boolean;
   input?: CreateCallInput;
 };
@@ -18,7 +12,6 @@ export type UseCallParams = {
 export const useCall = ({
   callId,
   callType,
-  currentUser,
   autoJoin,
   input,
 }: UseCallParams) => {
@@ -51,7 +44,7 @@ export const useCall = ({
       if (callMetadata) {
         setActiveCallMeta(callMetadata.call);
         if (autoJoin) {
-          joinCall(callId, callType);
+          await joinCall(callId, callType);
         }
       }
     };
@@ -59,28 +52,7 @@ export const useCall = ({
     getOrCreateCall().catch((e) => {
       console.error(`Failed to getOrCreateCall`, callId, callType, e);
     });
-  }, [callId, client, callType, autoJoin, joinCall]);
-
-  // useEffect(() => {
-  //   return client?.on(
-  //     'callStarted',
-  //     (event: CallStarted, envelopes?: Envelopes) => {
-  //       const startedCall = envelopes?.calls[event.callCid];
-  //       if (
-  //         startedCall &&
-  //         startedCall.id === callId &&
-  //         startedCall.type === callType
-  //       ) {
-  //         setActiveCall(startedCall);
-  //         if (autoJoin) {
-  //           joinCall(startedCall.id, startedCall.type).catch((e) => {
-  //             console.error(`Failed to join call`, startedCall, e);
-  //           });
-  //         }
-  //       }
-  //     },
-  //   );
-  // }, [callId, client, callType, autoJoin, joinCall]);
+  }, [callId, client, callType, autoJoin, joinCall, input]);
 
   return { activeCallMeta, activeCall };
 };
