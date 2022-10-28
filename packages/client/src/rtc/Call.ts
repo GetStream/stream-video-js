@@ -12,16 +12,12 @@ import {
   getSenderCodecs,
 } from './codecs';
 import { createPublisher } from './publisher';
-import {
-  CallState,
-  Participant,
-  VideoDimension,
-} from '../gen/video/sfu/models/models';
+import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
 import { handleICETrickle, registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
-import { StreamVideoParticipant, VideoDimensionChange } from './types';
+import { VideoDimensionChange } from './types';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -39,8 +35,6 @@ export class Call {
   subscriberCandidates: RTCIceCandidateInit[] = [];
   subscriber: RTCPeerConnection | undefined;
   publisher: RTCPeerConnection | undefined;
-
-  private participants: StreamVideoParticipant[] = [];
 
   constructor(
     client: StreamSfuClient,
@@ -74,7 +68,7 @@ export class Call {
       candidates: this.publisherCandidates,
     });
 
-    registerEventHandlers(this);
+    registerEventHandlers(this, this.stateStore);
   }
 
   // FIXME: change the call-sites in the SDK
@@ -362,26 +356,6 @@ export class Call {
     }
   };
 
-  /**
-   * Add new participant from 'participantJoined' event
-   * @param participant
-   */
-  participantJoined(participant: Participant) {
-    this.participants.push(participant);
-    this.stateStore.activeCallParticipantsSubject.next([...this.participants]);
-  }
-
-  /**
-   * Remove participant adter 'participantLeft' event
-   * @param participant
-   */
-  participantLeft(participant: Participant) {
-    this.participants = this.participants.filter(
-      (p) => p !== this.findParticipant(participant),
-    );
-    this.stateStore.activeCallParticipantsSubject.next([...this.participants]);
-  }
-
   private updateSubscriptions = async () => {
     const subscriptions: { [key: string]: VideoDimension } = {};
     this.participants.forEach((p) => {
@@ -389,6 +363,12 @@ export class Call {
     });
     return this.client.updateSubscriptions(subscriptions);
   };
+
+  private get participants() {
+    return this.stateStore.getCurrentValue(
+      this.stateStore.activeCallParticipantsSubject,
+    );
+  }
 
   private findParticipant(participant: {
     user?: { id: string };

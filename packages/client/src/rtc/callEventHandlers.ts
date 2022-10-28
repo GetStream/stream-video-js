@@ -1,10 +1,14 @@
 import type { SfuEvent } from '../gen/video/sfu/event/events';
 import { Call } from './Call';
 import { PeerType } from '../gen/video/sfu/models/models';
+import { StreamVideoWriteableStateStore } from '../stateStore';
 
-export const registerEventHandlers = (call: Call) => {
+export const registerEventHandlers = (
+  call: Call,
+  store: StreamVideoWriteableStateStore,
+) => {
   watchForPublishQualityChangeEvents(call);
-  watchForParticipantEvents(call);
+  watchForParticipantEvents(call, store);
 };
 
 const watchForPublishQualityChangeEvents = (call: Call) => {
@@ -21,12 +25,19 @@ const watchForPublishQualityChangeEvents = (call: Call) => {
   });
 };
 
-const watchForParticipantEvents = (call: Call) => {
+const watchForParticipantEvents = (
+  call: Call,
+  store: StreamVideoWriteableStateStore,
+) => {
   call.on('participantJoined', (e) => {
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
     const { participant } = e.eventPayload.participantJoined;
     if (participant) {
-      call.participantJoined(participant);
+      const participants = [
+        ...store.getCurrentValue(store.activeCallParticipantsSubject),
+      ];
+      participants.push(participant);
+      store.setCurrentValue(store.activeCallParticipantsSubject, participants);
     }
   });
 
@@ -34,7 +45,15 @@ const watchForParticipantEvents = (call: Call) => {
     if (e.eventPayload.oneofKind !== 'participantLeft') return;
     const { participant } = e.eventPayload.participantLeft;
     if (participant) {
-      call.participantLeft(participant);
+      let participants = store.getCurrentValue(
+        store.activeCallParticipantsSubject,
+      );
+      participants = participants.filter(
+        (p) =>
+          p.user?.id !== participant.user?.id &&
+          p.sessionId !== participant.sessionId,
+      );
+      store.setCurrentValue(store.activeCallParticipantsSubject, participants);
     }
   });
 };
