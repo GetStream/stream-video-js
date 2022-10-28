@@ -5,6 +5,7 @@
         <div class="str-call__no-audio">Audio unavailable</div>
     </ng-template>
     <video
+        #video
         *ngIf="participant?.videoTrack; else noVideo"
         [srcObject]="participant?.videoTrack"
         class="str-video__remote-video"

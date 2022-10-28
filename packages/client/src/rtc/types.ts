@@ -6,3 +6,8 @@ export type StreamVideoParticipant = {
   videoDimension?: VideoDimension;
   isLoggedInUser?: boolean;
 } & Participant;
+
+export type VideoDimensionChange = {
+  participant: StreamVideoParticipant;
+  videoDimension: VideoDimension;
+};

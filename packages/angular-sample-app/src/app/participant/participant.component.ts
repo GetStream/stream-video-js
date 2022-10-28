@@ -1,13 +1,4 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-  ViewChild,
-} from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { VideoDimension } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 import { StreamVideoParticipant } from '@stream-io/video-client/dist/src/rtc/types';
 
@@ -16,21 +7,19 @@ import { StreamVideoParticipant } from '@stream-io/video-client/dist/src/rtc/typ
   templateUrl: './participant.component.html',
   styleUrls: ['./participant.component.scss'],
 })
-export class ParticipantComponent implements OnInit, AfterViewInit {
+export class ParticipantComponent implements OnInit {
   @Input() participant?: StreamVideoParticipant;
   @ViewChild('videoPlaceholder')
-  private videoPlaceholder!: ElementRef<HTMLElement>;
-  @Output() videoDimensionsChange = new EventEmitter<VideoDimension>();
+  private videoPlaceholderElement: ElementRef<HTMLElement> | undefined;
+  @ViewChild('video')
+  private videoElement!: ElementRef<HTMLElement> | undefined;
 
   ngOnInit(): void {}
 
-  ngAfterViewInit(): void {
-    if (!this.videoPlaceholder?.nativeElement) {
-      return;
-    }
-    this.videoDimensionsChange.emit({
-      width: this.videoPlaceholder.nativeElement.clientWidth,
-      height: this.videoPlaceholder.nativeElement.clientHeight,
-    });
+  get videoDimension(): VideoDimension {
+    const element =
+      this.videoPlaceholderElement?.nativeElement ||
+      this.videoElement?.nativeElement;
+    return { width: element!.clientWidth, height: element!.clientHeight };
   }
 }

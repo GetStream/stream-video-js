@@ -21,7 +21,7 @@ import { handleICETrickle, registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
-import { StreamVideoParticipant } from './types';
+import { StreamVideoParticipant, VideoDimensionChange } from './types';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -222,16 +222,18 @@ export class Call {
     }
   };
 
-  updateVideoDimension(
-    participant: StreamVideoParticipant,
-    videoDimension: VideoDimension,
-  ) {
-    const particpantToUpdate = this.findParticipant(participant);
-    if (!particpantToUpdate) {
-      return;
-    }
-    particpantToUpdate!.videoDimension = videoDimension;
-    this.stateStore.activeCallParticipantsSubject.next([...this.participants]);
+  updateVideoDimensions(changes: VideoDimensionChange[]) {
+    changes.forEach((change) => {
+      const particpantToUpdate = this.findParticipant(change.participant);
+      if (!particpantToUpdate) {
+        return;
+      }
+      particpantToUpdate!.videoDimension = change.videoDimension;
+      this.stateStore.activeCallParticipantsSubject.next([
+        ...this.participants,
+      ]);
+    });
+
     this.updateSubscriptions();
   }
 

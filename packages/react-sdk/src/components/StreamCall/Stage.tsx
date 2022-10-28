@@ -23,10 +23,15 @@ export const Stage = (props: {
 
   const updateVideoSubsscriptionForParticipant = useCallback(
     (participant: StreamVideoParticipant, width: number, height: number) => {
-      call.updateVideoDimension(participant, {
-        width,
-        height,
-      });
+      call.updateVideoDimensions([
+        {
+          participant,
+          videoDimension: {
+            width,
+            height,
+          },
+        },
+      ]);
     },
     [],
   );
