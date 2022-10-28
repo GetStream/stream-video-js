@@ -1,15 +1,9 @@
-import {
-  Participant,
-  VideoDimension,
-} from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
-import { useCallback, useEffect, useRef } from 'react';
+import { Participant } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
+import { useCallback, useEffect } from 'react';
 import { Call, StreamVideoParticipant } from '@stream-io/video-client';
 import { useParticipants } from '../../hooks/useParticipants';
-import { useStreamVideoClient } from '../../StreamVideo';
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';
 import { ParticipantBox } from './ParticipantBox';
-
-export type UserSubscriptions = { [key: string]: VideoDimension };
 
 export const Stage = (props: {
   call: Call;
@@ -17,9 +11,7 @@ export const Stage = (props: {
   includeSelf: boolean;
 }) => {
   const { call, includeSelf } = props;
-  // FIXME: SZZ: this doesn't seem like the Reacty way
-  const client = useStreamVideoClient()!;
-  const participants = useParticipants(client);
+  const participants = useParticipants();
 
   const updateVideoSubsscriptionForParticipant = useCallback(
     (participant: StreamVideoParticipant, width: number, height: number) => {
@@ -33,7 +25,7 @@ export const Stage = (props: {
         },
       ]);
     },
-    [],
+    [call],
   );
 
   const { audioStream: localAudioStream, videoStream: localVideoStream } =

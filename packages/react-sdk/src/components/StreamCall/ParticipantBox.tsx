@@ -50,7 +50,7 @@ export const ParticipantBox = (props: {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [participant, videoRef]);
+  }, [participant, updateVideoSubsscriptionForParticipant, videoRef]);
 
   useEffect(() => {
     const $el = videoRef.current;
