@@ -8,7 +8,7 @@ type RTCStatsReport = ReadonlyMap<string, any>;
 const getStats = (stats: RTCStatsReport) => {
   const objectFromMap = Object.fromEntries(stats);
   // this is polyfilled
-
+  // eslint-disable-next-line no-undef
   return new TextEncoder().encode(JSON.stringify(objectFromMap));
 };
 

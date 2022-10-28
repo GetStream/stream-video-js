@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import { CreateCallInput } from '@stream-io/video-client';
 import { CallState } from '@stream-io/video-client/src/gen/video/sfu/models/models';
-import { Stage } from './Stage';
-import { Stats } from '../Stats';
+import { useEffect, useState } from 'react';
+import { MediaDevicesProvider } from '../../contexts/MediaDevicesContext';
+import { useCall } from '../../hooks/useCall';
 import { useStreamVideoClient } from '../../StreamVideo';
 import { Ping } from '../Ping';
-import { useCall } from '../../hooks/useCall';
-import { DeviceSettings } from './DeviceSettings';
-import { MediaDevicesProvider } from '../../contexts/MediaDevicesContext';
+import { Stats } from '../Stats';
 import { CallControls } from './CallControls';
-import { CreateCallInput } from '@stream-io/video-client';
+import { DeviceSettings } from './DeviceSettings';
+import { Stage } from './Stage';
 
 export type CallProps = {
   currentUser: string;
@@ -79,14 +79,14 @@ export const StreamCall = ({
             {activeCallMeta && (
               <Ping activeCall={activeCallMeta} currentUser={currentUser} />
             )}
-            {videoClient && activeCall && activeCallMeta && (
-              <Stats
-                client={videoClient}
-                call={activeCall}
-                activeCall={activeCallMeta}
-              />
-            )}
           </>
+        )}
+        {videoClient && activeCall && activeCallMeta && (
+          <Stats
+            client={videoClient}
+            call={activeCall}
+            activeCall={activeCallMeta}
+          />
         )}
       </div>
     </MediaDevicesProvider>

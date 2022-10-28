@@ -25,12 +25,26 @@ import {
 } from './videoLayers';
 
 export type TrackChangedEvent = {
+  type: 'track_changed';
   track: MediaStreamTrack;
   change: MediaStateChange;
   reason: MediaStateChangeReason;
 };
 
-export type TrackChangedListener = (event: TrackChangedEvent) => void;
+export type ParticipantJoinedEvent = {
+  type: 'participant_joined';
+};
+
+export type ParticipantLeftEvent = {
+  type: 'participant_left';
+};
+
+export type StatEvent =
+  | TrackChangedEvent
+  | ParticipantJoinedEvent
+  | ParticipantLeftEvent;
+
+export type StatEventListener = (event: StatEvent) => void;
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -52,7 +66,7 @@ export class Call {
   }>();
 
   private joinResponseReady?: Promise<CallState | undefined>;
-  private trackChangedListeners: TrackChangedListener[];
+  private statEventListeners: StatEventListener[];
 
   constructor(
     private readonly client: StreamSfuClient,
@@ -79,7 +93,7 @@ export class Call {
       candidates: iceTrickleBuffer.publisherCandidates,
     });
 
-    this.trackChangedListeners = [];
+    this.statEventListeners = [];
 
     registerEventHandlers(this, this.stateStore, dispatcher);
 
@@ -104,7 +118,8 @@ export class Call {
     this.publisher.getSenders().forEach((s) => {
       if (s.track) {
         s.track.stop();
-        this.publishTrackChanged({
+        this.publishStatEvent({
+          type: 'track_changed',
           track: s.track,
           change: MediaStateChange.STARTED,
           reason: MediaStateChangeReason.CONNECTION,
@@ -119,7 +134,16 @@ export class Call {
   };
 
   join = async (videoStream?: MediaStream, audioStream?: MediaStream) => {
-    await this.client.signalReady;
+    await this.client.signalReady.then((ws) => {
+      this.publishStatEvent({
+        type: 'participant_joined',
+      });
+      ws.addEventListener('close', () => {
+        this.publishStatEvent({
+          type: 'participant_left',
+        });
+      });
+    });
 
     if (this.joinResponseReady) {
       throw new Error(`Illegal State: Already joined.`);
@@ -239,7 +263,8 @@ export class Call {
           videoTransceiver.setCodecPreferences(codecPreferences);
         }
 
-        this.publishTrackChanged({
+        this.publishStatEvent({
+          type: 'track_changed',
           track: videoTrack,
           change: MediaStateChange.STARTED,
           reason: MediaStateChangeReason.CONNECTION,
@@ -280,7 +305,8 @@ export class Call {
           return p;
         }),
       );
-      this.publishTrackChanged({
+      this.publishStatEvent({
+        type: 'track_changed',
         track: audioTrack,
         change: MediaStateChange.STARTED,
         reason: MediaStateChangeReason.CONNECTION,
@@ -413,16 +439,14 @@ export class Call {
     }
   };
 
-  onTrackChanged = (fn: TrackChangedListener) => {
-    this.trackChangedListeners.push(fn);
+  onStatEvent = (fn: StatEventListener) => {
+    this.statEventListeners.push(fn);
   };
-  offTrackChanged = (fn: TrackChangedListener) => {
-    this.trackChangedListeners = this.trackChangedListeners.filter(
-      (f) => f !== fn,
-    );
+  offStatEvent = (fn: StatEventListener) => {
+    this.statEventListeners = this.statEventListeners.filter((f) => f !== fn);
   };
-  private publishTrackChanged = (event: TrackChangedEvent) => {
-    this.trackChangedListeners.forEach((fn) => fn(event));
+  private publishStatEvent = (event: StatEvent) => {
+    this.statEventListeners.forEach((fn) => fn(event));
   };
 
   updateMuteState = (trackKind: 'audio' | 'video', isMute: boolean) => {
@@ -438,7 +462,8 @@ export class Call {
         return this.client.updateVideoMuteState(isMute);
       }
 
-      this.publishTrackChanged({
+      this.publishStatEvent({
+        type: 'track_changed',
         track: sender.track,
         change: isMute ? MediaStateChange.ENDED : MediaStateChange.STARTED,
         reason: MediaStateChangeReason.MUTE,

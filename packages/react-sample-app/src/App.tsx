@@ -84,9 +84,9 @@ const App = () => {
     setCallType('default');
     setCallInput({
       members: participants.map((userId) => ({
+        userId,
         role: 'admin',
         customJson: new TextEncoder().encode(JSON.stringify({})),
-        userId,
       })),
     });
   };
