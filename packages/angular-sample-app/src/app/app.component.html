@@ -1,2 +1,6 @@
 <div>Connected as {{(user$ | async)?.name}}</div>
-<app-call></app-call>
+<app-call *ngIf="activeCall; else noCall"></app-call>
+
+<ng-template #noCall>
+    Currently not in a call
+</ng-template>

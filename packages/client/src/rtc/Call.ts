@@ -166,7 +166,6 @@ export class Call {
           this.stateStore.activeCallParticipantsSubject.next([
             ...this.participants,
           ]);
-          this.updateSubscriptions();
           this.client.keepAlive();
           resolve(callState);
         }
@@ -370,7 +369,6 @@ export class Call {
   participantJoined(participant: Participant) {
     this.participants.push(participant);
     this.stateStore.activeCallParticipantsSubject.next([...this.participants]);
-    this.updateSubscriptions();
   }
 
   /**

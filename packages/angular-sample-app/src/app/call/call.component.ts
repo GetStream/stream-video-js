@@ -6,7 +6,6 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
-  TemplateRef,
   ViewChild,
   ViewChildren,
 } from '@angular/core';
@@ -15,7 +14,14 @@ import {
   StreamVideoParticipant,
   VideoDimensionChange,
 } from '@stream-io/video-client';
-import { Observable, Subscription, tap } from 'rxjs';
+import {
+  debounce,
+  debounceTime,
+  Observable,
+  Subject,
+  Subscription,
+  tap,
+} from 'rxjs';
 import { ParticipantComponent } from '../participant/participant.component';
 import { StreamVideoService } from '../stream-video.service';
 
@@ -27,42 +33,33 @@ import { StreamVideoService } from '../stream-video.service';
 export class CallComponent
   implements OnInit, AfterViewChecked, OnDestroy, AfterViewInit
 {
-  call: Call | undefined;
+  call!: Call;
   participants$: Observable<StreamVideoParticipant[]>;
   private subscriptions: Subscription[] = [];
   @ViewChild('participantsContainer')
   private participantsContainer!: ElementRef<HTMLElement>;
   @ViewChildren(ParticipantComponent)
-  private particpantComponents: ComponentRef<ParticipantComponent>[] = [];
+  private particpantComponents: ParticipantComponent[] = [];
   private participantsContainerResizeObserver: ResizeObserver | undefined;
+  private videoDimensionsSubject = new Subject<VideoDimensionChange[]>();
 
   constructor(private streamVideoService: StreamVideoService) {
-    this.participants$ = this.streamVideoService.activeCallParticipants$.pipe(
-      tap(console.log),
-    );
+    this.participants$ = this.streamVideoService.activeCallParticipants$;
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe(async (c) => {
-        this.call = c;
+        this.call = c!;
         const ownMediaStream = await this.getOwnMediaStream();
-        this.call?.publish(ownMediaStream, ownMediaStream);
+        this.call.publish(ownMediaStream, ownMediaStream);
       }),
     );
-    this.subscriptions.push(
-      this.streamVideoService.pendingCalls$.subscribe((calls) => {
-        if (this.call) {
-          this.call.leave();
-        }
-        if (calls.length === 1) {
-          calls[0].join();
-        }
-      }),
-    );
+    this.videoDimensionsSubject
+      .pipe(debounceTime(1200))
+      .subscribe((changes) => this.call.updateVideoDimensions(changes));
   }
 
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    console.log(this.participantsContainer);
     this.videoDimensionsChanged();
     this.participantsContainerResizeObserver = new ResizeObserver(() =>
       this.videoDimensionsChanged(),
@@ -93,17 +90,12 @@ export class CallComponent
   private videoDimensionsChanged() {
     const changes: VideoDimensionChange[] = [];
     this.particpantComponents.forEach((component) => {
-      console.warn(
-        component.instance.participant,
-        component.instance.videoDimension,
-      );
       changes.push({
-        participant: component.instance.participant!,
-        videoDimension: component.instance.videoDimension,
+        participant: component.participant!,
+        videoDimension: component.videoDimension,
       });
     });
 
-    console.warn(changes, this.particpantComponents);
-    this.call?.updateVideoDimensions(changes);
+    this.videoDimensionsSubject.next(changes);
   }
 }

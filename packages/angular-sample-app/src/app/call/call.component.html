@@ -1,7 +1,3 @@
-<div #participantContainer *ngIf="call; else noCall" class="str-call__call">
+<div #participantsContainer class="str-call__call">
     <app-participant *ngFor="let participant of participants$  | async; trackBy: trackByParticipantId" [participant]="participant"></app-participant>
 </div>
-
-<ng-template #noCall>
-    Currently not in a call
-</ng-template>

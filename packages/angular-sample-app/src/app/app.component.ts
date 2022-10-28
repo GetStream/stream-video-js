@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { Call } from '@stream-io/video-client';
 import { Observable, Subscription } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { StreamVideoService } from './stream-video.service';
@@ -12,6 +13,7 @@ import { StreamVideoService } from './stream-video.service';
 export class AppComponent implements OnInit, OnDestroy {
   ownMediaStream?: MediaStream;
   user$: Observable<any>;
+  activeCall: Call | undefined;
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -19,6 +21,19 @@ export class AppComponent implements OnInit, OnDestroy {
     private videoService: StreamVideoService,
   ) {
     this.user$ = this.videoService.user$;
+    this.subscriptions.push(
+      this.videoService.pendingCalls$.subscribe((calls) => {
+        if (this.activeCall) {
+          this.activeCall.leave();
+        }
+        if (calls.length === 1) {
+          calls[0].join();
+        }
+      }),
+    );
+    this.subscriptions.push(
+      this.videoService.activeCall$.subscribe((c) => (this.activeCall = c)),
+    );
   }
 
   async ngOnInit() {

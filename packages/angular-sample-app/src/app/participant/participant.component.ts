@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { VideoDimension } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 import { StreamVideoParticipant } from '@stream-io/video-client/dist/src/rtc/types';
 
@@ -7,14 +7,12 @@ import { StreamVideoParticipant } from '@stream-io/video-client/dist/src/rtc/typ
   templateUrl: './participant.component.html',
   styleUrls: ['./participant.component.scss'],
 })
-export class ParticipantComponent implements OnInit {
+export class ParticipantComponent {
   @Input() participant?: StreamVideoParticipant;
   @ViewChild('videoPlaceholder')
   private videoPlaceholderElement: ElementRef<HTMLElement> | undefined;
   @ViewChild('video')
   private videoElement!: ElementRef<HTMLElement> | undefined;
-
-  ngOnInit(): void {}
 
   get videoDimension(): VideoDimension {
     const element =
