@@ -50,7 +50,6 @@ const styles = StyleSheet.create({
 const RingingHomeScrren = () => {
   const [logText, setLog] = useState('');
   const [heldCalls, setHeldCalls] = useState({}); // callKeep uuid: held
-  const [mutedCalls, setMutedCalls] = useState({}); // callKeep uuid: muted
   const [calls, setCalls] = useState({}); // callKeep uuid: number
   const callID = useAppGlobalStoreValue((store) => store.callID);
   const username = useAppGlobalStoreValue((store) => store.username);
@@ -89,8 +88,8 @@ const RingingHomeScrren = () => {
     try {
       RNCallKeep.displayIncomingCall(
         callUUID,
-        '8967746753',
-        'Dinky Agarwal',
+        '2738282929',
+        'Test User',
         'number',
         true,
       );
@@ -111,8 +110,8 @@ const RingingHomeScrren = () => {
   };
 
   const removeCall = () => {
-    const { [callUUID]: _, ...updated } = calls;
-    const { [callUUID]: __, ...updatedHeldCalls } = heldCalls;
+    const { ...updated } = calls;
+    const { ...updatedHeldCalls } = heldCalls;
 
     setCalls(updated);
     setCalls(updatedHeldCalls);
