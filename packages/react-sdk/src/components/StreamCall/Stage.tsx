@@ -13,7 +13,7 @@ export const Stage = (props: {
   const { call, includeSelf } = props;
   const participants = useParticipants();
 
-  const updateVideoSubsscriptionForParticipant = useCallback(
+  const updateVideoSubscriptionForParticipant = useCallback(
     (participant: StreamVideoParticipant, width: number, height: number) => {
       call.updateVideoDimensions([
         {
@@ -50,8 +50,8 @@ export const Stage = (props: {
             participant={participant}
             isMuted={isAutoMuted}
             call={call}
-            updateVideoSubsscriptionForParticipant={
-              updateVideoSubsscriptionForParticipant
+            updateVideoSubscriptionForParticipant={
+              updateVideoSubscriptionForParticipant
             }
           />
         );

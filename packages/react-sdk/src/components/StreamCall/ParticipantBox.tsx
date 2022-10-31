@@ -9,7 +9,7 @@ import { usePopper } from 'react-popper';
 export const ParticipantBox = (props: {
   participant: StreamVideoParticipant;
   isMuted?: boolean;
-  updateVideoSubsscriptionForParticipant: (
+  updateVideoSubscriptionForParticipant: (
     participant: StreamVideoParticipant,
     width: number,
     height: number,
@@ -19,7 +19,7 @@ export const ParticipantBox = (props: {
   const {
     participant,
     isMuted = false,
-    updateVideoSubsscriptionForParticipant,
+    updateVideoSubscriptionForParticipant,
     call,
   } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -30,27 +30,26 @@ export const ParticipantBox = (props: {
 
   useEffect(() => {
     if (!videoRef.current) return;
-    updateVideoSubsscriptionForParticipant(
+    const $videoEl = videoRef.current;
+    updateVideoSubscriptionForParticipant(
       participant,
-      videoRef.current?.clientHeight || 0,
-      videoRef?.current?.clientHeight || 0,
+      $videoEl.clientHeight || 0,
+      $videoEl.clientHeight || 0,
     );
     const resizeObserver = new ResizeObserver(
-      debounce(
-        () =>
-          updateVideoSubsscriptionForParticipant(
-            participant,
-            videoRef.current?.clientHeight || 0,
-            videoRef?.current?.clientHeight || 0,
-          ),
-        1200,
-      ),
+      debounce(() => {
+        updateVideoSubscriptionForParticipant(
+          participant,
+          $videoEl.clientHeight || 0,
+          $videoEl.clientHeight || 0,
+        );
+      }, 1200),
     );
-    resizeObserver.observe(videoRef.current);
+    resizeObserver.observe($videoEl);
     return () => {
       resizeObserver.disconnect();
     };
-  }, [participant, updateVideoSubsscriptionForParticipant, videoRef]);
+  }, [participant, updateVideoSubscriptionForParticipant, videoRef]);
 
   useEffect(() => {
     const $el = videoRef.current;
@@ -96,8 +95,8 @@ export const ParticipantBox = (props: {
         {isDebugMode && (
           <>
             <DebugParticipantPublishQuality
-              updateVideoSubsscriptionForParticipant={
-                updateVideoSubsscriptionForParticipant
+              updateVideoSubscriptionForParticipant={
+                updateVideoSubscriptionForParticipant
               }
               participant={participant}
               call={call}
@@ -162,13 +161,13 @@ const StatsView = (props: {
 const DebugParticipantPublishQuality = (props: {
   participant: StreamVideoParticipant;
   call: Call;
-  updateVideoSubsscriptionForParticipant: (
+  updateVideoSubscriptionForParticipant: (
     participant: StreamVideoParticipant,
     width: number,
     height: number,
   ) => void;
 }) => {
-  const { call, participant, updateVideoSubsscriptionForParticipant } = props;
+  const { call, participant, updateVideoSubscriptionForParticipant } = props;
   const [quality, setQuality] = useState<string>();
   const [publishStats, setPublishStats] = useState(() => ({
     f: true,
@@ -208,7 +207,7 @@ const DebugParticipantPublishQuality = (props: {
           w = 320;
           h = 240;
         }
-        updateVideoSubsscriptionForParticipant(participant, w, h);
+        updateVideoSubscriptionForParticipant(participant, w, h);
       }}
     >
       <option value="f">High (f)</option>
