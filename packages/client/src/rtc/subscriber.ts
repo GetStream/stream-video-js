@@ -1,13 +1,14 @@
 import { StreamSfuClient } from '../StreamSfuClient';
 import { Dispatcher } from './Dispatcher';
-import { PeerType } from '../gen/video/sfu/models/models';
+import { ICETrickle, PeerType } from '../gen/video/sfu/models/models';
+import { ReplaySubject } from 'rxjs';
 
 export type SubscriberOpts = {
   rpcClient: StreamSfuClient;
   dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
   onTrack?: (e: RTCTrackEvent) => void;
-  candidates: RTCIceCandidateInit[];
+  candidates: ReplaySubject<ICETrickle>;
 };
 
 export const createSubscriber = ({
@@ -52,11 +53,14 @@ export const createSubscriber = ({
       sdp: subscriberOffer.sdp,
     });
 
-    // ICE candidates have to be added after remoteDescription is set
-    for (const candidate of candidates) {
-      await subscriber.addIceCandidate(candidate);
-    }
-    candidates = []; // FIXME: clean the call object accordingly
+    candidates.subscribe((candidate) => {
+      try {
+        const iceCandidate = JSON.parse(candidate.iceCandidate);
+        subscriber.addIceCandidate(iceCandidate);
+      } catch (e) {
+        console.error(`An error occurred while adding ICE candidate`, e);
+      }
+    });
 
     // apply ice candidates
     const answer = await subscriber.createAnswer();

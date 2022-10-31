@@ -13,7 +13,7 @@ import {
 } from './codecs';
 import { createPublisher } from './publisher';
 import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
-import { handleICETrickle, registerEventHandlers } from './callEventHandlers';
+import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
@@ -24,58 +24,53 @@ export type CallOptions = {
 };
 
 export class Call {
-  private readonly client: StreamSfuClient;
-  private readonly options: CallOptions;
-
   /**@deprecated use store for this data */
   currentUserId: string;
 
   private videoLayers?: OptimalVideoLayer[];
-  publisherCandidates: RTCIceCandidateInit[] = [];
-  subscriberCandidates: RTCIceCandidateInit[] = [];
-  subscriber: RTCPeerConnection;
-  publisher: RTCPeerConnection;
+  readonly subscriber: RTCPeerConnection;
+  readonly publisher: RTCPeerConnection;
 
   constructor(
-    client: StreamSfuClient,
-    options: CallOptions,
-    private stateStore: StreamVideoWriteableStateStore,
+    private readonly client: StreamSfuClient,
+    private readonly options: CallOptions,
+    private readonly stateStore: StreamVideoWriteableStateStore,
   ) {
-    this.client = client;
-    this.options = options;
     this.currentUserId = stateStore.getCurrentValue(
       stateStore.connectedUserSubject,
     )!.name;
-
-    this.client.dispatcher.on('iceTrickle', handleICETrickle(this));
-
+    const { dispatcher, iceTrickleBuffer } = this.client;
     this.subscriber = createSubscriber({
       rpcClient: this.client,
 
       // FIXME: don't do this
-      dispatcher: client.dispatcher,
+      dispatcher: dispatcher,
       connectionConfig: this.options.connectionConfig,
-      onTrack: (e) => {
-        console.log('Got remote track:', e.track);
-        this.handleOnTrack(e);
-      },
-      candidates: this.subscriberCandidates,
+      onTrack: this.handleOnTrack,
+      candidates: iceTrickleBuffer.subscriberCandidates,
     });
 
     this.publisher = createPublisher({
       rpcClient: this.client,
       connectionConfig: this.options.connectionConfig,
-      candidates: this.publisherCandidates,
+      candidates: iceTrickleBuffer.publisherCandidates,
     });
 
-    registerEventHandlers(this, this.stateStore);
+    registerEventHandlers(this, this.stateStore, dispatcher);
   }
 
   // FIXME: change the call-sites in the SDK
+  /**
+   * @deprecated use `dispatcher.on`
+   */
   on = (eventName: string, fn: SfuEventListener) => {
     return this.client.dispatcher.on(eventName, fn);
   };
+
   // FIXME: change the call-sites in the SDK
+  /**
+   * @deprecated use `dispatcher.off`
+   */
   off = (eventName: string, fn: SfuEventListener) => {
     return this.client.dispatcher.off(eventName, fn);
   };
@@ -388,6 +383,7 @@ export class Call {
   }
 
   private handleOnTrack = (e: RTCTrackEvent) => {
+    console.log('Got remote track:', e.track);
     const [primaryStream] = e.streams;
     const [trackId] = primaryStream.id.split(':');
     const participant = this.participants.find(
