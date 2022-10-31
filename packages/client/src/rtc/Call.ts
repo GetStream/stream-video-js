@@ -33,8 +33,8 @@ export class Call {
   private videoLayers?: OptimalVideoLayer[];
   publisherCandidates: RTCIceCandidateInit[] = [];
   subscriberCandidates: RTCIceCandidateInit[] = [];
-  subscriber: RTCPeerConnection | undefined;
-  publisher: RTCPeerConnection | undefined;
+  subscriber: RTCPeerConnection;
+  publisher: RTCPeerConnection;
 
   constructor(
     client: StreamSfuClient,
@@ -57,7 +57,7 @@ export class Call {
       connectionConfig: this.options.connectionConfig,
       onTrack: (e) => {
         console.log('Got remote track:', e.track);
-        this.handleOnTrack?.(e);
+        this.handleOnTrack(e);
       },
       candidates: this.subscriberCandidates,
     });
@@ -81,14 +81,13 @@ export class Call {
   };
 
   leave = () => {
-    this.subscriber?.close();
+    this.subscriber.close();
 
-    this.publisher?.getSenders().forEach((s) => {
+    this.publisher.getSenders().forEach((s) => {
       s.track?.stop();
-      this.publisher?.removeTrack(s);
+      this.publisher.removeTrack(s);
     });
-    this.publisher?.close();
-
+    this.publisher.close();
     this.client.close();
 
     this.stateStore.activeCallSubject.next(undefined);
@@ -215,20 +214,20 @@ export class Call {
     }
   };
 
-  updateVideoDimensions(changes: VideoDimensionChange[]) {
+  updateVideoDimensions = (changes: VideoDimensionChange[]) => {
     changes.forEach((change) => {
-      const particpantToUpdate = this.findParticipant(change.participant);
-      if (!particpantToUpdate) {
+      const participantToUpdate = this.findParticipant(change.participant);
+      if (!participantToUpdate) {
         return;
       }
-      particpantToUpdate!.videoDimension = change.videoDimension;
+      participantToUpdate.videoDimension = change.videoDimension;
       this.stateStore.activeCallParticipantsSubject.next([
         ...this.participants,
       ]);
     });
 
-    this.updateSubscriptions();
-  }
+    return this.updateSubscriptions();
+  };
 
   changeInputDevice = async (
     kind: Exclude<MediaDeviceKind, 'audiooutput'>,
@@ -388,7 +387,7 @@ export class Call {
     });
   }
 
-  private handleOnTrack(e: RTCTrackEvent) {
+  private handleOnTrack = (e: RTCTrackEvent) => {
     const [primaryStream] = e.streams;
     const [trackId] = primaryStream.id.split(':');
     const participant = this.participants.find(
@@ -409,5 +408,5 @@ export class Call {
         ...this.participants,
       ]);
     }
-  }
+  };
 }

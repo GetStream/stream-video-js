@@ -4,16 +4,12 @@ import type { UserInput } from './gen/video/coordinator/user_v1/user';
 import { StreamVideoParticipant } from './rtc/types';
 
 export class StreamVideoWriteableStateStore {
-  connectedUserSubject: BehaviorSubject<UserInput | undefined> =
-    new BehaviorSubject<UserInput | undefined>(undefined);
-  pendingCallsSubject: BehaviorSubject<Call[]> = new BehaviorSubject<Call[]>(
+  connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
+  pendingCallsSubject = new BehaviorSubject<Call[]>([]);
+  activeCallSubject = new BehaviorSubject<Call | undefined>(undefined);
+  activeCallParticipantsSubject = new BehaviorSubject<StreamVideoParticipant[]>(
     [],
   );
-  activeCallSubject: BehaviorSubject<Call | undefined> = new BehaviorSubject<
-    Call | undefined
-  >(undefined);
-  activeCallParticipantsSubject: BehaviorSubject<StreamVideoParticipant[]> =
-    new BehaviorSubject<StreamVideoParticipant[]>([]);
 
   getCurrentValue<T>(subject: BehaviorSubject<T>) {
     return subject.getValue();
