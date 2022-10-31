@@ -33,6 +33,7 @@
       </intent-filter>
     </activity>
 
+    <!-- Don't change the name and the label of this service. Ref - https://github.com/react-native-webrtc/react-native-callkeep/issues/289#issuecomment-1113102613 -->
     <service android:name="io.wazo.callkeep.VoiceConnectionService"
       android:label="Wazo"
       android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE"

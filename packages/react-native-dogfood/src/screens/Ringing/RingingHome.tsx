@@ -45,6 +45,10 @@ const styles = StyleSheet.create({
     borderBottomColor: 'gray',
     borderBottomWidth: 1,
   },
+  selectedParticipant: {
+    color: 'red',
+    fontWeight: 'bold',
+  },
 });
 
 const RingingHomeScrren = () => {
@@ -68,7 +72,6 @@ const RingingHomeScrren = () => {
   const format = (uuid: string) => uuid.split('-')[0];
 
   const log = (text: string) => {
-    console.info(text);
     setLog(logText + '\n' + text);
   };
 
@@ -144,9 +147,10 @@ const RingingHomeScrren = () => {
         additionalPermissions: [PermissionsAndroid.PERMISSIONS.READ_CONTACTS],
         // Required to get audio in background when using Android 11
         foregroundService: {
-          channelId: 'com.company.my',
-          channelName: 'Foreground service for my app',
-          notificationTitle: 'My app is running on background',
+          channelId: 'io.getstream.rnvideosample',
+          channelName:
+            'Foreground service for the app Stream React Native Dogfood',
+          notificationTitle: 'App is running on background',
           notificationIcon: 'Path to the resource icon of the notification',
         },
       },
@@ -189,9 +193,7 @@ const RingingHomeScrren = () => {
               <Text
                 style={[
                   styles.text,
-                  username === user.id
-                    ? { color: 'red', fontWeight: 'bold' }
-                    : null,
+                  username === user.id ? styles.selectedParticipant : null,
                 ]}
               >
                 {user.name}

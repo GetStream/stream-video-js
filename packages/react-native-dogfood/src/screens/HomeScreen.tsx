@@ -17,14 +17,14 @@ const HomeScreen = ({ navigation }: Props) => {
       <Button
         title="Meeting"
         onPress={() => {
-          navigation.navigate('Meeting');
+          navigation.navigate('MeetingHome');
         }}
       />
       <Button
         title="Ringing"
         color={'red'}
         onPress={() => {
-          navigation.navigate('Ringing');
+          navigation.navigate('RingingHome');
         }}
       />
     </SafeAreaView>
