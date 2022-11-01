@@ -11,17 +11,17 @@ import {
 import InCallManager from 'react-native-incall-manager';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { RootStackParamList } from '../../types';
-import { Call } from '../modules/Call';
+import { RootStackParamList } from '../../../types';
+import { Call } from '../../modules/Call';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StreamSfuClient, UserInput } from '@stream-io/video-client';
-import { useCreateStreamVideoClient } from '../hooks/useCreateStreamVideoClient';
-import { useCall } from '../hooks/useCall';
-import { useSessionId } from '../hooks/useSessionId';
+import { useCreateStreamVideoClient } from '../../hooks/useCreateStreamVideoClient';
+import { useCall } from '../../hooks/useCall';
+import { useSessionId } from '../../hooks/useSessionId';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
-} from '../contexts/AppContext';
+} from '../../contexts/AppContext';
 import { mediaDevices } from 'react-native-webrtc';
 
 // export const SFU_HOSTNAME = "192.168.2.24";
@@ -32,9 +32,9 @@ import { mediaDevices } from 'react-native-webrtc';
 // const DEFAULT_CALL_ID = '123';
 const APP_ID = 'streamrnvideosample';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'MeetingHome'>;
 
-export default ({ navigation }: Props) => {
+const MeetingHomeScreen = ({ navigation }: Props) => {
   const username = useAppGlobalStoreValue((store) => store.username);
   const callID = useAppGlobalStoreValue((store) => store.callID);
   const loopbackMyVideo = useAppGlobalStoreValue(
@@ -90,8 +90,7 @@ export default ({ navigation }: Props) => {
 
   const videoClient = useCreateStreamVideoClient({
     // coordinatorRpcUrl: 'http://localhost:26991',
-    // coordinatorWsUrl:
-    //   'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+    // coordinatorWsUrl: 'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
     coordinatorRpcUrl:
       'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
     coordinatorWsUrl:
@@ -236,3 +235,5 @@ const styles = StyleSheet.create({
     color: 'black',
   },
 });
+
+export default MeetingHomeScreen;

@@ -4473,6 +4473,7 @@ __metadata:
     prettier: 2.7.1
     react: 18.1.0
     react-native: 0.70.4
+    react-native-callkeep: ^4.3.3
     react-native-get-random-values: ^1.8.0
     react-native-incall-manager: ^4.0.0
     react-native-polyfill-globals: ^3.1.0
@@ -18642,6 +18643,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-callkeep@npm:^4.3.3":
+  version: 4.3.3
+  resolution: "react-native-callkeep@npm:4.3.3"
+  peerDependencies:
+    react-native: ">=0.40.0"
+  checksum: 799277737fdeff3bd76de6d94a1d70b1018510bdde96243aa991c50aa365446efd6e79d6407a355c10940b6d91c59c0b9ec06a3981bf555e0d7cab9999070e34
+  languageName: node
+  linkType: hard
+  
 "react-native-codegen@npm:^0.70.6":
   version: 0.70.6
   resolution: "react-native-codegen@npm:0.70.6"
