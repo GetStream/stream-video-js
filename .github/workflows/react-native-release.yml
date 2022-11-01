@@ -2,8 +2,8 @@ name: React Native Dogfood Release
 
 on:
   push:
-    paths:
-      - 'packages/react-native-dogfood/**'
+    # paths:
+    #   - 'packages/react-native-dogfood/**'
     branches:
       - main
 
