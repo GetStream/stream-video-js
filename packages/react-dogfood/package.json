@@ -12,6 +12,7 @@
     "@emotion/styled": "11.10.4",
     "@mui/icons-material": "5.10.9",
     "@mui/material": "5.10.9",
+    "@sentry/nextjs": "^7.16.0",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
