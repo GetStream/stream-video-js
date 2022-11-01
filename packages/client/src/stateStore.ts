@@ -7,9 +7,13 @@ export class StreamVideoWriteableStateStore {
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
   pendingCallsSubject = new BehaviorSubject<Call[]>([]);
   activeCallSubject = new BehaviorSubject<Call | undefined>(undefined);
+
+  // FIXME OL: consider storing { [userId/sessionId]: StreamVideoParticipant }
+  // for faster lookups
   activeCallParticipantsSubject = new BehaviorSubject<StreamVideoParticipant[]>(
     [],
   );
+  dominantSpeakerSubject = new BehaviorSubject<string | undefined>(undefined);
 
   getCurrentValue<T>(subject: BehaviorSubject<T>) {
     return subject.getValue();
@@ -25,6 +29,7 @@ export class StreamVideoReadOnlyStateStore {
   activeCall$: Observable<Call | undefined>;
   activeCallParticipants$: Observable<StreamVideoParticipant[]>;
   pendingCalls$: Observable<Call[]>;
+  dominantSpeaker$: Observable<string | undefined>;
 
   constructor(writeableStateStore: StreamVideoWriteableStateStore) {
     this.connectedUser$ =
@@ -33,6 +38,8 @@ export class StreamVideoReadOnlyStateStore {
     this.activeCallParticipants$ =
       writeableStateStore.activeCallParticipantsSubject.asObservable();
     this.pendingCalls$ = writeableStateStore.pendingCallsSubject.asObservable();
+    this.dominantSpeaker$ =
+      writeableStateStore.dominantSpeakerSubject.asObservable();
   }
 
   getCurrentValue<T>(observable: Observable<T>) {

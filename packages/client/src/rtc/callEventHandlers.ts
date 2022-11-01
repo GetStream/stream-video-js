@@ -6,6 +6,10 @@ import {
   watchParticipantLeft,
 } from '../events/participant';
 import { watchChangePublishQuality } from '../events/internal';
+import {
+  watchAudioLevelChanged,
+  watchDominantSpeakerChanged,
+} from '../events/speaker';
 
 export const registerEventHandlers = (
   call: Call,
@@ -16,4 +20,7 @@ export const registerEventHandlers = (
 
   watchParticipantJoined(dispatcher, store);
   watchParticipantLeft(dispatcher, store);
+
+  watchAudioLevelChanged(dispatcher, store);
+  watchDominantSpeakerChanged(dispatcher, store);
 };

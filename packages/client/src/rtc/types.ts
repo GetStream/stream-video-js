@@ -5,6 +5,15 @@ export type StreamVideoParticipant = {
   audioTrack?: MediaStream;
   videoDimension?: VideoDimension;
   isLoggedInUser?: boolean;
+
+  /**
+   * Audio level of the current participant [0 - silence, 1 - loudest].
+   */
+  audioLevel?: number;
+  /**
+   * True when SDK defined audio-level threshold is exceeded.
+   */
+  isSpeaking?: boolean;
 } & Participant;
 
 export type VideoDimensionChange = {

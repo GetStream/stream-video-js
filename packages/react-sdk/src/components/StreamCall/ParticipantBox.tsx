@@ -24,9 +24,12 @@ export const ParticipantBox = (props: {
   } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const videoStream = participant.videoTrack;
-  const audioStream = participant.audioTrack;
-  const isLocalParticipant = participant.isLoggedInUser;
+  const {
+    videoTrack: videoStream,
+    audioTrack: audioStream,
+    isLoggedInUser: isLocalParticipant,
+    isSpeaking,
+  } = participant;
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -77,7 +80,12 @@ export const ParticipantBox = (props: {
 
   const isDebugMode = useIsDebugMode();
   return (
-    <div className="str-video__participant">
+    <div
+      className={clsx(
+        'str-video__participant',
+        isSpeaking && 'str-video__participant--speaking',
+      )}
+    >
       <audio autoPlay ref={audioRef} muted={isMuted} />
       <video
         className={clsx(
