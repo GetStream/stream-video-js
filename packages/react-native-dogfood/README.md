@@ -7,7 +7,7 @@
 3. Run `yarn build:client` to build the js client
 4. Move to `cd packages/react-native-dogfood/`
 5. Run `npx pod-install` to install pods (ios only)
-6. Run `yarn start ios` and/or `yarn start ios` to run the app
+6. Run `yarn start ios` and/or `yarn start android` to run the app
 
 ## Invite links to install app on devices
 
