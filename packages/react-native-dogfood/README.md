@@ -12,4 +12,4 @@
 ## Invite links to install app on devices
 
 - Android: <https://appdistribution.firebase.dev/i/d95ca5c1430d6574>
-- iOS: <https://testflight.apple.com/join/p4Gy0JSM>
+- iOS: <https://testflight.apple.com/join/p4Gy0JSM> 
