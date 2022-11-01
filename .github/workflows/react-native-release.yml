@@ -2,8 +2,8 @@ name: React Native Dogfood Release
 
 on:
   push:
-    # paths:
-    #   - 'packages/react-native-dogfood/**'
+    paths:
+      - 'packages/react-native-dogfood/**'
     branches:
       - main
 
@@ -33,7 +33,6 @@ jobs:
         with:
           path: './.eslintcache'
           key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}-${{ hashFiles('.eslintcache') }}
-
       - name: Install Yarn Dependencies
         run: yarn install --immutable
       - name: Build shared JS client
@@ -44,7 +43,7 @@ jobs:
           working-directory: packages/react-native-dogfood
           bundler-cache: true
       - name: Cache pods
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: packages/react-native-dogfood/ios/Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('packages/react-native-dogfood/ios/Podfile.lock') }}
@@ -83,13 +82,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
-
       - name: ESLint Cache
         uses: actions/cache@v3
         with:
           path: './.eslintcache'
           key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}-${{ hashFiles('.eslintcache') }}
-
       - name: Install Yarn Dependencies
         run: yarn install --immutable
       - name: Build shared JS client
