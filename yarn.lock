@@ -18911,12 +18911,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-callkeep@npm:^4.3.3":
+"react-native-callkeep@npm:4.3.3":
   version: 4.3.3
   resolution: "react-native-callkeep@npm:4.3.3"
   peerDependencies:
     react-native: ">=0.40.0"
   checksum: 799277737fdeff3bd76de6d94a1d70b1018510bdde96243aa991c50aa365446efd6e79d6407a355c10940b6d91c59c0b9ec06a3981bf555e0d7cab9999070e34
+  languageName: node
+  linkType: hard
+
+"react-native-callkeep@patch:react-native-callkeep@npm%3A4.3.3#./.yarn/patches/react-native-callkeep-npm-4.3.3-71db80f4ef.patch::locator=%40stream-io%2Fvideo-js-root%40workspace%3A.":
+  version: 4.3.3
+  resolution: "react-native-callkeep@patch:react-native-callkeep@npm%3A4.3.3#./.yarn/patches/react-native-callkeep-npm-4.3.3-71db80f4ef.patch::version=4.3.3&hash=833266&locator=%40stream-io%2Fvideo-js-root%40workspace%3A."
+  peerDependencies:
+    react-native: ">=0.40.0"
+  checksum: f1400475510edda12e77f66cd1ae76905ea5ee3bc572cffb97b7b75ae44b96009d7626c5c50dadecdad8a13f5d4590a91c9e8f9a8caa312d7883477e4f6576c8
   languageName: node
   linkType: hard
 
