@@ -75,6 +75,8 @@ platform :ios do
         upload_to_testflight(
             groups: ['Dev Testers', 'Stream Testers'],
             changelog: "Lots of amazing new features to test out!",
+            ipa: "./dist/StreamReactNativeVideoSDKSample.ipa",
+            itc_provider: "EHV7XZLAHA",
             reject_build_waiting_for_review: false,
             skip_waiting_for_build_processing: false,
         )
