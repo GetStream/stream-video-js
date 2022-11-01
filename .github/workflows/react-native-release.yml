@@ -15,32 +15,34 @@ jobs:
   deploy_ios:
     name: Deploy iOS to Testflight
     runs-on: macos-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
         with:
-          persist-credentials: false
           fetch-depth: 0
+      - name: Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: ESLint Cache
+        uses: actions/cache@v3
+        with:
+          path: './.eslintcache'
+          key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}-${{ hashFiles('.eslintcache') }}
+
+      - name: Install Yarn Dependencies
+        run: yarn install --immutable
+      - name: Build shared JS client
+        run: yarn build:client
       - name: Install Ruby and Gems
         uses: ruby/setup-ruby@v1
         with:
           working-directory: packages/react-native-dogfood
           bundler-cache: true
-      - name: Install Yarn dependencies
-        uses: nick-invision/retry@v2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          command: |
-            yarn install --frozen-lockfile;
-      - name: Build packages
-        env:
-          STREAM_COORDINATOR_RPC_URL: https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc/
-          STREAM_COORDINATOR_WS_URL: ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          STREAM_API_KEY: ${{ secrets.STREAM_API_KEY }}
-          STREAM_SECRET_KEY: ${{ secrets.STREAM_SECRET_KEY }}
-        run: yarn build:client
       - name: Cache pods
         uses: actions/cache@v2
         with:
@@ -69,11 +71,29 @@ jobs:
   deploy_android:
     name: Deploy Android to Firebase App Distribution
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
         with:
-          persist-credentials: false
           fetch-depth: 0
+      - name: Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: ESLint Cache
+        uses: actions/cache@v3
+        with:
+          path: './.eslintcache'
+          key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}-${{ hashFiles('.eslintcache') }}
+
+      - name: Install Yarn Dependencies
+        run: yarn install --immutable
+      - name: Build shared JS client
+        run: yarn build:client
       - name: Install Ruby and Gems
         uses: ruby/setup-ruby@v1
         with:
@@ -84,14 +104,6 @@ jobs:
           distribution: 'zulu'
           java-version: '11'
           check-latest: true
-      - name: Install Yarn dependencies
-        uses: nick-invision/retry@v2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          command: |
-            cd packages/react-native-dogfood;
-            yarn install --frozen-lockfile;
       - name: Build packages
         env:
           STREAM_COORDINATOR_RPC_URL: https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc/
