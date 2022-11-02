@@ -1,13 +1,6 @@
+import React from 'react';
 import { NativeStackHeaderProps } from '@react-navigation/native-stack';
-import {
-  Alert,
-  Image,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -68,13 +61,15 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
     ]);
   };
 
-  if (props.route.name === 'ActiveCall') return null;
-  else if (props.route.name === 'LoginScreen')
+  if (props.route.name === 'ActiveCall') {
+    return null;
+  } else if (props.route.name === 'LoginScreen') {
     return (
       <View style={styles.header}>
         <Text style={styles.loginTitle}>Login Screen</Text>
       </View>
     );
+  }
   return (
     <View style={styles.header}>
       <Pressable onPress={logoutHandler}>

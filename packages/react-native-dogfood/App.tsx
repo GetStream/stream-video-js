@@ -65,7 +65,7 @@ const StackNavigator = () => {
     };
 
     run();
-  }, [username, token]);
+  }, [username, token, setState]);
   return (
     <Stack.Navigator
       screenOptions={{

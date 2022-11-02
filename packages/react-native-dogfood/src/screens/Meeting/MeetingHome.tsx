@@ -128,6 +128,7 @@ const MeetingHomeScreen = ({ navigation }: Props) => {
     navigation,
     sessionId,
     setState,
+    username,
   ]);
 
   const handleCopyInviteLink = useCallback(
