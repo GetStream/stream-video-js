@@ -39,28 +39,25 @@ export const Stage = (props: {
     }[]
   >([]);
 
-  const updateVideoSubscriptionForAllParticipantsDebounced = useCallback(
-    () =>
-      debounce(() => {
-        const changes: SubscriptionChange[] = [];
-        videoElementsByParticipant.current.forEach(
-          (videoElementByParticpiant) => {
-            if (videoElementByParticpiant.videoElement) {
-              const width = videoElementByParticpiant.videoElement.clientWidth;
-              const height =
-                videoElementByParticpiant.videoElement.clientHeight;
-              changes.push({
-                participant: videoElementByParticpiant.participant,
-                videoDimension: { width, height },
-              });
-            }
-          },
-        );
+  const updateVideoSubscriptionForAllParticipantsDebounced = useMemo(() => {
+    return debounce(() => {
+      const changes: SubscriptionChange[] = [];
+      videoElementsByParticipant.current.forEach(
+        (videoElementByParticpiant) => {
+          if (videoElementByParticpiant.videoElement) {
+            const width = videoElementByParticpiant.videoElement.clientWidth;
+            const height = videoElementByParticpiant.videoElement.clientHeight;
+            changes.push({
+              participant: videoElementByParticpiant.participant,
+              videoDimension: { width, height },
+            });
+          }
+        },
+      );
 
-        call.updateSubscriptionsPartial(changes, includeSelf);
-      }, 1200),
-    [call, includeSelf],
-  );
+      call.updateSubscriptionsPartial(changes, includeSelf);
+    }, 1200);
+  }, [call, includeSelf]);
 
   const updateVideoElementForParticipant = useCallback(
     (participant: Participant, el: HTMLVideoElement | null) => {
