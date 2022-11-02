@@ -11,7 +11,7 @@ import {
 import {
   Call,
   StreamVideoParticipant,
-  VideoDimensionChange,
+  SubscriptionChange,
 } from '@stream-io/video-client';
 import { debounceTime, Observable, Subject, Subscription } from 'rxjs';
 import { ParticipantComponent } from '../participant/participant.component';
@@ -33,7 +33,7 @@ export class CallComponent
   @ViewChildren(ParticipantComponent)
   private particpantComponents: ParticipantComponent[] = [];
   private participantsContainerResizeObserver: ResizeObserver | undefined;
-  private videoDimensionsSubject = new Subject<VideoDimensionChange[]>();
+  private videoDimensionsSubject = new Subject<SubscriptionChange[]>();
 
   constructor(private streamVideoService: StreamVideoService) {
     this.participants$ = this.streamVideoService.activeCallParticipants$;
@@ -46,7 +46,7 @@ export class CallComponent
     );
     this.videoDimensionsSubject
       .pipe(debounceTime(1200))
-      .subscribe((changes) => this.call.updateVideoDimensions(changes));
+      .subscribe((changes) => this.call.updateSubscriptionsPartial(changes));
   }
 
   ngOnInit(): void {}
@@ -80,7 +80,7 @@ export class CallComponent
   }
 
   private videoDimensionsChanged() {
-    const changes: VideoDimensionChange[] = [];
+    const changes: SubscriptionChange[] = [];
     this.particpantComponents.forEach((component) => {
       changes.push({
         participant: component.participant!,

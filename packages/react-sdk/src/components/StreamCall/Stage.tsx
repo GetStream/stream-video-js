@@ -1,9 +1,9 @@
 import { Participant } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   Call,
   StreamVideoParticipant,
-  VideoDimensionChange,
+  SubscriptionChange,
 } from '@stream-io/video-client';
 import { useParticipants } from '../../hooks/useParticipants';
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';
@@ -19,7 +19,7 @@ export const Stage = (props: {
 
   const updateVideoSubscriptionForParticipant = useCallback(
     (participant: StreamVideoParticipant, width: number, height: number) => {
-      call.updateVideoDimensions([
+      call.updateSubscriptionsPartial([
         {
           participant,
           videoDimension: {
@@ -40,23 +40,25 @@ export const Stage = (props: {
   >([]);
 
   const updateVideoSubscriptionForAllParticipantsDebounced = useCallback(
-    debounce(() => {
-      const changes: VideoDimensionChange[] = [];
-      videoElementsByParticipant.current.forEach(
-        (videoElementByParticpiant) => {
-          if (videoElementByParticpiant.videoElement) {
-            const width = videoElementByParticpiant.videoElement.clientWidth;
-            const height = videoElementByParticpiant.videoElement.clientHeight;
-            changes.push({
-              participant: videoElementByParticpiant.participant,
-              videoDimension: { width, height },
-            });
-          }
-        },
-      );
+    () =>
+      debounce(() => {
+        const changes: SubscriptionChange[] = [];
+        videoElementsByParticipant.current.forEach(
+          (videoElementByParticpiant) => {
+            if (videoElementByParticpiant.videoElement) {
+              const width = videoElementByParticpiant.videoElement.clientWidth;
+              const height =
+                videoElementByParticpiant.videoElement.clientHeight;
+              changes.push({
+                participant: videoElementByParticpiant.participant,
+                videoDimension: { width, height },
+              });
+            }
+          },
+        );
 
-      call.updateVideoDimensions(changes, includeSelf);
-    }, 1200),
+        call.updateSubscriptionsPartial(changes, includeSelf);
+      }, 1200),
     [call, includeSelf],
   );
 

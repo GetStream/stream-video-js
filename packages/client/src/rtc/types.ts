@@ -16,7 +16,7 @@ export type StreamVideoParticipant = {
   isSpeaking?: boolean;
 } & Participant;
 
-export type VideoDimensionChange = {
+export type SubscriptionChange = {
   participant: StreamVideoParticipant;
   videoDimension: VideoDimension;
 };

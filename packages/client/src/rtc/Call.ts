@@ -17,7 +17,7 @@ import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
-import { VideoDimensionChange } from './types';
+import { SubscriptionChange } from './types';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -209,8 +209,14 @@ export class Call {
     }
   };
 
-  updateVideoDimensions = (
-    changes: VideoDimensionChange[],
+  /**
+   * Update track configuration for one or more participants
+   * @param changes
+   * @param includeCurrentUser if true the tracks of the logged in user will be fetched from the server (instead of using the local stream)
+   * @returns
+   */
+  updateSubscriptionsPartial = (
+    changes: SubscriptionChange[],
     includeCurrentUser: boolean = false,
   ) => {
     if (changes.length === 0) {
