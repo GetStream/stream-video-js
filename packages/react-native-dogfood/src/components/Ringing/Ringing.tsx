@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const RingingHomeScrren = () => {
+const Ringing = () => {
   const [logText, setLog] = useState('');
   const [heldCalls, setHeldCalls] = useState({}); // callKeep uuid: held
   const [calls, setCalls] = useState({}); // callKeep uuid: number
@@ -212,4 +212,4 @@ const RingingHomeScrren = () => {
   );
 };
 
-export default RingingHomeScrren;
+export default Ringing;
