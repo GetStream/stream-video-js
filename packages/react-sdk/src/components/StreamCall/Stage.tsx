@@ -1,9 +1,6 @@
 import { Participant } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import {
-  Call,
-  SubscriptionChanges,
-} from '@stream-io/video-client';
+import { Call, SubscriptionChanges } from '@stream-io/video-client';
 import { useParticipants } from '../../hooks/useParticipants';
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';
 import { ParticipantBox } from './ParticipantBox';
@@ -37,17 +34,16 @@ export const Stage = (props: {
   const updateVideoSubscriptionForAllParticipantsDebounced = useMemo(() => {
     return debounce(() => {
       const changes: SubscriptionChanges = {};
-      Object.keys(videoElementsByParticipant.current).forEach(
-        (sessionId) => {
-          const videoElement = videoElementsByParticipant.current[sessionId];
-          if (videoElement) {
-            const width = videoElement.clientWidth;
-            const height = videoElement.clientHeight;
-            changes[sessionId] = {
-              videoDimension: { width, height },
-            }
-        },
-      );
+      Object.keys(videoElementsByParticipant.current).forEach((sessionId) => {
+        const videoElement = videoElementsByParticipant.current[sessionId];
+        if (videoElement) {
+          const width = videoElement.clientWidth;
+          const height = videoElement.clientHeight;
+          changes[sessionId] = {
+            videoDimension: { width, height },
+          };
+        }
+      });
 
       call.updateSubscriptionsPartial(changes, includeSelf);
     }, 1200);
@@ -60,7 +56,6 @@ export const Stage = (props: {
       if (isNewParticipant) {
         updateVideoSubscriptionForAllParticipantsDebounced();
       }
-
     },
     [updateVideoSubscriptionForAllParticipantsDebounced],
   );

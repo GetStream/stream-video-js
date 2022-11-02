@@ -17,7 +17,7 @@ import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
-import { SubscriptionChange, SubscriptionChanges } from './types';
+import { SubscriptionChanges } from './types';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
