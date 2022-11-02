@@ -47,7 +47,6 @@ const StackNavigator = () => {
 
         try {
           if (token !== '') {
-            console.log('Trying to authenticate with Client');
             const client = new StreamVideoClient(clientParams.apiKey, {
               coordinatorWsUrl: clientParams.coordinatorWsUrl,
               coordinatorRpcUrl: clientParams.coordinatorRpcUrl,
