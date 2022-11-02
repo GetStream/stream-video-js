@@ -1,48 +1,58 @@
 import clsx from 'clsx';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useIsDebugMode } from '../../hooks/useIsDebugMode';
-import { Call } from '@stream-io/video-client';
-import { Participant } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
+import { Call, StreamVideoParticipant } from '@stream-io/video-client';
 import { SfuEvent } from '@stream-io/video-client/dist/src/gen/video/sfu/event/events';
-import { UserSubscriptions } from './Stage';
 import { useRtcStats } from '../../hooks/useRtcStats';
 import { usePopper } from 'react-popper';
 
 export const ParticipantBox = (props: {
-  participant: Participant;
-  isLocalParticipant: boolean;
+  participant: StreamVideoParticipant;
   isMuted?: boolean;
-  audioStream?: MediaStream;
-  videoStream?: MediaStream;
-  updateVideoElementForUserId: (
-    userId: string,
-    element: HTMLVideoElement | null,
+  updateVideoSubscriptionForParticipant: (
+    participant: StreamVideoParticipant,
+    width: number,
+    height: number,
   ) => void;
   call: Call;
-  updateSubscriptionsPartial?: (
-    partialSubscriptions: UserSubscriptions,
-  ) => Promise<void>;
 }) => {
   const {
-    audioStream,
-    videoStream,
     participant,
-    isLocalParticipant,
     isMuted = false,
-    updateVideoElementForUserId,
+    updateVideoSubscriptionForParticipant,
     call,
-    updateSubscriptionsPartial,
   } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const {
+    videoTrack: videoStream,
+    audioTrack: audioStream,
+    isLoggedInUser: isLocalParticipant,
+    isSpeaking,
+  } = participant;
 
   useEffect(() => {
-    const userId = participant.user!.id;
-    updateVideoElementForUserId(userId, videoRef.current);
+    if (!videoRef.current) return;
+    const $videoEl = videoRef.current;
+    updateVideoSubscriptionForParticipant(
+      participant,
+      $videoEl.clientHeight || 0,
+      $videoEl.clientHeight || 0,
+    );
+    const resizeObserver = new ResizeObserver(
+      debounce(() => {
+        updateVideoSubscriptionForParticipant(
+          participant,
+          $videoEl.clientHeight || 0,
+          $videoEl.clientHeight || 0,
+        );
+      }, 1200),
+    );
+    resizeObserver.observe($videoEl);
     return () => {
-      updateVideoElementForUserId(userId, null);
+      resizeObserver.disconnect();
     };
-  }, [participant.user, updateVideoElementForUserId]);
+  }, [participant, updateVideoSubscriptionForParticipant, videoRef]);
 
   useEffect(() => {
     const $el = videoRef.current;
@@ -70,7 +80,12 @@ export const ParticipantBox = (props: {
 
   const isDebugMode = useIsDebugMode();
   return (
-    <div className="str-video__participant">
+    <div
+      className={clsx(
+        'str-video__participant',
+        isSpeaking && 'str-video__participant--speaking',
+      )}
+    >
       <audio autoPlay ref={audioRef} muted={isMuted} />
       <video
         className={clsx(
@@ -88,8 +103,10 @@ export const ParticipantBox = (props: {
         {isDebugMode && (
           <>
             <DebugParticipantPublishQuality
-              updateSubscriptionsPartial={updateSubscriptionsPartial}
-              userId={participant.user!.id}
+              updateVideoSubscriptionForParticipant={
+                updateVideoSubscriptionForParticipant
+              }
+              participant={participant}
               call={call}
             />
             <StatsView
@@ -150,13 +167,15 @@ const StatsView = (props: {
 };
 
 const DebugParticipantPublishQuality = (props: {
-  userId: string;
+  participant: StreamVideoParticipant;
   call: Call;
-  updateSubscriptionsPartial?: (
-    partialSubscriptions: UserSubscriptions,
-  ) => Promise<void>;
+  updateVideoSubscriptionForParticipant: (
+    participant: StreamVideoParticipant,
+    width: number,
+    height: number,
+  ) => void;
 }) => {
-  const { call, userId, updateSubscriptionsPartial } = props;
+  const { call, participant, updateVideoSubscriptionForParticipant } = props;
   const [quality, setQuality] = useState<string>();
   const [publishStats, setPublishStats] = useState(() => ({
     f: true,
@@ -187,25 +206,16 @@ const DebugParticipantPublishQuality = (props: {
       onChange={(e) => {
         const value = e.target.value;
         setQuality(value);
-        if (updateSubscriptionsPartial) {
-          let w = 1280;
-          let h = 720;
-          if (value === 'h') {
-            w = 640;
-            h = 480;
-          } else if (value === 'q') {
-            w = 320;
-            h = 240;
-          }
-          updateSubscriptionsPartial({
-            [userId]: {
-              width: w,
-              height: h,
-            },
-          }).catch((e) => {
-            console.warn(`Failed to update partial user subscriptions`, e);
-          });
+        let w = 1280;
+        let h = 720;
+        if (value === 'h') {
+          w = 640;
+          h = 480;
+        } else if (value === 'q') {
+          w = 320;
+          h = 240;
         }
+        updateVideoSubscriptionForParticipant(participant, w, h);
       }}
     >
       <option value="f">High (f)</option>
@@ -213,4 +223,12 @@ const DebugParticipantPublishQuality = (props: {
       <option value="q">Low (q)</option>
     </select>
   );
+};
+
+const debounce = (fn: () => void, timeoutMs: number) => {
+  let id: NodeJS.Timeout;
+  return () => {
+    clearTimeout(id);
+    id = setTimeout(fn, timeoutMs);
+  };
 };

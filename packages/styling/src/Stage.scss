@@ -67,12 +67,18 @@
 
     .str-video__remote-video {
       border-radius: 12px;
-      border: 2px solid #005fff;
+      border: 2px solid transparent;
       background-size: contain;
       width: 100%;
 
       &.mirror {
         transform: rotateY(180deg);
+      }
+    }
+
+    &.str-video__participant--speaking {
+      .str-video__remote-video {
+        border: 2px solid #005fff;
       }
     }
 
