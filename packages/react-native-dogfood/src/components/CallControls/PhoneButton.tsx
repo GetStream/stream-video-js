@@ -39,7 +39,7 @@ const PhoneButton = () => {
       await call.leave();
       resetCallState();
       InCallManager.stop();
-      navigation.navigate('Home');
+      navigation.navigate('MeetingHome');
     } catch (err) {
       console.warn('failed to leave call', err);
     }
