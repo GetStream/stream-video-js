@@ -136,10 +136,12 @@ export class StreamSfuClient {
   updateSubscriptions = async (subscriptions: {
     [key: string]: VideoDimension;
   }) => {
-    return this.rpc.updateSubscriptions({
-      sessionId: this.sessionId,
-      subscriptions,
-    });
+    if (Object.keys(subscriptions).length > 0) {
+      return this.rpc.updateSubscriptions({
+        sessionId: this.sessionId,
+        subscriptions,
+      });
+    }
   };
 
   send = (message: SfuRequest) => {

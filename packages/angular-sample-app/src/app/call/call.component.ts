@@ -2,7 +2,6 @@ import {
   AfterViewChecked,
   AfterViewInit,
   Component,
-  ComponentRef,
   ElementRef,
   OnDestroy,
   OnInit,
@@ -14,14 +13,7 @@ import {
   StreamVideoParticipant,
   VideoDimensionChange,
 } from '@stream-io/video-client';
-import {
-  debounce,
-  debounceTime,
-  Observable,
-  Subject,
-  Subscription,
-  tap,
-} from 'rxjs';
+import { debounceTime, Observable, Subject, Subscription } from 'rxjs';
 import { ParticipantComponent } from '../participant/participant.component';
 import { StreamVideoService } from '../stream-video.service';
 

@@ -209,7 +209,13 @@ export class Call {
     }
   };
 
-  updateVideoDimensions = (changes: VideoDimensionChange[]) => {
+  updateVideoDimensions = (
+    changes: VideoDimensionChange[],
+    includeCurrentUser: boolean = false,
+  ) => {
+    if (changes.length === 0) {
+      return;
+    }
     changes.forEach((change) => {
       const participantToUpdate = this.findParticipant(change.participant);
       if (!participantToUpdate) {
@@ -221,7 +227,7 @@ export class Call {
       ]);
     });
 
-    return this.updateSubscriptions();
+    return this.updateSubscriptions(includeCurrentUser);
   };
 
   changeInputDevice = async (
@@ -350,10 +356,16 @@ export class Call {
     }
   };
 
-  private updateSubscriptions = async () => {
+  private updateSubscriptions = async (includeCurrentUser: boolean) => {
     const subscriptions: { [key: string]: VideoDimension } = {};
     this.participants.forEach((p) => {
-      subscriptions[p.user!.id] = p.videoDimension || { height: 0, width: 0 };
+      if (
+        includeCurrentUser ||
+        (p.user?.id !== this.currentUserId &&
+          this.client.sessionId !== p.sessionId)
+      ) {
+        subscriptions[p.user!.id] = p.videoDimension || { height: 0, width: 0 };
+      }
     });
     return this.client.updateSubscriptions(subscriptions);
   };
