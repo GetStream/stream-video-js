@@ -105,26 +105,6 @@ const App = () => {
     setCallId(id);
   };
 
-  // useEffect(() => {
-  //   return client?.on(
-  //     'callStarted',
-  //     (event: CallStarted, envelopes?: Envelopes) => {
-  //       const { callCid } = event;
-  //       const call = envelopes?.calls[callCid];
-  //       if (!call) {
-  //         console.warn(`Can't find call with id: ${callCid}`);
-  //         return;
-  //       }
-  //
-  //       console.log(`Call started`, event, envelopes);
-  //       if (call.createdByUserId !== currentUser) {
-  //         setCurrentCall(call);
-  //         setIsCurrentCallAccepted(false);
-  //       }
-  //     },
-  //   );
-  // });
-
   return (
     <div className="stream-video-sample-app">
       {!client && <Alert severity="info">Connecting...</Alert>}
@@ -134,25 +114,6 @@ const App = () => {
           <ThemeProvider theme={theme}>
             <Box sx={{ display: 'flex' }}>
               <CssBaseline />
-              {/* {currentCall &&
-                !isCurrentCallAccepted &&
-                currentCall.createdByUserId !== currentUser && (
-                  <Ringer
-                    caller={currentCall.createdByUserId}
-                    onReject={() => {
-                      setCurrentCall(undefined);
-                      setIsCurrentCallAccepted(false);
-                    }}
-                    onAccept={() => {
-                      setIsCurrentCallAccepted(true);
-                      if (currentCall) {
-                        joinCall(currentCall.id, currentCall.type).then(() => {
-                          console.log(`Joining call with id:${currentCall.id}`);
-                        });
-                      }
-                    }}
-                  />
-                )} */}
               <NavigationBar />
               <ParticipantControls
                 participants={participants}

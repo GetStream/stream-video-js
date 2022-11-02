@@ -8,6 +8,7 @@ import { createWebSocketSignalChannel } from './rtc/signal';
 import { SfuRequest } from './gen/video/sfu/event/events';
 import { Dispatcher } from './rtc/Dispatcher';
 import { v4 as uuidv4 } from 'uuid';
+import { IceTrickleBuffer } from './rtc/IceTrickleBuffer';
 
 const hostnameFromUrl = (url: string) => {
   try {
@@ -28,6 +29,7 @@ const toURL = (url: string) => {
 
 export class StreamSfuClient {
   readonly dispatcher = new Dispatcher();
+  readonly iceTrickleBuffer = new IceTrickleBuffer();
   sfuHost: string;
   // we generate uuid session id client side
   sessionId: string;
@@ -61,6 +63,17 @@ export class StreamSfuClient {
         wsEndpoint = sfuUrl.toString();
       }
     }
+
+    // Special handling for the ICETrickle kind of events.
+    // These events might be triggered by the SFU before the initial RTC
+    // connection is established. In that case, those events (ICE candidates)
+    // need to be buffered and later added to the appropriate PeerConnection
+    // once the remoteDescription is known and set.
+    this.dispatcher.on('iceTrickle', (e) => {
+      if (e.eventPayload.oneofKind !== 'iceTrickle') return;
+      const { iceTrickle } = e.eventPayload;
+      this.iceTrickleBuffer.push(iceTrickle);
+    });
 
     this.signalReady = createWebSocketSignalChannel({
       endpoint: wsEndpoint,
@@ -123,10 +136,12 @@ export class StreamSfuClient {
   updateSubscriptions = async (subscriptions: {
     [key: string]: VideoDimension;
   }) => {
-    return this.rpc.updateSubscriptions({
-      sessionId: this.sessionId,
-      subscriptions,
-    });
+    if (Object.keys(subscriptions).length > 0) {
+      return this.rpc.updateSubscriptions({
+        sessionId: this.sessionId,
+        subscriptions,
+      });
+    }
   };
 
   send = (message: SfuRequest) => {
