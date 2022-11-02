@@ -2,8 +2,7 @@ import { Participant } from '@stream-io/video-client/dist/src/gen/video/sfu/mode
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   Call,
-  StreamVideoParticipant,
-  SubscriptionChange,
+  SubscriptionChanges,
 } from '@stream-io/video-client';
 import { useParticipants } from '../../hooks/useParticipants';
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';
@@ -18,40 +17,35 @@ export const Stage = (props: {
   const participants = useParticipants();
 
   const updateVideoSubscriptionForParticipant = useCallback(
-    (participant: StreamVideoParticipant, width: number, height: number) => {
-      call.updateSubscriptionsPartial([
-        {
-          participant,
+    (sessionId: string, width: number, height: number) => {
+      call.updateSubscriptionsPartial({
+        [sessionId]: {
           videoDimension: {
             width,
             height,
           },
         },
-      ]);
+      });
     },
     [call],
   );
 
-  const videoElementsByParticipant = useRef<
-    {
-      participant: Participant;
-      videoElement: HTMLVideoElement | null;
-    }[]
-  >([]);
+  const videoElementsByParticipant = useRef<{
+    [sesionId: string]: HTMLVideoElement | null;
+  }>({});
 
   const updateVideoSubscriptionForAllParticipantsDebounced = useMemo(() => {
     return debounce(() => {
-      const changes: SubscriptionChange[] = [];
-      videoElementsByParticipant.current.forEach(
-        (videoElementByParticpiant) => {
-          if (videoElementByParticpiant.videoElement) {
-            const width = videoElementByParticpiant.videoElement.clientWidth;
-            const height = videoElementByParticpiant.videoElement.clientHeight;
-            changes.push({
-              participant: videoElementByParticpiant.participant,
+      const changes: SubscriptionChanges = {};
+      Object.keys(videoElementsByParticipant.current).forEach(
+        (sessionId) => {
+          const videoElement = videoElementsByParticipant.current[sessionId];
+          if (videoElement) {
+            const width = videoElement.clientWidth;
+            const height = videoElement.clientHeight;
+            changes[sessionId] = {
               videoDimension: { width, height },
-            });
-          }
+            }
         },
       );
 
@@ -60,21 +54,13 @@ export const Stage = (props: {
   }, [call, includeSelf]);
 
   const updateVideoElementForParticipant = useCallback(
-    (participant: Participant, el: HTMLVideoElement | null) => {
-      const videoElementByParticpiant = videoElementsByParticipant.current.find(
-        (item) =>
-          item.participant.user?.id === participant.user?.id &&
-          item.participant.sessionId === participant.sessionId,
-      );
-      if (!videoElementByParticpiant) {
-        videoElementsByParticipant.current.push({
-          participant,
-          videoElement: el,
-        });
+    (sessionId: string, el: HTMLVideoElement | null) => {
+      const isNewParticipant = !videoElementsByParticipant.current[sessionId];
+      videoElementsByParticipant.current[sessionId] = el;
+      if (isNewParticipant) {
         updateVideoSubscriptionForAllParticipantsDebounced();
-      } else {
-        videoElementByParticpiant.videoElement = el;
       }
+
     },
     [updateVideoSubscriptionForAllParticipantsDebounced],
   );

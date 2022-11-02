@@ -17,6 +17,9 @@ export type StreamVideoParticipant = {
 } & Participant;
 
 export type SubscriptionChange = {
-  participant: StreamVideoParticipant;
   videoDimension: VideoDimension;
+};
+
+export type SubscriptionChanges = {
+  [sessionId: string]: SubscriptionChange;
 };

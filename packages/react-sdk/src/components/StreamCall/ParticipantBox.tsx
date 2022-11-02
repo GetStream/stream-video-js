@@ -10,13 +10,13 @@ export const ParticipantBox = (props: {
   participant: StreamVideoParticipant;
   isMuted?: boolean;
   updateVideoSubscriptionForParticipant: (
-    participant: StreamVideoParticipant,
+    sessionId: string,
     width: number,
     height: number,
   ) => void;
   call: Call;
   updateVideoElementForParticipant: (
-    participant: StreamVideoParticipant,
+    sessionId: string,
     element: HTMLVideoElement | null,
   ) => void;
 }) => {
@@ -34,19 +34,16 @@ export const ParticipantBox = (props: {
     audioTrack: audioStream,
     isLoggedInUser: isLocalParticipant,
     isSpeaking,
+    sessionId,
   } = participant;
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    updateVideoElementForParticipant(participant, videoRef.current);
+    updateVideoElementForParticipant(sessionId, videoRef.current);
     return () => {
-      updateVideoElementForParticipant(participant, null);
+      updateVideoElementForParticipant(sessionId, null);
     };
-  }, [
-    participant.user,
-    participant.sessionId,
-    updateVideoElementForParticipant,
-  ]);
+  }, [sessionId, updateVideoElementForParticipant]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   useEffect(() => {
@@ -165,7 +162,7 @@ const DebugParticipantPublishQuality = (props: {
   participant: StreamVideoParticipant;
   call: Call;
   updateVideoSubscriptionForParticipant: (
-    participant: StreamVideoParticipant,
+    sessionId: string,
     width: number,
     height: number,
   ) => void;
@@ -210,7 +207,7 @@ const DebugParticipantPublishQuality = (props: {
           w = 320;
           h = 240;
         }
-        updateVideoSubscriptionForParticipant(participant, w, h);
+        updateVideoSubscriptionForParticipant(participant.sessionId, w, h);
       }}
     >
       <option value="f">High (f)</option>

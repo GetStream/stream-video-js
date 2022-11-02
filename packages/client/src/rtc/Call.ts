@@ -17,7 +17,7 @@ import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
-import { SubscriptionChange } from './types';
+import { SubscriptionChange, SubscriptionChanges } from './types';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -210,20 +210,21 @@ export class Call {
   };
 
   /**
-   * Update track configuration for one or more participants
+   * Update track subscription configuration for one or more participants. You have to create a subscription for each participant you want to receive any kind of track.
    * @param changes
    * @param includeCurrentUser if true the tracks of the logged in user will be fetched from the server (instead of using the local stream)
    * @returns
    */
   updateSubscriptionsPartial = (
-    changes: SubscriptionChange[],
+    changes: SubscriptionChanges,
     includeCurrentUser: boolean = false,
   ) => {
-    if (changes.length === 0) {
+    if (Object.keys(changes).length === 0) {
       return;
     }
-    changes.forEach((change) => {
-      const participantToUpdate = this.findParticipant(change.participant);
+    Object.keys(changes).forEach((sessionId) => {
+      const change = changes[sessionId];
+      const participantToUpdate = this.findParticipant(sessionId);
       if (!participantToUpdate) {
         return;
       }
@@ -382,22 +383,12 @@ export class Call {
     );
   }
 
-  private findParticipant(participant: {
-    user?: { id: string };
-    sessionId: string;
-  }) {
-    return this.participants.find(
-      (p) =>
-        p.user?.id === participant.user?.id &&
-        p.sessionId === participant.sessionId,
-    );
+  private findParticipant(sessionId: string) {
+    return this.participants.find((p) => p.sessionId === sessionId);
   }
 
   private get localParticipant() {
-    return this.findParticipant({
-      user: { id: this.currentUserId },
-      sessionId: this.client.sessionId,
-    });
+    return this.findParticipant(this.client.sessionId);
   }
 
   private handleOnTrack = (e: RTCTrackEvent) => {
