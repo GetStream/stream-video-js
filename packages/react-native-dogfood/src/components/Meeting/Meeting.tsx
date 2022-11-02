@@ -13,7 +13,6 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { RootStackParamList } from '../../../types';
 import { Call } from '../../modules/Call';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { StreamSfuClient } from '@stream-io/video-client';
 import { useCall } from '../../hooks/useCall';
 import { useSessionId } from '../../hooks/useSessionId';
@@ -31,9 +30,9 @@ import { mediaDevices } from 'react-native-webrtc';
 // const DEFAULT_CALL_ID = '123';
 const APP_ID = 'streamrnvideosample';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'MeetingHome'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
-const MeetingHomeScreen = ({ navigation }: Props) => {
+const Meeting = ({ navigation }: Props) => {
   const callID = useAppGlobalStoreValue((store) => store.callID);
   const username = useAppGlobalStoreValue((store) => store.username);
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
@@ -137,7 +136,7 @@ const MeetingHomeScreen = ({ navigation }: Props) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.headerText}>{'Whats the call ID?'}</Text>
       <TextInput
         style={styles.textInput}
@@ -168,7 +167,7 @@ const MeetingHomeScreen = ({ navigation }: Props) => {
         color="blue"
         onPress={handleCopyInviteLink}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -203,4 +202,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MeetingHomeScreen;
+export default Meeting;

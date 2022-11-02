@@ -2,15 +2,15 @@ import React, { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
-import CallControls from '../../components/CallControls';
+import CallControls from '../components/CallControls';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import VideoRenderer from '../../containers/VideoRenderer';
-import { RootStackParamList } from '../../../types';
-import { Stats } from '../../components/Stats';
+import VideoRenderer from '../containers/VideoRenderer';
+import { RootStackParamList } from '../../types';
+import { Stats } from '../components/Stats';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
-} from '../../contexts/AppContext';
+} from '../contexts/AppContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ActiveCall'>;
 

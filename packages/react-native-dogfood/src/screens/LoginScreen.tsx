@@ -83,7 +83,7 @@ const LoginScreen = ({ navigation }: Props) => {
     try {
       const token = await createToken(user.name, clientParams.apiSecret);
       setState({ token });
-      navigation.navigate('MeetingHome');
+      navigation.navigate('HomeScreen');
     } catch (error) {
       console.log(error);
     }

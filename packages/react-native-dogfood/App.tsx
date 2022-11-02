@@ -1,18 +1,17 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import MeetingHomeScreen from './src/screens/Meeting/MeetingHome';
-import ActiveCallScreen from './src/screens/Meeting/ActiveCall';
+import ActiveCallScreen from './src/screens/ActiveCall';
 import {
   AppGlobalContextProvider,
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from './src/contexts/AppContext';
 import { RootStackParamList } from './types';
-import RingingHomeScrren from './src/screens/Ringing/RingingHome';
 import LoginScreen from './src/screens/LoginScreen';
 import { StreamVideoClient } from '@stream-io/video-client';
 import { NavigationHeader } from './src/components/NavigationHeader';
+import { HomeScreen } from './src/screens/HomeScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -21,6 +20,7 @@ const StackNavigator = () => {
   const username = useAppGlobalStoreValue((store) => store.username);
 
   const setState = useAppGlobalStoreSetState();
+  console.log({ token });
 
   React.useEffect(() => {
     const run = async () => {
@@ -77,9 +77,8 @@ const StackNavigator = () => {
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
       ) : (
         <>
-          <Stack.Screen name="MeetingHome" component={MeetingHomeScreen} />
+          <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="ActiveCall" component={ActiveCallScreen} />
-          <Stack.Screen name="RingingHome" component={RingingHomeScrren} />
         </>
       )}
     </Stack.Navigator>
