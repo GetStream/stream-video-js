@@ -1,4 +1,4 @@
-import { createSubscriber } from './subscriber';
+import { addSubscriberListeners } from './subscriber';
 import {
   defaultVideoLayers,
   findOptimalVideoLayers,
@@ -11,7 +11,7 @@ import {
   getReceiverCodecs,
   getSenderCodecs,
 } from './codecs';
-import { createPublisher } from './publisher';
+import { addPublisherListeners } from './publisher';
 import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
@@ -23,36 +23,41 @@ export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
 };
 
-export class Call {
+type MediaDeviceKind = 'audioinput' | 'audiooutput' | 'videoinput';
+
+export class Call<RTCPeerConnectionType extends RTCPeerConnection> {
   /**@deprecated use store for this data */
   currentUserId: string;
 
   private videoLayers?: OptimalVideoLayer[];
-  readonly subscriber: RTCPeerConnection;
-  readonly publisher: RTCPeerConnection;
+  readonly subscriber: RTCPeerConnectionType;
+  readonly publisher: RTCPeerConnectionType;
 
   constructor(
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
-    private readonly stateStore: StreamVideoWriteableStateStore,
+    private readonly stateStore: StreamVideoWriteableStateStore<RTCPeerConnectionType>,
+    createPeerConnection: (
+      connectionConfig: RTCConfiguration | undefined,
+    ) => RTCPeerConnectionType,
   ) {
     this.currentUserId = stateStore.getCurrentValue(
       stateStore.connectedUserSubject,
     )!.name;
     const { dispatcher, iceTrickleBuffer } = this.client;
-    this.subscriber = createSubscriber({
+    this.subscriber = createPeerConnection(this.options.connectionConfig);
+    addSubscriberListeners({
       rpcClient: this.client,
-
       // FIXME: don't do this
       dispatcher: dispatcher,
-      connectionConfig: this.options.connectionConfig,
+      subscriber: this.subscriber,
       onTrack: this.handleOnTrack,
       candidates: iceTrickleBuffer.subscriberCandidates,
     });
-
-    this.publisher = createPublisher({
+    this.publisher = createPeerConnection(this.options.connectionConfig);
+    addPublisherListeners({
       rpcClient: this.client,
-      connectionConfig: this.options.connectionConfig,
+      publisher: this.publisher,
       candidates: iceTrickleBuffer.publisherCandidates,
     });
 
@@ -161,6 +166,54 @@ export class Call {
     });
   };
 
+  // TODO: remove this, it is temporary for RN implementation
+  publishCombinedStream = (audioVideoStream: MediaStream) => {
+    if (audioVideoStream) {
+      const videoEncodings: RTCRtpEncodingParameters[] =
+        this.videoLayers && this.videoLayers.length > 0
+          ? this.videoLayers
+          : defaultVideoPublishEncodings;
+
+      const [videoTrack] = audioVideoStream.getVideoTracks();
+      if (videoTrack) {
+        const videoTransceiver = this.publisher?.addTransceiver(videoTrack, {
+          direction: 'sendonly',
+          streams: [audioVideoStream],
+          sendEncodings: videoEncodings,
+        });
+
+        const codecPreferences = getPreferredCodecs('video', 'vp8');
+        // @ts-ignore
+        if ('setCodecPreferences' in videoTransceiver && codecPreferences) {
+          console.log(`set codec preferences`, codecPreferences);
+          videoTransceiver.setCodecPreferences(codecPreferences);
+        }
+      }
+
+      if (this.localParticipant) {
+        this.localParticipant.videoTrack = audioVideoStream;
+        this.stateStore.activeCallParticipantsSubject.next([
+          ...this.participants,
+        ]);
+      }
+    }
+
+    if (audioVideoStream) {
+      const [audioTrack] = audioVideoStream.getAudioTracks();
+      if (audioTrack) {
+        this.publisher?.addTransceiver(audioTrack, {
+          direction: 'sendonly',
+        });
+      }
+
+      if (this.localParticipant) {
+        this.localParticipant.audioTrack = audioVideoStream;
+        this.stateStore.activeCallParticipantsSubject.next([
+          ...this.participants,
+        ]);
+      }
+    }
+  };
   publish = (audioStream?: MediaStream, videoStream?: MediaStream) => {
     if (videoStream) {
       const videoEncodings: RTCRtpEncodingParameters[] =
@@ -346,6 +399,7 @@ export class Call {
 
     const params = await videoSender.getParameters();
     let changed = false;
+    // @ts-ignore
     params.encodings.forEach((enc) => {
       console.log(enc.rid, enc.active);
       // flip 'active' flag only when necessary
@@ -356,6 +410,7 @@ export class Call {
       }
     });
     if (changed) {
+      // @ts-ignore
       if (params.encodings.length === 0) {
         console.warn('No suitable video encoding quality found');
       }

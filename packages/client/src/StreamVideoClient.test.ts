@@ -3,7 +3,7 @@ import { StreamVideoClient } from './StreamVideoClient';
 import { createSocketConnection } from './ws';
 
 describe('StreamVideoClient', () => {
-  let client: StreamVideoClient;
+  let client: StreamVideoClient<RTCPeerConnection>;
 
   beforeEach(() => {
     vi.mock('./rpc/createClient', () => {
@@ -17,7 +17,13 @@ describe('StreamVideoClient', () => {
         createSocketConnection: vi.fn(),
       };
     });
-    client = new StreamVideoClient('123', { token: 'abc' });
+    client = new StreamVideoClient(
+      '123',
+      (config) => new RTCPeerConnection(config),
+      {
+        token: 'abc',
+      },
+    );
   });
 
   it('should connect', async () => {

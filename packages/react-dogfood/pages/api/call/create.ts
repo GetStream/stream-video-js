@@ -11,11 +11,15 @@ const createCallSlackHookAPI = async (
   req: NextApiRequest,
   res: NextApiResponse,
 ) => {
-  const client = new StreamVideoClient(apiKey, {
-    coordinatorRpcUrl: coordinatorApiUrl,
-    sendJson: true,
-    token: createToken('admin@getstream.io', secretKey),
-  });
+  const client = new StreamVideoClient(
+    apiKey,
+    (config) => new RTCPeerConnection(config),
+    {
+      coordinatorRpcUrl: coordinatorApiUrl,
+      sendJson: true,
+      token: createToken('admin@getstream.io', secretKey),
+    },
+  );
 
   console.log(`Received input`, req.body);
   const initiator = req.body.user_name || 'Stream';

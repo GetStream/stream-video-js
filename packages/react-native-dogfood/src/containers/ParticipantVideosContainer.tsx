@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Call } from '../modules/Call';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import {
   StyleSheet,
@@ -14,6 +13,7 @@ import MicOff from '../icons/MicOff';
 import Mic from '../icons/Mic';
 import { VideoDimension } from '@stream-io/video-client/src/gen/video/sfu/models/models';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import { SfuCall } from '../../types';
 
 type UserStreamMap = {
   [userId: string]: MediaStream | undefined;
@@ -101,49 +101,12 @@ const ParticipantVideosContainer = () => {
     if (!call) {
       return;
     }
-    call.handleOnTrack = (e: any) => {
-      const [primaryStream] = e.streams;
-      const [trackId] = primaryStream.id.split(':');
-      const name = call.participantMapping[trackId];
-      if (e.track.kind === 'video') {
-        setUserVideoStreams((s) => ({
-          ...s,
-          [name]: primaryStream,
-        }));
-      } else if (e.track.kind === 'audio') {
-        setUserAudioStreams((s) => ({
-          ...s,
-          [name]: primaryStream,
-        }));
-      }
-    };
-
-    const unsubscribeParticipantLeft = call.on('participantLeft', (e) => {
-      if (e.eventPayload.oneofKind !== 'participantLeft') {
-        return;
-      }
-      const { participant } = e.eventPayload.participantLeft;
-      if (participant) {
-        const userId = participant.user!.id;
-        setUserVideoStreams((s) => ({
-          ...s,
-          [userId]: undefined,
-        }));
-        setUserAudioStreams((s) => ({
-          ...s,
-          [userId]: undefined,
-        }));
-      }
-    });
-
     return () => {
       // cleanup
-      call.handleOnTrack = undefined;
       setUserAudioStreams({});
       setUserVideoStreams({});
       setVideoViewByUserId({});
       setSpeakers([]);
-      unsubscribeParticipantLeft();
     };
   }, [call]);
 
@@ -250,7 +213,7 @@ const ParticipantVideoContainer = ({
   lastParticipant,
 }: {
   user: { id: string; avatar: string; name: string };
-  call: Call;
+  call: SfuCall;
   videoStream?: MediaStream;
   audioStream?: MediaStream;
   isSpeaking: boolean;

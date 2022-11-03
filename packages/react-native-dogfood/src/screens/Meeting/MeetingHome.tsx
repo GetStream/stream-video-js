@@ -12,12 +12,10 @@ import InCallManager from 'react-native-incall-manager';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { RootStackParamList } from '../../../types';
-import { Call } from '../../modules/Call';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StreamSfuClient, UserInput } from '@stream-io/video-client';
+import { UserInput } from '@stream-io/video-client';
 import { useCreateStreamVideoClient } from '../../hooks/useCreateStreamVideoClient';
 import { useCall } from '../../hooks/useCall';
-import { useSessionId } from '../../hooks/useSessionId';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -88,7 +86,7 @@ const MeetingHomeScreen = ({ navigation }: Props) => {
     [username],
   );
 
-  const videoClient = useCreateStreamVideoClient({
+  useCreateStreamVideoClient({
     // coordinatorRpcUrl: 'http://localhost:26991',
     // coordinatorWsUrl: 'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
     coordinatorRpcUrl:
@@ -100,39 +98,23 @@ const MeetingHomeScreen = ({ navigation }: Props) => {
     user,
   });
 
-  const { activeCall, credentials, getOrCreateCall } = useCall({
-    videoClient,
+  const { activeCall, activeCallMeta, getOrCreateCall } = useCall({
     callId: callID,
     callType: 'default', // TODO: SANTHOSH -- what is this?
-    currentUser: username,
     autoJoin: true,
   });
 
-  const sessionId = useSessionId(callID, username);
-
   useEffect(() => {
-    if (!credentials || !activeCall) {
-      return;
-    }
-    const serverUrl = credentials.server?.url || 'http://localhost:3031/twirp';
-    const sfuClient = new StreamSfuClient(
-      serverUrl,
-      credentials.token,
-      sessionId,
-    );
-    const call = new Call(sfuClient, username, serverUrl, credentials);
     const joinSfuCall = async () => {
       try {
-        const callState = await call.join(localMediaStream);
-        if (callState && localMediaStream) {
+        if (activeCall && localMediaStream) {
           InCallManager.start({ media: 'video' });
           InCallManager.setForceSpeakerphoneOn(true);
-          await call.publish(localMediaStream);
+          // @ts-ignore
+          await activeCall.publishCombinedStream(localMediaStream);
           setState({
-            activeCall,
-            callState,
-            sfuClient,
-            call,
+            activeCall: activeCallMeta,
+            call: activeCall,
           });
           navigation.navigate('ActiveCall');
         }
@@ -146,10 +128,9 @@ const MeetingHomeScreen = ({ navigation }: Props) => {
     joinSfuCall();
   }, [
     activeCall,
-    credentials,
+    activeCallMeta,
     localMediaStream,
     navigation,
-    sessionId,
     setState,
     username,
   ]);

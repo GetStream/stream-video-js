@@ -3,22 +3,23 @@ import { Dispatcher } from './Dispatcher';
 import { ICETrickle, PeerType } from '../gen/video/sfu/models/models';
 import { ReplaySubject } from 'rxjs';
 
-export type SubscriberOpts = {
+export type SubscriberOpts<RTCPeerConnectionType extends RTCPeerConnection> = {
   rpcClient: StreamSfuClient;
   dispatcher: Dispatcher;
-  connectionConfig?: RTCConfiguration;
   onTrack?: (e: RTCTrackEvent) => void;
   candidates: ReplaySubject<ICETrickle>;
+  subscriber: RTCPeerConnectionType;
 };
 
-export const createSubscriber = ({
+export const addSubscriberListeners = <
+  RTCPeerConnectionType extends RTCPeerConnection,
+>({
   rpcClient,
   dispatcher,
-  connectionConfig,
   onTrack,
   candidates,
-}: SubscriberOpts) => {
-  const subscriber = new RTCPeerConnection(connectionConfig);
+  subscriber,
+}: SubscriberOpts<RTCPeerConnectionType>) => {
   subscriber.addEventListener('icecandidate', async (e) => {
     const { candidate } = e;
     if (!candidate) {
@@ -72,6 +73,4 @@ export const createSubscriber = ({
       sdp: answer.sdp || '',
     });
   });
-
-  return subscriber;
 };

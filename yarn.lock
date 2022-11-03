@@ -4573,6 +4573,7 @@ __metadata:
     "@types/rimraf": ^3.0.2
     "@types/sdp-transform": ^2.4.5
     "@types/uuid": ^8.3.4
+    "@types/webrtc": 0.0.33
     rimraf: ^3.0.2
     rxjs: ^7.5.7
     sdp-transform: ^2.14.1
@@ -5538,6 +5539,13 @@ __metadata:
   version: 8.3.4
   resolution: "@types/uuid@npm:8.3.4"
   checksum: 6f11f3ff70f30210edaa8071422d405e9c1d4e53abbe50fdce365150d3c698fe7bbff65c1e71ae080cbfb8fded860dbb5e174da96fdbbdfcaa3fb3daa474d20f
+  languageName: node
+  linkType: hard
+
+"@types/webrtc@npm:0.0.33":
+  version: 0.0.33
+  resolution: "@types/webrtc@npm:0.0.33"
+  checksum: d25ab0cfb9343e396cf8b8aceb183e3be1c0a6c442969edf98fc4a23def13f01dd6c40c6f376e2d2b1c01bc6eb05bfe87eddf42b835f60d2b27bc2bdc2143468
   languageName: node
   linkType: hard
 

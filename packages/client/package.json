@@ -23,6 +23,7 @@
     "@types/rimraf": "^3.0.2",
     "@types/sdp-transform": "^2.4.5",
     "@types/uuid": "^8.3.4",
+    "@types/webrtc": "0.0.33",
     "rimraf": "^3.0.2",
     "typedoc": "^0.23.16",
     "typedoc-plugin-markdown": "^3.13.6",

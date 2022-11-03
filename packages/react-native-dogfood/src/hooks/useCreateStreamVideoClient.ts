@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
-import {
-  useAppGlobalStoreValue,
-  useAppGlobalStoreSetState,
-} from '../contexts/AppContext';
+import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/jwt';
 import { StreamVideoClient, UserInput } from '@stream-io/video-client';
+import { StreamVideoClientRN } from '../../types';
+import { RTCPeerConnection } from 'react-native-webrtc';
 
 export type StreamVideoClientInit = {
   apiKey: string;
@@ -21,13 +20,12 @@ export const useCreateStreamVideoClient = ({
   apiSecret,
   user,
 }: StreamVideoClientInit) => {
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const setState = useAppGlobalStoreSetState();
   useEffect(() => {
     const connectionRef: {
       interrupted: boolean;
       connected: boolean;
-      client: StreamVideoClient | undefined;
+      client: StreamVideoClientRN | undefined;
     } = {
       interrupted: false,
       connected: false,
@@ -36,12 +34,17 @@ export const useCreateStreamVideoClient = ({
     const run = async () => {
       try {
         const token = await createToken(user.name, apiSecret);
-        const client = new StreamVideoClient(apiKey, {
-          coordinatorWsUrl,
-          coordinatorRpcUrl,
-          sendJson: true,
-          token,
-        });
+        const client = new StreamVideoClient(
+          apiKey,
+          // @ts-ignore
+          (config) => new RTCPeerConnection(config),
+          {
+            coordinatorWsUrl,
+            coordinatorRpcUrl,
+            sendJson: true,
+            token,
+          },
+        ) as unknown as StreamVideoClientRN;
         connectionRef.client = client;
         await client.connect(apiKey, token, user);
         connectionRef.connected = true;
@@ -61,12 +64,10 @@ export const useCreateStreamVideoClient = ({
           .then(() => {
             setState({ videoClient: undefined });
           })
-          .catch((err) => {
+          .catch((err: any) => {
             console.error('Failed to disconnect', err);
           });
       }
     };
   }, [apiKey, apiSecret, coordinatorRpcUrl, coordinatorWsUrl, setState, user]);
-
-  return videoClient;
 };

@@ -3,10 +3,14 @@ import { Call } from './rtc/Call';
 import type { UserInput } from './gen/video/coordinator/user_v1/user';
 import { StreamVideoParticipant } from './rtc/types';
 
-export class StreamVideoWriteableStateStore {
+export class StreamVideoWriteableStateStore<
+  RTCPeerConnectionType extends RTCPeerConnection,
+> {
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
-  pendingCallsSubject = new BehaviorSubject<Call[]>([]);
-  activeCallSubject = new BehaviorSubject<Call | undefined>(undefined);
+  pendingCallsSubject = new BehaviorSubject<Call<RTCPeerConnectionType>[]>([]);
+  activeCallSubject = new BehaviorSubject<
+    Call<RTCPeerConnectionType> | undefined
+  >(undefined);
 
   // FIXME OL: consider storing { [userId/sessionId]: StreamVideoParticipant }
   // for faster lookups
@@ -24,14 +28,18 @@ export class StreamVideoWriteableStateStore {
   }
 }
 
-export class StreamVideoReadOnlyStateStore {
+export class StreamVideoReadOnlyStateStore<
+  RTCPeerConnectionType extends RTCPeerConnection,
+> {
   connectedUser$: Observable<UserInput | undefined>;
-  activeCall$: Observable<Call | undefined>;
+  activeCall$: Observable<Call<RTCPeerConnectionType> | undefined>;
   activeCallParticipants$: Observable<StreamVideoParticipant[]>;
-  pendingCalls$: Observable<Call[]>;
+  pendingCalls$: Observable<Call<RTCPeerConnectionType>[]>;
   dominantSpeaker$: Observable<string | undefined>;
 
-  constructor(writeableStateStore: StreamVideoWriteableStateStore) {
+  constructor(
+    writeableStateStore: StreamVideoWriteableStateStore<RTCPeerConnectionType>,
+  ) {
     this.connectedUser$ =
       writeableStateStore.connectedUserSubject.asObservable();
     this.activeCall$ = writeableStateStore.activeCallSubject.asObservable();

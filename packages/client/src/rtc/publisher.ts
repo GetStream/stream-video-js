@@ -2,18 +2,19 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { ICETrickle, PeerType } from '../gen/video/sfu/models/models';
 import { ReplaySubject } from 'rxjs';
 
-export type PublisherOpts = {
+export type PublisherOpts<RTCPeerConnectionType extends RTCPeerConnection> = {
   rpcClient: StreamSfuClient;
-  connectionConfig?: RTCConfiguration;
+  publisher: RTCPeerConnectionType;
   candidates: ReplaySubject<ICETrickle>;
 };
 
-export const createPublisher = ({
-  connectionConfig,
+export const addPublisherListeners = <
+  RTCPeerConnectionType extends RTCPeerConnection,
+>({
+  publisher,
   rpcClient,
   candidates,
-}: PublisherOpts) => {
-  const publisher = new RTCPeerConnection(connectionConfig);
+}: PublisherOpts<RTCPeerConnectionType>) => {
   publisher.addEventListener('icecandidate', async (e) => {
     const { candidate } = e;
     if (!candidate) {
@@ -58,6 +59,4 @@ export const createPublisher = ({
       }
     });
   });
-
-  return publisher;
 };

@@ -1,22 +1,18 @@
-import {
-  StreamVideoClient,
-  StreamSfuClient,
-  CallMeta,
-} from '@stream-io/video-client';
+import { StreamSfuClient, CallMeta } from '@stream-io/video-client';
 import {
   CallState,
   Participant,
 } from '@stream-io/video-client/src/gen/video/sfu/models/models';
 import { MediaStream } from 'react-native-webrtc';
-import { Call } from '../modules/Call';
+import { SfuCall, StreamVideoClientRN } from '../../types';
 import createStoreContext from './createStoreContext';
 
 interface AppGlobalStore {
   callID: string;
   username: string;
-  videoClient: StreamVideoClient | undefined;
+  videoClient: StreamVideoClientRN | undefined;
   sfuClient: StreamSfuClient | undefined;
-  call: Call | undefined;
+  call: SfuCall | undefined;
   activeCall: CallMeta.Call | undefined;
   localMediaStream: MediaStream | undefined;
   isAudioMuted: boolean;

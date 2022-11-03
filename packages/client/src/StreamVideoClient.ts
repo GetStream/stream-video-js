@@ -43,15 +43,27 @@ const defaultOptions: Partial<StreamVideoClientOptions> = {
 /**
  * Document me
  */
-export class StreamVideoClient {
-  readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
+export class StreamVideoClient<
+  RTCPeerConnectionType extends RTCPeerConnection,
+> {
+  readonly readOnlyStateStore: StreamVideoReadOnlyStateStore<RTCPeerConnectionType>;
   // Make it public temporary to ease SDK transition
-  readonly writeableStateStore: StreamVideoWriteableStateStore;
+  readonly writeableStateStore: StreamVideoWriteableStateStore<RTCPeerConnectionType>;
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWSClient | undefined;
+  private createPeerConnection: (
+    connectionConfig: RTCConfiguration | undefined,
+  ) => RTCPeerConnectionType;
 
-  constructor(apiKey: string, opts: StreamVideoClientOptions) {
+  constructor(
+    apiKey: string,
+    createPeerConnection: (
+      connectionConfig: RTCConfiguration | undefined,
+    ) => RTCPeerConnectionType,
+    opts: StreamVideoClientOptions,
+  ) {
+    this.createPeerConnection = createPeerConnection;
     const options = {
       ...defaultOptions,
       ...opts,
@@ -169,6 +181,7 @@ export class StreamVideoClient {
               this.defaultRtcConfiguration(edge.credentials.server.url),
           },
           this.writeableStateStore,
+          this.createPeerConnection,
         );
         this.writeableStateStore.pendingCallsSubject.next([
           ...this.writeableStateStore.pendingCallsSubject.getValue(),
