@@ -38,7 +38,7 @@ export const Stats = ({ client, call, activeCall }: StatsProps) => {
     return () => {
       clearInterval(intervalId);
     };
-  }, [activeCall.id, activeCall.type, call, client]);
+  }, [activeCall.callCid, activeCall.id, activeCall.type, call, client]);
 
   return null;
 };
