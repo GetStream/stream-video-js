@@ -81,7 +81,7 @@ import './style.css';
         return (b.audioLevel || 0) - (a.audioLevel || 0);
       });
 
-      const speaker: StreamVideoParticipant | undefined = participants.find(
+      const speaker = participants.find(
         (p) => p.user!.id === loudestParticipant.user!.id,
       );
 
@@ -109,6 +109,10 @@ function createSpeakerUpdater() {
     'current-speaker-video',
   ) as HTMLVideoElement;
 
+  const $userNameEl = document.getElementById(
+    'current-user-name',
+  ) as HTMLSpanElement;
+
   $audioEl.addEventListener('canplay', () => {
     $audioEl.play();
   });
@@ -128,9 +132,13 @@ function createSpeakerUpdater() {
       console.log(`Swapping highlighted speaker`, speaker.user!.id);
 
       // FIXME: use avatar as the speaker might not be always publishing a video track
-      $audioEl.srcObject = speaker.audioTrack!;
       $videoEl.srcObject = speaker.videoTrack!;
       $videoEl.title = speaker.user!.id;
+
+      $audioEl.srcObject = speaker.audioTrack!;
+
+      $userNameEl.innerText = speaker.user?.id ?? 'N/A';
+      $userNameEl.title = speaker.sessionId;
 
       lastSpeaker = speaker;
     }
