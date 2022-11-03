@@ -5,6 +5,7 @@ on:
       - main
       - egress-composite
     paths:
+      - .github/workflows/egress-composite.yml
       - packages/egress-composite/**
       - packages/client/**
 
