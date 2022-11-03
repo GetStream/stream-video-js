@@ -4529,6 +4529,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stream-io/egress-composite@workspace:packages/egress-composite":
+  version: 0.0.0-use.local
+  resolution: "@stream-io/egress-composite@workspace:packages/egress-composite"
+  dependencies:
+    "@stream-io/video-client": "workspace:^"
+    typescript: ^4.8.4
+    vite: ^3.2.2
+  languageName: unknown
+  linkType: soft
+
 "@stream-io/video-angular-sample-app@workspace:packages/angular-sample-app":
   version: 0.0.0-use.local
   resolution: "@stream-io/video-angular-sample-app@workspace:packages/angular-sample-app"
@@ -22416,7 +22426,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^3.0.0, vite@npm:^3.1.7":
+"vite@npm:^3.0.0, vite@npm:^3.1.7, vite@npm:^3.2.2":
   version: 3.2.2
   resolution: "vite@npm:3.2.2"
   dependencies:
