@@ -88,16 +88,11 @@ const App = () => {
     setCallId(id);
     setCallType('default');
     setCallInput({
-      members: participants.reduce<{ [key: string]: MemberInput }>(
-        (acc, current) => {
-          acc[current] = {
-            role: 'admin',
-            customJson: Struct.toBinary(Struct.fromJson({})),
-          };
-          return acc;
-        },
-        {},
-      ),
+      members: participants.map((userId) => ({
+        role: 'admin',
+        customJson: Struct.toBinary(Struct.fromJson({})),
+        userId,
+      })),
     });
   };
 
