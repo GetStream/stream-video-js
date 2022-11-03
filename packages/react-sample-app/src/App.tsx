@@ -5,12 +5,7 @@ import {
   CssBaseline,
   ThemeProvider,
 } from '@mui/material';
-import {
-  CreateCallInput,
-  MemberInput,
-  Struct,
-  UserInput,
-} from '@stream-io/video-client';
+import { CreateCallInput, Struct, UserInput } from '@stream-io/video-client';
 import {
   StreamCall,
   StreamVideo,
