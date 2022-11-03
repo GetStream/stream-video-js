@@ -76,6 +76,23 @@ export interface BroadcastEnded {
     callDetails?: CallDetails;
 }
 /**
+ * @generated from protobuf message stream.video.coordinator.event_v1.CallMembersCreated
+ */
+export interface CallMembersCreated {
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.Call call = 1;
+     */
+    call?: Call;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallDetails call_details = 2;
+     */
+    callDetails?: CallDetails;
+    /**
+     * @generated from protobuf field: bool ringing = 3;
+     */
+    ringing: boolean;
+}
+/**
  * @generated from protobuf message stream.video.coordinator.event_v1.CallMembersUpdated
  */
 export interface CallMembersUpdated {
@@ -170,8 +187,6 @@ export interface CallAccepted {
      */
     callDetails?: CallDetails;
     /**
-     * The ID of the user sending the event
-     *
      * @generated from protobuf field: string sender_user_id = 3;
      */
     senderUserId: string;
@@ -245,8 +260,8 @@ export interface CallCustom {
 class RecordingStarted$Type extends MessageType<RecordingStarted> {
     constructor() {
         super("stream.video.coordinator.event_v1.RecordingStarted", [
-            { no: 1, name: "call", kind: "message", T: () => Call },
-            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } }
         ]);
     }
     create(value?: PartialMessage<RecordingStarted>): RecordingStarted {
@@ -299,8 +314,8 @@ export const RecordingStarted = new RecordingStarted$Type();
 class RecordingStopped$Type extends MessageType<RecordingStopped> {
     constructor() {
         super("stream.video.coordinator.event_v1.RecordingStopped", [
-            { no: 1, name: "call", kind: "message", T: () => Call },
-            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } }
         ]);
     }
     create(value?: PartialMessage<RecordingStopped>): RecordingStopped {
@@ -353,7 +368,7 @@ export const RecordingStopped = new RecordingStopped$Type();
 class UserUpdated$Type extends MessageType<UserUpdated> {
     constructor() {
         super("stream.video.coordinator.event_v1.UserUpdated", [
-            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } }
         ]);
     }
     create(value?: PartialMessage<UserUpdated>): UserUpdated {
@@ -400,8 +415,8 @@ export const UserUpdated = new UserUpdated$Type();
 class BroadcastStarted$Type extends MessageType<BroadcastStarted> {
     constructor() {
         super("stream.video.coordinator.event_v1.BroadcastStarted", [
-            { no: 1, name: "call", kind: "message", T: () => Call },
-            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } }
         ]);
     }
     create(value?: PartialMessage<BroadcastStarted>): BroadcastStarted {
@@ -454,8 +469,8 @@ export const BroadcastStarted = new BroadcastStarted$Type();
 class BroadcastEnded$Type extends MessageType<BroadcastEnded> {
     constructor() {
         super("stream.video.coordinator.event_v1.BroadcastEnded", [
-            { no: 1, name: "call", kind: "message", T: () => Call },
-            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } }
         ]);
     }
     create(value?: PartialMessage<BroadcastEnded>): BroadcastEnded {
@@ -505,11 +520,72 @@ class BroadcastEnded$Type extends MessageType<BroadcastEnded> {
  */
 export const BroadcastEnded = new BroadcastEnded$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class CallMembersCreated$Type extends MessageType<CallMembersCreated> {
+    constructor() {
+        super("stream.video.coordinator.event_v1.CallMembersCreated", [
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } },
+            { no: 3, name: "ringing", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CallMembersCreated>): CallMembersCreated {
+        const message = { ringing: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CallMembersCreated>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallMembersCreated): CallMembersCreated {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.coordinator.call_v1.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
+                    break;
+                case /* stream.video.coordinator.call_v1.CallDetails call_details */ 2:
+                    message.callDetails = CallDetails.internalBinaryRead(reader, reader.uint32(), options, message.callDetails);
+                    break;
+                case /* bool ringing */ 3:
+                    message.ringing = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CallMembersCreated, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.coordinator.call_v1.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallDetails call_details = 2; */
+        if (message.callDetails)
+            CallDetails.internalBinaryWrite(message.callDetails, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* bool ringing = 3; */
+        if (message.ringing !== false)
+            writer.tag(3, WireType.Varint).bool(message.ringing);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.event_v1.CallMembersCreated
+ */
+export const CallMembersCreated = new CallMembersCreated$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class CallMembersUpdated$Type extends MessageType<CallMembersUpdated> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallMembersUpdated", [
-            { no: 1, name: "call", kind: "message", T: () => Call },
-            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } }
         ]);
     }
     create(value?: PartialMessage<CallMembersUpdated>): CallMembersUpdated {
@@ -562,8 +638,8 @@ export const CallMembersUpdated = new CallMembersUpdated$Type();
 class CallMembersDeleted$Type extends MessageType<CallMembersDeleted> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallMembersDeleted", [
-            { no: 1, name: "call", kind: "message", T: () => Call },
-            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } }
         ]);
     }
     create(value?: PartialMessage<CallMembersDeleted>): CallMembersDeleted {
@@ -616,8 +692,8 @@ export const CallMembersDeleted = new CallMembersDeleted$Type();
 class CallCreated$Type extends MessageType<CallCreated> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallCreated", [
-            { no: 1, name: "call", kind: "message", T: () => Call },
-            { no: 2, name: "call_details", kind: "message", T: () => CallDetails },
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } },
             { no: 3, name: "ringing", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
@@ -677,8 +753,8 @@ export const CallCreated = new CallCreated$Type();
 class CallUpdated$Type extends MessageType<CallUpdated> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallUpdated", [
-            { no: 1, name: "call", kind: "message", T: () => Call },
-            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } }
         ]);
     }
     create(value?: PartialMessage<CallUpdated>): CallUpdated {
@@ -731,8 +807,8 @@ export const CallUpdated = new CallUpdated$Type();
 class CallEnded$Type extends MessageType<CallEnded> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallEnded", [
-            { no: 1, name: "call", kind: "message", T: () => Call },
-            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } }
         ]);
     }
     create(value?: PartialMessage<CallEnded>): CallEnded {
@@ -785,8 +861,8 @@ export const CallEnded = new CallEnded$Type();
 class CallDeleted$Type extends MessageType<CallDeleted> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallDeleted", [
-            { no: 1, name: "call", kind: "message", T: () => Call },
-            { no: 2, name: "call_details", kind: "message", T: () => CallDetails }
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } }
         ]);
     }
     create(value?: PartialMessage<CallDeleted>): CallDeleted {
@@ -839,9 +915,9 @@ export const CallDeleted = new CallDeleted$Type();
 class CallAccepted$Type extends MessageType<CallAccepted> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallAccepted", [
-            { no: 1, name: "call", kind: "message", T: () => Call },
-            { no: 2, name: "call_details", kind: "message", T: () => CallDetails },
-            { no: 3, name: "sender_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } },
+            { no: 3, name: "sender_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } }
         ]);
     }
     create(value?: PartialMessage<CallAccepted>): CallAccepted {
@@ -900,9 +976,9 @@ export const CallAccepted = new CallAccepted$Type();
 class CallRejected$Type extends MessageType<CallRejected> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallRejected", [
-            { no: 1, name: "call", kind: "message", T: () => Call },
-            { no: 2, name: "call_details", kind: "message", T: () => CallDetails },
-            { no: 3, name: "sender_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } },
+            { no: 3, name: "sender_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } }
         ]);
     }
     create(value?: PartialMessage<CallRejected>): CallRejected {
@@ -961,9 +1037,9 @@ export const CallRejected = new CallRejected$Type();
 class CallCancelled$Type extends MessageType<CallCancelled> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallCancelled", [
-            { no: 1, name: "call", kind: "message", T: () => Call },
-            { no: 2, name: "call_details", kind: "message", T: () => CallDetails },
-            { no: 3, name: "sender_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } },
+            { no: 3, name: "sender_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } }
         ]);
     }
     create(value?: PartialMessage<CallCancelled>): CallCancelled {
@@ -1022,10 +1098,10 @@ export const CallCancelled = new CallCancelled$Type();
 class CallCustom$Type extends MessageType<CallCustom> {
     constructor() {
         super("stream.video.coordinator.event_v1.CallCustom", [
-            { no: 1, name: "call", kind: "message", T: () => Call },
-            { no: 2, name: "call_details", kind: "message", T: () => CallDetails },
-            { no: 3, name: "sender_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 1, name: "call", kind: "message", T: () => Call, options: { "validate.rules": { message: { required: true } } } },
+            { no: 2, name: "call_details", kind: "message", T: () => CallDetails, options: { "validate.rules": { message: { required: true } } } },
+            { no: 3, name: "sender_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 4, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
             { no: 5, name: "data_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
         ]);
     }

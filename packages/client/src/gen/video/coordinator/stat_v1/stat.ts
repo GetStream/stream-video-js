@@ -29,21 +29,6 @@ export interface ParticipantConnected {
 export interface ParticipantDisconnected {
 }
 /**
- * MuteStateChanged is fired when a user mutes/unmutes their audio/video
- *
- * @generated from protobuf message stream.video.coordinator.stat_v1.MuteStateChanged
- */
-export interface MuteStateChanged {
-    /**
-     * @generated from protobuf field: stream.video.coordinator.stat_v1.MediaType media_type = 1;
-     */
-    mediaType: MediaType;
-    /**
-     * @generated from protobuf field: bool muted = 2;
-     */
-    muted: boolean;
-}
-/**
  * The participant experienced a significant amount of audio/video freeze when observing a given peer
  *
  * @generated from protobuf message stream.video.coordinator.stat_v1.Freeze
@@ -63,6 +48,29 @@ export interface Freeze {
      * @generated from protobuf field: google.protobuf.Duration duration = 3;
      */
     duration?: Duration;
+}
+/**
+ * A participant started/ended sending/receiving audio/video for a given reason
+ *
+ * @generated from protobuf message stream.video.coordinator.stat_v1.MediaStateChanged
+ */
+export interface MediaStateChanged {
+    /**
+     * @generated from protobuf field: stream.video.coordinator.stat_v1.MediaType media_type = 1;
+     */
+    mediaType: MediaType;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.stat_v1.MediaStateChange change = 2;
+     */
+    change: MediaStateChange;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.stat_v1.MediaDirection direction = 3;
+     */
+    direction: MediaDirection;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.stat_v1.MediaStateChangeReason reason = 4;
+     */
+    reason: MediaStateChangeReason;
 }
 /**
  * A stat event from the perspective of a particular participant
@@ -92,11 +100,11 @@ export interface TelemetryEvent {
          */
         participantDisconnected: ParticipantDisconnected;
     } | {
-        oneofKind: "muteStateChanged";
+        oneofKind: "mediaStateChanged";
         /**
-         * @generated from protobuf field: stream.video.coordinator.stat_v1.MuteStateChanged mute_state_changed = 4;
+         * @generated from protobuf field: stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed = 4;
          */
-        muteStateChanged: MuteStateChanged;
+        mediaStateChanged: MediaStateChanged;
     } | {
         oneofKind: "freeze";
         /**
@@ -142,6 +150,57 @@ export enum MediaType {
      * @generated from protobuf enum value: MEDIA_TYPE_VIDEO = 2;
      */
     VIDEO = 2
+}
+/**
+ * @generated from protobuf enum stream.video.coordinator.stat_v1.MediaStateChange
+ */
+export enum MediaStateChange {
+    /**
+     * @generated from protobuf enum value: MEDIA_STATE_CHANGE_UNSPECIFIED = 0;
+     */
+    UNSPECIFIED = 0,
+    /**
+     * @generated from protobuf enum value: MEDIA_STATE_CHANGE_STARTED = 1;
+     */
+    STARTED = 1,
+    /**
+     * @generated from protobuf enum value: MEDIA_STATE_CHANGE_ENDED = 2;
+     */
+    ENDED = 2
+}
+/**
+ * @generated from protobuf enum stream.video.coordinator.stat_v1.MediaDirection
+ */
+export enum MediaDirection {
+    /**
+     * @generated from protobuf enum value: MEDIA_DIRECTION_UNSPECIFIED = 0;
+     */
+    UNSPECIFIED = 0,
+    /**
+     * @generated from protobuf enum value: MEDIA_DIRECTION_SEND = 1;
+     */
+    SEND = 1,
+    /**
+     * @generated from protobuf enum value: MEDIA_DIRECTION_RECEIVE = 2;
+     */
+    RECEIVE = 2
+}
+/**
+ * @generated from protobuf enum stream.video.coordinator.stat_v1.MediaStateChangeReason
+ */
+export enum MediaStateChangeReason {
+    /**
+     * @generated from protobuf enum value: MEDIA_STATE_CHANGE_REASON_UNSPECIFIED = 0;
+     */
+    UNSPECIFIED = 0,
+    /**
+     * @generated from protobuf enum value: MEDIA_STATE_CHANGE_REASON_MUTE = 1;
+     */
+    MUTE = 1,
+    /**
+     * @generated from protobuf enum value: MEDIA_STATE_CHANGE_REASON_CONNECTION = 2;
+     */
+    CONNECTION = 2
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class ParticipantConnected$Type extends MessageType<ParticipantConnected> {
@@ -195,60 +254,6 @@ class ParticipantDisconnected$Type extends MessageType<ParticipantDisconnected> 
  * @generated MessageType for protobuf message stream.video.coordinator.stat_v1.ParticipantDisconnected
  */
 export const ParticipantDisconnected = new ParticipantDisconnected$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class MuteStateChanged$Type extends MessageType<MuteStateChanged> {
-    constructor() {
-        super("stream.video.coordinator.stat_v1.MuteStateChanged", [
-            { no: 1, name: "media_type", kind: "enum", T: () => ["stream.video.coordinator.stat_v1.MediaType", MediaType, "MEDIA_TYPE_"] },
-            { no: 2, name: "muted", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
-        ]);
-    }
-    create(value?: PartialMessage<MuteStateChanged>): MuteStateChanged {
-        const message = { mediaType: 0, muted: false };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<MuteStateChanged>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: MuteStateChanged): MuteStateChanged {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* stream.video.coordinator.stat_v1.MediaType media_type */ 1:
-                    message.mediaType = reader.int32();
-                    break;
-                case /* bool muted */ 2:
-                    message.muted = reader.bool();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: MuteStateChanged, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.coordinator.stat_v1.MediaType media_type = 1; */
-        if (message.mediaType !== 0)
-            writer.tag(1, WireType.Varint).int32(message.mediaType);
-        /* bool muted = 2; */
-        if (message.muted !== false)
-            writer.tag(2, WireType.Varint).bool(message.muted);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.coordinator.stat_v1.MuteStateChanged
- */
-export const MuteStateChanged = new MuteStateChanged$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Freeze$Type extends MessageType<Freeze> {
     constructor() {
@@ -311,13 +316,81 @@ class Freeze$Type extends MessageType<Freeze> {
  */
 export const Freeze = new Freeze$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class MediaStateChanged$Type extends MessageType<MediaStateChanged> {
+    constructor() {
+        super("stream.video.coordinator.stat_v1.MediaStateChanged", [
+            { no: 1, name: "media_type", kind: "enum", T: () => ["stream.video.coordinator.stat_v1.MediaType", MediaType, "MEDIA_TYPE_"] },
+            { no: 2, name: "change", kind: "enum", T: () => ["stream.video.coordinator.stat_v1.MediaStateChange", MediaStateChange, "MEDIA_STATE_CHANGE_"] },
+            { no: 3, name: "direction", kind: "enum", T: () => ["stream.video.coordinator.stat_v1.MediaDirection", MediaDirection, "MEDIA_DIRECTION_"] },
+            { no: 4, name: "reason", kind: "enum", T: () => ["stream.video.coordinator.stat_v1.MediaStateChangeReason", MediaStateChangeReason, "MEDIA_STATE_CHANGE_REASON_"] }
+        ]);
+    }
+    create(value?: PartialMessage<MediaStateChanged>): MediaStateChanged {
+        const message = { mediaType: 0, change: 0, direction: 0, reason: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<MediaStateChanged>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: MediaStateChanged): MediaStateChanged {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.coordinator.stat_v1.MediaType media_type */ 1:
+                    message.mediaType = reader.int32();
+                    break;
+                case /* stream.video.coordinator.stat_v1.MediaStateChange change */ 2:
+                    message.change = reader.int32();
+                    break;
+                case /* stream.video.coordinator.stat_v1.MediaDirection direction */ 3:
+                    message.direction = reader.int32();
+                    break;
+                case /* stream.video.coordinator.stat_v1.MediaStateChangeReason reason */ 4:
+                    message.reason = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: MediaStateChanged, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.coordinator.stat_v1.MediaType media_type = 1; */
+        if (message.mediaType !== 0)
+            writer.tag(1, WireType.Varint).int32(message.mediaType);
+        /* stream.video.coordinator.stat_v1.MediaStateChange change = 2; */
+        if (message.change !== 0)
+            writer.tag(2, WireType.Varint).int32(message.change);
+        /* stream.video.coordinator.stat_v1.MediaDirection direction = 3; */
+        if (message.direction !== 0)
+            writer.tag(3, WireType.Varint).int32(message.direction);
+        /* stream.video.coordinator.stat_v1.MediaStateChangeReason reason = 4; */
+        if (message.reason !== 0)
+            writer.tag(4, WireType.Varint).int32(message.reason);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.stat_v1.MediaStateChanged
+ */
+export const MediaStateChanged = new MediaStateChanged$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class TelemetryEvent$Type extends MessageType<TelemetryEvent> {
     constructor() {
         super("stream.video.coordinator.stat_v1.TelemetryEvent", [
             { no: 1, name: "timestamp", kind: "message", T: () => Timestamp },
             { no: 2, name: "participant_connected", kind: "message", oneof: "event", T: () => ParticipantConnected },
             { no: 3, name: "participant_disconnected", kind: "message", oneof: "event", T: () => ParticipantDisconnected },
-            { no: 4, name: "mute_state_changed", kind: "message", oneof: "event", T: () => MuteStateChanged },
+            { no: 4, name: "media_state_changed", kind: "message", oneof: "event", T: () => MediaStateChanged },
             { no: 5, name: "freeze", kind: "message", oneof: "event", T: () => Freeze }
         ]);
     }
@@ -348,10 +421,10 @@ class TelemetryEvent$Type extends MessageType<TelemetryEvent> {
                         participantDisconnected: ParticipantDisconnected.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).participantDisconnected)
                     };
                     break;
-                case /* stream.video.coordinator.stat_v1.MuteStateChanged mute_state_changed */ 4:
+                case /* stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed */ 4:
                     message.event = {
-                        oneofKind: "muteStateChanged",
-                        muteStateChanged: MuteStateChanged.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).muteStateChanged)
+                        oneofKind: "mediaStateChanged",
+                        mediaStateChanged: MediaStateChanged.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).mediaStateChanged)
                     };
                     break;
                 case /* stream.video.coordinator.stat_v1.Freeze freeze */ 5:
@@ -381,9 +454,9 @@ class TelemetryEvent$Type extends MessageType<TelemetryEvent> {
         /* stream.video.coordinator.stat_v1.ParticipantDisconnected participant_disconnected = 3; */
         if (message.event.oneofKind === "participantDisconnected")
             ParticipantDisconnected.internalBinaryWrite(message.event.participantDisconnected, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.stat_v1.MuteStateChanged mute_state_changed = 4; */
-        if (message.event.oneofKind === "muteStateChanged")
-            MuteStateChanged.internalBinaryWrite(message.event.muteStateChanged, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed = 4; */
+        if (message.event.oneofKind === "mediaStateChanged")
+            MediaStateChanged.internalBinaryWrite(message.event.mediaStateChanged, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
         /* stream.video.coordinator.stat_v1.Freeze freeze = 5; */
         if (message.event.oneofKind === "freeze")
             Freeze.internalBinaryWrite(message.event.freeze, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
