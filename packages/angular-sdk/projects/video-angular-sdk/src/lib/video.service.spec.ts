@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { StreamVideoService } from './stream-video.service';
+import { StreamVideoService } from './video.service';
 
 describe('StreamVideoService', () => {
   let service: StreamVideoService;

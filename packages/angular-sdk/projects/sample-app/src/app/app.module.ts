@@ -1,15 +1,15 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
+import { StreamVideoModule } from 'projects/video-angular-sdk/src/public-api';
 
 import { AppComponent } from './app.component';
-import { CallComponent } from './call/call.component';
-import { ParticipantComponent } from './participant/participant.component';
 
 @NgModule({
-  declarations: [AppComponent, CallComponent, ParticipantComponent],
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
+    StreamVideoModule,
     RouterModule.forRoot([{ path: '', component: AppComponent }]),
   ],
   providers: [],

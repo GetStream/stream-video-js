@@ -1,14 +1,16 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Call } from '@stream-io/video-client';
+import { StreamVideoService } from '@stream-io/video-angular-sdk';
 import { Observable, Subscription } from 'rxjs';
-import { environment } from 'src/environments/environment';
-import { StreamVideoService } from './stream-video.service';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
+  template: `<div>Connected as {{ (user$ | async)?.name }}</div>
+    <stream-call *ngIf="activeCall; else noCall"></stream-call>
+
+    <ng-template #noCall> Currently not in a call </ng-template>`,
 })
 export class AppComponent implements OnInit, OnDestroy {
   ownMediaStream?: MediaStream;

@@ -15,10 +15,10 @@ import {
 } from '@stream-io/video-client';
 import { debounceTime, Observable, Subject, Subscription } from 'rxjs';
 import { ParticipantComponent } from '../participant/participant.component';
-import { StreamVideoService } from '../stream-video.service';
+import { StreamVideoService } from '../video.service';
 
 @Component({
-  selector: 'app-call',
+  selector: 'stream-call',
   templateUrl: './call.component.html',
   styleUrls: ['./call.component.scss'],
 })

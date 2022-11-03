@@ -3,7 +3,7 @@ import { VideoDimension } from '@stream-io/video-client/dist/src/gen/video/sfu/m
 import { StreamVideoParticipant } from '@stream-io/video-client/dist/src/rtc/types';
 
 @Component({
-  selector: 'app-participant',
+  selector: 'stream-participant',
   templateUrl: './participant.component.html',
   styleUrls: ['./participant.component.scss'],
 })

@@ -1,0 +1,3 @@
+<div #participantsContainer class="str-call__call">
+    <stream-participant *ngFor="let participant of participants$  | async; trackBy: trackByParticipantId" [participant]="participant"></stream-participant>
+</div>
