@@ -1,4 +1,4 @@
-name: Deploy Egress-Composite
+name: Deploy egress-composite
 on:
   push:
     branches:
@@ -10,12 +10,13 @@ on:
       - packages/client/**
 
 jobs:
-  build:
+  build-egress-composite:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
       - uses: actions/setup-node@v3
         with:
           node-version: 18
@@ -27,13 +28,13 @@ jobs:
       - name: Build packages
         run: yarn build:client && yarn build:egress
 
-      - name: Upload Egress Composite GH Pages Artifact
+      - name: Upload egress-composite GH Pages Artifact
         uses: actions/upload-pages-artifact@v1
         with:
           path: './packages/egress-composite/dist/'
 
   deploy-egress-composite:
-    needs: build
+    needs: build-egress-composite
     runs-on: ubuntu-latest
 
     permissions:
@@ -42,9 +43,8 @@ jobs:
 
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}/egress-composite
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Deploy Egress Composite
         uses: actions/deploy-pages@v1
-
