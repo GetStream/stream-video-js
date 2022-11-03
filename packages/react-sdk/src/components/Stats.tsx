@@ -29,8 +29,7 @@ export const Stats = ({ client, call, activeCall }: StatsProps) => {
       for (const s of stats) {
         if (!s) continue;
         await client.reportCallStats({
-          callType: activeCall.type,
-          callId: activeCall.id,
+          callCid: activeCall.callCid,
           statsJson: getStats(s),
         });
       }
