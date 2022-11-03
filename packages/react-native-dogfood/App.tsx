@@ -20,7 +20,6 @@ const StackNavigator = () => {
   const username = useAppGlobalStoreValue((store) => store.username);
 
   const setState = useAppGlobalStoreSetState();
-  console.log({ token });
 
   React.useEffect(() => {
     const run = async () => {
@@ -65,6 +64,7 @@ const StackNavigator = () => {
 
     run();
   }, [username, token, setState]);
+
   return (
     <Stack.Navigator
       screenOptions={{
