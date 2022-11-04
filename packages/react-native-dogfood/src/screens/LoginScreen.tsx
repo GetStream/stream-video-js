@@ -18,6 +18,7 @@ import { createToken } from '../modules/helpers/jwt';
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     margin: 15,
   },
   innerView: {
@@ -64,7 +65,7 @@ const LoginScreen = ({ navigation }: Props) => {
 
   useEffect(() => {
     const run = async () => {
-      if (username !== '' && token !== '') {
+      if (username && token) {
         const user = {
           name: username,
           role: 'admin',
@@ -74,36 +75,34 @@ const LoginScreen = ({ navigation }: Props) => {
         };
 
         const clientParams = {
-          coordinatorRpcUrl: 'http://192.168.1.37:26991/rpc',
-          coordinatorWsUrl:
-            'ws://192.168.1.37:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
-          // coordinatorRpcUrl:
-          //   'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
+          // coordinatorRpcUrl: 'http://192.168.1.37:26991/rpc',
           // coordinatorWsUrl:
-          //   'ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+          //   'ws://192.168.1.37:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+          coordinatorRpcUrl:
+            'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
+          coordinatorWsUrl:
+            'ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
           apiKey: 'key10', // see <video>/data/fixtures/apps.yaml for API key/secret
           apiSecret: 'secret10',
           user,
         };
 
         try {
-          if (token !== '') {
-            setLoader(true);
+          setLoader(true);
 
-            const client = new StreamVideoClient(clientParams.apiKey, {
-              coordinatorWsUrl: clientParams.coordinatorWsUrl,
-              coordinatorRpcUrl: clientParams.coordinatorRpcUrl,
-              sendJson: true,
-              token,
-            });
-            await client.connect(clientParams.apiKey, token, user).then(() => {
-              setState({ videoClient: client });
-              setLoader(false);
-              navigation.navigate('HomeScreen');
-            });
-          }
+          const client = new StreamVideoClient(clientParams.apiKey, {
+            coordinatorWsUrl: clientParams.coordinatorWsUrl,
+            coordinatorRpcUrl: clientParams.coordinatorRpcUrl,
+            sendJson: true,
+            token,
+          });
+          await client.connect(clientParams.apiKey, token, user);
+          setState({ videoClient: client });
+          setLoader(false);
+          navigation.navigate('HomeScreen');
         } catch (err) {
           console.error('Failed to establish connection', err);
+          setLoader(false);
         }
       }
     };
@@ -132,7 +131,7 @@ const LoginScreen = ({ navigation }: Props) => {
   return (
     <SafeAreaView style={styles.container}>
       {loader ? (
-        <ActivityIndicator />
+        <ActivityIndicator style={StyleSheet.absoluteFill} />
       ) : (
         <>
           <View style={styles.innerView}>
