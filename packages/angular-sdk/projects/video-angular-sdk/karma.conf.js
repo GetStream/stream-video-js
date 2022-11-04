@@ -25,7 +25,7 @@ module.exports = function (config) {
       suppressAll: true // removes the duplicated traces
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/stream-video-angular-poc'),
+      dir: require('path').join(__dirname, '../../coverage/video-angular-sdk'),
       subdir: '.',
       reporters: [
         { type: 'html' },
