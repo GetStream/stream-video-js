@@ -11,6 +11,7 @@ import './style.css';
   const callId = urlParams.get('call_id') || 'egress-test';
 
   // Access and operation mode config
+  const localDev = Boolean(urlParams.get('local') || false);
   const mode = urlParams.get('mode') || 'speaker';
   const apiKey = urlParams.get('api_key') || 'key10';
   const accessToken =
@@ -19,11 +20,13 @@ import './style.css';
 
   // Environment config
   const coordinatorRpcUrl =
-    urlParams.get('coordinator_rpc_url') ||
-    'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc';
+    urlParams.get('coordinator_rpc_url') || localDev
+      ? 'http://localhost:26991/rpc/'
+      : 'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc';
   const coordinatorWsUrl =
-    urlParams.get('coordinator_ws_url') ||
-    'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect';
+    urlParams.get('coordinator_ws_url') || localDev
+      ? 'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect'
+      : 'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect';
 
   const client = new StreamVideoClient(apiKey, {
     token: accessToken,
@@ -75,6 +78,8 @@ import './style.css';
   const highlightSpeaker = createSpeakerUpdater();
 
   store$.activeCallParticipants$.subscribe((participants) => {
+    participants.forEach(attachAudioTrack);
+
     console.log('participants updated', participants);
     if (mode === 'speaker') {
       const [loudestParticipant] = [...participants].sort((a, b) => {
@@ -102,9 +107,6 @@ import './style.css';
 })();
 
 function createSpeakerUpdater() {
-  const $audioEl = document.getElementById(
-    'current-speaker-audio',
-  ) as HTMLAudioElement;
   const $videoEl = document.getElementById(
     'current-speaker-video',
   ) as HTMLVideoElement;
@@ -112,10 +114,6 @@ function createSpeakerUpdater() {
   const $userNameEl = document.getElementById(
     'current-user-name',
   ) as HTMLSpanElement;
-
-  $audioEl.addEventListener('canplay', () => {
-    $audioEl.play();
-  });
 
   $videoEl.addEventListener('canplay', () => {
     $videoEl.play();
@@ -135,12 +133,37 @@ function createSpeakerUpdater() {
       $videoEl.srcObject = speaker.videoTrack!;
       $videoEl.title = speaker.user!.id;
 
-      $audioEl.srcObject = speaker.audioTrack!;
-
       $userNameEl.innerText = speaker.user?.id ?? 'N/A';
       $userNameEl.title = speaker.sessionId;
 
       lastSpeaker = speaker;
     }
   };
+}
+
+function attachAudioTrack(participant: StreamVideoParticipant) {
+  const app = document.getElementById('app')!;
+
+  let $audioEl = document.getElementById(
+    `speaker-${participant.sessionId}`,
+  ) as HTMLAudioElement | null;
+  if (!$audioEl) {
+    $audioEl = document.createElement('audio') as HTMLAudioElement;
+    $audioEl.id = `speaker-${participant.sessionId}`;
+    $audioEl.autoplay = true;
+    $audioEl.addEventListener('canplay', () => {
+      $audioEl!.play();
+    });
+
+    app.appendChild($audioEl);
+  }
+
+  const previousAudioTrack = $audioEl.srcObject as MediaStream | null;
+  if (participant.audioTrack) {
+    if (previousAudioTrack?.id !== participant.audioTrack.id) {
+      $audioEl.srcObject = participant.audioTrack;
+    }
+  } else {
+    $audioEl.srcObject = null;
+  }
 }
