@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: 'white',
     flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   avatar: {
     height: 50,
