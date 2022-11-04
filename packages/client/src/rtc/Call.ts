@@ -17,7 +17,7 @@ import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
-import { VideoDimensionChange } from './types';
+import { SubscriptionChanges } from './types';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -209,9 +209,22 @@ export class Call {
     }
   };
 
-  updateVideoDimensions = (changes: VideoDimensionChange[]) => {
-    changes.forEach((change) => {
-      const participantToUpdate = this.findParticipant(change.participant);
+  /**
+   * Update track subscription configuration for one or more participants. You have to create a subscription for each participant you want to receive any kind of track.
+   * @param changes
+   * @param includeCurrentUser if true the tracks of the logged in user will be fetched from the server (instead of using the local stream)
+   * @returns
+   */
+  updateSubscriptionsPartial = (
+    changes: SubscriptionChanges,
+    includeCurrentUser: boolean = false,
+  ) => {
+    if (Object.keys(changes).length === 0) {
+      return;
+    }
+    Object.keys(changes).forEach((sessionId) => {
+      const change = changes[sessionId];
+      const participantToUpdate = this.findParticipant(sessionId);
       if (!participantToUpdate) {
         return;
       }
@@ -221,7 +234,7 @@ export class Call {
       ]);
     });
 
-    return this.updateSubscriptions();
+    return this.updateSubscriptions(includeCurrentUser);
   };
 
   changeInputDevice = async (
@@ -350,10 +363,16 @@ export class Call {
     }
   };
 
-  private updateSubscriptions = async () => {
+  private updateSubscriptions = async (includeCurrentUser: boolean) => {
     const subscriptions: { [key: string]: VideoDimension } = {};
     this.participants.forEach((p) => {
-      subscriptions[p.user!.id] = p.videoDimension || { height: 0, width: 0 };
+      if (
+        includeCurrentUser ||
+        (p.user?.id !== this.currentUserId &&
+          this.client.sessionId !== p.sessionId)
+      ) {
+        subscriptions[p.user!.id] = p.videoDimension || { height: 0, width: 0 };
+      }
     });
     return this.client.updateSubscriptions(subscriptions);
   };
@@ -364,22 +383,12 @@ export class Call {
     );
   }
 
-  private findParticipant(participant: {
-    user?: { id: string };
-    sessionId: string;
-  }) {
-    return this.participants.find(
-      (p) =>
-        p.user?.id === participant.user?.id &&
-        p.sessionId === participant.sessionId,
-    );
+  private findParticipant(sessionId: string) {
+    return this.participants.find((p) => p.sessionId === sessionId);
   }
 
   private get localParticipant() {
-    return this.findParticipant({
-      user: { id: this.currentUserId },
-      sessionId: this.client.sessionId,
-    });
+    return this.findParticipant(this.client.sessionId);
   }
 
   private handleOnTrack = (e: RTCTrackEvent) => {

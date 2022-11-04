@@ -35,11 +35,7 @@ export const watchParticipantLeft = (
     if (participant) {
       const participants = store
         .getCurrentValue(store.activeCallParticipantsSubject)
-        .filter(
-          (p) =>
-            p.user?.id !== participant.user?.id &&
-            p.sessionId !== participant.sessionId,
-        );
+        .filter((p) => p.sessionId !== participant.sessionId);
 
       store.setCurrentValue(store.activeCallParticipantsSubject, participants);
     }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Call, StreamVideoClient, UserInput } from '@stream-io/video-client';
 import { StreamVideoParticipant } from '@stream-io/video-client/dist/src/rtc/types';
-import { BehaviorSubject, Observable, ReplaySubject, Subscription } from 'rxjs';
+import { Observable, ReplaySubject, Subscription } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',

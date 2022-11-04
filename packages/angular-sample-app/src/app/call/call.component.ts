@@ -2,7 +2,6 @@ import {
   AfterViewChecked,
   AfterViewInit,
   Component,
-  ComponentRef,
   ElementRef,
   OnDestroy,
   OnInit,
@@ -12,16 +11,9 @@ import {
 import {
   Call,
   StreamVideoParticipant,
-  VideoDimensionChange,
+  SubscriptionChanges,
 } from '@stream-io/video-client';
-import {
-  debounce,
-  debounceTime,
-  Observable,
-  Subject,
-  Subscription,
-  tap,
-} from 'rxjs';
+import { debounceTime, Observable, Subject, Subscription } from 'rxjs';
 import { ParticipantComponent } from '../participant/participant.component';
 import { StreamVideoService } from '../stream-video.service';
 
@@ -41,7 +33,7 @@ export class CallComponent
   @ViewChildren(ParticipantComponent)
   private particpantComponents: ParticipantComponent[] = [];
   private participantsContainerResizeObserver: ResizeObserver | undefined;
-  private videoDimensionsSubject = new Subject<VideoDimensionChange[]>();
+  private videoDimensionsSubject = new Subject<SubscriptionChanges>();
 
   constructor(private streamVideoService: StreamVideoService) {
     this.participants$ = this.streamVideoService.activeCallParticipants$;
@@ -54,13 +46,12 @@ export class CallComponent
     );
     this.videoDimensionsSubject
       .pipe(debounceTime(1200))
-      .subscribe((changes) => this.call.updateVideoDimensions(changes));
+      .subscribe((changes) => this.call.updateSubscriptionsPartial(changes));
   }
 
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    this.videoDimensionsChanged();
     this.participantsContainerResizeObserver = new ResizeObserver(() =>
       this.videoDimensionsChanged(),
     );
@@ -88,12 +79,11 @@ export class CallComponent
   }
 
   private videoDimensionsChanged() {
-    const changes: VideoDimensionChange[] = [];
+    const changes: SubscriptionChanges = {};
     this.particpantComponents.forEach((component) => {
-      changes.push({
-        participant: component.participant!,
+      changes[component.participant!.sessionId] = {
         videoDimension: component.videoDimension,
-      });
+      };
     });
 
     this.videoDimensionsSubject.next(changes);

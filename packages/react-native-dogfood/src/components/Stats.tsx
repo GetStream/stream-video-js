@@ -30,8 +30,7 @@ export const Stats = () => {
           }
           try {
             await videoClient.reportCallStats({
-              callType: activeCall.type,
-              callId: activeCall.id,
+              callCid: activeCall.callCid,
               statsJson: getStats(s),
             });
           } catch (err) {

@@ -10,16 +10,21 @@ export const ParticipantBox = (props: {
   participant: StreamVideoParticipant;
   isMuted?: boolean;
   updateVideoSubscriptionForParticipant: (
-    participant: StreamVideoParticipant,
+    sessionId: string,
     width: number,
     height: number,
   ) => void;
   call: Call;
+  updateVideoElementForParticipant: (
+    sessionId: string,
+    element: HTMLVideoElement | null,
+  ) => void;
 }) => {
   const {
     participant,
     isMuted = false,
     updateVideoSubscriptionForParticipant,
+    updateVideoElementForParticipant,
     call,
   } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -29,30 +34,17 @@ export const ParticipantBox = (props: {
     audioTrack: audioStream,
     isLoggedInUser: isLocalParticipant,
     isSpeaking,
+    sessionId,
   } = participant;
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    if (!videoRef.current) return;
-    const $videoEl = videoRef.current;
-    updateVideoSubscriptionForParticipant(
-      participant,
-      $videoEl.clientHeight || 0,
-      $videoEl.clientHeight || 0,
-    );
-    const resizeObserver = new ResizeObserver(
-      debounce(() => {
-        updateVideoSubscriptionForParticipant(
-          participant,
-          $videoEl.clientHeight || 0,
-          $videoEl.clientHeight || 0,
-        );
-      }, 1200),
-    );
-    resizeObserver.observe($videoEl);
+    updateVideoElementForParticipant(sessionId, videoRef.current);
     return () => {
-      resizeObserver.disconnect();
+      updateVideoElementForParticipant(sessionId, null);
     };
-  }, [participant, updateVideoSubscriptionForParticipant, videoRef]);
+  }, [sessionId, updateVideoElementForParticipant]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   useEffect(() => {
     const $el = videoRef.current;
@@ -170,7 +162,7 @@ const DebugParticipantPublishQuality = (props: {
   participant: StreamVideoParticipant;
   call: Call;
   updateVideoSubscriptionForParticipant: (
-    participant: StreamVideoParticipant,
+    sessionId: string,
     width: number,
     height: number,
   ) => void;
@@ -215,7 +207,7 @@ const DebugParticipantPublishQuality = (props: {
           w = 320;
           h = 240;
         }
-        updateVideoSubscriptionForParticipant(participant, w, h);
+        updateVideoSubscriptionForParticipant(participant.sessionId, w, h);
       }}
     >
       <option value="f">High (f)</option>
@@ -223,12 +215,4 @@ const DebugParticipantPublishQuality = (props: {
       <option value="q">Low (q)</option>
     </select>
   );
-};
-
-const debounce = (fn: () => void, timeoutMs: number) => {
-  let id: NodeJS.Timeout;
-  return () => {
-    clearTimeout(id);
-    id = setTimeout(fn, timeoutMs);
-  };
 };

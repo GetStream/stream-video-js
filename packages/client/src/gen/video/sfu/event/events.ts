@@ -38,25 +38,25 @@ export interface SfuEvent {
     } | {
         oneofKind: "publisherAnswer";
         /**
-         * @generated from protobuf field: stream.video.sfu.event.PublisherAnswer publisher_answer = 14;
+         * @generated from protobuf field: stream.video.sfu.event.PublisherAnswer publisher_answer = 2;
          */
         publisherAnswer: PublisherAnswer;
     } | {
         oneofKind: "connectionQualityChanged";
         /**
-         * @generated from protobuf field: stream.video.sfu.event.ConnectionQualityChanged connection_quality_changed = 2;
+         * @generated from protobuf field: stream.video.sfu.event.ConnectionQualityChanged connection_quality_changed = 3;
          */
         connectionQualityChanged: ConnectionQualityChanged;
     } | {
         oneofKind: "audioLevelChanged";
         /**
-         * @generated from protobuf field: stream.video.sfu.event.AudioLevelChanged audio_level_changed = 3;
+         * @generated from protobuf field: stream.video.sfu.event.AudioLevelChanged audio_level_changed = 4;
          */
         audioLevelChanged: AudioLevelChanged;
     } | {
         oneofKind: "iceTrickle";
         /**
-         * @generated from protobuf field: stream.video.sfu.models.ICETrickle ice_trickle = 4;
+         * @generated from protobuf field: stream.video.sfu.models.ICETrickle ice_trickle = 5;
          */
         iceTrickle: ICETrickle;
     } | {
@@ -110,9 +110,15 @@ export interface SfuEvent {
     } | {
         oneofKind: "healthCheckResponse";
         /**
-         * @generated from protobuf field: stream.video.sfu.event.HealthCheckResponse health_check_response = 15;
+         * @generated from protobuf field: stream.video.sfu.event.HealthCheckResponse health_check_response = 14;
          */
         healthCheckResponse: HealthCheckResponse;
+    } | {
+        oneofKind: "callEnded";
+        /**
+         * @generated from protobuf field: stream.video.sfu.event.CallEnded call_ended = 15;
+         */
+        callEnded: CallEnded;
     } | {
         oneofKind: undefined;
     };
@@ -331,6 +337,15 @@ export interface AudioLevelChanged {
     audioLevels: AudioLevel[];
 }
 /**
+ * @generated from protobuf message stream.video.sfu.event.CallEnded
+ */
+export interface CallEnded {
+    /**
+     * @generated from protobuf field: string message = 1;
+     */
+    message: string;
+}
+/**
  * @generated from protobuf message stream.video.sfu.event.AudioLevel
  */
 export interface AudioLevel {
@@ -480,10 +495,10 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
     constructor() {
         super("stream.video.sfu.event.SfuEvent", [
             { no: 1, name: "subscriber_offer", kind: "message", oneof: "eventPayload", T: () => SubscriberOffer },
-            { no: 14, name: "publisher_answer", kind: "message", oneof: "eventPayload", T: () => PublisherAnswer },
-            { no: 2, name: "connection_quality_changed", kind: "message", oneof: "eventPayload", T: () => ConnectionQualityChanged },
-            { no: 3, name: "audio_level_changed", kind: "message", oneof: "eventPayload", T: () => AudioLevelChanged },
-            { no: 4, name: "ice_trickle", kind: "message", oneof: "eventPayload", T: () => ICETrickle },
+            { no: 2, name: "publisher_answer", kind: "message", oneof: "eventPayload", T: () => PublisherAnswer },
+            { no: 3, name: "connection_quality_changed", kind: "message", oneof: "eventPayload", T: () => ConnectionQualityChanged },
+            { no: 4, name: "audio_level_changed", kind: "message", oneof: "eventPayload", T: () => AudioLevelChanged },
+            { no: 5, name: "ice_trickle", kind: "message", oneof: "eventPayload", T: () => ICETrickle },
             { no: 6, name: "change_publish_quality", kind: "message", oneof: "eventPayload", T: () => ChangePublishQuality },
             { no: 7, name: "local_device_change", kind: "message", oneof: "eventPayload", T: () => LocalDeviceChange },
             { no: 8, name: "mute_state_changed", kind: "message", oneof: "eventPayload", T: () => MuteStateChanged },
@@ -492,7 +507,8 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
             { no: 11, name: "participant_left", kind: "message", oneof: "eventPayload", T: () => ParticipantLeft },
             { no: 12, name: "dominant_speaker_changed", kind: "message", oneof: "eventPayload", T: () => DominantSpeakerChanged },
             { no: 13, name: "join_response", kind: "message", oneof: "eventPayload", T: () => JoinResponse },
-            { no: 15, name: "health_check_response", kind: "message", oneof: "eventPayload", T: () => HealthCheckResponse }
+            { no: 14, name: "health_check_response", kind: "message", oneof: "eventPayload", T: () => HealthCheckResponse },
+            { no: 15, name: "call_ended", kind: "message", oneof: "eventPayload", T: () => CallEnded }
         ]);
     }
     create(value?: PartialMessage<SfuEvent>): SfuEvent {
@@ -513,25 +529,25 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
                         subscriberOffer: SubscriberOffer.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).subscriberOffer)
                     };
                     break;
-                case /* stream.video.sfu.event.PublisherAnswer publisher_answer */ 14:
+                case /* stream.video.sfu.event.PublisherAnswer publisher_answer */ 2:
                     message.eventPayload = {
                         oneofKind: "publisherAnswer",
                         publisherAnswer: PublisherAnswer.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).publisherAnswer)
                     };
                     break;
-                case /* stream.video.sfu.event.ConnectionQualityChanged connection_quality_changed */ 2:
+                case /* stream.video.sfu.event.ConnectionQualityChanged connection_quality_changed */ 3:
                     message.eventPayload = {
                         oneofKind: "connectionQualityChanged",
                         connectionQualityChanged: ConnectionQualityChanged.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).connectionQualityChanged)
                     };
                     break;
-                case /* stream.video.sfu.event.AudioLevelChanged audio_level_changed */ 3:
+                case /* stream.video.sfu.event.AudioLevelChanged audio_level_changed */ 4:
                     message.eventPayload = {
                         oneofKind: "audioLevelChanged",
                         audioLevelChanged: AudioLevelChanged.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).audioLevelChanged)
                     };
                     break;
-                case /* stream.video.sfu.models.ICETrickle ice_trickle */ 4:
+                case /* stream.video.sfu.models.ICETrickle ice_trickle */ 5:
                     message.eventPayload = {
                         oneofKind: "iceTrickle",
                         iceTrickle: ICETrickle.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).iceTrickle)
@@ -585,10 +601,16 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
                         joinResponse: JoinResponse.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).joinResponse)
                     };
                     break;
-                case /* stream.video.sfu.event.HealthCheckResponse health_check_response */ 15:
+                case /* stream.video.sfu.event.HealthCheckResponse health_check_response */ 14:
                     message.eventPayload = {
                         oneofKind: "healthCheckResponse",
                         healthCheckResponse: HealthCheckResponse.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).healthCheckResponse)
+                    };
+                    break;
+                case /* stream.video.sfu.event.CallEnded call_ended */ 15:
+                    message.eventPayload = {
+                        oneofKind: "callEnded",
+                        callEnded: CallEnded.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).callEnded)
                     };
                     break;
                 default:
@@ -606,18 +628,18 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         /* stream.video.sfu.event.SubscriberOffer subscriber_offer = 1; */
         if (message.eventPayload.oneofKind === "subscriberOffer")
             SubscriberOffer.internalBinaryWrite(message.eventPayload.subscriberOffer, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.sfu.event.PublisherAnswer publisher_answer = 14; */
+        /* stream.video.sfu.event.PublisherAnswer publisher_answer = 2; */
         if (message.eventPayload.oneofKind === "publisherAnswer")
-            PublisherAnswer.internalBinaryWrite(message.eventPayload.publisherAnswer, writer.tag(14, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.sfu.event.ConnectionQualityChanged connection_quality_changed = 2; */
+            PublisherAnswer.internalBinaryWrite(message.eventPayload.publisherAnswer, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.sfu.event.ConnectionQualityChanged connection_quality_changed = 3; */
         if (message.eventPayload.oneofKind === "connectionQualityChanged")
-            ConnectionQualityChanged.internalBinaryWrite(message.eventPayload.connectionQualityChanged, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.sfu.event.AudioLevelChanged audio_level_changed = 3; */
+            ConnectionQualityChanged.internalBinaryWrite(message.eventPayload.connectionQualityChanged, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.sfu.event.AudioLevelChanged audio_level_changed = 4; */
         if (message.eventPayload.oneofKind === "audioLevelChanged")
-            AudioLevelChanged.internalBinaryWrite(message.eventPayload.audioLevelChanged, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.sfu.models.ICETrickle ice_trickle = 4; */
+            AudioLevelChanged.internalBinaryWrite(message.eventPayload.audioLevelChanged, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.sfu.models.ICETrickle ice_trickle = 5; */
         if (message.eventPayload.oneofKind === "iceTrickle")
-            ICETrickle.internalBinaryWrite(message.eventPayload.iceTrickle, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+            ICETrickle.internalBinaryWrite(message.eventPayload.iceTrickle, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
         /* stream.video.sfu.event.ChangePublishQuality change_publish_quality = 6; */
         if (message.eventPayload.oneofKind === "changePublishQuality")
             ChangePublishQuality.internalBinaryWrite(message.eventPayload.changePublishQuality, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
@@ -642,9 +664,12 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         /* stream.video.sfu.event.JoinResponse join_response = 13; */
         if (message.eventPayload.oneofKind === "joinResponse")
             JoinResponse.internalBinaryWrite(message.eventPayload.joinResponse, writer.tag(13, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.sfu.event.HealthCheckResponse health_check_response = 15; */
+        /* stream.video.sfu.event.HealthCheckResponse health_check_response = 14; */
         if (message.eventPayload.oneofKind === "healthCheckResponse")
-            HealthCheckResponse.internalBinaryWrite(message.eventPayload.healthCheckResponse, writer.tag(15, WireType.LengthDelimited).fork(), options).join();
+            HealthCheckResponse.internalBinaryWrite(message.eventPayload.healthCheckResponse, writer.tag(14, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.sfu.event.CallEnded call_ended = 15; */
+        if (message.eventPayload.oneofKind === "callEnded")
+            CallEnded.internalBinaryWrite(message.eventPayload.callEnded, writer.tag(15, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1483,6 +1508,53 @@ class AudioLevelChanged$Type extends MessageType<AudioLevelChanged> {
  * @generated MessageType for protobuf message stream.video.sfu.event.AudioLevelChanged
  */
 export const AudioLevelChanged = new AudioLevelChanged$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CallEnded$Type extends MessageType<CallEnded> {
+    constructor() {
+        super("stream.video.sfu.event.CallEnded", [
+            { no: 1, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CallEnded>): CallEnded {
+        const message = { message: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CallEnded>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallEnded): CallEnded {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string message */ 1:
+                    message.message = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CallEnded, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string message = 1; */
+        if (message.message !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.message);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.CallEnded
+ */
+export const CallEnded = new CallEnded$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class AudioLevel$Type extends MessageType<AudioLevel> {
     constructor() {
