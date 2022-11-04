@@ -8,20 +8,20 @@
     "start": "next start"
   },
   "dependencies": {
-    "@emotion/react": "11.10.4",
-    "@emotion/styled": "11.10.4",
-    "@mui/icons-material": "5.10.9",
-    "@mui/material": "5.10.9",
-    "@sentry/nextjs": "^7.16.0",
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "@mui/icons-material": "^5.10.9",
+    "@mui/material": "^5.10.12",
+    "@sentry/nextjs": "^7.17.4",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
     "jsonwebtoken": "^8.5.1",
     "nanoid": "^4.0.0",
-    "next": "^12.3.1",
-    "next-auth": "^4.13.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "next": "^12.3.2",
+    "next-auth": "^4.15.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^8.5.9"
