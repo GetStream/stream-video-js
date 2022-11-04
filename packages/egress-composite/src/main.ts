@@ -1,4 +1,5 @@
 import {
+  Call,
   StreamVideoClient,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
@@ -66,8 +67,8 @@ import './style.css';
       call.updateSubscriptionsPartial({
         [dominantSpeaker.sessionId]: {
           videoDimension: {
-            width: 1280,
-            height: 720,
+            width: 1920,
+            height: 1080,
           },
         },
       });
@@ -95,7 +96,7 @@ import './style.css';
   });
 
   let shuffleIntervalId: NodeJS.Timeout;
-  const highlightSpeaker = createSpeakerUpdater();
+  const highlightSpeaker = createSpeakerUpdater(call);
 
   store$.activeCallParticipants$.subscribe((participants) => {
     participants.forEach(attachAudioTrack);
@@ -126,7 +127,7 @@ import './style.css';
   });
 })();
 
-function createSpeakerUpdater() {
+function createSpeakerUpdater(call: Call) {
   const $videoEl = document.getElementById(
     'current-speaker-video',
   ) as HTMLVideoElement;
@@ -141,12 +142,19 @@ function createSpeakerUpdater() {
 
   let lastSpeaker: StreamVideoParticipant | undefined;
   return function highlightSpeaker(speaker?: StreamVideoParticipant) {
-    if (
-      speaker &&
-      speaker.sessionId !== lastSpeaker?.sessionId &&
-      speaker.videoTrack &&
-      speaker.audioTrack
-    ) {
+    if (speaker && speaker.sessionId !== lastSpeaker?.sessionId) {
+      if (!speaker.videoTrack) {
+        call.updateSubscriptionsPartial({
+          [speaker.sessionId]: {
+            videoDimension: {
+              width: 1920,
+              height: 1080,
+            },
+          },
+        });
+        return;
+      }
+
       console.log(`Swapping highlighted speaker`, speaker.user!.id);
 
       // FIXME: use avatar as the speaker might not be always publishing a video track
