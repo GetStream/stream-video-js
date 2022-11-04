@@ -9,7 +9,6 @@ import {
 const styles = StyleSheet.create({
   header: {
     backgroundColor: 'white',
-    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
   },
