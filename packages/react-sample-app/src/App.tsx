@@ -5,12 +5,7 @@ import {
   CssBaseline,
   ThemeProvider,
 } from '@mui/material';
-import {
-  CreateCallInput,
-  MemberInput,
-  Struct,
-  UserInput,
-} from '@stream-io/video-client';
+import { CreateCallInput, Struct, UserInput } from '@stream-io/video-client';
 import {
   StreamCall,
   StreamVideo,
@@ -85,18 +80,14 @@ const App = () => {
   });
 
   const createCall = async (id: string, participants: string[]) => {
-    const members: { [userId: string]: MemberInput } = {};
-    participants.forEach(
-      (userId) =>
-        (members[userId] = {
-          role: 'admin',
-          customJson: Struct.toBinary(Struct.fromJson({})),
-        }),
-    );
     setCallId(id);
     setCallType('default');
     setCallInput({
-      members,
+      members: participants.map((userId) => ({
+        role: 'admin',
+        customJson: Struct.toBinary(Struct.fromJson({})),
+        userId,
+      })),
     });
   };
 
