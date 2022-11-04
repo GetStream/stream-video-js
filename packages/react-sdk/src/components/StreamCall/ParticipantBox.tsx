@@ -15,20 +15,16 @@ export const ParticipantBox = (props: {
     height: number,
   ) => void;
   call: Call;
-  updateVideoElementForParticipant: (
-    sessionId: string,
-    element: HTMLVideoElement | null,
-  ) => void;
 }) => {
   const {
     participant,
     isMuted = false,
     updateVideoSubscriptionForParticipant,
-    updateVideoElementForParticipant,
     call,
   } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const {
     videoTrack: videoStream,
     audioTrack: audioStream,
@@ -37,14 +33,19 @@ export const ParticipantBox = (props: {
     sessionId,
   } = participant;
 
-  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    updateVideoElementForParticipant(sessionId, videoRef.current);
+    if (!containerRef.current) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      const width = containerRef.current!.clientWidth;
+      const height = containerRef.current!.clientHeight;
+      updateVideoSubscriptionForParticipant(sessionId, width, height);
+    });
+    resizeObserver.observe(containerRef.current);
     return () => {
-      updateVideoElementForParticipant(sessionId, null);
+      resizeObserver.disconnect();
     };
-  }, [sessionId, updateVideoElementForParticipant]);
-  /* eslint-enable react-hooks/exhaustive-deps */
+  }, [sessionId, updateVideoSubscriptionForParticipant]);
 
   useEffect(() => {
     const $el = videoRef.current;
@@ -71,6 +72,8 @@ export const ParticipantBox = (props: {
   }, [audioStream]);
 
   const isDebugMode = useIsDebugMode();
+  // TODO: add mute event handler to client
+  const isVideoEnabled = true;
   return (
     <div
       className={clsx(
@@ -79,15 +82,21 @@ export const ParticipantBox = (props: {
       )}
     >
       <audio autoPlay ref={audioRef} muted={isMuted} />
-      <video
-        className={clsx(
-          'str-video__remote-video',
-          isLocalParticipant && 'mirror',
+      <div className="str-video__video-container" ref={containerRef}>
+        {isVideoEnabled ? (
+          <video
+            className={clsx(
+              'str-video__remote-video',
+              isLocalParticipant && 'mirror',
+            )}
+            muted={isMuted}
+            autoPlay
+            ref={videoRef}
+          />
+        ) : (
+          <div>No video</div>
         )}
-        muted={isMuted}
-        autoPlay
-        ref={videoRef}
-      />
+      </div>
       <div className="str-video__participant_details">
         <span className="str-video__participant_name">
           {participant.user?.id}
