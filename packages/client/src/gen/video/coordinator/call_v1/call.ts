@@ -114,9 +114,9 @@ export interface CallDetails {
     };
 }
 /**
- * CallOptions contains all options available to change for the RoomType
- * Options can also be set on the room level where they will be merged with RoomType options using `proto.Merge`
- * To make sure options can be overriden on the room level, all underlying option fields should be optional
+ * CallOptions contains all options available to change for a CallType
+ * Options can also be set on the call level where they will be merged with call options using `proto.Merge`
+ * To make sure options can be overridden on the call level, all underlying option fields should be optional
  *
  * @generated from protobuf message stream.video.coordinator.call_v1.CallOptions
  */
