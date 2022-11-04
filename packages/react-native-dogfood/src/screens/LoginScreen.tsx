@@ -118,8 +118,11 @@ const LoginScreen = ({ navigation }: Props) => {
 
     try {
       const userName = localUserName.replace(/\s/g, '-');
-      const token = await createToken(userName, clientParams.apiSecret);
-      setState({ token, username: userName });
+      const generatedToken = await createToken(
+        userName,
+        clientParams.apiSecret,
+      );
+      setState({ token: generatedToken, username: userName });
     } catch (error) {
       console.log(error);
     }
