@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   StyleSheet,
   TextInput,
@@ -13,9 +13,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { RootStackParamList } from '../../../types';
 import { Call } from '../../modules/Call';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StreamSfuClient, UserInput } from '@stream-io/video-client';
-import { useCreateStreamVideoClient } from '../../hooks/useCreateStreamVideoClient';
+import { StreamSfuClient } from '@stream-io/video-client';
 import { useCall } from '../../hooks/useCall';
 import { useSessionId } from '../../hooks/useSessionId';
 import {
@@ -32,11 +30,12 @@ import { mediaDevices } from 'react-native-webrtc';
 // const DEFAULT_CALL_ID = '123';
 const APP_ID = 'streamrnvideosample';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'MeetingHome'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
-const MeetingHomeScreen = ({ navigation }: Props) => {
-  const username = useAppGlobalStoreValue((store) => store.username);
+const Meeting = ({ navigation }: Props) => {
   const callID = useAppGlobalStoreValue((store) => store.callID);
+  const username = useAppGlobalStoreValue((store) => store.username);
+  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
@@ -76,29 +75,6 @@ const MeetingHomeScreen = ({ navigation }: Props) => {
 
     configure();
   }, [setState]);
-
-  const user = useMemo<UserInput>(
-    () => ({
-      name: username,
-      role: 'admin',
-      teams: ['team-1, team-2'],
-      imageUrl: `https://getstream.io/random_png/?id=${username}&name=${username}`,
-      customJson: new Uint8Array(),
-    }),
-    [username],
-  );
-
-  const videoClient = useCreateStreamVideoClient({
-    // coordinatorRpcUrl: 'http://localhost:26991',
-    // coordinatorWsUrl: 'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
-    coordinatorRpcUrl:
-      'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
-    coordinatorWsUrl:
-      'ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
-    apiKey: 'key10', // see <video>/data/fixtures/apps.yaml for API key/secret
-    apiSecret: 'secret10',
-    user,
-  });
 
   const { activeCall, credentials, getOrCreateCall } = useCall({
     videoClient,
@@ -160,17 +136,7 @@ const MeetingHomeScreen = ({ navigation }: Props) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.headerText}>{'Type your username'}</Text>
-      <TextInput
-        style={styles.textInput}
-        placeholder={'Type your name here...'}
-        placeholderTextColor={'#8C8C8CFF'}
-        value={username}
-        onChangeText={(text) => {
-          setState({ username: text.replace(/\s/g, '-') }); // replace spaces with dashes as spaces are not allowed in usernames
-        }}
-      />
+    <View style={styles.container}>
       <Text style={styles.headerText}>{'Whats the call ID?'}</Text>
       <TextInput
         style={styles.textInput}
@@ -182,7 +148,7 @@ const MeetingHomeScreen = ({ navigation }: Props) => {
       <Button
         title={'Create or Join call with callID: ' + callID}
         color="blue"
-        disabled={!username || !callID}
+        disabled={!callID}
         onPress={getOrCreateCall}
       />
       <View style={styles.switchContainer}>
@@ -201,7 +167,7 @@ const MeetingHomeScreen = ({ navigation }: Props) => {
         color="blue"
         onPress={handleCopyInviteLink}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -236,4 +202,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MeetingHomeScreen;
+export default Meeting;

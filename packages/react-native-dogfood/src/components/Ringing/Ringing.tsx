@@ -21,6 +21,11 @@ const styles = StyleSheet.create({
   container: {
     margin: 15,
   },
+  headerText: {
+    color: 'black',
+    fontSize: 20,
+    marginVertical: 8,
+  },
   textInput: {
     color: '#000',
     height: 40,
@@ -51,7 +56,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const RingingHomeScrren = () => {
+const Ringing = () => {
   const [logText, setLog] = useState('');
   const [heldCalls, setHeldCalls] = useState({}); // callKeep uuid: held
   const [calls, setCalls] = useState({}); // callKeep uuid: number
@@ -171,7 +176,7 @@ const RingingHomeScrren = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.text}>Ringing Home Screen</Text>
+      <Text style={styles.headerText}>Whats the call ID?</Text>
       <TextInput
         style={styles.textInput}
         placeholder={'Type your call ID here...'}
@@ -212,4 +217,4 @@ const RingingHomeScrren = () => {
   );
 };
 
-export default RingingHomeScrren;
+export default Ringing;
