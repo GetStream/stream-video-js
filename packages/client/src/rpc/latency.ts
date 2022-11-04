@@ -12,15 +12,14 @@ export const measureResourceLoadLatencyTo = async (
   rounds: number,
 ) => {
   const measurements: number[] = [];
-  const src = new URL(endpoint);
-  src.searchParams.set('rand', `react_${Math.random() * 10000000}`);
-
   await Promise.all(
     Array(rounds)
       .fill(undefined)
       .map(async () => {
         const start = Date.now();
         try {
+          const src = new URL(endpoint);
+          src.searchParams.set('rand', `react_${Math.random() * 10000000}`);
           await fetch(src.toString()).then((response) => response.blob());
         } catch (e) {
           console.warn(`failed to measure latency to ${endpoint}`, e);
