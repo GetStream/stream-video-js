@@ -74,6 +74,26 @@ import './style.css';
     }
   });
 
+  call.on('participantLeft', (event) => {
+    if (event.eventPayload.oneofKind !== 'participantLeft') return;
+    const { participant } = event.eventPayload.participantLeft;
+    if (participant) {
+      const $audioEl = document.getElementById(
+        `speaker-${participant.sessionId}`,
+      );
+      if ($audioEl) {
+        const mediaStream = ($audioEl as HTMLAudioElement)
+          .srcObject as MediaStream | null;
+        mediaStream?.getTracks().forEach((t) => {
+          t.stop();
+          mediaStream.removeTrack(t);
+        });
+
+        $audioEl.remove();
+      }
+    }
+  });
+
   let shuffleIntervalId: NodeJS.Timeout;
   const highlightSpeaker = createSpeakerUpdater();
 
@@ -149,6 +169,7 @@ function attachAudioTrack(participant: StreamVideoParticipant) {
   ) as HTMLAudioElement | null;
   if (!$audioEl) {
     $audioEl = document.createElement('audio') as HTMLAudioElement;
+    $audioEl.title = participant.user!.id;
     $audioEl.id = `speaker-${participant.sessionId}`;
     $audioEl.autoplay = true;
     $audioEl.addEventListener('canplay', () => {
