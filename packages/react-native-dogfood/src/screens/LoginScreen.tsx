@@ -30,6 +30,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     paddingLeft: 15,
+    height: 35,
     color: 'black',
   },
   buttonContainer: {
