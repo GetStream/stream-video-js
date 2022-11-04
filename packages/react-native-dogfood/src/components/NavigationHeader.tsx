@@ -52,6 +52,7 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
             ?.disconnect()
             .then(() => {
               setState({ videoClient: undefined, token: '', username: '' });
+              props.navigation.navigate('LoginScreen');
             })
             .catch((err) => {
               console.error('Failed to disconnect', err);
