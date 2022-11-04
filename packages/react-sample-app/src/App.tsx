@@ -5,12 +5,7 @@ import {
   CssBaseline,
   ThemeProvider,
 } from '@mui/material';
-import {
-  CreateCallInput,
-  MemberInput,
-  Struct,
-  UserInput,
-} from '@stream-io/video-client';
+import { CreateCallInput, Struct, UserInput } from '@stream-io/video-client';
 import {
   StreamCall,
   StreamVideo,
@@ -88,42 +83,17 @@ const App = () => {
     setCallId(id);
     setCallType('default');
     setCallInput({
-      members: participants.reduce<{ [key: string]: MemberInput }>(
-        (acc, current) => {
-          acc[current] = {
-            role: 'admin',
-            customJson: Struct.toBinary(Struct.fromJson({})),
-          };
-          return acc;
-        },
-        {},
-      ),
+      members: participants.map((userId) => ({
+        role: 'admin',
+        customJson: Struct.toBinary(Struct.fromJson({})),
+        userId,
+      })),
     });
   };
 
   const joinCall = (id: string) => {
     setCallId(id);
   };
-
-  // useEffect(() => {
-  //   return client?.on(
-  //     'callStarted',
-  //     (event: CallStarted, envelopes?: Envelopes) => {
-  //       const { callCid } = event;
-  //       const call = envelopes?.calls[callCid];
-  //       if (!call) {
-  //         console.warn(`Can't find call with id: ${callCid}`);
-  //         return;
-  //       }
-  //
-  //       console.log(`Call started`, event, envelopes);
-  //       if (call.createdByUserId !== currentUser) {
-  //         setCurrentCall(call);
-  //         setIsCurrentCallAccepted(false);
-  //       }
-  //     },
-  //   );
-  // });
 
   return (
     <div className="stream-video-sample-app">
@@ -134,25 +104,6 @@ const App = () => {
           <ThemeProvider theme={theme}>
             <Box sx={{ display: 'flex' }}>
               <CssBaseline />
-              {/* {currentCall &&
-                !isCurrentCallAccepted &&
-                currentCall.createdByUserId !== currentUser && (
-                  <Ringer
-                    caller={currentCall.createdByUserId}
-                    onReject={() => {
-                      setCurrentCall(undefined);
-                      setIsCurrentCallAccepted(false);
-                    }}
-                    onAccept={() => {
-                      setIsCurrentCallAccepted(true);
-                      if (currentCall) {
-                        joinCall(currentCall.id, currentCall.type).then(() => {
-                          console.log(`Joining call with id:${currentCall.id}`);
-                        });
-                      }
-                    }}
-                  />
-                )} */}
               <NavigationBar />
               <ParticipantControls
                 participants={participants}

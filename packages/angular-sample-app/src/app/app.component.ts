@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { Call } from '@stream-io/video-client';
 import { Observable, Subscription } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { StreamVideoService } from './stream-video.service';
@@ -12,6 +13,7 @@ import { StreamVideoService } from './stream-video.service';
 export class AppComponent implements OnInit, OnDestroy {
   ownMediaStream?: MediaStream;
   user$: Observable<any>;
+  activeCall: Call | undefined;
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -19,6 +21,19 @@ export class AppComponent implements OnInit, OnDestroy {
     private videoService: StreamVideoService,
   ) {
     this.user$ = this.videoService.user$;
+    this.subscriptions.push(
+      this.videoService.pendingCalls$.subscribe((calls) => {
+        if (this.activeCall) {
+          this.activeCall.leave();
+        }
+        if (calls.length === 1) {
+          calls[0].join();
+        }
+      }),
+    );
+    this.subscriptions.push(
+      this.videoService.activeCall$.subscribe((c) => (this.activeCall = c)),
+    );
   }
 
   async ngOnInit() {
@@ -38,15 +53,9 @@ export class AppComponent implements OnInit, OnDestroy {
       this.activatedRoute.queryParams.subscribe(async (params) => {
         if (params['callid']) {
           const callId = params['callid'];
-          await this.getOwnMediaStream();
           await this.joinCall(callId);
         }
       }),
-    );
-    this.subscriptions.push(
-      this.videoService.activeCall$.subscribe((c) =>
-        console.log('Store changed', c),
-      ),
     );
   }
 
@@ -55,19 +64,10 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private async joinCall(id: string, type = 'default') {
-    const call = await this.videoService.videoClient?.joinCall({
+    await this.videoService.videoClient?.joinCall({
       id,
       type,
       datacenterId: 'amsterdam',
     });
-    await call?.join();
-    console.log('joined call');
-  }
-
-  private async getOwnMediaStream() {
-    const constraints = { audio: true, video: { width: 1280, height: 720 } };
-    this.ownMediaStream = await navigator.mediaDevices.getUserMedia(
-      constraints,
-    );
   }
 }

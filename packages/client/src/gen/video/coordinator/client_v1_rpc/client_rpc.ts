@@ -13,6 +13,8 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
+import { MediaStateChanged } from "../stat_v1/stat";
+import { Timestamp } from "../../../google/protobuf/timestamp";
 import { Device } from "../push_v1/push";
 import { DeviceInput } from "../push_v1/push";
 import { Credentials } from "../edge_v1/edge";
@@ -46,37 +48,41 @@ export interface GetCallResponse {
  */
 export interface MemberInput {
     /**
-     * @generated from protobuf field: string role = 1;
+     * @generated from protobuf field: string user_id = 1;
+     */
+    userId: string;
+    /**
+     * @generated from protobuf field: string role = 2;
      */
     role: string;
     /**
-     * @generated from protobuf field: bytes custom_json = 2;
+     * @generated from protobuf field: bytes custom_json = 3;
      */
     customJson: Uint8Array;
 }
 /**
- * @generated from protobuf message stream.video.coordinator.client_v1_rpc.UpdateCallMembersRequest
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.UpsertCallMembersRequest
  */
-export interface UpdateCallMembersRequest {
+export interface UpsertCallMembersRequest {
     /**
      * @generated from protobuf field: string call_cid = 1;
      */
     callCid: string;
     /**
-     * @generated from protobuf field: map<string, stream.video.coordinator.client_v1_rpc.MemberInput> members = 2;
+     * @generated from protobuf field: repeated stream.video.coordinator.client_v1_rpc.MemberInput members = 2;
      */
-    members: {
-        [key: string]: MemberInput;
-    };
+    members: MemberInput[];
     /**
-     * @generated from protobuf field: repeated stream.video.coordinator.client_v1_rpc.MemberField fields = 3;
+     * Ringing option, used to signal to clients' UI
+     *
+     * @generated from protobuf field: bool ring = 3;
      */
-    fields: MemberField[];
+    ring: boolean;
 }
 /**
- * @generated from protobuf message stream.video.coordinator.client_v1_rpc.UpdateCallMembersResponse
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.UpsertCallMembersResponse
  */
-export interface UpdateCallMembersResponse {
+export interface UpsertCallMembersResponse {
 }
 /**
  * @generated from protobuf message stream.video.coordinator.client_v1_rpc.DeleteCallMembersRequest
@@ -111,15 +117,13 @@ export interface CreateCallInput {
     /**
      * Members to add to the created call
      *
-     * @generated from protobuf field: map<string, stream.video.coordinator.client_v1_rpc.MemberInput> members = 2;
+     * @generated from protobuf field: repeated stream.video.coordinator.client_v1_rpc.MemberInput members = 2;
      */
-    members: {
-        [key: string]: MemberInput;
-    };
+    members: MemberInput[];
     /**
      * Ringing option, used to signal to clients' UI
      *
-     * @generated from protobuf field: optional bool ring = 4;
+     * @generated from protobuf field: optional bool ring = 3;
      */
     ring?: boolean;
 }
@@ -283,6 +287,87 @@ export interface UpdateCallResponse {
      * @generated from protobuf field: stream.video.coordinator.client_v1_rpc.CallEnvelope call = 1;
      */
     call?: CallEnvelope;
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.RoleOverride
+ */
+export interface RoleOverride {
+    /**
+     * the users that should get the new role, cannot be empty
+     *
+     * @generated from protobuf field: repeated string user_ids = 1;
+     */
+    userIds: string[];
+    /**
+     * the new role
+     *
+     * @generated from protobuf field: optional string role_name = 2;
+     */
+    roleName?: string;
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.PermissionGrantOverride
+ */
+export interface PermissionGrantOverride {
+    /**
+     * the users that will get the new permissions granted
+     * if empty, the grant applies to all users
+     *
+     * @generated from protobuf field: repeated string user_ids = 1;
+     */
+    userIds: string[];
+    /**
+     * the list of permissions granted to users
+     *
+     * @generated from protobuf field: repeated string permissions = 2;
+     */
+    permissions: string[];
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.UpdateCallPermissionsRequest
+ */
+export interface UpdateCallPermissionsRequest {
+    /**
+     * @generated from protobuf field: string call_cid = 1;
+     */
+    callCid: string;
+    /**
+     * @generated from protobuf oneof: grant_input
+     */
+    grantInput: {
+        oneofKind: "roleOverride";
+        /**
+         * @generated from protobuf field: stream.video.coordinator.client_v1_rpc.RoleOverride role_override = 2;
+         */
+        roleOverride: RoleOverride;
+    } | {
+        oneofKind: "permissionOverride";
+        /**
+         * @generated from protobuf field: stream.video.coordinator.client_v1_rpc.PermissionGrantOverride permission_override = 3;
+         */
+        permissionOverride: PermissionGrantOverride;
+    } | {
+        oneofKind: undefined;
+    };
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.UpdateCallPermissionsResponse
+ */
+export interface UpdateCallPermissionsResponse {
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.EndCallRequest
+ */
+export interface EndCallRequest {
+    /**
+     * @generated from protobuf field: string call_cid = 1;
+     */
+    callCid: string;
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.EndCallResponse
+ */
+export interface EndCallResponse {
 }
 /**
  * @generated from protobuf message stream.video.coordinator.client_v1_rpc.CreateCallResponse
@@ -481,21 +566,15 @@ export interface SendCustomEventResponse {
  */
 export interface ReportCallStatsRequest {
     /**
-     * The call type
+     * A concatenation of call type and call id with ":" as delimiter
      *
-     * @generated from protobuf field: string call_type = 1;
+     * @generated from protobuf field: string call_cid = 1;
      */
-    callType: string;
-    /**
-     * The call id
-     *
-     * @generated from protobuf field: string call_id = 2;
-     */
-    callId: string;
+    callCid: string;
     /**
      * A WebRTC Stats report encoded as a JSON string, as defined in https://www.w3.org/TR/webrtc/#dom-rtcstatsreport
      *
-     * @generated from protobuf field: bytes stats_json = 3;
+     * @generated from protobuf field: bytes stats_json = 2;
      */
     statsJson: Uint8Array;
 }
@@ -505,38 +584,68 @@ export interface ReportCallStatsRequest {
 export interface ReportCallStatsResponse {
 }
 /**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.ReportCallStatEventRequest
+ */
+export interface ReportCallStatEventRequest {
+    /**
+     * A concatenation of call type and call id with ":" as delimiter
+     *
+     * @generated from protobuf field: string call_cid = 1;
+     */
+    callCid: string;
+    /**
+     * Event timestamp as RFC3339 string.
+     *
+     * @generated from protobuf field: google.protobuf.Timestamp timestamp = 2;
+     */
+    timestamp?: Timestamp;
+    /**
+     * @generated from protobuf oneof: event
+     */
+    event: {
+        oneofKind: "mediaStateChanged";
+        /**
+         * @generated from protobuf field: stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed = 3;
+         */
+        mediaStateChanged: MediaStateChanged;
+    } | {
+        oneofKind: undefined;
+    };
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.ReportCallStatEventResponse
+ */
+export interface ReportCallStatEventResponse {
+}
+/**
  * @generated from protobuf message stream.video.coordinator.client_v1_rpc.GetCallStatsRequest
  */
 export interface GetCallStatsRequest {
     /**
-     * @generated from protobuf field: string call_type = 1;
+     * A concatenation of call type and call id with ":" as delimiter
+     *
+     * @generated from protobuf field: string call_cid = 1;
      */
-    callType: string;
-    /**
-     * @generated from protobuf field: string call_id = 2;
-     */
-    callId: string;
+    callCid: string;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.client_v1_rpc.ReportIssueRequest
  */
 export interface ReportIssueRequest {
     /**
-     * @generated from protobuf field: string call_type = 1;
+     * A concatenation of call type and call id with ":" as delimiter
+     *
+     * @generated from protobuf field: string call_cid = 1;
      */
-    callType: string;
-    /**
-     * @generated from protobuf field: string call_id = 2;
-     */
-    callId: string;
+    callCid: string;
     /**
      * Optional description.
      *
-     * @generated from protobuf field: string description = 3;
+     * @generated from protobuf field: string description = 2;
      */
     description: string;
     /**
-     * @generated from protobuf field: bytes custom_json = 4;
+     * @generated from protobuf field: bytes custom_json = 3;
      */
     customJson: Uint8Array;
 }
@@ -550,29 +659,27 @@ export interface ReportIssueResponse {
  */
 export interface ReviewCallRequest {
     /**
-     * @generated from protobuf field: string call_type = 1;
+     * A concatenation of call type and call id with ":" as delimiter
+     *
+     * @generated from protobuf field: string call_cid = 1;
      */
-    callType: string;
-    /**
-     * @generated from protobuf field: string call_id = 2;
-     */
-    callId: string;
+    callCid: string;
     /**
      * Rating between 0 and 5 stars.
      *
-     * @generated from protobuf field: float stars = 3;
+     * @generated from protobuf field: float stars = 2;
      */
     stars: number;
     /**
      * Optional description.
      *
-     * @generated from protobuf field: string description = 4;
+     * @generated from protobuf field: string description = 3;
      */
     description: string;
     /**
      * Optional custom data.
      *
-     * @generated from protobuf field: bytes custom_json = 5;
+     * @generated from protobuf field: bytes custom_json = 4;
      */
     customJson: Uint8Array;
 }
@@ -580,23 +687,6 @@ export interface ReviewCallRequest {
  * @generated from protobuf message stream.video.coordinator.client_v1_rpc.ReviewCallResponse
  */
 export interface ReviewCallResponse {
-}
-/**
- * @generated from protobuf enum stream.video.coordinator.client_v1_rpc.MemberField
- */
-export enum MemberField {
-    /**
-     * @generated from protobuf enum value: MEMBER_FIELD_UNSPECIFIED = 0;
-     */
-    UNSPECIFIED = 0,
-    /**
-     * @generated from protobuf enum value: MEMBER_FIELD_ROLE = 1;
-     */
-    ROLE = 1,
-    /**
-     * @generated from protobuf enum value: MEMBER_FIELD_CUSTOM = 2;
-     */
-    CUSTOM = 2
 }
 /**
  * @generated from protobuf enum stream.video.coordinator.client_v1_rpc.UserEventType
@@ -717,12 +807,13 @@ export const GetCallResponse = new GetCallResponse$Type();
 class MemberInput$Type extends MessageType<MemberInput> {
     constructor() {
         super("stream.video.coordinator.client_v1_rpc.MemberInput", [
-            { no: 1, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
         ]);
     }
     create(value?: PartialMessage<MemberInput>): MemberInput {
-        const message = { role: "", customJson: new Uint8Array(0) };
+        const message = { userId: "", role: "", customJson: new Uint8Array(0) };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<MemberInput>(this, message, value);
@@ -733,10 +824,13 @@ class MemberInput$Type extends MessageType<MemberInput> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string role */ 1:
+                case /* string user_id */ 1:
+                    message.userId = reader.string();
+                    break;
+                case /* string role */ 2:
                     message.role = reader.string();
                     break;
-                case /* bytes custom_json */ 2:
+                case /* bytes custom_json */ 3:
                     message.customJson = reader.bytes();
                     break;
                 default:
@@ -751,12 +845,15 @@ class MemberInput$Type extends MessageType<MemberInput> {
         return message;
     }
     internalBinaryWrite(message: MemberInput, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string role = 1; */
+        /* string user_id = 1; */
+        if (message.userId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.userId);
+        /* string role = 2; */
         if (message.role !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.role);
-        /* bytes custom_json = 2; */
+            writer.tag(2, WireType.LengthDelimited).string(message.role);
+        /* bytes custom_json = 3; */
         if (message.customJson.length)
-            writer.tag(2, WireType.LengthDelimited).bytes(message.customJson);
+            writer.tag(3, WireType.LengthDelimited).bytes(message.customJson);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -768,22 +865,22 @@ class MemberInput$Type extends MessageType<MemberInput> {
  */
 export const MemberInput = new MemberInput$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class UpdateCallMembersRequest$Type extends MessageType<UpdateCallMembersRequest> {
+class UpsertCallMembersRequest$Type extends MessageType<UpsertCallMembersRequest> {
     constructor() {
-        super("stream.video.coordinator.client_v1_rpc.UpdateCallMembersRequest", [
+        super("stream.video.coordinator.client_v1_rpc.UpsertCallMembersRequest", [
             { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "members", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "message", T: () => MemberInput } },
-            { no: 3, name: "fields", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["stream.video.coordinator.client_v1_rpc.MemberField", MemberField, "MEMBER_FIELD_"] }
+            { no: 2, name: "members", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => MemberInput },
+            { no: 3, name: "ring", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
-    create(value?: PartialMessage<UpdateCallMembersRequest>): UpdateCallMembersRequest {
-        const message = { callCid: "", members: {}, fields: [] };
+    create(value?: PartialMessage<UpsertCallMembersRequest>): UpsertCallMembersRequest {
+        const message = { callCid: "", members: [], ring: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<UpdateCallMembersRequest>(this, message, value);
+            reflectionMergePartial<UpsertCallMembersRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateCallMembersRequest): UpdateCallMembersRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpsertCallMembersRequest): UpsertCallMembersRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -791,15 +888,11 @@ class UpdateCallMembersRequest$Type extends MessageType<UpdateCallMembersRequest
                 case /* string call_cid */ 1:
                     message.callCid = reader.string();
                     break;
-                case /* map<string, stream.video.coordinator.client_v1_rpc.MemberInput> members */ 2:
-                    this.binaryReadMap2(message.members, reader, options);
+                case /* repeated stream.video.coordinator.client_v1_rpc.MemberInput members */ 2:
+                    message.members.push(MemberInput.internalBinaryRead(reader, reader.uint32(), options));
                     break;
-                case /* repeated stream.video.coordinator.client_v1_rpc.MemberField fields */ 3:
-                    if (wireType === WireType.LengthDelimited)
-                        for (let e = reader.int32() + reader.pos; reader.pos < e;)
-                            message.fields.push(reader.int32());
-                    else
-                        message.fields.push(reader.int32());
+                case /* bool ring */ 3:
+                    message.ring = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -812,40 +905,16 @@ class UpdateCallMembersRequest$Type extends MessageType<UpdateCallMembersRequest
         }
         return message;
     }
-    private binaryReadMap2(map: UpdateCallMembersRequest["members"], reader: IBinaryReader, options: BinaryReadOptions): void {
-        let len = reader.uint32(), end = reader.pos + len, key: keyof UpdateCallMembersRequest["members"] | undefined, val: UpdateCallMembersRequest["members"][any] | undefined;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case 1:
-                    key = reader.string();
-                    break;
-                case 2:
-                    val = MemberInput.internalBinaryRead(reader, reader.uint32(), options);
-                    break;
-                default: throw new globalThis.Error("unknown map entry field for field stream.video.coordinator.client_v1_rpc.UpdateCallMembersRequest.members");
-            }
-        }
-        map[key ?? ""] = val ?? MemberInput.create();
-    }
-    internalBinaryWrite(message: UpdateCallMembersRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: UpsertCallMembersRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string call_cid = 1; */
         if (message.callCid !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.callCid);
-        /* map<string, stream.video.coordinator.client_v1_rpc.MemberInput> members = 2; */
-        for (let k of Object.keys(message.members)) {
-            writer.tag(2, WireType.LengthDelimited).fork().tag(1, WireType.LengthDelimited).string(k);
-            writer.tag(2, WireType.LengthDelimited).fork();
-            MemberInput.internalBinaryWrite(message.members[k], writer, options);
-            writer.join().join();
-        }
-        /* repeated stream.video.coordinator.client_v1_rpc.MemberField fields = 3; */
-        if (message.fields.length) {
-            writer.tag(3, WireType.LengthDelimited).fork();
-            for (let i = 0; i < message.fields.length; i++)
-                writer.int32(message.fields[i]);
-            writer.join();
-        }
+        /* repeated stream.video.coordinator.client_v1_rpc.MemberInput members = 2; */
+        for (let i = 0; i < message.members.length; i++)
+            MemberInput.internalBinaryWrite(message.members[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* bool ring = 3; */
+        if (message.ring !== false)
+            writer.tag(3, WireType.Varint).bool(message.ring);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -853,25 +922,25 @@ class UpdateCallMembersRequest$Type extends MessageType<UpdateCallMembersRequest
     }
 }
 /**
- * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.UpdateCallMembersRequest
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.UpsertCallMembersRequest
  */
-export const UpdateCallMembersRequest = new UpdateCallMembersRequest$Type();
+export const UpsertCallMembersRequest = new UpsertCallMembersRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class UpdateCallMembersResponse$Type extends MessageType<UpdateCallMembersResponse> {
+class UpsertCallMembersResponse$Type extends MessageType<UpsertCallMembersResponse> {
     constructor() {
-        super("stream.video.coordinator.client_v1_rpc.UpdateCallMembersResponse", []);
+        super("stream.video.coordinator.client_v1_rpc.UpsertCallMembersResponse", []);
     }
-    create(value?: PartialMessage<UpdateCallMembersResponse>): UpdateCallMembersResponse {
+    create(value?: PartialMessage<UpsertCallMembersResponse>): UpsertCallMembersResponse {
         const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<UpdateCallMembersResponse>(this, message, value);
+            reflectionMergePartial<UpsertCallMembersResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateCallMembersResponse): UpdateCallMembersResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpsertCallMembersResponse): UpsertCallMembersResponse {
         return target ?? this.create();
     }
-    internalBinaryWrite(message: UpdateCallMembersResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: UpsertCallMembersResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -879,9 +948,9 @@ class UpdateCallMembersResponse$Type extends MessageType<UpdateCallMembersRespon
     }
 }
 /**
- * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.UpdateCallMembersResponse
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.UpsertCallMembersResponse
  */
-export const UpdateCallMembersResponse = new UpdateCallMembersResponse$Type();
+export const UpsertCallMembersResponse = new UpsertCallMembersResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class DeleteCallMembersRequest$Type extends MessageType<DeleteCallMembersRequest> {
     constructor() {
@@ -967,12 +1036,12 @@ class CreateCallInput$Type extends MessageType<CreateCallInput> {
     constructor() {
         super("stream.video.coordinator.client_v1_rpc.CreateCallInput", [
             { no: 1, name: "call", kind: "message", T: () => CallInput },
-            { no: 2, name: "members", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "message", T: () => MemberInput } },
-            { no: 4, name: "ring", kind: "scalar", opt: true, T: 8 /*ScalarType.BOOL*/ }
+            { no: 2, name: "members", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => MemberInput },
+            { no: 3, name: "ring", kind: "scalar", opt: true, T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<CreateCallInput>): CreateCallInput {
-        const message = { members: {} };
+        const message = { members: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateCallInput>(this, message, value);
@@ -986,10 +1055,10 @@ class CreateCallInput$Type extends MessageType<CreateCallInput> {
                 case /* stream.video.coordinator.client_v1_rpc.CallInput call */ 1:
                     message.call = CallInput.internalBinaryRead(reader, reader.uint32(), options, message.call);
                     break;
-                case /* map<string, stream.video.coordinator.client_v1_rpc.MemberInput> members */ 2:
-                    this.binaryReadMap2(message.members, reader, options);
+                case /* repeated stream.video.coordinator.client_v1_rpc.MemberInput members */ 2:
+                    message.members.push(MemberInput.internalBinaryRead(reader, reader.uint32(), options));
                     break;
-                case /* optional bool ring */ 4:
+                case /* optional bool ring */ 3:
                     message.ring = reader.bool();
                     break;
                 default:
@@ -1003,36 +1072,16 @@ class CreateCallInput$Type extends MessageType<CreateCallInput> {
         }
         return message;
     }
-    private binaryReadMap2(map: CreateCallInput["members"], reader: IBinaryReader, options: BinaryReadOptions): void {
-        let len = reader.uint32(), end = reader.pos + len, key: keyof CreateCallInput["members"] | undefined, val: CreateCallInput["members"][any] | undefined;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case 1:
-                    key = reader.string();
-                    break;
-                case 2:
-                    val = MemberInput.internalBinaryRead(reader, reader.uint32(), options);
-                    break;
-                default: throw new globalThis.Error("unknown map entry field for field stream.video.coordinator.client_v1_rpc.CreateCallInput.members");
-            }
-        }
-        map[key ?? ""] = val ?? MemberInput.create();
-    }
     internalBinaryWrite(message: CreateCallInput, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* stream.video.coordinator.client_v1_rpc.CallInput call = 1; */
         if (message.call)
             CallInput.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* map<string, stream.video.coordinator.client_v1_rpc.MemberInput> members = 2; */
-        for (let k of Object.keys(message.members)) {
-            writer.tag(2, WireType.LengthDelimited).fork().tag(1, WireType.LengthDelimited).string(k);
-            writer.tag(2, WireType.LengthDelimited).fork();
-            MemberInput.internalBinaryWrite(message.members[k], writer, options);
-            writer.join().join();
-        }
-        /* optional bool ring = 4; */
+        /* repeated stream.video.coordinator.client_v1_rpc.MemberInput members = 2; */
+        for (let i = 0; i < message.members.length; i++)
+            MemberInput.internalBinaryWrite(message.members[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* optional bool ring = 3; */
         if (message.ring !== undefined)
-            writer.tag(4, WireType.Varint).bool(message.ring);
+            writer.tag(3, WireType.Varint).bool(message.ring);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1503,6 +1552,280 @@ class UpdateCallResponse$Type extends MessageType<UpdateCallResponse> {
  * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.UpdateCallResponse
  */
 export const UpdateCallResponse = new UpdateCallResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class RoleOverride$Type extends MessageType<RoleOverride> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.RoleOverride", [
+            { no: 1, name: "user_ids", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "role_name", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<RoleOverride>): RoleOverride {
+        const message = { userIds: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<RoleOverride>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RoleOverride): RoleOverride {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated string user_ids */ 1:
+                    message.userIds.push(reader.string());
+                    break;
+                case /* optional string role_name */ 2:
+                    message.roleName = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: RoleOverride, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated string user_ids = 1; */
+        for (let i = 0; i < message.userIds.length; i++)
+            writer.tag(1, WireType.LengthDelimited).string(message.userIds[i]);
+        /* optional string role_name = 2; */
+        if (message.roleName !== undefined)
+            writer.tag(2, WireType.LengthDelimited).string(message.roleName);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.RoleOverride
+ */
+export const RoleOverride = new RoleOverride$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PermissionGrantOverride$Type extends MessageType<PermissionGrantOverride> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.PermissionGrantOverride", [
+            { no: 1, name: "user_ids", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "permissions", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PermissionGrantOverride>): PermissionGrantOverride {
+        const message = { userIds: [], permissions: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PermissionGrantOverride>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PermissionGrantOverride): PermissionGrantOverride {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated string user_ids */ 1:
+                    message.userIds.push(reader.string());
+                    break;
+                case /* repeated string permissions */ 2:
+                    message.permissions.push(reader.string());
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PermissionGrantOverride, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated string user_ids = 1; */
+        for (let i = 0; i < message.userIds.length; i++)
+            writer.tag(1, WireType.LengthDelimited).string(message.userIds[i]);
+        /* repeated string permissions = 2; */
+        for (let i = 0; i < message.permissions.length; i++)
+            writer.tag(2, WireType.LengthDelimited).string(message.permissions[i]);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.PermissionGrantOverride
+ */
+export const PermissionGrantOverride = new PermissionGrantOverride$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpdateCallPermissionsRequest$Type extends MessageType<UpdateCallPermissionsRequest> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.UpdateCallPermissionsRequest", [
+            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "role_override", kind: "message", oneof: "grantInput", T: () => RoleOverride },
+            { no: 3, name: "permission_override", kind: "message", oneof: "grantInput", T: () => PermissionGrantOverride }
+        ]);
+    }
+    create(value?: PartialMessage<UpdateCallPermissionsRequest>): UpdateCallPermissionsRequest {
+        const message = { callCid: "", grantInput: { oneofKind: undefined } };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UpdateCallPermissionsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateCallPermissionsRequest): UpdateCallPermissionsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string call_cid */ 1:
+                    message.callCid = reader.string();
+                    break;
+                case /* stream.video.coordinator.client_v1_rpc.RoleOverride role_override */ 2:
+                    message.grantInput = {
+                        oneofKind: "roleOverride",
+                        roleOverride: RoleOverride.internalBinaryRead(reader, reader.uint32(), options, (message.grantInput as any).roleOverride)
+                    };
+                    break;
+                case /* stream.video.coordinator.client_v1_rpc.PermissionGrantOverride permission_override */ 3:
+                    message.grantInput = {
+                        oneofKind: "permissionOverride",
+                        permissionOverride: PermissionGrantOverride.internalBinaryRead(reader, reader.uint32(), options, (message.grantInput as any).permissionOverride)
+                    };
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpdateCallPermissionsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string call_cid = 1; */
+        if (message.callCid !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* stream.video.coordinator.client_v1_rpc.RoleOverride role_override = 2; */
+        if (message.grantInput.oneofKind === "roleOverride")
+            RoleOverride.internalBinaryWrite(message.grantInput.roleOverride, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.client_v1_rpc.PermissionGrantOverride permission_override = 3; */
+        if (message.grantInput.oneofKind === "permissionOverride")
+            PermissionGrantOverride.internalBinaryWrite(message.grantInput.permissionOverride, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.UpdateCallPermissionsRequest
+ */
+export const UpdateCallPermissionsRequest = new UpdateCallPermissionsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpdateCallPermissionsResponse$Type extends MessageType<UpdateCallPermissionsResponse> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.UpdateCallPermissionsResponse", []);
+    }
+    create(value?: PartialMessage<UpdateCallPermissionsResponse>): UpdateCallPermissionsResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UpdateCallPermissionsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateCallPermissionsResponse): UpdateCallPermissionsResponse {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: UpdateCallPermissionsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.UpdateCallPermissionsResponse
+ */
+export const UpdateCallPermissionsResponse = new UpdateCallPermissionsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class EndCallRequest$Type extends MessageType<EndCallRequest> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.EndCallRequest", [
+            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<EndCallRequest>): EndCallRequest {
+        const message = { callCid: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<EndCallRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: EndCallRequest): EndCallRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string call_cid */ 1:
+                    message.callCid = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: EndCallRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string call_cid = 1; */
+        if (message.callCid !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.EndCallRequest
+ */
+export const EndCallRequest = new EndCallRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class EndCallResponse$Type extends MessageType<EndCallResponse> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.EndCallResponse", []);
+    }
+    create(value?: PartialMessage<EndCallResponse>): EndCallResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<EndCallResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: EndCallResponse): EndCallResponse {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: EndCallResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.EndCallResponse
+ */
+export const EndCallResponse = new EndCallResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateCallResponse$Type extends MessageType<CreateCallResponse> {
     constructor() {
@@ -2285,13 +2608,12 @@ export const SendCustomEventResponse = new SendCustomEventResponse$Type();
 class ReportCallStatsRequest$Type extends MessageType<ReportCallStatsRequest> {
     constructor() {
         super("stream.video.coordinator.client_v1_rpc.ReportCallStatsRequest", [
-            { no: 1, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "stats_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "stats_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
         ]);
     }
     create(value?: PartialMessage<ReportCallStatsRequest>): ReportCallStatsRequest {
-        const message = { callType: "", callId: "", statsJson: new Uint8Array(0) };
+        const message = { callCid: "", statsJson: new Uint8Array(0) };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ReportCallStatsRequest>(this, message, value);
@@ -2302,13 +2624,10 @@ class ReportCallStatsRequest$Type extends MessageType<ReportCallStatsRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_type */ 1:
-                    message.callType = reader.string();
+                case /* string call_cid */ 1:
+                    message.callCid = reader.string();
                     break;
-                case /* string call_id */ 2:
-                    message.callId = reader.string();
-                    break;
-                case /* bytes stats_json */ 3:
+                case /* bytes stats_json */ 2:
                     message.statsJson = reader.bytes();
                     break;
                 default:
@@ -2323,15 +2642,12 @@ class ReportCallStatsRequest$Type extends MessageType<ReportCallStatsRequest> {
         return message;
     }
     internalBinaryWrite(message: ReportCallStatsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_type = 1; */
-        if (message.callType !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callType);
-        /* string call_id = 2; */
-        if (message.callId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.callId);
-        /* bytes stats_json = 3; */
+        /* string call_cid = 1; */
+        if (message.callCid !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* bytes stats_json = 2; */
         if (message.statsJson.length)
-            writer.tag(3, WireType.LengthDelimited).bytes(message.statsJson);
+            writer.tag(2, WireType.LengthDelimited).bytes(message.statsJson);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2369,15 +2685,104 @@ class ReportCallStatsResponse$Type extends MessageType<ReportCallStatsResponse> 
  */
 export const ReportCallStatsResponse = new ReportCallStatsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class ReportCallStatEventRequest$Type extends MessageType<ReportCallStatEventRequest> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.ReportCallStatEventRequest", [
+            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "timestamp", kind: "message", T: () => Timestamp },
+            { no: 3, name: "media_state_changed", kind: "message", oneof: "event", T: () => MediaStateChanged }
+        ]);
+    }
+    create(value?: PartialMessage<ReportCallStatEventRequest>): ReportCallStatEventRequest {
+        const message = { callCid: "", event: { oneofKind: undefined } };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ReportCallStatEventRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ReportCallStatEventRequest): ReportCallStatEventRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string call_cid */ 1:
+                    message.callCid = reader.string();
+                    break;
+                case /* google.protobuf.Timestamp timestamp */ 2:
+                    message.timestamp = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.timestamp);
+                    break;
+                case /* stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed */ 3:
+                    message.event = {
+                        oneofKind: "mediaStateChanged",
+                        mediaStateChanged: MediaStateChanged.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).mediaStateChanged)
+                    };
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ReportCallStatEventRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string call_cid = 1; */
+        if (message.callCid !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* google.protobuf.Timestamp timestamp = 2; */
+        if (message.timestamp)
+            Timestamp.internalBinaryWrite(message.timestamp, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed = 3; */
+        if (message.event.oneofKind === "mediaStateChanged")
+            MediaStateChanged.internalBinaryWrite(message.event.mediaStateChanged, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.ReportCallStatEventRequest
+ */
+export const ReportCallStatEventRequest = new ReportCallStatEventRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ReportCallStatEventResponse$Type extends MessageType<ReportCallStatEventResponse> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.ReportCallStatEventResponse", []);
+    }
+    create(value?: PartialMessage<ReportCallStatEventResponse>): ReportCallStatEventResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ReportCallStatEventResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ReportCallStatEventResponse): ReportCallStatEventResponse {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: ReportCallStatEventResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.ReportCallStatEventResponse
+ */
+export const ReportCallStatEventResponse = new ReportCallStatEventResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class GetCallStatsRequest$Type extends MessageType<GetCallStatsRequest> {
     constructor() {
         super("stream.video.coordinator.client_v1_rpc.GetCallStatsRequest", [
-            { no: 1, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<GetCallStatsRequest>): GetCallStatsRequest {
-        const message = { callType: "", callId: "" };
+        const message = { callCid: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<GetCallStatsRequest>(this, message, value);
@@ -2388,11 +2793,8 @@ class GetCallStatsRequest$Type extends MessageType<GetCallStatsRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_type */ 1:
-                    message.callType = reader.string();
-                    break;
-                case /* string call_id */ 2:
-                    message.callId = reader.string();
+                case /* string call_cid */ 1:
+                    message.callCid = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2406,12 +2808,9 @@ class GetCallStatsRequest$Type extends MessageType<GetCallStatsRequest> {
         return message;
     }
     internalBinaryWrite(message: GetCallStatsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_type = 1; */
-        if (message.callType !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callType);
-        /* string call_id = 2; */
-        if (message.callId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.callId);
+        /* string call_cid = 1; */
+        if (message.callCid !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2426,14 +2825,13 @@ export const GetCallStatsRequest = new GetCallStatsRequest$Type();
 class ReportIssueRequest$Type extends MessageType<ReportIssueRequest> {
     constructor() {
         super("stream.video.coordinator.client_v1_rpc.ReportIssueRequest", [
-            { no: 1, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
         ]);
     }
     create(value?: PartialMessage<ReportIssueRequest>): ReportIssueRequest {
-        const message = { callType: "", callId: "", description: "", customJson: new Uint8Array(0) };
+        const message = { callCid: "", description: "", customJson: new Uint8Array(0) };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ReportIssueRequest>(this, message, value);
@@ -2444,16 +2842,13 @@ class ReportIssueRequest$Type extends MessageType<ReportIssueRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_type */ 1:
-                    message.callType = reader.string();
+                case /* string call_cid */ 1:
+                    message.callCid = reader.string();
                     break;
-                case /* string call_id */ 2:
-                    message.callId = reader.string();
-                    break;
-                case /* string description */ 3:
+                case /* string description */ 2:
                     message.description = reader.string();
                     break;
-                case /* bytes custom_json */ 4:
+                case /* bytes custom_json */ 3:
                     message.customJson = reader.bytes();
                     break;
                 default:
@@ -2468,18 +2863,15 @@ class ReportIssueRequest$Type extends MessageType<ReportIssueRequest> {
         return message;
     }
     internalBinaryWrite(message: ReportIssueRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_type = 1; */
-        if (message.callType !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callType);
-        /* string call_id = 2; */
-        if (message.callId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.callId);
-        /* string description = 3; */
+        /* string call_cid = 1; */
+        if (message.callCid !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* string description = 2; */
         if (message.description !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.description);
-        /* bytes custom_json = 4; */
+            writer.tag(2, WireType.LengthDelimited).string(message.description);
+        /* bytes custom_json = 3; */
         if (message.customJson.length)
-            writer.tag(4, WireType.LengthDelimited).bytes(message.customJson);
+            writer.tag(3, WireType.LengthDelimited).bytes(message.customJson);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2520,15 +2912,14 @@ export const ReportIssueResponse = new ReportIssueResponse$Type();
 class ReviewCallRequest$Type extends MessageType<ReviewCallRequest> {
     constructor() {
         super("stream.video.coordinator.client_v1_rpc.ReviewCallRequest", [
-            { no: 1, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "stars", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ },
-            { no: 4, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "stars", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ },
+            { no: 3, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
         ]);
     }
     create(value?: PartialMessage<ReviewCallRequest>): ReviewCallRequest {
-        const message = { callType: "", callId: "", stars: 0, description: "", customJson: new Uint8Array(0) };
+        const message = { callCid: "", stars: 0, description: "", customJson: new Uint8Array(0) };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ReviewCallRequest>(this, message, value);
@@ -2539,19 +2930,16 @@ class ReviewCallRequest$Type extends MessageType<ReviewCallRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_type */ 1:
-                    message.callType = reader.string();
+                case /* string call_cid */ 1:
+                    message.callCid = reader.string();
                     break;
-                case /* string call_id */ 2:
-                    message.callId = reader.string();
-                    break;
-                case /* float stars */ 3:
+                case /* float stars */ 2:
                     message.stars = reader.float();
                     break;
-                case /* string description */ 4:
+                case /* string description */ 3:
                     message.description = reader.string();
                     break;
-                case /* bytes custom_json */ 5:
+                case /* bytes custom_json */ 4:
                     message.customJson = reader.bytes();
                     break;
                 default:
@@ -2566,21 +2954,18 @@ class ReviewCallRequest$Type extends MessageType<ReviewCallRequest> {
         return message;
     }
     internalBinaryWrite(message: ReviewCallRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_type = 1; */
-        if (message.callType !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callType);
-        /* string call_id = 2; */
-        if (message.callId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.callId);
-        /* float stars = 3; */
+        /* string call_cid = 1; */
+        if (message.callCid !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* float stars = 2; */
         if (message.stars !== 0)
-            writer.tag(3, WireType.Bit32).float(message.stars);
-        /* string description = 4; */
+            writer.tag(2, WireType.Bit32).float(message.stars);
+        /* string description = 3; */
         if (message.description !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.description);
-        /* bytes custom_json = 5; */
+            writer.tag(3, WireType.LengthDelimited).string(message.description);
+        /* bytes custom_json = 4; */
         if (message.customJson.length)
-            writer.tag(5, WireType.LengthDelimited).bytes(message.customJson);
+            writer.tag(4, WireType.LengthDelimited).bytes(message.customJson);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2626,16 +3011,19 @@ export const ClientRPC = new ServiceType("stream.video.coordinator.client_v1_rpc
     { name: "JoinCall", options: {}, I: JoinCallRequest, O: JoinCallResponse },
     { name: "GetCallEdgeServer", options: {}, I: GetCallEdgeServerRequest, O: GetCallEdgeServerResponse },
     { name: "UpdateCall", options: {}, I: UpdateCallRequest, O: UpdateCallResponse },
+    { name: "UpdateCallPermissions", options: {}, I: UpdateCallPermissionsRequest, O: UpdateCallPermissionsResponse },
+    { name: "EndCall", options: {}, I: EndCallRequest, O: EndCallResponse },
     { name: "QueryCalls", options: {}, I: QueryCallsRequest, O: QueryCallsResponse },
     { name: "QueryMembers", options: {}, I: QueryMembersRequest, O: QueryMembersResponse },
     { name: "CreateDevice", options: {}, I: CreateDeviceRequest, O: CreateDeviceResponse },
     { name: "DeleteDevice", options: {}, I: DeleteDeviceRequest, O: DeleteDeviceResponse },
     { name: "QueryDevices", options: {}, I: QueryDevicesRequest, O: QueryDevicesResponse },
-    { name: "UpdateCallMembers", options: {}, I: UpdateCallMembersRequest, O: UpdateCallMembersResponse },
+    { name: "UpsertCallMembers", options: {}, I: UpsertCallMembersRequest, O: UpsertCallMembersResponse },
     { name: "DeleteCallMembers", options: {}, I: DeleteCallMembersRequest, O: DeleteCallMembersResponse },
     { name: "SendEvent", options: {}, I: SendEventRequest, O: SendEventResponse },
     { name: "SendCustomEvent", options: {}, I: SendCustomEventRequest, O: SendCustomEventResponse },
     { name: "ReportCallStats", options: {}, I: ReportCallStatsRequest, O: ReportCallStatsResponse },
+    { name: "ReportCallStatEvent", options: {}, I: ReportCallStatEventRequest, O: ReportCallStatEventResponse },
     { name: "ReviewCall", options: {}, I: ReviewCallRequest, O: ReviewCallResponse },
     { name: "ReportIssue", options: {}, I: ReportIssueRequest, O: ReportIssueResponse }
 ]);

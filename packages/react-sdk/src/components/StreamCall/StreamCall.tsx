@@ -75,7 +75,6 @@ export const StreamCall = ({
                   participants={sfuCallState.participants}
                   call={activeCall}
                   includeSelf={includeSelf}
-                  currentUserId={currentUser}
                 />
                 <CallControls call={activeCall} />
               </>
