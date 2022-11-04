@@ -4657,6 +4657,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stream-io/egress-composite@workspace:packages/egress-composite":
+  version: 0.0.0-use.local
+  resolution: "@stream-io/egress-composite@workspace:packages/egress-composite"
+  dependencies:
+    "@stream-io/video-client": "workspace:^"
+    typescript: ^4.8.4
+    vite: ^3.2.2
+  languageName: unknown
+  linkType: soft
+
 "@stream-io/video-client@workspace:^, @stream-io/video-client@workspace:packages/client":
   version: 0.0.0-use.local
   resolution: "@stream-io/video-client@workspace:packages/client"
