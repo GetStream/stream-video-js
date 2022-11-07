@@ -18,6 +18,7 @@ import {
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { mediaDevices } from 'react-native-webrtc';
+import { meetingId } from '../../modules/helpers/meetingId';
 
 const APP_ID = 'streamrnvideosample';
 
@@ -110,7 +111,16 @@ const Meeting = ({ navigation }: Props) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerText}>{'Whats the call ID?'}</Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerText}>{'Whats the call ID?'}</Text>
+        <Button
+          title={'Randomise'}
+          color="blue"
+          onPress={() => {
+            setState({ callID: meetingId(5) });
+          }}
+        />
+      </View>
       <TextInput
         style={styles.textInput}
         placeholder={'Type your call ID here...'}
@@ -164,6 +174,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 20,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   headerText: {
     color: 'black',

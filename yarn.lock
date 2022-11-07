@@ -4750,6 +4750,7 @@ __metadata:
     js-base64: ^3.7.2
     lint-staged: ^13.0.3
     metro-react-native-babel-preset: 0.72.3
+    nanoid: ^4.0.0
     patch-package: ^6.4.7
     prettier: 2.7.1
     react: 18.1.0
