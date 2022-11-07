@@ -41,10 +41,8 @@ const Button = (props: {
   onClick?: () => void;
 }) => {
   const { icon, variant, onClick } = props;
-  /* eslint-disable jsx-a11y/anchor-has-content, jsx-a11y/anchor-is-valid */
   return (
-    <a
-      href="#"
+    <button
       onClick={(e) => {
         e.preventDefault();
         onClick?.();
@@ -56,5 +54,4 @@ const Button = (props: {
       )}
     />
   );
-  /* eslint-enable jsx-a11y/anchor-has-content, jsx-a11y/anchor-is-valid */
 };

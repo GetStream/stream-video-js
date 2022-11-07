@@ -18,6 +18,7 @@ clone them and follow their appropriate READMEs found in their root.
 ## Running the apps
 
 ### React Dogfood app (aka: Stream Calls)
+
 1. Follow the setup procedure in [packages/react-dogfood](packages/react-dogfood/README.md)
 
 ### React Sample app
@@ -30,12 +31,7 @@ Run the application `yarn start:react:app` (make sure the server is already runn
 
 ### Angular
 
-Run the application `yarn start:angular:app` (make sure the server is already running)
-
-You can override the default config params in `packages/angular-sdk/projects/src/environments/environment.ts`
-
-Navigate to `localhost:4200?callid=<call-id>` to join an existing call d
-
+See [Angular SDK's Readme](./packages/angular-sdk/README.md)
 
 ### React Native
 
