@@ -10,6 +10,7 @@ import {
   watchAudioLevelChanged,
   watchDominantSpeakerChanged,
 } from '../events/speaker';
+import { watchMuteStateChanged } from '../events/mute';
 
 export const registerEventHandlers = (
   call: Call,
@@ -23,4 +24,5 @@ export const registerEventHandlers = (
 
   watchAudioLevelChanged(dispatcher, store);
   watchDominantSpeakerChanged(dispatcher, store);
+  watchMuteStateChanged(dispatcher, store);
 };
