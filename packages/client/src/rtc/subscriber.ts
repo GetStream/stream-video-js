@@ -2,6 +2,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { Dispatcher } from './Dispatcher';
 import { ICETrickle, PeerType } from '../gen/video/sfu/models/models';
 import { ReplaySubject } from 'rxjs';
+import { getIceCandidate } from './helpers/iceCandidate';
 
 export type SubscriberOpts<RTCPeerConnectionType extends RTCPeerConnection> = {
   rpcClient: StreamSfuClient;
@@ -29,7 +30,7 @@ export const addSubscriberListeners = <
 
     await rpcClient.rpc.iceTrickle({
       sessionId: rpcClient.sessionId,
-      iceCandidate: JSON.stringify(candidate.toJSON()),
+      iceCandidate: getIceCandidate(candidate),
       peerType: PeerType.SUBSCRIBER,
     });
   });
