@@ -7,7 +7,7 @@ export const findOptimalVideoLayers = async (mediaStream: MediaStream) => {
   const steps: [number, number, number][] = [
     // [4096, 2160], // 4K
     // [1920, 1080, 3_072_000], // Full-HD
-    [1280, 720, 1280_000], // HD
+    [1280, 720, 1280000], // HD
     [640, 480, 768000], // VGA
     [320, 240, 384000], // QVGA
     [160, 120, 128000],
