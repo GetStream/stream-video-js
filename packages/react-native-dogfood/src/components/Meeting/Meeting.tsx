@@ -12,9 +12,6 @@ import InCallManager from 'react-native-incall-manager';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { RootStackParamList } from '../../../types';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { UserInput } from '@stream-io/video-client';
-import { useCreateStreamVideoClient } from '../../hooks/useCreateStreamVideoClient';
 import { useCall } from '../../hooks/useCall';
 import {
   useAppGlobalStoreSetState,
@@ -22,12 +19,6 @@ import {
 } from '../../contexts/AppContext';
 import { mediaDevices } from 'react-native-webrtc';
 
-// export const SFU_HOSTNAME = "192.168.2.24";
-// const SFU_URL = `http://${SFU_HOSTNAME}:3031/twirp`;
-// export const SFU_HOSTNAME = 'sfu2.fra1.gtstrm.com';
-// const SFU_URL = 'https://sfu2.fra1.gtstrm.com/rpc/twirp';
-// const DEFAULT_USER_NAME = 'steve';
-// const DEFAULT_CALL_ID = '123';
 const APP_ID = 'streamrnvideosample';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
@@ -35,7 +26,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 const Meeting = ({ navigation }: Props) => {
   const callID = useAppGlobalStoreValue((store) => store.callID);
   const username = useAppGlobalStoreValue((store) => store.username);
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
@@ -75,29 +65,6 @@ const Meeting = ({ navigation }: Props) => {
 
     configure();
   }, [setState]);
-
-  const user = useMemo<UserInput>(
-    () => ({
-      name: username,
-      role: 'admin',
-      teams: ['team-1, team-2'],
-      imageUrl: `https://getstream.io/random_png/?id=${username}&name=${username}`,
-      customJson: new Uint8Array(),
-    }),
-    [username],
-  );
-
-  useCreateStreamVideoClient({
-    // coordinatorRpcUrl: 'http://localhost:26991',
-    // coordinatorWsUrl: 'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
-    coordinatorRpcUrl:
-      'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
-    coordinatorWsUrl:
-      'ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
-    apiKey: 'key10', // see <video>/data/fixtures/apps.yaml for API key/secret
-    apiSecret: 'secret10',
-    user,
-  });
 
   const { activeCall, activeCallMeta, getOrCreateCall } = useCall({
     callId: callID,

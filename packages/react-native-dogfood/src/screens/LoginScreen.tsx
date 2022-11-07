@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { RTCPeerConnection } from 'react-native-webrtc';
 import { RootStackParamList } from '../../types';
 import {
   useAppGlobalStoreSetState,
@@ -90,12 +91,16 @@ const LoginScreen = ({ navigation }: Props) => {
         try {
           setLoader(true);
 
-          const client = new StreamVideoClient(clientParams.apiKey, {
-            coordinatorWsUrl: clientParams.coordinatorWsUrl,
-            coordinatorRpcUrl: clientParams.coordinatorRpcUrl,
-            sendJson: true,
-            token,
-          });
+          const client = new StreamVideoClient(
+            clientParams.apiKey,
+            (config) => new RTCPeerConnection(config),
+            {
+              coordinatorWsUrl: clientParams.coordinatorWsUrl,
+              coordinatorRpcUrl: clientParams.coordinatorRpcUrl,
+              sendJson: true,
+              token,
+            },
+          );
           await client.connect(clientParams.apiKey, token, user);
           setState({ videoClient: client });
           setLoader(false);

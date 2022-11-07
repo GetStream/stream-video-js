@@ -11,7 +11,7 @@ interface AppGlobalStore {
   callID: string;
   username: string;
   token: string;
-  videoClient: StreamVideoClient | undefined;
+  videoClient: StreamVideoClientRN | undefined;
   sfuClient: StreamSfuClient | undefined;
   call: SfuCall | undefined;
   activeCall: CallMeta.Call | undefined;
