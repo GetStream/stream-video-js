@@ -18,6 +18,7 @@ import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import { SubscriptionChanges } from './types';
+import { debounceTime, Subject } from 'rxjs';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -32,6 +33,9 @@ export class Call<RTCPeerConnectionType extends RTCPeerConnection> {
   private videoLayers?: OptimalVideoLayer[];
   readonly subscriber: RTCPeerConnectionType;
   readonly publisher: RTCPeerConnectionType;
+  private readonly trackSubscriptionsSubject = new Subject<{
+    [key: string]: VideoDimension;
+  }>();
 
   constructor(
     private readonly client: StreamSfuClient,
@@ -62,6 +66,12 @@ export class Call<RTCPeerConnectionType extends RTCPeerConnection> {
     });
 
     registerEventHandlers(this, this.stateStore, dispatcher);
+
+    this.trackSubscriptionsSubject
+      .pipe(debounceTime(1200))
+      .subscribe((subscriptions) =>
+        this.client.updateSubscriptions(subscriptions),
+      );
   }
 
   // FIXME: change the call-sites in the SDK
@@ -287,7 +297,7 @@ export class Call<RTCPeerConnectionType extends RTCPeerConnection> {
       ]);
     });
 
-    return this.updateSubscriptions(includeCurrentUser);
+    this.updateSubscriptions(includeCurrentUser);
   };
 
   changeInputDevice = async (
@@ -429,7 +439,7 @@ export class Call<RTCPeerConnectionType extends RTCPeerConnection> {
         subscriptions[p.user!.id] = p.videoDimension || { height: 0, width: 0 };
       }
     });
-    return this.client.updateSubscriptions(subscriptions);
+    this.trackSubscriptionsSubject.next(subscriptions);
   };
 
   private get participants() {

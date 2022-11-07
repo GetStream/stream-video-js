@@ -32,9 +32,9 @@ Run the application `yarn start:react:app` (make sure the server is already runn
 
 Run the application `yarn start:angular:app` (make sure the server is already running)
 
-You can override the default config params in `packages/angular-sample-app/src/environments/environment.ts`
+You can override the default config params in `packages/angular-sdk/projects/src/environments/environment.ts`
 
-Navigate to `localhost:4200?callid=<call-id>` to join an existing call
+Navigate to `localhost:4200?callid=<call-id>` to join an existing call d
 
 
 ### React Native

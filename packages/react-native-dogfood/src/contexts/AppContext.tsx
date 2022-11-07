@@ -10,7 +10,8 @@ import createStoreContext from './createStoreContext';
 interface AppGlobalStore {
   callID: string;
   username: string;
-  videoClient: StreamVideoClientRN | undefined;
+  token: string;
+  videoClient: StreamVideoClient | undefined;
   sfuClient: StreamSfuClient | undefined;
   call: SfuCall | undefined;
   activeCall: CallMeta.Call | undefined;
@@ -31,6 +32,7 @@ export const {
   {
     callID: '',
     username: '',
+    token: '',
     videoClient: undefined,
     sfuClient: undefined,
     localMediaStream: undefined,
@@ -43,5 +45,5 @@ export const {
     isVideoMuted: false,
     cameraBackFacingMode: false,
   },
-  ['callID', 'username'],
+  ['callID', 'username', 'token'],
 );
