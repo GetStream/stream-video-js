@@ -10,6 +10,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import { UserInput } from '@stream-io/video-client';
 import { useMemo } from 'react';
+import Head from 'next/head';
 
 type JoinCallProps = {
   user: UserInput;
@@ -49,6 +50,10 @@ const JoinCall = (props: JoinCallProps) => {
   }
   return (
     <div style={{ flexGrow: 1, minHeight: 0 }}>
+      <Head>
+        <title>Stream Calls: {callId}</title>
+        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      </Head>
       <StreamVideo client={client}>
         <StreamCall
           currentUser={loggedInUser.name}
