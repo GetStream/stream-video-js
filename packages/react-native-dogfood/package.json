@@ -20,6 +20,7 @@
     "@stardazed/streams-polyfill": "^2.4.0",
     "@stream-io/video-client": "workspace:^",
     "js-base64": "^3.7.2",
+    "nanoid": "^4.0.0",
     "react": "18.1.0",
     "react-native": "0.70.4",
     "react-native-callkeep": "^4.3.3",
