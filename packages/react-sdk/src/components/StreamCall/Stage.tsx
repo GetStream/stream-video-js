@@ -58,11 +58,3 @@ export const Stage = (props: {
     </div>
   );
 };
-
-const debounce = (fn: () => void, timeoutMs: number) => {
-  let id: NodeJS.Timeout;
-  return () => {
-    clearTimeout(id);
-    id = setTimeout(fn, timeoutMs);
-  };
-};
