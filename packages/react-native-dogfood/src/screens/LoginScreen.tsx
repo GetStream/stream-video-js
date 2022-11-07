@@ -93,6 +93,7 @@ const LoginScreen = ({ navigation }: Props) => {
 
           const client = new StreamVideoClient(
             clientParams.apiKey,
+            // @ts-ignore
             (config) => new RTCPeerConnection(config),
             {
               coordinatorWsUrl: clientParams.coordinatorWsUrl,
@@ -100,7 +101,7 @@ const LoginScreen = ({ navigation }: Props) => {
               sendJson: true,
               token,
             },
-          );
+          ) as unknown as StreamVideoClientRN;
           await client.connect(clientParams.apiKey, token, user);
           setState({ videoClient: client });
           setLoader(false);
