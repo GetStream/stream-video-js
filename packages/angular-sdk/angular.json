@@ -130,6 +130,9 @@
               "browserTarget": "sample-app:build:development"
             }
           },
+          "options": {
+            "proxyConfig": "projects/sample-app/proxy.conf.json"
+          },
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
