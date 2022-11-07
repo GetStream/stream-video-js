@@ -6,11 +6,9 @@ const SPEAKING_THRESHOLD = 0.3;
 /**
  * Watches for `dominantSpeakerChanged` events.
  */
-export const watchDominantSpeakerChanged = <
-  RTCPeerConnectionType extends RTCPeerConnection,
->(
+export const watchDominantSpeakerChanged = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore<RTCPeerConnectionType>,
+  store: StreamVideoWriteableStateStore,
 ) => {
   return dispatcher.on('dominantSpeakerChanged', (e) => {
     if (e.eventPayload.oneofKind !== 'dominantSpeakerChanged') return;
@@ -25,11 +23,9 @@ export const watchDominantSpeakerChanged = <
 /**
  * Watches for `audioLevelChanged` events.
  */
-export const watchAudioLevelChanged = <
-  RTCPeerConnectionType extends RTCPeerConnection,
->(
+export const watchAudioLevelChanged = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore<RTCPeerConnectionType>,
+  store: StreamVideoWriteableStateStore,
 ) => {
   return dispatcher.on('audioLevelChanged', (e) => {
     if (e.eventPayload.oneofKind !== 'audioLevelChanged') return;

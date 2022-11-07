@@ -26,13 +26,13 @@ export type CallOptions = {
 
 type MediaDeviceKind = 'audioinput' | 'audiooutput' | 'videoinput';
 
-export class Call<RTCPeerConnectionType extends RTCPeerConnection> {
+export class Call {
   /**@deprecated use store for this data */
   currentUserId: string;
 
   private videoLayers?: OptimalVideoLayer[];
-  readonly subscriber: RTCPeerConnectionType;
-  readonly publisher: RTCPeerConnectionType;
+  readonly subscriber: RTCPeerConnection;
+  readonly publisher: RTCPeerConnection;
   private readonly trackSubscriptionsSubject = new Subject<{
     [key: string]: VideoDimension;
   }>();
@@ -40,16 +40,13 @@ export class Call<RTCPeerConnectionType extends RTCPeerConnection> {
   constructor(
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
-    private readonly stateStore: StreamVideoWriteableStateStore<RTCPeerConnectionType>,
-    createPeerConnection: (
-      connectionConfig: RTCConfiguration | undefined,
-    ) => RTCPeerConnectionType,
+    private readonly stateStore: StreamVideoWriteableStateStore,
   ) {
     this.currentUserId = stateStore.getCurrentValue(
       stateStore.connectedUserSubject,
     )!.name;
     const { dispatcher, iceTrickleBuffer } = this.client;
-    this.subscriber = createPeerConnection(this.options.connectionConfig);
+    this.subscriber = new RTCPeerConnection(this.options.connectionConfig);
     addSubscriberListeners({
       rpcClient: this.client,
       // FIXME: don't do this
@@ -58,7 +55,7 @@ export class Call<RTCPeerConnectionType extends RTCPeerConnection> {
       onTrack: this.handleOnTrack,
       candidates: iceTrickleBuffer.subscriberCandidates,
     });
-    this.publisher = createPeerConnection(this.options.connectionConfig);
+    this.publisher = new RTCPeerConnection(this.options.connectionConfig);
     addPublisherListeners({
       rpcClient: this.client,
       publisher: this.publisher,

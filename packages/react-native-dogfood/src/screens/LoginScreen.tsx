@@ -9,7 +9,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { RTCPeerConnection } from 'react-native-webrtc';
 import { RootStackParamList } from '../../types';
 import {
   useAppGlobalStoreSetState,
@@ -76,13 +75,13 @@ const LoginScreen = ({ navigation }: Props) => {
         };
 
         const clientParams = {
-          // coordinatorRpcUrl: 'http://192.168.1.37:26991/rpc',
-          // coordinatorWsUrl:
-          //   'ws://192.168.1.37:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
-          coordinatorRpcUrl:
-            'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
+          coordinatorRpcUrl: 'http://192.168.50.95:26991/rpc',
           coordinatorWsUrl:
-            'ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+            'ws://192.168.50.95:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+          // coordinatorRpcUrl:
+          //   'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
+          // coordinatorWsUrl:
+          //   'ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
           apiKey: 'key10', // see <video>/data/fixtures/apps.yaml for API key/secret
           apiSecret: 'secret10',
           user,
@@ -91,17 +90,12 @@ const LoginScreen = ({ navigation }: Props) => {
         try {
           setLoader(true);
 
-          const client = new StreamVideoClient(
-            clientParams.apiKey,
-            // @ts-ignore
-            (config) => new RTCPeerConnection(config),
-            {
-              coordinatorWsUrl: clientParams.coordinatorWsUrl,
-              coordinatorRpcUrl: clientParams.coordinatorRpcUrl,
-              sendJson: true,
-              token,
-            },
-          ) as unknown as StreamVideoClientRN;
+          const client = new StreamVideoClient(clientParams.apiKey, {
+            coordinatorWsUrl: clientParams.coordinatorWsUrl,
+            coordinatorRpcUrl: clientParams.coordinatorRpcUrl,
+            sendJson: true,
+            token,
+          });
           await client.connect(clientParams.apiKey, token, user);
           setState({ videoClient: client });
           setLoader(false);

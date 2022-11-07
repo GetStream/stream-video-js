@@ -89,9 +89,6 @@ const Meeting = ({ navigation }: Props) => {
         }
       } catch (err) {
         console.warn('failed to join call', err);
-        setState({
-          callState: undefined,
-        });
       }
     };
     joinSfuCall();

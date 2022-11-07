@@ -4,11 +4,9 @@ import { Call } from '../rtc/Call';
 /**
  * An event responder which handles the `changePublishQuality` event.
  */
-export const watchChangePublishQuality = <
-  RTCPeerConnectionType extends RTCPeerConnection,
->(
+export const watchChangePublishQuality = (
   dispatcher: Dispatcher,
-  call: Call<RTCPeerConnectionType>,
+  call: Call,
 ) => {
   return dispatcher.on('changePublishQuality', (e) => {
     if (e.eventPayload.oneofKind !== 'changePublishQuality') return;

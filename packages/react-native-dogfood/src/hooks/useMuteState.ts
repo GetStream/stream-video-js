@@ -1,11 +1,11 @@
 import { MediaStream } from 'react-native-webrtc';
 import { useEffect, useState } from 'react';
 import { SfuEvent } from '@stream-io/video-client/dist/src/gen/video/sfu/event/events';
-import { SfuCall } from '../../types';
+import { Call } from '@stream-io/video-client';
 
 export const useMuteState = (
-  userId: string,
-  call: SfuCall | undefined,
+  userId: string | undefined,
+  call: Call | undefined,
   mediaStream: MediaStream | undefined,
 ) => {
   const [isAudioMuted, setIsAudioMuted] = useState(

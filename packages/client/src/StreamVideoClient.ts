@@ -43,27 +43,15 @@ const defaultOptions: Partial<StreamVideoClientOptions> = {
 /**
  * Document me
  */
-export class StreamVideoClient<
-  RTCPeerConnectionType extends RTCPeerConnection,
-> {
-  readonly readOnlyStateStore: StreamVideoReadOnlyStateStore<RTCPeerConnectionType>;
+export class StreamVideoClient {
+  readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   // Make it public temporary to ease SDK transition
-  readonly writeableStateStore: StreamVideoWriteableStateStore<RTCPeerConnectionType>;
+  readonly writeableStateStore: StreamVideoWriteableStateStore;
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWSClient | undefined;
-  private createPeerConnection: (
-    connectionConfig: RTCConfiguration | undefined,
-  ) => RTCPeerConnectionType;
 
-  constructor(
-    apiKey: string,
-    createPeerConnection: (
-      connectionConfig: RTCConfiguration | undefined,
-    ) => RTCPeerConnectionType,
-    opts: StreamVideoClientOptions,
-  ) {
-    this.createPeerConnection = createPeerConnection;
+  constructor(apiKey: string, opts: StreamVideoClientOptions) {
     const options = {
       ...defaultOptions,
       ...opts,
@@ -168,20 +156,18 @@ export class StreamVideoClient<
         response.edges,
       );
       if (edge && edge.credentials && edge.credentials.server) {
+        const serverUrl = 'http://192.168.50.95:3031/twirp';
         const sfuClient = new StreamSfuClient(
-          edge.credentials.server.url,
+          serverUrl,
           edge.credentials.token,
           sessionId,
         );
         const call = new Call(
           sfuClient,
           {
-            connectionConfig:
-              this.toRtcConfiguration(edge.credentials.iceServers) ||
-              this.defaultRtcConfiguration(edge.credentials.server.url),
+            connectionConfig: this.defaultRtcConfiguration(serverUrl),
           },
           this.writeableStateStore,
-          this.createPeerConnection,
         );
         this.writeableStateStore.pendingCallsSubject.next([
           ...this.writeableStateStore.pendingCallsSubject.getValue(),

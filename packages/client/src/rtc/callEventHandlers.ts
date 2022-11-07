@@ -11,11 +11,9 @@ import {
   watchDominantSpeakerChanged,
 } from '../events/speaker';
 
-export const registerEventHandlers = <
-  RTCPeerConnectionType extends RTCPeerConnection,
->(
-  call: Call<RTCPeerConnectionType>,
-  store: StreamVideoWriteableStateStore<RTCPeerConnectionType>,
+export const registerEventHandlers = (
+  call: Call,
+  store: StreamVideoWriteableStateStore,
   dispatcher: Dispatcher,
 ) => {
   watchChangePublishQuality(dispatcher, call);

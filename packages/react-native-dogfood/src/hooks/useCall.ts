@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
-import { CallMeta, CreateCallInput } from '@stream-io/video-client';
+import { Call, CallMeta, CreateCallInput } from '@stream-io/video-client';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
-import { SfuCall } from '../../types';
 
 export type UseCallParams = {
   callId: string;
@@ -18,7 +17,7 @@ export const useCall = ({
 }: UseCallParams) => {
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const [activeCallMeta, setActiveCallMeta] = useState<CallMeta.Call>();
-  const [activeCall, setActiveCall] = useState<SfuCall>();
+  const [activeCall, setActiveCall] = useState<Call>();
 
   const joinCall = useCallback(
     async (id: string, type: string) => {

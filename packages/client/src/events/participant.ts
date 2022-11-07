@@ -4,11 +4,9 @@ import { Dispatcher } from '../rtc/Dispatcher';
 /**
  * An event responder which handles the `participantJoined` event.
  */
-export const watchParticipantJoined = <
-  RTCPeerConnectionType extends RTCPeerConnection,
->(
+export const watchParticipantJoined = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore<RTCPeerConnectionType>,
+  store: StreamVideoWriteableStateStore,
 ) => {
   return dispatcher.on('participantJoined', (e) => {
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
@@ -27,11 +25,9 @@ export const watchParticipantJoined = <
 /**
  * An event responder which handles the `participantLeft` event.
  */
-export const watchParticipantLeft = <
-  RTCPeerConnectionType extends RTCPeerConnection,
->(
+export const watchParticipantLeft = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore<RTCPeerConnectionType>,
+  store: StreamVideoWriteableStateStore,
 ) => {
   return dispatcher.on('participantLeft', (e) => {
     if (e.eventPayload.oneofKind !== 'participantLeft') return;

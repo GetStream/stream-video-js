@@ -1,12 +1,4 @@
 import { SfuEvent } from '@stream-io/video-client/dist/src/gen/video/sfu/event/events';
-import { RTCPeerConnection } from 'react-native-webrtc';
-import { Call, StreamVideoClient } from '@stream-io/video-client';
-
-// known type errors as rn-webrtc type isnt compatible with types/webRTC (dom) -- ignoring is fine
-// @ts-ignore
-export type StreamVideoClientRN = StreamVideoClient<RTCPeerConnection>;
-// @ts-ignore
-export type SfuCall = Call<RTCPeerConnection>;
 
 type BinaryType = 'arraybuffer' | 'blob';
 export type RTCDataChannelState = 'closed' | 'closing' | 'connecting' | 'open';
