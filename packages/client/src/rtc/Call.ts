@@ -29,11 +29,13 @@ export class Call {
   currentUserId: string;
 
   private videoLayers?: OptimalVideoLayer[];
-  readonly subscriber: RTCPeerConnection;
-  readonly publisher: RTCPeerConnection;
+  private readonly subscriber: RTCPeerConnection;
+  private readonly publisher: RTCPeerConnection;
   private readonly trackSubscriptionsSubject = new Subject<{
     [key: string]: VideoDimension;
   }>();
+
+  private joinResponseReady?: Promise<CallState | undefined>;
 
   constructor(
     private readonly client: StreamSfuClient,
@@ -101,57 +103,26 @@ export class Call {
   join = async (videoStream?: MediaStream, audioStream?: MediaStream) => {
     await this.client.signalReady;
 
-    const [audioEncode, audioDecode, videoEncode, videoDecode] =
-      await Promise.all([
-        getSenderCodecs('audio'),
-        getReceiverCodecs('audio', this.subscriber),
-        getSenderCodecs('video'),
-        getReceiverCodecs('video', this.subscriber),
-      ]);
+    if (this.joinResponseReady) {
+      throw new Error(`Illegal State: Already joined.`);
+    }
 
-    this.videoLayers = videoStream
-      ? await findOptimalVideoLayers(videoStream)
-      : defaultVideoLayers;
+    this.joinResponseReady = new Promise<CallState | undefined>(
+      async (resolve) => {
+        const [audioEncode, audioDecode, videoEncode, videoDecode] =
+          await Promise.all([
+            getSenderCodecs('audio'),
+            getReceiverCodecs('audio', this.subscriber),
+            getSenderCodecs('video'),
+            getReceiverCodecs('video', this.subscriber),
+          ]);
 
-    this.client.send(
-      SfuRequest.create({
-        requestPayload: {
-          oneofKind: 'joinRequest',
-          joinRequest: {
-            sessionId: this.client.sessionId,
-            token: this.client.token,
-            // todo fix-me
-            publish: true,
-            // publish: true,
-            // FIXME OL: encode parameters and video layers should be announced when
-            // initiating "publish" operation
-            codecSettings: {
-              audio: {
-                encodes: audioEncode,
-                decodes: audioDecode,
-              },
-              video: {
-                encodes: videoEncode,
-                decodes: videoDecode,
-              },
-              layers: this.videoLayers.map((layer) => ({
-                rid: layer.rid!,
-                bitrate: layer.maxBitrate!,
-                videoDimension: {
-                  width: layer.width,
-                  height: layer.height,
-                },
-              })),
-            },
-          },
-        },
-      }),
-    );
+        this.videoLayers = videoStream
+          ? await findOptimalVideoLayers(videoStream)
+          : defaultVideoLayers;
 
-    // FIXME: make it nicer
-    return new Promise<CallState | undefined>((resolve) => {
-      this.client.dispatcher.on('joinResponse', (event) => {
-        if (event.eventPayload.oneofKind === 'joinResponse') {
+        this.client.dispatcher.on('joinResponse', (event) => {
+          if (event.eventPayload.oneofKind !== 'joinResponse') return;
           const callState = event.eventPayload.joinResponse.callState;
           this.stateStore.activeCallSubject.next(this);
           this.participants.push(...(callState?.participants || []));
@@ -165,13 +136,58 @@ export class Call {
             ...this.participants,
           ]);
           this.client.keepAlive();
-          resolve(callState);
-        }
-      });
-    });
+          resolve(callState); // expose call state
+        });
+
+        this.client.send(
+          SfuRequest.create({
+            requestPayload: {
+              oneofKind: 'joinRequest',
+              joinRequest: {
+                sessionId: this.client.sessionId,
+                token: this.client.token,
+                publish: true,
+                // FIXME OL: encode parameters and video layers
+                // should be announced when initiating "publish" operation
+                codecSettings: {
+                  audio: {
+                    encodes: audioEncode,
+                    decodes: audioDecode,
+                  },
+                  video: {
+                    encodes: videoEncode,
+                    decodes: videoDecode,
+                  },
+                  layers: this.videoLayers.map((layer) => ({
+                    rid: layer.rid!,
+                    bitrate: layer.maxBitrate!,
+                    videoDimension: {
+                      width: layer.width,
+                      height: layer.height,
+                    },
+                  })),
+                },
+              },
+            },
+          }),
+        );
+      },
+    );
+
+    return this.joinResponseReady;
   };
 
-  publish = (audioStream?: MediaStream, videoStream?: MediaStream) => {
+  publish = async (audioStream?: MediaStream, videoStream?: MediaStream) => {
+    if (!this.joinResponseReady) {
+      throw new Error(
+        `Illegal State: Can't publish. Please join the call first`,
+      );
+    }
+
+    // wait until we get a JoinResponse from the SFU, otherwise we risk
+    // breaking the ICETrickle flow.
+    await this.joinResponseReady;
+
     if (videoStream) {
       const videoEncodings: RTCRtpEncodingParameters[] =
         this.videoLayers && this.videoLayers.length > 0
