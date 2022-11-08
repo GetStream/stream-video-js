@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { Call, CallMeta, CreateCallInput } from '@stream-io/video-client';
+import { useCallback } from 'react';
+import { CreateCallInput } from '@stream-io/video-client';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
