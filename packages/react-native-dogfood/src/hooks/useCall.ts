@@ -64,13 +64,11 @@ export const useCall = ({
   );
 
   const getOrCreateCall = useCallback(async () => {
-    console.log('START videoClient.getOrCreateCall');
     const callMetadata = await videoClient.getOrCreateCall({
       id: callId,
       type: callType,
       input,
     });
-    console.log('STOP videoClient.getOrCreateCall');
     if (callMetadata) {
       setState({
         activeCall: callMetadata.call,
