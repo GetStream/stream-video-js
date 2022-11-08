@@ -10,7 +10,6 @@ import {
 } from '@angular/core';
 import {
   Call,
-  CallParticipants,
   StreamVideoParticipant,
   SubscriptionChanges,
 } from '@stream-io/video-client';
@@ -27,7 +26,7 @@ export class CallComponent
   implements OnInit, AfterViewChecked, OnDestroy, AfterViewInit
 {
   call!: Call;
-  participants$: Observable<CallParticipants>;
+  participants$: Observable<StreamVideoParticipant[]>;
   private subscriptions: Subscription[] = [];
   @ViewChild('participantsContainer')
   private participantsContainer!: ElementRef<HTMLElement>;

@@ -17,7 +17,7 @@ import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
-import { CallParticipants, SubscriptionChanges } from './types';
+import type { StreamVideoParticipant, SubscriptionChanges } from './types';
 import { debounceTime, Subject } from 'rxjs';
 
 export type CallOptions = {
@@ -120,16 +120,15 @@ export class Call {
           const currentParticipants = callState?.participants || [];
           this.stateStore.setCurrentValue(
             this.stateStore.activeCallParticipantsSubject,
-            currentParticipants.reduce<CallParticipants>((acc, participant) => {
-              acc[participant.sessionId] = participant;
+            currentParticipants.map<StreamVideoParticipant>((participant) => {
               if (participant.sessionId === this.client.sessionId) {
-                const localParticipant = acc[participant.sessionId];
+                const localParticipant = participant as StreamVideoParticipant;
                 localParticipant.isLoggedInUser = true;
                 localParticipant.audioTrack = audioStream;
                 localParticipant.videoTrack = videoStream;
               }
-              return acc;
-            }, {}),
+              return participant;
+            }),
           );
           this.client.keepAlive();
           this.stateStore.activeCallSubject.next(this);
@@ -194,7 +193,7 @@ export class Call {
 
       const [videoTrack] = videoStream.getVideoTracks();
       if (videoTrack) {
-        const videoTransceiver = this.publisher?.addTransceiver(videoTrack, {
+        const videoTransceiver = this.publisher.addTransceiver(videoTrack, {
           direction: 'sendonly',
           streams: [videoStream],
           sendEncodings: videoEncodings,
@@ -208,20 +207,18 @@ export class Call {
         }
       }
 
-      const localParticipant = this.participants[this.client.sessionId];
-      if (localParticipant) {
-        this.stateStore.setCurrentValue(
-          this.stateStore.activeCallParticipantsSubject,
-          {
-            ...this.participants,
-            [localParticipant.sessionId]: {
-              // FIXME OL: shallow copy
-              ...localParticipant,
+      this.stateStore.setCurrentValue(
+        this.stateStore.activeCallParticipantsSubject,
+        this.participants.map((p) => {
+          if (p.sessionId === this.client.sessionId) {
+            return {
+              ...p,
               videoTrack: videoStream,
-            },
-          },
-        );
-      }
+            };
+          }
+          return p;
+        }),
+      );
     }
 
     if (audioStream) {
@@ -232,20 +229,18 @@ export class Call {
         });
       }
 
-      const localParticipant = this.participants[this.client.sessionId];
-      if (localParticipant) {
-        this.stateStore.setCurrentValue(
-          this.stateStore.activeCallParticipantsSubject,
-          {
-            ...this.participants,
-            [localParticipant.sessionId]: {
-              // FIXME OL: shallow copy
-              ...localParticipant,
+      this.stateStore.setCurrentValue(
+        this.stateStore.activeCallParticipantsSubject,
+        this.participants.map((p) => {
+          if (p.sessionId === this.client.sessionId) {
+            return {
+              ...p,
               audioTrack: audioStream,
-            },
-          },
-        );
-      }
+            };
+          }
+          return p;
+        }),
+      );
     }
   };
 
@@ -262,23 +257,20 @@ export class Call {
     if (Object.keys(changes).length === 0) {
       return;
     }
-    Object.keys(changes).forEach((sessionId) => {
-      const change = changes[sessionId];
-      const participantToUpdate = this.participants[sessionId];
-      if (!participantToUpdate) {
-        return;
-      }
-      this.stateStore.setCurrentValue(
-        this.stateStore.activeCallParticipantsSubject,
-        {
-          ...this.participants,
-          [sessionId]: {
-            ...participantToUpdate,
+
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeCallParticipantsSubject,
+      this.participants.map((participant) => {
+        const change = changes[participant.sessionId];
+        if (change) {
+          return {
+            ...participant,
             videoDimension: change.videoDimension,
-          },
-        },
-      );
-    });
+          };
+        }
+        return participant;
+      }),
+    );
 
     this.updateSubscriptions(includeCurrentUser);
   };
@@ -411,7 +403,7 @@ export class Call {
 
   private updateSubscriptions = async (includeCurrentUser: boolean) => {
     const subscriptions: { [key: string]: VideoDimension } = {};
-    Object.values(this.participants).forEach((p) => {
+    this.participants.forEach((p) => {
       if (
         includeCurrentUser ||
         (p.user?.id !== this.currentUserId &&
@@ -433,36 +425,40 @@ export class Call {
     console.log('Got remote track:', e.track);
     const [primaryStream] = e.streams;
     const [trackId] = primaryStream.id.split(':');
-    const participant = Object.values(this.participants).find(
+    const participantToUpdate = this.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );
-    if (!participant) {
+    if (!participantToUpdate) {
       console.warn('Received track for unknown participant', trackId, e);
       return;
     }
     if (e.track.kind === 'video') {
       this.stateStore.setCurrentValue(
         this.stateStore.activeCallParticipantsSubject,
-        {
-          ...this.participants,
-          [participant.sessionId]: {
-            // FIXME OL: shallow clone, switch to deep clone
-            ...participant,
-            videoTrack: primaryStream,
-          },
-        },
+        this.participants.map((participant) => {
+          if (participant.trackLookupPrefix === trackId) {
+            return {
+              // FIXME OL: shallow clone, switch to deep clone
+              ...participant,
+              videoTrack: primaryStream,
+            };
+          }
+          return participant;
+        }),
       );
     } else if (e.track.kind === 'audio') {
       this.stateStore.setCurrentValue(
         this.stateStore.activeCallParticipantsSubject,
-        {
-          ...this.participants,
-          [participant.sessionId]: {
-            // FIXME OL: shallow clone, switch to deep clone
-            ...participant,
-            audioTrack: primaryStream,
-          },
-        },
+        this.participants.map((participant) => {
+          if (participant.trackLookupPrefix === trackId) {
+            return {
+              // FIXME OL: shallow clone, switch to deep clone
+              ...participant,
+              audioTrack: primaryStream,
+            };
+          }
+          return participant;
+        }),
       );
     }
   };

@@ -26,7 +26,3 @@ export type SubscriptionChange = {
 export type SubscriptionChanges = {
   [sessionId: string]: SubscriptionChange;
 };
-
-export type CallParticipants = {
-  [sessionId: string]: StreamVideoParticipant;
-};
