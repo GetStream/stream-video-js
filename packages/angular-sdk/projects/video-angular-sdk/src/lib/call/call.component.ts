@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import {
   Call,
+  CallParticipants,
   StreamVideoParticipant,
   SubscriptionChanges,
 } from '@stream-io/video-client';
@@ -26,12 +27,12 @@ export class CallComponent
   implements OnInit, AfterViewChecked, OnDestroy, AfterViewInit
 {
   call!: Call;
-  participants$: Observable<StreamVideoParticipant[]>;
+  participants$: Observable<CallParticipants>;
   private subscriptions: Subscription[] = [];
   @ViewChild('participantsContainer')
   private participantsContainer!: ElementRef<HTMLElement>;
   @ViewChildren(ParticipantComponent)
-  private particpantComponents: ParticipantComponent[] = [];
+  private participantComponents: ParticipantComponent[] = [];
   private participantsContainerResizeObserver: ResizeObserver | undefined;
   private videoDimensionsSubject = new Subject<SubscriptionChanges>();
 
@@ -80,7 +81,7 @@ export class CallComponent
 
   private videoDimensionsChanged() {
     const changes: SubscriptionChanges = {};
-    this.particpantComponents.forEach((component) => {
+    this.participantComponents.forEach((component) => {
       changes[component.participant!.sessionId] = {
         videoDimension: component.videoDimension,
       };

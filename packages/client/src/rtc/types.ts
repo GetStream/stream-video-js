@@ -1,4 +1,7 @@
-import { Participant, VideoDimension } from '../gen/video/sfu/models/models';
+import type {
+  Participant,
+  VideoDimension,
+} from '../gen/video/sfu/models/models';
 
 export type StreamVideoParticipant = {
   videoTrack?: MediaStream;
@@ -22,4 +25,8 @@ export type SubscriptionChange = {
 
 export type SubscriptionChanges = {
   [sessionId: string]: SubscriptionChange;
+};
+
+export type CallParticipants = {
+  [sessionId: string]: StreamVideoParticipant;
 };

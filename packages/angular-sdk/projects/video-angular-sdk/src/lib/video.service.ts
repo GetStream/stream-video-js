@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Call, StreamVideoClient, UserInput } from '@stream-io/video-client';
-import { StreamVideoParticipant } from '@stream-io/video-client/dist/src/rtc/types';
+import {
+  Call,
+  CallParticipants,
+  StreamVideoClient,
+  UserInput,
+} from '@stream-io/video-client';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 
 @Injectable({
@@ -10,7 +14,7 @@ export class StreamVideoService {
   user$: Observable<UserInput | undefined>;
   activeCall$: Observable<Call | undefined>;
   pendingCalls$: Observable<Call[]>;
-  activeCallParticipants$: Observable<StreamVideoParticipant[]>;
+  activeCallParticipants$: Observable<CallParticipants>;
   videoClient: StreamVideoClient | undefined;
   private userSubject: ReplaySubject<UserInput | undefined> = new ReplaySubject(
     1,
@@ -18,9 +22,8 @@ export class StreamVideoService {
   private activeCallSubject: ReplaySubject<Call | undefined> =
     new ReplaySubject(1);
   private pendingCallsSubject: ReplaySubject<Call[]> = new ReplaySubject(1);
-  private activeCallParticipantsSubject: ReplaySubject<
-    StreamVideoParticipant[]
-  > = new ReplaySubject(1);
+  private activeCallParticipantsSubject: ReplaySubject<CallParticipants> =
+    new ReplaySubject(1);
   private subscriptions: Subscription[] = [];
 
   constructor() {

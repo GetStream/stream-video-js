@@ -12,10 +12,10 @@ export const watchParticipantJoined = (
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
     const { participant } = e.eventPayload.participantJoined;
     if (participant) {
-      const participants = [
+      const participants = {
         ...store.getCurrentValue(store.activeCallParticipantsSubject),
-        participant,
-      ];
+        [participant.sessionId]: participant,
+      };
 
       store.setCurrentValue(store.activeCallParticipantsSubject, participants);
     }
@@ -33,9 +33,10 @@ export const watchParticipantLeft = (
     if (e.eventPayload.oneofKind !== 'participantLeft') return;
     const { participant } = e.eventPayload.participantLeft;
     if (participant) {
-      const participants = store
-        .getCurrentValue(store.activeCallParticipantsSubject)
-        .filter((p) => p.sessionId !== participant.sessionId);
+      const participants = {
+        ...store.getCurrentValue(store.activeCallParticipantsSubject),
+      };
+      delete participants[participant.sessionId];
 
       store.setCurrentValue(store.activeCallParticipantsSubject, participants);
     }
