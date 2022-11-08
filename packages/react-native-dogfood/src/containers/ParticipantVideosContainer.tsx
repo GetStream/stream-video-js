@@ -82,8 +82,8 @@ const ParticipantVideosContainer = () => {
       call.updateSubscriptionsPartial({
         [sessionId]: {
           videoDimension: {
-            width,
-            height,
+            width: Math.trunc(width),
+            height: Math.trunc(height),
           },
         },
       });
