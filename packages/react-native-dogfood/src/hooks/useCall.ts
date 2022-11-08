@@ -35,14 +35,12 @@ export const useCall = ({
 
   const joinCall = useCallback(
     async (id: string, type: string) => {
-      console.log('START videoClient.joinCall');
       const call = await videoClient.joinCall({
         id,
         type,
         // FIXME: OL this needs to come from somewhere
         datacenterId: 'amsterdam',
       });
-      console.log('STOP videoClient.joinCall');
       if (!call) {
         throw new Error(`Failed to join a call with id: ${callId}`);
       }
