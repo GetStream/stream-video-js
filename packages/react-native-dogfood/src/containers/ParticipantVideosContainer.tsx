@@ -91,14 +91,14 @@ const ParticipantVideosContainer = () => {
     [call],
   );
 
+  const filteredParticipants = loopbackMyVideo
+    ? participants
+    : participants.filter((p) => !p.isLoggedInUser);
+
   return (
     <View style={styles.container}>
-      {participants.map((participant, index) => {
+      {filteredParticipants.map((participant, index) => {
         const userId = participant.user!.id;
-        if (participant.isLoggedInUser && !loopbackMyVideo) {
-          return null;
-        }
-
         return (
           <ParticipantVideoContainer
             key={`${userId}/${participant.sessionId}`}
