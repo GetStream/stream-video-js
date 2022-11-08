@@ -31,6 +31,8 @@ export const ParticipantBox = (props: {
     isLoggedInUser: isLocalParticipant,
     isSpeaking,
     sessionId,
+    audio,
+    video,
   } = participant;
 
   useEffect(() => {
@@ -72,51 +74,56 @@ export const ParticipantBox = (props: {
   }, [audioStream]);
 
   const isDebugMode = useIsDebugMode();
-  // TODO: add mute event handler to client
-  const isVideoEnabled = true;
   return (
     <div
       className={clsx(
         'str-video__participant',
         isSpeaking && 'str-video__participant--speaking',
       )}
+      ref={containerRef}
     >
       <audio autoPlay ref={audioRef} muted={isMuted} />
-      <div className="str-video__video-container" ref={containerRef}>
-        {isVideoEnabled ? (
-          <video
-            className={clsx(
-              'str-video__remote-video',
-              isLocalParticipant && 'mirror',
+      <div className="str-video__video-container">
+        <video
+          className={clsx(
+            'str-video__remote-video',
+            isLocalParticipant && 'mirror',
+          )}
+          muted={isMuted}
+          autoPlay
+          ref={videoRef}
+        />
+        <div className="str-video__participant_details">
+          <span className="str-video__participant_name">
+            {participant.user?.id}
+            {!audio && (
+              <svg viewBox="0 0 24 24">
+                <path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3 3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z"></path>
+              </svg>
             )}
-            muted={isMuted}
-            autoPlay
-            ref={videoRef}
-          />
-        ) : (
-          <div>No video</div>
-        )}
-      </div>
-      <div className="str-video__participant_details">
-        <span className="str-video__participant_name">
-          {participant.user?.id}
-        </span>
-        {isDebugMode && (
-          <>
-            <DebugParticipantPublishQuality
-              updateVideoSubscriptionForParticipant={
-                updateVideoSubscriptionForParticipant
-              }
-              participant={participant}
-              call={call}
-            />
-            <StatsView
-              call={call}
-              kind={isLocalParticipant ? 'publisher' : 'subscriber'}
-              mediaStream={videoStream}
-            />
-          </>
-        )}
+            {!video && (
+              <svg viewBox="0 0 24 24">
+                <path d="m21 6.5-4 4V7c0-.55-.45-1-1-1H9.82L21 17.18V6.5zM3.27 2 2 3.27 4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.21 0 .39-.08.54-.18L19.73 21 21 19.73 3.27 2z"></path>
+              </svg>
+            )}
+          </span>
+          {isDebugMode && (
+            <>
+              <DebugParticipantPublishQuality
+                updateVideoSubscriptionForParticipant={
+                  updateVideoSubscriptionForParticipant
+                }
+                participant={participant}
+                call={call}
+              />
+              <StatsView
+                call={call}
+                kind={isLocalParticipant ? 'publisher' : 'subscriber'}
+                mediaStream={videoStream}
+              />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

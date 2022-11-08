@@ -1,12 +1,12 @@
 import clsx from 'clsx';
 import { Call } from '@stream-io/video-client';
-import { useMediaDevices } from '../../contexts/MediaDevicesContext';
-import { useMuteState } from '../../hooks/useMuteState';
+import { useParticipants } from '../../hooks/useParticipants';
 export const CallControls = (props: { call: Call }) => {
   const { call } = props;
-  const { audioStream, videoStream } = useMediaDevices();
-  const isAudioMute = useMuteState(call, audioStream?.getAudioTracks()[0]);
-  const isVideoMute = useMuteState(call, videoStream?.getVideoTracks()[0]);
+  const participants = useParticipants();
+  const localParticipant = participants.find((p) => p.isLoggedInUser);
+  const isAudioMute = !localParticipant?.audio;
+  const isVideoMute = !localParticipant?.video;
 
   return (
     <div className="str-video__call-controls">
