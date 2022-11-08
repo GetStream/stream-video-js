@@ -38,6 +38,10 @@ const Meeting = () => {
         callID: matchResponse[1],
       });
     };
+    // listen to url changes and parse the callID
+    const { remove } = Linking.addEventListener('url', ({ url }) => {
+      parseAndSetCallID(url);
+    });
     const configure = async () => {
       const mediaStream = await mediaDevices.getUserMedia({
         audio: true,
@@ -46,16 +50,12 @@ const Meeting = () => {
       setState({
         localMediaStream: mediaStream,
       });
-
-      // listen to url changes and parse the callID
-      Linking.addEventListener('url', ({ url }) => {
-        parseAndSetCallID(url);
-      });
       const url = await Linking.getInitialURL();
       parseAndSetCallID(url);
     };
 
     configure();
+    return remove;
   }, [setState]);
 
   const { getOrCreateCall } = useCall({
