@@ -1,6 +1,13 @@
 import { useCallback, useState } from 'react';
 import { Call, CallMeta, CreateCallInput } from '@stream-io/video-client';
-import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../contexts/AppContext';
+import { useNavigation } from '@react-navigation/native';
+import InCallManager from 'react-native-incall-manager';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types';
 
 export type UseCallParams = {
   callId: string;
@@ -15,42 +22,65 @@ export const useCall = ({
   autoJoin,
   input,
 }: UseCallParams) => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
-  const [activeCallMeta, setActiveCallMeta] = useState<CallMeta.Call>();
-  const [activeCall, setActiveCall] = useState<Call>();
+  if (!videoClient) {
+    throw new Error('VideoClient not initialized');
+  }
+  const localMediaStream = useAppGlobalStoreValue(
+    (store) => store.localMediaStream,
+  );
+  const setState = useAppGlobalStoreSetState();
 
   const joinCall = useCallback(
     async (id: string, type: string) => {
-      if (!videoClient) {
-        return;
-      }
+      console.log('START videoClient.joinCall');
       const call = await videoClient.joinCall({
         id,
         type,
         // FIXME: OL this needs to come from somewhere
         datacenterId: 'amsterdam',
       });
-      setActiveCall(call);
+      console.log('STOP videoClient.joinCall');
+      if (!call) {
+        throw new Error(`Failed to join a call with id: ${callId}`);
+      }
+      try {
+        InCallManager.start({ media: 'video' });
+        InCallManager.setForceSpeakerphoneOn(true);
+        await call.joinWithCombinedStream(localMediaStream);
+        // @ts-ignore
+        await call.publishCombinedStream(localMediaStream);
+        setState({
+          call: call,
+        });
+        navigation.navigate('ActiveCall');
+      } catch (err) {
+        console.warn('failed to join call', err);
+      }
     },
-    [videoClient],
+    [callId, localMediaStream, navigation, setState, videoClient],
   );
 
   const getOrCreateCall = useCallback(async () => {
-    if (!videoClient) {
-      return;
-    }
+    console.log('START videoClient.getOrCreateCall');
     const callMetadata = await videoClient.getOrCreateCall({
       id: callId,
       type: callType,
       input,
     });
+    console.log('STOP videoClient.getOrCreateCall');
     if (callMetadata) {
-      setActiveCallMeta(callMetadata.call);
+      setState({
+        activeCall: callMetadata.call,
+      });
+
       if (autoJoin) {
         await joinCall(callId, callType);
       }
     }
-  }, [autoJoin, callId, callType, input, joinCall, videoClient]);
+  }, [autoJoin, callId, callType, input, joinCall, setState, videoClient]);
 
-  return { activeCallMeta, activeCall, getOrCreateCall };
+  return { getOrCreateCall };
 };

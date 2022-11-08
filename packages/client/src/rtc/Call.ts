@@ -100,6 +100,80 @@ export class Call {
     this.stateStore.activeCallSubject.next(undefined);
   };
 
+  // TODO: remove this, it is temporary for RN implementation
+  joinWithCombinedStream = async (stream?: MediaStream) => {
+    await this.client.signalReady;
+
+    const [audioEncode, audioDecode, videoEncode, videoDecode] =
+      await Promise.all([
+        getSenderCodecs('audio'),
+        getReceiverCodecs('audio', this.subscriber),
+        getSenderCodecs('video'),
+        getReceiverCodecs('video', this.subscriber),
+      ]);
+
+    this.videoLayers = stream
+      ? await findOptimalVideoLayers(stream)
+      : defaultVideoLayers;
+
+    this.client.send(
+      SfuRequest.create({
+        requestPayload: {
+          oneofKind: 'joinRequest',
+          joinRequest: {
+            sessionId: this.client.sessionId,
+            token: this.client.token,
+            // todo fix-me
+            publish: true,
+            // publish: true,
+            // FIXME OL: encode parameters and video layers should be announced when
+            // initiating "publish" operation
+            codecSettings: {
+              audio: {
+                encodes: audioEncode,
+                decodes: audioDecode,
+              },
+              video: {
+                encodes: videoEncode,
+                decodes: videoDecode,
+              },
+              layers: this.videoLayers.map((layer) => ({
+                rid: layer.rid!,
+                bitrate: layer.maxBitrate!,
+                videoDimension: {
+                  width: layer.width,
+                  height: layer.height,
+                },
+              })),
+            },
+          },
+        },
+      }),
+    );
+
+    // FIXME: make it nicer
+    return new Promise<CallState | undefined>((resolve) => {
+      this.client.dispatcher.on('joinResponse', (event) => {
+        if (event.eventPayload.oneofKind === 'joinResponse') {
+          const callState = event.eventPayload.joinResponse.callState;
+          this.stateStore.activeCallSubject.next(this);
+          this.participants.push(...(callState?.participants || []));
+          const ownParticipant = this.localParticipant;
+          if (ownParticipant) {
+            ownParticipant.isLoggedInUser = true;
+            ownParticipant.audioTrack = stream;
+            ownParticipant.videoTrack = stream;
+          }
+          this.stateStore.activeCallParticipantsSubject.next([
+            ...this.participants,
+          ]);
+          this.client.keepAlive();
+          resolve(callState);
+        }
+      });
+    });
+  };
+
   join = async (videoStream?: MediaStream, audioStream?: MediaStream) => {
     await this.client.signalReady;
 

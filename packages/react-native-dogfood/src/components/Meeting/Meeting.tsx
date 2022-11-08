@@ -8,10 +8,7 @@ import {
   Button,
   Linking,
 } from 'react-native';
-import InCallManager from 'react-native-incall-manager';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { RootStackParamList } from '../../../types';
 import { useCall } from '../../hooks/useCall';
 import {
   useAppGlobalStoreSetState,
@@ -22,16 +19,10 @@ import { meetingId } from '../../modules/helpers/meetingId';
 
 const APP_ID = 'streamrnvideosample';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
-
-const Meeting = ({ navigation }: Props) => {
+const Meeting = () => {
   const callID = useAppGlobalStoreValue((store) => store.callID);
-  const username = useAppGlobalStoreValue((store) => store.username);
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
-  );
-  const localMediaStream = useAppGlobalStoreValue(
-    (store) => store.localMediaStream,
   );
   const setState = useAppGlobalStoreSetState();
 
@@ -67,39 +58,11 @@ const Meeting = ({ navigation }: Props) => {
     configure();
   }, [setState]);
 
-  const { activeCall, activeCallMeta, getOrCreateCall } = useCall({
+  const { getOrCreateCall } = useCall({
     callId: callID,
     callType: 'default', // TODO: SANTHOSH -- what is this?
     autoJoin: true,
   });
-
-  useEffect(() => {
-    const joinSfuCall = async () => {
-      try {
-        if (activeCall && localMediaStream) {
-          InCallManager.start({ media: 'video' });
-          InCallManager.setForceSpeakerphoneOn(true);
-          // @ts-ignore
-          await activeCall.publishCombinedStream(localMediaStream);
-          setState({
-            activeCall: activeCallMeta,
-            call: activeCall,
-          });
-          navigation.navigate('ActiveCall');
-        }
-      } catch (err) {
-        console.warn('failed to join call', err);
-      }
-    };
-    joinSfuCall();
-  }, [
-    activeCall,
-    activeCallMeta,
-    localMediaStream,
-    navigation,
-    setState,
-    username,
-  ]);
 
   const handleCopyInviteLink = useCallback(
     () => Clipboard.setString(`${APP_ID}://callID/${callID}/`),
