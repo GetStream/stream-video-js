@@ -12,7 +12,7 @@ export const watchMuteStateChanged = (
     if (e.eventPayload.oneofKind !== 'muteStateChanged') return;
     const { muteStateChanged } = e.eventPayload;
     const participants = store.getCurrentValue(
-      store.activeCallParticipantsSubject,
+      store.activeCallAllParticipantsSubject,
     );
     const participantToUpdate = participants.find(
       (p) => p.user?.id === muteStateChanged.userId,
@@ -22,7 +22,7 @@ export const watchMuteStateChanged = (
     }
 
     store.setCurrentValue(
-      store.activeCallParticipantsSubject,
+      store.activeCallAllParticipantsSubject,
       participants.map((p) =>
         p.user?.id === participantToUpdate.user?.id
           ? {

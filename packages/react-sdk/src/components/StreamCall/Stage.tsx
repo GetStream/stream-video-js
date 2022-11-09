@@ -1,17 +1,22 @@
-import { Participant } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
+import { SfuModels } from '@stream-io/video-client';
 import { useCallback, useEffect } from 'react';
 import { Call } from '@stream-io/video-client';
-import { useParticipants } from '../../hooks/useParticipants';
+import {
+  useLocalParticipant,
+  useRemoteParticipants,
+} from '../../hooks/useParticipants';
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';
 import { ParticipantBox } from './ParticipantBox';
 
 export const Stage = (props: {
   call: Call;
-  participants: Participant[];
+  participants: SfuModels.Participant[];
   includeSelf: boolean;
 }) => {
   const { call, includeSelf } = props;
-  const participants = useParticipants();
+
+  const localParticipant = useLocalParticipant();
+  const remoteParticipants = useRemoteParticipants();
 
   const updateVideoSubscriptionForParticipant = useCallback(
     (sessionId: string, width: number, height: number) => {
@@ -36,25 +41,30 @@ export const Stage = (props: {
     }
   }, [call, localAudioStream, localVideoStream]);
 
-  const grid = `str-video__grid-${participants.length || 1}`;
+  const grid = `str-video__grid-${remoteParticipants.length + 1 || 1}`;
   return (
     <div className={`str-video__stage ${grid}`}>
-      {participants.map((participant) => {
-        const userId = participant.user!.id;
-        const isLocalParticipant = participant.isLoggedInUser;
-        const isAutoMuted = isLocalParticipant && !includeSelf;
-        return (
-          <ParticipantBox
-            key={`${userId}/${participant.sessionId}`}
-            participant={participant}
-            isMuted={isAutoMuted}
-            call={call}
-            updateVideoSubscriptionForParticipant={
-              updateVideoSubscriptionForParticipant
-            }
-          />
-        );
-      })}
+      {localParticipant && (
+        <ParticipantBox
+          participant={localParticipant}
+          isMuted={!includeSelf}
+          call={call}
+          updateVideoSubscriptionForParticipant={
+            updateVideoSubscriptionForParticipant
+          }
+        />
+      )}
+
+      {remoteParticipants.map((participant) => (
+        <ParticipantBox
+          key={participant.sessionId}
+          participant={participant}
+          call={call}
+          updateVideoSubscriptionForParticipant={
+            updateVideoSubscriptionForParticipant
+          }
+        />
+      ))}
     </div>
   );
 };

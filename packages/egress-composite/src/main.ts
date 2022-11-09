@@ -61,7 +61,9 @@ import './style.css';
   console.log('Connection is established.');
 
   store$.dominantSpeaker$.subscribe((userId) => {
-    const participants = store$.getCurrentValue(store$.activeCallParticipants$);
+    const participants = store$.getCurrentValue(
+      store$.activeCallAllParticipants$,
+    );
     const dominantSpeaker = participants.find((p) => p.user!.id === userId);
     if (dominantSpeaker) {
       call.updateSubscriptionsPartial({
@@ -97,17 +99,16 @@ import './style.css';
 
   let shuffleIntervalId: NodeJS.Timeout;
   const highlightSpeaker = createSpeakerUpdater(call);
+  store$.activeCallRemoteParticipants$.subscribe((remoteParticipants) => {
+    remoteParticipants.forEach(attachAudioTrack);
 
-  store$.activeCallParticipants$.subscribe((participants) => {
-    participants.forEach(attachAudioTrack);
-
-    console.log('participants updated', participants);
+    console.log('remoteParticipants updated', remoteParticipants);
     if (mode === 'speaker') {
-      const [loudestParticipant] = [...participants].sort((a, b) => {
+      const [loudestParticipant] = [...remoteParticipants].sort((a, b) => {
         return (b.audioLevel || 0) - (a.audioLevel || 0);
       });
 
-      const speaker = participants.find(
+      const speaker = remoteParticipants.find(
         (p) => p.user!.id === loudestParticipant.user!.id,
       );
 
@@ -115,12 +116,11 @@ import './style.css';
     } else if (mode === 'shuffle') {
       clearInterval(shuffleIntervalId);
       shuffleIntervalId = setInterval(() => {
-        const speakers = participants.filter(
-          (p) => p.user!.id !== 'egress@getstream.io',
-        );
-
         const randomSpeaker =
-          speakers[Math.floor(Math.random() * speakers.length)];
+          remoteParticipants[
+            Math.floor(Math.random() * remoteParticipants.length)
+          ];
+
         highlightSpeaker(randomSpeaker);
       }, 3500);
     }

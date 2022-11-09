@@ -31,7 +31,7 @@ export class CallComponent
   @ViewChild('participantsContainer')
   private participantsContainer!: ElementRef<HTMLElement>;
   @ViewChildren(ParticipantComponent)
-  private particpantComponents: ParticipantComponent[] = [];
+  private participantComponents: ParticipantComponent[] = [];
   private participantsContainerResizeObserver: ResizeObserver | undefined;
   private videoDimensionsSubject = new Subject<SubscriptionChanges>();
 
@@ -80,7 +80,7 @@ export class CallComponent
 
   private videoDimensionsChanged() {
     const changes: SubscriptionChanges = {};
-    this.particpantComponents.forEach((component) => {
+    this.participantComponents.forEach((component) => {
       changes[component.participant!.sessionId] = {
         videoDimension: component.videoDimension,
       };
