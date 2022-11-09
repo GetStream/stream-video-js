@@ -81,7 +81,7 @@ const LoginScreen = ({ navigation }: Props) => {
           coordinatorRpcUrl:
             'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
           coordinatorWsUrl:
-            'ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+            'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
           apiKey: 'key10', // see <video>/data/fixtures/apps.yaml for API key/secret
           apiSecret: 'secret10',
           user,
