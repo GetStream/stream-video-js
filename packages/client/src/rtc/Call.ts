@@ -1,4 +1,4 @@
-import { addSubscriberListeners } from './subscriber';
+import { createSubscriber } from './subscriber';
 import {
   defaultVideoLayers,
   findOptimalVideoLayers,
@@ -11,20 +11,18 @@ import {
   getReceiverCodecs,
   getSenderCodecs,
 } from './codecs';
-import { addPublisherListeners } from './publisher';
+import { createPublisher } from './publisher';
 import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
-import { SubscriptionChanges } from './types';
+import type { StreamVideoParticipant, SubscriptionChanges } from './types';
 import { debounceTime, Subject } from 'rxjs';
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
 };
-
-type MediaDeviceKind = 'audioinput' | 'audiooutput' | 'videoinput';
 
 export class Call {
   /**@deprecated use store for this data */
@@ -48,19 +46,19 @@ export class Call {
       stateStore.connectedUserSubject,
     )!.name;
     const { dispatcher, iceTrickleBuffer } = this.client;
-    this.subscriber = new RTCPeerConnection(this.options.connectionConfig);
-    addSubscriberListeners({
+    this.subscriber = createSubscriber({
       rpcClient: this.client,
+
       // FIXME: don't do this
       dispatcher: dispatcher,
-      subscriber: this.subscriber,
+      connectionConfig: this.options.connectionConfig,
       onTrack: this.handleOnTrack,
       candidates: iceTrickleBuffer.subscriberCandidates,
     });
-    this.publisher = new RTCPeerConnection(this.options.connectionConfig);
-    addPublisherListeners({
+
+    this.publisher = createPublisher({
       rpcClient: this.client,
-      publisher: this.publisher,
+      connectionConfig: this.options.connectionConfig,
       candidates: iceTrickleBuffer.publisherCandidates,
     });
 
@@ -73,18 +71,10 @@ export class Call {
       );
   }
 
-  // FIXME: change the call-sites in the SDK
-  /**
-   * @deprecated use `dispatcher.on`
-   */
   on = (eventName: string, fn: SfuEventListener) => {
     return this.client.dispatcher.on(eventName, fn);
   };
 
-  // FIXME: change the call-sites in the SDK
-  /**
-   * @deprecated use `dispatcher.off`
-   */
   off = (eventName: string, fn: SfuEventListener) => {
     return this.client.dispatcher.off(eventName, fn);
   };
@@ -100,83 +90,6 @@ export class Call {
     this.client.close();
 
     this.stateStore.activeCallSubject.next(undefined);
-  };
-
-  // FIXME: remove this, it is temporary for RN implementation
-  joinWithCombinedStream = async (stream?: MediaStream) => {
-    await this.client.signalReady;
-
-    if (this.joinResponseReady) {
-      throw new Error(`Illegal State: Already joined.`);
-    }
-    this.joinResponseReady = new Promise<CallState | undefined>(
-      async (resolve) => {
-        const [audioEncode, audioDecode, videoEncode, videoDecode] =
-          await Promise.all([
-            getSenderCodecs('audio'),
-            getReceiverCodecs('audio', this.subscriber),
-            getSenderCodecs('video'),
-            getReceiverCodecs('video', this.subscriber),
-          ]);
-
-        this.videoLayers = stream
-          ? await findOptimalVideoLayers(stream)
-          : defaultVideoLayers;
-
-        this.client.dispatcher.on('joinResponse', (event) => {
-          if (event.eventPayload.oneofKind !== 'joinResponse') return;
-          const callState = event.eventPayload.joinResponse.callState;
-          this.stateStore.activeCallSubject.next(this);
-          this.participants.push(...(callState?.participants || []));
-          const ownParticipant = this.localParticipant;
-          if (ownParticipant) {
-            ownParticipant.isLoggedInUser = true;
-            ownParticipant.audioTrack = stream;
-            ownParticipant.videoTrack = stream;
-          }
-          this.stateStore.activeCallParticipantsSubject.next([
-            ...this.participants,
-          ]);
-          this.client.keepAlive();
-          resolve(callState); // expose call state
-        });
-
-        this.client.send(
-          SfuRequest.create({
-            requestPayload: {
-              oneofKind: 'joinRequest',
-              joinRequest: {
-                sessionId: this.client.sessionId,
-                token: this.client.token,
-                publish: true,
-                // FIXME OL: encode parameters and video layers
-                // should be announced when initiating "publish" operation
-                codecSettings: {
-                  audio: {
-                    encodes: audioEncode,
-                    decodes: audioDecode,
-                  },
-                  video: {
-                    encodes: videoEncode,
-                    decodes: videoDecode,
-                  },
-                  layers: this.videoLayers.map((layer) => ({
-                    rid: layer.rid!,
-                    bitrate: layer.maxBitrate!,
-                    videoDimension: {
-                      width: layer.width,
-                      height: layer.height,
-                    },
-                  })),
-                },
-              },
-            },
-          }),
-        );
-      },
-    );
-
-    return this.joinResponseReady;
   };
 
   join = async (videoStream?: MediaStream, audioStream?: MediaStream) => {
@@ -202,19 +115,24 @@ export class Call {
 
         this.client.dispatcher.on('joinResponse', (event) => {
           if (event.eventPayload.oneofKind !== 'joinResponse') return;
-          const callState = event.eventPayload.joinResponse.callState;
-          this.stateStore.activeCallSubject.next(this);
-          this.participants.push(...(callState?.participants || []));
-          const ownParticipant = this.localParticipant;
-          if (ownParticipant) {
-            ownParticipant.isLoggedInUser = true;
-            ownParticipant.audioTrack = audioStream;
-            ownParticipant.videoTrack = videoStream;
-          }
-          this.stateStore.activeCallParticipantsSubject.next([
-            ...this.participants,
-          ]);
+
+          const { callState } = event.eventPayload.joinResponse;
+          const currentParticipants = callState?.participants || [];
+          this.stateStore.setCurrentValue(
+            this.stateStore.activeCallAllParticipantsSubject,
+            currentParticipants.map<StreamVideoParticipant>((participant) => {
+              if (participant.sessionId === this.client.sessionId) {
+                const localParticipant = participant as StreamVideoParticipant;
+                localParticipant.isLoggedInUser = true;
+                localParticipant.audioTrack = audioStream;
+                localParticipant.videoTrack = videoStream;
+              }
+              return participant;
+            }),
+          );
           this.client.keepAlive();
+          this.stateStore.activeCallSubject.next(this);
+
           resolve(callState); // expose call state
         });
 
@@ -275,7 +193,7 @@ export class Call {
 
       const [videoTrack] = videoStream.getVideoTracks();
       if (videoTrack) {
-        const videoTransceiver = this.publisher?.addTransceiver(videoTrack, {
+        const videoTransceiver = this.publisher.addTransceiver(videoTrack, {
           direction: 'sendonly',
           streams: [videoStream],
           sendEncodings: videoEncodings,
@@ -289,12 +207,18 @@ export class Call {
         }
       }
 
-      if (this.localParticipant) {
-        this.localParticipant.videoTrack = videoStream;
-        this.stateStore.activeCallParticipantsSubject.next([
-          ...this.participants,
-        ]);
-      }
+      this.stateStore.setCurrentValue(
+        this.stateStore.activeCallAllParticipantsSubject,
+        this.participants.map((p) => {
+          if (p.sessionId === this.client.sessionId) {
+            return {
+              ...p,
+              videoTrack: videoStream,
+            };
+          }
+          return p;
+        }),
+      );
     }
 
     if (audioStream) {
@@ -305,71 +229,18 @@ export class Call {
         });
       }
 
-      if (this.localParticipant) {
-        this.localParticipant.audioTrack = audioStream;
-        this.stateStore.activeCallParticipantsSubject.next([
-          ...this.participants,
-        ]);
-      }
-    }
-  };
-
-  // FIXME: remove this, it is temporary for RN implementation
-  publishWithCombinedStream = async (stream?: MediaStream) => {
-    if (!this.joinResponseReady) {
-      throw new Error(
-        `Illegal State: Can't publish. Please join the call first`,
+      this.stateStore.setCurrentValue(
+        this.stateStore.activeCallAllParticipantsSubject,
+        this.participants.map((p) => {
+          if (p.sessionId === this.client.sessionId) {
+            return {
+              ...p,
+              audioTrack: audioStream,
+            };
+          }
+          return p;
+        }),
       );
-    }
-
-    // wait until we get a JoinResponse from the SFU, otherwise we risk
-    // breaking the ICETrickle flow.
-    await this.joinResponseReady;
-
-    if (stream) {
-      const videoEncodings: RTCRtpEncodingParameters[] =
-        this.videoLayers && this.videoLayers.length > 0
-          ? this.videoLayers
-          : defaultVideoPublishEncodings;
-
-      const [videoTrack] = stream.getVideoTracks();
-      if (videoTrack) {
-        const videoTransceiver = this.publisher?.addTransceiver(videoTrack, {
-          direction: 'sendonly',
-          streams: [stream],
-          sendEncodings: videoEncodings,
-        });
-
-        const codecPreferences = getPreferredCodecs('video', 'vp8');
-        // @ts-ignore
-        if ('setCodecPreferences' in videoTransceiver && codecPreferences) {
-          console.log(`set codec preferences`, codecPreferences);
-          videoTransceiver.setCodecPreferences(codecPreferences);
-        }
-      }
-
-      if (this.localParticipant) {
-        this.localParticipant.videoTrack = stream;
-        this.stateStore.activeCallParticipantsSubject.next([
-          ...this.participants,
-        ]);
-      }
-    }
-
-    if (stream) {
-      const [audioTrack] = stream.getAudioTracks();
-      if (audioTrack) {
-        this.publisher?.addTransceiver(audioTrack, {
-          direction: 'sendonly',
-        });
-      }
-
-      if (this.localParticipant) {
-        this.localParticipant.audioTrack = stream;
-        this.stateStore.activeCallParticipantsSubject.next([
-          ...this.participants,
-        ]);
-      }
     }
   };
 
@@ -386,17 +257,20 @@ export class Call {
     if (Object.keys(changes).length === 0) {
       return;
     }
-    Object.keys(changes).forEach((sessionId) => {
-      const change = changes[sessionId];
-      const participantToUpdate = this.findParticipant(sessionId);
-      if (!participantToUpdate) {
-        return;
-      }
-      participantToUpdate.videoDimension = change.videoDimension;
-      this.stateStore.activeCallParticipantsSubject.next([
-        ...this.participants,
-      ]);
-    });
+
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeCallAllParticipantsSubject,
+      this.participants.map((participant) => {
+        const change = changes[participant.sessionId];
+        if (change) {
+          return {
+            ...participant,
+            videoDimension: change.videoDimension,
+          };
+        }
+        return participant;
+      }),
+    );
 
     this.updateSubscriptions(includeCurrentUser);
   };
@@ -510,7 +384,6 @@ export class Call {
 
     const params = await videoSender.getParameters();
     let changed = false;
-    // @ts-ignore
     params.encodings.forEach((enc) => {
       console.log(enc.rid, enc.active);
       // flip 'active' flag only when necessary
@@ -521,7 +394,6 @@ export class Call {
       }
     });
     if (changed) {
-      // @ts-ignore
       if (params.encodings.length === 0) {
         console.warn('No suitable video encoding quality found');
       }
@@ -545,39 +417,49 @@ export class Call {
 
   private get participants() {
     return this.stateStore.getCurrentValue(
-      this.stateStore.activeCallParticipantsSubject,
+      this.stateStore.activeCallAllParticipantsSubject,
     );
-  }
-
-  private findParticipant(sessionId: string) {
-    return this.participants.find((p) => p.sessionId === sessionId);
-  }
-
-  private get localParticipant() {
-    return this.findParticipant(this.client.sessionId);
   }
 
   private handleOnTrack = (e: RTCTrackEvent) => {
     console.log('Got remote track:', e.track);
     const [primaryStream] = e.streams;
     const [trackId] = primaryStream.id.split(':');
-    const participant = this.participants.find(
+    const participantToUpdate = this.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );
-    if (!participant) {
-      console.warn('Received track from not existing participant', trackId);
+    if (!participantToUpdate) {
+      console.warn('Received track for unknown participant', trackId, e);
       return;
     }
     if (e.track.kind === 'video') {
-      participant.videoTrack = primaryStream;
-      this.stateStore.activeCallParticipantsSubject.next([
-        ...this.participants,
-      ]);
+      this.stateStore.setCurrentValue(
+        this.stateStore.activeCallAllParticipantsSubject,
+        this.participants.map((participant) => {
+          if (participant.trackLookupPrefix === trackId) {
+            return {
+              // FIXME OL: shallow clone, switch to deep clone
+              ...participant,
+              videoTrack: primaryStream,
+            };
+          }
+          return participant;
+        }),
+      );
     } else if (e.track.kind === 'audio') {
-      participant.audioTrack = primaryStream;
-      this.stateStore.activeCallParticipantsSubject.next([
-        ...this.participants,
-      ]);
+      this.stateStore.setCurrentValue(
+        this.stateStore.activeCallAllParticipantsSubject,
+        this.participants.map((participant) => {
+          if (participant.trackLookupPrefix === trackId) {
+            return {
+              // FIXME OL: shallow clone, switch to deep clone
+              ...participant,
+              audioTrack: primaryStream,
+            };
+          }
+          return participant;
+        }),
+      );
     }
   };
 }

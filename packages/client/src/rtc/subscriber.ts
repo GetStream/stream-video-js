@@ -2,25 +2,23 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { Dispatcher } from './Dispatcher';
 import { ICETrickle, PeerType } from '../gen/video/sfu/models/models';
 import { ReplaySubject } from 'rxjs';
-import { getIceCandidate } from './helpers/iceCandidate';
 
-export type SubscriberOpts<RTCPeerConnectionType extends RTCPeerConnection> = {
+export type SubscriberOpts = {
   rpcClient: StreamSfuClient;
   dispatcher: Dispatcher;
+  connectionConfig?: RTCConfiguration;
   onTrack?: (e: RTCTrackEvent) => void;
   candidates: ReplaySubject<ICETrickle>;
-  subscriber: RTCPeerConnectionType;
 };
 
-export const addSubscriberListeners = <
-  RTCPeerConnectionType extends RTCPeerConnection,
->({
+export const createSubscriber = ({
   rpcClient,
   dispatcher,
+  connectionConfig,
   onTrack,
   candidates,
-  subscriber,
-}: SubscriberOpts<RTCPeerConnectionType>) => {
+}: SubscriberOpts) => {
+  const subscriber = new RTCPeerConnection(connectionConfig);
   subscriber.addEventListener('icecandidate', async (e) => {
     const { candidate } = e;
     if (!candidate) {
@@ -30,7 +28,7 @@ export const addSubscriberListeners = <
 
     await rpcClient.rpc.iceTrickle({
       sessionId: rpcClient.sessionId,
-      iceCandidate: getIceCandidate(candidate),
+      iceCandidate: JSON.stringify(candidate.toJSON()),
       peerType: PeerType.SUBSCRIBER,
     });
   });
@@ -85,4 +83,6 @@ export const addSubscriberListeners = <
       sdp: answer.sdp || '',
     });
   });
+
+  return subscriber;
 };

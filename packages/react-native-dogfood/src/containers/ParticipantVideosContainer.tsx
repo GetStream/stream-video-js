@@ -71,7 +71,7 @@ const ParticipantVideosContainer = () => {
     );
   }
   const participants = useObservableValue(
-    videoClient.readOnlyStateStore.activeCallParticipants$,
+    videoClient.readOnlyStateStore.activeCallAllParticipants$,
   );
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
