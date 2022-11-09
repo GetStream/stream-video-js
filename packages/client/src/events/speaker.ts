@@ -38,22 +38,22 @@ export const watchAudioLevelChanged = (
       {},
     );
 
-    const participantsSubject = store.activeCallParticipantsSubject;
+    const participantsSubject = store.activeCallAllParticipantsSubject;
     const participants = store.getCurrentValue(participantsSubject);
     store.setCurrentValue(
       participantsSubject,
-      participants.map((p) => {
-        const { id } = p.user!;
+      participants.map((participant) => {
+        const { id } = participant.user!;
         const audioLevel = userIdLookup[id];
-        if (typeof audioLevel !== 'undefined' && p.audioLevel !== audioLevel) {
+        if (participant.audioLevel !== audioLevel) {
           // FIXME OL: consider doing deep-clone
           return {
-            ...p,
+            ...participant,
             audioLevel,
             isSpeaking: audioLevel >= SPEAKING_THRESHOLD,
           };
         }
-        return p;
+        return participant;
       }),
     );
   });
