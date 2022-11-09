@@ -1,0 +1,22 @@
+<div class="str-video__call-controls">
+  <button
+    class="str-video__call-controls__button"
+    [ngClass]="{
+      'str-video__call-controls__button--icon-mic': localParticipant?.audio,
+      'str-video__call-controls__button--icon-mic-off': !localParticipant?.audio
+    }"
+    (click)="updateAudioMutaState()"
+  ></button>
+  <button
+    class="str-video__call-controls__button"
+    [ngClass]="{
+      'str-video__call-controls__button--icon-camera': localParticipant?.video,
+      'str-video__call-controls__button--icon-camera-off': !localParticipant?.video
+    }"
+    (click)="updateVideoMutaState()"
+  ></button>
+  <button
+    class="str-video__call-controls__button str-video__call-controls__button--icon-call-end str-video__call-controls__button--variant-danger"
+    (click)="endCall()"
+  ></button>
+</div>

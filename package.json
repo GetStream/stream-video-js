@@ -17,7 +17,7 @@
     "build:client": "yarn workspace @stream-io/video-client run build",
     "start:client": "yarn workspace @stream-io/video-client run start",
     "start:react:app": "yarn workspace @stream-io/video-react-sample-app run start",
-    "start:angular:app": "yarn workspace angular-sdk run start",
+    "start:angular": "yarn workspace angular-sdk run start",
     "start:react-native:ios:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run ios",
     "start:react-native:android:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run android",
     "build:vercel": "yarn build:client && yarn build:styling && yarn build:react:sdk && yarn build:react:dogfood",
