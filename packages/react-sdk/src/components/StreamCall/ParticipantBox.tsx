@@ -1,10 +1,9 @@
 import clsx from 'clsx';
-import { useEffect, useRef, useState } from 'react';
-import { useIsDebugMode } from '../../hooks/useIsDebugMode';
+import { useEffect, useRef } from 'react';
 import { Call, StreamVideoParticipant } from '@stream-io/video-client';
-import { SfuEvent } from '@stream-io/video-client/dist/src/gen/video/sfu/event/events';
-import { useRtcStats } from '../../hooks/useRtcStats';
-import { usePopper } from 'react-popper';
+import { useIsDebugMode } from '../Debug/useIsDebugMode';
+import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
+import { DebugStatsView } from '../Debug/DebugStatsView';
 
 export const ParticipantBox = (props: {
   participant: StreamVideoParticipant;
@@ -112,7 +111,7 @@ export const ParticipantBox = (props: {
                 participant={participant}
                 call={call}
               />
-              <StatsView
+              <DebugStatsView
                 call={call}
                 kind={isLocalParticipant ? 'publisher' : 'subscriber'}
                 mediaStream={videoStream}
@@ -122,109 +121,5 @@ export const ParticipantBox = (props: {
         </div>
       </div>
     </div>
-  );
-};
-
-const StatsView = (props: {
-  call: Call;
-  kind: 'subscriber' | 'publisher';
-  mediaStream?: MediaStream;
-}) => {
-  const { call, kind, mediaStream } = props;
-  const stats = useRtcStats(call, kind, mediaStream);
-
-  const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
-  const [popover, setPopover] = useState<HTMLDivElement | null>(null);
-  const { styles, attributes } = usePopper(anchor, popover);
-  const [isPopperOpen, setIsPopperOpen] = useState(false);
-
-  const [videoTrack] = mediaStream?.getVideoTracks() ?? [];
-  const settings = videoTrack?.getSettings();
-  return (
-    <>
-      <span
-        className="str-video__debug__track-stats-icon"
-        tabIndex={0}
-        ref={setAnchor}
-        title={
-          settings &&
-          `${settings.width}x${settings.height}@${Math.round(
-            settings.frameRate || 0,
-          )}`
-        }
-        onClick={() => {
-          setIsPopperOpen((v) => !v);
-        }}
-      />
-      {isPopperOpen && (
-        <div
-          className="str-video__debug__track-stats"
-          ref={setPopover}
-          style={styles.popper}
-          {...attributes.popper}
-        >
-          <pre>{JSON.stringify(stats, null, 2)}</pre>
-        </div>
-      )}
-    </>
-  );
-};
-
-const DebugParticipantPublishQuality = (props: {
-  participant: StreamVideoParticipant;
-  call: Call;
-  updateVideoSubscriptionForParticipant: (
-    sessionId: string,
-    width: number,
-    height: number,
-  ) => void;
-}) => {
-  const { call, participant, updateVideoSubscriptionForParticipant } = props;
-  const [quality, setQuality] = useState<string>();
-  const [publishStats, setPublishStats] = useState(() => ({
-    f: true,
-    h: true,
-    q: true,
-  }));
-
-  useEffect(() => {
-    return call.on('changePublishQuality', (event: SfuEvent) => {
-      if (event.eventPayload.oneofKind !== 'changePublishQuality') return;
-      const { videoSenders } = event.eventPayload.changePublishQuality;
-      // FIXME OL: support additional layers (like screenshare)
-      const [videoLayer] = videoSenders.map(({ layers }) => {
-        return layers.map((l) => ({ [l.name]: l.active }));
-      });
-      // @ts-ignore
-      setPublishStats((s) => ({
-        ...s,
-        ...videoLayer,
-      }));
-    });
-  }, [call]);
-
-  return (
-    <select
-      title={`Published tracks: ${JSON.stringify(publishStats)}`}
-      value={quality}
-      onChange={(e) => {
-        const value = e.target.value;
-        setQuality(value);
-        let w = 1280;
-        let h = 720;
-        if (value === 'h') {
-          w = 640;
-          h = 480;
-        } else if (value === 'q') {
-          w = 320;
-          h = 240;
-        }
-        updateVideoSubscriptionForParticipant(participant.sessionId, w, h);
-      }}
-    >
-      <option value="f">High (f)</option>
-      <option value="h">Medium (h)</option>
-      <option value="q">Low (q)</option>
-    </select>
   );
 };

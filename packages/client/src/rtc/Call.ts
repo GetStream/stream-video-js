@@ -24,6 +24,10 @@ export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
 };
 
+export type PublishOptions = {
+  preferredVideoCodec?: string | null;
+};
+
 export class Call {
   /**@deprecated use store for this data */
   currentUserId: string;
@@ -174,7 +178,11 @@ export class Call {
     return this.joinResponseReady;
   };
 
-  publish = async (audioStream?: MediaStream, videoStream?: MediaStream) => {
+  publish = async (
+    audioStream?: MediaStream,
+    videoStream?: MediaStream,
+    opts: PublishOptions = {},
+  ) => {
     if (!this.joinResponseReady) {
       throw new Error(
         `Illegal State: Can't publish. Please join the call first`,
@@ -199,7 +207,10 @@ export class Call {
           sendEncodings: videoEncodings,
         });
 
-        const codecPreferences = getPreferredCodecs('video', 'vp8');
+        const codecPreferences = getPreferredCodecs(
+          'video',
+          opts.preferredVideoCodec || 'vp8',
+        );
         // @ts-ignore
         if ('setCodecPreferences' in videoTransceiver && codecPreferences) {
           console.log(`set codec preferences`, codecPreferences);

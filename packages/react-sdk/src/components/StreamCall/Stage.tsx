@@ -7,6 +7,7 @@ import {
 } from '../../hooks/useParticipants';
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';
 import { ParticipantBox } from './ParticipantBox';
+import { useDebugPreferredVideoCodec } from '../Debug/useIsDebugMode';
 
 export const Stage = (props: {
   call: Call;
@@ -35,11 +36,18 @@ export const Stage = (props: {
   const { audioStream: localAudioStream, videoStream: localVideoStream } =
     useMediaDevices();
 
+  const preferredCodec = useDebugPreferredVideoCodec();
   useEffect(() => {
     if (localAudioStream && localVideoStream) {
-      call.publish(localAudioStream, localVideoStream);
+      call
+        .publish(localAudioStream, localVideoStream, {
+          preferredVideoCodec: preferredCodec,
+        })
+        .catch((e) => {
+          console.error(`Failed to publish`, e);
+        });
     }
-  }, [call, localAudioStream, localVideoStream]);
+  }, [call, localAudioStream, localVideoStream, preferredCodec]);
 
   const grid = `str-video__grid-${remoteParticipants.length + 1 || 1}`;
   return (
