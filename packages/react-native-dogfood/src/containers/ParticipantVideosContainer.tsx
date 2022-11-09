@@ -70,7 +70,8 @@ const ParticipantVideosContainer = () => {
       "StreamVideoClient isn't initialized -- ParticipantVideosContainer",
     );
   }
-  const participants = useObservableValue(
+
+  const allParticipants = useObservableValue(
     videoClient.readOnlyStateStore.activeCallAllParticipants$,
   );
   const loopbackMyVideo = useAppGlobalStoreValue(
@@ -92,8 +93,12 @@ const ParticipantVideosContainer = () => {
   );
 
   const filteredParticipants = loopbackMyVideo
-    ? participants
-    : participants.filter((p) => !p.isLoggedInUser);
+    ? allParticipants
+    : allParticipants.filter((p) => !p.isLoggedInUser);
+
+  if (filteredParticipants.length === 0) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
@@ -107,7 +112,7 @@ const ParticipantVideosContainer = () => {
               updateVideoSubscriptionForParticipant
             }
             call={call}
-            isLastParticipant={index === participants.length - 1}
+            isLastParticipant={index === allParticipants.length - 1}
           />
         );
       })}

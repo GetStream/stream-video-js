@@ -15,8 +15,8 @@ const VideoRenderer = () => {
       "StreamVideoClient isn't initialized -- ParticipantVideosContainer",
     );
   }
-  const participants = useObservableValue(
-    videoClient.readOnlyStateStore.activeCallParticipants$,
+  const remoteParticipants = useObservableValue(
+    videoClient.readOnlyStateStore.activeCallRemoteParticipants$,
   );
   const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
   const username = useAppGlobalStoreValue((store) => store.username);
@@ -31,14 +31,16 @@ const VideoRenderer = () => {
           // @ts-ignore
           mirror={!cameraBackFacingMode}
           streamURL={localMediaStream.toURL()}
-          style={participants.length > 2 ? styles.selfView : styles.stream}
+          style={
+            remoteParticipants.length > 0 ? styles.selfView : styles.stream
+          }
           objectFit="cover"
           zOrder={1}
         />
       ) : (
         <View
           style={[
-            participants.length > 2 ? styles.selfView : styles.stream,
+            remoteParticipants.length > 0 ? styles.selfView : styles.stream,
             styles.avatarContainer,
           ]}
         >
