@@ -38,7 +38,18 @@ export const addSubscriberListeners = <
     console.error(`Subscriber: ICE Candidate error`, e);
   });
   subscriber.addEventListener('iceconnectionstatechange', (e) => {
-    console.log(`Subscriber: ICE Connection state changed`, e);
+    console.log(
+      `Subscriber: ICE Connection state changed`,
+      subscriber.iceConnectionState,
+      e,
+    );
+  });
+  subscriber.addEventListener('icegatheringstatechange', (e) => {
+    console.log(
+      `Subscriber: ICE Gathering State`,
+      subscriber.iceGatheringState,
+      e,
+    );
   });
 
   if (onTrack) {

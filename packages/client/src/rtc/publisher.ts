@@ -32,7 +32,18 @@ export const addPublisherListeners = <
     console.error(`Publisher: ICE Candidate error`, e);
   });
   publisher.addEventListener('iceconnectionstatechange', (e) => {
-    console.log(`Publisher: ICE Connection state changed`, e);
+    console.log(
+      `Publisher: ICE Connection state changed`,
+      publisher.iceConnectionState,
+      e,
+    );
+  });
+  publisher.addEventListener('icegatheringstatechange', (e) => {
+    console.log(
+      `Publisher: ICE Gathering State`,
+      publisher.iceGatheringState,
+      e,
+    );
   });
 
   // will fire once media is attached to the peer connection

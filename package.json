@@ -40,7 +40,7 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.7.1",
-    "vercel": "^28.4.12"
+    "vercel": "^28.4.14"
   },
   "resolutions": {
     "react-native-pure-jwt@^3.0.1": "patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch",

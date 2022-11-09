@@ -93,6 +93,11 @@ const JoinCall = () => {
                   return e.target.value.length < 3;
                 })
               }
+              onKeyUp={(e) => {
+                if (e.key === 'Enter') {
+                  onJoin();
+                }
+              }}
               size="small"
               startAdornment={
                 <InputAdornment position="start">

@@ -13,6 +13,7 @@ import {
   createTheme,
   ThemeProvider,
 } from '@mui/material';
+import Head from 'next/head';
 
 const theme = createTheme({
   palette: {
@@ -36,6 +37,11 @@ export default function App({
 }) {
   return (
     <SessionProvider session={session}>
+      <Head>
+        <title>Stream Calls</title>
+        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      </Head>
+
       <CssBaseline />
       <ThemeProvider theme={theme}>
         <Stack height="100vh">

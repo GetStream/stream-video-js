@@ -48,8 +48,7 @@ export const useCall = ({
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
         await call.joinWithCombinedStream(localMediaStream);
-        // @ts-ignore
-        await call.publishCombinedStream(localMediaStream);
+        await call.publishWithCombinedStream(localMediaStream);
         setState({
           call: call,
         });

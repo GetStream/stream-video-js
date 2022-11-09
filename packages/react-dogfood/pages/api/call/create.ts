@@ -23,6 +23,11 @@ const createCallSlackHookAPI = async (
 
   console.log(`Received input`, req.body);
   const initiator = req.body.user_name || 'Stream';
+  const args = req.body.text || '';
+  const debugMode =
+    args.includes('--debug') ||
+    args.includes('-debug') ||
+    args.includes('debug');
 
   try {
     const response = await client.getOrCreateCall({
@@ -35,7 +40,15 @@ const createCallSlackHookAPI = async (
         ? 'https://'
         : 'http://';
 
-      const joinUrl = [protocol, req.headers.host, '/join/', call.id].join('');
+      const joinUrl = [
+        protocol,
+        req.headers.host,
+        '/join/',
+        call.id,
+        debugMode && '?debug=true',
+      ]
+        .filter(Boolean)
+        .join('');
       return res.status(200).json({
         response_type: 'in_channel',
         blocks: [
