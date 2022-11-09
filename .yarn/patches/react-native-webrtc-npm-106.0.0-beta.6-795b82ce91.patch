@@ -1,13 +1,12 @@
 diff --git a/src/RTCPeerConnection.ts b/src/RTCPeerConnection.ts
-index 20de0069ce6137c1a10f65c2164084cf124c7ffe..8e87e8f7b3e2a134eb810c33561274af696e553b 100644
+index 20de0069ce6137c1a10f65c2164084cf124c7ffe..46d89f399f65af135789b23ecd51258ce9df94f7 100644
 --- a/src/RTCPeerConnection.ts
 +++ b/src/RTCPeerConnection.ts
-@@ -497,7 +497,7 @@ export default class RTCPeerConnection extends defineCustomEventTarget(...PEER_C
+@@ -497,6 +497,7 @@ export default class RTCPeerConnection extends defineCustomEventTarget(...PEER_C
  
              if (oldTransceiver) {
                  transceiver = oldTransceiver;
--                track = transceiver._receiver._track;
 +                transceiver._receiver._track =  new MediaStreamTrack(transceiver._receiver._track);
+                 track = transceiver._receiver._track;
                  transceiver._mid = ev.transceiver.mid;
                  transceiver._currentDirection = ev.transceiver.currentDirection;
-                 transceiver._direction = ev.transceiver.direction;
