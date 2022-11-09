@@ -14,7 +14,9 @@ export class StreamVideoService {
   user$: Observable<UserInput | undefined>;
   activeCall$: Observable<Call | undefined>;
   pendingCalls$: Observable<Call[]>;
-  activeCallParticipants$: Observable<StreamVideoParticipant[]>;
+  activeCallAllParticipants$: Observable<StreamVideoParticipant[]>;
+  activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
+  activeCallLocalParticipant$: Observable<StreamVideoParticipant | undefined>;
   videoClient: StreamVideoClient | undefined;
   private userSubject: ReplaySubject<UserInput | undefined> = new ReplaySubject(
     1,
@@ -22,8 +24,14 @@ export class StreamVideoService {
   private activeCallSubject: ReplaySubject<Call | undefined> =
     new ReplaySubject(1);
   private pendingCallsSubject: ReplaySubject<Call[]> = new ReplaySubject(1);
-  private activeCallParticipantsSubject: ReplaySubject<
+  private activeCallAllParticipantsSubject: ReplaySubject<
     StreamVideoParticipant[]
+  > = new ReplaySubject(1);
+  private activeCallRemoteParticipantsSubject: ReplaySubject<
+    StreamVideoParticipant[]
+  > = new ReplaySubject(1);
+  private activeCallLocalParticipantSubject: ReplaySubject<
+    StreamVideoParticipant | undefined
   > = new ReplaySubject(1);
   private subscriptions: Subscription[] = [];
 
@@ -31,8 +39,12 @@ export class StreamVideoService {
     this.user$ = this.userSubject.asObservable();
     this.activeCall$ = this.activeCallSubject.asObservable();
     this.pendingCalls$ = this.pendingCallsSubject.asObservable();
-    this.activeCallParticipants$ =
-      this.activeCallParticipantsSubject.asObservable();
+    this.activeCallAllParticipants$ =
+      this.activeCallAllParticipantsSubject.asObservable();
+    this.activeCallRemoteParticipants$ =
+      this.activeCallRemoteParticipantsSubject.asObservable();
+    this.activeCallLocalParticipant$ =
+      this.activeCallLocalParticipantSubject.asObservable();
   }
 
   init(
@@ -72,7 +84,17 @@ export class StreamVideoService {
     );
     this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.activeCallAllParticipants$.subscribe(
-        this.activeCallParticipantsSubject,
+        this.activeCallAllParticipantsSubject,
+      ),
+    );
+    this.subscriptions.push(
+      this.videoClient.readOnlyStateStore?.activeCallRemoteParticipants$.subscribe(
+        this.activeCallRemoteParticipantsSubject,
+      ),
+    );
+    this.subscriptions.push(
+      this.videoClient.readOnlyStateStore?.activeCallLocalParticipant$.subscribe(
+        this.activeCallLocalParticipantSubject,
       ),
     );
 

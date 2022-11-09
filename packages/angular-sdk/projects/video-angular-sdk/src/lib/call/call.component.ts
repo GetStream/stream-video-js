@@ -1,6 +1,6 @@
 import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
 import { Call, StreamVideoParticipant } from '@stream-io/video-client';
-import { map, Observable, Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
 @Component({
@@ -16,10 +16,9 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
   private participantsContainerResizeObserver: ResizeObserver | undefined;
 
   constructor(private streamVideoService: StreamVideoService) {
-    this.participants$ = this.streamVideoService.activeCallParticipants$;
-    this.localParticipant$ = this.participants$.pipe(
-      map((participants) => participants.find((p) => p.isLoggedInUser)),
-    );
+    this.participants$ = this.streamVideoService.activeCallRemoteParticipants$;
+    this.localParticipant$ =
+      this.streamVideoService.activeCallLocalParticipant$;
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe(async (c) => {
         this.call = c!;
