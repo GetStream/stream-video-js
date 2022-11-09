@@ -37,7 +37,6 @@ export const createPublisher = ({
 
   // will fire once media is attached to the peer connection
   publisher.addEventListener('negotiationneeded', async () => {
-    console.log('AAA onNegotiationNeeded ');
     const offer = (await publisher.createOffer({})) as RTCSessionDescription;
     await publisher.setLocalDescription(offer);
 

@@ -23,7 +23,7 @@ export const HomeScreen = ({ navigation, route }: Props) => {
       {selectedTab === 'Meeting' ? (
         <Meeting navigation={navigation} route={route} />
       ) : (
-        <Ringing />
+        <Ringing navigation={navigation} route={route} />
       )}
     </View>
   );

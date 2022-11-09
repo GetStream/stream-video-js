@@ -5,7 +5,9 @@ import {
   Credentials,
   Envelopes,
   StreamVideoClient,
+  MemberInput,
 } from '@stream-io/video-client';
+import RNCallKeep from 'react-native-callkeep';
 
 export type UseCallParams = {
   videoClient: StreamVideoClient | undefined;
@@ -13,6 +15,9 @@ export type UseCallParams = {
   callType: string;
   currentUser: string;
   autoJoin: boolean;
+  ring?: boolean;
+  members?: MemberInput[];
+  displayIncomingCallNow?: () => void;
 };
 
 export const useCall = ({
@@ -20,7 +25,10 @@ export const useCall = ({
   callId,
   callType,
   currentUser,
+  displayIncomingCallNow,
   autoJoin,
+  members,
+  ring,
 }: UseCallParams) => {
   const [activeCall, setActiveCall] = useState<CallMeta.Call>();
   const [credentials, setCredentials] = useState<Credentials>();
@@ -30,12 +38,26 @@ export const useCall = ({
       if (!videoClient) {
         return;
       }
-      const result = await videoClient.joinCallRaw({
-        id,
-        type,
-        // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
-        datacenterId: 'amsterdam',
-      });
+      let result;
+      if (members && ring) {
+        result = await videoClient.joinCallRaw({
+          id,
+          type,
+          // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
+          datacenterId: 'amsterdam',
+          input: {
+            ring: ring,
+            members: members,
+          },
+        });
+      } else {
+        result = await videoClient.joinCallRaw({
+          id,
+          type,
+          // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
+          datacenterId: 'amsterdam',
+        });
+      }
       if (result) {
         const { response, edge } = result;
         if (response.call && response.call.call && response.edges) {
@@ -44,17 +66,29 @@ export const useCall = ({
         }
       }
     },
-    [videoClient],
+    [videoClient, members, ring],
   );
 
   const getOrCreateCall = useCallback(async () => {
     if (!videoClient) {
       return;
     }
-    const callMetadata = await videoClient.getOrCreateCall({
-      id: callId,
-      type: callType,
-    });
+    let callMetadata;
+    if (ring && members) {
+      callMetadata = await videoClient.getOrCreateCall({
+        id: callId,
+        type: callType,
+        input: {
+          ring: true,
+          members: members,
+        },
+      });
+    } else {
+      callMetadata = await videoClient.getOrCreateCall({
+        id: callId,
+        type: callType,
+      });
+    }
     if (callMetadata) {
       if (autoJoin) {
         joinCall(callId, callType);
@@ -62,7 +96,7 @@ export const useCall = ({
         setActiveCall(callMetadata.call);
       }
     }
-  }, [autoJoin, callId, callType, joinCall, videoClient]);
+  }, [autoJoin, callId, callType, joinCall, videoClient, members, ring]);
 
   useEffect(() => {
     const onCallCreated = (event: CallCreated, _envelopes?: Envelopes) => {
@@ -71,6 +105,13 @@ export const useCall = ({
         console.warn("Can't find call in CallCreated event");
         return;
       }
+      RNCallKeep.displayIncomingCall(
+        call.callCid.split(':')[1],
+        '2738282929',
+        call.createdByUserId,
+        'generic',
+        true,
+      );
       // initiator, immediately joins the call
       if (call.createdByUserId === currentUser) {
         joinCall(call.id, call.type).then(() => {
@@ -79,7 +120,7 @@ export const useCall = ({
       }
     };
     return videoClient?.on('callCreated', onCallCreated);
-  }, [currentUser, joinCall, videoClient]);
+  }, [currentUser, joinCall, videoClient, displayIncomingCallNow]);
 
   // useEffect(() => {
   //   return client?.on(

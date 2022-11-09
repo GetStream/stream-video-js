@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import { StreamSfuClient } from '@stream-io/video-client';
+import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Button,
-  PermissionsAndroid,
   Pressable,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import RNCallKeep from 'react-native-callkeep';
@@ -16,6 +15,12 @@ import {
   useAppGlobalStoreValue,
   useAppGlobalStoreSetState,
 } from '../../contexts/AppContext';
+import { useSessionId } from '../../hooks/useSessionId';
+import { Call } from '../../modules/Call';
+import InCallManager from 'react-native-incall-manager';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../types';
+import { getOrCreateCall } from '../../utils/callUtils';
 
 const styles = StyleSheet.create({
   container: {
@@ -51,13 +56,19 @@ const styles = StyleSheet.create({
   },
 });
 
-const Ringing = () => {
+type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
+
+const Ringing = ({ navigation }: Props) => {
   const [logText, setLog] = useState('');
   const [heldCalls, setHeldCalls] = useState({}); // callKeep uuid: held
   const [calls, setCalls] = useState({}); // callKeep uuid: number
-  const callID = useAppGlobalStoreValue((store) => store.callID);
-  const username = useAppGlobalStoreValue((store) => store.username);
-  const [currCallId, setCurrCallId] = useState('');
+  const [selectedParticipant, setSelectedParticipant] = useState('');
+  const [loading, setLoading] = useState(false);
+  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const localMediaStream = useAppGlobalStoreValue(
+    (store) => store.localMediaStream,
+  );
+  const [callUUID, setCallUUID] = useState(uuidv4().toLowerCase());
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },
@@ -68,42 +79,22 @@ const Ringing = () => {
   const setState = useAppGlobalStoreSetState();
 
   const getRandomNumber = () => String(Math.floor(Math.random() * 100000));
-  const getNewUuid = () => uuidv4().toLowerCase();
+
   const format = (uuid: string) => uuid.split('-')[0];
 
   const log = (text: string) => {
     setLog(logText + '\n' + text);
   };
 
-  const addCall = (callUUID: string, number: string) => {
+  const addCall = (number: string) => {
     setHeldCalls({ ...heldCalls, [callUUID]: false });
     setCalls({ ...calls, [callUUID]: number });
   };
 
-  const callUUID = getNewUuid();
-
-  const displayIncomingCall = (number: string) => {
-    addCall(callUUID, number);
-    setCurrCallId(callUUID);
-
-    log(`[displayIncomingCall] ${format(callUUID)}, number: ${number}`);
-
-    try {
-      RNCallKeep.displayIncomingCall(
-        callUUID,
-        '2738282929',
-        'Test User',
-        'number',
-        true,
-      );
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const sessionId = useSessionId(callUUID, selectedParticipant);
 
   const startCall = (number: string) => {
-    addCall(callUUID, number);
-    setCurrCallId(callUUID);
+    addCall(number);
     log(`[startCall] ${format(callUUID)}, number: ${number}`);
     try {
       RNCallKeep.startCall(callUUID, '282829292', 'Test user', 'generic');
@@ -121,64 +112,80 @@ const Ringing = () => {
   };
 
   const hangup = () => {
-    RNCallKeep.endCall(currCallId);
+    RNCallKeep.endCall(callUUID);
     removeCall();
   };
 
-  const displayIncomingCallNow = () => {
-    displayIncomingCall(getRandomNumber());
-  };
-  const startCallHandler = () => {
-    startCall(getRandomNumber());
-  };
+  const startCallHandler = async () => {
+    setLoading(true);
+    if (videoClient) {
+      try {
+        const response = await getOrCreateCall(videoClient, {
+          autoJoin: true,
+          ring: true,
+          members: [
+            {
+              userId: selectedParticipant,
+              role: 'member',
+              customJson: new Uint8Array(),
+            },
+          ],
+          callId: callUUID,
+          callType: 'default',
+        });
+        if (response) {
+          const { activeCall, credentials } = response;
 
-  useEffect(() => {
-    const options = {
-      ios: {
-        appName: 'StreamReactNativeVideoSDKSample',
-      },
-      android: {
-        alertTitle: 'Permissions required',
-        alertDescription:
-          'This application needs to access your phone accounts',
-        cancelButton: 'Cancel',
-        okButton: 'ok',
-        imageName: 'phone_account_icon',
-        additionalPermissions: [PermissionsAndroid.PERMISSIONS.READ_CONTACTS],
-        // Required to get audio in background when using Android 11
-        foregroundService: {
-          channelId: 'io.getstream.rnvideosample',
-          channelName:
-            'Foreground service for the app Stream React Native Dogfood',
-          notificationTitle: 'App is running on background',
-          notificationIcon: 'Path to the resource icon of the notification',
-        },
-      },
-    };
+          if (!credentials || !activeCall) {
+            return;
+          } else {
+            setLoading(false);
+          }
 
-    try {
-      RNCallKeep.setup(options).then((accepted) => {
-        console.log(accepted);
-      });
-    } catch (error) {
-      console.log(error);
+          setState({ activeCall: response?.activeCall });
+          const serverUrl = 'http://192.168.1.41:3031/twirp';
+          const sfuClient = new StreamSfuClient(
+            serverUrl,
+            credentials.token,
+            sessionId,
+          );
+          const call = new Call(
+            sfuClient,
+            selectedParticipant,
+            serverUrl,
+            credentials,
+          );
+          try {
+            const callState = await call.join(localMediaStream);
+            if (callState && localMediaStream) {
+              InCallManager.start({ media: 'video' });
+              InCallManager.setForceSpeakerphoneOn(true);
+              await call.publish(localMediaStream);
+              setState({
+                activeCall,
+                callState,
+                sfuClient,
+                call,
+              });
+              setLoading(false);
+              startCall(getRandomNumber());
+              navigation.navigate('ActiveCall');
+            }
+          } catch (err) {
+            setState({
+              callState: undefined,
+            });
+            setLoading(false);
+          }
+        }
+      } catch (err) {
+        console.log(err);
+      }
     }
-    RNCallKeep.canMakeMultipleCalls(true);
-    RNCallKeep.addEventListener('didChangeAudioRoute', ({ output }) => {
-      console.log(output);
-    });
-  }, []);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.text}>Ringing Home Screen</Text>
-      <TextInput
-        style={styles.textInput}
-        placeholder={'Type your call ID here...'}
-        placeholderTextColor={'#8C8C8CFF'}
-        value={callID}
-        onChangeText={(text) => setState({ callID: text.trim() })}
-      />
       <View style={styles.participantsContainer}>
         <Text style={[styles.text, styles.label]}>Select Participants</Text>
         {users.map((user) => {
@@ -187,13 +194,16 @@ const Ringing = () => {
               style={styles.participant}
               key={user.id}
               onPress={() => {
-                setState({ username: user.id });
+                console.log(user.id);
+                setSelectedParticipant(user.id);
               }}
             >
               <Text
                 style={[
                   styles.text,
-                  username === user.id ? styles.selectedParticipant : null,
+                  selectedParticipant === user.id
+                    ? styles.selectedParticipant
+                    : null,
                 ]}
               >
                 {user.name}
@@ -202,12 +212,13 @@ const Ringing = () => {
           );
         })}
       </View>
-      <Button title="Display Incoming Call" onPress={displayIncomingCallNow} />
-      <Button title="Start a Call" onPress={startCallHandler} />
+      <Button
+        disabled={selectedParticipant === ''}
+        title="Start a Call"
+        onPress={startCallHandler}
+      />
       <Button title="Leave Call" onPress={hangup} />
-      <ScrollView>
-        <Text style={styles.text}>{logText}</Text>
-      </ScrollView>
+      {loading && <ActivityIndicator />}
     </SafeAreaView>
   );
 };
