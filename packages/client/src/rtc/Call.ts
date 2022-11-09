@@ -119,7 +119,7 @@ export class Call {
           const { callState } = event.eventPayload.joinResponse;
           const currentParticipants = callState?.participants || [];
           this.stateStore.setCurrentValue(
-            this.stateStore.activeCallParticipantsSubject,
+            this.stateStore.activeCallAllParticipantsSubject,
             currentParticipants.map<StreamVideoParticipant>((participant) => {
               if (participant.sessionId === this.client.sessionId) {
                 const localParticipant = participant as StreamVideoParticipant;
@@ -208,7 +208,7 @@ export class Call {
       }
 
       this.stateStore.setCurrentValue(
-        this.stateStore.activeCallParticipantsSubject,
+        this.stateStore.activeCallAllParticipantsSubject,
         this.participants.map((p) => {
           if (p.sessionId === this.client.sessionId) {
             return {
@@ -230,7 +230,7 @@ export class Call {
       }
 
       this.stateStore.setCurrentValue(
-        this.stateStore.activeCallParticipantsSubject,
+        this.stateStore.activeCallAllParticipantsSubject,
         this.participants.map((p) => {
           if (p.sessionId === this.client.sessionId) {
             return {
@@ -259,7 +259,7 @@ export class Call {
     }
 
     this.stateStore.setCurrentValue(
-      this.stateStore.activeCallParticipantsSubject,
+      this.stateStore.activeCallAllParticipantsSubject,
       this.participants.map((participant) => {
         const change = changes[participant.sessionId];
         if (change) {
@@ -417,7 +417,7 @@ export class Call {
 
   private get participants() {
     return this.stateStore.getCurrentValue(
-      this.stateStore.activeCallParticipantsSubject,
+      this.stateStore.activeCallAllParticipantsSubject,
     );
   }
 
@@ -434,7 +434,7 @@ export class Call {
     }
     if (e.track.kind === 'video') {
       this.stateStore.setCurrentValue(
-        this.stateStore.activeCallParticipantsSubject,
+        this.stateStore.activeCallAllParticipantsSubject,
         this.participants.map((participant) => {
           if (participant.trackLookupPrefix === trackId) {
             return {
@@ -448,7 +448,7 @@ export class Call {
       );
     } else if (e.track.kind === 'audio') {
       this.stateStore.setCurrentValue(
-        this.stateStore.activeCallParticipantsSubject,
+        this.stateStore.activeCallAllParticipantsSubject,
         this.participants.map((participant) => {
           if (participant.trackLookupPrefix === trackId) {
             return {

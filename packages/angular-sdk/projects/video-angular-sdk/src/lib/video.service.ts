@@ -71,7 +71,7 @@ export class StreamVideoService {
       ),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.activeCallParticipants$.subscribe(
+      this.videoClient.readOnlyStateStore?.activeCallAllParticipants$.subscribe(
         this.activeCallParticipantsSubject,
       ),
     );

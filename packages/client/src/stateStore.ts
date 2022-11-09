@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { take, map, distinctUntilChanged } from 'rxjs/operators';
+import { take, map } from 'rxjs/operators';
 import { Call } from './rtc/Call';
 import type { UserInput } from './gen/video/coordinator/user_v1/user';
 import type { StreamVideoParticipant } from './rtc/types';
@@ -9,9 +9,9 @@ export class StreamVideoWriteableStateStore {
   pendingCallsSubject = new BehaviorSubject<Call[]>([]);
   activeCallSubject = new BehaviorSubject<Call | undefined>(undefined);
 
-  activeCallParticipantsSubject = new BehaviorSubject<StreamVideoParticipant[]>(
-    [],
-  );
+  activeCallAllParticipantsSubject = new BehaviorSubject<
+    StreamVideoParticipant[]
+  >([]);
   dominantSpeakerSubject = new BehaviorSubject<string | undefined>(undefined);
 
   getCurrentValue<T>(subject: BehaviorSubject<T>) {
@@ -28,9 +28,10 @@ export class StreamVideoReadOnlyStateStore {
   activeCall$: Observable<Call | undefined>;
   pendingCalls$: Observable<Call[]>;
   dominantSpeaker$: Observable<string | undefined>;
-  activeCallParticipants$: Observable<StreamVideoParticipant[]>;
-  remoteParticipants$: Observable<StreamVideoParticipant[]>;
-  localParticipant$: Observable<StreamVideoParticipant | undefined>;
+
+  activeCallAllParticipants$: Observable<StreamVideoParticipant[]>;
+  activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
+  activeCallLocalParticipant$: Observable<StreamVideoParticipant | undefined>;
 
   constructor(writeableStateStore: StreamVideoWriteableStateStore) {
     this.connectedUser$ =
@@ -40,21 +41,13 @@ export class StreamVideoReadOnlyStateStore {
     this.dominantSpeaker$ =
       writeableStateStore.dominantSpeakerSubject.asObservable();
 
-    this.activeCallParticipants$ =
-      writeableStateStore.activeCallParticipantsSubject.asObservable();
-
-    this.localParticipant$ = this.activeCallParticipants$.pipe(
-      map((participants) =>
-        Object.values(participants).find((p) => p.isLoggedInUser),
-      ),
-      distinctUntilChanged(),
+    this.activeCallAllParticipants$ =
+      writeableStateStore.activeCallAllParticipantsSubject.asObservable();
+    this.activeCallLocalParticipant$ = this.activeCallAllParticipants$.pipe(
+      map((participants) => participants.find((p) => p.isLoggedInUser)),
     );
-
-    this.remoteParticipants$ = this.activeCallParticipants$.pipe(
-      map((participants) =>
-        Object.values(participants).filter((p) => !p.isLoggedInUser),
-      ),
-      distinctUntilChanged(),
+    this.activeCallRemoteParticipants$ = this.activeCallAllParticipants$.pipe(
+      map((participants) => participants.filter((p) => !p.isLoggedInUser)),
     );
   }
 

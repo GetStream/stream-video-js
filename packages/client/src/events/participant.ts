@@ -13,9 +13,9 @@ export const watchParticipantJoined = (
     const { participant } = e.eventPayload.participantJoined;
     if (participant) {
       const currentParticipants = store.getCurrentValue(
-        store.activeCallParticipantsSubject,
+        store.activeCallAllParticipantsSubject,
       );
-      store.setCurrentValue(store.activeCallParticipantsSubject, [
+      store.setCurrentValue(store.activeCallAllParticipantsSubject, [
         ...currentParticipants,
         participant,
       ]);
@@ -35,10 +35,10 @@ export const watchParticipantLeft = (
     const { participant } = e.eventPayload.participantLeft;
     if (participant) {
       const currentParticipants = store.getCurrentValue(
-        store.activeCallParticipantsSubject,
+        store.activeCallAllParticipantsSubject,
       );
       store.setCurrentValue(
-        store.activeCallParticipantsSubject,
+        store.activeCallAllParticipantsSubject,
         currentParticipants.filter(
           (p) => p.sessionId !== participant.sessionId,
         ),

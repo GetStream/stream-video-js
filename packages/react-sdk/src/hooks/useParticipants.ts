@@ -1,16 +1,16 @@
 import { useObservableValue, useStore } from './useStore';
 
 export const useParticipants = () => {
-  const { activeCallParticipants$ } = useStore();
-  return useObservableValue(activeCallParticipants$);
+  const { activeCallAllParticipants$ } = useStore();
+  return useObservableValue(activeCallAllParticipants$);
 };
 
 export const useLocalParticipant = () => {
-  const { localParticipant$ } = useStore();
-  return useObservableValue(localParticipant$);
+  const { activeCallLocalParticipant$ } = useStore();
+  return useObservableValue(activeCallLocalParticipant$);
 };
 
 export const useRemoteParticipants = () => {
-  const { remoteParticipants$ } = useStore();
-  return useObservableValue(remoteParticipants$);
+  const { activeCallRemoteParticipants$ } = useStore();
+  return useObservableValue(activeCallRemoteParticipants$);
 };

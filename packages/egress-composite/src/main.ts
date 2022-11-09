@@ -61,7 +61,9 @@ import './style.css';
   console.log('Connection is established.');
 
   store$.dominantSpeaker$.subscribe((userId) => {
-    const participants = store$.getCurrentValue(store$.activeCallParticipants$);
+    const participants = store$.getCurrentValue(
+      store$.activeCallAllParticipants$,
+    );
     const dominantSpeaker = participants.find((p) => p.user!.id === userId);
     if (dominantSpeaker) {
       call.updateSubscriptionsPartial({
@@ -97,7 +99,7 @@ import './style.css';
 
   let shuffleIntervalId: NodeJS.Timeout;
   const highlightSpeaker = createSpeakerUpdater(call);
-  store$.remoteParticipants$.subscribe((remoteParticipants) => {
+  store$.activeCallRemoteParticipants$.subscribe((remoteParticipants) => {
     remoteParticipants.forEach(attachAudioTrack);
 
     console.log('remoteParticipants updated', remoteParticipants);

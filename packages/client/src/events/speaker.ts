@@ -38,7 +38,7 @@ export const watchAudioLevelChanged = (
       {},
     );
 
-    const participantsSubject = store.activeCallParticipantsSubject;
+    const participantsSubject = store.activeCallAllParticipantsSubject;
     const participants = store.getCurrentValue(participantsSubject);
     store.setCurrentValue(
       participantsSubject,
