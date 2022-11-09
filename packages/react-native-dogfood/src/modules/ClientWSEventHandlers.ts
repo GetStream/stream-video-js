@@ -1,5 +1,7 @@
 import {
+  CallAccepted,
   CallCreated,
+  CallRejected,
   Envelopes,
   StreamVideoClient,
 } from '@stream-io/video-client';
@@ -7,16 +9,19 @@ import { Call } from '@stream-io/video-client/dist/src/gen/video/coordinator/cal
 
 export const registerWSEventHandlers = (
   videoClient: StreamVideoClient,
-  displayIncomingCallNow: (call: Call) => void,
+  displayIncomingCallNow?: (call: Call) => void,
+  hangupCall?: (call: Call) => void,
 ) => {
   if (videoClient) {
-    watchCallCreatedEvents(videoClient, displayIncomingCallNow);
+    watchCallAcceptedEvent(videoClient);
+    watchCallCreatedEvent(videoClient, displayIncomingCallNow);
+    watchCallRejectedEvent(videoClient, hangupCall);
   }
 };
 
-const watchCallCreatedEvents = (
+const watchCallCreatedEvent = (
   videoClient: StreamVideoClient,
-  displayIncomingCallNow: (call: Call) => void,
+  displayIncomingCallNow?: (call: Call) => void,
 ) => {
   videoClient.on(
     'callCreated',
@@ -26,10 +31,44 @@ const watchCallCreatedEvents = (
         console.warn("Can't find call in CallCreated event");
         return;
       } else {
-        displayIncomingCallNow(call);
+        if (displayIncomingCallNow) {
+          displayIncomingCallNow(call);
+        }
       }
     },
   );
 };
 
-export { watchCallCreatedEvents };
+const watchCallRejectedEvent = (
+  videoClient: StreamVideoClient,
+  hangupCall?: (call: Call) => void,
+) => {
+  videoClient.on(
+    'callRejected',
+    (event: CallRejected, _envelopes?: Envelopes) => {
+      const { call } = event;
+      if (!call) {
+        console.warn("Can't find call in CallCreated event");
+        return;
+      } else {
+        if (hangupCall) {
+          hangupCall(call);
+        }
+      }
+    },
+  );
+};
+
+const watchCallAcceptedEvent = (videoClient: StreamVideoClient) => {
+  videoClient.on(
+    'callAccepted',
+    (event: CallAccepted, _envelopes?: Envelopes) => {
+      const { call } = event;
+      if (!call) {
+        console.warn("Can't find call in CallCreated event");
+        return;
+      } else {
+      }
+    },
+  );
+};

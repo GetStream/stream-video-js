@@ -129,8 +129,15 @@ export class StreamVideoClient {
     return callEnvelope;
   };
 
+  answerCall = async (callCid: string) => {
+    await this.client.sendEvent({
+      callCid,
+      eventType: UserEventType.ACCEPTED_CALL,
+    });
+  };
+
   rejectCall = async (callCid: string) => {
-    this.client.sendEvent({
+    await this.client.sendEvent({
       callCid,
       eventType: UserEventType.REJECTED_CALL,
     });

@@ -90,9 +90,9 @@ const Ringing = ({ navigation }: Props) => {
   //   setLog(logText + '\n' + text);
   // };
 
-  const { hangupCall, startCall } = useCallKeep(videoClient);
+  const { startCall } = useCallKeep(videoClient);
 
-  const sessionId = useSessionId(ringingCallID, selectedParticipant);
+  const sessionId = useSessionId(ringingCallID, username);
 
   const startCallHandler = async () => {
     setLoading(true);
@@ -122,7 +122,6 @@ const Ringing = ({ navigation }: Props) => {
             setLoading(false);
           }
 
-          setState({ activeCall: response?.activeCall });
           const serverUrl = 'http://192.168.1.41:3031/twirp';
           const sfuClient = new StreamSfuClient(
             serverUrl,
@@ -144,7 +143,7 @@ const Ringing = ({ navigation }: Props) => {
               });
               setLoading(false);
               startCall({
-                callCid: callID,
+                callID,
                 createdByUserId: username,
               });
               navigation.navigate('ActiveCall');
@@ -193,12 +192,6 @@ const Ringing = ({ navigation }: Props) => {
         disabled={selectedParticipant === ''}
         title="Start a Call"
         onPress={startCallHandler}
-      />
-      <Button
-        title="Leave Call"
-        onPress={() => {
-          hangupCall(ringingCallID);
-        }}
       />
       {loading && <ActivityIndicator />}
     </SafeAreaView>
