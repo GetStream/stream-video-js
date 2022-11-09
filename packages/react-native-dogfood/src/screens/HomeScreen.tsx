@@ -1,10 +1,13 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { RootStackParamList } from '../../types';
 import { TabBar } from '../components/TabBar';
 import Meeting from '../components/Meeting/Meeting';
 import Ringing from '../components/Ringing/Ringing';
+import { registerWSEventHandlers } from '../modules/ClientWSEventHandlers';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import { useCallKeep } from '../hooks/useCallKeep';
 
 const styles = StyleSheet.create({
   container: {
@@ -15,7 +18,16 @@ const styles = StyleSheet.create({
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 export const HomeScreen = ({ navigation, route }: Props) => {
+  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const [selectedTab, setSelectedTab] = useState('Meeting');
+
+  const { displayIncomingCallNow } = useCallKeep(videoClient);
+
+  useEffect(() => {
+    if (videoClient) {
+      registerWSEventHandlers(videoClient, displayIncomingCallNow);
+    }
+  });
 
   return (
     <View style={styles.container}>

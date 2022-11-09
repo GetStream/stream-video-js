@@ -9,7 +9,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import RNCallKeep from 'react-native-callkeep';
 import { v4 as uuidv4 } from 'uuid';
 import {
   useAppGlobalStoreValue,
@@ -21,6 +20,7 @@ import InCallManager from 'react-native-incall-manager';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../types';
 import { getOrCreateCall } from '../../utils/callUtils';
+import { useCallKeep } from '../../hooks/useCallKeep';
 
 const styles = StyleSheet.create({
   container: {
@@ -64,16 +64,15 @@ const styles = StyleSheet.create({
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 const Ringing = ({ navigation }: Props) => {
-  const [logText, setLog] = useState('');
-  const [heldCalls, setHeldCalls] = useState({}); // callKeep uuid: held
-  const [calls, setCalls] = useState({}); // callKeep uuid: number
+  // const [logText, setLog] = useState('');
   const [selectedParticipant, setSelectedParticipant] = useState('');
   const [loading, setLoading] = useState(false);
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const username = useAppGlobalStoreValue((store) => store.username);
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
-  const [callUUID, setCallUUID] = useState(uuidv4().toLowerCase());
+  const ringingCallID = useAppGlobalStoreValue((store) => store.ringingCallID);
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },
@@ -83,48 +82,24 @@ const Ringing = ({ navigation }: Props) => {
 
   const setState = useAppGlobalStoreSetState();
 
-  const getRandomNumber = () => String(Math.floor(Math.random() * 100000));
+  // const getRandomNumber = () => String(Math.floor(Math.random() * 100000));
 
-  const format = (uuid: string) => uuid.split('-')[0];
+  // const format = (uuid: string) => uuid.split('-')[0];
 
-  const log = (text: string) => {
-    setLog(logText + '\n' + text);
-  };
+  // const log = (text: string) => {
+  //   setLog(logText + '\n' + text);
+  // };
 
-  const addCall = (number: string) => {
-    setHeldCalls({ ...heldCalls, [callUUID]: false });
-    setCalls({ ...calls, [callUUID]: number });
-  };
+  const { hangupCall, startCall } = useCallKeep(videoClient);
 
-  const sessionId = useSessionId(callUUID, selectedParticipant);
-
-  const startCall = (number: string) => {
-    addCall(number);
-    log(`[startCall] ${format(callUUID)}, number: ${number}`);
-    try {
-      RNCallKeep.startCall(callUUID, '282829292', 'Test user', 'generic');
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const removeCall = () => {
-    const { ...updated } = calls;
-    const { ...updatedHeldCalls } = heldCalls;
-
-    setCalls(updated);
-    setCalls(updatedHeldCalls);
-  };
-
-  const hangup = () => {
-    RNCallKeep.endCall(callUUID);
-    removeCall();
-  };
+  const sessionId = useSessionId(ringingCallID, selectedParticipant);
 
   const startCallHandler = async () => {
     setLoading(true);
     if (videoClient) {
       try {
+        const callID = uuidv4().toLowerCase();
+        await setState({ ringingCallID: callID });
         const response = await getOrCreateCall(videoClient, {
           autoJoin: true,
           ring: true,
@@ -135,7 +110,7 @@ const Ringing = ({ navigation }: Props) => {
               customJson: new Uint8Array(),
             },
           ],
-          callId: callUUID,
+          callId: callID,
           callType: 'default',
         });
         if (response) {
@@ -154,12 +129,7 @@ const Ringing = ({ navigation }: Props) => {
             credentials.token,
             sessionId,
           );
-          const call = new Call(
-            sfuClient,
-            selectedParticipant,
-            serverUrl,
-            credentials,
-          );
+          const call = new Call(sfuClient, username, serverUrl, credentials);
           try {
             const callState = await call.join(localMediaStream);
             if (callState && localMediaStream) {
@@ -173,7 +143,10 @@ const Ringing = ({ navigation }: Props) => {
                 call,
               });
               setLoading(false);
-              startCall(getRandomNumber());
+              startCall({
+                callCid: callID,
+                createdByUserId: username,
+              });
               navigation.navigate('ActiveCall');
             }
           } catch (err) {
@@ -199,7 +172,6 @@ const Ringing = ({ navigation }: Props) => {
               style={styles.participant}
               key={user.id}
               onPress={() => {
-                console.log(user.id);
                 setSelectedParticipant(user.id);
               }}
             >
@@ -222,7 +194,12 @@ const Ringing = ({ navigation }: Props) => {
         title="Start a Call"
         onPress={startCallHandler}
       />
-      <Button title="Leave Call" onPress={hangup} />
+      <Button
+        title="Leave Call"
+        onPress={() => {
+          hangupCall(ringingCallID);
+        }}
+      />
       {loading && <ActivityIndicator />}
     </SafeAreaView>
   );

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   StyleSheet,
   TextInput,
@@ -7,6 +7,7 @@ import {
   Switch,
   Button,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -14,13 +15,13 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { RootStackParamList } from '../../../types';
 import { Call } from '../../modules/Call';
 import { StreamSfuClient } from '@stream-io/video-client';
-import { useCall } from '../../hooks/useCall';
 import { useSessionId } from '../../hooks/useSessionId';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { mediaDevices } from 'react-native-webrtc';
+import { getOrCreateCall } from '../../utils/callUtils';
 
 // export const SFU_HOSTNAME = "192.168.2.24";
 // const SFU_URL = `http://${SFU_HOSTNAME}:3031/twirp`;
@@ -33,7 +34,7 @@ const APP_ID = 'streamrnvideosample';
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 const Meeting = ({ navigation }: Props) => {
-  const callID = useAppGlobalStoreValue((store) => store.callID);
+  const meetingCallID = useAppGlobalStoreValue((store) => store.meetingCallID);
   const username = useAppGlobalStoreValue((store) => store.username);
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const loopbackMyVideo = useAppGlobalStoreValue(
@@ -42,6 +43,7 @@ const Meeting = ({ navigation }: Props) => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
+  const [loading, setLoading] = useState(false);
   const setState = useAppGlobalStoreSetState();
 
   // run only once per app lifecycle
@@ -53,7 +55,7 @@ const Meeting = ({ navigation }: Props) => {
       }
 
       setState({
-        callID: matchResponse[1],
+        meetingCallID: matchResponse[1],
       });
     };
     const configure = async () => {
@@ -76,63 +78,65 @@ const Meeting = ({ navigation }: Props) => {
     configure();
   }, [setState]);
 
-  const { activeCall, credentials, getOrCreateCall } = useCall({
-    videoClient,
-    callId: callID,
-    callType: 'default', // TODO: SANTHOSH -- what is this?
-    currentUser: username,
-    autoJoin: true,
-  });
-
-  const sessionId = useSessionId(callID, username);
-
-  useEffect(() => {
-    if (!credentials || !activeCall) {
-      return;
-    }
-    const serverUrl = credentials.server?.url || 'http://localhost:3031/twirp';
-    const sfuClient = new StreamSfuClient(
-      serverUrl,
-      credentials.token,
-      sessionId,
-    );
-    const call = new Call(sfuClient, username, serverUrl, credentials);
-    const joinSfuCall = async () => {
+  const createOrJoinCallHandler = async () => {
+    setLoading(true);
+    if (videoClient) {
       try {
-        const callState = await call.join(localMediaStream);
-        if (callState && localMediaStream) {
-          InCallManager.start({ media: 'video' });
-          InCallManager.setForceSpeakerphoneOn(true);
-          await call.publish(localMediaStream);
-          setState({
-            activeCall,
-            callState,
-            sfuClient,
-            call,
-          });
-          navigation.navigate('ActiveCall');
+        const response = await getOrCreateCall(videoClient, {
+          autoJoin: true,
+          callId: meetingCallID,
+          callType: 'default',
+        });
+        if (response) {
+          const { activeCall, credentials } = response;
+
+          if (!credentials || !activeCall) {
+            return;
+          } else {
+            setLoading(false);
+          }
+
+          setState({ activeCall: response?.activeCall });
+          const serverUrl = 'http://192.168.1.41:3031/twirp';
+          const sfuClient = new StreamSfuClient(
+            serverUrl,
+            credentials.token,
+            sessionId,
+          );
+          const call = new Call(sfuClient, username, serverUrl, credentials);
+          try {
+            const callState = await call.join(localMediaStream);
+            if (callState && localMediaStream) {
+              InCallManager.start({ media: 'video' });
+              InCallManager.setForceSpeakerphoneOn(true);
+              await call.publish(localMediaStream);
+              setState({
+                activeCall,
+                callState,
+                sfuClient,
+                call,
+              });
+              setLoading(false);
+              navigation.navigate('ActiveCall');
+            }
+          } catch (err) {
+            setState({
+              callState: undefined,
+            });
+            setLoading(false);
+          }
         }
       } catch (err) {
-        console.warn('failed to join call', err);
-        setState({
-          callState: undefined,
-        });
+        console.log(err);
       }
-    };
-    joinSfuCall();
-  }, [
-    activeCall,
-    credentials,
-    localMediaStream,
-    navigation,
-    sessionId,
-    setState,
-    username,
-  ]);
+    }
+  };
+
+  const sessionId = useSessionId(meetingCallID, username);
 
   const handleCopyInviteLink = useCallback(
-    () => Clipboard.setString(`${APP_ID}://callID/${callID}/`),
-    [callID],
+    () => Clipboard.setString(`${APP_ID}://callID/${meetingCallID}/`),
+    [meetingCallID],
   );
 
   return (
@@ -142,14 +146,14 @@ const Meeting = ({ navigation }: Props) => {
         style={styles.textInput}
         placeholder={'Type your call ID here...'}
         placeholderTextColor={'#8C8C8CFF'}
-        value={callID}
-        onChangeText={(text) => setState({ callID: text.trim() })}
+        value={meetingCallID}
+        onChangeText={(text) => setState({ meetingCallID: text.trim() })}
       />
       <Button
-        title={'Create or Join call with callID: ' + callID}
+        title={'Create or Join call with callID: ' + meetingCallID}
         color="blue"
-        disabled={!callID}
-        onPress={getOrCreateCall}
+        disabled={!meetingCallID}
+        onPress={createOrJoinCallHandler}
       />
       <View style={styles.switchContainer}>
         <Text style={styles.loopbackText}>Loopback my video(Debug Mode)</Text>
@@ -167,6 +171,7 @@ const Meeting = ({ navigation }: Props) => {
         color="blue"
         onPress={handleCopyInviteLink}
       />
+      {loading && <ActivityIndicator />}
     </View>
   );
 };

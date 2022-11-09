@@ -12,7 +12,8 @@ import { Call } from '../modules/Call';
 import createStoreContext from './createStoreContext';
 
 interface AppGlobalStore {
-  callID: string;
+  meetingCallID: string;
+  ringingCallID: string;
   username: string;
   token: string;
   videoClient: StreamVideoClient | undefined;
@@ -34,7 +35,8 @@ export const {
   useStoreSetState: useAppGlobalStoreSetState,
 } = createStoreContext<AppGlobalStore>(
   {
-    callID: '',
+    meetingCallID: '',
+    ringingCallID: '',
     username: '',
     token: '',
     videoClient: undefined,
@@ -49,5 +51,5 @@ export const {
     isVideoMuted: false,
     cameraBackFacingMode: false,
   },
-  ['callID', 'username', 'token'],
+  ['meetingCallID', 'ringingCallID', 'username', 'token'],
 );

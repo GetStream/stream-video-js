@@ -1,20 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
+import { StreamVideoClient } from '@stream-io/video-client';
+import { Call } from '@stream-io/video-client/dist/src/gen/video/coordinator/call_v1/call';
+import { useEffect, useState } from 'react';
 import { PermissionsAndroid } from 'react-native';
 import RNCallKeep from 'react-native-callkeep';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
 
-const useCallKeep = ({ callId }: { callId: string }) => {
-  const [heldCalls, setHeldCalls] = useState({}); // callKeep uuid: held
-  const [calls, setCalls] = useState({}); // callKeep uuid: number
+const getRandomNumber = () => String(Math.floor(Math.random() * 100000));
 
-  const getRandomNumber = () => String(Math.floor(Math.random() * 100000));
-
-  const addCall = useCallback(
-    async (number: string) => {
-      setHeldCalls({ ...heldCalls, [callId]: false });
-      setCalls({ ...calls, [callId]: number });
-    },
-    [callId, setCalls, setHeldCalls, heldCalls, calls],
-  );
+export const useCallKeep = (videoClient: StreamVideoClient | undefined) => {
+  const ringingCallID = useAppGlobalStoreValue((store) => store.ringingCallID);
+  const [incomingCall, setIncomingCall] = useState('');
 
   useEffect(() => {
     const options = {
@@ -47,35 +42,55 @@ const useCallKeep = ({ callId }: { callId: string }) => {
     } catch (error) {
       console.log(error);
     }
-  }, [callId]);
 
-  const displayIncomingCall = useCallback(
-    async (number: string) => {
-      await addCall(number);
+    if (videoClient) {
+      RNCallKeep.addEventListener('endCall', () => {
+        console.log(incomingCall);
+        videoClient.rejectCall(incomingCall);
+      });
+    }
+  }, [videoClient, ringingCallID, incomingCall]);
 
-      try {
-        await RNCallKeep.displayIncomingCall(
-          callId,
-          '2738282929',
-          'Test User',
-          'number',
-          true,
-        );
-      } catch (error) {
-        console.log(error);
-      }
-    },
-    [addCall, callId],
-  );
+  const startCall = (call: { callCid: string; createdByUserId: string }) => {
+    try {
+      RNCallKeep.startCall(
+        call.callCid,
+        '282829292',
+        call.createdByUserId,
+        'generic',
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
-  const displayIncomingCallNow = useCallback(() => {
-    displayIncomingCall(getRandomNumber());
-  }, [displayIncomingCall]);
+  const displayIncomingCall = async (number: string, call: Call) => {
+    try {
+      const callID = call.callCid.split(':')[1];
+      setIncomingCall(callID);
+      await RNCallKeep.displayIncomingCall(
+        callID,
+        number,
+        call.createdByUserId,
+        'generic',
+        true,
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const displayIncomingCallNow = (call: Call) => {
+    displayIncomingCall(getRandomNumber(), call);
+  };
+
+  const hangupCall = (callID: string) => {
+    RNCallKeep.endCall(callID);
+  };
 
   return {
-    calls,
     displayIncomingCallNow,
+    hangupCall,
+    startCall,
   };
 };
-
-export default useCallKeep;
