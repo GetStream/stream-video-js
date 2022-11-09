@@ -17,19 +17,15 @@ export const useCreateStreamVideoClient = ({
   token,
   user,
 }: StreamVideoClientInit) => {
-  const [client, setClient] = useState<StreamVideoClient<RTCPeerConnection>>();
+  const [client, setClient] = useState<StreamVideoClient>();
   useEffect(
     () => {
-      const client = new StreamVideoClient(
-        apiKey,
-        (config) => new RTCPeerConnection(config),
-        {
-          coordinatorWsUrl,
-          coordinatorRpcUrl,
-          sendJson: true,
-          token,
-        },
-      );
+      const client = new StreamVideoClient(apiKey, {
+        coordinatorWsUrl,
+        coordinatorRpcUrl,
+        sendJson: true,
+        token,
+      });
 
       let didInterruptConnect = false;
       const connection = client
