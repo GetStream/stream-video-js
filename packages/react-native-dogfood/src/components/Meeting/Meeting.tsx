@@ -77,7 +77,7 @@ const Meeting = () => {
           title={'Randomise'}
           color="blue"
           onPress={() => {
-            setState({ callID: meetingId(5) });
+            setState({ callID: meetingId() });
           }}
         />
       </View>
