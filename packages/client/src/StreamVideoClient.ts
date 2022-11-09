@@ -140,16 +140,17 @@ export class StreamVideoClient {
         response.edges,
       );
       if (edge && edge.credentials && edge.credentials.server) {
-        const serverUrl = 'http://192.168.50.95:3031/twirp';
         const sfuClient = new StreamSfuClient(
-          serverUrl,
+          edge.credentials.server.url,
           edge.credentials.token,
           sessionId,
         );
         const call = new Call(
           sfuClient,
           {
-            connectionConfig: this.defaultRtcConfiguration(serverUrl),
+            connectionConfig:
+              this.toRtcConfiguration(edge.credentials.iceServers) ||
+              this.defaultRtcConfiguration(edge.credentials.server.url),
           },
           this.writeableStateStore,
         );

@@ -75,13 +75,13 @@ const LoginScreen = ({ navigation }: Props) => {
         };
 
         const clientParams = {
-          coordinatorRpcUrl: 'http://192.168.50.95:26991/rpc',
-          coordinatorWsUrl:
-            'ws://192.168.50.95:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
-          // coordinatorRpcUrl:
-          //   'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
+          // coordinatorRpcUrl: 'http://192.168.50.95:26991/rpc',
           // coordinatorWsUrl:
-          //   'ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+          //   'ws://192.168.50.95:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+          coordinatorRpcUrl:
+            'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
+          coordinatorWsUrl:
+            'ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
           apiKey: 'key10', // see <video>/data/fixtures/apps.yaml for API key/secret
           apiSecret: 'secret10',
           user,
