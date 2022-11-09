@@ -17,10 +17,12 @@
     "build:client": "yarn workspace @stream-io/video-client run build",
     "start:client": "yarn workspace @stream-io/video-client run start",
     "start:react:app": "yarn workspace @stream-io/video-react-sample-app run start",
-    "start:angular:app": "yarn workspace @stream-io/video-angular-sample-app run start",
+    "start:angular:app": "yarn workspace angular-sdk run start",
     "start:react-native:ios:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run ios",
     "start:react-native:android:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run android",
     "build:vercel": "yarn build:client && yarn build:styling && yarn build:react:sdk && yarn build:react:dogfood",
+    "start:egress": "yarn workspace @stream-io/egress-composite start",
+    "build:egress": "yarn workspace @stream-io/egress-composite build",
     "build:all": "yarn workspaces foreach -vt run build",
     "clean:all": "yarn workspaces foreach -vt run clean",
     "lint:all": "eslint --cache --fix 'packages/**/*.{ts,tsx}'",
@@ -38,7 +40,7 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.7.1",
-    "vercel": "^28.4.12"
+    "vercel": "^28.4.14"
   },
   "resolutions": {
     "react-native-pure-jwt@^3.0.1": "patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch",

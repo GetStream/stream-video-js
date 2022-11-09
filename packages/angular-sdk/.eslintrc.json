@@ -1,0 +1,12 @@
+{
+  "extends": "../../.eslintrc.json",
+  "env": {
+    "jasmine": true
+  },
+  "overrides": [{
+    "files": ["*.ts"],
+    "rules": {
+      "import/no-extraneous-dependencies": "off"
+    }
+  }]
+}

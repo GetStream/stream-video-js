@@ -4,22 +4,20 @@ import { Text } from 'react-native';
 
 const styles = StyleSheet.create({
   tabBarContainer: {
-    display: 'flex',
     flexDirection: 'row',
     marginHorizontal: 10,
     backgroundColor: '#DEDEDE',
     padding: 2,
     borderRadius: 5,
-    height: 40,
-    alignItems: 'center',
+    height: 46,
   },
   tab: {
-    width: '50%',
+    flex: 1,
+    justifyContent: 'center',
     borderRadius: 5,
   },
   selectedTab: {
     backgroundColor: 'white',
-    padding: 9,
   },
   tabText: {
     textAlign: 'center',

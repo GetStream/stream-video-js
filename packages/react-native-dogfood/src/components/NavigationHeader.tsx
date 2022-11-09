@@ -9,9 +9,8 @@ import {
 const styles = StyleSheet.create({
   header: {
     backgroundColor: 'white',
-    display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   avatar: {
     height: 50,

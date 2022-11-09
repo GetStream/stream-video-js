@@ -26,6 +26,11 @@ const styles = StyleSheet.create({
   container: {
     margin: 15,
   },
+  headerText: {
+    color: 'black',
+    fontSize: 20,
+    marginVertical: 8,
+  },
   textInput: {
     color: '#000',
     height: 40,

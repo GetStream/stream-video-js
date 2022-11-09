@@ -59,23 +59,33 @@
   .str-video__participant {
     width: 100%;
     max-width: 1280px;
-    position: relative;
     min-height: 0;
     max-height: 100%;
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    height: 100%;
 
-    .str-video__remote-video {
-      border-radius: 12px;
-      border: 2px solid transparent;
-      background-size: contain;
-      width: 100%;
-
-      &.mirror {
-        transform: rotateY(180deg);
-      }
+    .str-video__video-container {
+      position: relative;
     }
 
+    .str-video__video-container {
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+
+      .str-video__remote-video {
+        border-radius: 12px;
+        border: 2px solid transparent;
+        background-size: contain;
+        width: 100%;
+
+        &.mirror {
+          transform: rotateY(180deg);
+        }
+      }
+    }
     &.str-video__participant--speaking {
       .str-video__remote-video {
         border: 2px solid #005fff;
@@ -95,6 +105,17 @@
       color: #ffffff;
       padding: 6px;
       border-radius: 6px;
+      display: flex;
+      align-items: center;
+
+      svg {
+        width: 20px;
+        height: 20px;
+
+        path {
+          fill: white;
+        }
+      }
     }
 
     video {
