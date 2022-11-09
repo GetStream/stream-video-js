@@ -11,6 +11,7 @@ import type {
   ReportCallStatsResponse,
 } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
+import { UserEventType } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import type {
   Edge,
   ICEServer,
@@ -126,6 +127,13 @@ export class StreamVideoClient {
     const callToCreate = await this.client.createCall(data);
     const { call: callEnvelope } = callToCreate.response;
     return callEnvelope;
+  };
+
+  rejectCall = async (callCid: string) => {
+    this.client.sendEvent({
+      callCid,
+      eventType: UserEventType.REJECTED_CALL,
+    });
   };
 
   // TODO: remove this method (it's only used in react-native for now until the sfu-Call object is merged)
