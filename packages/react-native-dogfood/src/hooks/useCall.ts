@@ -33,8 +33,8 @@ export const useCall = ({
       const result = await videoClient.joinCallRaw({
         id,
         type,
-        // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
-        datacenterId: 'amsterdam',
+        // TODO: SANTHOSH, this is optional, check its purpose
+        datacenterId: '',
       });
       if (result) {
         const { response, edge } = result;
