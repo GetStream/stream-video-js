@@ -459,7 +459,7 @@ export class Call {
       this.publishStatEvent({
         type: 'media_state_changed',
         track: sender.track,
-        change: isMute ? MediaStateChange.ENDED : MediaStateChange.STARTED,
+        change: isMute ? MediaStateChange.STARTED : MediaStateChange.ENDED,
         reason: MediaStateChangeReason.MUTE,
       });
 
