@@ -166,16 +166,15 @@ function createSpeakerUpdater(call: Call) {
 
 function updateCurrentSpeakerName(speaker: StreamVideoParticipant) {
   let $userNameEl = document.getElementById('current-user-name');
-  if ($userNameEl) {
-    $userNameEl.remove();
+  if (!$userNameEl) {
+    $userNameEl = document.createElement('span');
+    $userNameEl.id = 'current-user-name';
+
+    document.getElementById('app')!.appendChild($userNameEl);
   }
 
-  $userNameEl = document.createElement('span');
-  $userNameEl.id = 'current-user-name';
   $userNameEl.innerText = speaker.user?.id ?? 'N/A';
   $userNameEl.title = speaker.sessionId;
-
-  document.getElementById('app')!.appendChild($userNameEl);
 }
 
 function attachAudioTrack(participant: StreamVideoParticipant) {
