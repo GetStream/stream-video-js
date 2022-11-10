@@ -443,6 +443,34 @@ export class Call {
       console.warn('Received track for unknown participant', trackId, e);
       return;
     }
+
+    e.track.addEventListener('mute', () => {
+      console.log(
+        `Track muted:`,
+        participantToUpdate.user!.id,
+        `${e.track.kind}:${trackId}`,
+        e.track,
+      );
+    });
+
+    e.track.addEventListener('unmute', () => {
+      console.log(
+        `Track unmuted:`,
+        participantToUpdate.user!.id,
+        `${e.track.kind}:${trackId}`,
+        e.track,
+      );
+    });
+
+    e.track.addEventListener('ended', () => {
+      console.log(
+        `Track ended:`,
+        participantToUpdate.user!.id,
+        `${e.track.kind}:${trackId}`,
+        e.track,
+      );
+    });
+
     if (e.track.kind === 'video') {
       this.stateStore.setCurrentValue(
         this.stateStore.activeCallAllParticipantsSubject,
