@@ -32,7 +32,7 @@ const makeStatEvent = (
   e: StatEvent,
 ): ReportCallStatEventRequest['event'] | undefined => {
   switch (e.type) {
-    case 'track_changed': {
+    case 'media_state_changed': {
       const { change, reason, track } = e;
       const mediaTypes: Record<MediaStreamTrack['kind'], MediaType> = {
         audio: MediaType.AUDIO,

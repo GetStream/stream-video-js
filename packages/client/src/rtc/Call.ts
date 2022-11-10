@@ -25,7 +25,7 @@ import type { StreamVideoParticipant, SubscriptionChanges } from './types';
 import { debounceTime, Subject } from 'rxjs';
 
 export type TrackChangedEvent = {
-  type: 'track_changed';
+  type: 'media_state_changed';
   track: MediaStreamTrack;
   change: MediaStateChange;
   reason: MediaStateChangeReason;
@@ -119,9 +119,9 @@ export class Call {
       if (s.track) {
         s.track.stop();
         this.publishStatEvent({
-          type: 'track_changed',
+          type: 'media_state_changed',
           track: s.track,
-          change: MediaStateChange.STARTED,
+          change: MediaStateChange.ENDED,
           reason: MediaStateChangeReason.CONNECTION,
         });
       }
@@ -264,7 +264,7 @@ export class Call {
         }
 
         this.publishStatEvent({
-          type: 'track_changed',
+          type: 'media_state_changed',
           track: videoTrack,
           change: MediaStateChange.STARTED,
           reason: MediaStateChangeReason.CONNECTION,
@@ -306,7 +306,7 @@ export class Call {
         }),
       );
       this.publishStatEvent({
-        type: 'track_changed',
+        type: 'media_state_changed',
         track: audioTrack,
         change: MediaStateChange.STARTED,
         reason: MediaStateChangeReason.CONNECTION,
@@ -456,18 +456,18 @@ export class Call {
     if (sender && sender.track) {
       sender.track.enabled = !isMute;
 
+      this.publishStatEvent({
+        type: 'media_state_changed',
+        track: sender.track,
+        change: isMute ? MediaStateChange.ENDED : MediaStateChange.STARTED,
+        reason: MediaStateChangeReason.MUTE,
+      });
+
       if (trackKind === 'audio') {
         return this.client.updateAudioMuteState(isMute);
       } else if (trackKind === 'video') {
         return this.client.updateVideoMuteState(isMute);
       }
-
-      this.publishStatEvent({
-        type: 'track_changed',
-        track: sender.track,
-        change: isMute ? MediaStateChange.ENDED : MediaStateChange.STARTED,
-        reason: MediaStateChangeReason.MUTE,
-      });
     }
   };
 
