@@ -25,8 +25,8 @@ export const useCall = ({
       const call = await client.joinCall({
         id,
         type,
-        // FIXME: OL this needs to come from somewhere
-        datacenterId: 'amsterdam',
+        // FIXME: OL optional, but it is marked as required in proto
+        datacenterId: '',
       });
       setActiveCall(call);
     },
