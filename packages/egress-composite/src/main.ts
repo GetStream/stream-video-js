@@ -132,10 +132,6 @@ function createSpeakerUpdater(call: Call) {
     'current-speaker-video',
   ) as HTMLVideoElement;
 
-  const $userNameEl = document.getElementById(
-    'current-user-name',
-  ) as HTMLSpanElement;
-
   $videoEl.addEventListener('canplay', () => {
     $videoEl.play();
   });
@@ -161,12 +157,25 @@ function createSpeakerUpdater(call: Call) {
       $videoEl.srcObject = speaker.videoTrack!;
       $videoEl.title = speaker.user!.id;
 
-      $userNameEl.innerText = speaker.user?.id ?? 'N/A';
-      $userNameEl.title = speaker.sessionId;
+      updateCurrentSpeakerName(speaker);
 
       lastSpeaker = speaker;
     }
   };
+}
+
+function updateCurrentSpeakerName(speaker: StreamVideoParticipant) {
+  let $userNameEl = document.getElementById('current-user-name');
+  if ($userNameEl) {
+    $userNameEl.remove();
+  }
+
+  $userNameEl = document.createElement('span');
+  $userNameEl.id = 'current-user-name';
+  $userNameEl.innerText = speaker.user?.id ?? 'N/A';
+  $userNameEl.title = speaker.sessionId;
+
+  document.getElementById('app')!.appendChild($userNameEl);
 }
 
 function attachAudioTrack(participant: StreamVideoParticipant) {
