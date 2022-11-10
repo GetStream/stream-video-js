@@ -38,8 +38,8 @@ export const useCall = ({
       const call = await videoClient.joinCall({
         id,
         type,
-        // FIXME: OL this needs to come from somewhere
-        datacenterId: 'amsterdam',
+        // TODO: SANTHOSH, this is optional, check its purpose
+        datacenterId: '',
       });
       if (!call) {
         throw new Error(`Failed to join a call with id: ${callId}`);

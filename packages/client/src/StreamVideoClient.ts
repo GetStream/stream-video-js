@@ -129,11 +129,7 @@ export class StreamVideoClient {
   };
 
   joinCall = async (data: JoinCallRequest, sessionId?: string) => {
-    const { response } = await this.client.joinCall({
-      ...data,
-      // FIXME: OL this needs to come from somewhere
-      datacenterId: 'amsterdam',
-    });
+    const { response } = await this.client.joinCall(data);
     if (response.call && response.call.call && response.edges) {
       const edge = await this.getCallEdgeServer(
         response.call.call,

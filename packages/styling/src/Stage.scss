@@ -1,3 +1,5 @@
+@use './Icons';
+
 .str-video__stage {
   display: grid;
   grid-auto-rows: auto min-content;
@@ -56,7 +58,8 @@
     grid-template-rows: repeat(3, 1fr);
   }
 
-  .str-video__participant {
+  .str-video__participant,
+  .str-video__participant-angular-host {
     width: 100%;
     max-width: 1280px;
     min-height: 0;
@@ -108,13 +111,22 @@
       display: flex;
       align-items: center;
 
-      svg {
-        width: 20px;
-        height: 20px;
+      @mixin icon {
+        $icon-size: 15px;
+        width: $icon-size;
+        height: $icon-size;
+        background-size: $icon-size;
+        margin: 2px;
+      }
 
-        path {
-          fill: white;
-        }
+      .str-video__participant_name--audio-muted {
+        @include icon();
+        background-image: Icons.$icon-mic-off;
+      }
+
+      .str-video__participant_name--video-muted {
+        @include icon();
+        background-image: Icons.$icon-camera-off;
       }
     }
 

@@ -1,20 +1,6 @@
-import {
-  AfterViewChecked,
-  AfterViewInit,
-  Component,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-  ViewChildren,
-} from '@angular/core';
-import {
-  Call,
-  StreamVideoParticipant,
-  SubscriptionChanges,
-} from '@stream-io/video-client';
-import { debounceTime, Observable, Subject, Subscription } from 'rxjs';
-import { ParticipantComponent } from '../participant/participant.component';
+import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
+import { Call, StreamVideoParticipant } from '@stream-io/video-client';
+import { Observable, Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
 @Component({
@@ -22,21 +8,17 @@ import { StreamVideoService } from '../video.service';
   templateUrl: './call.component.html',
   styleUrls: ['./call.component.scss'],
 })
-export class CallComponent
-  implements OnInit, AfterViewChecked, OnDestroy, AfterViewInit
-{
+export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
   call!: Call;
   participants$: Observable<StreamVideoParticipant[]>;
+  localParticipant$: Observable<StreamVideoParticipant | undefined>;
   private subscriptions: Subscription[] = [];
-  @ViewChild('participantsContainer')
-  private participantsContainer!: ElementRef<HTMLElement>;
-  @ViewChildren(ParticipantComponent)
-  private participantComponents: ParticipantComponent[] = [];
   private participantsContainerResizeObserver: ResizeObserver | undefined;
-  private videoDimensionsSubject = new Subject<SubscriptionChanges>();
 
   constructor(private streamVideoService: StreamVideoService) {
-    this.participants$ = this.streamVideoService.activeCallParticipants$;
+    this.participants$ = this.streamVideoService.activeCallRemoteParticipants$;
+    this.localParticipant$ =
+      this.streamVideoService.activeCallLocalParticipant$;
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe(async (c) => {
         this.call = c!;
@@ -44,21 +26,9 @@ export class CallComponent
         this.call.publish(ownMediaStream, ownMediaStream);
       }),
     );
-    this.videoDimensionsSubject
-      .pipe(debounceTime(1200))
-      .subscribe((changes) => this.call.updateSubscriptionsPartial(changes));
   }
 
   ngOnInit(): void {}
-
-  ngAfterViewInit(): void {
-    this.participantsContainerResizeObserver = new ResizeObserver(() =>
-      this.videoDimensionsChanged(),
-    );
-    this.participantsContainerResizeObserver.observe(
-      this.participantsContainer.nativeElement,
-    );
-  }
 
   ngAfterViewChecked(): void {
     console.log('change detector ran');
@@ -76,16 +46,5 @@ export class CallComponent
   private async getOwnMediaStream() {
     const constraints = { audio: true, video: { width: 1280, height: 720 } };
     return await navigator.mediaDevices.getUserMedia(constraints);
-  }
-
-  private videoDimensionsChanged() {
-    const changes: SubscriptionChanges = {};
-    this.participantComponents.forEach((component) => {
-      changes[component.participant!.sessionId] = {
-        videoDimension: component.videoDimension,
-      };
-    });
-
-    this.videoDimensionsSubject.next(changes);
   }
 }

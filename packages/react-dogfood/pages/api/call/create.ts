@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { StreamVideoClient } from '@stream-io/video-client';
+import yargs from 'yargs';
 import { createToken } from '../../../helpers/jwt';
 import { meetingId } from '../../../lib/meetingId';
 
@@ -19,11 +20,10 @@ const createCallSlackHookAPI = async (
 
   console.log(`Received input`, req.body);
   const initiator = req.body.user_name || 'Stream';
-  const args = req.body.text || '';
-  const debugMode =
-    args.includes('--debug') ||
-    args.includes('-debug') ||
-    args.includes('debug');
+  const { _, $0, ...args } = await yargs().parse(req.body.text || '');
+  const queryParams = new URLSearchParams(
+    args as Record<string, string>,
+  ).toString();
 
   try {
     const response = await client.getOrCreateCall({
@@ -41,7 +41,7 @@ const createCallSlackHookAPI = async (
         req.headers.host,
         '/join/',
         call.id,
-        debugMode && '?debug=true',
+        queryParams && `?${queryParams}`,
       ]
         .filter(Boolean)
         .join('');

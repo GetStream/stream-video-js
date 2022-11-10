@@ -1,25 +1,30 @@
-<div class="str-call__participant">
-  <div class="str-call__participant-name">
-    {{ participant?.user?.id
-    }}<span *ngIf="participant?.isLoggedInUser">&nbsp;(You)</span>
+<div
+  class="str-call__participant"
+  [class.str-video__participant--speaking]="participant?.isSpeaking"
+>
+  <audio autoplay [srcObject]="participant?.audioTrack"></audio>
+  <div class="str-video__video-container">
+    <video
+      #video
+      [srcObject]="participant?.videoTrack"
+      class="str-video__remote-video"
+      [class.mirror]="participant?.isLoggedInUser"
+      autoplay
+    ></video>
+    <div class="str-video__participant_details">
+      <span class="str-video__participant_name">
+        {{ participant?.user?.id }}
+        <span
+          *ngIf="!participant?.audio"
+          class="str-video__participant_name--audio-muted"
+        >
+        </span>
+        <span
+          *ngIf="!participant?.video"
+          class="str-video__participant_name--video-muted"
+        >
+        </span>
+      </span>
+    </div>
   </div>
-  <audio
-    *ngIf="participant?.audioTrack; else noAudio"
-    autoplay
-    [srcObject]="participant?.audioTrack"
-  ></audio>
-  <ng-template #noAudio>
-    <div class="str-call__no-audio">Audio unavailable</div>
-  </ng-template>
-  <video
-    #video
-    *ngIf="participant?.videoTrack; else noVideo"
-    [srcObject]="participant?.videoTrack"
-    class="str-video__remote-video"
-    [class.str-video__mirrored-remote-video]="participant?.isLoggedInUser"
-    autoplay
-  ></video>
-  <ng-template #noVideo>
-    <div #videoPlaceholder class="str-call__no-video">No video</div>
-  </ng-template>
 </div>

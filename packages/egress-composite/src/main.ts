@@ -50,7 +50,7 @@ import './style.css';
   const call = await client.joinCall({
     id: callId,
     type: 'default',
-    datacenterId: 'aws-egress',
+    datacenterId: '',
   });
 
   if (!call) {
