@@ -1,4 +1,3 @@
-import { Call } from '@stream-io/video-client';
 import {
   createContext,
   PropsWithChildren,
@@ -7,6 +6,7 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { Call } from '@stream-io/video-client';
 
 export type MediaDevicesContextAPI = {
   switchDevice: (kind: 'audioinput' | 'videoinput', deviceId: string) => void;

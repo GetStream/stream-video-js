@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   Call,
   CallMeta,
@@ -9,7 +10,6 @@ import {
   StreamVideoClient,
   Timestamp,
 } from '@stream-io/video-client';
-import { useEffect } from 'react';
 
 export interface StatsProps {
   client: StreamVideoClient;

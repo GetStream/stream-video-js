@@ -1,28 +1,28 @@
-import { debounceTime, Subject } from 'rxjs';
+import { createSubscriber } from './subscriber';
 import {
-  MediaStateChange,
-  MediaStateChangeReason,
-} from '../gen/video/coordinator/stat_v1/stat';
-import { SfuRequest } from '../gen/video/sfu/event/events';
-import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
-import { StreamVideoWriteableStateStore } from '../stateStore';
+  defaultVideoLayers,
+  findOptimalVideoLayers,
+  OptimalVideoLayer,
+} from './videoLayers';
 import { StreamSfuClient } from '../StreamSfuClient';
-import { registerEventHandlers } from './callEventHandlers';
 import {
   defaultVideoPublishEncodings,
   getPreferredCodecs,
   getReceiverCodecs,
   getSenderCodecs,
 } from './codecs';
-import { SfuEventListener } from './Dispatcher';
 import { createPublisher } from './publisher';
-import { createSubscriber } from './subscriber';
-import type { StreamVideoParticipant, SubscriptionChanges } from './types';
 import {
-  defaultVideoLayers,
-  findOptimalVideoLayers,
-  OptimalVideoLayer,
-} from './videoLayers';
+  MediaStateChange,
+  MediaStateChangeReason,
+} from '../gen/video/coordinator/stat_v1/stat';
+import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
+import { registerEventHandlers } from './callEventHandlers';
+import { SfuRequest } from '../gen/video/sfu/event/events';
+import { SfuEventListener } from './Dispatcher';
+import { StreamVideoWriteableStateStore } from '../stateStore';
+import type { StreamVideoParticipant, SubscriptionChanges } from './types';
+import { debounceTime, Subject } from 'rxjs';
 
 export type TrackChangedEvent = {
   type: 'track_changed';
