@@ -255,37 +255,6 @@ export class Call {
     }
   };
 
-  /**
-   * Update track subscription configuration for one or more participants. You have to create a subscription for each participant you want to receive any kind of track.
-   * @param changes
-   * @param includeCurrentUser if true the tracks of the logged in user will be fetched from the server (instead of using the local stream)
-   * @returns
-   */
-  updateSubscriptionsPartial = (
-    changes: SubscriptionChanges,
-    includeCurrentUser: boolean = false,
-  ) => {
-    if (Object.keys(changes).length === 0) {
-      return;
-    }
-
-    this.stateStore.setCurrentValue(
-      this.stateStore.activeCallAllParticipantsSubject,
-      this.participants.map((participant) => {
-        const change = changes[participant.sessionId];
-        if (change) {
-          return {
-            ...participant,
-            videoDimension: change.videoDimension,
-          };
-        }
-        return participant;
-      }),
-    );
-
-    this.updateSubscriptions(includeCurrentUser);
-  };
-
   changeInputDevice = async (
     kind: Exclude<MediaDeviceKind, 'audiooutput'>,
     deviceId: string,
@@ -337,6 +306,50 @@ export class Call {
     await sender.replaceTrack(newTrack);
 
     return mediaStream; // for SDK use (preview video)
+  };
+
+  /**
+   * Update track subscription configuration for one or more participants.
+   * You have to create a subscription for each participant you want to receive any kind of track.
+   *
+   * @param changes the list of subscription changes to do.
+   */
+  updateSubscriptionsPartial = (changes: SubscriptionChanges) => {
+    if (Object.keys(changes).length === 0) {
+      return;
+    }
+
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeCallAllParticipantsSubject,
+      this.participants.map((participant) => {
+        const change = changes[participant.sessionId];
+        if (change) {
+          return {
+            ...participant,
+            videoDimension: change.videoDimension,
+          };
+        }
+        return participant;
+      }),
+    );
+
+    this.updateSubscriptions(this.participants);
+  };
+
+  /**
+   * Updates the track subscriptions of the current user.
+   *
+   * @param participants the participants to subscribe to.
+   */
+  updateSubscriptions = (participants: StreamVideoParticipant[]) => {
+    const subscriptions: { [key: string]: VideoDimension } = {};
+    participants.forEach((p) => {
+      if (p.videoDimension) {
+        subscriptions[p.user!.id] = p.videoDimension;
+      }
+    });
+    // schedule update
+    this.trackSubscriptionsSubject.next(subscriptions);
   };
 
   getActiveInputDeviceId = (kind: MediaDeviceKind) => {
@@ -410,20 +423,6 @@ export class Call {
       }
       await videoSender.setParameters(params);
     }
-  };
-
-  private updateSubscriptions = async (includeCurrentUser: boolean) => {
-    const subscriptions: { [key: string]: VideoDimension } = {};
-    this.participants.forEach((p) => {
-      if (
-        includeCurrentUser ||
-        (p.user?.id !== this.currentUserId &&
-          this.client.sessionId !== p.sessionId)
-      ) {
-        subscriptions[p.user!.id] = p.videoDimension || { height: 0, width: 0 };
-      }
-    });
-    this.trackSubscriptionsSubject.next(subscriptions);
   };
 
   private get participants() {

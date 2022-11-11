@@ -128,18 +128,30 @@ import './style.css';
 })();
 
 function createSpeakerUpdater(call: Call) {
-  const $videoEl = document.getElementById(
-    'current-speaker-video',
-  ) as HTMLVideoElement;
+  const $videoA = document.getElementById('speaker-a') as HTMLVideoElement;
+  const $videoB = document.getElementById('speaker-b') as HTMLVideoElement;
 
-  const $userNameEl = document.getElementById(
-    'current-user-name',
-  ) as HTMLSpanElement;
-
-  $videoEl.addEventListener('canplay', () => {
-    $videoEl.play();
+  $videoA.addEventListener('canplay', () => {
+    void $videoA.play();
+  });
+  $videoB.addEventListener('canplay', () => {
+    void $videoB.play();
   });
 
+  const other = ($current: HTMLVideoElement) =>
+    $current === $videoA ? $videoB : $videoA;
+
+  $videoA.addEventListener('playing', () => {
+    $videoB.classList.toggle('hidden');
+    $videoA.classList.remove('hidden');
+  });
+
+  $videoB.addEventListener('playing', () => {
+    $videoA.classList.toggle('hidden');
+    $videoB.classList.remove('hidden');
+  });
+
+  let $currentVideoEl = $videoA;
   let lastSpeaker: StreamVideoParticipant | undefined;
   return function highlightSpeaker(speaker?: StreamVideoParticipant) {
     if (speaker && speaker.sessionId !== lastSpeaker?.sessionId) {
@@ -151,22 +163,40 @@ function createSpeakerUpdater(call: Call) {
               height: 1080,
             },
           },
+          ...(lastSpeaker && {
+            [lastSpeaker.sessionId]: {
+              videoDimension: undefined,
+            },
+          }),
         });
         return;
       }
 
       console.log(`Swapping highlighted speaker`, speaker.user!.id);
 
+      $currentVideoEl = other($currentVideoEl);
       // FIXME: use avatar as the speaker might not be always publishing a video track
-      $videoEl.srcObject = speaker.videoTrack!;
-      $videoEl.title = speaker.user!.id;
+      $currentVideoEl.srcObject = speaker.videoTrack!;
+      $currentVideoEl.title = speaker.user!.id;
 
-      $userNameEl.innerText = speaker.user?.id ?? 'N/A';
-      $userNameEl.title = speaker.sessionId;
+      updateCurrentSpeakerName(speaker);
 
       lastSpeaker = speaker;
     }
   };
+}
+
+function updateCurrentSpeakerName(speaker: StreamVideoParticipant) {
+  let $userNameEl = document.getElementById('current-user-name');
+  if (!$userNameEl) {
+    $userNameEl = document.createElement('span');
+    $userNameEl.id = 'current-user-name';
+
+    document.getElementById('app')!.appendChild($userNameEl);
+  }
+
+  $userNameEl.innerText = speaker.user?.id ?? 'N/A';
+  $userNameEl.title = speaker.sessionId;
 }
 
 function attachAudioTrack(participant: StreamVideoParticipant) {
