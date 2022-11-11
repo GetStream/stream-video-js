@@ -70,11 +70,7 @@ export const useCallKeep = () => {
 
   const displayIncomingCallNow = (call: Call) => {
     try {
-      navigation.navigate('IncomingCallScreen', {
-        callCid: call.callCid,
-        createdByUserId: call.createdByUserId,
-        id: call.id,
-      });
+      navigation.navigate('IncomingCallScreen', call);
     } catch (error) {
       console.log(error);
     }
@@ -86,8 +82,6 @@ export const useCallKeep = () => {
     if (call.createdByUserId === username) {
       setState({
         activeCall: undefined,
-        callState: undefined,
-        sfuClient: undefined,
         call: undefined,
       });
       navigation.navigate('HomeScreen');
@@ -101,8 +95,6 @@ export const useCallKeep = () => {
     if (call.createdByUserId === username) {
       setState({
         activeCall: undefined,
-        callState: undefined,
-        sfuClient: undefined,
         call: undefined,
       });
       if (cancelled) {
