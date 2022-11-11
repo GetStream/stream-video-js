@@ -17,7 +17,9 @@ describe('StreamVideoClient', () => {
         createSocketConnection: vi.fn(),
       };
     });
-    client = new StreamVideoClient('123', { token: 'abc' });
+    client = new StreamVideoClient('123', {
+      token: 'abc',
+    });
   });
 
   it('should connect', async () => {

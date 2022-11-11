@@ -22,10 +22,8 @@ const PhoneButton = () => {
         primaryVideoTrack._switchCamera();
         newState.cameraBackFacingMode = !cameraBackFacingMode;
       }
-      newState.callState = undefined;
       newState.isAudioMuted = false;
       newState.isVideoMuted = false;
-      newState.participants = [];
       return newState;
     });
   }).current;
@@ -36,10 +34,10 @@ const PhoneButton = () => {
       return;
     }
     try {
-      await call.leave();
-      resetCallState();
+      call.leave();
       InCallManager.stop();
       navigation.navigate('HomeScreen');
+      resetCallState();
     } catch (err) {
       console.warn('failed to leave call', err);
     }

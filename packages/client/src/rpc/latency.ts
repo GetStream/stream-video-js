@@ -17,13 +17,18 @@ export const measureResourceLoadLatencyTo = async (
       .fill(undefined)
       .map(async () => {
         const start = Date.now();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout:
         try {
           const src = new URL(endpoint);
           src.searchParams.set('rand', `react_${Math.random() * 10000000}`);
-          await fetch(src.toString()).then((response) => response.blob());
+          await fetch(src.toString(), {
+            signal: controller.signal,
+          }).then((response) => response.blob());
         } catch (e) {
           console.warn(`failed to measure latency to ${endpoint}`, e);
         }
+        clearTimeout(timeoutId); // clear timeout incase fetch completes before timeout
         const latency = Date.now() - start;
         measurements.push(toSeconds(latency));
       }),

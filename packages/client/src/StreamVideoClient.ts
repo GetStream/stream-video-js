@@ -128,22 +128,6 @@ export class StreamVideoClient {
     return callEnvelope;
   };
 
-  // TODO: remove this method (it's only used in react-native for now until the sfu-Call object is merged)
-  joinCallRaw = async (data: JoinCallRequest, sessionId?: string) => {
-    const { response } = await this.client.joinCall({
-      ...data,
-      // FIXME: OL this needs to come from somewhere
-      datacenterId: 'amsterdam',
-    });
-    if (response.call && response.call.call && response.edges) {
-      const edge = await this.getCallEdgeServer(
-        response.call.call,
-        response.edges,
-      );
-      return { response, edge };
-    }
-  };
-
   joinCall = async (data: JoinCallRequest, sessionId?: string) => {
     const { response } = await this.client.joinCall(data);
     if (response.call && response.call.call && response.edges) {

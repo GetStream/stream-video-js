@@ -1,106 +1,81 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
+import { CreateCallInput } from '@stream-io/video-client';
 import {
-  CallCreated,
-  CallMeta,
-  Credentials,
-  Envelopes,
-  StreamVideoClient,
-} from '@stream-io/video-client';
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../contexts/AppContext';
+import { useNavigation } from '@react-navigation/native';
+import InCallManager from 'react-native-incall-manager';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types';
 
 export type UseCallParams = {
-  videoClient: StreamVideoClient | undefined;
   callId: string;
   callType: string;
-  currentUser: string;
   autoJoin: boolean;
+  input?: CreateCallInput;
 };
 
 export const useCall = ({
-  videoClient,
   callId,
   callType,
-  currentUser,
   autoJoin,
+  input,
 }: UseCallParams) => {
-  const [activeCall, setActiveCall] = useState<CallMeta.Call>();
-  const [credentials, setCredentials] = useState<Credentials>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  if (!videoClient) {
+    throw new Error('VideoClient not initialized');
+  }
+  const localMediaStream = useAppGlobalStoreValue(
+    (store) => store.localMediaStream,
+  );
+  const setState = useAppGlobalStoreSetState();
 
   const joinCall = useCallback(
     async (id: string, type: string) => {
-      if (!videoClient) {
-        return;
-      }
-      const result = await videoClient.joinCallRaw({
+      const call = await videoClient.joinCall({
         id,
         type,
         // TODO: SANTHOSH, this is optional, check its purpose
         datacenterId: '',
       });
-      if (result) {
-        const { response, edge } = result;
-        if (response.call && response.call.call && response.edges) {
-          setActiveCall(response.call.call);
-          setCredentials(edge?.credentials);
-        }
+      if (!call) {
+        throw new Error(`Failed to join a call with id: ${callId}`);
+      }
+      try {
+        InCallManager.start({ media: 'video' });
+        InCallManager.setForceSpeakerphoneOn(true);
+        await call.join(localMediaStream, localMediaStream);
+        await call.publish(localMediaStream, localMediaStream);
+        setState({
+          call: call,
+        });
+        navigation.navigate('ActiveCall');
+      } catch (err) {
+        console.warn('failed to join call', err);
       }
     },
-    [videoClient],
+    [callId, localMediaStream, navigation, setState, videoClient],
   );
 
   const getOrCreateCall = useCallback(async () => {
-    if (!videoClient) {
-      return;
-    }
     const callMetadata = await videoClient.getOrCreateCall({
       id: callId,
       type: callType,
+      input,
     });
     if (callMetadata) {
+      setState({
+        activeCall: callMetadata.call,
+      });
+
       if (autoJoin) {
-        joinCall(callId, callType);
-      } else {
-        setActiveCall(callMetadata.call);
+        await joinCall(callId, callType);
       }
     }
-  }, [autoJoin, callId, callType, joinCall, videoClient]);
+  }, [autoJoin, callId, callType, input, joinCall, setState, videoClient]);
 
-  useEffect(() => {
-    const onCallCreated = (event: CallCreated, _envelopes?: Envelopes) => {
-      const { call } = event;
-      if (!call) {
-        console.warn("Can't find call in CallCreated event");
-        return;
-      }
-      // initiator, immediately joins the call
-      if (call.createdByUserId === currentUser) {
-        joinCall(call.id, call.type).then(() => {
-          console.log(`Joining call with id:${call.id}`);
-        });
-      }
-    };
-    return videoClient?.on('callCreated', onCallCreated);
-  }, [currentUser, joinCall, videoClient]);
-
-  // useEffect(() => {
-  //   return client?.on(
-  //     'callStarted',
-  //     (event: CallStarted, envelopes?: Envelopes) => {
-  //       const startedCall = envelopes?.calls[event.callCid];
-  //       if (
-  //         startedCall &&
-  //         startedCall.id === callId &&
-  //         startedCall.type === callType
-  //       ) {
-  //         setActiveCall(startedCall);
-  //         if (autoJoin) {
-  //           joinCall(startedCall.id, startedCall.type).catch((e) => {
-  //             console.error(`Failed to join call`, startedCall, e);
-  //           });
-  //         }
-  //       }
-  //     },
-  //   );
-  // }, [callId, client, callType, autoJoin, joinCall]);
-
-  return { activeCall, credentials, getOrCreateCall };
+  return { getOrCreateCall };
 };

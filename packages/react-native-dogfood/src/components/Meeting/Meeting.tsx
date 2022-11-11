@@ -8,39 +8,21 @@ import {
   Button,
   Linking,
 } from 'react-native';
-import InCallManager from 'react-native-incall-manager';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { RootStackParamList } from '../../../types';
-import { Call } from '../../modules/Call';
-import { StreamSfuClient } from '@stream-io/video-client';
 import { useCall } from '../../hooks/useCall';
-import { useSessionId } from '../../hooks/useSessionId';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { mediaDevices } from 'react-native-webrtc';
+import { meetingId } from '../../modules/helpers/meetingId';
 
-// export const SFU_HOSTNAME = "192.168.2.24";
-// const SFU_URL = `http://${SFU_HOSTNAME}:3031/twirp`;
-// export const SFU_HOSTNAME = 'sfu2.fra1.gtstrm.com';
-// const SFU_URL = 'https://sfu2.fra1.gtstrm.com/rpc/twirp';
-// const DEFAULT_USER_NAME = 'steve';
-// const DEFAULT_CALL_ID = '123';
 const APP_ID = 'streamrnvideosample';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
-
-const Meeting = ({ navigation }: Props) => {
+const Meeting = () => {
   const callID = useAppGlobalStoreValue((store) => store.callID);
-  const username = useAppGlobalStoreValue((store) => store.username);
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
-  );
-  const localMediaStream = useAppGlobalStoreValue(
-    (store) => store.localMediaStream,
   );
   const setState = useAppGlobalStoreSetState();
 
@@ -56,6 +38,10 @@ const Meeting = ({ navigation }: Props) => {
         callID: matchResponse[1],
       });
     };
+    // listen to url changes and parse the callID
+    const { remove } = Linking.addEventListener('url', ({ url }) => {
+      parseAndSetCallID(url);
+    });
     const configure = async () => {
       const mediaStream = await mediaDevices.getUserMedia({
         audio: true,
@@ -64,71 +50,19 @@ const Meeting = ({ navigation }: Props) => {
       setState({
         localMediaStream: mediaStream,
       });
-
-      // listen to url changes and parse the callID
-      Linking.addEventListener('url', ({ url }) => {
-        parseAndSetCallID(url);
-      });
       const url = await Linking.getInitialURL();
       parseAndSetCallID(url);
     };
 
     configure();
+    return remove;
   }, [setState]);
 
-  const { activeCall, credentials, getOrCreateCall } = useCall({
-    videoClient,
+  const { getOrCreateCall } = useCall({
     callId: callID,
     callType: 'default', // TODO: SANTHOSH -- what is this?
-    currentUser: username,
     autoJoin: true,
   });
-
-  const sessionId = useSessionId(callID, username);
-
-  useEffect(() => {
-    if (!credentials || !activeCall) {
-      return;
-    }
-    const serverUrl = credentials.server?.url || 'http://localhost:3031/twirp';
-    const sfuClient = new StreamSfuClient(
-      serverUrl,
-      credentials.token,
-      sessionId,
-    );
-    const call = new Call(sfuClient, username, serverUrl, credentials);
-    const joinSfuCall = async () => {
-      try {
-        const callState = await call.join(localMediaStream);
-        if (callState && localMediaStream) {
-          InCallManager.start({ media: 'video' });
-          InCallManager.setForceSpeakerphoneOn(true);
-          await call.publish(localMediaStream);
-          setState({
-            activeCall,
-            callState,
-            sfuClient,
-            call,
-          });
-          navigation.navigate('ActiveCall');
-        }
-      } catch (err) {
-        console.warn('failed to join call', err);
-        setState({
-          callState: undefined,
-        });
-      }
-    };
-    joinSfuCall();
-  }, [
-    activeCall,
-    credentials,
-    localMediaStream,
-    navigation,
-    sessionId,
-    setState,
-    username,
-  ]);
 
   const handleCopyInviteLink = useCallback(
     () => Clipboard.setString(`${APP_ID}://callID/${callID}/`),
@@ -137,7 +71,16 @@ const Meeting = ({ navigation }: Props) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerText}>{'Whats the call ID?'}</Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerText}>{'Whats the call ID?'}</Text>
+        <Button
+          title={'Randomise'}
+          color="blue"
+          onPress={() => {
+            setState({ callID: meetingId() });
+          }}
+        />
+      </View>
       <TextInput
         style={styles.textInput}
         placeholder={'Type your call ID here...'}
@@ -191,6 +134,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 20,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   headerText: {
     color: 'black',

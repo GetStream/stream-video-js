@@ -4649,6 +4649,7 @@ __metadata:
     js-base64: ^3.7.2
     lint-staged: ^13.0.3
     metro-react-native-babel-preset: 0.72.3
+    nanoid: ^4.0.0
     patch-package: ^6.4.7
     prettier: 2.7.1
     react: 18.1.0
@@ -19093,6 +19094,21 @@ __metadata:
   peerDependencies:
     react-native: ">=0.60.0"
   checksum: 812480242357f3813746c4003e070068073fa13fec9b2302bec2d785212131d8ed20708d51a77b1420b0a0ed2701ddfecac551f54c4cc59b459765a4c0b4fa74
+  languageName: node
+  linkType: hard
+
+"react-native-webrtc@patch:react-native-webrtc@npm%3A106.0.0-beta.6#./.yarn/patches/react-native-webrtc-npm-106.0.0-beta.6-795b82ce91.patch::locator=%40stream-io%2Fvideo-js-root%40workspace%3A.":
+  version: 106.0.0-beta.6
+  resolution: "react-native-webrtc@patch:react-native-webrtc@npm%3A106.0.0-beta.6#./.yarn/patches/react-native-webrtc-npm-106.0.0-beta.6-795b82ce91.patch::version=106.0.0-beta.6&hash=be5090&locator=%40stream-io%2Fvideo-js-root%40workspace%3A."
+  dependencies:
+    adm-zip: 0.5.9
+    base64-js: 1.5.1
+    debug: 4.3.4
+    event-target-shim: 6.0.2
+    tar: 6.1.11
+  peerDependencies:
+    react-native: ">=0.60.0"
+  checksum: 9753f26235e966128947c2f0f60673416f3eedae57c91fa1ae0412ca7447c963dae8bef0b275a631e4241d632ac12f4540e942e120ffaf7ee959980ba62cb2e0
   languageName: node
   linkType: hard
 

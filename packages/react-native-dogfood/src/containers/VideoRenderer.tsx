@@ -3,14 +3,22 @@ import { RTCView } from 'react-native-webrtc';
 import ParticipantVideosContainer from './ParticipantVideosContainer';
 import React from 'react';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import { useObservableValue } from '../hooks/useObservable';
 
 const VideoRenderer = () => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
+  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  if (!videoClient) {
+    throw new Error(
+      "StreamVideoClient isn't initialized -- ParticipantVideosContainer",
+    );
+  }
+  const remoteParticipants = useObservableValue(
+    videoClient.readOnlyStateStore.activeCallRemoteParticipants$,
+  );
   const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
-  const callState = useAppGlobalStoreValue((store) => store.callState);
-  const participants = useAppGlobalStoreValue((store) => store.participants);
   const username = useAppGlobalStoreValue((store) => store.username);
   const cameraBackFacingMode = useAppGlobalStoreValue(
     (store) => store.cameraBackFacingMode,
@@ -24,9 +32,7 @@ const VideoRenderer = () => {
           mirror={!cameraBackFacingMode}
           streamURL={localMediaStream.toURL()}
           style={
-            callState && participants.length > 1
-              ? styles.selfView
-              : styles.stream
+            remoteParticipants.length > 0 ? styles.selfView : styles.stream
           }
           objectFit="cover"
           zOrder={1}
@@ -34,9 +40,7 @@ const VideoRenderer = () => {
       ) : (
         <View
           style={[
-            callState && participants.length > 1
-              ? styles.selfView
-              : styles.stream,
+            remoteParticipants.length > 0 ? styles.selfView : styles.stream,
             styles.avatarContainer,
           ]}
         >
