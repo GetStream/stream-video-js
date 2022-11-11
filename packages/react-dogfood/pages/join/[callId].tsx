@@ -24,7 +24,6 @@ const JoinCall = (props: JoinCallProps) => {
   const router = useRouter();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
-  const includeSelf = Boolean(router.query['include_self']);
   const autoJoin = Boolean(router.query['auto_join']) || true;
 
   const { userToken, user, coordinatorRpcUrl, coordinatorWsUrl, apiKey } =
@@ -60,7 +59,6 @@ const JoinCall = (props: JoinCallProps) => {
           callId={callId}
           callType={callType}
           autoJoin={autoJoin}
-          includeSelf={includeSelf}
         />
       </StreamVideo>
     </div>
