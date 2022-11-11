@@ -8,11 +8,16 @@ import {
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { RootStackParamList } from '../../../types';
+import { useCallKeep } from '../../hooks/useCallKeep';
 
 const PhoneButton = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const setState = useAppGlobalStoreSetState();
   const call = useAppGlobalStoreValue((store) => store.call);
+  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const activeCall = useAppGlobalStoreValue((store) => store.activeCall);
+  const { hangupCall } = useCallKeep(videoClient);
+
   const resetCallState = useRef(() => {
     setState((prevState) => {
       const newState: Partial<typeof prevState> = {};
@@ -38,6 +43,9 @@ const PhoneButton = () => {
     try {
       await call.leave();
       resetCallState();
+      if (activeCall) {
+        await hangupCall(activeCall, true);
+      }
       InCallManager.stop();
       navigation.navigate('HomeScreen');
     } catch (err) {

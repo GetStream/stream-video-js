@@ -1,13 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
-  CallCreated,
   CallMeta,
   Credentials,
-  Envelopes,
   StreamVideoClient,
   MemberInput,
 } from '@stream-io/video-client';
-import RNCallKeep from 'react-native-callkeep';
 
 export type UseCallParams = {
   videoClient: StreamVideoClient | undefined;
@@ -24,8 +21,6 @@ export const useCall = ({
   videoClient,
   callId,
   callType,
-  currentUser,
-  displayIncomingCallNow,
   autoJoin,
   members,
   ring,
@@ -97,30 +92,6 @@ export const useCall = ({
       }
     }
   }, [autoJoin, callId, callType, joinCall, videoClient, members, ring]);
-
-  useEffect(() => {
-    const onCallCreated = (event: CallCreated, _envelopes?: Envelopes) => {
-      const { call } = event;
-      if (!call) {
-        console.warn("Can't find call in CallCreated event");
-        return;
-      }
-      RNCallKeep.displayIncomingCall(
-        call.callCid.split(':')[1],
-        '2738282929',
-        call.createdByUserId,
-        'generic',
-        true,
-      );
-      // initiator, immediately joins the call
-      if (call.createdByUserId === currentUser) {
-        joinCall(call.id, call.type).then(() => {
-          console.log(`Joining call with id:${call.id}`);
-        });
-      }
-    };
-    return videoClient?.on('callCreated', onCallCreated);
-  }, [currentUser, joinCall, videoClient, displayIncomingCallNow]);
 
   // useEffect(() => {
   //   return client?.on(

@@ -143,6 +143,13 @@ export class StreamVideoClient {
     });
   };
 
+  cancelCall = async (callCid: string) => {
+    await this.client.sendEvent({
+      callCid,
+      eventType: UserEventType.CANCELLED_CALL,
+    });
+  };
+
   // TODO: remove this method (it's only used in react-native for now until the sfu-Call object is merged)
   joinCallRaw = async (data: JoinCallRequest, sessionId?: string) => {
     const { response } = await this.client.joinCall({

@@ -17,6 +17,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ActiveCall'>;
 export default (_props: Props) => {
   const call = useAppGlobalStoreValue((store) => store.call);
   const callState = useAppGlobalStoreValue((store) => store.callState);
+  const participants = useAppGlobalStoreValue((store) => store.participants);
   const setState = useAppGlobalStoreSetState();
 
   useEffect(() => {
@@ -75,7 +76,7 @@ export default (_props: Props) => {
       unsubscribeParticipantJoined();
       unsubscribeParticipantLeft();
     };
-  }, [call, setState]);
+  }, [call, setState, participants]);
 
   return (
     <SafeAreaView style={styles.body} edges={['right', 'left']}>

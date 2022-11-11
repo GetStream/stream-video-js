@@ -7,6 +7,7 @@ import { RootStackParamList } from './types';
 import LoginScreen from './src/screens/LoginScreen';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { HomeScreen } from './src/screens/HomeScreen';
+import IncomingCallScreen from './src/screens/IncomingCallScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -21,6 +22,7 @@ const StackNavigator = () => {
       <Stack.Screen name="LoginScreen" component={LoginScreen} />
       <Stack.Screen name="HomeScreen" component={HomeScreen} />
       <Stack.Screen name="ActiveCall" component={ActiveCallScreen} />
+      <Stack.Screen name="IncomingCallScreen" component={IncomingCallScreen} />
     </Stack.Navigator>
   );
 };

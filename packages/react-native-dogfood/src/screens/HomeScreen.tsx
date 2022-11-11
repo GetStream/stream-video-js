@@ -21,11 +21,16 @@ export const HomeScreen = ({ navigation, route }: Props) => {
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const [selectedTab, setSelectedTab] = useState('Meeting');
 
-  const { displayIncomingCallNow, hangupCall } = useCallKeep(videoClient);
+  const { displayIncomingCallNow, hangupCall, rejectCall } = useCallKeep();
 
   useEffect(() => {
     if (videoClient) {
-      registerWSEventHandlers(videoClient, displayIncomingCallNow, hangupCall);
+      registerWSEventHandlers(
+        videoClient,
+        displayIncomingCallNow,
+        hangupCall,
+        rejectCall,
+      );
     }
   });
 

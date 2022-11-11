@@ -61,7 +61,10 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
     ]);
   };
 
-  if (props.route.name === 'ActiveCall') {
+  if (
+    props.route.name === 'ActiveCall' ||
+    props.route.name === 'IncomingCallScreen'
+  ) {
     return null;
   } else if (props.route.name === 'LoginScreen') {
     return (

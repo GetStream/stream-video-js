@@ -122,7 +122,7 @@ const Ringing = ({ navigation }: Props) => {
             setLoading(false);
           }
 
-          const serverUrl = 'http://192.168.1.41:3031/twirp';
+          const serverUrl = 'http://192.168.1.34:3031/twirp';
           const sfuClient = new StreamSfuClient(
             serverUrl,
             credentials.token,

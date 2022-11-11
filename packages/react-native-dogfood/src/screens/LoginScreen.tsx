@@ -75,9 +75,9 @@ const LoginScreen = ({ navigation }: Props) => {
         };
 
         const clientParams = {
-          coordinatorRpcUrl: 'http://192.168.1.41:26991/rpc',
+          coordinatorRpcUrl: 'http://192.168.1.34:26991/rpc',
           coordinatorWsUrl:
-            'ws://192.168.1.41:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+            'ws://192.168.1.34:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
           // coordinatorRpcUrl:
           //   'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
           // coordinatorWsUrl:

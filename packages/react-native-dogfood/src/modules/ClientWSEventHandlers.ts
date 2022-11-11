@@ -1,5 +1,6 @@
 import {
   CallAccepted,
+  CallCancelled,
   CallCreated,
   CallRejected,
   Envelopes,
@@ -10,12 +11,14 @@ import { Call } from '@stream-io/video-client/dist/src/gen/video/coordinator/cal
 export const registerWSEventHandlers = (
   videoClient: StreamVideoClient,
   displayIncomingCallNow?: (call: Call) => void,
-  hangupCall?: (call: Call) => void,
+  hangupCall?: (call: Call, cancelled?: boolean) => void,
+  rejectCall?: (call: Call) => void,
 ) => {
   if (videoClient) {
     watchCallAcceptedEvent(videoClient);
     watchCallCreatedEvent(videoClient, displayIncomingCallNow);
-    watchCallRejectedEvent(videoClient, hangupCall);
+    watchCallRejectedEvent(videoClient, rejectCall);
+    watchCallCancelledEvent(videoClient, hangupCall);
   }
 };
 
@@ -41,7 +44,7 @@ const watchCallCreatedEvent = (
 
 const watchCallRejectedEvent = (
   videoClient: StreamVideoClient,
-  hangupCall?: (call: Call) => void,
+  rejectCall?: (call: Call) => void,
 ) => {
   videoClient.on(
     'callRejected',
@@ -51,8 +54,8 @@ const watchCallRejectedEvent = (
         console.warn("Can't find call in CallCreated event");
         return;
       } else {
-        if (hangupCall) {
-          hangupCall(call);
+        if (rejectCall) {
+          rejectCall(call);
         }
       }
     },
@@ -68,6 +71,26 @@ const watchCallAcceptedEvent = (videoClient: StreamVideoClient) => {
         console.warn("Can't find call in CallCreated event");
         return;
       } else {
+      }
+    },
+  );
+};
+
+const watchCallCancelledEvent = (
+  videoClient: StreamVideoClient,
+  hangupCall?: (call: Call) => void,
+) => {
+  videoClient.on(
+    'callCancelled',
+    (event: CallCancelled, _envelopes?: Envelopes) => {
+      const { call } = event;
+      if (!call) {
+        console.warn("Can't find call in CallCreated event");
+        return;
+      } else {
+        if (hangupCall) {
+          hangupCall(call);
+        }
       }
     },
   );
