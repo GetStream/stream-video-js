@@ -17,7 +17,7 @@
     "build:client": "yarn workspace @stream-io/video-client run build",
     "start:client": "yarn workspace @stream-io/video-client run start",
     "start:react:app": "yarn workspace @stream-io/video-react-sample-app run start",
-    "start:angular:app": "yarn workspace angular-sdk run start",
+    "start:angular": "yarn workspace angular-sdk run start",
     "start:react-native:ios:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run ios",
     "start:react-native:android:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run android",
     "build:vercel": "yarn build:client && yarn build:styling && yarn build:react:sdk && yarn build:react:dogfood",
@@ -44,6 +44,7 @@
   },
   "resolutions": {
     "react-native-pure-jwt@^3.0.1": "patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch",
-    "react-native-callkeep@^4.3.3": "patch:react-native-callkeep@npm%3A4.3.3#./.yarn/patches/react-native-callkeep-npm-4.3.3-71db80f4ef.patch"
+    "react-native-callkeep@^4.3.3": "patch:react-native-callkeep@npm%3A4.3.3#./.yarn/patches/react-native-callkeep-npm-4.3.3-71db80f4ef.patch",
+    "react-native-webrtc@106.0.0-beta.6": "patch:react-native-webrtc@npm%3A106.0.0-beta.6#./.yarn/patches/react-native-webrtc-npm-106.0.0-beta.6-795b82ce91.patch"
   }
 }

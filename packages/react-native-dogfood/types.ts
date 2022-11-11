@@ -119,5 +119,5 @@ export type RootStackParamList = {
   LoginScreen: undefined;
   HomeScreen: undefined;
   ActiveCall: undefined;
-  IncomingCallScreen: Pick<Call, 'callCid' | 'createdByUserId' | 'id'>;
+  IncomingCallScreen: Call;
 };

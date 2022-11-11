@@ -1,43 +1,53 @@
 import { MemberInput, StreamVideoClient } from '@stream-io/video-client';
+import InCallManager from 'react-native-incall-manager';
+import { MediaStream } from 'react-native-webrtc';
 
 const joinCall = async (
   videoClient: StreamVideoClient,
   id: string,
   type: string,
+  localMediaStream: MediaStream,
   ring?: boolean,
   members?: MemberInput[],
 ) => {
-  if (!videoClient) {
-    return;
-  }
-  let result;
+  let call;
   if (members && ring) {
-    result = await videoClient.joinCallRaw({
+    call = await videoClient.joinCall({
       id,
       type,
       // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
-      datacenterId: 'amsterdam',
+      datacenterId: '',
       input: {
         ring: ring,
         members: members,
       },
     });
   } else {
-    result = await videoClient.joinCallRaw({
+    call = await videoClient.joinCall({
       id,
       type,
       // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
-      datacenterId: 'amsterdam',
+      datacenterId: '',
     });
   }
-  if (result) {
-    const { response, edge } = result;
-    return { activeCall: response.call?.call, credentials: edge.credentials };
+  if (!call) {
+    throw new Error(`Failed to join a call with id: ${id}`);
+  }
+  try {
+    InCallManager.start({ media: 'video' });
+    InCallManager.setForceSpeakerphoneOn(true);
+    await call.join(localMediaStream, localMediaStream);
+    await call.publish(localMediaStream, localMediaStream);
+
+    return call;
+  } catch (err) {
+    console.warn('failed to join call', err);
   }
 };
 
 const getOrCreateCall = async (
   videoClient: StreamVideoClient,
+  localMediaStream: MediaStream,
   callDetails: {
     autoJoin?: boolean;
     callId: string;
@@ -46,9 +56,6 @@ const getOrCreateCall = async (
     members?: MemberInput[];
   },
 ) => {
-  if (!videoClient) {
-    return;
-  }
   const { autoJoin, ring, members, callId, callType } = callDetails;
   let callMetadata;
   if (ring && members) {
@@ -72,12 +79,13 @@ const getOrCreateCall = async (
         videoClient,
         callId,
         callType,
+        localMediaStream,
         ring,
         members,
       );
-      return response;
+      return { activeCall: callMetadata.call, call: response };
     } else {
-      return { activeCall: callMetadata?.call, credentials: undefined };
+      return { activeCall: callMetadata?.call, call: undefined };
     }
   }
 };

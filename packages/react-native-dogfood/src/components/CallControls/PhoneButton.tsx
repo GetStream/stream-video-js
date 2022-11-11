@@ -14,9 +14,8 @@ const PhoneButton = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const setState = useAppGlobalStoreSetState();
   const call = useAppGlobalStoreValue((store) => store.call);
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const activeCall = useAppGlobalStoreValue((store) => store.activeCall);
-  const { hangupCall } = useCallKeep(videoClient);
+  const { hangupCall } = useCallKeep();
 
   const resetCallState = useRef(() => {
     setState((prevState) => {
@@ -27,10 +26,8 @@ const PhoneButton = () => {
         primaryVideoTrack._switchCamera();
         newState.cameraBackFacingMode = !cameraBackFacingMode;
       }
-      newState.callState = undefined;
       newState.isAudioMuted = false;
       newState.isVideoMuted = false;
-      newState.participants = [];
       return newState;
     });
   }).current;
@@ -41,11 +38,11 @@ const PhoneButton = () => {
       return;
     }
     try {
-      await call.leave();
-      resetCallState();
+      call.leave();
       if (activeCall) {
         await hangupCall(activeCall, true);
       }
+      resetCallState();
       InCallManager.stop();
       navigation.navigate('HomeScreen');
     } catch (err) {

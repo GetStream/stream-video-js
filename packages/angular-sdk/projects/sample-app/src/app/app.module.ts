@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
-import { StreamVideoModule } from 'projects/video-angular-sdk/src/public-api';
+import { StreamVideoModule } from '@stream-io/video-angular-sdk';
 
 import { AppComponent } from './app.component';
 

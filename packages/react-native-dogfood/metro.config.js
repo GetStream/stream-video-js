@@ -9,6 +9,7 @@ const getConfig = async () => {
       resolveRequest: MetroSymlinksResolver(),
       // add any custom asset options here (if any).. example "bin"
       assetExts: [...defaultConfig.resolver.assetExts],
+      blockList: [/angular-sdk/],
     },
   });
   return config;

@@ -5,23 +5,26 @@ export const defaultVideoPublishEncodings: RTCRtpEncodingParameters[] = [
   {
     rid: 'f',
     active: true,
-    maxBitrate: 1_280_000,
+    maxBitrate: 1280000,
   },
   {
     rid: 'h',
     active: true,
     scaleResolutionDownBy: 2.0,
-    maxBitrate: 768_000,
+    maxBitrate: 768000,
   },
   {
     rid: 'q',
     active: true,
     scaleResolutionDownBy: 4.0,
-    maxBitrate: 384_000,
+    maxBitrate: 384000,
   },
 ];
 
-export const getPreferredCodecs = (kind: string, videoCodec: string) => {
+export const getPreferredCodecs = (
+  kind: 'audio' | 'video',
+  videoCodec: string,
+) => {
   if (!('getCapabilities' in RTCRtpSender)) {
     console.warn('RTCRtpSender.getCapabilities is not supported');
     return;
@@ -65,17 +68,20 @@ export const getPreferredCodecs = (kind: string, videoCodec: string) => {
   ] as RTCRtpCodecCapability[];
 };
 
-export const getSenderCodecs = (kind: string, pc?: RTCPeerConnection) => {
+export const getSenderCodecs = async (
+  kind: 'audio' | 'video',
+  pc?: RTCPeerConnection,
+) => {
   if (!('getCapabilities' in RTCRtpSender)) {
     console.warn('RTCRtpSender.getCapabilities is not supported');
     return getCodecsFromPeerConnection(pc, kind, 'sendonly');
   }
   console.log('sender cap', RTCRtpSender.getCapabilities(kind));
-  return RTCRtpSender.getCapabilities(kind)?.codecs.forEach(toCodec) ?? [];
+  return RTCRtpSender.getCapabilities(kind)?.codecs.map(toCodec) ?? [];
 };
 
 export const getReceiverCodecs = async (
-  kind: string,
+  kind: 'audio' | 'video',
   pc?: RTCPeerConnection,
 ) => {
   if (!('getCapabilities' in RTCRtpReceiver)) {
@@ -95,7 +101,7 @@ const toCodec = (codec: RTCRtpCodecCapability): Codec => ({
 
 const getCodecsFromPeerConnection = async (
   pc: RTCPeerConnection | undefined,
-  kind: string,
+  kind: 'audio' | 'video',
   direction: RTCRtpTransceiverDirection,
 ) => {
   let sdp =

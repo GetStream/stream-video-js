@@ -1,4 +1,3 @@
-import { StreamSfuClient } from '@stream-io/video-client';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -14,9 +13,6 @@ import {
   useAppGlobalStoreValue,
   useAppGlobalStoreSetState,
 } from '../../contexts/AppContext';
-import { useSessionId } from '../../hooks/useSessionId';
-import { Call } from '../../modules/Call';
-import InCallManager from 'react-native-incall-manager';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../types';
 import { getOrCreateCall } from '../../utils/callUtils';
@@ -68,11 +64,9 @@ const Ringing = ({ navigation }: Props) => {
   const [selectedParticipant, setSelectedParticipant] = useState('');
   const [loading, setLoading] = useState(false);
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
-  const username = useAppGlobalStoreValue((store) => store.username);
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
-  const ringingCallID = useAppGlobalStoreValue((store) => store.ringingCallID);
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },
@@ -82,25 +76,15 @@ const Ringing = ({ navigation }: Props) => {
 
   const setState = useAppGlobalStoreSetState();
 
-  // const getRandomNumber = () => String(Math.floor(Math.random() * 100000));
-
-  // const format = (uuid: string) => uuid.split('-')[0];
-
-  // const log = (text: string) => {
-  //   setLog(logText + '\n' + text);
-  // };
-
-  const { startCall } = useCallKeep(videoClient);
-
-  const sessionId = useSessionId(ringingCallID, username);
+  const { startCall } = useCallKeep();
 
   const startCallHandler = async () => {
     setLoading(true);
-    if (videoClient) {
+    if (videoClient && localMediaStream) {
       try {
         const callID = uuidv4().toLowerCase();
         await setState({ ringingCallID: callID });
-        const response = await getOrCreateCall(videoClient, {
+        const response = await getOrCreateCall(videoClient, localMediaStream, {
           autoJoin: true,
           ring: true,
           members: [
@@ -113,47 +97,22 @@ const Ringing = ({ navigation }: Props) => {
           callId: callID,
           callType: 'default',
         });
+        console.log(response);
         if (response) {
-          const { activeCall, credentials } = response;
-
-          if (!credentials || !activeCall) {
+          const { activeCall, call: callResponse } = response;
+          if (!callResponse || !activeCall) {
+            setLoading(false);
             return;
-          } else {
-            setLoading(false);
           }
-
-          const serverUrl = 'http://192.168.1.34:3031/twirp';
-          const sfuClient = new StreamSfuClient(
-            serverUrl,
-            credentials.token,
-            sessionId,
-          );
-          const call = new Call(sfuClient, username, serverUrl, credentials);
-          try {
-            const callState = await call.join(localMediaStream);
-            if (callState && localMediaStream) {
-              InCallManager.start({ media: 'video' });
-              InCallManager.setForceSpeakerphoneOn(true);
-              await call.publish(localMediaStream);
-              setState({
-                activeCall,
-                callState,
-                sfuClient,
-                call,
-              });
-              setLoading(false);
-              startCall({
-                callID,
-                createdByUserId: username,
-              });
-              navigation.navigate('ActiveCall');
-            }
-          } catch (err) {
-            setState({
-              callState: undefined,
-            });
-            setLoading(false);
-          }
+          setState({ activeCall: response?.activeCall, call: callResponse });
+          setLoading(false);
+          startCall({
+            callID: activeCall.id,
+            createdByUserId: activeCall.createdByUserId,
+          });
+          navigation.navigate('ActiveCall');
+        } else {
+          setLoading(false);
         }
       } catch (err) {
         console.log(err);

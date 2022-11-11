@@ -1,18 +1,17 @@
-import { Observable, BehaviorSubject, take } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { take, map } from 'rxjs/operators';
 import { Call } from './rtc/Call';
 import type { UserInput } from './gen/video/coordinator/user_v1/user';
-import { StreamVideoParticipant } from './rtc/types';
+import type { StreamVideoParticipant } from './rtc/types';
 
 export class StreamVideoWriteableStateStore {
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
   pendingCallsSubject = new BehaviorSubject<Call[]>([]);
   activeCallSubject = new BehaviorSubject<Call | undefined>(undefined);
 
-  // FIXME OL: consider storing { [userId/sessionId]: StreamVideoParticipant }
-  // for faster lookups
-  activeCallParticipantsSubject = new BehaviorSubject<StreamVideoParticipant[]>(
-    [],
-  );
+  activeCallAllParticipantsSubject = new BehaviorSubject<
+    StreamVideoParticipant[]
+  >([]);
   dominantSpeakerSubject = new BehaviorSubject<string | undefined>(undefined);
 
   getCurrentValue<T>(subject: BehaviorSubject<T>) {
@@ -27,19 +26,29 @@ export class StreamVideoWriteableStateStore {
 export class StreamVideoReadOnlyStateStore {
   connectedUser$: Observable<UserInput | undefined>;
   activeCall$: Observable<Call | undefined>;
-  activeCallParticipants$: Observable<StreamVideoParticipant[]>;
   pendingCalls$: Observable<Call[]>;
   dominantSpeaker$: Observable<string | undefined>;
+
+  activeCallAllParticipants$: Observable<StreamVideoParticipant[]>;
+  activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
+  activeCallLocalParticipant$: Observable<StreamVideoParticipant | undefined>;
 
   constructor(writeableStateStore: StreamVideoWriteableStateStore) {
     this.connectedUser$ =
       writeableStateStore.connectedUserSubject.asObservable();
     this.activeCall$ = writeableStateStore.activeCallSubject.asObservable();
-    this.activeCallParticipants$ =
-      writeableStateStore.activeCallParticipantsSubject.asObservable();
     this.pendingCalls$ = writeableStateStore.pendingCallsSubject.asObservable();
     this.dominantSpeaker$ =
       writeableStateStore.dominantSpeakerSubject.asObservable();
+
+    this.activeCallAllParticipants$ =
+      writeableStateStore.activeCallAllParticipantsSubject.asObservable();
+    this.activeCallLocalParticipant$ = this.activeCallAllParticipants$.pipe(
+      map((participants) => participants.find((p) => p.isLoggedInUser)),
+    );
+    this.activeCallRemoteParticipants$ = this.activeCallAllParticipants$.pipe(
+      map((participants) => participants.filter((p) => !p.isLoggedInUser)),
+    );
   }
 
   getCurrentValue<T>(observable: Observable<T>) {

@@ -69,7 +69,7 @@ export class AppComponent implements OnInit, OnDestroy {
     await this.videoService.videoClient?.joinCall({
       id,
       type,
-      datacenterId: 'amsterdam',
+      datacenterId: '',
     });
   }
 }

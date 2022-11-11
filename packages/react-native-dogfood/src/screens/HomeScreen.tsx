@@ -1,13 +1,13 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { RootStackParamList } from '../../types';
 import { TabBar } from '../components/TabBar';
 import Meeting from '../components/Meeting/Meeting';
 import Ringing from '../components/Ringing/Ringing';
 import { registerWSEventHandlers } from '../modules/ClientWSEventHandlers';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { useCallKeep } from '../hooks/useCallKeep';
+import { RootStackParamList } from '../../types';
 
 const styles = StyleSheet.create({
   container: {

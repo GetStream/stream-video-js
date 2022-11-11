@@ -5,6 +5,12 @@
   "projects": {
     "video-angular-sdk": {
       "projectType": "library",
+      "schematics": {
+        "@schematics/angular:component": {
+          "inlineStyle": true,
+          "style": "scss"
+        }
+      },
       "root": "projects/video-angular-sdk",
       "sourceRoot": "projects/video-angular-sdk/src",
       "prefix": "stream",
@@ -129,6 +135,9 @@
             "development": {
               "browserTarget": "sample-app:build:development"
             }
+          },
+          "options": {
+            "proxyConfig": "projects/sample-app/proxy.conf.json"
           },
           "defaultConfiguration": "development"
         },

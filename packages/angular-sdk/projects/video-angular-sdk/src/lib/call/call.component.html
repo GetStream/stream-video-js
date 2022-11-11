@@ -1,3 +1,21 @@
-<div #participantsContainer class="str-call__call">
-    <stream-participant *ngFor="let participant of participants$  | async; trackBy: trackByParticipantId" [participant]="participant"></stream-participant>
+<div class="str-video__call">
+  <div
+    class="str-video__stage str-video__grid-{{
+      (participants$ | async)!.length + 1
+    }}"
+  >
+    <stream-participant [call]="call" [participant]="(localParticipant$ | async)!"></stream-participant>
+    <stream-participant
+      *ngFor="
+        let participant of participants$ | async;
+        trackBy: trackByParticipantId
+      "
+      [call]="call"
+      [participant]="participant"
+    ></stream-participant>
+  </div>
 </div>
+<stream-call-controls
+  [call]="call"
+  [localParticipant]="(localParticipant$ | async)!"
+></stream-call-controls>

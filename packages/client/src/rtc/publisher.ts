@@ -1,6 +1,7 @@
 import { StreamSfuClient } from '../StreamSfuClient';
 import { ICETrickle, PeerType } from '../gen/video/sfu/models/models';
 import { ReplaySubject } from 'rxjs';
+import { getIceCandidate } from './helpers/iceCandidate';
 
 export type PublisherOpts = {
   rpcClient: StreamSfuClient;
@@ -22,7 +23,7 @@ export const createPublisher = ({
     }
     await rpcClient.rpc.iceTrickle({
       sessionId: rpcClient.sessionId,
-      iceCandidate: JSON.stringify(candidate.toJSON()),
+      iceCandidate: getIceCandidate(candidate),
       peerType: PeerType.PUBLISHER_UNSPECIFIED,
     });
   });
