@@ -70,10 +70,15 @@ export const useCallKeep = () => {
 
   const displayIncomingCallNow = (call: Call) => {
     try {
+      setState({ ringing: true });
       navigation.navigate('IncomingCallScreen', call);
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const answerCall = () => {
+    setState({ callAccepted: true });
   };
 
   const rejectCall = async (call: Call) => {
@@ -83,6 +88,8 @@ export const useCallKeep = () => {
       setState({
         activeCall: undefined,
         call: undefined,
+        callAccepted: false,
+        ringing: false,
       });
       navigation.navigate('HomeScreen');
     }
@@ -92,15 +99,15 @@ export const useCallKeep = () => {
     await RNCallKeep.endCall(call.id);
     setIncomingCall(undefined);
 
-    if (call.createdByUserId === username) {
-      setState({
-        activeCall: undefined,
-        call: undefined,
-      });
-      if (cancelled) {
-        videoClient?.cancelCall(call.callCid);
-        return;
-      }
+    setState({
+      activeCall: undefined,
+      call: undefined,
+      ringing: false,
+      callAccepted: false,
+    });
+    if (cancelled) {
+      videoClient?.cancelCall(call.callCid);
+      return;
     }
     navigation.navigate('HomeScreen');
   };
@@ -109,6 +116,7 @@ export const useCallKeep = () => {
     displayIncomingCallNow,
     hangupCall,
     incomingCall,
+    answerCall,
     startCall,
     rejectCall,
   };

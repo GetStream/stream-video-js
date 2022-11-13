@@ -14,6 +14,7 @@ const PhoneButton = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const setState = useAppGlobalStoreSetState();
   const call = useAppGlobalStoreValue((store) => store.call);
+  const ringing = useAppGlobalStoreValue((store) => store.ringing);
   const activeCall = useAppGlobalStoreValue((store) => store.activeCall);
   const { hangupCall } = useCallKeep();
 
@@ -38,13 +39,16 @@ const PhoneButton = () => {
       return;
     }
     try {
-      call.leave();
       if (activeCall) {
-        await hangupCall(activeCall, true);
+        call.leave();
+        console.log({ ringing });
+        if (ringing) {
+          await hangupCall(activeCall, true);
+        }
+        resetCallState();
+        InCallManager.stop();
+        navigation.navigate('HomeScreen');
       }
-      resetCallState();
-      InCallManager.stop();
-      navigation.navigate('HomeScreen');
     } catch (err) {
       console.warn('failed to leave call', err);
     }

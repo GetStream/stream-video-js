@@ -11,6 +11,9 @@ import { useCallKeep } from '../hooks/useCallKeep';
 export const useRingCall = () => {
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const username = useAppGlobalStoreValue((store) => store.username);
+  const localMediaStream = useAppGlobalStoreValue(
+    (store) => store.localMediaStream,
+  );
 
   const navigation =
     useNavigation<
@@ -24,7 +27,6 @@ export const useRingCall = () => {
 
   const answerCall = async () => {
     if (videoClient) {
-      await videoClient.answerCall(params.callCid);
       const call = await videoClient.joinCall({
         id: params.id,
         type: 'default',
@@ -35,6 +37,9 @@ export const useRingCall = () => {
       } else {
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
+        await call.join(localMediaStream, localMediaStream);
+        await call.publish(localMediaStream, localMediaStream);
+        await videoClient.answerCall(params.callCid);
         setState({ activeCall: params, call: call });
         startCall({
           callID: params.id,

@@ -15,6 +15,8 @@ interface AppGlobalStore {
   isVideoMuted: boolean;
   cameraBackFacingMode: boolean;
   loopbackMyVideo: boolean;
+  ringing: boolean;
+  callAccepted: boolean;
 }
 
 export const {
@@ -35,6 +37,8 @@ export const {
     isAudioMuted: false,
     isVideoMuted: false,
     cameraBackFacingMode: false,
+    ringing: false,
+    callAccepted: false,
   },
   ['meetingCallID', 'ringingCallID', 'username', 'token'],
 );

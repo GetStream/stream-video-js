@@ -1,15 +1,26 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { RTCView } from 'react-native-webrtc';
 import ParticipantVideosContainer from './ParticipantVideosContainer';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { useObservableValue } from '../hooks/useObservable';
+import OutgoingCall from '../components/OutgoingCall';
+import { useCallKeep } from '../hooks/useCallKeep';
 
 const VideoRenderer = () => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
+  const callAccepted = useAppGlobalStoreValue((store) => store.callAccepted);
+  const ringing = useAppGlobalStoreValue((store) => store.ringing);
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const activeCall = useAppGlobalStoreValue((store) => store.activeCall);
+
+  const { hangupCall } = useCallKeep();
+
+  const loopbackMyVideo = useAppGlobalStoreValue(
+    (store) => store.loopbackMyVideo,
+  );
   if (!videoClient) {
     throw new Error(
       "StreamVideoClient isn't initialized -- ParticipantVideosContainer",
@@ -23,9 +34,33 @@ const VideoRenderer = () => {
   const cameraBackFacingMode = useAppGlobalStoreValue(
     (store) => store.cameraBackFacingMode,
   );
+
+  const filteredParticipants = loopbackMyVideo
+    ? remoteParticipants
+    : remoteParticipants.filter((p) => !p.isLoggedInUser);
+
+  useEffect(() => {
+    if (
+      ringing &&
+      activeCall &&
+      callAccepted &&
+      filteredParticipants.length === 0
+    ) {
+      hangupCall(activeCall);
+    }
+  }, [callAccepted, ringing, filteredParticipants, hangupCall, activeCall]);
+
   return (
     <>
-      <ParticipantVideosContainer />
+      {ringing ? (
+        callAccepted ? (
+          <ParticipantVideosContainer />
+        ) : (
+          <OutgoingCall />
+        )
+      ) : (
+        <ParticipantVideosContainer />
+      )}
       {localMediaStream && !isVideoMuted ? (
         <RTCView
           // @ts-ignore

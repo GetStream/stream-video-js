@@ -38,7 +38,6 @@ const joinCall = async (
     InCallManager.setForceSpeakerphoneOn(true);
     await call.join(localMediaStream, localMediaStream);
     await call.publish(localMediaStream, localMediaStream);
-
     return call;
   } catch (err) {
     console.warn('failed to join call', err);

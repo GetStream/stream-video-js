@@ -83,7 +83,11 @@ const Meeting = ({ navigation }: Props) => {
             setLoading(false);
             return;
           }
-          setState({ activeCall: response?.activeCall, call: callResponse });
+          setState({
+            activeCall: response?.activeCall,
+            call: callResponse,
+            ringing: false,
+          });
           setLoading(false);
           navigation.navigate('ActiveCall');
         } else {

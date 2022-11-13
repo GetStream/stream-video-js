@@ -10,12 +10,13 @@ import { Call } from '@stream-io/video-client/dist/src/gen/video/coordinator/cal
 
 export const registerWSEventHandlers = (
   videoClient: StreamVideoClient,
+  answerCall: () => void,
   displayIncomingCallNow?: (call: Call) => void,
   hangupCall?: (call: Call, cancelled?: boolean) => void,
   rejectCall?: (call: Call) => void,
 ) => {
   if (videoClient) {
-    watchCallAcceptedEvent(videoClient);
+    watchCallAcceptedEvent(videoClient, answerCall);
     watchCallCreatedEvent(videoClient, displayIncomingCallNow);
     watchCallRejectedEvent(videoClient, rejectCall);
     watchCallCancelledEvent(videoClient, hangupCall);
@@ -62,7 +63,10 @@ const watchCallRejectedEvent = (
   );
 };
 
-const watchCallAcceptedEvent = (videoClient: StreamVideoClient) => {
+const watchCallAcceptedEvent = (
+  videoClient: StreamVideoClient,
+  answerCall?: () => void,
+) => {
   videoClient.on(
     'callAccepted',
     (event: CallAccepted, _envelopes?: Envelopes) => {
@@ -71,6 +75,9 @@ const watchCallAcceptedEvent = (videoClient: StreamVideoClient) => {
         console.warn("Can't find call in CallCreated event");
         return;
       } else {
+        if (answerCall) {
+          answerCall();
+        }
       }
     },
   );

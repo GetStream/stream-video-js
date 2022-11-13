@@ -8,8 +8,11 @@ import LoginScreen from './src/screens/LoginScreen';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { HomeScreen } from './src/screens/HomeScreen';
 import IncomingCallScreen from './src/screens/IncomingCallScreen';
+import { LogBox } from 'react-native';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+LogBox.ignoreAllLogs();
 
 const StackNavigator = () => {
   return (

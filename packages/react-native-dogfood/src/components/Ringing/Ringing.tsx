@@ -84,7 +84,7 @@ const Ringing = ({ navigation }: Props) => {
       try {
         const callID = uuidv4().toLowerCase();
         await setState({ ringingCallID: callID });
-        const response = await getOrCreateCall(videoClient, localMediaStream, {
+        await getOrCreateCall(videoClient, localMediaStream, {
           autoJoin: true,
           ring: true,
           members: [
@@ -96,24 +96,29 @@ const Ringing = ({ navigation }: Props) => {
           ],
           callId: callID,
           callType: 'default',
-        });
-        console.log(response);
-        if (response) {
-          const { activeCall, call: callResponse } = response;
-          if (!callResponse || !activeCall) {
+        }).then((response) => {
+          if (response) {
+            const { activeCall, call: callResponse } = response;
+            if (!callResponse || !activeCall) {
+              setLoading(false);
+              return;
+            }
+            setState({
+              activeCall: response?.activeCall,
+              call: callResponse,
+              ringing: true,
+              callAccepted: false,
+            });
             setLoading(false);
-            return;
+            startCall({
+              callID: activeCall.id,
+              createdByUserId: activeCall.createdByUserId,
+            });
+            navigation.navigate('ActiveCall');
+          } else {
+            setLoading(false);
           }
-          setState({ activeCall: response?.activeCall, call: callResponse });
-          setLoading(false);
-          startCall({
-            callID: activeCall.id,
-            createdByUserId: activeCall.createdByUserId,
-          });
-          navigation.navigate('ActiveCall');
-        } else {
-          setLoading(false);
-        }
+        });
       } catch (err) {
         console.log(err);
       }
