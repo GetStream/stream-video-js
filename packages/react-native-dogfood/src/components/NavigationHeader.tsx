@@ -55,7 +55,6 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
                 username: '',
                 userImageUrl: '',
               });
-              props.navigation.navigate('LoginScreen');
             })
             .catch((err) => {
               console.error('Failed to disconnect', err);
