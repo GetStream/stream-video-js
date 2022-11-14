@@ -1,11 +1,16 @@
 {
   "applinks": {
     "apps": [],
-    "details": [{
-      "appID": "EHV7XZLAHA.io.getstream.iOS.stream-calls-dogfood",
-      "paths": [
-        "*"
-      ]
-    }]
+    "details": [
+      {
+        "appIDs": [
+          "EHV7XZLAHA.io.getstream.iOS.stream-calls-dogfood",
+          "EHV7XZLAHA.io.getstream.rnvideosample"
+        ],
+        "paths": [
+          "*"
+        ]
+      }
+    ]
   }
 }
