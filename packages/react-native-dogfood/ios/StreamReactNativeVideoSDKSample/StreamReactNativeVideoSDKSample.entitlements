@@ -4,7 +4,6 @@
 <dict>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:stream-calls-dogfood-pz4x8fs0p-getstreamio.vercel.app</string>
 		<string>applinks:stream-calls-dogfood.vercel.app</string>
 	</array>
 </dict>
