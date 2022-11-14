@@ -20,7 +20,11 @@ export type StreamVideoParticipant = {
 } & Participant;
 
 export type SubscriptionChange = {
-  videoDimension: VideoDimension;
+  /**
+   * The video dimension to request.
+   * Set it to `undefined` in case you want to unsubscribe.
+   */
+  videoDimension: VideoDimension | undefined;
 };
 
 export type SubscriptionChanges = {

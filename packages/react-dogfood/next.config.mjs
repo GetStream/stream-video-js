@@ -1,4 +1,4 @@
-import { withSentryConfig } from '@sentry/nextjs'
+import { withSentryConfig } from '@sentry/nextjs';
 
 /**
  * @type {import('next').NextConfig}
@@ -23,9 +23,9 @@ const nextConfig = {
     return [
       {
         source: '/rpc/:path*',
-        destination: `${coordinatorApiUrl}:path*`
-      }
-    ]
+        destination: `${coordinatorApiUrl}:path*`,
+      },
+    ];
   },
 
   sentry: {
@@ -49,6 +49,9 @@ const sentryWebpackPluginOptions = {
   silent: true, // Suppresses all logs
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options.
+
+  // prevents creating Sentry releases on local builds.
+  dryRun: typeof process.env.CI === 'undefined',
 };
 
 // Make sure adding Sentry options is the last code to run before exporting, to
