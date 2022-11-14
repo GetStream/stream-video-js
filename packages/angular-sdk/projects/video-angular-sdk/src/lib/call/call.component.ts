@@ -1,6 +1,6 @@
 import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
 import { Call, StreamVideoParticipant } from '@stream-io/video-client';
-import { filter, Observable, Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
 @Component({
