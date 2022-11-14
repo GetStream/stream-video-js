@@ -40,22 +40,20 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
   return [RCTLinkingManager application:application openURL:url options:options];
 }
 
-- (BOOL)application:(UIApplication *)application continueUserActivity:(nonnull NSUserActivity *)userActivity
- restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
-{
- return [RCTLinkingManager application:application
-                  continueUserActivity:userActivity
-                    restorationHandler:restorationHandler];
-}
-
 - (BOOL)application:(UIApplication *)application
-continueUserActivity:(NSUserActivity *)userActivity
-  restorationHandler:(void(^)(NSArray * __nullable restorableObjects))restorationHandler
- {
-   return [RNCallKeep application:application
-            continueUserActivity:userActivity
-              restorationHandler:restorationHandler];
- }
+ continueUserActivity:(nonnull NSUserActivity *)userActivity
+   restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
+{
+  BOOL handledCK = [RNCallKeep application:application
+                    continueUserActivity:userActivity
+                      restorationHandler:restorationHandler];
+  
+  BOOL handledLM = [RCTLinkingManager application:application
+                      continueUserActivity:userActivity
+                        restorationHandler:restorationHandler];
+  
+  return handledCK || handledLM;
+}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
