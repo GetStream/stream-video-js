@@ -32,8 +32,8 @@ const styles = StyleSheet.create({
 });
 
 export const NavigationHeader = (props: NativeStackHeaderProps) => {
-  const username = useAppGlobalStoreValue((store) => store.username);
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
 
   const setState = useAppGlobalStoreSetState();
 
@@ -50,7 +50,11 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
           videoClient
             ?.disconnect()
             .then(() => {
-              setState({ videoClient: undefined, token: '', username: '' });
+              setState({
+                videoClient: undefined,
+                username: '',
+                userImageUrl: '',
+              });
               props.navigation.navigate('LoginScreen');
             })
             .catch((err) => {
@@ -75,7 +79,7 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
       <Pressable onPress={logoutHandler}>
         <Image
           source={{
-            uri: `https://getstream.io/random_png/?id=${username}&name=${username}`,
+            uri: userImageUrl,
           }}
           style={styles.avatar}
         />

@@ -8,26 +8,31 @@ import React, {
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function createStoreContext<StoreType extends object>(
-  initialState: StoreType,
+export default function createStoreContext<PassedStoreType extends object>(
+  initialState: PassedStoreType,
   // keys of the parts of the store that needs to be persisted (only string values permitted)
-  persistStateKeys: (keyof StoreType)[] = [],
+  persistStateKeys: (keyof PassedStoreType)[] = [],
 ) {
   type SetStateFuncType = (
     partialStateOrFunc:
       | Partial<StoreType>
-      | ((prevState: StoreType) => Partial<StoreType>),
+      | ((prevState: StoreType) => Partial<PassedStoreType>),
   ) => void;
 
   // returns unsubscribe function
   type SubscribeFunc = (callback: () => void) => () => void;
+
+  type StoreType = PassedStoreType & { isStoreInitialized: boolean };
 
   function useStoreData(): {
     getSnapshot: () => StoreType;
     setState: SetStateFuncType;
     subscribe: SubscribeFunc;
   } {
-    const storeRef = useRef(initialState);
+    const storeRef = useRef<StoreType>({
+      ...initialState,
+      isStoreInitialized: false,
+    });
 
     const getSnapshot = useRef(() => storeRef.current).current;
 
@@ -68,10 +73,11 @@ export default function createStoreContext<StoreType extends object>(
                 }
               }),
             );
-            subscribersRef.current.forEach((callback) => callback());
           } catch (e) {
             console.log('error while initalising persisted state', e);
           }
+          storeRef.current.isStoreInitialized = true;
+          subscribersRef.current.forEach((callback) => callback());
         }
       };
       initPersistedStateValues();

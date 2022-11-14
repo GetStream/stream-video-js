@@ -5,7 +5,7 @@ import createStoreContext from './createStoreContext';
 interface AppGlobalStore {
   callID: string;
   username: string;
-  token: string;
+  userImageUrl: string;
   videoClient: StreamVideoClient | undefined;
   call: Call | undefined;
   activeCall: CallMeta.Call | undefined;
@@ -24,7 +24,7 @@ export const {
   {
     callID: '',
     username: '',
-    token: '',
+    userImageUrl: '',
     videoClient: undefined,
     localMediaStream: undefined,
     call: undefined,
@@ -34,5 +34,5 @@ export const {
     isVideoMuted: false,
     cameraBackFacingMode: false,
   },
-  ['callID', 'username', 'token'],
+  ['callID', 'username', 'userImageUrl'],
 );

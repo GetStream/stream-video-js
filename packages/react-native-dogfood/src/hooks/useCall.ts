@@ -25,9 +25,6 @@ export const useCall = ({
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
-  if (!videoClient) {
-    throw new Error('VideoClient not initialized');
-  }
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
@@ -35,6 +32,9 @@ export const useCall = ({
 
   const joinCall = useCallback(
     async (id: string, type: string) => {
+      if (!videoClient) {
+        throw new Error('VideoClient not initialized');
+      }
       const call = await videoClient.joinCall({
         id,
         type,
@@ -61,6 +61,9 @@ export const useCall = ({
   );
 
   const getOrCreateCall = useCallback(async () => {
+    if (!videoClient) {
+      throw new Error('VideoClient not initialized');
+    }
     const callMetadata = await videoClient.getOrCreateCall({
       id: callId,
       type: callType,
