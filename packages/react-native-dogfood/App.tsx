@@ -7,10 +7,12 @@ import { RootStackParamList } from './types';
 import LoginScreen from './src/screens/LoginScreen';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { HomeScreen } from './src/screens/HomeScreen';
+import { useProntoLink } from './src/hooks/useProntoLink';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const StackNavigator = () => {
+  useProntoLink();
   return (
     <Stack.Navigator
       screenOptions={{
