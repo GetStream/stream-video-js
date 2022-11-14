@@ -12,6 +12,8 @@ import {
 import { Call } from '@stream-io/video-client';
 import { VideoDimension } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 import { StreamVideoParticipant } from '@stream-io/video-client/dist/src/rtc/types';
+import { Subscription } from 'rxjs';
+import { StreamVideoService } from '../video.service';
 
 @Component({
   selector: 'stream-participant',
@@ -22,12 +24,17 @@ export class ParticipantComponent
   implements AfterViewInit, OnDestroy, OnChanges
 {
   @Input() participant?: StreamVideoParticipant;
-  @Input() call?: Call;
+  call?: Call;
   @ViewChild('video')
   private videoElement!: ElementRef<HTMLElement> | undefined;
   private resizeObserver: ResizeObserver | undefined;
   private isViewInited = false;
   @HostBinding() class = 'str-video__participant-angular-host';
+  private subscriptions: Subscription[] = [];
+
+  constructor(private streamVideoService: StreamVideoService) {
+    this.streamVideoService.activeCall$.subscribe((c) => (this.call = c));
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (
@@ -48,6 +55,7 @@ export class ParticipantComponent
 
   ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   private registerResizeObserver() {

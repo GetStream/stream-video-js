@@ -10,13 +10,10 @@ import { StreamVideoService } from '../video.service';
 })
 export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
   call!: Call;
-  participants$: Observable<StreamVideoParticipant[]>;
   localParticipant$: Observable<StreamVideoParticipant | undefined>;
   private subscriptions: Subscription[] = [];
-  private participantsContainerResizeObserver: ResizeObserver | undefined;
 
   constructor(private streamVideoService: StreamVideoService) {
-    this.participants$ = this.streamVideoService.activeCallRemoteParticipants$;
     this.localParticipant$ =
       this.streamVideoService.activeCallLocalParticipant$;
     this.subscriptions.push(
@@ -38,11 +35,6 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
-    this.participantsContainerResizeObserver?.disconnect();
-  }
-
-  trackByParticipantId(_: number, item: StreamVideoParticipant) {
-    return item.user?.name || undefined + item.sessionId;
   }
 
   private async getOwnMediaStream() {
