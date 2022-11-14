@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Linking } from 'react-native';
 import { Subject } from 'rxjs';
 
-export const prontoCallId$ = new Subject<string | undefined>();
+export const prontoCallId$ = new Subject<string>();
 
 export const useProntoLink = () => {
   useEffect(() => {

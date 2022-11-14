@@ -50,12 +50,10 @@ const Meeting = () => {
   useEffect(() => {
     if (localMediaStream) {
       const subscription = prontoCallId$.subscribe((prontoCallId) => {
-        if (prontoCallId) {
-          setState({
-            callID: prontoCallId,
-          });
-          joinCall(prontoCallId, 'default', localMediaStream);
-        }
+        setState({
+          callID: prontoCallId,
+        });
+        joinCall(prontoCallId, 'default', localMediaStream);
       });
       return () => subscription.unsubscribe();
     }
