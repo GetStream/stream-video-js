@@ -28,7 +28,10 @@ export const createPublisher = ({
     });
   });
   publisher.addEventListener('icecandidateerror', (e) => {
-    console.error(`Publisher: ICE Candidate error`, e);
+    const errorMessage =
+      e instanceof RTCPeerConnectionIceErrorEvent &&
+      `${e.errorCode}: ${e.errorText}`;
+    console.error(`Publisher: ICE Candidate error`, errorMessage, e);
   });
   publisher.addEventListener('iceconnectionstatechange', (e) => {
     console.log(

@@ -1,5 +1,6 @@
 import {
   WebsocketAuthRequest,
+  WebsocketClientEvent,
   WebsocketEvent,
   WebsocketHealthcheck,
 } from '../gen/video/coordinator/client_v1_rpc/websocket';
@@ -47,8 +48,15 @@ export class StreamWebSocketClient implements StreamWSClient {
       return;
     }
 
-    const catchOneHealthcheckMessage = (hc: WebsocketHealthcheck) => {
-      this.keepAlive.setPayload(WebsocketHealthcheck.toBinary(hc));
+    const catchOneHealthcheckMessage = (healthcheck: WebsocketHealthcheck) => {
+      this.keepAlive.setPayload(
+        WebsocketClientEvent.toBinary({
+          event: {
+            oneofKind: 'healthcheck',
+            healthcheck,
+          },
+        }),
+      );
       this.off('healthcheck', catchOneHealthcheckMessage);
     };
     this.on('healthcheck', catchOneHealthcheckMessage);

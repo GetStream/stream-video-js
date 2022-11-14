@@ -34,7 +34,10 @@ export const createSubscriber = ({
     });
   });
   subscriber.addEventListener('icecandidateerror', (e) => {
-    console.error(`Subscriber: ICE Candidate error`, e);
+    const errorMessage =
+      e instanceof RTCPeerConnectionIceErrorEvent &&
+      `${e.errorCode}: ${e.errorText}`;
+    console.error(`Subscriber: ICE Candidate error`, errorMessage, e);
   });
   subscriber.addEventListener('iceconnectionstatechange', (e) => {
     console.log(
