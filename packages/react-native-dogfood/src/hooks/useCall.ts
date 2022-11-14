@@ -76,6 +76,9 @@ export const useCall = ({
       });
 
       if (autoJoin) {
+        if (!localMediaStream) {
+          throw new Error('localMediaStream not initialized');
+        }
         await joinCall(callId, callType, localMediaStream);
       }
     }
