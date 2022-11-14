@@ -1,6 +1,6 @@
 import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
 import { Call, StreamVideoParticipant } from '@stream-io/video-client';
-import { Observable, Subscription } from 'rxjs';
+import { filter, Observable, Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
 @Component({
@@ -21,9 +21,11 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
       this.streamVideoService.activeCallLocalParticipant$;
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe(async (c) => {
-        this.call = c!;
-        const ownMediaStream = await this.getOwnMediaStream();
-        this.call.publish(ownMediaStream, ownMediaStream);
+        if (c) {
+          this.call = c;
+          const ownMediaStream = await this.getOwnMediaStream();
+          this.call.publish(ownMediaStream, ownMediaStream);
+        }
       }),
     );
   }
