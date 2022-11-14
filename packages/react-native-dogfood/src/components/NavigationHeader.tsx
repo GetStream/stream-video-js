@@ -77,12 +77,14 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
   return (
     <View style={styles.header}>
       <Pressable onPress={logoutHandler}>
-        <Image
-          source={{
-            uri: userImageUrl,
-          }}
-          style={styles.avatar}
-        />
+        {!!userImageUrl && (
+          <Image
+            source={{
+              uri: userImageUrl,
+            }}
+            style={styles.avatar}
+          />
+        )}
       </Pressable>
     </View>
   );
