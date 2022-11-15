@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import InCallManager from 'react-native-incall-manager';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
+import { MediaStream } from 'react-native-webrtc';
 
 export type UseCallParams = {
   callId: string;
@@ -31,7 +32,7 @@ export const useCall = ({
   const setState = useAppGlobalStoreSetState();
 
   const joinCall = useCallback(
-    async (id: string, type: string) => {
+    async (id: string, type: string, mediaStream: MediaStream) => {
       if (!videoClient) {
         throw new Error('VideoClient not initialized');
       }
@@ -42,22 +43,22 @@ export const useCall = ({
         datacenterId: '',
       });
       if (!call) {
-        throw new Error(`Failed to join a call with id: ${callId}`);
+        throw new Error(`Failed to join a call with id: ${id}`);
       }
       try {
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
-        await call.join(localMediaStream, localMediaStream);
-        await call.publish(localMediaStream, localMediaStream);
+        await call.join(mediaStream, mediaStream);
+        await call.publish(mediaStream, mediaStream);
         setState({
-          call: call,
+          call,
         });
         navigation.navigate('ActiveCall');
       } catch (err) {
         console.warn('failed to join call', err);
       }
     },
-    [callId, localMediaStream, navigation, setState, videoClient],
+    [navigation, setState, videoClient],
   );
 
   const getOrCreateCall = useCallback(async () => {
@@ -75,10 +76,22 @@ export const useCall = ({
       });
 
       if (autoJoin) {
-        await joinCall(callId, callType);
+        if (!localMediaStream) {
+          throw new Error('localMediaStream not initialized');
+        }
+        await joinCall(callId, callType, localMediaStream);
       }
     }
-  }, [autoJoin, callId, callType, input, joinCall, setState, videoClient]);
+  }, [
+    autoJoin,
+    callId,
+    callType,
+    input,
+    joinCall,
+    localMediaStream,
+    setState,
+    videoClient,
+  ]);
 
-  return { getOrCreateCall };
+  return { getOrCreateCall, joinCall };
 };

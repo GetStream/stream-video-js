@@ -6,7 +6,6 @@ import {
   Text,
   Switch,
   Button,
-  Linking,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useCall } from '../../hooks/useCall';
@@ -16,32 +15,20 @@ import {
 } from '../../contexts/AppContext';
 import { mediaDevices } from 'react-native-webrtc';
 import { meetingId } from '../../modules/helpers/meetingId';
-
-const APP_ID = 'streamrnvideosample';
+import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
 
 const Meeting = () => {
   const callID = useAppGlobalStoreValue((store) => store.callID);
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
+  const localMediaStream = useAppGlobalStoreValue(
+    (store) => store.localMediaStream,
+  );
   const setState = useAppGlobalStoreSetState();
 
   // run only once per app lifecycle
   useEffect(() => {
-    const parseAndSetCallID = (url: string | null) => {
-      const matchResponse = url?.match(/.*callID\/(.*)\//);
-      if (!matchResponse || matchResponse.length < 1) {
-        return null;
-      }
-
-      setState({
-        callID: matchResponse[1],
-      });
-    };
-    // listen to url changes and parse the callID
-    const { remove } = Linking.addEventListener('url', ({ url }) => {
-      parseAndSetCallID(url);
-    });
     const configure = async () => {
       const mediaStream = await mediaDevices.getUserMedia({
         audio: true,
@@ -50,22 +37,33 @@ const Meeting = () => {
       setState({
         localMediaStream: mediaStream,
       });
-      const url = await Linking.getInitialURL();
-      parseAndSetCallID(url);
     };
-
     configure();
-    return remove;
   }, [setState]);
 
-  const { getOrCreateCall } = useCall({
+  const { getOrCreateCall, joinCall } = useCall({
     callId: callID,
     callType: 'default', // TODO: SANTHOSH -- what is this?
     autoJoin: true,
   });
 
+  useEffect(() => {
+    if (localMediaStream) {
+      const subscription = prontoCallId$.subscribe((prontoCallId) => {
+        setState({
+          callID: prontoCallId,
+        });
+        joinCall(prontoCallId, 'default', localMediaStream);
+      });
+      return () => subscription.unsubscribe();
+    }
+  }, [joinCall, localMediaStream, setState]);
+
   const handleCopyInviteLink = useCallback(
-    () => Clipboard.setString(`${APP_ID}://callID/${callID}/`),
+    () =>
+      Clipboard.setString(
+        `https://stream-calls-dogfood.vercel.app/join/${callID}/`,
+      ),
     [callID],
   );
 
