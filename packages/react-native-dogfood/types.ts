@@ -1,4 +1,3 @@
-import { Call } from '@stream-io/video-client/dist/src/gen/video/coordinator/call_v1/call';
 import { SfuEvent } from '@stream-io/video-client/dist/src/gen/video/sfu/event/events';
 
 type BinaryType = 'arraybuffer' | 'blob';
@@ -119,5 +118,5 @@ export type RootStackParamList = {
   LoginScreen: undefined;
   HomeScreen: undefined;
   ActiveCall: undefined;
-  IncomingCallScreen: Call;
+  IncomingCallScreen: undefined;
 };

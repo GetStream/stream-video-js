@@ -7,6 +7,7 @@ import Mic from '../icons/Mic';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { useObservableValue } from '../hooks/useObservable';
 import { Call, StreamVideoParticipant } from '@stream-io/video-client';
+import { useStore } from '../hooks/useStore';
 
 const styles = StyleSheet.create({
   container: {
@@ -60,17 +61,11 @@ const styles = StyleSheet.create({
 });
 
 const ParticipantVideosContainer = () => {
-  const call = useAppGlobalStoreValue((store) => store.call);
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
-  if (!videoClient) {
-    throw new Error(
-      "StreamVideoClient isn't initialized -- ParticipantVideosContainer",
-    );
-  }
+  const { activeCall$ } = useStore();
+  const call = useObservableValue(activeCall$);
+  const { activeCallAllParticipants$ } = useStore();
 
-  const allParticipants = useObservableValue(
-    videoClient.readOnlyStateStore.activeCallAllParticipants$,
-  );
+  const allParticipants = useObservableValue(activeCallAllParticipants$);
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );

@@ -1,34 +1,26 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { RTCView } from 'react-native-webrtc';
 import ParticipantVideosContainer from './ParticipantVideosContainer';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { useObservableValue } from '../hooks/useObservable';
 import OutgoingCall from '../components/OutgoingCall';
-import { useCallKeep } from '../hooks/useCallKeep';
+import { useStore } from '../hooks/useStore';
 
 const VideoRenderer = () => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
-  const callAccepted = useAppGlobalStoreValue((store) => store.callAccepted);
-  const ringing = useAppGlobalStoreValue((store) => store.ringing);
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
-  const activeCall = useAppGlobalStoreValue((store) => store.activeCall);
+  const { activeCallRemoteParticipants$, activeCallMeta$ } = useStore();
+  const activeCall = useObservableValue(activeCallMeta$);
+  const remoteParticipants = useObservableValue(activeCallRemoteParticipants$);
 
-  const { hangupCall } = useCallKeep();
+  // const { hangupCall } = useCallKeep();
 
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
-  if (!videoClient) {
-    throw new Error(
-      "StreamVideoClient isn't initialized -- ParticipantVideosContainer",
-    );
-  }
-  const remoteParticipants = useObservableValue(
-    videoClient.readOnlyStateStore.activeCallRemoteParticipants$,
-  );
+
   const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
   const username = useAppGlobalStoreValue((store) => store.username);
   const cameraBackFacingMode = useAppGlobalStoreValue(
@@ -39,21 +31,16 @@ const VideoRenderer = () => {
     ? remoteParticipants
     : remoteParticipants.filter((p) => !p.isLoggedInUser);
 
-  useEffect(() => {
-    if (
-      ringing &&
-      activeCall &&
-      callAccepted &&
-      filteredParticipants.length === 0
-    ) {
-      hangupCall(activeCall);
-    }
-  }, [callAccepted, ringing, filteredParticipants, hangupCall, activeCall]);
+  // useEffect(() => {
+  //   if (ringing && activeCall && filteredParticipants.length === 0) {
+  //     hangupCall(activeCall);
+  //   }
+  // }, [ringing, filteredParticipants, hangupCall, activeCall]);
 
   return (
     <>
-      {ringing ? (
-        callAccepted ? (
+      {activeCall ? (
+        filteredParticipants.length > 0 ? (
           <ParticipantVideosContainer />
         ) : (
           <OutgoingCall />

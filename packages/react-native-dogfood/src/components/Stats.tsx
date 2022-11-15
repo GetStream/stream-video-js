@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import { useObservableValue } from '../hooks/useObservable';
+import { useStore } from '../hooks/useStore';
 
 const intervalMs = 15000;
 
@@ -14,8 +16,11 @@ const getStats = (stats: RTCStatsReport) => {
 
 export const Stats = () => {
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
-  const call = useAppGlobalStoreValue((store) => store.call);
-  const activeCall = useAppGlobalStoreValue((store) => store.activeCall);
+  // const call = useAppGlobalStoreValue((store) => store.call);
+  const { activeCall$, activeCallMeta$ } = useStore();
+  const call = useObservableValue(activeCall$);
+  const activeCall = useObservableValue(activeCallMeta$);
+
   useEffect(() => {
     if (videoClient && call && activeCall) {
       const intervalId = setInterval(async () => {

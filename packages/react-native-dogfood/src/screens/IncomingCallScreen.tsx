@@ -1,12 +1,12 @@
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React from 'react';
 import { Image, ImageBackground, StyleSheet, Text, View } from 'react-native';
-import { RootStackParamList } from '../../types';
 import ButtonContainer from '../components/CallControls/ButtonContainer';
 
 import Phone from '../icons/Phone';
 import PhoneDown from '../icons/PhoneDown';
 import { useRingCall } from '../hooks/useRingCall';
+import { useStore } from '../hooks/useStore';
+import { useObservableValue } from '../hooks/useObservable';
 
 const styles = StyleSheet.create({
   container: {
@@ -43,12 +43,17 @@ const styles = StyleSheet.create({
   },
 });
 
-type Props = NativeStackScreenProps<RootStackParamList, 'IncomingCallScreen'>;
-
-const IncomingCallScreen = ({ route }: Props) => {
-  const { createdByUserId } = route.params;
-
+const IncomingCallScreen = () => {
+  const { incomingRingCalls$ } = useStore();
+  const incomingRingCalls = useObservableValue(incomingRingCalls$);
   const { answerCall, rejectCall } = useRingCall();
+
+  if (incomingRingCalls.length === 0) {
+    return null;
+  }
+
+  const createdByUserId =
+    incomingRingCalls[incomingRingCalls.length - 1].createdByUserId;
 
   return (
     <ImageBackground

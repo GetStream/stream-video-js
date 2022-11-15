@@ -8,15 +8,18 @@ import {
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { RootStackParamList } from '../../../types';
-import { useCallKeep } from '../../hooks/useCallKeep';
+import { useStore } from '../../hooks/useStore';
+import { useObservableValue } from '../../hooks/useObservable';
+import { useRingCall } from '../../hooks/useRingCall';
 
 const PhoneButton = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const username = useAppGlobalStoreValue((store) => store.username);
   const setState = useAppGlobalStoreSetState();
-  const call = useAppGlobalStoreValue((store) => store.call);
-  const ringing = useAppGlobalStoreValue((store) => store.ringing);
-  const activeCall = useAppGlobalStoreValue((store) => store.activeCall);
-  const { hangupCall } = useCallKeep();
+  const { activeCall$, activeCallMeta$ } = useStore();
+  const activeCall = useObservableValue(activeCallMeta$);
+  const call = useObservableValue(activeCall$);
+  const { cancelCall } = useRingCall();
 
   const resetCallState = useRef(() => {
     setState((prevState) => {
@@ -41,9 +44,8 @@ const PhoneButton = () => {
     try {
       if (activeCall) {
         call.leave();
-        console.log({ ringing });
-        if (ringing) {
-          await hangupCall(activeCall, true);
+        if (activeCall && activeCall.createdByUserId === username) {
+          cancelCall();
         }
         resetCallState();
         InCallManager.stop();

@@ -37,6 +37,17 @@ export const watchParticipantLeft = (
       const currentParticipants = store.getCurrentValue(
         store.activeCallAllParticipantsSubject,
       );
+      const activeCall = store.getCurrentValue(store.activeCallMetaSubject);
+      const connectedUser = store.getCurrentValue(store.connectedUserSubject);
+      if (activeCall) {
+        if (
+          currentParticipants.length === 2 &&
+          participant.user?.id !== connectedUser?.name
+        ) {
+          store.setCurrentValue(store.activeCallMetaSubject, undefined);
+          store.setCurrentValue(store.rejectedCallSubject, activeCall);
+        }
+      }
       store.setCurrentValue(
         store.activeCallAllParticipantsSubject,
         currentParticipants.filter(

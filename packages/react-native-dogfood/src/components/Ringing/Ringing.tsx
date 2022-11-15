@@ -15,8 +15,7 @@ import {
 } from '../../contexts/AppContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../types';
-import { getOrCreateCall } from '../../utils/callUtils';
-import { useCallKeep } from '../../hooks/useCallKeep';
+import { joinCall } from '../../utils/callUtils';
 
 const styles = StyleSheet.create({
   container: {
@@ -76,15 +75,13 @@ const Ringing = ({ navigation }: Props) => {
 
   const setState = useAppGlobalStoreSetState();
 
-  const { startCall } = useCallKeep();
-
   const startCallHandler = async () => {
     setLoading(true);
     if (videoClient && localMediaStream) {
       try {
         const callID = uuidv4().toLowerCase();
         await setState({ ringingCallID: callID });
-        await getOrCreateCall(videoClient, localMediaStream, {
+        await joinCall(videoClient, localMediaStream, {
           autoJoin: true,
           ring: true,
           members: [
@@ -96,28 +93,9 @@ const Ringing = ({ navigation }: Props) => {
           ],
           callId: callID,
           callType: 'default',
-        }).then((response) => {
-          if (response) {
-            const { activeCall, call: callResponse } = response;
-            if (!callResponse || !activeCall) {
-              setLoading(false);
-              return;
-            }
-            setState({
-              activeCall: response?.activeCall,
-              call: callResponse,
-              ringing: true,
-              callAccepted: false,
-            });
-            setLoading(false);
-            startCall({
-              callID: activeCall.id,
-              createdByUserId: activeCall.createdByUserId,
-            });
-            navigation.navigate('ActiveCall');
-          } else {
-            setLoading(false);
-          }
+        }).then(() => {
+          setLoading(false);
+          navigation.navigate('ActiveCall');
         });
       } catch (err) {
         console.log(err);

@@ -31,6 +31,7 @@ import {
 } from './ws';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
+import { registerWSEventHandlers } from './ws/callUserEventHandlers';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   coordinatorRpcUrl:
@@ -91,6 +92,9 @@ export class StreamVideoClient {
       token,
       user,
     );
+    if (this.ws) {
+      registerWSEventHandlers(this, this.writeableStateStore);
+    }
     this.writeableStateStore.connectedUserSubject.next(user);
   };
 
@@ -157,6 +161,10 @@ export class StreamVideoClient {
         response.call.call,
         response.edges,
       );
+      if (data.input?.ring) {
+        this.writeableStateStore.activeCallMetaSubject.next(response.call.call);
+        this.writeableStateStore.rejectedCallSubject.next(undefined);
+      }
       if (edge && edge.credentials && edge.credentials.server) {
         const sfuClient = new StreamSfuClient(
           edge.credentials.server.url,
@@ -172,10 +180,6 @@ export class StreamVideoClient {
           },
           this.writeableStateStore,
         );
-        this.writeableStateStore.pendingCallsSubject.next([
-          ...this.writeableStateStore.pendingCallsSubject.getValue(),
-          call,
-        ]);
         return call;
       } else {
         // TODO: handle error?

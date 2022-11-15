@@ -16,9 +16,9 @@ import {
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { mediaDevices } from 'react-native-webrtc';
-import { getOrCreateCall } from '../../utils/callUtils';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { v4 as uuidv4 } from 'uuid';
+import { joinCall } from '../../utils/callUtils';
 
 const APP_ID = 'streamrnvideosample';
 
@@ -72,22 +72,12 @@ const Meeting = ({ navigation }: Props) => {
     setLoading(true);
     if (videoClient && localMediaStream) {
       try {
-        const response = await getOrCreateCall(videoClient, localMediaStream, {
+        const response = await joinCall(videoClient, localMediaStream, {
           autoJoin: true,
           callId: meetingCallID,
           callType: 'default',
         });
         if (response) {
-          const { activeCall, call: callResponse } = response;
-          if (!callResponse || !activeCall) {
-            setLoading(false);
-            return;
-          }
-          setState({
-            activeCall: response?.activeCall,
-            call: callResponse,
-            ringing: false,
-          });
           setLoading(false);
           navigation.navigate('ActiveCall');
         } else {
