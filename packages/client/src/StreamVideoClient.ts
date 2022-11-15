@@ -162,7 +162,7 @@ export class StreamVideoClient {
         response.edges,
       );
       if (data.input?.ring) {
-        this.writeableStateStore.activeCallMetaSubject.next(response.call.call);
+        this.writeableStateStore.activeRingCallSubject.next(response.call.call);
         this.writeableStateStore.rejectedCallSubject.next(undefined);
       }
       if (edge && edge.credentials && edge.credentials.server) {

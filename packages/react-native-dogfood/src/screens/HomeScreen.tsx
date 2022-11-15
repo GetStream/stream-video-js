@@ -4,10 +4,10 @@ import { StyleSheet, View } from 'react-native';
 import { TabBar } from '../components/TabBar';
 import Meeting from '../components/Meeting/Meeting';
 import Ringing from '../components/Ringing/Ringing';
-import { registerWSEventHandlers } from '../modules/ClientWSEventHandlers';
-import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { useCallKeep } from '../hooks/useCallKeep';
 import { RootStackParamList } from '../../types';
+import { useStore } from '../hooks/useStore';
+import { useObservableValue } from '../hooks/useObservable';
 
 const styles = StyleSheet.create({
   container: {
@@ -18,22 +18,33 @@ const styles = StyleSheet.create({
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 export const HomeScreen = ({ navigation, route }: Props) => {
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const [selectedTab, setSelectedTab] = useState('Meeting');
 
-  useCallKeep();
+  const { activeRingCall$, incomingRingCalls$, rejectedCall$ } = useStore();
+  const activeRingCall = useObservableValue(activeRingCall$);
+  const incomingRingCalls = useObservableValue(incomingRingCalls$);
+  const rejectedCall = useObservableValue(rejectedCall$);
+
+  const { displayIncomingCallNow, startCall, endCall } = useCallKeep();
 
   useEffect(() => {
-    if (videoClient) {
-      registerWSEventHandlers(
-        videoClient,
-        // answerCall,
-        // displayIncomingCallNow,
-        // hangupCall,
-        // rejectCall,
-      );
+    if (rejectedCall) {
+      endCall();
     }
-  });
+    if (activeRingCall) {
+      startCall();
+    }
+    if (incomingRingCalls.length > 0) {
+      displayIncomingCallNow();
+    }
+  }, [
+    activeRingCall,
+    rejectedCall,
+    incomingRingCalls,
+    displayIncomingCallNow,
+    endCall,
+    startCall,
+  ]);
 
   return (
     <View style={styles.container}>

@@ -9,7 +9,7 @@ export class StreamVideoWriteableStateStore {
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
   incomingRingCallsSubject = new BehaviorSubject<CallMeta[]>([]);
   activeCallSubject = new BehaviorSubject<Call | undefined>(undefined);
-  activeCallMetaSubject = new BehaviorSubject<CallMeta | undefined>(undefined);
+  activeRingCallSubject = new BehaviorSubject<CallMeta | undefined>(undefined);
   callSubject = new BehaviorSubject<CallMeta | undefined>(undefined);
   outgoingCallSubject = new BehaviorSubject<CallMeta | undefined>(undefined);
   rejectedCallSubject = new BehaviorSubject<CallMeta | undefined>(undefined);
@@ -31,7 +31,7 @@ export class StreamVideoWriteableStateStore {
 export class StreamVideoReadOnlyStateStore {
   connectedUser$: Observable<UserInput | undefined>;
   activeCall$: Observable<Call | undefined>;
-  activeCallMeta$: Observable<CallMeta | undefined>;
+  activeRingCall$: Observable<CallMeta | undefined>;
   incomingRingCalls$: Observable<CallMeta[]>;
   dominantSpeaker$: Observable<string | undefined>;
   call$: Observable<CallMeta | undefined>;
@@ -45,8 +45,8 @@ export class StreamVideoReadOnlyStateStore {
     this.connectedUser$ =
       writeableStateStore.connectedUserSubject.asObservable();
     this.activeCall$ = writeableStateStore.activeCallSubject.asObservable();
-    this.activeCallMeta$ =
-      writeableStateStore.activeCallMetaSubject.asObservable();
+    this.activeRingCall$ =
+      writeableStateStore.activeRingCallSubject.asObservable();
     this.incomingRingCalls$ =
       writeableStateStore.incomingRingCallsSubject.asObservable();
     this.dominantSpeaker$ =

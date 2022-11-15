@@ -11,9 +11,9 @@ export const useRingCall = () => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
-  const { incomingRingCalls$, activeCallMeta$ } = useStore();
+  const { incomingRingCalls$, activeRingCall$ } = useStore();
   const incomingRingCalls = useObservableValue(incomingRingCalls$);
-  const activeCall = useObservableValue(activeCallMeta$);
+  const activeRingCall = useObservableValue(activeRingCall$);
 
   const currentIncomingRingCall =
     incomingRingCalls[incomingRingCalls.length - 1];
@@ -53,8 +53,8 @@ export const useRingCall = () => {
   };
 
   const cancelCall = async () => {
-    if (videoClient && activeCall) {
-      await videoClient.cancelCall(activeCall.callCid);
+    if (videoClient && activeRingCall) {
+      await videoClient.cancelCall(activeRingCall.callCid);
       await navigation.navigate('HomeScreen');
     }
   };

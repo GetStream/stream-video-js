@@ -11,11 +11,9 @@ const VideoRenderer = () => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
-  const { activeCallRemoteParticipants$, activeCallMeta$ } = useStore();
-  const activeCall = useObservableValue(activeCallMeta$);
+  const { activeCallRemoteParticipants$, activeRingCall$ } = useStore();
+  const activeRingCall = useObservableValue(activeRingCall$);
   const remoteParticipants = useObservableValue(activeCallRemoteParticipants$);
-
-  // const { hangupCall } = useCallKeep();
 
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
@@ -31,15 +29,9 @@ const VideoRenderer = () => {
     ? remoteParticipants
     : remoteParticipants.filter((p) => !p.isLoggedInUser);
 
-  // useEffect(() => {
-  //   if (ringing && activeCall && filteredParticipants.length === 0) {
-  //     hangupCall(activeCall);
-  //   }
-  // }, [ringing, filteredParticipants, hangupCall, activeCall]);
-
   return (
     <>
-      {activeCall ? (
+      {activeRingCall ? (
         filteredParticipants.length > 0 ? (
           <ParticipantVideosContainer />
         ) : (

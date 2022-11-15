@@ -20,7 +20,7 @@ export const watchCallCreatedEvent = (
       const currentIncomingRingCalls = store.getCurrentValue(
         store.incomingRingCallsSubject,
       );
-      store.setCurrentValue(store.activeCallMetaSubject, undefined);
+      store.setCurrentValue(store.activeRingCallSubject, undefined);
       store.setCurrentValue(store.rejectedCallSubject, undefined);
       store.setCurrentValue(store.incomingRingCallsSubject, [
         ...currentIncomingRingCalls,
@@ -43,7 +43,7 @@ export const watchCallAcceptedEvent = (
       const currentIncomingRingCalls = store.getCurrentValue(
         store.incomingRingCallsSubject,
       );
-      store.setCurrentValue(store.activeCallMetaSubject, call);
+      store.setCurrentValue(store.activeRingCallSubject, call);
       store.setCurrentValue(
         store.incomingRingCallsSubject,
         currentIncomingRingCalls.filter(
@@ -76,7 +76,7 @@ export const watchCallRejectedEvent = (
           (incomingRingCall) => incomingRingCall.callCid !== call.callCid,
         ),
       );
-      store.setCurrentValue(store.activeCallMetaSubject, undefined);
+      store.setCurrentValue(store.activeRingCallSubject, undefined);
     }
   });
 };
@@ -91,7 +91,7 @@ export const watchCallCancelledEvent = (
       console.log("Can't find call in CallCancelled event");
       return;
     } else {
-      store.setCurrentValue(store.activeCallMetaSubject, undefined);
+      store.setCurrentValue(store.activeRingCallSubject, undefined);
       store.setCurrentValue(store.rejectedCallSubject, call);
     }
   });

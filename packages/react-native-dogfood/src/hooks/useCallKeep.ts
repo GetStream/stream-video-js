@@ -1,20 +1,20 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Call } from '@stream-io/video-client/dist/src/gen/video/coordinator/call_v1/call';
 import { useCallback, useEffect } from 'react';
-import { PermissionsAndroid } from 'react-native';
+import { PermissionsAndroid, Platform } from 'react-native';
 import RNCallKeep from 'react-native-callkeep';
-import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { RootStackParamList } from '../../types';
 import { useStore } from './useStore';
 import { useObservableValue } from './useObservable';
 
 export const useCallKeep = () => {
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
-  const { activeCallMeta$, incomingRingCalls$, rejectedCall$ } = useStore();
-  const activeCall = useObservableValue(activeCallMeta$);
-  const incomingRingCalls = useObservableValue(incomingRingCalls$);
+  const { activeRingCall$, rejectedCall$, incomingRingCalls$ } = useStore();
+  const activeRingCall = useObservableValue(activeRingCall$);
   const rejectedCall = useObservableValue(rejectedCall$);
+  const incomingRingCalls = useObservableValue(incomingRingCalls$);
+
+  const currentIncomingRingCall =
+    incomingRingCalls[incomingRingCalls.length - 1];
 
   const navigation =
     useNavigation<
@@ -23,53 +23,47 @@ export const useCallKeep = () => {
 
   const startCall = useCallback(() => {
     try {
-      if (activeCall) {
+      if (activeRingCall && Platform.OS === 'ios') {
         RNCallKeep.startCall(
-          activeCall.id,
+          activeRingCall.id,
           '282829292',
-          activeCall.createdByUserId,
+          activeRingCall.createdByUserId,
           'generic',
         );
       }
     } catch (err) {
       console.log(err);
     }
-  }, [activeCall]);
+  }, [activeRingCall]);
 
   const displayIncomingCallNow = useCallback(() => {
     try {
       navigation.navigate('IncomingCallScreen');
+      console.log({ currentIncomingRingCall });
+      if (currentIncomingRingCall) {
+        if (Platform.OS === 'ios') {
+          RNCallKeep.displayIncomingCall(
+            currentIncomingRingCall.id,
+            '',
+            currentIncomingRingCall.createdByUserId,
+            'generic',
+            true,
+          );
+        }
+      }
     } catch (error) {
       console.log(error);
     }
-  }, [navigation]);
+  }, [navigation, currentIncomingRingCall]);
 
-  const rejectCall = useCallback(async () => {
+  const endCall = useCallback(async () => {
     if (rejectedCall) {
-      await RNCallKeep.endCall(rejectedCall.id);
-
+      if (Platform.OS === 'ios') {
+        await RNCallKeep.endCall(rejectedCall.id);
+      }
       navigation.navigate('HomeScreen');
     }
   }, [navigation, rejectedCall]);
-
-  useEffect(() => {
-    if (rejectedCall) {
-      rejectCall();
-    }
-    if (activeCall) {
-      startCall();
-    }
-    if (incomingRingCalls.length > 0) {
-      displayIncomingCallNow();
-    }
-  }, [
-    activeCall,
-    rejectedCall,
-    incomingRingCalls,
-    displayIncomingCallNow,
-    rejectCall,
-    startCall,
-  ]);
 
   useEffect(() => {
     const options = {
@@ -104,20 +98,9 @@ export const useCallKeep = () => {
     }
   }, []);
 
-  const hangupCall = async (call: Call, cancelled?: boolean) => {
-    await RNCallKeep.endCall(call.id);
-
-    if (cancelled) {
-      videoClient?.cancelCall(call.callCid);
-      return;
-    }
-    navigation.navigate('HomeScreen');
-  };
-
   return {
     displayIncomingCallNow,
-    hangupCall,
     startCall,
-    rejectCall,
+    endCall,
   };
 };
