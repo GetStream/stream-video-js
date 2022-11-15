@@ -3998,6 +3998,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-google-signin/google-signin@npm:^8.2.1":
+  version: 8.2.1
+  resolution: "@react-native-google-signin/google-signin@npm:8.2.1"
+  peerDependencies:
+    "@expo/config-plugins": ^4.1.0
+    react: "*"
+    react-native: "*"
+  peerDependenciesMeta:
+    "@expo/config-plugins":
+      optional: true
+  checksum: f1ea511f584738df3a728b6ec25a6a5c6cec4e8682f782ff6e743c620b10a3271cef84368fe2a311f76b852d266b82a7f7d5f4ca0b0040c523885ce3dd763537
+  languageName: node
+  linkType: hard
+
 "@react-native/assets@npm:1.0.0":
   version: 1.0.0
   resolution: "@react-native/assets@npm:1.0.0"
@@ -4629,6 +4643,7 @@ __metadata:
     "@react-native-async-storage/async-storage": ^1.17.10
     "@react-native-clipboard/clipboard": ^1.11.1
     "@react-native-community/eslint-config": ^3.1.0
+    "@react-native-google-signin/google-signin": ^8.2.1
     "@react-navigation/native": ^6.0.13
     "@react-navigation/native-stack": ^6.9.1
     "@rnx-kit/babel-preset-metro-react-native": ^1.1.1
@@ -4643,6 +4658,7 @@ __metadata:
     "@types/react-test-renderer": ^18.0.0
     "@types/sdp-transform": ^2.4.5
     "@types/uuid": ^8.3.4
+    add: ^2.0.6
     babel-jest: ^26.6.3
     eslint: ^8.26.0
     jest: ^26.6.3
@@ -4670,6 +4686,7 @@ __metadata:
     text-encoding-polyfill: ^0.6.7
     typescript: ^4.8.4
     uuid: ^9.0.0
+    yarn: ^1.22.19
   languageName: unknown
   linkType: soft
 
@@ -6148,6 +6165,13 @@ __metadata:
   bin:
     acorn: bin/acorn
   checksum: 4079b67283b94935157698831967642f24a075c52ce3feaaaafe095776dfbe15d86a1b33b1e53860fc0d062ed6c83f4284a5c87c85b9ad51853a01173da6097f
+  languageName: node
+  linkType: hard
+
+"add@npm:^2.0.6":
+  version: 2.0.6
+  resolution: "add@npm:2.0.6"
+  checksum: e2d23d40494565dfed4acd65e478570c444db5ac6c053551ed429c39ea0f2c99d83df63e7befec936df601827d2254d06a2fb6f7dcfd2022e810b25eab818b8c
   languageName: node
   linkType: hard
 
@@ -23568,6 +23592,16 @@ __metadata:
     y18n: ^5.0.5
     yargs-parser: ^21.1.1
   checksum: 47da1b0d854fa16d45a3ded57b716b013b2179022352a5f7467409da5a04a1eef5b3b3d97a2dfc13e8bbe5f2ffc0afe3bc6a4a72f8254e60f5a4bd7947138643
+  languageName: node
+  linkType: hard
+
+"yarn@npm:^1.22.19":
+  version: 1.22.19
+  resolution: "yarn@npm:1.22.19"
+  bin:
+    yarn: bin/yarn.js
+    yarnpkg: bin/yarn.js
+  checksum: b43d2cc5fee7e933beb12a8aee7dfceca9e9ef2dd17c5d04d15a12ab7bec5f5744ea34a07b86e013da7f291a18c4e1ad8f70e150f5ed2f4666e6723c7f0a8452
   languageName: node
   linkType: hard
 

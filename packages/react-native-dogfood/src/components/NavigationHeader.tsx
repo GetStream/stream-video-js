@@ -5,6 +5,7 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const styles = StyleSheet.create({
   header: {
@@ -32,8 +33,8 @@ const styles = StyleSheet.create({
 });
 
 export const NavigationHeader = (props: NativeStackHeaderProps) => {
-  const username = useAppGlobalStoreValue((store) => store.username);
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
 
   const setState = useAppGlobalStoreSetState();
 
@@ -46,16 +47,20 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
       },
       {
         text: 'OK',
-        onPress: () => {
-          videoClient
-            ?.disconnect()
-            .then(() => {
-              setState({ videoClient: undefined, token: '', username: '' });
-              props.navigation.navigate('LoginScreen');
-            })
-            .catch((err) => {
-              console.error('Failed to disconnect', err);
+        onPress: async () => {
+          try {
+            await Promise.all([
+              GoogleSignin.signOut(),
+              videoClient?.disconnect(),
+            ]);
+            setState({
+              videoClient: undefined,
+              username: '',
+              userImageUrl: '',
             });
+          } catch (error) {
+            console.error('Failed to disconnect', error);
+          }
         },
       },
     ]);
@@ -73,12 +78,14 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
   return (
     <View style={styles.header}>
       <Pressable onPress={logoutHandler}>
-        <Image
-          source={{
-            uri: `https://getstream.io/random_png/?id=${username}&name=${username}`,
-          }}
-          style={styles.avatar}
-        />
+        {!!userImageUrl && (
+          <Image
+            source={{
+              uri: userImageUrl,
+            }}
+            style={styles.avatar}
+          />
+        )}
       </Pressable>
     </View>
   );
