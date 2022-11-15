@@ -4,35 +4,68 @@ import {
   ElementRef,
   HostBinding,
   Input,
+  OnChanges,
   OnDestroy,
+  SimpleChanges,
   ViewChild,
 } from '@angular/core';
 import { Call } from '@stream-io/video-client';
 import { VideoDimension } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 import { StreamVideoParticipant } from '@stream-io/video-client/dist/src/rtc/types';
+import { Subscription } from 'rxjs';
+import { StreamVideoService } from '../video.service';
 
 @Component({
   selector: 'stream-participant',
   templateUrl: './participant.component.html',
   styleUrls: ['./participant.component.scss'],
 })
-export class ParticipantComponent implements AfterViewInit, OnDestroy {
+export class ParticipantComponent
+  implements AfterViewInit, OnDestroy, OnChanges
+{
   @Input() participant?: StreamVideoParticipant;
-  @Input() call?: Call;
+  call?: Call;
   @ViewChild('video')
   private videoElement!: ElementRef<HTMLElement> | undefined;
   private resizeObserver: ResizeObserver | undefined;
+  private isViewInited = false;
   @HostBinding() class = 'str-video__participant-angular-host';
+  private subscriptions: Subscription[] = [];
+
+  constructor(private streamVideoService: StreamVideoService) {
+    this.streamVideoService.activeCall$.subscribe((c) => (this.call = c));
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (
+      changes['participant']?.previousValue?.isLoggedInUser &&
+      !changes['participant']?.currentValue?.isLoggedInUser &&
+      this.isViewInited
+    ) {
+      this.registerResizeObserver();
+    }
+  }
 
   ngAfterViewInit(): void {
-    this.resizeObserver = new ResizeObserver(() =>
-      this.updateTrackSubscriptions(),
-    );
-    this.resizeObserver.observe(this.videoElement!.nativeElement);
+    this.isViewInited = true;
+    if (!this.participant?.isLoggedInUser) {
+      this.registerResizeObserver();
+    }
   }
 
   ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
+    this.subscriptions.forEach((s) => s.unsubscribe());
+  }
+
+  private registerResizeObserver() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+    this.resizeObserver = new ResizeObserver(() =>
+      this.updateTrackSubscriptions(),
+    );
+    this.resizeObserver.observe(this.videoElement!.nativeElement);
   }
 
   private updateTrackSubscriptions() {

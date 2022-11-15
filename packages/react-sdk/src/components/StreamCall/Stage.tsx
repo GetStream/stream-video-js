@@ -12,9 +12,8 @@ import { useDebugPreferredVideoCodec } from '../Debug/useIsDebugMode';
 export const Stage = (props: {
   call: Call;
   participants: SfuModels.Participant[];
-  includeSelf: boolean;
 }) => {
-  const { call, includeSelf } = props;
+  const { call } = props;
 
   const localParticipant = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
@@ -55,7 +54,7 @@ export const Stage = (props: {
       {localParticipant && (
         <ParticipantBox
           participant={localParticipant}
-          isMuted={!includeSelf}
+          isMuted
           call={call}
           updateVideoSubscriptionForParticipant={
             updateVideoSubscriptionForParticipant

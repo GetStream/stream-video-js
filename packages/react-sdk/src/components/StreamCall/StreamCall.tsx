@@ -15,7 +15,6 @@ export type CallProps = {
   callId: string;
   callType: string;
   autoJoin?: boolean;
-  includeSelf?: boolean;
   input?: CreateCallInput;
 };
 
@@ -24,7 +23,6 @@ export const StreamCall = ({
   callId,
   callType,
   autoJoin = true,
-  includeSelf = false,
   input,
 }: CallProps) => {
   const { activeCall, activeCallMeta } = useCall({
@@ -74,7 +72,6 @@ export const StreamCall = ({
                 <Stage
                   participants={sfuCallState.participants}
                   call={activeCall}
-                  includeSelf={includeSelf}
                 />
                 <CallControls call={activeCall} />
               </>

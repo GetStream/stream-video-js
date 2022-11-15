@@ -344,7 +344,7 @@ export class Call {
   updateSubscriptions = (participants: StreamVideoParticipant[]) => {
     const subscriptions: { [key: string]: VideoDimension } = {};
     participants.forEach((p) => {
-      if (p.videoDimension) {
+      if (p.videoDimension && !p.isLoggedInUser) {
         subscriptions[p.user!.id] = p.videoDimension;
       }
     });
