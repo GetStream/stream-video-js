@@ -41,8 +41,8 @@ export const MediaDevicesProvider = (
       const videoStream = await navigator.mediaDevices.getUserMedia({
         video: {
           deviceId: call.getActiveInputDeviceId('videoinput'),
-          width: 1280,
-          height: 720,
+          width: 960,
+          height: 540,
         },
       });
       setAudioStream(audioStream);
@@ -69,8 +69,8 @@ export const MediaDevicesProvider = (
       if (!call) return;
       if (kind === 'videoinput') {
         const videoStream = await call.changeInputDevice(kind, deviceId, {
-          width: 1280,
-          height: 720,
+          width: 960,
+          height: 540,
         });
         setVideoStream(videoStream);
       } else if (kind === 'audioinput') {
