@@ -1,6 +1,10 @@
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   width: number;
   height: number;
+
+  // defined here until we have this prop included in TypeScript
+  // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1380
+  maxFramerate?: number;
 };
 
 export const findOptimalVideoLayers = async (mediaStream: MediaStream) => {
@@ -23,13 +27,18 @@ export const findOptimalVideoLayers = async (mediaStream: MediaStream) => {
     // found ideal layer
     if (w === settings.width && h === settings.height) {
       let scaleFactor: number = 1;
-      ['f', 'h', 'q'].forEach((rid, i) => {
+      ['f', 'h', 'q'].forEach((rid) => {
         optimalVideoLayers.push({
           rid,
           width: w / scaleFactor,
           height: h / scaleFactor,
           maxBitrate: maxBitrate / scaleFactor,
           scaleResolutionDownBy: scaleFactor,
+          maxFramerate: {
+            f: 30,
+            h: 25,
+            q: 20,
+          }[rid],
         });
         scaleFactor *= 2;
       });
@@ -44,12 +53,14 @@ export const defaultVideoLayers: OptimalVideoLayer[] = [
   {
     rid: 'f',
     maxBitrate: 500000,
+    maxFramerate: 30,
     width: 640,
     height: 480,
   },
   {
     rid: 'h',
     maxBitrate: 250000,
+    maxFramerate: 25,
     width: 320,
     height: 240,
     scaleResolutionDownBy: 2.0,
@@ -57,6 +68,7 @@ export const defaultVideoLayers: OptimalVideoLayer[] = [
   {
     rid: 'q',
     maxBitrate: 125000,
+    maxFramerate: 20,
     width: 160,
     height: 120,
     scaleResolutionDownBy: 4.0,
