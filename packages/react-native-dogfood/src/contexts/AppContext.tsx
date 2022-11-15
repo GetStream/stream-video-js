@@ -6,7 +6,7 @@ interface AppGlobalStore {
   meetingCallID: string;
   ringingCallID: string;
   username: string;
-  token: string;
+  userImageUrl: string;
   videoClient: StreamVideoClient | undefined;
   localMediaStream: MediaStream | undefined;
   isAudioMuted: boolean;
@@ -24,7 +24,7 @@ export const {
     meetingCallID: '',
     ringingCallID: '',
     username: '',
-    token: '',
+    userImageUrl: '',
     videoClient: undefined,
     localMediaStream: undefined,
     loopbackMyVideo: false,
@@ -32,5 +32,5 @@ export const {
     isVideoMuted: false,
     cameraBackFacingMode: false,
   },
-  ['meetingCallID', 'ringingCallID', 'username', 'token'],
+  ['meetingCallID', 'ringingCallID', 'username', 'userImageUrl'],
 );

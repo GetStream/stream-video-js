@@ -4,6 +4,7 @@
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
+#import <React/RCTLinkingManager.h>
 
 #import <React/RCTAppSetupUtils.h>
 #import "RNCallKeep.h"
@@ -40,13 +41,19 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 }
 
 - (BOOL)application:(UIApplication *)application
-continueUserActivity:(NSUserActivity *)userActivity
-  restorationHandler:(void(^)(NSArray * __nullable restorableObjects))restorationHandler
- {
-   return [RNCallKeep application:application
-            continueUserActivity:userActivity
-              restorationHandler:restorationHandler];
- }
+ continueUserActivity:(nonnull NSUserActivity *)userActivity
+   restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
+{
+  BOOL handledCK = [RNCallKeep application:application
+                    continueUserActivity:userActivity
+                      restorationHandler:restorationHandler];
+  
+  BOOL handledLM = [RCTLinkingManager application:application
+                      continueUserActivity:userActivity
+                        restorationHandler:restorationHandler];
+  
+  return handledCK || handledLM;
+}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {

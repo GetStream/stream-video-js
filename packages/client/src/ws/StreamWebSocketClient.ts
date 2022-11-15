@@ -80,11 +80,13 @@ export class StreamWebSocketClient implements StreamWSClient {
       onClose: (e) => {
         console.warn(`Connection closed`, e);
         this.off('healthcheck', catchOneHealthcheckMessage);
+        this.keepAlive.cancelPendingPing();
       },
 
       onError: (e) => {
         console.error(`An error has occurred`, e);
         this.off('healthcheck', catchOneHealthcheckMessage);
+        this.keepAlive.cancelPendingPing();
       },
     });
   };

@@ -32,12 +32,16 @@ import {
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
 import { registerWSEventHandlers } from './ws/callUserEventHandlers';
+import {
+  WebsocketClientEvent,
+  WebsocketHealthcheck,
+} from './gen/video/coordinator/client_v1_rpc/websocket';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   coordinatorRpcUrl:
     'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
   coordinatorWsUrl:
-    'ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+    'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
   sendJson: false,
   latencyMeasurementRounds: 3,
 };
@@ -113,8 +117,15 @@ export class StreamVideoClient {
     return this.ws?.off(event, fn);
   };
 
-  setHealthcheckPayload = (payload: Uint8Array) => {
-    this.ws?.keepAlive.setPayload(payload);
+  setHealthcheckPayload = (hc: WebsocketHealthcheck) => {
+    this.ws?.keepAlive.setPayload(
+      WebsocketClientEvent.toBinary({
+        event: {
+          oneofKind: 'healthcheck',
+          healthcheck: hc,
+        },
+      }),
+    );
   };
 
   getOrCreateCall = async (data: GetOrCreateCallRequest) => {

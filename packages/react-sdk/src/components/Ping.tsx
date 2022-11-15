@@ -87,7 +87,7 @@ export const Ping = (props: {
       video: true,
     };
 
-    client?.setHealthcheckPayload(WebsocketHealthcheck.toBinary(payload));
+    client?.setHealthcheckPayload(payload);
     return () => {
       // FIXME OL: we need better way to handle HealthCheck modes
       const plainHealthcheck: WebsocketHealthcheck = {
@@ -97,9 +97,7 @@ export const Ping = (props: {
         video: false,
         audio: false,
       };
-      client?.setHealthcheckPayload(
-        WebsocketHealthcheck.toBinary(plainHealthcheck),
-      );
+      client?.setHealthcheckPayload(plainHealthcheck);
     };
   }, [client, activeCall.id, activeCall.type, currentUser, healthcheck]);
 

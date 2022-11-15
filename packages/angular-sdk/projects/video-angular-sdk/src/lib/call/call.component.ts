@@ -38,7 +38,7 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   private async getOwnMediaStream() {
-    const constraints = { audio: true, video: { width: 1280, height: 720 } };
+    const constraints = { audio: true, video: { width: 960, height: 540 } };
     return await navigator.mediaDevices.getUserMedia(constraints);
   }
 }

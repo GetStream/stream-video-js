@@ -6,7 +6,6 @@ import {
   Text,
   Switch,
   Button,
-  Linking,
   ActivityIndicator,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -20,7 +19,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { v4 as uuidv4 } from 'uuid';
 import { joinCall } from '../../utils/callUtils';
 
-const APP_ID = 'streamrnvideosample';
+import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
@@ -38,20 +37,6 @@ const Meeting = ({ navigation }: Props) => {
 
   // run only once per app lifecycle
   useEffect(() => {
-    const parseAndSetCallID = (url: string | null) => {
-      const matchResponse = url?.match(/.*callID\/(.*)\//);
-      if (!matchResponse || matchResponse.length < 1) {
-        return null;
-      }
-
-      setState({
-        meetingCallID: matchResponse[1],
-      });
-    };
-    // listen to url changes and parse the callID
-    const { remove } = Linking.addEventListener('url', ({ url }) => {
-      parseAndSetCallID(url);
-    });
     const configure = async () => {
       const mediaStream = await mediaDevices.getUserMedia({
         audio: true,
@@ -60,12 +45,8 @@ const Meeting = ({ navigation }: Props) => {
       setState({
         localMediaStream: mediaStream,
       });
-      const url = await Linking.getInitialURL();
-      parseAndSetCallID(url);
     };
-
     configure();
-    return remove;
   }, [setState]);
 
   const createOrJoinCallHandler = async () => {
@@ -89,8 +70,29 @@ const Meeting = ({ navigation }: Props) => {
     }
   };
 
+  useEffect(() => {
+    if (localMediaStream) {
+      const subscription = prontoCallId$.subscribe((prontoCallId) => {
+        setState({
+          meetingCallID: prontoCallId,
+        });
+        if (videoClient) {
+          joinCall(videoClient, localMediaStream, {
+            callId: prontoCallId,
+            callType: 'default',
+            autoJoin: true,
+          });
+        }
+      });
+      return () => subscription.unsubscribe();
+    }
+  }, [localMediaStream, setState, videoClient]);
+
   const handleCopyInviteLink = useCallback(
-    () => Clipboard.setString(`${APP_ID}://callID/${meetingCallID}/`),
+    () =>
+      Clipboard.setString(
+        `https://stream-calls-dogfood.vercel.app/join/${meetingCallID}/`,
+      ),
     [meetingCallID],
   );
 
