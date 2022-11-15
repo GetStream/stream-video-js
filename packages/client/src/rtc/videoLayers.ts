@@ -1,35 +1,44 @@
 export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   width: number;
   height: number;
+
+  // defined here until we have this prop included in TypeScript
+  // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1380
+  maxFramerate?: number;
 };
 
 export const findOptimalVideoLayers = async (mediaStream: MediaStream) => {
   const steps: [number, number, number][] = [
     // [4096, 2160], // 4K
     // [1920, 1080, 3_072_000], // Full-HD
-    [1280, 720, 1280000], // HD
-    [640, 480, 768000], // VGA
-    [320, 240, 384000], // QVGA
-    [160, 120, 128000],
+    [1280, 720, 1000000],
+    [960, 540, 850000],
+    [640, 480, 500000],
+    [320, 240, 250000],
+    [160, 120, 125000],
   ];
 
   const optimalVideoLayers: OptimalVideoLayer[] = [];
   for (let step = 0; step < steps.length; step++) {
-    const [w, h] = steps[step];
+    const [w, h, maxBitrate] = steps[step];
     const [videoTrack] = mediaStream.getVideoTracks();
     const settings = videoTrack.getSettings();
 
     // found ideal layer
     if (w === settings.width && h === settings.height) {
       let scaleFactor: number = 1;
-      ['f', 'h', 'q'].forEach((rid, i) => {
-        const [width, height, bitrate] = steps[step + i];
+      ['f', 'h', 'q'].forEach((rid) => {
         optimalVideoLayers.push({
           rid,
-          width,
-          height,
-          maxBitrate: bitrate,
+          width: w / scaleFactor,
+          height: h / scaleFactor,
+          maxBitrate: maxBitrate / scaleFactor,
           scaleResolutionDownBy: scaleFactor,
+          maxFramerate: {
+            f: 30,
+            h: 25,
+            q: 20,
+          }[rid],
         });
         scaleFactor *= 2;
       });
@@ -43,22 +52,25 @@ export const findOptimalVideoLayers = async (mediaStream: MediaStream) => {
 export const defaultVideoLayers: OptimalVideoLayer[] = [
   {
     rid: 'f',
-    maxBitrate: 1280000,
-    width: 1280,
-    height: 720,
+    maxBitrate: 500000,
+    maxFramerate: 30,
+    width: 640,
+    height: 480,
   },
   {
     rid: 'h',
-    maxBitrate: 768000,
-    width: 640,
-    height: 480,
+    maxBitrate: 250000,
+    maxFramerate: 25,
+    width: 320,
+    height: 240,
     scaleResolutionDownBy: 2.0,
   },
   {
     rid: 'q',
-    maxBitrate: 384000,
-    width: 480,
-    height: 360,
+    maxBitrate: 125000,
+    maxFramerate: 20,
+    width: 160,
+    height: 120,
     scaleResolutionDownBy: 4.0,
   },
 ];
