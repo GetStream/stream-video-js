@@ -5,6 +5,7 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const styles = StyleSheet.create({
   header: {
@@ -46,19 +47,20 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
       },
       {
         text: 'OK',
-        onPress: () => {
-          videoClient
-            ?.disconnect()
-            .then(() => {
-              setState({
-                videoClient: undefined,
-                username: '',
-                userImageUrl: '',
-              });
-            })
-            .catch((err) => {
-              console.error('Failed to disconnect', err);
+        onPress: async () => {
+          try {
+            await Promise.all([
+              GoogleSignin.signOut(),
+              videoClient?.disconnect(),
+            ]);
+            setState({
+              videoClient: undefined,
+              username: '',
+              userImageUrl: '',
             });
+          } catch (error) {
+            console.error('Failed to disconnect', error);
+          }
         },
       },
     ]);
