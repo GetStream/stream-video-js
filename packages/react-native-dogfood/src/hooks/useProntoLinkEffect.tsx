@@ -5,7 +5,7 @@ import { Subject } from 'rxjs';
 const prontoCallIdSubject = new Subject<string>();
 export const prontoCallId$ = prontoCallIdSubject.asObservable();
 
-export const useProntoLink = () => {
+export const useProntoLinkEffect = () => {
   useEffect(() => {
     const parseAndSetCallID = (url: string | null) => {
       const matchResponse = url?.match(/.*join\/(\w+)\/?/);

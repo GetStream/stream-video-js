@@ -15,7 +15,7 @@ import {
 } from '../../contexts/AppContext';
 import { mediaDevices } from 'react-native-webrtc';
 import { meetingId } from '../../modules/helpers/meetingId';
-import { prontoCallId$ } from '../../hooks/useProntoLink';
+import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
 
 const Meeting = () => {
   const callID = useAppGlobalStoreValue((store) => store.callID);

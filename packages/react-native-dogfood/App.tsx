@@ -13,12 +13,12 @@ import { NavigationHeader } from './src/components/NavigationHeader';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { useAuth } from './src/hooks/useAuth';
 import AuthenticatingProgressScreen from './src/screens/AuthenticatingProgress';
-import { useProntoLink } from './src/hooks/useProntoLink';
+import { useProntoLinkEffect } from './src/hooks/useProntoLinkEffect';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const StackNavigator = () => {
-  useProntoLink();
+  useProntoLinkEffect();
   const { authenticationInProgress } = useAuth();
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   if (authenticationInProgress) {
