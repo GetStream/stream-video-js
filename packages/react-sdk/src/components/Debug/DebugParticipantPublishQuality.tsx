@@ -41,14 +41,14 @@ export const DebugParticipantPublishQuality = (props: {
       onChange={(e) => {
         const value = e.target.value;
         setQuality(value);
-        let w = 1280;
-        let h = 720;
+        let w = 640;
+        let h = 480;
         if (value === 'h') {
-          w = 640;
-          h = 480;
+          w = w / 2;
+          h = h / 2;
         } else if (value === 'q') {
-          w = 320;
-          h = 240;
+          w = w / 4;
+          h = h / 4;
         }
         updateVideoSubscriptionForParticipant(participant.sessionId, w, h);
       }}

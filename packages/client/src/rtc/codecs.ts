@@ -1,25 +1,12 @@
 import * as SDPTransform from 'sdp-transform';
+import { defaultVideoLayers } from './videoLayers';
 import type { Codec } from '../gen/video/sfu/models/models';
 
-export const defaultVideoPublishEncodings: RTCRtpEncodingParameters[] = [
-  {
-    rid: 'f',
+export const defaultVideoPublishEncodings: RTCRtpEncodingParameters[] =
+  defaultVideoLayers.map((layer) => ({
+    ...layer,
     active: true,
-    maxBitrate: 1280000,
-  },
-  {
-    rid: 'h',
-    active: true,
-    scaleResolutionDownBy: 2.0,
-    maxBitrate: 768000,
-  },
-  {
-    rid: 'q',
-    active: true,
-    scaleResolutionDownBy: 4.0,
-    maxBitrate: 384000,
-  },
-];
+  }));
 
 export const getPreferredCodecs = (
   kind: 'audio' | 'video',
