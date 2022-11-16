@@ -155,22 +155,19 @@ function createSpeakerUpdater(call: Call) {
   let lastSpeaker: StreamVideoParticipant | undefined;
   return function highlightSpeaker(speaker?: StreamVideoParticipant) {
     if (speaker && speaker.sessionId !== lastSpeaker?.sessionId) {
-      if (!speaker.videoTrack) {
-        call.updateSubscriptionsPartial({
-          [speaker.sessionId]: {
-            videoDimension: {
-              width: 1920,
-              height: 1080,
-            },
+      call.updateSubscriptionsPartial({
+        [speaker.sessionId]: {
+          videoDimension: {
+            width: 1920,
+            height: 1080,
           },
-          ...(lastSpeaker && {
-            [lastSpeaker.sessionId]: {
-              videoDimension: undefined,
-            },
-          }),
-        });
-        return;
-      }
+        },
+        ...(lastSpeaker && {
+          [lastSpeaker.sessionId]: {
+            videoDimension: undefined,
+          },
+        }),
+      });
 
       console.log(`Swapping highlighted speaker`, speaker.user!.id);
 
