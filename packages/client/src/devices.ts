@@ -9,14 +9,17 @@ import {
 
 const getDevices = (constraints: MediaStreamConstraints | undefined) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
-    navigator.mediaDevices.getUserMedia(constraints).then((media) => {
-      media.getTracks().forEach((t) => t.stop());
-      // in Firefox, devices can be enumerated after userMedia is requested
-      // and permissions granted. Otherwise, device labels are empty
-      navigator.mediaDevices.enumerateDevices().then((devices) => {
-        subscriber.next(devices);
-      });
-    });
+    navigator.mediaDevices
+      .getUserMedia(constraints)
+      .then((media) => {
+        media.getTracks().forEach((t) => t.stop());
+        // in Firefox, devices can be enumerated after userMedia is requested
+        // and permissions granted. Otherwise, device labels are empty
+        navigator.mediaDevices.enumerateDevices().then((devices) => {
+          subscriber.next(devices);
+        });
+      })
+      .catch((error) => subscriber.error(error));
 
     const deviceChangeHandler = async () => {
       const allDevices = await navigator.mediaDevices.enumerateDevices();
