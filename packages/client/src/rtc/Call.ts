@@ -291,6 +291,14 @@ export class Call {
     sender.track.stop(); // release old track
     await sender.replaceTrack(newTrack);
 
+    const localParticipant = this.participants.find(
+      (p) => p.sessionId === this.client.sessionId,
+    );
+    const muteState = !(kind === 'audioinput'
+      ? localParticipant?.audio
+      : localParticipant?.video);
+    this.updateMuteState(kind === 'audioinput' ? 'audio' : 'video', muteState);
+
     this.stateStore.setCurrentValue(
       this.stateStore.activeCallAllParticipantsSubject,
       this.participants.map((p) => {
