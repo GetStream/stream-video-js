@@ -7,9 +7,10 @@ import {
   shareReplay,
 } from 'rxjs';
 
-export const getDevices = (constraints: MediaStreamConstraints | undefined) => {
+const getDevices = (constraints: MediaStreamConstraints | undefined) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
-    navigator.mediaDevices.getUserMedia(constraints).then(() => {
+    navigator.mediaDevices.getUserMedia(constraints).then((media) => {
+      media.getTracks().forEach((t) => t.stop());
       // in Firefox, devices can be enumerated after userMedia is requested
       // and permissions granted. Otherwise, device labels are empty
       navigator.mediaDevices.enumerateDevices().then((devices) => {
@@ -42,12 +43,20 @@ const mediaDeviceConstraints = {
 };
 const devices$ = getDevices(mediaDeviceConstraints).pipe(shareReplay(1));
 
+/**
+ * Lists the list of available 'audioinput' devices, if devices are added/removed - the list is updated
+ * @returns
+ */
 export const getAudioDevices = () => {
   return devices$.pipe(
     map((values) => values.filter((d) => d.kind === 'audioinput')),
   );
 };
 
+/**
+ * Lists the list of available 'videoinput' devices, if devices are added/removed - the list is updated
+ * @returns
+ */
 export const getVideoDevices = () => {
   return devices$.pipe(
     map((values) => values.filter((d) => d.kind === 'videoinput')),
@@ -74,10 +83,20 @@ const getStream = async (
   });
 };
 
+/**
+ * Returns an 'audioinput' media stream with the given deviceId, if no deviceId is provided, we use the first available device
+ * @param deviceId
+ * @returns
+ */
 export const getAudioStream = async (deviceId?: string) => {
   return getStream('audioinput', deviceId);
 };
 
+/**
+ * Returns a 'videoinput' media stream with the given deviceId, if no deviceId is provided, we use the first available device
+ * @param deviceId
+ * @returns
+ */
 export const getVideoStream = async (deviceId?: string) => {
   return getStream('videoinput', deviceId);
 };
@@ -97,12 +116,22 @@ const watchForDisconnectedDevice = (
   );
 };
 
+/**
+ * Notifies the subscriber if a given 'audioinput' device is disconnected
+ * @param deviceId$ an Observable that specifies which device to watch for
+ * @returns
+ */
 export const watchForDisconnectedAudioDevice = (
   deviceId$: Observable<string | undefined>,
 ) => {
   return watchForDisconnectedDevice('audioinput', deviceId$);
 };
 
+/**
+ * Notifies the subscriber if a given 'videoinput' device is disconnected
+ * @param deviceId$ an Observable that specifies which device to watch for
+ * @returns
+ */
 export const watchForDisconnectedVideoDevice = (
   deviceId$: Observable<string | undefined>,
 ) => {
