@@ -218,11 +218,6 @@ export class Call {
         }
       }
 
-      const localParticipant = this.participants.find(
-        (p) => p.sessionId === this.client.sessionId,
-      );
-      await this.updateMuteState('video', !localParticipant?.video);
-
       this.stateStore.setCurrentValue(
         this.stateStore.activeCallAllParticipantsSubject,
         this.participants.map((p) => {
@@ -245,11 +240,6 @@ export class Call {
           direction: 'sendonly',
         });
       }
-
-      const localParticipant = this.participants.find(
-        (p) => p.sessionId === this.client.sessionId,
-      );
-      await this.updateMuteState('audio', !localParticipant?.audio);
 
       this.stateStore.setCurrentValue(
         this.stateStore.activeCallAllParticipantsSubject,
