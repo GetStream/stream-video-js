@@ -2,13 +2,16 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect } from 'react';
 import { PermissionsAndroid, Platform } from 'react-native';
+import InCallManager from 'react-native-incall-manager';
 import RNCallKeep from 'react-native-callkeep';
 import { RootStackParamList } from '../../types';
 import { useStore } from './useStore';
 import { useObservableValue } from './useObservable';
 
 export const useCallKeep = () => {
-  const { activeRingCall$, rejectedCall$, incomingRingCalls$ } = useStore();
+  const { activeCall$, activeRingCall$, rejectedCall$, incomingRingCalls$ } =
+    useStore();
+  const call = useObservableValue(activeCall$);
   const activeRingCall = useObservableValue(activeRingCall$);
   const rejectedCall = useObservableValue(rejectedCall$);
   const incomingRingCalls = useObservableValue(incomingRingCalls$);
@@ -61,9 +64,12 @@ export const useCallKeep = () => {
       if (Platform.OS === 'ios') {
         await RNCallKeep.endCall(rejectedCall.id);
       }
+      call?.leave();
+      InCallManager.stop();
+
       navigation.navigate('HomeScreen');
     }
-  }, [navigation, rejectedCall]);
+  }, [navigation, rejectedCall, call]);
 
   useEffect(() => {
     const options = {

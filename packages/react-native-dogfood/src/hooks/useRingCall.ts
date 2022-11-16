@@ -39,7 +39,7 @@ export const useRingCall = () => {
         InCallManager.setForceSpeakerphoneOn(true);
         await call.join(localMediaStream, localMediaStream);
         await call.publish(localMediaStream, localMediaStream);
-        await videoClient.answerCall(currentIncomingRingCall.callCid);
+        await videoClient.acceptCall(currentIncomingRingCall.callCid);
         navigation.navigate('ActiveCall');
       }
     }

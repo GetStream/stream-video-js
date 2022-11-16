@@ -144,7 +144,7 @@ export class StreamVideoClient {
     return callEnvelope;
   };
 
-  answerCall = async (callCid: string) => {
+  acceptCall = async (callCid: string) => {
     await this.client.sendEvent({
       callCid,
       eventType: UserEventType.ACCEPTED_CALL,

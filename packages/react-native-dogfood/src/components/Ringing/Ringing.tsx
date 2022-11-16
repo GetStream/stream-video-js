@@ -66,6 +66,7 @@ const Ringing = ({ navigation }: Props) => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
+  const username = useAppGlobalStoreValue((store) => store.username);
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },
@@ -107,28 +108,30 @@ const Ringing = ({ navigation }: Props) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.participantsContainer}>
         <Text style={[styles.text, styles.label]}>Select Participants</Text>
-        {users.map((user) => {
-          return (
-            <Pressable
-              style={styles.participant}
-              key={user.id}
-              onPress={() => {
-                setSelectedParticipant(user.id);
-              }}
-            >
-              <Text
-                style={[
-                  styles.text,
-                  selectedParticipant === user.id
-                    ? styles.selectedParticipant
-                    : null,
-                ]}
+        {users
+          .filter((user) => user.id !== username)
+          .map((user) => {
+            return (
+              <Pressable
+                style={styles.participant}
+                key={user.id}
+                onPress={() => {
+                  setSelectedParticipant(user.id);
+                }}
               >
-                {user.name}
-              </Text>
-            </Pressable>
-          );
-        })}
+                <Text
+                  style={[
+                    styles.text,
+                    selectedParticipant === user.id
+                      ? styles.selectedParticipant
+                      : null,
+                  ]}
+                >
+                  {user.name}
+                </Text>
+              </Pressable>
+            );
+          })}
       </View>
       <Button
         disabled={selectedParticipant === ''}
