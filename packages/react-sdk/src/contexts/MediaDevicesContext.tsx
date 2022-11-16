@@ -28,12 +28,12 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   useEffect(() => {
     const subscription = getAudioDevices().subscribe(setAudioDevices);
     return () => subscription.unsubscribe();
-  }, [getAudioDevices]);
+  }, []);
 
   useEffect(() => {
     const subscription = getVideoDevices().subscribe(setVideoDevices);
     return () => subscription.unsubscribe();
-  }, [getVideoDevices]);
+  }, []);
 
   const contextValue = {
     audioDevices,

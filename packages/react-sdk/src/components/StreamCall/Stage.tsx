@@ -76,7 +76,7 @@ export const Stage = (props: {
     );
 
     return () => subscriptions.forEach((s) => s.unsubscribe());
-  }, [activeCallLocalParticipant$, call]);
+  }, [activeCallLocalParticipant$, call, getVideoStream, getAudioStream]);
 
   const preferredCodec = useDebugPreferredVideoCodec();
   useEffect(() => {
