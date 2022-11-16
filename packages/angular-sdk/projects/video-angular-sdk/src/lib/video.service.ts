@@ -20,7 +20,7 @@ export class StreamVideoService {
   activeCallLocalParticipant$: Observable<StreamVideoParticipant | undefined>;
   videoClient: StreamVideoClient | undefined;
   activeRingCall$: Observable<CallMeta.Call | undefined>;
-  rejectedCall$: Observable<CallMeta.Call | undefined>;
+  rejectedRingCall$: Observable<CallMeta.Call | undefined>;
 
   private userSubject: ReplaySubject<UserInput | undefined> = new ReplaySubject(
     1,
@@ -29,7 +29,7 @@ export class StreamVideoService {
     new ReplaySubject(1);
   private activeRingCallSubject: ReplaySubject<CallMeta.Call | undefined> =
     new ReplaySubject(1);
-  private rejectedCallSubject: ReplaySubject<CallMeta.Call | undefined> =
+  private rejectedRingCallSubject: ReplaySubject<CallMeta.Call | undefined> =
     new ReplaySubject(1);
   private incomingRingCallsSubject: ReplaySubject<CallMeta.Call[]> =
     new ReplaySubject(1);
@@ -55,7 +55,7 @@ export class StreamVideoService {
     this.activeCallLocalParticipant$ =
       this.activeCallLocalParticipantSubject.asObservable();
     this.activeRingCall$ = this.activeRingCallSubject.asObservable();
-    this.rejectedCall$ = this.rejectedCallSubject.asObservable();
+    this.rejectedRingCall$ = this.rejectedRingCallSubject.asObservable();
   }
 
   init(
@@ -86,8 +86,8 @@ export class StreamVideoService {
     );
 
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.rejectedCall$.subscribe(
-        this.rejectedCallSubject,
+      this.videoClient.readOnlyStateStore?.rejectedRingCall$.subscribe(
+        this.rejectedRingCallSubject,
       ),
     );
 
