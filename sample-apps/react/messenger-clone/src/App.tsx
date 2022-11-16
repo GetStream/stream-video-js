@@ -7,7 +7,6 @@ import {
 } from 'stream-chat';
 import {
   Channel,
-  ChannelHeader,
   ChannelList,
   Chat,
   MessageInput,
@@ -15,6 +14,8 @@ import {
   Thread,
   Window,
 } from 'stream-chat-react';
+
+import { ChannelHeader } from './components/ChannelHeader';
 
 const params = new Proxy(new URLSearchParams(window.location.search), {
   get: (searchParams, property) => searchParams.get(property as string),
