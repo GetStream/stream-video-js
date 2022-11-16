@@ -45,7 +45,7 @@ export const watchParticipantLeft = (
           participant.user?.id !== connectedUser?.name
         ) {
           store.setCurrentValue(store.activeRingCallSubject, undefined);
-          store.setCurrentValue(store.rejectedCallSubject, activeCall);
+          store.setCurrentValue(store.rejectedRingCallSubject, activeCall);
         }
       }
       store.setCurrentValue(

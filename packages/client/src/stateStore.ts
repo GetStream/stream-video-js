@@ -12,7 +12,9 @@ export class StreamVideoWriteableStateStore {
   activeRingCallSubject = new BehaviorSubject<CallMeta | undefined>(undefined);
   callSubject = new BehaviorSubject<CallMeta | undefined>(undefined);
   outgoingCallSubject = new BehaviorSubject<CallMeta | undefined>(undefined);
-  rejectedCallSubject = new BehaviorSubject<CallMeta | undefined>(undefined);
+  rejectedRingCallSubject = new BehaviorSubject<CallMeta | undefined>(
+    undefined,
+  );
 
   activeCallAllParticipantsSubject = new BehaviorSubject<
     StreamVideoParticipant[]
@@ -35,7 +37,7 @@ export class StreamVideoReadOnlyStateStore {
   incomingRingCalls$: Observable<CallMeta[]>;
   dominantSpeaker$: Observable<string | undefined>;
   call$: Observable<CallMeta | undefined>;
-  rejectedCall$: Observable<CallMeta | undefined>;
+  rejectedRingCall$: Observable<CallMeta | undefined>;
 
   activeCallAllParticipants$: Observable<StreamVideoParticipant[]>;
   activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
@@ -52,7 +54,8 @@ export class StreamVideoReadOnlyStateStore {
     this.dominantSpeaker$ =
       writeableStateStore.dominantSpeakerSubject.asObservable();
     this.call$ = writeableStateStore.callSubject.asObservable();
-    this.rejectedCall$ = writeableStateStore.rejectedCallSubject.asObservable();
+    this.rejectedRingCall$ =
+      writeableStateStore.rejectedRingCallSubject.asObservable();
     this.activeCallAllParticipants$ =
       writeableStateStore.activeCallAllParticipantsSubject.asObservable();
     this.activeCallLocalParticipant$ = this.activeCallAllParticipants$.pipe(

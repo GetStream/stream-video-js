@@ -21,7 +21,7 @@ export const watchCallCreatedEvent = (
         store.incomingRingCallsSubject,
       );
       store.setCurrentValue(store.activeRingCallSubject, undefined);
-      store.setCurrentValue(store.rejectedCallSubject, undefined);
+      store.setCurrentValue(store.rejectedRingCallSubject, undefined);
       store.setCurrentValue(store.incomingRingCallsSubject, [
         ...currentIncomingRingCalls,
         call,
@@ -51,7 +51,7 @@ export const watchCallAcceptedEvent = (
             currentIncomingRingCall.callCid !== call.callCid,
         ),
       );
-      store.setCurrentValue(store.rejectedCallSubject, undefined);
+      store.setCurrentValue(store.rejectedRingCallSubject, undefined);
     }
   });
 };
@@ -69,7 +69,7 @@ export const watchCallRejectedEvent = (
       const currentIncomingRingCalls = store.getCurrentValue(
         store.incomingRingCallsSubject,
       );
-      store.setCurrentValue(store.rejectedCallSubject, call);
+      store.setCurrentValue(store.rejectedRingCallSubject, call);
       store.setCurrentValue(
         store.incomingRingCallsSubject,
         currentIncomingRingCalls.filter(
@@ -92,7 +92,7 @@ export const watchCallCancelledEvent = (
       return;
     } else {
       store.setCurrentValue(store.activeRingCallSubject, undefined);
-      store.setCurrentValue(store.rejectedCallSubject, call);
+      store.setCurrentValue(store.rejectedRingCallSubject, call);
     }
   });
 };

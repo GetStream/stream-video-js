@@ -9,11 +9,15 @@ import { useStore } from './useStore';
 import { useObservableValue } from './useObservable';
 
 export const useCallKeep = () => {
-  const { activeCall$, activeRingCall$, rejectedCall$, incomingRingCalls$ } =
-    useStore();
+  const {
+    activeCall$,
+    activeRingCall$,
+    rejectedRingCall$,
+    incomingRingCalls$,
+  } = useStore();
   const call = useObservableValue(activeCall$);
   const activeRingCall = useObservableValue(activeRingCall$);
-  const rejectedCall = useObservableValue(rejectedCall$);
+  const rejectedRingCall = useObservableValue(rejectedRingCall$);
   const incomingRingCalls = useObservableValue(incomingRingCalls$);
 
   const currentIncomingRingCall =
@@ -60,16 +64,16 @@ export const useCallKeep = () => {
   }, [navigation, currentIncomingRingCall]);
 
   const endCall = useCallback(async () => {
-    if (rejectedCall) {
+    if (rejectedRingCall) {
       if (Platform.OS === 'ios') {
-        await RNCallKeep.endCall(rejectedCall.id);
+        await RNCallKeep.endCall(rejectedRingCall.id);
       }
       call?.leave();
       InCallManager.stop();
 
       navigation.navigate('HomeScreen');
     }
-  }, [navigation, rejectedCall, call]);
+  }, [navigation, rejectedRingCall, call]);
 
   useEffect(() => {
     const options = {
