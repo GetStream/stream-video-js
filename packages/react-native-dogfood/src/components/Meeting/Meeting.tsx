@@ -73,15 +73,18 @@ const Meeting = ({ navigation }: Props) => {
   useEffect(() => {
     if (localMediaStream) {
       const subscription = prontoCallId$.subscribe((prontoCallId) => {
-        setState({
-          meetingCallID: prontoCallId,
-        });
-        if (videoClient) {
-          joinCall(videoClient, localMediaStream, {
-            callId: prontoCallId,
-            callType: 'default',
-            autoJoin: true,
+        if (prontoCallId) {
+          setState({
+            meetingCallID: prontoCallId,
           });
+          prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
+          if (videoClient) {
+            joinCall(videoClient, localMediaStream, {
+              callId: prontoCallId,
+              callType: 'default',
+              autoJoin: true,
+            });
+          }
         }
       });
       return () => subscription.unsubscribe();
