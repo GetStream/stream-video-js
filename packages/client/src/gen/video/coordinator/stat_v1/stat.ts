@@ -75,9 +75,9 @@ export interface MediaStateChanged {
 /**
  * A stat event from the perspective of a particular participant
  *
- * @generated from protobuf message stream.video.coordinator.stat_v1.TelemetryEvent
+ * @generated from protobuf message stream.video.coordinator.stat_v1.TimelineEvent
  */
-export interface TelemetryEvent {
+export interface TimelineEvent {
     /**
      * Event timestamp as RFC3339 string.
      *
@@ -126,13 +126,38 @@ export interface CallParticipantTimeline {
      */
     userId: string;
     /**
-     * @generated from protobuf field: string session_id = 2;
+     * @generated from protobuf field: repeated stream.video.coordinator.stat_v1.TimelineEvent events = 2;
+     */
+    events: TimelineEvent[];
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.stat_v1.Session
+ */
+export interface Session {
+    /**
+     * @generated from protobuf field: string session_id = 1;
      */
     sessionId: string;
     /**
-     * @generated from protobuf field: repeated stream.video.coordinator.stat_v1.TelemetryEvent events = 3;
+     * @generated from protobuf field: string call_id = 2;
      */
-    events: TelemetryEvent[];
+    callId: string;
+    /**
+     * @generated from protobuf field: string call_type = 3;
+     */
+    callType: string;
+    /**
+     * time when first participant joined
+     *
+     * @generated from protobuf field: google.protobuf.Timestamp start = 4;
+     */
+    start?: Timestamp;
+    /**
+     * time when last participant left
+     *
+     * @generated from protobuf field: google.protobuf.Timestamp end = 5;
+     */
+    end?: Timestamp;
 }
 /**
  * @generated from protobuf enum stream.video.coordinator.stat_v1.MediaType
@@ -384,9 +409,9 @@ class MediaStateChanged$Type extends MessageType<MediaStateChanged> {
  */
 export const MediaStateChanged = new MediaStateChanged$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class TelemetryEvent$Type extends MessageType<TelemetryEvent> {
+class TimelineEvent$Type extends MessageType<TimelineEvent> {
     constructor() {
-        super("stream.video.coordinator.stat_v1.TelemetryEvent", [
+        super("stream.video.coordinator.stat_v1.TimelineEvent", [
             { no: 1, name: "timestamp", kind: "message", T: () => Timestamp },
             { no: 2, name: "participant_connected", kind: "message", oneof: "event", T: () => ParticipantConnected },
             { no: 3, name: "participant_disconnected", kind: "message", oneof: "event", T: () => ParticipantDisconnected },
@@ -394,14 +419,14 @@ class TelemetryEvent$Type extends MessageType<TelemetryEvent> {
             { no: 5, name: "freeze", kind: "message", oneof: "event", T: () => Freeze }
         ]);
     }
-    create(value?: PartialMessage<TelemetryEvent>): TelemetryEvent {
+    create(value?: PartialMessage<TimelineEvent>): TimelineEvent {
         const message = { event: { oneofKind: undefined } };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<TelemetryEvent>(this, message, value);
+            reflectionMergePartial<TimelineEvent>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TelemetryEvent): TelemetryEvent {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TimelineEvent): TimelineEvent {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -444,7 +469,7 @@ class TelemetryEvent$Type extends MessageType<TelemetryEvent> {
         }
         return message;
     }
-    internalBinaryWrite(message: TelemetryEvent, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: TimelineEvent, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* google.protobuf.Timestamp timestamp = 1; */
         if (message.timestamp)
             Timestamp.internalBinaryWrite(message.timestamp, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
@@ -467,20 +492,19 @@ class TelemetryEvent$Type extends MessageType<TelemetryEvent> {
     }
 }
 /**
- * @generated MessageType for protobuf message stream.video.coordinator.stat_v1.TelemetryEvent
+ * @generated MessageType for protobuf message stream.video.coordinator.stat_v1.TimelineEvent
  */
-export const TelemetryEvent = new TelemetryEvent$Type();
+export const TimelineEvent = new TimelineEvent$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CallParticipantTimeline$Type extends MessageType<CallParticipantTimeline> {
     constructor() {
         super("stream.video.coordinator.stat_v1.CallParticipantTimeline", [
             { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
-            { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
-            { no: 3, name: "events", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TelemetryEvent }
+            { no: 2, name: "events", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TimelineEvent }
         ]);
     }
     create(value?: PartialMessage<CallParticipantTimeline>): CallParticipantTimeline {
-        const message = { userId: "", sessionId: "", events: [] };
+        const message = { userId: "", events: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CallParticipantTimeline>(this, message, value);
@@ -494,11 +518,8 @@ class CallParticipantTimeline$Type extends MessageType<CallParticipantTimeline> 
                 case /* string user_id */ 1:
                     message.userId = reader.string();
                     break;
-                case /* string session_id */ 2:
-                    message.sessionId = reader.string();
-                    break;
-                case /* repeated stream.video.coordinator.stat_v1.TelemetryEvent events */ 3:
-                    message.events.push(TelemetryEvent.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated stream.video.coordinator.stat_v1.TimelineEvent events */ 2:
+                    message.events.push(TimelineEvent.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -515,12 +536,9 @@ class CallParticipantTimeline$Type extends MessageType<CallParticipantTimeline> 
         /* string user_id = 1; */
         if (message.userId !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.userId);
-        /* string session_id = 2; */
-        if (message.sessionId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
-        /* repeated stream.video.coordinator.stat_v1.TelemetryEvent events = 3; */
+        /* repeated stream.video.coordinator.stat_v1.TimelineEvent events = 2; */
         for (let i = 0; i < message.events.length; i++)
-            TelemetryEvent.internalBinaryWrite(message.events[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+            TimelineEvent.internalBinaryWrite(message.events[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -531,3 +549,78 @@ class CallParticipantTimeline$Type extends MessageType<CallParticipantTimeline> 
  * @generated MessageType for protobuf message stream.video.coordinator.stat_v1.CallParticipantTimeline
  */
 export const CallParticipantTimeline = new CallParticipantTimeline$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Session$Type extends MessageType<Session> {
+    constructor() {
+        super("stream.video.coordinator.stat_v1.Session", [
+            { no: 1, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
+            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "start", kind: "message", T: () => Timestamp },
+            { no: 5, name: "end", kind: "message", T: () => Timestamp }
+        ]);
+    }
+    create(value?: PartialMessage<Session>): Session {
+        const message = { sessionId: "", callId: "", callType: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Session>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Session): Session {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string session_id */ 1:
+                    message.sessionId = reader.string();
+                    break;
+                case /* string call_id */ 2:
+                    message.callId = reader.string();
+                    break;
+                case /* string call_type */ 3:
+                    message.callType = reader.string();
+                    break;
+                case /* google.protobuf.Timestamp start */ 4:
+                    message.start = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.start);
+                    break;
+                case /* google.protobuf.Timestamp end */ 5:
+                    message.end = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.end);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Session, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string session_id = 1; */
+        if (message.sessionId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
+        /* string call_id = 2; */
+        if (message.callId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.callId);
+        /* string call_type = 3; */
+        if (message.callType !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.callType);
+        /* google.protobuf.Timestamp start = 4; */
+        if (message.start)
+            Timestamp.internalBinaryWrite(message.start, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.Timestamp end = 5; */
+        if (message.end)
+            Timestamp.internalBinaryWrite(message.end, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.stat_v1.Session
+ */
+export const Session = new Session$Type();
