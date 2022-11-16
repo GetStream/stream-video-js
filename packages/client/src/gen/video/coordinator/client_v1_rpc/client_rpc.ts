@@ -14,6 +14,8 @@ import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { MediaStateChanged } from "../stat_v1/stat";
+import { ParticipantDisconnected } from "../stat_v1/stat";
+import { ParticipantConnected } from "../stat_v1/stat";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 import { Device } from "../push_v1/push";
 import { DeviceInput } from "../push_v1/push";
@@ -603,9 +605,21 @@ export interface ReportCallStatEventRequest {
      * @generated from protobuf oneof: event
      */
     event: {
+        oneofKind: "participantConnected";
+        /**
+         * @generated from protobuf field: stream.video.coordinator.stat_v1.ParticipantConnected participant_connected = 3;
+         */
+        participantConnected: ParticipantConnected;
+    } | {
+        oneofKind: "participantDisconnected";
+        /**
+         * @generated from protobuf field: stream.video.coordinator.stat_v1.ParticipantDisconnected participant_disconnected = 4;
+         */
+        participantDisconnected: ParticipantDisconnected;
+    } | {
         oneofKind: "mediaStateChanged";
         /**
-         * @generated from protobuf field: stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed = 3;
+         * @generated from protobuf field: stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed = 5;
          */
         mediaStateChanged: MediaStateChanged;
     } | {
@@ -2690,7 +2704,9 @@ class ReportCallStatEventRequest$Type extends MessageType<ReportCallStatEventReq
         super("stream.video.coordinator.client_v1_rpc.ReportCallStatEventRequest", [
             { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "timestamp", kind: "message", T: () => Timestamp },
-            { no: 3, name: "media_state_changed", kind: "message", oneof: "event", T: () => MediaStateChanged }
+            { no: 3, name: "participant_connected", kind: "message", oneof: "event", T: () => ParticipantConnected },
+            { no: 4, name: "participant_disconnected", kind: "message", oneof: "event", T: () => ParticipantDisconnected },
+            { no: 5, name: "media_state_changed", kind: "message", oneof: "event", T: () => MediaStateChanged }
         ]);
     }
     create(value?: PartialMessage<ReportCallStatEventRequest>): ReportCallStatEventRequest {
@@ -2711,7 +2727,19 @@ class ReportCallStatEventRequest$Type extends MessageType<ReportCallStatEventReq
                 case /* google.protobuf.Timestamp timestamp */ 2:
                     message.timestamp = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.timestamp);
                     break;
-                case /* stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed */ 3:
+                case /* stream.video.coordinator.stat_v1.ParticipantConnected participant_connected */ 3:
+                    message.event = {
+                        oneofKind: "participantConnected",
+                        participantConnected: ParticipantConnected.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).participantConnected)
+                    };
+                    break;
+                case /* stream.video.coordinator.stat_v1.ParticipantDisconnected participant_disconnected */ 4:
+                    message.event = {
+                        oneofKind: "participantDisconnected",
+                        participantDisconnected: ParticipantDisconnected.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).participantDisconnected)
+                    };
+                    break;
+                case /* stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed */ 5:
                     message.event = {
                         oneofKind: "mediaStateChanged",
                         mediaStateChanged: MediaStateChanged.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).mediaStateChanged)
@@ -2735,9 +2763,15 @@ class ReportCallStatEventRequest$Type extends MessageType<ReportCallStatEventReq
         /* google.protobuf.Timestamp timestamp = 2; */
         if (message.timestamp)
             Timestamp.internalBinaryWrite(message.timestamp, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed = 3; */
+        /* stream.video.coordinator.stat_v1.ParticipantConnected participant_connected = 3; */
+        if (message.event.oneofKind === "participantConnected")
+            ParticipantConnected.internalBinaryWrite(message.event.participantConnected, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.stat_v1.ParticipantDisconnected participant_disconnected = 4; */
+        if (message.event.oneofKind === "participantDisconnected")
+            ParticipantDisconnected.internalBinaryWrite(message.event.participantDisconnected, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed = 5; */
         if (message.event.oneofKind === "mediaStateChanged")
-            MediaStateChanged.internalBinaryWrite(message.event.mediaStateChanged, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+            MediaStateChanged.internalBinaryWrite(message.event.mediaStateChanged, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
