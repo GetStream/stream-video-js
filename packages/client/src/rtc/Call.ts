@@ -93,7 +93,10 @@ export class Call {
     this.publisher.close();
     this.client.close();
 
-    this.stateStore.activeCallSubject.next(undefined);
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeCallSubject,
+      undefined,
+    );
   };
 
   join = async (videoStream?: MediaStream, audioStream?: MediaStream) => {
@@ -135,7 +138,10 @@ export class Call {
             }),
           );
           this.client.keepAlive();
-          this.stateStore.activeCallSubject.next(this);
+          this.stateStore.setCurrentValue(
+            this.stateStore.activeCallSubject,
+            this,
+          );
 
           resolve(callState); // expose call state
         });

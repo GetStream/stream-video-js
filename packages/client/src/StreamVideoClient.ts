@@ -99,14 +99,20 @@ export class StreamVideoClient {
     if (this.ws) {
       registerWSEventHandlers(this, this.writeableStateStore);
     }
-    this.writeableStateStore.connectedUserSubject.next(user);
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.connectedUserSubject,
+      user,
+    );
   };
 
   disconnect = async () => {
     if (!this.ws) return;
     this.ws.disconnect();
     this.ws = undefined;
-    this.writeableStateStore.connectedUserSubject.next(undefined);
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.connectedUserSubject,
+      undefined,
+    );
   };
 
   on = <T>(event: string, fn: StreamEventListener<T>) => {
@@ -173,8 +179,14 @@ export class StreamVideoClient {
         response.edges,
       );
       if (data.input?.ring) {
-        this.writeableStateStore.activeRingCallSubject.next(response.call.call);
-        this.writeableStateStore.rejectedRingCallSubject.next(undefined);
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.activeRingCallSubject,
+          response.call.call,
+        );
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.rejectedRingCallSubject,
+          undefined,
+        );
       }
       if (edge && edge.credentials && edge.credentials.server) {
         const sfuClient = new StreamSfuClient(
