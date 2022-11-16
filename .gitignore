@@ -15,6 +15,7 @@ node_modules
 dist
 .vercel
 .vscode
+.idea
 .angular
 docs
 .env
