@@ -1,93 +1,45 @@
 import {
   createContext,
   PropsWithChildren,
-  useCallback,
   useContext,
   useEffect,
   useState,
 } from 'react';
-import { Call } from '@stream-io/video-client';
+import {
+  getAudioDevices,
+  getVideoDevices,
+  getAudioStream,
+  getVideoStream,
+} from '@stream-io/video-client';
 
 export type MediaDevicesContextAPI = {
-  switchDevice: (kind: 'audioinput' | 'videoinput', deviceId: string) => void;
-  devices?: MediaDeviceInfo[];
-  audioInputDeviceId?: string;
-  videoInputDeviceId?: string;
-  videoStream?: MediaStream;
-  audioStream?: MediaStream;
+  audioDevices: MediaDeviceInfo[];
+  videoDevices: MediaDeviceInfo[];
+  getAudioStream: (deviceId?: string) => Promise<MediaStream>;
+  getVideoStream: (deviceId?: string) => Promise<MediaStream>;
 };
 
 const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
 
-// FIXME: OL: shared logic, move into dedicated module
-export const MediaDevicesProvider = (
-  props: PropsWithChildren<{
-    call?: Call;
-  }>,
-) => {
-  const { call } = props;
-  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
-  const [audioStream, setAudioStream] = useState<MediaStream>();
-  const [videoStream, setVideoStream] = useState<MediaStream>();
+export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
+  const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
+  const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
 
   useEffect(() => {
-    if (!call) return;
-    const reloadDevices = async () => {
-      const audioStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          deviceId: call.getActiveInputDeviceId('audioinput'),
-        },
-      });
-      const videoStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          deviceId: call.getActiveInputDeviceId('videoinput'),
-          width: 960,
-          height: 540,
-        },
-      });
-      setAudioStream(audioStream);
-      setVideoStream(videoStream);
+    const subscription = getAudioDevices().subscribe(setAudioDevices);
+    return () => subscription.unsubscribe();
+  }, [getAudioDevices]);
 
-      // in Firefox, devices can be enumerated after userMedia is requested
-      // and permissions granted. Otherwise, device labels are empty
-      const allDevices = await navigator.mediaDevices.enumerateDevices();
-      setDevices(allDevices);
-    };
-
-    reloadDevices().catch((e) => {
-      console.error('Failed to access to media devices', e);
-    });
-
-    navigator.mediaDevices.addEventListener('devicechange', reloadDevices);
-    return () => {
-      navigator.mediaDevices.removeEventListener('devicechange', reloadDevices);
-    };
-  }, [call]);
-
-  const switchDevice = useCallback(
-    async (kind: 'audioinput' | 'videoinput', deviceId: string) => {
-      if (!call) return;
-      if (kind === 'videoinput') {
-        const videoStream = await call.changeInputDevice(kind, deviceId, {
-          width: 960,
-          height: 540,
-        });
-        setVideoStream(videoStream);
-      } else if (kind === 'audioinput') {
-        const audioStream = await call.changeInputDevice(kind, deviceId);
-        setAudioStream(audioStream);
-      }
-    },
-    [call],
-  );
+  useEffect(() => {
+    const subscription = getVideoDevices().subscribe(setVideoDevices);
+    return () => subscription.unsubscribe();
+  }, [getVideoDevices]);
 
   const contextValue = {
-    audioInputDeviceId: call?.getActiveInputDeviceId('audioinput'),
-    videoInputDeviceId: call?.getActiveInputDeviceId('videoinput'),
-    devices,
-    audioStream,
-    videoStream,
-    switchDevice,
+    audioDevices,
+    videoDevices,
+    getAudioStream,
+    getVideoStream,
   };
 
   return (

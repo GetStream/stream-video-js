@@ -225,6 +225,7 @@ export class Call {
             return {
               ...p,
               videoTrack: videoStream,
+              videoDeviceId: this.getActiveInputDeviceId('videoinput'),
             };
           }
           return p;
@@ -247,6 +248,7 @@ export class Call {
             return {
               ...p,
               audioTrack: audioStream,
+              audioDeviceId: this.getActiveInputDeviceId('audioinput'),
             };
           }
           return p;
@@ -257,33 +259,17 @@ export class Call {
 
   changeInputDevice = async (
     kind: Exclude<MediaDeviceKind, 'audiooutput'>,
-    deviceId: string,
-    extras?: MediaTrackConstraints,
+    mediaStream: MediaStream,
   ) => {
     if (!this.publisher) {
       // FIXME: OL: throw error instead?
       console.warn(
         `Can't change input device without publish connection established`,
         kind,
-        deviceId,
       );
       return;
     }
 
-    const constraints: MediaStreamConstraints = {};
-    if (kind === 'audioinput') {
-      constraints.audio = {
-        ...extras,
-        deviceId,
-      };
-    } else if (kind === 'videoinput') {
-      constraints.video = {
-        ...extras,
-        deviceId,
-      };
-    }
-
-    const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
     const [newTrack] =
       kind === 'videoinput'
         ? mediaStream.getVideoTracks()
@@ -304,6 +290,21 @@ export class Call {
 
     sender.track.stop(); // release old track
     await sender.replaceTrack(newTrack);
+
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeCallAllParticipantsSubject,
+      this.participants.map((p) => {
+        if (p.sessionId === this.client.sessionId) {
+          return {
+            ...p,
+            [kind === 'audioinput' ? 'audioTrack' : 'videoTrack']: mediaStream,
+            [kind === 'audioinput' ? 'audioDeviceId' : 'videoDeviceId']:
+              this.getActiveInputDeviceId(kind),
+          };
+        }
+        return p;
+      }),
+    );
 
     return mediaStream; // for SDK use (preview video)
   };
@@ -350,20 +351,6 @@ export class Call {
     });
     // schedule update
     this.trackSubscriptionsSubject.next(subscriptions);
-  };
-
-  getActiveInputDeviceId = (kind: MediaDeviceKind) => {
-    if (!this.publisher) return;
-
-    const trackKind =
-      kind === 'audioinput'
-        ? 'audio'
-        : kind === 'videoinput'
-        ? 'video'
-        : 'unknown';
-    const senders = this.publisher.getSenders();
-    const sender = senders.find((s) => s.track?.kind === trackKind);
-    return sender?.track?.getConstraints().deviceId as string;
   };
 
   getStats = async (
@@ -499,5 +486,19 @@ export class Call {
         }),
       );
     }
+  };
+
+  private getActiveInputDeviceId = (kind: MediaDeviceKind) => {
+    if (!this.publisher) return;
+
+    const trackKind =
+      kind === 'audioinput'
+        ? 'audio'
+        : kind === 'videoinput'
+        ? 'video'
+        : 'unknown';
+    const senders = this.publisher.getSenders();
+    const sender = senders.find((s) => s.track?.kind === trackKind);
+    return sender?.track?.getConstraints().deviceId as string;
   };
 }

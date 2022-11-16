@@ -19,3 +19,4 @@ export * from './src/stateStore';
 export * from './src/rtc/Call';
 export * from './src/StreamVideoClient';
 export * from './src/StreamSfuClient';
+export * from './src/devices';
