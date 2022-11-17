@@ -1,10 +1,5 @@
-import React from 'react';
-import {
-  ChannelFilters,
-  ChannelOptions,
-  ChannelSort,
-  StreamChat,
-} from 'stream-chat';
+import type { ChannelFilters, ChannelOptions, ChannelSort } from 'stream-chat';
+
 import {
   Channel,
   ChannelList,
@@ -16,6 +11,8 @@ import {
 } from 'stream-chat-react';
 
 import { ChannelHeader } from './components/ChannelHeader';
+
+import { useClient } from './hooks';
 
 const params = new Proxy(new URLSearchParams(window.location.search), {
   get: (searchParams, property) => searchParams.get(property as string),
@@ -50,31 +47,33 @@ type StreamChatGenerics = {
   userType: LocalUserType;
 };
 
-const chatClient = StreamChat.getInstance<StreamChatGenerics>(apiKey);
+const App = () => {
+  const client = useClient<StreamChatGenerics>({
+    apiKey,
+    userData: { id: userId },
+    tokenOrProvider: userToken,
+  });
 
-if (import.meta.env.VITE_CHAT_SERVER_ENDPOINT) {
-  chatClient.setBaseURL(import.meta.env.VITE_CHAT_SERVER_ENDPOINT as string);
-}
+  if (!client) return null;
 
-chatClient.connectUser({ id: userId }, userToken);
-
-const App = () => (
-  <Chat client={chatClient}>
-    <ChannelList
-      filters={filters}
-      options={options}
-      showChannelSearch
-      sort={sort}
-    />
-    <Channel>
-      <Window>
-        <ChannelHeader />
-        <MessageList />
-        <MessageInput focus />
-      </Window>
-      <Thread />
-    </Channel>
-  </Chat>
-);
+  return (
+    <Chat client={client}>
+      <ChannelList
+        filters={filters}
+        options={options}
+        showChannelSearch
+        sort={sort}
+      />
+      <Channel>
+        <Window>
+          <ChannelHeader />
+          <MessageList />
+          <MessageInput focus />
+        </Window>
+        <Thread />
+      </Channel>
+    </Chat>
+  );
+};
 
 export default App;
