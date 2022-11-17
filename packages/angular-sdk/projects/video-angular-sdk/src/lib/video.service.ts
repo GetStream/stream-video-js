@@ -19,18 +19,19 @@ export class StreamVideoService {
   activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
   activeCallLocalParticipant$: Observable<StreamVideoParticipant | undefined>;
   videoClient: StreamVideoClient | undefined;
-  activeRingCall$: Observable<CallMeta.Call | undefined>;
-  rejectedRingCall$: Observable<CallMeta.Call | undefined>;
+  activeRingCallMeta$: Observable<CallMeta.Call | undefined>;
+  terminatedRingCallMeta$: Observable<CallMeta.Call | undefined>;
 
   private userSubject: ReplaySubject<UserInput | undefined> = new ReplaySubject(
     1,
   );
   private activeCallSubject: ReplaySubject<Call | undefined> =
     new ReplaySubject(1);
-  private activeRingCallSubject: ReplaySubject<CallMeta.Call | undefined> =
+  private activeRingCallMetaSubject: ReplaySubject<CallMeta.Call | undefined> =
     new ReplaySubject(1);
-  private rejectedRingCallSubject: ReplaySubject<CallMeta.Call | undefined> =
-    new ReplaySubject(1);
+  private terminatedRingCallMetaSubject: ReplaySubject<
+    CallMeta.Call | undefined
+  > = new ReplaySubject(1);
   private incomingRingCallsSubject: ReplaySubject<CallMeta.Call[]> =
     new ReplaySubject(1);
   private activeCallAllParticipantsSubject: ReplaySubject<
@@ -54,8 +55,9 @@ export class StreamVideoService {
       this.activeCallRemoteParticipantsSubject.asObservable();
     this.activeCallLocalParticipant$ =
       this.activeCallLocalParticipantSubject.asObservable();
-    this.activeRingCall$ = this.activeRingCallSubject.asObservable();
-    this.rejectedRingCall$ = this.rejectedRingCallSubject.asObservable();
+    this.activeRingCallMeta$ = this.activeRingCallMetaSubject.asObservable();
+    this.terminatedRingCallMeta$ =
+      this.terminatedRingCallMetaSubject.asObservable();
   }
 
   init(
@@ -80,14 +82,14 @@ export class StreamVideoService {
     });
 
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.activeRingCall$.subscribe(
-        this.activeRingCallSubject,
+      this.videoClient.readOnlyStateStore?.activeRingCallMeta$.subscribe(
+        this.activeRingCallMetaSubject,
       ),
     );
 
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.rejectedRingCall$.subscribe(
-        this.rejectedRingCallSubject,
+      this.videoClient.readOnlyStateStore?.terminatedRingCallMeta$.subscribe(
+        this.terminatedRingCallMetaSubject,
       ),
     );
 

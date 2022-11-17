@@ -11,13 +11,13 @@ import { useObservableValue } from './useObservable';
 export const useCallKeep = () => {
   const {
     activeCall$,
-    activeRingCall$,
-    rejectedRingCall$,
+    activeRingCallMeta$,
+    terminatedRingCallMeta$,
     incomingRingCalls$,
   } = useStore();
   const call = useObservableValue(activeCall$);
-  const activeRingCall = useObservableValue(activeRingCall$);
-  const rejectedRingCall = useObservableValue(rejectedRingCall$);
+  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
+  const terminatedRingCallMeta = useObservableValue(terminatedRingCallMeta$);
   const incomingRingCalls = useObservableValue(incomingRingCalls$);
 
   const currentIncomingRingCall =
@@ -30,23 +30,22 @@ export const useCallKeep = () => {
 
   const startCall = useCallback(() => {
     try {
-      if (activeRingCall && Platform.OS === 'ios') {
+      if (activeRingCallMeta && Platform.OS === 'ios') {
         RNCallKeep.startCall(
-          activeRingCall.id,
+          activeRingCallMeta.id,
           '282829292',
-          activeRingCall.createdByUserId,
+          activeRingCallMeta.createdByUserId,
           'generic',
         );
       }
     } catch (err) {
       console.log(err);
     }
-  }, [activeRingCall]);
+  }, [activeRingCallMeta]);
 
   const displayIncomingCallNow = useCallback(() => {
     try {
       navigation.navigate('IncomingCallScreen');
-      console.log({ currentIncomingRingCall });
       if (currentIncomingRingCall) {
         if (Platform.OS === 'ios') {
           RNCallKeep.displayIncomingCall(
@@ -64,16 +63,16 @@ export const useCallKeep = () => {
   }, [navigation, currentIncomingRingCall]);
 
   const endCall = useCallback(async () => {
-    if (rejectedRingCall) {
+    if (terminatedRingCallMeta) {
       if (Platform.OS === 'ios') {
-        await RNCallKeep.endCall(rejectedRingCall.id);
+        await RNCallKeep.endCall(terminatedRingCallMeta.id);
       }
       call?.leave();
       InCallManager.stop();
 
       navigation.navigate('HomeScreen');
     }
-  }, [navigation, rejectedRingCall, call]);
+  }, [navigation, terminatedRingCallMeta, call]);
 
   useEffect(() => {
     const options = {

@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { take, map } from 'rxjs/operators';
+import { take, map, pairwise, filter } from 'rxjs/operators';
 import { Call } from './rtc/Call';
 import type { UserInput } from './gen/video/coordinator/user_v1/user';
 import { Call as CallMeta } from './gen/video/coordinator/call_v1/call';
@@ -9,10 +9,10 @@ export class StreamVideoWriteableStateStore {
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
   incomingRingCallsSubject = new BehaviorSubject<CallMeta[]>([]);
   activeCallSubject = new BehaviorSubject<Call | undefined>(undefined);
-  activeRingCallSubject = new BehaviorSubject<CallMeta | undefined>(undefined);
-  callSubject = new BehaviorSubject<CallMeta | undefined>(undefined);
-  outgoingCallSubject = new BehaviorSubject<CallMeta | undefined>(undefined);
-  rejectedRingCallSubject = new BehaviorSubject<CallMeta | undefined>(
+  activeRingCallMetaSubject = new BehaviorSubject<CallMeta | undefined>(
+    undefined,
+  );
+  terminatedRingCallMetaSubject = new BehaviorSubject<CallMeta | undefined>(
     undefined,
   );
 
@@ -33,11 +33,10 @@ export class StreamVideoWriteableStateStore {
 export class StreamVideoReadOnlyStateStore {
   connectedUser$: Observable<UserInput | undefined>;
   activeCall$: Observable<Call | undefined>;
-  activeRingCall$: Observable<CallMeta | undefined>;
+  activeRingCallMeta$: Observable<CallMeta | undefined>;
   incomingRingCalls$: Observable<CallMeta[]>;
   dominantSpeaker$: Observable<string | undefined>;
-  call$: Observable<CallMeta | undefined>;
-  rejectedRingCall$: Observable<CallMeta | undefined>;
+  terminatedRingCallMeta$: Observable<CallMeta | undefined>;
 
   activeCallAllParticipants$: Observable<StreamVideoParticipant[]>;
   activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
@@ -47,15 +46,14 @@ export class StreamVideoReadOnlyStateStore {
     this.connectedUser$ =
       writeableStateStore.connectedUserSubject.asObservable();
     this.activeCall$ = writeableStateStore.activeCallSubject.asObservable();
-    this.activeRingCall$ =
-      writeableStateStore.activeRingCallSubject.asObservable();
+    this.activeRingCallMeta$ =
+      writeableStateStore.activeRingCallMetaSubject.asObservable();
     this.incomingRingCalls$ =
       writeableStateStore.incomingRingCallsSubject.asObservable();
     this.dominantSpeaker$ =
       writeableStateStore.dominantSpeakerSubject.asObservable();
-    this.call$ = writeableStateStore.callSubject.asObservable();
-    this.rejectedRingCall$ =
-      writeableStateStore.rejectedRingCallSubject.asObservable();
+    this.terminatedRingCallMeta$ =
+      writeableStateStore.terminatedRingCallMetaSubject.asObservable();
     this.activeCallAllParticipants$ =
       writeableStateStore.activeCallAllParticipantsSubject.asObservable();
     this.activeCallLocalParticipant$ = this.activeCallAllParticipants$.pipe(

@@ -37,15 +37,18 @@ export const watchParticipantLeft = (
       const currentParticipants = store.getCurrentValue(
         store.activeCallAllParticipantsSubject,
       );
-      const activeCall = store.getCurrentValue(store.activeRingCallSubject);
+      const activeCall = store.getCurrentValue(store.activeRingCallMetaSubject);
       const connectedUser = store.getCurrentValue(store.connectedUserSubject);
       if (activeCall) {
         if (
           currentParticipants.length === 2 &&
           participant.user?.id !== connectedUser?.name
         ) {
-          store.setCurrentValue(store.activeRingCallSubject, undefined);
-          store.setCurrentValue(store.rejectedRingCallSubject, activeCall);
+          store.setCurrentValue(store.activeRingCallMetaSubject, undefined);
+          store.setCurrentValue(
+            store.terminatedRingCallMetaSubject,
+            activeCall,
+          );
         }
       }
       store.setCurrentValue(

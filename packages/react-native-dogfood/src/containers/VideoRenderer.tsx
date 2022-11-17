@@ -11,8 +11,8 @@ const VideoRenderer = () => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
-  const { activeCallRemoteParticipants$, activeRingCall$ } = useStore();
-  const activeRingCall = useObservableValue(activeRingCall$);
+  const { activeCallRemoteParticipants$, activeRingCallMeta$ } = useStore();
+  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
   const remoteParticipants = useObservableValue(activeCallRemoteParticipants$);
 
   const loopbackMyVideo = useAppGlobalStoreValue(
@@ -31,7 +31,7 @@ const VideoRenderer = () => {
 
   return (
     <>
-      {activeRingCall ? (
+      {activeRingCallMeta ? (
         filteredParticipants.length > 0 ? (
           <ParticipantVideosContainer />
         ) : (

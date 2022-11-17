@@ -180,11 +180,11 @@ export class StreamVideoClient {
       );
       if (data.input?.ring) {
         this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.activeRingCallSubject,
+          this.writeableStateStore.activeRingCallMetaSubject,
           response.call.call,
         );
         this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.rejectedRingCallSubject,
+          this.writeableStateStore.terminatedRingCallMetaSubject,
           undefined,
         );
       }

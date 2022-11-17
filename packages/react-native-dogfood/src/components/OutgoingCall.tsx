@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image, ImageBackground, StyleSheet, Text, View } from 'react-native';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
 
 const styles = StyleSheet.create({
   container: {
@@ -38,11 +39,12 @@ const styles = StyleSheet.create({
 });
 
 const OutgoingCall = () => {
+  const username = useAppGlobalStoreValue((store) => store.username);
   return (
     <ImageBackground
       blurRadius={10}
       source={{
-        uri: 'https://getstream.io/random_png/?id=$khushal&name=khushal',
+        uri: `https://getstream.io/random_png/?id=${username}&name=${username}`,
       }}
       style={styles.container}
     >
@@ -50,7 +52,7 @@ const OutgoingCall = () => {
         <Image
           style={styles.avatar}
           source={{
-            uri: `https://getstream.io/random_png/?id=${'khushal'}&name=${'khushal'}`,
+            uri: `https://getstream.io/random_png/?id=${username}&name=${username}`,
           }}
         />
         <Text style={styles.name}>{'khushal'}</Text>

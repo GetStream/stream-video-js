@@ -16,8 +16,8 @@ const PhoneButton = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const username = useAppGlobalStoreValue((store) => store.username);
   const setState = useAppGlobalStoreSetState();
-  const { activeCall$, activeRingCall$ } = useStore();
-  const activeRingCall = useObservableValue(activeRingCall$);
+  const { activeCall$, activeRingCallMeta$ } = useStore();
+  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
   const call = useObservableValue(activeCall$);
   const { cancelCall } = useRingCall();
 
@@ -43,7 +43,10 @@ const PhoneButton = () => {
     }
     try {
       call.leave();
-      if (activeRingCall && activeRingCall.createdByUserId === username) {
+      if (
+        activeRingCallMeta &&
+        activeRingCallMeta.createdByUserId === username
+      ) {
         cancelCall();
       }
       resetCallState();

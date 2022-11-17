@@ -17,12 +17,12 @@ const getStats = (stats: RTCStatsReport) => {
 export const Stats = () => {
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   // const call = useAppGlobalStoreValue((store) => store.call);
-  const { activeCall$, activeRingCall$ } = useStore();
+  const { activeCall$, activeRingCallMeta$ } = useStore();
   const call = useObservableValue(activeCall$);
-  const activeRingCall = useObservableValue(activeRingCall$);
+  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
 
   useEffect(() => {
-    if (videoClient && call && activeRingCall) {
+    if (videoClient && call && activeRingCallMeta) {
       const intervalId = setInterval(async () => {
         const stats = await Promise.all([
           call.getStats('subscriber'),
@@ -35,7 +35,7 @@ export const Stats = () => {
           }
           try {
             await videoClient.reportCallStats({
-              callCid: activeRingCall.callCid,
+              callCid: activeRingCallMeta.callCid,
               statsJson: getStats(s),
             });
           } catch (err) {
@@ -48,7 +48,7 @@ export const Stats = () => {
         clearInterval(intervalId);
       };
     }
-  }, [activeRingCall, call, videoClient]);
+  }, [activeRingCallMeta, call, videoClient]);
 
   return null;
 };
