@@ -178,7 +178,7 @@ export class Call {
     return this.joinResponseReady;
   };
 
-  publish = async (
+  publishMediaStreams = async (
     audioStream?: MediaStream,
     videoStream?: MediaStream,
     opts: PublishOptions = {},
@@ -257,7 +257,7 @@ export class Call {
     }
   };
 
-  changeInputDevice = async (
+  replaceMediaStream = async (
     kind: Exclude<MediaDeviceKind, 'audiooutput'>,
     mediaStream: MediaStream,
   ) => {

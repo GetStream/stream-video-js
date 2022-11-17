@@ -26,7 +26,7 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
     const mediaStream = await (kind === 'videoinput'
       ? getVideoStream(deviceId)
       : getAudioStream(deviceId));
-    activeCall.changeInputDevice(kind, mediaStream);
+    activeCall.replaceMediaStream(kind, mediaStream);
   };
   return (
     <>

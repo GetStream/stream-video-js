@@ -62,7 +62,7 @@ export const Stage = (props: {
       ).subscribe(async () => {
         call.updateMuteState('audio', true);
         const stream = await getAudioStream();
-        call.changeInputDevice('audioinput', stream);
+        call.replaceMediaStream('audioinput', stream);
       }),
     );
     subscriptions.push(
@@ -71,7 +71,7 @@ export const Stage = (props: {
       ).subscribe(async () => {
         call.updateMuteState('video', true);
         const stream = await getVideoStream();
-        call.changeInputDevice('videoinput', stream);
+        call.replaceMediaStream('videoinput', stream);
       }),
     );
 
@@ -82,7 +82,7 @@ export const Stage = (props: {
   useEffect(() => {
     if (localAudioStream && localVideoStream) {
       call
-        .publish(localAudioStream, localVideoStream, {
+        .publishMediaStreams(localAudioStream, localVideoStream, {
           preferredVideoCodec: preferredCodec,
         })
         .catch((e) => {

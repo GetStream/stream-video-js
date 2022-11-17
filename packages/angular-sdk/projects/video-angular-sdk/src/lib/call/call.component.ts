@@ -21,7 +21,7 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
         if (c) {
           this.call = c;
           const ownMediaStream = await this.getOwnMediaStream();
-          this.call.publish(ownMediaStream, ownMediaStream);
+          this.call.publishMediaStreams(ownMediaStream, ownMediaStream);
         }
       }),
     );
