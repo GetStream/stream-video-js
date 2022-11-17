@@ -14,7 +14,6 @@ import { HomeScreen } from './src/screens/HomeScreen';
 import { useAuth } from './src/hooks/useAuth';
 import AuthenticatingProgressScreen from './src/screens/AuthenticatingProgress';
 import { useProntoLinkEffect } from './src/hooks/useProntoLinkEffect';
-import CallParticipantsView from './src/containers/CallParticipantsView';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -47,11 +46,9 @@ const StackNavigator = () => {
 export default function App() {
   return (
     <AppGlobalContextProvider>
-      <CallParticipantsView />
-
-      {/*<NavigationContainer>*/}
-      {/*  <StackNavigator />*/}
-      {/*</NavigationContainer>*/}
+      <NavigationContainer>
+        <StackNavigator />
+      </NavigationContainer>
     </AppGlobalContextProvider>
   );
 }

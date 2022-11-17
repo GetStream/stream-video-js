@@ -4,26 +4,8 @@ import CallParticipantView, {
   SizeType,
 } from '../components/Participants/CallParticipantView';
 import LocalVideoView from '../components/Participants/LocalVideoView';
-
-type CallParticipantsViewProps = {};
-
-const PARTICIPANTS = [
-  {
-    id: 1,
-  },
-  {
-    id: 2,
-  },
-  {
-    id: 3,
-  },
-  {
-    id: 4,
-  },
-  {
-    id: 5,
-  },
-];
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import { useObservableValue } from '../hooks/useObservable';
 
 enum Modes {
   full = 'full',
@@ -49,25 +31,67 @@ const modeToSize: { [key in Modes]: SizeType | undefined } = {
 const localVideoVisibleModes = [Modes.full, Modes.half];
 
 const CallParticipantsView = () => {
+  const call = useAppGlobalStoreValue((store) => store.call);
+  if (!call) {
+    throw new Error("Call isn't initialized -- ParticipantVideosContainer");
+  }
+  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  if (!videoClient) {
+    throw new Error(
+      "StreamVideoClient isn't initialized -- ParticipantVideosContainer",
+    );
+  }
+
+  const allParticipants = useObservableValue(
+    videoClient.readOnlyStateStore.activeCallAllParticipants$,
+  );
+  const loopbackMyVideo = useAppGlobalStoreValue(
+    (store) => store.loopbackMyVideo,
+  );
+
   const mode = useMemo(
     () =>
-      activeCallAllParticipantsLengthToMode[PARTICIPANTS.length] || Modes.fifth,
-    [PARTICIPANTS.length],
+      activeCallAllParticipantsLengthToMode[allParticipants.length] ||
+      Modes.fifth,
+    [allParticipants.length],
   );
 
   const isLocalVideoVisible = useMemo(
     () => localVideoVisibleModes.includes(mode),
-    [localVideoVisibleModes, mode],
+    [mode],
   );
+
+  const showUserInParticipantView = useMemo(
+    () => loopbackMyVideo || !isLocalVideoVisible,
+    [loopbackMyVideo, isLocalVideoVisible],
+  );
+
+  const filteredParticipants = useMemo(() => {
+    return showUserInParticipantView
+      ? allParticipants
+      : allParticipants.filter((p) => !p.isLoggedInUser);
+  }, [loopbackMyVideo, allParticipants]);
+
+  if (allParticipants.length === 0) {
+    return null;
+  }
+
   return (
     <View style={styles.container}>
       <LocalVideoView isVisible={isLocalVideoVisible} />
-      {PARTICIPANTS.map((participant, index) => {
+      {filteredParticipants.map((participant, index) => {
+        const userId = participant.user!.id;
         const calculateFiveOrMoreParticipantsSize = (i: number) =>
           i > 1 ? 'small' : 'medium';
         const size =
           modeToSize[mode] || calculateFiveOrMoreParticipantsSize(index);
-        return <CallParticipantView key={participant.id} size={size} />;
+        return (
+          <CallParticipantView
+            key={`${userId}/${participant.sessionId}`}
+            participant={participant}
+            size={size}
+          />
+        );
       })}
     </View>
   );
@@ -78,7 +102,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#d333ff',
     flex: 1,
     flexWrap: 'wrap',
-    paddingBottom: 16,
+    marginBottom: -20,
   },
 });
 export default CallParticipantsView;
