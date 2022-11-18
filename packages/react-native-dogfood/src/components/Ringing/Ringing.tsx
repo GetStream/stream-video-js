@@ -60,13 +60,13 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 const Ringing = ({ navigation }: Props) => {
   // const [logText, setLog] = useState('');
-  const [selectedParticipant, setSelectedParticipant] = useState('');
   const [loading, setLoading] = useState(false);
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
   const username = useAppGlobalStoreValue((store) => store.username);
+  const ringingUsers = useAppGlobalStoreValue((store) => store.ringingUsers);
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },
@@ -85,13 +85,13 @@ const Ringing = ({ navigation }: Props) => {
         await joinCall(videoClient, localMediaStream, {
           autoJoin: true,
           ring: true,
-          members: [
-            {
-              userId: selectedParticipant,
+          members: ringingUsers.map((user) => {
+            return {
+              userId: user,
               role: 'member',
               customJson: new Uint8Array(),
-            },
-          ],
+            };
+          }),
           callId: callID,
           callType: 'default',
         }).then(() => {
@@ -116,13 +116,15 @@ const Ringing = ({ navigation }: Props) => {
                 style={styles.participant}
                 key={user.id}
                 onPress={() => {
-                  setSelectedParticipant(user.id);
+                  if (!ringingUsers.includes(user.id)) {
+                    setState({ ringingUsers: [...ringingUsers, user.id] });
+                  }
                 }}
               >
                 <Text
                   style={[
                     styles.text,
-                    selectedParticipant === user.id
+                    ringingUsers.includes(user.id)
                       ? styles.selectedParticipant
                       : null,
                   ]}
@@ -134,7 +136,7 @@ const Ringing = ({ navigation }: Props) => {
           })}
       </View>
       <Button
-        disabled={selectedParticipant === ''}
+        disabled={ringingUsers.length === 0}
         title="Start a Call"
         onPress={startCallHandler}
       />

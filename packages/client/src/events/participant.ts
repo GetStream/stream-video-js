@@ -38,17 +38,15 @@ export const watchParticipantLeft = (
         store.activeCallAllParticipantsSubject,
       );
       const activeCall = store.getCurrentValue(store.activeRingCallMetaSubject);
-      const connectedUser = store.getCurrentValue(store.connectedUserSubject);
+      const activeCallLocalParticipant = store.getCurrentValue(
+        store.activeCallLocalParticipantSubject,
+      );
       if (activeCall) {
         if (
           currentParticipants.length === 2 &&
-          participant.user?.id !== connectedUser?.name
+          participant.sessionId !== activeCallLocalParticipant?.sessionId
         ) {
           store.setCurrentValue(store.activeRingCallMetaSubject, undefined);
-          store.setCurrentValue(
-            store.terminatedRingCallMetaSubject,
-            activeCall,
-          );
         }
       }
       store.setCurrentValue(

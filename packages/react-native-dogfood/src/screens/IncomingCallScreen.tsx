@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Image, ImageBackground, StyleSheet, Text, View } from 'react-native';
 import ButtonContainer from '../components/CallControls/ButtonContainer';
 
@@ -7,6 +7,8 @@ import PhoneDown from '../icons/PhoneDown';
 import { useRingCall } from '../hooks/useRingCall';
 import { useStore } from '../hooks/useStore';
 import { useObservableValue } from '../hooks/useObservable';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types';
 
 const styles = StyleSheet.create({
   container: {
@@ -43,10 +45,19 @@ const styles = StyleSheet.create({
   },
 });
 
-const IncomingCallScreen = () => {
-  const { incomingRingCalls$ } = useStore();
+type Props = NativeStackScreenProps<RootStackParamList, 'IncomingCallScreen'>;
+
+const IncomingCallScreen = ({ navigation }: Props) => {
+  const { incomingRingCalls$, terminatedRingCallMeta$ } = useStore();
   const incomingRingCalls = useObservableValue(incomingRingCalls$);
+  const terminatedRingCallMeta = useObservableValue(terminatedRingCallMeta$);
   const { answerCall, rejectCall } = useRingCall();
+
+  useEffect(() => {
+    if (terminatedRingCallMeta) {
+      navigation.navigate('HomeScreen');
+    }
+  }, [terminatedRingCallMeta, navigation]);
 
   if (incomingRingCalls.length === 0) {
     return null;
@@ -59,7 +70,7 @@ const IncomingCallScreen = () => {
     <ImageBackground
       blurRadius={10}
       source={{
-        uri: 'https://getstream.io/random_png/?id=$khushal&name=khushal',
+        uri: `https://getstream.io/random_png/?id=${createdByUserId}&name=${createdByUserId}`,
       }}
       style={styles.container}
     >

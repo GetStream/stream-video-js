@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { take, map, pairwise, filter } from 'rxjs/operators';
+import { take, map, pairwise, startWith } from 'rxjs/operators';
 import { Call } from './rtc/Call';
 import type { UserInput } from './gen/video/coordinator/user_v1/user';
 import { Call as CallMeta } from './gen/video/coordinator/call_v1/call';
@@ -17,6 +17,12 @@ export class StreamVideoWriteableStateStore {
   );
 
   activeCallAllParticipantsSubject = new BehaviorSubject<
+    StreamVideoParticipant[]
+  >([]);
+  activeCallLocalParticipantSubject = new BehaviorSubject<
+    StreamVideoParticipant | undefined
+  >(undefined);
+  activeCallRemoteParticipantSubject = new BehaviorSubject<
     StreamVideoParticipant[]
   >([]);
   dominantSpeakerSubject = new BehaviorSubject<string | undefined>(undefined);
@@ -52,8 +58,11 @@ export class StreamVideoReadOnlyStateStore {
       writeableStateStore.incomingRingCallsSubject.asObservable();
     this.dominantSpeaker$ =
       writeableStateStore.dominantSpeakerSubject.asObservable();
-    this.terminatedRingCallMeta$ =
-      writeableStateStore.terminatedRingCallMetaSubject.asObservable();
+    this.terminatedRingCallMeta$ = this.activeRingCallMeta$.pipe(
+      startWith(undefined),
+      pairwise(),
+      map(([prevValue]) => prevValue),
+    );
     this.activeCallAllParticipants$ =
       writeableStateStore.activeCallAllParticipantsSubject.asObservable();
     this.activeCallLocalParticipant$ = this.activeCallAllParticipants$.pipe(

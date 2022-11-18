@@ -5,6 +5,7 @@ import createStoreContext from './createStoreContext';
 interface AppGlobalStore {
   meetingCallID: string;
   ringingCallID: string;
+  ringingUsers: string[];
   username: string;
   userImageUrl: string;
   videoClient: StreamVideoClient | undefined;
@@ -23,6 +24,7 @@ export const {
   {
     meetingCallID: '',
     ringingCallID: '',
+    ringingUsers: [],
     username: '',
     userImageUrl: '',
     videoClient: undefined,

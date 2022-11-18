@@ -20,31 +20,27 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 export const HomeScreen = ({ navigation, route }: Props) => {
   const [selectedTab, setSelectedTab] = useState('Meeting');
 
-  const { activeRingCallMeta$, incomingRingCalls$, terminatedRingCallMeta$ } =
-    useStore();
+  const { activeRingCallMeta$, incomingRingCalls$ } = useStore();
   const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
   const incomingRingCalls = useObservableValue(incomingRingCalls$);
-  const terminatedRingCallMeta = useObservableValue(terminatedRingCallMeta$);
 
-  const { displayIncomingCallNow, startCall, endCall } = useCallKeep();
+  const { displayIncomingCallNow, startCall } = useCallKeep();
 
   useEffect(() => {
-    if (terminatedRingCallMeta) {
-      endCall();
-    }
     if (activeRingCallMeta) {
       startCall();
     }
     if (incomingRingCalls.length > 0) {
       displayIncomingCallNow();
+    } else {
+      navigation.navigate('HomeScreen');
     }
   }, [
     activeRingCallMeta,
-    terminatedRingCallMeta,
     incomingRingCalls,
     displayIncomingCallNow,
-    endCall,
     startCall,
+    navigation,
   ]);
 
   return (

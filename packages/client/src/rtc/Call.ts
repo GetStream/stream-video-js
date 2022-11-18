@@ -92,9 +92,12 @@ export class Call {
     });
     this.publisher.close();
     this.client.close();
-
     this.stateStore.setCurrentValue(
       this.stateStore.activeCallSubject,
+      undefined,
+    );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeRingCallMetaSubject,
       undefined,
     );
   };

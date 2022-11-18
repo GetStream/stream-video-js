@@ -29,6 +29,10 @@ export const useRingCall = () => {
         id: currentIncomingRingCall.id,
         type: 'default',
         datacenterId: '',
+        input: {
+          ring: true,
+          members: [],
+        },
       });
       if (!call) {
         throw new Error(

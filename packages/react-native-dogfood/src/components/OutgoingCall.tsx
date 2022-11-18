@@ -39,12 +39,13 @@ const styles = StyleSheet.create({
 });
 
 const OutgoingCall = () => {
-  const username = useAppGlobalStoreValue((store) => store.username);
+  const ringingUsers = useAppGlobalStoreValue((store) => store.ringingUsers);
+
   return (
     <ImageBackground
       blurRadius={10}
       source={{
-        uri: `https://getstream.io/random_png/?id=${username}&name=${username}`,
+        uri: `https://getstream.io/random_png/?id=${ringingUsers[0]}&name=${ringingUsers[0]}`,
       }}
       style={styles.container}
     >
@@ -52,7 +53,7 @@ const OutgoingCall = () => {
         <Image
           style={styles.avatar}
           source={{
-            uri: `https://getstream.io/random_png/?id=${username}&name=${username}`,
+            uri: `https://getstream.io/random_png/?id=${ringingUsers[0]}&name=${ringingUsers[0]}`,
           }}
         />
         <Text style={styles.name}>{'khushal'}</Text>
