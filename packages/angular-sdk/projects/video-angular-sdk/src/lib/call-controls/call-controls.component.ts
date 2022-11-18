@@ -1,5 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { StreamVideoParticipant, Call } from '@stream-io/video-client';
+import {
+  StreamVideoParticipant,
+  Call,
+  SfuModels,
+} from '@stream-io/video-client';
 
 @Component({
   selector: 'stream-call-controls',
@@ -10,15 +14,32 @@ export class CallControlsComponent implements OnInit {
   @Input() localParticipant?: StreamVideoParticipant;
   @Input() call?: Call;
 
+  TrackKind = SfuModels.TrackKind;
+
   ngOnInit(): void {}
 
   updateAudioMutaState() {
-    console.warn(this.call, !this.localParticipant?.audio);
-    this.call?.updateMuteState('audio', !!this.localParticipant?.audio);
+    console.warn(
+      this.call,
+      !this.localParticipant?.publishedTracks.includes(
+        SfuModels.TrackKind.AUDIO_UNSPECIFIED,
+      ),
+    );
+    this.call?.updateMuteState(
+      'audio',
+      !!this.localParticipant?.publishedTracks.includes(
+        SfuModels.TrackKind.AUDIO_UNSPECIFIED,
+      ),
+    );
   }
 
   updateVideoMutaState() {
-    this.call?.updateMuteState('video', !!this.localParticipant?.video);
+    this.call?.updateMuteState(
+      'video',
+      !!this.localParticipant?.publishedTracks.includes(
+        SfuModels.TrackKind.VIDEO,
+      ),
+    );
   }
 
   endCall() {

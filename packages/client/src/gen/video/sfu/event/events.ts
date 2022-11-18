@@ -19,6 +19,7 @@ import { Participant } from "../models/models";
 import { Call } from "../models/models";
 import { CallState } from "../models/models";
 import { CodecSettings } from "../models/models";
+import { TrackKind } from "../models/models";
 import { ICETrickle } from "../models/models";
 /**
  * SFUEvent is a message that is sent from the SFU to the client.
@@ -120,6 +121,18 @@ export interface SfuEvent {
          */
         callEnded: CallEnded;
     } | {
+        oneofKind: "trackPublished";
+        /**
+         * @generated from protobuf field: stream.video.sfu.event.TrackPublished track_published = 16;
+         */
+        trackPublished: TrackPublished;
+    } | {
+        oneofKind: "trackUnpublished";
+        /**
+         * @generated from protobuf field: stream.video.sfu.event.TrackUnpublished track_unpublished = 17;
+         */
+        trackUnpublished: TrackUnpublished;
+    } | {
         oneofKind: undefined;
     };
 }
@@ -156,6 +169,32 @@ export interface HealthCheckRequest {
      * @generated from protobuf field: string session_id = 1;
      */
     sessionId: string;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.TrackPublished
+ */
+export interface TrackPublished {
+    /**
+     * @generated from protobuf field: string session_id = 1;
+     */
+    sessionId: string;
+    /**
+     * @generated from protobuf field: stream.video.sfu.models.TrackKind kind = 2;
+     */
+    kind: TrackKind;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.TrackUnpublished
+ */
+export interface TrackUnpublished {
+    /**
+     * @generated from protobuf field: string session_id = 1;
+     */
+    sessionId: string;
+    /**
+     * @generated from protobuf field: stream.video.sfu.models.TrackKind kind = 2;
+     */
+    kind: TrackKind;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.HealthCheckResponse
@@ -508,7 +547,9 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
             { no: 12, name: "dominant_speaker_changed", kind: "message", oneof: "eventPayload", T: () => DominantSpeakerChanged },
             { no: 13, name: "join_response", kind: "message", oneof: "eventPayload", T: () => JoinResponse },
             { no: 14, name: "health_check_response", kind: "message", oneof: "eventPayload", T: () => HealthCheckResponse },
-            { no: 15, name: "call_ended", kind: "message", oneof: "eventPayload", T: () => CallEnded }
+            { no: 15, name: "call_ended", kind: "message", oneof: "eventPayload", T: () => CallEnded },
+            { no: 16, name: "track_published", kind: "message", oneof: "eventPayload", T: () => TrackPublished },
+            { no: 17, name: "track_unpublished", kind: "message", oneof: "eventPayload", T: () => TrackUnpublished }
         ]);
     }
     create(value?: PartialMessage<SfuEvent>): SfuEvent {
@@ -613,6 +654,18 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
                         callEnded: CallEnded.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).callEnded)
                     };
                     break;
+                case /* stream.video.sfu.event.TrackPublished track_published */ 16:
+                    message.eventPayload = {
+                        oneofKind: "trackPublished",
+                        trackPublished: TrackPublished.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).trackPublished)
+                    };
+                    break;
+                case /* stream.video.sfu.event.TrackUnpublished track_unpublished */ 17:
+                    message.eventPayload = {
+                        oneofKind: "trackUnpublished",
+                        trackUnpublished: TrackUnpublished.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).trackUnpublished)
+                    };
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -670,6 +723,12 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         /* stream.video.sfu.event.CallEnded call_ended = 15; */
         if (message.eventPayload.oneofKind === "callEnded")
             CallEnded.internalBinaryWrite(message.eventPayload.callEnded, writer.tag(15, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.sfu.event.TrackPublished track_published = 16; */
+        if (message.eventPayload.oneofKind === "trackPublished")
+            TrackPublished.internalBinaryWrite(message.eventPayload.trackPublished, writer.tag(16, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.sfu.event.TrackUnpublished track_unpublished = 17; */
+        if (message.eventPayload.oneofKind === "trackUnpublished")
+            TrackUnpublished.internalBinaryWrite(message.eventPayload.trackUnpublished, writer.tag(17, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -787,6 +846,114 @@ class HealthCheckRequest$Type extends MessageType<HealthCheckRequest> {
  * @generated MessageType for protobuf message stream.video.sfu.event.HealthCheckRequest
  */
 export const HealthCheckRequest = new HealthCheckRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TrackPublished$Type extends MessageType<TrackPublished> {
+    constructor() {
+        super("stream.video.sfu.event.TrackPublished", [
+            { no: 1, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "kind", kind: "enum", T: () => ["stream.video.sfu.models.TrackKind", TrackKind, "TRACK_KIND_"] }
+        ]);
+    }
+    create(value?: PartialMessage<TrackPublished>): TrackPublished {
+        const message = { sessionId: "", kind: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<TrackPublished>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TrackPublished): TrackPublished {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string session_id */ 1:
+                    message.sessionId = reader.string();
+                    break;
+                case /* stream.video.sfu.models.TrackKind kind */ 2:
+                    message.kind = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TrackPublished, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string session_id = 1; */
+        if (message.sessionId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
+        /* stream.video.sfu.models.TrackKind kind = 2; */
+        if (message.kind !== 0)
+            writer.tag(2, WireType.Varint).int32(message.kind);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.TrackPublished
+ */
+export const TrackPublished = new TrackPublished$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TrackUnpublished$Type extends MessageType<TrackUnpublished> {
+    constructor() {
+        super("stream.video.sfu.event.TrackUnpublished", [
+            { no: 1, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "kind", kind: "enum", T: () => ["stream.video.sfu.models.TrackKind", TrackKind, "TRACK_KIND_"] }
+        ]);
+    }
+    create(value?: PartialMessage<TrackUnpublished>): TrackUnpublished {
+        const message = { sessionId: "", kind: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<TrackUnpublished>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TrackUnpublished): TrackUnpublished {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string session_id */ 1:
+                    message.sessionId = reader.string();
+                    break;
+                case /* stream.video.sfu.models.TrackKind kind */ 2:
+                    message.kind = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TrackUnpublished, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string session_id = 1; */
+        if (message.sessionId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
+        /* stream.video.sfu.models.TrackKind kind = 2; */
+        if (message.kind !== 0)
+            writer.tag(2, WireType.Varint).int32(message.kind);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.TrackUnpublished
+ */
+export const TrackUnpublished = new TrackUnpublished$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class HealthCheckResponse$Type extends MessageType<HealthCheckResponse> {
     constructor() {

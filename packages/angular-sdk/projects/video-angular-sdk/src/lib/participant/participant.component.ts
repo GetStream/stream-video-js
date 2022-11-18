@@ -9,9 +9,11 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import { Call } from '@stream-io/video-client';
-import { VideoDimension } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
-import { StreamVideoParticipant } from '@stream-io/video-client/dist/src/rtc/types';
+import {
+  Call,
+  StreamVideoParticipant,
+  SfuModels,
+} from '@stream-io/video-client';
 import { Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
@@ -31,6 +33,8 @@ export class ParticipantComponent
   private isViewInited = false;
   @HostBinding() class = 'str-video__participant-angular-host';
   private subscriptions: Subscription[] = [];
+
+  TrackKind = SfuModels.TrackKind;
 
   constructor(private streamVideoService: StreamVideoService) {
     this.streamVideoService.activeCall$.subscribe((c) => (this.call = c));
@@ -76,7 +80,7 @@ export class ParticipantComponent
     });
   }
 
-  private get videoDimension(): VideoDimension {
+  private get videoDimension(): SfuModels.VideoDimension {
     const element = this.videoElement!.nativeElement;
     return { width: element.clientWidth, height: element.clientHeight };
   }

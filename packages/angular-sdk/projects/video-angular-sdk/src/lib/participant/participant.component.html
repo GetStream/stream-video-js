@@ -15,12 +15,14 @@
       <span class="str-video__participant_name">
         {{ participant?.user?.id }}
         <span
-          *ngIf="!participant?.audio"
+          *ngIf="
+            !participant?.publishedTracks?.includes(TrackKind.AUDIO_UNSPECIFIED)
+          "
           class="str-video__participant_name--audio-muted"
         >
         </span>
         <span
-          *ngIf="!participant?.video"
+          *ngIf="!participant?.publishedTracks?.includes(TrackKind.VIDEO)"
           class="str-video__participant_name--video-muted"
         >
         </span>

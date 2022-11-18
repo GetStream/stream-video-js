@@ -26,6 +26,7 @@ import { CallsEnvelope } from "./envelopes";
 import { Sort } from "../utils_v1/utils";
 import { CallOptions } from "../call_v1/call";
 import { Edge } from "../edge_v1/edge";
+import { UserInput } from "../user_v1/user";
 import { CallEnvelope } from "./envelopes";
 /**
  * @generated from protobuf message stream.video.coordinator.client_v1_rpc.GetCallRequest
@@ -61,6 +62,14 @@ export interface MemberInput {
      * @generated from protobuf field: bytes custom_json = 3;
      */
     customJson: Uint8Array;
+    /**
+     * The user data for the user
+     * If the user does not exist, this will be used to create the user
+     * If the user already exists, this input will be ignored
+     *
+     * @generated from protobuf field: stream.video.coordinator.user_v1.UserInput user_input = 4;
+     */
+    userInput?: UserInput;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.client_v1_rpc.UpsertCallMembersRequest
@@ -823,7 +832,8 @@ class MemberInput$Type extends MessageType<MemberInput> {
         super("stream.video.coordinator.client_v1_rpc.MemberInput", [
             { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+            { no: 3, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ },
+            { no: 4, name: "user_input", kind: "message", T: () => UserInput }
         ]);
     }
     create(value?: PartialMessage<MemberInput>): MemberInput {
@@ -847,6 +857,9 @@ class MemberInput$Type extends MessageType<MemberInput> {
                 case /* bytes custom_json */ 3:
                     message.customJson = reader.bytes();
                     break;
+                case /* stream.video.coordinator.user_v1.UserInput user_input */ 4:
+                    message.userInput = UserInput.internalBinaryRead(reader, reader.uint32(), options, message.userInput);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -868,6 +881,9 @@ class MemberInput$Type extends MessageType<MemberInput> {
         /* bytes custom_json = 3; */
         if (message.customJson.length)
             writer.tag(3, WireType.LengthDelimited).bytes(message.customJson);
+        /* stream.video.coordinator.user_v1.UserInput user_input = 4; */
+        if (message.userInput)
+            UserInput.internalBinaryWrite(message.userInput, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

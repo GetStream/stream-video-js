@@ -1,12 +1,16 @@
 import clsx from 'clsx';
-import { Call } from '@stream-io/video-client';
-import { useParticipants } from '../../hooks/useParticipants';
+import { Call, SfuModels } from '@stream-io/video-client';
+import { useLocalParticipant } from '../../hooks/useParticipants';
+
 export const CallControls = (props: { call: Call }) => {
   const { call } = props;
-  const participants = useParticipants();
-  const localParticipant = participants.find((p) => p.isLoggedInUser);
-  const isAudioMute = !localParticipant?.audio;
-  const isVideoMute = !localParticipant?.video;
+  const localParticipant = useLocalParticipant();
+  const isAudioMute = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackKind.AUDIO_UNSPECIFIED,
+  );
+  const isVideoMute = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackKind.VIDEO,
+  );
 
   return (
     <div className="str-video__call-controls">

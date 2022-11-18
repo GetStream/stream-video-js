@@ -1,6 +1,10 @@
 import clsx from 'clsx';
 import { useEffect, useRef } from 'react';
-import { Call, StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  Call,
+  StreamVideoParticipant,
+  SfuModels,
+} from '@stream-io/video-client';
 import { useIsDebugMode } from '../Debug/useIsDebugMode';
 import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../Debug/DebugStatsView';
@@ -30,9 +34,11 @@ export const ParticipantBox = (props: {
     isLoggedInUser: isLocalParticipant,
     isSpeaking,
     sessionId,
-    audio,
-    video,
+    publishedTracks,
   } = participant;
+
+  const audio = publishedTracks.includes(SfuModels.TrackKind.AUDIO_UNSPECIFIED);
+  const video = publishedTracks.includes(SfuModels.TrackKind.VIDEO);
 
   useEffect(() => {
     if (!containerRef.current) return;

@@ -87,27 +87,23 @@ export interface Participant {
      */
     custom?: Struct;
     /**
-     * @generated from protobuf field: bool video = 5;
+     * @generated from protobuf field: repeated stream.video.sfu.models.TrackKind published_tracks = 5;
      */
-    video: boolean;
+    publishedTracks: TrackKind[];
     /**
-     * @generated from protobuf field: bool audio = 6;
-     */
-    audio: boolean;
-    /**
-     * @generated from protobuf field: google.protobuf.Timestamp created_at = 7;
+     * @generated from protobuf field: google.protobuf.Timestamp created_at = 6;
      */
     createdAt?: Timestamp;
     /**
-     * @generated from protobuf field: google.protobuf.Timestamp updated_at = 8;
+     * @generated from protobuf field: google.protobuf.Timestamp updated_at = 7;
      */
     updatedAt?: Timestamp;
     /**
-     * @generated from protobuf field: string session_id = 9;
+     * @generated from protobuf field: string session_id = 8;
      */
     sessionId: string;
     /**
-     * @generated from protobuf field: string track_lookup_prefix = 10;
+     * @generated from protobuf field: string track_lookup_prefix = 9;
      */
     trackLookupPrefix: string;
 }
@@ -194,6 +190,10 @@ export interface VideoLayer {
      * @generated from protobuf field: uint32 bitrate = 4;
      */
     bitrate: number;
+    /**
+     * @generated from protobuf field: uint32 fps = 5;
+     */
+    fps: number;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.SimulcastCodecInfo
@@ -344,6 +344,23 @@ export enum VideoQuality {
      */
     HIGH = 2
 }
+/**
+ * @generated from protobuf enum stream.video.sfu.models.TrackKind
+ */
+export enum TrackKind {
+    /**
+     * @generated from protobuf enum value: TRACK_KIND_AUDIO_UNSPECIFIED = 0;
+     */
+    AUDIO_UNSPECIFIED = 0,
+    /**
+     * @generated from protobuf enum value: TRACK_KIND_VIDEO = 1;
+     */
+    VIDEO = 1,
+    /**
+     * @generated from protobuf enum value: TRACK_KIND_SCREEN_SHARE = 2;
+     */
+    SCREEN_SHARE = 2
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {
     constructor() {
@@ -488,16 +505,15 @@ class Participant$Type extends MessageType<Participant> {
             { no: 2, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "online", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 4, name: "custom", kind: "message", T: () => Struct },
-            { no: 5, name: "video", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 6, name: "audio", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 7, name: "created_at", kind: "message", T: () => Timestamp },
-            { no: 8, name: "updated_at", kind: "message", T: () => Timestamp },
-            { no: 9, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 10, name: "track_lookup_prefix", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "published_tracks", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["stream.video.sfu.models.TrackKind", TrackKind, "TRACK_KIND_"] },
+            { no: 6, name: "created_at", kind: "message", T: () => Timestamp },
+            { no: 7, name: "updated_at", kind: "message", T: () => Timestamp },
+            { no: 8, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "track_lookup_prefix", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Participant>): Participant {
-        const message = { role: "", online: false, video: false, audio: false, sessionId: "", trackLookupPrefix: "" };
+        const message = { role: "", online: false, publishedTracks: [], sessionId: "", trackLookupPrefix: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Participant>(this, message, value);
@@ -520,22 +536,23 @@ class Participant$Type extends MessageType<Participant> {
                 case /* google.protobuf.Struct custom */ 4:
                     message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
                     break;
-                case /* bool video */ 5:
-                    message.video = reader.bool();
+                case /* repeated stream.video.sfu.models.TrackKind published_tracks */ 5:
+                    if (wireType === WireType.LengthDelimited)
+                        for (let e = reader.int32() + reader.pos; reader.pos < e;)
+                            message.publishedTracks.push(reader.int32());
+                    else
+                        message.publishedTracks.push(reader.int32());
                     break;
-                case /* bool audio */ 6:
-                    message.audio = reader.bool();
-                    break;
-                case /* google.protobuf.Timestamp created_at */ 7:
+                case /* google.protobuf.Timestamp created_at */ 6:
                     message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
                     break;
-                case /* google.protobuf.Timestamp updated_at */ 8:
+                case /* google.protobuf.Timestamp updated_at */ 7:
                     message.updatedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.updatedAt);
                     break;
-                case /* string session_id */ 9:
+                case /* string session_id */ 8:
                     message.sessionId = reader.string();
                     break;
-                case /* string track_lookup_prefix */ 10:
+                case /* string track_lookup_prefix */ 9:
                     message.trackLookupPrefix = reader.string();
                     break;
                 default:
@@ -562,24 +579,25 @@ class Participant$Type extends MessageType<Participant> {
         /* google.protobuf.Struct custom = 4; */
         if (message.custom)
             Struct.internalBinaryWrite(message.custom, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
-        /* bool video = 5; */
-        if (message.video !== false)
-            writer.tag(5, WireType.Varint).bool(message.video);
-        /* bool audio = 6; */
-        if (message.audio !== false)
-            writer.tag(6, WireType.Varint).bool(message.audio);
-        /* google.protobuf.Timestamp created_at = 7; */
+        /* repeated stream.video.sfu.models.TrackKind published_tracks = 5; */
+        if (message.publishedTracks.length) {
+            writer.tag(5, WireType.LengthDelimited).fork();
+            for (let i = 0; i < message.publishedTracks.length; i++)
+                writer.int32(message.publishedTracks[i]);
+            writer.join();
+        }
+        /* google.protobuf.Timestamp created_at = 6; */
         if (message.createdAt)
-            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
-        /* google.protobuf.Timestamp updated_at = 8; */
+            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.Timestamp updated_at = 7; */
         if (message.updatedAt)
-            Timestamp.internalBinaryWrite(message.updatedAt, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
-        /* string session_id = 9; */
+            Timestamp.internalBinaryWrite(message.updatedAt, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
+        /* string session_id = 8; */
         if (message.sessionId !== "")
-            writer.tag(9, WireType.LengthDelimited).string(message.sessionId);
-        /* string track_lookup_prefix = 10; */
+            writer.tag(8, WireType.LengthDelimited).string(message.sessionId);
+        /* string track_lookup_prefix = 9; */
         if (message.trackLookupPrefix !== "")
-            writer.tag(10, WireType.LengthDelimited).string(message.trackLookupPrefix);
+            writer.tag(9, WireType.LengthDelimited).string(message.trackLookupPrefix);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -800,11 +818,12 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
         super("stream.video.sfu.models.VideoLayer", [
             { no: 1, name: "rid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "video_dimension", kind: "message", T: () => VideoDimension },
-            { no: 4, name: "bitrate", kind: "scalar", T: 13 /*ScalarType.UINT32*/ }
+            { no: 4, name: "bitrate", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
+            { no: 5, name: "fps", kind: "scalar", T: 13 /*ScalarType.UINT32*/ }
         ]);
     }
     create(value?: PartialMessage<VideoLayer>): VideoLayer {
-        const message = { rid: "", bitrate: 0 };
+        const message = { rid: "", bitrate: 0, fps: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<VideoLayer>(this, message, value);
@@ -823,6 +842,9 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
                     break;
                 case /* uint32 bitrate */ 4:
                     message.bitrate = reader.uint32();
+                    break;
+                case /* uint32 fps */ 5:
+                    message.fps = reader.uint32();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -845,6 +867,9 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
         /* uint32 bitrate = 4; */
         if (message.bitrate !== 0)
             writer.tag(4, WireType.Varint).uint32(message.bitrate);
+        /* uint32 fps = 5; */
+        if (message.fps !== 0)
+            writer.tag(5, WireType.Varint).uint32(message.fps);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

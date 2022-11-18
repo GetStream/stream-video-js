@@ -162,6 +162,7 @@ export class Call {
                   layers: this.videoLayers.map((layer) => ({
                     rid: layer.rid!,
                     bitrate: layer.maxBitrate!,
+                    fps: layer.maxFramerate || 0,
                     videoDimension: {
                       width: layer.width,
                       height: layer.height,
