@@ -1,8 +1,8 @@
 import { StreamSfuClient } from '../StreamSfuClient';
 import { Dispatcher } from './Dispatcher';
+import { getIceCandidate } from './helpers/iceCandidate';
 import { ICETrickle, PeerType } from '../gen/video/sfu/models/models';
 import { ReplaySubject } from 'rxjs';
-import { getIceCandidate } from './helpers/iceCandidate';
 
 export type SubscriberOpts = {
   rpcClient: StreamSfuClient;
