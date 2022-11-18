@@ -29,11 +29,12 @@ export const HomeScreen = ({ navigation, route }: Props) => {
   useEffect(() => {
     if (activeRingCallMeta) {
       startCall();
-    }
-    if (incomingRingCalls.length > 0) {
-      displayIncomingCallNow();
     } else {
-      navigation.navigate('HomeScreen');
+      if (incomingRingCalls.length > 0) {
+        displayIncomingCallNow();
+      } else {
+        navigation.navigate('HomeScreen');
+      }
     }
   }, [
     activeRingCallMeta,
