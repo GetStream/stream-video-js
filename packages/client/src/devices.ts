@@ -12,11 +12,12 @@ const getDevices = (constraints: MediaStreamConstraints | undefined) => {
     navigator.mediaDevices
       .getUserMedia(constraints)
       .then((media) => {
-        media.getTracks().forEach((t) => t.stop());
         // in Firefox, devices can be enumerated after userMedia is requested
         // and permissions granted. Otherwise, device labels are empty
         navigator.mediaDevices.enumerateDevices().then((devices) => {
           subscriber.next(devices);
+          // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
+          media.getTracks().forEach((t) => t.stop());
         });
       })
       .catch((error) => subscriber.error(error));
@@ -40,18 +41,23 @@ const getDevices = (constraints: MediaStreamConstraints | undefined) => {
   });
 };
 
-const mediaDeviceConstraints = {
-  audio: {},
+const audioDeviceConstraints = {
+  audio: true,
+};
+const videoDeviceConstraints = {
   video: { width: 960, height: 540 },
 };
-const devices$ = getDevices(mediaDeviceConstraints).pipe(shareReplay(1));
+
+// Audio and video devices are requested in two separate requests: that way users will be presented with two separate prompts -> they can give access to just camera, or just microphone
+const audioDevices$ = getDevices(audioDeviceConstraints).pipe(shareReplay(1));
+const videoDevices$ = getDevices(videoDeviceConstraints).pipe(shareReplay(1));
 
 /**
  * Lists the list of available 'audioinput' devices, if devices are added/removed - the list is updated
  * @returns
  */
 export const getAudioDevices = () => {
-  return devices$.pipe(
+  return audioDevices$.pipe(
     map((values) => values.filter((d) => d.kind === 'audioinput')),
   );
 };
@@ -61,7 +67,7 @@ export const getAudioDevices = () => {
  * @returns
  */
 export const getVideoDevices = () => {
-  return devices$.pipe(
+  return videoDevices$.pipe(
     map((values) => values.filter((d) => d.kind === 'videoinput')),
   );
 };
