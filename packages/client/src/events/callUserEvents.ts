@@ -12,7 +12,7 @@ export const watchCallCreatedEvent = (
   store: StreamVideoWriteableStateStore,
 ) => {
   return client.on('callCreated', (event: CallCreated) => {
-    const { call } = event;
+    const { call, callDetails } = event;
     if (!call) {
       console.warn("Can't find call in CallCreated event");
       return;
@@ -20,6 +20,7 @@ export const watchCallCreatedEvent = (
       const currentIncomingRingCalls = store.getCurrentValue(
         store.incomingRingCallsSubject,
       );
+      store.setCurrentValue(store.activeRingCallDetailsSubject, callDetails);
       store.setCurrentValue(store.incomingRingCallsSubject, [
         ...currentIncomingRingCalls,
         call,

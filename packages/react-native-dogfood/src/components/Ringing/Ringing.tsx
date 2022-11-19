@@ -72,6 +72,8 @@ const Ringing = ({ navigation }: Props) => {
     { id: 'steve', name: 'Steve Galilli' },
     { id: 'khushal', name: 'Khushal Agarwal' },
     { id: 'santhosh', name: 'Santhosh Vaiyapuri' },
+    { id: 'oliver', name: 'Oliver Lazoroski' },
+    { id: 'zita', name: 'Zita Szupera' },
   ];
 
   const setState = useAppGlobalStoreSetState();
@@ -118,6 +120,12 @@ const Ringing = ({ navigation }: Props) => {
                 onPress={() => {
                   if (!ringingUsers.includes(user.id)) {
                     setState({ ringingUsers: [...ringingUsers, user.id] });
+                  } else {
+                    setState({
+                      ringingUsers: ringingUsers.filter(
+                        (ringingUser) => ringingUser !== user.id,
+                      ),
+                    });
                   }
                 }}
               >

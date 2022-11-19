@@ -183,6 +183,10 @@ export class StreamVideoClient {
           this.writeableStateStore.activeRingCallMetaSubject,
           response.call.call,
         );
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.activeRingCallDetailsSubject,
+          response.call.details,
+        );
       }
       if (edge && edge.credentials && edge.credentials.server) {
         const sfuClient = new StreamSfuClient(

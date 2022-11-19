@@ -20,6 +20,7 @@ export class StreamVideoService {
   activeCallLocalParticipant$: Observable<StreamVideoParticipant | undefined>;
   videoClient: StreamVideoClient | undefined;
   activeRingCallMeta$: Observable<CallMeta.Call | undefined>;
+  activeRingCallDetails$: Observable<CallMeta.CallDetails | undefined>;
   terminatedRingCallMeta$: Observable<CallMeta.Call | undefined>;
 
   private userSubject: ReplaySubject<UserInput | undefined> = new ReplaySubject(
@@ -29,6 +30,9 @@ export class StreamVideoService {
     new ReplaySubject(1);
   private activeRingCallMetaSubject: ReplaySubject<CallMeta.Call | undefined> =
     new ReplaySubject(1);
+  private activeRingCallDetailsSubject: ReplaySubject<
+    CallMeta.CallDetails | undefined
+  > = new ReplaySubject(1);
   private terminatedRingCallMetaSubject: ReplaySubject<
     CallMeta.Call | undefined
   > = new ReplaySubject(1);
@@ -56,6 +60,8 @@ export class StreamVideoService {
     this.activeCallLocalParticipant$ =
       this.activeCallLocalParticipantSubject.asObservable();
     this.activeRingCallMeta$ = this.activeRingCallMetaSubject.asObservable();
+    this.activeRingCallDetails$ =
+      this.activeRingCallDetailsSubject.asObservable();
     this.terminatedRingCallMeta$ =
       this.terminatedRingCallMetaSubject.asObservable();
   }
@@ -84,6 +90,12 @@ export class StreamVideoService {
     this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.activeRingCallMeta$.subscribe(
         this.activeRingCallMetaSubject,
+      ),
+    );
+
+    this.subscriptions.push(
+      this.videoClient.readOnlyStateStore.activeRingCallDetails$.subscribe(
+        this.activeRingCallDetailsSubject,
       ),
     );
 
