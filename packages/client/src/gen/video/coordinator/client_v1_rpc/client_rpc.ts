@@ -14,6 +14,8 @@ import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { MediaStateChanged } from "../stat_v1/stat";
+import { ParticipantDisconnected } from "../stat_v1/stat";
+import { ParticipantConnected } from "../stat_v1/stat";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 import { Device } from "../push_v1/push";
 import { DeviceInput } from "../push_v1/push";
@@ -24,6 +26,7 @@ import { CallsEnvelope } from "./envelopes";
 import { Sort } from "../utils_v1/utils";
 import { CallOptions } from "../call_v1/call";
 import { Edge } from "../edge_v1/edge";
+import { UserInput } from "../user_v1/user";
 import { CallEnvelope } from "./envelopes";
 /**
  * @generated from protobuf message stream.video.coordinator.client_v1_rpc.GetCallRequest
@@ -59,6 +62,14 @@ export interface MemberInput {
      * @generated from protobuf field: bytes custom_json = 3;
      */
     customJson: Uint8Array;
+    /**
+     * The user data for the user
+     * If the user does not exist, this will be used to create the user
+     * If the user already exists, this input will be ignored
+     *
+     * @generated from protobuf field: stream.video.coordinator.user_v1.UserInput user_input = 4;
+     */
+    userInput?: UserInput;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.client_v1_rpc.UpsertCallMembersRequest
@@ -603,9 +614,21 @@ export interface ReportCallStatEventRequest {
      * @generated from protobuf oneof: event
      */
     event: {
+        oneofKind: "participantConnected";
+        /**
+         * @generated from protobuf field: stream.video.coordinator.stat_v1.ParticipantConnected participant_connected = 3;
+         */
+        participantConnected: ParticipantConnected;
+    } | {
+        oneofKind: "participantDisconnected";
+        /**
+         * @generated from protobuf field: stream.video.coordinator.stat_v1.ParticipantDisconnected participant_disconnected = 4;
+         */
+        participantDisconnected: ParticipantDisconnected;
+    } | {
         oneofKind: "mediaStateChanged";
         /**
-         * @generated from protobuf field: stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed = 3;
+         * @generated from protobuf field: stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed = 5;
          */
         mediaStateChanged: MediaStateChanged;
     } | {
@@ -809,7 +832,8 @@ class MemberInput$Type extends MessageType<MemberInput> {
         super("stream.video.coordinator.client_v1_rpc.MemberInput", [
             { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+            { no: 3, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ },
+            { no: 4, name: "user_input", kind: "message", T: () => UserInput }
         ]);
     }
     create(value?: PartialMessage<MemberInput>): MemberInput {
@@ -833,6 +857,9 @@ class MemberInput$Type extends MessageType<MemberInput> {
                 case /* bytes custom_json */ 3:
                     message.customJson = reader.bytes();
                     break;
+                case /* stream.video.coordinator.user_v1.UserInput user_input */ 4:
+                    message.userInput = UserInput.internalBinaryRead(reader, reader.uint32(), options, message.userInput);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -854,6 +881,9 @@ class MemberInput$Type extends MessageType<MemberInput> {
         /* bytes custom_json = 3; */
         if (message.customJson.length)
             writer.tag(3, WireType.LengthDelimited).bytes(message.customJson);
+        /* stream.video.coordinator.user_v1.UserInput user_input = 4; */
+        if (message.userInput)
+            UserInput.internalBinaryWrite(message.userInput, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2690,7 +2720,9 @@ class ReportCallStatEventRequest$Type extends MessageType<ReportCallStatEventReq
         super("stream.video.coordinator.client_v1_rpc.ReportCallStatEventRequest", [
             { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "timestamp", kind: "message", T: () => Timestamp },
-            { no: 3, name: "media_state_changed", kind: "message", oneof: "event", T: () => MediaStateChanged }
+            { no: 3, name: "participant_connected", kind: "message", oneof: "event", T: () => ParticipantConnected },
+            { no: 4, name: "participant_disconnected", kind: "message", oneof: "event", T: () => ParticipantDisconnected },
+            { no: 5, name: "media_state_changed", kind: "message", oneof: "event", T: () => MediaStateChanged }
         ]);
     }
     create(value?: PartialMessage<ReportCallStatEventRequest>): ReportCallStatEventRequest {
@@ -2711,7 +2743,19 @@ class ReportCallStatEventRequest$Type extends MessageType<ReportCallStatEventReq
                 case /* google.protobuf.Timestamp timestamp */ 2:
                     message.timestamp = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.timestamp);
                     break;
-                case /* stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed */ 3:
+                case /* stream.video.coordinator.stat_v1.ParticipantConnected participant_connected */ 3:
+                    message.event = {
+                        oneofKind: "participantConnected",
+                        participantConnected: ParticipantConnected.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).participantConnected)
+                    };
+                    break;
+                case /* stream.video.coordinator.stat_v1.ParticipantDisconnected participant_disconnected */ 4:
+                    message.event = {
+                        oneofKind: "participantDisconnected",
+                        participantDisconnected: ParticipantDisconnected.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).participantDisconnected)
+                    };
+                    break;
+                case /* stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed */ 5:
                     message.event = {
                         oneofKind: "mediaStateChanged",
                         mediaStateChanged: MediaStateChanged.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).mediaStateChanged)
@@ -2735,9 +2779,15 @@ class ReportCallStatEventRequest$Type extends MessageType<ReportCallStatEventReq
         /* google.protobuf.Timestamp timestamp = 2; */
         if (message.timestamp)
             Timestamp.internalBinaryWrite(message.timestamp, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed = 3; */
+        /* stream.video.coordinator.stat_v1.ParticipantConnected participant_connected = 3; */
+        if (message.event.oneofKind === "participantConnected")
+            ParticipantConnected.internalBinaryWrite(message.event.participantConnected, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.stat_v1.ParticipantDisconnected participant_disconnected = 4; */
+        if (message.event.oneofKind === "participantDisconnected")
+            ParticipantDisconnected.internalBinaryWrite(message.event.participantDisconnected, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.stat_v1.MediaStateChanged media_state_changed = 5; */
         if (message.event.oneofKind === "mediaStateChanged")
-            MediaStateChanged.internalBinaryWrite(message.event.mediaStateChanged, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+            MediaStateChanged.internalBinaryWrite(message.event.mediaStateChanged, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

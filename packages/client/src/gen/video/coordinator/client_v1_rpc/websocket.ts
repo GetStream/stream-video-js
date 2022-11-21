@@ -46,6 +46,12 @@ export interface WebsocketEvent {
      * @generated from protobuf oneof: event
      */
     event: {
+        oneofKind: "error";
+        /**
+         * @generated from protobuf field: stream.video.coordinator.client_v1_rpc.WebsocketError error = 19;
+         */
+        error: WebsocketError;
+    } | {
         oneofKind: "healthcheck";
         /**
          * @generated from protobuf field: stream.video.coordinator.client_v1_rpc.WebsocketHealthcheck healthcheck = 20;
@@ -227,11 +233,25 @@ export interface WebsocketHealthcheck {
      */
     audio: boolean;
 }
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.WebsocketError
+ */
+export interface WebsocketError {
+    /**
+     * @generated from protobuf field: int32 code = 1;
+     */
+    code: number;
+    /**
+     * @generated from protobuf field: string message = 2;
+     */
+    message: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
     constructor() {
         super("stream.video.coordinator.client_v1_rpc.WebsocketEvent", [
             { no: 1, name: "users", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "message", T: () => User } },
+            { no: 19, name: "error", kind: "message", oneof: "event", T: () => WebsocketError },
             { no: 20, name: "healthcheck", kind: "message", oneof: "event", T: () => WebsocketHealthcheck },
             { no: 30, name: "call_created", kind: "message", oneof: "event", T: () => CallCreated },
             { no: 31, name: "call_updated", kind: "message", oneof: "event", T: () => CallUpdated },
@@ -261,6 +281,12 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
             switch (fieldNo) {
                 case /* map<string, stream.video.coordinator.user_v1.User> users */ 1:
                     this.binaryReadMap1(message.users, reader, options);
+                    break;
+                case /* stream.video.coordinator.client_v1_rpc.WebsocketError error */ 19:
+                    message.event = {
+                        oneofKind: "error",
+                        error: WebsocketError.internalBinaryRead(reader, reader.uint32(), options, (message.event as any).error)
+                    };
                     break;
                 case /* stream.video.coordinator.client_v1_rpc.WebsocketHealthcheck healthcheck */ 20:
                     message.event = {
@@ -375,6 +401,9 @@ class WebsocketEvent$Type extends MessageType<WebsocketEvent> {
             User.internalBinaryWrite(message.users[k], writer, options);
             writer.join().join();
         }
+        /* stream.video.coordinator.client_v1_rpc.WebsocketError error = 19; */
+        if (message.event.oneofKind === "error")
+            WebsocketError.internalBinaryWrite(message.event.error, writer.tag(19, WireType.LengthDelimited).fork(), options).join();
         /* stream.video.coordinator.client_v1_rpc.WebsocketHealthcheck healthcheck = 20; */
         if (message.event.oneofKind === "healthcheck")
             WebsocketHealthcheck.internalBinaryWrite(message.event.healthcheck, writer.tag(20, WireType.LengthDelimited).fork(), options).join();
@@ -634,3 +663,57 @@ class WebsocketHealthcheck$Type extends MessageType<WebsocketHealthcheck> {
  * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.WebsocketHealthcheck
  */
 export const WebsocketHealthcheck = new WebsocketHealthcheck$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class WebsocketError$Type extends MessageType<WebsocketError> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.WebsocketError", [
+            { no: 1, name: "code", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<WebsocketError>): WebsocketError {
+        const message = { code: 0, message: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<WebsocketError>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WebsocketError): WebsocketError {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 code */ 1:
+                    message.code = reader.int32();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: WebsocketError, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 code = 1; */
+        if (message.code !== 0)
+            writer.tag(1, WireType.Varint).int32(message.code);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.WebsocketError
+ */
+export const WebsocketError = new WebsocketError$Type();

@@ -79,14 +79,14 @@ export const StreamCall = ({
             {activeCallMeta && (
               <Ping activeCall={activeCallMeta} currentUser={currentUser} />
             )}
-            {videoClient && activeCall && activeCallMeta && (
-              <Stats
-                client={videoClient}
-                call={activeCall}
-                activeCall={activeCallMeta}
-              />
-            )}
           </>
+        )}
+        {videoClient && activeCall && activeCallMeta && (
+          <Stats
+            client={videoClient}
+            call={activeCall}
+            activeCall={activeCallMeta}
+          />
         )}
       </div>
     </MediaDevicesProvider>

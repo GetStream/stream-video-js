@@ -12,6 +12,10 @@ import {
   getSenderCodecs,
 } from './codecs';
 import { createPublisher } from './publisher';
+import {
+  MediaStateChange,
+  MediaStateChangeReason,
+} from '../gen/video/coordinator/stat_v1/stat';
 import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
@@ -19,6 +23,28 @@ import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import type { StreamVideoParticipant, SubscriptionChanges } from './types';
 import { debounceTime, Subject } from 'rxjs';
+
+export type TrackChangedEvent = {
+  type: 'media_state_changed';
+  track: MediaStreamTrack;
+  change: MediaStateChange;
+  reason: MediaStateChangeReason;
+};
+
+export type ParticipantJoinedEvent = {
+  type: 'participant_joined';
+};
+
+export type ParticipantLeftEvent = {
+  type: 'participant_left';
+};
+
+export type StatEvent =
+  | TrackChangedEvent
+  | ParticipantJoinedEvent
+  | ParticipantLeftEvent;
+
+export type StatEventListener = (event: StatEvent) => void;
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -40,6 +66,7 @@ export class Call {
   }>();
 
   private joinResponseReady?: Promise<CallState | undefined>;
+  private statEventListeners: StatEventListener[];
 
   constructor(
     private readonly client: StreamSfuClient,
@@ -66,6 +93,8 @@ export class Call {
       candidates: iceTrickleBuffer.publisherCandidates,
     });
 
+    this.statEventListeners = [];
+
     registerEventHandlers(this, this.stateStore, dispatcher);
 
     this.trackSubscriptionsSubject
@@ -87,7 +116,15 @@ export class Call {
     this.subscriber.close();
 
     this.publisher.getSenders().forEach((s) => {
-      s.track?.stop();
+      if (s.track) {
+        s.track.stop();
+        this.publishStatEvent({
+          type: 'media_state_changed',
+          track: s.track,
+          change: MediaStateChange.ENDED,
+          reason: MediaStateChangeReason.CONNECTION,
+        });
+      }
       this.publisher.removeTrack(s);
     });
     this.publisher.close();
@@ -103,7 +140,16 @@ export class Call {
   };
 
   join = async (videoStream?: MediaStream, audioStream?: MediaStream) => {
-    await this.client.signalReady;
+    await this.client.signalReady.then((ws) => {
+      this.publishStatEvent({
+        type: 'participant_joined',
+      });
+      ws.addEventListener('close', () => {
+        this.publishStatEvent({
+          type: 'participant_left',
+        });
+      });
+    });
 
     if (this.joinResponseReady) {
       throw new Error(`Illegal State: Already joined.`);
@@ -225,6 +271,13 @@ export class Call {
           console.log(`set codec preferences`, codecPreferences);
           videoTransceiver.setCodecPreferences(codecPreferences);
         }
+
+        this.publishStatEvent({
+          type: 'media_state_changed',
+          track: videoTrack,
+          change: MediaStateChange.STARTED,
+          reason: MediaStateChangeReason.CONNECTION,
+        });
       }
 
       this.stateStore.setCurrentValue(
@@ -261,6 +314,12 @@ export class Call {
           return p;
         }),
       );
+      this.publishStatEvent({
+        type: 'media_state_changed',
+        track: audioTrack,
+        change: MediaStateChange.STARTED,
+        reason: MediaStateChangeReason.CONNECTION,
+      });
     }
   };
 
@@ -389,12 +448,29 @@ export class Call {
     }
   };
 
+  onStatEvent = (fn: StatEventListener) => {
+    this.statEventListeners.push(fn);
+  };
+  offStatEvent = (fn: StatEventListener) => {
+    this.statEventListeners = this.statEventListeners.filter((f) => f !== fn);
+  };
+  private publishStatEvent = (event: StatEvent) => {
+    this.statEventListeners.forEach((fn) => fn(event));
+  };
+
   updateMuteState = (trackKind: 'audio' | 'video', isMute: boolean) => {
     if (!this.publisher) return;
     const senders = this.publisher.getSenders();
     const sender = senders.find((s) => s.track?.kind === trackKind);
     if (sender && sender.track) {
       sender.track.enabled = !isMute;
+
+      this.publishStatEvent({
+        type: 'media_state_changed',
+        track: sender.track,
+        change: isMute ? MediaStateChange.STARTED : MediaStateChange.ENDED,
+        reason: MediaStateChangeReason.MUTE,
+      });
 
       if (trackKind === 'audio') {
         return this.client.updateAudioMuteState(isMute);
