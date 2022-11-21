@@ -53,6 +53,7 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
               GoogleSignin.signOut(),
               videoClient?.disconnect(),
             ]);
+
             setState({
               videoClient: undefined,
               username: '',
