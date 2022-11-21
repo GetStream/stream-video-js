@@ -137,6 +137,14 @@ export class Call {
       this.stateStore.activeRingCallMetaSubject,
       undefined,
     );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeRingCallDetailsSubject,
+      undefined,
+    );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeCallAllParticipantsSubject,
+      [],
+    );
   };
 
   join = async (videoStream?: MediaStream, audioStream?: MediaStream) => {

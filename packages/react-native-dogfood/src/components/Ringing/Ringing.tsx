@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Button,
@@ -16,6 +16,8 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../types';
 import { joinCall } from '../../utils/callUtils';
+import { useStore } from '../../hooks/useStore';
+import { useObservableValue } from '../../hooks/useObservable';
 
 const styles = StyleSheet.create({
   container: {
@@ -67,6 +69,8 @@ const Ringing = ({ navigation }: Props) => {
   );
   const username = useAppGlobalStoreValue((store) => store.username);
   const ringingUsers = useAppGlobalStoreValue((store) => store.ringingUsers);
+  const { activeRingCallMeta$ } = useStore();
+  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },
@@ -75,6 +79,12 @@ const Ringing = ({ navigation }: Props) => {
     { id: 'oliver', name: 'Oliver Lazoroski' },
     { id: 'zita', name: 'Zita Szupera' },
   ];
+
+  useEffect(() => {
+    if (activeRingCallMeta) {
+      navigation.navigate('OutgoingCallScreen');
+    }
+  }, [navigation, activeRingCallMeta]);
 
   const setState = useAppGlobalStoreSetState();
 
@@ -98,7 +108,6 @@ const Ringing = ({ navigation }: Props) => {
           callType: 'default',
         }).then(() => {
           setLoading(false);
-          navigation.navigate('ActiveCall');
         });
       } catch (err) {
         console.log(err);

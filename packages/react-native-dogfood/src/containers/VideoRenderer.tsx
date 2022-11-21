@@ -4,20 +4,14 @@ import ParticipantVideosContainer from './ParticipantVideosContainer';
 import React from 'react';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { useObservableValue } from '../hooks/useObservable';
-import OutgoingCall from '../components/OutgoingCall';
 import { useStore } from '../hooks/useStore';
 
 const VideoRenderer = () => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
-  const { activeCallRemoteParticipants$, activeRingCallMeta$ } = useStore();
-  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
+  const { activeCallRemoteParticipants$ } = useStore();
   const remoteParticipants = useObservableValue(activeCallRemoteParticipants$);
-
-  const loopbackMyVideo = useAppGlobalStoreValue(
-    (store) => store.loopbackMyVideo,
-  );
 
   const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
   const username = useAppGlobalStoreValue((store) => store.username);
@@ -25,21 +19,9 @@ const VideoRenderer = () => {
     (store) => store.cameraBackFacingMode,
   );
 
-  const filteredParticipants = loopbackMyVideo
-    ? remoteParticipants
-    : remoteParticipants.filter((p) => !p.isLoggedInUser);
-
   return (
     <>
-      {activeRingCallMeta ? (
-        filteredParticipants.length > 0 ? (
-          <ParticipantVideosContainer />
-        ) : (
-          <OutgoingCall />
-        )
-      ) : (
-        <ParticipantVideosContainer />
-      )}
+      <ParticipantVideosContainer />
       {localMediaStream && !isVideoMuted ? (
         <RTCView
           // @ts-ignore
