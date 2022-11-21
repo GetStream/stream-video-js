@@ -17,6 +17,7 @@ enum Modes {
 const activeCallAllParticipantsLengthToMode: { [key: number]: Modes } = {
   1: Modes.full,
   2: Modes.half,
+  3: Modes.half,
   4: Modes.quarter,
   5: Modes.fifth,
 };
@@ -56,9 +57,10 @@ const CallParticipantsView = () => {
     [allParticipants.length],
   );
 
+  const isUserIsAloneInCall = allParticipants.length === 1;
   const isLocalVideoVisible = useMemo(
-    () => localVideoVisibleModes.includes(mode),
-    [mode],
+    () => localVideoVisibleModes.includes(mode) && !isUserIsAloneInCall,
+    [mode, isUserIsAloneInCall],
   );
 
   const showUserInParticipantView = useMemo(
@@ -75,6 +77,7 @@ const CallParticipantsView = () => {
   if (allParticipants.length === 0) {
     return null;
   }
+
 
   return (
     <View style={styles.container}>

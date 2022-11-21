@@ -45,6 +45,16 @@ const CallParticipantView = ({
     },
     [call],
   );
+
+  console.log("**************");
+  console.log("**************");
+  console.log("**************");
+  console.log("3rd videoStream is undefined and updated to a stream and is not rerendering which results in a video not shown")
+  console.log("Only when a user leaves from 4 to 3 participants it's rerendered and the video is shown")
+  console.log("**************");
+  console.log("videoStream", videoStream?.toURL());
+
+
   return (
     <View
       style={{ ...styles.containerBase, ...styles[`${size}Container`] }}
