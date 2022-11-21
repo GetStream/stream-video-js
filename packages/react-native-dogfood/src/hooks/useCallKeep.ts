@@ -33,7 +33,7 @@ export const useCallKeep = () => {
       if (activeRingCallMeta && Platform.OS === 'ios') {
         RNCallKeep.startCall(
           activeRingCallMeta.id,
-          '282829292',
+          '',
           activeRingCallMeta.createdByUserId,
           'generic',
         );

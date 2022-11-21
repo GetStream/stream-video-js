@@ -16,7 +16,6 @@ const getStats = (stats: RTCStatsReport) => {
 
 export const Stats = () => {
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
-  // const call = useAppGlobalStoreValue((store) => store.call);
   const { activeCall$, activeRingCallMeta$ } = useStore();
   const call = useObservableValue(activeCall$);
   const activeRingCallMeta = useObservableValue(activeRingCallMeta$);

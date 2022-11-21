@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     shadowRadius: 7.49,
     elevation: 12,
   },
-  svgContainer: {
+  svgContainerStyle: {
     width: 25,
     height: 25,
   },
@@ -52,11 +52,11 @@ type Props = {
   onPress: PressableProps['onPress'];
   colorKey: ColorKey;
   size?: number;
-  svgContainer?: StyleProp<ViewStyle>;
+  svgContainerStyle?: StyleProp<ViewStyle>;
 };
 
 const ButtonContainer = (props: React.PropsWithChildren<Props>) => {
-  const { onPress, children, colorKey, size, svgContainer } = props;
+  const { onPress, children, colorKey, size, svgContainerStyle } = props;
 
   const style: PressableProps['style'] = ({ pressed }) => [
     styles.container,
@@ -74,7 +74,7 @@ const ButtonContainer = (props: React.PropsWithChildren<Props>) => {
   ];
   return (
     <Pressable style={style} onPress={onPress}>
-      <View style={[styles.svgContainer, svgContainer ? svgContainer : null]}>
+      <View style={[styles.svgContainerStyle, svgContainerStyle ?? null]}>
         {children}
       </View>
     </Pressable>

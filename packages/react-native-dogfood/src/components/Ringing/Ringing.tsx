@@ -61,7 +61,6 @@ const styles = StyleSheet.create({
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 const Ringing = ({ navigation }: Props) => {
-  // const [logText, setLog] = useState('');
   const [loading, setLoading] = useState(false);
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const localMediaStream = useAppGlobalStoreValue(
@@ -146,7 +145,7 @@ const Ringing = ({ navigation }: Props) => {
                       : null,
                   ]}
                 >
-                  {user.name}
+                  {user.name + ' - id: ' + user.id}
                 </Text>
               </Pressable>
             );

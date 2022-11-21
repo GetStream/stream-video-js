@@ -66,6 +66,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
+  svg: {
+    height: 30,
+    width: 30,
+  },
 });
 
 const sizes = [200, 110, 100];
@@ -152,7 +156,9 @@ const IncomingCallScreen = () => {
   }
 
   const videoToggle = () => {
-    setState({ isVideoMuted: !isVideoMuted });
+    setState((prevState) => ({
+      isVideoMuted: !prevState.isVideoMuted,
+    }));
   };
 
   return (
@@ -164,7 +170,7 @@ const IncomingCallScreen = () => {
           onPress={rejectCall}
           colorKey={'cancel'}
           size={70}
-          svgContainer={{ height: 30, width: 30 }}
+          svgContainerStyle={styles.svg}
         >
           <PhoneDown color="#fff" />
         </ButtonContainer>
@@ -172,7 +178,7 @@ const IncomingCallScreen = () => {
           onPress={videoToggle}
           colorKey={isVideoMuted ? 'activated' : 'deactivated'}
           size={70}
-          svgContainer={{ height: 25, width: 30 }}
+          svgContainerStyle={styles.svg}
         >
           {isVideoMuted ? (
             <Video color="black" />
@@ -184,7 +190,7 @@ const IncomingCallScreen = () => {
           onPress={answerCall}
           colorKey={'callToAction'}
           size={70}
-          svgContainer={{ height: 30, width: 30 }}
+          svgContainerStyle={styles.svg}
         >
           <Phone color="#fff" />
         </ButtonContainer>

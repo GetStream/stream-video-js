@@ -5,6 +5,7 @@ import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import InCallManager from 'react-native-incall-manager';
 import { useStore } from './useStore';
 import { useObservableValue } from './useObservable';
+import { useCallback } from 'react';
 
 export const useRingCall = () => {
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
@@ -23,7 +24,7 @@ export const useRingCall = () => {
       NativeStackNavigationProp<RootStackParamList, 'IncomingCallScreen'>
     >();
 
-  const answerCall = async () => {
+  const answerCall = useCallback(async () => {
     if (videoClient) {
       const call = await videoClient.joinCall({
         id: currentIncomingRingCall.id,
@@ -47,21 +48,27 @@ export const useRingCall = () => {
         navigation.navigate('ActiveCall');
       }
     }
-  };
+  }, [
+    currentIncomingRingCall.callCid,
+    navigation,
+    currentIncomingRingCall.id,
+    localMediaStream,
+    videoClient,
+  ]);
 
-  const rejectCall = async () => {
+  const rejectCall = useCallback(async () => {
     if (videoClient) {
       await videoClient.rejectCall(currentIncomingRingCall.callCid);
       await navigation.navigate('HomeScreen');
     }
-  };
+  }, [currentIncomingRingCall, videoClient, navigation]);
 
-  const cancelCall = async () => {
+  const cancelCall = useCallback(async () => {
     if (videoClient && activeRingCallMeta) {
       await videoClient.cancelCall(activeRingCallMeta.callCid);
       await navigation.navigate('HomeScreen');
     }
-  };
+  }, [activeRingCallMeta, navigation, videoClient]);
 
   return { answerCall, cancelCall, rejectCall };
 };

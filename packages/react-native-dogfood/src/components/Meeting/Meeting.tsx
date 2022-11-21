@@ -16,8 +16,8 @@ import {
 } from '../../contexts/AppContext';
 import { mediaDevices } from 'react-native-webrtc';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { v4 as uuidv4 } from 'uuid';
 import { joinCall } from '../../utils/callUtils';
+import { meetingId } from '../../modules/helpers/meetingId';
 
 import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
 
@@ -50,8 +50,8 @@ const Meeting = ({ navigation }: Props) => {
   }, [setState]);
 
   const createOrJoinCallHandler = async () => {
-    setLoading(true);
     if (videoClient && localMediaStream) {
+      setLoading(true);
       try {
         const response = await joinCall(videoClient, localMediaStream, {
           autoJoin: true,
@@ -107,7 +107,7 @@ const Meeting = ({ navigation }: Props) => {
           title={'Randomise'}
           color="blue"
           onPress={() => {
-            const callID = uuidv4().toLowerCase();
+            const callID = meetingId();
             setState({ meetingCallID: callID });
           }}
         />

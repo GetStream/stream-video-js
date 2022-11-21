@@ -8,7 +8,6 @@ import { useObservableValue } from '../../hooks/useObservable';
 
 const MicButton = () => {
   const isAudioMuted = useAppGlobalStoreValue((store) => store.isAudioMuted);
-  // const call = useAppGlobalStoreValue((store) => store.call);
   const { activeCall$ } = useStore();
   const call = useObservableValue(activeCall$);
   const toggleAudioState = async () => {

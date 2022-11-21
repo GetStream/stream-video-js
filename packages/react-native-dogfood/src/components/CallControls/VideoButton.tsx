@@ -8,7 +8,6 @@ import { useObservableValue } from '../../hooks/useObservable';
 
 const VideoButton = () => {
   const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
-  // const call = useAppGlobalStoreValue((store) => store.call);
   const { activeCall$ } = useStore();
   const call = useObservableValue(activeCall$);
   const toggleVideoState = async () => {

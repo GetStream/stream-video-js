@@ -34,5 +34,5 @@ export const {
     isVideoMuted: false,
     cameraBackFacingMode: false,
   },
-  ['meetingCallID', 'ringingCallID', 'username', 'userImageUrl'],
+  ['username', 'userImageUrl'],
 );

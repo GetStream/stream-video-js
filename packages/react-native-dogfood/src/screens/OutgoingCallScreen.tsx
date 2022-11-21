@@ -65,6 +65,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
+  svg: {
+    height: 30,
+    width: 30,
+  },
 });
 
 type Props = NativeStackScreenProps<RootStackParamList, 'OutgoingCallScreen'>;
@@ -166,11 +170,15 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
   }, [filteredParticipants, navigation]);
 
   const videoToggle = () => {
-    setState({ isVideoMuted: !isVideoMuted });
+    setState((prevState) => ({
+      isVideoMuted: !prevState.isVideoMuted,
+    }));
   };
 
   const audioToggle = () => {
-    setState({ isAudioMuted: !isAudioMuted });
+    setState((prevState) => ({
+      isAudioMuted: !prevState.isAudioMuted,
+    }));
   };
 
   return (
@@ -182,7 +190,7 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
           onPress={audioToggle}
           colorKey={isAudioMuted ? 'activated' : 'deactivated'}
           size={70}
-          svgContainer={{ height: 25, width: 30 }}
+          svgContainerStyle={styles.svg}
         >
           {isAudioMuted ? <Mic color="black" /> : <MicOff color="white" />}
         </ButtonContainer>
@@ -190,7 +198,7 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
           onPress={videoToggle}
           colorKey={isVideoMuted ? 'activated' : 'deactivated'}
           size={70}
-          svgContainer={{ height: 25, width: 30 }}
+          svgContainerStyle={styles.svg}
         >
           {isVideoMuted ? (
             <Video color="black" />
@@ -202,7 +210,7 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
           onPress={hangupHandler}
           colorKey={'cancel'}
           size={70}
-          svgContainer={{ height: 30, width: 30 }}
+          svgContainerStyle={styles.svg}
         >
           <PhoneDown color="#fff" />
         </ButtonContainer>
