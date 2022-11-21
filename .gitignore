@@ -20,3 +20,5 @@ docs
 .env
 
 .eslintcache
+.idea
+

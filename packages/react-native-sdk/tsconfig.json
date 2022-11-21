@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
     "outDir": "./dist",
-    "module": "ES2015",
-    "target": "ES2015",
-    "lib": [
-      "esnext",
-    ],
+    "target": "esnext",
+    "module": "commonjs",
+    "types": ["react-native"],
+    "lib": ["es2019"],
     "declaration": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
@@ -16,10 +15,7 @@
     "strict": true,
     "strictNullChecks": true,
     "sourceMap": true,
-    "jsx": "react-native",
+    "jsx": "react-native"
   },
-  "include": [
-    "./src",
-    "index.ts"
-  ],
+  "include": ["./src", "index.ts"]
 }
