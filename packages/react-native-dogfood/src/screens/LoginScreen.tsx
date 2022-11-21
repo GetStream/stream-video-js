@@ -115,12 +115,6 @@ const LoginScreen = ({}: Props) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <GoogleSigninButton
-        style={styles.googleSignin}
-        size={GoogleSigninButton.Size.Wide}
-        onPress={signInViaGoogle}
-        disabled={loader}
-      />
       <View>
         <View style={styles.innerView}>
           <TextInput
@@ -141,6 +135,12 @@ const LoginScreen = ({}: Props) => {
           />
         </View>
       </View>
+      <GoogleSigninButton
+        style={styles.googleSignin}
+        size={GoogleSigninButton.Size.Wide}
+        onPress={signInViaGoogle}
+        disabled={loader}
+      />
     </SafeAreaView>
   );
 };
