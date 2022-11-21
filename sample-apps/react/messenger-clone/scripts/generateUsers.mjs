@@ -1,46 +1,9 @@
 import { StreamChat } from 'stream-chat';
 import dotenv from 'dotenv';
 
-dotenv.config();
+import users from '../data/users.json' assert { type: 'json' };
 
-const userPairs = [
-  [
-    {
-      id: 'alice',
-      name: 'Alice',
-      image: 'https://randomuser.me/api/portraits/women/47.jpg',
-    },
-    {
-      id: 'mark',
-      name: 'Mark',
-      image: 'https://randomuser.me/api/portraits/men/38.jpg',
-    },
-  ],
-  [
-    {
-      id: 'bob',
-      name: 'Bob',
-      image: 'https://randomuser.me/api/portraits/men/42.jpg',
-    },
-    {
-      id: 'Jane',
-      name: 'Jane',
-      image: 'https://randomuser.me/api/portraits/women/60.jpg',
-    },
-  ],
-  [
-    {
-      id: 'tamara',
-      name: 'Tamara',
-      image: 'https://randomuser.me/api/portraits/women/40.jpg',
-    },
-    {
-      id: 'john',
-      name: 'John',
-      image: 'https://randomuser.me/api/portraits/men/54.jpg',
-    },
-  ],
-];
+dotenv.config();
 
 const apiKey = process.env.VITE_STREAM_KEY;
 const secret = process.env.VITE_STREAM_SECRET;
@@ -50,16 +13,27 @@ console.log(apiKey, secret);
 const client = StreamChat.getInstance(apiKey, secret);
 
 console.log('Creating users...');
-await client.upsertUsers(userPairs.flat(1));
+await client.upsertUsers(users);
 
-const channels = userPairs.map((userPair) =>
-  client.channel('messaging', {
-    members: userPair.map((user) => user.id),
-  }),
-);
+const channels = users
+  .flatMap((user, index) =>
+    users.map((nestedUser, nestedIndex) => {
+      if (index >= nestedIndex) return null;
+      return [user, nestedUser];
+    }),
+  )
+  .filter(Boolean)
+  .map(([firstUser, secondUser]) =>
+    client.channel('messaging', {
+      members: [firstUser.id, secondUser.id],
+      created_by: firstUser,
+    }),
+  );
 
 console.log('Initiating a channel between two users...');
 
-await Promise.allSettled(channels.map((c) => c.create()));
+const c = await Promise.allSettled(channels.map((c) => c.create()));
+
+console.log(c);
 
 console.log('Finished initialization.');
