@@ -23,6 +23,7 @@ import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import type { StreamVideoParticipant, SubscriptionChanges } from './types';
 import { debounceTime, Subject } from 'rxjs';
+import { createStatsReporter, StatsReporter } from '../stats/reporter';
 
 export type TrackChangedEvent = {
   type: 'media_state_changed';
@@ -47,7 +48,9 @@ export type StatEvent =
 export type StatEventListener = (event: StatEvent) => void;
 
 export type CallOptions = {
-  connectionConfig: RTCConfiguration | undefined;
+  connectionConfig?: RTCConfiguration;
+  latencyCheckUrl?: string;
+  edgeName?: string;
 };
 
 export type PublishOptions = {
@@ -65,6 +68,7 @@ export class Call {
     [key: string]: VideoDimension;
   }>();
 
+  private statsReporter: StatsReporter;
   private joinResponseReady?: Promise<CallState | undefined>;
   private statEventListeners: StatEventListener[];
 
@@ -76,12 +80,11 @@ export class Call {
     this.currentUserId = stateStore.getCurrentValue(
       stateStore.connectedUserSubject,
     )!.name;
+
     const { dispatcher, iceTrickleBuffer } = this.client;
     this.subscriber = createSubscriber({
       rpcClient: this.client,
-
-      // FIXME: don't do this
-      dispatcher: dispatcher,
+      dispatcher,
       connectionConfig: this.options.connectionConfig,
       onTrack: this.handleOnTrack,
       candidates: iceTrickleBuffer.subscriberCandidates,
@@ -94,6 +97,14 @@ export class Call {
     });
 
     this.statEventListeners = [];
+
+    this.statsReporter = createStatsReporter({
+      subscriber: this.subscriber,
+      publisher: this.publisher,
+      store: stateStore,
+      latencyCheckUrl: this.options.latencyCheckUrl,
+      edgeName: this.options.edgeName,
+    });
 
     registerEventHandlers(this, this.stateStore, dispatcher);
 
@@ -113,8 +124,8 @@ export class Call {
   };
 
   leave = () => {
+    this.statsReporter.close();
     this.subscriber.close();
-
     this.publisher.getSenders().forEach((s) => {
       if (s.track) {
         s.track.stop();
@@ -424,14 +435,15 @@ export class Call {
     kind: 'subscriber' | 'publisher',
     selector?: MediaStreamTrack,
   ) => {
-    if (kind === 'subscriber' && this.subscriber) {
-      return this.subscriber.getStats(selector);
-    } else if (kind === 'publisher' && this.publisher) {
-      return this.publisher.getStats(selector);
-    } else {
-      console.warn(`Can't retrieve RTC stats for`, kind);
-      return undefined;
-    }
+    return this.statsReporter.getRawStatsForTrack(kind, selector);
+  };
+
+  startReportingStatsFor = (sessionId: string) => {
+    return this.statsReporter.startReportingStatsFor(sessionId);
+  };
+
+  stopReportingStatsFor = (sessionId: string) => {
+    return this.statsReporter.stopReportingStatsFor(sessionId);
   };
 
   onStatEvent = (fn: StatEventListener) => {

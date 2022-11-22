@@ -14,3 +14,8 @@ export const useRemoteParticipants = () => {
   const { activeCallRemoteParticipants$ } = useStore();
   return useObservableValue(activeCallRemoteParticipants$);
 };
+
+export const useLatestStats = () => {
+  const { participantStats$ } = useStore();
+  return useObservableValue(participantStats$);
+};

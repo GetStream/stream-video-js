@@ -9,6 +9,8 @@
     "build": "tsc --project tsconfig.production.json"
   },
   "dependencies": {
+    "@nivo/core": "^0.80.0",
+    "@nivo/line": "^0.80.0",
     "@popperjs/core": "^2.11.6",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-styling": "workspace:^",

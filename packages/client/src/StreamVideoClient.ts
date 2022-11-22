@@ -75,10 +75,9 @@ export class StreamVideoClient {
         }),
       ],
     });
+
     this.writeableStateStore = new StreamVideoWriteableStateStore();
-    this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
-      this.writeableStateStore,
-    );
+    this.readOnlyStateStore = this.writeableStateStore.asReadOnlyStore();
   }
 
   /**
@@ -148,18 +147,19 @@ export class StreamVideoClient {
         response.call.call,
         response.edges,
       );
-      if (edge && edge.credentials && edge.credentials.server) {
-        const sfuClient = new StreamSfuClient(
-          edge.credentials.server.url,
-          edge.credentials.token,
-          sessionId,
-        );
+      if (edge.credentials && edge.credentials.server) {
+        const edgeName = edge.credentials.server.edgeName;
+        const selectedEdge = response.edges.find((e) => e.name === edgeName);
+        const { server, iceServers, token } = edge.credentials;
+        const sfuClient = new StreamSfuClient(server.url, token, sessionId);
         const call = new Call(
           sfuClient,
           {
             connectionConfig:
-              this.toRtcConfiguration(edge.credentials.iceServers) ||
-              this.defaultRtcConfiguration(edge.credentials.server.url),
+              this.toRtcConfiguration(iceServers) ||
+              this.defaultRtcConfiguration(server.url),
+            latencyCheckUrl: selectedEdge?.latencyUrl,
+            edgeName,
           },
           this.writeableStateStore,
         );

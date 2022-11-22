@@ -1,6 +1,9 @@
 import clsx from 'clsx';
+import { ForwardedRef, forwardRef, useRef, useState } from 'react';
 import { Call } from '@stream-io/video-client';
 import { useParticipants } from '../../hooks/useParticipants';
+import { CallStats } from './CallStats';
+
 export const CallControls = (props: { call: Call }) => {
   const { call } = props;
   const participants = useParticipants();
@@ -8,8 +11,27 @@ export const CallControls = (props: { call: Call }) => {
   const isAudioMute = !localParticipant?.audio;
   const isVideoMute = !localParticipant?.video;
 
+  const [isStatsOpen, setIsStatsOpen] = useState(false);
+  const statsAnchorRef = useRef<HTMLButtonElement>(null);
+
   return (
     <div className="str-video__call-controls">
+      {isStatsOpen && (
+        <CallStats
+          anchor={statsAnchorRef.current!}
+          onClose={() => {
+            setIsStatsOpen(false);
+          }}
+        />
+      )}
+      <Button
+        icon="stats"
+        title="Statistics"
+        ref={statsAnchorRef}
+        onClick={() => {
+          setIsStatsOpen((v) => !v);
+        }}
+      />
       <Button
         icon={isAudioMute ? 'mic-off' : 'mic'}
         onClick={() => {
@@ -35,23 +57,31 @@ export const CallControls = (props: { call: Call }) => {
   );
 };
 
-const Button = (props: {
-  icon: string;
-  variant?: string;
-  onClick?: () => void;
-}) => {
-  const { icon, variant, onClick } = props;
-  return (
-    <button
-      onClick={(e) => {
-        e.preventDefault();
-        onClick?.();
-      }}
-      className={clsx(
-        'str-video__call-controls__button',
-        icon && `str-video__call-controls__button--icon-${icon}`,
-        variant && `str-video__call-controls__button--variant-${variant}`,
-      )}
-    />
-  );
-};
+const Button = forwardRef(
+  (
+    props: {
+      icon: string;
+      variant?: string;
+      onClick?: () => void;
+      [anyProp: string]: any;
+    },
+    ref: ForwardedRef<HTMLButtonElement>,
+  ) => {
+    const { icon, variant, onClick, ...rest } = props;
+    return (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          onClick?.();
+        }}
+        className={clsx(
+          'str-video__call-controls__button',
+          icon && `str-video__call-controls__button--icon-${icon}`,
+          variant && `str-video__call-controls__button--variant-${variant}`,
+        )}
+        ref={ref}
+        {...rest}
+      />
+    );
+  },
+);
