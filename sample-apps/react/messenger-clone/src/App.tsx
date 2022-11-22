@@ -1,5 +1,4 @@
 import type { ChannelFilters, ChannelOptions, ChannelSort } from 'stream-chat';
-
 import {
   Channel,
   ChannelList,
@@ -11,8 +10,13 @@ import {
 } from 'stream-chat-react';
 
 import { ChannelHeader } from './components/ChannelHeader';
+import Video from './components/Video/Video';
 
+import { CallController } from './context';
 import { useClient } from './hooks';
+import { userFromToken } from './utils/userFromToken';
+
+import { StreamChatType } from './types/chat';
 
 const params = new Proxy(new URLSearchParams(window.location.search), {
   get: (searchParams, property) => searchParams.get(property as string),
@@ -29,50 +33,36 @@ const filters: ChannelFilters = {
 const options: ChannelOptions = { limit: 10, presence: true, state: true };
 const sort: ChannelSort = { last_message_at: -1, updated_at: -1 };
 
-type LocalAttachmentType = Record<string, unknown>;
-type LocalChannelType = Record<string, unknown>;
-type LocalCommandType = string;
-type LocalEventType = Record<string, unknown>;
-type LocalMessageType = Record<string, unknown>;
-type LocalReactionType = Record<string, unknown>;
-type LocalUserType = Record<string, unknown>;
-
-type StreamChatGenerics = {
-  attachmentType: LocalAttachmentType;
-  channelType: LocalChannelType;
-  commandType: LocalCommandType;
-  eventType: LocalEventType;
-  messageType: LocalMessageType;
-  reactionType: LocalReactionType;
-  userType: LocalUserType;
-};
-
 const App = () => {
-  const client = useClient<StreamChatGenerics>({
+  const user = userFromToken(userToken);
+  const client = useClient<StreamChatType>({
     apiKey,
-    userData: { id: userId },
+    userData: user,
     tokenOrProvider: userToken,
   });
 
   if (!client) return null;
 
   return (
-    <Chat client={client}>
-      <ChannelList
-        filters={filters}
-        options={options}
-        showChannelSearch
-        sort={sort}
-      />
-      <Channel>
-        <Window>
-          <ChannelHeader />
-          <MessageList />
-          <MessageInput focus />
-        </Window>
-        <Thread />
-      </Channel>
-    </Chat>
+    <CallController>
+      <Chat client={client}>
+        <ChannelList
+          filters={filters}
+          options={options}
+          showChannelSearch
+          sort={sort}
+        />
+        <Channel>
+          <Window>
+            <ChannelHeader />
+            <MessageList />
+            <MessageInput focus />
+          </Window>
+          <Thread />
+        </Channel>
+        <Video />
+      </Chat>
+    </CallController>
   );
 };
 
