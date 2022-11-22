@@ -1,0 +1,46 @@
+<span
+  [popper]="deviceSettings"
+  [popperTrigger]="popperTrigger"
+  class="str-video__device-settings__icon"
+  tabindex="0"
+></span>
+<popper-content #deviceSettings>
+  <div
+    class="str-video__device-settings"
+  >
+    <div class="str-video__device-settings__device-kind">
+      <div class="str-video__device-settings__device-selector-label">
+        Select camera
+      </div>
+      <select
+        class="str-video__device-settings__device-selector"
+        [value]="currentlyUsedVideoDeviceId"
+        (change)="changeInputDevice('videoinput', $event)"
+      >
+        <option
+          *ngFor="let device of videoDevices$ | async"
+          [value]="device.deviceId"
+        >
+          {{ device.label }}
+        </option>
+      </select>
+    </div>
+    <div class="str-video__device-settings__device-kind">
+      <div class="str-video__device-settings__device-selector-label">
+        Select mic
+      </div>
+      <select
+        class="str-video__device-settings__device-selector"
+        [value]="currentlyUsedAudioDeviceId"
+        (change)="changeInputDevice('audioinput', $event)"
+      >
+        <option
+          *ngFor="let device of audioDevices$ | async"
+          [value]="device.deviceId"
+        >
+          {{ device.label }}
+        </option>
+      </select>
+    </div>
+  </div>
+</popper-content>
