@@ -11,12 +11,15 @@ import {
 
 import { ChannelHeader } from './components/ChannelHeader';
 import Video from './components/Video/Video';
+import { CustomChannelSearch } from './components/CustomChannelSearch';
 
 import { CallController } from './context';
 import { useClient } from './hooks';
 import { userFromToken } from './utils/userFromToken';
 
-import { StreamChatType } from './types/chat';
+import type { StreamChatType } from './types/chat';
+
+import users from '../data/users.json';
 
 const params = new Proxy(new URLSearchParams(window.location.search), {
   get: (searchParams, property) => searchParams.get(property as string),
@@ -45,12 +48,21 @@ const App = () => {
 
   return (
     <CallController>
+      {/* TODO: add user-list logic */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+        {users.map((u) => (
+          <a href={`http://localhost:5174?ut=${u.token}&uid=${u.id}`}>
+            {u.name}
+          </a>
+        ))}
+      </div>
       <Chat client={client}>
         <ChannelList
           filters={filters}
           options={options}
           showChannelSearch
           sort={sort}
+          ChannelSearch={CustomChannelSearch}
         />
         <Channel>
           <Window>
