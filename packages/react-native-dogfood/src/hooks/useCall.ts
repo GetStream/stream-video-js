@@ -49,7 +49,7 @@ export const useCall = ({
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
         await call.join(mediaStream, mediaStream);
-        await call.publish(mediaStream, mediaStream);
+        await call.publishMediaStreams(mediaStream, mediaStream);
         setState({
           call,
         });
