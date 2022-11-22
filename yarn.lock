@@ -3700,7 +3700,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@popperjs/core@npm:^2.11.6":
+"@popperjs/core@npm:^2.11.5, @popperjs/core@npm:^2.11.6":
   version: 2.11.6
   resolution: "@popperjs/core@npm:2.11.6"
   checksum: 47fb328cec1924559d759b48235c78574f2d71a8a6c4c03edb6de5d7074078371633b91e39bbf3f901b32aa8af9b9d8f82834856d2f5737a23475036b16817f0
@@ -6680,6 +6680,7 @@ __metadata:
     "@angular/platform-browser": ^14.1.0
     "@angular/platform-browser-dynamic": ^14.1.0
     "@angular/router": ^14.1.0
+    "@popperjs/core": ^2.11.6
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
     "@types/jasmine": ~4.0.0
@@ -6693,6 +6694,7 @@ __metadata:
     karma-jasmine: ~5.1.0
     karma-jasmine-html-reporter: ~2.0.0
     ng-packagr: ^14.1.0
+    ngx-popperjs: ^14.1.2
     rxjs: ~7.5.0
     tslib: ^2.3.0
     typescript: ~4.7.2
@@ -16659,6 +16661,20 @@ __metadata:
   bin:
     ng-packagr: cli/main.js
   checksum: 465916b1db7962aab9d773bb164876be5af83e2cf41144f7dcafa3b93e2e31d14e527d4ec44ca8e13258c49cda6cf604cde99b6f5f3e636388dc0b08c792600d
+  languageName: node
+  linkType: hard
+
+"ngx-popperjs@npm:^14.1.2":
+  version: 14.1.2
+  resolution: "ngx-popperjs@npm:14.1.2"
+  dependencies:
+    "@popperjs/core": ^2.11.5
+    tslib: ^2.3.0
+  peerDependencies:
+    "@angular/common": ^14.0.1
+    "@angular/core": ^14.0.1
+    rxjs: ^7.4.0
+  checksum: c985f107242c42b9a761445d5e73c1542daee7f071f28643603fbd85fb8d7b5822ed6ac4de25af9553849c84c4b03945fefe6d06e72813f34b0517f3fde669c8
   languageName: node
   linkType: hard
 

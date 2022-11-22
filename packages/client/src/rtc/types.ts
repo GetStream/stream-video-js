@@ -19,6 +19,17 @@ export type StreamVideoParticipant = {
   isSpeaking?: boolean;
 } & Participant;
 
+export type StreamVideoLocalParticipant = {
+  /**
+   * The device ID of the currently selected audio input device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
+   */
+  audioDeviceId?: string;
+  /**
+   * The device ID of the currently selected video input device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
+   */
+  videoDeviceId?: string;
+} & StreamVideoParticipant;
+
 export type SubscriptionChange = {
   /**
    * The video dimension to request.
