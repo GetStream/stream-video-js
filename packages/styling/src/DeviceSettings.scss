@@ -21,3 +21,18 @@
   box-shadow: 0 0 4px 1px #272a30;
   z-index: 10;
 }
+
+stream-device-settings {
+  .ngxp__container {
+    opacity: 1;
+    z-index: 1;
+    padding: 0px;
+    border: none;
+  }
+
+  .ngxp__container > .ngxp__arrow,
+  .ngxp__container > .ngxp__arrow:before {
+    width: 0;
+    height: 0;
+  }
+}

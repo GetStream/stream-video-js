@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {
   Call,
   StreamVideoClient,
+  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   UserInput,
   CallMeta,
@@ -15,9 +16,13 @@ export class StreamVideoService {
   user$: Observable<UserInput | undefined>;
   activeCall$: Observable<Call | undefined>;
   incomingRingCalls$: Observable<CallMeta.Call[]>;
-  activeCallAllParticipants$: Observable<StreamVideoParticipant[]>;
+  activeCallAllParticipants$: Observable<
+    (StreamVideoParticipant | StreamVideoLocalParticipant)[]
+  >;
   activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
-  activeCallLocalParticipant$: Observable<StreamVideoParticipant | undefined>;
+  activeCallLocalParticipant$: Observable<
+    StreamVideoLocalParticipant | undefined
+  >;
   videoClient: StreamVideoClient | undefined;
   activeRingCallMeta$: Observable<CallMeta.Call | undefined>;
   activeRingCallDetails$: Observable<CallMeta.CallDetails | undefined>;

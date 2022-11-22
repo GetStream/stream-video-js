@@ -6,7 +6,10 @@ import {
   Call as CallMeta,
   CallDetails,
 } from './gen/video/coordinator/call_v1/call';
-import type { StreamVideoParticipant } from './rtc/types';
+import type {
+  StreamVideoParticipant,
+  StreamVideoLocalParticipant,
+} from './rtc/types';
 
 export class StreamVideoWriteableStateStore {
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
@@ -23,7 +26,7 @@ export class StreamVideoWriteableStateStore {
   );
 
   activeCallAllParticipantsSubject = new BehaviorSubject<
-    StreamVideoParticipant[]
+    (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >([]);
   activeCallLocalParticipantSubject = new BehaviorSubject<
     StreamVideoParticipant | undefined
@@ -51,9 +54,13 @@ export class StreamVideoReadOnlyStateStore {
   dominantSpeaker$: Observable<string | undefined>;
   terminatedRingCallMeta$: Observable<CallMeta | undefined>;
 
-  activeCallAllParticipants$: Observable<StreamVideoParticipant[]>;
+  activeCallAllParticipants$: Observable<
+    (StreamVideoParticipant | StreamVideoLocalParticipant)[]
+  >;
   activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
-  activeCallLocalParticipant$: Observable<StreamVideoParticipant | undefined>;
+  activeCallLocalParticipant$: Observable<
+    StreamVideoLocalParticipant | undefined
+  >;
 
   constructor(writeableStateStore: StreamVideoWriteableStateStore) {
     this.connectedUser$ =

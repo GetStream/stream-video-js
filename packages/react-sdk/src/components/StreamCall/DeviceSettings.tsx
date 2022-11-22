@@ -1,26 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import { Call } from '@stream-io/video-client';
+import { useState } from 'react';
 import { usePopper } from 'react-popper';
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';
+import { useLocalParticipant } from '../../hooks/useParticipants';
 
-export const DeviceSettings = () => {
-  const { devices, audioInputDeviceId, videoInputDeviceId, switchDevice } =
+export const DeviceSettings = (props: { activeCall: Call }) => {
+  const { activeCall } = props;
+  const { audioDevices, videoDevices, getAudioStream, getVideoStream } =
     useMediaDevices();
-  const kinds = useMemo(() => {
-    const audioInput: MediaDeviceInfo[] = [];
-    const videoInput: MediaDeviceInfo[] = [];
-
-    devices?.forEach((device) => {
-      if (device.kind === 'audioinput') {
-        audioInput.push(device);
-      } else if (device.kind === 'videoinput') {
-        videoInput.push(device);
-      }
-    });
-    return {
-      audioInput,
-      videoInput,
-    };
-  }, [devices]);
 
   const [referenceElement, setReferenceElement] =
     useState<HTMLSpanElement | null>(null);
@@ -29,6 +16,18 @@ export const DeviceSettings = () => {
   );
   const { styles, attributes } = usePopper(referenceElement, popperElement);
   const [isPopperOpen, setIsPopperOpen] = useState(false);
+
+  const localParticipant = useLocalParticipant();
+
+  const switchDevice = async (
+    kind: 'videoinput' | 'audioinput',
+    deviceId: string,
+  ) => {
+    const mediaStream = await (kind === 'videoinput'
+      ? getVideoStream(deviceId)
+      : getAudioStream(deviceId));
+    activeCall.replaceMediaStream(kind, mediaStream);
+  };
   return (
     <>
       <span
@@ -47,17 +46,17 @@ export const DeviceSettings = () => {
           {...attributes.popper}
         >
           <DeviceSelector
-            devices={kinds.videoInput}
+            devices={videoDevices}
             label="Select a Camera"
-            selectedDeviceId={videoInputDeviceId}
+            selectedDeviceId={localParticipant?.videoDeviceId}
             onChange={(deviceId) => {
               switchDevice('videoinput', deviceId);
             }}
           />
           <DeviceSelector
-            devices={kinds.audioInput}
+            devices={audioDevices}
             label="Select a Mic"
-            selectedDeviceId={audioInputDeviceId}
+            selectedDeviceId={localParticipant?.audioDeviceId}
             onChange={(deviceId) => {
               switchDevice('audioinput', deviceId);
             }}
