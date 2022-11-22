@@ -1,4 +1,4 @@
-package com.reactnativesampleapp.newarchitecture;
+package io.getstream.video.rn.nativesample.newarchitecture;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
@@ -19,9 +19,9 @@ import com.facebook.react.fabric.CoreComponentsRegistry;
 import com.facebook.react.fabric.FabricJSIModuleProvider;
 import com.facebook.react.fabric.ReactNativeConfig;
 import com.facebook.react.uimanager.ViewManagerRegistry;
-import com.reactnativesampleapp.BuildConfig;
-import com.reactnativesampleapp.newarchitecture.components.MainComponentsRegistry;
-import com.reactnativesampleapp.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
+import io.getstream.video.rn.nativesample.BuildConfig;
+import io.getstream.video.rn.nativesample.newarchitecture.components.MainComponentsRegistry;
+import io.getstream.video.rn.nativesample.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
 import java.util.ArrayList;
 import java.util.List;
 
