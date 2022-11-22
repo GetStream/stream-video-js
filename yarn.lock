@@ -23931,22 +23931,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yargs@npm:^17.2.1":
-  version: 17.6.1
-  resolution: "yargs@npm:17.6.1"
-  dependencies:
-    cliui: ^8.0.1
-    escalade: ^3.1.1
-    get-caller-file: ^2.0.5
-    require-directory: ^2.1.1
-    string-width: ^4.2.3
-    y18n: ^5.0.5
-    yargs-parser: ^21.0.0
-  checksum: 8b88285c7826461156dd76aa749562421d73077af6aee014117a99621e665d9c5ed8ff4734bd46545104101d960e0f0df98fb9f9dd18e5f9a00df3ff46dd4cf1
-  languageName: node
-  linkType: hard
-
-"yargs@npm:^17.6.2":
+"yargs@npm:^17.2.1, yargs@npm:^17.6.2":
   version: 17.6.2
   resolution: "yargs@npm:17.6.2"
   dependencies:
