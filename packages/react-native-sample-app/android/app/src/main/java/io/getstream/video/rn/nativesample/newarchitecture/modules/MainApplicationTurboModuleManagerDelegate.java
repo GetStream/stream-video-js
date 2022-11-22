@@ -1,4 +1,4 @@
-package com.reactnativesampleapp.newarchitecture.modules;
+package io.getstream.video.rn.nativesample.newarchitecture.modules;
 
 import com.facebook.jni.HybridData;
 import com.facebook.react.ReactPackage;

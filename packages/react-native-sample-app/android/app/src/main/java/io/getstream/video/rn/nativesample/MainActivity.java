@@ -1,4 +1,4 @@
-package com.reactnativesampleapp;
+package io.getstream.video.rn.nativesample;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
