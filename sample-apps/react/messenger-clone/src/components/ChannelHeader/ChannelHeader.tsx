@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   Avatar,
   useChannelPreviewInfo,
@@ -6,9 +6,14 @@ import {
   useChatContext,
   useTranslationContext,
 } from 'stream-chat-react';
-import { StreamChatType } from '../../types/chat';
+import { MemberInput } from '@stream-io/video-client';
+import { Struct } from '@stream-io/video-client/dist/src/gen/google/protobuf/struct';
 
 import { MenuIcon } from './icons';
+
+import { useCallController } from '../../context';
+
+import type { StreamChatType } from '../../types/chat';
 
 export type ChannelHeaderProps = {
   /** Manually set the image to render, defaults to the Channel image */
@@ -31,8 +36,33 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
     overrideImage,
     overrideTitle,
   });
+  const { createCall } = useCallController();
 
   const { member_count, subtitle } = channel?.data || {};
+
+  const onCreateCall = useCallback(() => {
+    createCall({
+      id: channel.cid,
+      type: 'default',
+      input: {
+        members: Object.values(channel.state.members).map(
+          (member) =>
+            ({
+              userId: member.user.id,
+              role: member.user.role,
+              customJson: Struct.toBinary(Struct.fromJson({})),
+              userInput: {
+                name: member.user.name,
+                imageUrl: member.user.image,
+                role: member.user.role,
+                customJson: Struct.toBinary(Struct.fromJson({})),
+                teams: [],
+              },
+            } as MemberInput),
+        ),
+      },
+    });
+  }, [createCall, channel.state.members, channel.cid]);
 
   return (
     <div className="str-chat__header-livestream str-chat__channel-header">
@@ -77,7 +107,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
           })}
         </p>
       </div>
-      <button>Call</button>
+      <button onClick={onCreateCall}>Call</button>
     </div>
   );
 };
