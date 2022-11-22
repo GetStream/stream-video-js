@@ -1,14 +1,14 @@
 import { StreamChat } from 'stream-chat';
 import dotenv from 'dotenv';
 
-import users from '../data/users.json' assert { type: 'json' };
+import usersJSON from '../data/users.json' assert { type: 'json' };
+
+const users = usersJSON.map(({ token: _, ...rest }) => rest);
 
 dotenv.config();
 
 const apiKey = process.env.VITE_STREAM_KEY;
 const secret = process.env.VITE_STREAM_SECRET;
-
-console.log(apiKey, secret);
 
 const client = StreamChat.getInstance(apiKey, secret);
 
@@ -30,7 +30,7 @@ const channels = users
     }),
   );
 
-console.log('Initiating a channel between two users...');
+console.log('Initiating channels between two users...');
 
 const c = await Promise.allSettled(channels.map((c) => c.create()));
 
