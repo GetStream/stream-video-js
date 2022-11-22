@@ -2,7 +2,10 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { take, map } from 'rxjs/operators';
 import { Call } from './rtc/Call';
 import type { UserInput } from './gen/video/coordinator/user_v1/user';
-import type { StreamVideoParticipant } from './rtc/types';
+import type {
+  StreamVideoParticipant,
+  StreamVideoLocalParticipant,
+} from './rtc/types';
 
 export class StreamVideoWriteableStateStore {
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
@@ -10,7 +13,7 @@ export class StreamVideoWriteableStateStore {
   activeCallSubject = new BehaviorSubject<Call | undefined>(undefined);
 
   activeCallAllParticipantsSubject = new BehaviorSubject<
-    StreamVideoParticipant[]
+    (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >([]);
   dominantSpeakerSubject = new BehaviorSubject<string | undefined>(undefined);
 
@@ -29,9 +32,13 @@ export class StreamVideoReadOnlyStateStore {
   pendingCalls$: Observable<Call[]>;
   dominantSpeaker$: Observable<string | undefined>;
 
-  activeCallAllParticipants$: Observable<StreamVideoParticipant[]>;
+  activeCallAllParticipants$: Observable<
+    (StreamVideoParticipant | StreamVideoLocalParticipant)[]
+  >;
   activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
-  activeCallLocalParticipant$: Observable<StreamVideoParticipant | undefined>;
+  activeCallLocalParticipant$: Observable<
+    StreamVideoLocalParticipant | undefined
+  >;
 
   constructor(writeableStateStore: StreamVideoWriteableStateStore) {
     this.connectedUser$ =

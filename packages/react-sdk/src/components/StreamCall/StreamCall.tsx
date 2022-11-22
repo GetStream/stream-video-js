@@ -55,16 +55,16 @@ export const StreamCall = ({
 
   const videoClient = useStreamVideoClient();
   return (
-    <MediaDevicesProvider call={activeCall}>
+    <MediaDevicesProvider>
       <div className="str-video__call">
         {sfuCallState && (
           <>
-            {activeCallMeta && (
+            {activeCallMeta && activeCall && (
               <div className="str-video__call__header">
                 <h4 className="str-video__call__header-title">
                   {activeCallMeta.type}:{activeCallMeta.id}
                 </h4>
-                <DeviceSettings />
+                <DeviceSettings activeCall={activeCall} />
               </div>
             )}
             {activeCall && (
@@ -79,14 +79,14 @@ export const StreamCall = ({
             {activeCallMeta && (
               <Ping activeCall={activeCallMeta} currentUser={currentUser} />
             )}
-            {videoClient && activeCall && activeCallMeta && (
-              <Stats
-                client={videoClient}
-                call={activeCall}
-                activeCall={activeCallMeta}
-              />
-            )}
           </>
+        )}
+        {videoClient && activeCall && activeCallMeta && (
+          <Stats
+            client={videoClient}
+            call={activeCall}
+            activeCall={activeCallMeta}
+          />
         )}
       </div>
     </MediaDevicesProvider>

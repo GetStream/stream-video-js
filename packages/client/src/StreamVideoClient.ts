@@ -7,6 +7,8 @@ import type {
   CreateCallRequest,
   GetOrCreateCallRequest,
   JoinCallRequest,
+  ReportCallStatEventRequest,
+  ReportCallStatEventResponse,
   ReportCallStatsRequest,
   ReportCallStatsResponse,
 } from './gen/video/coordinator/client_v1_rpc/client_rpc';
@@ -239,5 +241,12 @@ export class StreamVideoClient {
       console.warn(`Invalid URL. Can't extract hostname from it.`, e);
       return url;
     }
+  };
+
+  reportCallStatEvent = async (
+    statEvent: ReportCallStatEventRequest,
+  ): Promise<ReportCallStatEventResponse> => {
+    const response = await this.client.reportCallStatEvent(statEvent);
+    return response.response;
   };
 }

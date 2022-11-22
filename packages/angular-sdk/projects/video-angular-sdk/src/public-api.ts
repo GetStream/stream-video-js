@@ -8,3 +8,4 @@ export * from './lib/call/call.component';
 export * from './lib/call-controls/call-controls.component';
 export * from './lib/participant/participant.component';
 export * from './lib/stage/stage.component';
+export * from './lib/device-settings/device-settings.component';

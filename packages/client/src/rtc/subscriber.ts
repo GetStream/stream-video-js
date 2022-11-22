@@ -1,23 +1,17 @@
 import { StreamSfuClient } from '../StreamSfuClient';
-import { Dispatcher } from './Dispatcher';
-import { ICETrickle, PeerType } from '../gen/video/sfu/models/models';
-import { ReplaySubject } from 'rxjs';
 import { getIceCandidate } from './helpers/iceCandidate';
+import { PeerType } from '../gen/video/sfu/models/models';
 
 export type SubscriberOpts = {
   rpcClient: StreamSfuClient;
-  dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
   onTrack?: (e: RTCTrackEvent) => void;
-  candidates: ReplaySubject<ICETrickle>;
 };
 
 export const createSubscriber = ({
   rpcClient,
-  dispatcher,
   connectionConfig,
   onTrack,
-  candidates,
 }: SubscriberOpts) => {
   const subscriber = new RTCPeerConnection(connectionConfig);
   subscriber.addEventListener('icecandidate', async (e) => {
@@ -58,6 +52,7 @@ export const createSubscriber = ({
     subscriber.addEventListener('track', onTrack);
   }
 
+  const { dispatcher, iceTrickleBuffer } = rpcClient;
   dispatcher.on('subscriberOffer', async (message) => {
     if (message.eventPayload.oneofKind !== 'subscriberOffer') return;
     const { subscriberOffer } = message.eventPayload;
@@ -68,7 +63,7 @@ export const createSubscriber = ({
       sdp: subscriberOffer.sdp,
     });
 
-    candidates.subscribe((candidate) => {
+    iceTrickleBuffer.subscriberCandidates.subscribe((candidate) => {
       try {
         const iceCandidate = JSON.parse(candidate.iceCandidate);
         subscriber.addIceCandidate(iceCandidate);
