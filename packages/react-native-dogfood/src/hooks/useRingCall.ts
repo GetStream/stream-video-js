@@ -48,13 +48,7 @@ export const useRingCall = () => {
         navigation.navigate('ActiveCall');
       }
     }
-  }, [
-    currentIncomingRingCall.callCid,
-    navigation,
-    currentIncomingRingCall.id,
-    localMediaStream,
-    videoClient,
-  ]);
+  }, [currentIncomingRingCall, navigation, localMediaStream, videoClient]);
 
   const rejectCall = useCallback(async () => {
     if (videoClient) {
