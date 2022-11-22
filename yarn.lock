@@ -4681,7 +4681,10 @@ __metadata:
     "@types/react": ^18.0.24
     "@types/react-dom": ^18.0.8
     "@vitejs/plugin-react": ^2.2.0
+    clsx: ^1.2.1
+    dayjs: ^1.11.6
     dotenv: ^16.0.3
+    immer: ^9.0.16
     react: ^18.2.0
     react-dom: ^18.2.0
     sass: ^1.56.1
@@ -8994,7 +8997,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:^1.10.4, dayjs@npm:^1.8.15":
+"dayjs@npm:^1.10.4, dayjs@npm:^1.11.6, dayjs@npm:^1.8.15":
   version: 1.11.6
   resolution: "dayjs@npm:1.11.6"
   checksum: 18bdfd927009b68eab08dca578e421d4a581cefcbe9337f54c5d9e0d941ffb6b221c4b2c1cab15cdd9d419940e768ac4c984531461a90bbe1c158b75fe160580
@@ -12864,7 +12867,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"immer@npm:^9.0.7":
+"immer@npm:^9.0.16, immer@npm:^9.0.7":
   version: 9.0.16
   resolution: "immer@npm:9.0.16"
   checksum: e9a5ca65c929b329da7a3b7beccf7984271cda7bdd47b2cab619eac3277dcd56598c211b55cc340786b6eff0c06652ac018808d9fd744443f06882364dece6bc
