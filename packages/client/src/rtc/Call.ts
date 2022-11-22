@@ -174,8 +174,8 @@ export class Call {
               if (participant.sessionId === this.client.sessionId) {
                 const localParticipant = participant as StreamVideoParticipant;
                 localParticipant.isLoggedInUser = true;
-                localParticipant.audioTrack = audioStream;
-                localParticipant.videoTrack = videoStream;
+                localParticipant.audioStream = audioStream;
+                localParticipant.videoStream = videoStream;
               }
               return participant;
             }),
@@ -277,7 +277,7 @@ export class Call {
           if (p.sessionId === this.client.sessionId) {
             return {
               ...p,
-              videoTrack: videoStream,
+              videoStream,
               videoDeviceId: this.getActiveInputDeviceId('videoinput'),
             };
           }
@@ -300,7 +300,7 @@ export class Call {
           if (p.sessionId === this.client.sessionId) {
             return {
               ...p,
-              audioTrack: audioStream,
+              audioStream,
               audioDeviceId: this.getActiveInputDeviceId('audioinput'),
             };
           }
@@ -549,7 +549,7 @@ export class Call {
             return {
               // FIXME OL: shallow clone, switch to deep clone
               ...participant,
-              videoTrack: primaryStream,
+              videoStream: primaryStream,
             };
           }
           return participant;
@@ -563,7 +563,7 @@ export class Call {
             return {
               // FIXME OL: shallow clone, switch to deep clone
               ...participant,
-              audioTrack: primaryStream,
+              audioStream: primaryStream,
             };
           }
           return participant;
