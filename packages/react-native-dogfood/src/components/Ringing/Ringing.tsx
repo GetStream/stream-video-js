@@ -114,6 +114,18 @@ const Ringing = ({ navigation }: Props) => {
     }
   };
 
+  const ringingUsersSetHandler = (userId: string) => {
+    if (!ringingUsers.includes(userId)) {
+      setState({ ringingUsers: [...ringingUsers, userId] });
+    } else {
+      setState({
+        ringingUsers: ringingUsers.filter(
+          (ringingUser) => ringingUser !== userId,
+        ),
+      });
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.participantsContainer}>
@@ -125,17 +137,7 @@ const Ringing = ({ navigation }: Props) => {
               <Pressable
                 style={styles.participant}
                 key={user.id}
-                onPress={() => {
-                  if (!ringingUsers.includes(user.id)) {
-                    setState({ ringingUsers: [...ringingUsers, user.id] });
-                  } else {
-                    setState({
-                      ringingUsers: ringingUsers.filter(
-                        (ringingUser) => ringingUser !== user.id,
-                      ),
-                    });
-                  }
-                }}
+                onPress={() => ringingUsersSetHandler(user.id)}
               >
                 <Text
                   style={[

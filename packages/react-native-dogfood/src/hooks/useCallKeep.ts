@@ -46,16 +46,14 @@ export const useCallKeep = () => {
   const displayIncomingCallNow = useCallback(() => {
     try {
       navigation.navigate('IncomingCallScreen');
-      if (currentIncomingRingCall) {
-        if (Platform.OS === 'ios') {
-          RNCallKeep.displayIncomingCall(
-            currentIncomingRingCall.id,
-            '',
-            currentIncomingRingCall.createdByUserId,
-            'generic',
-            true,
-          );
-        }
+      if (currentIncomingRingCall && Platform.OS === 'ios') {
+        RNCallKeep.displayIncomingCall(
+          currentIncomingRingCall.id,
+          '',
+          currentIncomingRingCall.createdByUserId,
+          'generic',
+          true,
+        );
       }
     } catch (error) {
       console.log(error);

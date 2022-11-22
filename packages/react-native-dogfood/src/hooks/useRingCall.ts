@@ -25,36 +25,38 @@ export const useRingCall = () => {
     >();
 
   const answerCall = useCallback(async () => {
-    if (videoClient) {
-      const call = await videoClient.joinCall({
-        id: currentIncomingRingCall.id,
-        type: 'default',
-        datacenterId: '',
-        input: {
-          ring: true,
-          members: [],
-        },
-      });
-      if (!call) {
-        throw new Error(
-          `Failed to join a call with id: ${currentIncomingRingCall.id}`,
-        );
-      } else {
-        InCallManager.start({ media: 'video' });
-        InCallManager.setForceSpeakerphoneOn(true);
-        await call.join(localMediaStream, localMediaStream);
-        await call.publishMediaStreams(localMediaStream, localMediaStream);
-        await videoClient.acceptCall(currentIncomingRingCall.callCid);
-        navigation.navigate('ActiveCall');
-      }
+    if (!videoClient) {
+      return;
+    }
+    const call = await videoClient.joinCall({
+      id: currentIncomingRingCall.id,
+      type: 'default',
+      datacenterId: '',
+      input: {
+        ring: true,
+        members: [],
+      },
+    });
+    if (!call) {
+      throw new Error(
+        `Failed to join a call with id: ${currentIncomingRingCall.id}`,
+      );
+    } else {
+      InCallManager.start({ media: 'video' });
+      InCallManager.setForceSpeakerphoneOn(true);
+      await call.join(localMediaStream, localMediaStream);
+      await call.publishMediaStreams(localMediaStream, localMediaStream);
+      await videoClient.acceptCall(currentIncomingRingCall.callCid);
+      navigation.navigate('ActiveCall');
     }
   }, [currentIncomingRingCall, navigation, localMediaStream, videoClient]);
 
   const rejectCall = useCallback(async () => {
-    if (videoClient) {
-      await videoClient.rejectCall(currentIncomingRingCall.callCid);
-      await navigation.navigate('HomeScreen');
+    if (!videoClient) {
+      return;
     }
+    await videoClient.rejectCall(currentIncomingRingCall.callCid);
+    await navigation.navigate('HomeScreen');
   }, [currentIncomingRingCall, videoClient, navigation]);
 
   const cancelCall = useCallback(async () => {
