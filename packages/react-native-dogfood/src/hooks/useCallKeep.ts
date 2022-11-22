@@ -9,15 +9,9 @@ import { useStore } from './useStore';
 import { useObservableValue } from './useObservable';
 
 export const useCallKeep = () => {
-  const {
-    activeCall$,
-    activeRingCallMeta$,
-    terminatedRingCallMeta$,
-    incomingRingCalls$,
-  } = useStore();
+  const { activeCall$, activeRingCallMeta$, incomingRingCalls$ } = useStore();
   const call = useObservableValue(activeCall$);
   const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
-  const terminatedRingCallMeta = useObservableValue(terminatedRingCallMeta$);
   const incomingRingCalls = useObservableValue(incomingRingCalls$);
 
   const currentIncomingRingCall =
@@ -61,16 +55,14 @@ export const useCallKeep = () => {
   }, [navigation, currentIncomingRingCall]);
 
   const endCall = useCallback(async () => {
-    if (terminatedRingCallMeta) {
-      if (Platform.OS === 'ios') {
-        await RNCallKeep.endCall(terminatedRingCallMeta.id);
-      }
-      call?.leave();
-      InCallManager.stop();
-
-      navigation.navigate('HomeScreen');
+    if (Platform.OS === 'ios' && activeRingCallMeta) {
+      await RNCallKeep.endCall(activeRingCallMeta.id);
     }
-  }, [navigation, terminatedRingCallMeta, call]);
+    call?.leave();
+    InCallManager.stop();
+
+    navigation.navigate('HomeScreen');
+  }, [navigation, activeRingCallMeta, call]);
 
   useEffect(() => {
     const options = {

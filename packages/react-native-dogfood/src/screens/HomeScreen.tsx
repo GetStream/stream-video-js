@@ -24,7 +24,7 @@ export const HomeScreen = ({ navigation, route }: Props) => {
   const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
   const incomingRingCalls = useObservableValue(incomingRingCalls$);
 
-  const { displayIncomingCallNow, startCall } = useCallKeep();
+  const { displayIncomingCallNow, startCall, endCall } = useCallKeep();
 
   useEffect(() => {
     if (activeRingCallMeta) {
@@ -33,7 +33,7 @@ export const HomeScreen = ({ navigation, route }: Props) => {
       if (incomingRingCalls.length > 0) {
         displayIncomingCallNow();
       } else {
-        navigation.navigate('HomeScreen');
+        endCall();
       }
     }
   }, [
@@ -41,7 +41,7 @@ export const HomeScreen = ({ navigation, route }: Props) => {
     incomingRingCalls,
     displayIncomingCallNow,
     startCall,
-    navigation,
+    endCall,
   ]);
 
   return (
