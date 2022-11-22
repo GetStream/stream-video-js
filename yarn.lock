@@ -4894,12 +4894,14 @@ __metadata:
     react: ^18.2.0
     react-native: ^0.70.6
     react-native-svg: ^13.6.0
+    react-native-webrtc: ^1.106.1
     rimraf: ^3.0.2
     typescript: ^4.9.3
   peerDependencies:
-    react: ^18.1.0
-    react-native: ^0.70.6
-    react-native-svg: ^13.6.0
+    react: ">=17.0.0"
+    react-native: ">=0.68.0"
+    react-native-svg: ">=13.6.0"
+    react-native-webrtc: ">=1.106.1"
   languageName: unknown
   linkType: soft
 
@@ -19490,6 +19492,20 @@ __metadata:
   peerDependencies:
     react-native: ">=0.60.0"
   checksum: 812480242357f3813746c4003e070068073fa13fec9b2302bec2d785212131d8ed20708d51a77b1420b0a0ed2701ddfecac551f54c4cc59b459765a4c0b4fa74
+  languageName: node
+  linkType: hard
+
+"react-native-webrtc@npm:^1.106.1":
+  version: 1.106.1
+  resolution: "react-native-webrtc@npm:1.106.1"
+  dependencies:
+    adm-zip: 0.5.9
+    base64-js: 1.5.1
+    event-target-shim: 6.0.2
+    tar: 6.1.11
+  peerDependencies:
+    react-native: ">=0.60.0"
+  checksum: fba57ece91c78bd6d7c64e942824b3e097bc3ff0ff9bde2d5694f7303bf868bba0d4e109a1b0912ea4aa3ccd81de8a5a0bc72f34c31bcc01cfdbdf0ca2a9ef49
   languageName: node
   linkType: hard
 
