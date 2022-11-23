@@ -1,1 +1,0 @@
-# RN SDK placeholder
