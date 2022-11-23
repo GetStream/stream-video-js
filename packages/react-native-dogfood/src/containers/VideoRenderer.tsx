@@ -4,25 +4,21 @@ import ParticipantVideosContainer from './ParticipantVideosContainer';
 import React from 'react';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { useObservableValue } from '../hooks/useObservable';
+import { useStore } from '../hooks/useStore';
 
 const VideoRenderer = () => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
-  if (!videoClient) {
-    throw new Error(
-      "StreamVideoClient isn't initialized -- ParticipantVideosContainer",
-    );
-  }
-  const remoteParticipants = useObservableValue(
-    videoClient.readOnlyStateStore.activeCallRemoteParticipants$,
-  );
+  const { activeCallRemoteParticipants$ } = useStore();
+  const remoteParticipants = useObservableValue(activeCallRemoteParticipants$);
+
   const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
   const username = useAppGlobalStoreValue((store) => store.username);
   const cameraBackFacingMode = useAppGlobalStoreValue(
     (store) => store.cameraBackFacingMode,
   );
+
   return (
     <>
       <ParticipantVideosContainer />

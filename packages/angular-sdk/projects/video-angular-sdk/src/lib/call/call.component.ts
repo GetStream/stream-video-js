@@ -1,6 +1,13 @@
 import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
-import { Call, StreamVideoParticipant } from '@stream-io/video-client';
-import { Observable, Subscription } from 'rxjs';
+import {
+  Call,
+  getAudioStream,
+  getVideoStream,
+  StreamVideoLocalParticipant,
+  watchForDisconnectedAudioDevice,
+  watchForDisconnectedVideoDevice,
+} from '@stream-io/video-client';
+import { map, Observable, Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
 @Component({
@@ -10,18 +17,51 @@ import { StreamVideoService } from '../video.service';
 })
 export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
   call!: Call;
-  localParticipant$: Observable<StreamVideoParticipant | undefined>;
+  localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
   private subscriptions: Subscription[] = [];
 
   constructor(private streamVideoService: StreamVideoService) {
     this.localParticipant$ =
       this.streamVideoService.activeCallLocalParticipant$;
+    let deviceDisconnectSubscriptions: Subscription[] = [];
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe(async (c) => {
         if (c) {
           this.call = c;
-          const ownMediaStream = await this.getOwnMediaStream();
-          this.call.publish(ownMediaStream, ownMediaStream);
+          let audioStream: MediaStream;
+          let videoStream: MediaStream;
+          try {
+            audioStream = await getAudioStream();
+          } catch (error) {
+            throw error;
+          }
+          try {
+            videoStream = await getVideoStream();
+          } catch (error) {
+            throw error;
+          }
+          this.call.publishMediaStreams(audioStream, videoStream);
+          deviceDisconnectSubscriptions.push(
+            watchForDisconnectedAudioDevice(
+              this.localParticipant$.pipe(map((p) => p?.audioDeviceId)),
+            ).subscribe(async () => {
+              c.updateMuteState('audio', true);
+              const audioStream = await getAudioStream();
+              c.replaceMediaStream('audioinput', audioStream);
+            }),
+          );
+          deviceDisconnectSubscriptions.push(
+            watchForDisconnectedVideoDevice(
+              this.localParticipant$.pipe(map((p) => p?.videoDeviceId)),
+            ).subscribe(async () => {
+              c.updateMuteState('video', true);
+              const videoStream = await getVideoStream();
+              c.replaceMediaStream('videoinput', videoStream);
+            }),
+          );
+        } else {
+          deviceDisconnectSubscriptions.forEach((s) => s.unsubscribe());
+          deviceDisconnectSubscriptions = [];
         }
       }),
     );
@@ -35,10 +75,5 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
-  }
-
-  private async getOwnMediaStream() {
-    const constraints = { audio: true, video: { width: 960, height: 540 } };
-    return await navigator.mediaDevices.getUserMedia(constraints);
   }
 }

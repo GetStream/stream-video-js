@@ -7,6 +7,7 @@ import Mic from '../icons/Mic';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { useObservableValue } from '../hooks/useObservable';
 import { Call, StreamVideoParticipant } from '@stream-io/video-client';
+import { useStore } from '../hooks/useStore';
 
 const styles = StyleSheet.create({
   container: {
@@ -60,34 +61,27 @@ const styles = StyleSheet.create({
 });
 
 const ParticipantVideosContainer = () => {
-  const call = useAppGlobalStoreValue((store) => store.call);
-  if (!call) {
-    throw new Error("Call isn't initialized -- ParticipantVideosContainer");
-  }
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
-  if (!videoClient) {
-    throw new Error(
-      "StreamVideoClient isn't initialized -- ParticipantVideosContainer",
-    );
-  }
+  const { activeCall$ } = useStore();
+  const call = useObservableValue(activeCall$);
+  const { activeCallAllParticipants$ } = useStore();
 
-  const allParticipants = useObservableValue(
-    videoClient.readOnlyStateStore.activeCallAllParticipants$,
-  );
+  const allParticipants = useObservableValue(activeCallAllParticipants$);
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
 
   const updateVideoSubscriptionForParticipant = useCallback(
     (sessionId: string, width: number, height: number) => {
-      call.updateSubscriptionsPartial({
-        [sessionId]: {
-          videoDimension: {
-            width: Math.trunc(width),
-            height: Math.trunc(height),
+      if (call) {
+        call.updateSubscriptionsPartial({
+          [sessionId]: {
+            videoDimension: {
+              width: Math.trunc(width),
+              height: Math.trunc(height),
+            },
           },
-        },
-      });
+        });
+      }
     },
     [call],
   );
@@ -102,20 +96,21 @@ const ParticipantVideosContainer = () => {
 
   return (
     <View style={styles.container}>
-      {filteredParticipants.map((participant, index) => {
-        const userId = participant.user!.id;
-        return (
-          <ParticipantVideoContainer
-            key={`${userId}/${participant.sessionId}`}
-            participant={participant}
-            updateVideoSubscriptionForParticipant={
-              updateVideoSubscriptionForParticipant
-            }
-            call={call}
-            isLastParticipant={index === allParticipants.length - 1}
-          />
-        );
-      })}
+      {call &&
+        filteredParticipants.map((participant, index) => {
+          const userId = participant.user!.id;
+          return (
+            <ParticipantVideoContainer
+              key={`${userId}/${participant.sessionId}`}
+              participant={participant}
+              updateVideoSubscriptionForParticipant={
+                updateVideoSubscriptionForParticipant
+              }
+              call={call}
+              isLastParticipant={index === allParticipants.length - 1}
+            />
+          );
+        })}
     </View>
   );
 };

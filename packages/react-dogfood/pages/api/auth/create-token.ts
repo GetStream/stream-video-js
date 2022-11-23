@@ -11,7 +11,8 @@ const createJwtToken = async (req: NextApiRequest, res: NextApiResponse) => {
     });
   }
 
-  const token = createToken(userId, secretKey);
+  const params = req.query as Record<string, string>;
+  const token = createToken(userId, secretKey, params);
   return res.status(200).json({
     userId,
     token,

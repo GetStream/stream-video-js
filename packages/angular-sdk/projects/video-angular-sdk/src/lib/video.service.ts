@@ -2,8 +2,10 @@ import { Injectable } from '@angular/core';
 import {
   Call,
   StreamVideoClient,
+  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   UserInput,
+  CallMeta,
 } from '@stream-io/video-client';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 
@@ -13,17 +15,34 @@ import { Observable, ReplaySubject, Subscription } from 'rxjs';
 export class StreamVideoService {
   user$: Observable<UserInput | undefined>;
   activeCall$: Observable<Call | undefined>;
-  pendingCalls$: Observable<Call[]>;
-  activeCallAllParticipants$: Observable<StreamVideoParticipant[]>;
+  incomingRingCalls$: Observable<CallMeta.Call[]>;
+  activeCallAllParticipants$: Observable<
+    (StreamVideoParticipant | StreamVideoLocalParticipant)[]
+  >;
   activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
-  activeCallLocalParticipant$: Observable<StreamVideoParticipant | undefined>;
+  activeCallLocalParticipant$: Observable<
+    StreamVideoLocalParticipant | undefined
+  >;
   videoClient: StreamVideoClient | undefined;
+  activeRingCallMeta$: Observable<CallMeta.Call | undefined>;
+  activeRingCallDetails$: Observable<CallMeta.CallDetails | undefined>;
+  terminatedRingCallMeta$: Observable<CallMeta.Call | undefined>;
+
   private userSubject: ReplaySubject<UserInput | undefined> = new ReplaySubject(
     1,
   );
   private activeCallSubject: ReplaySubject<Call | undefined> =
     new ReplaySubject(1);
-  private pendingCallsSubject: ReplaySubject<Call[]> = new ReplaySubject(1);
+  private activeRingCallMetaSubject: ReplaySubject<CallMeta.Call | undefined> =
+    new ReplaySubject(1);
+  private activeRingCallDetailsSubject: ReplaySubject<
+    CallMeta.CallDetails | undefined
+  > = new ReplaySubject(1);
+  private terminatedRingCallMetaSubject: ReplaySubject<
+    CallMeta.Call | undefined
+  > = new ReplaySubject(1);
+  private incomingRingCallsSubject: ReplaySubject<CallMeta.Call[]> =
+    new ReplaySubject(1);
   private activeCallAllParticipantsSubject: ReplaySubject<
     StreamVideoParticipant[]
   > = new ReplaySubject(1);
@@ -38,13 +57,18 @@ export class StreamVideoService {
   constructor() {
     this.user$ = this.userSubject.asObservable();
     this.activeCall$ = this.activeCallSubject.asObservable();
-    this.pendingCalls$ = this.pendingCallsSubject.asObservable();
+    this.incomingRingCalls$ = this.incomingRingCallsSubject.asObservable();
     this.activeCallAllParticipants$ =
       this.activeCallAllParticipantsSubject.asObservable();
     this.activeCallRemoteParticipants$ =
       this.activeCallRemoteParticipantsSubject.asObservable();
     this.activeCallLocalParticipant$ =
       this.activeCallLocalParticipantSubject.asObservable();
+    this.activeRingCallMeta$ = this.activeRingCallMetaSubject.asObservable();
+    this.activeRingCallDetails$ =
+      this.activeRingCallDetailsSubject.asObservable();
+    this.terminatedRingCallMeta$ =
+      this.terminatedRingCallMetaSubject.asObservable();
   }
 
   init(
@@ -60,12 +84,31 @@ export class StreamVideoService {
       this.videoClient.disconnect();
       this.subscriptions.forEach((s) => s.unsubscribe());
     }
+
     this.videoClient = new StreamVideoClient(apiKey, {
       coordinatorRpcUrl: baseCoordinatorUrl,
       coordinatorWsUrl: baseWsUrl,
       sendJson: true,
       token,
     });
+
+    this.subscriptions.push(
+      this.videoClient.readOnlyStateStore?.activeRingCallMeta$.subscribe(
+        this.activeRingCallMetaSubject,
+      ),
+    );
+
+    this.subscriptions.push(
+      this.videoClient.readOnlyStateStore.activeRingCallDetails$.subscribe(
+        this.activeRingCallDetailsSubject,
+      ),
+    );
+
+    this.subscriptions.push(
+      this.videoClient.readOnlyStateStore?.terminatedRingCallMeta$.subscribe(
+        this.terminatedRingCallMetaSubject,
+      ),
+    );
 
     this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.connectedUser$.subscribe(
@@ -78,8 +121,8 @@ export class StreamVideoService {
       ),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.pendingCalls$.subscribe(
-        this.pendingCallsSubject,
+      this.videoClient.readOnlyStateStore?.incomingRingCalls$.subscribe(
+        this.incomingRingCallsSubject,
       ),
     );
     this.subscriptions.push(
