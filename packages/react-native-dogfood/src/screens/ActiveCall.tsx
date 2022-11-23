@@ -24,27 +24,4 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     flex: 1,
   },
-  stream: {
-    backgroundColor: Colors.black,
-    flex: 1,
-  },
-  header: {
-    backgroundColor: '#1486b5',
-  },
-  container: {
-    justifyContent: 'center',
-    backgroundColor: 'black',
-    flexDirection: 'row',
-    alignItems: 'center',
-    display: 'flex',
-    flex: 1,
-  },
-  icons: {
-    display: 'flex',
-    flexDirection: 'row',
-    position: 'absolute',
-    right: 20,
-    top: 50,
-    zIndex: 1,
-  },
 });

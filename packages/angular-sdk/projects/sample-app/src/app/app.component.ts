@@ -23,18 +23,11 @@ export class AppComponent implements OnInit, OnDestroy {
     private videoService: StreamVideoService,
   ) {
     this.user$ = this.videoService.user$;
+
     this.subscriptions.push(
-      this.videoService.pendingCalls$.subscribe((calls) => {
-        if (this.activeCall) {
-          this.activeCall.leave();
-        }
-        if (calls.length === 1) {
-          calls[0].join();
-        }
+      this.videoService.activeCall$.subscribe((c: Call | undefined) => {
+        return (this.activeCall = c);
       }),
-    );
-    this.subscriptions.push(
-      this.videoService.activeCall$.subscribe((c) => (this.activeCall = c)),
     );
   }
 

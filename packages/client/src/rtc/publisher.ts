@@ -1,18 +1,15 @@
 import { StreamSfuClient } from '../StreamSfuClient';
-import { ICETrickle, PeerType } from '../gen/video/sfu/models/models';
-import { ReplaySubject } from 'rxjs';
+import { PeerType } from '../gen/video/sfu/models/models';
 import { getIceCandidate } from './helpers/iceCandidate';
 
 export type PublisherOpts = {
   rpcClient: StreamSfuClient;
   connectionConfig?: RTCConfiguration;
-  candidates: ReplaySubject<ICETrickle>;
 };
 
 export const createPublisher = ({
   connectionConfig,
   rpcClient,
-  candidates,
 }: PublisherOpts) => {
   const publisher = new RTCPeerConnection(connectionConfig);
   publisher.addEventListener('icecandidate', async (e) => {
@@ -48,9 +45,10 @@ export const createPublisher = ({
     );
   });
 
+  const { iceTrickleBuffer } = rpcClient;
   // will fire once media is attached to the peer connection
   publisher.addEventListener('negotiationneeded', async () => {
-    console.log('AAA onNegotiationNeeded ');
+    console.log('AAA onNegotiationNeeded');
     const offer = await publisher.createOffer();
     await publisher.setLocalDescription(offer);
 
@@ -64,7 +62,7 @@ export const createPublisher = ({
       sdp: response.response.sdp,
     });
 
-    candidates.subscribe((candidate) => {
+    iceTrickleBuffer.publisherCandidates.subscribe((candidate) => {
       try {
         const iceCandidate = JSON.parse(candidate.iceCandidate);
         publisher.addIceCandidate(iceCandidate);

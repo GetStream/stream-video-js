@@ -37,6 +37,18 @@ export const watchParticipantLeft = (
       const currentParticipants = store.getCurrentValue(
         store.activeCallAllParticipantsSubject,
       );
+      const activeCall = store.getCurrentValue(store.activeRingCallMetaSubject);
+      const activeCallLocalParticipant = store.getCurrentValue(
+        store.activeCallLocalParticipantSubject,
+      );
+      if (activeCall) {
+        if (
+          currentParticipants.length === 2 &&
+          participant.sessionId !== activeCallLocalParticipant?.sessionId
+        ) {
+          store.setCurrentValue(store.activeRingCallMetaSubject, undefined);
+        }
+      }
       store.setCurrentValue(
         store.activeCallAllParticipantsSubject,
         currentParticipants.filter(
