@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { take, map, pairwise, startWith } from 'rxjs/operators';
 import { Call } from './rtc/Call';
 import type { UserInput } from './gen/video/coordinator/user_v1/user';
@@ -45,7 +45,7 @@ export class StreamVideoWriteableStateStore {
     return subject.getValue();
   }
 
-  setCurrentValue<T>(subject: Subject<T>, value: T) {
+  setCurrentValue<T>(subject: BehaviorSubject<T>, value: T) {
     subject.next(value);
   }
 
@@ -120,7 +120,7 @@ export class StreamVideoReadOnlyStateStore {
 
     this.participantStats$ = store.participantStatsSubject.asObservable();
     this.callRecordingInProgress$ =
-      writeableStateStore.callRecordingInProgressSubject.asObservable();
+      store.callRecordingInProgressSubject.asObservable();
   }
 
   /**
