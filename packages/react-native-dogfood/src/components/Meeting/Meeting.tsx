@@ -14,7 +14,6 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
-import { mediaDevices } from 'react-native-webrtc';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { joinCall } from '../../utils/callUtils';
 import { meetingId } from '../../modules/helpers/meetingId';
@@ -34,20 +33,6 @@ const Meeting = ({ navigation }: Props) => {
   );
   const [loading, setLoading] = useState(false);
   const setState = useAppGlobalStoreSetState();
-
-  // run only once per app lifecycle
-  useEffect(() => {
-    const configure = async () => {
-      const mediaStream = await mediaDevices.getUserMedia({
-        audio: true,
-        video: true,
-      });
-      setState({
-        localMediaStream: mediaStream,
-      });
-    };
-    configure();
-  }, [setState]);
 
   const createOrJoinCallHandler = async () => {
     if (videoClient && localMediaStream) {

@@ -8,6 +8,8 @@ import { useCallKeep } from '../hooks/useCallKeep';
 import { RootStackParamList } from '../../types';
 import { useStore } from '../hooks/useStore';
 import { useObservableValue } from '../hooks/useObservable';
+import { mediaDevices } from 'react-native-webrtc';
+import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 
 const styles = StyleSheet.create({
   container: {
@@ -23,8 +25,23 @@ export const HomeScreen = ({ navigation, route }: Props) => {
   const { activeRingCallMeta$, incomingRingCalls$ } = useStore();
   const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
   const incomingRingCalls = useObservableValue(incomingRingCalls$);
+  const setState = useAppGlobalStoreSetState();
 
   const { displayIncomingCallNow, startCall, endCall } = useCallKeep();
+
+  // run only once per app lifecycle
+  useEffect(() => {
+    const configure = async () => {
+      const mediaStream = await mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      });
+      setState({
+        localMediaStream: mediaStream,
+      });
+    };
+    configure();
+  }, [setState]);
 
   useEffect(() => {
     if (activeRingCallMeta) {
