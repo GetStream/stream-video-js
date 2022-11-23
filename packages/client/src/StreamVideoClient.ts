@@ -216,6 +216,30 @@ export class StreamVideoClient {
     }
   };
 
+  startRecording = async (callId: string, callType: string) => {
+    await this.client.startRecording({
+      callId,
+      callType,
+    });
+
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.callRecordingInProgressSubject,
+      true,
+    );
+  };
+
+  stopRecording = async (callId: string, callType: string) => {
+    await this.client.stopRecording({
+      callId,
+      callType,
+    });
+
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.callRecordingInProgressSubject,
+      false,
+    );
+  };
+
   reportCallStats = async (
     stats: ReportCallStatsRequest,
   ): Promise<ReportCallStatsResponse> => {
