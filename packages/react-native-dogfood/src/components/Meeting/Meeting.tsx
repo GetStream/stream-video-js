@@ -38,17 +38,14 @@ const Meeting = ({ navigation }: Props) => {
     if (videoClient && localMediaStream) {
       setLoading(true);
       try {
-        const response = await joinCall(videoClient, localMediaStream, {
+        await joinCall(videoClient, localMediaStream, {
           autoJoin: true,
           callId: meetingCallID,
           callType: 'default',
-        });
-        if (response) {
+        }).then(() => {
           setLoading(false);
           navigation.navigate('ActiveCall');
-        } else {
-          setLoading(false);
-        }
+        });
       } catch (err) {
         console.log(err);
       }
