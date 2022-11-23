@@ -18,19 +18,52 @@ export type StatsReporterOpts = {
 };
 
 export type StatsReporter = {
+  /**
+   * Will turn on stats reporting for a given sessionId.
+   *
+   * @param sessionId the session id.
+   */
   startReportingStatsFor: (sessionId: string) => void;
+
+  /**
+   * Will turn off stats reporting for a given sessionId.
+   *
+   * @param sessionId the session id.
+   */
   stopReportingStatsFor: (sessionId: string) => void;
+
+  /**
+   * Helper method for retrieving stats for a given peer connection kind
+   * and media stream flowing through it.
+   *
+   * @param kind the peer connection kind (subscriber or publisher).
+   * @param mediaStream the media stream.
+   */
   getStatsForStream: (
     kind: 'subscriber' | 'publisher',
     mediaStream: MediaStream,
   ) => Promise<StatsReport[]>;
+
+  /**
+   * Helper method for retrieving raw stats for a given peer connection kind.
+   *
+   * @param kind the peer connection kind (subscriber or publisher).
+   * @param selector the track selector. If not provided, stats for all tracks will be returned.
+   */
   getRawStatsForTrack: (
     kind: 'subscriber' | 'publisher',
     selector?: MediaStreamTrack,
   ) => Promise<RTCStatsReport | undefined>;
-  close: () => void;
+
+  /**
+   * Stops the stats reporter and releases all resources.
+   */
+  stop: () => void;
 };
 
+/**
+ * Creates a new StatsReporter instance.
+ */
 export const createStatsReporter = ({
   subscriber,
   publisher,
@@ -83,6 +116,10 @@ export const createStatsReporter = ({
 
   const sessionIdsToTrack = new Set<string>();
   const readOnlyStore = store.asReadOnlyStore();
+
+  /**
+   * The main stats reporting loop.
+   */
   const run = async () => {
     const participants = readOnlyStore.getCurrentValue(
       readOnlyStore.activeCallAllParticipants$,
@@ -164,22 +201,39 @@ export const createStatsReporter = ({
     void loop();
   }
 
+  const stop = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  };
+
   return {
     getRawStatsForTrack,
     getStatsForStream,
     startReportingStatsFor,
     stopReportingStatsFor,
-    close: () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    },
+    stop,
   };
 };
 
 export type StatsTransformOpts = {
+  /**
+   * The kind of track we are transforming stats for.
+   */
   trackKind: 'audio' | 'video';
+
+  /**
+   * The kind of peer connection we are transforming stats for.
+   */
   kind: 'subscriber' | 'publisher';
 };
 
+/**
+ * Transforms raw RTC stats into a slimmer and uniform across browsers format.
+ *
+ * @param report the report to transform.
+ * @param opts the transform options.
+ */
 const transform = (
   report: RTCStatsReport,
   opts: StatsTransformOpts,
@@ -224,6 +278,11 @@ const transform = (
   };
 };
 
+/**
+ * Aggregates generic stats.
+ *
+ * @param stats the stats to aggregate.
+ */
 const aggregate = (stats: StatsReport): AggregatedStatsReport => {
   const aggregatedStats: AggregatedStatsReport = {
     totalBytesSent: 0,
@@ -279,6 +338,11 @@ const aggregate = (stats: StatsReport): AggregatedStatsReport => {
   return report;
 };
 
+/**
+ * Flatten the stats report into an array of stats objects.
+ *
+ * @param report the report to flatten.
+ */
 const flatten = (report: RTCStatsReport) => {
   const stats: RTCStats[] = [];
   report.forEach((s) => {

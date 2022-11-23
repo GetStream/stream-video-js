@@ -145,7 +145,7 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = () => {
-    this.statsReporter.close();
+    this.statsReporter.stop();
     this.subscriber.close();
     this.publisher.getSenders().forEach((s) => {
       if (s.track) {
@@ -501,10 +501,22 @@ export class Call {
     return this.statsReporter.getRawStatsForTrack(kind, selector);
   };
 
+  /**
+   * Will enhance the reported stats with additional participant-specific information.
+   * This is usually helpful when detailed stats for a specific participant are needed.
+   *
+   * @param sessionId the sessionId to start reporting for.
+   */
   startReportingStatsFor = (sessionId: string) => {
     return this.statsReporter.startReportingStatsFor(sessionId);
   };
 
+  /**
+   * Opposite of `startReportingStatsFor`.
+   * Will turn off stats reporting for a specific participant.
+   *
+   * @param sessionId the sessionId to stop reporting for.
+   */
   stopReportingStatsFor = (sessionId: string) => {
     return this.statsReporter.stopReportingStatsFor(sessionId);
   };

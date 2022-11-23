@@ -93,7 +93,19 @@ export class StreamVideoReadOnlyStateStore {
   activeCallLocalParticipant$: Observable<
     StreamVideoLocalParticipant | undefined
   >;
+  /**
+   * The latest stats report of the current call.
+   * When stats gathering is enabled, this observable will emit a new value
+   * at a regular (configurable) interval.
+   *
+   * Consumers of this observable can implement their own batching logic
+   * in case they want to show historical stats data.
+   */
   participantStats$: Observable<CallStatsReport | undefined>;
+
+  /**
+   * Emits a boolean indicating whether a call recording is currently in progress.
+   */
   callRecordingInProgress$: Observable<boolean>;
 
   constructor(store: StreamVideoWriteableStateStore) {
