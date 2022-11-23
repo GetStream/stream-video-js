@@ -118,4 +118,6 @@ export type RootStackParamList = {
   LoginScreen: undefined;
   HomeScreen: undefined;
   ActiveCall: undefined;
+  IncomingCallScreen: undefined;
+  OutgoingCallScreen: undefined;
 };

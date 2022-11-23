@@ -81,23 +81,18 @@ export class Call {
       stateStore.connectedUserSubject,
     )!.name;
 
-    const { dispatcher, iceTrickleBuffer } = this.client;
     this.subscriber = createSubscriber({
       rpcClient: this.client,
-      dispatcher,
       connectionConfig: this.options.connectionConfig,
       onTrack: this.handleOnTrack,
-      candidates: iceTrickleBuffer.subscriberCandidates,
     });
 
     this.publisher = createPublisher({
       rpcClient: this.client,
       connectionConfig: this.options.connectionConfig,
-      candidates: iceTrickleBuffer.publisherCandidates,
     });
 
     this.statEventListeners = [];
-
     this.statsReporter = createStatsReporter({
       subscriber: this.subscriber,
       publisher: this.publisher,
@@ -106,6 +101,7 @@ export class Call {
       edgeName: this.options.edgeName,
     });
 
+    const { dispatcher } = this.client;
     registerEventHandlers(this, this.stateStore, dispatcher);
 
     this.trackSubscriptionsSubject
@@ -140,8 +136,22 @@ export class Call {
     });
     this.publisher.close();
     this.client.close();
-
-    this.stateStore.activeCallSubject.next(undefined);
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeCallSubject,
+      undefined,
+    );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeRingCallMetaSubject,
+      undefined,
+    );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeRingCallDetailsSubject,
+      undefined,
+    );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeCallAllParticipantsSubject,
+      [],
+    );
   };
 
   join = async (videoStream?: MediaStream, audioStream?: MediaStream) => {
@@ -192,7 +202,10 @@ export class Call {
             }),
           );
           this.client.keepAlive();
-          this.stateStore.activeCallSubject.next(this);
+          this.stateStore.setCurrentValue(
+            this.stateStore.activeCallSubject,
+            this,
+          );
 
           resolve(callState); // expose call state
         });

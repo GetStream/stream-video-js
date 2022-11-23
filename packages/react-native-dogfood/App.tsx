@@ -11,9 +11,11 @@ import { RootStackParamList } from './types';
 import LoginScreen from './src/screens/LoginScreen';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { HomeScreen } from './src/screens/HomeScreen';
+import IncomingCallScreen from './src/screens/IncomingCallScreen';
 import { useAuth } from './src/hooks/useAuth';
 import AuthenticatingProgressScreen from './src/screens/AuthenticatingProgress';
 import { useProntoLinkEffect } from './src/hooks/useProntoLinkEffect';
+import OutgoingCallScreen from './src/screens/OutgoingCallScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -21,6 +23,7 @@ const StackNavigator = () => {
   useProntoLinkEffect();
   const { authenticationInProgress } = useAuth();
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+
   if (authenticationInProgress) {
     return <AuthenticatingProgressScreen />;
   }
@@ -37,6 +40,14 @@ const StackNavigator = () => {
         <>
           <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="ActiveCall" component={ActiveCallScreen} />
+          <Stack.Screen
+            name="IncomingCallScreen"
+            component={IncomingCallScreen}
+          />
+          <Stack.Screen
+            name="OutgoingCallScreen"
+            component={OutgoingCallScreen}
+          />
         </>
       )}
     </Stack.Navigator>
