@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Observable } from 'rxjs';
+import { Observable, take } from 'rxjs';
 import { useStreamVideoClient } from '../contexts';
 
 export const useStore = () => {
@@ -13,11 +13,18 @@ export const useStore = () => {
 };
 
 export const useObservableValue = <T>(observable$: Observable<T>) => {
-  const [value, setValue] = useState<T>();
+  const [value, setValue] = useState<T>(() => getCurrentValue(observable$));
   useEffect(() => {
     const subscription = observable$.subscribe(setValue);
     return () => subscription.unsubscribe();
   }, [observable$]);
+
+  return value;
+};
+
+const getCurrentValue = <T>(observable$: Observable<T>) => {
+  let value!: T;
+  observable$.pipe(take(1)).subscribe((v) => (value = v));
 
   return value;
 };
