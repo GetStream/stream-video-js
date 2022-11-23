@@ -8,7 +8,7 @@ import {
 import { CreateCallInput, UserInput } from '@stream-io/video-client';
 import {
   StreamCall,
-  StreamVideo,
+  StreamVideoContextProvider as StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { useEffect, useMemo, useState } from 'react';

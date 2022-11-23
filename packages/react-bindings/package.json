@@ -1,0 +1,22 @@
+{
+  "name": "@stream-io/video-react-bindings",
+  "packageManager": "yarn@3.2.4",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "clean": "rimraf dist",
+    "start": "tsc --project tsconfig.json --watch",
+    "build": "tsc --project tsconfig.production.json"
+  },
+  "dependencies": {
+    "@stream-io/video-client": "workspace:^",
+    "rxjs": "~7.5.7"
+  },
+  "peerDependencies": {
+    "react": ">=17.0.0"
+  },
+  "devDependencies": {
+    "react": "^18.1.0",
+    "typescript": "^4.8.4"
+  }
+}

@@ -1,6 +1,6 @@
-import { useStreamVideoClient } from '../StreamVideo';
 import { useCallback, useEffect, useState } from 'react';
 import { CallMeta, Call, CreateCallInput } from '@stream-io/video-client';
+import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 
 export type UseCallParams = {
   callId: string;
