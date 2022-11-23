@@ -4810,6 +4810,7 @@ __metadata:
     rxjs: ^7.5.0
     typescript: ^4.9.3
   peerDependencies:
+    "@stream-io/video-client": "workspace:^"
     react: ">=17.0.0"
   languageName: unknown
   linkType: soft
