@@ -12,6 +12,7 @@ type VideoRendererProps = {
   mirror?: boolean;
   style?: StyleProp<ViewStyle>;
   zOrder?: number;
+  objectFit?: 'contain' | 'cover';
 };
 
 export const VideoRenderer = ({
@@ -19,6 +20,7 @@ export const VideoRenderer = ({
   mirror = false,
   style = { flex: 1 },
   zOrder = undefined,
+  objectFit = 'cover',
 }: VideoRendererProps) => {
   return (
     <RTCView
@@ -26,7 +28,7 @@ export const VideoRenderer = ({
       streamURL={mediaStream.toURL()}
       mirror={mirror}
       style={style}
-      objectFit="cover"
+      objectFit={objectFit}
       zOrder={zOrder}
     />
   );

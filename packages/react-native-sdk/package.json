@@ -8,6 +8,9 @@
     "start": "tsc --project tsconfig.json --watch",
     "build": "tsc --project tsconfig.json"
   },
+  "dependencies": {
+    "@stream-io/video-client": "workspace:^"
+  },
   "peerDependencies": {
     "react": ">=17.0.0",
     "react-native": ">=0.68.0",

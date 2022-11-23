@@ -78,7 +78,6 @@ const CallParticipantsView = () => {
     return null;
   }
 
-
   return (
     <View style={styles.container}>
       <LocalVideoView isVisible={isLocalVideoVisible} />
@@ -90,6 +89,7 @@ const CallParticipantsView = () => {
           modeToSize[mode] || calculateFiveOrMoreParticipantsSize(index);
         return (
           <CallParticipantView
+            index={index}
             key={`${userId}/${participant.sessionId}`}
             participant={participant}
             size={size}
@@ -102,7 +102,7 @@ const CallParticipantsView = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#d333ff',
+    backgroundColor: '#000',
     flex: 1,
     flexWrap: 'wrap',
     marginBottom: -20,

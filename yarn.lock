@@ -4845,6 +4845,7 @@ __metadata:
     "@rnx-kit/metro-resolver-symlinks": ^0.1.21
     "@stardazed/streams-polyfill": ^2.4.0
     "@stream-io/video-client": "workspace:^"
+    "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/jest": ^29.0.0
     "@types/react": ^18.0.25
     "@types/react-native": ^0.69.6
@@ -4888,6 +4889,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-native-sdk@workspace:packages/react-native-sdk"
   dependencies:
+    "@stream-io/video-client": "workspace:^"
     "@types/react": ^18.0.25
     "@types/react-native": ^0.70.6
     "@types/rimraf": ^3.0.2

@@ -1,6 +1,6 @@
-const {makeMetroConfig} = require('@rnx-kit/metro-config');
+const { makeMetroConfig } = require('@rnx-kit/metro-config');
 const MetroSymlinksResolver = require('@rnx-kit/metro-resolver-symlinks');
-const {getDefaultConfig} = require('metro-config');
+const { getDefaultConfig } = require('metro-config');
 
 const getConfig = async () => {
   const defaultConfig = await getDefaultConfig();
