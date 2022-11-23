@@ -1,14 +1,14 @@
-import { CallMeta, StreamVideoClient, Call } from '@stream-io/video-client';
+import { StreamVideoClient } from '@stream-io/video-client';
 import { MediaStream } from 'react-native-webrtc';
 import createStoreContext from './createStoreContext';
 
 interface AppGlobalStore {
-  callID: string;
+  meetingCallID: string;
+  ringingCallID: string;
+  ringingUsers: string[];
   username: string;
   userImageUrl: string;
   videoClient: StreamVideoClient | undefined;
-  call: Call | undefined;
-  activeCall: CallMeta.Call | undefined;
   localMediaStream: MediaStream | undefined;
   isAudioMuted: boolean;
   isVideoMuted: boolean;
@@ -22,17 +22,17 @@ export const {
   useStoreSetState: useAppGlobalStoreSetState,
 } = createStoreContext<AppGlobalStore>(
   {
-    callID: '',
+    meetingCallID: '',
+    ringingCallID: '',
+    ringingUsers: [],
     username: '',
     userImageUrl: '',
     videoClient: undefined,
     localMediaStream: undefined,
-    call: undefined,
-    activeCall: undefined,
     loopbackMyVideo: false,
     isAudioMuted: false,
     isVideoMuted: false,
     cameraBackFacingMode: false,
   },
-  ['callID', 'username', 'userImageUrl'],
+  ['username', 'userImageUrl'],
 );

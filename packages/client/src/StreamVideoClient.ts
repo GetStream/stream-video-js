@@ -13,6 +13,7 @@ import type {
   ReportCallStatsResponse,
 } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
+import { UserEventType } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import type {
   Edge,
   ICEServer,
@@ -32,6 +33,7 @@ import {
 } from './ws';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
+import { registerWSEventHandlers } from './ws/callUserEventHandlers';
 import {
   WebsocketClientEvent,
   WebsocketHealthcheck,
@@ -96,14 +98,23 @@ export class StreamVideoClient {
       token,
       user,
     );
-    this.writeableStateStore.connectedUserSubject.next(user);
+    if (this.ws) {
+      registerWSEventHandlers(this, this.writeableStateStore);
+    }
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.connectedUserSubject,
+      user,
+    );
   };
 
   disconnect = async () => {
     if (!this.ws) return;
     this.ws.disconnect();
     this.ws = undefined;
-    this.writeableStateStore.connectedUserSubject.next(undefined);
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.connectedUserSubject,
+      undefined,
+    );
   };
 
   on = <T>(event: string, fn: StreamEventListener<T>) => {
@@ -141,6 +152,27 @@ export class StreamVideoClient {
     return callEnvelope;
   };
 
+  acceptCall = async (callCid: string) => {
+    await this.client.sendEvent({
+      callCid,
+      eventType: UserEventType.ACCEPTED_CALL,
+    });
+  };
+
+  rejectCall = async (callCid: string) => {
+    await this.client.sendEvent({
+      callCid,
+      eventType: UserEventType.REJECTED_CALL,
+    });
+  };
+
+  cancelCall = async (callCid: string) => {
+    await this.client.sendEvent({
+      callCid,
+      eventType: UserEventType.CANCELLED_CALL,
+    });
+  };
+
   joinCall = async (data: JoinCallRequest, sessionId?: string) => {
     const { response } = await this.client.joinCall(data);
     if (response.call && response.call.call && response.edges) {
@@ -148,6 +180,16 @@ export class StreamVideoClient {
         response.call.call,
         response.edges,
       );
+      if (data.input?.ring) {
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.activeRingCallMetaSubject,
+          response.call.call,
+        );
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.activeRingCallDetailsSubject,
+          response.call.details,
+        );
+      }
       if (edge && edge.credentials && edge.credentials.server) {
         const sfuClient = new StreamSfuClient(
           edge.credentials.server.url,
@@ -163,10 +205,6 @@ export class StreamVideoClient {
           },
           this.writeableStateStore,
         );
-        this.writeableStateStore.pendingCallsSubject.next([
-          ...this.writeableStateStore.pendingCallsSubject.getValue(),
-          call,
-        ]);
         return call;
       } else {
         // TODO: handle error?
