@@ -1,12 +1,19 @@
 import clsx from 'clsx';
 import { ForwardedRef, forwardRef, useRef, useState } from 'react';
-import { Call } from '@stream-io/video-client';
+import { Call, CallMeta } from '@stream-io/video-client';
 import { useParticipants } from '../../hooks/useParticipants';
 import { CallStats } from './CallStats';
+import { useStreamVideoClient } from '../../StreamVideo';
+import { useIsCallRecordingInProgress } from '../../hooks/useStore';
 
-export const CallControls = (props: { call: Call }) => {
-  const { call } = props;
+export const CallControls = (props: {
+  call: Call;
+  callMeta?: CallMeta.Call;
+}) => {
+  const { call, callMeta } = props;
+  const client = useStreamVideoClient();
   const participants = useParticipants();
+  const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const localParticipant = participants.find((p) => p.isLoggedInUser);
   const isAudioMute = !localParticipant?.audio;
   const isVideoMute = !localParticipant?.video;
@@ -16,6 +23,18 @@ export const CallControls = (props: { call: Call }) => {
 
   return (
     <div className="str-video__call-controls">
+      <Button
+        icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
+        title="Record call"
+        onClick={() => {
+          if (!callMeta) return;
+          if (isCallRecordingInProgress) {
+            client?.stopRecording(callMeta.id, callMeta.type);
+          } else {
+            client?.startRecording(callMeta.id, callMeta.type);
+          }
+        }}
+      />
       {isStatsOpen && (
         <CallStats
           anchor={statsAnchorRef.current!}

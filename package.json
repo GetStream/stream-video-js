@@ -31,7 +31,9 @@
     "clean:all": "yarn workspaces foreach -vt run clean",
     "lint:all": "eslint --cache --fix 'packages/**/*.{ts,tsx}'",
     "lint:ci:all": "eslint --cache 'packages/**/*.{ts,tsx}'",
-    "test:ci:all": "yarn workspaces foreach -vt run test:ci"
+    "test:ci:all": "yarn workspaces foreach -vt run test:ci",
+    "generate-docs:client": "yarn workspace @stream-io/video-client run generate-docs",
+    "generate-docs:angular": "yarn generate-docs:client && yarn workspace angular-sdk run generate-docs && yarn workspace angular-sdk run copy-docs"
   },
   "devDependencies": {
     "@types/eslint": "^8.4.8",
