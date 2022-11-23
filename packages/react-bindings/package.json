@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@stream-io/video-client": "workspace:^",
-    "rxjs": "~7.5.7"
+    "rxjs": "^7.5.0"
   },
   "peerDependencies": {
     "react": ">=17.0.0"

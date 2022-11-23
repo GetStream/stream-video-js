@@ -4807,7 +4807,7 @@ __metadata:
   dependencies:
     "@stream-io/video-client": "workspace:^"
     react: ^18.2.0
-    rxjs: ~7.5.7
+    rxjs: ^7.5.0
     typescript: ^4.9.3
   peerDependencies:
     react: ">=17.0.0"
@@ -20447,7 +20447,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:^7.5.4, rxjs@npm:^7.5.5, rxjs@npm:^7.5.7, rxjs@npm:~7.5.0, rxjs@npm:~7.5.7":
+"rxjs@npm:^7.5.0, rxjs@npm:^7.5.4, rxjs@npm:^7.5.5, rxjs@npm:^7.5.7, rxjs@npm:~7.5.0":
   version: 7.5.7
   resolution: "rxjs@npm:7.5.7"
   dependencies:
