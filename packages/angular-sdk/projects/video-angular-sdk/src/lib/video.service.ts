@@ -10,39 +10,38 @@ import {
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 
 /**
- * The `StreamVideoService` has two important tasks: 1. it lets you create a [StreamVideoClient](StreamVideoClient.md) instance to interact with our API, 2. you can subscribe to state changes using the [`RxJS Observables`](https://rxjs.dev/guide/observable) defined on this class
+ * The `StreamVideoService` has two important tasks: 1. it lets you create a [StreamVideoClient](StreamVideoClient.md) instance to interact with our API, 2. you can subscribe to state changes using the [`RxJS Observables`](https://rxjs.dev/guide/observable) defined on this class.
  */
 @Injectable({
   providedIn: 'root',
 })
 export class StreamVideoService {
   /**
-   * The currently connected user
+   * The currently connected user.
    */
   user$: Observable<UserInput | undefined>;
   /**
-   * The call the current user participantes in
+   * The call the current user participates in.
    */
   activeCall$: Observable<Call | undefined>;
-  incomingRingCalls$: Observable<CallMeta.Call[]>;
   /**
-   * All participants of the current call (this includes the current user and other participants as well)
+   * All participants of the current call (this includes the current user and other participants as well).
    */
   activeCallAllParticipants$: Observable<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >;
   /**
-   * Remote participants of the current call (this includes every participant expect the logged in user)
+   * Remote participants of the current call (this includes every participant expect the logged-in user).
    */
   activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
   /**
-   * The local participant of the current call (the logged in user)
+   * The local participant of the current call (the logged-in user).
    */
   activeCallLocalParticipant$: Observable<
     StreamVideoLocalParticipant | undefined
   >;
   /**
-   * The `videoClient` lets interact with our API, please refer to the [`StreamVideoClient`](./StreamVideoClient.mdx) for more information
+   * The `videoClient` lets interact with our API, please refer to the [`StreamVideoClient`](./StreamVideoClient.mdx) for more information.
    */
   videoClient: StreamVideoClient | undefined;
   activeRingCallMeta$: Observable<CallMeta.Call | undefined>;
@@ -76,7 +75,7 @@ export class StreamVideoService {
   private subscriptions: Subscription[] = [];
 
   /**
-   * You don't need create a `StreamVideoService` instance directly, it will be available for you by importing the `StreamVideoModule` Angular module
+   * You don't need to create a `StreamVideoService` instance directly, it will be available for you by importing the `StreamVideoModule` Angular module.
    */
   constructor() {
     this.user$ = this.userSubject.asObservable();

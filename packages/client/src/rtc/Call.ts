@@ -72,7 +72,7 @@ export class Call {
   private statEventListeners: StatEventListener[];
 
   /**
-   * Use the `StreamVideoClient.joinCall` method to construct a `Call` instance
+   * Use the `StreamVideoClient.joinCall` method to construct a `Call` instance.
    * @param client
    * @param options
    * @param stateStore
@@ -111,7 +111,7 @@ export class Call {
 
   /**
    * You can subscribe to WebSocket events provided by the API. To remove a subscription, call the `off` method.
-   * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the reactive state store
+   * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the reactive state store.
    * @param eventName
    * @param fn
    * @returns
@@ -131,7 +131,7 @@ export class Call {
   };
 
   /**
-   * Leave the call and stop the media streams that were published by the call
+   * Leave the call and stop the media streams that were published by the call.
    */
   leave = () => {
     this.subscriber.close();
@@ -174,7 +174,7 @@ export class Call {
   };
 
   /**
-   * Joins the call and sets the necessary video and audio encoding configurations
+   * Joins the call and sets the necessary video and audio encoding configurations.
    * @param videoStream
    * @param audioStream
    * @returns
@@ -274,7 +274,7 @@ export class Call {
   };
 
   /**
-   * Starts publishing the given video and/or audio streams, the streams will be stopped if the user changes an input device, or if the user leaves the call
+   * Starts publishing the given video and/or audio streams, the streams will be stopped if the user changes an input device, or if the user leaves the call.
    * @param audioStream
    * @param videoStream
    * @param opts
@@ -372,7 +372,7 @@ export class Call {
   };
 
   /**
-   * A method for switching input device
+   * A method for switching an input device.
    * @param kind
    * @param deviceId
    * @param extras
@@ -478,7 +478,7 @@ export class Call {
   };
 
   /**
-   * TODO: this should be part of the state store
+   * TODO: this should be part of the state store.
    * @param kind
    * @param selector
    * @returns
@@ -508,7 +508,7 @@ export class Call {
   };
 
   /**
-   * Mute/unmute the video/audio stream of the current user
+   * Mute/unmute the video/audio stream of the current user.
    * @param trackKind
    * @param isMute
    * @returns

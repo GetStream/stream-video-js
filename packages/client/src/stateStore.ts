@@ -52,35 +52,35 @@ export class StreamVideoWriteableStateStore {
  */
 export class StreamVideoReadOnlyStateStore {
   /**
-   * The currently connected user
+   * The currently connected user.
    *
    */
   connectedUser$: Observable<UserInput | undefined>;
   /**
-   * The call the current user participant is in
+   * The call the current user participant is in.
    */
   activeCall$: Observable<Call | undefined>;
   activeRingCallMeta$: Observable<CallMeta | undefined>;
   activeRingCallDetails$: Observable<CallDetails | undefined>;
   incomingRingCalls$: Observable<CallMeta[]>;
   /**
-   * The ID of the currently speaking user
+   * The ID of the currently speaking user.
    */
   dominantSpeaker$: Observable<string | undefined>;
   terminatedRingCallMeta$: Observable<CallMeta | undefined>;
 
   /**
-   * All participants of the current call (this includes the current user and other participants as well)
+   * All participants of the current call (this includes the current user and other participants as well).
    */
   activeCallAllParticipants$: Observable<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >;
   /**
-   * Remote participants of the current call (this includes every participant except the logged in user)
+   * Remote participants of the current call (this includes every participant except the logged-in user).
    */
   activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
   /**
-   * The local participant of the current call (the logged in user)
+   * The local participant of the current call (the logged-in user).
    */
   activeCallLocalParticipant$: Observable<
     StreamVideoLocalParticipant | undefined
@@ -117,7 +117,7 @@ export class StreamVideoReadOnlyStateStore {
   }
 
   /**
-   * This method allows you the get the current value of a state variable
+   * This method allows you the get the current value of a state variable.
    * @param observable
    * @returns
    */
