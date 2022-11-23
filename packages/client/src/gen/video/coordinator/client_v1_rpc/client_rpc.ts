@@ -13,6 +13,8 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
+import { Broadcast } from "../broadcast_v1/broadcast";
+import { RTMPOptions } from "../broadcast_v1/broadcast";
 import { MediaStateChanged } from "../stat_v1/stat";
 import { ParticipantDisconnected } from "../stat_v1/stat";
 import { ParticipantConnected } from "../stat_v1/stat";
@@ -710,6 +712,98 @@ export interface ReviewCallRequest {
  * @generated from protobuf message stream.video.coordinator.client_v1_rpc.ReviewCallResponse
  */
 export interface ReviewCallResponse {
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.StartBroadcastRequest
+ */
+export interface StartBroadcastRequest {
+    /**
+     * Call type and id.
+     *
+     * @generated from protobuf field: string call_type = 1;
+     */
+    callType: string;
+    /**
+     * @generated from protobuf field: string call_id = 2;
+     */
+    callId: string;
+    /**
+     * Toggles HLS broadcasting on/off.
+     *
+     * @generated from protobuf field: bool hls_broadcast = 3;
+     */
+    hlsBroadcast: boolean;
+    /**
+     * Enables rtmp broadcasting.
+     *
+     * @generated from protobuf field: stream.video.coordinator.broadcast_v1.RTMPOptions rtmp = 5;
+     */
+    rtmp?: RTMPOptions;
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.StartBroadcastResponse
+ */
+export interface StartBroadcastResponse {
+    /**
+     * @generated from protobuf field: stream.video.coordinator.broadcast_v1.Broadcast broadcast = 1;
+     */
+    broadcast?: Broadcast;
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.StopBroadcastRequest
+ */
+export interface StopBroadcastRequest {
+    /**
+     * Call type and id.
+     *
+     * @generated from protobuf field: string call_type = 1;
+     */
+    callType: string;
+    /**
+     * @generated from protobuf field: string call_id = 2;
+     */
+    callId: string;
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.StopBroadcastResponse
+ */
+export interface StopBroadcastResponse {
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.StartRecordingRequest
+ */
+export interface StartRecordingRequest {
+    /**
+     * @generated from protobuf field: string call_type = 1;
+     */
+    callType: string;
+    /**
+     * @generated from protobuf field: string call_id = 2;
+     */
+    callId: string;
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.StartRecordingResponse
+ */
+export interface StartRecordingResponse {
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.StopRecordingRequest
+ */
+export interface StopRecordingRequest {
+    /**
+     * @generated from protobuf field: string call_type = 1;
+     */
+    callType: string;
+    /**
+     * @generated from protobuf field: string call_id = 2;
+     */
+    callId: string;
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.StopRecordingResponse
+ */
+export interface StopRecordingResponse {
 }
 /**
  * @generated from protobuf enum stream.video.coordinator.client_v1_rpc.UserEventType
@@ -3052,6 +3146,361 @@ class ReviewCallResponse$Type extends MessageType<ReviewCallResponse> {
  * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.ReviewCallResponse
  */
 export const ReviewCallResponse = new ReviewCallResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class StartBroadcastRequest$Type extends MessageType<StartBroadcastRequest> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.StartBroadcastRequest", [
+            { no: 1, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "hls_broadcast", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 5, name: "rtmp", kind: "message", T: () => RTMPOptions }
+        ]);
+    }
+    create(value?: PartialMessage<StartBroadcastRequest>): StartBroadcastRequest {
+        const message = { callType: "", callId: "", hlsBroadcast: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<StartBroadcastRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StartBroadcastRequest): StartBroadcastRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string call_type */ 1:
+                    message.callType = reader.string();
+                    break;
+                case /* string call_id */ 2:
+                    message.callId = reader.string();
+                    break;
+                case /* bool hls_broadcast */ 3:
+                    message.hlsBroadcast = reader.bool();
+                    break;
+                case /* stream.video.coordinator.broadcast_v1.RTMPOptions rtmp */ 5:
+                    message.rtmp = RTMPOptions.internalBinaryRead(reader, reader.uint32(), options, message.rtmp);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: StartBroadcastRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string call_type = 1; */
+        if (message.callType !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callType);
+        /* string call_id = 2; */
+        if (message.callId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.callId);
+        /* bool hls_broadcast = 3; */
+        if (message.hlsBroadcast !== false)
+            writer.tag(3, WireType.Varint).bool(message.hlsBroadcast);
+        /* stream.video.coordinator.broadcast_v1.RTMPOptions rtmp = 5; */
+        if (message.rtmp)
+            RTMPOptions.internalBinaryWrite(message.rtmp, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.StartBroadcastRequest
+ */
+export const StartBroadcastRequest = new StartBroadcastRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class StartBroadcastResponse$Type extends MessageType<StartBroadcastResponse> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.StartBroadcastResponse", [
+            { no: 1, name: "broadcast", kind: "message", T: () => Broadcast }
+        ]);
+    }
+    create(value?: PartialMessage<StartBroadcastResponse>): StartBroadcastResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<StartBroadcastResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StartBroadcastResponse): StartBroadcastResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.coordinator.broadcast_v1.Broadcast broadcast */ 1:
+                    message.broadcast = Broadcast.internalBinaryRead(reader, reader.uint32(), options, message.broadcast);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: StartBroadcastResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.coordinator.broadcast_v1.Broadcast broadcast = 1; */
+        if (message.broadcast)
+            Broadcast.internalBinaryWrite(message.broadcast, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.StartBroadcastResponse
+ */
+export const StartBroadcastResponse = new StartBroadcastResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class StopBroadcastRequest$Type extends MessageType<StopBroadcastRequest> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.StopBroadcastRequest", [
+            { no: 1, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<StopBroadcastRequest>): StopBroadcastRequest {
+        const message = { callType: "", callId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<StopBroadcastRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StopBroadcastRequest): StopBroadcastRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string call_type */ 1:
+                    message.callType = reader.string();
+                    break;
+                case /* string call_id */ 2:
+                    message.callId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: StopBroadcastRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string call_type = 1; */
+        if (message.callType !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callType);
+        /* string call_id = 2; */
+        if (message.callId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.callId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.StopBroadcastRequest
+ */
+export const StopBroadcastRequest = new StopBroadcastRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class StopBroadcastResponse$Type extends MessageType<StopBroadcastResponse> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.StopBroadcastResponse", []);
+    }
+    create(value?: PartialMessage<StopBroadcastResponse>): StopBroadcastResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<StopBroadcastResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StopBroadcastResponse): StopBroadcastResponse {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: StopBroadcastResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.StopBroadcastResponse
+ */
+export const StopBroadcastResponse = new StopBroadcastResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class StartRecordingRequest$Type extends MessageType<StartRecordingRequest> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.StartRecordingRequest", [
+            { no: 1, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<StartRecordingRequest>): StartRecordingRequest {
+        const message = { callType: "", callId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<StartRecordingRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StartRecordingRequest): StartRecordingRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string call_type */ 1:
+                    message.callType = reader.string();
+                    break;
+                case /* string call_id */ 2:
+                    message.callId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: StartRecordingRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string call_type = 1; */
+        if (message.callType !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callType);
+        /* string call_id = 2; */
+        if (message.callId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.callId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.StartRecordingRequest
+ */
+export const StartRecordingRequest = new StartRecordingRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class StartRecordingResponse$Type extends MessageType<StartRecordingResponse> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.StartRecordingResponse", []);
+    }
+    create(value?: PartialMessage<StartRecordingResponse>): StartRecordingResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<StartRecordingResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StartRecordingResponse): StartRecordingResponse {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: StartRecordingResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.StartRecordingResponse
+ */
+export const StartRecordingResponse = new StartRecordingResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class StopRecordingRequest$Type extends MessageType<StopRecordingRequest> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.StopRecordingRequest", [
+            { no: 1, name: "call_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "call_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<StopRecordingRequest>): StopRecordingRequest {
+        const message = { callType: "", callId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<StopRecordingRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StopRecordingRequest): StopRecordingRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string call_type */ 1:
+                    message.callType = reader.string();
+                    break;
+                case /* string call_id */ 2:
+                    message.callId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: StopRecordingRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string call_type = 1; */
+        if (message.callType !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.callType);
+        /* string call_id = 2; */
+        if (message.callId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.callId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.StopRecordingRequest
+ */
+export const StopRecordingRequest = new StopRecordingRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class StopRecordingResponse$Type extends MessageType<StopRecordingResponse> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.StopRecordingResponse", []);
+    }
+    create(value?: PartialMessage<StopRecordingResponse>): StopRecordingResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<StopRecordingResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StopRecordingResponse): StopRecordingResponse {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: StopRecordingResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.StopRecordingResponse
+ */
+export const StopRecordingResponse = new StopRecordingResponse$Type();
 /**
  * @generated ServiceType for protobuf service stream.video.coordinator.client_v1_rpc.ClientRPC
  */
@@ -3068,6 +3517,10 @@ export const ClientRPC = new ServiceType("stream.video.coordinator.client_v1_rpc
     { name: "CreateDevice", options: {}, I: CreateDeviceRequest, O: CreateDeviceResponse },
     { name: "DeleteDevice", options: {}, I: DeleteDeviceRequest, O: DeleteDeviceResponse },
     { name: "QueryDevices", options: {}, I: QueryDevicesRequest, O: QueryDevicesResponse },
+    { name: "StartBroadcast", options: {}, I: StartBroadcastRequest, O: StartBroadcastResponse },
+    { name: "StopBroadcast", options: {}, I: StopBroadcastRequest, O: StopBroadcastResponse },
+    { name: "StartRecording", options: {}, I: StartRecordingRequest, O: StartRecordingResponse },
+    { name: "StopRecording", options: {}, I: StopRecordingRequest, O: StopRecordingResponse },
     { name: "UpsertCallMembers", options: {}, I: UpsertCallMembersRequest, O: UpsertCallMembersResponse },
     { name: "DeleteCallMembers", options: {}, I: DeleteCallMembersRequest, O: DeleteCallMembersResponse },
     { name: "SendEvent", options: {}, I: SendEventRequest, O: SendEventResponse },

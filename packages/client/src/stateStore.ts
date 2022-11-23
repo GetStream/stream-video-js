@@ -35,6 +35,7 @@ export class StreamVideoWriteableStateStore {
     StreamVideoParticipant[]
   >([]);
   dominantSpeakerSubject = new BehaviorSubject<string | undefined>(undefined);
+  callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
 
   getCurrentValue<T>(subject: BehaviorSubject<T>) {
     return subject.getValue();
@@ -61,6 +62,7 @@ export class StreamVideoReadOnlyStateStore {
   activeCallLocalParticipant$: Observable<
     StreamVideoLocalParticipant | undefined
   >;
+  callRecordingInProgress$: Observable<boolean>;
 
   constructor(writeableStateStore: StreamVideoWriteableStateStore) {
     this.connectedUser$ =
@@ -87,6 +89,8 @@ export class StreamVideoReadOnlyStateStore {
     this.activeCallRemoteParticipants$ = this.activeCallAllParticipants$.pipe(
       map((participants) => participants.filter((p) => !p.isLoggedInUser)),
     );
+    this.callRecordingInProgress$ =
+      writeableStateStore.callRecordingInProgressSubject.asObservable();
   }
 
   getCurrentValue<T>(observable: Observable<T>) {
