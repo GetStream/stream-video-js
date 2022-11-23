@@ -23,6 +23,9 @@ export type AggregatedStatsReport = {
   totalBytesReceived: number;
   averageJitterInMs: number;
   qualityLimitationReasons: string;
+  highestFrameWidth: number;
+  highestFrameHeight: number;
+  highestFramesPerSecond: number;
   timestamp: number;
 };
 

@@ -230,8 +230,14 @@ const aggregate = (stats: StatsReport): AggregatedStatsReport => {
     totalBytesReceived: 0,
     averageJitterInMs: 0,
     qualityLimitationReasons: 'none',
+    highestFrameWidth: 0,
+    highestFrameHeight: 0,
+    highestFramesPerSecond: 0,
     timestamp: Date.now(),
   };
+
+  let maxArea = -1;
+  const area = (w: number, h: number) => w * h;
 
   const qualityLimitationReasons = new Set<string>();
   const streams = stats.streams;
@@ -239,6 +245,15 @@ const aggregate = (stats: StatsReport): AggregatedStatsReport => {
     acc.totalBytesSent += stream.bytesSent || 0;
     acc.totalBytesReceived += stream.bytesReceived || 0;
     acc.averageJitterInMs += stream.jitter || 0;
+
+    // naive calculation of the highest resolution
+    const streamArea = area(stream.frameWidth || 0, stream.frameHeight || 0);
+    if (streamArea > maxArea) {
+      acc.highestFrameWidth = stream.frameWidth || 0;
+      acc.highestFrameHeight = stream.frameHeight || 0;
+      acc.highestFramesPerSecond = stream.framesPerSecond || 0;
+      maxArea = streamArea;
+    }
 
     qualityLimitationReasons.add(stream.qualityLimitationReason || '');
     return acc;

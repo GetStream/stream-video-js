@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePopper } from 'react-popper';
-import { CallStatsReport } from '@stream-io/video-client';
+import {
+  AggregatedStatsReport,
+  CallStatsReport,
+} from '@stream-io/video-client';
 import { useLatestStats } from '../../hooks/useParticipants';
 import { CallStatsLatencyChart } from './CallStatsLatencyChart';
 
@@ -97,6 +100,14 @@ export const CallStats = (props: {
               label="Quality drop reason"
               value={callStatsReport.publisherStats.qualityLimitationReasons}
             />
+            <StatCard
+              label="Publish resolution"
+              value={toFrameSize(callStatsReport.publisherStats)}
+            />
+            <StatCard
+              label="Receiving resolution"
+              value={toFrameSize(callStatsReport.subscriberStats)}
+            />
             <StatCard label="Publish bitrate" value={publishBitrate} />
             <StatCard label="Receiving bitrate" value={subscribeBitrate} />
           </div>
@@ -114,6 +125,22 @@ const StatCard = (props: { label: string; value: string }) => {
       <div className="str-video__call-stats__card_value">{value}</div>
     </div>
   );
+};
+
+const toFrameSize = (stats: AggregatedStatsReport) => {
+  const {
+    highestFrameWidth: w,
+    highestFrameHeight: h,
+    highestFramesPerSecond: fps,
+  } = stats;
+  let size = `-`;
+  if (w && h) {
+    size = `${w}x${h}`;
+    if (fps) {
+      size += `@${fps}fps.`;
+    }
+  }
+  return size;
 };
 
 const calculatePublishBitrate = (
