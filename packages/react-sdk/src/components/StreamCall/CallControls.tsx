@@ -20,6 +20,7 @@ export const CallControls = (props: {
     <div className="str-video__call-controls">
       <Button
         icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
+        title="Record call"
         onClick={() => {
           if (!callMeta) return;
           if (isCallRecordingInProgress) {
@@ -58,8 +59,9 @@ const Button = (props: {
   icon: string;
   variant?: string;
   onClick?: () => void;
+  [prop: string]: any;
 }) => {
-  const { icon, variant, onClick } = props;
+  const { icon, variant, onClick, ...rest } = props;
   return (
     <button
       onClick={(e) => {
@@ -71,6 +73,7 @@ const Button = (props: {
         icon && `str-video__call-controls__button--icon-${icon}`,
         variant && `str-video__call-controls__button--variant-${variant}`,
       )}
+      {...rest}
     />
   );
 };
