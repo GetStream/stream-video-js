@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { Call } from '@stream-io/video-client';
-import { useParticipants } from '../../hooks/useParticipants';
+import { useParticipants } from '@stream-io/video-react-bindings';
 export const CallControls = (props: { call: Call }) => {
   const { call } = props;
   const participants = useParticipants();

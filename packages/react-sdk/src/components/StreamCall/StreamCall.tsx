@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { CallState } from '@stream-io/video-client/src/gen/video/sfu/models/models';
 import { Stage } from './Stage';
 import { Stats } from '../Stats';
-import { useStreamVideoClient } from '../../StreamVideo';
 import { Ping } from '../Ping';
 import { useCall } from '../../hooks/useCall';
 import { DeviceSettings } from './DeviceSettings';
 import { MediaDevicesProvider } from '../../contexts/MediaDevicesContext';
 import { CallControls } from './CallControls';
 import { CreateCallInput } from '@stream-io/video-client';
+import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 
 export type CallProps = {
   currentUser: string;
