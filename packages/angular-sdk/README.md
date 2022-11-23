@@ -34,7 +34,7 @@ Follow the instructions for setting up [`stream-chat-docusaurus-cli`](https://gi
 
 The documentation can be found in `docusaurus` folder.
 
-Some (but not all) parts of the documentation is generated from the source code, run the `yarn run init-docs:angular` command to trigger documentation generation.
+Some (but not all) parts of the documentation is generated from the source code, run the `yarn run generate-docs:angular` command to trigger documentation generation.
 
 The command doesn't have a "watch" function, so you'll have to rerun the command whenever the relevant source code is changed and you want to generate the documentaiton.
 
