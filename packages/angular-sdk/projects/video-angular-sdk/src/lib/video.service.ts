@@ -40,6 +40,7 @@ export class StreamVideoService {
   activeCallLocalParticipant$: Observable<
     StreamVideoLocalParticipant | undefined
   >;
+  incomingRingCalls$: Observable<CallMeta.Call[]>;
   /**
    * The `videoClient` lets interact with our API, please refer to the [`StreamVideoClient`](./StreamVideoClient.mdx) for more information.
    */
