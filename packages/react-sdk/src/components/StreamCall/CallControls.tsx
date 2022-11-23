@@ -1,15 +1,37 @@
 import clsx from 'clsx';
-import { Call } from '@stream-io/video-client';
-import { useParticipants } from '@stream-io/video-react-bindings';
-export const CallControls = (props: { call: Call }) => {
-  const { call } = props;
+import { Call, CallMeta } from '@stream-io/video-client';
+import {
+  useParticipants,
+  useStreamVideoClient,
+  useIsCallRecordingInProgress,
+} from '@stream-io/video-react-bindings';
+
+export const CallControls = (props: {
+  call: Call;
+  callMeta?: CallMeta.Call;
+}) => {
+  const { call, callMeta } = props;
+  const client = useStreamVideoClient();
   const participants = useParticipants();
+  const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const localParticipant = participants.find((p) => p.isLoggedInUser);
   const isAudioMute = !localParticipant?.audio;
   const isVideoMute = !localParticipant?.video;
 
   return (
     <div className="str-video__call-controls">
+      <Button
+        icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
+        title="Record call"
+        onClick={() => {
+          if (!callMeta) return;
+          if (isCallRecordingInProgress) {
+            client?.stopRecording(callMeta.id, callMeta.type);
+          } else {
+            client?.startRecording(callMeta.id, callMeta.type);
+          }
+        }}
+      />
       <Button
         icon={isAudioMute ? 'mic-off' : 'mic'}
         onClick={() => {
@@ -39,8 +61,9 @@ const Button = (props: {
   icon: string;
   variant?: string;
   onClick?: () => void;
+  [prop: string]: any;
 }) => {
-  const { icon, variant, onClick } = props;
+  const { icon, variant, onClick, ...rest } = props;
   return (
     <button
       onClick={(e) => {
@@ -52,6 +75,7 @@ const Button = (props: {
         icon && `str-video__call-controls__button--icon-${icon}`,
         variant && `str-video__call-controls__button--variant-${variant}`,
       )}
+      {...rest}
     />
   );
 };

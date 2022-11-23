@@ -125,6 +125,11 @@ export class Call {
     });
     this.publisher.close();
     this.client.close();
+
+    this.stateStore.setCurrentValue(
+      this.stateStore.callRecordingInProgressSubject,
+      false,
+    );
     this.stateStore.setCurrentValue(
       this.stateStore.activeCallSubject,
       undefined,

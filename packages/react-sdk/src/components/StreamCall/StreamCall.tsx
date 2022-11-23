@@ -73,7 +73,7 @@ export const StreamCall = ({
                   participants={sfuCallState.participants}
                   call={activeCall}
                 />
-                <CallControls call={activeCall} />
+                <CallControls call={activeCall} callMeta={activeCallMeta} />
               </>
             )}
             {activeCallMeta && (

@@ -21,6 +21,14 @@ import type { DeleteCallMembersResponse } from "./client_rpc";
 import type { DeleteCallMembersRequest } from "./client_rpc";
 import type { UpsertCallMembersResponse } from "./client_rpc";
 import type { UpsertCallMembersRequest } from "./client_rpc";
+import type { StopRecordingResponse } from "./client_rpc";
+import type { StopRecordingRequest } from "./client_rpc";
+import type { StartRecordingResponse } from "./client_rpc";
+import type { StartRecordingRequest } from "./client_rpc";
+import type { StopBroadcastResponse } from "./client_rpc";
+import type { StopBroadcastRequest } from "./client_rpc";
+import type { StartBroadcastResponse } from "./client_rpc";
+import type { StartBroadcastRequest } from "./client_rpc";
 import type { QueryDevicesResponse } from "./client_rpc";
 import type { QueryDevicesRequest } from "./client_rpc";
 import type { DeleteDeviceResponse } from "./client_rpc";
@@ -121,6 +129,26 @@ export interface IClientRPCClient {
     queryDevices(input: QueryDevicesRequest, options?: RpcOptions): UnaryCall<QueryDevicesRequest, QueryDevicesResponse>;
     // UNSTABLE ENDPOINTS BELOW
 
+    /**
+     * starts broadcast to HLS and/or RTMP, replaces existing settings if broadcasting is already started
+     *
+     * @generated from protobuf rpc: StartBroadcast(stream.video.coordinator.client_v1_rpc.StartBroadcastRequest) returns (stream.video.coordinator.client_v1_rpc.StartBroadcastResponse);
+     */
+    startBroadcast(input: StartBroadcastRequest, options?: RpcOptions): UnaryCall<StartBroadcastRequest, StartBroadcastResponse>;
+    /**
+     * stops broadcasting to HLS and/or RTMP
+     *
+     * @generated from protobuf rpc: StopBroadcast(stream.video.coordinator.client_v1_rpc.StopBroadcastRequest) returns (stream.video.coordinator.client_v1_rpc.StopBroadcastResponse);
+     */
+    stopBroadcast(input: StopBroadcastRequest, options?: RpcOptions): UnaryCall<StopBroadcastRequest, StopBroadcastResponse>;
+    /**
+     * @generated from protobuf rpc: StartRecording(stream.video.coordinator.client_v1_rpc.StartRecordingRequest) returns (stream.video.coordinator.client_v1_rpc.StartRecordingResponse);
+     */
+    startRecording(input: StartRecordingRequest, options?: RpcOptions): UnaryCall<StartRecordingRequest, StartRecordingResponse>;
+    /**
+     * @generated from protobuf rpc: StopRecording(stream.video.coordinator.client_v1_rpc.StopRecordingRequest) returns (stream.video.coordinator.client_v1_rpc.StopRecordingResponse);
+     */
+    stopRecording(input: StopRecordingRequest, options?: RpcOptions): UnaryCall<StopRecordingRequest, StopRecordingResponse>;
     // UpdateMembers creates or updates members in a room.
 
     /**
@@ -293,6 +321,38 @@ export class ClientRPCClient implements IClientRPCClient, ServiceInfo {
     }
     // UNSTABLE ENDPOINTS BELOW
 
+    /**
+     * starts broadcast to HLS and/or RTMP, replaces existing settings if broadcasting is already started
+     *
+     * @generated from protobuf rpc: StartBroadcast(stream.video.coordinator.client_v1_rpc.StartBroadcastRequest) returns (stream.video.coordinator.client_v1_rpc.StartBroadcastResponse);
+     */
+    startBroadcast(input: StartBroadcastRequest, options?: RpcOptions): UnaryCall<StartBroadcastRequest, StartBroadcastResponse> {
+        const method = this.methods[12], opt = this._transport.mergeOptions(options);
+        return stackIntercept<StartBroadcastRequest, StartBroadcastResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * stops broadcasting to HLS and/or RTMP
+     *
+     * @generated from protobuf rpc: StopBroadcast(stream.video.coordinator.client_v1_rpc.StopBroadcastRequest) returns (stream.video.coordinator.client_v1_rpc.StopBroadcastResponse);
+     */
+    stopBroadcast(input: StopBroadcastRequest, options?: RpcOptions): UnaryCall<StopBroadcastRequest, StopBroadcastResponse> {
+        const method = this.methods[13], opt = this._transport.mergeOptions(options);
+        return stackIntercept<StopBroadcastRequest, StopBroadcastResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: StartRecording(stream.video.coordinator.client_v1_rpc.StartRecordingRequest) returns (stream.video.coordinator.client_v1_rpc.StartRecordingResponse);
+     */
+    startRecording(input: StartRecordingRequest, options?: RpcOptions): UnaryCall<StartRecordingRequest, StartRecordingResponse> {
+        const method = this.methods[14], opt = this._transport.mergeOptions(options);
+        return stackIntercept<StartRecordingRequest, StartRecordingResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: StopRecording(stream.video.coordinator.client_v1_rpc.StopRecordingRequest) returns (stream.video.coordinator.client_v1_rpc.StopRecordingResponse);
+     */
+    stopRecording(input: StopRecordingRequest, options?: RpcOptions): UnaryCall<StopRecordingRequest, StopRecordingResponse> {
+        const method = this.methods[15], opt = this._transport.mergeOptions(options);
+        return stackIntercept<StopRecordingRequest, StopRecordingResponse>("unary", this._transport, method, opt, input);
+    }
     // UpdateMembers creates or updates members in a room.
 
     /**
@@ -301,7 +361,7 @@ export class ClientRPCClient implements IClientRPCClient, ServiceInfo {
      * @generated from protobuf rpc: UpsertCallMembers(stream.video.coordinator.client_v1_rpc.UpsertCallMembersRequest) returns (stream.video.coordinator.client_v1_rpc.UpsertCallMembersResponse);
      */
     upsertCallMembers(input: UpsertCallMembersRequest, options?: RpcOptions): UnaryCall<UpsertCallMembersRequest, UpsertCallMembersResponse> {
-        const method = this.methods[12], opt = this._transport.mergeOptions(options);
+        const method = this.methods[16], opt = this._transport.mergeOptions(options);
         return stackIntercept<UpsertCallMembersRequest, UpsertCallMembersResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -310,21 +370,21 @@ export class ClientRPCClient implements IClientRPCClient, ServiceInfo {
      * @generated from protobuf rpc: DeleteCallMembers(stream.video.coordinator.client_v1_rpc.DeleteCallMembersRequest) returns (stream.video.coordinator.client_v1_rpc.DeleteCallMembersResponse);
      */
     deleteCallMembers(input: DeleteCallMembersRequest, options?: RpcOptions): UnaryCall<DeleteCallMembersRequest, DeleteCallMembersResponse> {
-        const method = this.methods[13], opt = this._transport.mergeOptions(options);
+        const method = this.methods[17], opt = this._transport.mergeOptions(options);
         return stackIntercept<DeleteCallMembersRequest, DeleteCallMembersResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SendEvent(stream.video.coordinator.client_v1_rpc.SendEventRequest) returns (stream.video.coordinator.client_v1_rpc.SendEventResponse);
      */
     sendEvent(input: SendEventRequest, options?: RpcOptions): UnaryCall<SendEventRequest, SendEventResponse> {
-        const method = this.methods[14], opt = this._transport.mergeOptions(options);
+        const method = this.methods[18], opt = this._transport.mergeOptions(options);
         return stackIntercept<SendEventRequest, SendEventResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SendCustomEvent(stream.video.coordinator.client_v1_rpc.SendCustomEventRequest) returns (stream.video.coordinator.client_v1_rpc.SendCustomEventResponse);
      */
     sendCustomEvent(input: SendCustomEventRequest, options?: RpcOptions): UnaryCall<SendCustomEventRequest, SendCustomEventResponse> {
-        const method = this.methods[15], opt = this._transport.mergeOptions(options);
+        const method = this.methods[19], opt = this._transport.mergeOptions(options);
         return stackIntercept<SendCustomEventRequest, SendCustomEventResponse>("unary", this._transport, method, opt, input);
     }
     // room is a confusing name. better to call it breakout room
@@ -344,7 +404,7 @@ export class ClientRPCClient implements IClientRPCClient, ServiceInfo {
      * @generated from protobuf rpc: ReportCallStats(stream.video.coordinator.client_v1_rpc.ReportCallStatsRequest) returns (stream.video.coordinator.client_v1_rpc.ReportCallStatsResponse);
      */
     reportCallStats(input: ReportCallStatsRequest, options?: RpcOptions): UnaryCall<ReportCallStatsRequest, ReportCallStatsResponse> {
-        const method = this.methods[16], opt = this._transport.mergeOptions(options);
+        const method = this.methods[20], opt = this._transport.mergeOptions(options);
         return stackIntercept<ReportCallStatsRequest, ReportCallStatsResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -353,7 +413,7 @@ export class ClientRPCClient implements IClientRPCClient, ServiceInfo {
      * @generated from protobuf rpc: ReportCallStatEvent(stream.video.coordinator.client_v1_rpc.ReportCallStatEventRequest) returns (stream.video.coordinator.client_v1_rpc.ReportCallStatEventResponse);
      */
     reportCallStatEvent(input: ReportCallStatEventRequest, options?: RpcOptions): UnaryCall<ReportCallStatEventRequest, ReportCallStatEventResponse> {
-        const method = this.methods[17], opt = this._transport.mergeOptions(options);
+        const method = this.methods[21], opt = this._transport.mergeOptions(options);
         return stackIntercept<ReportCallStatEventRequest, ReportCallStatEventResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -362,7 +422,7 @@ export class ClientRPCClient implements IClientRPCClient, ServiceInfo {
      * @generated from protobuf rpc: ReviewCall(stream.video.coordinator.client_v1_rpc.ReviewCallRequest) returns (stream.video.coordinator.client_v1_rpc.ReviewCallResponse);
      */
     reviewCall(input: ReviewCallRequest, options?: RpcOptions): UnaryCall<ReviewCallRequest, ReviewCallResponse> {
-        const method = this.methods[18], opt = this._transport.mergeOptions(options);
+        const method = this.methods[22], opt = this._transport.mergeOptions(options);
         return stackIntercept<ReviewCallRequest, ReviewCallResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -371,7 +431,7 @@ export class ClientRPCClient implements IClientRPCClient, ServiceInfo {
      * @generated from protobuf rpc: ReportIssue(stream.video.coordinator.client_v1_rpc.ReportIssueRequest) returns (stream.video.coordinator.client_v1_rpc.ReportIssueResponse);
      */
     reportIssue(input: ReportIssueRequest, options?: RpcOptions): UnaryCall<ReportIssueRequest, ReportIssueResponse> {
-        const method = this.methods[19], opt = this._transport.mergeOptions(options);
+        const method = this.methods[23], opt = this._transport.mergeOptions(options);
         return stackIntercept<ReportIssueRequest, ReportIssueResponse>("unary", this._transport, method, opt, input);
     }
 }

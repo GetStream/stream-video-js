@@ -1,5 +1,5 @@
 import { useObservableValue } from './helpers/useObservableValue';
-import { useStore } from './useStore';
+import { useStore } from './store';
 
 export const useParticipants = () => {
   const { activeCallAllParticipants$ } = useStore();

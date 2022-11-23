@@ -1,3 +1,3 @@
-export * from './useDominantSpeaker';
-export * from './useParticipants';
-export * from './useStore';
+export * from './call';
+export * from './participants';
+export * from './store';
