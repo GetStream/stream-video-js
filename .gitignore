@@ -16,7 +16,10 @@ dist
 .vercel
 .vscode
 .angular
-docs
 .env
 
 .eslintcache
+.idea
+
+
+/**/generated-docs

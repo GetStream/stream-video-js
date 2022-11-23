@@ -1,1 +1,1 @@
-# RN SDK placeholder
+# @stream-io/react-native-sdk
