@@ -84,7 +84,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 const Ringing = ({ navigation }: Props) => {
   const [loading, setLoading] = useState(false);
-  const [ringingUserIds, setRingingUserIds] = useState<string>('');
+  const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
@@ -115,11 +115,17 @@ const Ringing = ({ navigation }: Props) => {
     if (videoClient && localMediaStream) {
       try {
         const callID = uuidv4().toLowerCase();
+        let ringingUserIds = !ringingUserIdsText
+          ? ringingUsers
+          : ringingUserIdsText.split(',');
+        if (ringingUserIdsText !== '') {
+          setState({ ringingUsers: ringingUserIds });
+        }
         await setState({ ringingCallID: callID });
         await joinCall(videoClient, localMediaStream, {
           autoJoin: true,
           ring: true,
-          members: ringingUsers.map((user) => {
+          members: ringingUserIds.map((user) => {
             return {
               userId: user,
               role: 'member',
@@ -135,11 +141,6 @@ const Ringing = ({ navigation }: Props) => {
         console.log(err);
       }
     }
-  };
-
-  const confirmHandler = () => {
-    const userIds = ringingUserIds.split(',');
-    setState({ ringingUsers: userIds });
   };
 
   const ringingUsersSetHandler = (userId: string) => {
@@ -160,18 +161,11 @@ const Ringing = ({ navigation }: Props) => {
         <TextInput
           placeholder="Enter comma separated User Ids"
           style={styles.textInput}
-          value={ringingUserIds}
+          value={ringingUserIdsText}
           onChangeText={(value) => {
-            setRingingUserIds(value);
+            setRingingUserIdsText(value);
           }}
         />
-        <Pressable
-          style={styles.confirmButton}
-          onPress={confirmHandler}
-          disabled={ringingUserIds === ''}
-        >
-          <Text style={styles.buttonText}>Confirm</Text>
-        </Pressable>
       </View>
       <Text style={styles.orText}>Or</Text>
       <View style={styles.participantsContainer}>
@@ -184,7 +178,6 @@ const Ringing = ({ navigation }: Props) => {
                 style={styles.participant}
                 key={user.id}
                 onPress={() => ringingUsersSetHandler(user.id)}
-                disabled={ringingUserIds !== ''}
               >
                 <Text
                   style={[
@@ -201,7 +194,7 @@ const Ringing = ({ navigation }: Props) => {
           })}
       </View>
       <Button
-        disabled={ringingUsers.length === 0}
+        disabled={ringingUserIdsText === '' && ringingUsers.length === 0}
         title="Start a Call"
         onPress={startCallHandler}
       />
