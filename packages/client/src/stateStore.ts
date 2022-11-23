@@ -46,19 +46,42 @@ export class StreamVideoWriteableStateStore {
   }
 }
 
+/**
+ * A reactive store that exposes state variables in a reactive manner - you can subscribe to changes of the different state variables. This central store contains all the state variables related to [`StreamVideoClient`](./StreamVideClient.md) and [`Call`](./Call.md).
+ *
+ */
 export class StreamVideoReadOnlyStateStore {
+  /**
+   * The currently connected user
+   *
+   */
   connectedUser$: Observable<UserInput | undefined>;
+  /**
+   * The call the current user participant is in
+   */
   activeCall$: Observable<Call | undefined>;
   activeRingCallMeta$: Observable<CallMeta | undefined>;
   activeRingCallDetails$: Observable<CallDetails | undefined>;
   incomingRingCalls$: Observable<CallMeta[]>;
+  /**
+   * The ID of the currently speaking user
+   */
   dominantSpeaker$: Observable<string | undefined>;
   terminatedRingCallMeta$: Observable<CallMeta | undefined>;
 
+  /**
+   * All participants of the current call (this includes the current user and other participants as well)
+   */
   activeCallAllParticipants$: Observable<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >;
+  /**
+   * Remote participants of the current call (this includes every participant except the logged in user)
+   */
   activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
+  /**
+   * The local participant of the current call (the logged in user)
+   */
   activeCallLocalParticipant$: Observable<
     StreamVideoLocalParticipant | undefined
   >;
@@ -93,6 +116,11 @@ export class StreamVideoReadOnlyStateStore {
       writeableStateStore.callRecordingInProgressSubject.asObservable();
   }
 
+  /**
+   * This method allows you the get the current value of a state variable
+   * @param observable
+   * @returns
+   */
   getCurrentValue<T>(observable: Observable<T>) {
     let value!: T;
     observable.pipe(take(1)).subscribe((v) => (value = v));

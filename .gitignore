@@ -16,7 +16,7 @@ dist
 .vercel
 .vscode
 .angular
-docs
+generated-docs
 .env
 
 .eslintcache
