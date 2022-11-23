@@ -5,7 +5,7 @@ import { GetServerSidePropsContext } from 'next';
 import { createToken } from '../../helpers/jwt';
 import {
   useCreateStreamVideoClient,
-  StreamVideoContextProvider as StreamVideo,
+  StreamVideo,
   StreamCall,
 } from '@stream-io/video-react-sdk';
 import { UserInput } from '@stream-io/video-client';
