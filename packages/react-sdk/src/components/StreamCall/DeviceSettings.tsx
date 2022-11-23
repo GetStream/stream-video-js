@@ -1,8 +1,8 @@
 import { Call } from '@stream-io/video-client';
+import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { useState } from 'react';
 import { usePopper } from 'react-popper';
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';
-import { useLocalParticipant } from '../../hooks/useParticipants';
 
 export const DeviceSettings = (props: { activeCall: Call }) => {
   const { activeCall } = props;
