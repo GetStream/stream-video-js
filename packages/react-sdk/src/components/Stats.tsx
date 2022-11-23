@@ -1,5 +1,15 @@
 import { useEffect } from 'react';
-import { Call, CallMeta, StreamVideoClient } from '@stream-io/video-client';
+import {
+  Call,
+  CallMeta,
+  MediaDirection,
+  MediaType,
+  ReportCallStatEventRequest,
+  StatEvent,
+  StatEventListener,
+  StreamVideoClient,
+  Timestamp,
+} from '@stream-io/video-client';
 
 export interface StatsProps {
   client: StreamVideoClient;
@@ -16,6 +26,41 @@ const getStats = (stats: RTCStatsReport) => {
   });
 
   return new TextEncoder().encode(JSON.stringify(s));
+};
+
+const makeStatEvent = (
+  e: StatEvent,
+): ReportCallStatEventRequest['event'] | undefined => {
+  switch (e.type) {
+    case 'media_state_changed': {
+      const { change, reason, track } = e;
+      const mediaTypes: Record<MediaStreamTrack['kind'], MediaType> = {
+        audio: MediaType.AUDIO,
+        video: MediaType.VIDEO,
+      };
+      return {
+        oneofKind: 'mediaStateChanged',
+        mediaStateChanged: {
+          change,
+          reason,
+          mediaType: mediaTypes[track.kind],
+          direction: MediaDirection.SEND,
+        },
+      };
+    }
+    case 'participant_joined':
+      return {
+        oneofKind: 'participantConnected',
+        participantConnected: {},
+      };
+    case 'participant_left':
+      return {
+        oneofKind: 'participantDisconnected',
+        participantDisconnected: {},
+      };
+    default:
+      return undefined;
+  }
 };
 
 export const Stats = ({ client, call, activeCall }: StatsProps) => {
@@ -38,7 +83,23 @@ export const Stats = ({ client, call, activeCall }: StatsProps) => {
     return () => {
       clearInterval(intervalId);
     };
-  }, [activeCall.callCid, activeCall.id, activeCall.type, call, client]);
+  }, [activeCall.callCid, call, client]);
+
+  useEffect(() => {
+    const handleStatEvent: StatEventListener = (e) => {
+      const event = makeStatEvent(e);
+      if (event) {
+        client.reportCallStatEvent({
+          callCid: activeCall.callCid,
+          timestamp: Timestamp.fromDate(new Date()),
+          event,
+        });
+      }
+    };
+
+    call.onStatEvent(handleStatEvent);
+    return () => call.offStatEvent(handleStatEvent);
+  }, [activeCall.callCid, call, client]);
 
   return null;
 };

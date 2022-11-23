@@ -5,7 +5,7 @@ import {
   CssBaseline,
   ThemeProvider,
 } from '@mui/material';
-import { CreateCallInput, Struct, UserInput } from '@stream-io/video-client';
+import { CreateCallInput, UserInput } from '@stream-io/video-client';
 import {
   StreamCall,
   StreamVideo,
@@ -21,11 +21,12 @@ import '@stream-io/video-styling/dist/css/styles.css';
 export type Participants = { [name: string]: string };
 const participants: Participants = {
   marcelo:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdHJlYW0tdmlkZW8tZ29AdjAuMS4wIiwic3ViIjoidXNlci9tYXJjZWxvIiwiaWF0IjoxNjYzNzc1MjA4LCJ1c2VyX2lkIjoibWFyY2VsbyJ9.1g7cO9RV4f89zeaRXa7ED2WyAKQ6DX3Pj1Qlbt5N8hg',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoibWFyY2VsbyJ9.Nhth6nZUqQ6mSz05VAnGGJNRQewpQfqK9reYMYq67NM',
   anatoly:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdHJlYW0tdmlkZW8tZ29AdjAuMS4wIiwic3ViIjoidXNlci9hbmF0b2x5IiwiaWF0IjoxNjYzODUxODkyLCJ1c2VyX2lkIjoiYW5hdG9seSJ9.GG9bkn_jOrJQGiM-pUN5LN0bIgExFnUUIZVLYWaymXQ',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYW5hdG9seSJ9.wR_ZBBq4izCxlBTgE9eXlNSMEgC0nLqoEIMH-95l4G8',
   tommaso:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdHJlYW0tdmlkZW8tZ29AdjAuMS4wIiwic3ViIjoidXNlci90b21tYXNvIiwiaWF0IjoxNjYzODUxOTE2LCJ1c2VyX2lkIjoidG9tbWFzbyJ9.KfNas7CBQCDwNA9FBpEd6V2XK7ICrZJLpwXwQHo3M6M',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidG9tbWFzbyJ9.p9f9Lp4znTHK73hyFI0JNlxMwUnDU1wJhxjs-UpDg4M',
+  sam: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoic2FtIn0.uX5xmuSRvVwuxjtxcVXxGYLZIVSfwc4yg8etCqrFVYU',
 };
 
 const theme = createTheme({
@@ -74,7 +75,7 @@ const App = () => {
     coordinatorRpcUrl: '/rpc',
     coordinatorWsUrl:
       'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
-    apiKey: 'key10', // see <video>/data/fixtures/apps.yaml for API secret
+    apiKey: 'us83cfwuhy8n', // see <video>/data/fixtures/apps.yaml for API key/secret
     token: participants[currentUser],
     user,
   });
@@ -84,9 +85,9 @@ const App = () => {
     setCallType('default');
     setCallInput({
       members: participants.map((userId) => ({
-        role: 'admin',
-        customJson: Struct.toBinary(Struct.fromJson({})),
         userId,
+        role: 'admin',
+        customJson: new TextEncoder().encode(JSON.stringify({})),
       })),
     });
   };

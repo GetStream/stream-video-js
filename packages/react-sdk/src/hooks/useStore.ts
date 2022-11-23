@@ -23,6 +23,12 @@ export const useObservableValue = <T>(observable$: Observable<T>) => {
   return value;
 };
 
+// FIXME OL: find appropriate place for this
+export const useIsCallRecordingInProgress = () => {
+  const { callRecordingInProgress$ } = useStore();
+  return useObservableValue(callRecordingInProgress$);
+};
+
 // FIXME OL: duplicate of StreamVideoReadOnlyStateStore.getCurrentValue, perhaps export as an util?
 const getCurrentValue = <T>(observable$: Observable<T>) => {
   let value!: T;

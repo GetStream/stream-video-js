@@ -1,9 +1,16 @@
 import clsx from 'clsx';
-import { Call, SfuModels } from '@stream-io/video-client';
+import { Call, CallMeta, SfuModels } from '@stream-io/video-client';
 import { useLocalParticipant } from '../../hooks/useParticipants';
+import { useStreamVideoClient } from '../../StreamVideo';
+import { useIsCallRecordingInProgress } from '../../hooks/useStore';
 
-export const CallControls = (props: { call: Call }) => {
-  const { call } = props;
+export const CallControls = (props: {
+  call: Call;
+  callMeta?: CallMeta.Call;
+}) => {
+  const { call, callMeta } = props;
+  const client = useStreamVideoClient();
+  const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const localParticipant = useLocalParticipant();
   const isAudioMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackKind.AUDIO_UNSPECIFIED,
@@ -14,6 +21,18 @@ export const CallControls = (props: { call: Call }) => {
 
   return (
     <div className="str-video__call-controls">
+      <Button
+        icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
+        title="Record call"
+        onClick={() => {
+          if (!callMeta) return;
+          if (isCallRecordingInProgress) {
+            client?.stopRecording(callMeta.id, callMeta.type);
+          } else {
+            client?.startRecording(callMeta.id, callMeta.type);
+          }
+        }}
+      />
       <Button
         icon={isAudioMute ? 'mic-off' : 'mic'}
         onClick={() => {
@@ -43,8 +62,9 @@ const Button = (props: {
   icon: string;
   variant?: string;
   onClick?: () => void;
+  [prop: string]: any;
 }) => {
-  const { icon, variant, onClick } = props;
+  const { icon, variant, onClick, ...rest } = props;
   return (
     <button
       onClick={(e) => {
@@ -56,6 +76,7 @@ const Button = (props: {
         icon && `str-video__call-controls__button--icon-${icon}`,
         variant && `str-video__call-controls__button--variant-${variant}`,
       )}
+      {...rest}
     />
   );
 };

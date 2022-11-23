@@ -12,6 +12,10 @@ import {
   getSenderCodecs,
 } from './codecs';
 import { createPublisher } from './publisher';
+import {
+  MediaStateChange,
+  MediaStateChangeReason,
+} from '../gen/video/coordinator/stat_v1/stat';
 import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
@@ -19,6 +23,28 @@ import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import type { StreamVideoParticipant, SubscriptionChanges } from './types';
 import { debounceTime, Subject } from 'rxjs';
+
+export type TrackChangedEvent = {
+  type: 'media_state_changed';
+  track: MediaStreamTrack;
+  change: MediaStateChange;
+  reason: MediaStateChangeReason;
+};
+
+export type ParticipantJoinedEvent = {
+  type: 'participant_joined';
+};
+
+export type ParticipantLeftEvent = {
+  type: 'participant_left';
+};
+
+export type StatEvent =
+  | TrackChangedEvent
+  | ParticipantJoinedEvent
+  | ParticipantLeftEvent;
+
+export type StatEventListener = (event: StatEvent) => void;
 
 export type CallOptions = {
   connectionConfig: RTCConfiguration | undefined;
@@ -28,6 +54,9 @@ export type PublishOptions = {
   preferredVideoCodec?: string | null;
 };
 
+/**
+ * A `Call` object represents the active call, the user is part of.
+ */
 export class Call {
   /**@deprecated use store for this data */
   currentUserId: string;
@@ -40,7 +69,14 @@ export class Call {
   }>();
 
   private joinResponseReady?: Promise<CallState | undefined>;
+  private statEventListeners: StatEventListener[];
 
+  /**
+   * Use the `StreamVideoClient.joinCall` method to construct a `Call` instance.
+   * @param client
+   * @param options
+   * @param stateStore
+   */
   constructor(
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
@@ -49,23 +85,21 @@ export class Call {
     this.currentUserId = stateStore.getCurrentValue(
       stateStore.connectedUserSubject,
     )!.name;
-    const { dispatcher, iceTrickleBuffer } = this.client;
+
     this.subscriber = createSubscriber({
       rpcClient: this.client,
-
-      // FIXME: don't do this
-      dispatcher: dispatcher,
       connectionConfig: this.options.connectionConfig,
       onTrack: this.handleOnTrack,
-      candidates: iceTrickleBuffer.subscriberCandidates,
     });
 
     this.publisher = createPublisher({
       rpcClient: this.client,
       connectionConfig: this.options.connectionConfig,
-      candidates: iceTrickleBuffer.publisherCandidates,
     });
 
+    this.statEventListeners = [];
+
+    const { dispatcher } = this.client;
     registerEventHandlers(this, this.stateStore, dispatcher);
 
     this.trackSubscriptionsSubject
@@ -75,29 +109,87 @@ export class Call {
       );
   }
 
+  /**
+   * You can subscribe to WebSocket events provided by the API. To remove a subscription, call the `off` method.
+   * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the reactive state store.
+   * @param eventName
+   * @param fn
+   * @returns
+   */
   on = (eventName: string, fn: SfuEventListener) => {
     return this.client.dispatcher.on(eventName, fn);
   };
 
+  /**
+   * Remove subscription for WebSocket events that were created by the `on` method.
+   * @param eventName
+   * @param fn
+   * @returns
+   */
   off = (eventName: string, fn: SfuEventListener) => {
     return this.client.dispatcher.off(eventName, fn);
   };
 
+  /**
+   * Leave the call and stop the media streams that were published by the call.
+   */
   leave = () => {
     this.subscriber.close();
 
     this.publisher.getSenders().forEach((s) => {
-      s.track?.stop();
+      if (s.track) {
+        s.track.stop();
+        this.publishStatEvent({
+          type: 'media_state_changed',
+          track: s.track,
+          change: MediaStateChange.ENDED,
+          reason: MediaStateChangeReason.CONNECTION,
+        });
+      }
       this.publisher.removeTrack(s);
     });
     this.publisher.close();
     this.client.close();
 
-    this.stateStore.activeCallSubject.next(undefined);
+    this.stateStore.setCurrentValue(
+      this.stateStore.callRecordingInProgressSubject,
+      false,
+    );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeCallSubject,
+      undefined,
+    );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeRingCallMetaSubject,
+      undefined,
+    );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeRingCallDetailsSubject,
+      undefined,
+    );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeCallAllParticipantsSubject,
+      [],
+    );
   };
 
+  /**
+   * Joins the call and sets the necessary video and audio encoding configurations.
+   * @param videoStream
+   * @param audioStream
+   * @returns
+   */
   join = async (videoStream?: MediaStream, audioStream?: MediaStream) => {
-    await this.client.signalReady;
+    await this.client.signalReady.then((ws) => {
+      this.publishStatEvent({
+        type: 'participant_joined',
+      });
+      ws.addEventListener('close', () => {
+        this.publishStatEvent({
+          type: 'participant_left',
+        });
+      });
+    });
 
     if (this.joinResponseReady) {
       throw new Error(`Illegal State: Already joined.`);
@@ -135,7 +227,10 @@ export class Call {
             }),
           );
           this.client.keepAlive();
-          this.stateStore.activeCallSubject.next(this);
+          this.stateStore.setCurrentValue(
+            this.stateStore.activeCallSubject,
+            this,
+          );
 
           resolve(callState); // expose call state
         });
@@ -179,7 +274,13 @@ export class Call {
     return this.joinResponseReady;
   };
 
-  publish = async (
+  /**
+   * Starts publishing the given video and/or audio streams, the streams will be stopped if the user changes an input device, or if the user leaves the call.
+   * @param audioStream
+   * @param videoStream
+   * @param opts
+   */
+  publishMediaStreams = async (
     audioStream?: MediaStream,
     videoStream?: MediaStream,
     opts: PublishOptions = {},
@@ -217,6 +318,13 @@ export class Call {
           console.log(`set codec preferences`, codecPreferences);
           videoTransceiver.setCodecPreferences(codecPreferences);
         }
+
+        this.publishStatEvent({
+          type: 'media_state_changed',
+          track: videoTrack,
+          change: MediaStateChange.STARTED,
+          reason: MediaStateChangeReason.CONNECTION,
+        });
       }
 
       this.stateStore.setCurrentValue(
@@ -226,6 +334,7 @@ export class Call {
             return {
               ...p,
               videoTrack: videoStream,
+              videoDeviceId: this.getActiveInputDeviceId('videoinput'),
             };
           }
           return p;
@@ -248,43 +357,41 @@ export class Call {
             return {
               ...p,
               audioTrack: audioStream,
+              audioDeviceId: this.getActiveInputDeviceId('audioinput'),
             };
           }
           return p;
         }),
       );
+      this.publishStatEvent({
+        type: 'media_state_changed',
+        track: audioTrack,
+        change: MediaStateChange.STARTED,
+        reason: MediaStateChangeReason.CONNECTION,
+      });
     }
   };
 
-  changeInputDevice = async (
+  /**
+   * A method for switching an input device.
+   * @param kind
+   * @param deviceId
+   * @param extras
+   * @returns
+   */
+  replaceMediaStream = async (
     kind: Exclude<MediaDeviceKind, 'audiooutput'>,
-    deviceId: string,
-    extras?: MediaTrackConstraints,
+    mediaStream: MediaStream,
   ) => {
     if (!this.publisher) {
       // FIXME: OL: throw error instead?
       console.warn(
         `Can't change input device without publish connection established`,
         kind,
-        deviceId,
       );
       return;
     }
 
-    const constraints: MediaStreamConstraints = {};
-    if (kind === 'audioinput') {
-      constraints.audio = {
-        ...extras,
-        deviceId,
-      };
-    } else if (kind === 'videoinput') {
-      constraints.video = {
-        ...extras,
-        deviceId,
-      };
-    }
-
-    const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
     const [newTrack] =
       kind === 'videoinput'
         ? mediaStream.getVideoTracks()
@@ -305,6 +412,29 @@ export class Call {
 
     sender.track.stop(); // release old track
     await sender.replaceTrack(newTrack);
+
+    const localParticipant = this.participants.find(
+      (p) => p.sessionId === this.client.sessionId,
+    );
+    const muteState = !(kind === 'audioinput'
+      ? localParticipant?.audio
+      : localParticipant?.video);
+    this.updateMuteState(kind === 'audioinput' ? 'audio' : 'video', muteState);
+
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeCallAllParticipantsSubject,
+      this.participants.map((p) => {
+        if (p.sessionId === this.client.sessionId) {
+          return {
+            ...p,
+            [kind === 'audioinput' ? 'audioTrack' : 'videoTrack']: mediaStream,
+            [kind === 'audioinput' ? 'audioDeviceId' : 'videoDeviceId']:
+              this.getActiveInputDeviceId(kind),
+          };
+        }
+        return p;
+      }),
+    );
 
     return mediaStream; // for SDK use (preview video)
   };
@@ -337,12 +467,7 @@ export class Call {
     this.updateSubscriptions(this.participants);
   };
 
-  /**
-   * Updates the track subscriptions of the current user.
-   *
-   * @param participants the participants to subscribe to.
-   */
-  updateSubscriptions = (participants: StreamVideoParticipant[]) => {
+  private updateSubscriptions = (participants: StreamVideoParticipant[]) => {
     const subscriptions: { [key: string]: VideoDimension } = {};
     participants.forEach((p) => {
       if (p.videoDimension && !p.isLoggedInUser) {
@@ -353,20 +478,12 @@ export class Call {
     this.trackSubscriptionsSubject.next(subscriptions);
   };
 
-  getActiveInputDeviceId = (kind: MediaDeviceKind) => {
-    if (!this.publisher) return;
-
-    const trackKind =
-      kind === 'audioinput'
-        ? 'audio'
-        : kind === 'videoinput'
-        ? 'video'
-        : 'unknown';
-    const senders = this.publisher.getSenders();
-    const sender = senders.find((s) => s.track?.kind === trackKind);
-    return sender?.track?.getConstraints().deviceId as string;
-  };
-
+  /**
+   * TODO: this should be part of the state store.
+   * @param kind
+   * @param selector
+   * @returns
+   */
   getStats = async (
     kind: 'subscriber' | 'publisher',
     selector?: MediaStreamTrack,
@@ -381,12 +498,35 @@ export class Call {
     }
   };
 
+  onStatEvent = (fn: StatEventListener) => {
+    this.statEventListeners.push(fn);
+  };
+  offStatEvent = (fn: StatEventListener) => {
+    this.statEventListeners = this.statEventListeners.filter((f) => f !== fn);
+  };
+  private publishStatEvent = (event: StatEvent) => {
+    this.statEventListeners.forEach((fn) => fn(event));
+  };
+
+  /**
+   * Mute/unmute the video/audio stream of the current user.
+   * @param trackKind
+   * @param isMute
+   * @returns
+   */
   updateMuteState = (trackKind: 'audio' | 'video', isMute: boolean) => {
     if (!this.publisher) return;
     const senders = this.publisher.getSenders();
     const sender = senders.find((s) => s.track?.kind === trackKind);
     if (sender && sender.track) {
       sender.track.enabled = !isMute;
+
+      this.publishStatEvent({
+        type: 'media_state_changed',
+        track: sender.track,
+        change: isMute ? MediaStateChange.STARTED : MediaStateChange.ENDED,
+        reason: MediaStateChangeReason.MUTE,
+      });
 
       if (trackKind === 'audio') {
         return this.client.updateAudioMuteState(isMute);
@@ -500,5 +640,19 @@ export class Call {
         }),
       );
     }
+  };
+
+  private getActiveInputDeviceId = (kind: MediaDeviceKind) => {
+    if (!this.publisher) return;
+
+    const trackKind =
+      kind === 'audioinput'
+        ? 'audio'
+        : kind === 'videoinput'
+        ? 'video'
+        : 'unknown';
+    const senders = this.publisher.getSenders();
+    const sender = senders.find((s) => s.track?.kind === trackKind);
+    return sender?.track?.getConstraints().deviceId as string;
   };
 }
