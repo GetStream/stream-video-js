@@ -1,0 +1,48 @@
+.user-list {
+  &-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+    & > h3 {
+      margin: 0;
+    }
+  }
+
+  list-style: none;
+  width: 400px;
+  background-color: #fffbfe;
+  border-radius: 10px;
+  padding: 20px 10px;
+
+  .user-list-item {
+    padding: 5px;
+    border-bottom: 1px solid #cac4d0;
+
+    &--avatar-name {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+    &--link {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    & > a {
+      text-decoration: none;
+      color: #1c1b1f;
+      & > span {
+        font-size: 10px;
+      }
+    }
+
+    &:last-child {
+      border: none;
+    }
+  }
+}
