@@ -4,7 +4,7 @@ import {
   AggregatedStatsReport,
   CallStatsReport,
 } from '@stream-io/video-client';
-import { useLatestStats } from '../../hooks/useParticipants';
+import { useCurrentCallStatsReport } from '@stream-io/video-react-bindings';
 import { CallStatsLatencyChart } from './CallStatsLatencyChart';
 
 export const CallStats = (props: {
@@ -36,7 +36,7 @@ export const CallStats = (props: {
   const [publishBitrate, setPublishBitrate] = useState('-');
   const [subscribeBitrate, setSubscribeBitrate] = useState('-');
   const previousStats = useRef<CallStatsReport>();
-  const callStatsReport = useLatestStats();
+  const callStatsReport = useCurrentCallStatsReport();
 
   useEffect(() => {
     if (!callStatsReport) return;

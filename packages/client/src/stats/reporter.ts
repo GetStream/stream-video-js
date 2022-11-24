@@ -187,7 +187,7 @@ export const createStatsReporter = ({
       timestamp: Date.now(),
     };
 
-    store.setCurrentValue(store.participantStatsSubject, statsReport);
+    store.setCurrentValue(store.callStatsReportSubject, statsReport);
   };
 
   let timeoutId: NodeJS.Timeout | undefined;

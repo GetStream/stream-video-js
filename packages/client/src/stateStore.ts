@@ -32,11 +32,12 @@ export class StreamVideoWriteableStateStore {
   activeCallLocalParticipantSubject = new BehaviorSubject<
     StreamVideoParticipant | undefined
   >(undefined);
+  // FIXME OL: this subject is unused?
   activeCallRemoteParticipantSubject = new BehaviorSubject<
     StreamVideoParticipant[]
   >([]);
   dominantSpeakerSubject = new BehaviorSubject<string | undefined>(undefined);
-  participantStatsSubject = new BehaviorSubject<CallStatsReport | undefined>(
+  callStatsReportSubject = new BehaviorSubject<CallStatsReport | undefined>(
     undefined,
   );
   callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
@@ -101,7 +102,7 @@ export class StreamVideoReadOnlyStateStore {
    * Consumers of this observable can implement their own batching logic
    * in case they want to show historical stats data.
    */
-  participantStats$: Observable<CallStatsReport | undefined>;
+  callStatsReport$: Observable<CallStatsReport | undefined>;
 
   /**
    * Emits a boolean indicating whether a call recording is currently in progress.
@@ -130,7 +131,7 @@ export class StreamVideoReadOnlyStateStore {
       map((participants) => participants.filter((p) => !p.isLoggedInUser)),
     );
 
-    this.participantStats$ = store.participantStatsSubject.asObservable();
+    this.callStatsReport$ = store.callStatsReportSubject.asObservable();
     this.callRecordingInProgress$ =
       store.callRecordingInProgressSubject.asObservable();
   }
