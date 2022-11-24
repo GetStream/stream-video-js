@@ -1,8 +1,10 @@
 import clsx from 'clsx';
-import { Call, CallMeta, SfuModels } from '@stream-io/video-client';
-import { useLocalParticipant } from '../../hooks/useParticipants';
-import { useStreamVideoClient } from '../../StreamVideo';
-import { useIsCallRecordingInProgress } from '../../hooks/useStore';
+import { Call, CallMeta } from '@stream-io/video-client';
+import {
+  useLocalParticipant,
+  useStreamVideoClient,
+  useIsCallRecordingInProgress,
+} from '@stream-io/video-react-bindings';
 
 export const CallControls = (props: {
   call: Call;

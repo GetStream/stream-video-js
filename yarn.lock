@@ -4801,6 +4801,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@stream-io/video-react-bindings@workspace:^, @stream-io/video-react-bindings@workspace:packages/react-bindings":
+  version: 0.0.0-use.local
+  resolution: "@stream-io/video-react-bindings@workspace:packages/react-bindings"
+  dependencies:
+    "@stream-io/video-client": "workspace:^"
+    react: ^18.2.0
+    rxjs: ^7.5.0
+    typescript: ^4.9.3
+  peerDependencies:
+    "@stream-io/video-client": "workspace:^"
+    react: ">=17.0.0"
+  languageName: unknown
+  linkType: soft
+
 "@stream-io/video-react-dogfood@workspace:packages/react-dogfood":
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-dogfood@workspace:packages/react-dogfood"
@@ -4934,6 +4948,7 @@ __metadata:
   dependencies:
     "@popperjs/core": ^2.11.6
     "@stream-io/video-client": "workspace:^"
+    "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
     "@types/rimraf": ^3.0.2
     "@types/uuid": ^8.3.4
@@ -20449,7 +20464,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:^7.5.4, rxjs@npm:^7.5.5, rxjs@npm:^7.5.7, rxjs@npm:~7.5.0":
+"rxjs@npm:^7.5.0, rxjs@npm:^7.5.4, rxjs@npm:^7.5.5, rxjs@npm:^7.5.7, rxjs@npm:~7.5.0":
   version: 7.5.7
   resolution: "rxjs@npm:7.5.7"
   dependencies:
