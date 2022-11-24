@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { Call, CallMeta } from '@stream-io/video-client';
+import { Call, CallMeta, SfuModels } from '@stream-io/video-client';
 import {
   useLocalParticipant,
   useStreamVideoClient,
