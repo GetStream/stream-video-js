@@ -1,10 +1,12 @@
 import clsx from 'clsx';
 import { ForwardedRef, forwardRef, useRef, useState } from 'react';
 import { Call, CallMeta } from '@stream-io/video-client';
-import { useParticipants } from '../../hooks/useParticipants';
+import {
+  useParticipants,
+  useStreamVideoClient,
+  useIsCallRecordingInProgress,
+} from '@stream-io/video-react-bindings';
 import { CallStats } from './CallStats';
-import { useStreamVideoClient } from '../../StreamVideo';
-import { useIsCallRecordingInProgress } from '../../hooks/useStore';
 
 export const CallControls = (props: {
   call: Call;
