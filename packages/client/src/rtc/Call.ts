@@ -23,6 +23,7 @@ import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import type { StreamVideoParticipant, SubscriptionChanges } from './types';
 import { debounceTime, Subject } from 'rxjs';
+import { createStatsReporter, StatsReporter } from '../stats/reporter';
 
 export type TrackChangedEvent = {
   type: 'media_state_changed';
@@ -47,7 +48,9 @@ export type StatEvent =
 export type StatEventListener = (event: StatEvent) => void;
 
 export type CallOptions = {
-  connectionConfig: RTCConfiguration | undefined;
+  connectionConfig?: RTCConfiguration;
+  latencyCheckUrl?: string;
+  edgeName?: string;
 };
 
 export type PublishOptions = {
@@ -68,6 +71,7 @@ export class Call {
     [key: string]: VideoDimension;
   }>();
 
+  private statsReporter: StatsReporter;
   private joinResponseReady?: Promise<CallState | undefined>;
   private statEventListeners: StatEventListener[];
 
@@ -98,6 +102,13 @@ export class Call {
     });
 
     this.statEventListeners = [];
+    this.statsReporter = createStatsReporter({
+      subscriber: this.subscriber,
+      publisher: this.publisher,
+      store: stateStore,
+      latencyCheckUrl: this.options.latencyCheckUrl,
+      edgeName: this.options.edgeName,
+    });
 
     const { dispatcher } = this.client;
     registerEventHandlers(this, this.stateStore, dispatcher);
@@ -134,8 +145,8 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = () => {
+    this.statsReporter.stop();
     this.subscriber.close();
-
     this.publisher.getSenders().forEach((s) => {
       if (s.track) {
         s.track.stop();
@@ -220,8 +231,8 @@ export class Call {
               if (participant.sessionId === this.client.sessionId) {
                 const localParticipant = participant as StreamVideoParticipant;
                 localParticipant.isLoggedInUser = true;
-                localParticipant.audioTrack = audioStream;
-                localParticipant.videoTrack = videoStream;
+                localParticipant.audioStream = audioStream;
+                localParticipant.videoStream = videoStream;
               }
               return participant;
             }),
@@ -332,7 +343,7 @@ export class Call {
           if (p.sessionId === this.client.sessionId) {
             return {
               ...p,
-              videoTrack: videoStream,
+              videoStream,
               videoDeviceId: this.getActiveInputDeviceId('videoinput'),
             };
           }
@@ -355,7 +366,7 @@ export class Call {
           if (p.sessionId === this.client.sessionId) {
             return {
               ...p,
-              audioTrack: audioStream,
+              audioStream,
               audioDeviceId: this.getActiveInputDeviceId('audioinput'),
             };
           }
@@ -487,14 +498,27 @@ export class Call {
     kind: 'subscriber' | 'publisher',
     selector?: MediaStreamTrack,
   ) => {
-    if (kind === 'subscriber' && this.subscriber) {
-      return this.subscriber.getStats(selector);
-    } else if (kind === 'publisher' && this.publisher) {
-      return this.publisher.getStats(selector);
-    } else {
-      console.warn(`Can't retrieve RTC stats for`, kind);
-      return undefined;
-    }
+    return this.statsReporter.getRawStatsForTrack(kind, selector);
+  };
+
+  /**
+   * Will enhance the reported stats with additional participant-specific information.
+   * This is usually helpful when detailed stats for a specific participant are needed.
+   *
+   * @param sessionId the sessionId to start reporting for.
+   */
+  startReportingStatsFor = (sessionId: string) => {
+    return this.statsReporter.startReportingStatsFor(sessionId);
+  };
+
+  /**
+   * Opposite of `startReportingStatsFor`.
+   * Will turn off stats reporting for a specific participant.
+   *
+   * @param sessionId the sessionId to stop reporting for.
+   */
+  stopReportingStatsFor = (sessionId: string) => {
+    return this.statsReporter.stopReportingStatsFor(sessionId);
   };
 
   onStatEvent = (fn: StatEventListener) => {
@@ -618,7 +642,7 @@ export class Call {
             return {
               // FIXME OL: shallow clone, switch to deep clone
               ...participant,
-              videoTrack: primaryStream,
+              videoStream: primaryStream,
             };
           }
           return participant;
@@ -632,7 +656,7 @@ export class Call {
             return {
               // FIXME OL: shallow clone, switch to deep clone
               ...participant,
-              audioTrack: primaryStream,
+              audioStream: primaryStream,
             };
           }
           return participant;

@@ -1,6 +1,6 @@
 import {
-  StreamVideoWriteableStateStore,
   StreamVideoReadOnlyStateStore,
+  StreamVideoWriteableStateStore,
 } from './stateStore';
 import type { Call as CallMeta } from './gen/video/coordinator/call_v1/call';
 import type {
@@ -12,8 +12,8 @@ import type {
   ReportCallStatsRequest,
   ReportCallStatsResponse,
 } from './gen/video/coordinator/client_v1_rpc/client_rpc';
-import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
 import { UserEventType } from './gen/video/coordinator/client_v1_rpc/client_rpc';
+import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
 import type {
   Edge,
   ICEServer,
@@ -87,10 +87,9 @@ export class StreamVideoClient {
         }),
       ],
     });
+
     this.writeableStateStore = new StreamVideoWriteableStateStore();
-    this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
-      this.writeableStateStore,
-    );
+    this.readOnlyStateStore = this.writeableStateStore.asReadOnlyStore();
   }
 
   /**
@@ -240,22 +239,22 @@ export class StreamVideoClient {
           response.call.details,
         );
       }
-      if (edge && edge.credentials && edge.credentials.server) {
-        const sfuClient = new StreamSfuClient(
-          edge.credentials.server.url,
-          edge.credentials.token,
-          sessionId,
-        );
-        const call = new Call(
+      if (edge.credentials && edge.credentials.server) {
+        const edgeName = edge.credentials.server.edgeName;
+        const selectedEdge = response.edges.find((e) => e.name === edgeName);
+        const { server, iceServers, token } = edge.credentials;
+        const sfuClient = new StreamSfuClient(server.url, token, sessionId);
+        return new Call(
           sfuClient,
           {
             connectionConfig:
-              this.toRtcConfiguration(edge.credentials.iceServers) ||
-              this.defaultRtcConfiguration(edge.credentials.server.url),
+              this.toRtcConfiguration(iceServers) ||
+              this.defaultRtcConfiguration(server.url),
+            latencyCheckUrl: selectedEdge?.latencyUrl,
+            edgeName,
           },
           this.writeableStateStore,
         );
-        return call;
       } else {
         // TODO: handle error?
         return undefined;

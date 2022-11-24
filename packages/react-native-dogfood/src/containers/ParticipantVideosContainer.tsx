@@ -130,13 +130,7 @@ const ParticipantVideoContainer = ({
   ) => void;
   isLastParticipant: boolean;
 }) => {
-  const {
-    videoTrack: videoStream,
-    audioTrack: audioStream,
-    isSpeaking,
-    sessionId,
-    user,
-  } = participant;
+  const { videoStream, audioStream, isSpeaking, sessionId, user } = participant;
   const mediaStream =
     audioStream &&
     videoStream &&

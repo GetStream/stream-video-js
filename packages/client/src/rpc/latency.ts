@@ -6,10 +6,12 @@ const toSeconds = (ms: number) => ms / 1000;
  *
  * @param endpoint the endpoint.
  * @param rounds the number of measuring rounds to perform.
+ * @param timeoutAfterMs the request cancellation period.
  */
 export const measureResourceLoadLatencyTo = async (
   endpoint: string,
   rounds: number,
+  timeoutAfterMs: number = 3000,
 ) => {
   const measurements: number[] = [];
   await Promise.all(
@@ -18,7 +20,7 @@ export const measureResourceLoadLatencyTo = async (
       .map(async () => {
         const start = Date.now();
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout:
+        const timeoutId = setTimeout(() => controller.abort(), timeoutAfterMs);
         try {
           const src = new URL(endpoint);
           src.searchParams.set('rand', `react_${Math.random() * 10000000}`);

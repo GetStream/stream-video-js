@@ -15,6 +15,7 @@ export * from './src/gen/video/coordinator/user_v1/user';
 export * from './src/rpc/types';
 export * from './src/rtc/types';
 export * from './src/ws/types';
+export * from './src/stats/types';
 
 export * from './src/stateStore';
 export * from './src/rtc/Call';
