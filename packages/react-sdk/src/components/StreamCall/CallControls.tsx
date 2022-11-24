@@ -1,10 +1,12 @@
 import clsx from 'clsx';
+import { ForwardedRef, forwardRef, useRef, useState } from 'react';
 import { Call, CallMeta, SfuModels } from '@stream-io/video-client';
 import {
   useLocalParticipant,
   useStreamVideoClient,
   useIsCallRecordingInProgress,
 } from '@stream-io/video-react-bindings';
+import { CallStats } from './CallStats';
 
 export const CallControls = (props: {
   call: Call;
@@ -21,6 +23,9 @@ export const CallControls = (props: {
     SfuModels.TrackKind.VIDEO,
   );
 
+  const [isStatsOpen, setIsStatsOpen] = useState(false);
+  const statsAnchorRef = useRef<HTMLButtonElement>(null);
+
   return (
     <div className="str-video__call-controls">
       <Button
@@ -33,6 +38,22 @@ export const CallControls = (props: {
           } else {
             client?.startRecording(callMeta.id, callMeta.type);
           }
+        }}
+      />
+      {isStatsOpen && (
+        <CallStats
+          anchor={statsAnchorRef.current!}
+          onClose={() => {
+            setIsStatsOpen(false);
+          }}
+        />
+      )}
+      <Button
+        icon="stats"
+        title="Statistics"
+        ref={statsAnchorRef}
+        onClick={() => {
+          setIsStatsOpen((v) => !v);
         }}
       />
       <Button
@@ -60,25 +81,31 @@ export const CallControls = (props: {
   );
 };
 
-const Button = (props: {
-  icon: string;
-  variant?: string;
-  onClick?: () => void;
-  [prop: string]: any;
-}) => {
-  const { icon, variant, onClick, ...rest } = props;
-  return (
-    <button
-      onClick={(e) => {
-        e.preventDefault();
-        onClick?.();
-      }}
-      className={clsx(
-        'str-video__call-controls__button',
-        icon && `str-video__call-controls__button--icon-${icon}`,
-        variant && `str-video__call-controls__button--variant-${variant}`,
-      )}
-      {...rest}
-    />
-  );
-};
+const Button = forwardRef(
+  (
+    props: {
+      icon: string;
+      variant?: string;
+      onClick?: () => void;
+      [anyProp: string]: any;
+    },
+    ref: ForwardedRef<HTMLButtonElement>,
+  ) => {
+    const { icon, variant, onClick, ...rest } = props;
+    return (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          onClick?.();
+        }}
+        className={clsx(
+          'str-video__call-controls__button',
+          icon && `str-video__call-controls__button--icon-${icon}`,
+          variant && `str-video__call-controls__button--variant-${variant}`,
+        )}
+        ref={ref}
+        {...rest}
+      />
+    );
+  },
+);

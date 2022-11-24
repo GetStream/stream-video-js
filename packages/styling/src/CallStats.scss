@@ -1,0 +1,50 @@
+.str-video__call-stats {
+  background-color: #1c1e22;
+  border-radius: 8px;
+  padding: 10px 15px;
+  width: 400px;
+
+  .str-video__call-stats__title {
+    .str-video__call-stats__close {
+      float: right;
+      font-size: 20px;
+      color: #72767e;
+      cursor: pointer;
+      width: 30px;
+      text-align: center;
+      border-radius: 8px;
+
+      &:hover {
+        background-color: #000000;
+      }
+    }
+  }
+
+  .str-video__call-stats__card-container {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    gap: 15px;
+    padding: 0 0 15px 0;
+  }
+
+  .str-video__call-stats__card {
+    background-color: #272a30;
+    border-radius: 8px;
+    width: 175px;
+    padding: 8px 8px;
+
+    .str-video__call-stats__card_label {
+      color: #b4b7bb;
+      font-size: 9px;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .str-video__call-stats__card_value {
+      font-size: 17px;
+      font-weight: 500;
+      line-height: 20px;
+    }
+  }
+}

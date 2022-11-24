@@ -177,7 +177,7 @@ function createSpeakerUpdater(call: Call) {
 
       $currentVideoEl = other($currentVideoEl);
       // FIXME: use avatar as the speaker might not be always publishing a video track
-      $currentVideoEl.srcObject = speaker.videoTrack!;
+      $currentVideoEl.srcObject = speaker.videoStream || null;
       $currentVideoEl.title = speaker.userId;
 
       updateCurrentSpeakerName(speaker);
@@ -219,9 +219,10 @@ function attachAudioTrack(participant: StreamVideoParticipant) {
   }
 
   const previousAudioTrack = $audioEl.srcObject as MediaStream | null;
-  if (participant.audioTrack) {
-    if (previousAudioTrack?.id !== participant.audioTrack.id) {
-      $audioEl.srcObject = participant.audioTrack;
+  const audioStream = participant.audioStream;
+  if (audioStream) {
+    if (previousAudioTrack?.id !== audioStream.id) {
+      $audioEl.srcObject = audioStream;
     }
   } else {
     $audioEl.srcObject = null;
