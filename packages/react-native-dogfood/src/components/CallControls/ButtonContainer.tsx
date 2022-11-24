@@ -51,29 +51,24 @@ const colorKeyToBgColor = (colorKey: ColorKey): ColorValue => {
 type Props = {
   onPress: PressableProps['onPress'];
   colorKey: ColorKey;
-  size?: number;
+  style?: StyleProp<ViewStyle>;
   svgContainerStyle?: StyleProp<ViewStyle>;
 };
 
 const ButtonContainer = (props: React.PropsWithChildren<Props>) => {
-  const { onPress, children, colorKey, size, svgContainerStyle } = props;
+  const { onPress, children, colorKey, style, svgContainerStyle } = props;
 
-  const style: PressableProps['style'] = ({ pressed }) => [
+  const pressableStyle: PressableProps['style'] = ({ pressed }) => [
     styles.container,
     {
       backgroundColor: colorKeyToBgColor(colorKey),
       opacity: pressed ? 0.2 : 1,
     },
-    size
-      ? {
-          height: size,
-          width: size,
-          borderRadius: size,
-        }
-      : null,
+    style ? style : null,
   ];
+
   return (
-    <Pressable style={style} onPress={onPress}>
+    <Pressable style={pressableStyle} onPress={onPress}>
       <View style={[styles.svgContainerStyle, svgContainerStyle ?? null]}>
         {children}
       </View>
