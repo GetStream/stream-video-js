@@ -64,7 +64,7 @@ import './style.css';
     const participants = store$.getCurrentValue(
       store$.activeCallAllParticipants$,
     );
-    const dominantSpeaker = participants.find((p) => p.user!.id === userId);
+    const dominantSpeaker = participants.find((p) => p.userId === userId);
     if (dominantSpeaker) {
       call.updateSubscriptionsPartial({
         [dominantSpeaker.sessionId]: {
@@ -109,7 +109,7 @@ import './style.css';
       });
 
       const speaker = remoteParticipants.find(
-        (p) => p.user!.id === loudestParticipant.user!.id,
+        (p) => p.sessionId === loudestParticipant.sessionId,
       );
 
       highlightSpeaker(speaker);
@@ -169,12 +169,16 @@ function createSpeakerUpdater(call: Call) {
         }),
       });
 
-      console.log(`Swapping highlighted speaker`, speaker.user!.id);
+      console.log(
+        `Swapping highlighted speaker`,
+        speaker.userId,
+        speaker.sessionId,
+      );
 
       $currentVideoEl = other($currentVideoEl);
       // FIXME: use avatar as the speaker might not be always publishing a video track
       $currentVideoEl.srcObject = speaker.videoTrack!;
-      $currentVideoEl.title = speaker.user!.id;
+      $currentVideoEl.title = speaker.userId;
 
       updateCurrentSpeakerName(speaker);
 
@@ -192,7 +196,7 @@ function updateCurrentSpeakerName(speaker: StreamVideoParticipant) {
     document.getElementById('app')!.appendChild($userNameEl);
   }
 
-  $userNameEl.innerText = speaker.user?.id ?? 'N/A';
+  $userNameEl.innerText = speaker.userId ?? 'N/A';
   $userNameEl.title = speaker.sessionId;
 }
 
@@ -204,7 +208,7 @@ function attachAudioTrack(participant: StreamVideoParticipant) {
   ) as HTMLAudioElement | null;
   if (!$audioEl) {
     $audioEl = document.createElement('audio') as HTMLAudioElement;
-    $audioEl.title = participant.user!.id;
+    $audioEl.title = participant.userId;
     $audioEl.id = `speaker-${participant.sessionId}`;
     $audioEl.autoplay = true;
     $audioEl.addEventListener('canplay', () => {

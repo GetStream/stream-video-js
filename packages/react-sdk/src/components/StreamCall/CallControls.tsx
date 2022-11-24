@@ -13,7 +13,7 @@ export const CallControls = (props: {
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const localParticipant = useLocalParticipant();
   const isAudioMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackKind.AUDIO_UNSPECIFIED,
+    SfuModels.TrackKind.AUDIO,
   );
   const isVideoMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackKind.VIDEO,

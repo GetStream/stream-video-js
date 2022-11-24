@@ -1,28 +1,20 @@
-import { createSubscriber } from './subscriber';
-import {
-  defaultVideoLayers,
-  findOptimalVideoLayers,
-  OptimalVideoLayer,
-} from './videoLayers';
 import { StreamSfuClient } from '../StreamSfuClient';
-import {
-  defaultVideoPublishEncodings,
-  getPreferredCodecs,
-  getReceiverCodecs,
-  getSenderCodecs,
-} from './codecs';
+import { createSubscriber } from './subscriber';
 import { createPublisher } from './publisher';
+import { findOptimalVideoLayers } from './videoLayers';
+import { getPreferredCodecs, getReceiverCodecs } from './codecs';
 import {
   MediaStateChange,
   MediaStateChangeReason,
 } from '../gen/video/coordinator/stat_v1/stat';
-import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
+import { CallState, TrackKind } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import type { StreamVideoParticipant, SubscriptionChanges } from './types';
 import { debounceTime, Subject } from 'rxjs';
+import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 
 export type TrackChangedEvent = {
   type: 'media_state_changed';
@@ -61,12 +53,11 @@ export class Call {
   /**@deprecated use store for this data */
   currentUserId: string;
 
-  private videoLayers?: OptimalVideoLayer[];
   private readonly subscriber: RTCPeerConnection;
   private readonly publisher: RTCPeerConnection;
-  private readonly trackSubscriptionsSubject = new Subject<{
-    [key: string]: VideoDimension;
-  }>();
+  private readonly trackSubscriptionsSubject = new Subject<
+    TrackSubscriptionDetails[]
+  >();
 
   private joinResponseReady?: Promise<CallState | undefined>;
   private statEventListeners: StatEventListener[];
@@ -197,18 +188,6 @@ export class Call {
 
     this.joinResponseReady = new Promise<CallState | undefined>(
       async (resolve) => {
-        const [audioEncode, audioDecode, videoEncode, videoDecode] =
-          await Promise.all([
-            getSenderCodecs('audio'),
-            getReceiverCodecs('audio', this.subscriber),
-            getSenderCodecs('video'),
-            getReceiverCodecs('video', this.subscriber),
-          ]);
-
-        this.videoLayers = videoStream
-          ? await findOptimalVideoLayers(videoStream)
-          : defaultVideoLayers;
-
         this.client.dispatcher.on('joinResponse', (event) => {
           if (event.eventPayload.oneofKind !== 'joinResponse') return;
 
@@ -235,6 +214,11 @@ export class Call {
           resolve(callState); // expose call state
         });
 
+        const [audioDecodeCodecs, videoDecodeCodecs] = await Promise.all([
+          getReceiverCodecs('audio', this.subscriber),
+          getReceiverCodecs('video', this.subscriber),
+        ]);
+
         this.client.send(
           SfuRequest.create({
             requestPayload: {
@@ -242,27 +226,9 @@ export class Call {
               joinRequest: {
                 sessionId: this.client.sessionId,
                 token: this.client.token,
-                publish: true,
-                // FIXME OL: encode parameters and video layers
-                // should be announced when initiating "publish" operation
-                codecSettings: {
-                  audio: {
-                    encodes: audioEncode,
-                    decodes: audioDecode,
-                  },
-                  video: {
-                    encodes: videoEncode,
-                    decodes: videoDecode,
-                  },
-                  layers: this.videoLayers.map((layer) => ({
-                    rid: layer.rid!,
-                    bitrate: layer.maxBitrate!,
-                    fps: layer.maxFramerate || 0,
-                    videoDimension: {
-                      width: layer.width,
-                      height: layer.height,
-                    },
-                  })),
+                decodeCapabilities: {
+                  audioCodecs: audioDecodeCodecs,
+                  videoCodecs: videoDecodeCodecs,
                 },
               },
             },
@@ -296,13 +262,14 @@ export class Call {
     await this.joinResponseReady;
 
     if (videoStream) {
-      const videoEncodings: RTCRtpEncodingParameters[] =
-        this.videoLayers && this.videoLayers.length > 0
-          ? this.videoLayers
-          : defaultVideoPublishEncodings;
+      // const videoEncodings: RTCRtpEncodingParameters[] =
+      //   this.videoLayers && this.videoLayers.length > 0
+      //     ? this.videoLayers
+      //     : defaultVideoPublishEncodings;
 
       const [videoTrack] = videoStream.getVideoTracks();
       if (videoTrack) {
+        const videoEncodings = findOptimalVideoLayers(videoTrack);
         const videoTransceiver = this.publisher.addTransceiver(videoTrack, {
           direction: 'sendonly',
           streams: [videoStream],
@@ -413,12 +380,13 @@ export class Call {
     sender.track.stop(); // release old track
     await sender.replaceTrack(newTrack);
 
-    const localParticipant = this.participants.find(
-      (p) => p.sessionId === this.client.sessionId,
-    );
-    const muteState = !(kind === 'audioinput'
-      ? localParticipant?.audio
-      : localParticipant?.video);
+    // const localParticipant = this.participants.find(
+    //   (p) => p.sessionId === this.client.sessionId,
+    // );
+    // const muteState = !(kind === 'audioinput'
+    //   ? localParticipant?.audio
+    //   : localParticipant?.video);
+    const muteState = false; // FIXME: OL: this is a hack
     this.updateMuteState(kind === 'audioinput' ? 'audio' : 'video', muteState);
 
     this.stateStore.setCurrentValue(
@@ -468,10 +436,35 @@ export class Call {
   };
 
   private updateSubscriptions = (participants: StreamVideoParticipant[]) => {
-    const subscriptions: { [key: string]: VideoDimension } = {};
+    const subscriptions: TrackSubscriptionDetails[] = [];
     participants.forEach((p) => {
-      if (p.videoDimension && !p.isLoggedInUser) {
-        subscriptions[p.user!.id] = p.videoDimension;
+      if (!p.isLoggedInUser) {
+        if (p.videoDimension && p.publishedTracks.includes(TrackKind.VIDEO)) {
+          subscriptions.push({
+            userId: p.userId,
+            sessionId: p.sessionId,
+            trackKind: TrackKind.VIDEO,
+            dimension: p.videoDimension,
+          });
+        }
+        if (p.publishedTracks.includes(TrackKind.AUDIO)) {
+          subscriptions.push({
+            userId: p.userId,
+            sessionId: p.sessionId,
+            trackKind: TrackKind.AUDIO,
+          });
+        }
+        if (p.publishedTracks.includes(TrackKind.SCREEN_SHARE)) {
+          subscriptions.push({
+            userId: p.userId,
+            sessionId: p.sessionId,
+            trackKind: TrackKind.SCREEN_SHARE,
+            dimension: {
+              width: 1280,
+              height: 720,
+            },
+          });
+        }
       }
     });
     // schedule update
@@ -575,6 +568,7 @@ export class Call {
   private handleOnTrack = (e: RTCTrackEvent) => {
     console.log('Got remote track:', e.track);
     const [primaryStream] = e.streams;
+    // TODO OL: extract track kind
     const [trackId] = primaryStream.id.split(':');
     const participantToUpdate = this.participants.find(
       (p) => p.trackLookupPrefix === trackId,
@@ -587,7 +581,7 @@ export class Call {
     e.track.addEventListener('mute', () => {
       console.log(
         `Track muted:`,
-        participantToUpdate.user!.id,
+        participantToUpdate.userId,
         `${e.track.kind}:${trackId}`,
         e.track,
       );
@@ -596,7 +590,7 @@ export class Call {
     e.track.addEventListener('unmute', () => {
       console.log(
         `Track unmuted:`,
-        participantToUpdate.user!.id,
+        participantToUpdate.userId,
         `${e.track.kind}:${trackId}`,
         e.track,
       );
@@ -605,7 +599,7 @@ export class Call {
     e.track.addEventListener('ended', () => {
       console.log(
         `Track ended:`,
-        participantToUpdate.user!.id,
+        participantToUpdate.userId,
         `${e.track.kind}:${trackId}`,
         e.track,
       );

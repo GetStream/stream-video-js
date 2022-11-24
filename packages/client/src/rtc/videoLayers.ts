@@ -7,7 +7,7 @@ export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   maxFramerate?: number;
 };
 
-export const findOptimalVideoLayers = async (mediaStream: MediaStream) => {
+export const findOptimalVideoLayers = (videoTrack: MediaStreamTrack) => {
   const steps: [number, number, number][] = [
     // [4096, 2160], // 4K
     // [1920, 1080, 3_072_000], // Full-HD
@@ -19,16 +19,15 @@ export const findOptimalVideoLayers = async (mediaStream: MediaStream) => {
   ];
 
   const optimalVideoLayers: OptimalVideoLayer[] = [];
+  const settings = videoTrack.getSettings();
   for (let step = 0; step < steps.length; step++) {
     const [w, h, maxBitrate] = steps[step];
-    const [videoTrack] = mediaStream.getVideoTracks();
-    const settings = videoTrack.getSettings();
-
     // found ideal layer
     if (w === settings.width && h === settings.height) {
       let scaleFactor: number = 1;
       ['f', 'h', 'q'].forEach((rid) => {
         optimalVideoLayers.push({
+          active: true,
           rid,
           width: w / scaleFactor,
           height: h / scaleFactor,

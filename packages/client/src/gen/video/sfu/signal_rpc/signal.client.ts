@@ -5,8 +5,6 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { SignalServer } from "./signal";
-import type { UpdateVideoQualityResponse } from "./signal";
-import type { UpdateVideoQualityRequest } from "./signal";
 import type { UpdateMuteStateResponse } from "./signal";
 import type { UpdateMuteStateRequest } from "./signal";
 import type { UpdateSubscriptionsResponse } from "./signal";
@@ -53,10 +51,6 @@ export interface ISignalServerClient {
      * @generated from protobuf rpc: UpdateMuteState(stream.video.sfu.signal.UpdateMuteStateRequest) returns (stream.video.sfu.signal.UpdateMuteStateResponse);
      */
     updateMuteState(input: UpdateMuteStateRequest, options?: RpcOptions): UnaryCall<UpdateMuteStateRequest, UpdateMuteStateResponse>;
-    /**
-     * @generated from protobuf rpc: RequestVideoQuality(stream.video.sfu.signal.UpdateVideoQualityRequest) returns (stream.video.sfu.signal.UpdateVideoQualityResponse);
-     */
-    requestVideoQuality(input: UpdateVideoQualityRequest, options?: RpcOptions): UnaryCall<UpdateVideoQualityRequest, UpdateVideoQualityResponse>;
 }
 /**
  * @generated from protobuf service stream.video.sfu.signal.SignalServer
@@ -110,12 +104,5 @@ export class SignalServerClient implements ISignalServerClient, ServiceInfo {
     updateMuteState(input: UpdateMuteStateRequest, options?: RpcOptions): UnaryCall<UpdateMuteStateRequest, UpdateMuteStateResponse> {
         const method = this.methods[4], opt = this._transport.mergeOptions(options);
         return stackIntercept<UpdateMuteStateRequest, UpdateMuteStateResponse>("unary", this._transport, method, opt, input);
-    }
-    /**
-     * @generated from protobuf rpc: RequestVideoQuality(stream.video.sfu.signal.UpdateVideoQualityRequest) returns (stream.video.sfu.signal.UpdateVideoQualityResponse);
-     */
-    requestVideoQuality(input: UpdateVideoQualityRequest, options?: RpcOptions): UnaryCall<UpdateVideoQualityRequest, UpdateVideoQualityResponse> {
-        const method = this.methods[5], opt = this._transport.mergeOptions(options);
-        return stackIntercept<UpdateVideoQualityRequest, UpdateVideoQualityResponse>("unary", this._transport, method, opt, input);
     }
 }

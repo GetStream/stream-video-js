@@ -30,9 +30,9 @@ export const watchAudioLevelChanged = (
   return dispatcher.on('audioLevelChanged', (e) => {
     if (e.eventPayload.oneofKind !== 'audioLevelChanged') return;
     const { audioLevels } = e.eventPayload.audioLevelChanged;
-    const userIdLookup = audioLevels.reduce<Record<string, number>>(
+    const sessionIdLookup = audioLevels.reduce<Record<string, number>>(
       (acc, current) => {
-        acc[current.userId] = current.level;
+        acc[current.sessionId] = current.level;
         return acc;
       },
       {},
@@ -43,8 +43,7 @@ export const watchAudioLevelChanged = (
     store.setCurrentValue(
       participantsSubject,
       participants.map((participant) => {
-        const { id } = participant.user!;
-        const audioLevel = userIdLookup[id];
+        const audioLevel = sessionIdLookup[participant.sessionId];
         if (participant.audioLevel !== audioLevel) {
           // FIXME OL: consider doing deep-clone
           return {

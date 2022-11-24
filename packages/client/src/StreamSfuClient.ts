@@ -1,7 +1,3 @@
-import {
-  type VideoDimension,
-  VideoQuality,
-} from './gen/video/sfu/models/models';
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
 import { createSignalClient, withHeaders } from './rpc';
 import { createWebSocketSignalChannel } from './rtc/signal';
@@ -9,6 +5,7 @@ import { SfuRequest } from './gen/video/sfu/event/events';
 import { Dispatcher } from './rtc/Dispatcher';
 import { v4 as uuidv4 } from 'uuid';
 import { IceTrickleBuffer } from './rtc/IceTrickleBuffer';
+import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
 
 const hostnameFromUrl = (url: string) => {
   try {
@@ -120,26 +117,11 @@ export class StreamSfuClient {
     return response;
   };
 
-  // FIXME: OL: introduced as a dev-tool. Do we need to keep it?
-  requestVideoQuality = async (forUserId: string, quality: VideoQuality) => {
-    return this.rpc.requestVideoQuality({
-      sessionId: this.sessionId,
-      streamQualities: [
-        {
-          userId: forUserId,
-          videoQuality: quality,
-        },
-      ],
-    });
-  };
-
-  updateSubscriptions = async (subscriptions: {
-    [key: string]: VideoDimension;
-  }) => {
-    if (Object.keys(subscriptions).length > 0) {
+  updateSubscriptions = async (subscriptions: TrackSubscriptionDetails[]) => {
+    if (subscriptions.length > 0) {
       return this.rpc.updateSubscriptions({
         sessionId: this.sessionId,
-        subscriptions,
+        tracks: subscriptions,
       });
     }
   };

@@ -21,6 +21,6 @@ export class StageComponent implements OnInit {
   ngOnInit(): void {}
 
   trackByParticipantId(_: number, item: StreamVideoParticipant) {
-    return item.user?.name || undefined + item.sessionId;
+    return item.userId || undefined + item.sessionId;
   }
 }

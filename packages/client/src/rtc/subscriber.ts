@@ -63,12 +63,12 @@ export const createSubscriber = ({
       sdp: subscriberOffer.sdp,
     });
 
-    iceTrickleBuffer.subscriberCandidates.subscribe((candidate) => {
+    iceTrickleBuffer.subscriberCandidates.subscribe(async (candidate) => {
       try {
         const iceCandidate = JSON.parse(candidate.iceCandidate);
-        subscriber.addIceCandidate(iceCandidate);
+        await subscriber.addIceCandidate(iceCandidate);
       } catch (e) {
-        console.error(`An error occurred while adding ICE candidate`, e);
+        console.error(`[Subscriber] ICE candidate error`, e, candidate);
       }
     });
 

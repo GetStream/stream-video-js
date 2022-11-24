@@ -37,7 +37,7 @@ export const ParticipantBox = (props: {
     publishedTracks,
   } = participant;
 
-  const audio = publishedTracks.includes(SfuModels.TrackKind.AUDIO_UNSPECIFIED);
+  const audio = publishedTracks.includes(SfuModels.TrackKind.AUDIO);
   const video = publishedTracks.includes(SfuModels.TrackKind.VIDEO);
 
   useEffect(() => {
@@ -100,7 +100,7 @@ export const ParticipantBox = (props: {
         />
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
-            {participant.user?.id}
+            {participant.userId}
             {!audio && (
               <span className="str-video__participant_name--audio-muted"></span>
             )}

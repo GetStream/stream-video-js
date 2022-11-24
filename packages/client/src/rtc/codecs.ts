@@ -1,12 +1,5 @@
 import * as SDPTransform from 'sdp-transform';
-import { defaultVideoLayers } from './videoLayers';
 import type { Codec } from '../gen/video/sfu/models/models';
-
-export const defaultVideoPublishEncodings: RTCRtpEncodingParameters[] =
-  defaultVideoLayers.map((layer) => ({
-    ...layer,
-    active: true,
-  }));
 
 export const getPreferredCodecs = (
   kind: 'audio' | 'video',
@@ -79,7 +72,7 @@ export const getReceiverCodecs = async (
   return RTCRtpReceiver.getCapabilities(kind)?.codecs.map(toCodec) ?? [];
 };
 
-const toCodec = (codec: RTCRtpCodecCapability): Codec => ({
+export const toCodec = (codec: RTCRtpCodecCapability): Codec => ({
   hwAccelerated: true,
   clockRate: codec.clockRate,
   fmtpLine: codec.sdpFmtpLine || '',

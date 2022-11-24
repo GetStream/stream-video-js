@@ -12,8 +12,8 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
-import { Timestamp } from "../../../google/protobuf/timestamp";
 import { Struct } from "../../../google/protobuf/struct";
+import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
  * @generated from protobuf message stream.video.sfu.models.CallState
  */
@@ -24,125 +24,33 @@ export interface CallState {
     participants: Participant[];
 }
 /**
- * @generated from protobuf message stream.video.sfu.models.Call
- */
-export interface Call {
-    /**
-     * the call type
-     *
-     * @generated from protobuf field: string type = 1;
-     */
-    type: string;
-    /**
-     * the call id
-     *
-     * @generated from protobuf field: string id = 2;
-     */
-    id: string;
-    /**
-     * the id of the user that created this call
-     *
-     * @generated from protobuf field: string created_by_user_id = 3;
-     */
-    createdByUserId: string;
-    /**
-     * the id of the current host for this call
-     *
-     * @generated from protobuf field: string host_user_id = 4;
-     */
-    hostUserId: string;
-    /**
-     * @generated from protobuf field: google.protobuf.Struct custom = 5;
-     */
-    custom?: Struct;
-    /**
-     * @generated from protobuf field: google.protobuf.Timestamp created_at = 6;
-     */
-    createdAt?: Timestamp;
-    /**
-     * @generated from protobuf field: google.protobuf.Timestamp updated_at = 7;
-     */
-    updatedAt?: Timestamp;
-}
-/**
  * those who are online in the call
  *
  * @generated from protobuf message stream.video.sfu.models.Participant
  */
 export interface Participant {
     /**
-     * @generated from protobuf field: stream.video.sfu.models.User user = 1;
+     * @generated from protobuf field: string user_id = 1;
      */
-    user?: User;
+    userId: string;
     /**
-     * @generated from protobuf field: string role = 2;
-     */
-    role: string;
-    /**
-     * @generated from protobuf field: bool online = 3;
-     */
-    online: boolean;
-    /**
-     * @generated from protobuf field: google.protobuf.Struct custom = 4;
-     */
-    custom?: Struct;
-    /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.TrackKind published_tracks = 5;
-     */
-    publishedTracks: TrackKind[];
-    /**
-     * @generated from protobuf field: google.protobuf.Timestamp created_at = 6;
-     */
-    createdAt?: Timestamp;
-    /**
-     * @generated from protobuf field: google.protobuf.Timestamp updated_at = 7;
-     */
-    updatedAt?: Timestamp;
-    /**
-     * @generated from protobuf field: string session_id = 8;
+     * @generated from protobuf field: string session_id = 2;
      */
     sessionId: string;
     /**
-     * @generated from protobuf field: string track_lookup_prefix = 9;
+     * map of track id to track kind
+     *
+     * @generated from protobuf field: repeated stream.video.sfu.models.TrackKind published_tracks = 3;
+     */
+    publishedTracks: TrackKind[];
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp joined_at = 4;
+     */
+    joinedAt?: Timestamp;
+    /**
+     * @generated from protobuf field: string track_lookup_prefix = 5;
      */
     trackLookupPrefix: string;
-}
-/**
- * @generated from protobuf message stream.video.sfu.models.User
- */
-export interface User {
-    /**
-     * @generated from protobuf field: string id = 1;
-     */
-    id: string;
-    /**
-     * @generated from protobuf field: repeated string teams = 2;
-     */
-    teams: string[];
-    /**
-     * @generated from protobuf field: string role = 3;
-     */
-    role: string;
-    /**
-     * @generated from protobuf field: google.protobuf.Struct custom = 4;
-     */
-    custom?: Struct;
-    /**
-     * @generated from protobuf field: string name = 5;
-     */
-    name: string;
-    /**
-     * @generated from protobuf field: string image_url = 6;
-     */
-    imageUrl: string;
-    /**
-     * @generated from protobuf field: string created_at = 7;
-     */
-    createdAt: string;
-    /**
-     * @generated from protobuf field: string updated_at = 8;
-     */
-    updatedAt: string;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.StreamQuality
@@ -196,27 +104,6 @@ export interface VideoLayer {
     fps: number;
 }
 /**
- * @generated from protobuf message stream.video.sfu.models.SimulcastCodecInfo
- */
-export interface SimulcastCodecInfo {
-    /**
-     * @generated from protobuf field: string mime_type = 1;
-     */
-    mimeType: string;
-    /**
-     * @generated from protobuf field: string mid = 2;
-     */
-    mid: string;
-    /**
-     * @generated from protobuf field: string cid = 3;
-     */
-    cid: string;
-    /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.VideoLayer layers = 4;
-     */
-    layers: VideoLayer[];
-}
-/**
  * @generated from protobuf message stream.video.sfu.models.Codec
  */
 export interface Codec {
@@ -238,47 +125,30 @@ export interface Codec {
     hwAccelerated: boolean;
 }
 /**
- * @generated from protobuf message stream.video.sfu.models.AudioCodecs
+ * @generated from protobuf message stream.video.sfu.models.DecodeCapabilities
  */
-export interface AudioCodecs {
+export interface DecodeCapabilities {
     /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.Codec encodes = 1;
+     * @generated from protobuf field: repeated stream.video.sfu.models.Codec audio_codecs = 1;
      */
-    encodes: Codec[];
+    audioCodecs: Codec[];
     /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.Codec decodes = 2;
+     * @generated from protobuf field: repeated stream.video.sfu.models.Codec video_codecs = 2;
      */
-    decodes: Codec[];
+    videoCodecs: Codec[];
 }
 /**
- * @generated from protobuf message stream.video.sfu.models.VideoCodecs
+ * @generated from protobuf message stream.video.sfu.models.EncodeCapabilities
  */
-export interface VideoCodecs {
+export interface EncodeCapabilities {
     /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.Codec encodes = 1;
+     * @generated from protobuf field: repeated stream.video.sfu.models.Codec audio_codecs = 1;
      */
-    encodes: Codec[];
+    audioCodecs: Codec[];
     /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.Codec decodes = 2;
+     * @generated from protobuf field: repeated stream.video.sfu.models.Codec video_codecs = 2;
      */
-    decodes: Codec[];
-}
-/**
- * @generated from protobuf message stream.video.sfu.models.CodecSettings
- */
-export interface CodecSettings {
-    /**
-     * @generated from protobuf field: stream.video.sfu.models.AudioCodecs audio = 1;
-     */
-    audio?: AudioCodecs;
-    /**
-     * @generated from protobuf field: stream.video.sfu.models.VideoCodecs video = 2;
-     */
-    video?: VideoCodecs;
-    /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.VideoLayer layers = 3;
-     */
-    layers: VideoLayer[];
+    videoCodecs: Codec[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.ICETrickle
@@ -298,10 +168,80 @@ export interface ICETrickle {
     sessionId: string;
 }
 /**
+ * @generated from protobuf message stream.video.sfu.models.TrackInfo
+ */
+export interface TrackInfo {
+    /**
+     * @generated from protobuf field: string track_id = 1;
+     */
+    trackId: string;
+    /**
+     * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 2;
+     */
+    trackType: TrackType;
+    /**
+     * @generated from protobuf field: stream.video.sfu.models.TrackKind kind = 3;
+     */
+    kind: TrackKind;
+    /**
+     * @generated from protobuf field: stream.video.sfu.models.Codec codec = 4;
+     */
+    codec?: Codec;
+    /**
+     * @generated from protobuf field: repeated stream.video.sfu.models.VideoLayer layers = 5;
+     */
+    layers: VideoLayer[];
+}
+/**
+ * todo remove this
+ *
+ * @generated from protobuf message stream.video.sfu.models.Call
+ */
+export interface Call {
+    /**
+     * the call type
+     *
+     * @generated from protobuf field: string type = 1;
+     */
+    type: string;
+    /**
+     * the call id
+     *
+     * @generated from protobuf field: string id = 2;
+     */
+    id: string;
+    /**
+     * the id of the user that created this call
+     *
+     * @generated from protobuf field: string created_by_user_id = 3;
+     */
+    createdByUserId: string;
+    /**
+     * the id of the current host for this call
+     *
+     * @generated from protobuf field: string host_user_id = 4;
+     */
+    hostUserId: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Struct custom = 5;
+     */
+    custom?: Struct;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp created_at = 6;
+     */
+    createdAt?: Timestamp;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp updated_at = 7;
+     */
+    updatedAt?: Timestamp;
+}
+/**
  * @generated from protobuf enum stream.video.sfu.models.PeerType
  */
 export enum PeerType {
     /**
+     * todo fix me (marcelo)
+     *
      * @generated from protobuf enum value: PEER_TYPE_PUBLISHER_UNSPECIFIED = 0;
      */
     PUBLISHER_UNSPECIFIED = 0,
@@ -315,51 +255,80 @@ export enum PeerType {
  */
 export enum ConnectionQuality {
     /**
-     * @generated from protobuf enum value: CONNECTION_QUALITY_BAD_UNSPECIFIED = 0;
+     * @generated from protobuf enum value: CONNECTION_QUALITY_UNSPECIFIED = 0;
      */
-    BAD_UNSPECIFIED = 0,
+    UNSPECIFIED = 0,
     /**
-     * @generated from protobuf enum value: CONNECTION_QUALITY_POOR = 1;
+     * @generated from protobuf enum value: CONNECTION_QUALITY_BAD_UNSPECIFIED = 1;
      */
-    POOR = 1,
+    BAD_UNSPECIFIED = 1,
     /**
-     * @generated from protobuf enum value: CONNECTION_QUALITY_GOOD = 2;
+     * @generated from protobuf enum value: CONNECTION_QUALITY_POOR = 2;
      */
-    GOOD = 2
+    POOR = 2,
+    /**
+     * @generated from protobuf enum value: CONNECTION_QUALITY_GOOD = 3;
+     */
+    GOOD = 3
 }
 /**
  * @generated from protobuf enum stream.video.sfu.models.VideoQuality
  */
 export enum VideoQuality {
     /**
-     * @generated from protobuf enum value: VIDEO_QUALITY_LOW_UNSPECIFIED = 0;
+     * @generated from protobuf enum value: VIDEO_QUALITY_UNSPECIFIED = 0;
      */
-    LOW_UNSPECIFIED = 0,
+    UNSPECIFIED = 0,
     /**
-     * @generated from protobuf enum value: VIDEO_QUALITY_MID = 1;
+     * @generated from protobuf enum value: VIDEO_QUALITY_LOW_UNSPECIFIED = 1;
      */
-    MID = 1,
+    LOW_UNSPECIFIED = 1,
     /**
-     * @generated from protobuf enum value: VIDEO_QUALITY_HIGH = 2;
+     * @generated from protobuf enum value: VIDEO_QUALITY_MID = 2;
      */
-    HIGH = 2
+    MID = 2,
+    /**
+     * @generated from protobuf enum value: VIDEO_QUALITY_HIGH = 3;
+     */
+    HIGH = 3
+}
+/**
+ * @generated from protobuf enum stream.video.sfu.models.TrackType
+ */
+export enum TrackType {
+    /**
+     * @generated from protobuf enum value: TRACK_TYPE_UNSPECIFIED = 0;
+     */
+    UNSPECIFIED = 0,
+    /**
+     * @generated from protobuf enum value: TRACK_TYPE_AUDIO = 1;
+     */
+    AUDIO = 1,
+    /**
+     * @generated from protobuf enum value: TRACK_TYPE_VIDEO = 2;
+     */
+    VIDEO = 2
 }
 /**
  * @generated from protobuf enum stream.video.sfu.models.TrackKind
  */
 export enum TrackKind {
     /**
-     * @generated from protobuf enum value: TRACK_KIND_AUDIO_UNSPECIFIED = 0;
+     * @generated from protobuf enum value: TRACK_KIND_UNSPECIFIED = 0;
      */
-    AUDIO_UNSPECIFIED = 0,
+    UNSPECIFIED = 0,
     /**
-     * @generated from protobuf enum value: TRACK_KIND_VIDEO = 1;
+     * @generated from protobuf enum value: TRACK_KIND_AUDIO = 1;
      */
-    VIDEO = 1,
+    AUDIO = 1,
     /**
-     * @generated from protobuf enum value: TRACK_KIND_SCREEN_SHARE = 2;
+     * @generated from protobuf enum value: TRACK_KIND_VIDEO = 2;
      */
-    SCREEN_SHARE = 2
+    VIDEO = 2,
+    /**
+     * @generated from protobuf enum value: TRACK_KIND_SCREEN_SHARE = 3;
+     */
+    SCREEN_SHARE = 3
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {
@@ -409,111 +378,18 @@ class CallState$Type extends MessageType<CallState> {
  */
 export const CallState = new CallState$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class Call$Type extends MessageType<Call> {
-    constructor() {
-        super("stream.video.sfu.models.Call", [
-            { no: 1, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "created_by_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "host_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "custom", kind: "message", T: () => Struct },
-            { no: 6, name: "created_at", kind: "message", T: () => Timestamp },
-            { no: 7, name: "updated_at", kind: "message", T: () => Timestamp }
-        ]);
-    }
-    create(value?: PartialMessage<Call>): Call {
-        const message = { type: "", id: "", createdByUserId: "", hostUserId: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<Call>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Call): Call {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string type */ 1:
-                    message.type = reader.string();
-                    break;
-                case /* string id */ 2:
-                    message.id = reader.string();
-                    break;
-                case /* string created_by_user_id */ 3:
-                    message.createdByUserId = reader.string();
-                    break;
-                case /* string host_user_id */ 4:
-                    message.hostUserId = reader.string();
-                    break;
-                case /* google.protobuf.Struct custom */ 5:
-                    message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
-                    break;
-                case /* google.protobuf.Timestamp created_at */ 6:
-                    message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
-                    break;
-                case /* google.protobuf.Timestamp updated_at */ 7:
-                    message.updatedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.updatedAt);
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: Call, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string type = 1; */
-        if (message.type !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.type);
-        /* string id = 2; */
-        if (message.id !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.id);
-        /* string created_by_user_id = 3; */
-        if (message.createdByUserId !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.createdByUserId);
-        /* string host_user_id = 4; */
-        if (message.hostUserId !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.hostUserId);
-        /* google.protobuf.Struct custom = 5; */
-        if (message.custom)
-            Struct.internalBinaryWrite(message.custom, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
-        /* google.protobuf.Timestamp created_at = 6; */
-        if (message.createdAt)
-            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
-        /* google.protobuf.Timestamp updated_at = 7; */
-        if (message.updatedAt)
-            Timestamp.internalBinaryWrite(message.updatedAt, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.models.Call
- */
-export const Call = new Call$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class Participant$Type extends MessageType<Participant> {
     constructor() {
         super("stream.video.sfu.models.Participant", [
-            { no: 1, name: "user", kind: "message", T: () => User },
-            { no: 2, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "online", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 4, name: "custom", kind: "message", T: () => Struct },
-            { no: 5, name: "published_tracks", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["stream.video.sfu.models.TrackKind", TrackKind, "TRACK_KIND_"] },
-            { no: 6, name: "created_at", kind: "message", T: () => Timestamp },
-            { no: 7, name: "updated_at", kind: "message", T: () => Timestamp },
-            { no: 8, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 9, name: "track_lookup_prefix", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "published_tracks", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["stream.video.sfu.models.TrackKind", TrackKind, "TRACK_KIND_"] },
+            { no: 4, name: "joined_at", kind: "message", T: () => Timestamp },
+            { no: 5, name: "track_lookup_prefix", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Participant>): Participant {
-        const message = { role: "", online: false, publishedTracks: [], sessionId: "", trackLookupPrefix: "" };
+        const message = { userId: "", sessionId: "", publishedTracks: [], trackLookupPrefix: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Participant>(this, message, value);
@@ -524,35 +400,23 @@ class Participant$Type extends MessageType<Participant> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* stream.video.sfu.models.User user */ 1:
-                    message.user = User.internalBinaryRead(reader, reader.uint32(), options, message.user);
+                case /* string user_id */ 1:
+                    message.userId = reader.string();
                     break;
-                case /* string role */ 2:
-                    message.role = reader.string();
+                case /* string session_id */ 2:
+                    message.sessionId = reader.string();
                     break;
-                case /* bool online */ 3:
-                    message.online = reader.bool();
-                    break;
-                case /* google.protobuf.Struct custom */ 4:
-                    message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
-                    break;
-                case /* repeated stream.video.sfu.models.TrackKind published_tracks */ 5:
+                case /* repeated stream.video.sfu.models.TrackKind published_tracks */ 3:
                     if (wireType === WireType.LengthDelimited)
                         for (let e = reader.int32() + reader.pos; reader.pos < e;)
                             message.publishedTracks.push(reader.int32());
                     else
                         message.publishedTracks.push(reader.int32());
                     break;
-                case /* google.protobuf.Timestamp created_at */ 6:
-                    message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
+                case /* google.protobuf.Timestamp joined_at */ 4:
+                    message.joinedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.joinedAt);
                     break;
-                case /* google.protobuf.Timestamp updated_at */ 7:
-                    message.updatedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.updatedAt);
-                    break;
-                case /* string session_id */ 8:
-                    message.sessionId = reader.string();
-                    break;
-                case /* string track_lookup_prefix */ 9:
+                case /* string track_lookup_prefix */ 5:
                     message.trackLookupPrefix = reader.string();
                     break;
                 default:
@@ -567,37 +431,25 @@ class Participant$Type extends MessageType<Participant> {
         return message;
     }
     internalBinaryWrite(message: Participant, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.sfu.models.User user = 1; */
-        if (message.user)
-            User.internalBinaryWrite(message.user, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* string role = 2; */
-        if (message.role !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.role);
-        /* bool online = 3; */
-        if (message.online !== false)
-            writer.tag(3, WireType.Varint).bool(message.online);
-        /* google.protobuf.Struct custom = 4; */
-        if (message.custom)
-            Struct.internalBinaryWrite(message.custom, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
-        /* repeated stream.video.sfu.models.TrackKind published_tracks = 5; */
+        /* string user_id = 1; */
+        if (message.userId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.userId);
+        /* string session_id = 2; */
+        if (message.sessionId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
+        /* repeated stream.video.sfu.models.TrackKind published_tracks = 3; */
         if (message.publishedTracks.length) {
-            writer.tag(5, WireType.LengthDelimited).fork();
+            writer.tag(3, WireType.LengthDelimited).fork();
             for (let i = 0; i < message.publishedTracks.length; i++)
                 writer.int32(message.publishedTracks[i]);
             writer.join();
         }
-        /* google.protobuf.Timestamp created_at = 6; */
-        if (message.createdAt)
-            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
-        /* google.protobuf.Timestamp updated_at = 7; */
-        if (message.updatedAt)
-            Timestamp.internalBinaryWrite(message.updatedAt, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
-        /* string session_id = 8; */
-        if (message.sessionId !== "")
-            writer.tag(8, WireType.LengthDelimited).string(message.sessionId);
-        /* string track_lookup_prefix = 9; */
+        /* google.protobuf.Timestamp joined_at = 4; */
+        if (message.joinedAt)
+            Timestamp.internalBinaryWrite(message.joinedAt, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* string track_lookup_prefix = 5; */
         if (message.trackLookupPrefix !== "")
-            writer.tag(9, WireType.LengthDelimited).string(message.trackLookupPrefix);
+            writer.tag(5, WireType.LengthDelimited).string(message.trackLookupPrefix);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -608,102 +460,6 @@ class Participant$Type extends MessageType<Participant> {
  * @generated MessageType for protobuf message stream.video.sfu.models.Participant
  */
 export const Participant = new Participant$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class User$Type extends MessageType<User> {
-    constructor() {
-        super("stream.video.sfu.models.User", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "teams", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "custom", kind: "message", T: () => Struct },
-            { no: 5, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "image_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 7, name: "created_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "updated_at", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<User>): User {
-        const message = { id: "", teams: [], role: "", name: "", imageUrl: "", createdAt: "", updatedAt: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<User>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: User): User {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                case /* repeated string teams */ 2:
-                    message.teams.push(reader.string());
-                    break;
-                case /* string role */ 3:
-                    message.role = reader.string();
-                    break;
-                case /* google.protobuf.Struct custom */ 4:
-                    message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
-                    break;
-                case /* string name */ 5:
-                    message.name = reader.string();
-                    break;
-                case /* string image_url */ 6:
-                    message.imageUrl = reader.string();
-                    break;
-                case /* string created_at */ 7:
-                    message.createdAt = reader.string();
-                    break;
-                case /* string updated_at */ 8:
-                    message.updatedAt = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: User, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* repeated string teams = 2; */
-        for (let i = 0; i < message.teams.length; i++)
-            writer.tag(2, WireType.LengthDelimited).string(message.teams[i]);
-        /* string role = 3; */
-        if (message.role !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.role);
-        /* google.protobuf.Struct custom = 4; */
-        if (message.custom)
-            Struct.internalBinaryWrite(message.custom, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
-        /* string name = 5; */
-        if (message.name !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.name);
-        /* string image_url = 6; */
-        if (message.imageUrl !== "")
-            writer.tag(6, WireType.LengthDelimited).string(message.imageUrl);
-        /* string created_at = 7; */
-        if (message.createdAt !== "")
-            writer.tag(7, WireType.LengthDelimited).string(message.createdAt);
-        /* string updated_at = 8; */
-        if (message.updatedAt !== "")
-            writer.tag(8, WireType.LengthDelimited).string(message.updatedAt);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.models.User
- */
-export const User = new User$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class StreamQuality$Type extends MessageType<StreamQuality> {
     constructor() {
@@ -881,74 +637,6 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
  */
 export const VideoLayer = new VideoLayer$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class SimulcastCodecInfo$Type extends MessageType<SimulcastCodecInfo> {
-    constructor() {
-        super("stream.video.sfu.models.SimulcastCodecInfo", [
-            { no: 1, name: "mime_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "mid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "layers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => VideoLayer }
-        ]);
-    }
-    create(value?: PartialMessage<SimulcastCodecInfo>): SimulcastCodecInfo {
-        const message = { mimeType: "", mid: "", cid: "", layers: [] };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<SimulcastCodecInfo>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SimulcastCodecInfo): SimulcastCodecInfo {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string mime_type */ 1:
-                    message.mimeType = reader.string();
-                    break;
-                case /* string mid */ 2:
-                    message.mid = reader.string();
-                    break;
-                case /* string cid */ 3:
-                    message.cid = reader.string();
-                    break;
-                case /* repeated stream.video.sfu.models.VideoLayer layers */ 4:
-                    message.layers.push(VideoLayer.internalBinaryRead(reader, reader.uint32(), options));
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: SimulcastCodecInfo, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string mime_type = 1; */
-        if (message.mimeType !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.mimeType);
-        /* string mid = 2; */
-        if (message.mid !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.mid);
-        /* string cid = 3; */
-        if (message.cid !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.cid);
-        /* repeated stream.video.sfu.models.VideoLayer layers = 4; */
-        for (let i = 0; i < message.layers.length; i++)
-            VideoLayer.internalBinaryWrite(message.layers[i], writer.tag(4, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.models.SimulcastCodecInfo
- */
-export const SimulcastCodecInfo = new SimulcastCodecInfo$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class Codec$Type extends MessageType<Codec> {
     constructor() {
         super("stream.video.sfu.models.Codec", [
@@ -1017,30 +705,30 @@ class Codec$Type extends MessageType<Codec> {
  */
 export const Codec = new Codec$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class AudioCodecs$Type extends MessageType<AudioCodecs> {
+class DecodeCapabilities$Type extends MessageType<DecodeCapabilities> {
     constructor() {
-        super("stream.video.sfu.models.AudioCodecs", [
-            { no: 1, name: "encodes", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec },
-            { no: 2, name: "decodes", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec }
+        super("stream.video.sfu.models.DecodeCapabilities", [
+            { no: 1, name: "audio_codecs", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec },
+            { no: 2, name: "video_codecs", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec }
         ]);
     }
-    create(value?: PartialMessage<AudioCodecs>): AudioCodecs {
-        const message = { encodes: [], decodes: [] };
+    create(value?: PartialMessage<DecodeCapabilities>): DecodeCapabilities {
+        const message = { audioCodecs: [], videoCodecs: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<AudioCodecs>(this, message, value);
+            reflectionMergePartial<DecodeCapabilities>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AudioCodecs): AudioCodecs {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DecodeCapabilities): DecodeCapabilities {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated stream.video.sfu.models.Codec encodes */ 1:
-                    message.encodes.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated stream.video.sfu.models.Codec audio_codecs */ 1:
+                    message.audioCodecs.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
                     break;
-                case /* repeated stream.video.sfu.models.Codec decodes */ 2:
-                    message.decodes.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated stream.video.sfu.models.Codec video_codecs */ 2:
+                    message.videoCodecs.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1053,13 +741,13 @@ class AudioCodecs$Type extends MessageType<AudioCodecs> {
         }
         return message;
     }
-    internalBinaryWrite(message: AudioCodecs, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated stream.video.sfu.models.Codec encodes = 1; */
-        for (let i = 0; i < message.encodes.length; i++)
-            Codec.internalBinaryWrite(message.encodes[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* repeated stream.video.sfu.models.Codec decodes = 2; */
-        for (let i = 0; i < message.decodes.length; i++)
-            Codec.internalBinaryWrite(message.decodes[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+    internalBinaryWrite(message: DecodeCapabilities, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated stream.video.sfu.models.Codec audio_codecs = 1; */
+        for (let i = 0; i < message.audioCodecs.length; i++)
+            Codec.internalBinaryWrite(message.audioCodecs[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* repeated stream.video.sfu.models.Codec video_codecs = 2; */
+        for (let i = 0; i < message.videoCodecs.length; i++)
+            Codec.internalBinaryWrite(message.videoCodecs[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1067,34 +755,34 @@ class AudioCodecs$Type extends MessageType<AudioCodecs> {
     }
 }
 /**
- * @generated MessageType for protobuf message stream.video.sfu.models.AudioCodecs
+ * @generated MessageType for protobuf message stream.video.sfu.models.DecodeCapabilities
  */
-export const AudioCodecs = new AudioCodecs$Type();
+export const DecodeCapabilities = new DecodeCapabilities$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class VideoCodecs$Type extends MessageType<VideoCodecs> {
+class EncodeCapabilities$Type extends MessageType<EncodeCapabilities> {
     constructor() {
-        super("stream.video.sfu.models.VideoCodecs", [
-            { no: 1, name: "encodes", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec },
-            { no: 2, name: "decodes", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec }
+        super("stream.video.sfu.models.EncodeCapabilities", [
+            { no: 1, name: "audio_codecs", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec },
+            { no: 2, name: "video_codecs", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec }
         ]);
     }
-    create(value?: PartialMessage<VideoCodecs>): VideoCodecs {
-        const message = { encodes: [], decodes: [] };
+    create(value?: PartialMessage<EncodeCapabilities>): EncodeCapabilities {
+        const message = { audioCodecs: [], videoCodecs: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<VideoCodecs>(this, message, value);
+            reflectionMergePartial<EncodeCapabilities>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: VideoCodecs): VideoCodecs {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: EncodeCapabilities): EncodeCapabilities {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated stream.video.sfu.models.Codec encodes */ 1:
-                    message.encodes.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated stream.video.sfu.models.Codec audio_codecs */ 1:
+                    message.audioCodecs.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
                     break;
-                case /* repeated stream.video.sfu.models.Codec decodes */ 2:
-                    message.decodes.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated stream.video.sfu.models.Codec video_codecs */ 2:
+                    message.videoCodecs.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1107,13 +795,13 @@ class VideoCodecs$Type extends MessageType<VideoCodecs> {
         }
         return message;
     }
-    internalBinaryWrite(message: VideoCodecs, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated stream.video.sfu.models.Codec encodes = 1; */
-        for (let i = 0; i < message.encodes.length; i++)
-            Codec.internalBinaryWrite(message.encodes[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* repeated stream.video.sfu.models.Codec decodes = 2; */
-        for (let i = 0; i < message.decodes.length; i++)
-            Codec.internalBinaryWrite(message.decodes[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+    internalBinaryWrite(message: EncodeCapabilities, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated stream.video.sfu.models.Codec audio_codecs = 1; */
+        for (let i = 0; i < message.audioCodecs.length; i++)
+            Codec.internalBinaryWrite(message.audioCodecs[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* repeated stream.video.sfu.models.Codec video_codecs = 2; */
+        for (let i = 0; i < message.videoCodecs.length; i++)
+            Codec.internalBinaryWrite(message.videoCodecs[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1121,70 +809,9 @@ class VideoCodecs$Type extends MessageType<VideoCodecs> {
     }
 }
 /**
- * @generated MessageType for protobuf message stream.video.sfu.models.VideoCodecs
+ * @generated MessageType for protobuf message stream.video.sfu.models.EncodeCapabilities
  */
-export const VideoCodecs = new VideoCodecs$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class CodecSettings$Type extends MessageType<CodecSettings> {
-    constructor() {
-        super("stream.video.sfu.models.CodecSettings", [
-            { no: 1, name: "audio", kind: "message", T: () => AudioCodecs },
-            { no: 2, name: "video", kind: "message", T: () => VideoCodecs },
-            { no: 3, name: "layers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => VideoLayer }
-        ]);
-    }
-    create(value?: PartialMessage<CodecSettings>): CodecSettings {
-        const message = { layers: [] };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<CodecSettings>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CodecSettings): CodecSettings {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* stream.video.sfu.models.AudioCodecs audio */ 1:
-                    message.audio = AudioCodecs.internalBinaryRead(reader, reader.uint32(), options, message.audio);
-                    break;
-                case /* stream.video.sfu.models.VideoCodecs video */ 2:
-                    message.video = VideoCodecs.internalBinaryRead(reader, reader.uint32(), options, message.video);
-                    break;
-                case /* repeated stream.video.sfu.models.VideoLayer layers */ 3:
-                    message.layers.push(VideoLayer.internalBinaryRead(reader, reader.uint32(), options));
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: CodecSettings, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.sfu.models.AudioCodecs audio = 1; */
-        if (message.audio)
-            AudioCodecs.internalBinaryWrite(message.audio, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.sfu.models.VideoCodecs video = 2; */
-        if (message.video)
-            VideoCodecs.internalBinaryWrite(message.video, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* repeated stream.video.sfu.models.VideoLayer layers = 3; */
-        for (let i = 0; i < message.layers.length; i++)
-            VideoLayer.internalBinaryWrite(message.layers[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.models.CodecSettings
- */
-export const CodecSettings = new CodecSettings$Type();
+export const EncodeCapabilities = new EncodeCapabilities$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ICETrickle$Type extends MessageType<ICETrickle> {
     constructor() {
@@ -1246,3 +873,167 @@ class ICETrickle$Type extends MessageType<ICETrickle> {
  * @generated MessageType for protobuf message stream.video.sfu.models.ICETrickle
  */
 export const ICETrickle = new ICETrickle$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TrackInfo$Type extends MessageType<TrackInfo> {
+    constructor() {
+        super("stream.video.sfu.models.TrackInfo", [
+            { no: 1, name: "track_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "track_type", kind: "enum", T: () => ["stream.video.sfu.models.TrackType", TrackType, "TRACK_TYPE_"] },
+            { no: 3, name: "kind", kind: "enum", T: () => ["stream.video.sfu.models.TrackKind", TrackKind, "TRACK_KIND_"] },
+            { no: 4, name: "codec", kind: "message", T: () => Codec },
+            { no: 5, name: "layers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => VideoLayer }
+        ]);
+    }
+    create(value?: PartialMessage<TrackInfo>): TrackInfo {
+        const message = { trackId: "", trackType: 0, kind: 0, layers: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<TrackInfo>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TrackInfo): TrackInfo {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string track_id */ 1:
+                    message.trackId = reader.string();
+                    break;
+                case /* stream.video.sfu.models.TrackType track_type */ 2:
+                    message.trackType = reader.int32();
+                    break;
+                case /* stream.video.sfu.models.TrackKind kind */ 3:
+                    message.kind = reader.int32();
+                    break;
+                case /* stream.video.sfu.models.Codec codec */ 4:
+                    message.codec = Codec.internalBinaryRead(reader, reader.uint32(), options, message.codec);
+                    break;
+                case /* repeated stream.video.sfu.models.VideoLayer layers */ 5:
+                    message.layers.push(VideoLayer.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TrackInfo, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string track_id = 1; */
+        if (message.trackId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.trackId);
+        /* stream.video.sfu.models.TrackType track_type = 2; */
+        if (message.trackType !== 0)
+            writer.tag(2, WireType.Varint).int32(message.trackType);
+        /* stream.video.sfu.models.TrackKind kind = 3; */
+        if (message.kind !== 0)
+            writer.tag(3, WireType.Varint).int32(message.kind);
+        /* stream.video.sfu.models.Codec codec = 4; */
+        if (message.codec)
+            Codec.internalBinaryWrite(message.codec, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* repeated stream.video.sfu.models.VideoLayer layers = 5; */
+        for (let i = 0; i < message.layers.length; i++)
+            VideoLayer.internalBinaryWrite(message.layers[i], writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.TrackInfo
+ */
+export const TrackInfo = new TrackInfo$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Call$Type extends MessageType<Call> {
+    constructor() {
+        super("stream.video.sfu.models.Call", [
+            { no: 1, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "created_by_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "host_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "custom", kind: "message", T: () => Struct },
+            { no: 6, name: "created_at", kind: "message", T: () => Timestamp },
+            { no: 7, name: "updated_at", kind: "message", T: () => Timestamp }
+        ]);
+    }
+    create(value?: PartialMessage<Call>): Call {
+        const message = { type: "", id: "", createdByUserId: "", hostUserId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Call>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Call): Call {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string type */ 1:
+                    message.type = reader.string();
+                    break;
+                case /* string id */ 2:
+                    message.id = reader.string();
+                    break;
+                case /* string created_by_user_id */ 3:
+                    message.createdByUserId = reader.string();
+                    break;
+                case /* string host_user_id */ 4:
+                    message.hostUserId = reader.string();
+                    break;
+                case /* google.protobuf.Struct custom */ 5:
+                    message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
+                    break;
+                case /* google.protobuf.Timestamp created_at */ 6:
+                    message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
+                    break;
+                case /* google.protobuf.Timestamp updated_at */ 7:
+                    message.updatedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.updatedAt);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Call, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string type = 1; */
+        if (message.type !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.type);
+        /* string id = 2; */
+        if (message.id !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.id);
+        /* string created_by_user_id = 3; */
+        if (message.createdByUserId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.createdByUserId);
+        /* string host_user_id = 4; */
+        if (message.hostUserId !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.hostUserId);
+        /* google.protobuf.Struct custom = 5; */
+        if (message.custom)
+            Struct.internalBinaryWrite(message.custom, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.Timestamp created_at = 6; */
+        if (message.createdAt)
+            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.Timestamp updated_at = 7; */
+        if (message.updatedAt)
+            Timestamp.internalBinaryWrite(message.updatedAt, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.Call
+ */
+export const Call = new Call$Type();

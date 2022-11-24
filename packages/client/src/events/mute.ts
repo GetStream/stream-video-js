@@ -9,29 +9,29 @@ export const watchMuteStateChanged = (
   store: StreamVideoWriteableStateStore,
 ) => {
   return dispatcher.on('muteStateChanged', (e) => {
-    if (e.eventPayload.oneofKind !== 'muteStateChanged') return;
-    const { muteStateChanged } = e.eventPayload;
-    const participants = store.getCurrentValue(
-      store.activeCallAllParticipantsSubject,
-    );
-    const participantToUpdate = participants.find(
-      (p) => p.user?.id === muteStateChanged.userId,
-    );
-    if (!participantToUpdate) {
-      return;
-    }
-
-    store.setCurrentValue(
-      store.activeCallAllParticipantsSubject,
-      participants.map((p) =>
-        p.user?.id === participantToUpdate.user?.id
-          ? {
-              ...p,
-              audio: !muteStateChanged.audioMuted,
-              video: !muteStateChanged.videoMuted,
-            }
-          : p,
-      ),
-    );
+    // if (e.eventPayload.oneofKind !== 'muteStateChanged') return;
+    // const { muteStateChanged } = e.eventPayload;
+    // const participants = store.getCurrentValue(
+    //   store.activeCallAllParticipantsSubject,
+    // );
+    // const participantToUpdate = participants.find(
+    //   (p) => p.sessionId === muteStateChanged.userId,
+    // );
+    // if (!participantToUpdate) {
+    //   return;
+    // }
+    //
+    // store.setCurrentValue(
+    //   store.activeCallAllParticipantsSubject,
+    //   participants.map((p) =>
+    //     p.user?.id === participantToUpdate.user?.id
+    //       ? {
+    //           ...p,
+    //           audio: !muteStateChanged.audioMuted,
+    //           video: !muteStateChanged.videoMuted,
+    //         }
+    //       : p,
+    //   ),
+    // );
   });
 };

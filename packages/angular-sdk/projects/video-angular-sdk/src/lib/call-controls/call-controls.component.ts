@@ -18,22 +18,22 @@ export class CallControlsComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  updateAudioMutaState() {
+  updateAudioMuteState() {
     console.warn(
       this.call,
       !this.localParticipant?.publishedTracks.includes(
-        SfuModels.TrackKind.AUDIO_UNSPECIFIED,
+        SfuModels.TrackKind.AUDIO,
       ),
     );
     this.call?.updateMuteState(
       'audio',
       !!this.localParticipant?.publishedTracks.includes(
-        SfuModels.TrackKind.AUDIO_UNSPECIFIED,
+        SfuModels.TrackKind.AUDIO,
       ),
     );
   }
 
-  updateVideoMutaState() {
+  updateVideoMuteState() {
     this.call?.updateMuteState(
       'video',
       !!this.localParticipant?.publishedTracks.includes(
