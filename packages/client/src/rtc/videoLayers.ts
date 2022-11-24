@@ -47,29 +47,3 @@ export const findOptimalVideoLayers = (videoTrack: MediaStreamTrack) => {
   }
   return optimalVideoLayers;
 };
-
-export const defaultVideoLayers: OptimalVideoLayer[] = [
-  {
-    rid: 'f',
-    maxBitrate: 500000,
-    maxFramerate: 30,
-    width: 640,
-    height: 480,
-  },
-  {
-    rid: 'h',
-    maxBitrate: 250000,
-    maxFramerate: 25,
-    width: 320,
-    height: 240,
-    scaleResolutionDownBy: 2.0,
-  },
-  {
-    rid: 'q',
-    maxBitrate: 125000,
-    maxFramerate: 20,
-    width: 160,
-    height: 120,
-    scaleResolutionDownBy: 4.0,
-  },
-];

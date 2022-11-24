@@ -272,6 +272,18 @@ export class Call {
     // breaking the ICETrickle flow.
     await this.joinResponseReady;
 
+    const displayMedia = await navigator.mediaDevices.getDisplayMedia();
+    const [displayVideoTrack] = displayMedia.getVideoTracks();
+    const displayVideoTransceiver = this.publisher.addTransceiver(
+      displayVideoTrack,
+      {
+        direction: 'sendonly',
+        streams: [displayMedia],
+      },
+    );
+    // @ts-ignore FIXME OL: hack
+    displayVideoTransceiver._kind = 'screen';
+
     if (videoStream) {
       // const videoEncodings: RTCRtpEncodingParameters[] =
       //   this.videoLayers && this.videoLayers.length > 0
@@ -450,32 +462,32 @@ export class Call {
     const subscriptions: TrackSubscriptionDetails[] = [];
     participants.forEach((p) => {
       if (!p.isLoggedInUser) {
-        if (p.videoDimension && p.publishedTracks.includes(TrackKind.VIDEO)) {
-          subscriptions.push({
-            userId: p.userId,
-            sessionId: p.sessionId,
-            trackKind: TrackKind.VIDEO,
-            dimension: p.videoDimension,
-          });
-        }
-        if (p.publishedTracks.includes(TrackKind.AUDIO)) {
-          subscriptions.push({
-            userId: p.userId,
-            sessionId: p.sessionId,
-            trackKind: TrackKind.AUDIO,
-          });
-        }
-        if (p.publishedTracks.includes(TrackKind.SCREEN_SHARE)) {
-          subscriptions.push({
-            userId: p.userId,
-            sessionId: p.sessionId,
-            trackKind: TrackKind.SCREEN_SHARE,
-            dimension: {
-              width: 1280,
-              height: 720,
-            },
-          });
-        }
+        // if (p.videoDimension && p.publishedTracks.includes(TrackKind.VIDEO)) {
+        subscriptions.push({
+          userId: p.userId,
+          sessionId: p.sessionId,
+          trackKind: TrackKind.VIDEO,
+          dimension: p.videoDimension,
+        });
+        // }
+        // if (p.publishedTracks.includes(TrackKind.AUDIO)) {
+        subscriptions.push({
+          userId: p.userId,
+          sessionId: p.sessionId,
+          trackKind: TrackKind.AUDIO,
+        });
+        // }
+        // if (p.publishedTracks.includes(TrackKind.SCREEN_SHARE)) {
+        subscriptions.push({
+          userId: p.userId,
+          sessionId: p.sessionId,
+          trackKind: TrackKind.SCREEN_SHARE,
+          dimension: {
+            width: 1280,
+            height: 720,
+          },
+        });
+        // }
       }
     });
     // schedule update
@@ -593,7 +605,7 @@ export class Call {
     console.log('Got remote track:', e.track);
     const [primaryStream] = e.streams;
     // TODO OL: extract track kind
-    const [trackId] = primaryStream.id.split(':');
+    const [trackId, trackKind] = primaryStream.id.split(':');
     const participantToUpdate = this.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );
@@ -634,10 +646,14 @@ export class Call {
         this.stateStore.activeCallAllParticipantsSubject,
         this.participants.map((participant) => {
           if (participant.trackLookupPrefix === trackId) {
+            const key =
+              trackKind === 'TRACK_KIND_SCREEN_SHARE'
+                ? 'screenShareStream'
+                : 'videoStream';
             return {
               // FIXME OL: shallow clone, switch to deep clone
               ...participant,
-              videoStream: primaryStream,
+              [key]: primaryStream,
             };
           }
           return participant;

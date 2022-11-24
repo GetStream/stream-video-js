@@ -31,6 +31,7 @@ export const ParticipantBox = (props: {
   const {
     videoStream,
     audioStream,
+    screenShareStream,
     isLoggedInUser: isLocalParticipant,
     isSpeaking,
     sessionId,
@@ -54,17 +55,18 @@ export const ParticipantBox = (props: {
     };
   }, [sessionId, updateVideoSubscriptionForParticipant]);
 
+  const streamToPlay = isLocalParticipant ? videoStream : screenShareStream;
   useEffect(() => {
     const $el = videoRef.current;
-    console.log(`Attaching video stream`, $el, videoStream);
+    console.log(`Attaching video stream`, $el, streamToPlay);
     if (!$el) return;
-    if (videoStream) {
-      $el.srcObject = videoStream;
+    if (streamToPlay) {
+      $el.srcObject = streamToPlay;
     }
     return () => {
       $el.srcObject = null;
     };
-  }, [videoStream]);
+  }, [streamToPlay]);
 
   useEffect(() => {
     const $el = audioRef.current;

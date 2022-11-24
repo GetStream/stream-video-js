@@ -87,9 +87,14 @@ export const createPublisher = ({
         return {
           trackId: track.id,
           trackType: track.kind === 'audio' ? TrackType.AUDIO : TrackType.VIDEO,
-          // FIXME OL: screen share
-          kind: track.kind === 'audio' ? TrackKind.AUDIO : TrackKind.VIDEO,
-          codec: toCodec(primaryCodec),
+          kind:
+            track.kind === 'audio'
+              ? TrackKind.AUDIO
+              : // @ts-ignore
+              transceiver._kind === 'screen'
+              ? TrackKind.SCREEN_SHARE
+              : TrackKind.VIDEO,
+          codec: primaryCodec ? toCodec(primaryCodec) : undefined,
           layers: layers,
         };
       });

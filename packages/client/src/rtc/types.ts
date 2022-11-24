@@ -4,8 +4,9 @@ import type {
 } from '../gen/video/sfu/models/models';
 
 export type StreamVideoParticipant = {
-  videoStream?: MediaStream;
   audioStream?: MediaStream;
+  videoStream?: MediaStream;
+  screenShareStream?: MediaStream;
   videoDimension?: VideoDimension;
   isLoggedInUser?: boolean;
 
