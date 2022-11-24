@@ -38,17 +38,16 @@ const Meeting = ({ navigation }: Props) => {
     if (videoClient && localMediaStream) {
       setLoading(true);
       try {
-        await joinCall(videoClient, localMediaStream, {
+        const response = await joinCall(videoClient, localMediaStream, {
           autoJoin: true,
           callId: meetingCallID,
           callType: 'default',
-        }).then((response) => {
-          if (!response) {
-            throw new Error('Call is not defined');
-          }
-          setLoading(false);
-          navigation.navigate('ActiveCall');
         });
+        if (!response) {
+          throw new Error('Call is not defined');
+        }
+        setLoading(false);
+        navigation.navigate('ActiveCall');
       } catch (err) {
         console.log(err);
       }
