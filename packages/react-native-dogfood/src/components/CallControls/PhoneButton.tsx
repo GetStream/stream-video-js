@@ -35,12 +35,12 @@ const PhoneButton = () => {
 
   const hangup = async () => {
     try {
-      endCall();
+      await endCall();
       if (
         activeRingCallMeta &&
         activeRingCallMeta.createdByUserId === username
       ) {
-        cancelCall();
+        await cancelCall();
       }
       resetCallState();
     } catch (err) {

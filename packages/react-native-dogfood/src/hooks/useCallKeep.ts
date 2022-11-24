@@ -58,10 +58,6 @@ export const useCallKeep = () => {
     if (Platform.OS === 'ios' && activeRingCallMeta) {
       await RNCallKeep.endCall(activeRingCallMeta.id);
     }
-    if (!call) {
-      console.warn('Failed to leave call: call is undefined');
-      return;
-    }
     call?.leave();
     InCallManager.stop();
 

@@ -42,7 +42,10 @@ const Meeting = ({ navigation }: Props) => {
           autoJoin: true,
           callId: meetingCallID,
           callType: 'default',
-        }).then(() => {
+        }).then((response) => {
+          if (!response) {
+            throw new Error('Call is not defined');
+          }
           setLoading(false);
           navigation.navigate('ActiveCall');
         });
