@@ -96,6 +96,7 @@ export class StreamVideoClient {
   /**
    * Connects the given user to the client.
    * Only one user can connect at a time, if you want to change users, call `disconnect` before connecting a new user.
+   * If the connection is successful, the connected user state variable will be updated accordingly.
    * @param apiKey
    * @param token
    * @param user
@@ -120,6 +121,8 @@ export class StreamVideoClient {
 
   /**
    * Disconnects the currently connected user from the client.
+   *
+   * If the connection is successfully disconnected, the connected user state variable will be updated accordingly
    * @returns
    */
   disconnect = async () => {
@@ -218,7 +221,7 @@ export class StreamVideoClient {
   };
 
   /**
-   * Allows you to create a new call with the given parameters and joins the call immediately. If a call with the same combination of type and id already exists, it will join the existing call.
+   * Allows you to create a new call with the given parameters and joins the call immediately. If a call with the same combination of `type` and `id` already exists, it will join the existing call.
    * @param data
    * @param sessionId
    * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.

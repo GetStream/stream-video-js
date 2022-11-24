@@ -9,8 +9,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
-    "generate-docs": "typedoc --plugin typedoc-plugin-markdown --cleanOutputDir true --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --out generated-docs --tsconfig ./tsconfig.json ./projects/video-angular-sdk/src/lib/video.service.ts && replace-in-file '# Class: ' '# ' generated-docs/** ",
-    "copy-docs": "cp -r ../client/generated-docs/classes docusaurus/docs/Angular/reference && cp -r ./generated-docs/classes docusaurus/docs/Angular/reference"
+    "generate-docs": "typedoc --options typedoc.json --exclude '!**/*(stream-video.module|video.service).ts' ./projects/video-angular-sdk/src/public-api.ts && replace-in-file '# Class: ' '# ' temp-docs/** && cp -r temp-docs/classes/ generated-docs && rm -r temp-docs",
+    "copy-docs": "cp -r ../client/generated-docs/ docusaurus/docs/Angular/reference && cp -r ./generated-docs/ docusaurus/docs/Angular/reference"
   },
   "private": true,
   "dependencies": {

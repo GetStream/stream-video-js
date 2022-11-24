@@ -10,7 +10,9 @@ import {
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 
 /**
- * The `StreamVideoService` has two important tasks: 1. it lets you create a [StreamVideoClient](StreamVideoClient.md) instance to interact with our API, 2. you can subscribe to state changes using the [`RxJS Observables`](https://rxjs.dev/guide/observable) defined on this class.
+ * The `StreamVideoService` is an Angular service that is responsible for the followings:
+ * 1. it lets you create a [StreamVideoClient](StreamVideoClient.md) instance to interact with our API
+ * 2. you can subscribe to state changes using the [`RxJS Observables`](https://rxjs.dev/guide/observable) defined on this class.
  */
 @Injectable({
   providedIn: 'root',
