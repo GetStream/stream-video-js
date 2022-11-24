@@ -4,10 +4,10 @@ import { StreamVideoParticipant } from '@stream-io/video-client';
 import { VideoRenderer } from './LocalVideoView';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
-import { Avatar } from './Avatar';
 import { useMuteState } from '../../hooks/useMuteState';
 import MicOff from '../../icons/MicOff';
 import Mic from '../../icons/Mic';
+import { Avatar } from '@stream-io/video-react-native-sdk';
 
 export type SizeType = 'small' | 'medium' | 'large' | 'xl';
 type CallParticipantViewProps = {

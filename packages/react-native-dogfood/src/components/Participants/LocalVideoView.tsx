@@ -1,37 +1,10 @@
+import { VideoRenderer } from '@stream-io/video-react-native-sdk';
 import React from 'react';
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { MediaStream, RTCView } from 'react-native-webrtc';
+import { StyleSheet } from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 
 type LocalVideoViewProps = {
   isVisible: boolean;
-};
-
-type VideoRendererProps = {
-  mediaStream: MediaStream;
-  mirror?: boolean;
-  style?: StyleProp<ViewStyle>;
-  zOrder?: number;
-  objectFit?: 'contain' | 'cover';
-};
-
-export const VideoRenderer = ({
-  mediaStream,
-  mirror = false,
-  style = { flex: 1 },
-  zOrder = undefined,
-  objectFit = 'cover',
-}: VideoRendererProps) => {
-  return (
-    <RTCView
-      //@ts-ignore
-      streamURL={mediaStream.toURL()}
-      mirror={mirror}
-      style={style}
-      objectFit={objectFit}
-      zOrder={zOrder}
-    />
-  );
 };
 
 const LocalVideoView = ({ isVisible }: LocalVideoViewProps) => {

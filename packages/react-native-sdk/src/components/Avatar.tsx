@@ -13,36 +13,16 @@ export const Avatar = ({ participant: { user } }: AvatarProps) => {
     [user?.id, user?.name],
   );
   return (
-    <View
-      style={{
-        backgroundColor: '#005fff',
-        borderRadius: 50,
-        height: 100,
-        width: 100,
-        justifyContent: 'center',
-        alignSelf: 'center',
-        overflow: 'hidden',
-      }}
-    >
+    <View style={styles.container}>
       {user?.imageUrl ? (
         <Image
           source={{
             uri: user.imageUrl,
           }}
-          style={{
-            flex: 1,
-          }}
+          style={styles.image}
         />
       ) : (
-        <Text
-          style={{
-            color: 'white',
-            fontSize: 24,
-            fontWeight: 'bold',
-            textAlign: 'center',
-          }}
-          numberOfLines={1}
-        >
+        <Text style={styles.text} numberOfLines={1}>
           {label}
         </Text>
       )}
@@ -50,23 +30,23 @@ export const Avatar = ({ participant: { user } }: AvatarProps) => {
   );
 };
 
-// const styles = StyleSheet.create({
-//   container: {
-//     backgroundColor: '#005fff',
-//     borderRadius: 50,
-//     height: 100,
-//     width: 100,
-//     justifyContent: 'center',
-//     alignSelf: 'center',
-//     overflow: 'hidden',
-//   },
-//   image: {
-//     flex: 1,
-//   },
-//   text: {
-//     color: 'white',
-//     fontSize: 24,
-//     fontWeight: 'bold',
-//     textAlign: 'center',
-//   },
-// });
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#005fff',
+    borderRadius: 50,
+    height: 100,
+    width: 100,
+    justifyContent: 'center',
+    alignSelf: 'center',
+    overflow: 'hidden',
+  },
+  image: {
+    flex: 1,
+  },
+  text: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+});
