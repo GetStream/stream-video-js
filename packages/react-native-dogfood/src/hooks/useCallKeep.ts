@@ -9,13 +9,9 @@ import { useStore } from './useStore';
 import { useObservableValue } from './useObservable';
 
 export const useCallKeep = () => {
-  const { activeCall$, activeRingCallMeta$, incomingRingCalls$ } = useStore();
+  const { activeCall$, activeRingCallMeta$ } = useStore();
   const call = useObservableValue(activeCall$);
   const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
-  const incomingRingCalls = useObservableValue(incomingRingCalls$);
-
-  const currentIncomingRingCall =
-    incomingRingCalls[incomingRingCalls.length - 1];
 
   const navigation =
     useNavigation<
@@ -40,19 +36,10 @@ export const useCallKeep = () => {
   const displayIncomingCallNow = useCallback(() => {
     try {
       navigation.navigate('IncomingCallScreen');
-      if (currentIncomingRingCall && Platform.OS === 'ios') {
-        RNCallKeep.displayIncomingCall(
-          currentIncomingRingCall.id,
-          '',
-          currentIncomingRingCall.createdByUserId,
-          'generic',
-          true,
-        );
-      }
     } catch (error) {
       console.log(error);
     }
-  }, [navigation, currentIncomingRingCall]);
+  }, [navigation]);
 
   const endCall = useCallback(async () => {
     if (Platform.OS === 'ios' && activeRingCallMeta) {

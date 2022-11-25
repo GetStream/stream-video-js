@@ -13,9 +13,8 @@ import { useCallKeep } from '../../hooks/useCallKeep';
 const PhoneButton = () => {
   const username = useAppGlobalStoreValue((store) => store.username);
   const setState = useAppGlobalStoreSetState();
-  const { activeCall$, activeRingCallMeta$ } = useStore();
+  const { activeRingCallMeta$ } = useStore();
   const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
-  const call = useObservableValue(activeCall$);
   const { cancelCall } = useRingCall();
   const { endCall } = useCallKeep();
 
@@ -35,17 +34,13 @@ const PhoneButton = () => {
   }).current;
 
   const hangup = async () => {
-    if (!call) {
-      console.warn('failed to leave call: ', 'call is undefined');
-      return;
-    }
     try {
-      endCall();
+      await endCall();
       if (
         activeRingCallMeta &&
         activeRingCallMeta.createdByUserId === username
       ) {
-        cancelCall();
+        await cancelCall();
       }
       resetCallState();
     } catch (err) {

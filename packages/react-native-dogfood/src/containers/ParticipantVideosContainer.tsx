@@ -61,10 +61,8 @@ const styles = StyleSheet.create({
 });
 
 const ParticipantVideosContainer = () => {
-  const { activeCall$ } = useStore();
+  const { activeCall$, activeCallAllParticipants$ } = useStore();
   const call = useObservableValue(activeCall$);
-  const { activeCallAllParticipants$ } = useStore();
-
   const allParticipants = useObservableValue(activeCallAllParticipants$);
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,

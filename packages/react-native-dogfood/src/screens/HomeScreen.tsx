@@ -8,6 +8,8 @@ import { useCallKeep } from '../hooks/useCallKeep';
 import { RootStackParamList } from '../../types';
 import { useStore } from '../hooks/useStore';
 import { useObservableValue } from '../hooks/useObservable';
+import { mediaDevices } from 'react-native-webrtc';
+import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 
 const styles = StyleSheet.create({
   container: {
@@ -20,11 +22,28 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 export const HomeScreen = ({ navigation, route }: Props) => {
   const [selectedTab, setSelectedTab] = useState('Meeting');
 
-  const { activeRingCallMeta$, incomingRingCalls$ } = useStore();
+  const { activeRingCallMeta$, incomingRingCalls$, terminatedRingCallMeta$ } =
+    useStore();
   const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
   const incomingRingCalls = useObservableValue(incomingRingCalls$);
+  const terminatedRingCallMeta = useObservableValue(terminatedRingCallMeta$);
+  const setState = useAppGlobalStoreSetState();
 
   const { displayIncomingCallNow, startCall, endCall } = useCallKeep();
+
+  // run only once per app lifecycle
+  useEffect(() => {
+    const configure = async () => {
+      const mediaStream = await mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      });
+      setState({
+        localMediaStream: mediaStream,
+      });
+    };
+    configure();
+  }, [setState]);
 
   useEffect(() => {
     if (activeRingCallMeta) {
@@ -33,13 +52,16 @@ export const HomeScreen = ({ navigation, route }: Props) => {
       if (incomingRingCalls.length > 0) {
         displayIncomingCallNow();
       } else {
-        endCall();
+        if (terminatedRingCallMeta) {
+          endCall();
+        }
       }
     }
   }, [
     activeRingCallMeta,
     incomingRingCalls,
     displayIncomingCallNow,
+    terminatedRingCallMeta,
     startCall,
     endCall,
   ]);
