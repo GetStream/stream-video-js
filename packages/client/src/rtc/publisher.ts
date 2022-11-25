@@ -90,7 +90,7 @@ export const createPublisher = ({
           kind:
             track.kind === 'audio'
               ? TrackKind.AUDIO
-              : // @ts-ignore
+              : // @ts-ignore FIXME: OL: this is a hack
               transceiver._kind === 'screen'
               ? TrackKind.SCREEN_SHARE
               : TrackKind.VIDEO,

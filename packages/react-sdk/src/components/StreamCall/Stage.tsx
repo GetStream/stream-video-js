@@ -26,9 +26,6 @@ export const Stage = (props: {
   const remoteParticipants = useRemoteParticipants();
   const { activeCallLocalParticipant$ } = useStore();
 
-  const [localAudioStream, setLocalAudioStream] = useState<MediaStream>();
-  const [localVideoStream, setLocalVideoStream] = useState<MediaStream>();
-
   const updateVideoSubscriptionForParticipant = useCallback(
     (sessionId: string, width: number, height: number) => {
       call.updateSubscriptionsPartial({
@@ -43,16 +40,15 @@ export const Stage = (props: {
     [call],
   );
 
+  const [localAudioStream, setLocalAudioStream] = useState<MediaStream>();
+  const [localVideoStream, setLocalVideoStream] = useState<MediaStream>();
   const { getAudioStream, getVideoStream } = useMediaDevices();
-
-  useMemo(async () => {
-    const stream = await getAudioStream();
-    setLocalAudioStream(stream);
+  useEffect(() => {
+    getAudioStream().then(setLocalAudioStream);
   }, [getAudioStream]);
 
-  useMemo(async () => {
-    const stream = await getVideoStream();
-    setLocalVideoStream(stream);
+  useEffect(() => {
+    getVideoStream().then(setLocalVideoStream);
   }, [getVideoStream]);
 
   useEffect(() => {
@@ -63,7 +59,7 @@ export const Stage = (props: {
       ).subscribe(async () => {
         call.updateMuteState('audio', true);
         const stream = await getAudioStream();
-        call.replaceMediaStream('audioinput', stream);
+        await call.replaceMediaStream('audioinput', stream);
       }),
     );
     subscriptions.push(
@@ -72,7 +68,7 @@ export const Stage = (props: {
       ).subscribe(async () => {
         call.updateMuteState('video', true);
         const stream = await getVideoStream();
-        call.replaceMediaStream('videoinput', stream);
+        await call.replaceMediaStream('videoinput', stream);
       }),
     );
 
@@ -81,11 +77,14 @@ export const Stage = (props: {
 
   const preferredCodec = useDebugPreferredVideoCodec();
   useEffect(() => {
-    if (localAudioStream && localVideoStream) {
+    if (localAudioStream) {
+      call.publishAudioStream(localAudioStream).catch((e) => {
+        console.error(`Failed to publish`, e);
+      });
+    }
+    if (localVideoStream) {
       call
-        .publishMediaStreams(localAudioStream, localVideoStream, {
-          preferredVideoCodec: preferredCodec,
-        })
+        .publishVideoStream(localVideoStream, { preferredCodec })
         .catch((e) => {
           console.error(`Failed to publish`, e);
         });

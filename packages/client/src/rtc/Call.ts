@@ -12,7 +12,11 @@ import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
-import type { StreamVideoParticipant, SubscriptionChanges } from './types';
+import type {
+  StreamVideoParticipant,
+  StreamVideoParticipantPatches,
+  SubscriptionChanges,
+} from './types';
 import { debounceTime, Subject } from 'rxjs';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import { createStatsReporter, StatsReporter } from '../stats/reporter';
@@ -46,7 +50,7 @@ export type CallOptions = {
 };
 
 export type PublishOptions = {
-  preferredVideoCodec?: string | null;
+  preferredCodec?: string | null;
 };
 
 /**
@@ -176,12 +180,11 @@ export class Call {
   };
 
   /**
-   * Joins the call and sets the necessary video and audio encoding configurations.
-   * @param videoStream
-   * @param audioStream
-   * @returns
+   * Will initiate a call session with the server and return the call state.
+   *
+   * @returns a promise which resolves once the call join-flow has finished.
    */
-  join = async (videoStream?: MediaStream, audioStream?: MediaStream) => {
+  join = async () => {
     await this.client.signalReady.then((ws) => {
       this.publishStatEvent({
         type: 'participant_joined',
@@ -210,8 +213,6 @@ export class Call {
               if (participant.sessionId === this.client.sessionId) {
                 const localParticipant = participant as StreamVideoParticipant;
                 localParticipant.isLoggedInUser = true;
-                localParticipant.audioStream = audioStream;
-                localParticipant.videoStream = videoStream;
               }
               return participant;
             }),
@@ -252,115 +253,115 @@ export class Call {
   };
 
   /**
-   * Starts publishing the given video and/or audio streams, the streams will be stopped if the user changes an input device, or if the user leaves the call.
-   * @param audioStream
-   * @param videoStream
-   * @param opts
+   * Starts publishing the given video stream to the call.
+   * The stream will be stopped if the user changes an input device, or if the user leaves the call.
+   *
+   * @param videoStream the video stream to publish.
+   * @param opts the options to use when publishing the stream.
    */
-  publishMediaStreams = async (
-    audioStream?: MediaStream,
-    videoStream?: MediaStream,
+  publishVideoStream = async (
+    videoStream: MediaStream,
     opts: PublishOptions = {},
   ) => {
-    if (!this.joinResponseReady) {
-      throw new Error(
-        `Illegal State: Can't publish. Please join the call first`,
-      );
+    await this.assertCallJoined();
+    const [videoTrack] = videoStream.getVideoTracks();
+    if (!videoTrack) {
+      return console.error(`There is no video track in the stream.`);
     }
 
-    // wait until we get a JoinResponse from the SFU, otherwise we risk
-    // breaking the ICETrickle flow.
-    await this.joinResponseReady;
+    const videoEncodings = findOptimalVideoLayers(videoTrack);
+    const videoTransceiver = this.publisher.addTransceiver(videoTrack, {
+      direction: 'sendonly',
+      streams: [videoStream],
+      sendEncodings: videoEncodings,
+    });
 
-    const displayMedia = await navigator.mediaDevices.getDisplayMedia();
-    const [displayVideoTrack] = displayMedia.getVideoTracks();
-    const displayVideoTransceiver = this.publisher.addTransceiver(
-      displayVideoTrack,
-      {
-        direction: 'sendonly',
-        streams: [displayMedia],
-      },
+    const codecPreferences = getPreferredCodecs(
+      'video',
+      opts.preferredCodec || 'vp8',
     );
-    // @ts-ignore FIXME OL: hack
-    displayVideoTransceiver._kind = 'screen';
-
-    if (videoStream) {
-      // const videoEncodings: RTCRtpEncodingParameters[] =
-      //   this.videoLayers && this.videoLayers.length > 0
-      //     ? this.videoLayers
-      //     : defaultVideoPublishEncodings;
-
-      const [videoTrack] = videoStream.getVideoTracks();
-      if (videoTrack) {
-        const videoEncodings = findOptimalVideoLayers(videoTrack);
-        const videoTransceiver = this.publisher.addTransceiver(videoTrack, {
-          direction: 'sendonly',
-          streams: [videoStream],
-          sendEncodings: videoEncodings,
-        });
-
-        const codecPreferences = getPreferredCodecs(
-          'video',
-          opts.preferredVideoCodec || 'vp8',
-        );
-        // @ts-ignore
-        if ('setCodecPreferences' in videoTransceiver && codecPreferences) {
-          console.log(`set codec preferences`, codecPreferences);
-          videoTransceiver.setCodecPreferences(codecPreferences);
-        }
-
-        this.publishStatEvent({
-          type: 'media_state_changed',
-          track: videoTrack,
-          change: MediaStateChange.STARTED,
-          reason: MediaStateChangeReason.CONNECTION,
-        });
-      }
-
-      this.stateStore.setCurrentValue(
-        this.stateStore.activeCallAllParticipantsSubject,
-        this.participants.map((p) => {
-          if (p.sessionId === this.client.sessionId) {
-            return {
-              ...p,
-              videoStream,
-              videoDeviceId: this.getActiveInputDeviceId('videoinput'),
-            };
-          }
-          return p;
-        }),
-      );
+    // @ts-ignore
+    if ('setCodecPreferences' in videoTransceiver && codecPreferences) {
+      console.log(`set codec preferences`, codecPreferences);
+      videoTransceiver.setCodecPreferences(codecPreferences);
     }
 
-    if (audioStream) {
-      const [audioTrack] = audioStream.getAudioTracks();
-      if (audioTrack) {
-        this.publisher?.addTransceiver(audioTrack, {
-          direction: 'sendonly',
-        });
-      }
+    this.stateStore.updateParticipant(this.client.sessionId, {
+      videoStream,
+      videoDeviceId: this.getActiveInputDeviceId('videoinput'),
+    });
 
-      this.stateStore.setCurrentValue(
-        this.stateStore.activeCallAllParticipantsSubject,
-        this.participants.map((p) => {
-          if (p.sessionId === this.client.sessionId) {
-            return {
-              ...p,
-              audioStream,
-              audioDeviceId: this.getActiveInputDeviceId('audioinput'),
-            };
-          }
-          return p;
-        }),
-      );
-      this.publishStatEvent({
-        type: 'media_state_changed',
-        track: audioTrack,
-        change: MediaStateChange.STARTED,
-        reason: MediaStateChangeReason.CONNECTION,
-      });
-    }
+    this.publishStatEvent({
+      type: 'media_state_changed',
+      track: videoTrack,
+      change: MediaStateChange.STARTED,
+      reason: MediaStateChangeReason.CONNECTION,
+    });
   };
+
+  /**
+   * Starts publishing the given audio stream to the call.
+   * The stream will be stopped if the user changes an input device, or if the user leaves the call.
+   *
+   * @param audioStream the audio stream to publish.
+   */
+  publishAudioStream = async (audioStream: MediaStream) => {
+    await this.assertCallJoined();
+    const [audioTrack] = audioStream.getAudioTracks();
+    if (!audioTrack) {
+      return console.error(`There is no audio track in the stream`);
+    }
+
+    this.publisher.addTransceiver(audioTrack, {
+      direction: 'sendonly',
+    });
+
+    this.stateStore.updateParticipant(this.client.sessionId, {
+      audioStream,
+      audioDeviceId: this.getActiveInputDeviceId('audioinput'),
+    });
+
+    this.publishStatEvent({
+      type: 'media_state_changed',
+      track: audioTrack,
+      change: MediaStateChange.STARTED,
+      reason: MediaStateChangeReason.CONNECTION,
+    });
+  };
+
+  /**
+   * Starts publishing the given screen-share stream to the call.
+   *
+   * @param screenShareStream the screen-share stream to publish.
+   */
+  publishScreenShareStream = async (screenShareStream: MediaStream) => {
+    await this.assertCallJoined();
+    const [screenShareTrack] = screenShareStream.getVideoTracks();
+    if (!screenShareTrack) {
+      return console.error(`There is no video track in the stream`);
+    }
+
+    const transceiver = this.publisher.addTransceiver(screenShareTrack, {
+      direction: 'sendonly',
+      streams: [screenShareStream],
+      // sendEncodings
+    });
+    // @ts-ignore FIXME: OL: this is a hack
+    transceiver._kind = 'screen';
+
+    this.stateStore.updateParticipant(this.client.sessionId, {
+      screenShareStream,
+    });
+
+    this.publishStatEvent({
+      type: 'media_state_changed',
+      track: screenShareTrack,
+      change: MediaStateChange.STARTED,
+      reason: MediaStateChangeReason.CONNECTION,
+    });
+  };
+
+  // TODO OL: add stream unpublish methods
 
   /**
    * A method for switching an input device.
@@ -412,20 +413,12 @@ export class Call {
     const muteState = false; // FIXME: OL: this is a hack
     this.updateMuteState(kind === 'audioinput' ? 'audio' : 'video', muteState);
 
-    this.stateStore.setCurrentValue(
-      this.stateStore.activeCallAllParticipantsSubject,
-      this.participants.map((p) => {
-        if (p.sessionId === this.client.sessionId) {
-          return {
-            ...p,
-            [kind === 'audioinput' ? 'audioTrack' : 'videoTrack']: mediaStream,
-            [kind === 'audioinput' ? 'audioDeviceId' : 'videoDeviceId']:
-              this.getActiveInputDeviceId(kind),
-          };
-        }
-        return p;
-      }),
-    );
+    this.stateStore.updateParticipant(this.client.sessionId, {
+      // FIXME: screen share?
+      [kind === 'audioinput' ? 'audioStream' : 'videoStream']: mediaStream,
+      [kind === 'audioinput' ? 'audioDeviceId' : 'videoDeviceId']:
+        this.getActiveInputDeviceId(kind),
+    });
 
     return mediaStream; // for SDK use (preview video)
   };
@@ -437,25 +430,21 @@ export class Call {
    * @param changes the list of subscription changes to do.
    */
   updateSubscriptionsPartial = (changes: SubscriptionChanges) => {
-    if (Object.keys(changes).length === 0) {
-      return;
-    }
-
-    this.stateStore.setCurrentValue(
-      this.stateStore.activeCallAllParticipantsSubject,
-      this.participants.map((participant) => {
-        const change = changes[participant.sessionId];
-        if (change) {
-          return {
-            ...participant,
+    const participants = this.stateStore.updateParticipants(
+      Object.entries(changes).reduce<StreamVideoParticipantPatches>(
+        (acc, [sessionId, change]) => {
+          acc[sessionId] = {
             videoDimension: change.videoDimension,
           };
-        }
-        return participant;
-      }),
+          return acc;
+        },
+        {},
+      ),
     );
 
-    this.updateSubscriptions(this.participants);
+    if (participants) {
+      this.updateSubscriptions(participants);
+    }
   };
 
   private updateSubscriptions = (participants: StreamVideoParticipant[]) => {
@@ -641,39 +630,16 @@ export class Call {
       );
     });
 
-    if (e.track.kind === 'video') {
-      this.stateStore.setCurrentValue(
-        this.stateStore.activeCallAllParticipantsSubject,
-        this.participants.map((participant) => {
-          if (participant.trackLookupPrefix === trackId) {
-            const key =
-              trackKind === 'TRACK_KIND_SCREEN_SHARE'
-                ? 'screenShareStream'
-                : 'videoStream';
-            return {
-              // FIXME OL: shallow clone, switch to deep clone
-              ...participant,
-              [key]: primaryStream,
-            };
-          }
-          return participant;
-        }),
-      );
-    } else if (e.track.kind === 'audio') {
-      this.stateStore.setCurrentValue(
-        this.stateStore.activeCallAllParticipantsSubject,
-        this.participants.map((participant) => {
-          if (participant.trackLookupPrefix === trackId) {
-            return {
-              // FIXME OL: shallow clone, switch to deep clone
-              ...participant,
-              audioStream: primaryStream,
-            };
-          }
-          return participant;
-        }),
-      );
-    }
+    const key: keyof StreamVideoParticipant =
+      e.track.kind === 'audio'
+        ? 'audioStream'
+        : trackKind === 'TRACK_KIND_SCREEN_SHARE'
+        ? 'screenShareStream'
+        : 'videoStream';
+
+    this.stateStore.updateParticipant(participantToUpdate.sessionId, {
+      [key]: primaryStream,
+    });
   };
 
   private getActiveInputDeviceId = (kind: MediaDeviceKind) => {
@@ -688,5 +654,16 @@ export class Call {
     const senders = this.publisher.getSenders();
     const sender = senders.find((s) => s.track?.kind === trackKind);
     return sender?.track?.getConstraints().deviceId as string;
+  };
+
+  private assertCallJoined = async () => {
+    if (!this.joinResponseReady) {
+      throw new Error(
+        `Illegal State: Can't publish. Please join the call first`,
+      );
+    }
+    // callee should wait until we get a JoinResponse from the SFU,
+    // otherwise we risk breaking the ICETrickle flow.
+    return this.joinResponseReady;
   };
 }

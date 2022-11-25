@@ -9,8 +9,10 @@ import {
 import type {
   StreamVideoParticipant,
   StreamVideoLocalParticipant,
+  StreamVideoParticipantPatch,
 } from './rtc/types';
 import type { CallStatsReport } from './stats/types';
+import { StreamVideoParticipantPatches } from './rtc/types';
 
 export class StreamVideoWriteableStateStore {
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
@@ -36,7 +38,9 @@ export class StreamVideoWriteableStateStore {
   activeCallRemoteParticipantSubject = new BehaviorSubject<
     StreamVideoParticipant[]
   >([]);
-  dominantSpeakerSubject = new BehaviorSubject<string | undefined>(undefined);
+  dominantSpeakerSubject = new BehaviorSubject<
+    StreamVideoParticipant | undefined
+  >(undefined);
   callStatsReportSubject = new BehaviorSubject<CallStatsReport | undefined>(
     undefined,
   );
@@ -46,12 +50,115 @@ export class StreamVideoWriteableStateStore {
     return subject.getValue();
   }
 
-  setCurrentValue<T>(subject: BehaviorSubject<T>, value: T) {
-    subject.next(value);
+  /**
+   * Updates the value of the provided Subject.
+   * An `update` can either be a new value or a function which takes
+   * the current value and returns a new value.
+   *
+   * @param subject the subject to update.
+   * @param update the update to apply to the subject.
+   * @return the updated value.
+   */
+  setCurrentValue<T>(
+    subject: BehaviorSubject<T>,
+    update: T | ((currentValue: T) => T),
+  ) {
+    const currentValue = subject.getValue();
+    const next =
+      // TypeScript needs more context to infer the type of update
+      typeof update === 'function' && update instanceof Function
+        ? update(currentValue)
+        : update;
+
+    subject.next(next);
+    return subject.getValue();
   }
 
   asReadOnlyStore = () => {
     return new StreamVideoReadOnlyStateStore(this);
+  };
+
+  /**
+   * Will try to find the participant with the given sessionId in the active call.
+   *
+   * @param sessionId the sessionId of the participant to find.
+   * @returns the participant with the given sessionId or undefined if not found.
+   */
+  findParticipantBySessionId = (
+    sessionId: string,
+  ): StreamVideoParticipant | undefined => {
+    const participants = this.getCurrentValue(
+      this.activeCallAllParticipantsSubject,
+    );
+    return participants.find((p) => p.sessionId === sessionId);
+  };
+
+  /**
+   * Updates a participant in the active call identified by the given `sessionId`.
+   * If the participant can't be found, this operation is no-op.
+   *
+   * @param sessionId the session ID of the participant to update.
+   * @param patch the patch to apply to the participant.
+   * @returns the updated participant or `undefined` if the participant couldn't be found.
+   */
+  updateParticipant = (
+    sessionId: string,
+    patch:
+      | StreamVideoParticipantPatch
+      | ((p: StreamVideoParticipant) => StreamVideoParticipantPatch),
+  ): StreamVideoParticipant | StreamVideoLocalParticipant | undefined => {
+    const participants = this.getCurrentValue(
+      this.activeCallAllParticipantsSubject,
+    );
+    const participant = participants.find((p) => p.sessionId === sessionId);
+    if (!participant) {
+      console.warn(`Participant with sessionId ${sessionId} not found`);
+      return;
+    }
+
+    const thePatch = typeof patch === 'function' ? patch(participant) : patch;
+    const updatedParticipant:
+      | StreamVideoParticipant
+      | StreamVideoLocalParticipant = {
+      // FIXME OL: this is not a deep merge, we might want to revisit this
+      ...participant,
+      ...thePatch,
+    };
+    this.setCurrentValue(
+      this.activeCallAllParticipantsSubject,
+      participants.map((p) =>
+        p.sessionId === sessionId ? updatedParticipant : p,
+      ),
+    );
+
+    return updatedParticipant;
+  };
+
+  /**
+   * Updates all participants in the active call whose session ID is in the given `sessionIds`.
+   * If no patch are provided, this operation is no-op.
+   *
+   * @param patch the patch to apply to the participants.
+   * @returns all participants, with all patch applied.
+   */
+  updateParticipants = (patch: StreamVideoParticipantPatches) => {
+    if (Object.keys(patch).length === 0) {
+      return;
+    }
+    return this.setCurrentValue(
+      this.activeCallAllParticipantsSubject,
+      (participants) =>
+        participants.map((p) => {
+          const thePatch = patch[p.sessionId];
+          if (thePatch) {
+            return {
+              ...p,
+              ...thePatch,
+            };
+          }
+          return p;
+        }),
+    );
   };
 }
 
@@ -73,9 +180,9 @@ export class StreamVideoReadOnlyStateStore {
   activeRingCallDetails$: Observable<CallDetails | undefined>;
   incomingRingCalls$: Observable<CallMeta[]>;
   /**
-   * The ID of the currently speaking user.
+   * The currently elected dominant speaker in the active call.
    */
-  dominantSpeaker$: Observable<string | undefined>;
+  dominantSpeaker$: Observable<StreamVideoParticipant | undefined>;
   terminatedRingCallMeta$: Observable<CallMeta | undefined>;
 
   /**

@@ -60,11 +60,7 @@ import './style.css';
   await call.join();
   console.log('Connection is established.');
 
-  store$.dominantSpeaker$.subscribe((userId) => {
-    const participants = store$.getCurrentValue(
-      store$.activeCallAllParticipants$,
-    );
-    const dominantSpeaker = participants.find((p) => p.userId === userId);
+  store$.dominantSpeaker$.subscribe((dominantSpeaker) => {
     if (dominantSpeaker) {
       call.updateSubscriptionsPartial({
         [dominantSpeaker.sessionId]: {

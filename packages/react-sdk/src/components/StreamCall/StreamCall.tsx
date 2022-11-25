@@ -35,7 +35,6 @@ export const StreamCall = ({
   const [sfuCallState, setSfuCallState] = useState<CallState>();
   useEffect(() => {
     const joinCall = async () => {
-      // TODO: OL: announce bitrates by passing down MediaStream to .join()
       const callState = await activeCall?.join();
       setSfuCallState(callState);
     };

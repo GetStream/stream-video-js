@@ -31,31 +31,32 @@ export const ParticipantBox = (props: {
   const {
     videoStream,
     audioStream,
-    screenShareStream,
+    // screenShareStream,
     isLoggedInUser: isLocalParticipant,
     isSpeaking,
     sessionId,
     publishedTracks,
   } = participant;
 
-  const audio = publishedTracks.includes(SfuModels.TrackKind.AUDIO);
-  const video = publishedTracks.includes(SfuModels.TrackKind.VIDEO);
+  const hasAudio = publishedTracks.includes(SfuModels.TrackKind.AUDIO);
+  const hasVideo = publishedTracks.includes(SfuModels.TrackKind.VIDEO);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container || !hasVideo) return;
 
     const resizeObserver = new ResizeObserver(() => {
-      const width = containerRef.current!.clientWidth;
-      const height = containerRef.current!.clientHeight;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
       updateVideoSubscriptionForParticipant(sessionId, width, height);
     });
-    resizeObserver.observe(containerRef.current);
+    resizeObserver.observe(container);
     return () => {
       resizeObserver.disconnect();
     };
-  }, [sessionId, updateVideoSubscriptionForParticipant]);
+  }, [hasVideo, sessionId, updateVideoSubscriptionForParticipant]);
 
-  const streamToPlay = isLocalParticipant ? videoStream : screenShareStream;
+  const streamToPlay = videoStream;
   useEffect(() => {
     const $el = videoRef.current;
     console.log(`Attaching video stream`, $el, streamToPlay);
@@ -103,10 +104,10 @@ export const ParticipantBox = (props: {
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
             {participant.userId}
-            {!audio && (
+            {!hasAudio && (
               <span className="str-video__participant_name--audio-muted"></span>
             )}
-            {!video && (
+            {!hasVideo && (
               <span className="str-video__participant_name--video-muted"></span>
             )}
           </span>

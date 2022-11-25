@@ -1,5 +1,6 @@
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import { Dispatcher } from '../rtc/Dispatcher';
+import { TrackKind } from '../gen/video/sfu/models/models';
 
 /**
  * An event responder which handles the `participantJoined` event.
@@ -12,13 +13,10 @@ export const watchParticipantJoined = (
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
     const { participant } = e.eventPayload.participantJoined;
     if (participant) {
-      const currentParticipants = store.getCurrentValue(
+      store.setCurrentValue(
         store.activeCallAllParticipantsSubject,
+        (currentParticipants) => [...currentParticipants, participant],
       );
-      store.setCurrentValue(store.activeCallAllParticipantsSubject, [
-        ...currentParticipants,
-        participant,
-      ]);
     }
   });
 };
@@ -58,3 +56,44 @@ export const watchParticipantLeft = (
     }
   });
 };
+
+/**
+ * An event responder which handles the `trackPublished` event.
+ * The SFU will send this event when a participant publishes a track.
+ */
+export const watchTrackPublished = (
+  dispatcher: Dispatcher,
+  store: StreamVideoWriteableStateStore,
+) => {
+  return dispatcher.on('trackPublished', (e) => {
+    if (e.eventPayload.oneofKind !== 'trackPublished') return;
+    const {
+      trackPublished: { kind, sessionId },
+    } = e.eventPayload;
+    store.updateParticipant(sessionId, (p) => ({
+      publishedTracks: [...p.publishedTracks, kind].filter(unique),
+    }));
+  });
+};
+
+/**
+ * An event responder which handles the `trackUnpublished` event.
+ * The SFU will send this event when a participant unpublishes a track.
+ */
+export const watchTrackUnpublished = (
+  dispatcher: Dispatcher,
+  store: StreamVideoWriteableStateStore,
+) => {
+  return dispatcher.on('trackUnpublished', (e) => {
+    if (e.eventPayload.oneofKind !== 'trackUnpublished') return;
+    const {
+      trackUnpublished: { kind, sessionId },
+    } = e.eventPayload;
+    store.updateParticipant(sessionId, (p) => ({
+      publishedTracks: p.publishedTracks.filter((t) => t !== kind),
+      videoDimension: kind === TrackKind.VIDEO ? undefined : p.videoDimension,
+    }));
+  });
+};
+
+const unique = <T>(v: T, i: number, arr: T[]) => arr.indexOf(v) === i;
