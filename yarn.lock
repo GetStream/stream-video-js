@@ -4828,7 +4828,7 @@ __metadata:
     react-native: 0.70.6
     react-native-svg: ^13.6.0
     react-test-renderer: 18.1.0
-    typescript: ^4.8.3
+    typescript: ^4.9.3
   languageName: unknown
   linkType: soft
 
@@ -4959,7 +4959,7 @@ __metadata:
     react-test-renderer: 18.1.0
     rxjs: ^7.5.7
     text-encoding-polyfill: ^0.6.7
-    typescript: ^4.8.3
+    typescript: ^4.9.3
     uuid: ^9.0.0
   languageName: unknown
   linkType: soft
@@ -22428,7 +22428,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.8.3, typescript@npm:^4.9.3":
+"typescript@npm:^4.9.3":
   version: 4.9.3
   resolution: "typescript@npm:4.9.3"
   bin:
@@ -22458,7 +22458,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.8.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.3#~builtin<compat/typescript>":
+"typescript@patch:typescript@^4.9.3#~builtin<compat/typescript>":
   version: 4.9.3
   resolution: "typescript@patch:typescript@npm%3A4.9.3#~builtin<compat/typescript>::version=4.9.3&hash=701156"
   bin:
