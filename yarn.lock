@@ -4947,6 +4947,7 @@ __metadata:
     react: 18.1.0
     react-native: 0.70.4
     react-native-callkeep: ^4.3.3
+    react-native-get-random-values: ^1.8.0
     react-native-incall-manager: ^4.0.0
     react-native-polyfill-globals: ^3.1.0
     react-native-pure-jwt: ^3.0.1
@@ -11449,6 +11450,13 @@ __metadata:
     snapdragon: ^0.8.1
     to-regex: ^3.0.1
   checksum: a41531b8934735b684cef5e8c5a01d0f298d7d384500ceca38793a9ce098125aab04ee73e2d75d5b2901bc5dddd2b64e1b5e3bf19139ea48bac52af4a92f1d00
+  languageName: node
+  linkType: hard
+
+"fast-base64-decode@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "fast-base64-decode@npm:1.0.0"
+  checksum: 4c59eb1775a7f132333f296c5082476fdcc8f58d023c42ed6d378d2e2da4c328c7a71562f271181a725dd17cdaa8f2805346cc330cdbad3b8e4b9751508bd0a3
   languageName: node
   linkType: hard
 
@@ -19347,6 +19355,17 @@ __metadata:
     jscodeshift: ^0.13.1
     nullthrows: ^1.1.1
   checksum: 2a50ad71e09bc8cbb3694057cf47d6e9665c16f3968d1dc2b71e83c8c4e7be3b07b74bea08750ec9c8f6c60e6c746a5f695963c8694e5a76edcbce35a53a6a06
+  languageName: node
+  linkType: hard
+
+"react-native-get-random-values@npm:^1.8.0":
+  version: 1.8.0
+  resolution: "react-native-get-random-values@npm:1.8.0"
+  dependencies:
+    fast-base64-decode: ^1.0.0
+  peerDependencies:
+    react-native: ">=0.56"
+  checksum: 9163368ebd935d897f6ea0f9e95c476aa7608080e3848bb6c6f85db01b9de3498d857795c84df5492d6511a55aebf89492860ac886b652a9a7a3efdb19913f87
   languageName: node
   linkType: hard
 
