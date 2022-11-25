@@ -7,6 +7,9 @@ import { StageComponent } from './stage/stage.component';
 import { DeviceSettingsComponent } from './device-settings/device-settings.component';
 import { NgxPopperjsModule } from 'ngx-popperjs';
 
+/**
+ * This Angular Module is the entry point of the SDK, import this Angular module in your application, all services defined by the SDK are created by importing this module
+ */
 @NgModule({
   declarations: [
     CallComponent,
