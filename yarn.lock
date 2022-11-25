@@ -4981,7 +4981,7 @@ __metadata:
   peerDependencies:
     react: ">=17.0.0"
     react-native: ">=0.68.0"
-    react-native-svg: ^13.6.0
+    react-native-svg: ">=13.6.0"
     react-native-webrtc: ">=1.106.1"
   languageName: unknown
   linkType: soft
