@@ -3,9 +3,10 @@ import { StyleSheet, View } from 'react-native';
 import CallParticipantView, {
   SizeType,
 } from '../components/Participants/CallParticipantView';
-import LocalVideoView from '../components/Participants/LocalVideoView';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { useObservableValue } from '../hooks/useObservable';
+import { LocalVideoView } from '@stream-io/video-react-native-sdk';
+import { useStore } from '../hooks/useStore';
 
 enum Modes {
   full = 'full',
@@ -32,20 +33,8 @@ const modeToSize: { [key in Modes]: SizeType | undefined } = {
 const localVideoVisibleModes = [Modes.full, Modes.half];
 
 const CallParticipantsView = () => {
-  const call = useAppGlobalStoreValue((store) => store.call);
-  if (!call) {
-    throw new Error("Call isn't initialized -- ParticipantVideosContainer");
-  }
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
-  if (!videoClient) {
-    throw new Error(
-      "StreamVideoClient isn't initialized -- ParticipantVideosContainer",
-    );
-  }
-
-  const allParticipants = useObservableValue(
-    videoClient.readOnlyStateStore.activeCallAllParticipants$,
-  );
+  const { activeCallAllParticipants$ } = useStore();
+  const allParticipants = useObservableValue(activeCallAllParticipants$);
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );

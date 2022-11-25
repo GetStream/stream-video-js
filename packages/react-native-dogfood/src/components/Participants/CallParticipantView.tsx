@@ -1,13 +1,14 @@
 import React, { useCallback } from 'react';
 import { LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { StreamVideoParticipant } from '@stream-io/video-client';
-import { VideoRenderer } from './LocalVideoView';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { useMuteState } from '../../hooks/useMuteState';
 import MicOff from '../../icons/MicOff';
 import Mic from '../../icons/Mic';
-import { Avatar } from '@stream-io/video-react-native-sdk';
+import { Avatar, VideoRenderer } from '@stream-io/video-react-native-sdk';
+import { useStore } from '../../hooks/useStore';
+import { useObservableValue } from '../../hooks/useObservable';
 
 export type SizeType = 'small' | 'medium' | 'large' | 'xl';
 type CallParticipantViewProps = {
@@ -21,37 +22,29 @@ const CallParticipantView = ({
   size,
   participant,
 }: CallParticipantViewProps) => {
-  const call = useAppGlobalStoreValue((store) => store.call);
-  if (!call) {
-    throw new Error("Call isn't initialized -- CallParticipantView");
-  }
-
-  const {
-    videoTrack: videoStream,
-    audioTrack: audioStream,
-    isSpeaking,
-    sessionId,
-    user,
-  } = participant;
+  const { activeCall$ } = useStore();
+  const call = useObservableValue(activeCall$);
+  const { videoStream, audioStream, isSpeaking, sessionId, user } = participant;
   const mediaStream =
     audioStream &&
     videoStream &&
     new MediaStream([...audioStream?.getTracks(), ...videoStream?.getTracks()]);
-
   const { isAudioMuted } = useMuteState(user?.id, call, mediaStream);
 
   const updateVideoSubscriptionForParticipant = useCallback(
-    (sessionId: string, width: number, height: number) => {
-      call.updateSubscriptionsPartial({
-        [sessionId]: {
-          videoDimension: {
-            width: Math.trunc(width),
-            height: Math.trunc(height),
+    (width: number, height: number) => {
+      if (call) {
+        call.updateSubscriptionsPartial({
+          [sessionId]: {
+            videoDimension: {
+              width: Math.trunc(width),
+              height: Math.trunc(height),
+            },
           },
-        },
-      });
+        });
+      }
     },
-    [call],
+    [call, sessionId],
   );
 
   const MicIcon = isAudioMuted ? MicOff : Mic;
@@ -71,7 +64,7 @@ const CallParticipantView = ({
       }}
       onLayout={(event: LayoutChangeEvent) => {
         const { height, width } = event.nativeEvent.layout;
-        updateVideoSubscriptionForParticipant(sessionId, width, height);
+        updateVideoSubscriptionForParticipant(width, height);
       }}
     >
       {!!participant.video && videoStream ? (
