@@ -1,18 +1,23 @@
 import React, { useRef } from 'react';
-import InCallManager from 'react-native-incall-manager';
 import ButtonContainer from './ButtonContainer';
 import PhoneDown from '../../icons/PhoneDown';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
-import { RootStackParamList } from '../../../types';
+import { useStore } from '../../hooks/useStore';
+import { useObservableValue } from '../../hooks/useObservable';
+import { useRingCall } from '../../hooks/useRingCall';
+import { useCallKeep } from '../../hooks/useCallKeep';
 
 const PhoneButton = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const username = useAppGlobalStoreValue((store) => store.username);
   const setState = useAppGlobalStoreSetState();
-  const call = useAppGlobalStoreValue((store) => store.call);
+  const { activeRingCallMeta$ } = useStore();
+  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
+  const { cancelCall } = useRingCall();
+  const { endCall } = useCallKeep();
+
   const resetCallState = useRef(() => {
     setState((prevState) => {
       const newState: Partial<typeof prevState> = {};
@@ -29,14 +34,14 @@ const PhoneButton = () => {
   }).current;
 
   const hangup = async () => {
-    if (!call) {
-      console.warn('failed to leave call: ', 'call is undefined');
-      return;
-    }
     try {
-      call.leave();
-      InCallManager.stop();
-      navigation.navigate('HomeScreen');
+      await endCall();
+      if (
+        activeRingCallMeta &&
+        activeRingCallMeta.createdByUserId === username
+      ) {
+        await cancelCall();
+      }
       resetCallState();
     } catch (err) {
       console.warn('failed to leave call', err);

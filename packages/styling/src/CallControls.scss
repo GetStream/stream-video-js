@@ -34,6 +34,14 @@
       }
     }
 
+    &--icon-recording-on {
+      background-image: Icons.$icon-recording-on;
+    }
+
+    &--icon-recording-off {
+      background-image: Icons.$icon-recording-off;
+    }
+
     &--icon-mic {
       background-image: Icons.$icon-mic;
     }
@@ -52,6 +60,10 @@
 
     &--icon-call-end {
       background-image: Icons.$icon-call-end;
+    }
+
+    &--icon-stats {
+      background-image: Icons.$icon-info-icon;
     }
   }
 }

@@ -23,6 +23,7 @@ import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import type { StreamVideoParticipant, SubscriptionChanges } from './types';
 import { debounceTime, Subject } from 'rxjs';
+import { createStatsReporter, StatsReporter } from '../stats/reporter';
 
 export type TrackChangedEvent = {
   type: 'media_state_changed';
@@ -47,13 +48,18 @@ export type StatEvent =
 export type StatEventListener = (event: StatEvent) => void;
 
 export type CallOptions = {
-  connectionConfig: RTCConfiguration | undefined;
+  connectionConfig?: RTCConfiguration;
+  latencyCheckUrl?: string;
+  edgeName?: string;
 };
 
 export type PublishOptions = {
   preferredVideoCodec?: string | null;
 };
 
+/**
+ * A `Call` object represents the active call, the user is part of.
+ */
 export class Call {
   /**@deprecated use store for this data */
   currentUserId: string;
@@ -65,9 +71,16 @@ export class Call {
     [key: string]: VideoDimension;
   }>();
 
+  private statsReporter: StatsReporter;
   private joinResponseReady?: Promise<CallState | undefined>;
   private statEventListeners: StatEventListener[];
 
+  /**
+   * Use the `StreamVideoClient.joinCall` method to construct a `Call` instance.
+   * @param client
+   * @param options
+   * @param stateStore
+   */
   constructor(
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
@@ -89,6 +102,13 @@ export class Call {
     });
 
     this.statEventListeners = [];
+    this.statsReporter = createStatsReporter({
+      subscriber: this.subscriber,
+      publisher: this.publisher,
+      store: stateStore,
+      latencyCheckUrl: this.options.latencyCheckUrl,
+      edgeName: this.options.edgeName,
+    });
 
     const { dispatcher } = this.client;
     registerEventHandlers(this, this.stateStore, dispatcher);
@@ -100,17 +120,33 @@ export class Call {
       );
   }
 
+  /**
+   * You can subscribe to WebSocket events provided by the API. To remove a subscription, call the `off` method.
+   * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the reactive state store.
+   * @param eventName
+   * @param fn
+   * @returns
+   */
   on = (eventName: string, fn: SfuEventListener) => {
     return this.client.dispatcher.on(eventName, fn);
   };
 
+  /**
+   * Remove subscription for WebSocket events that were created by the `on` method.
+   * @param eventName
+   * @param fn
+   * @returns
+   */
   off = (eventName: string, fn: SfuEventListener) => {
     return this.client.dispatcher.off(eventName, fn);
   };
 
+  /**
+   * Leave the call and stop the media streams that were published by the call.
+   */
   leave = () => {
+    this.statsReporter.stop();
     this.subscriber.close();
-
     this.publisher.getSenders().forEach((s) => {
       if (s.track) {
         s.track.stop();
@@ -126,9 +162,34 @@ export class Call {
     this.publisher.close();
     this.client.close();
 
-    this.stateStore.activeCallSubject.next(undefined);
+    this.stateStore.setCurrentValue(
+      this.stateStore.callRecordingInProgressSubject,
+      false,
+    );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeCallSubject,
+      undefined,
+    );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeRingCallMetaSubject,
+      undefined,
+    );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeRingCallDetailsSubject,
+      undefined,
+    );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeCallAllParticipantsSubject,
+      [],
+    );
   };
 
+  /**
+   * Joins the call and sets the necessary video and audio encoding configurations.
+   * @param videoStream
+   * @param audioStream
+   * @returns
+   */
   join = async (videoStream?: MediaStream, audioStream?: MediaStream) => {
     await this.client.signalReady.then((ws) => {
       this.publishStatEvent({
@@ -170,14 +231,17 @@ export class Call {
               if (participant.sessionId === this.client.sessionId) {
                 const localParticipant = participant as StreamVideoParticipant;
                 localParticipant.isLoggedInUser = true;
-                localParticipant.audioTrack = audioStream;
-                localParticipant.videoTrack = videoStream;
+                localParticipant.audioStream = audioStream;
+                localParticipant.videoStream = videoStream;
               }
               return participant;
             }),
           );
           this.client.keepAlive();
-          this.stateStore.activeCallSubject.next(this);
+          this.stateStore.setCurrentValue(
+            this.stateStore.activeCallSubject,
+            this,
+          );
 
           resolve(callState); // expose call state
         });
@@ -220,6 +284,12 @@ export class Call {
     return this.joinResponseReady;
   };
 
+  /**
+   * Starts publishing the given video and/or audio streams, the streams will be stopped if the user changes an input device, or if the user leaves the call.
+   * @param audioStream
+   * @param videoStream
+   * @param opts
+   */
   publishMediaStreams = async (
     audioStream?: MediaStream,
     videoStream?: MediaStream,
@@ -273,7 +343,7 @@ export class Call {
           if (p.sessionId === this.client.sessionId) {
             return {
               ...p,
-              videoTrack: videoStream,
+              videoStream,
               videoDeviceId: this.getActiveInputDeviceId('videoinput'),
             };
           }
@@ -296,7 +366,7 @@ export class Call {
           if (p.sessionId === this.client.sessionId) {
             return {
               ...p,
-              audioTrack: audioStream,
+              audioStream,
               audioDeviceId: this.getActiveInputDeviceId('audioinput'),
             };
           }
@@ -312,6 +382,13 @@ export class Call {
     }
   };
 
+  /**
+   * A method for switching an input device.
+   * @param kind
+   * @param deviceId
+   * @param extras
+   * @returns
+   */
   replaceMediaStream = async (
     kind: Exclude<MediaDeviceKind, 'audiooutput'>,
     mediaStream: MediaStream,
@@ -400,12 +477,7 @@ export class Call {
     this.updateSubscriptions(this.participants);
   };
 
-  /**
-   * Updates the track subscriptions of the current user.
-   *
-   * @param participants the participants to subscribe to.
-   */
-  updateSubscriptions = (participants: StreamVideoParticipant[]) => {
+  private updateSubscriptions = (participants: StreamVideoParticipant[]) => {
     const subscriptions: { [key: string]: VideoDimension } = {};
     participants.forEach((p) => {
       if (p.videoDimension && !p.isLoggedInUser) {
@@ -416,18 +488,37 @@ export class Call {
     this.trackSubscriptionsSubject.next(subscriptions);
   };
 
+  /**
+   * TODO: this should be part of the state store.
+   * @param kind
+   * @param selector
+   * @returns
+   */
   getStats = async (
     kind: 'subscriber' | 'publisher',
     selector?: MediaStreamTrack,
   ) => {
-    if (kind === 'subscriber' && this.subscriber) {
-      return this.subscriber.getStats(selector);
-    } else if (kind === 'publisher' && this.publisher) {
-      return this.publisher.getStats(selector);
-    } else {
-      console.warn(`Can't retrieve RTC stats for`, kind);
-      return undefined;
-    }
+    return this.statsReporter.getRawStatsForTrack(kind, selector);
+  };
+
+  /**
+   * Will enhance the reported stats with additional participant-specific information.
+   * This is usually helpful when detailed stats for a specific participant are needed.
+   *
+   * @param sessionId the sessionId to start reporting for.
+   */
+  startReportingStatsFor = (sessionId: string) => {
+    return this.statsReporter.startReportingStatsFor(sessionId);
+  };
+
+  /**
+   * Opposite of `startReportingStatsFor`.
+   * Will turn off stats reporting for a specific participant.
+   *
+   * @param sessionId the sessionId to stop reporting for.
+   */
+  stopReportingStatsFor = (sessionId: string) => {
+    return this.statsReporter.stopReportingStatsFor(sessionId);
   };
 
   onStatEvent = (fn: StatEventListener) => {
@@ -440,6 +531,12 @@ export class Call {
     this.statEventListeners.forEach((fn) => fn(event));
   };
 
+  /**
+   * Mute/unmute the video/audio stream of the current user.
+   * @param trackKind
+   * @param isMute
+   * @returns
+   */
   updateMuteState = (trackKind: 'audio' | 'video', isMute: boolean) => {
     if (!this.publisher) return;
     const senders = this.publisher.getSenders();
@@ -545,7 +642,7 @@ export class Call {
             return {
               // FIXME OL: shallow clone, switch to deep clone
               ...participant,
-              videoTrack: primaryStream,
+              videoStream: primaryStream,
             };
           }
           return participant;
@@ -559,7 +656,7 @@ export class Call {
             return {
               // FIXME OL: shallow clone, switch to deep clone
               ...participant,
-              audioTrack: primaryStream,
+              audioStream: primaryStream,
             };
           }
           return participant;

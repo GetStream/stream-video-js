@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import { useObservableValue } from '../hooks/useObservable';
+import { useStore } from '../hooks/useStore';
 
 const intervalMs = 15000;
 
@@ -14,10 +16,12 @@ const getStats = (stats: RTCStatsReport) => {
 
 export const Stats = () => {
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
-  const call = useAppGlobalStoreValue((store) => store.call);
-  const activeCall = useAppGlobalStoreValue((store) => store.activeCall);
+  const { activeCall$, activeRingCallMeta$ } = useStore();
+  const call = useObservableValue(activeCall$);
+  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
+
   useEffect(() => {
-    if (videoClient && call && activeCall) {
+    if (videoClient && call && activeRingCallMeta) {
       const intervalId = setInterval(async () => {
         const stats = await Promise.all([
           call.getStats('subscriber'),
@@ -30,7 +34,7 @@ export const Stats = () => {
           }
           try {
             await videoClient.reportCallStats({
-              callCid: activeCall.callCid,
+              callCid: activeRingCallMeta.callCid,
               statsJson: getStats(s),
             });
           } catch (err) {
@@ -43,7 +47,7 @@ export const Stats = () => {
         clearInterval(intervalId);
       };
     }
-  }, [activeCall, call, videoClient]);
+  }, [activeRingCallMeta, call, videoClient]);
 
   return null;
 };

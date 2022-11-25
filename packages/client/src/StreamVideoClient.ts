@@ -1,6 +1,6 @@
 import {
-  StreamVideoWriteableStateStore,
   StreamVideoReadOnlyStateStore,
+  StreamVideoWriteableStateStore,
 } from './stateStore';
 import type { Call as CallMeta } from './gen/video/coordinator/call_v1/call';
 import type {
@@ -12,6 +12,7 @@ import type {
   ReportCallStatsRequest,
   ReportCallStatsResponse,
 } from './gen/video/coordinator/client_v1_rpc/client_rpc';
+import { UserEventType } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
 import type {
   Edge,
@@ -32,6 +33,7 @@ import {
 } from './ws';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
+import { registerWSEventHandlers } from './ws/callUserEventHandlers';
 import {
   WebsocketClientEvent,
   WebsocketHealthcheck,
@@ -47,9 +49,13 @@ const defaultOptions: Partial<StreamVideoClientOptions> = {
 };
 
 /**
- * Document me
+ * A `StreamVideoClient` instance lets you communicate with our API, and sign in with the current user.
  */
 export class StreamVideoClient {
+  /**
+   * A reactive store that exposes the state variables in a reactive manner - you can subscribe to changes of the different state variables.
+   * @angular If you're using our Angular SDK, you shouldn't be interacting with the state store directly, instead, you should be using the [`StreamVideoService`](./StreamVideoService.md).
+   */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   // Make it public temporary to ease SDK transition
   readonly writeableStateStore: StreamVideoWriteableStateStore;
@@ -57,6 +63,12 @@ export class StreamVideoClient {
   private options: StreamVideoClientOptions;
   private ws: StreamWSClient | undefined;
 
+  /**
+   * You should create only one instance of `StreamVideoClient`.
+   * @angular If you're using our Angular SDK, you shouldn't be calling the `constructor` directly, instead you should be using [`StreamVideoClient` service](./StreamVideoClient.md).
+   * @param apiKey your Stream API key
+   * @param opts
+   */
   constructor(apiKey: string, opts: StreamVideoClientOptions) {
     const options = {
       ...defaultOptions,
@@ -75,14 +87,14 @@ export class StreamVideoClient {
         }),
       ],
     });
+
     this.writeableStateStore = new StreamVideoWriteableStateStore();
-    this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
-      this.writeableStateStore,
-    );
+    this.readOnlyStateStore = this.writeableStateStore.asReadOnlyStore();
   }
 
   /**
-   * Connects the given user to the video client
+   * Connects the given user to the client.
+   * Only one user can connect at a time, if you want to change users, call `disconnect` before connecting a new user.
    * @param apiKey
    * @param token
    * @param user
@@ -96,24 +108,56 @@ export class StreamVideoClient {
       token,
       user,
     );
-    this.writeableStateStore.connectedUserSubject.next(user);
+    if (this.ws) {
+      registerWSEventHandlers(this, this.writeableStateStore);
+    }
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.connectedUserSubject,
+      user,
+    );
   };
 
+  /**
+   * Disconnects the currently connected user from the client.
+   * @returns
+   */
   disconnect = async () => {
     if (!this.ws) return;
     this.ws.disconnect();
     this.ws = undefined;
-    this.writeableStateStore.connectedUserSubject.next(undefined);
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.connectedUserSubject,
+      undefined,
+    );
   };
 
+  /**
+   * You can subscribe to WebSocket events provided by the API. To remove a subscription, call the `off` method.
+   * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the reactive state store.
+   * @param event
+   * @param fn
+   * @returns
+   */
   on = <T>(event: string, fn: StreamEventListener<T>) => {
     return this.ws?.on(event, fn);
   };
 
+  /**
+   * Remove subscription for WebSocket events that were created by the `on` method.
+   * @param event
+   * @param fn
+   * @returns
+   */
   off = <T>(event: string, fn: StreamEventListener<T>) => {
     return this.ws?.off(event, fn);
   };
 
+  /**
+   *
+   * @param hc
+   *
+   * @deprecated We should move this functionality inside the client and make this an internal function.
+   */
   setHealthcheckPayload = (hc: WebsocketHealthcheck) => {
     this.ws?.keepAlive.setPayload(
       WebsocketClientEvent.toBinary({
@@ -125,6 +169,11 @@ export class StreamVideoClient {
     );
   };
 
+  /**
+   * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, it will return the existing call.
+   * @param data
+   * @returns A call metadata with information about the call.
+   */
   getOrCreateCall = async (data: GetOrCreateCallRequest) => {
     const { response } = await this.client.getOrCreateCall(data);
     if (response.call) {
@@ -135,12 +184,44 @@ export class StreamVideoClient {
     }
   };
 
+  /**
+   * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, this will return an error.
+   * @param data
+   * @returns A call metadata with information about the call.
+   */
   createCall = async (data: CreateCallRequest) => {
     const callToCreate = await this.client.createCall(data);
     const { call: callEnvelope } = callToCreate.response;
     return callEnvelope;
   };
 
+  acceptCall = async (callCid: string) => {
+    await this.client.sendEvent({
+      callCid,
+      eventType: UserEventType.ACCEPTED_CALL,
+    });
+  };
+
+  rejectCall = async (callCid: string) => {
+    await this.client.sendEvent({
+      callCid,
+      eventType: UserEventType.REJECTED_CALL,
+    });
+  };
+
+  cancelCall = async (callCid: string) => {
+    await this.client.sendEvent({
+      callCid,
+      eventType: UserEventType.CANCELLED_CALL,
+    });
+  };
+
+  /**
+   * Allows you to create a new call with the given parameters and joins the call immediately. If a call with the same combination of type and id already exists, it will join the existing call.
+   * @param data
+   * @param sessionId
+   * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
+   */
   joinCall = async (data: JoinCallRequest, sessionId?: string) => {
     const { response } = await this.client.joinCall(data);
     if (response.call && response.call.call && response.edges) {
@@ -148,26 +229,32 @@ export class StreamVideoClient {
         response.call.call,
         response.edges,
       );
-      if (edge && edge.credentials && edge.credentials.server) {
-        const sfuClient = new StreamSfuClient(
-          edge.credentials.server.url,
-          edge.credentials.token,
-          sessionId,
+      if (data.input?.ring) {
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.activeRingCallMetaSubject,
+          response.call.call,
         );
-        const call = new Call(
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.activeRingCallDetailsSubject,
+          response.call.details,
+        );
+      }
+      if (edge.credentials && edge.credentials.server) {
+        const edgeName = edge.credentials.server.edgeName;
+        const selectedEdge = response.edges.find((e) => e.name === edgeName);
+        const { server, iceServers, token } = edge.credentials;
+        const sfuClient = new StreamSfuClient(server.url, token, sessionId);
+        return new Call(
           sfuClient,
           {
             connectionConfig:
-              this.toRtcConfiguration(edge.credentials.iceServers) ||
-              this.defaultRtcConfiguration(edge.credentials.server.url),
+              this.toRtcConfiguration(iceServers) ||
+              this.defaultRtcConfiguration(server.url),
+            latencyCheckUrl: selectedEdge?.latencyUrl,
+            edgeName,
           },
           this.writeableStateStore,
         );
-        this.writeableStateStore.pendingCallsSubject.next([
-          ...this.writeableStateStore.pendingCallsSubject.getValue(),
-          call,
-        ]);
-        return call;
       } else {
         // TODO: handle error?
         return undefined;
@@ -178,6 +265,35 @@ export class StreamVideoClient {
     }
   };
 
+  startRecording = async (callId: string, callType: string) => {
+    await this.client.startRecording({
+      callId,
+      callType,
+    });
+
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.callRecordingInProgressSubject,
+      true,
+    );
+  };
+
+  stopRecording = async (callId: string, callType: string) => {
+    await this.client.stopRecording({
+      callId,
+      callType,
+    });
+
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.callRecordingInProgressSubject,
+      false,
+    );
+  };
+
+  /**
+   * We should make this an internal method, SDKs shouldn't need this.
+   * @param stats
+   * @returns
+   */
   reportCallStats = async (
     stats: ReportCallStatsRequest,
   ): Promise<ReportCallStatsResponse> => {

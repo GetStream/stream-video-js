@@ -1,21 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Button,
-  PermissionsAndroid,
   Pressable,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import RNCallKeep from 'react-native-callkeep';
 import { v4 as uuidv4 } from 'uuid';
 import {
   useAppGlobalStoreValue,
   useAppGlobalStoreSetState,
 } from '../../contexts/AppContext';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../types';
+import { joinCall } from '../../utils/callUtils';
+import { useStore } from '../../hooks/useStore';
+import { useObservableValue } from '../../hooks/useObservable';
 
 const styles = StyleSheet.create({
   container: {
@@ -26,15 +29,36 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginVertical: 8,
   },
-  textInput: {
-    color: '#000',
-    height: 40,
-    width: '100%',
+  textInputView: {
+    display: 'flex',
+    flexDirection: 'row',
     borderRadius: 5,
     borderWidth: 1,
     borderColor: 'gray',
-    paddingLeft: 10,
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+  },
+  confirmButton: {
+    alignSelf: 'center',
+    backgroundColor: 'gray',
+    padding: 10,
+    borderRadius: 20,
+    marginLeft: 10,
+  },
+  buttonText: {
+    color: 'white',
+  },
+  textInput: {
+    color: '#000000',
+    height: 40,
     marginVertical: 8,
+  },
+  orText: {
+    marginVertical: 10,
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'black',
   },
   participantsContainer: {
     marginVertical: 20,
@@ -56,163 +80,125 @@ const styles = StyleSheet.create({
   },
 });
 
-const Ringing = () => {
-  const [logText, setLog] = useState('');
-  const [heldCalls, setHeldCalls] = useState({}); // callKeep uuid: held
-  const [calls, setCalls] = useState({}); // callKeep uuid: number
-  const callID = useAppGlobalStoreValue((store) => store.callID);
+type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
+
+const Ringing = ({ navigation }: Props) => {
+  const [loading, setLoading] = useState(false);
+  const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
+  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const localMediaStream = useAppGlobalStoreValue(
+    (store) => store.localMediaStream,
+  );
   const username = useAppGlobalStoreValue((store) => store.username);
-  const [currCallId, setCurrCallId] = useState('');
+  const ringingUsers = useAppGlobalStoreValue((store) => store.ringingUsers);
+  const { activeRingCallMeta$ } = useStore();
+  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },
     { id: 'khushal', name: 'Khushal Agarwal' },
     { id: 'santhosh', name: 'Santhosh Vaiyapuri' },
+    { id: 'oliver', name: 'Oliver Lazoroski' },
+    { id: 'zita', name: 'Zita Szupera' },
   ];
+
+  useEffect(() => {
+    if (activeRingCallMeta) {
+      navigation.navigate('OutgoingCallScreen');
+    }
+  }, [navigation, activeRingCallMeta]);
 
   const setState = useAppGlobalStoreSetState();
 
-  const getRandomNumber = () => String(Math.floor(Math.random() * 100000));
-  const getNewUuid = () => uuidv4().toLowerCase();
-  const format = (uuid: string) => uuid.split('-')[0];
-
-  const log = (text: string) => {
-    setLog(logText + '\n' + text);
-  };
-
-  const addCall = (callUUID: string, number: string) => {
-    setHeldCalls({ ...heldCalls, [callUUID]: false });
-    setCalls({ ...calls, [callUUID]: number });
-  };
-
-  const callUUID = getNewUuid();
-
-  const displayIncomingCall = (number: string) => {
-    addCall(callUUID, number);
-    setCurrCallId(callUUID);
-
-    log(`[displayIncomingCall] ${format(callUUID)}, number: ${number}`);
-
-    try {
-      RNCallKeep.displayIncomingCall(
-        callUUID,
-        '2738282929',
-        'Test User',
-        'number',
-        true,
-      );
-    } catch (error) {
-      console.log(error);
+  const startCallHandler = async () => {
+    setLoading(true);
+    if (videoClient && localMediaStream) {
+      try {
+        const callID = uuidv4().toLowerCase();
+        let ringingUserIds = !ringingUserIdsText
+          ? ringingUsers
+          : ringingUserIdsText.split(',');
+        if (ringingUserIdsText !== '') {
+          setState({ ringingUsers: ringingUserIds });
+        }
+        await setState({ ringingCallID: callID });
+        await joinCall(videoClient, localMediaStream, {
+          autoJoin: true,
+          ring: true,
+          members: ringingUserIds.map((user) => {
+            return {
+              userId: user,
+              role: 'member',
+              customJson: new Uint8Array(),
+            };
+          }),
+          callId: callID,
+          callType: 'default',
+        }).then(() => {
+          setLoading(false);
+        });
+      } catch (err) {
+        console.log(err);
+      }
     }
   };
 
-  const startCall = (number: string) => {
-    addCall(callUUID, number);
-    setCurrCallId(callUUID);
-    log(`[startCall] ${format(callUUID)}, number: ${number}`);
-    try {
-      RNCallKeep.startCall(callUUID, '282829292', 'Test user', 'generic');
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const removeCall = () => {
-    const { ...updated } = calls;
-    const { ...updatedHeldCalls } = heldCalls;
-
-    setCalls(updated);
-    setCalls(updatedHeldCalls);
-  };
-
-  const hangup = () => {
-    RNCallKeep.endCall(currCallId);
-    removeCall();
-  };
-
-  const displayIncomingCallNow = () => {
-    displayIncomingCall(getRandomNumber());
-  };
-  const startCallHandler = () => {
-    startCall(getRandomNumber());
-  };
-
-  useEffect(() => {
-    const options = {
-      ios: {
-        appName: 'StreamReactNativeVideoSDKSample',
-      },
-      android: {
-        alertTitle: 'Permissions required',
-        alertDescription:
-          'This application needs to access your phone accounts',
-        cancelButton: 'Cancel',
-        okButton: 'ok',
-        imageName: 'phone_account_icon',
-        additionalPermissions: [PermissionsAndroid.PERMISSIONS.READ_CONTACTS],
-        // Required to get audio in background when using Android 11
-        foregroundService: {
-          channelId: 'io.getstream.rnvideosample',
-          channelName:
-            'Foreground service for the app Stream React Native Dogfood',
-          notificationTitle: 'App is running on background',
-          notificationIcon: 'Path to the resource icon of the notification',
-        },
-      },
-    };
-
-    try {
-      RNCallKeep.setup(options).then((accepted) => {
-        console.log(accepted);
+  const ringingUsersSetHandler = (userId: string) => {
+    if (!ringingUsers.includes(userId)) {
+      setState({ ringingUsers: [...ringingUsers, userId] });
+    } else {
+      setState({
+        ringingUsers: ringingUsers.filter(
+          (ringingUser) => ringingUser !== userId,
+        ),
       });
-    } catch (error) {
-      console.log(error);
     }
-    RNCallKeep.canMakeMultipleCalls(true);
-    RNCallKeep.addEventListener('didChangeAudioRoute', ({ output }) => {
-      console.log(output);
-    });
-  }, []);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.headerText}>Whats the call ID?</Text>
-      <TextInput
-        style={styles.textInput}
-        placeholder={'Type your call ID here...'}
-        placeholderTextColor={'#8C8C8CFF'}
-        value={callID}
-        onChangeText={(text) => setState({ callID: text.trim() })}
-      />
+      <View style={styles.textInputView}>
+        <TextInput
+          placeholder="Enter comma separated User Ids"
+          style={styles.textInput}
+          value={ringingUserIdsText}
+          onChangeText={(value) => {
+            setRingingUserIdsText(value);
+          }}
+        />
+      </View>
+      <Text style={styles.orText}>Or</Text>
       <View style={styles.participantsContainer}>
         <Text style={[styles.text, styles.label]}>Select Participants</Text>
-        {users.map((user) => {
-          return (
-            <Pressable
-              style={styles.participant}
-              key={user.id}
-              onPress={() => {
-                setState({ username: user.id });
-              }}
-            >
-              <Text
-                style={[
-                  styles.text,
-                  username === user.id ? styles.selectedParticipant : null,
-                ]}
+        {users
+          .filter((user) => user.id !== username)
+          .map((user) => {
+            return (
+              <Pressable
+                style={styles.participant}
+                key={user.id}
+                onPress={() => ringingUsersSetHandler(user.id)}
               >
-                {user.name}
-              </Text>
-            </Pressable>
-          );
-        })}
+                <Text
+                  style={[
+                    styles.text,
+                    ringingUsers.includes(user.id)
+                      ? styles.selectedParticipant
+                      : null,
+                  ]}
+                >
+                  {user.name + ' - id: ' + user.id}
+                </Text>
+              </Pressable>
+            );
+          })}
       </View>
-      <Button title="Display Incoming Call" onPress={displayIncomingCallNow} />
-      <Button title="Start a Call" onPress={startCallHandler} />
-      <Button title="Leave Call" onPress={hangup} />
-      <ScrollView>
-        <Text style={styles.text}>{logText}</Text>
-      </ScrollView>
+      <Button
+        disabled={ringingUserIdsText === '' && ringingUsers.length === 0}
+        title="Start a Call"
+        onPress={startCallHandler}
+      />
+      {loading && <ActivityIndicator />}
     </SafeAreaView>
   );
 };

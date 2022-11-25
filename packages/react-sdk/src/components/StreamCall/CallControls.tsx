@@ -1,15 +1,58 @@
 import clsx from 'clsx';
-import { Call } from '@stream-io/video-client';
-import { useParticipants } from '../../hooks/useParticipants';
-export const CallControls = (props: { call: Call }) => {
-  const { call } = props;
+import { ForwardedRef, forwardRef, useRef, useState } from 'react';
+import { Call, CallMeta } from '@stream-io/video-client';
+import {
+  useParticipants,
+  useStreamVideoClient,
+  useIsCallRecordingInProgress,
+} from '@stream-io/video-react-bindings';
+import { CallStats } from './CallStats';
+
+export const CallControls = (props: {
+  call: Call;
+  callMeta?: CallMeta.Call;
+}) => {
+  const { call, callMeta } = props;
+  const client = useStreamVideoClient();
   const participants = useParticipants();
+  const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const localParticipant = participants.find((p) => p.isLoggedInUser);
   const isAudioMute = !localParticipant?.audio;
   const isVideoMute = !localParticipant?.video;
 
+  const [isStatsOpen, setIsStatsOpen] = useState(false);
+  const statsAnchorRef = useRef<HTMLButtonElement>(null);
+
   return (
     <div className="str-video__call-controls">
+      <Button
+        icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
+        title="Record call"
+        onClick={() => {
+          if (!callMeta) return;
+          if (isCallRecordingInProgress) {
+            client?.stopRecording(callMeta.id, callMeta.type);
+          } else {
+            client?.startRecording(callMeta.id, callMeta.type);
+          }
+        }}
+      />
+      {isStatsOpen && (
+        <CallStats
+          anchor={statsAnchorRef.current!}
+          onClose={() => {
+            setIsStatsOpen(false);
+          }}
+        />
+      )}
+      <Button
+        icon="stats"
+        title="Statistics"
+        ref={statsAnchorRef}
+        onClick={() => {
+          setIsStatsOpen((v) => !v);
+        }}
+      />
       <Button
         icon={isAudioMute ? 'mic-off' : 'mic'}
         onClick={() => {
@@ -35,23 +78,31 @@ export const CallControls = (props: { call: Call }) => {
   );
 };
 
-const Button = (props: {
-  icon: string;
-  variant?: string;
-  onClick?: () => void;
-}) => {
-  const { icon, variant, onClick } = props;
-  return (
-    <button
-      onClick={(e) => {
-        e.preventDefault();
-        onClick?.();
-      }}
-      className={clsx(
-        'str-video__call-controls__button',
-        icon && `str-video__call-controls__button--icon-${icon}`,
-        variant && `str-video__call-controls__button--variant-${variant}`,
-      )}
-    />
-  );
-};
+const Button = forwardRef(
+  (
+    props: {
+      icon: string;
+      variant?: string;
+      onClick?: () => void;
+      [anyProp: string]: any;
+    },
+    ref: ForwardedRef<HTMLButtonElement>,
+  ) => {
+    const { icon, variant, onClick, ...rest } = props;
+    return (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          onClick?.();
+        }}
+        className={clsx(
+          'str-video__call-controls__button',
+          icon && `str-video__call-controls__button--icon-${icon}`,
+          variant && `str-video__call-controls__button--variant-${variant}`,
+        )}
+        ref={ref}
+        {...rest}
+      />
+    );
+  },
+);

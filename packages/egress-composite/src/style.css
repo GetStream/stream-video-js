@@ -29,6 +29,7 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background-color: #000000;
 }
 
 #app {
@@ -42,6 +43,10 @@ body {
 
 #app span {
   color: #ffffff;
+}
+
+video.speaker {
+  height: 100vh;
 }
 
 video.speaker.hidden {

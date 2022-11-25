@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   StyleSheet,
   TextInput,
@@ -6,68 +6,81 @@ import {
   Text,
   Switch,
   Button,
+  ActivityIndicator,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { useCall } from '../../hooks/useCall';
+import { RootStackParamList } from '../../../types';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
-import { mediaDevices } from 'react-native-webrtc';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { joinCall } from '../../utils/callUtils';
 import { meetingId } from '../../modules/helpers/meetingId';
+
 import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
 
-const Meeting = () => {
-  const callID = useAppGlobalStoreValue((store) => store.callID);
+type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
+
+const Meeting = ({ navigation }: Props) => {
+  const meetingCallID = useAppGlobalStoreValue((store) => store.meetingCallID);
+  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
+  const [loading, setLoading] = useState(false);
   const setState = useAppGlobalStoreSetState();
 
-  // run only once per app lifecycle
-  useEffect(() => {
-    const configure = async () => {
-      const mediaStream = await mediaDevices.getUserMedia({
-        audio: true,
-        video: true,
-      });
-      setState({
-        localMediaStream: mediaStream,
-      });
-    };
-    configure();
-  }, [setState]);
-
-  const { getOrCreateCall, joinCall } = useCall({
-    callId: callID,
-    callType: 'default', // TODO: SANTHOSH -- what is this?
-    autoJoin: true,
-  });
+  const createOrJoinCallHandler = async () => {
+    if (videoClient && localMediaStream) {
+      setLoading(true);
+      try {
+        const response = await joinCall(videoClient, localMediaStream, {
+          autoJoin: true,
+          callId: meetingCallID,
+          callType: 'default',
+        });
+        if (!response) {
+          throw new Error('Call is not defined');
+        }
+        setLoading(false);
+        navigation.navigate('ActiveCall');
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
 
   useEffect(() => {
     if (localMediaStream) {
       const subscription = prontoCallId$.subscribe((prontoCallId) => {
         if (prontoCallId) {
           setState({
-            callID: prontoCallId,
+            meetingCallID: prontoCallId,
           });
           prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
-          joinCall(prontoCallId, 'default', localMediaStream);
+          if (videoClient) {
+            joinCall(videoClient, localMediaStream, {
+              callId: prontoCallId,
+              callType: 'default',
+              autoJoin: true,
+            });
+          }
         }
       });
       return () => subscription.unsubscribe();
     }
-  }, [joinCall, localMediaStream, setState]);
+  }, [localMediaStream, setState, videoClient]);
 
   const handleCopyInviteLink = useCallback(
     () =>
       Clipboard.setString(
-        `https://stream-calls-dogfood.vercel.app/join/${callID}/`,
+        `https://stream-calls-dogfood.vercel.app/join/${meetingCallID}/`,
       ),
-    [callID],
+    [meetingCallID],
   );
 
   return (
@@ -78,7 +91,8 @@ const Meeting = () => {
           title={'Randomise'}
           color="blue"
           onPress={() => {
-            setState({ callID: meetingId() });
+            const callID = meetingId();
+            setState({ meetingCallID: callID });
           }}
         />
       </View>
@@ -86,14 +100,14 @@ const Meeting = () => {
         style={styles.textInput}
         placeholder={'Type your call ID here...'}
         placeholderTextColor={'#8C8C8CFF'}
-        value={callID}
-        onChangeText={(text) => setState({ callID: text.trim() })}
+        value={meetingCallID}
+        onChangeText={(text) => setState({ meetingCallID: text.trim() })}
       />
       <Button
-        title={'Create or Join call with callID: ' + callID}
+        title={'Create or Join call with callID: ' + meetingCallID}
         color="blue"
-        disabled={!callID}
-        onPress={getOrCreateCall}
+        disabled={!meetingCallID}
+        onPress={createOrJoinCallHandler}
       />
       <View style={styles.switchContainer}>
         <Text style={styles.loopbackText}>Loopback my video(Debug Mode)</Text>
@@ -111,6 +125,7 @@ const Meeting = () => {
         color="blue"
         onPress={handleCopyInviteLink}
       />
+      {loading && <ActivityIndicator />}
     </View>
   );
 };

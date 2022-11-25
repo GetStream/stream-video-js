@@ -3,8 +3,10 @@ import {
   ColorValue,
   Pressable,
   PressableProps,
+  StyleProp,
   StyleSheet,
   View,
+  ViewStyle,
 } from 'react-native';
 
 const styles = StyleSheet.create({
@@ -25,7 +27,7 @@ const styles = StyleSheet.create({
     shadowRadius: 7.49,
     elevation: 12,
   },
-  svgContainer: {
+  svgContainerStyle: {
     width: 25,
     height: 25,
   },
@@ -49,21 +51,27 @@ const colorKeyToBgColor = (colorKey: ColorKey): ColorValue => {
 type Props = {
   onPress: PressableProps['onPress'];
   colorKey: ColorKey;
+  style?: StyleProp<ViewStyle>;
+  svgContainerStyle?: StyleProp<ViewStyle>;
 };
 
 const ButtonContainer = (props: React.PropsWithChildren<Props>) => {
-  const { onPress, children, colorKey } = props;
+  const { onPress, children, colorKey, style, svgContainerStyle } = props;
 
-  const style: PressableProps['style'] = ({ pressed }) => [
+  const pressableStyle: PressableProps['style'] = ({ pressed }) => [
     styles.container,
     {
       backgroundColor: colorKeyToBgColor(colorKey),
       opacity: pressed ? 0.2 : 1,
     },
+    style ? style : null,
   ];
+
   return (
-    <Pressable style={style} onPress={onPress}>
-      <View style={styles.svgContainer}>{children}</View>
+    <Pressable style={pressableStyle} onPress={onPress}>
+      <View style={[styles.svgContainerStyle, svgContainerStyle ?? null]}>
+        {children}
+      </View>
     </Pressable>
   );
 };

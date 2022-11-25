@@ -10,9 +10,9 @@ export const useRtcStats = (
   useEffect(() => {
     const intervalId = setInterval(async () => {
       const [track] = mediaStream?.getVideoTracks() ?? [];
-      const publisherStats = await call.getStats(kind, track);
+      const rawStats = await call.getStats(kind, track);
       const decodedStats: Record<string, string> = {};
-      publisherStats?.forEach((s) => {
+      rawStats?.forEach((s) => {
         decodedStats[s.id] = s;
       });
       setStats(decodedStats);

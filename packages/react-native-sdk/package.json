@@ -9,7 +9,8 @@
     "build": "tsc --project tsconfig.json"
   },
   "dependencies": {
-    "@stream-io/video-client": "workspace:^"
+    "@stream-io/video-client": "workspace:^",
+    "@stream-io/video-react-bindings": "workspace:^"
   },
   "peerDependencies": {
     "react": ">=17.0.0",

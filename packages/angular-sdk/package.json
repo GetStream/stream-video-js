@@ -8,7 +8,9 @@
     "build": "ng build --project video-angular-sdk && ng build --project sample-app",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "generate-docs": "typedoc --plugin typedoc-plugin-markdown --cleanOutputDir true --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --out generated-docs --tsconfig ./tsconfig.json ./projects/video-angular-sdk/src/lib/video.service.ts && replace-in-file '# Class: ' '# ' generated-docs/** ",
+    "copy-docs": "cp -r ../client/generated-docs/classes docusaurus/docs/Angular/reference && cp -r ./generated-docs/classes docusaurus/docs/Angular/reference"
   },
   "private": true,
   "dependencies": {
@@ -25,7 +27,7 @@
     "@stream-io/video-styling": "workspace:^",
     "ngx-popperjs": "^14.1.2",
     "rxjs": "~7.5.0",
-    "tslib": "^2.3.0",
+    "tslib": "^2.4.1",
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
@@ -48,7 +50,10 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
     "ng-packagr": "^14.1.0",
-    "typescript": "~4.7.2",
+    "replace-in-file": "^6.3.5",
+    "typedoc": "^0.23.16",
+    "typedoc-plugin-markdown": "^3.13.6",
+    "typescript": "~4.7.4",
     "wait-on": "^6.0.1"
   }
 }

@@ -128,6 +128,13 @@
         @include icon();
         background-image: Icons.$icon-camera-off;
       }
+
+      .str-video__participant_name--network-stats {
+        @include icon();
+        background-image: Icons.$icon-network-quality;
+        cursor: pointer;
+        margin-right: 10px;
+      }
     }
 
     video {

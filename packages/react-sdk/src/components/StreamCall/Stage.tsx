@@ -8,11 +8,12 @@ import { Call } from '@stream-io/video-client';
 import {
   useLocalParticipant,
   useRemoteParticipants,
-} from '../../hooks/useParticipants';
+  useStore,
+} from '@stream-io/video-react-bindings';
+
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';
 import { ParticipantBox } from './ParticipantBox';
 import { useDebugPreferredVideoCodec } from '../Debug/useIsDebugMode';
-import { useStore } from '../../hooks/useStore';
 import { map, Subscription } from 'rxjs';
 
 export const Stage = (props: {

@@ -36,7 +36,7 @@ export default function createStoreContext<PassedStoreType extends object>(
 
     const getSnapshot = useRef(() => storeRef.current).current;
 
-    const subscribersRef = useRef(new Set<() => void>());
+    const subscribersRef = useRef<(() => void)[]>([]);
 
     const setState = useRef<SetStateFuncType>((partialStateOrFunc) => {
       if (typeof partialStateOrFunc === 'function') {
@@ -84,8 +84,8 @@ export default function createStoreContext<PassedStoreType extends object>(
     }, []);
 
     const subscribe = useRef((callback: () => void) => {
-      subscribersRef.current.add(callback);
-      return () => subscribersRef.current.delete(callback);
+      subscribersRef.current.push(callback);
+      return () => subscribersRef.current.filter((cb) => cb !== callback);
     }).current;
 
     return {
