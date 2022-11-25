@@ -10,6 +10,7 @@ import { useStore } from '../hooks/useStore';
 import { useObservableValue } from '../hooks/useObservable';
 import { mediaDevices } from 'react-native-webrtc';
 import { useAppGlobalStoreSetState } from '../contexts/AppContext';
+import { useStreamVideoStoreSetState } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -27,7 +28,7 @@ export const HomeScreen = ({ navigation, route }: Props) => {
   const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
   const incomingRingCalls = useObservableValue(incomingRingCalls$);
   const terminatedRingCallMeta = useObservableValue(terminatedRingCallMeta$);
-  const setState = useAppGlobalStoreSetState();
+  const setState = useStreamVideoStoreSetState();
 
   const { displayIncomingCallNow, startCall, endCall } = useCallKeep();
 

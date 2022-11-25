@@ -1,4 +1,7 @@
-import { VideoRenderer } from '@stream-io/video-react-native-sdk';
+import {
+  useStreamVideoStoreValue,
+  VideoRenderer,
+} from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
@@ -8,13 +11,13 @@ type LocalVideoViewProps = {
 };
 
 const LocalVideoView = ({ isVisible }: LocalVideoViewProps) => {
-  const localMediaStream = useAppGlobalStoreValue(
+  const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
-  const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
-  const cameraBackFacingMode = useAppGlobalStoreValue(
+  const cameraBackFacingMode = useStreamVideoStoreValue(
     (store) => store.cameraBackFacingMode,
   );
+  const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
   if (!isVisible || !localMediaStream || isVideoMuted) {
     return null;
   }

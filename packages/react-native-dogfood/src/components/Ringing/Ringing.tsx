@@ -11,14 +11,15 @@ import {
 } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  useAppGlobalStoreValue,
   useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../types';
 import { joinCall } from '../../utils/callUtils';
 import { useStore } from '../../hooks/useStore';
 import { useObservableValue } from '../../hooks/useObservable';
+import { useStreamVideoStoreValue } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -85,8 +86,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 const Ringing = ({ navigation }: Props) => {
   const [loading, setLoading] = useState(false);
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
-  const localMediaStream = useAppGlobalStoreValue(
+  const videoClient = useStreamVideoStoreValue((store) => store.videoClient);
+  const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
   const username = useAppGlobalStoreValue((store) => store.username);

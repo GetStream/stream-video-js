@@ -18,6 +18,7 @@ import MicOff from '../icons/MicOff';
 import { RTCView } from 'react-native-webrtc';
 import { useCallKeep } from '../hooks/useCallKeep';
 import { UserInfoView } from '../components/UserInfoView';
+import { useStreamVideoStoreValue } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -66,7 +67,7 @@ const styles = StyleSheet.create({
 type Props = NativeStackScreenProps<RootStackParamList, 'OutgoingCallScreen'>;
 
 const Background = () => {
-  const localMediaStream = useAppGlobalStoreValue(
+  const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
   const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);

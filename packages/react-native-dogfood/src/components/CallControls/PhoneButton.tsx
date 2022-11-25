@@ -9,17 +9,25 @@ import { useStore } from '../../hooks/useStore';
 import { useObservableValue } from '../../hooks/useObservable';
 import { useRingCall } from '../../hooks/useRingCall';
 import { useCallKeep } from '../../hooks/useCallKeep';
+import { useStreamVideoStoreSetState } from '@stream-io/video-react-native-sdk';
 
 const PhoneButton = () => {
   const username = useAppGlobalStoreValue((store) => store.username);
-  const setState = useAppGlobalStoreSetState();
+  const appStoreSetState = useAppGlobalStoreSetState();
+  const streamVideoSetState = useStreamVideoStoreSetState();
   const { activeRingCallMeta$ } = useStore();
   const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
   const { cancelCall } = useRingCall();
   const { endCall } = useCallKeep();
 
   const resetCallState = useRef(() => {
-    setState((prevState) => {
+    appStoreSetState((prevState) => {
+      const newState: Partial<typeof prevState> = {};
+      newState.isAudioMuted = false;
+      newState.isVideoMuted = false;
+      return newState;
+    });
+    streamVideoSetState((prevState) => {
       const newState: Partial<typeof prevState> = {};
       const { localMediaStream, cameraBackFacingMode } = prevState;
       if (localMediaStream && cameraBackFacingMode) {
@@ -27,8 +35,6 @@ const PhoneButton = () => {
         primaryVideoTrack._switchCamera();
         newState.cameraBackFacingMode = !cameraBackFacingMode;
       }
-      newState.isAudioMuted = false;
-      newState.isVideoMuted = false;
       return newState;
     });
   }).current;

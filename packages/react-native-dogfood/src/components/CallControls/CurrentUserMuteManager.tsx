@@ -6,9 +6,10 @@ import {
 import { useMuteState } from '../../hooks/useMuteState';
 import { useObservableValue } from '../../hooks/useObservable';
 import { useStore } from '../../hooks/useStore';
+import { useStreamVideoStoreValue } from '@stream-io/video-react-native-sdk';
 
 const CurrentUserMuteManager = () => {
-  const localMediaStream = useAppGlobalStoreValue(
+  const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
   const { activeCall$ } = useStore();

@@ -6,6 +6,10 @@ import {
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import {
+  useStreamVideoStoreSetState,
+  useStreamVideoStoreValue,
+} from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   header: {
@@ -33,10 +37,10 @@ const styles = StyleSheet.create({
 });
 
 export const NavigationHeader = (props: NativeStackHeaderProps) => {
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const videoClient = useStreamVideoStoreValue((store) => store.videoClient);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
-
-  const setState = useAppGlobalStoreSetState();
+  const appStoreSetState = useAppGlobalStoreSetState();
+  const streamVideoSetState = useStreamVideoStoreSetState();
 
   const logoutHandler = () => {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [
@@ -54,10 +58,12 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
               videoClient?.disconnect(),
             ]);
 
-            setState({
-              videoClient: undefined,
+            appStoreSetState({
               username: '',
               userImageUrl: '',
+            });
+            streamVideoSetState({
+              videoClient: undefined,
             });
           } catch (error) {
             console.error('Failed to disconnect', error);

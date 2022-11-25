@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { VideoRenderer } from './VideoRenderer';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
+import { useStreamVideoStoreValue } from '../contexts';
 
 type LocalVideoViewProps = {
   isVisible: boolean;
@@ -9,19 +10,14 @@ type LocalVideoViewProps = {
 
 export const LocalVideoView = ({ isVisible }: LocalVideoViewProps) => {
   const localParticipant = useLocalParticipant();
+  const cameraBackFacingMode = useStreamVideoStoreValue(
+    (store) => store.cameraBackFacingMode,
+  );
 
   if (!isVisible || !localParticipant) {
     return null;
   }
 
-  // TODO: SG - get state from StreamVideo that will wrap the original StreamVideo from bindings
-  // and don't don't to export everything beside it and swap with the SDK implem.
-
-  // const cameraBackFacingMode = useAppGlobalStoreValue(
-  //   (store) => store.cameraBackFacingMode,
-  // );
-
-  const cameraBackFacingMode = false;
   const isVideoMuted = !localParticipant.videoStream || !localParticipant.video;
   if (isVideoMuted) {
     return null;

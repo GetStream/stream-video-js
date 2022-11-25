@@ -7,6 +7,7 @@ import {
   useAppGlobalStoreSetState,
 } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/jwt';
+import { useStreamVideoStoreSetState } from '@stream-io/video-react-native-sdk';
 
 const APIParams = {
   apiKey: 'key10', // see <video>/data/fixtures/apps.yaml for API key/secret
@@ -21,7 +22,8 @@ export const useAuth = () => {
   const username = useAppGlobalStoreValue((store) => store.username);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
 
-  const setState = useAppGlobalStoreSetState();
+  const appSetState = useAppGlobalStoreSetState();
+  const streamVideoSetState = useStreamVideoStoreSetState();
   const [authenticationInProgress, setAuthenticationInProgress] =
     useState(true);
 
@@ -59,10 +61,10 @@ export const useAuth = () => {
             token,
           });
           await client.connect(APIParams.apiKey, token, user);
-          setState({ videoClient: client });
+          streamVideoSetState({ videoClient: client });
         } catch (err) {
           console.error('Failed to establish connection', err);
-          setState({
+          appSetState({
             username: '',
             userImageUrl: '',
           });
@@ -72,7 +74,14 @@ export const useAuth = () => {
     };
 
     run();
-  }, [setState, navigation, username, userImageUrl, isStoreInitialized]);
+  }, [
+    appSetState,
+    streamVideoSetState,
+    navigation,
+    username,
+    userImageUrl,
+    isStoreInitialized,
+  ]);
 
   return { authenticationInProgress };
 };
