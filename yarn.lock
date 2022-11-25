@@ -5020,6 +5020,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-native-sdk@workspace:packages/react-native-sdk"
   dependencies:
+    "@stream-io/video-client": "workspace:^"
+    "@stream-io/video-react-bindings": "workspace:^"
     "@types/react": ^18.0.25
     "@types/react-native": ^0.70.6
     "@types/rimraf": ^3.0.2
