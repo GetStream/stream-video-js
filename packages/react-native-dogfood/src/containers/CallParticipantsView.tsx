@@ -5,8 +5,8 @@ import CallParticipantView, {
 } from '../components/Participants/CallParticipantView';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { useObservableValue } from '../hooks/useObservable';
-import { LocalVideoView } from '@stream-io/video-react-native-sdk';
 import { useStore } from '../hooks/useStore';
+import LocalVideoView from '../components/Participants/LocalVideoView';
 
 enum Modes {
   full = 'full',

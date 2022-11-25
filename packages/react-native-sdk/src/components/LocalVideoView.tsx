@@ -14,9 +14,13 @@ export const LocalVideoView = ({ isVisible }: LocalVideoViewProps) => {
     return null;
   }
 
+  // TODO: SG - get state from StreamVideo that will wrap the original StreamVideo from bindings
+  // and don't don't to export everything beside it and swap with the SDK implem.
+
   // const cameraBackFacingMode = useAppGlobalStoreValue(
   //   (store) => store.cameraBackFacingMode,
   // );
+
   const cameraBackFacingMode = false;
   const isVideoMuted = !localParticipant.videoStream || !localParticipant.video;
   if (isVideoMuted) {
