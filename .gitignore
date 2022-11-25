@@ -17,6 +17,7 @@ dist
 .vscode
 .angular
 .env
+!packages/angular-sdk/docusaurus/.env
 
 .eslintcache
 .idea
