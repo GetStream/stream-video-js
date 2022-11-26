@@ -1,4 +1,3 @@
-import { StreamVideoClient } from '@stream-io/video-client';
 import { MediaStream } from 'react-native-webrtc';
 import createStoreContext from './createStoreContext';
 

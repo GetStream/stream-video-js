@@ -8,7 +8,9 @@ type LocalVideoViewProps = {
   isVisible: boolean;
 };
 
-export const LocalVideoView = ({ isVisible }: LocalVideoViewProps) => {
+export const LocalVideoView: React.FC<LocalVideoViewProps> = ({
+  isVisible,
+}: LocalVideoViewProps) => {
   const localParticipant = useLocalParticipant();
   const cameraBackFacingMode = useStreamVideoStoreValue(
     (store) => store.cameraBackFacingMode,

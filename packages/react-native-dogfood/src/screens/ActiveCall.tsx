@@ -5,7 +5,7 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 import CallControls from '../components/CallControls';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../../types';
-import CallParticipantsView from '../containers/CallParticipantsView';
+import { CallParticipantsView } from '@stream-io/video-react-native-sdk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ActiveCall'>;
 

@@ -16,6 +16,8 @@ import {
   useStreamVideoStoreValue,
 } from '@stream-io/video-react-native-sdk';
 import { AppGlobalContextProvider } from './src/contexts/AppContext';
+import { StreamVideo } from '@stream-io/video-react-bindings';
+import { StreamVideoClient } from '@stream-io/video-client';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -28,29 +30,31 @@ const StackNavigator = () => {
     return <AuthenticatingProgressScreen />;
   }
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: true,
-        header: NavigationHeader,
-      }}
-    >
-      {!videoClient ? (
-        <Stack.Screen name="LoginScreen" component={LoginScreen} />
-      ) : (
-        <>
-          <Stack.Screen name="HomeScreen" component={HomeScreen} />
-          <Stack.Screen name="ActiveCall" component={ActiveCallScreen} />
-          <Stack.Screen
-            name="IncomingCallScreen"
-            component={IncomingCallScreen}
-          />
-          <Stack.Screen
-            name="OutgoingCallScreen"
-            component={OutgoingCallScreen}
-          />
-        </>
-      )}
-    </Stack.Navigator>
+    <StreamVideo client={videoClient as StreamVideoClient}>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: true,
+          header: NavigationHeader,
+        }}
+      >
+        {!videoClient ? (
+          <Stack.Screen name="LoginScreen" component={LoginScreen} />
+        ) : (
+          <>
+            <Stack.Screen name="HomeScreen" component={HomeScreen} />
+            <Stack.Screen name="ActiveCall" component={ActiveCallScreen} />
+            <Stack.Screen
+              name="IncomingCallScreen"
+              component={IncomingCallScreen}
+            />
+            <Stack.Screen
+              name="OutgoingCallScreen"
+              component={OutgoingCallScreen}
+            />
+          </>
+        )}
+      </Stack.Navigator>
+    </StreamVideo>
   );
 };
 

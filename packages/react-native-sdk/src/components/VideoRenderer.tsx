@@ -10,7 +10,7 @@ type VideoRendererProps = {
   objectFit?: 'contain' | 'cover';
 };
 
-export const VideoRenderer = ({
+export const VideoRenderer: React.FC<VideoRendererProps> = ({
   mediaStream,
   mirror = false,
   style = { flex: 1 },

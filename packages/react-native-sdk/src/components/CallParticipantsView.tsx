@@ -1,12 +1,8 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import CallParticipantView, {
-  SizeType,
-} from '../components/Participants/CallParticipantView';
-import { useAppGlobalStoreValue } from '../contexts/AppContext';
-import { useObservableValue } from '../hooks/useObservable';
-import { useStore } from '../hooks/useStore';
-import LocalVideoView from '../components/Participants/LocalVideoView';
+import { ParticipantView, SizeType } from './ParticipantView';
+import { LocalVideoView } from './LocalVideoView';
+import { useParticipants } from '@stream-io/video-react-bindings';
 
 enum Modes {
   full = 'full',
@@ -32,13 +28,8 @@ const modeToSize: { [key in Modes]: SizeType | undefined } = {
 
 const localVideoVisibleModes = [Modes.full, Modes.half];
 
-const CallParticipantsView = () => {
-  const { activeCallAllParticipants$ } = useStore();
-  const allParticipants = useObservableValue(activeCallAllParticipants$);
-  const loopbackMyVideo = useAppGlobalStoreValue(
-    (store) => store.loopbackMyVideo,
-  );
-
+export const CallParticipantsView: React.FC = () => {
+  const allParticipants = useParticipants();
   const mode = useMemo(
     () =>
       activeCallAllParticipantsLengthToMode[allParticipants.length] ||
@@ -51,17 +42,12 @@ const CallParticipantsView = () => {
     () => localVideoVisibleModes.includes(mode) && !isUserIsAloneInCall,
     [mode, isUserIsAloneInCall],
   );
-
-  const showUserInParticipantView = useMemo(
-    () => loopbackMyVideo || !isLocalVideoVisible,
-    [loopbackMyVideo, isLocalVideoVisible],
-  );
-
+  const showUserInParticipantView = !isLocalVideoVisible;
   const filteredParticipants = useMemo(() => {
     return showUserInParticipantView
       ? allParticipants
       : allParticipants.filter((p) => !p.isLoggedInUser);
-  }, [loopbackMyVideo, allParticipants]);
+  }, [showUserInParticipantView, allParticipants]);
 
   if (allParticipants.length === 0) {
     return null;
@@ -77,7 +63,7 @@ const CallParticipantsView = () => {
         const size =
           modeToSize[mode] || calculateFiveOrMoreParticipantsSize(index);
         return (
-          <CallParticipantView
+          <ParticipantView
             index={index}
             key={`${userId}/${participant.sessionId}`}
             participant={participant}
@@ -97,4 +83,3 @@ const styles = StyleSheet.create({
     marginBottom: -20,
   },
 });
-export default CallParticipantsView;

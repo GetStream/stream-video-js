@@ -7,7 +7,9 @@ type AvatarProps = {
   size?: number;
 };
 
-export const Avatar = ({ participant: { user } }: AvatarProps) => {
+export const Avatar: React.FC<AvatarProps> = ({
+  participant: { user },
+}: AvatarProps) => {
   const label = useMemo(
     () => user?.name || user?.id || '?',
     [user?.id, user?.name],
