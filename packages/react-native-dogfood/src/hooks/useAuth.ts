@@ -1,11 +1,10 @@
 import { StreamVideoClient } from '@stream-io/video-client';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   useAppGlobalStoreValue,
   useAppGlobalStoreSetState,
 } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/jwt';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const APIParams = {
   apiKey: 'key10', // see <video>/data/fixtures/apps.yaml for API key/secret
@@ -72,12 +71,5 @@ export const useAuth = () => {
     run();
   }, [setState, username, userImageUrl, isStoreInitialized]);
 
-  const logout = useCallback(async () => {
-    setAuthenticationInProgress(true);
-    await Promise.all([GoogleSignin.signOut()]);
-    setState({ username: '', userImageUrl: '', videoClient: undefined });
-    setAuthenticationInProgress(false);
-  }, [setState]);
-
-  return { authenticationInProgress, logout };
+  return { authenticationInProgress };
 };

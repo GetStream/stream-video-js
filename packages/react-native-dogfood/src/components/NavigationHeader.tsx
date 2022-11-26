@@ -1,8 +1,11 @@
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 import React from 'react';
-import { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
-import { useAppGlobalStoreValue } from '../contexts/AppContext';
-import { useAuth } from '../hooks/useAuth';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../contexts/AppContext';
 
 const styles = StyleSheet.create({
   header: {
@@ -29,9 +32,10 @@ const styles = StyleSheet.create({
   },
 });
 
-export const NavigationHeader = (props: NativeStackHeaderProps) => {
+export const NavigationHeader = () => {
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
-  const { logout } = useAuth();
+  const client = useStreamVideoClient();
+  const setState = useAppGlobalStoreSetState();
 
   const logoutHandler = () => {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [
@@ -42,18 +46,21 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
       },
       {
         text: 'OK',
-        onPress: logout,
+        onPress: async () => {
+          try {
+            await Promise.all([GoogleSignin.signOut(), client?.disconnect()]);
+
+            setState({
+              username: '',
+              userImageUrl: '',
+            });
+          } catch (error) {
+            console.error('Failed to disconnect', error);
+          }
+        },
       },
     ]);
   };
-
-  if (
-    props.route.name === 'ActiveCall' ||
-    props.route.name === 'IncomingCallScreen' ||
-    props.route.name === 'OutgoingCallScreen'
-  ) {
-    return null;
-  }
 
   return (
     <View style={styles.header}>
