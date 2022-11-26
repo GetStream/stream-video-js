@@ -1,7 +1,9 @@
-import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
+import {
+  useActiveCall,
+  useActiveRingCall,
+  useStreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
 import { useEffect } from 'react';
-import { useObservableValue } from '../hooks/useObservable';
-import { useStore } from '../hooks/useStore';
 
 const intervalMs = 15000;
 
@@ -16,9 +18,8 @@ const getStats = (stats: RTCStatsReport) => {
 
 export const Stats = () => {
   const videoClient = useStreamVideoClient();
-  const { activeCall$, activeRingCallMeta$ } = useStore();
-  const call = useObservableValue(activeCall$);
-  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
+  const call = useActiveCall();
+  const activeRingCallMeta = useActiveRingCall();
 
   useEffect(() => {
     if (videoClient && call && activeRingCallMeta) {

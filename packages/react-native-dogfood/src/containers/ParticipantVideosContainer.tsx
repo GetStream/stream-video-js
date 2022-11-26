@@ -5,9 +5,11 @@ import { useMuteState } from '../hooks/useMuteState';
 import MicOff from '../icons/MicOff';
 import Mic from '../icons/Mic';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
-import { useObservableValue } from '../hooks/useObservable';
 import { Call, StreamVideoParticipant } from '@stream-io/video-client';
-import { useStore } from '../hooks/useStore';
+import {
+  useActiveCall,
+  useParticipants,
+} from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -61,9 +63,8 @@ const styles = StyleSheet.create({
 });
 
 const ParticipantVideosContainer = () => {
-  const { activeCall$, activeCallAllParticipants$ } = useStore();
-  const call = useObservableValue(activeCall$);
-  const allParticipants = useObservableValue(activeCallAllParticipants$);
+  const call = useActiveCall();
+  const allParticipants = useParticipants();
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );

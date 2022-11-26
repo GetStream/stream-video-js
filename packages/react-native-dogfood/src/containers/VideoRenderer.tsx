@@ -3,15 +3,13 @@ import { RTCView } from 'react-native-webrtc';
 import ParticipantVideosContainer from './ParticipantVideosContainer';
 import React from 'react';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
-import { useObservableValue } from '../hooks/useObservable';
-import { useStore } from '../hooks/useStore';
+import { useRemoteParticipants } from '@stream-io/video-react-native-sdk';
 
 const VideoRenderer = () => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
-  const { activeCallRemoteParticipants$ } = useStore();
-  const remoteParticipants = useObservableValue(activeCallRemoteParticipants$);
+  const remoteParticipants = useRemoteParticipants();
 
   const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
   const username = useAppGlobalStoreValue((store) => store.username);
