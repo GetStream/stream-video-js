@@ -7,8 +7,8 @@ import {
 } from '../contexts/AppContext';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import {
+  useStreamVideoClient,
   useStreamVideoStoreSetState,
-  useStreamVideoStoreValue,
 } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
 });
 
 export const NavigationHeader = (props: NativeStackHeaderProps) => {
-  const videoClient = useStreamVideoStoreValue((store) => store.videoClient);
+  const videoClient = useStreamVideoClient();
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const appStoreSetState = useAppGlobalStoreSetState();
   const streamVideoSetState = useStreamVideoStoreSetState();

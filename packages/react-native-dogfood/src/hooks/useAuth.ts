@@ -3,11 +3,10 @@ import { StreamVideoClient } from '@stream-io/video-client';
 import { useEffect, useState } from 'react';
 import { RootStackParamList } from '../../types';
 import {
-  useAppGlobalStoreValue,
   useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
 } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/jwt';
-import { useStreamVideoStoreSetState } from '@stream-io/video-react-native-sdk';
 
 const APIParams = {
   apiKey: 'key10', // see <video>/data/fixtures/apps.yaml for API key/secret
@@ -21,11 +20,10 @@ export const useAuth = () => {
   );
   const username = useAppGlobalStoreValue((store) => store.username);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
-
   const appSetState = useAppGlobalStoreSetState();
-  const streamVideoSetState = useStreamVideoStoreSetState();
   const [authenticationInProgress, setAuthenticationInProgress] =
     useState(true);
+  const [client, setClient] = useState<StreamVideoClient | undefined>();
 
   useEffect(() => {
     const run = async () => {
@@ -54,14 +52,14 @@ export const useAuth = () => {
         const token = await createToken(username, APIParams.apiSecret);
 
         try {
-          const client = new StreamVideoClient(APIParams.apiKey, {
+          const videoClient = new StreamVideoClient(APIParams.apiKey, {
             coordinatorWsUrl: clientParams.coordinatorWsUrl,
             coordinatorRpcUrl: clientParams.coordinatorRpcUrl,
             sendJson: true,
             token,
           });
-          await client.connect(APIParams.apiKey, token, user);
-          streamVideoSetState({ videoClient: client });
+          await videoClient.connect(APIParams.apiKey, token, user);
+          setClient(videoClient);
         } catch (err) {
           console.error('Failed to establish connection', err);
           appSetState({
@@ -74,14 +72,7 @@ export const useAuth = () => {
     };
 
     run();
-  }, [
-    appSetState,
-    streamVideoSetState,
-    navigation,
-    username,
-    userImageUrl,
-    isStoreInitialized,
-  ]);
+  }, [appSetState, navigation, username, userImageUrl, isStoreInitialized]);
 
-  return { authenticationInProgress };
+  return { authenticationInProgress, client };
 };

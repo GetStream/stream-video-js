@@ -9,7 +9,6 @@ import { RootStackParamList } from '../../types';
 import { useStore } from '../hooks/useStore';
 import { useObservableValue } from '../hooks/useObservable';
 import { mediaDevices } from 'react-native-webrtc';
-import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { useStreamVideoStoreSetState } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({

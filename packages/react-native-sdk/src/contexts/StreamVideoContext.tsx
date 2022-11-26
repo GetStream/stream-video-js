@@ -1,19 +1,32 @@
 import createStoreContext from './createStoreContext';
-import { StreamVideoClient } from '@stream-io/video-client';
 import { MediaStream } from 'react-native-webrtc';
+import {
+  StreamVideo as StreamVideoProvider,
+  StreamVideoProps,
+} from '@stream-io/video-react-bindings';
+import React, { PropsWithChildren } from 'react';
 
-interface SDKStreamVideoStore {
-  videoClient: StreamVideoClient | undefined;
+export interface SDKStreamVideoStore {
   cameraBackFacingMode: boolean;
   localMediaStream: MediaStream | undefined;
 }
 
 export const {
-  Provider: StreamVideoProvider,
+  Provider,
   useStoreValue: useStreamVideoStoreValue,
   useStoreSetState: useStreamVideoStoreSetState,
 } = createStoreContext<SDKStreamVideoStore>({
-  videoClient: undefined,
   cameraBackFacingMode: false,
   localMediaStream: undefined,
 });
+
+export const StreamVideo: React.FC<PropsWithChildren<StreamVideoProps>> = (
+  props: PropsWithChildren<StreamVideoProps>,
+) => {
+  const { client, ...rest } = props;
+  return (
+    <StreamVideoProvider client={client}>
+      <Provider {...rest} />
+    </StreamVideoProvider>
+  );
+};

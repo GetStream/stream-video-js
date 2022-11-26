@@ -11,33 +11,28 @@ import { useAuth } from './src/hooks/useAuth';
 import AuthenticatingProgressScreen from './src/screens/AuthenticatingProgress';
 import { useProntoLinkEffect } from './src/hooks/useProntoLinkEffect';
 import OutgoingCallScreen from './src/screens/OutgoingCallScreen';
-import {
-  StreamVideoProvider,
-  useStreamVideoStoreValue,
-} from '@stream-io/video-react-native-sdk';
+import { StreamVideo } from '@stream-io/video-react-native-sdk';
 import { AppGlobalContextProvider } from './src/contexts/AppContext';
-import { StreamVideo } from '@stream-io/video-react-bindings';
 import { StreamVideoClient } from '@stream-io/video-client';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const StackNavigator = () => {
   useProntoLinkEffect();
-  const { authenticationInProgress } = useAuth();
-  const videoClient = useStreamVideoStoreValue((store) => store.videoClient);
+  const { authenticationInProgress, client } = useAuth();
 
   if (authenticationInProgress) {
     return <AuthenticatingProgressScreen />;
   }
   return (
-    <StreamVideo client={videoClient as StreamVideoClient}>
+    <StreamVideo client={client as StreamVideoClient}>
       <Stack.Navigator
         screenOptions={{
           headerShown: true,
           header: NavigationHeader,
         }}
       >
-        {!videoClient ? (
+        {!client ? (
           <Stack.Screen name="LoginScreen" component={LoginScreen} />
         ) : (
           <>
@@ -60,12 +55,10 @@ const StackNavigator = () => {
 
 export default function App() {
   return (
-    <StreamVideoProvider>
-      <AppGlobalContextProvider>
-        <NavigationContainer>
-          <StackNavigator />
-        </NavigationContainer>
-      </AppGlobalContextProvider>
-    </StreamVideoProvider>
+    <AppGlobalContextProvider>
+      <NavigationContainer>
+        <StackNavigator />
+      </NavigationContainer>
+    </AppGlobalContextProvider>
   );
 }

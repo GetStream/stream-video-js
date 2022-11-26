@@ -5,10 +5,13 @@ import InCallManager from 'react-native-incall-manager';
 import { useStore } from './useStore';
 import { useObservableValue } from './useObservable';
 import { useCallback } from 'react';
-import { useStreamVideoStoreValue } from '@stream-io/video-react-native-sdk';
+import {
+  useStreamVideoClient,
+  useStreamVideoStoreValue,
+} from '@stream-io/video-react-native-sdk';
 
 export const useRingCall = () => {
-  const videoClient = useStreamVideoStoreValue((store) => store.videoClient);
+  const videoClient = useStreamVideoClient();
   const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );

@@ -19,7 +19,10 @@ import { RootStackParamList } from '../../../types';
 import { joinCall } from '../../utils/callUtils';
 import { useStore } from '../../hooks/useStore';
 import { useObservableValue } from '../../hooks/useObservable';
-import { useStreamVideoStoreValue } from '@stream-io/video-react-native-sdk';
+import {
+  useStreamVideoClient,
+  useStreamVideoStoreValue,
+} from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -86,7 +89,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 const Ringing = ({ navigation }: Props) => {
   const [loading, setLoading] = useState(false);
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
-  const videoClient = useStreamVideoStoreValue((store) => store.videoClient);
+  const videoClient = useStreamVideoClient();
   const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
