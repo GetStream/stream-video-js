@@ -1,5 +1,5 @@
+import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 import { useEffect } from 'react';
-import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { useObservableValue } from '../hooks/useObservable';
 import { useStore } from '../hooks/useStore';
 
@@ -15,7 +15,7 @@ const getStats = (stats: RTCStatsReport) => {
 };
 
 export const Stats = () => {
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const videoClient = useStreamVideoClient();
   const { activeCall$, activeRingCallMeta$ } = useStore();
   const call = useObservableValue(activeCall$);
   const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
