@@ -2,6 +2,18 @@
   <button
     class="str-video__call-controls__button"
     [ngClass]="{
+      'str-video__call-controls__button--icon-recording-on': isCallRecordingInProgress,
+      'str-video__call-controls__button--icon-recording-off': !isCallRecordingInProgress
+    }"
+    (click)="toggleRecording()"
+  ></button>
+  <button
+    class="str-video__call-controls__button str-video__call-controls__button--icon-stats"
+    (click)="isStatsViewOpen = !isStatsViewOpen"
+  ></button>
+  <button
+    class="str-video__call-controls__button"
+    [ngClass]="{
       'str-video__call-controls__button--icon-mic': localParticipant?.audio,
       'str-video__call-controls__button--icon-mic-off': !localParticipant?.audio
     }"
