@@ -17,8 +17,11 @@ import AuthenticatingProgressScreen from './src/screens/AuthenticatingProgress';
 import { useProntoLinkEffect } from './src/hooks/useProntoLinkEffect';
 import OutgoingCallScreen from './src/screens/OutgoingCallScreen';
 import { StreamVideo } from '@stream-io/video-react-native-sdk';
+import { LogBox } from 'react-native';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+LogBox.ignoreAllLogs();
 
 const StackNavigator = () => {
   useProntoLinkEffect();

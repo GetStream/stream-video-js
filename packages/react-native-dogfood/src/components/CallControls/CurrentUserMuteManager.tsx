@@ -1,4 +1,3 @@
-import { useActiveCall } from '@stream-io/video-react-native-sdk';
 import { useEffect } from 'react';
 import {
   useAppGlobalStoreSetState,
@@ -10,12 +9,10 @@ const CurrentUserMuteManager = () => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
-  const call = useActiveCall();
   const username = useAppGlobalStoreValue((store) => store.username);
   const setState = useAppGlobalStoreSetState();
   const { isAudioMuted, isVideoMuted } = useMuteState(
     username,
-    call,
     localMediaStream,
   );
   useEffect(() => {

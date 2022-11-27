@@ -5,7 +5,7 @@ import { useMuteState } from '../hooks/useMuteState';
 import MicOff from '../icons/MicOff';
 import Mic from '../icons/Mic';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
-import { Call, StreamVideoParticipant } from '@stream-io/video-client';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 import {
   useActiveCall,
   useParticipants,
@@ -105,7 +105,6 @@ const ParticipantVideosContainer = () => {
               updateVideoSubscriptionForParticipant={
                 updateVideoSubscriptionForParticipant
               }
-              call={call}
               isLastParticipant={index === allParticipants.length - 1}
             />
           );
@@ -115,12 +114,10 @@ const ParticipantVideosContainer = () => {
 };
 
 const ParticipantVideoContainer = ({
-  call,
   participant,
   updateVideoSubscriptionForParticipant,
   isLastParticipant,
 }: {
-  call: Call;
   participant: StreamVideoParticipant;
   updateVideoSubscriptionForParticipant: (
     sessionId: string,
@@ -135,7 +132,7 @@ const ParticipantVideoContainer = ({
     videoStream &&
     new MediaStream([...audioStream?.getTracks(), ...videoStream?.getTracks()]);
 
-  const { isAudioMuted } = useMuteState(user?.id, call, mediaStream);
+  const { isAudioMuted } = useMuteState(user?.id, mediaStream);
 
   return (
     <View
