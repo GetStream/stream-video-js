@@ -41,18 +41,44 @@ export class StreamVideoWriteableStateStore {
     undefined,
   );
   callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
+  terminatedRingCallMeta$: Observable<CallMeta | undefined>;
+  /**
+   * Remote participants of the current call (this includes every participant except the logged-in user).
+   */
+  activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
+  /**
+   * The local participant of the current call (the logged-in user).
+   */
+  activeCallLocalParticipant$: Observable<
+    StreamVideoLocalParticipant | undefined
+  >;
 
-  getCurrentValue<T>(subject: BehaviorSubject<T>) {
-    return subject.getValue();
+  constructor() {
+    this.terminatedRingCallMeta$ = this.activeRingCallMetaSubject.pipe(
+      startWith(undefined),
+      pairwise(),
+      map(([prevValue]) => prevValue),
+    );
+    this.activeCallLocalParticipant$ =
+      this.activeCallAllParticipantsSubject.pipe(
+        map((participants) => participants.find((p) => p.isLoggedInUser)),
+      );
+    this.activeCallRemoteParticipants$ =
+      this.activeCallAllParticipantsSubject.pipe(
+        map((participants) => participants.filter((p) => !p.isLoggedInUser)),
+      );
+  }
+
+  getCurrentValue<T>(observable: Observable<T>) {
+    let value!: T;
+    observable.pipe(take(1)).subscribe((v) => (value = v));
+
+    return value;
   }
 
   setCurrentValue<T>(subject: BehaviorSubject<T>, value: T) {
     subject.next(value);
   }
-
-  asReadOnlyStore = () => {
-    return new StreamVideoReadOnlyStateStore(this);
-  };
 }
 
 /**
@@ -117,23 +143,15 @@ export class StreamVideoReadOnlyStateStore {
       store.activeRingCallDetailsSubject.asObservable();
     this.incomingRingCalls$ = store.incomingRingCallsSubject.asObservable();
     this.dominantSpeaker$ = store.dominantSpeakerSubject.asObservable();
-    this.terminatedRingCallMeta$ = this.activeRingCallMeta$.pipe(
-      startWith(undefined),
-      pairwise(),
-      map(([prevValue]) => prevValue),
-    );
-    this.activeCallAllParticipants$ =
-      store.activeCallAllParticipantsSubject.asObservable();
-    this.activeCallLocalParticipant$ = this.activeCallAllParticipants$.pipe(
-      map((participants) => participants.find((p) => p.isLoggedInUser)),
-    );
-    this.activeCallRemoteParticipants$ = this.activeCallAllParticipants$.pipe(
-      map((participants) => participants.filter((p) => !p.isLoggedInUser)),
-    );
 
     this.callStatsReport$ = store.callStatsReportSubject.asObservable();
     this.callRecordingInProgress$ =
       store.callRecordingInProgressSubject.asObservable();
+    this.activeCallAllParticipants$ =
+      store.activeCallAllParticipantsSubject.asObservable();
+    this.activeCallRemoteParticipants$ = store.activeCallRemoteParticipants$;
+    this.activeCallLocalParticipant$ = store.activeCallLocalParticipant$;
+    this.terminatedRingCallMeta$ = store.terminatedRingCallMeta$;
   }
 
   /**

@@ -115,14 +115,13 @@ export const createStatsReporter = ({
   };
 
   const sessionIdsToTrack = new Set<string>();
-  const readOnlyStore = store.asReadOnlyStore();
 
   /**
    * The main stats reporting loop.
    */
   const run = async () => {
-    const participants = readOnlyStore.getCurrentValue(
-      readOnlyStore.activeCallAllParticipants$,
+    const participants = store.getCurrentValue(
+      store.activeCallAllParticipantsSubject,
     );
     const participantStats: ParticipantsStatsReport = {};
     const sessionIds = new Set(sessionIdsToTrack);
