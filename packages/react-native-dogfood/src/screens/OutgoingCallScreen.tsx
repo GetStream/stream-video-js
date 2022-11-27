@@ -4,8 +4,6 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
-import { useObservableValue } from '../hooks/useObservable';
-import { useStore } from '../hooks/useStore';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
 import ButtonContainer from '../components/CallControls/ButtonContainer';
@@ -18,6 +16,12 @@ import MicOff from '../icons/MicOff';
 import { RTCView } from 'react-native-webrtc';
 import { useCallKeep } from '../hooks/useCallKeep';
 import { UserInfoView } from '../components/UserInfoView';
+import {
+  useActiveCall,
+  useActiveRingCall,
+  useActiveRingCallDetails,
+  useRemoteParticipants,
+} from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -88,8 +92,7 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
-  const { activeCallRemoteParticipants$ } = useStore();
-  const remoteParticipants = useObservableValue(activeCallRemoteParticipants$);
+  const remoteParticipants = useRemoteParticipants();
   const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
   const isAudioMuted = useAppGlobalStoreValue((store) => store.isAudioMuted);
   const username = useAppGlobalStoreValue((store) => store.username);
@@ -98,11 +101,9 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
   const filteredParticipants = loopbackMyVideo
     ? remoteParticipants
     : remoteParticipants.filter((p) => !p.isLoggedInUser);
-  const { activeRingCallDetails$, activeRingCallMeta$, activeCall$ } =
-    useStore();
-  const activeRingCallDetails = useObservableValue(activeRingCallDetails$);
-  const call = useObservableValue(activeCall$);
-  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
+  const activeRingCallDetails = useActiveRingCallDetails();
+  const call = useActiveCall();
+  const activeRingCallMeta = useActiveRingCall();
   const members = activeRingCallDetails?.members || {};
   const memberUserIds = activeRingCallDetails?.memberUserIds || [];
   const { cancelCall } = useRingCall();

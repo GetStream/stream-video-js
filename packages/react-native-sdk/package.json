@@ -15,15 +15,20 @@
   "peerDependencies": {
     "react": ">=17.0.0",
     "react-native": ">=0.68.0",
+    "react-native-callkeep": "*",
+    "react-native-incall-manager": "^4.0.0",
     "react-native-svg": ">=13.6.0",
     "react-native-webrtc": ">=1.106.1"
   },
   "devDependencies": {
     "@types/react": "^18.0.25",
     "@types/react-native": "^0.70.6",
+    "@types/react-native-incall-manager": "^3.2.1",
     "@types/rimraf": "^3.0.2",
     "react": "^18.2.0",
     "react-native": "^0.70.6",
+    "react-native-callkeep": "^4.3.3",
+    "react-native-incall-manager": "^4.0.0",
     "react-native-svg": "^13.6.0",
     "react-native-webrtc": "^1.106.1",
     "rimraf": "^3.0.2",
