@@ -82,6 +82,9 @@ export const Stage = (props: {
         console.error(`Failed to publish`, e);
       });
     }
+  }, [call, localAudioStream]);
+
+  useEffect(() => {
     if (localVideoStream) {
       call
         .publishVideoStream(localVideoStream, { preferredCodec })
@@ -89,7 +92,7 @@ export const Stage = (props: {
           console.error(`Failed to publish`, e);
         });
     }
-  }, [call, localAudioStream, localVideoStream, preferredCodec]);
+  }, [call, localVideoStream, preferredCodec]);
 
   const grid = `str-video__grid-${remoteParticipants.length + 1 || 1}`;
   return (

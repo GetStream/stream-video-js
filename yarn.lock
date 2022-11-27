@@ -4880,6 +4880,7 @@ __metadata:
   resolution: "@stream-io/video-react-bindings@workspace:packages/react-bindings"
   dependencies:
     "@stream-io/video-client": "workspace:^"
+    "@types/react": ^18.0.25
     "@types/rimraf": ^3.0.2
     react: ^18.2.0
     rimraf: ^3.0.2
