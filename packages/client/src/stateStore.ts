@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 import { take, map, pairwise, startWith } from 'rxjs/operators';
 import { Call } from './rtc/Call';
 import type { UserInput } from './gen/video/coordinator/user_v1/user';
@@ -16,19 +16,15 @@ export class StreamVideoWriteableStateStore {
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
   incomingRingCallsSubject = new BehaviorSubject<CallMeta[]>([]);
   activeCallSubject = new BehaviorSubject<Call | undefined>(undefined);
-  activeRingCallMetaSubject = new BehaviorSubject<CallMeta | undefined>(
-    undefined,
-  );
-  activeRingCallDetailsSubject = new BehaviorSubject<CallDetails | undefined>(
-    undefined,
-  );
+  activeRingCallMetaSubject = new ReplaySubject<CallMeta | undefined>(1);
+  activeRingCallDetailsSubject = new ReplaySubject<CallDetails | undefined>(1);
   terminatedRingCallMetaSubject = new BehaviorSubject<CallMeta | undefined>(
     undefined,
   );
 
-  activeCallAllParticipantsSubject = new BehaviorSubject<
+  activeCallAllParticipantsSubject = new ReplaySubject<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
-  >([]);
+  >(1);
   activeCallLocalParticipantSubject = new BehaviorSubject<
     StreamVideoParticipant | undefined
   >(undefined);
@@ -40,7 +36,7 @@ export class StreamVideoWriteableStateStore {
   callStatsReportSubject = new BehaviorSubject<CallStatsReport | undefined>(
     undefined,
   );
-  callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
+  callRecordingInProgressSubject = new ReplaySubject<boolean>(1);
   terminatedRingCallMeta$: Observable<CallMeta | undefined>;
   /**
    * Remote participants of the current call (this includes every participant except the logged-in user).
@@ -67,6 +63,15 @@ export class StreamVideoWriteableStateStore {
       this.activeCallAllParticipantsSubject.pipe(
         map((participants) => participants.filter((p) => !p.isLoggedInUser)),
       );
+
+    this.activeCallSubject.subscribe((c) => {
+      if (!c) {
+        this.setCurrentValue(this.callRecordingInProgressSubject, false);
+        this.setCurrentValue(this.activeRingCallMetaSubject, undefined);
+        this.setCurrentValue(this.activeRingCallDetailsSubject, undefined);
+        this.setCurrentValue(this.activeCallAllParticipantsSubject, []);
+      }
+    });
   }
 
   getCurrentValue<T>(observable: Observable<T>) {
@@ -76,7 +81,7 @@ export class StreamVideoWriteableStateStore {
     return value;
   }
 
-  setCurrentValue<T>(subject: BehaviorSubject<T>, value: T) {
+  setCurrentValue<T>(subject: Subject<T>, value: T) {
     subject.next(value);
   }
 }
