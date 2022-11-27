@@ -6,10 +6,7 @@ import {
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import {
-  useStreamVideoClient,
-  useStreamVideoStoreSetState,
-} from '@stream-io/video-react-native-sdk';
+import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   header: {
@@ -40,7 +37,6 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
   const videoClient = useStreamVideoClient();
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const appStoreSetState = useAppGlobalStoreSetState();
-  const streamVideoSetState = useStreamVideoStoreSetState();
 
   const logoutHandler = () => {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [
@@ -61,8 +57,6 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
             appStoreSetState({
               username: '',
               userImageUrl: '',
-            });
-            streamVideoSetState({
               videoClient: undefined,
             });
           } catch (error) {

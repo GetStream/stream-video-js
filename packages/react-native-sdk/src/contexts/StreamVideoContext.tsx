@@ -20,7 +20,7 @@ export const {
   localMediaStream: undefined,
 });
 
-export const StreamVideo: React.FC<PropsWithChildren<StreamVideoProps>> = (
+export const StreamVideo: React.FC<StreamVideoProps> = (
   props: PropsWithChildren<StreamVideoProps>,
 ) => {
   const { client, ...rest } = props;

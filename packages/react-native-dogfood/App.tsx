@@ -12,42 +12,44 @@ import AuthenticatingProgressScreen from './src/screens/AuthenticatingProgress';
 import { useProntoLinkEffect } from './src/hooks/useProntoLinkEffect';
 import OutgoingCallScreen from './src/screens/OutgoingCallScreen';
 import { StreamVideo } from '@stream-io/video-react-native-sdk';
-import { AppGlobalContextProvider } from './src/contexts/AppContext';
-import { StreamVideoClient } from '@stream-io/video-client';
+import {
+  AppGlobalContextProvider,
+  useAppGlobalStoreValue,
+} from './src/contexts/AppContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const StackNavigator = () => {
   useProntoLinkEffect();
-  const { authenticationInProgress, client } = useAuth();
+  const { authenticationInProgress } = useAuth();
+  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
 
   if (authenticationInProgress) {
     return <AuthenticatingProgressScreen />;
   }
+  if (!videoClient) {
+    return <LoginScreen />;
+  }
   return (
-    <StreamVideo client={client as StreamVideoClient}>
+    <StreamVideo client={videoClient}>
       <Stack.Navigator
         screenOptions={{
           headerShown: true,
           header: NavigationHeader,
         }}
       >
-        {!client ? (
-          <Stack.Screen name="LoginScreen" component={LoginScreen} />
-        ) : (
-          <>
-            <Stack.Screen name="HomeScreen" component={HomeScreen} />
-            <Stack.Screen name="ActiveCall" component={ActiveCallScreen} />
-            <Stack.Screen
-              name="IncomingCallScreen"
-              component={IncomingCallScreen}
-            />
-            <Stack.Screen
-              name="OutgoingCallScreen"
-              component={OutgoingCallScreen}
-            />
-          </>
-        )}
+        <>
+          <Stack.Screen name="HomeScreen" component={HomeScreen} />
+          <Stack.Screen name="ActiveCall" component={ActiveCallScreen} />
+          <Stack.Screen
+            name="IncomingCallScreen"
+            component={IncomingCallScreen}
+          />
+          <Stack.Screen
+            name="OutgoingCallScreen"
+            component={OutgoingCallScreen}
+          />
+        </>
       </Stack.Navigator>
     </StreamVideo>
   );
