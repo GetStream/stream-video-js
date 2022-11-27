@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { StreamVideoParticipant, Call } from '@stream-io/video-client';
+import { NgxPopperjsTriggers } from 'ngx-popperjs';
 import { Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
@@ -12,7 +13,7 @@ export class CallControlsComponent implements OnInit, OnDestroy {
   localParticipant?: StreamVideoParticipant;
   call?: Call;
   isCallRecordingInProgress: boolean = false;
-  isStatsViewOpen = false;
+  popperTrigger = NgxPopperjsTriggers.click;
   private subscriptions: Subscription[] = [];
 
   constructor(private streamVideoService: StreamVideoService) {

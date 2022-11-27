@@ -7,9 +7,13 @@
     }"
     (click)="toggleRecording()"
   ></button>
+  <popper-content #statistics>
+    <stream-call-statistics></stream-call-statistics>
+  </popper-content>
   <button
     class="str-video__call-controls__button str-video__call-controls__button--icon-stats"
-    (click)="isStatsViewOpen = !isStatsViewOpen"
+    [popper]="statistics"
+    [popperTrigger]="popperTrigger"
   ></button>
   <button
     class="str-video__call-controls__button"

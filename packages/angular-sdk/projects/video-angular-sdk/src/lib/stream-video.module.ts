@@ -6,6 +6,7 @@ import { CallControlsComponent } from './call-controls/call-controls.component';
 import { StageComponent } from './stage/stage.component';
 import { DeviceSettingsComponent } from './device-settings/device-settings.component';
 import { NgxPopperjsModule } from 'ngx-popperjs';
+import { CallStatisticsComponent } from './call-statistics/call-statistics.component';
 
 @NgModule({
   declarations: [
@@ -14,6 +15,7 @@ import { NgxPopperjsModule } from 'ngx-popperjs';
     CallControlsComponent,
     StageComponent,
     DeviceSettingsComponent,
+    CallStatisticsComponent,
   ],
   imports: [CommonModule, NgxPopperjsModule],
   exports: [
