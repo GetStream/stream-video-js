@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { StreamVideoParticipant, Call } from '@stream-io/video-client';
 import { Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
@@ -9,8 +9,8 @@ import { StreamVideoService } from '../video.service';
   styles: [],
 })
 export class CallControlsComponent implements OnInit, OnDestroy {
-  @Input() localParticipant?: StreamVideoParticipant;
-  @Input() call?: Call;
+  localParticipant?: StreamVideoParticipant;
+  call?: Call;
   isCallRecordingInProgress: boolean = false;
   isStatsViewOpen = false;
   private subscriptions: Subscription[] = [];
@@ -19,6 +19,14 @@ export class CallControlsComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.streamVideoService.callRecordingInProgress$.subscribe(
         (inProgress) => (this.isCallRecordingInProgress = inProgress),
+      ),
+    );
+    this.subscriptions.push(
+      this.streamVideoService.activeCall$.subscribe((c) => (this.call = c)),
+    );
+    this.subscriptions.push(
+      this.streamVideoService.activeCallLocalParticipant$.subscribe(
+        (p) => (this.localParticipant = p),
       ),
     );
   }
