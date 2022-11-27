@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 import { RTCView } from 'react-native-webrtc';
@@ -12,12 +12,25 @@ import { useStreamVideoStoreValue } from '../contexts';
 export type SizeType = 'small' | 'medium' | 'large' | 'xl';
 
 type ParticipantViewProps = {
+  /**
+   * The index of the participant in the list of participants
+   */
   index: number;
+  /**
+   * The size of the participant that correlates to a specific layout
+   */
   size: SizeType;
+  /**
+   * The participant that will be displayed
+   */
   participant: StreamVideoParticipant;
 };
 
 export const ParticipantView: React.FC<ParticipantViewProps> = ({
+  /**
+   * A Wrapper around a participant renders either the participants view
+   * and additional info, by an absence of a video track only an avatar/initials and audio track will be rendered.
+   */
   index,
   size,
   participant,
@@ -55,11 +68,17 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
   const mirror = isLoggedInUser && !cameraBackFacingMode;
   const MicIcon = !audio ? MicOff : Mic;
   const dominantSpeakerStyle = { borderColor: isSpeaking ? '#005FFF' : '#000' };
-  const isBottomParticipant =
-    size === 'xl' ||
-    (size === 'large' && (index === 1 || index === 0)) ||
-    (size === 'medium' && (index === 3 || index === 1)) ||
-    (size === 'small' && index === 4);
+
+  // Being used to calculate weather a participant is at the bottom of
+  // the screen for styling purposes
+  const isBottomParticipant = useMemo(() => {
+    return (
+      size === 'xl' ||
+      (size === 'large' && index === 1) ||
+      (size === 'medium' && (index === 3 || index === 1)) ||
+      (size === 'small' && index === 4)
+    );
+  }, [size, index]);
 
   return (
     <View

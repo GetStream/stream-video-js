@@ -3,8 +3,10 @@ import React, { useMemo } from 'react';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 
 type AvatarProps = {
+  /**
+   * The participant of which the avatar will be rendered
+   */
   participant: StreamVideoParticipant;
-  size?: number;
 };
 
 export const Avatar: React.FC<AvatarProps> = ({
