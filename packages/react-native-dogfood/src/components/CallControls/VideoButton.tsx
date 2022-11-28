@@ -4,16 +4,18 @@ import VideoSlash from '../../icons/VideoSlash';
 import Video from '../../icons/Video';
 import {
   useActiveCall,
-  useStreamVideoStoreValue,
+  useLocalParticipant,
 } from '@stream-io/video-react-native-sdk';
 
 const VideoButton = () => {
-  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
+  const localParticipant = useLocalParticipant();
+  const isVideoMuted = !localParticipant?.video;
   const call = useActiveCall();
 
   const toggleVideoState = async () => {
     call?.updateMuteState('video', !isVideoMuted);
   };
+
   return (
     <ButtonContainer
       onPress={toggleVideoState}

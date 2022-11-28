@@ -8,7 +8,6 @@ interface AppGlobalStore {
   username: string;
   userImageUrl: string;
   videoClient: StreamVideoClient | undefined;
-  isAudioMuted: boolean;
   loopbackMyVideo: boolean;
 }
 
@@ -25,7 +24,6 @@ export const {
     userImageUrl: '',
     videoClient: undefined,
     loopbackMyVideo: false,
-    isAudioMuted: false,
   },
   ['username', 'userImageUrl'],
 );

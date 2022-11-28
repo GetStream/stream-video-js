@@ -42,4 +42,4 @@ testem.log
 Thumbs.db
 
 
-docusaurus/docs/Angular/reference/*/*.md
+docusaurus/docs/Angular/reference/**/*.md

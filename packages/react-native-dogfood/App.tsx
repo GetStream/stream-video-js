@@ -16,11 +16,8 @@ import {
   AppGlobalContextProvider,
   useAppGlobalStoreValue,
 } from './src/contexts/AppContext';
-import { LogBox } from 'react-native';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
-LogBox.ignoreAllLogs();
 
 const StackNavigator = () => {
   useProntoLinkEffect();
