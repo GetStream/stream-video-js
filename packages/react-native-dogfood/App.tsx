@@ -31,38 +31,36 @@ const StackNavigator = () => {
 
   if (authenticationInProgress) {
     return <AuthenticatingProgressScreen />;
-  } else {
-    if (videoClient) {
-      return (
-        <StreamVideo client={videoClient}>
-          <Stack.Navigator>
-            <Stack.Screen
-              name="HomeScreen"
-              component={HomeScreen}
-              options={{ header: NavigationHeader }}
-            />
-            <Stack.Screen
-              name="ActiveCall"
-              component={ActiveCallScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="IncomingCallScreen"
-              component={IncomingCallScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="OutgoingCallScreen"
-              component={OutgoingCallScreen}
-              options={{ headerShown: false }}
-            />
-          </Stack.Navigator>
-        </StreamVideo>
-      );
-    } else {
-      return <LoginScreen />;
-    }
   }
+  if (!videoClient) {
+    return <LoginScreen />;
+  }
+  return (
+    <StreamVideo client={videoClient}>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="HomeScreen"
+          component={HomeScreen}
+          options={{ header: NavigationHeader }}
+        />
+        <Stack.Screen
+          name="ActiveCall"
+          component={ActiveCallScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="IncomingCallScreen"
+          component={IncomingCallScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="OutgoingCallScreen"
+          component={OutgoingCallScreen}
+          options={{ headerShown: false }}
+        />
+      </Stack.Navigator>
+    </StreamVideo>
+  );
 };
 
 export default function App() {

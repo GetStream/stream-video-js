@@ -16,9 +16,9 @@ import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    margin: 8,
     justifyContent: 'space-evenly',
     alignItems: 'center',
+    backgroundColor: '#eaeaea',
   },
   innerView: {
     backgroundColor: 'white',
