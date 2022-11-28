@@ -5,8 +5,6 @@ import ButtonContainer from '../components/CallControls/ButtonContainer';
 import Phone from '../icons/Phone';
 import PhoneDown from '../icons/PhoneDown';
 import { useRingCall } from '../hooks/useRingCall';
-import { useStore } from '../hooks/useStore';
-import { useObservableValue } from '../hooks/useObservable';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -14,6 +12,10 @@ import {
 import Video from '../icons/Video';
 import VideoSlash from '../icons/VideoSlash';
 import { UserInfoView } from '../components/UserInfoView';
+import {
+  useActiveRingCallDetails,
+  useIncomingRingCalls,
+} from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -72,9 +74,8 @@ const Background = ({
 };
 
 const IncomingCallScreen = () => {
-  const { incomingRingCalls$, activeRingCallDetails$ } = useStore();
-  const incomingRingCalls = useObservableValue(incomingRingCalls$);
-  const activeRingCallDetails = useObservableValue(activeRingCallDetails$);
+  const incomingRingCalls = useIncomingRingCalls();
+  const activeRingCallDetails = useActiveRingCallDetails();
   const { answerCall, rejectCall } = useRingCall();
   const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
   const setState = useAppGlobalStoreSetState();

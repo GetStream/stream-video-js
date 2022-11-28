@@ -1,4 +1,3 @@
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import {
   Button,
@@ -12,15 +11,14 @@ import {
   GoogleSigninButton,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
-import { RootStackParamList } from '../../types';
 import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    margin: 8,
     justifyContent: 'space-evenly',
     alignItems: 'center',
+    backgroundColor: '#eaeaea',
   },
   innerView: {
     backgroundColor: 'white',
@@ -61,8 +59,6 @@ const styles = StyleSheet.create({
   },
 });
 
-type Props = NativeStackScreenProps<RootStackParamList, 'LoginScreen'>;
-
 GoogleSignin.configure({
   // webClientId: '<FROM DEVELOPER CONSOLE>', // client ID of type WEB for your server (needed to verify user ID and offline access)
   // offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
@@ -75,7 +71,7 @@ GoogleSignin.configure({
   // profileImageSize: 120, // [iOS] The desired height (and width) of the profile image. Defaults to 120px
 });
 
-const LoginScreen = ({}: Props) => {
+const LoginScreen = () => {
   const [localUserName, setLocalUserName] = useState('');
   const [loader, setLoader] = useState(false);
 

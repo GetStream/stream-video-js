@@ -5,16 +5,14 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
-import { useStore } from '../../hooks/useStore';
-import { useObservableValue } from '../../hooks/useObservable';
 import { useRingCall } from '../../hooks/useRingCall';
 import { useCallKeep } from '../../hooks/useCallKeep';
+import { useActiveRingCall } from '@stream-io/video-react-native-sdk';
 
 const PhoneButton = () => {
   const username = useAppGlobalStoreValue((store) => store.username);
   const setState = useAppGlobalStoreSetState();
-  const { activeRingCallMeta$ } = useStore();
-  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
+  const activeRingCallMeta = useActiveRingCall();
   const { cancelCall } = useRingCall();
   const { endCall } = useCallKeep();
 

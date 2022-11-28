@@ -5,9 +5,11 @@ import { useMuteState } from '../hooks/useMuteState';
 import MicOff from '../icons/MicOff';
 import Mic from '../icons/Mic';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
-import { useObservableValue } from '../hooks/useObservable';
-import { Call, StreamVideoParticipant } from '@stream-io/video-client';
-import { useStore } from '../hooks/useStore';
+import { StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  useActiveCall,
+  useParticipants,
+} from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -61,9 +63,8 @@ const styles = StyleSheet.create({
 });
 
 const ParticipantVideosContainer = () => {
-  const { activeCall$, activeCallAllParticipants$ } = useStore();
-  const call = useObservableValue(activeCall$);
-  const allParticipants = useObservableValue(activeCallAllParticipants$);
+  const call = useActiveCall();
+  const allParticipants = useParticipants();
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
@@ -104,7 +105,6 @@ const ParticipantVideosContainer = () => {
               updateVideoSubscriptionForParticipant={
                 updateVideoSubscriptionForParticipant
               }
-              call={call}
               isLastParticipant={index === allParticipants.length - 1}
             />
           );
@@ -114,12 +114,10 @@ const ParticipantVideosContainer = () => {
 };
 
 const ParticipantVideoContainer = ({
-  call,
   participant,
   updateVideoSubscriptionForParticipant,
   isLastParticipant,
 }: {
-  call: Call;
   participant: StreamVideoParticipant;
   updateVideoSubscriptionForParticipant: (
     sessionId: string,
@@ -134,7 +132,7 @@ const ParticipantVideoContainer = ({
     videoStream &&
     new MediaStream([...audioStream?.getTracks(), ...videoStream?.getTracks()]);
 
-  const { isAudioMuted } = useMuteState(user?.id, call, mediaStream);
+  const { isAudioMuted } = useMuteState(user?.id, mediaStream);
 
   return (
     <View

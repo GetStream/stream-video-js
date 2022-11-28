@@ -17,8 +17,10 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../types';
 import { joinCall } from '../../utils/callUtils';
-import { useStore } from '../../hooks/useStore';
-import { useObservableValue } from '../../hooks/useObservable';
+import {
+  useActiveRingCall,
+  useStreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -85,14 +87,13 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 const Ringing = ({ navigation }: Props) => {
   const [loading, setLoading] = useState(false);
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const videoClient = useStreamVideoClient();
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
   const username = useAppGlobalStoreValue((store) => store.username);
   const ringingUsers = useAppGlobalStoreValue((store) => store.ringingUsers);
-  const { activeRingCallMeta$ } = useStore();
-  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
+  const activeRingCallMeta = useActiveRingCall();
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },

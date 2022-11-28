@@ -5,13 +5,14 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import RNCallKeep from 'react-native-callkeep';
 import { RootStackParamList } from '../../types';
-import { useStore } from './useStore';
-import { useObservableValue } from './useObservable';
+import {
+  useActiveCall,
+  useActiveRingCall,
+} from '@stream-io/video-react-native-sdk';
 
 export const useCallKeep = () => {
-  const { activeCall$, activeRingCallMeta$ } = useStore();
-  const call = useObservableValue(activeCall$);
-  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
+  const call = useActiveCall();
+  const activeRingCallMeta = useActiveRingCall();
 
   const navigation =
     useNavigation<
