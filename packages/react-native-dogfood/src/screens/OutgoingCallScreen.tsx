@@ -1,9 +1,6 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import {
-  useAppGlobalStoreSetState,
-  useAppGlobalStoreValue,
-} from '../contexts/AppContext';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
 import ButtonContainer from '../components/CallControls/ButtonContainer';
@@ -20,6 +17,7 @@ import {
   useActiveCall,
   useActiveRingCall,
   useActiveRingCallDetails,
+  useLocalParticipant,
   useRemoteParticipants,
 } from '@stream-io/video-react-native-sdk';
 
@@ -73,7 +71,9 @@ const Background = () => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
-  const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
+  const localParticipant = useLocalParticipant();
+  const isVideoMuted = !localParticipant?.video;
+
   return !isVideoMuted ? (
     <RTCView
       // @ts-ignore
@@ -93,10 +93,10 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
     (store) => store.loopbackMyVideo,
   );
   const remoteParticipants = useRemoteParticipants();
-  const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
-  const isAudioMuted = useAppGlobalStoreValue((store) => store.isAudioMuted);
+  const localParticipant = useLocalParticipant();
+  const isVideoMuted = !localParticipant?.video;
+  const isAudioMuted = !localParticipant?.audio;
   const username = useAppGlobalStoreValue((store) => store.username);
-  const setState = useAppGlobalStoreSetState();
 
   const filteredParticipants = loopbackMyVideo
     ? remoteParticipants
@@ -134,15 +134,11 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
   }, [filteredParticipants, navigation]);
 
   const videoToggle = () => {
-    setState((prevState) => ({
-      isVideoMuted: !prevState.isVideoMuted,
-    }));
+    call?.updateMuteState('video', !isVideoMuted);
   };
 
   const audioToggle = () => {
-    setState((prevState) => ({
-      isAudioMuted: !prevState.isAudioMuted,
-    }));
+    call?.updateMuteState('audio', !isAudioMuted);
   };
 
   return (
