@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
-import { MediaStream, RTCView } from 'react-native-webrtc';
+import { RTCView } from 'react-native-webrtc';
 import { StyleSheet, View, Image, LayoutChangeEvent, Text } from 'react-native';
-import { useMuteState } from '../hooks/useMuteState';
 import MicOff from '../icons/MicOff';
 import Mic from '../icons/Mic';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
@@ -126,13 +125,8 @@ const ParticipantVideoContainer = ({
   ) => void;
   isLastParticipant: boolean;
 }) => {
-  const { videoStream, audioStream, isSpeaking, sessionId, user } = participant;
-  const mediaStream =
-    audioStream &&
-    videoStream &&
-    new MediaStream([...audioStream?.getTracks(), ...videoStream?.getTracks()]);
-
-  const { isAudioMuted } = useMuteState(user?.id, mediaStream);
+  const { audio, videoStream, audioStream, isSpeaking, sessionId, user } =
+    participant;
 
   return (
     <View
@@ -163,7 +157,7 @@ const ParticipantVideoContainer = ({
       >
         <Text style={styles.userName}>{user?.name || user?.id}</Text>
         <View style={styles.svgContainer}>
-          {isAudioMuted ? <MicOff color="red" /> : <Mic color="red" />}
+          {!audio ? <MicOff color="red" /> : <Mic color="red" />}
         </View>
       </View>
     </View>
