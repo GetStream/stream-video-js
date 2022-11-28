@@ -28,10 +28,10 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 const Meeting = ({ navigation }: Props) => {
   const meetingCallID = useAppGlobalStoreValue((store) => store.meetingCallID);
+  const videoClient = useStreamVideoClient();
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
-  const videoClient = useStreamVideoClient();
   const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
