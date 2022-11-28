@@ -3,7 +3,7 @@ import {
   watchForDisconnectedAudioDevice,
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Call } from '@stream-io/video-client';
 import {
   useLocalParticipant,
