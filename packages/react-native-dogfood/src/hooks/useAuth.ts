@@ -1,7 +1,5 @@
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { StreamVideoClient } from '@stream-io/video-client';
 import { useEffect, useState } from 'react';
-import { RootStackParamList } from '../../types';
 import {
   useAppGlobalStoreValue,
   useAppGlobalStoreSetState,
@@ -14,7 +12,6 @@ const APIParams = {
 };
 
 export const useAuth = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const isStoreInitialized = useAppGlobalStoreValue(
     (store) => store.isStoreInitialized,
   );
@@ -52,14 +49,14 @@ export const useAuth = () => {
         const token = await createToken(username, APIParams.apiSecret);
 
         try {
-          const client = new StreamVideoClient(APIParams.apiKey, {
+          const clientResponse = new StreamVideoClient(APIParams.apiKey, {
             coordinatorWsUrl: clientParams.coordinatorWsUrl,
             coordinatorRpcUrl: clientParams.coordinatorRpcUrl,
             sendJson: true,
             token,
           });
-          await client.connect(APIParams.apiKey, token, user);
-          setState({ videoClient: client });
+          await clientResponse.connect(APIParams.apiKey, token, user);
+          setState({ videoClient: clientResponse });
         } catch (err) {
           console.error('Failed to establish connection', err);
           setState({
@@ -72,7 +69,7 @@ export const useAuth = () => {
     };
 
     run();
-  }, [setState, navigation, username, userImageUrl, isStoreInitialized]);
+  }, [setState, username, userImageUrl, isStoreInitialized]);
 
   return { authenticationInProgress };
 };
