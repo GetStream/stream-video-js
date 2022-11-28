@@ -7,11 +7,11 @@ import Ringing from '../components/Ringing/Ringing';
 import { useCallKeep } from '../hooks/useCallKeep';
 import { RootStackParamList } from '../../types';
 import { mediaDevices } from 'react-native-webrtc';
-import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import {
   useActiveRingCall,
   useIncomingRingCalls,
   useTerminatedRingCall,
+  useStreamVideoStoreSetState,
 } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
@@ -28,7 +28,7 @@ export const HomeScreen = ({ navigation, route }: Props) => {
   const activeRingCallMeta = useActiveRingCall();
   const incomingRingCalls = useIncomingRingCalls();
   const terminatedRingCallMeta = useTerminatedRingCall();
-  const setState = useAppGlobalStoreSetState();
+  const setState = useStreamVideoStoreSetState();
 
   const { displayIncomingCallNow, startCall, endCall } = useCallKeep();
 

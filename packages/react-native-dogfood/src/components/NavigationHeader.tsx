@@ -33,9 +33,9 @@ const styles = StyleSheet.create({
 });
 
 export const NavigationHeader = () => {
+  const videoClient = useStreamVideoClient();
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
-  const client = useStreamVideoClient();
-  const setState = useAppGlobalStoreSetState();
+  const appStoreSetState = useAppGlobalStoreSetState();
 
   const logoutHandler = () => {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [
@@ -48,9 +48,12 @@ export const NavigationHeader = () => {
         text: 'OK',
         onPress: async () => {
           try {
-            await Promise.all([GoogleSignin.signOut(), client?.disconnect()]);
+            await Promise.all([
+              GoogleSignin.signOut(),
+              videoClient?.disconnect(),
+            ]);
 
-            setState({
+            appStoreSetState({
               username: '',
               userImageUrl: '',
               videoClient: undefined,

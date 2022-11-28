@@ -2,11 +2,6 @@ import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ActiveCallScreen from './src/screens/ActiveCall';
-import {
-  AppGlobalContextProvider,
-  useAppGlobalStoreValue,
-} from './src/contexts/AppContext';
-
 import { RootStackParamList } from './types';
 import LoginScreen from './src/screens/LoginScreen';
 import { NavigationHeader } from './src/components/NavigationHeader';
@@ -17,11 +12,12 @@ import AuthenticatingProgressScreen from './src/screens/AuthenticatingProgress';
 import { useProntoLinkEffect } from './src/hooks/useProntoLinkEffect';
 import OutgoingCallScreen from './src/screens/OutgoingCallScreen';
 import { StreamVideo } from '@stream-io/video-react-native-sdk';
-import { LogBox } from 'react-native';
+import {
+  AppGlobalContextProvider,
+  useAppGlobalStoreValue,
+} from './src/contexts/AppContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
-LogBox.ignoreAllLogs();
 
 const StackNavigator = () => {
   useProntoLinkEffect();

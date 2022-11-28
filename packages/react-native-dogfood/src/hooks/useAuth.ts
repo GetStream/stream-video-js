@@ -1,8 +1,8 @@
 import { StreamVideoClient } from '@stream-io/video-client';
 import { useEffect, useState } from 'react';
 import {
-  useAppGlobalStoreValue,
   useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
 } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/jwt';
 
@@ -17,8 +17,7 @@ export const useAuth = () => {
   );
   const username = useAppGlobalStoreValue((store) => store.username);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
-
-  const setState = useAppGlobalStoreSetState();
+  const appSetState = useAppGlobalStoreSetState();
   const [authenticationInProgress, setAuthenticationInProgress] =
     useState(true);
 
@@ -49,17 +48,17 @@ export const useAuth = () => {
         const token = await createToken(username, APIParams.apiSecret);
 
         try {
-          const clientResponse = new StreamVideoClient(APIParams.apiKey, {
+          const videoClient = new StreamVideoClient(APIParams.apiKey, {
             coordinatorWsUrl: clientParams.coordinatorWsUrl,
             coordinatorRpcUrl: clientParams.coordinatorRpcUrl,
             sendJson: true,
             token,
           });
-          await clientResponse.connect(APIParams.apiKey, token, user);
-          setState({ videoClient: clientResponse });
+          await videoClient.connect(APIParams.apiKey, token, user);
+          appSetState({ videoClient });
         } catch (err) {
           console.error('Failed to establish connection', err);
-          setState({
+          appSetState({
             username: '',
             userImageUrl: '',
           });
@@ -69,7 +68,7 @@ export const useAuth = () => {
     };
 
     run();
-  }, [setState, username, userImageUrl, isStoreInitialized]);
+  }, [appSetState, username, userImageUrl, isStoreInitialized]);
 
   return { authenticationInProgress };
 };

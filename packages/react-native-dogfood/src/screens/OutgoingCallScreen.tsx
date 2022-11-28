@@ -21,6 +21,7 @@ import {
   useActiveRingCall,
   useActiveRingCallDetails,
   useRemoteParticipants,
+  useStreamVideoStoreValue,
 } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
 type Props = NativeStackScreenProps<RootStackParamList, 'OutgoingCallScreen'>;
 
 const Background = () => {
-  const localMediaStream = useAppGlobalStoreValue(
+  const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
   const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);

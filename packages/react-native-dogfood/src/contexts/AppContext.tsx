@@ -8,11 +8,10 @@ interface AppGlobalStore {
   ringingUsers: string[];
   username: string;
   userImageUrl: string;
-  videoClient: StreamVideoClient | undefined;
   localMediaStream: MediaStream | undefined;
+  videoClient: StreamVideoClient | undefined;
   isAudioMuted: boolean;
   isVideoMuted: boolean;
-  cameraBackFacingMode: boolean;
   loopbackMyVideo: boolean;
 }
 
@@ -27,12 +26,11 @@ export const {
     ringingUsers: [],
     username: '',
     userImageUrl: '',
-    videoClient: undefined,
     localMediaStream: undefined,
+    videoClient: undefined,
     loopbackMyVideo: false,
     isAudioMuted: false,
     isVideoMuted: false,
-    cameraBackFacingMode: false,
   },
   ['username', 'userImageUrl'],
 );
