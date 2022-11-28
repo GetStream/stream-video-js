@@ -38,6 +38,7 @@ import { createStatsReporter, StatsReporter } from '../stats/reporter';
 export class Call {
   /**@deprecated use store for this data */
   currentUserId: string;
+  cid: string;
 
   private videoLayers?: OptimalVideoLayer[];
   private readonly subscriber: RTCPeerConnection;
@@ -57,10 +58,12 @@ export class Call {
    * @param stateStore
    */
   constructor(
+    cid: string,
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
     private readonly stateStore: StreamVideoWriteableStateStore,
   ) {
+    this.cid = cid;
     this.currentUserId = stateStore.getCurrentValue(
       stateStore.connectedUserSubject,
     )!.name;
