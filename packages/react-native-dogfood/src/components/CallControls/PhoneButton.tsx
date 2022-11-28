@@ -25,8 +25,6 @@ const PhoneButton = () => {
         primaryVideoTrack._switchCamera();
         newState.cameraBackFacingMode = !cameraBackFacingMode;
       }
-      newState.isAudioMuted = false;
-      newState.isVideoMuted = false;
       return newState;
     });
   }).current;
