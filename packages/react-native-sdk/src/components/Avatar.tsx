@@ -3,11 +3,15 @@ import React, { useMemo } from 'react';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 
 type AvatarProps = {
+  /**
+   * The participant of which the avatar will be rendered
+   */
   participant: StreamVideoParticipant;
-  size?: number;
 };
 
-export const Avatar = ({ participant: { user } }: AvatarProps) => {
+export const Avatar: React.FC<AvatarProps> = ({
+  participant: { user },
+}: AvatarProps) => {
   const label = useMemo(
     () => user?.name || user?.id || '?',
     [user?.id, user?.name],

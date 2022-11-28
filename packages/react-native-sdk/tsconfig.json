@@ -18,5 +18,5 @@
     "jsx": "react-native"
   },
   "include": ["./src", "index.ts"],
-  "exclude": ["./dist"]
+  "exclude": ["./dist", "node_modules"]
 }

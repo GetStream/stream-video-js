@@ -1,5 +1,4 @@
 import { StreamVideoClient } from '@stream-io/video-client';
-import { MediaStream } from 'react-native-webrtc';
 import createStoreContext from './createStoreContext';
 
 interface AppGlobalStore {
@@ -9,10 +8,7 @@ interface AppGlobalStore {
   username: string;
   userImageUrl: string;
   videoClient: StreamVideoClient | undefined;
-  localMediaStream: MediaStream | undefined;
   isAudioMuted: boolean;
-  isVideoMuted: boolean;
-  cameraBackFacingMode: boolean;
   loopbackMyVideo: boolean;
 }
 
@@ -28,11 +24,8 @@ export const {
     username: '',
     userImageUrl: '',
     videoClient: undefined,
-    localMediaStream: undefined,
     loopbackMyVideo: false,
     isAudioMuted: false,
-    isVideoMuted: false,
-    cameraBackFacingMode: false,
   },
   ['username', 'userImageUrl'],
 );

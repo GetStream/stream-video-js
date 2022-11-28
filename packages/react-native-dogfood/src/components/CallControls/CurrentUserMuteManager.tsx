@@ -4,9 +4,10 @@ import {
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { useMuteState } from '../../hooks/useMuteState';
+import { useStreamVideoStoreValue } from '@stream-io/video-react-native-sdk';
 
 const CurrentUserMuteManager = () => {
-  const localMediaStream = useAppGlobalStoreValue(
+  const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
   const username = useAppGlobalStoreValue((store) => store.username);
@@ -18,7 +19,6 @@ const CurrentUserMuteManager = () => {
   useEffect(() => {
     setState({
       isAudioMuted,
-      isVideoMuted,
     });
   }, [isAudioMuted, isVideoMuted, setState]);
 

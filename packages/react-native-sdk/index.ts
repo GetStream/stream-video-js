@@ -1,9 +1,7 @@
 export * from '@stream-io/video-react-bindings';
 export * from './src/components';
+export * from './src/contexts';
 
-// import * as ReactBindingsAll from '@stream-io/video-react-bindings';
-
-// const { StreamVideo: _, ...rest } = ReactBindingsAll;
-// const StreamVideo = 'bla';
-//
-// export { StreamVideo, rest };
+// Overriding 'StreamVideo' from '@stream-io/video-react-bindings'
+// Explicitly re-exporting to resolve ambiguity.
+export { StreamVideo } from './src/contexts/StreamVideoContext';

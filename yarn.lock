@@ -4971,7 +4971,7 @@ __metadata:
   dependencies:
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:^"
-    "@types/react": 17.0.21
+    "@types/react": 18.0.25
     "@types/react-native": ^0.70.6
     "@types/react-native-incall-manager": ^3.2.1
     "@types/rimraf": ^3.0.2
@@ -4986,7 +4986,7 @@ __metadata:
   peerDependencies:
     react: ">=17.0.0"
     react-native: ">=0.68.0"
-    react-native-callkeep: "*"
+    react-native-callkeep: ^4.3.3
     react-native-incall-manager: ^4.0.0
     react-native-svg: ">=13.6.0"
     react-native-webrtc: ">=106.0.0-beta.7"
@@ -5674,7 +5674,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:^18.0.21, @types/react@npm:^18.0.25":
+"@types/react@npm:*, @types/react@npm:18.0.25, @types/react@npm:^18.0.21, @types/react@npm:^18.0.25":
   version: 18.0.25
   resolution: "@types/react@npm:18.0.25"
   dependencies:
@@ -5682,17 +5682,6 @@ __metadata:
     "@types/scheduler": "*"
     csstype: ^3.0.2
   checksum: 231d658c45abdef044a716b4502774f1585d8336d73b2f5bd68f181acbfc874b7a457686ecd29b415b43ed0922c309bab7e2cf96832d188a3f4f1b02f2af760a
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:17.0.21":
-  version: 17.0.21
-  resolution: "@types/react@npm:17.0.21"
-  dependencies:
-    "@types/prop-types": "*"
-    "@types/scheduler": "*"
-    csstype: ^3.0.2
-  checksum: a590bd2e50e4ec0b1957388e198cf248bac3051e525e036901dea10f7d12203bf1c58350aa899e66494cbf8a60ee56402522273866c29748217f72552bb27d04
   languageName: node
   linkType: hard
 

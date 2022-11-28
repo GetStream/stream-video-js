@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     shadowRadius: 7.49,
     elevation: 12,
   },
-  svgContainer: {
+  svgContainerStyle: {
     width: 25,
     height: 25,
   },
@@ -48,40 +48,32 @@ const colorKeyToBgColor = (colorKey: ColorKey): ColorValue => {
   }
 };
 
-export type CallControlsButtonType = {
+type CallControlsButtonProps = {
   onPress: PressableProps['onPress'];
   colorKey: ColorKey;
-  size?: number;
-  svgContainer?: StyleProp<ViewStyle>;
+  style?: StyleProp<ViewStyle>;
+  svgContainerStyle?: StyleProp<ViewStyle>;
 };
 
-const CallControlsButton = (
-  props: React.PropsWithChildren<CallControlsButtonType>,
+export const CallControlsButton = (
+  props: React.PropsWithChildren<CallControlsButtonProps>,
 ) => {
-  const { onPress, children, colorKey, size, svgContainer } = props;
+  const { onPress, children, colorKey, style, svgContainerStyle } = props;
 
-  const style: PressableProps['style'] = ({ pressed }) => [
+  const pressableStyle: PressableProps['style'] = ({ pressed }) => [
     styles.container,
     {
       backgroundColor: colorKeyToBgColor(colorKey),
       opacity: pressed ? 0.2 : 1,
     },
-    size
-      ? {
-          height: size,
-          width: size,
-          borderRadius: size,
-        }
-      : null,
+    style ? style : null,
   ];
 
   return (
-    <Pressable style={style} onPress={onPress}>
-      <View style={[styles.svgContainer, svgContainer ? svgContainer : null]}>
+    <Pressable style={pressableStyle} onPress={onPress}>
+      <View style={[styles.svgContainerStyle, svgContainerStyle ?? null]}>
         {children}
       </View>
     </Pressable>
   );
 };
-
-export default CallControlsButton;

@@ -14,7 +14,7 @@ import {
   useLocalParticipant,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import CallControlsButton from './CallControlsButton';
+import { CallControlsButton } from './CallControlsButton';
 import InCallManager from 'react-native-incall-manager';
 import RNCallKeep from 'react-native-callkeep';
 
@@ -25,12 +25,6 @@ const styles = StyleSheet.create({
   background: {
     backgroundColor: 'black',
     opacity: 0.9,
-  },
-  view: {
-    position: 'absolute',
-    zIndex: 5,
-    width: '100%',
-    height: '100%',
   },
   callingText: {
     fontSize: 20,
@@ -53,7 +47,7 @@ const styles = StyleSheet.create({
     width: 70,
     borderRadius: 70,
   },
-  svg: {
+  svgStyle: {
     height: 30,
     width: 30,
   },
@@ -62,22 +56,23 @@ const styles = StyleSheet.create({
   },
 });
 
-const Background = () => {
+const Background: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const localParticipant = useLocalParticipant();
-  const localMediaStream = localParticipant?.videoStream;
+  const localVideoStream = localParticipant?.videoStream;
   const isVideoMuted = !localParticipant?.video;
 
   return !isVideoMuted ? (
     <RTCView
-      // @ts-ignore
-      streamURL={localMediaStream?.toURL()}
+      streamURL={localVideoStream?.toURL()}
       objectFit="cover"
       zOrder={1}
       style={styles.stream}
       mirror={true}
-    />
+    >
+      {children}
+    </RTCView>
   ) : (
-    <View style={[styles.container, styles.background]} />
+    <View style={[StyleSheet.absoluteFill, styles.background]}>{children}</View>
   );
 };
 
@@ -96,14 +91,14 @@ export const OutgoingCallView = () => {
       return;
     }
     try {
-      activeCall.leave();
-      if (Platform.OS === 'ios' && activeRingCallMeta) {
-        await RNCallKeep.endCall(activeRingCallMeta.id);
-      }
-      InCallManager.stop();
       if (activeRingCallMeta) {
         await client?.cancelCall(activeRingCallMeta.callCid);
+        if (Platform.OS === 'ios') {
+          await RNCallKeep.endCall(activeRingCallMeta.id);
+        }
       }
+      activeCall.leave();
+      InCallManager.stop();
     } catch (error) {
       console.warn('failed to leave call', error);
     }
@@ -118,42 +113,41 @@ export const OutgoingCallView = () => {
   };
 
   return (
-    <>
-      <View style={styles.view}>
+    <Background>
+      <View style={StyleSheet.absoluteFill}>
         <UserInfoView />
         <Text style={styles.callingText}>Calling...</Text>
         <View style={styles.buttons}>
           <CallControlsButton
             onPress={audioToggle}
             colorKey={!isAudioMuted ? 'activated' : 'deactivated'}
-            size={70}
-            svgContainer={{ height: 25, width: 30 }}
+            style={styles.buttonStyle}
+            svgContainerStyle={styles.svgStyle}
           >
-            {isAudioMuted ? <MicOff color="white" /> : <Mic color="black" />}
+            {isAudioMuted ? <MicOff color="#fff" /> : <Mic color="#000" />}
           </CallControlsButton>
           <CallControlsButton
             onPress={videoToggle}
             colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
-            size={70}
-            svgContainer={{ height: 25, width: 30 }}
+            style={styles.buttonStyle}
+            svgContainerStyle={styles.svgStyle}
           >
             {isVideoMuted ? (
-              <VideoSlash color="white" />
+              <VideoSlash color="#fff" />
             ) : (
-              <Video color="black" />
+              <Video color="#000" />
             )}
           </CallControlsButton>
           <CallControlsButton
             onPress={hangupHandler}
             colorKey={'cancel'}
-            size={70}
-            svgContainer={{ height: 25, width: 30 }}
+            style={styles.buttonStyle}
+            svgContainerStyle={styles.svgStyle}
           >
             <PhoneDown color="#fff" />
           </CallControlsButton>
         </View>
       </View>
-      <Background />
-    </>
+    </Background>
   );
 };
