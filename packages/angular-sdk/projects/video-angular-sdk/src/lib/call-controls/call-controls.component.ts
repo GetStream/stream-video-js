@@ -47,7 +47,10 @@ export class CallControlsComponent implements OnInit, OnDestroy {
   }
 
   toggleRecording() {
-    // TODO
+    // TODO: call meta should be part of the store
+    this.isCallRecordingInProgress
+      ? this.streamVideoService.videoClient?.stopRecording('', '')
+      : this.streamVideoService.videoClient?.startRecording('', '');
   }
 
   endCall() {
