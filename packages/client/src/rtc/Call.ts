@@ -591,10 +591,10 @@ export class Call {
   }
 
   private handleOnTrack = (e: RTCTrackEvent) => {
-    console.log('Got remote track:', e.track);
     const [primaryStream] = e.streams;
     // TODO OL: extract track kind
     const [trackId, trackKind] = primaryStream.id.split(':');
+    console.log(`Got remote ${trackKind} track:`, e.track);
     const participantToUpdate = this.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );
@@ -607,7 +607,7 @@ export class Call {
       console.log(
         `Track muted:`,
         participantToUpdate.userId,
-        `${e.track.kind}:${trackId}`,
+        `${trackKind}:${trackId}`,
         e.track,
       );
     });
@@ -616,7 +616,7 @@ export class Call {
       console.log(
         `Track unmuted:`,
         participantToUpdate.userId,
-        `${e.track.kind}:${trackId}`,
+        `${trackKind}:${trackId}`,
         e.track,
       );
     });
@@ -625,7 +625,7 @@ export class Call {
       console.log(
         `Track ended:`,
         participantToUpdate.userId,
-        `${e.track.kind}:${trackId}`,
+        `${trackKind}:${trackId}`,
         e.track,
       );
     });

@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { take, map, pairwise, startWith } from 'rxjs/operators';
+import { find, map, pairwise, startWith, take } from 'rxjs/operators';
 import { Call } from './rtc/Call';
 import type { UserInput } from './gen/video/coordinator/user_v1/user';
 import {
@@ -7,12 +7,13 @@ import {
   CallDetails,
 } from './gen/video/coordinator/call_v1/call';
 import type {
-  StreamVideoParticipant,
   StreamVideoLocalParticipant,
+  StreamVideoParticipant,
   StreamVideoParticipantPatch,
 } from './rtc/types';
-import type { CallStatsReport } from './stats/types';
 import { StreamVideoParticipantPatches } from './rtc/types';
+import type { CallStatsReport } from './stats/types';
+import { TrackKind } from './gen/video/sfu/models/models';
 
 export class StreamVideoWriteableStateStore {
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
@@ -201,6 +202,18 @@ export class StreamVideoReadOnlyStateStore {
   activeCallLocalParticipant$: Observable<
     StreamVideoLocalParticipant | undefined
   >;
+
+  /**
+   * Emits true whenever there is an active screen sharing session within
+   * the current call. Useful for displaying a "screen sharing" indicator and
+   * switching the layout to a screen sharing layout.
+   *
+   * The actual screen sharing track isn't exposed here, but can be retrieved
+   * from the list of call participants. We also don't want to be limiting
+   * to the number of share screen tracks are displayed in a call.
+   */
+  hasOngoingScreenShare$: Observable<boolean>;
+
   /**
    * The latest stats report of the current call.
    * When stats gathering is enabled, this observable will emit a new value
@@ -236,6 +249,15 @@ export class StreamVideoReadOnlyStateStore {
     );
     this.activeCallRemoteParticipants$ = this.activeCallAllParticipants$.pipe(
       map((participants) => participants.filter((p) => !p.isLoggedInUser)),
+    );
+
+    this.hasOngoingScreenShare$ = this.activeCallAllParticipants$.pipe(
+      find((participants) =>
+        participants.some((p) =>
+          p.publishedTracks.includes(TrackKind.SCREEN_SHARE),
+        ),
+      ),
+      map((participant) => !!participant),
     );
 
     this.callStatsReport$ = store.callStatsReportSubject.asObservable();

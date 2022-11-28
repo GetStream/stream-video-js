@@ -1,44 +1,23 @@
 import {
-  SfuModels,
   watchForDisconnectedAudioDevice,
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { map, Subscription } from 'rxjs';
 import { Call } from '@stream-io/video-client';
 import {
-  useLocalParticipant,
-  useRemoteParticipants,
   useStore,
+  useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
 
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';
-import { ParticipantBox } from './ParticipantBox';
 import { useDebugPreferredVideoCodec } from '../Debug/useIsDebugMode';
-import { map, Subscription } from 'rxjs';
+import { CallParticipantsView } from './CallParticipantsView';
+import { CallParticipantsScreenView } from './CallParticipantsScreenView';
 
-export const Stage = (props: {
-  call: Call;
-  participants: SfuModels.Participant[];
-}) => {
+export const Stage = (props: { call: Call }) => {
   const { call } = props;
-
-  const localParticipant = useLocalParticipant();
-  const remoteParticipants = useRemoteParticipants();
   const { activeCallLocalParticipant$ } = useStore();
-
-  const updateVideoSubscriptionForParticipant = useCallback(
-    (sessionId: string, width: number, height: number) => {
-      call.updateSubscriptionsPartial({
-        [sessionId]: {
-          videoDimension: {
-            width,
-            height,
-          },
-        },
-      });
-    },
-    [call],
-  );
 
   const [localAudioStream, setLocalAudioStream] = useState<MediaStream>();
   const [localVideoStream, setLocalVideoStream] = useState<MediaStream>();
@@ -82,6 +61,7 @@ export const Stage = (props: {
         console.error(`Failed to publish`, e);
       });
     }
+    // TODO OL: unpublish audio stream
   }, [call, localAudioStream]);
 
   useEffect(() => {
@@ -92,32 +72,17 @@ export const Stage = (props: {
           console.error(`Failed to publish`, e);
         });
     }
+    // TODO OL: unpublish video stream
   }, [call, localVideoStream, preferredCodec]);
 
-  const grid = `str-video__grid-${remoteParticipants.length + 1 || 1}`;
+  const hasScreenShare = useHasOngoingScreenShare();
   return (
-    <div className={`str-video__stage ${grid}`}>
-      {localParticipant && (
-        <ParticipantBox
-          participant={localParticipant}
-          isMuted
-          call={call}
-          updateVideoSubscriptionForParticipant={
-            updateVideoSubscriptionForParticipant
-          }
-        />
+    <div className="str-video__stage">
+      {hasScreenShare ? (
+        <CallParticipantsScreenView call={call} />
+      ) : (
+        <CallParticipantsView call={call} />
       )}
-
-      {remoteParticipants.map((participant) => (
-        <ParticipantBox
-          key={participant.sessionId}
-          participant={participant}
-          call={call}
-          updateVideoSubscriptionForParticipant={
-            updateVideoSubscriptionForParticipant
-          }
-        />
-      ))}
     </div>
   );
 };

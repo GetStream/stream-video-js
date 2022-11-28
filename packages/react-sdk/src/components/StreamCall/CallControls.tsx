@@ -1,6 +1,11 @@
 import clsx from 'clsx';
 import { ForwardedRef, forwardRef, useRef, useState } from 'react';
-import { Call, CallMeta, SfuModels } from '@stream-io/video-client';
+import {
+  Call,
+  CallMeta,
+  getScreenShareStream,
+  SfuModels,
+} from '@stream-io/video-client';
 import {
   useLocalParticipant,
   useStreamVideoClient,
@@ -21,6 +26,9 @@ export const CallControls = (props: {
   );
   const isVideoMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackKind.VIDEO,
+  );
+  const isScreenSharing = localParticipant?.publishedTracks.includes(
+    SfuModels.TrackKind.SCREEN_SHARE,
   );
 
   const [isStatsOpen, setIsStatsOpen] = useState(false);
@@ -54,6 +62,18 @@ export const CallControls = (props: {
         ref={statsAnchorRef}
         onClick={() => {
           setIsStatsOpen((v) => !v);
+        }}
+      />
+      <Button
+        icon={isScreenSharing ? 'screen-share-on' : 'screen-share-off'}
+        title="Share screen"
+        onClick={async () => {
+          const stream = await getScreenShareStream().catch((e) => {
+            console.log(`Can't share screen: ${e}`);
+          });
+          if (stream) {
+            await call.publishScreenShareStream(stream);
+          }
         }}
       />
       <Button

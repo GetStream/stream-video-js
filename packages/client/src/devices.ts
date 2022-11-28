@@ -110,6 +110,20 @@ export const getVideoStream = async (deviceId?: string) => {
   return getStream('videoinput', deviceId);
 };
 
+/**
+ * Prompts the user for a permission to share a screen.
+ * If the user grants the permission, a screen sharing stream is returned. Throws otherwise.
+ *
+ * The callers of this API are responsible to handle the possible errors.
+ *
+ * @param options any additional options to pass to the `getDisplayMedia` API.
+ */
+export const getScreenShareStream = async (
+  options?: DisplayMediaStreamOptions,
+) => {
+  return navigator.mediaDevices.getDisplayMedia(options);
+};
+
 const watchForDisconnectedDevice = (
   kind: Exclude<MediaDeviceKind, 'audiooutput'>,
   deviceId$: Observable<string | undefined>,

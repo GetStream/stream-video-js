@@ -32,23 +32,24 @@ export const StreamCall = ({
     input,
   });
 
-  const [sfuCallState, setSfuCallState] = useState<CallState>();
+  const [isInCall, setIsInCall] = useState<boolean>(false);
   useEffect(() => {
     const joinCall = async () => {
-      const callState = await activeCall?.join();
-      setSfuCallState(callState);
+      await activeCall?.join();
+      setIsInCall(true);
     };
 
     if (activeCallMeta?.createdByUserId === currentUser || autoJoin) {
       // initiator, immediately joins the call
       joinCall().catch((e) => {
         console.error(`Error happened while joining a call`, e);
-        setSfuCallState(undefined);
+        setIsInCall(false);
       });
     }
 
     return () => {
       activeCall?.leave();
+      setIsInCall(false);
     };
   }, [activeCall, autoJoin, activeCallMeta, currentUser]);
 
@@ -56,7 +57,7 @@ export const StreamCall = ({
   return (
     <MediaDevicesProvider>
       <div className="str-video__call">
-        {sfuCallState && (
+        {isInCall && (
           <>
             {activeCallMeta && activeCall && (
               <div className="str-video__call__header">
@@ -68,10 +69,7 @@ export const StreamCall = ({
             )}
             {activeCall && (
               <>
-                <Stage
-                  participants={sfuCallState.participants}
-                  call={activeCall}
-                />
+                <Stage call={activeCall} />
                 <CallControls call={activeCall} callMeta={activeCallMeta} />
               </>
             )}

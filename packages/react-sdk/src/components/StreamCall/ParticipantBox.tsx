@@ -8,30 +8,19 @@ import {
 import { useIsDebugMode } from '../Debug/useIsDebugMode';
 import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../Debug/DebugStatsView';
+import { Video } from './Video';
 
 export const ParticipantBox = (props: {
   participant: StreamVideoParticipant;
   isMuted?: boolean;
-  updateVideoSubscriptionForParticipant: (
-    sessionId: string,
-    width: number,
-    height: number,
-  ) => void;
   call: Call;
 }) => {
-  const {
-    participant,
-    isMuted = false,
-    updateVideoSubscriptionForParticipant,
-    call,
-  } = props;
+  const { participant, isMuted = false, call } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const {
     videoStream,
     audioStream,
-    // screenShareStream,
     isLoggedInUser: isLocalParticipant,
     isSpeaking,
     sessionId,
@@ -48,26 +37,20 @@ export const ParticipantBox = (props: {
     const resizeObserver = new ResizeObserver(() => {
       const width = container.clientWidth;
       const height = container.clientHeight;
-      updateVideoSubscriptionForParticipant(sessionId, width, height);
+      call.updateSubscriptionsPartial({
+        [sessionId]: {
+          videoDimension: {
+            width,
+            height,
+          },
+        },
+      });
     });
     resizeObserver.observe(container);
     return () => {
       resizeObserver.disconnect();
     };
-  }, [hasVideo, sessionId, updateVideoSubscriptionForParticipant]);
-
-  const streamToPlay = videoStream;
-  useEffect(() => {
-    const $el = videoRef.current;
-    console.log(`Attaching video stream`, $el, streamToPlay);
-    if (!$el) return;
-    if (streamToPlay) {
-      $el.srcObject = streamToPlay;
-    }
-    return () => {
-      $el.srcObject = null;
-    };
-  }, [streamToPlay]);
+  }, [hasVideo, sessionId, call]);
 
   useEffect(() => {
     const $el = audioRef.current;
@@ -92,14 +75,14 @@ export const ParticipantBox = (props: {
     >
       <audio autoPlay ref={audioRef} muted={isMuted} />
       <div className="str-video__video-container">
-        <video
+        <Video
+          stream={videoStream}
           className={clsx(
             'str-video__remote-video',
             isLocalParticipant && 'mirror',
           )}
           muted={isMuted}
           autoPlay
-          ref={videoRef}
         />
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
@@ -114,9 +97,6 @@ export const ParticipantBox = (props: {
           {isDebugMode && (
             <>
               <DebugParticipantPublishQuality
-                updateVideoSubscriptionForParticipant={
-                  updateVideoSubscriptionForParticipant
-                }
                 participant={participant}
                 call={call}
               />

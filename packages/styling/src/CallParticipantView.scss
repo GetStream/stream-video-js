@@ -1,0 +1,82 @@
+@use './Icons';
+
+.str-video__participant,
+.str-video__participant-angular-host {
+  width: 100%;
+  max-width: 1280px;
+  min-height: 0;
+  max-height: 100%;
+
+  .str-video__video-container {
+    position: relative;
+  }
+
+  .str-video__video-container {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+
+    .str-video__remote-video {
+      border-radius: 12px;
+      border: 2px solid transparent;
+      background-size: contain;
+      width: 100%;
+
+      &.mirror {
+        transform: rotateY(180deg);
+      }
+    }
+  }
+
+  &.str-video__participant--speaking {
+    .str-video__remote-video {
+      border: 2px solid #005fff;
+    }
+  }
+
+  .str-video__participant_details {
+    position: absolute;
+    left: 10px;
+    bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .str-video__participant_name {
+    color: #ffffff;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+
+    @mixin icon {
+      $icon-size: 15px;
+      width: $icon-size;
+      height: $icon-size;
+      background-size: $icon-size;
+      margin: 2px;
+    }
+
+    .str-video__participant_name--audio-muted {
+      @include icon();
+      background-image: Icons.$icon-mic-off;
+    }
+
+    .str-video__participant_name--video-muted {
+      @include icon();
+      background-image: Icons.$icon-camera-off;
+    }
+
+    .str-video__participant_name--network-stats {
+      @include icon();
+      background-image: Icons.$icon-network-quality;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+  }
+
+  video {
+    min-height: 0;
+  }
+}
