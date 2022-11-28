@@ -15,7 +15,6 @@ import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { TrackInfo } from "../models/models";
-import { EncodeCapabilities } from "../models/models";
 import { PeerType } from "../models/models";
 import { VideoDimension } from "../models/models";
 import { TrackKind } from "../models/models";
@@ -149,10 +148,6 @@ export interface SetPublisherRequest {
      * @generated from protobuf field: string session_id = 3;
      */
     sessionId: string;
-    /**
-     * @generated from protobuf field: stream.video.sfu.models.EncodeCapabilities encode_capabilities = 4;
-     */
-    encodeCapabilities?: EncodeCapabilities;
     /**
      * @generated from protobuf field: repeated stream.video.sfu.models.TrackInfo tracks = 5;
      */
@@ -631,7 +626,6 @@ class SetPublisherRequest$Type extends MessageType<SetPublisherRequest> {
         super("stream.video.sfu.signal.SetPublisherRequest", [
             { no: 1, name: "sdp", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "encode_capabilities", kind: "message", T: () => EncodeCapabilities },
             { no: 5, name: "tracks", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TrackInfo }
         ]);
     }
@@ -652,9 +646,6 @@ class SetPublisherRequest$Type extends MessageType<SetPublisherRequest> {
                     break;
                 case /* string session_id */ 3:
                     message.sessionId = reader.string();
-                    break;
-                case /* stream.video.sfu.models.EncodeCapabilities encode_capabilities */ 4:
-                    message.encodeCapabilities = EncodeCapabilities.internalBinaryRead(reader, reader.uint32(), options, message.encodeCapabilities);
                     break;
                 case /* repeated stream.video.sfu.models.TrackInfo tracks */ 5:
                     message.tracks.push(TrackInfo.internalBinaryRead(reader, reader.uint32(), options));
@@ -677,9 +668,6 @@ class SetPublisherRequest$Type extends MessageType<SetPublisherRequest> {
         /* string session_id = 3; */
         if (message.sessionId !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.sessionId);
-        /* stream.video.sfu.models.EncodeCapabilities encode_capabilities = 4; */
-        if (message.encodeCapabilities)
-            EncodeCapabilities.internalBinaryWrite(message.encodeCapabilities, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
         /* repeated stream.video.sfu.models.TrackInfo tracks = 5; */
         for (let i = 0; i < message.tracks.length; i++)
             TrackInfo.internalBinaryWrite(message.tracks[i], writer.tag(5, WireType.LengthDelimited).fork(), options).join();

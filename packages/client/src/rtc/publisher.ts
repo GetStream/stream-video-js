@@ -7,7 +7,6 @@ import {
   VideoLayer,
 } from '../gen/video/sfu/models/models';
 import { getIceCandidate } from './helpers/iceCandidate';
-import { getSenderCodecs, toCodec } from './codecs';
 import { findOptimalVideoLayers } from './videoLayers';
 
 export type PublisherOpts = {
@@ -60,17 +59,10 @@ export const createPublisher = ({
     const offer = await publisher.createOffer();
     await publisher.setLocalDescription(offer);
 
-    const [audioEncodeCodecs, videoEncodeCodecs] = await Promise.all([
-      getSenderCodecs('audio', publisher),
-      getSenderCodecs('video', publisher),
-    ]);
-
     const trackInfos = publisher
       .getTransceivers()
       .filter((t) => t.direction === 'sendonly' && !!t.sender.track)
       .map<TrackInfo>((transceiver) => {
-        const parameters = transceiver.sender.getParameters();
-        const [primaryCodec] = parameters.codecs || [];
         const track = transceiver.sender.track!;
         const layers = findOptimalVideoLayers(track).map<VideoLayer>(
           (optimalLayer) => ({
@@ -94,7 +86,6 @@ export const createPublisher = ({
               transceiver._kind === 'screen'
               ? TrackKind.SCREEN_SHARE
               : TrackKind.VIDEO,
-          codec: primaryCodec ? toCodec(primaryCodec) : undefined,
           layers: layers,
         };
       });
@@ -102,10 +93,6 @@ export const createPublisher = ({
     const response = await rpcClient.rpc.setPublisher({
       sdp: offer.sdp || '',
       sessionId: rpcClient.sessionId,
-      encodeCapabilities: {
-        audioCodecs: audioEncodeCodecs,
-        videoCodecs: videoEncodeCodecs,
-      },
       tracks: trackInfos,
     });
 

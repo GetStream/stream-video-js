@@ -108,39 +108,34 @@ export interface VideoLayer {
  */
 export interface Codec {
     /**
-     * @generated from protobuf field: string mime = 1;
+     * @generated from protobuf field: uint32 payload_type = 1;
      */
-    mime: string;
+    payloadType: number;
     /**
-     * @generated from protobuf field: string fmtp_line = 2;
+     * @generated from protobuf field: string name = 2;
+     */
+    name: string;
+    /**
+     * @generated from protobuf field: string fmtp_line = 3;
      */
     fmtpLine: string;
     /**
-     * @generated from protobuf field: uint32 clock_rate = 3;
+     * @generated from protobuf field: uint32 clock_rate = 4;
      */
     clockRate: number;
     /**
-     * @generated from protobuf field: bool hw_accelerated = 4;
+     * @generated from protobuf field: string encoding_parameters = 5;
      */
-    hwAccelerated: boolean;
+    encodingParameters: string;
+    /**
+     * @generated from protobuf field: repeated string feedback = 6;
+     */
+    feedback: string[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.DecodeCapabilities
  */
 export interface DecodeCapabilities {
-    /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.Codec audio_codecs = 1;
-     */
-    audioCodecs: Codec[];
-    /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.Codec video_codecs = 2;
-     */
-    videoCodecs: Codec[];
-}
-/**
- * @generated from protobuf message stream.video.sfu.models.EncodeCapabilities
- */
-export interface EncodeCapabilities {
     /**
      * @generated from protobuf field: repeated stream.video.sfu.models.Codec audio_codecs = 1;
      */
@@ -183,10 +178,6 @@ export interface TrackInfo {
      * @generated from protobuf field: stream.video.sfu.models.TrackKind kind = 3;
      */
     kind: TrackKind;
-    /**
-     * @generated from protobuf field: stream.video.sfu.models.Codec codec = 4;
-     */
-    codec?: Codec;
     /**
      * @generated from protobuf field: repeated stream.video.sfu.models.VideoLayer layers = 5;
      */
@@ -640,14 +631,16 @@ export const VideoLayer = new VideoLayer$Type();
 class Codec$Type extends MessageType<Codec> {
     constructor() {
         super("stream.video.sfu.models.Codec", [
-            { no: 1, name: "mime", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "fmtp_line", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "clock_rate", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
-            { no: 4, name: "hw_accelerated", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 1, name: "payload_type", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
+            { no: 2, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "fmtp_line", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "clock_rate", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
+            { no: 5, name: "encoding_parameters", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "feedback", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Codec>): Codec {
-        const message = { mime: "", fmtpLine: "", clockRate: 0, hwAccelerated: false };
+        const message = { payloadType: 0, name: "", fmtpLine: "", clockRate: 0, encodingParameters: "", feedback: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Codec>(this, message, value);
@@ -658,17 +651,23 @@ class Codec$Type extends MessageType<Codec> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string mime */ 1:
-                    message.mime = reader.string();
+                case /* uint32 payload_type */ 1:
+                    message.payloadType = reader.uint32();
                     break;
-                case /* string fmtp_line */ 2:
+                case /* string name */ 2:
+                    message.name = reader.string();
+                    break;
+                case /* string fmtp_line */ 3:
                     message.fmtpLine = reader.string();
                     break;
-                case /* uint32 clock_rate */ 3:
+                case /* uint32 clock_rate */ 4:
                     message.clockRate = reader.uint32();
                     break;
-                case /* bool hw_accelerated */ 4:
-                    message.hwAccelerated = reader.bool();
+                case /* string encoding_parameters */ 5:
+                    message.encodingParameters = reader.string();
+                    break;
+                case /* repeated string feedback */ 6:
+                    message.feedback.push(reader.string());
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -682,18 +681,24 @@ class Codec$Type extends MessageType<Codec> {
         return message;
     }
     internalBinaryWrite(message: Codec, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string mime = 1; */
-        if (message.mime !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.mime);
-        /* string fmtp_line = 2; */
+        /* uint32 payload_type = 1; */
+        if (message.payloadType !== 0)
+            writer.tag(1, WireType.Varint).uint32(message.payloadType);
+        /* string name = 2; */
+        if (message.name !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.name);
+        /* string fmtp_line = 3; */
         if (message.fmtpLine !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.fmtpLine);
-        /* uint32 clock_rate = 3; */
+            writer.tag(3, WireType.LengthDelimited).string(message.fmtpLine);
+        /* uint32 clock_rate = 4; */
         if (message.clockRate !== 0)
-            writer.tag(3, WireType.Varint).uint32(message.clockRate);
-        /* bool hw_accelerated = 4; */
-        if (message.hwAccelerated !== false)
-            writer.tag(4, WireType.Varint).bool(message.hwAccelerated);
+            writer.tag(4, WireType.Varint).uint32(message.clockRate);
+        /* string encoding_parameters = 5; */
+        if (message.encodingParameters !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.encodingParameters);
+        /* repeated string feedback = 6; */
+        for (let i = 0; i < message.feedback.length; i++)
+            writer.tag(6, WireType.LengthDelimited).string(message.feedback[i]);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -758,60 +763,6 @@ class DecodeCapabilities$Type extends MessageType<DecodeCapabilities> {
  * @generated MessageType for protobuf message stream.video.sfu.models.DecodeCapabilities
  */
 export const DecodeCapabilities = new DecodeCapabilities$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class EncodeCapabilities$Type extends MessageType<EncodeCapabilities> {
-    constructor() {
-        super("stream.video.sfu.models.EncodeCapabilities", [
-            { no: 1, name: "audio_codecs", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec },
-            { no: 2, name: "video_codecs", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec }
-        ]);
-    }
-    create(value?: PartialMessage<EncodeCapabilities>): EncodeCapabilities {
-        const message = { audioCodecs: [], videoCodecs: [] };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<EncodeCapabilities>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: EncodeCapabilities): EncodeCapabilities {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* repeated stream.video.sfu.models.Codec audio_codecs */ 1:
-                    message.audioCodecs.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
-                    break;
-                case /* repeated stream.video.sfu.models.Codec video_codecs */ 2:
-                    message.videoCodecs.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: EncodeCapabilities, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated stream.video.sfu.models.Codec audio_codecs = 1; */
-        for (let i = 0; i < message.audioCodecs.length; i++)
-            Codec.internalBinaryWrite(message.audioCodecs[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* repeated stream.video.sfu.models.Codec video_codecs = 2; */
-        for (let i = 0; i < message.videoCodecs.length; i++)
-            Codec.internalBinaryWrite(message.videoCodecs[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.models.EncodeCapabilities
- */
-export const EncodeCapabilities = new EncodeCapabilities$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ICETrickle$Type extends MessageType<ICETrickle> {
     constructor() {
@@ -880,7 +831,6 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
             { no: 1, name: "track_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "track_type", kind: "enum", T: () => ["stream.video.sfu.models.TrackType", TrackType, "TRACK_TYPE_"] },
             { no: 3, name: "kind", kind: "enum", T: () => ["stream.video.sfu.models.TrackKind", TrackKind, "TRACK_KIND_"] },
-            { no: 4, name: "codec", kind: "message", T: () => Codec },
             { no: 5, name: "layers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => VideoLayer }
         ]);
     }
@@ -904,9 +854,6 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
                     break;
                 case /* stream.video.sfu.models.TrackKind kind */ 3:
                     message.kind = reader.int32();
-                    break;
-                case /* stream.video.sfu.models.Codec codec */ 4:
-                    message.codec = Codec.internalBinaryRead(reader, reader.uint32(), options, message.codec);
                     break;
                 case /* repeated stream.video.sfu.models.VideoLayer layers */ 5:
                     message.layers.push(VideoLayer.internalBinaryRead(reader, reader.uint32(), options));
@@ -932,9 +879,6 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
         /* stream.video.sfu.models.TrackKind kind = 3; */
         if (message.kind !== 0)
             writer.tag(3, WireType.Varint).int32(message.kind);
-        /* stream.video.sfu.models.Codec codec = 4; */
-        if (message.codec)
-            Codec.internalBinaryWrite(message.codec, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
         /* repeated stream.video.sfu.models.VideoLayer layers = 5; */
         for (let i = 0; i < message.layers.length; i++)
             VideoLayer.internalBinaryWrite(message.layers[i], writer.tag(5, WireType.LengthDelimited).fork(), options).join();

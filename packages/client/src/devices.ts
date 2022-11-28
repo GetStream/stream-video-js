@@ -119,7 +119,8 @@ export const getVideoStream = async (deviceId?: string) => {
  * @param options any additional options to pass to the `getDisplayMedia` API.
  */
 export const getScreenShareStream = async (
-  options?: DisplayMediaStreamOptions,
+  // TODO OL: switch to `DisplayMediaStreamConstraints` once Angular supports it
+  options?: Record<string, any>,
 ) => {
   return navigator.mediaDevices.getDisplayMedia(options);
 };

@@ -48,36 +48,12 @@ export const getPreferredCodecs = (
   ] as RTCRtpCodecCapability[];
 };
 
-export const getSenderCodecs = async (
-  kind: 'audio' | 'video',
-  pc?: RTCPeerConnection,
-) => {
-  if (!('getCapabilities' in RTCRtpSender)) {
-    console.warn('RTCRtpSender.getCapabilities is not supported');
-    return getCodecsFromPeerConnection(pc, kind, 'sendonly');
-  }
-  console.log('sender cap', RTCRtpSender.getCapabilities(kind));
-  return RTCRtpSender.getCapabilities(kind)?.codecs.map(toCodec) ?? [];
-};
-
 export const getReceiverCodecs = async (
   kind: 'audio' | 'video',
   pc?: RTCPeerConnection,
 ) => {
-  if (!('getCapabilities' in RTCRtpReceiver)) {
-    console.warn('RTCRtpReceiver.getCapabilities is not supported');
-    return getCodecsFromPeerConnection(pc, kind, 'recvonly');
-  }
-  console.log('receiver cap', RTCRtpReceiver.getCapabilities(kind));
-  return RTCRtpReceiver.getCapabilities(kind)?.codecs.map(toCodec) ?? [];
+  return getCodecsFromPeerConnection(pc, kind, 'recvonly');
 };
-
-export const toCodec = (codec: RTCRtpCodecCapability): Codec => ({
-  hwAccelerated: true,
-  clockRate: codec.clockRate,
-  fmtpLine: codec.sdpFmtpLine || '',
-  mime: codec.mimeType,
-});
 
 const getCodecsFromPeerConnection = async (
   pc: RTCPeerConnection | undefined,
@@ -107,11 +83,16 @@ const getCodecsFromPeerConnection = async (
     if (media.type === kind) {
       media.rtp.forEach((rtp) => {
         const fmtpLine = media.fmtp.find((f) => f.payload === rtp.payload);
+        const feedback = media.rtcpFb
+          ?.filter((f) => f.payload === rtp.payload)
+          .map((f) => f.type);
         supportedCodecs.push({
-          hwAccelerated: true,
-          clockRate: rtp.rate ?? 0,
+          payloadType: rtp.payload,
+          name: rtp.codec,
           fmtpLine: fmtpLine?.config ?? '',
-          mime: `${kind}/${rtp.codec}`,
+          clockRate: rtp.rate ?? 0,
+          encodingParameters: String(rtp.encoding || ''),
+          feedback: feedback || [],
         });
       });
     }
