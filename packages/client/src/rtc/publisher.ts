@@ -70,7 +70,7 @@ export const createPublisher = ({
       .filter((t) => t.direction === 'sendonly' && !!t.sender.track)
       .map<TrackInfo>((transceiver) => {
         const parameters = transceiver.sender.getParameters();
-        const [primaryCodec] = parameters.codecs;
+        const [primaryCodec] = parameters.codecs || [];
         const track = transceiver.sender.track!;
         const layers = findOptimalVideoLayers(track).map<VideoLayer>(
           (optimalLayer) => ({
