@@ -16,41 +16,50 @@ import { useAuth } from './src/hooks/useAuth';
 import AuthenticatingProgressScreen from './src/screens/AuthenticatingProgress';
 import { useProntoLinkEffect } from './src/hooks/useProntoLinkEffect';
 import OutgoingCallScreen from './src/screens/OutgoingCallScreen';
+import { StreamVideo } from '@stream-io/video-react-native-sdk';
+import { LogBox } from 'react-native';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+LogBox.ignoreAllLogs();
+
 const StackNavigator = () => {
   useProntoLinkEffect();
+
   const { authenticationInProgress } = useAuth();
   const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
 
   if (authenticationInProgress) {
     return <AuthenticatingProgressScreen />;
   }
+  if (!videoClient) {
+    return <LoginScreen />;
+  }
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: true,
-        header: NavigationHeader,
-      }}
-    >
-      {!videoClient ? (
-        <Stack.Screen name="LoginScreen" component={LoginScreen} />
-      ) : (
-        <>
-          <Stack.Screen name="HomeScreen" component={HomeScreen} />
-          <Stack.Screen name="ActiveCall" component={ActiveCallScreen} />
-          <Stack.Screen
-            name="IncomingCallScreen"
-            component={IncomingCallScreen}
-          />
-          <Stack.Screen
-            name="OutgoingCallScreen"
-            component={OutgoingCallScreen}
-          />
-        </>
-      )}
-    </Stack.Navigator>
+    <StreamVideo client={videoClient}>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="HomeScreen"
+          component={HomeScreen}
+          options={{ header: NavigationHeader }}
+        />
+        <Stack.Screen
+          name="ActiveCall"
+          component={ActiveCallScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="IncomingCallScreen"
+          component={IncomingCallScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="OutgoingCallScreen"
+          component={OutgoingCallScreen}
+          options={{ headerShown: false }}
+        />
+      </Stack.Navigator>
+    </StreamVideo>
   );
 };
 
