@@ -7,6 +7,7 @@ import { StageComponent } from './stage/stage.component';
 import { DeviceSettingsComponent } from './device-settings/device-settings.component';
 import { NgxPopperjsModule } from 'ngx-popperjs';
 import { CallStatisticsComponent } from './call-statistics/call-statistics.component';
+import { NgChartsModule } from 'ng2-charts';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,7 @@ import { CallStatisticsComponent } from './call-statistics/call-statistics.compo
     DeviceSettingsComponent,
     CallStatisticsComponent,
   ],
-  imports: [CommonModule, NgxPopperjsModule],
+  imports: [CommonModule, NgxPopperjsModule, NgChartsModule],
   exports: [
     CallComponent,
     ParticipantComponent,

@@ -1,3 +1,25 @@
 <div class="str-video__call-stats">
-  Call stats here
+  <h2 class="str-video__call-stats__title">
+    Statistics
+  </h2>
+  <h3>Call Latency</h3>
+  <div>latency chart here</div>
+  <h3>Call performance</h3>
+  <div class="str-video__call-stats__card-container">
+    <ng-container *ngTemplateOutlet="statCard; context: {label: 'Region', value: datacenter}"></ng-container>
+    <ng-container *ngTemplateOutlet="statCard; context: {label: 'Latency', value: latencyInMs}"></ng-container>
+    <ng-container *ngTemplateOutlet="statCard; context: {label: 'Jitter', value: jitter}"></ng-container>
+    <ng-container *ngTemplateOutlet="statCard; context: {label: 'Quality drop reason', value: qualityLimit}"></ng-container>
+    <ng-container *ngTemplateOutlet="statCard; context: {label: 'Publish resolution', value: publishResolution}"></ng-container>
+    <ng-container *ngTemplateOutlet="statCard; context: {label: 'Receiving resolution', value: subscriberResolution}"></ng-container>
+    <ng-container *ngTemplateOutlet="statCard; context: {label: 'Publish bitrate', value: publishBitrate}"></ng-container>
+    <ng-container *ngTemplateOutlet="statCard; context: {label: 'Receiving bitrate', value: subscribeBitrate}"></ng-container>
+  </div>
 </div>
+
+<ng-template #statCard let-label="label" let-value="value">
+  <div class="str-video__call-stats__card">
+    <div class="str-video__call-stats__card_label">{{label}}</div>
+    <div class="str-video__call-stats__card_value">{{value}}</div>
+  </div>
+</ng-template>

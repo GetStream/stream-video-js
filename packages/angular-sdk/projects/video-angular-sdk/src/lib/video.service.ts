@@ -6,6 +6,7 @@ import {
   StreamVideoParticipant,
   UserInput,
   CallMeta,
+  CallStatsReport,
 } from '@stream-io/video-client';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 
@@ -52,6 +53,10 @@ export class StreamVideoService {
    * Emits a boolean indicating whether a call recording is currently in progress.
    */
   callRecordingInProgress$: Observable<boolean>;
+  /**
+   * Periodically emits statistics about the active call
+   */
+  callStatsReport$: Observable<CallStatsReport | undefined>;
 
   private userSubject: ReplaySubject<UserInput | undefined> = new ReplaySubject(
     1,
@@ -79,6 +84,8 @@ export class StreamVideoService {
   > = new ReplaySubject(1);
   private callRecordingInProgressSubject: ReplaySubject<boolean> =
     new ReplaySubject(1);
+  private callStatsReportSubject: ReplaySubject<CallStatsReport | undefined> =
+    new ReplaySubject(1);
   private subscriptions: Subscription[] = [];
 
   /**
@@ -101,6 +108,7 @@ export class StreamVideoService {
       this.terminatedRingCallMetaSubject.asObservable();
     this.callRecordingInProgress$ =
       this.callRecordingInProgressSubject.asObservable();
+    this.callStatsReport$ = this.callStatsReportSubject.asObservable();
   }
 
   init(
@@ -175,6 +183,11 @@ export class StreamVideoService {
     this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.callRecordingInProgress$.subscribe(
         this.callRecordingInProgressSubject,
+      ),
+    );
+    this.subscriptions.push(
+      this.videoClient.readOnlyStateStore?.callStatsReport$.subscribe(
+        this.callStatsReportSubject,
       ),
     );
 
