@@ -1,29 +1,17 @@
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  ImageBackground,
-  Platform,
-} from 'react-native';
+import { StyleSheet, Text, View, ImageBackground } from 'react-native';
 import { CallControlsButton } from './CallControlsButton';
 import PhoneDown from '../icons/PhoneDown';
 import Phone from '../icons/Phone';
 import Video from '../icons/Video';
-import {
-  useActiveRingCall,
-  useActiveRingCallDetails,
-  useIncomingRingCalls,
-  useStreamVideoClient,
-} from '@stream-io/video-react-bindings';
+import { useActiveRingCallDetails } from '@stream-io/video-react-bindings';
 import VideoSlash from '../icons/VideoSlash';
 import { UserInfoView } from './UserInfoView';
-import InCallManager from 'react-native-incall-manager';
 import {
   useStreamVideoStoreSetState,
   useStreamVideoStoreValue,
 } from '../contexts/StreamVideoContext';
-import RNCallKeep from 'react-native-callkeep';
+import { useRingCall } from '../hooks';
 
 const styles = StyleSheet.create({
   background: {
@@ -81,62 +69,14 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
 };
 
 export const IncomingCallView = () => {
-  const client = useStreamVideoClient();
-  const activeRingCall = useActiveRingCall();
-  const incomingRingCalls = useIncomingRingCalls();
-  const currentIncomingRingCall =
-    incomingRingCalls[incomingRingCalls.length - 1];
-  const localMediaStream = useStreamVideoStoreValue(
-    (store) => store.localMediaStream,
-  );
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const setState = useStreamVideoStoreSetState();
+  const { answerCall, rejectCall } = useRingCall();
 
   const videoToggle = async () => {
     setState((prevState) => ({
       isVideoMuted: !prevState.isVideoMuted,
     }));
-  };
-
-  const rejectCall = async () => {
-    if (!client) {
-      return;
-    }
-    await client.rejectCall(currentIncomingRingCall.callCid);
-  };
-
-  const answerCall = async () => {
-    if (!client) {
-      return;
-    }
-    const call = await client.joinCall({
-      id: currentIncomingRingCall.id,
-      type: 'default',
-      datacenterId: '',
-      input: {
-        ring: true,
-        members: [],
-      },
-    });
-    if (!call) {
-      throw new Error(
-        `Failed to join a call with id: ${currentIncomingRingCall.id}`,
-      );
-    } else {
-      InCallManager.start({ media: 'video' });
-      InCallManager.setForceSpeakerphoneOn(true);
-      await call.join(localMediaStream, localMediaStream);
-      await call.publishMediaStreams(localMediaStream, localMediaStream);
-      await client.acceptCall(currentIncomingRingCall.callCid);
-      if (activeRingCall && Platform.OS === 'ios') {
-        RNCallKeep.startCall(
-          activeRingCall.id,
-          '',
-          activeRingCall.createdByUserId,
-          'generic',
-        );
-      }
-    }
   };
 
   return (
@@ -154,14 +94,14 @@ export const IncomingCallView = () => {
         </CallControlsButton>
         <CallControlsButton
           onPress={videoToggle}
-          colorKey={isVideoMuted ? 'activated' : 'deactivated'}
+          colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
           style={styles.buttonStyle}
           svgContainerStyle={styles.svgStyle}
         >
           {isVideoMuted ? (
-            <Video color="#000000" />
-          ) : (
             <VideoSlash color="#ffffff" />
+          ) : (
+            <Video color="#000000" />
           )}
         </CallControlsButton>
         <CallControlsButton

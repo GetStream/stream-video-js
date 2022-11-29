@@ -8,7 +8,6 @@ import { useCallKeep } from '../hooks/useCallKeep';
 import { RootStackParamList } from '../../types';
 import { mediaDevices } from 'react-native-webrtc';
 import {
-  useActiveRingCall,
   useIncomingRingCalls,
   useTerminatedRingCall,
   useStreamVideoStoreSetState,
@@ -25,12 +24,11 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 export const HomeScreen = ({ navigation, route }: Props) => {
   const [selectedTab, setSelectedTab] = useState('Meeting');
 
-  const activeRingCallMeta = useActiveRingCall();
   const incomingRingCalls = useIncomingRingCalls();
   const terminatedRingCallMeta = useTerminatedRingCall();
   const setState = useStreamVideoStoreSetState();
 
-  const { displayIncomingCallNow, startCall, endCall } = useCallKeep();
+  const { displayIncomingCallNow, endCall } = useCallKeep();
 
   // run only once per app lifecycle
   useEffect(() => {
@@ -47,23 +45,17 @@ export const HomeScreen = ({ navigation, route }: Props) => {
   }, [setState]);
 
   useEffect(() => {
-    if (activeRingCallMeta) {
-      startCall();
+    if (incomingRingCalls.length > 0) {
+      displayIncomingCallNow();
     } else {
-      if (incomingRingCalls.length > 0) {
-        displayIncomingCallNow();
-      } else {
-        if (terminatedRingCallMeta) {
-          endCall();
-        }
+      if (terminatedRingCallMeta) {
+        endCall();
       }
     }
   }, [
-    activeRingCallMeta,
     incomingRingCalls,
     displayIncomingCallNow,
     terminatedRingCallMeta,
-    startCall,
     endCall,
   ]);
 
