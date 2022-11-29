@@ -65,11 +65,10 @@ export const useAuth = () => {
             userImageUrl: '',
           });
         }
-        setAuthenticationInProgress(false);
       } else {
-        setAuthenticationInProgress(false);
         setVideoClient(undefined);
       }
+      setAuthenticationInProgress(false);
     };
 
     run();
