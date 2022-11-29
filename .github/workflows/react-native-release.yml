@@ -38,6 +38,8 @@ jobs:
         run: yarn install --immutable
       - name: Build shared JS client
         run: yarn build:client
+      - name: Build react bindings
+        run: yarn build:react:bindings
       - name: Build RN SDK
         run: yarn build:react-native:sdk
       - name: Install Ruby and Gems
@@ -94,6 +96,8 @@ jobs:
         run: yarn install --immutable
       - name: Build shared JS client
         run: yarn build:client
+      - name: Build react bindings
+        run: yarn build:react:bindings
       - name: Build RN SDK
         run: yarn build:react-native:sdk
       - name: Install Ruby and Gems
