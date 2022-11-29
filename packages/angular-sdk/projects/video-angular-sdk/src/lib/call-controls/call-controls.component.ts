@@ -14,7 +14,7 @@ export class CallControlsComponent implements OnInit {
   @Input() localParticipant?: StreamVideoParticipant;
   @Input() call?: Call;
 
-  TrackKind = SfuModels.TrackKind;
+  TrackType = SfuModels.TrackType;
 
   ngOnInit(): void {}
 
@@ -22,13 +22,13 @@ export class CallControlsComponent implements OnInit {
     console.warn(
       this.call,
       !this.localParticipant?.publishedTracks.includes(
-        SfuModels.TrackKind.AUDIO,
+        SfuModels.TrackType.AUDIO,
       ),
     );
     this.call?.updateMuteState(
       'audio',
       !!this.localParticipant?.publishedTracks.includes(
-        SfuModels.TrackKind.AUDIO,
+        SfuModels.TrackType.AUDIO,
       ),
     );
   }
@@ -37,7 +37,7 @@ export class CallControlsComponent implements OnInit {
     this.call?.updateMuteState(
       'video',
       !!this.localParticipant?.publishedTracks.includes(
-        SfuModels.TrackKind.VIDEO,
+        SfuModels.TrackType.VIDEO,
       ),
     );
   }

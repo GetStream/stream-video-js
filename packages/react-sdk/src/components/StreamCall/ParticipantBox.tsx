@@ -27,8 +27,8 @@ export const ParticipantBox = (props: {
     publishedTracks,
   } = participant;
 
-  const hasAudio = publishedTracks.includes(SfuModels.TrackKind.AUDIO);
-  const hasVideo = publishedTracks.includes(SfuModels.TrackKind.VIDEO);
+  const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
+  const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
 
   useEffect(() => {
     const container = containerRef.current;

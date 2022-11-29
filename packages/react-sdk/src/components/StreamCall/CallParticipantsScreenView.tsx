@@ -1,6 +1,5 @@
-import { Call } from '@stream-io/video-client';
+import { Call, SfuModels } from '@stream-io/video-client';
 import { useParticipants } from '@stream-io/video-react-bindings';
-import { TrackKind } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 import { ParticipantBox } from './ParticipantBox';
 import { Video } from './Video';
 
@@ -8,7 +7,7 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
   const { call } = props;
   const allParticipants = useParticipants();
   const firstScreenSharingParticipant = allParticipants.find((p) =>
-    p.publishedTracks.includes(TrackKind.SCREEN_SHARE),
+    p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
   );
   return (
     <div className="str-video__call-participants-screen-view">

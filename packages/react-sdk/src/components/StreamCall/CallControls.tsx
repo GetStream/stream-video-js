@@ -22,13 +22,13 @@ export const CallControls = (props: {
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const localParticipant = useLocalParticipant();
   const isAudioMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackKind.AUDIO,
+    SfuModels.TrackType.AUDIO,
   );
   const isVideoMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackKind.VIDEO,
+    SfuModels.TrackType.VIDEO,
   );
   const isScreenSharing = localParticipant?.publishedTracks.includes(
-    SfuModels.TrackKind.SCREEN_SHARE,
+    SfuModels.TrackType.SCREEN_SHARE,
   );
 
   const [isStatsOpen, setIsStatsOpen] = useState(false);

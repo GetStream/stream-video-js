@@ -1,6 +1,5 @@
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import { Dispatcher } from '../rtc/Dispatcher';
-import { TrackKind } from '../gen/video/sfu/models/models';
 
 /**
  * An event responder which handles the `participantJoined` event.
@@ -68,10 +67,10 @@ export const watchTrackPublished = (
   return dispatcher.on('trackPublished', (e) => {
     if (e.eventPayload.oneofKind !== 'trackPublished') return;
     const {
-      trackPublished: { kind, sessionId },
+      trackPublished: { type, sessionId },
     } = e.eventPayload;
     store.updateParticipant(sessionId, (p) => ({
-      publishedTracks: [...p.publishedTracks, kind].filter(unique),
+      publishedTracks: [...p.publishedTracks, type].filter(unique),
     }));
   });
 };
@@ -87,11 +86,10 @@ export const watchTrackUnpublished = (
   return dispatcher.on('trackUnpublished', (e) => {
     if (e.eventPayload.oneofKind !== 'trackUnpublished') return;
     const {
-      trackUnpublished: { kind, sessionId },
+      trackUnpublished: { type, sessionId },
     } = e.eventPayload;
     store.updateParticipant(sessionId, (p) => ({
-      publishedTracks: p.publishedTracks.filter((t) => t !== kind),
-      videoDimension: kind === TrackKind.VIDEO ? undefined : p.videoDimension,
+      publishedTracks: p.publishedTracks.filter((t) => t !== type),
     }));
   });
 };

@@ -16,7 +16,7 @@ import { Codec } from "../models/models";
 import { ConnectionQuality } from "../models/models";
 import { Participant } from "../models/models";
 import { CallState } from "../models/models";
-import { TrackKind } from "../models/models";
+import { TrackType } from "../models/models";
 import { PeerType } from "../models/models";
 import { ICETrickle as ICETrickle$ } from "../models/models";
 /**
@@ -171,9 +171,9 @@ export interface TrackPublished {
      */
     sessionId: string;
     /**
-     * @generated from protobuf field: stream.video.sfu.models.TrackKind kind = 3;
+     * @generated from protobuf field: stream.video.sfu.models.TrackType type = 3;
      */
-    kind: TrackKind;
+    type: TrackType;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.TrackUnpublished
@@ -188,9 +188,9 @@ export interface TrackUnpublished {
      */
     sessionId: string;
     /**
-     * @generated from protobuf field: stream.video.sfu.models.TrackKind kind = 3;
+     * @generated from protobuf field: stream.video.sfu.models.TrackType type = 3;
      */
-    kind: TrackKind;
+    type: TrackType;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.JoinRequest
@@ -805,11 +805,11 @@ class TrackPublished$Type extends MessageType<TrackPublished> {
         super("stream.video.sfu.event.TrackPublished", [
             { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "kind", kind: "enum", T: () => ["stream.video.sfu.models.TrackKind", TrackKind, "TRACK_KIND_"] }
+            { no: 3, name: "type", kind: "enum", T: () => ["stream.video.sfu.models.TrackType", TrackType, "TRACK_TYPE_"] }
         ]);
     }
     create(value?: PartialMessage<TrackPublished>): TrackPublished {
-        const message = { userId: "", sessionId: "", kind: 0 };
+        const message = { userId: "", sessionId: "", type: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<TrackPublished>(this, message, value);
@@ -826,8 +826,8 @@ class TrackPublished$Type extends MessageType<TrackPublished> {
                 case /* string session_id */ 2:
                     message.sessionId = reader.string();
                     break;
-                case /* stream.video.sfu.models.TrackKind kind */ 3:
-                    message.kind = reader.int32();
+                case /* stream.video.sfu.models.TrackType type */ 3:
+                    message.type = reader.int32();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -847,9 +847,9 @@ class TrackPublished$Type extends MessageType<TrackPublished> {
         /* string session_id = 2; */
         if (message.sessionId !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
-        /* stream.video.sfu.models.TrackKind kind = 3; */
-        if (message.kind !== 0)
-            writer.tag(3, WireType.Varint).int32(message.kind);
+        /* stream.video.sfu.models.TrackType type = 3; */
+        if (message.type !== 0)
+            writer.tag(3, WireType.Varint).int32(message.type);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -866,11 +866,11 @@ class TrackUnpublished$Type extends MessageType<TrackUnpublished> {
         super("stream.video.sfu.event.TrackUnpublished", [
             { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "kind", kind: "enum", T: () => ["stream.video.sfu.models.TrackKind", TrackKind, "TRACK_KIND_"] }
+            { no: 3, name: "type", kind: "enum", T: () => ["stream.video.sfu.models.TrackType", TrackType, "TRACK_TYPE_"] }
         ]);
     }
     create(value?: PartialMessage<TrackUnpublished>): TrackUnpublished {
-        const message = { userId: "", sessionId: "", kind: 0 };
+        const message = { userId: "", sessionId: "", type: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<TrackUnpublished>(this, message, value);
@@ -887,8 +887,8 @@ class TrackUnpublished$Type extends MessageType<TrackUnpublished> {
                 case /* string session_id */ 2:
                     message.sessionId = reader.string();
                     break;
-                case /* stream.video.sfu.models.TrackKind kind */ 3:
-                    message.kind = reader.int32();
+                case /* stream.video.sfu.models.TrackType type */ 3:
+                    message.type = reader.int32();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -908,9 +908,9 @@ class TrackUnpublished$Type extends MessageType<TrackUnpublished> {
         /* string session_id = 2; */
         if (message.sessionId !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
-        /* stream.video.sfu.models.TrackKind kind = 3; */
-        if (message.kind !== 0)
-            writer.tag(3, WireType.Varint).int32(message.kind);
+        /* stream.video.sfu.models.TrackType type = 3; */
+        if (message.type !== 0)
+            writer.tag(3, WireType.Varint).int32(message.type);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

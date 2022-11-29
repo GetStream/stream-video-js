@@ -17,7 +17,7 @@ import { MessageType } from "@protobuf-ts/runtime";
 import { TrackInfo } from "../models/models";
 import { PeerType } from "../models/models";
 import { VideoDimension } from "../models/models";
-import { TrackKind } from "../models/models";
+import { TrackType } from "../models/models";
 /**
  * @generated from protobuf message stream.video.sfu.signal.UpdateMuteStateRequest
  */
@@ -94,9 +94,9 @@ export interface TrackSubscriptionDetails {
      */
     sessionId: string;
     /**
-     * @generated from protobuf field: stream.video.sfu.models.TrackKind track_kind = 3;
+     * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 3;
      */
-    trackKind: TrackKind;
+    trackType: TrackType;
     /**
      * @generated from protobuf field: stream.video.sfu.models.VideoDimension dimension = 4;
      */
@@ -419,12 +419,12 @@ class TrackSubscriptionDetails$Type extends MessageType<TrackSubscriptionDetails
         super("stream.video.sfu.signal.TrackSubscriptionDetails", [
             { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "track_kind", kind: "enum", T: () => ["stream.video.sfu.models.TrackKind", TrackKind, "TRACK_KIND_"] },
+            { no: 3, name: "track_type", kind: "enum", T: () => ["stream.video.sfu.models.TrackType", TrackType, "TRACK_TYPE_"] },
             { no: 4, name: "dimension", kind: "message", T: () => VideoDimension }
         ]);
     }
     create(value?: PartialMessage<TrackSubscriptionDetails>): TrackSubscriptionDetails {
-        const message = { userId: "", sessionId: "", trackKind: 0 };
+        const message = { userId: "", sessionId: "", trackType: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<TrackSubscriptionDetails>(this, message, value);
@@ -441,8 +441,8 @@ class TrackSubscriptionDetails$Type extends MessageType<TrackSubscriptionDetails
                 case /* string session_id */ 2:
                     message.sessionId = reader.string();
                     break;
-                case /* stream.video.sfu.models.TrackKind track_kind */ 3:
-                    message.trackKind = reader.int32();
+                case /* stream.video.sfu.models.TrackType track_type */ 3:
+                    message.trackType = reader.int32();
                     break;
                 case /* stream.video.sfu.models.VideoDimension dimension */ 4:
                     message.dimension = VideoDimension.internalBinaryRead(reader, reader.uint32(), options, message.dimension);
@@ -465,9 +465,9 @@ class TrackSubscriptionDetails$Type extends MessageType<TrackSubscriptionDetails
         /* string session_id = 2; */
         if (message.sessionId !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
-        /* stream.video.sfu.models.TrackKind track_kind = 3; */
-        if (message.trackKind !== 0)
-            writer.tag(3, WireType.Varint).int32(message.trackKind);
+        /* stream.video.sfu.models.TrackType track_type = 3; */
+        if (message.trackType !== 0)
+            writer.tag(3, WireType.Varint).int32(message.trackType);
         /* stream.video.sfu.models.VideoDimension dimension = 4; */
         if (message.dimension)
             VideoDimension.internalBinaryWrite(message.dimension, writer.tag(4, WireType.LengthDelimited).fork(), options).join();

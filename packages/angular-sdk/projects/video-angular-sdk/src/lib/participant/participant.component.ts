@@ -34,7 +34,7 @@ export class ParticipantComponent
   @HostBinding() class = 'str-video__participant-angular-host';
   private subscriptions: Subscription[] = [];
 
-  TrackKind = SfuModels.TrackKind;
+  TrackType = SfuModels.TrackType;
 
   constructor(private streamVideoService: StreamVideoService) {
     this.streamVideoService.activeCall$.subscribe((c) => (this.call = c));

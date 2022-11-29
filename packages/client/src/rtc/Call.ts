@@ -3,7 +3,7 @@ import { createSubscriber } from './subscriber';
 import { createPublisher } from './publisher';
 import { findOptimalVideoLayers } from './videoLayers';
 import { getGenericSdp, getPreferredCodecs } from './codecs';
-import { CallState, TrackKind } from '../gen/video/sfu/models/models';
+import { CallState, TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
@@ -420,7 +420,7 @@ export class Call {
         subscriptions.push({
           userId: p.userId,
           sessionId: p.sessionId,
-          trackKind: TrackKind.VIDEO,
+          trackType: TrackType.VIDEO,
           dimension: p.videoDimension,
         });
         // }
@@ -428,14 +428,14 @@ export class Call {
         subscriptions.push({
           userId: p.userId,
           sessionId: p.sessionId,
-          trackKind: TrackKind.AUDIO,
+          trackType: TrackType.AUDIO,
         });
         // }
         // if (p.publishedTracks.includes(TrackKind.SCREEN_SHARE)) {
         subscriptions.push({
           userId: p.userId,
           sessionId: p.sessionId,
-          trackKind: TrackKind.SCREEN_SHARE,
+          trackType: TrackType.SCREEN_SHARE,
           dimension: {
             width: 1280,
             height: 720,
@@ -598,7 +598,7 @@ export class Call {
     const key: keyof StreamVideoParticipant =
       e.track.kind === 'audio'
         ? 'audioStream'
-        : trackKind === 'TRACK_KIND_SCREEN_SHARE'
+        : trackKind === 'TRACK_TYPE_SCREEN_SHARE'
         ? 'screenShareStream'
         : 'videoStream';
 

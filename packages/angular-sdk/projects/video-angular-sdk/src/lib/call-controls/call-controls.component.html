@@ -3,9 +3,9 @@
     class="str-video__call-controls__button"
     [ngClass]="{
       'str-video__call-controls__button--icon-mic':
-        localParticipant?.publishedTracks?.includes(TrackKind.AUDIO),
+        localParticipant?.publishedTracks?.includes(TrackType.AUDIO),
       'str-video__call-controls__button--icon-mic-off':
-        !localParticipant?.publishedTracks?.includes(TrackKind.AUDIO)
+        !localParticipant?.publishedTracks?.includes(TrackType.AUDIO)
     }"
     (click)="updateAudioMuteState()"
   ></button>
@@ -13,9 +13,9 @@
     class="str-video__call-controls__button"
     [ngClass]="{
       'str-video__call-controls__button--icon-camera':
-        localParticipant?.publishedTracks?.includes(TrackKind.VIDEO),
+        localParticipant?.publishedTracks?.includes(TrackType.VIDEO),
       'str-video__call-controls__button--icon-camera-off':
-        !localParticipant?.publishedTracks?.includes(TrackKind.VIDEO)
+        !localParticipant?.publishedTracks?.includes(TrackType.VIDEO)
     }"
     (click)="updateVideoMuteState()"
   ></button>

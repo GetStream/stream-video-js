@@ -38,11 +38,11 @@ export interface Participant {
      */
     sessionId: string;
     /**
-     * map of track id to track kind
+     * map of track id to track type
      *
-     * @generated from protobuf field: repeated stream.video.sfu.models.TrackKind published_tracks = 3;
+     * @generated from protobuf field: repeated stream.video.sfu.models.TrackType published_tracks = 3;
      */
-    publishedTracks: TrackKind[];
+    publishedTracks: TrackType[];
     /**
      * @generated from protobuf field: google.protobuf.Timestamp joined_at = 4;
      */
@@ -128,9 +128,9 @@ export interface Codec {
      */
     encodingParameters: string;
     /**
-     * @generated from protobuf field: repeated string feedback = 6;
+     * @generated from protobuf field: repeated string feedbacks = 6;
      */
-    feedback: string[];
+    feedbacks: string[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.ICETrickle
@@ -161,10 +161,6 @@ export interface TrackInfo {
      * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 2;
      */
     trackType: TrackType;
-    /**
-     * @generated from protobuf field: stream.video.sfu.models.TrackKind kind = 3;
-     */
-    kind: TrackKind;
     /**
      * @generated from protobuf field: repeated stream.video.sfu.models.VideoLayer layers = 5;
      */
@@ -285,30 +281,13 @@ export enum TrackType {
     /**
      * @generated from protobuf enum value: TRACK_TYPE_VIDEO = 2;
      */
-    VIDEO = 2
-}
-/**
- * @generated from protobuf enum stream.video.sfu.models.TrackKind
- */
-export enum TrackKind {
-    /**
-     * @generated from protobuf enum value: TRACK_KIND_UNSPECIFIED = 0;
-     */
-    UNSPECIFIED = 0,
-    /**
-     * @generated from protobuf enum value: TRACK_KIND_AUDIO = 1;
-     */
-    AUDIO = 1,
-    /**
-     * @generated from protobuf enum value: TRACK_KIND_VIDEO = 2;
-     */
     VIDEO = 2,
     /**
-     * @generated from protobuf enum value: TRACK_KIND_SCREEN_SHARE = 3;
+     * @generated from protobuf enum value: TRACK_TYPE_SCREEN_SHARE = 3;
      */
     SCREEN_SHARE = 3,
     /**
-     * @generated from protobuf enum value: TRACK_KIND_SCREEN_SHARE_AUDIO = 4;
+     * @generated from protobuf enum value: TRACK_TYPE_SCREEN_SHARE_AUDIO = 4;
      */
     SCREEN_SHARE_AUDIO = 4
 }
@@ -365,7 +344,7 @@ class Participant$Type extends MessageType<Participant> {
         super("stream.video.sfu.models.Participant", [
             { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "published_tracks", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["stream.video.sfu.models.TrackKind", TrackKind, "TRACK_KIND_"] },
+            { no: 3, name: "published_tracks", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["stream.video.sfu.models.TrackType", TrackType, "TRACK_TYPE_"] },
             { no: 4, name: "joined_at", kind: "message", T: () => Timestamp },
             { no: 5, name: "track_lookup_prefix", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
@@ -388,7 +367,7 @@ class Participant$Type extends MessageType<Participant> {
                 case /* string session_id */ 2:
                     message.sessionId = reader.string();
                     break;
-                case /* repeated stream.video.sfu.models.TrackKind published_tracks */ 3:
+                case /* repeated stream.video.sfu.models.TrackType published_tracks */ 3:
                     if (wireType === WireType.LengthDelimited)
                         for (let e = reader.int32() + reader.pos; reader.pos < e;)
                             message.publishedTracks.push(reader.int32());
@@ -419,7 +398,7 @@ class Participant$Type extends MessageType<Participant> {
         /* string session_id = 2; */
         if (message.sessionId !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
-        /* repeated stream.video.sfu.models.TrackKind published_tracks = 3; */
+        /* repeated stream.video.sfu.models.TrackType published_tracks = 3; */
         if (message.publishedTracks.length) {
             writer.tag(3, WireType.LengthDelimited).fork();
             for (let i = 0; i < message.publishedTracks.length; i++)
@@ -627,11 +606,11 @@ class Codec$Type extends MessageType<Codec> {
             { no: 3, name: "fmtp_line", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "clock_rate", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
             { no: 5, name: "encoding_parameters", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "feedback", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
+            { no: 6, name: "feedbacks", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Codec>): Codec {
-        const message = { payloadType: 0, name: "", fmtpLine: "", clockRate: 0, encodingParameters: "", feedback: [] };
+        const message = { payloadType: 0, name: "", fmtpLine: "", clockRate: 0, encodingParameters: "", feedbacks: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Codec>(this, message, value);
@@ -657,8 +636,8 @@ class Codec$Type extends MessageType<Codec> {
                 case /* string encoding_parameters */ 5:
                     message.encodingParameters = reader.string();
                     break;
-                case /* repeated string feedback */ 6:
-                    message.feedback.push(reader.string());
+                case /* repeated string feedbacks */ 6:
+                    message.feedbacks.push(reader.string());
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -687,9 +666,9 @@ class Codec$Type extends MessageType<Codec> {
         /* string encoding_parameters = 5; */
         if (message.encodingParameters !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.encodingParameters);
-        /* repeated string feedback = 6; */
-        for (let i = 0; i < message.feedback.length; i++)
-            writer.tag(6, WireType.LengthDelimited).string(message.feedback[i]);
+        /* repeated string feedbacks = 6; */
+        for (let i = 0; i < message.feedbacks.length; i++)
+            writer.tag(6, WireType.LengthDelimited).string(message.feedbacks[i]);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -767,12 +746,11 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
         super("stream.video.sfu.models.TrackInfo", [
             { no: 1, name: "track_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "track_type", kind: "enum", T: () => ["stream.video.sfu.models.TrackType", TrackType, "TRACK_TYPE_"] },
-            { no: 3, name: "kind", kind: "enum", T: () => ["stream.video.sfu.models.TrackKind", TrackKind, "TRACK_KIND_"] },
             { no: 5, name: "layers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => VideoLayer }
         ]);
     }
     create(value?: PartialMessage<TrackInfo>): TrackInfo {
-        const message = { trackId: "", trackType: 0, kind: 0, layers: [] };
+        const message = { trackId: "", trackType: 0, layers: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<TrackInfo>(this, message, value);
@@ -788,9 +766,6 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
                     break;
                 case /* stream.video.sfu.models.TrackType track_type */ 2:
                     message.trackType = reader.int32();
-                    break;
-                case /* stream.video.sfu.models.TrackKind kind */ 3:
-                    message.kind = reader.int32();
                     break;
                 case /* repeated stream.video.sfu.models.VideoLayer layers */ 5:
                     message.layers.push(VideoLayer.internalBinaryRead(reader, reader.uint32(), options));
@@ -813,9 +788,6 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
         /* stream.video.sfu.models.TrackType track_type = 2; */
         if (message.trackType !== 0)
             writer.tag(2, WireType.Varint).int32(message.trackType);
-        /* stream.video.sfu.models.TrackKind kind = 3; */
-        if (message.kind !== 0)
-            writer.tag(3, WireType.Varint).int32(message.kind);
         /* repeated stream.video.sfu.models.VideoLayer layers = 5; */
         for (let i = 0; i < message.layers.length; i++)
             VideoLayer.internalBinaryWrite(message.layers[i], writer.tag(5, WireType.LengthDelimited).fork(), options).join();

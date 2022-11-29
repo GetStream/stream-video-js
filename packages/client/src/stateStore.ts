@@ -13,7 +13,7 @@ import type {
 } from './rtc/types';
 import { StreamVideoParticipantPatches } from './rtc/types';
 import type { CallStatsReport } from './stats/types';
-import { TrackKind } from './gen/video/sfu/models/models';
+import { TrackType } from './gen/video/sfu/models/models';
 
 export class StreamVideoWriteableStateStore {
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
@@ -254,7 +254,7 @@ export class StreamVideoReadOnlyStateStore {
     this.hasOngoingScreenShare$ = this.activeCallAllParticipants$.pipe(
       find((participants) =>
         participants.some((p) =>
-          p.publishedTracks.includes(TrackKind.SCREEN_SHARE),
+          p.publishedTracks.includes(TrackType.SCREEN_SHARE),
         ),
       ),
       map((participant) => !!participant),
