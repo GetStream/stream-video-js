@@ -35,46 +35,43 @@ const Meeting = ({ navigation }: Props) => {
   const [loading, setLoading] = useState(false);
   const setState = useAppGlobalStoreSetState();
 
-  const createOrJoinCallHandler = async () => {
-    if (videoClient && localMediaStream) {
-      setLoading(true);
-      try {
-        const response = await joinCall(videoClient, localMediaStream, {
-          autoJoin: true,
-          callId: meetingCallID,
-          callType: 'default',
-        });
-        if (!response) {
-          throw new Error('Call is not defined');
+  const joinCallHandler = useCallback(
+    async (callId: string) => {
+      if (videoClient && localMediaStream) {
+        setLoading(true);
+        try {
+          const response = await joinCall(videoClient, localMediaStream, {
+            autoJoin: true,
+            callId,
+            callType: 'default',
+          });
+          if (!response) {
+            throw new Error('Call is not defined');
+          }
+          navigation.navigate('ActiveCall');
+        } catch (err) {
+          console.log(err);
         }
         setLoading(false);
-        navigation.navigate('ActiveCall');
-      } catch (err) {
-        console.log(err);
       }
-    }
-  };
+    },
+    [localMediaStream, navigation, videoClient],
+  );
 
   useEffect(() => {
-    if (localMediaStream) {
+    if (localMediaStream && videoClient) {
       const subscription = prontoCallId$.subscribe((prontoCallId) => {
         if (prontoCallId) {
           setState({
             meetingCallID: prontoCallId,
           });
           prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
-          if (videoClient) {
-            joinCall(videoClient, localMediaStream, {
-              callId: prontoCallId,
-              callType: 'default',
-              autoJoin: true,
-            });
-          }
+          joinCallHandler(prontoCallId);
         }
       });
       return () => subscription.unsubscribe();
     }
-  }, [localMediaStream, setState, videoClient]);
+  }, [joinCallHandler, localMediaStream, setState, videoClient]);
 
   const handleCopyInviteLink = useCallback(
     () =>
@@ -108,7 +105,7 @@ const Meeting = ({ navigation }: Props) => {
         title={'Create or Join call with callID: ' + meetingCallID}
         color="blue"
         disabled={!meetingCallID}
-        onPress={createOrJoinCallHandler}
+        onPress={() => joinCallHandler(meetingCallID)}
       />
       <View style={styles.switchContainer}>
         <Text style={styles.loopbackText}>Loopback my video(Debug Mode)</Text>
