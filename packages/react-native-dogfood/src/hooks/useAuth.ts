@@ -15,6 +15,7 @@ export const useAuth = () => {
   const isStoreInitialized = useAppGlobalStoreValue(
     (store) => store.isStoreInitialized,
   );
+  const [videoClient, setVideoClient] = useState<StreamVideoClient>();
   const username = useAppGlobalStoreValue((store) => store.username);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
 
@@ -56,7 +57,7 @@ export const useAuth = () => {
             token,
           });
           await clientResponse.connect(APIParams.apiKey, token, user);
-          setState({ videoClient: clientResponse });
+          setVideoClient(clientResponse);
         } catch (err) {
           console.error('Failed to establish connection', err);
           setState({
@@ -64,12 +65,14 @@ export const useAuth = () => {
             userImageUrl: '',
           });
         }
+        setAuthenticationInProgress(false);
+      } else {
+        setVideoClient(undefined);
       }
-      setAuthenticationInProgress(false);
     };
 
     run();
   }, [setState, username, userImageUrl, isStoreInitialized]);
 
-  return { authenticationInProgress };
+  return { authenticationInProgress, videoClient };
 };
