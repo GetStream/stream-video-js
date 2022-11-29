@@ -96,10 +96,10 @@ export class StreamVideoWriteableStateStore {
    * @return the updated value.
    */
   setCurrentValue<T>(
-    subject: BehaviorSubject<T>,
+    subject: Subject<T>,
     update: T | ((currentValue: T) => T),
   ) {
-    const currentValue = subject.getValue();
+    const currentValue = this.getCurrentValue(subject);
     const next =
       // TypeScript needs more context to infer the type of update
       typeof update === 'function' && update instanceof Function
@@ -107,7 +107,7 @@ export class StreamVideoWriteableStateStore {
         : update;
 
     subject.next(next);
-    return subject.getValue();
+    return this.getCurrentValue(subject);
   }
 
   /**
