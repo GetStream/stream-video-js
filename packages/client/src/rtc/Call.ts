@@ -3,55 +3,27 @@ import { createSubscriber } from './subscriber';
 import { createPublisher } from './publisher';
 import { findOptimalVideoLayers } from './videoLayers';
 import { getGenericSdp, getPreferredCodecs } from './codecs';
-import {
-  MediaStateChange,
-  MediaStateChangeReason,
-} from '../gen/video/coordinator/stat_v1/stat';
 import { CallState, TrackKind } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import type {
+  CallOptions,
+  PublishOptions,
+  StatEvent,
+  StatEventListener,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
 } from './types';
 import { debounceTime, Subject } from 'rxjs';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
+import {
+  MediaStateChange,
+  MediaStateChangeReason,
+} from '../gen/video/coordinator/stat_v1/stat';
 import { createStatsReporter, StatsReporter } from '../stats/reporter';
-
-export type TrackChangedEvent = {
-  type: 'media_state_changed';
-  track: MediaStreamTrack;
-  change: MediaStateChange;
-  reason: MediaStateChangeReason;
-};
-
-export type ParticipantJoinedEvent = {
-  type: 'participant_joined';
-};
-
-export type ParticipantLeftEvent = {
-  type: 'participant_left';
-};
-
-export type StatEvent =
-  | TrackChangedEvent
-  | ParticipantJoinedEvent
-  | ParticipantLeftEvent;
-
-export type StatEventListener = (event: StatEvent) => void;
-
-export type CallOptions = {
-  connectionConfig?: RTCConfiguration;
-  latencyCheckUrl?: string;
-  edgeName?: string;
-};
-
-export type PublishOptions = {
-  preferredCodec?: string | null;
-};
 
 /**
  * A `Call` object represents the active call, the user is part of.
@@ -71,7 +43,7 @@ export class Call {
   private statEventListeners: StatEventListener[];
 
   /**
-   * Use the `StreamVideoClient.joinCall` method to construct a `Call` instance.
+   * Use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    * @param client
    * @param options
    * @param stateStore

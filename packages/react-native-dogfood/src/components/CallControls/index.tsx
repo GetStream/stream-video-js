@@ -4,7 +4,6 @@ import MicButton from './MicButton';
 import PhoneButton from './PhoneButton';
 import VideoButton from './VideoButton';
 import CameraSwitchButton from './CameraSwitchButton';
-import CurrentUserMuteManager from './CurrentUserMuteManager';
 
 const styles = StyleSheet.create({
   container: {
@@ -24,7 +23,6 @@ const styles = StyleSheet.create({
 const CallControls = () => {
   return (
     <View style={styles.container}>
-      <CurrentUserMuteManager />
       <MicButton />
       <VideoButton />
       <CameraSwitchButton />

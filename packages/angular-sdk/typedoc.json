@@ -1,0 +1,10 @@
+{
+  "plugin": ["typedoc-plugin-markdown"],
+  "cleanOutputDir": true,
+  "hideBreadcrumbs": true,
+  "hideInPageTOC": true,
+  "excludePrivate": true,
+  "out": "temp-docs",
+  "logLevel": "Error",
+  "tsconfig": "./tsconfig.json"
+}

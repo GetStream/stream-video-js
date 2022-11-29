@@ -93,7 +93,7 @@ const getStream = async (
 };
 
 /**
- * Returns an 'audioinput' media stream with the given deviceId, if no deviceId is provided, we use the first available device
+ * Returns an 'audioinput' media stream with the given `deviceId`, if no `deviceId` is provided, it uses the first available device
  * @param deviceId
  * @returns
  */
@@ -102,7 +102,7 @@ export const getAudioStream = async (deviceId?: string) => {
 };
 
 /**
- * Returns a 'videoinput' media stream with the given deviceId, if no deviceId is provided, we use the first available device
+ * Returns a 'videoinput' media stream with the given `deviceId`, if no `deviceId` is provided, it uses the first available device
  * @param deviceId
  * @returns
  */
