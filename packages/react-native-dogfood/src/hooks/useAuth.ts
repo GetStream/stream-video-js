@@ -50,14 +50,14 @@ export const useAuth = () => {
         const token = await createToken(username, APIParams.apiSecret);
 
         try {
-          const clientResponse = new StreamVideoClient(APIParams.apiKey, {
+          const _videoClient = new StreamVideoClient(APIParams.apiKey, {
             coordinatorWsUrl: clientParams.coordinatorWsUrl,
             coordinatorRpcUrl: clientParams.coordinatorRpcUrl,
             sendJson: true,
             token,
           });
-          await clientResponse.connect(APIParams.apiKey, token, user);
-          setVideoClient(clientResponse);
+          await _videoClient.connect(APIParams.apiKey, token, user);
+          setVideoClient(_videoClient);
         } catch (err) {
           console.error('Failed to establish connection', err);
           setState({
