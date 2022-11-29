@@ -82,11 +82,11 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
 
   return (
     <View
-      style={{
-        ...styles.containerBase,
-        ...styles[`${size}Container`],
-        ...dominantSpeakerStyle,
-      }}
+      style={[
+        styles.containerBase,
+        styles[`${size}Container`],
+        dominantSpeakerStyle,
+      ]}
       onLayout={(event: LayoutChangeEvent) => {
         const { height, width } = event.nativeEvent.layout;
         updateVideoSubscriptionForParticipant(width, height);
