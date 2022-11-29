@@ -5,6 +5,7 @@ on:
     paths:
       - 'packages/react-native-dogfood/**'
       - 'packages/client/**'
+      - 'packages/react-native-sdk/**'
     branches:
       - main
 
