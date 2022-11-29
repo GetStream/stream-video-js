@@ -16,7 +16,6 @@ import { Codec } from "../models/models";
 import { ConnectionQuality } from "../models/models";
 import { Participant } from "../models/models";
 import { CallState } from "../models/models";
-import { DecodeCapabilities } from "../models/models";
 import { TrackKind } from "../models/models";
 import { PeerType } from "../models/models";
 import { ICETrickle as ICETrickle$ } from "../models/models";
@@ -206,9 +205,11 @@ export interface JoinRequest {
      */
     sessionId: string;
     /**
-     * @generated from protobuf field: stream.video.sfu.models.DecodeCapabilities decode_capabilities = 4;
+     * dumb SDP that allow us to extract subscriber's decode codecs
+     *
+     * @generated from protobuf field: string subscriber_sdp = 3;
      */
-    decodeCapabilities?: DecodeCapabilities; // TODO: we should know if this is going to be
+    subscriberSdp: string; // TODO: we should know if this is going to be
     // - publishing and subscribing, or just subscribing for future routing
 }
 /**
@@ -926,11 +927,11 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
         super("stream.video.sfu.event.JoinRequest", [
             { no: 1, name: "token", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "decode_capabilities", kind: "message", T: () => DecodeCapabilities }
+            { no: 3, name: "subscriber_sdp", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<JoinRequest>): JoinRequest {
-        const message = { token: "", sessionId: "" };
+        const message = { token: "", sessionId: "", subscriberSdp: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<JoinRequest>(this, message, value);
@@ -947,8 +948,8 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
                 case /* string session_id */ 2:
                     message.sessionId = reader.string();
                     break;
-                case /* stream.video.sfu.models.DecodeCapabilities decode_capabilities */ 4:
-                    message.decodeCapabilities = DecodeCapabilities.internalBinaryRead(reader, reader.uint32(), options, message.decodeCapabilities);
+                case /* string subscriber_sdp */ 3:
+                    message.subscriberSdp = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -968,9 +969,9 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
         /* string session_id = 2; */
         if (message.sessionId !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
-        /* stream.video.sfu.models.DecodeCapabilities decode_capabilities = 4; */
-        if (message.decodeCapabilities)
-            DecodeCapabilities.internalBinaryWrite(message.decodeCapabilities, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* string subscriber_sdp = 3; */
+        if (message.subscriberSdp !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.subscriberSdp);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

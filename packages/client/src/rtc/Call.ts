@@ -2,7 +2,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { createSubscriber } from './subscriber';
 import { createPublisher } from './publisher';
 import { findOptimalVideoLayers } from './videoLayers';
-import { getPreferredCodecs, getReceiverCodecs } from './codecs';
+import { getGenericSdp, getPreferredCodecs } from './codecs';
 import {
   MediaStateChange,
   MediaStateChangeReason,
@@ -226,11 +226,7 @@ export class Call {
           resolve(callState); // expose call state
         });
 
-        const [audioDecodeCodecs, videoDecodeCodecs] = await Promise.all([
-          getReceiverCodecs('audio', this.subscriber),
-          getReceiverCodecs('video', this.subscriber),
-        ]);
-
+        const genericSdp = await getGenericSdp('recvonly');
         this.client.send(
           SfuRequest.create({
             requestPayload: {
@@ -238,10 +234,7 @@ export class Call {
               joinRequest: {
                 sessionId: this.client.sessionId,
                 token: this.client.token,
-                decodeCapabilities: {
-                  audioCodecs: audioDecodeCodecs,
-                  videoCodecs: videoDecodeCodecs,
-                },
+                subscriberSdp: genericSdp || '',
               },
             },
           }),

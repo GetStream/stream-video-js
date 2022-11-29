@@ -1,6 +1,3 @@
-import * as SDPTransform from 'sdp-transform';
-import type { Codec } from '../gen/video/sfu/models/models';
-
 export const getPreferredCodecs = (
   kind: 'audio' | 'video',
   videoCodec: string,
@@ -48,55 +45,17 @@ export const getPreferredCodecs = (
   ] as RTCRtpCodecCapability[];
 };
 
-export const getReceiverCodecs = async (
-  kind: 'audio' | 'video',
-  pc?: RTCPeerConnection,
-) => {
-  return getCodecsFromPeerConnection(pc, kind, 'recvonly');
-};
+export const getGenericSdp = async (direction: RTCRtpTransceiverDirection) => {
+  const tempPc = new RTCPeerConnection();
+  tempPc.addTransceiver('audio', { direction });
+  tempPc.addTransceiver('video', { direction });
 
-const getCodecsFromPeerConnection = async (
-  pc: RTCPeerConnection | undefined,
-  kind: 'audio' | 'video',
-  direction: RTCRtpTransceiverDirection,
-) => {
-  let sdp =
-    direction === 'sendonly'
-      ? pc?.localDescription?.sdp
-      : direction === 'recvonly'
-      ? pc?.remoteDescription?.sdp
-      : null;
+  const offer = await tempPc.createOffer();
+  const sdp = offer.sdp;
 
-  if (!sdp) {
-    const tempPc = new RTCPeerConnection();
-    const transceiver = tempPc.addTransceiver(kind);
-    transceiver.direction = direction;
-
-    const offer = await tempPc.createOffer();
-    sdp = offer.sdp;
-    tempPc.close();
-  }
-
-  const parsedSdp = SDPTransform.parse(sdp || '');
-  const supportedCodecs: Codec[] = [];
-  parsedSdp.media.forEach((media) => {
-    if (media.type === kind) {
-      media.rtp.forEach((rtp) => {
-        const fmtpLine = media.fmtp.find((f) => f.payload === rtp.payload);
-        const feedback = media.rtcpFb
-          ?.filter((f) => f.payload === rtp.payload)
-          .map((f) => f.type);
-        supportedCodecs.push({
-          payloadType: rtp.payload,
-          name: rtp.codec,
-          fmtpLine: fmtpLine?.config ?? '',
-          clockRate: rtp.rate ?? 0,
-          encodingParameters: String(rtp.encoding || ''),
-          feedback: feedback || [],
-        });
-      });
-    }
+  tempPc.getTransceivers().forEach((t) => {
+    t.stop();
   });
-
-  return supportedCodecs;
+  tempPc.close();
+  return sdp;
 };

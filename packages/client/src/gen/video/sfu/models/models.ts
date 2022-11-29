@@ -133,19 +133,6 @@ export interface Codec {
     feedback: string[];
 }
 /**
- * @generated from protobuf message stream.video.sfu.models.DecodeCapabilities
- */
-export interface DecodeCapabilities {
-    /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.Codec audio_codecs = 1;
-     */
-    audioCodecs: Codec[];
-    /**
-     * @generated from protobuf field: repeated stream.video.sfu.models.Codec video_codecs = 2;
-     */
-    videoCodecs: Codec[];
-}
-/**
  * @generated from protobuf message stream.video.sfu.models.ICETrickle
  */
 export interface ICETrickle {
@@ -319,7 +306,11 @@ export enum TrackKind {
     /**
      * @generated from protobuf enum value: TRACK_KIND_SCREEN_SHARE = 3;
      */
-    SCREEN_SHARE = 3
+    SCREEN_SHARE = 3,
+    /**
+     * @generated from protobuf enum value: TRACK_KIND_SCREEN_SHARE_AUDIO = 4;
+     */
+    SCREEN_SHARE_AUDIO = 4
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {
@@ -709,60 +700,6 @@ class Codec$Type extends MessageType<Codec> {
  * @generated MessageType for protobuf message stream.video.sfu.models.Codec
  */
 export const Codec = new Codec$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class DecodeCapabilities$Type extends MessageType<DecodeCapabilities> {
-    constructor() {
-        super("stream.video.sfu.models.DecodeCapabilities", [
-            { no: 1, name: "audio_codecs", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec },
-            { no: 2, name: "video_codecs", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Codec }
-        ]);
-    }
-    create(value?: PartialMessage<DecodeCapabilities>): DecodeCapabilities {
-        const message = { audioCodecs: [], videoCodecs: [] };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<DecodeCapabilities>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DecodeCapabilities): DecodeCapabilities {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* repeated stream.video.sfu.models.Codec audio_codecs */ 1:
-                    message.audioCodecs.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
-                    break;
-                case /* repeated stream.video.sfu.models.Codec video_codecs */ 2:
-                    message.videoCodecs.push(Codec.internalBinaryRead(reader, reader.uint32(), options));
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: DecodeCapabilities, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated stream.video.sfu.models.Codec audio_codecs = 1; */
-        for (let i = 0; i < message.audioCodecs.length; i++)
-            Codec.internalBinaryWrite(message.audioCodecs[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* repeated stream.video.sfu.models.Codec video_codecs = 2; */
-        for (let i = 0; i < message.videoCodecs.length; i++)
-            Codec.internalBinaryWrite(message.videoCodecs[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.models.DecodeCapabilities
- */
-export const DecodeCapabilities = new DecodeCapabilities$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ICETrickle$Type extends MessageType<ICETrickle> {
     constructor() {
