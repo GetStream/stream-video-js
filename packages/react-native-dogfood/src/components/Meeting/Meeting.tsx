@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   StyleSheet,
   TextInput,
@@ -6,7 +6,6 @@ import {
   Text,
   Switch,
   Button,
-  ActivityIndicator,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { RootStackParamList } from '../../../types';
@@ -21,9 +20,11 @@ import { meetingId } from '../../modules/helpers/meetingId';
 import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
 import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'> & {
+  setLoadingCall: (loading: boolean) => void;
+};
 
-const Meeting = ({ navigation }: Props) => {
+const Meeting = ({ navigation, setLoadingCall }: Props) => {
   const meetingCallID = useAppGlobalStoreValue((store) => store.meetingCallID);
   const videoClient = useStreamVideoClient();
   const loopbackMyVideo = useAppGlobalStoreValue(
@@ -32,13 +33,12 @@ const Meeting = ({ navigation }: Props) => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
-  const [loading, setLoading] = useState(false);
   const setState = useAppGlobalStoreSetState();
 
   const joinCallHandler = useCallback(
     async (callId: string) => {
       if (videoClient && localMediaStream) {
-        setLoading(true);
+        setLoadingCall(true);
         try {
           const response = await joinCall(videoClient, localMediaStream, {
             autoJoin: true,
@@ -52,10 +52,10 @@ const Meeting = ({ navigation }: Props) => {
         } catch (err) {
           console.log(err);
         }
-        setLoading(false);
+        setLoadingCall(false);
       }
     },
-    [localMediaStream, navigation, videoClient],
+    [localMediaStream, navigation, setLoadingCall, videoClient],
   );
 
   useEffect(() => {
@@ -123,7 +123,6 @@ const Meeting = ({ navigation }: Props) => {
         color="blue"
         onPress={handleCopyInviteLink}
       />
-      {loading && <ActivityIndicator />}
     </View>
   );
 };
