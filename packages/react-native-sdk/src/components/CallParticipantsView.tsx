@@ -67,9 +67,8 @@ export const CallParticipantsView: React.FC = () => {
   );
 
   const isUserIsAloneInCall = allParticipants.length === 1;
-  const isLocalVideoVisible = useMemo(
-    () => localVideoVisibleModes.includes(mode) && !isUserIsAloneInCall,
-    [mode, isUserIsAloneInCall],
+  const isLocalVideoVisible = 
+    () => (mode === Modes.full || mode === Modes.half)  && !isUserIsAloneInCall,
   );
   const showUserInParticipantView = !isLocalVideoVisible;
   const filteredParticipants = useMemo(() => {
