@@ -17,7 +17,12 @@ dist
 .vscode
 .idea
 .angular
-docs
 .env
+!packages/angular-sdk/docusaurus/.env
 
 .eslintcache
+.idea
+
+
+/**/generated-docs
+/**/temp-docs

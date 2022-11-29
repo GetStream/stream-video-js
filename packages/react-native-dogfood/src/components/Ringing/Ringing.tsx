@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,8 +17,10 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../types';
 import { joinCall } from '../../utils/callUtils';
-import { useStore } from '../../hooks/useStore';
-import { useObservableValue } from '../../hooks/useObservable';
+import {
+  useActiveRingCall,
+  useStreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -28,15 +31,36 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginVertical: 8,
   },
-  textInput: {
-    color: '#000',
-    height: 40,
-    width: '100%',
+  textInputView: {
+    display: 'flex',
+    flexDirection: 'row',
     borderRadius: 5,
     borderWidth: 1,
     borderColor: 'gray',
-    paddingLeft: 10,
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+  },
+  confirmButton: {
+    alignSelf: 'center',
+    backgroundColor: 'gray',
+    padding: 10,
+    borderRadius: 20,
+    marginLeft: 10,
+  },
+  buttonText: {
+    color: 'white',
+  },
+  textInput: {
+    color: '#000000',
+    height: 40,
     marginVertical: 8,
+  },
+  orText: {
+    marginVertical: 10,
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'black',
   },
   participantsContainer: {
     marginVertical: 20,
@@ -62,14 +86,14 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 const Ringing = ({ navigation }: Props) => {
   const [loading, setLoading] = useState(false);
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
+  const videoClient = useStreamVideoClient();
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
   const username = useAppGlobalStoreValue((store) => store.username);
   const ringingUsers = useAppGlobalStoreValue((store) => store.ringingUsers);
-  const { activeRingCallMeta$ } = useStore();
-  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
+  const activeRingCallMeta = useActiveRingCall();
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },
@@ -92,11 +116,17 @@ const Ringing = ({ navigation }: Props) => {
     if (videoClient && localMediaStream) {
       try {
         const callID = uuidv4().toLowerCase();
+        let ringingUserIds = !ringingUserIdsText
+          ? ringingUsers
+          : ringingUserIdsText.split(',');
+        if (ringingUserIdsText !== '') {
+          setState({ ringingUsers: ringingUserIds });
+        }
         await setState({ ringingCallID: callID });
         await joinCall(videoClient, localMediaStream, {
           autoJoin: true,
           ring: true,
-          members: ringingUsers.map((user) => {
+          members: ringingUserIds.map((user) => {
             return {
               userId: user,
               role: 'member',
@@ -128,6 +158,17 @@ const Ringing = ({ navigation }: Props) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.textInputView}>
+        <TextInput
+          placeholder="Enter comma separated User Ids"
+          style={styles.textInput}
+          value={ringingUserIdsText}
+          onChangeText={(value) => {
+            setRingingUserIdsText(value);
+          }}
+        />
+      </View>
+      <Text style={styles.orText}>Or</Text>
       <View style={styles.participantsContainer}>
         <Text style={[styles.text, styles.label]}>Select Participants</Text>
         {users
@@ -154,7 +195,7 @@ const Ringing = ({ navigation }: Props) => {
           })}
       </View>
       <Button
-        disabled={ringingUsers.length === 0}
+        disabled={ringingUserIdsText === '' && ringingUsers.length === 0}
         title="Start a Call"
         onPress={startCallHandler}
       />

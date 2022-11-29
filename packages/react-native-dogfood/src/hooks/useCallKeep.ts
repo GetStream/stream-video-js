@@ -5,17 +5,14 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import RNCallKeep from 'react-native-callkeep';
 import { RootStackParamList } from '../../types';
-import { useStore } from './useStore';
-import { useObservableValue } from './useObservable';
+import {
+  useActiveCall,
+  useActiveRingCall,
+} from '@stream-io/video-react-native-sdk';
 
 export const useCallKeep = () => {
-  const { activeCall$, activeRingCallMeta$, incomingRingCalls$ } = useStore();
-  const call = useObservableValue(activeCall$);
-  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
-  const incomingRingCalls = useObservableValue(incomingRingCalls$);
-
-  const currentIncomingRingCall =
-    incomingRingCalls[incomingRingCalls.length - 1];
+  const call = useActiveCall();
+  const activeRingCallMeta = useActiveRingCall();
 
   const navigation =
     useNavigation<
@@ -40,19 +37,10 @@ export const useCallKeep = () => {
   const displayIncomingCallNow = useCallback(() => {
     try {
       navigation.navigate('IncomingCallScreen');
-      if (currentIncomingRingCall && Platform.OS === 'ios') {
-        RNCallKeep.displayIncomingCall(
-          currentIncomingRingCall.id,
-          '',
-          currentIncomingRingCall.createdByUserId,
-          'generic',
-          true,
-        );
-      }
     } catch (error) {
       console.log(error);
     }
-  }, [navigation, currentIncomingRingCall]);
+  }, [navigation]);
 
   const endCall = useCallback(async () => {
     if (Platform.OS === 'ios' && activeRingCallMeta) {

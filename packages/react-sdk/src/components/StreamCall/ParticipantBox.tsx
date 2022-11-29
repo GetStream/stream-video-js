@@ -25,8 +25,8 @@ export const ParticipantBox = (props: {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const {
-    videoTrack: videoStream,
-    audioTrack: audioStream,
+    videoStream,
+    audioStream,
     isLoggedInUser: isLocalParticipant,
     isSpeaking,
     sessionId,

@@ -5,17 +5,14 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
-import { useStore } from '../../hooks/useStore';
-import { useObservableValue } from '../../hooks/useObservable';
 import { useRingCall } from '../../hooks/useRingCall';
 import { useCallKeep } from '../../hooks/useCallKeep';
+import { useActiveRingCall } from '@stream-io/video-react-native-sdk';
 
 const PhoneButton = () => {
   const username = useAppGlobalStoreValue((store) => store.username);
   const setState = useAppGlobalStoreSetState();
-  const { activeCall$, activeRingCallMeta$ } = useStore();
-  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
-  const call = useObservableValue(activeCall$);
+  const activeRingCallMeta = useActiveRingCall();
   const { cancelCall } = useRingCall();
   const { endCall } = useCallKeep();
 
@@ -28,24 +25,18 @@ const PhoneButton = () => {
         primaryVideoTrack._switchCamera();
         newState.cameraBackFacingMode = !cameraBackFacingMode;
       }
-      newState.isAudioMuted = false;
-      newState.isVideoMuted = false;
       return newState;
     });
   }).current;
 
   const hangup = async () => {
-    if (!call) {
-      console.warn('failed to leave call: ', 'call is undefined');
-      return;
-    }
     try {
-      endCall();
+      await endCall();
       if (
         activeRingCallMeta &&
         activeRingCallMeta.createdByUserId === username
       ) {
-        cancelCall();
+        await cancelCall();
       }
       resetCallState();
     } catch (err) {

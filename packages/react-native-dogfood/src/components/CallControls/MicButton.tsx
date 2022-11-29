@@ -2,14 +2,16 @@ import React from 'react';
 import Mic from '../../icons/Mic';
 import MicOff from '../../icons/MicOff';
 import ButtonContainer from './ButtonContainer';
-import { useAppGlobalStoreValue } from '../../contexts/AppContext';
-import { useStore } from '../../hooks/useStore';
-import { useObservableValue } from '../../hooks/useObservable';
+import {
+  useActiveCall,
+  useLocalParticipant,
+} from '@stream-io/video-react-native-sdk';
 
 const MicButton = () => {
-  const isAudioMuted = useAppGlobalStoreValue((store) => store.isAudioMuted);
-  const { activeCall$ } = useStore();
-  const call = useObservableValue(activeCall$);
+  const localParticipant = useLocalParticipant();
+  const isAudioMuted = !localParticipant?.audio;
+  const call = useActiveCall();
+
   const toggleAudioState = async () => {
     call?.updateMuteState('audio', !isAudioMuted);
   };

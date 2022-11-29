@@ -14,18 +14,18 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
-import { mediaDevices } from 'react-native-webrtc';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { joinCall } from '../../utils/callUtils';
 import { meetingId } from '../../modules/helpers/meetingId';
 
 import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
+import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 const Meeting = ({ navigation }: Props) => {
   const meetingCallID = useAppGlobalStoreValue((store) => store.meetingCallID);
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const videoClient = useStreamVideoClient();
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
@@ -34,20 +34,6 @@ const Meeting = ({ navigation }: Props) => {
   );
   const [loading, setLoading] = useState(false);
   const setState = useAppGlobalStoreSetState();
-
-  // run only once per app lifecycle
-  useEffect(() => {
-    const configure = async () => {
-      const mediaStream = await mediaDevices.getUserMedia({
-        audio: true,
-        video: true,
-      });
-      setState({
-        localMediaStream: mediaStream,
-      });
-    };
-    configure();
-  }, [setState]);
 
   const createOrJoinCallHandler = async () => {
     if (videoClient && localMediaStream) {
@@ -58,12 +44,11 @@ const Meeting = ({ navigation }: Props) => {
           callId: meetingCallID,
           callType: 'default',
         });
-        if (response) {
-          setLoading(false);
-          navigation.navigate('ActiveCall');
-        } else {
-          setLoading(false);
+        if (!response) {
+          throw new Error('Call is not defined');
         }
+        setLoading(false);
+        navigation.navigate('ActiveCall');
       } catch (err) {
         console.log(err);
       }

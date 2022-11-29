@@ -1,11 +1,11 @@
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 import React from 'react';
-import { NativeStackHeaderProps } from '@react-navigation/native-stack';
-import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const styles = StyleSheet.create({
   header: {
@@ -32,10 +32,9 @@ const styles = StyleSheet.create({
   },
 });
 
-export const NavigationHeader = (props: NativeStackHeaderProps) => {
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+export const NavigationHeader = () => {
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
-
+  const client = useStreamVideoClient();
   const setState = useAppGlobalStoreSetState();
 
   const logoutHandler = () => {
@@ -49,13 +48,9 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
         text: 'OK',
         onPress: async () => {
           try {
-            await Promise.all([
-              GoogleSignin.signOut(),
-              videoClient?.disconnect(),
-            ]);
+            await Promise.all([GoogleSignin.signOut(), client?.disconnect()]);
 
             setState({
-              videoClient: undefined,
               username: '',
               userImageUrl: '',
             });
@@ -67,19 +62,6 @@ export const NavigationHeader = (props: NativeStackHeaderProps) => {
     ]);
   };
 
-  if (
-    props.route.name === 'ActiveCall' ||
-    props.route.name === 'IncomingCallScreen' ||
-    props.route.name === 'OutgoingCallScreen'
-  ) {
-    return null;
-  } else if (props.route.name === 'LoginScreen') {
-    return (
-      <View style={styles.header}>
-        <Text style={styles.loginTitle}>Login Screen</Text>
-      </View>
-    );
-  }
   return (
     <View style={styles.header}>
       <Pressable onPress={logoutHandler}>

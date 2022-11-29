@@ -6,8 +6,13 @@ import Meeting from '../components/Meeting/Meeting';
 import Ringing from '../components/Ringing/Ringing';
 import { useCallKeep } from '../hooks/useCallKeep';
 import { RootStackParamList } from '../../types';
-import { useStore } from '../hooks/useStore';
-import { useObservableValue } from '../hooks/useObservable';
+import { mediaDevices } from 'react-native-webrtc';
+import { useAppGlobalStoreSetState } from '../contexts/AppContext';
+import {
+  useActiveRingCall,
+  useIncomingRingCalls,
+  useTerminatedRingCall,
+} from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -20,11 +25,26 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 export const HomeScreen = ({ navigation, route }: Props) => {
   const [selectedTab, setSelectedTab] = useState('Meeting');
 
-  const { activeRingCallMeta$, incomingRingCalls$ } = useStore();
-  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
-  const incomingRingCalls = useObservableValue(incomingRingCalls$);
+  const activeRingCallMeta = useActiveRingCall();
+  const incomingRingCalls = useIncomingRingCalls();
+  const terminatedRingCallMeta = useTerminatedRingCall();
+  const setState = useAppGlobalStoreSetState();
 
   const { displayIncomingCallNow, startCall, endCall } = useCallKeep();
+
+  // run only once per app lifecycle
+  useEffect(() => {
+    const configure = async () => {
+      const mediaStream = await mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      });
+      setState({
+        localMediaStream: mediaStream,
+      });
+    };
+    configure();
+  }, [setState]);
 
   useEffect(() => {
     if (activeRingCallMeta) {
@@ -33,13 +53,16 @@ export const HomeScreen = ({ navigation, route }: Props) => {
       if (incomingRingCalls.length > 0) {
         displayIncomingCallNow();
       } else {
-        endCall();
+        if (terminatedRingCallMeta) {
+          endCall();
+        }
       }
     }
   }, [
     activeRingCallMeta,
     incomingRingCalls,
     displayIncomingCallNow,
+    terminatedRingCallMeta,
     startCall,
     endCall,
   ]);

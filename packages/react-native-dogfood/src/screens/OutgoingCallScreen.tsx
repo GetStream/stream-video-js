@@ -1,14 +1,8 @@
 import React, { useEffect } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
-import {
-  useAppGlobalStoreSetState,
-  useAppGlobalStoreValue,
-} from '../contexts/AppContext';
-import { useObservableValue } from '../hooks/useObservable';
-import { useStore } from '../hooks/useStore';
+import { StyleSheet, Text, View } from 'react-native';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
-import { Member } from '@stream-io/video-client/dist/src/gen/video/coordinator/member_v1/member';
 import ButtonContainer from '../components/CallControls/ButtonContainer';
 import PhoneDown from '../icons/PhoneDown';
 import Video from '../icons/Video';
@@ -16,40 +10,34 @@ import VideoSlash from '../icons/VideoSlash';
 import { useRingCall } from '../hooks/useRingCall';
 import Mic from '../icons/Mic';
 import MicOff from '../icons/MicOff';
+import { RTCView } from 'react-native-webrtc';
+import { useCallKeep } from '../hooks/useCallKeep';
+import { UserInfoView } from '../components/UserInfoView';
+import {
+  useActiveCall,
+  useActiveRingCall,
+  useActiveRingCallDetails,
+  useLocalParticipant,
+  useRemoteParticipants,
+} from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
     height: '100%',
-    backgroundColor: 'gray',
   },
-  userInfo: {
-    textAlign: 'center',
-    alignItems: 'center',
-    marginTop: 90,
-    paddingHorizontal: 55,
+  background: {
+    backgroundColor: 'black',
+    opacity: 0.9,
   },
-  avatarView: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    flexWrap: 'wrap',
-    width: '90%',
-  },
-  avatar: {
-    height: 200,
-    width: 200,
-    borderRadius: 100,
-  },
-  name: {
-    marginTop: 45,
-    fontSize: 30,
-    color: 'white',
-    fontWeight: '400',
-    textAlign: 'center',
+  view: {
+    position: 'absolute',
+    zIndex: 5,
+    width: '100%',
+    height: '100%',
   },
   callingText: {
-    marginTop: 16,
     fontSize: 20,
+    marginTop: 16,
     textAlign: 'center',
     color: '#FFFFFF',
     fontWeight: '600',
@@ -57,68 +45,46 @@ const styles = StyleSheet.create({
   },
   buttons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 40,
-    marginTop: '40%',
+    justifyContent: 'space-evenly',
     position: 'absolute',
     bottom: 90,
     left: 0,
     right: 0,
   },
+  buttonStyle: {
+    height: 70,
+    width: 70,
+    borderRadius: 70,
+  },
   svg: {
     height: 30,
     width: 30,
+  },
+  stream: {
+    flex: 1,
   },
 });
 
 type Props = NativeStackScreenProps<RootStackParamList, 'OutgoingCallScreen'>;
 
-const sizes = [200, 110, 100];
+const Background = () => {
+  const localMediaStream = useAppGlobalStoreValue(
+    (store) => store.localMediaStream,
+  );
+  const localParticipant = useLocalParticipant();
+  const isVideoMuted = !localParticipant?.video;
 
-const UserInfoView = (props: {
-  members: { [key: string]: Member };
-  memberUserIds: string[];
-}) => {
-  const { memberUserIds, members } = props;
-  let name: string;
-  if (memberUserIds.length <= 2) {
-    name = memberUserIds.join(' and  ');
-  } else {
-    name = `${memberUserIds.slice(0, 2).join(', ')} and + ${
-      memberUserIds.length - 2
-    } more`;
-  }
-  return (
-    <View style={styles.userInfo}>
-      <View style={styles.avatarView}>
-        {Object.values(members)
-          .slice(0, 3)
-          .map((member) => {
-            return (
-              <Image
-                key={member.userId}
-                style={[
-                  styles.avatar,
-                  {
-                    height:
-                      sizes[
-                        memberUserIds.length > 2 ? 2 : memberUserIds.length - 1
-                      ],
-                    width:
-                      sizes[
-                        memberUserIds.length > 2 ? 2 : memberUserIds.length - 1
-                      ],
-                  },
-                ]}
-                source={{
-                  uri: `https://getstream.io/random_png/?id=${member.userId}&name=${member.userId}`,
-                }}
-              />
-            );
-          })}
-      </View>
-      <Text style={styles.name}>{name}</Text>
-    </View>
+  return !isVideoMuted ? (
+    <RTCView
+      // @ts-ignore
+      streamURL={localMediaStream?.toURL()}
+      objectFit="cover"
+      zOrder={1}
+      style={styles.stream}
+      mirror={true}
+    />
+  ) : (
+    <View style={[styles.container, styles.background]} />
   );
 };
 
@@ -126,24 +92,22 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
-  const { activeCallRemoteParticipants$ } = useStore();
-  const remoteParticipants = useObservableValue(activeCallRemoteParticipants$);
-  const isVideoMuted = useAppGlobalStoreValue((store) => store.isVideoMuted);
-  const isAudioMuted = useAppGlobalStoreValue((store) => store.isAudioMuted);
+  const remoteParticipants = useRemoteParticipants();
+  const localParticipant = useLocalParticipant();
+  const isVideoMuted = !localParticipant?.video;
+  const isAudioMuted = !localParticipant?.audio;
   const username = useAppGlobalStoreValue((store) => store.username);
-  const setState = useAppGlobalStoreSetState();
 
   const filteredParticipants = loopbackMyVideo
     ? remoteParticipants
     : remoteParticipants.filter((p) => !p.isLoggedInUser);
-  const { activeRingCallDetails$, activeRingCallMeta$, activeCall$ } =
-    useStore();
-  const activeRingCallDetails = useObservableValue(activeRingCallDetails$);
-  const call = useObservableValue(activeCall$);
-  const activeRingCallMeta = useObservableValue(activeRingCallMeta$);
+  const activeRingCallDetails = useActiveRingCallDetails();
+  const call = useActiveCall();
+  const activeRingCallMeta = useActiveRingCall();
   const members = activeRingCallDetails?.members || {};
   const memberUserIds = activeRingCallDetails?.memberUserIds || [];
   const { cancelCall } = useRingCall();
+  const { endCall } = useCallKeep();
 
   const hangupHandler = () => {
     if (!call) {
@@ -151,7 +115,7 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
       return;
     }
     try {
-      call.leave();
+      endCall();
       if (
         activeRingCallMeta &&
         activeRingCallMeta.createdByUserId === username
@@ -170,52 +134,51 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
   }, [filteredParticipants, navigation]);
 
   const videoToggle = () => {
-    setState((prevState) => ({
-      isVideoMuted: !prevState.isVideoMuted,
-    }));
+    call?.updateMuteState('video', !isVideoMuted);
   };
 
   const audioToggle = () => {
-    setState((prevState) => ({
-      isAudioMuted: !prevState.isAudioMuted,
-    }));
+    call?.updateMuteState('audio', !isAudioMuted);
   };
 
   return (
-    <View style={styles.container}>
-      <UserInfoView memberUserIds={memberUserIds} members={members} />
-      <Text style={styles.callingText}>Calling...</Text>
-      <View style={styles.buttons}>
-        <ButtonContainer
-          onPress={audioToggle}
-          colorKey={isAudioMuted ? 'activated' : 'deactivated'}
-          size={70}
-          svgContainerStyle={styles.svg}
-        >
-          {isAudioMuted ? <Mic color="black" /> : <MicOff color="white" />}
-        </ButtonContainer>
-        <ButtonContainer
-          onPress={videoToggle}
-          colorKey={isVideoMuted ? 'activated' : 'deactivated'}
-          size={70}
-          svgContainerStyle={styles.svg}
-        >
-          {isVideoMuted ? (
-            <Video color="black" />
-          ) : (
-            <VideoSlash color="white" />
-          )}
-        </ButtonContainer>
-        <ButtonContainer
-          onPress={hangupHandler}
-          colorKey={'cancel'}
-          size={70}
-          svgContainerStyle={styles.svg}
-        >
-          <PhoneDown color="#fff" />
-        </ButtonContainer>
+    <>
+      <View style={styles.view}>
+        <UserInfoView memberUserIds={memberUserIds} members={members} />
+        <Text style={styles.callingText}>Calling...</Text>
+        <View style={styles.buttons}>
+          <ButtonContainer
+            onPress={audioToggle}
+            colorKey={isAudioMuted ? 'activated' : 'deactivated'}
+            style={styles.buttonStyle}
+            svgContainerStyle={styles.svg}
+          >
+            {isAudioMuted ? <Mic color="black" /> : <MicOff color="white" />}
+          </ButtonContainer>
+          <ButtonContainer
+            onPress={videoToggle}
+            colorKey={isVideoMuted ? 'activated' : 'deactivated'}
+            style={styles.buttonStyle}
+            svgContainerStyle={styles.svg}
+          >
+            {isVideoMuted ? (
+              <Video color="black" />
+            ) : (
+              <VideoSlash color="white" />
+            )}
+          </ButtonContainer>
+          <ButtonContainer
+            onPress={hangupHandler}
+            colorKey={'cancel'}
+            style={styles.buttonStyle}
+            svgContainerStyle={styles.svg}
+          >
+            <PhoneDown color="#fff" />
+          </ButtonContainer>
+        </View>
       </View>
-    </View>
+      <Background />
+    </>
   );
 };
 

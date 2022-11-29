@@ -11,6 +11,7 @@ const CameraSwitchButton = () => {
   const localMediaStream = useAppGlobalStoreValue(
     (store) => store.localMediaStream,
   );
+
   const toggleCamera = async () => {
     if (localMediaStream) {
       const [primaryVideoTrack] = localMediaStream.getVideoTracks();
@@ -28,6 +29,7 @@ const CameraSwitchButton = () => {
       //   primaryVideoTrack.applyConstraints(constraints);
     }
   };
+
   return (
     <ButtonContainer onPress={toggleCamera} colorKey={'activated'}>
       <CameraSwitch color="#121416" />
