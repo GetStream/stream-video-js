@@ -114,5 +114,5 @@ export type CallOptions = {
 };
 
 export type PublishOptions = {
-  preferredVideoCodec?: string | null;
+  preferredCodec?: string | null;
 };
