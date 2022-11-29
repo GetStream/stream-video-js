@@ -558,8 +558,8 @@ export class Call {
   private handleOnTrack = (e: RTCTrackEvent) => {
     const [primaryStream] = e.streams;
     // TODO OL: extract track kind
-    const [trackId, trackKind] = primaryStream.id.split(':');
-    console.log(`Got remote ${trackKind} track:`, e.track);
+    const [trackId, trackType] = primaryStream.id.split(':');
+    console.log(`Got remote ${trackType} track:`, e.track);
     const participantToUpdate = this.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );
@@ -572,7 +572,7 @@ export class Call {
       console.log(
         `Track muted:`,
         participantToUpdate.userId,
-        `${trackKind}:${trackId}`,
+        `${trackType}:${trackId}`,
         e.track,
       );
     });
@@ -581,7 +581,7 @@ export class Call {
       console.log(
         `Track unmuted:`,
         participantToUpdate.userId,
-        `${trackKind}:${trackId}`,
+        `${trackType}:${trackId}`,
         e.track,
       );
     });
@@ -590,7 +590,7 @@ export class Call {
       console.log(
         `Track ended:`,
         participantToUpdate.userId,
-        `${trackKind}:${trackId}`,
+        `${trackType}:${trackId}`,
         e.track,
       );
     });
@@ -598,7 +598,7 @@ export class Call {
     const key: keyof StreamVideoParticipant =
       e.track.kind === 'audio'
         ? 'audioStream'
-        : trackKind === 'TRACK_TYPE_SCREEN_SHARE'
+        : trackType === 'TRACK_TYPE_SCREEN_SHARE'
         ? 'screenShareStream'
         : 'videoStream';
 
