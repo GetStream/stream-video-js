@@ -67,6 +67,7 @@ export const useAuth = () => {
         }
         setAuthenticationInProgress(false);
       } else {
+        setAuthenticationInProgress(false);
         setVideoClient(undefined);
       }
     };
