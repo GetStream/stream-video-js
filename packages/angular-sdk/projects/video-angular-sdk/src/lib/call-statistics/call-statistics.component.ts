@@ -1,4 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChartConfiguration, ChartOptions } from 'chart.js';
+import { BaseChartDirective } from 'ng2-charts';
 import { pairwise, Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
@@ -16,7 +18,27 @@ export class CallStatisticsComponent implements OnInit, OnDestroy {
   subscriberResolution?: string;
   publishBitrate?: string;
   subscribeBitrate?: string;
+  lineChartData: ChartConfiguration<'line'>['data'] = {
+    labels: new Array(20).fill(''),
+    datasets: [
+      {
+        data: new Array(20).fill(0),
+        label: 'Latency (ms)',
+        fill: false,
+        tension: 0.5,
+        borderColor: 'white',
+        backgroundColor: 'transparent',
+        pointBackgroundColor: 'white',
+      },
+    ],
+  };
+  lineChartOptions: ChartOptions<'line'> = {
+    responsive: true,
+    scales: { x: { ticks: { callback: () => '' } } },
+  };
+  lineChartLegend = true;
   private subscriptions: Subscription[] = [];
+  @ViewChild(BaseChartDirective) private chart?: BaseChartDirective;
 
   constructor(private streamVideoService: StreamVideoService) {
     this.subscriptions.push(
@@ -52,6 +74,15 @@ export class CallStatisticsComponent implements OnInit, OnDestroy {
             report?.timestamp,
             prevReport?.timestamp,
           );
+          if (report) {
+            this.lineChartData.labels!.shift();
+            this.lineChartData.labels!.push(
+              new Date(report.timestamp).toLocaleTimeString(),
+            );
+            this.lineChartData.datasets[0].data.shift();
+            this.lineChartData.datasets[0].data.push(report.latencyInMs);
+            this.chart?.update();
+          }
         }),
     );
   }

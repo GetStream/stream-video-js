@@ -3,7 +3,12 @@
     Statistics
   </h2>
   <h3>Call Latency</h3>
-  <div>latency chart here</div>
+    <canvas baseChart="chart"
+      [type]="'line'"
+      [data]="lineChartData"
+      [options]="lineChartOptions"
+      [legend]="lineChartLegend">
+    </canvas>
   <h3>Call performance</h3>
   <div class="str-video__call-stats__card-container">
     <ng-container *ngTemplateOutlet="statCard; context: {label: 'Region', value: datacenter}"></ng-container>
