@@ -12,9 +12,9 @@
     "generate-docs": "typedoc --plugin typedoc-plugin-markdown --cleanOutputDir true --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --out generated-docs --exclude '!**/*(Call|StreamVideoClient).ts'  --tsconfig ./tsconfig.json ./index.ts && replace-in-file '# Class: ' '# ' generated-docs/** "
   },
   "dependencies": {
-    "@protobuf-ts/runtime": "^2.8.1",
-    "@protobuf-ts/runtime-rpc": "^2.8.1",
-    "@protobuf-ts/twirp-transport": "^2.8.1",
+    "@protobuf-ts/runtime": "^2.8.2",
+    "@protobuf-ts/runtime-rpc": "^2.8.2",
+    "@protobuf-ts/twirp-transport": "^2.8.2",
     "rxjs": "^7.5.7",
     "sdp-transform": "^2.14.1",
     "uuid": "^9.0.0",

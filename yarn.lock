@@ -3854,7 +3854,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@protobuf-ts/runtime-rpc@npm:^2.8.1, @protobuf-ts/runtime-rpc@npm:^2.8.2":
+"@protobuf-ts/runtime-rpc@npm:^2.8.2":
   version: 2.8.2
   resolution: "@protobuf-ts/runtime-rpc@npm:2.8.2"
   dependencies:
@@ -3863,14 +3863,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@protobuf-ts/runtime@npm:^2.8.1, @protobuf-ts/runtime@npm:^2.8.2":
+"@protobuf-ts/runtime@npm:^2.8.2":
   version: 2.8.2
   resolution: "@protobuf-ts/runtime@npm:2.8.2"
   checksum: ab322e832bfb347b271a8862b8ef3db27ffa380f9c49f94acb410534586a282ebd8af96d4459f959ad0fe5fbf34183f3f4fe512e50c9a4331b742a7445b16c92
   languageName: node
   linkType: hard
 
-"@protobuf-ts/twirp-transport@npm:^2.8.1":
+"@protobuf-ts/twirp-transport@npm:^2.8.2":
   version: 2.8.2
   resolution: "@protobuf-ts/twirp-transport@npm:2.8.2"
   dependencies:
@@ -4815,7 +4815,7 @@ __metadata:
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@tsconfig/react-native": ^2.0.2
     "@types/jest": ^26.0.23
-    "@types/react": ^18.0.21
+    "@types/react": ^18.0.25
     "@types/react-native": ^0.70.6
     "@types/react-test-renderer": ^18.0.0
     "@typescript-eslint/eslint-plugin": ^5.37.0
@@ -4836,9 +4836,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-client@workspace:packages/client"
   dependencies:
-    "@protobuf-ts/runtime": ^2.8.1
-    "@protobuf-ts/runtime-rpc": ^2.8.1
-    "@protobuf-ts/twirp-transport": ^2.8.1
+    "@protobuf-ts/runtime": ^2.8.2
+    "@protobuf-ts/runtime-rpc": ^2.8.2
+    "@protobuf-ts/twirp-transport": ^2.8.2
     "@types/rimraf": ^3.0.2
     "@types/sdp-transform": ^2.4.5
     "@types/uuid": ^8.3.4
@@ -5002,7 +5002,7 @@ __metadata:
     "@stream-io/video-styling": "workspace:^"
     "@types/node": ^18.11.9
     "@types/react": ^18.0.25
-    "@types/react-dom": ^18.0.8
+    "@types/react-dom": ^18.0.9
     "@types/rimraf": ^3.0.2
     react: ^18.2.0
     react-dom: ^18.2.0
@@ -5618,7 +5618,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.0.8":
+"@types/react-dom@npm:^18.0.9":
   version: 18.0.9
   resolution: "@types/react-dom@npm:18.0.9"
   dependencies:
@@ -5670,7 +5670,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:^18.0.21, @types/react@npm:^18.0.25":
+"@types/react@npm:*, @types/react@npm:^18.0.25":
   version: 18.0.25
   resolution: "@types/react@npm:18.0.25"
   dependencies:
