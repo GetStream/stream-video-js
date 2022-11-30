@@ -193,7 +193,7 @@ export const createStatsReporter = ({
   if (pollingIntervalInMs > 0) {
     const loop = async () => {
       await run().catch((e) => {
-        console.error('Failed to collect stats', e);
+        console.log('Failed to collect stats', e);
       });
       timeoutId = setTimeout(loop, pollingIntervalInMs);
     };
