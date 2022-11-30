@@ -2,14 +2,14 @@ import {
   useObservableValue,
   useStore,
 } from '@stream-io/video-react-sdk/dist/src/hooks/useStore';
-import { ActiveCall } from './ActiveCall';
-import { RingingCallPanel } from './RingingPanel';
+import { useMemo } from 'react';
 import {
   useActiveCall,
   useRemoteParticipants,
   useStreamVideoClient,
-} from '@stream-io/video-react-sdk';
-import { useMemo } from 'react';
+} from '@stream-io/video-react-bindings';
+import { ActiveCall } from './ActiveCall';
+import { RingingCallPanel } from './RingingPanel';
 
 export const CallPanel = () => {
   const videoClient = useStreamVideoClient();
