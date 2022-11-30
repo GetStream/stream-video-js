@@ -2,10 +2,7 @@ import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ActiveCallScreen from './src/screens/ActiveCall';
-import {
-  AppGlobalContextProvider,
-  useAppGlobalStoreValue,
-} from './src/contexts/AppContext';
+import { AppGlobalContextProvider } from './src/contexts/AppContext';
 
 import { RootStackParamList } from './types';
 import LoginScreen from './src/screens/LoginScreen';
@@ -25,9 +22,7 @@ LogBox.ignoreAllLogs();
 
 const StackNavigator = () => {
   useProntoLinkEffect();
-
-  const { authenticationInProgress } = useAuth();
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const { authenticationInProgress, videoClient } = useAuth();
 
   if (authenticationInProgress) {
     return <AuthenticatingProgressScreen />;

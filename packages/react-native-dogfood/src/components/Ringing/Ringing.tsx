@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Button,
   Pressable,
   SafeAreaView,
@@ -83,10 +82,11 @@ const styles = StyleSheet.create({
   },
 });
 
-type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'> & {
+  setLoadingCall: (loading: boolean) => void;
+};
 
-const Ringing = ({ navigation }: Props) => {
-  const [loading, setLoading] = useState(false);
+const Ringing = ({ navigation, setLoadingCall }: Props) => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
   const videoClient = useStreamVideoClient();
   const localMediaStream = useStreamVideoStoreValue(
@@ -113,7 +113,7 @@ const Ringing = ({ navigation }: Props) => {
   const setState = useAppGlobalStoreSetState();
 
   const startCallHandler = async () => {
-    setLoading(true);
+    setLoadingCall(true);
     if (videoClient && localMediaStream) {
       try {
         const callID = uuidv4().toLowerCase();
@@ -137,7 +137,7 @@ const Ringing = ({ navigation }: Props) => {
           callId: callID,
           callType: 'default',
         }).then(() => {
-          setLoading(false);
+          setLoadingCall(false);
         });
       } catch (err) {
         console.log(err);
@@ -200,7 +200,6 @@ const Ringing = ({ navigation }: Props) => {
         title="Start a Call"
         onPress={startCallHandler}
       />
-      {loading && <ActivityIndicator />}
     </SafeAreaView>
   );
 };

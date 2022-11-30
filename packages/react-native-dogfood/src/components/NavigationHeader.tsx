@@ -53,7 +53,6 @@ export const NavigationHeader = () => {
             appStoreSetState({
               username: '',
               userImageUrl: '',
-              videoClient: undefined,
             });
           } catch (error) {
             console.error('Failed to disconnect', error);
