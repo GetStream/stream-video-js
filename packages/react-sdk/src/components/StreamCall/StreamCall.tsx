@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { CallState } from '@stream-io/video-client/src/gen/video/sfu/models/models';
 import { Stage } from './Stage';
 import { Stats } from '../Stats';
 import { Ping } from '../Ping';
