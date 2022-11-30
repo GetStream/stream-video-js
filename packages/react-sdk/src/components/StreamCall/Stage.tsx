@@ -24,7 +24,7 @@ export const Stage = (props: {
 
   const localParticipant = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
-  const { activeCallLocalParticipant$ } = useStore();
+  const { localParticipant$ } = useStore();
 
   const [localAudioStream, setLocalAudioStream] = useState<MediaStream>();
   const [localVideoStream, setLocalVideoStream] = useState<MediaStream>();
@@ -59,7 +59,7 @@ export const Stage = (props: {
     const subscriptions: Subscription[] = [];
     subscriptions.push(
       watchForDisconnectedAudioDevice(
-        activeCallLocalParticipant$.pipe(map((p) => p?.audioDeviceId)),
+        localParticipant$.pipe(map((p) => p?.audioDeviceId)),
       ).subscribe(async () => {
         call.updateMuteState('audio', true);
         const stream = await getAudioStream();
@@ -68,7 +68,7 @@ export const Stage = (props: {
     );
     subscriptions.push(
       watchForDisconnectedVideoDevice(
-        activeCallLocalParticipant$.pipe(map((p) => p?.videoDeviceId)),
+        localParticipant$.pipe(map((p) => p?.videoDeviceId)),
       ).subscribe(async () => {
         call.updateMuteState('video', true);
         const stream = await getVideoStream();
@@ -77,7 +77,7 @@ export const Stage = (props: {
     );
 
     return () => subscriptions.forEach((s) => s.unsubscribe());
-  }, [activeCallLocalParticipant$, call, getVideoStream, getAudioStream]);
+  }, [localParticipant$, call, getVideoStream, getAudioStream]);
 
   const preferredCodec = useDebugPreferredVideoCodec();
   useEffect(() => {

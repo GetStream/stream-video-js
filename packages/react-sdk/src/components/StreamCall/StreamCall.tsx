@@ -1,94 +1,32 @@
-import { useEffect, useState } from 'react';
-import { CallState } from '@stream-io/video-client/src/gen/video/sfu/models/models';
-import { Stage } from './Stage';
-import { Stats } from '../Stats';
-import { Ping } from '../Ping';
-import { useCall } from '../../hooks/useCall';
-import { DeviceSettings } from './DeviceSettings';
+import { ReactNode, useEffect } from 'react';
 import { MediaDevicesProvider } from '../../contexts/MediaDevicesContext';
-import { CallControls } from './CallControls';
-import { CreateCallInput } from '@stream-io/video-client';
-import { useStreamVideoClient } from '@stream-io/video-react-bindings';
+import { useStreamVideoClient } from '../../contexts/StreamVideoContext';
+import { useActiveCall } from '../../hooks/useActiveCall';
+import { useOutgoingCalls } from '../../hooks';
 
-export type CallProps = {
-  currentUser: string;
-  callId: string;
-  callType: string;
-  autoJoin?: boolean;
-  input?: CreateCallInput;
-};
+export const StreamCall = ({ children }: { children: ReactNode }) => {
+  const videoClient = useStreamVideoClient();
+  const activeCall = useActiveCall();
+  const outgoingCalls = useOutgoingCalls();
 
-export const StreamCall = ({
-  currentUser,
-  callId,
-  callType,
-  autoJoin = true,
-  input,
-}: CallProps) => {
-  const { activeCall, activeCallMeta } = useCall({
-    callId,
-    callType,
-    autoJoin,
-    input,
-  });
-
-  const [sfuCallState, setSfuCallState] = useState<CallState>();
   useEffect(() => {
-    const joinCall = async () => {
-      // TODO: OL: announce bitrates by passing down MediaStream to .join()
-      const callState = await activeCall?.join();
-      setSfuCallState(callState);
-    };
+    if (!videoClient) return;
 
-    if (activeCallMeta?.createdByUserId === currentUser || autoJoin) {
-      // initiator, immediately joins the call
-      joinCall().catch((e) => {
-        console.error(`Error happened while joining a call`, e);
-        setSfuCallState(undefined);
+    const [outgoingCall] = outgoingCalls;
+    if (!activeCall && outgoingCall?.call) {
+      videoClient?.joinCall({
+        id: outgoingCall.call.id,
+        type: outgoingCall.call.type,
+        // FIXME: OL optional, but it is marked as required in proto
+        datacenterId: '',
       });
     }
-
     return () => {
-      activeCall?.leave();
+      activeCall?.connection?.leave();
     };
-  }, [activeCall, autoJoin, activeCallMeta, currentUser]);
+  }, [activeCall, videoClient, outgoingCalls]);
 
-  const videoClient = useStreamVideoClient();
-  return (
-    <MediaDevicesProvider>
-      <div className="str-video__call">
-        {sfuCallState && (
-          <>
-            {activeCallMeta && activeCall && (
-              <div className="str-video__call__header">
-                <h4 className="str-video__call__header-title">
-                  {activeCallMeta.type}:{activeCallMeta.id}
-                </h4>
-                <DeviceSettings activeCall={activeCall} />
-              </div>
-            )}
-            {activeCall && (
-              <>
-                <Stage
-                  participants={sfuCallState.participants}
-                  call={activeCall}
-                />
-                <CallControls call={activeCall} callMeta={activeCallMeta} />
-              </>
-            )}
-            {activeCallMeta && (
-              <Ping activeCall={activeCallMeta} currentUser={currentUser} />
-            )}
-          </>
-        )}
-        {videoClient && activeCall && activeCallMeta && (
-          <Stats
-            client={videoClient}
-            call={activeCall}
-            activeCall={activeCallMeta}
-          />
-        )}
-      </div>
-    </MediaDevicesProvider>
-  );
+  if (!videoClient) return null;
+
+  return <MediaDevicesProvider>{children}</MediaDevicesProvider>;
 };
