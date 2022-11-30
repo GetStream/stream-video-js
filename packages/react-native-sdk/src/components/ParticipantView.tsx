@@ -80,6 +80,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
     );
   }, [size, index]);
 
+  console.log('size', size);
   return (
     <View
       style={[

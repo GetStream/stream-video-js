@@ -19,7 +19,7 @@
     "react-native-webrtc": ">=106.0.0-beta.7"
   },
   "devDependencies": {
-    "@types/react": "17.0.21",
+    "@types/react": "17.0.52",
     "@types/react-native": "^0.70.6",
     "@types/rimraf": "^3.0.2",
     "react-native-svg": "^13.6.0",
