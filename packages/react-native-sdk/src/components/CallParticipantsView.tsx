@@ -2,7 +2,10 @@ import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ParticipantView } from './ParticipantView';
 import { LocalVideoView } from './LocalVideoView';
-import { useParticipants } from '@stream-io/video-react-bindings';
+import {
+  useParticipants,
+  useRemoteParticipants,
+} from '@stream-io/video-react-bindings';
 
 type SizeType = React.ComponentProps<typeof ParticipantView>['size'];
 
@@ -61,6 +64,7 @@ export const CallParticipantsView: React.FC = () => {
    */
 
   const allParticipants = useParticipants();
+  const remoteParticipants = useRemoteParticipants();
   const mode =
     activeCallAllParticipantsLengthToMode[allParticipants.length] ||
     Modes.fifth;
@@ -72,11 +76,9 @@ export const CallParticipantsView: React.FC = () => {
     [mode, isUserIsAloneInCall],
   );
   const showUserInParticipantView = !isLocalVideoVisible;
-  const filteredParticipants = useMemo(() => {
-    return showUserInParticipantView
-      ? allParticipants
-      : allParticipants.filter((p) => !p.isLoggedInUser);
-  }, [showUserInParticipantView, allParticipants]);
+  const filteredParticipants = showUserInParticipantView
+    ? allParticipants
+    : remoteParticipants;
 
   if (allParticipants.length === 0) {
     return null;
@@ -97,7 +99,6 @@ export const CallParticipantsView: React.FC = () => {
           modeToSize[mode] || calculateFiveOrMoreParticipantsSize(index);
         return (
           <ParticipantView
-            index={index}
             key={`${userId}/${participant.sessionId}`}
             participantId={userId}
             size={size}

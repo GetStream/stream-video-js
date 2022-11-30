@@ -34,39 +34,34 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
 }: ParticipantViewProps) => {
   const call = useActiveCall();
   const participants = useParticipants();
-  const participant = participants.filter(
-    (p) => p?.user?.id === participantId,
-  )[0];
+  const participant = participants.find((p) => p?.user?.id === participantId);
 
   const cameraBackFacingMode = useStreamVideoStoreValue(
     (store) => store.cameraBackFacingMode,
   );
 
-  const {
-    videoStream,
-    audioStream,
-    isSpeaking,
-    sessionId,
-    user,
-    isLoggedInUser,
-    audio,
-  } = participant;
-
   const updateVideoSubscriptionForParticipant = useCallback(
     (width: number, height: number) => {
-      if (call) {
-        call.updateSubscriptionsPartial({
-          [sessionId]: {
-            videoDimension: {
-              width: Math.trunc(width),
-              height: Math.trunc(height),
-            },
-          },
-        });
+      if (!call || !participant) {
+        return null;
       }
+
+      call.updateSubscriptionsPartial({
+        [participant.sessionId]: {
+          videoDimension: {
+            width: Math.trunc(width),
+            height: Math.trunc(height),
+          },
+        },
+      });
     },
-    [call, sessionId],
+    [call, participant],
   );
+
+  if (!participant) return null;
+
+  const { videoStream, audioStream, isSpeaking, user, isLoggedInUser, audio } =
+    participant;
 
   const mirror = isLoggedInUser && !cameraBackFacingMode;
   const MicIcon = !audio ? MicOff : Mic;
