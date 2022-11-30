@@ -7,12 +7,14 @@ import {
   useTranslationContext,
 } from 'stream-chat-react';
 import { MemberInput } from '@stream-io/video-client';
+import {
+  useActiveCall,
+  useStreamVideoClient,
+} from '@stream-io/video-react-sdk';
+
 import { Struct } from '@stream-io/video-client/dist/src/gen/google/protobuf/struct';
 
 import { MenuIcon } from './icons';
-
-import { useCallController } from '../../context';
-
 import type { StreamChatType } from '../../types/chat';
 
 export type ChannelHeaderProps = {
@@ -36,13 +38,14 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
     overrideImage,
     overrideTitle,
   });
-  const { createCall } = useCallController();
+  const videoClient = useStreamVideoClient();
+  const activeCall = useActiveCall();
 
   const { member_count, subtitle } = channel?.data || {};
 
   const onCreateCall = useCallback(() => {
-    createCall({
-      id: channel.cid,
+    videoClient?.createCall({
+      id: channel.cid, // todo: generate random id
       type: 'default',
       input: {
         members: Object.values(channel.state.members).map(
@@ -52,6 +55,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
               role: member.user.role,
               customJson: Struct.toBinary(Struct.fromJson({})),
               userInput: {
+                id: member.user_id,
                 name: member.user.name,
                 imageUrl: member.user.image,
                 role: member.user.role,
@@ -62,7 +66,10 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
         ),
       },
     });
-  }, [createCall, channel.state.members, channel.cid]);
+  }, [channel.state.members, channel.cid, videoClient]);
+
+  const disableCreateCall =
+    !videoClient || activeCall?.data?.call?.callCid === channel.cid;
 
   return (
     <div className="str-chat__header-livestream str-chat__channel-header">
@@ -107,7 +114,10 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
           })}
         </p>
       </div>
-      <button onClick={onCreateCall}>Call</button>
+      {/* TODO: MC: would need to have ws connection status flag to correctly reflect in UI (disabled etc.)*/}
+      <button disabled={disableCreateCall} onClick={onCreateCall}>
+        Call
+      </button>
     </div>
   );
 };
