@@ -218,26 +218,41 @@ export class Call {
       return console.error(`There is no video track in the stream.`);
     }
 
-    const videoEncodings = findOptimalVideoLayers(videoTrack);
-    const videoTransceiver = this.publisher.addTransceiver(videoTrack, {
-      direction: 'sendonly',
-      streams: [videoStream],
-      sendEncodings: videoEncodings,
-    });
-
-    const codecPreferences = getPreferredCodecs(
-      'video',
-      opts.preferredCodec || 'vp8',
+    const currentVideoTransceiver = this.publisher.getTransceivers().find(
+      (t) =>
+        // @ts-ignore
+        t.__trackType === TrackType.VIDEO &&
+        t.sender.track &&
+        t.sender.track?.kind === 'video',
     );
-    // @ts-ignore
-    if ('setCodecPreferences' in videoTransceiver && codecPreferences) {
-      console.log(`set codec preferences`, codecPreferences);
-      videoTransceiver.setCodecPreferences(codecPreferences);
+    if (!currentVideoTransceiver) {
+      const videoEncodings = findOptimalVideoLayers(videoTrack);
+      const videoTransceiver = this.publisher.addTransceiver(videoTrack, {
+        direction: 'sendonly',
+        streams: [videoStream],
+        sendEncodings: videoEncodings,
+      });
+
+      // @ts-ignore
+      videoTransceiver.__trackType = TrackType.VIDEO;
+
+      const codecPreferences = getPreferredCodecs(
+        'video',
+        opts.preferredCodec || 'vp8',
+      );
+
+      if ('setCodecPreferences' in videoTransceiver && codecPreferences) {
+        console.log(`set codec preferences`, codecPreferences);
+        videoTransceiver.setCodecPreferences(codecPreferences);
+      }
+    } else {
+      currentVideoTransceiver.sender.track?.stop();
+      await currentVideoTransceiver.sender.replaceTrack(videoTrack);
     }
 
     this.stateStore.updateParticipant(this.client.sessionId, {
       videoStream,
-      videoDeviceId: this.getActiveInputDeviceId('videoinput'),
+      videoDeviceId: videoTrack.getSettings().deviceId,
     });
 
     this.publishStatEvent({
@@ -261,13 +276,27 @@ export class Call {
       return console.error(`There is no audio track in the stream`);
     }
 
-    this.publisher.addTransceiver(audioTrack, {
-      direction: 'sendonly',
-    });
+    const audioTransceiver = this.publisher.getTransceivers().find(
+      (t) =>
+        // @ts-ignore
+        t.__trackType === TrackType.AUDIO &&
+        t.sender.track &&
+        t.sender.track.kind === 'audio',
+    );
+    if (!audioTransceiver) {
+      const audioTransceiver = this.publisher.addTransceiver(audioTrack, {
+        direction: 'sendonly',
+      });
+      // @ts-ignore
+      audioTransceiver.__trackType = TrackType.AUDIO;
+    } else {
+      audioTransceiver.sender.track?.stop();
+      await audioTransceiver.sender.replaceTrack(audioTrack);
+    }
 
     this.stateStore.updateParticipant(this.client.sessionId, {
       audioStream,
-      audioDeviceId: this.getActiveInputDeviceId('audioinput'),
+      audioDeviceId: audioTrack.getSettings().deviceId,
     });
 
     this.publishStatEvent({
@@ -290,13 +319,25 @@ export class Call {
       return console.error(`There is no video track in the stream`);
     }
 
-    const transceiver = this.publisher.addTransceiver(screenShareTrack, {
-      direction: 'sendonly',
-      streams: [screenShareStream],
-      // sendEncodings
-    });
-    // @ts-ignore FIXME: OL: this is a hack
-    transceiver._kind = 'screen';
+    const screenShareTransceiver = this.publisher.getTransceivers().find(
+      (t) =>
+        // @ts-ignore
+        t.__trackType === TrackType.SCREEN_SHARE &&
+        t.sender.track &&
+        t.sender.track.kind === 'video',
+    );
+    if (!screenShareTransceiver) {
+      const transceiver = this.publisher.addTransceiver(screenShareTrack, {
+        direction: 'sendonly',
+        streams: [screenShareStream],
+        // sendEncodings
+      });
+      // @ts-ignore FIXME: OL: this is a hack
+      transceiver.__trackType = TrackType.SCREEN_SHARE;
+    } else {
+      screenShareTransceiver.sender.track?.stop();
+      await screenShareTransceiver.sender.replaceTrack(screenShareTrack);
+    }
 
     this.stateStore.updateParticipant(this.client.sessionId, {
       screenShareStream,
@@ -366,7 +407,7 @@ export class Call {
       // FIXME: screen share?
       [kind === 'audioinput' ? 'audioStream' : 'videoStream']: mediaStream,
       [kind === 'audioinput' ? 'audioDeviceId' : 'videoDeviceId']:
-        this.getActiveInputDeviceId(kind),
+        newTrack.getSettings().deviceId,
     });
 
     return mediaStream; // for SDK use (preview video)
@@ -589,20 +630,6 @@ export class Call {
     this.stateStore.updateParticipant(participantToUpdate.sessionId, {
       [key]: primaryStream,
     });
-  };
-
-  private getActiveInputDeviceId = (kind: MediaDeviceKind) => {
-    if (!this.publisher) return;
-
-    const trackKind =
-      kind === 'audioinput'
-        ? 'audio'
-        : kind === 'videoinput'
-        ? 'video'
-        : 'unknown';
-    const senders = this.publisher.getSenders();
-    const sender = senders.find((s) => s.track?.kind === trackKind);
-    return sender?.track?.getConstraints().deviceId as string;
   };
 
   private assertCallJoined = async () => {

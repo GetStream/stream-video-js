@@ -2,7 +2,6 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import {
   PeerType,
   TrackInfo,
-  TrackType,
   VideoLayer,
 } from '../gen/video/sfu/models/models';
 import { getIceCandidate } from './helpers/iceCandidate';
@@ -78,13 +77,8 @@ export const createPublisher = ({
         return {
           trackId: track.id,
           layers: layers,
-          trackType:
-            track.kind === 'audio'
-              ? TrackType.AUDIO
-              : // @ts-ignore FIXME: OL: this is a hack
-              transceiver._kind === 'screen'
-              ? TrackType.SCREEN_SHARE
-              : TrackType.VIDEO,
+          // @ts-ignore FIXME: OL: this is a hack
+          trackType: transceiver.__trackType,
         };
       });
 
