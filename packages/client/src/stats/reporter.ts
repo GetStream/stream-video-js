@@ -5,7 +5,7 @@ import type {
   ParticipantsStatsReport,
   StatsReport,
 } from './types';
-import { StreamVideoWriteableStateStore } from '../stateStore';
+import { StreamVideoWriteableStateStore } from '../store';
 import { measureResourceLoadLatencyTo } from '../rpc';
 
 export type StatsReporterOpts = {

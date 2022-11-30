@@ -20,8 +20,6 @@ import {
   StreamVideoWriteableStateStore,
   StreamVideoWriteableStateStore2,
 } from '../store';
-import type { StreamVideoParticipant, SubscriptionChanges } from './types';
-import { StreamVideoWriteableStateStore } from '../stateStore';
 import type {
   CallOptions,
   PublishOptions,
@@ -232,8 +230,8 @@ export class Call {
               if (participant.sessionId === this.client.sessionId) {
                 const localParticipant = participant as StreamVideoParticipant;
                 localParticipant.isLoggedInUser = true;
-                localParticipant.audioTrack = audioStream;
-                localParticipant.videoTrack = videoStream;
+                localParticipant.audioStream = audioStream;
+                localParticipant.videoStream = videoStream;
               }
               return participant;
             }),
