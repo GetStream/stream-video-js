@@ -1,16 +1,16 @@
 import { BehaviorSubject, Observable } from 'rxjs';
 import { take, map, pairwise, startWith } from 'rxjs/operators';
-import { Call } from './rtc/Call';
-import type { UserInput } from './gen/video/coordinator/user_v1/user';
+import { Call } from '../rtc/Call';
+import type { UserInput } from '../gen/video/coordinator/user_v1/user';
 import {
   Call as CallMeta,
   CallDetails,
-} from './gen/video/coordinator/call_v1/call';
+} from '../gen/video/coordinator/call_v1/call';
 import type {
   StreamVideoParticipant,
   StreamVideoLocalParticipant,
-} from './rtc/types';
-import type { CallStatsReport } from './stats/types';
+} from '../rtc/types';
+import type { CallStatsReport } from '../stats/types';
 
 export class StreamVideoWriteableStateStore {
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);

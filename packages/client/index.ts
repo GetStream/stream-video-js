@@ -17,8 +17,8 @@ export * from './src/rtc/types';
 export * from './src/ws/types';
 export * from './src/stats/types';
 
-export * from './src/stateStore';
 export * from './src/rtc/Call';
 export * from './src/StreamVideoClient';
 export * from './src/StreamSfuClient';
 export * from './src/devices';
+export * from './src/store';

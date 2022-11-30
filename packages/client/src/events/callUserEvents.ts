@@ -4,9 +4,10 @@ import {
   CallCreated,
   CallRejected,
 } from '../gen/video/coordinator/event_v1/event';
-import { StreamVideoWriteableStateStore } from '../stateStore';
+import { StreamVideoWriteableStateStore } from '../store';
 import { StreamVideoClient } from '../StreamVideoClient';
 
+// todo: MC: remove file
 export const watchCallCreatedEvent = (
   client: StreamVideoClient,
   store: StreamVideoWriteableStateStore,

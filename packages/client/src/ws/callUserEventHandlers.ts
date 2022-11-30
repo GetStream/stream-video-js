@@ -4,7 +4,7 @@ import {
   watchCallCreatedEvent,
   watchCallRejectedEvent,
 } from '../events/callUserEvents';
-import { StreamVideoWriteableStateStore } from '../stateStore';
+import { StreamVideoWriteableStateStore } from '../store';
 import { StreamVideoClient } from '../StreamVideoClient';
 
 export const registerWSEventHandlers = (

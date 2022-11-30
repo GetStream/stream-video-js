@@ -1,6 +1,6 @@
 import { Call } from './Call';
 import { Dispatcher } from './Dispatcher';
-import { StreamVideoWriteableStateStore } from '../stateStore';
+import { StreamVideoWriteableStateStore2 } from '../store';
 import {
   watchParticipantJoined,
   watchParticipantLeft,
@@ -14,7 +14,7 @@ import { watchMuteStateChanged } from '../events/mute';
 
 export const registerEventHandlers = (
   call: Call,
-  store: StreamVideoWriteableStateStore,
+  store: StreamVideoWriteableStateStore2,
   dispatcher: Dispatcher,
 ) => {
   watchChangePublishQuality(dispatcher, call);

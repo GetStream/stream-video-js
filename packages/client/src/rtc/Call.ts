@@ -16,6 +16,11 @@ import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
+import {
+  StreamVideoWriteableStateStore,
+  StreamVideoWriteableStateStore2,
+} from '../store';
+import type { StreamVideoParticipant, SubscriptionChanges } from './types';
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import type {
   CallOptions,
@@ -62,6 +67,7 @@ export class Call {
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
     private readonly stateStore: StreamVideoWriteableStateStore,
+    private readonly stateStore2: StreamVideoWriteableStateStore2,
   ) {
     this.cid = cid;
     this.currentUserId = stateStore.getCurrentValue(
@@ -89,7 +95,7 @@ export class Call {
     });
 
     const { dispatcher } = this.client;
-    registerEventHandlers(this, this.stateStore, dispatcher);
+    registerEventHandlers(this, this.stateStore2, dispatcher);
 
     this.trackSubscriptionsSubject
       .pipe(debounceTime(1200))
@@ -144,6 +150,23 @@ export class Call {
       this.stateStore.callRecordingInProgressSubject,
       false,
     );
+    const activeCall = this.stateStore2.getCurrentValue(
+      this.stateStore2.activeCallSubject,
+    );
+
+    if (activeCall?.data) {
+      this.stateStore2.setCurrentValue(
+        this.stateStore2.activeCallSubject,
+        undefined,
+      );
+
+      this.stateStore2.setCurrentValue(
+        this.stateStore2.participantsSubject,
+        [],
+      );
+    }
+
+    // todo: MC: remove stateStore
     this.stateStore.setCurrentValue(
       this.stateStore.activeCallSubject,
       undefined,
@@ -203,6 +226,19 @@ export class Call {
 
           const { callState } = event.eventPayload.joinResponse;
           const currentParticipants = callState?.participants || [];
+          this.stateStore2.setCurrentValue(
+            this.stateStore2.participantsSubject,
+            currentParticipants.map<StreamVideoParticipant>((participant) => {
+              if (participant.sessionId === this.client.sessionId) {
+                const localParticipant = participant as StreamVideoParticipant;
+                localParticipant.isLoggedInUser = true;
+                localParticipant.audioTrack = audioStream;
+                localParticipant.videoTrack = videoStream;
+              }
+              return participant;
+            }),
+          );
+          // todo: MC: remove stateStore
           this.stateStore.setCurrentValue(
             this.stateStore.activeCallAllParticipantsSubject,
             currentParticipants.map<StreamVideoParticipant>((participant) => {
@@ -216,11 +252,6 @@ export class Call {
             }),
           );
           this.client.keepAlive();
-          this.stateStore.setCurrentValue(
-            this.stateStore.activeCallSubject,
-            this,
-          );
-
           resolve(callState); // expose call state
         });
 
@@ -315,6 +346,20 @@ export class Call {
         });
       }
 
+      this.stateStore2.setCurrentValue(
+        this.stateStore2.participantsSubject,
+        this.participants.map((p) => {
+          if (p.sessionId === this.client.sessionId) {
+            return {
+              ...p,
+              videoTrack: videoStream,
+              videoDeviceId: this.getActiveInputDeviceId('videoinput'),
+            };
+          }
+          return p;
+        }),
+      );
+
       this.stateStore.setCurrentValue(
         this.stateStore.activeCallAllParticipantsSubject,
         this.participants.map((p) => {
@@ -337,6 +382,20 @@ export class Call {
           direction: 'sendonly',
         });
       }
+
+      this.stateStore2.setCurrentValue(
+        this.stateStore2.participantsSubject,
+        this.participants.map((p) => {
+          if (p.sessionId === this.client.sessionId) {
+            return {
+              ...p,
+              audioTrack: audioStream,
+              audioDeviceId: this.getActiveInputDeviceId('audioinput'),
+            };
+          }
+          return p;
+        }),
+      );
 
       this.stateStore.setCurrentValue(
         this.stateStore.activeCallAllParticipantsSubject,
@@ -409,6 +468,21 @@ export class Call {
       : localParticipant?.video);
     this.updateMuteState(kind === 'audioinput' ? 'audio' : 'video', muteState);
 
+    this.stateStore2.setCurrentValue(
+      this.stateStore2.participantsSubject,
+      this.participants.map((p) => {
+        if (p.sessionId === this.client.sessionId) {
+          return {
+            ...p,
+            [kind === 'audioinput' ? 'audioTrack' : 'videoTrack']: mediaStream,
+            [kind === 'audioinput' ? 'audioDeviceId' : 'videoDeviceId']:
+              this.getActiveInputDeviceId(kind),
+          };
+        }
+        return p;
+      }),
+    );
+
     this.stateStore.setCurrentValue(
       this.stateStore.activeCallAllParticipantsSubject,
       this.participants.map((p) => {
@@ -437,6 +511,20 @@ export class Call {
     if (Object.keys(changes).length === 0) {
       return;
     }
+
+    this.stateStore2.setCurrentValue(
+      this.stateStore2.participantsSubject,
+      this.participants.map((participant) => {
+        const change = changes[participant.sessionId];
+        if (change) {
+          return {
+            ...participant,
+            videoDimension: change.videoDimension,
+          };
+        }
+        return participant;
+      }),
+    );
 
     this.stateStore.setCurrentValue(
       this.stateStore.activeCallAllParticipantsSubject,
@@ -613,6 +701,19 @@ export class Call {
     });
 
     if (e.track.kind === 'video') {
+      this.stateStore2.setCurrentValue(
+        this.stateStore2.participantsSubject,
+        this.participants.map((participant) => {
+          if (participant.trackLookupPrefix === trackId) {
+            return {
+              // FIXME OL: shallow clone, switch to deep clone
+              ...participant,
+              videoTrack: primaryStream,
+            };
+          }
+          return participant;
+        }),
+      );
       this.stateStore.setCurrentValue(
         this.stateStore.activeCallAllParticipantsSubject,
         this.participants.map((participant) => {
@@ -627,6 +728,19 @@ export class Call {
         }),
       );
     } else if (e.track.kind === 'audio') {
+      this.stateStore2.setCurrentValue(
+        this.stateStore2.participantsSubject,
+        this.participants.map((participant) => {
+          if (participant.trackLookupPrefix === trackId) {
+            return {
+              // FIXME OL: shallow clone, switch to deep clone
+              ...participant,
+              audioTrack: primaryStream,
+            };
+          }
+          return participant;
+        }),
+      );
       this.stateStore.setCurrentValue(
         this.stateStore.activeCallAllParticipantsSubject,
         this.participants.map((participant) => {
