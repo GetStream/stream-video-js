@@ -66,26 +66,25 @@ const App = ({
   if (!client) return null;
 
   return (
-      <Chat client={client}>
-        <Video>
-          <ChannelList
-            filters={filters}
-            options={options}
-            showChannelSearch
-            sort={sort}
-            ChannelSearch={CustomChannelSearch}
-          />
-          <Channel MessageSystem={CustomEventComponent}>
-            <Window>
-              <ChannelHeader />
-              <MessageList />
-              <MessageInput focus />
-            </Window>
-            <Thread />
-          </Channel>
-        </Video>
-      </Chat>
-    </>
+    <Chat client={client}>
+      <Video>
+        <ChannelList
+          filters={filters}
+          options={options}
+          showChannelSearch
+          sort={sort}
+          ChannelSearch={CustomChannelSearch}
+        />
+        <Channel MessageSystem={CustomEventComponent}>
+          <Window>
+            <ChannelHeader />
+            <MessageList />
+            <MessageInput focus />
+          </Window>
+          <Thread />
+        </Channel>
+      </Video>
+    </Chat>
   );
 };
 

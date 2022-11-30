@@ -1,59 +1,105 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import {
   useActiveCall,
-  useParticipants,
-  usePendingCalls,
+  useLocalParticipant,
   useRemoteParticipants,
+  usePendingCalls,
   useStreamVideoClient,
+  useIncomingCalls,
+  useOutgoingCalls,
 } from '@stream-io/video-react-bindings';
-import { ActiveCall } from './ActiveCall';
-import { RingingCallPanel } from './RingingPanel';
+
+import { ParticipantBox, useStage } from '@stream-io/video-react-sdk';
+
+import { CallCreated } from '@stream-io/video-client';
+// import { RingingCallPanel } from './RingingPanel';
+
+const ButtonControls = ({
+  incomingCall,
+  outgoingCall,
+}: Record<'incomingCall' | 'outgoingCall', CallCreated>) => {
+  const videoClient = useStreamVideoClient();
+
+  const activeCall = useActiveCall();
+
+  return (
+    <div>
+      {incomingCall && 'incoming'}
+      {outgoingCall && 'outgoing'}
+
+      {incomingCall && !activeCall?.connection && !outgoingCall && (
+        <>
+          <button
+            onClick={() => videoClient.acceptCall(incomingCall.call.callCid)}
+          >
+            Accept
+          </button>
+          <button
+            onClick={() => videoClient.rejectCall(incomingCall.call.callCid)}
+          >
+            Reject
+          </button>
+        </>
+      )}
+      {outgoingCall && !activeCall?.connection && (
+        <button
+          onClick={() => videoClient.cancelCall(outgoingCall.call.callCid)}
+        >
+          Cancel
+        </button>
+      )}
+      {activeCall?.connection && (
+        <button onClick={activeCall.connection.leave}>Drop</button>
+      )}
+    </div>
+  );
+};
 
 export const CallPanel = () => {
-  const videoClient = useStreamVideoClient();
   const pendingCalls = usePendingCalls();
   const activeCall = useActiveCall();
-  const remoteParticipants = useRemoteParticipants();
-  const participants = useParticipants();
+  const [remoteParticipant] = useRemoteParticipants();
+  const localParticipant = useLocalParticipant();
 
-  const memberList = useMemo(() => {
-    return activeCall?.data?.callDetails.members
-      ? Object.values(activeCall.data.callDetails.members)
-      : [];
-  }, [activeCall]);
+  const [incomingCall] = useIncomingCalls();
+  const [outgoingCall] = useOutgoingCalls();
 
-  const callCid = activeCall?.data?.call?.callCid;
+  // const isOutgoing = !activeCall.connection && outgoingCall && !localParticipant;
+  // const isIncoming = !localParticipant && incomingCall;
 
-  if (remoteParticipants.length > 1) {
-  }
-  if (activeCall?.data && activeCall?.connection) {
-    // show stage video;
-    return (
-      <ActiveCall
-        callData={activeCall.data}
-        callController={activeCall.connection}
-        participants={participants}
-      />
-    );
-  } else if (activeCall?.data) {
-    // show outgoing ring call
-    return (
-      <RingingCallPanel
-        hangUp={() => videoClient.cancelCall(callCid)}
-        memberList={memberList}
-      />
-    );
-  } else if (pendingCalls.length) {
-    // show incoming ring call
-    // todo: memeberList has to come from pendingCalls
-    return (
-      <RingingCallPanel
-        accept={() => videoClient.acceptCall(callCid)}
-        hangUp={() => videoClient.cancelCall(callCid)}
-        memberList={memberList}
-      />
-    );
-  }
+  const { updateVideoSubscriptionForParticipant } = useStage(
+    activeCall?.connection,
+  );
 
-  return null;
+  if (!pendingCalls.length && !activeCall?.connection) return null;
+
+  return (
+    <div>
+      {localParticipant && (
+        <div className="floating">
+          <ParticipantBox
+            participant={localParticipant}
+            call={activeCall.connection}
+            updateVideoSubscriptionForParticipant={
+              updateVideoSubscriptionForParticipant
+            }
+          />
+        </div>
+      )}
+      {!localParticipant && <div>LocalAvatar</div>}
+
+      {remoteParticipant && (
+        <ParticipantBox
+          participant={remoteParticipant}
+          call={activeCall.connection}
+          updateVideoSubscriptionForParticipant={
+            updateVideoSubscriptionForParticipant
+          }
+        />
+      )}
+      {!remoteParticipant && <div>RemoteAvatar</div>}
+
+      <ButtonControls incomingCall={incomingCall} outgoingCall={outgoingCall} />
+    </div>
+  );
 };

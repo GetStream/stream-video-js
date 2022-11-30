@@ -11,14 +11,19 @@ import { CallPanel } from './CallPanel/CallPanel';
 
 type VideoProps = {
   user: StreamChatType['userType'];
+  token: string;
 };
 
-export const Video = ({ children, user }: PropsWithChildren<VideoProps>) => {
+export const Video = ({
+  children,
+  user,
+  token,
+}: PropsWithChildren<VideoProps>) => {
   const client = useCreateStreamVideoClient({
     coordinatorRpcUrl: import.meta.env.VITE_VIDEO_COORDINATOR_RPC_ENDPOINT,
     coordinatorWsUrl: import.meta.env.VITE_VIDEO_COORDINATOR_WS_URL,
     apiKey: import.meta.env.VITE_VIDEO_API_KEY,
-    token: import.meta.env.VITE_VIDEO_USER_TOKEN,
+    token: import.meta.env.VITE_VIDEO_USER_TOKEN ?? token,
     user,
   });
 
@@ -40,14 +45,18 @@ const VideoAdapter = ({ children }: { children: ReactNode }) => {
       id: client.user.id,
       name: client.user.name,
       role: client.user.role,
-      imageUrl: client.user.imageUrl,
+      imageUrl: client.user.image as string,
       teams: [],
       customJson: new Uint8Array(),
     }),
     [client.user],
   );
 
-  return <Video user={user}>{children}</Video>;
+  return (
+    <Video user={user} token={client._getToken()}>
+      {children}
+    </Video>
+  );
 };
 
 export default VideoAdapter;
