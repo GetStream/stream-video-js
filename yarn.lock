@@ -4835,6 +4835,7 @@ __metadata:
   resolution: "@stream-io/messenger-clone-react@workspace:sample-apps/react/messenger-clone"
   dependencies:
     "@stream-io/video-client": "workspace:^"
+    "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@types/react": ^18.0.24
     "@types/react-dom": ^18.0.8
