@@ -10,7 +10,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ActiveCall'>;
 
 export default (_props: Props) => {
   return (
-    <SafeAreaView style={styles.body} edges={['right', 'left']}>
+    <SafeAreaView style={styles.body}>
       <View style={styles.callParticipantsWrapper}>
         <CallParticipantsView />
       </View>
@@ -22,7 +22,6 @@ export default (_props: Props) => {
 
 const styles = StyleSheet.create({
   body: {
-    backgroundColor: '#fff',
     flex: 1,
   },
   callParticipantsWrapper: { flex: 1, marginBottom: -20 },

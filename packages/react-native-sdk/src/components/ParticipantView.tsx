@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { RTCView } from 'react-native-webrtc';
 import {
@@ -15,10 +15,6 @@ export type SizeType = 'small' | 'medium' | 'large' | 'xl';
 
 type ParticipantViewProps = {
   /**
-   * The index of the participant in the list of participants
-   */
-  index: number;
-  /**
    * The size of the participant that correlates to a specific layout
    */
   size: SizeType;
@@ -33,7 +29,6 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
    * A Wrapper around a participant renders either the participants view
    * and additional info, by an absence of a video track only an avatar/initials and audio track will be rendered.
    */
-  index,
   size,
   participantId,
 }: ParticipantViewProps) => {
@@ -75,20 +70,10 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
 
   const mirror = isLoggedInUser && !cameraBackFacingMode;
   const MicIcon = !audio ? MicOff : Mic;
-  const dominantSpeakerStyle = { borderColor: isSpeaking ? '#005FFF' : '#000' };
-
-  // Being used to calculate weather a participant is at the bottom of
-  // the screen for styling purposes
-  const isBottomParticipant = useMemo(() => {
-    return (
-      size === 'xl' ||
-      (size === 'large' && index === 1) ||
-      (size === 'medium' && (index === 3 || index === 1)) ||
-      (size === 'small' && index === 4)
-    );
-  }, [size, index]);
-
-  if (!participant) return null;
+  const dominantSpeakerStyle = isSpeaking && {
+    borderColor: '#005FFF',
+    borderWidth: 2,
+  };
 
   return (
     <View
@@ -102,7 +87,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
         updateVideoSubscriptionForParticipant(width, height);
       }}
     >
-      {!!participant.video && videoStream ? (
+      {participant.video && videoStream ? (
         <VideoRenderer
           mirror={mirror}
           mediaStream={videoStream}
@@ -112,12 +97,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
         <Avatar participant={participant} />
       )}
       {audioStream && <RTCView streamURL={audioStream.toURL()} />}
-      <View
-        style={[
-          styles.status,
-          isBottomParticipant ? styles.bottomParticipant : null,
-        ]}
-      >
+      <View style={styles.status}>
         <Text style={styles.userNameLabel}>{user?.name || user?.id}</Text>
         <View style={styles.svgWrapper}>
           <MicIcon color="#FF003BFF" />
@@ -129,8 +109,6 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
 
 const styles = StyleSheet.create({
   containerBase: {
-    borderWidth: 2,
-    borderColor: '#000',
     justifyContent: 'center',
     flex: 1,
     width: '100%',
@@ -154,7 +132,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'absolute',
     left: 6,
-    bottom: 6,
+    top: 6,
     padding: 6,
     borderRadius: 6,
     backgroundColor: '#1C1E22',
@@ -167,8 +145,5 @@ const styles = StyleSheet.create({
     height: 16,
     width: 16,
     marginLeft: 6,
-  },
-  bottomParticipant: {
-    bottom: 24,
   },
 });

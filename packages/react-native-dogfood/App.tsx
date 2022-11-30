@@ -13,6 +13,7 @@ import { useProntoLinkEffect } from './src/hooks/useProntoLinkEffect';
 import OutgoingCallScreen from './src/screens/OutgoingCallScreen';
 import { StreamVideo } from '@stream-io/video-react-native-sdk';
 import { AppGlobalContextProvider } from './src/contexts/AppContext';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -56,10 +57,12 @@ const StackNavigator = () => {
 
 export default function App() {
   return (
-    <AppGlobalContextProvider>
-      <NavigationContainer>
-        <StackNavigator />
-      </NavigationContainer>
-    </AppGlobalContextProvider>
+    <SafeAreaProvider>
+      <AppGlobalContextProvider>
+        <NavigationContainer>
+          <StackNavigator />
+        </NavigationContainer>
+      </AppGlobalContextProvider>
+    </SafeAreaProvider>
   );
 }
