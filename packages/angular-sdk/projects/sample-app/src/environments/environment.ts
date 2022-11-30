@@ -10,6 +10,7 @@ export const environment = {
   apiKey: 'us83cfwuhy8n',
   sfuRpcUrl: 'http://localhost:3031/twirp',
   user: {
+    id: 'marcelo',
     name: 'marcelo',
     role: 'admin',
     teams: ['team-1, team-2'],
