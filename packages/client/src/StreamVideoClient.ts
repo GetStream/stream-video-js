@@ -1,5 +1,5 @@
 import {
-  StreamVideoReadableStateStore2,
+  StreamVideoReadOnlyStateStore2,
   StreamVideoWriteableStateStore2,
   StreamVideoReadOnlyStateStore,
   StreamVideoWriteableStateStore,
@@ -64,7 +64,7 @@ export class StreamVideoClient {
    * @angular If you're using our Angular SDK, you shouldn't be interacting with the state store directly, instead, you should be using the [`StreamVideoService`](./StreamVideoService.md).
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
-  readonly readOnlyStateStore2: StreamVideoReadableStateStore2;
+  readonly readOnlyStateStore2: StreamVideoReadOnlyStateStore2;
   // Make it public temporary to ease SDK transition
   readonly writeableStateStore: StreamVideoWriteableStateStore;
   private writeableStateStore2: StreamVideoWriteableStateStore2;
@@ -97,7 +97,7 @@ export class StreamVideoClient {
       ],
     });
     this.writeableStateStore2 = new StreamVideoWriteableStateStore2();
-    this.readOnlyStateStore2 = new StreamVideoReadableStateStore2(
+    this.readOnlyStateStore2 = new StreamVideoReadOnlyStateStore2(
       this.writeableStateStore2,
     );
 

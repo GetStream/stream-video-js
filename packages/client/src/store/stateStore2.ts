@@ -11,6 +11,7 @@ import {
   StreamVideoParticipant,
 } from '../rtc/types';
 import { ActiveCall } from './types';
+import { CallStatsReport } from '../stats/types';
 
 type UserId = string;
 
@@ -23,6 +24,10 @@ export class StreamVideoWriteableStateStore2 {
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >([]);
   dominantSpeakerSubject = new BehaviorSubject<UserId | undefined>(undefined);
+  callStatsReportSubject = new BehaviorSubject<CallStatsReport | undefined>(
+    undefined,
+  );
+  callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
 
   getCurrentValue<T>(subject: BehaviorSubject<T>) {
     return subject.getValue();
@@ -31,6 +36,10 @@ export class StreamVideoWriteableStateStore2 {
   setCurrentValue<T>(subject: BehaviorSubject<T>, value: T) {
     subject.next(value);
   }
+
+  asReadOnlyStore = () => {
+    return new StreamVideoReadOnlyStateStore2(this);
+  };
 
   private pushUnique<T>(
     subject: BehaviorSubject<T[]>,
@@ -93,20 +102,51 @@ export class StreamVideoWriteableStateStore2 {
   }
 }
 
-export class StreamVideoReadableStateStore2 {
+export class StreamVideoReadOnlyStateStore2 {
+  /**
+   * Data describing a user successfully connected over WS to coordinator server.
+   */
   connectedUser$: Observable<UserInput | undefined>;
   pendingCalls$: Observable<CallCreated[]>;
   outgoingCalls$: Observable<CallCreated[]>;
+  /**
+   * The call the current user participant is in.
+   */
   activeCall$: Observable<ActiveCall | undefined>;
+  /**
+   * The ID of the currently speaking user.
+   */
   dominantSpeaker$: Observable<UserId | undefined>;
+  /**
+   * All participants of the current call (this includes the current user and other participants as well).
+   */
   participants$: Observable<StreamVideoParticipant[]>;
+  /**
+   * The local participant of the current call (the logged-in user).
+   */
   localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
+  /**
+   * Remote participants of the current call (this includes every participant except the logged-in user).
+   */
   remoteParticipants$: Observable<StreamVideoParticipant[]>;
+  /**
+   * The latest stats report of the current call.
+   * When stats gathering is enabled, this observable will emit a new value
+   * at a regular (configurable) interval.
+   *
+   * Consumers of this observable can implement their own batching logic
+   * in case they want to show historical stats data.
+   */
+  callStatsReport$: Observable<CallStatsReport | undefined>;
 
-  constructor(writeableStateStore: StreamVideoWriteableStateStore2) {
-    this.connectedUser$ =
-      writeableStateStore.connectedUserSubject.asObservable();
-    this.pendingCalls$ = writeableStateStore.pendingCallsSubject.asObservable();
+  /**
+   * Emits a boolean indicating whether a call recording is currently in progress.
+   */
+  callRecordingInProgress$: Observable<boolean>;
+
+  constructor(store: StreamVideoWriteableStateStore2) {
+    this.connectedUser$ = store.connectedUserSubject.asObservable();
+    this.pendingCalls$ = store.pendingCallsSubject.asObservable();
     this.outgoingCalls$ = this.pendingCalls$.pipe(
       map((pendingCalls) => {
         const me = this.getCurrentValue(this.connectedUser$);
@@ -115,16 +155,18 @@ export class StreamVideoReadableStateStore2 {
         );
       }),
     );
-    this.activeCall$ = writeableStateStore.activeCallSubject.asObservable();
-    this.dominantSpeaker$ =
-      writeableStateStore.dominantSpeakerSubject.asObservable();
-    this.participants$ = writeableStateStore.participantsSubject.asObservable();
+    this.activeCall$ = store.activeCallSubject.asObservable();
+    this.dominantSpeaker$ = store.dominantSpeakerSubject.asObservable();
+    this.participants$ = store.participantsSubject.asObservable();
     this.localParticipant$ = this.participants$.pipe(
       map((participants) => participants.find((p) => p.isLoggedInUser)),
     );
     this.remoteParticipants$ = this.participants$.pipe(
       map((participants) => participants.filter((p) => !p.isLoggedInUser)),
     );
+    this.callStatsReport$ = store.callStatsReportSubject.asObservable();
+    this.callRecordingInProgress$ =
+      store.callRecordingInProgressSubject.asObservable();
   }
 
   getCurrentValue<T>(observable: Observable<T>) {

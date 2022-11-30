@@ -33,34 +33,39 @@ export const useActiveCall = () => {
   return useObservableValue(activeCall$);
 };
 
-/**
- * Utility hook which provides the currently active ring-call meta.
- */
-export const useActiveRingCall = () => {
-  const { activeRingCallMeta$ } = useStore();
-  return useObservableValue(activeRingCallMeta$);
-};
+// /**
+//  * Utility hook which provides the currently active ring-call meta.
+//  */
+// export const useActiveRingCall = () => {
+//   const { activeRingCallMeta$ } = useStore();
+//   return useObservableValue(activeRingCallMeta$);
+// };
+//
+// /**
+//  * Utility hook which provides the currently terminated ring call meta.
+//  */
+// export const useTerminatedRingCall = () => {
+//   const { terminatedRingCallMeta$ } = useStore();
+//   return useObservableValue(terminatedRingCallMeta$);
+// };
 
-/**
- * Utility hook which provides the currently terminated ring call meta.
- */
-export const useTerminatedRingCall = () => {
-  const { terminatedRingCallMeta$ } = useStore();
-  return useObservableValue(terminatedRingCallMeta$);
-};
+// /**
+//  * Utility hook which provides the currently active ring-call details.
+//  */
+// export const useActiveRingCallDetails = () => {
+//   const { activeRingCallDetails$ } = useStore();
+//   return useObservableValue(activeRingCallDetails$);
+// };
 
-/**
- * Utility hook which provides the currently active ring-call details.
- */
-export const useActiveRingCallDetails = () => {
-  const { activeRingCallDetails$ } = useStore();
-  return useObservableValue(activeRingCallDetails$);
-};
+// /**
+//  * Utility hook which provides a list of all incoming ring calls.
+//  */
+// export const useIncomingRingCalls = () => {
+//   const { incomingRingCalls$ } = useStore();
+//   return useObservableValue(incomingRingCalls$);
+// };
 
-/**
- * Utility hook which provides a list of all incoming ring calls.
- */
-export const useIncomingRingCalls = () => {
-  const { incomingRingCalls$ } = useStore();
-  return useObservableValue(incomingRingCalls$);
+export const useOutgoingCalls = () => {
+  const { outgoingCalls$ } = useStore();
+  return useObservableValue(outgoingCalls$);
 };

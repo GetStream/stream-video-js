@@ -11,7 +11,7 @@ import {
   useStore,
 } from '@stream-io/video-react-bindings';
 
-import { useMediaDevices } from '../../contexts/MediaDevicesContext';
+import { useMediaDevices } from '../../contexts';
 import { ParticipantBox } from './ParticipantBox';
 import { useDebugPreferredVideoCodec } from '../Debug/useIsDebugMode';
 import { map, Subscription } from 'rxjs';

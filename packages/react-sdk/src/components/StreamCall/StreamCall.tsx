@@ -1,8 +1,10 @@
 import { ReactNode, useEffect } from 'react';
-import { MediaDevicesProvider } from '../../contexts/MediaDevicesContext';
-import { useStreamVideoClient } from '../../contexts/StreamVideoContext';
-import { useActiveCall } from '../../hooks/useActiveCall';
-import { useOutgoingCalls } from '../../hooks';
+import {
+  useActiveCall,
+  useOutgoingCalls,
+  useStreamVideoClient,
+} from '@stream-io/video-react-bindings';
+import { MediaDevicesProvider } from '../../contexts';
 
 export const StreamCall = ({ children }: { children: ReactNode }) => {
   const videoClient = useStreamVideoClient();

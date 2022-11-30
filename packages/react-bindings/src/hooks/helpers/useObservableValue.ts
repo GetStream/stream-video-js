@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Observable, take } from 'rxjs';
-import { useStreamVideoClient } from '../contexts';
+import { useStreamVideoClient } from '../../contexts';
 
 export const useStore = () => {
   const client = useStreamVideoClient();
