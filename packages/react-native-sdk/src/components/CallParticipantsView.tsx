@@ -25,7 +25,7 @@ const activeCallAllParticipantsLengthToMode: { [key: number]: Modes } = {
    * in a call to the mode that should be used to display the participants.
    */
   1: Modes.full,
-  2: Modes.half,
+  2: Modes.full,
   3: Modes.half,
   4: Modes.quarter,
   5: Modes.fifth,
@@ -59,12 +59,9 @@ export const CallParticipantsView: React.FC = () => {
    */
 
   const allParticipants = useParticipants();
-  const mode = useMemo(
-    () =>
-      activeCallAllParticipantsLengthToMode[allParticipants.length] ||
-      Modes.fifth,
-    [allParticipants.length],
-  );
+  const mode =
+    activeCallAllParticipantsLengthToMode[allParticipants.length] ||
+    Modes.fifth;
 
   const isUserIsAloneInCall = allParticipants.length === 1;
 
