@@ -20,7 +20,6 @@ import { CustomChannelSearch } from './components/CustomChannelSearch';
 import { CustomEventComponent } from './components/CustomEventComponent';
 import { UserList } from './components/UserList';
 
-import { CallController } from './context';
 import { useClient } from './hooks';
 import { userFromToken } from './utils/userFromToken';
 
@@ -67,26 +66,26 @@ const App = ({
   if (!client) return null;
 
   return (
-    <CallController>
       <Chat client={client}>
-        <ChannelList
-          filters={filters}
-          options={options}
-          showChannelSearch
-          sort={sort}
-          ChannelSearch={CustomChannelSearch}
-        />
-        <Channel MessageSystem={CustomEventComponent}>
-          <Window>
-            <ChannelHeader />
-            <MessageList />
-            <MessageInput focus />
-          </Window>
-          <Thread />
-        </Channel>
-        <Video />
+        <Video>
+          <ChannelList
+            filters={filters}
+            options={options}
+            showChannelSearch
+            sort={sort}
+            ChannelSearch={CustomChannelSearch}
+          />
+          <Channel MessageSystem={CustomEventComponent}>
+            <Window>
+              <ChannelHeader />
+              <MessageList />
+              <MessageInput focus />
+            </Window>
+            <Thread />
+          </Channel>
+        </Video>
       </Chat>
-    </CallController>
+    </>
   );
 };
 

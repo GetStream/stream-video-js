@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { PropsWithChildren, ReactNode, useMemo } from 'react';
 import { useChatContext } from 'stream-chat-react';
 import {
   StreamCall,
@@ -6,16 +6,14 @@ import {
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 
-import { CallConfig, useCallController } from '../../context';
-
 import { StreamChatType } from '../../types/chat';
+import { CallPanel } from './CallPanel/CallPanel';
 
 type VideoProps = {
-  call: CallConfig;
   user: StreamChatType['userType'];
 };
 
-export const Video = ({ call, user }: VideoProps) => {
+export const Video = ({ children, user }: PropsWithChildren<VideoProps>) => {
   const client = useCreateStreamVideoClient({
     coordinatorRpcUrl: import.meta.env.VITE_VIDEO_COORDINATOR_RPC_ENDPOINT,
     coordinatorWsUrl: import.meta.env.VITE_VIDEO_COORDINATOR_WS_URL,
@@ -26,21 +24,16 @@ export const Video = ({ call, user }: VideoProps) => {
 
   return (
     <StreamVideo client={client}>
-      {call.id && (
-        <StreamCall
-          callId={call.id}
-          callType={call.type}
-          input={call.input}
-          currentUser={user.id}
-        />
-      )}
+      {children}
+      <StreamCall>
+        <CallPanel />
+      </StreamCall>
     </StreamVideo>
   );
 };
 
-const VideoAdapter = () => {
+const VideoAdapter = ({ children }: { children: ReactNode }) => {
   const { client } = useChatContext<StreamChatType>();
-  const { call } = useCallController();
 
   const user = useMemo<VideoProps['user']>(
     () => ({
@@ -54,7 +47,7 @@ const VideoAdapter = () => {
     [client.user],
   );
 
-  return <Video user={user} call={call} />;
+  return <Video user={user}>{children}</Video>;
 };
 
 export default VideoAdapter;
