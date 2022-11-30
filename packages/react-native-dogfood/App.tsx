@@ -12,18 +12,13 @@ import AuthenticatingProgressScreen from './src/screens/AuthenticatingProgress';
 import { useProntoLinkEffect } from './src/hooks/useProntoLinkEffect';
 import OutgoingCallScreen from './src/screens/OutgoingCallScreen';
 import { StreamVideo } from '@stream-io/video-react-native-sdk';
-import {
-  AppGlobalContextProvider,
-  useAppGlobalStoreValue,
-} from './src/contexts/AppContext';
+import { AppGlobalContextProvider } from './src/contexts/AppContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const StackNavigator = () => {
   useProntoLinkEffect();
-
-  const { authenticationInProgress } = useAuth();
-  const videoClient = useAppGlobalStoreValue((store) => store.videoClient);
+  const { authenticationInProgress, videoClient } = useAuth();
 
   if (authenticationInProgress) {
     return <AuthenticatingProgressScreen />;
