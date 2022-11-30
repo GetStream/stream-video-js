@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Platform } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import PhoneDown from '../icons/PhoneDown';
 import Video from '../icons/Video';
@@ -16,7 +16,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import InCallManager from 'react-native-incall-manager';
-import RNCallKeep from 'react-native-callkeep';
+import { useCallKeep } from '../hooks/useCallKeep';
 
 const styles = StyleSheet.create({
   container: {
@@ -87,6 +87,8 @@ export const OutgoingCallView = () => {
   const isAudioMuted = !localParticipant?.audio;
   const isVideoMuted = !localParticipant?.video;
 
+  const { endCall } = useCallKeep();
+
   const hangupHandler = async () => {
     if (!activeCall) {
       console.warn('Failed to leave call: call is undefined');
@@ -95,9 +97,7 @@ export const OutgoingCallView = () => {
     try {
       if (activeRingCallMeta) {
         await client?.cancelCall(activeRingCallMeta.callCid);
-        if (Platform.OS === 'ios') {
-          await RNCallKeep.endCall(activeRingCallMeta.id);
-        }
+        endCall();
       }
       activeCall.leave();
       InCallManager.stop();

@@ -40,7 +40,7 @@ export const HomeScreen = ({ navigation, route }: Props) => {
   const terminatedRingCallMeta = useTerminatedRingCall();
   const setState = useStreamVideoStoreSetState();
 
-  const { displayIncomingCallNow, endCall } = useCallKeep();
+  const { endCall } = useCallKeep();
 
   // run only once per app lifecycle
   useEffect(() => {
@@ -58,18 +58,13 @@ export const HomeScreen = ({ navigation, route }: Props) => {
 
   useEffect(() => {
     if (incomingRingCalls.length > 0) {
-      displayIncomingCallNow();
+      navigation.navigate('IncomingCallScreen');
     } else {
       if (terminatedRingCallMeta) {
         endCall();
       }
     }
-  }, [
-    incomingRingCalls,
-    displayIncomingCallNow,
-    terminatedRingCallMeta,
-    endCall,
-  ]);
+  }, [incomingRingCalls, navigation, terminatedRingCallMeta, endCall]);
 
   return (
     <View style={styles.container}>

@@ -3,12 +3,12 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import InCallManager from 'react-native-incall-manager';
-import RNCallKeep from 'react-native-callkeep';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
-import { Platform } from 'react-native';
+import { useCallKeep } from './useCallKeep';
 
 export const useRingCall = () => {
   const client = useStreamVideoClient();
+  const { startCall } = useCallKeep();
   const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
@@ -39,14 +39,7 @@ export const useRingCall = () => {
       await call.join(localMediaStream, localMediaStream);
       await call.publishMediaStreams(localMediaStream, localMediaStream);
       await client.acceptCall(currentIncomingRingCall.callCid);
-      if (Platform.OS === 'ios') {
-        RNCallKeep.startCall(
-          currentIncomingRingCall.id,
-          '',
-          currentIncomingRingCall.createdByUserId,
-          'generic',
-        );
-      }
+      await startCall();
     }
   };
 
