@@ -126,7 +126,7 @@ export class StreamVideoClient {
       this.registerWSEventHandlers();
     }
     this.writeableStateStore2.setCurrentValue(
-      this.writeableStateStore.connectedUserSubject,
+      this.writeableStateStore2.connectedUserSubject,
       user,
     );
     // todo: MC: remove stateStore
@@ -261,13 +261,23 @@ export class StreamVideoClient {
    */
   onCallAccepted = (event: CallAccepted) => {
     const { call } = event;
+
+    const connectedUser = this.writeableStateStore2.getCurrentValue(
+      this.writeableStateStore2.connectedUserSubject,
+    );
+
+    if (event.senderUserId === connectedUser?.id) return;
+
     if (!call) {
       console.warn("Can't find call in CallCreated event");
       return;
     }
+    const activeCall = this.writeableStateStore2.getCurrentValue(
+      this.writeableStateStore2.activeCallSubject,
+    );
     this.writeableStateStore2.setCurrentValue(
       this.writeableStateStore2.activeCallSubject,
-      { data: event },
+      { ...activeCall, data: event },
     );
     this.writeableStateStore2.removeCall(
       this.writeableStateStore2.pendingCallsSubject,
