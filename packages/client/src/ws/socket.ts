@@ -57,7 +57,7 @@ export const createCoordinatorWebSocket = (
     ws.binaryType = 'arraybuffer';
     ws.onerror = onError;
     ws.onclose = (e: CloseEvent) => {
-      if (e.code !== 1000) {
+      if (e.code > 1000 && e.code < 3000) {
         reject('WebSocket closed unexpectedly: ' + JSON.stringify(e));
       }
       clearInterval(intervalIdRef.current);
