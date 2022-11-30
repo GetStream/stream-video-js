@@ -1,8 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 import { LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
-import { StreamVideoParticipant } from '@stream-io/video-client';
 import { RTCView } from 'react-native-webrtc';
-import { useActiveCall } from '@stream-io/video-react-bindings';
+import {
+  useActiveCall,
+  useParticipants,
+} from '@stream-io/video-react-bindings';
 import MicOff from '../icons/MicOff';
 import Mic from '../icons/Mic';
 import { VideoRenderer } from './VideoRenderer';
@@ -21,9 +23,9 @@ type ParticipantViewProps = {
    */
   size: SizeType;
   /**
-   * The participant that will be displayed
+   * The id of the participant that will be displayed
    */
-  participant: StreamVideoParticipant;
+  participantId: string;
 };
 
 export const ParticipantView: React.FC<ParticipantViewProps> = ({
@@ -33,9 +35,18 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
    */
   index,
   size,
-  participant,
+  participantId,
 }: ParticipantViewProps) => {
   const call = useActiveCall();
+  const participants = useParticipants();
+  const participant = participants.filter(
+    (p) => p?.user?.id === participantId,
+  )[0];
+
+  const cameraBackFacingMode = useStreamVideoStoreValue(
+    (store) => store.cameraBackFacingMode,
+  );
+
   const {
     videoStream,
     audioStream,
@@ -45,9 +56,6 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
     isLoggedInUser,
     audio,
   } = participant;
-  const cameraBackFacingMode = useStreamVideoStoreValue(
-    (store) => store.cameraBackFacingMode,
-  );
 
   const updateVideoSubscriptionForParticipant = useCallback(
     (width: number, height: number) => {
@@ -80,7 +88,8 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
     );
   }, [size, index]);
 
-  console.log('size', size);
+  if (!participant) return null;
+
   return (
     <View
       style={[
@@ -102,7 +111,6 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
       ) : (
         <Avatar participant={participant} />
       )}
-      {/* @ts-ignore */}
       {audioStream && <RTCView streamURL={audioStream.toURL()} />}
       <View
         style={[

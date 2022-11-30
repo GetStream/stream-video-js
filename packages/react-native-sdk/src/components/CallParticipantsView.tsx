@@ -1,8 +1,10 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { ParticipantView, SizeType } from './ParticipantView';
+import { ParticipantView } from './ParticipantView';
 import { LocalVideoView } from './LocalVideoView';
 import { useParticipants } from '@stream-io/video-react-bindings';
+
+type SizeType = React.ComponentProps<typeof ParticipantView>['size'];
 
 enum Modes {
   /**
@@ -59,20 +61,11 @@ export const CallParticipantsView: React.FC = () => {
    */
 
   const allParticipants = useParticipants();
-  const mode = useMemo(
-    () =>
-      activeCallAllParticipantsLengthToMode[allParticipants.length] ||
-      Modes.fifth,
-    [allParticipants.length],
-  );
+  const mode =
+    activeCallAllParticipantsLengthToMode[allParticipants.length] ||
+    Modes.fifth;
 
   const isUserIsAloneInCall = allParticipants.length === 1;
-
-  console.log(
-    '***********\nallParticipants',
-    allParticipants.length,
-    '****************',
-  );
 
   const isLocalVideoVisible = useMemo(
     () => localVideoVisibleModes.includes(mode) && !isUserIsAloneInCall,
@@ -106,7 +99,7 @@ export const CallParticipantsView: React.FC = () => {
           <ParticipantView
             index={index}
             key={`${userId}/${participant.sessionId}`}
-            participant={participant}
+            participantId={userId}
             size={size}
           />
         );
