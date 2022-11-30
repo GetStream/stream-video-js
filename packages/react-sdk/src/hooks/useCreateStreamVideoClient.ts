@@ -17,38 +17,47 @@ export const useCreateStreamVideoClient = ({
   token,
   user,
 }: StreamVideoClientInit) => {
-  const [client, setClient] = useState<StreamVideoClient>();
+  const [client, setClient] = useState<StreamVideoClient | undefined>(
+    new StreamVideoClient(apiKey, {
+      coordinatorWsUrl,
+      coordinatorRpcUrl,
+      sendJson: true,
+      token,
+    }),
+  );
   useEffect(
     () => {
-      const client = new StreamVideoClient(apiKey, {
-        coordinatorWsUrl,
-        coordinatorRpcUrl,
-        sendJson: true,
-        token,
-      });
+      // const client = new StreamVideoClient(apiKey, {
+      //   coordinatorWsUrl,
+      //   coordinatorRpcUrl,
+      //   sendJson: true,
+      //   token,
+      // });
 
       let didInterruptConnect = false;
       const connection = client
-        .connect(apiKey, token, user)
-        .then(() => {
-          if (!didInterruptConnect) {
-            setClient(client);
-          }
-        })
+        ?.connect(apiKey, token, user)
         .catch((err) => {
           console.error(`Failed to establish connection`, err);
+        })
+        .finally(() => {
+          if (didInterruptConnect) {
+            console.log('DISCONNECT didInterruptConnect');
+            setClient(undefined);
+          }
         });
 
       return () => {
         didInterruptConnect = true;
-        connection.then(() => {
+        connection?.then(() => {
           client
-            .disconnect()
-            .then(() => {
-              setClient(undefined);
-            })
+            ?.disconnect()
             .catch((err) => {
               console.error(`Failed to disconnect`, err);
+            })
+            .finally(() => {
+              console.log('DISCONNECT UNMOUNT');
+              setClient(undefined);
             });
         });
       };
