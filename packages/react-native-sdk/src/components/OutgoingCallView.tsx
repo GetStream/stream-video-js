@@ -23,8 +23,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   background: {
-    backgroundColor: 'black',
-    opacity: 0.9,
+    backgroundColor: '#272A30',
   },
   callingText: {
     fontSize: 20,
@@ -35,12 +34,17 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttons: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
     position: 'absolute',
     bottom: 90,
-    left: 0,
-    right: 0,
+    width: '100%',
+  },
+  deviceControlButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  hangupButton: {
+    alignSelf: 'center',
   },
   buttonStyle: {
     height: 70,
@@ -56,7 +60,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const Background: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const Background: React.FC = () => {
   const localParticipant = useLocalParticipant();
   const localVideoStream = localParticipant?.videoStream;
   const isVideoMuted = !localParticipant?.video;
@@ -68,11 +72,9 @@ const Background: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       zOrder={1}
       style={styles.stream}
       mirror={true}
-    >
-      {children}
-    </RTCView>
+    />
   ) : (
-    <View style={[StyleSheet.absoluteFill, styles.background]}>{children}</View>
+    <View style={[StyleSheet.absoluteFill, styles.background]} />
   );
 };
 
@@ -113,41 +115,45 @@ export const OutgoingCallView = () => {
   };
 
   return (
-    <Background>
-      <View style={StyleSheet.absoluteFill}>
+    <>
+      <View style={[StyleSheet.absoluteFill, { zIndex: 5 }]}>
         <UserInfoView />
         <Text style={styles.callingText}>Calling...</Text>
         <View style={styles.buttons}>
-          <CallControlsButton
-            onPress={audioToggle}
-            colorKey={!isAudioMuted ? 'activated' : 'deactivated'}
-            style={styles.buttonStyle}
-            svgContainerStyle={styles.svgStyle}
-          >
-            {isAudioMuted ? <MicOff color="#fff" /> : <Mic color="#000" />}
-          </CallControlsButton>
-          <CallControlsButton
-            onPress={videoToggle}
-            colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
-            style={styles.buttonStyle}
-            svgContainerStyle={styles.svgStyle}
-          >
-            {isVideoMuted ? (
-              <VideoSlash color="#fff" />
-            ) : (
-              <Video color="#000" />
-            )}
-          </CallControlsButton>
+          <View style={styles.deviceControlButtons}>
+            <CallControlsButton
+              onPress={audioToggle}
+              colorKey={!isAudioMuted ? 'activated' : 'deactivated'}
+              style={styles.buttonStyle}
+              svgContainerStyle={styles.svgStyle}
+            >
+              {isAudioMuted ? <MicOff color="#fff" /> : <Mic color="#000" />}
+            </CallControlsButton>
+            <CallControlsButton
+              onPress={videoToggle}
+              colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
+              style={styles.buttonStyle}
+              svgContainerStyle={styles.svgStyle}
+            >
+              {isVideoMuted ? (
+                <VideoSlash color="#fff" />
+              ) : (
+                <Video color="#000" />
+              )}
+            </CallControlsButton>
+          </View>
+
           <CallControlsButton
             onPress={hangupHandler}
             colorKey={'cancel'}
-            style={styles.buttonStyle}
+            style={[styles.buttonStyle, styles.hangupButton]}
             svgContainerStyle={styles.svgStyle}
           >
             <PhoneDown color="#fff" />
           </CallControlsButton>
         </View>
       </View>
-    </Background>
+      <Background />
+    </>
   );
 };

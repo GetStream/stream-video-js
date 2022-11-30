@@ -15,8 +15,7 @@ import { useRingCall } from '../hooks';
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: 'black',
-    opacity: 0.9,
+    backgroundColor: '#272A30',
   },
   incomingCallText: {
     marginTop: 16,

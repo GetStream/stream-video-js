@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     flexWrap: 'wrap',
-    width: '90%',
+    width: '80%',
   },
   avatar: {
     borderRadius: 100,
@@ -55,12 +55,13 @@ export const UserInfoView = () => {
   const activeRingCallDetails = useActiveRingCallDetails();
 
   const memberUserIds = activeRingCallDetails?.memberUserIds || [];
-  let name = addCommasAndAnd(memberUserIds);
+
+  let name = addCommasAndAnd(memberUserIds.slice(0, MAX_AVATARS_IN_VIEW));
 
   const avatarStyles =
-    memberUserIds.length > 2
+    memberUserIds.length >= MAX_AVATARS_IN_VIEW
       ? styles.smallAvatar
-      : memberUserIds.length === 2
+      : memberUserIds.length === MAX_AVATARS_IN_VIEW - 1
       ? styles.mediumAvatar
       : styles.largeAvatar;
 
