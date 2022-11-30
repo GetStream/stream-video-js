@@ -1,10 +1,7 @@
 import React, { useRef } from 'react';
 import ButtonContainer from './ButtonContainer';
 import PhoneDown from '../../icons/PhoneDown';
-import {
-  useAppGlobalStoreSetState,
-  useAppGlobalStoreValue,
-} from '../../contexts/AppContext';
+import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { useRingCall } from '../../hooks/useRingCall';
 import { useCallKeep } from '../../hooks/useCallKeep';
 import {
@@ -14,18 +11,12 @@ import {
 
 const PhoneButton = () => {
   const username = useAppGlobalStoreValue((store) => store.username);
-  const appStoreSetState = useAppGlobalStoreSetState();
   const streamVideoSetState = useStreamVideoStoreSetState();
   const activeRingCallMeta = useActiveRingCall();
   const { cancelCall } = useRingCall();
   const { endCall } = useCallKeep();
 
   const resetCallState = useRef(() => {
-    appStoreSetState((prevState) => {
-      const newState: Partial<typeof prevState> = {};
-      newState.isAudioMuted = false;
-      return newState;
-    });
     streamVideoSetState((prevState) => {
       const newState: Partial<typeof prevState> = {};
       const { localMediaStream, cameraBackFacingMode } = prevState;

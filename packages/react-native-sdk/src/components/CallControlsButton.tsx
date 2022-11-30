@@ -49,9 +49,21 @@ const colorKeyToBgColor = (colorKey: ColorKey): ColorValue => {
 };
 
 type CallControlsButtonProps = {
+  /**
+   * onPress handler called when a single tap gesture is detected.
+   */
   onPress: PressableProps['onPress'];
+  /**
+   * The background color of the button rendered when button is activated, call, cancel or deactivated.
+   */
   colorKey: ColorKey;
+  /**
+   * Style to the Pressable button.
+   */
   style?: StyleProp<ViewStyle>;
+  /**
+   * Style of the SVG rendered inside the button.
+   */
   svgContainerStyle?: StyleProp<ViewStyle>;
 };
 
