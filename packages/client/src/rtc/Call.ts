@@ -236,19 +236,26 @@ export class Call {
               return participant;
             }),
           );
-          // todo: MC: remove stateStore
-          this.stateStore.setCurrentValue(
-            this.stateStore.activeCallAllParticipantsSubject,
-            currentParticipants.map<StreamVideoParticipant>((participant) => {
-              if (participant.sessionId === this.client.sessionId) {
-                const localParticipant = participant as StreamVideoParticipant;
-                localParticipant.isLoggedInUser = true;
-                localParticipant.audioStream = audioStream;
-                localParticipant.videoStream = videoStream;
-              }
-              return participant;
-            }),
+          const activeCall = this.stateStore2.getCurrentValue(
+            this.stateStore2.activeCallSubject,
           );
+          this.stateStore2.setCurrentValue(this.stateStore2.activeCallSubject, {
+            data: activeCall?.data,
+            connection: this,
+          });
+          // todo: MC: remove stateStore
+          // this.stateStore.setCurrentValue(
+          //   this.stateStore.activeCallAllParticipantsSubject,
+          //   currentParticipants.map<StreamVideoParticipant>((participant) => {
+          //     if (participant.sessionId === this.client.sessionId) {
+          //       const localParticipant = participant as StreamVideoParticipant;
+          //       localParticipant.isLoggedInUser = true;
+          //       localParticipant.audioStream = audioStream;
+          //       localParticipant.videoStream = videoStream;
+          //     }
+          //     return participant;
+          //   }),
+          // );
           this.client.keepAlive();
           resolve(callState); // expose call state
         });

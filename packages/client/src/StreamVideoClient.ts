@@ -353,16 +353,16 @@ export class StreamVideoClient {
         response.edges,
       );
       // todo: MC: remove stateStore
-      if (data.input?.ring) {
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.activeRingCallMetaSubject,
-          response.call.call,
-        );
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.activeRingCallDetailsSubject,
-          response.call.details,
-        );
-      }
+      // if (data.input?.ring) {
+      //   this.writeableStateStore.setCurrentValue(
+      //     this.writeableStateStore.activeRingCallMetaSubject,
+      //     response.call.call,
+      //   );
+      //   this.writeableStateStore.setCurrentValue(
+      //     this.writeableStateStore.activeRingCallDetailsSubject,
+      //     response.call.details,
+      //   );
+      // }
       if (edge.credentials && edge.credentials.server) {
         const edgeName = edge.credentials.server.edgeName;
         const selectedEdge = response.edges.find((e) => e.name === edgeName);
@@ -383,13 +383,6 @@ export class StreamVideoClient {
           this.writeableStateStore2,
         );
         await callController.join();
-        const activeCall = this.writeableStateStore2.getCurrentValue(
-          this.writeableStateStore2.activeCallSubject,
-        );
-        this.writeableStateStore2.setCurrentValue(
-          this.writeableStateStore2.activeCallSubject,
-          { data: activeCall?.data, connection: callController },
-        );
         return callController;
       } else {
         // TODO: handle error?
