@@ -71,7 +71,6 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({
 
   return (
     <RTCView
-      //@ts-ignore
       streamURL={mediaStream.toURL()}
       mirror={mirror}
       style={style}

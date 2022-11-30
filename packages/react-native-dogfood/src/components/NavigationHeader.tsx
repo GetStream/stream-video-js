@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 });
 
 export const NavigationHeader = () => {
-  const client = useStreamVideoClient();
+  const videoClient = useStreamVideoClient();
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const appStoreSetState = useAppGlobalStoreSetState();
 
@@ -48,7 +48,10 @@ export const NavigationHeader = () => {
         text: 'OK',
         onPress: async () => {
           try {
-            await Promise.all([GoogleSignin.signOut(), client?.disconnect()]);
+            await Promise.all([
+              GoogleSignin.signOut(),
+              videoClient?.disconnect(),
+            ]);
 
             appStoreSetState({
               username: '',

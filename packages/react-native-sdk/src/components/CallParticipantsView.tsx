@@ -1,8 +1,13 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { ParticipantView, SizeType } from './ParticipantView';
+import { ParticipantView } from './ParticipantView';
 import { LocalVideoView } from './LocalVideoView';
-import { useParticipants } from '@stream-io/video-react-bindings';
+import {
+  useParticipants,
+  useRemoteParticipants,
+} from '@stream-io/video-react-bindings';
+
+type SizeType = React.ComponentProps<typeof ParticipantView>['size'];
 
 enum Modes {
   /**
@@ -25,7 +30,7 @@ const activeCallAllParticipantsLengthToMode: { [key: number]: Modes } = {
    * in a call to the mode that should be used to display the participants.
    */
   1: Modes.full,
-  2: Modes.half,
+  2: Modes.full,
   3: Modes.half,
   4: Modes.quarter,
   5: Modes.fifth,
@@ -59,24 +64,21 @@ export const CallParticipantsView: React.FC = () => {
    */
 
   const allParticipants = useParticipants();
-  const mode = useMemo(
-    () =>
-      activeCallAllParticipantsLengthToMode[allParticipants.length] ||
-      Modes.fifth,
-    [allParticipants.length],
-  );
+  const remoteParticipants = useRemoteParticipants();
+  const mode =
+    activeCallAllParticipantsLengthToMode[allParticipants.length] ||
+    Modes.fifth;
 
   const isUserIsAloneInCall = allParticipants.length === 1;
+
   const isLocalVideoVisible = useMemo(
     () => localVideoVisibleModes.includes(mode) && !isUserIsAloneInCall,
     [mode, isUserIsAloneInCall],
   );
   const showUserInParticipantView = !isLocalVideoVisible;
-  const filteredParticipants = useMemo(() => {
-    return showUserInParticipantView
-      ? allParticipants
-      : allParticipants.filter((p) => !p.isLoggedInUser);
-  }, [showUserInParticipantView, allParticipants]);
+  const filteredParticipants = showUserInParticipantView
+    ? allParticipants
+    : remoteParticipants;
 
   if (allParticipants.length === 0) {
     return null;
@@ -97,9 +99,8 @@ export const CallParticipantsView: React.FC = () => {
           modeToSize[mode] || calculateFiveOrMoreParticipantsSize(index);
         return (
           <ParticipantView
-            index={index}
             key={`${userId}/${participant.sessionId}`}
-            participant={participant}
+            participantId={userId}
             size={size}
           />
         );

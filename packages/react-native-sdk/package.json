@@ -21,7 +21,7 @@
     "react-native-webrtc": ">=106.0.0-beta.7"
   },
   "devDependencies": {
-    "@types/react": "18.0.25",
+    "@types/react": "17.0.52",
     "@types/react-native": "^0.70.6",
     "@types/react-native-incall-manager": "^3.2.1",
     "@types/rimraf": "^3.0.2",

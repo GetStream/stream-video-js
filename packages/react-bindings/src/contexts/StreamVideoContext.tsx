@@ -6,7 +6,7 @@ const StreamVideoContext = createContext<StreamVideoClient | undefined>(
 );
 
 export interface StreamVideoProps {
-  client: StreamVideoClient | undefined;
+  client: StreamVideoClient;
 }
 
 export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {

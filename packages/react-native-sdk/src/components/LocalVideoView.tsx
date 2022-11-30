@@ -1,8 +1,9 @@
 import React from 'react';
-import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { VideoRenderer } from './VideoRenderer';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { useStreamVideoStoreValue } from '../contexts';
+import { Avatar } from './Avatar';
 
 type LocalVideoViewProps = {
   /**
@@ -36,16 +37,18 @@ export const LocalVideoView: React.FC<LocalVideoViewProps> = ({
   const cameraBackFacingMode = useStreamVideoStoreValue(
     (store) => store.cameraBackFacingMode,
   );
-  const videoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
 
   if (!isVisible || !localParticipant) {
     return null;
   }
 
-  const isVideoMuted =
-    !localParticipant.videoStream || !localParticipant.video || videoMuted;
+  const isVideoMuted = !localParticipant.videoStream || !localParticipant.video;
   if (isVideoMuted) {
-    return null;
+    return (
+      <View style={{ ...(style as Object), ...styles.avatarWrapper }}>
+        <Avatar participant={localParticipant} radius={50} />
+      </View>
+    );
   }
 
   return (
@@ -67,5 +70,10 @@ const styles = StyleSheet.create({
     top: 60,
     borderRadius: 10,
     zIndex: 1,
+  },
+  avatarWrapper: {
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
