@@ -370,4 +370,28 @@ export class StreamVideoClient {
     const response = await this.client.reportCallStatEvent(statEvent);
     return response.response;
   };
+
+  private setIsPinParticipant = (participantId: string, isPinned: boolean) => {
+    const participants = this.writeableStateStore.getCurrentValue(
+      this.writeableStateStore.activeCallAllParticipantsSubject,
+    );
+
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.activeCallAllParticipantsSubject,
+      participants.map((p) => {
+        return p.user?.id === participantId
+          ? {
+              ...p,
+              isPinned,
+            }
+          : p;
+      }),
+    );
+  };
+
+  pinParticipant = (participantId: string) =>
+    this.setIsPinParticipant(participantId, true);
+
+  unpinParticipant = (participantId: string) =>
+    this.setIsPinParticipant(participantId, false);
 }
