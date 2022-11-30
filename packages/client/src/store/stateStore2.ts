@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { map, take, combineLatestWith } from 'rxjs/operators';
 import { UserInput } from '../gen/video/coordinator/user_v1/user';
 import {
   CallAccepted,
@@ -109,6 +109,7 @@ export class StreamVideoReadOnlyStateStore2 {
   connectedUser$: Observable<UserInput | undefined>;
   pendingCalls$: Observable<CallCreated[]>;
   outgoingCalls$: Observable<CallCreated[]>;
+  incomingCalls$: Observable<CallCreated[]>;
   /**
    * The call the current user participant is in.
    */
@@ -148,13 +149,22 @@ export class StreamVideoReadOnlyStateStore2 {
     this.connectedUser$ = store.connectedUserSubject.asObservable();
     this.pendingCalls$ = store.pendingCallsSubject.asObservable();
     this.outgoingCalls$ = this.pendingCalls$.pipe(
-      map((pendingCalls) => {
-        const me = this.getCurrentValue(this.connectedUser$);
-        return pendingCalls.filter(
-          (call) => call.call?.createdByUserId === me?.id,
-        );
-      }),
+      combineLatestWith(this.connectedUser$),
+      map(([pendingCalls, connectedUser]) =>
+        pendingCalls.filter(
+          (call) => call.call?.createdByUserId === connectedUser?.id,
+        ),
+      ),
     );
+    this.incomingCalls$ = this.pendingCalls$.pipe(
+      combineLatestWith(this.connectedUser$),
+      map(([pendingCalls, connectedUser]) =>
+        pendingCalls.filter(
+          (call) => call.call?.createdByUserId !== connectedUser?.id,
+        ),
+      ),
+    );
+
     this.activeCall$ = store.activeCallSubject.asObservable();
     this.dominantSpeaker$ = store.dominantSpeakerSubject.asObservable();
     this.participants$ = store.participantsSubject.asObservable();

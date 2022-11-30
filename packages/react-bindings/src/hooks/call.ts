@@ -60,10 +60,10 @@ export const useActiveCall = () => {
 // /**
 //  * Utility hook which provides a list of all incoming ring calls.
 //  */
-// export const useIncomingRingCalls = () => {
-//   const { incomingRingCalls$ } = useStore();
-//   return useObservableValue(incomingRingCalls$);
-// };
+export const useIncomingCalls = () => {
+  const { incomingCalls$ } = useStore();
+  return useObservableValue(incomingCalls$);
+};
 
 export const useOutgoingCalls = () => {
   const { outgoingCalls$ } = useStore();
