@@ -18,7 +18,10 @@ import { joinCall } from '../../utils/callUtils';
 import { meetingId } from '../../modules/helpers/meetingId';
 
 import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
-import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
+import {
+  useStreamVideoClient,
+  useStreamVideoStoreValue,
+} from '@stream-io/video-react-native-sdk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'> & {
   setLoadingCall: (loading: boolean) => void;
@@ -30,7 +33,7 @@ const Meeting = ({ navigation, setLoadingCall }: Props) => {
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
-  const localMediaStream = useAppGlobalStoreValue(
+  const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
   const setState = useAppGlobalStoreSetState();

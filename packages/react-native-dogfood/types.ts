@@ -115,7 +115,6 @@ export interface RTCDataChannel extends EventTarget {
 export type EventHandler = (event: SfuEvent) => void;
 
 export type RootStackParamList = {
-  LoginScreen: undefined;
   HomeScreen: undefined;
   ActiveCall: undefined;
   IncomingCallScreen: undefined;

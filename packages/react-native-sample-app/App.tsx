@@ -12,7 +12,6 @@ import React from 'react';
 import { SafeAreaView, StatusBar, Text, useColorScheme } from 'react-native';
 
 import { Colors } from 'react-native/Libraries/NewAppScreen';
-import { HelloWorld } from '@stream-io/video-react-native-sdk';
 
 const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -28,7 +27,6 @@ const App = () => {
         backgroundColor={backgroundStyle.backgroundColor}
       />
       <Text>Hello</Text>
-      <HelloWorld />
     </SafeAreaView>
   );
 };
