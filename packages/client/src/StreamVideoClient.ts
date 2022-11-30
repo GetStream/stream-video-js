@@ -371,7 +371,13 @@ export class StreamVideoClient {
     return response.response;
   };
 
-  private setIsPinParticipant = (participantId: string, isPinned: boolean) => {
+  /**
+   * Sets the participant.isPinned value.
+   * @param sessionId the session id of the participant
+   * @param isPinned the value to set the participant.isPinned
+   * @returns
+   */
+  setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
     const participants = this.writeableStateStore.getCurrentValue(
       this.writeableStateStore.activeCallAllParticipantsSubject,
     );
@@ -379,7 +385,7 @@ export class StreamVideoClient {
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.activeCallAllParticipantsSubject,
       participants.map((p) => {
-        return p.user?.id === participantId
+        return p.sessionId === sessionId
           ? {
               ...p,
               isPinned,
@@ -388,10 +394,4 @@ export class StreamVideoClient {
       }),
     );
   };
-
-  pinParticipant = (participantId: string) =>
-    this.setIsPinParticipant(participantId, true);
-
-  unpinParticipant = (participantId: string) =>
-    this.setIsPinParticipant(participantId, false);
 }
