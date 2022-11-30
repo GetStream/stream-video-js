@@ -2,17 +2,22 @@ import {
   CallControls,
   DeviceSettings,
   Stage,
-  useParticipants,
 } from '@stream-io/video-react-sdk';
-import { ActiveCall as ActiveCallType } from '@stream-io/video-client';
+import {
+  ActiveCall as ActiveCallType,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
 
 type ActiveCallProps = {
   callData: ActiveCallType['data'];
   callController: ActiveCallType['connection'];
+  participants: StreamVideoParticipant[];
 };
-export const ActiveCall = ({ callData, callController }: ActiveCallProps) => {
-  const participants = useParticipants();
-
+export const ActiveCall = ({
+  callData,
+  callController,
+  participants,
+}: ActiveCallProps) => {
   return (
     <div className="str-video__call">
       <div className="str-video__call__header">

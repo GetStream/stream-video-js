@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import {
   useActiveCall,
+  useParticipants,
   usePendingCalls,
   useRemoteParticipants,
   useStreamVideoClient,
@@ -13,6 +14,7 @@ export const CallPanel = () => {
   const pendingCalls = usePendingCalls();
   const activeCall = useActiveCall();
   const remoteParticipants = useRemoteParticipants();
+  const participants = useParticipants();
 
   const memberList = useMemo(() => {
     return activeCall?.data?.callDetails.members
@@ -30,6 +32,7 @@ export const CallPanel = () => {
       <ActiveCall
         callData={activeCall.data}
         callController={activeCall.connection}
+        participants={participants}
       />
     );
   } else if (activeCall?.data) {
