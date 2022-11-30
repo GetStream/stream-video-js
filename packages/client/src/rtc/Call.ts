@@ -138,24 +138,8 @@ export class Call {
     this.client.close();
 
     this.stateStore.setCurrentValue(
-      this.stateStore.callRecordingInProgressSubject,
-      false,
-    );
-    this.stateStore.setCurrentValue(
       this.stateStore.activeCallSubject,
       undefined,
-    );
-    this.stateStore.setCurrentValue(
-      this.stateStore.activeRingCallMetaSubject,
-      undefined,
-    );
-    this.stateStore.setCurrentValue(
-      this.stateStore.activeRingCallDetailsSubject,
-      undefined,
-    );
-    this.stateStore.setCurrentValue(
-      this.stateStore.activeCallAllParticipantsSubject,
-      [],
     );
   };
 

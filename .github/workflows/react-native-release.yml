@@ -5,6 +5,7 @@ on:
     paths:
       - 'packages/react-native-dogfood/**'
       - 'packages/client/**'
+      - 'packages/react-native-sdk/**'
     branches:
       - main
 
@@ -38,6 +39,10 @@ jobs:
         run: yarn install --immutable
       - name: Build shared JS client
         run: yarn build:client
+      - name: Build react bindings
+        run: yarn build:react:bindings
+      - name: Build RN SDK
+        run: yarn build:react-native:sdk
       - name: Install Ruby and Gems
         uses: ruby/setup-ruby@v1
         with:
@@ -92,6 +97,10 @@ jobs:
         run: yarn install --immutable
       - name: Build shared JS client
         run: yarn build:client
+      - name: Build react bindings
+        run: yarn build:react:bindings
+      - name: Build RN SDK
+        run: yarn build:react-native:sdk
       - name: Install Ruby and Gems
         uses: ruby/setup-ruby@v1
         with:

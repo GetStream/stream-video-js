@@ -89,7 +89,9 @@ export class StreamVideoClient {
     });
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
-    this.readOnlyStateStore = this.writeableStateStore.asReadOnlyStore();
+    this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
+      this.writeableStateStore,
+    );
   }
 
   /**
