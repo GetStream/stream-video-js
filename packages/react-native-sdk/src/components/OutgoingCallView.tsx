@@ -20,7 +20,7 @@ import RNCallKeep from 'react-native-callkeep';
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    zIndex: 2,
   },
   background: {
     backgroundColor: '#272A30',
@@ -116,7 +116,7 @@ export const OutgoingCallView = () => {
 
   return (
     <>
-      <View style={[StyleSheet.absoluteFill, { zIndex: 5 }]}>
+      <View style={[StyleSheet.absoluteFill, styles.container]}>
         <UserInfoView />
         <Text style={styles.callingText}>Calling...</Text>
         <View style={styles.buttons}>
