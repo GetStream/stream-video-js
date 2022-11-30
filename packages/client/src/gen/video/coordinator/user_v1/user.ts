@@ -61,33 +61,39 @@ export interface User {
  */
 export interface UserInput {
     /**
+     * A unique ID for the user
+     *
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
      * A human-readable name of the user
      *
-     * @generated from protobuf field: string name = 1;
+     * @generated from protobuf field: string name = 2;
      */
     name: string;
     /**
      * User role, as defined by permission settings
      *
-     * @generated from protobuf field: string role = 2;
+     * @generated from protobuf field: string role = 3;
      */
     role: string;
     /**
      * List of user teams for multi-tenant applications
      *
-     * @generated from protobuf field: repeated string teams = 3;
+     * @generated from protobuf field: repeated string teams = 4;
      */
     teams: string[];
     /**
      * A URL that points to a user image
      *
-     * @generated from protobuf field: string image_url = 4;
+     * @generated from protobuf field: string image_url = 5;
      */
     imageUrl: string;
     /**
      * A JSON object with custom user information
      *
-     * @generated from protobuf field: bytes custom_json = 5;
+     * @generated from protobuf field: bytes custom_json = 6;
      */
     customJson: Uint8Array;
 }
@@ -191,15 +197,16 @@ export const User = new User$Type();
 class UserInput$Type extends MessageType<UserInput> {
     constructor() {
         super("stream.video.coordinator.user_v1.UserInput", [
-            { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "teams", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "image_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "role", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "teams", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "image_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
         ]);
     }
     create(value?: PartialMessage<UserInput>): UserInput {
-        const message = { name: "", role: "", teams: [], imageUrl: "", customJson: new Uint8Array(0) };
+        const message = { id: "", name: "", role: "", teams: [], imageUrl: "", customJson: new Uint8Array(0) };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<UserInput>(this, message, value);
@@ -210,19 +217,22 @@ class UserInput$Type extends MessageType<UserInput> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string name */ 1:
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string name */ 2:
                     message.name = reader.string();
                     break;
-                case /* string role */ 2:
+                case /* string role */ 3:
                     message.role = reader.string();
                     break;
-                case /* repeated string teams */ 3:
+                case /* repeated string teams */ 4:
                     message.teams.push(reader.string());
                     break;
-                case /* string image_url */ 4:
+                case /* string image_url */ 5:
                     message.imageUrl = reader.string();
                     break;
-                case /* bytes custom_json */ 5:
+                case /* bytes custom_json */ 6:
                     message.customJson = reader.bytes();
                     break;
                 default:
@@ -237,21 +247,24 @@ class UserInput$Type extends MessageType<UserInput> {
         return message;
     }
     internalBinaryWrite(message: UserInput, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string name = 1; */
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string name = 2; */
         if (message.name !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.name);
-        /* string role = 2; */
+            writer.tag(2, WireType.LengthDelimited).string(message.name);
+        /* string role = 3; */
         if (message.role !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.role);
-        /* repeated string teams = 3; */
+            writer.tag(3, WireType.LengthDelimited).string(message.role);
+        /* repeated string teams = 4; */
         for (let i = 0; i < message.teams.length; i++)
-            writer.tag(3, WireType.LengthDelimited).string(message.teams[i]);
-        /* string image_url = 4; */
+            writer.tag(4, WireType.LengthDelimited).string(message.teams[i]);
+        /* string image_url = 5; */
         if (message.imageUrl !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.imageUrl);
-        /* bytes custom_json = 5; */
+            writer.tag(5, WireType.LengthDelimited).string(message.imageUrl);
+        /* bytes custom_json = 6; */
         if (message.customJson.length)
-            writer.tag(5, WireType.LengthDelimited).bytes(message.customJson);
+            writer.tag(6, WireType.LengthDelimited).bytes(message.customJson);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
