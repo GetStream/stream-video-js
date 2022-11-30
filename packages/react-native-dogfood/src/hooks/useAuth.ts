@@ -30,6 +30,7 @@ export const useAuth = () => {
       if (username && userImageUrl) {
         setAuthenticationInProgress(true);
         const user = {
+          id: username,
           name: username,
           role: 'admin',
           teams: ['team-1, team-2'],

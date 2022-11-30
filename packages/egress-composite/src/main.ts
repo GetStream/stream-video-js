@@ -39,6 +39,7 @@ import './style.css';
   const store$ = client.readOnlyStateStore;
 
   await client.connect(apiKey, accessToken, {
+    id: 'egress',
     name: 'egress',
     role: 'spectator',
     teams: ['stream-io'],
