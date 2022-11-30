@@ -7,15 +7,16 @@ import {
   useTranslationContext,
 } from 'stream-chat-react';
 import { MemberInput } from '@stream-io/video-client';
-import {
-  useActiveCall,
-  useStreamVideoClient,
-} from '@stream-io/video-react-sdk';
 
 import { Struct } from '@stream-io/video-client/dist/src/gen/google/protobuf/struct';
 
 import { MenuIcon } from './icons';
 import type { StreamChatType } from '../../types/chat';
+import {
+  useActiveCall,
+  useStreamVideoClient,
+} from '@stream-io/video-react-bindings';
+import { meetingId } from '../../utils/meetingId';
 
 export type ChannelHeaderProps = {
   /** Manually set the image to render, defaults to the Channel image */
@@ -45,7 +46,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
 
   const onCreateCall = useCallback(() => {
     videoClient?.createCall({
-      id: channel.cid, // todo: generate random id
+      id: meetingId(),
       type: 'default',
       input: {
         members: Object.values(channel.state.members).map(
@@ -66,7 +67,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
         ),
       },
     });
-  }, [channel.state.members, channel.cid, videoClient]);
+  }, [channel.state.members, videoClient]);
 
   const disableCreateCall =
     !videoClient || activeCall?.data?.call?.callCid === channel.cid;

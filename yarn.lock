@@ -4844,6 +4844,7 @@ __metadata:
     dayjs: ^1.11.6
     dotenv: ^16.0.3
     immer: ^9.0.16
+    nanoid: ^4.0.0
     react: ^18.2.0
     react-dom: ^18.2.0
     sass: ^1.56.1
