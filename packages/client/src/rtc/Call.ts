@@ -24,7 +24,10 @@ import type {
   SubscriptionChanges,
 } from './types';
 import { debounceTime, Subject } from 'rxjs';
-import { createStatsReporter, StatsReporter } from '../stats/reporter';
+import {
+  createStatsReporter,
+  StatsReporter,
+} from '../stats/state-store-stats-reporter';
 
 /**
  * A `Call` object represents the active call, the user is part of.

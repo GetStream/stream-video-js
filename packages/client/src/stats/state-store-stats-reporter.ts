@@ -62,7 +62,7 @@ export type StatsReporter = {
 };
 
 /**
- * Creates a new StatsReporter instance.
+ * Creates a new StatsReporter instance that collects metrics about the ongoing call and reports them to the state store
  */
 export const createStatsReporter = ({
   subscriber,

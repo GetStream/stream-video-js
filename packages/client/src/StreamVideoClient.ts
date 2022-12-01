@@ -38,7 +38,7 @@ import {
   WebsocketClientEvent,
   WebsocketHealthcheck,
 } from './gen/video/coordinator/client_v1_rpc/websocket';
-import { reportStats } from './stats-reporter';
+import { reportStats } from './stats/coordinator-stats-reporter';
 import { Timestamp } from './gen/google/protobuf/timestamp';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {

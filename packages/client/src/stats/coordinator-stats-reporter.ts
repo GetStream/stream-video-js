@@ -1,39 +1,25 @@
-import { StreamVideoReadOnlyStateStore } from './stateStore';
+import { StreamVideoReadOnlyStateStore } from '../stateStore';
 import {
   ReportCallStatEventRequest,
   ReportCallStatEventResponse,
   ReportCallStatsResponse,
-} from './gen/video/coordinator/client_v1_rpc/client_rpc';
+} from '../gen/video/coordinator/client_v1_rpc/client_rpc';
 import {
   MediaStateChange,
   MediaStateChangeReason,
   MediaType,
   MediaDirection,
-} from './gen/video/coordinator/stat_v1/stat';
+} from '../gen/video/coordinator/stat_v1/stat';
 import { pairwise } from 'rxjs';
-
-export type TrackChangedEvent = {
-  type: 'media_state_changed';
-  track: MediaStreamTrack;
-  change: MediaStateChange;
-  reason: MediaStateChangeReason;
-};
-
-export type ParticipantJoinedEvent = {
-  type: 'participant_joined';
-};
-
-export type ParticipantLeftEvent = {
-  type: 'participant_left';
-};
-
-export type StatEvent =
-  | TrackChangedEvent
-  | ParticipantJoinedEvent
-  | ParticipantLeftEvent;
 
 const intervalMs = 15000;
 
+/**
+ * Collects stat metrics and events from the state store and sends them to the Coordinator API
+ * @param readOnlyStateStore
+ * @param sendStat
+ * @param sendStatEvent
+ */
 export const reportStats = (
   readOnlyStateStore: StreamVideoReadOnlyStateStore,
   sendStat: (stats: Object) => Promise<ReportCallStatsResponse>,
