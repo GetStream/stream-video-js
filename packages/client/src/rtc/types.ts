@@ -1,7 +1,3 @@
-import {
-  MediaStateChange,
-  MediaStateChangeReason,
-} from '../gen/video/coordinator/stat_v1/stat';
 import type {
   Participant,
   VideoDimension,
@@ -88,28 +84,6 @@ export type SubscriptionChange = {
 export type SubscriptionChanges = {
   [sessionId: string]: SubscriptionChange;
 };
-
-export type TrackChangedEvent = {
-  type: 'media_state_changed';
-  track: MediaStreamTrack;
-  change: MediaStateChange;
-  reason: MediaStateChangeReason;
-};
-
-export type ParticipantJoinedEvent = {
-  type: 'participant_joined';
-};
-
-export type ParticipantLeftEvent = {
-  type: 'participant_left';
-};
-
-export type StatEvent =
-  | TrackChangedEvent
-  | ParticipantJoinedEvent
-  | ParticipantLeftEvent;
-
-export type StatEventListener = (event: StatEvent) => void;
 
 export type CallOptions = {
   connectionConfig?: RTCConfiguration;

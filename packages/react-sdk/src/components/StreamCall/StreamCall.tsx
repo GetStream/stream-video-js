@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Stage } from './Stage';
-import { Stats } from '../Stats';
 import { Ping } from '../Ping';
 import { useCall } from '../../hooks/useCall';
 import { DeviceSettings } from './DeviceSettings';
 import { MediaDevicesProvider } from '../../contexts/MediaDevicesContext';
 import { CallControls } from './CallControls';
 import { CreateCallInput } from '@stream-io/video-client';
-import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 
 export type CallProps = {
   currentUser: string;
@@ -52,7 +50,6 @@ export const StreamCall = ({
     };
   }, [activeCall, autoJoin, activeCallMeta, currentUser]);
 
-  const videoClient = useStreamVideoClient();
   return (
     <MediaDevicesProvider>
       <div className="str-video__call">
@@ -76,13 +73,6 @@ export const StreamCall = ({
               <Ping activeCall={activeCallMeta} currentUser={currentUser} />
             )}
           </>
-        )}
-        {videoClient && activeCall && activeCallMeta && (
-          <Stats
-            client={videoClient}
-            call={activeCall}
-            activeCall={activeCallMeta}
-          />
         )}
       </div>
     </MediaDevicesProvider>
