@@ -8,9 +8,20 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 
+import {
+  PhoneDisabled,
+  LocalPhone,
+  MicOff,
+  Mic,
+  Videocam,
+  VideocamOff,
+} from '@mui/icons-material';
+
 import { ParticipantBox, useStage } from '@stream-io/video-react-sdk';
 
 import { CallCreated } from '@stream-io/video-client';
+import { useChatContext } from 'stream-chat-react';
+import { ComponentProps, useMemo } from 'react';
 
 const ButtonControls = ({
   incomingCall,
@@ -19,41 +30,90 @@ const ButtonControls = ({
   const videoClient = useStreamVideoClient();
   const activeCall = useActiveCall();
 
+  const localParticipant = useLocalParticipant();
+
+  const isAudioMute = !localParticipant?.audio;
+  const isVideoMute = !localParticipant?.video;
+
   return (
-    <div>
-      {incomingCall && 'incoming'}
-      {outgoingCall && 'outgoing'}
+    <div className="rmc__button-controls">
+      {/* {incomingCall && 'incoming'}
+      {outgoingCall && 'outgoing'} */}
 
       {incomingCall && !activeCall && !outgoingCall && (
         <>
           <button
+            className="rmc__button rmc__button--green"
             onClick={() => videoClient.acceptCall(incomingCall.call.callCid)}
           >
-            Accept
+            <LocalPhone />
           </button>
           <button
+            className="rmc__button rmc__button--red"
             onClick={() => videoClient.rejectCall(incomingCall.call.callCid)}
           >
-            Reject
+            <PhoneDisabled />
           </button>
         </>
       )}
       {outgoingCall && !activeCall && (
         <button
+          className="rmc__button rmc__button--red"
           onClick={() => videoClient.cancelCall(outgoingCall.call.callCid)}
         >
-          Cancel
+          <PhoneDisabled />
         </button>
       )}
       {activeCall && (
-        <button
-          onClick={async () => {
-            await videoClient.cancelCall(activeCall.data.call.callCid);
-            activeCall.leave();
-          }}
-        >
-          Drop
-        </button>
+        <>
+          <button
+            className="rmc__button rmc__button--red"
+            onClick={() => {
+              activeCall.leave();
+            }}
+          >
+            <PhoneDisabled />
+          </button>
+          <button
+            className="rmc__button rmc__button--transparent"
+            onClick={() => activeCall.updateMuteState('audio', !isAudioMute)}
+          >
+            {isAudioMute ? <MicOff /> : <Mic />}
+          </button>
+          <button
+            className="rmc__button rmc__button--transparent"
+            onClick={() => activeCall.updateMuteState('video', !isVideoMute)}
+          >
+            {isAudioMute ? <VideocamOff /> : <Videocam />}
+          </button>
+        </>
+      )}
+    </div>
+  );
+};
+
+const Placeholder = ({
+  className,
+  src,
+}: Pick<ComponentProps<'div'>, 'className'> & {
+  src?: string;
+}) => {
+  return (
+    <div className={className}>
+      {src && (
+        <>
+          <img
+            alt="participant-placeholder"
+            className="rmc__participant-placeholder--avatar"
+            src={src}
+          />
+          <div className="rmc__participant-placeholder--backdrop" />
+          <img
+            alt="participant-placeholder-background"
+            className="rmc__participant-placeholder--avatar-background"
+            src={src}
+          />
+        </>
       )}
     </div>
   );
@@ -68,40 +128,64 @@ export const CallPanel = () => {
   const [incomingCall] = useIncomingCalls();
   const [outgoingCall] = useOutgoingCalls();
 
-  // const isOutgoing = !activeCall.connection && outgoingCall && !localParticipant;
-  // const isIncoming = !localParticipant && incomingCall;
+  const { client } = useChatContext();
+
+  const [unconnectedParticipant] = useMemo(() => {
+    if (!activeCall?.data.users || !client.user.id) return [];
+
+    return Object.values(activeCall?.data.users).filter(
+      (u) => u.id !== client.user.id,
+    );
+  }, [activeCall?.data.users, client.user.id]);
 
   const { updateVideoSubscriptionForParticipant } = useStage(activeCall);
 
   if (!pendingCalls.length && !activeCall) return null;
 
   return (
-    <div>
-      {localParticipant && (
-        <div className="floating">
-          <ParticipantBox
-            participant={localParticipant}
-            call={activeCall}
-            updateVideoSubscriptionForParticipant={
-              updateVideoSubscriptionForParticipant
-            }
-          />
+    <div className="rmc__call-panel-backdrop">
+      <div className="rmc__call-panel">
+        <div className="rmc__secondary-participant-wrapper">
+          {localParticipant && (
+            <ParticipantBox
+              participant={localParticipant}
+              call={activeCall}
+              updateVideoSubscriptionForParticipant={
+                updateVideoSubscriptionForParticipant
+              }
+            />
+          )}
+          {!localParticipant && (
+            <Placeholder
+              className="rmc__secondary-participant-placeholder"
+              src={client.user.image}
+            />
+          )}
         </div>
-      )}
-      {!localParticipant && <div>LocalAvatar</div>}
 
-      {remoteParticipant && (
-        <ParticipantBox
-          participant={remoteParticipant}
-          call={activeCall}
-          updateVideoSubscriptionForParticipant={
-            updateVideoSubscriptionForParticipant
-          }
+        <div className="rmc__primary-participant-wrapper">
+          {remoteParticipant && (
+            <ParticipantBox
+              participant={remoteParticipant}
+              call={activeCall}
+              updateVideoSubscriptionForParticipant={
+                updateVideoSubscriptionForParticipant
+              }
+            />
+          )}
+          {!remoteParticipant && (
+            <Placeholder
+              className="rmc__primary-participant-placeholder"
+              src={unconnectedParticipant?.imageUrl}
+            />
+          )}
+        </div>
+
+        <ButtonControls
+          incomingCall={incomingCall}
+          outgoingCall={outgoingCall}
         />
-      )}
-      {!remoteParticipant && <div>RemoteAvatar</div>}
-
-      <ButtonControls incomingCall={incomingCall} outgoingCall={outgoingCall} />
+      </div>
     </div>
   );
 };
