@@ -6,6 +6,7 @@ import {
   CallControlsView,
   CallParticipantsView,
   useActiveCall,
+  useCallKeep,
   useTerminatedRingCall,
 } from '@stream-io/video-react-native-sdk';
 
@@ -15,12 +16,15 @@ export default (props: Props) => {
   const activeCall = useActiveCall();
   const terminatedRingCall = useTerminatedRingCall();
   const { navigation } = props;
+  const { startCall, endCall } = useCallKeep();
 
   useEffect(() => {
+    startCall();
     if (!activeCall || terminatedRingCall) {
+      endCall();
       navigation.navigate('HomeScreen');
     }
-  }, [activeCall, terminatedRingCall, navigation]);
+  }, [activeCall, terminatedRingCall, startCall, endCall, navigation]);
 
   return (
     <>

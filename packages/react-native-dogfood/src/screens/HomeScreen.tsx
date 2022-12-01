@@ -10,6 +10,7 @@ import {
   useIncomingRingCalls,
   useStreamVideoStoreSetState,
 } from '@stream-io/video-react-native-sdk';
+import { useCallKeep } from '../hooks/useCallKeep';
 
 const styles = StyleSheet.create({
   container: {
@@ -36,6 +37,7 @@ export const HomeScreen = ({ navigation, route }: Props) => {
 
   const incomingRingCalls = useIncomingRingCalls();
   const setState = useStreamVideoStoreSetState();
+  useCallKeep();
 
   // run only once per app lifecycle
   useEffect(() => {

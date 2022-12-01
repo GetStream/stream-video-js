@@ -1,25 +1,13 @@
-import {
-  useActiveCall,
-  useActiveRingCall,
-  useLocalParticipant,
-  useStreamVideoClient,
-} from '@stream-io/video-react-bindings';
-import { useCallKeep } from './useCallKeep';
+import { useActiveCall } from '@stream-io/video-react-bindings';
 import InCallManager from 'react-native-incall-manager';
 import { useRef } from 'react';
 import { useStreamVideoStoreSetState } from '../contexts';
+import { useRingCall } from './useRingCall';
 
 export const useCall = () => {
   const activeCall = useActiveCall();
-  const activeRingCall = useActiveRingCall();
-  const client = useStreamVideoClient();
-  const localParticipant = useLocalParticipant();
   const streamVideoSetState = useStreamVideoStoreSetState();
-
-  const { endCall } = useCallKeep();
-
-  const isCallCreatedByUserLocalParticipant =
-    activeRingCall?.createdByUserId === localParticipant?.user?.id;
+  const { cancelCall } = useRingCall();
 
   const resetCallState = useRef(() => {
     streamVideoSetState((prevState) => {
@@ -40,10 +28,7 @@ export const useCall = () => {
       return;
     }
     try {
-      await endCall();
-      if (activeRingCall && isCallCreatedByUserLocalParticipant) {
-        await client?.cancelCall(activeRingCall.callCid);
-      }
+      await cancelCall();
       activeCall.leave();
       InCallManager.stop();
       resetCallState();

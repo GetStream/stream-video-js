@@ -10,7 +10,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
-import { useCall, useCallControls } from '../hooks';
+import { useCall, useCallControls, useCallKeep } from '../hooks';
 
 const styles = StyleSheet.create({
   container: {
@@ -97,14 +97,17 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
   const { hangupCall } = useCall();
   const terminatedRingCall = useTerminatedRingCall();
   const remoteParticipants = useRemoteParticipants();
+  const { startCall, endCall } = useCallKeep();
 
   const filteredParticipants = loopBackMyVideo
     ? remoteParticipants
     : remoteParticipants.filter((p) => !p.isLoggedInUser);
 
   useEffect(() => {
+    startCall();
     if (terminatedRingCall) {
       onHangupCall();
+      endCall();
     }
     if (filteredParticipants.length > 0) {
       onCallAccepted();

@@ -5,11 +5,13 @@ import {
   StreamVideoProps,
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren } from 'react';
+import { CallKeepOptions } from '../types';
 
 export interface SDKStreamVideoStore {
   cameraBackFacingMode: boolean;
   isVideoMuted: boolean;
   localMediaStream: MediaStream | undefined;
+  callKeepOptions: CallKeepOptions | undefined;
 }
 
 export const {
@@ -20,6 +22,7 @@ export const {
   cameraBackFacingMode: false,
   isVideoMuted: false,
   localMediaStream: undefined,
+  callKeepOptions: undefined,
 });
 
 export const StreamVideo: React.FC<StreamVideoProps> = (

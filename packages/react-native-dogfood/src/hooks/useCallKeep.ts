@@ -1,8 +1,10 @@
+import { useStreamVideoStoreSetState } from '@stream-io/video-react-native-sdk';
 import { useEffect } from 'react';
 import { PermissionsAndroid } from 'react-native';
-import RNCallKeep from 'react-native-callkeep';
 
 export const useCallKeep = () => {
+  const setState = useStreamVideoStoreSetState();
+
   useEffect(() => {
     const options = {
       ios: {
@@ -27,12 +29,6 @@ export const useCallKeep = () => {
         },
       },
     };
-    try {
-      RNCallKeep.setup(options).then((accepted) => {
-        console.log('RNCallKeep', accepted ? 'Working' : 'Not working');
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  }, []);
+    setState({ callKeepOptions: options });
+  }, [setState]);
 };

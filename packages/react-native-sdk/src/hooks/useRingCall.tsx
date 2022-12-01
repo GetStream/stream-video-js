@@ -1,6 +1,7 @@
 import {
   useActiveRingCall,
   useIncomingRingCalls,
+  useLocalParticipant,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import InCallManager from 'react-native-incall-manager';
@@ -9,14 +10,17 @@ import { useCallKeep } from './useCallKeep';
 
 export const useRingCall = () => {
   const client = useStreamVideoClient();
-  const { startCall } = useCallKeep();
+  const localParticipant = useLocalParticipant();
   const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
   const activeRingCall = useActiveRingCall();
   const incomingRingCalls = useIncomingRingCalls();
+  const { endCall } = useCallKeep();
   const currentIncomingRingCall =
     incomingRingCalls[incomingRingCalls.length - 1];
+  const isCallCreatedByUserLocalParticipant =
+    activeRingCall?.createdByUserId === localParticipant?.user?.id;
 
   const answerCall = async () => {
     if (!client) {
@@ -41,7 +45,6 @@ export const useRingCall = () => {
       await call.join(localMediaStream, localMediaStream);
       await call.publishMediaStreams(localMediaStream, localMediaStream);
       await client.acceptCall(currentIncomingRingCall.callCid);
-      await startCall();
     }
   };
 
@@ -56,7 +59,8 @@ export const useRingCall = () => {
     if (!client) {
       return;
     }
-    if (activeRingCall) {
+    if (activeRingCall && isCallCreatedByUserLocalParticipant) {
+      endCall();
       await client.cancelCall(activeRingCall.callCid);
     }
   };
