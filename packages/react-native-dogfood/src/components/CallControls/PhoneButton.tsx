@@ -1,23 +1,23 @@
 import React, { useRef } from 'react';
 import ButtonContainer from './ButtonContainer';
 import PhoneDown from '../../icons/PhoneDown';
-import {
-  useAppGlobalStoreSetState,
-  useAppGlobalStoreValue,
-} from '../../contexts/AppContext';
+import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { useRingCall } from '../../hooks/useRingCall';
 import { useCallKeep } from '../../hooks/useCallKeep';
-import { useActiveRingCall } from '@stream-io/video-react-native-sdk';
+import {
+  useActiveRingCall,
+  useStreamVideoStoreSetState,
+} from '@stream-io/video-react-native-sdk';
 
 const PhoneButton = () => {
   const username = useAppGlobalStoreValue((store) => store.username);
-  const setState = useAppGlobalStoreSetState();
+  const streamVideoSetState = useStreamVideoStoreSetState();
   const activeRingCallMeta = useActiveRingCall();
   const { cancelCall } = useRingCall();
   const { endCall } = useCallKeep();
 
   const resetCallState = useRef(() => {
-    setState((prevState) => {
+    streamVideoSetState((prevState) => {
       const newState: Partial<typeof prevState> = {};
       const { localMediaStream, cameraBackFacingMode } = prevState;
       if (localMediaStream && cameraBackFacingMode) {

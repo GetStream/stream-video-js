@@ -53,6 +53,10 @@ export class StreamVideoWriteableStateStore {
   activeCallLocalParticipant$: Observable<
     StreamVideoLocalParticipant | undefined
   >;
+  /**
+   * Pinned participants of the current call.
+   */
+  pinnedParticipants$: Observable<StreamVideoParticipant[]>;
 
   constructor() {
     this.terminatedRingCallMeta$ = this.activeRingCallMetaSubject.pipe(
@@ -68,6 +72,9 @@ export class StreamVideoWriteableStateStore {
       this.activeCallAllParticipantsSubject.pipe(
         map((participants) => participants.filter((p) => !p.isLoggedInUser)),
       );
+    this.pinnedParticipants$ = this.activeCallAllParticipantsSubject.pipe(
+      map((participants) => participants.filter((p) => p.isPinned)),
+    );
 
     this.activeCallSubject.subscribe((c) => {
       if (!c) {

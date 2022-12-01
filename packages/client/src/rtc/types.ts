@@ -46,6 +46,10 @@ export type StreamVideoParticipant = {
    * True when SDK defined audio-level threshold is exceeded.
    */
   isSpeaking?: boolean;
+  /**
+   * True when the participant is pinned
+   */
+  isPinned?: boolean;
 } & Participant;
 
 export type StreamVideoLocalParticipant = {

@@ -28,7 +28,7 @@ export const measureResourceLoadLatencyTo = async (
             signal: controller.signal,
           }).then((response) => response.blob());
         } catch (e) {
-          console.warn(`failed to measure latency to ${endpoint}`, e);
+          console.log(`failed to measure latency to ${endpoint}`, e);
         }
         clearTimeout(timeoutId); // clear timeout incase fetch completes before timeout
         const latency = Date.now() - start;

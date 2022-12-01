@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  useAppGlobalStoreValue,
   useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../types';
@@ -19,6 +19,7 @@ import { joinCall } from '../../utils/callUtils';
 import {
   useActiveRingCall,
   useStreamVideoClient,
+  useStreamVideoStoreValue,
 } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
@@ -88,7 +89,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'> & {
 const Ringing = ({ navigation, setLoadingCall }: Props) => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
   const videoClient = useStreamVideoClient();
-  const localMediaStream = useAppGlobalStoreValue(
+  const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
   const username = useAppGlobalStoreValue((store) => store.username);

@@ -61,6 +61,7 @@ const App = () => {
 
   const user = useMemo<UserInput>(
     () => ({
+      id: currentUser,
       name: currentUser,
       role: 'admin',
       teams: ['team-1, team-2'],

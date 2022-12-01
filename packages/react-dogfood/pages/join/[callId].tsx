@@ -100,6 +100,7 @@ export const getServerSideProps = async (
       apiKey,
       userToken: createToken(userName, secretKey),
       user: {
+        id: userName,
         name: userName,
         role: 'admin',
         teams: ['stream-io'],

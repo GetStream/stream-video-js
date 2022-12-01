@@ -1,18 +1,18 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
-import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import InCallManager from 'react-native-incall-manager';
 import { useCallback } from 'react';
 import {
   useActiveRingCall,
   useIncomingRingCalls,
   useStreamVideoClient,
+  useStreamVideoStoreValue,
 } from '@stream-io/video-react-native-sdk';
 
 export const useRingCall = () => {
   const videoClient = useStreamVideoClient();
-  const localMediaStream = useAppGlobalStoreValue(
+  const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
   const incomingRingCalls = useIncomingRingCalls();

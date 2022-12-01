@@ -23,6 +23,7 @@ import { Device } from "../push_v1/push";
 import { DeviceInput } from "../push_v1/push";
 import { Credentials } from "../edge_v1/edge";
 import { LatencyMeasurements } from "../edge_v1/edge";
+import { User } from "../user_v1/user";
 import { MembersEnvelope } from "./envelopes";
 import { CallsEnvelope } from "./envelopes";
 import { Sort } from "../utils_v1/utils";
@@ -442,6 +443,50 @@ export interface QueryMembersResponse {
      * @generated from protobuf field: stream.video.coordinator.client_v1_rpc.MembersEnvelope members = 1;
      */
     members?: MembersEnvelope;
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.QueryUsersRequest
+ */
+export interface QueryUsersRequest {
+    /**
+     * @generated from protobuf field: bytes mq_json = 1;
+     */
+    mqJson: Uint8Array;
+    /**
+     * @generated from protobuf field: optional int32 limit = 2;
+     */
+    limit?: number;
+    /**
+     * @generated from protobuf field: repeated stream.video.coordinator.utils_v1.Sort sorts = 3;
+     */
+    sorts: Sort[];
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.QueryUsersResponse
+ */
+export interface QueryUsersResponse {
+    /**
+     * @generated from protobuf field: repeated stream.video.coordinator.user_v1.User users = 1;
+     */
+    users: User[];
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.UpsertUsersRequest
+ */
+export interface UpsertUsersRequest {
+    /**
+     * @generated from protobuf field: repeated stream.video.coordinator.user_v1.UserInput users = 1;
+     */
+    users: UserInput[];
+}
+/**
+ * @generated from protobuf message stream.video.coordinator.client_v1_rpc.UpsertUsersResponse
+ */
+export interface UpsertUsersResponse {
+    /**
+     * @generated from protobuf field: repeated stream.video.coordinator.user_v1.User users = 1;
+     */
+    users: User[];
 }
 /**
  * A request message for GetCallEdgeServer endpoint
@@ -2214,6 +2259,208 @@ class QueryMembersResponse$Type extends MessageType<QueryMembersResponse> {
  */
 export const QueryMembersResponse = new QueryMembersResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class QueryUsersRequest$Type extends MessageType<QueryUsersRequest> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.QueryUsersRequest", [
+            { no: 1, name: "mq_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ },
+            { no: 2, name: "limit", kind: "scalar", opt: true, T: 5 /*ScalarType.INT32*/ },
+            { no: 3, name: "sorts", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Sort }
+        ]);
+    }
+    create(value?: PartialMessage<QueryUsersRequest>): QueryUsersRequest {
+        const message = { mqJson: new Uint8Array(0), sorts: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<QueryUsersRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: QueryUsersRequest): QueryUsersRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bytes mq_json */ 1:
+                    message.mqJson = reader.bytes();
+                    break;
+                case /* optional int32 limit */ 2:
+                    message.limit = reader.int32();
+                    break;
+                case /* repeated stream.video.coordinator.utils_v1.Sort sorts */ 3:
+                    message.sorts.push(Sort.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: QueryUsersRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bytes mq_json = 1; */
+        if (message.mqJson.length)
+            writer.tag(1, WireType.LengthDelimited).bytes(message.mqJson);
+        /* optional int32 limit = 2; */
+        if (message.limit !== undefined)
+            writer.tag(2, WireType.Varint).int32(message.limit);
+        /* repeated stream.video.coordinator.utils_v1.Sort sorts = 3; */
+        for (let i = 0; i < message.sorts.length; i++)
+            Sort.internalBinaryWrite(message.sorts[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.QueryUsersRequest
+ */
+export const QueryUsersRequest = new QueryUsersRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class QueryUsersResponse$Type extends MessageType<QueryUsersResponse> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.QueryUsersResponse", [
+            { no: 1, name: "users", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => User }
+        ]);
+    }
+    create(value?: PartialMessage<QueryUsersResponse>): QueryUsersResponse {
+        const message = { users: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<QueryUsersResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: QueryUsersResponse): QueryUsersResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated stream.video.coordinator.user_v1.User users */ 1:
+                    message.users.push(User.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: QueryUsersResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated stream.video.coordinator.user_v1.User users = 1; */
+        for (let i = 0; i < message.users.length; i++)
+            User.internalBinaryWrite(message.users[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.QueryUsersResponse
+ */
+export const QueryUsersResponse = new QueryUsersResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpsertUsersRequest$Type extends MessageType<UpsertUsersRequest> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.UpsertUsersRequest", [
+            { no: 1, name: "users", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => UserInput }
+        ]);
+    }
+    create(value?: PartialMessage<UpsertUsersRequest>): UpsertUsersRequest {
+        const message = { users: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UpsertUsersRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpsertUsersRequest): UpsertUsersRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated stream.video.coordinator.user_v1.UserInput users */ 1:
+                    message.users.push(UserInput.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpsertUsersRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated stream.video.coordinator.user_v1.UserInput users = 1; */
+        for (let i = 0; i < message.users.length; i++)
+            UserInput.internalBinaryWrite(message.users[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.UpsertUsersRequest
+ */
+export const UpsertUsersRequest = new UpsertUsersRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpsertUsersResponse$Type extends MessageType<UpsertUsersResponse> {
+    constructor() {
+        super("stream.video.coordinator.client_v1_rpc.UpsertUsersResponse", [
+            { no: 1, name: "users", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => User }
+        ]);
+    }
+    create(value?: PartialMessage<UpsertUsersResponse>): UpsertUsersResponse {
+        const message = { users: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UpsertUsersResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpsertUsersResponse): UpsertUsersResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated stream.video.coordinator.user_v1.User users */ 1:
+                    message.users.push(User.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpsertUsersResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated stream.video.coordinator.user_v1.User users = 1; */
+        for (let i = 0; i < message.users.length; i++)
+            User.internalBinaryWrite(message.users[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.client_v1_rpc.UpsertUsersResponse
+ */
+export const UpsertUsersResponse = new UpsertUsersResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class GetCallEdgeServerRequest$Type extends MessageType<GetCallEdgeServerRequest> {
     constructor() {
         super("stream.video.coordinator.client_v1_rpc.GetCallEdgeServerRequest", [
@@ -3525,6 +3772,8 @@ export const ClientRPC = new ServiceType("stream.video.coordinator.client_v1_rpc
     { name: "DeleteCallMembers", options: {}, I: DeleteCallMembersRequest, O: DeleteCallMembersResponse },
     { name: "SendEvent", options: {}, I: SendEventRequest, O: SendEventResponse },
     { name: "SendCustomEvent", options: {}, I: SendCustomEventRequest, O: SendCustomEventResponse },
+    { name: "QueryUsers", options: {}, I: QueryUsersRequest, O: QueryUsersResponse },
+    { name: "UpsertUsers", options: {}, I: UpsertUsersRequest, O: UpsertUsersResponse },
     { name: "ReportCallStats", options: {}, I: ReportCallStatsRequest, O: ReportCallStatsResponse },
     { name: "ReportCallStatEvent", options: {}, I: ReportCallStatEventRequest, O: ReportCallStatEventResponse },
     { name: "ReviewCall", options: {}, I: ReviewCallRequest, O: ReviewCallResponse },
