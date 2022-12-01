@@ -13,6 +13,10 @@ import type { ReportCallStatEventResponse } from "./client_rpc";
 import type { ReportCallStatEventRequest } from "./client_rpc";
 import type { ReportCallStatsResponse } from "./client_rpc";
 import type { ReportCallStatsRequest } from "./client_rpc";
+import type { UpsertUsersResponse } from "./client_rpc";
+import type { UpsertUsersRequest } from "./client_rpc";
+import type { QueryUsersResponse } from "./client_rpc";
+import type { QueryUsersRequest } from "./client_rpc";
 import type { SendCustomEventResponse } from "./client_rpc";
 import type { SendCustomEventRequest } from "./client_rpc";
 import type { SendEventResponse } from "./client_rpc";
@@ -171,6 +175,14 @@ export interface IClientRPCClient {
      * @generated from protobuf rpc: SendCustomEvent(stream.video.coordinator.client_v1_rpc.SendCustomEventRequest) returns (stream.video.coordinator.client_v1_rpc.SendCustomEventResponse);
      */
     sendCustomEvent(input: SendCustomEventRequest, options?: RpcOptions): UnaryCall<SendCustomEventRequest, SendCustomEventResponse>;
+    /**
+     * @generated from protobuf rpc: QueryUsers(stream.video.coordinator.client_v1_rpc.QueryUsersRequest) returns (stream.video.coordinator.client_v1_rpc.QueryUsersResponse);
+     */
+    queryUsers(input: QueryUsersRequest, options?: RpcOptions): UnaryCall<QueryUsersRequest, QueryUsersResponse>;
+    /**
+     * @generated from protobuf rpc: UpsertUsers(stream.video.coordinator.client_v1_rpc.UpsertUsersRequest) returns (stream.video.coordinator.client_v1_rpc.UpsertUsersResponse);
+     */
+    upsertUsers(input: UpsertUsersRequest, options?: RpcOptions): UnaryCall<UpsertUsersRequest, UpsertUsersResponse>;
     // room is a confusing name. better to call it breakout room
     // breakout rooms have their own audio/video track
     // breakout rooms have their own chat
@@ -387,6 +399,20 @@ export class ClientRPCClient implements IClientRPCClient, ServiceInfo {
         const method = this.methods[19], opt = this._transport.mergeOptions(options);
         return stackIntercept<SendCustomEventRequest, SendCustomEventResponse>("unary", this._transport, method, opt, input);
     }
+    /**
+     * @generated from protobuf rpc: QueryUsers(stream.video.coordinator.client_v1_rpc.QueryUsersRequest) returns (stream.video.coordinator.client_v1_rpc.QueryUsersResponse);
+     */
+    queryUsers(input: QueryUsersRequest, options?: RpcOptions): UnaryCall<QueryUsersRequest, QueryUsersResponse> {
+        const method = this.methods[20], opt = this._transport.mergeOptions(options);
+        return stackIntercept<QueryUsersRequest, QueryUsersResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: UpsertUsers(stream.video.coordinator.client_v1_rpc.UpsertUsersRequest) returns (stream.video.coordinator.client_v1_rpc.UpsertUsersResponse);
+     */
+    upsertUsers(input: UpsertUsersRequest, options?: RpcOptions): UnaryCall<UpsertUsersRequest, UpsertUsersResponse> {
+        const method = this.methods[21], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UpsertUsersRequest, UpsertUsersResponse>("unary", this._transport, method, opt, input);
+    }
     // room is a confusing name. better to call it breakout room
     // breakout rooms have their own audio/video track
     // breakout rooms have their own chat
@@ -404,7 +430,7 @@ export class ClientRPCClient implements IClientRPCClient, ServiceInfo {
      * @generated from protobuf rpc: ReportCallStats(stream.video.coordinator.client_v1_rpc.ReportCallStatsRequest) returns (stream.video.coordinator.client_v1_rpc.ReportCallStatsResponse);
      */
     reportCallStats(input: ReportCallStatsRequest, options?: RpcOptions): UnaryCall<ReportCallStatsRequest, ReportCallStatsResponse> {
-        const method = this.methods[20], opt = this._transport.mergeOptions(options);
+        const method = this.methods[22], opt = this._transport.mergeOptions(options);
         return stackIntercept<ReportCallStatsRequest, ReportCallStatsResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -413,7 +439,7 @@ export class ClientRPCClient implements IClientRPCClient, ServiceInfo {
      * @generated from protobuf rpc: ReportCallStatEvent(stream.video.coordinator.client_v1_rpc.ReportCallStatEventRequest) returns (stream.video.coordinator.client_v1_rpc.ReportCallStatEventResponse);
      */
     reportCallStatEvent(input: ReportCallStatEventRequest, options?: RpcOptions): UnaryCall<ReportCallStatEventRequest, ReportCallStatEventResponse> {
-        const method = this.methods[21], opt = this._transport.mergeOptions(options);
+        const method = this.methods[23], opt = this._transport.mergeOptions(options);
         return stackIntercept<ReportCallStatEventRequest, ReportCallStatEventResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -422,7 +448,7 @@ export class ClientRPCClient implements IClientRPCClient, ServiceInfo {
      * @generated from protobuf rpc: ReviewCall(stream.video.coordinator.client_v1_rpc.ReviewCallRequest) returns (stream.video.coordinator.client_v1_rpc.ReviewCallResponse);
      */
     reviewCall(input: ReviewCallRequest, options?: RpcOptions): UnaryCall<ReviewCallRequest, ReviewCallResponse> {
-        const method = this.methods[22], opt = this._transport.mergeOptions(options);
+        const method = this.methods[24], opt = this._transport.mergeOptions(options);
         return stackIntercept<ReviewCallRequest, ReviewCallResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -431,7 +457,7 @@ export class ClientRPCClient implements IClientRPCClient, ServiceInfo {
      * @generated from protobuf rpc: ReportIssue(stream.video.coordinator.client_v1_rpc.ReportIssueRequest) returns (stream.video.coordinator.client_v1_rpc.ReportIssueResponse);
      */
     reportIssue(input: ReportIssueRequest, options?: RpcOptions): UnaryCall<ReportIssueRequest, ReportIssueResponse> {
-        const method = this.methods[23], opt = this._transport.mergeOptions(options);
+        const method = this.methods[25], opt = this._transport.mergeOptions(options);
         return stackIntercept<ReportIssueRequest, ReportIssueResponse>("unary", this._transport, method, opt, input);
     }
 }

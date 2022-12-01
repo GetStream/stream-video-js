@@ -75,38 +75,26 @@ export interface PushProvider {
  */
 export interface ApnCredentials {
     /**
-     * @generated from protobuf field: string auth_key = 1;
+     * @generated from protobuf field: bytes certificate_p12 = 1;
      */
-    authKey: string;
+    certificateP12: Uint8Array;
     /**
-     * @generated from protobuf field: string key_id = 2;
+     * @generated from protobuf field: string topic = 2;
      */
-    keyId: string;
+    topic: string;
     /**
-     * @generated from protobuf field: string apn_topic = 3;
-     */
-    apnTopic: string;
-    /**
-     * @generated from protobuf field: string team_id = 4;
+     * @generated from protobuf field: string team_id = 3;
      */
     teamId: string;
-    /**
-     * @generated from protobuf field: bool development = 5;
-     */
-    development: boolean;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.push_v1.FirebaseCredentials
  */
 export interface FirebaseCredentials {
     /**
-     * @generated from protobuf field: string server_key = 1;
+     * @generated from protobuf field: string credentials = 1;
      */
-    serverKey: string;
-    /**
-     * @generated from protobuf field: string credentials_json = 2;
-     */
-    credentialsJson: string;
+    credentials: string;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.push_v1.HuaweiCredentials
@@ -306,15 +294,13 @@ export const PushProvider = new PushProvider$Type();
 class ApnCredentials$Type extends MessageType<ApnCredentials> {
     constructor() {
         super("stream.video.coordinator.push_v1.ApnCredentials", [
-            { no: 1, name: "auth_key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "key_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "apn_topic", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "team_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "development", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 1, name: "certificate_p12", kind: "scalar", T: 12 /*ScalarType.BYTES*/ },
+            { no: 2, name: "topic", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "team_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<ApnCredentials>): ApnCredentials {
-        const message = { authKey: "", keyId: "", apnTopic: "", teamId: "", development: false };
+        const message = { certificateP12: new Uint8Array(0), topic: "", teamId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ApnCredentials>(this, message, value);
@@ -325,20 +311,14 @@ class ApnCredentials$Type extends MessageType<ApnCredentials> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string auth_key */ 1:
-                    message.authKey = reader.string();
+                case /* bytes certificate_p12 */ 1:
+                    message.certificateP12 = reader.bytes();
                     break;
-                case /* string key_id */ 2:
-                    message.keyId = reader.string();
+                case /* string topic */ 2:
+                    message.topic = reader.string();
                     break;
-                case /* string apn_topic */ 3:
-                    message.apnTopic = reader.string();
-                    break;
-                case /* string team_id */ 4:
+                case /* string team_id */ 3:
                     message.teamId = reader.string();
-                    break;
-                case /* bool development */ 5:
-                    message.development = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -352,21 +332,15 @@ class ApnCredentials$Type extends MessageType<ApnCredentials> {
         return message;
     }
     internalBinaryWrite(message: ApnCredentials, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string auth_key = 1; */
-        if (message.authKey !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.authKey);
-        /* string key_id = 2; */
-        if (message.keyId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.keyId);
-        /* string apn_topic = 3; */
-        if (message.apnTopic !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.apnTopic);
-        /* string team_id = 4; */
+        /* bytes certificate_p12 = 1; */
+        if (message.certificateP12.length)
+            writer.tag(1, WireType.LengthDelimited).bytes(message.certificateP12);
+        /* string topic = 2; */
+        if (message.topic !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.topic);
+        /* string team_id = 3; */
         if (message.teamId !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.teamId);
-        /* bool development = 5; */
-        if (message.development !== false)
-            writer.tag(5, WireType.Varint).bool(message.development);
+            writer.tag(3, WireType.LengthDelimited).string(message.teamId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -381,12 +355,11 @@ export const ApnCredentials = new ApnCredentials$Type();
 class FirebaseCredentials$Type extends MessageType<FirebaseCredentials> {
     constructor() {
         super("stream.video.coordinator.push_v1.FirebaseCredentials", [
-            { no: 1, name: "server_key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "credentials_json", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "credentials", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<FirebaseCredentials>): FirebaseCredentials {
-        const message = { serverKey: "", credentialsJson: "" };
+        const message = { credentials: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<FirebaseCredentials>(this, message, value);
@@ -397,11 +370,8 @@ class FirebaseCredentials$Type extends MessageType<FirebaseCredentials> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string server_key */ 1:
-                    message.serverKey = reader.string();
-                    break;
-                case /* string credentials_json */ 2:
-                    message.credentialsJson = reader.string();
+                case /* string credentials */ 1:
+                    message.credentials = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -415,12 +385,9 @@ class FirebaseCredentials$Type extends MessageType<FirebaseCredentials> {
         return message;
     }
     internalBinaryWrite(message: FirebaseCredentials, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string server_key = 1; */
-        if (message.serverKey !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.serverKey);
-        /* string credentials_json = 2; */
-        if (message.credentialsJson !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.credentialsJson);
+        /* string credentials = 1; */
+        if (message.credentials !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.credentials);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
