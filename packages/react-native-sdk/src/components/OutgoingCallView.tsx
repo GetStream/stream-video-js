@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { RTCView } from 'react-native-webrtc';
 import { UserInfoView } from './UserInfoView';
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
+import {
+  useLocalParticipant,
+  useRemoteParticipants,
+  useTerminatedRingCall,
+} from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
 import { useCall, useCallControls } from '../hooks';
@@ -50,6 +54,21 @@ const styles = StyleSheet.create({
   },
 });
 
+export type OutgoingCallViewProps = {
+  /**
+   * Flag to loop back your own video in the participants view.
+   */
+  loopBackMyVideo: boolean;
+  /**
+   * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
+   */
+  onHangupCall: () => void;
+  /**
+   * Handler called when the call is accepted by the callee. Mostly used for navigation and related actions.
+   */
+  onCallAccepted: () => void;
+};
+
 const Background: React.FC = () => {
   const localParticipant = useLocalParticipant();
   const localVideoStream = localParticipant?.videoStream;
@@ -68,10 +87,29 @@ const Background: React.FC = () => {
   );
 };
 
-export const OutgoingCallView = () => {
+export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
+  onHangupCall,
+  onCallAccepted,
+  loopBackMyVideo,
+}) => {
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useCallControls();
   const { hangupCall } = useCall();
+  const terminatedRingCall = useTerminatedRingCall();
+  const remoteParticipants = useRemoteParticipants();
+
+  const filteredParticipants = loopBackMyVideo
+    ? remoteParticipants
+    : remoteParticipants.filter((p) => !p.isLoggedInUser);
+
+  useEffect(() => {
+    if (terminatedRingCall) {
+      onHangupCall();
+    }
+    if (filteredParticipants.length > 0) {
+      onCallAccepted();
+    }
+  });
 
   return (
     <>
