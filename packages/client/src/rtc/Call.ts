@@ -348,7 +348,7 @@ export class Call {
           if (p.sessionId === this.client.sessionId) {
             return {
               ...p,
-              videoTrack: videoStream,
+              videoStream,
               videoDeviceId: this.getActiveInputDeviceId('videoinput'),
             };
           }
@@ -385,7 +385,7 @@ export class Call {
           if (p.sessionId === this.client.sessionId) {
             return {
               ...p,
-              audioTrack: audioStream,
+              audioStream: audioStream,
               audioDeviceId: this.getActiveInputDeviceId('audioinput'),
             };
           }
@@ -652,8 +652,8 @@ export class Call {
   };
 
   private get participants() {
-    return this.stateStore.getCurrentValue(
-      this.stateStore.activeCallAllParticipantsSubject,
+    return this.stateStore2.getCurrentValue(
+      this.stateStore2.participantsSubject,
     );
   }
 
@@ -704,19 +704,6 @@ export class Call {
             return {
               // FIXME OL: shallow clone, switch to deep clone
               ...participant,
-              videoTrack: primaryStream,
-            };
-          }
-          return participant;
-        }),
-      );
-      this.stateStore.setCurrentValue(
-        this.stateStore.activeCallAllParticipantsSubject,
-        this.participants.map((participant) => {
-          if (participant.trackLookupPrefix === trackId) {
-            return {
-              // FIXME OL: shallow clone, switch to deep clone
-              ...participant,
               videoStream: primaryStream,
             };
           }
@@ -726,19 +713,6 @@ export class Call {
     } else if (e.track.kind === 'audio') {
       this.stateStore2.setCurrentValue(
         this.stateStore2.participantsSubject,
-        this.participants.map((participant) => {
-          if (participant.trackLookupPrefix === trackId) {
-            return {
-              // FIXME OL: shallow clone, switch to deep clone
-              ...participant,
-              audioTrack: primaryStream,
-            };
-          }
-          return participant;
-        }),
-      );
-      this.stateStore.setCurrentValue(
-        this.stateStore.activeCallAllParticipantsSubject,
         this.participants.map((participant) => {
           if (participant.trackLookupPrefix === trackId) {
             return {
