@@ -89,7 +89,7 @@ export const QuickDial = <SCG extends ExtendableGenerics = DefaultGenerics>({
     // FIXME: add horizontall scrolling
     <div className="quick-dial">
       {Object.values(users).map((user) => (
-        <QuickDialButton user={user} onUserClick={onUserClick} />
+        <QuickDialButton key={user.id} user={user} onUserClick={onUserClick} />
       ))}
     </div>
   );
