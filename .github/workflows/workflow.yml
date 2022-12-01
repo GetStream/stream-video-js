@@ -41,7 +41,7 @@ jobs:
         run: yarn build:all
 
       - name: Test packages
-        run: yarn _tests__:ci:all
+        run: yarn test:ci:all
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
