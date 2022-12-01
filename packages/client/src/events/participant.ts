@@ -90,10 +90,11 @@ export const watchTrackUnpublished = (
       trackUnpublished: { type, sessionId },
     } = e.eventPayload;
     store.updateParticipant(sessionId, (p) => {
-      const key = trackTypeToParticipantStreamKey(type);
+      const audioOrVideoOrScreenShareStreamProp =
+        trackTypeToParticipantStreamKey(type);
       return {
         publishedTracks: p.publishedTracks.filter((t) => t !== type),
-        [key!]: undefined,
+        [audioOrVideoOrScreenShareStreamProp!]: undefined,
       };
     });
   });
