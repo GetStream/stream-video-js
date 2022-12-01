@@ -21,8 +21,7 @@ export const createSubscriber = ({
       return;
     }
 
-    await rpcClient.rpc.iceTrickle({
-      sessionId: rpcClient.sessionId,
+    await rpcClient.iceTrickle({
       iceCandidate: getIceCandidate(candidate),
       peerType: PeerType.SUBSCRIBER,
     });
@@ -76,8 +75,7 @@ export const createSubscriber = ({
     const answer = await subscriber.createAnswer();
     await subscriber.setLocalDescription(answer);
 
-    await rpcClient.rpc.sendAnswer({
-      sessionId: rpcClient.sessionId,
+    await rpcClient.sendAnswer({
       peerType: PeerType.SUBSCRIBER,
       sdp: answer.sdp || '',
     });

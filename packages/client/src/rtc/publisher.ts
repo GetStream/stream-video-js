@@ -23,8 +23,7 @@ export const createPublisher = ({
       console.log('null ice candidate');
       return;
     }
-    await rpcClient.rpc.iceTrickle({
-      sessionId: rpcClient.sessionId,
+    await rpcClient.iceTrickle({
       iceCandidate: getIceCandidate(candidate),
       peerType: PeerType.PUBLISHER_UNSPECIFIED,
     });
@@ -83,9 +82,8 @@ export const createPublisher = ({
       });
 
     // TODO debounce for 250ms
-    const response = await rpcClient.rpc.setPublisher({
+    const response = await rpcClient.setPublisher({
       sdp: offer.sdp || '',
-      sessionId: rpcClient.sessionId,
       tracks: trackInfos,
     });
 

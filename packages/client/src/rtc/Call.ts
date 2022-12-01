@@ -5,9 +5,9 @@ import { findOptimalVideoLayers } from './videoLayers';
 import { getGenericSdp, getPreferredCodecs } from './codecs';
 import { CallState, TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
-import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
+import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import type {
   CallOptions,
   PublishOptions,
@@ -21,7 +21,6 @@ import {
   createStatsReporter,
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
-import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 
 /**
  * A `Call` object represents the active call, the user is part of.
@@ -162,18 +161,9 @@ export class Call {
         });
 
         const genericSdp = await getGenericSdp('recvonly');
-        this.client.send(
-          SfuRequest.create({
-            requestPayload: {
-              oneofKind: 'joinRequest',
-              joinRequest: {
-                sessionId: this.client.sessionId,
-                token: this.client.token,
-                subscriberSdp: genericSdp || '',
-              },
-            },
-          }),
-        );
+        await this.client.join({
+          subscriberSdp: genericSdp || '',
+        });
       },
     );
 
