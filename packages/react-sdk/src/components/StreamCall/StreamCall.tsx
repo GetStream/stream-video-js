@@ -1,5 +1,6 @@
 import { ReactNode, useEffect } from 'react';
 import {
+  useAcceptedCall,
   useActiveCall,
   useOutgoingCalls,
   useStreamVideoClient,
@@ -10,23 +11,25 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
   const videoClient = useStreamVideoClient();
   const activeCall = useActiveCall();
   const outgoingCalls = useOutgoingCalls();
+  const acceptedCall = useAcceptedCall();
 
   useEffect(() => {
     if (!videoClient) return;
 
-    const [outgoingCall] = outgoingCalls;
-    if (!activeCall && outgoingCall?.call) {
+    const acceptedOrInitiatedCall =
+      acceptedCall?.call || outgoingCalls[0]?.call;
+    if (!activeCall && acceptedOrInitiatedCall) {
       videoClient?.joinCall({
-        id: outgoingCall.call.id,
-        type: outgoingCall.call.type,
+        id: acceptedOrInitiatedCall.id,
+        type: acceptedOrInitiatedCall.type,
         // FIXME: OL optional, but it is marked as required in proto
         datacenterId: '',
       });
     }
     return () => {
-      activeCall?.connection?.leave();
+      activeCall?.leave();
     };
-  }, [activeCall, videoClient, outgoingCalls]);
+  }, [activeCall, videoClient, outgoingCalls, acceptedCall]);
 
   if (!videoClient) return null;
 
