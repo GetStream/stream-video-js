@@ -4854,7 +4854,6 @@ __metadata:
     vite: ^3.1.7
     vitest: ^0.24.1
     vitest-mock-extended: ^1.0.7
-    vitest-sonar-reporter: ^0.3.3
     webrtc-adapter: ^8.1.2
   languageName: unknown
   linkType: soft
@@ -17851,13 +17850,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pathe@npm:^0.3.9":
-  version: 0.3.9
-  resolution: "pathe@npm:0.3.9"
-  checksum: 9afcbaa79c5f8ec603b6b0a20b9accfcec8de57e26738f4a844de4625cfb07cc733b7234387ef42c7ab23a49b91846b6b51cb247584793842a3179539af463df
-  languageName: node
-  linkType: hard
-
 "pathval@npm:^1.1.1":
   version: 1.1.1
   resolution: "pathval@npm:1.1.1"
@@ -23013,17 +23005,6 @@ __metadata:
     typescript: 3.x || 4.x
     vitest: ">=0.24.3"
   checksum: 3dbe5e6a73a9191f42b6635d1266d8b4eabf149cf4b09e38274647f1fba2123718df3add1f93048c4343eda684be51a6680516ef2648739a7f22b4a7463daacd
-  languageName: node
-  linkType: hard
-
-"vitest-sonar-reporter@npm:^0.3.3":
-  version: 0.3.3
-  resolution: "vitest-sonar-reporter@npm:0.3.3"
-  dependencies:
-    pathe: ^0.3.9
-  peerDependencies:
-    vitest: ">=0.18.0"
-  checksum: 72533eb30eee8b55190e2044297429f40e97b4fa25acf7757a1323d81d5aa0bc1a0890404fec32ccdb69061c655af00fac7e494138a6605920ff093d25b82b04
   languageName: node
   linkType: hard
 
