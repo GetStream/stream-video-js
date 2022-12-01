@@ -10,6 +10,7 @@
     "scripts:init-users": "node scripts/generateUsers.mjs"
   },
   "dependencies": {
+    "@mui/icons-material": "^5.10.16",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^",
     "@stream-io/video-react-sdk": "workspace:^",
