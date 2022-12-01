@@ -74,3 +74,8 @@ export const usePendingCalls = () => {
   const { pendingCalls$ } = useStore();
   return useObservableValue(pendingCalls$);
 };
+
+export const useAcceptedCall = () => {
+  const { acceptedCall$ } = useStore();
+  return useObservableValue(acceptedCall$);
+};
