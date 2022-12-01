@@ -48,10 +48,15 @@ export class DeviceSettingsComponent implements OnInit {
   ) {
     const deviceId = event.target.value;
     try {
-      const mediaStream = await (kind === 'audioinput'
-        ? getAudioStream(deviceId)
-        : getVideoStream(deviceId));
-      this.activeCall?.replaceMediaStream(kind, mediaStream);
+      if (kind === 'audioinput') {
+        const audioStream = await getAudioStream(deviceId);
+        await this.activeCall?.publishAudioStream(audioStream);
+      } else if (kind === 'videoinput') {
+        const videoStream = await getVideoStream(deviceId);
+        await this.activeCall?.publishVideoStream(videoStream);
+      } else {
+        console.warn(`Unsupported device kind: ${kind}`);
+      }
     } catch (error) {
       console.error(`Error during device changing`, error);
       throw error;

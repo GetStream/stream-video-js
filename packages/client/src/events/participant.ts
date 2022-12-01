@@ -1,5 +1,6 @@
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import { Dispatcher } from '../rtc/Dispatcher';
+import { trackTypeToParticipantStreamKey } from '../rtc/helpers/tracks';
 
 /**
  * An event responder which handles the `participantJoined` event.
@@ -88,9 +89,13 @@ export const watchTrackUnpublished = (
     const {
       trackUnpublished: { type, sessionId },
     } = e.eventPayload;
-    store.updateParticipant(sessionId, (p) => ({
-      publishedTracks: p.publishedTracks.filter((t) => t !== type),
-    }));
+    store.updateParticipant(sessionId, (p) => {
+      const key = trackTypeToParticipantStreamKey(type);
+      return {
+        publishedTracks: p.publishedTracks.filter((t) => t !== type),
+        [key!]: undefined,
+      };
+    });
   });
 };
 

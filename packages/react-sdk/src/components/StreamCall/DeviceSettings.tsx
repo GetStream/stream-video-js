@@ -23,11 +23,17 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
     kind: 'videoinput' | 'audioinput',
     deviceId: string,
   ) => {
-    const mediaStream = await (kind === 'videoinput'
-      ? getVideoStream(deviceId)
-      : getAudioStream(deviceId));
-    activeCall.replaceMediaStream(kind, mediaStream);
+    if (kind === 'audioinput') {
+      const audioStream = await getAudioStream(deviceId);
+      await activeCall.publishAudioStream(audioStream);
+    } else if (kind === 'videoinput') {
+      const videoStream = await getVideoStream(deviceId);
+      await activeCall.publishVideoStream(videoStream);
+    } else {
+      console.warn(`Unsupported device kind: ${kind}`);
+    }
   };
+
   return (
     <>
       <span

@@ -24,6 +24,7 @@ import {
   MediaStateChangeReason,
 } from '../gen/video/coordinator/stat_v1/stat';
 import { createStatsReporter, StatsReporter } from '../stats/reporter';
+import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 
 /**
  * A `Call` object represents the active call, the user is part of.
@@ -141,6 +142,10 @@ export class Call {
    * @returns a promise which resolves once the call join-flow has finished.
    */
   join = async () => {
+    if (this.joinResponseReady) {
+      throw new Error(`Illegal State: Already joined.`);
+    }
+
     await this.client.signalReady.then((ws) => {
       this.publishStatEvent({
         type: 'participant_joined',
@@ -151,10 +156,6 @@ export class Call {
         });
       });
     });
-
-    if (this.joinResponseReady) {
-      throw new Error(`Illegal State: Already joined.`);
-    }
 
     this.joinResponseReady = new Promise<CallState | undefined>(
       async (resolve) => {
@@ -204,6 +205,8 @@ export class Call {
   /**
    * Starts publishing the given video stream to the call.
    * The stream will be stopped if the user changes an input device, or if the user leaves the call.
+   *
+   * Consecutive calls to this method will replace the previously published stream.
    *
    * @param videoStream the video stream to publish.
    * @param opts the options to use when publishing the stream.
@@ -267,6 +270,8 @@ export class Call {
    * Starts publishing the given audio stream to the call.
    * The stream will be stopped if the user changes an input device, or if the user leaves the call.
    *
+   * Consecutive calls to this method will replace the audio stream that is currently being published.
+   *
    * @param audioStream the audio stream to publish.
    */
   publishAudioStream = async (audioStream: MediaStream) => {
@@ -309,6 +314,7 @@ export class Call {
 
   /**
    * Starts publishing the given screen-share stream to the call.
+   * Consecutive calls to this method will replace the previous screen-share stream.
    *
    * @param screenShareStream the screen-share stream to publish.
    */
@@ -327,6 +333,11 @@ export class Call {
         t.sender.track.kind === 'video',
     );
     if (!screenShareTransceiver) {
+      // fires when browser's native 'Stop Sharing button' is clicked
+      screenShareTrack.addEventListener('ended', () => {
+        this.stopPublish(TrackType.SCREEN_SHARE);
+      });
+
       const transceiver = this.publisher.addTransceiver(screenShareTrack, {
         direction: 'sendonly',
         streams: [screenShareStream],
@@ -351,66 +362,35 @@ export class Call {
     });
   };
 
-  // TODO OL: add stream unpublish methods
+  stopPublish = async (trackType: TrackType) => {
+    console.log(`stopPublish`, TrackType[trackType]);
+    const transceiver = this.publisher.getTransceivers().find(
+      (t) =>
+        // @ts-ignore
+        t.__trackType === trackType &&
+        t.sender.track &&
+        t.currentDirection !== 'stopped',
+    );
+    if (transceiver && transceiver.sender.track) {
+      const { track } = transceiver.sender;
+      track.stop();
+      // transceiver.stop();
 
-  /**
-   * A method for switching an input device.
-   * @param kind
-   * @param deviceId
-   * @param extras
-   * @returns
-   */
-  replaceMediaStream = async (
-    kind: Exclude<MediaDeviceKind, 'audiooutput'>,
-    mediaStream: MediaStream,
-  ) => {
-    if (!this.publisher) {
-      // FIXME: OL: throw error instead?
-      console.warn(
-        `Can't change input device without publish connection established`,
-        kind,
-      );
-      return;
+      const key = trackTypeToParticipantStreamKey(trackType);
+      if (key) {
+        this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
+          publishedTracks: p.publishedTracks.filter((t) => t !== trackType),
+          [key]: undefined,
+        }));
+      }
+
+      this.publishStatEvent({
+        type: 'media_state_changed',
+        track: transceiver.sender.track,
+        change: MediaStateChange.ENDED,
+        reason: MediaStateChangeReason.MUTE,
+      });
     }
-
-    const [newTrack] =
-      kind === 'videoinput'
-        ? mediaStream.getVideoTracks()
-        : mediaStream.getAudioTracks();
-
-    const senders = this.publisher.getSenders();
-    const sender = senders.find((s) => s.track?.kind === newTrack.kind);
-    if (!sender || !sender.track || !newTrack) {
-      // FIXME: OL: maybe start publishing in this case?
-      console.warn(
-        `Can't find a sender for track with kind`,
-        newTrack,
-        kind,
-        senders,
-      );
-      return;
-    }
-
-    sender.track.stop(); // release old track
-    await sender.replaceTrack(newTrack);
-
-    // const localParticipant = this.participants.find(
-    //   (p) => p.sessionId === this.client.sessionId,
-    // );
-    // const muteState = !(kind === 'audioinput'
-    //   ? localParticipant?.audio
-    //   : localParticipant?.video);
-    const muteState = false; // FIXME: OL: this is a hack
-    this.updateMuteState(kind === 'audioinput' ? 'audio' : 'video', muteState);
-
-    this.stateStore.updateParticipant(this.client.sessionId, {
-      // FIXME: screen share?
-      [kind === 'audioinput' ? 'audioStream' : 'videoStream']: mediaStream,
-      [kind === 'audioinput' ? 'audioDeviceId' : 'videoDeviceId']:
-        newTrack.getSettings().deviceId,
-    });
-
-    return mediaStream; // for SDK use (preview video)
   };
 
   /**
@@ -514,34 +494,6 @@ export class Call {
   };
   private publishStatEvent = (event: StatEvent) => {
     this.statEventListeners.forEach((fn) => fn(event));
-  };
-
-  /**
-   * Mute/unmute the video/audio stream of the current user.
-   * @param trackKind
-   * @param isMute
-   * @returns
-   */
-  updateMuteState = (trackKind: 'audio' | 'video', isMute: boolean) => {
-    if (!this.publisher) return;
-    const senders = this.publisher.getSenders();
-    const sender = senders.find((s) => s.track?.kind === trackKind);
-    if (sender && sender.track) {
-      sender.track.enabled = !isMute;
-
-      this.publishStatEvent({
-        type: 'media_state_changed',
-        track: sender.track,
-        change: isMute ? MediaStateChange.STARTED : MediaStateChange.ENDED,
-        reason: MediaStateChangeReason.MUTE,
-      });
-
-      if (trackKind === 'audio') {
-        return this.client.updateAudioMuteState(isMute);
-      } else if (trackKind === 'video') {
-        return this.client.updateVideoMuteState(isMute);
-      }
-    }
   };
 
   updatePublishQuality = async (enabledRids: string[]) => {

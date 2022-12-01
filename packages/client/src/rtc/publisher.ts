@@ -82,6 +82,7 @@ export const createPublisher = ({
         };
       });
 
+    // TODO debounce for 250ms
     const response = await rpcClient.rpc.setPublisher({
       sdp: offer.sdp || '',
       sessionId: rpcClient.sessionId,
