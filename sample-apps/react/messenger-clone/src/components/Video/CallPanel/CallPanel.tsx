@@ -1,25 +1,22 @@
-import { useMemo, useEffect } from 'react';
 import {
   useActiveCall,
-  useLocalParticipant,
-  useRemoteParticipants,
-  usePendingCalls,
-  useStreamVideoClient,
   useIncomingCalls,
+  useLocalParticipant,
   useOutgoingCalls,
+  usePendingCalls,
+  useRemoteParticipants,
+  useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 
 import { ParticipantBox, useStage } from '@stream-io/video-react-sdk';
 
 import { CallCreated } from '@stream-io/video-client';
-// import { RingingCallPanel } from './RingingPanel';
 
 const ButtonControls = ({
   incomingCall,
   outgoingCall,
 }: Record<'incomingCall' | 'outgoingCall', CallCreated>) => {
   const videoClient = useStreamVideoClient();
-
   const activeCall = useActiveCall();
 
   return (
@@ -27,7 +24,7 @@ const ButtonControls = ({
       {incomingCall && 'incoming'}
       {outgoingCall && 'outgoing'}
 
-      {incomingCall && !activeCall?.connection && !outgoingCall && (
+      {incomingCall && !activeCall && !outgoingCall && (
         <>
           <button
             onClick={() => videoClient.acceptCall(incomingCall.call.callCid)}
@@ -41,15 +38,22 @@ const ButtonControls = ({
           </button>
         </>
       )}
-      {outgoingCall && !activeCall?.connection && (
+      {outgoingCall && !activeCall && (
         <button
           onClick={() => videoClient.cancelCall(outgoingCall.call.callCid)}
         >
           Cancel
         </button>
       )}
-      {activeCall?.connection && (
-        <button onClick={activeCall.connection.leave}>Drop</button>
+      {activeCall && (
+        <button
+          onClick={async () => {
+            await videoClient.cancelCall(activeCall.data.call.callCid);
+            activeCall.leave();
+          }}
+        >
+          Drop
+        </button>
       )}
     </div>
   );
@@ -67,11 +71,9 @@ export const CallPanel = () => {
   // const isOutgoing = !activeCall.connection && outgoingCall && !localParticipant;
   // const isIncoming = !localParticipant && incomingCall;
 
-  const { updateVideoSubscriptionForParticipant } = useStage(
-    activeCall?.connection,
-  );
+  const { updateVideoSubscriptionForParticipant } = useStage(activeCall);
 
-  if (!pendingCalls.length && !activeCall?.connection) return null;
+  if (!pendingCalls.length && !activeCall) return null;
 
   return (
     <div>
@@ -79,7 +81,7 @@ export const CallPanel = () => {
         <div className="floating">
           <ParticipantBox
             participant={localParticipant}
-            call={activeCall.connection}
+            call={activeCall}
             updateVideoSubscriptionForParticipant={
               updateVideoSubscriptionForParticipant
             }
@@ -91,7 +93,7 @@ export const CallPanel = () => {
       {remoteParticipant && (
         <ParticipantBox
           participant={remoteParticipant}
-          call={activeCall.connection}
+          call={activeCall}
           updateVideoSubscriptionForParticipant={
             updateVideoSubscriptionForParticipant
           }
