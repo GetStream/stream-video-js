@@ -69,8 +69,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
     });
   }, [channel.state.members, videoClient]);
 
-  const disableCreateCall =
-    !videoClient || activeCall?.data?.call?.callCid === channel.cid;
+  const disableCreateCall = !videoClient || !!activeCall;
 
   return (
     <div className="str-chat__header-livestream str-chat__channel-header">
