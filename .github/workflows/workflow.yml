@@ -46,7 +46,6 @@ jobs:
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
         with:
-          projectBaseDir: projects/client/
           args: >
             -Dsonar.organization=getstream
             -Dsonar.projectKey=GetStream_stream-video-js

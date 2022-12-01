@@ -37,7 +37,9 @@ export type CallStatsReport = {
   datacenter: string;
   latencyInMs: number;
   publisherStats: AggregatedStatsReport;
+  publisherRawStats?: RTCStatsReport;
   subscriberStats: AggregatedStatsReport;
+  subscriberRawStats?: RTCStatsReport;
   participants: ParticipantsStatsReport;
   timestamp: number;
 };
