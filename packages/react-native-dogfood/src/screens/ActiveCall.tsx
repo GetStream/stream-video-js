@@ -15,7 +15,6 @@ export default (_props: Props) => {
         <CallParticipantsView />
       </View>
       <CallControls />
-      {/* <Stats /> */}
     </SafeAreaView>
   );
 };

@@ -62,7 +62,7 @@ export type StatsReporter = {
 };
 
 /**
- * Creates a new StatsReporter instance.
+ * Creates a new StatsReporter instance that collects metrics about the ongoing call and reports them to the state store
  */
 export const createStatsReporter = ({
   subscriber,
@@ -168,6 +168,11 @@ export const createStatsReporter = ({
         .then(aggregate),
     ]);
 
+    const [subscriberRawStats, publisherRawStats] = await Promise.all([
+      getRawStatsForTrack('subscriber'),
+      getRawStatsForTrack('publisher'),
+    ]);
+
     let latencyInMs = -1;
     if (latencyCheckUrl) {
       const [latencyInSeconds] = await measureResourceLoadLatencyTo(
@@ -182,6 +187,8 @@ export const createStatsReporter = ({
       latencyInMs: latencyInMs,
       publisherStats,
       subscriberStats,
+      subscriberRawStats,
+      publisherRawStats,
       participants: participantStats,
       timestamp: Date.now(),
     };
