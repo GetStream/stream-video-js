@@ -10,9 +10,7 @@ import {
   MediaType,
   MediaDirection,
 } from '../gen/video/coordinator/stat_v1/stat';
-import { pairwise } from 'rxjs';
-
-const intervalMs = 15000;
+import { pairwise, throttleTime } from 'rxjs';
 
 /**
  * Collects stat metrics and events from the state store and sends them to the Coordinator API
@@ -22,42 +20,37 @@ const intervalMs = 15000;
  */
 export const reportStats = (
   readOnlyStateStore: StreamVideoReadOnlyStateStore,
-  sendStat: (stats: Object) => Promise<ReportCallStatsResponse>,
+  sendStatMetrics: (stats: Object) => Promise<ReportCallStatsResponse>,
   sendStatEvent: (
     statEvent: ReportCallStatEventRequest['event'],
   ) => Promise<ReportCallStatEventResponse>,
 ) => {
-  reportPeriodicStats(readOnlyStateStore, sendStat);
+  reportStatMetrics(readOnlyStateStore, sendStatMetrics);
   reportStatEvents(readOnlyStateStore, sendStatEvent);
 };
 
-const reportPeriodicStats = (
+const reportStatMetrics = (
   readOnlyStateStore: StreamVideoReadOnlyStateStore,
-  sendStat: (stats: Object) => Promise<ReportCallStatsResponse>,
+  sendStatMetrics: (stats: Object) => Promise<ReportCallStatsResponse>,
 ) => {
-  let rawStatReportIntervalId: any;
-  readOnlyStateStore.activeCall$.subscribe((call) => {
-    if (call) {
-      rawStatReportIntervalId = setInterval(async () => {
-        const stats = await Promise.all([
-          call.getStats('subscriber'),
-          call.getStats('publisher'),
-        ]);
-
-        for (const s of stats) {
-          if (!s) {
-            continue;
-          }
-          sendStat(s);
-        }
-      }, intervalMs);
-    } else {
-      if (rawStatReportIntervalId) {
-        clearInterval(rawStatReportIntervalId);
-        rawStatReportIntervalId = undefined;
+  readOnlyStateStore.callStatsReport$
+    .pipe(throttleTime(15000))
+    .subscribe((report) => {
+      if (report?.publisherRawStats) {
+        const s: Record<string, any> = {};
+        report.publisherRawStats.forEach((v) => {
+          s[v.id] = v;
+        });
+        sendStatMetrics(s);
       }
-    }
-  });
+      if (report?.subscriberRawStats) {
+        const s: Record<string, any> = {};
+        report.subscriberRawStats.forEach((v) => {
+          s[v.id] = v;
+        });
+        sendStatMetrics(s);
+      }
+    });
 };
 
 export const reportStatEvents = (

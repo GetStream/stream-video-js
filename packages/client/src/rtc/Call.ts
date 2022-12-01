@@ -413,7 +413,7 @@ export class Call {
   };
 
   /**
-   * TODO: this should be part of the state store.
+   * @deprecated use the `callStatsReport$` state store variable instead
    * @param kind
    * @param selector
    * @returns
