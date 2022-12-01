@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Button,
   Pressable,
   SafeAreaView,
@@ -11,8 +10,8 @@ import {
 } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  useAppGlobalStoreValue,
   useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../types';
@@ -20,6 +19,7 @@ import { joinCall } from '../../utils/callUtils';
 import {
   useActiveRingCall,
   useStreamVideoClient,
+  useStreamVideoStoreValue,
 } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
@@ -82,13 +82,14 @@ const styles = StyleSheet.create({
   },
 });
 
-type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'> & {
+  setLoadingCall: (loading: boolean) => void;
+};
 
-const Ringing = ({ navigation }: Props) => {
-  const [loading, setLoading] = useState(false);
+const Ringing = ({ navigation, setLoadingCall }: Props) => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
   const videoClient = useStreamVideoClient();
-  const localMediaStream = useAppGlobalStoreValue(
+  const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
   const username = useAppGlobalStoreValue((store) => store.username);
@@ -112,7 +113,7 @@ const Ringing = ({ navigation }: Props) => {
   const setState = useAppGlobalStoreSetState();
 
   const startCallHandler = async () => {
-    setLoading(true);
+    setLoadingCall(true);
     if (videoClient && localMediaStream) {
       try {
         const callID = uuidv4().toLowerCase();
@@ -136,7 +137,7 @@ const Ringing = ({ navigation }: Props) => {
           callId: callID,
           callType: 'default',
         }).then(() => {
-          setLoading(false);
+          setLoadingCall(false);
         });
       } catch (err) {
         console.log(err);
@@ -199,7 +200,6 @@ const Ringing = ({ navigation }: Props) => {
         title="Start a Call"
         onPress={startCallHandler}
       />
-      {loading && <ActivityIndicator />}
     </SafeAreaView>
   );
 };

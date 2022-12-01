@@ -115,14 +115,13 @@ export const createStatsReporter = ({
   };
 
   const sessionIdsToTrack = new Set<string>();
-  const readOnlyStore = store.asReadOnlyStore();
 
   /**
    * The main stats reporting loop.
    */
   const run = async () => {
-    const participants = readOnlyStore.getCurrentValue(
-      readOnlyStore.activeCallAllParticipants$,
+    const participants = store.getCurrentValue(
+      store.activeCallAllParticipantsSubject,
     );
     const participantStats: ParticipantsStatsReport = {};
     const sessionIds = new Set(sessionIdsToTrack);
@@ -194,7 +193,7 @@ export const createStatsReporter = ({
   if (pollingIntervalInMs > 0) {
     const loop = async () => {
       await run().catch((e) => {
-        console.error('Failed to collect stats', e);
+        console.log('Failed to collect stats', e);
       });
       timeoutId = setTimeout(loop, pollingIntervalInMs);
     };

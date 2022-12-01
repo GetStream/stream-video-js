@@ -6,6 +6,7 @@ import {
   StreamVideoParticipant,
   UserInput,
   CallMeta,
+  CallStatsReport,
 } from '@stream-io/video-client';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 
@@ -47,16 +48,24 @@ export class StreamVideoService {
    * The `videoClient` lets interact with our API, please refer to the [`StreamVideoClient`](./StreamVideoClient.mdx) for more information.
    */
   videoClient: StreamVideoClient | undefined;
-  activeRingCallMeta$: Observable<CallMeta.Call | undefined>;
+  activeCallMeta$: Observable<CallMeta.Call | undefined>;
   activeRingCallDetails$: Observable<CallMeta.CallDetails | undefined>;
   terminatedRingCallMeta$: Observable<CallMeta.Call | undefined>;
+  /**
+   * Emits a boolean indicating whether a call recording is currently in progress.
+   */
+  callRecordingInProgress$: Observable<boolean>;
+  /**
+   * Periodically emits statistics about the active call
+   */
+  callStatsReport$: Observable<CallStatsReport | undefined>;
 
   private userSubject: ReplaySubject<UserInput | undefined> = new ReplaySubject(
     1,
   );
   private activeCallSubject: ReplaySubject<Call | undefined> =
     new ReplaySubject(1);
-  private activeRingCallMetaSubject: ReplaySubject<CallMeta.Call | undefined> =
+  private activeCallMetaSubject: ReplaySubject<CallMeta.Call | undefined> =
     new ReplaySubject(1);
   private activeRingCallDetailsSubject: ReplaySubject<
     CallMeta.CallDetails | undefined
@@ -75,6 +84,10 @@ export class StreamVideoService {
   private activeCallLocalParticipantSubject: ReplaySubject<
     StreamVideoParticipant | undefined
   > = new ReplaySubject(1);
+  private callRecordingInProgressSubject: ReplaySubject<boolean> =
+    new ReplaySubject(1);
+  private callStatsReportSubject: ReplaySubject<CallStatsReport | undefined> =
+    new ReplaySubject(1);
   private subscriptions: Subscription[] = [];
 
   /**
@@ -90,11 +103,14 @@ export class StreamVideoService {
       this.activeCallRemoteParticipantsSubject.asObservable();
     this.activeCallLocalParticipant$ =
       this.activeCallLocalParticipantSubject.asObservable();
-    this.activeRingCallMeta$ = this.activeRingCallMetaSubject.asObservable();
+    this.activeCallMeta$ = this.activeCallMetaSubject.asObservable();
     this.activeRingCallDetails$ =
       this.activeRingCallDetailsSubject.asObservable();
     this.terminatedRingCallMeta$ =
       this.terminatedRingCallMetaSubject.asObservable();
+    this.callRecordingInProgress$ =
+      this.callRecordingInProgressSubject.asObservable();
+    this.callStatsReport$ = this.callStatsReportSubject.asObservable();
   }
 
   init(
@@ -120,7 +136,7 @@ export class StreamVideoService {
 
     this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.activeRingCallMeta$.subscribe(
-        this.activeRingCallMetaSubject,
+        this.activeCallMetaSubject,
       ),
     );
 
@@ -164,6 +180,16 @@ export class StreamVideoService {
     this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.activeCallLocalParticipant$.subscribe(
         this.activeCallLocalParticipantSubject,
+      ),
+    );
+    this.subscriptions.push(
+      this.videoClient.readOnlyStateStore?.callRecordingInProgress$.subscribe(
+        this.callRecordingInProgressSubject,
+      ),
+    );
+    this.subscriptions.push(
+      this.videoClient.readOnlyStateStore?.callStatsReport$.subscribe(
+        this.callStatsReportSubject,
       ),
     );
 

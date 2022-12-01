@@ -102,7 +102,9 @@ export class StreamVideoClient {
     );
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
-    this.readOnlyStateStore = this.writeableStateStore.asReadOnlyStore();
+    this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
+      this.writeableStateStore,
+    );
   }
 
   /**
@@ -555,5 +557,29 @@ export class StreamVideoClient {
   ): Promise<ReportCallStatEventResponse> => {
     const response = await this.client.reportCallStatEvent(statEvent);
     return response.response;
+  };
+
+  /**
+   * Sets the participant.isPinned value.
+   * @param sessionId the session id of the participant
+   * @param isPinned the value to set the participant.isPinned
+   * @returns
+   */
+  setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
+    const participants = this.writeableStateStore.getCurrentValue(
+      this.writeableStateStore.activeCallAllParticipantsSubject,
+    );
+
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.activeCallAllParticipantsSubject,
+      participants.map((p) => {
+        return p.sessionId === sessionId
+          ? {
+              ...p,
+              isPinned,
+            }
+          : p;
+      }),
+    );
   };
 }

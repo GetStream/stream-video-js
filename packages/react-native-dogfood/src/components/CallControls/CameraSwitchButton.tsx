@@ -2,13 +2,13 @@ import React from 'react';
 import ButtonContainer from './ButtonContainer';
 import CameraSwitch from '../../icons/CameraSwitch';
 import {
-  useAppGlobalStoreSetState,
-  useAppGlobalStoreValue,
-} from '../../contexts/AppContext';
+  useStreamVideoStoreSetState,
+  useStreamVideoStoreValue,
+} from '@stream-io/video-react-native-sdk';
 
 const CameraSwitchButton = () => {
-  const setState = useAppGlobalStoreSetState();
-  const localMediaStream = useAppGlobalStoreValue(
+  const setState = useStreamVideoStoreSetState();
+  const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
 

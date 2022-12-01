@@ -24,7 +24,7 @@ describe('StreamVideoClient', () => {
 
   it('should connect', async () => {
     const user = {
-      id: 'marcelo-123',
+      id: 'marcelo',
       name: 'marcelo',
       role: 'admin',
       teams: ['team-1, team-2'],
