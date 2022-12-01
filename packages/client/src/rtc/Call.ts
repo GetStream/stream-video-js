@@ -34,6 +34,7 @@ import {
   MediaStateChangeReason,
 } from '../gen/video/coordinator/stat_v1/stat';
 import { createStatsReporter, StatsReporter } from '../stats/reporter';
+import { CallEnvelope } from '../gen/video/coordinator/client_v1_rpc/envelopes';
 
 /**
  * A `Call` object represents the active call, the user is part of.
@@ -41,7 +42,7 @@ import { createStatsReporter, StatsReporter } from '../stats/reporter';
 export class Call {
   /**@deprecated use store for this data */
   currentUserId: string;
-  cid: string;
+  data: CallEnvelope;
 
   private videoLayers?: OptimalVideoLayer[];
   private readonly subscriber: RTCPeerConnection;
@@ -57,17 +58,18 @@ export class Call {
   /**
    * Use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    * @param client
+   * @param data
    * @param options
    * @param stateStore
    */
   constructor(
-    cid: string,
+    data: CallEnvelope,
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
     private readonly stateStore: StreamVideoWriteableStateStore,
     private readonly stateStore2: StreamVideoWriteableStateStore2,
   ) {
-    this.cid = cid;
+    this.data = data;
     this.currentUserId = stateStore.getCurrentValue(
       stateStore.connectedUserSubject,
     )!.name;
@@ -139,7 +141,9 @@ export class Call {
           reason: MediaStateChangeReason.CONNECTION,
         });
       }
-      this.publisher.removeTrack(s);
+      if (this.publisher.signalingState !== 'closed') {
+        this.publisher.removeTrack(s);
+      }
     });
     this.publisher.close();
     this.client.close();
@@ -148,21 +152,13 @@ export class Call {
       this.stateStore.callRecordingInProgressSubject,
       false,
     );
-    const activeCall = this.stateStore2.getCurrentValue(
+
+    this.stateStore2.setCurrentValue(
       this.stateStore2.activeCallSubject,
+      undefined,
     );
 
-    if (activeCall?.data) {
-      this.stateStore2.setCurrentValue(
-        this.stateStore2.activeCallSubject,
-        undefined,
-      );
-
-      this.stateStore2.setCurrentValue(
-        this.stateStore2.participantsSubject,
-        [],
-      );
-    }
+    this.stateStore2.setCurrentValue(this.stateStore2.participantsSubject, []);
 
     // todo: MC: remove stateStore
     this.stateStore.setCurrentValue(
@@ -236,26 +232,21 @@ export class Call {
               return participant;
             }),
           );
-          const activeCall = this.stateStore2.getCurrentValue(
+          this.stateStore2.setCurrentValue(
             this.stateStore2.activeCallSubject,
+            this,
           );
-          this.stateStore2.setCurrentValue(this.stateStore2.activeCallSubject, {
-            data: activeCall?.data,
-            connection: this,
-          });
-          // todo: MC: remove stateStore
-          // this.stateStore.setCurrentValue(
-          //   this.stateStore.activeCallAllParticipantsSubject,
-          //   currentParticipants.map<StreamVideoParticipant>((participant) => {
-          //     if (participant.sessionId === this.client.sessionId) {
-          //       const localParticipant = participant as StreamVideoParticipant;
-          //       localParticipant.isLoggedInUser = true;
-          //       localParticipant.audioStream = audioStream;
-          //       localParticipant.videoStream = videoStream;
-          //     }
-          //     return participant;
-          //   }),
-          // );
+          this.stateStore2.setCurrentValue(
+            this.stateStore2.pendingCallsSubject,
+            this.stateStore2
+              .getCurrentValue(this.stateStore2.pendingCallsSubject)
+              .filter((call) => call.call?.callCid !== this.data.call?.callCid),
+          );
+          this.stateStore2.setCurrentValue(
+            this.stateStore2.acceptedCallSubject,
+            undefined,
+          );
+
           this.client.keepAlive();
           resolve(callState); // expose call state
         });

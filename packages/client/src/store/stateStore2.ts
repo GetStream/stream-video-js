@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map, take, combineLatestWith } from 'rxjs/operators';
+import { combineLatestWith, map, take } from 'rxjs/operators';
 import { UserInput } from '../gen/video/coordinator/user_v1/user';
 import {
   CallAccepted,
@@ -10,16 +10,20 @@ import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '../rtc/types';
-import { ActiveCall } from './types';
 import { CallStatsReport } from '../stats/types';
+import { Call as CallController } from '../rtc/Call';
 
 type UserId = string;
 
 export class StreamVideoWriteableStateStore2 {
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined); // === connectedUserSubject
   pendingCallsSubject = new BehaviorSubject<CallCreated[]>([]);
-  // todo: MC:  add call data directly to CallCOntroller
-  activeCallSubject = new BehaviorSubject<ActiveCall | undefined>(undefined);
+  acceptedCallSubject = new BehaviorSubject<CallAccepted | undefined>(
+    undefined,
+  );
+  activeCallSubject = new BehaviorSubject<CallController | undefined>(
+    undefined,
+  );
   participantsSubject = new BehaviorSubject<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >([]);
@@ -110,10 +114,11 @@ export class StreamVideoReadOnlyStateStore2 {
   pendingCalls$: Observable<CallCreated[]>;
   outgoingCalls$: Observable<CallCreated[]>;
   incomingCalls$: Observable<CallCreated[]>;
+  acceptedCall$: Observable<CallAccepted | undefined>;
   /**
    * The call the current user participant is in.
    */
-  activeCall$: Observable<ActiveCall | undefined>;
+  activeCall$: Observable<CallController | undefined>;
   /**
    * The ID of the currently speaking user.
    */
@@ -164,15 +169,25 @@ export class StreamVideoReadOnlyStateStore2 {
         ),
       ),
     );
-
+    this.acceptedCall$ = store.acceptedCallSubject.asObservable();
     this.activeCall$ = store.activeCallSubject.asObservable();
     this.dominantSpeaker$ = store.dominantSpeakerSubject.asObservable();
     this.participants$ = store.participantsSubject.asObservable();
     this.localParticipant$ = this.participants$.pipe(
-      map((participants) => participants.find((p) => p.isLoggedInUser)),
+      map((participants) =>
+        participants.find((p) => {
+          console.log('localParticipant$', p);
+          return p.isLoggedInUser;
+        }),
+      ),
     );
     this.remoteParticipants$ = this.participants$.pipe(
-      map((participants) => participants.filter((p) => !p.isLoggedInUser)),
+      map((participants) =>
+        participants.filter((p) => {
+          console.log('remoteParticipants$', p);
+          return !p.isLoggedInUser;
+        }),
+      ),
     );
     this.callStatsReport$ = store.callStatsReportSubject.asObservable();
     this.callRecordingInProgress$ =
