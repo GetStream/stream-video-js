@@ -3,6 +3,8 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 on: [push]
 
@@ -39,7 +41,20 @@ jobs:
         run: yarn build:all
 
       - name: Test packages
-        run: yarn test:ci:all
+        run: yarn _tests__:ci:all
+
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
+        with:
+          projectBaseDir: projects/client/
+          args: >
+            -Dsonar.organization=getstream
+            -Dsonar.projectKey=GetStream_stream-video-js
+            -Dsonar.javascript.lcov.reportPaths=./packages/client/coverage/lcov.info
+            -Dsonar.sources=packages/
+            -Dsonar.test.exclusions=**/__tests__/**
+            -Dsonar.verbose=true
+
 
       - name: Release packages
         run: echo 'TODO'

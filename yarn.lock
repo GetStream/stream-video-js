@@ -3847,13 +3847,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@polka/url@npm:^1.0.0-next.20":
-  version: 1.0.0-next.21
-  resolution: "@polka/url@npm:1.0.0-next.21"
-  checksum: c7654046d38984257dd639eab3dc770d1b0340916097b2fac03ce5d23506ada684e05574a69b255c32ea6a144a957c8cd84264159b545fca031c772289d88788
-  languageName: node
-  linkType: hard
-
 "@popperjs/core@npm:^2.11.5, @popperjs/core@npm:^2.11.6":
   version: 2.11.6
   resolution: "@popperjs/core@npm:2.11.6"
@@ -4850,7 +4843,6 @@ __metadata:
     "@types/sdp-transform": ^2.4.5
     "@types/uuid": ^8.3.4
     "@vitest/coverage-c8": ^0.25.3
-    "@vitest/ui": ^0.25.3
     replace-in-file: ^6.3.5
     rimraf: ^3.0.2
     rxjs: ^7.5.7
@@ -4862,6 +4854,7 @@ __metadata:
     vite: ^3.1.7
     vitest: ^0.24.1
     vitest-mock-extended: ^1.0.7
+    vitest-sonar-reporter: ^0.3.3
     webrtc-adapter: ^8.1.2
   languageName: unknown
   linkType: soft
@@ -6243,15 +6236,6 @@ __metadata:
     c8: ^7.12.0
     vitest: 0.25.3
   checksum: 39d20990d56750e35c51aababe32a300cc30e6941442586d935e6f1f5ae29f4838bd5c7bcb70fc8cad19304dd1852bb6b5342e3367b1813dae79db99f201e768
-  languageName: node
-  linkType: hard
-
-"@vitest/ui@npm:^0.25.3":
-  version: 0.25.3
-  resolution: "@vitest/ui@npm:0.25.3"
-  dependencies:
-    sirv: ^2.0.2
-  checksum: 496d6ede6a242ede23cc4e77db4b659872a8d63ae2dc9e58da64b8caf406c3509717c858a97877b7d77bca71b68aa46516c2ea1d9e85ba902f242955bb062b35
   languageName: node
   linkType: hard
 
@@ -16492,13 +16476,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mrmime@npm:^1.0.0":
-  version: 1.0.1
-  resolution: "mrmime@npm:1.0.1"
-  checksum: cc979da44bbbffebaa8eaf7a45117e851f2d4cb46a3ada6ceb78130466a04c15a0de9a9ce1c8b8ba6f6e1b8618866b1352992bf1757d241c0ddca558b9f28a77
-  languageName: node
-  linkType: hard
-
 "ms@npm:2.0.0":
   version: 2.0.0
   resolution: "ms@npm:2.0.0"
@@ -17871,6 +17848,13 @@ __metadata:
   version: 4.0.0
   resolution: "path-type@npm:4.0.0"
   checksum: 5b1e2daa247062061325b8fdbfd1fb56dde0a448fb1455453276ea18c60685bdad23a445dc148cf87bc216be1573357509b7d4060494a6fd768c7efad833ee45
+  languageName: node
+  linkType: hard
+
+"pathe@npm:^0.3.9":
+  version: 0.3.9
+  resolution: "pathe@npm:0.3.9"
+  checksum: 9afcbaa79c5f8ec603b6b0a20b9accfcec8de57e26738f4a844de4625cfb07cc733b7234387ef42c7ab23a49b91846b6b51cb247584793842a3179539af463df
   languageName: node
   linkType: hard
 
@@ -21013,17 +20997,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sirv@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "sirv@npm:2.0.2"
-  dependencies:
-    "@polka/url": ^1.0.0-next.20
-    mrmime: ^1.0.0
-    totalist: ^3.0.0
-  checksum: 6982f8ecee9392d246d7eeea8144e50334fe1b46a4fa942995a844ea88c2d518b17cce781bb09926c9a5692a7002a207d18dfd67af2aa538a15e733dc2042298
-  languageName: node
-  linkType: hard
-
 "sisteransi@npm:^1.0.5":
   version: 1.0.5
   resolution: "sisteransi@npm:1.0.5"
@@ -22256,13 +22229,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"totalist@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "totalist@npm:3.0.0"
-  checksum: ec499bddfc73d5b6c73f8ff68afd7bed286705797f928a11177fee5d1ee80e9052ffcb434638437702e16864bd5490f437a54f79bfea9564e875d34ed3254bca
-  languageName: node
-  linkType: hard
-
 "tough-cookie@npm:^4.0.0":
   version: 4.1.2
   resolution: "tough-cookie@npm:4.1.2"
@@ -23047,6 +23013,17 @@ __metadata:
     typescript: 3.x || 4.x
     vitest: ">=0.24.3"
   checksum: 3dbe5e6a73a9191f42b6635d1266d8b4eabf149cf4b09e38274647f1fba2123718df3add1f93048c4343eda684be51a6680516ef2648739a7f22b4a7463daacd
+  languageName: node
+  linkType: hard
+
+"vitest-sonar-reporter@npm:^0.3.3":
+  version: 0.3.3
+  resolution: "vitest-sonar-reporter@npm:0.3.3"
+  dependencies:
+    pathe: ^0.3.9
+  peerDependencies:
+    vitest: ">=0.18.0"
+  checksum: 72533eb30eee8b55190e2044297429f40e97b4fa25acf7757a1323d81d5aa0bc1a0890404fec32ccdb69061c655af00fac7e494138a6605920ff093d25b82b04
   languageName: node
   linkType: hard
 
