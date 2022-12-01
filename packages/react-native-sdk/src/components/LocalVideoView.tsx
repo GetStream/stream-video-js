@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { VideoRenderer } from './VideoRenderer';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
+import { SfuModels } from '@stream-io/video-client';
 import { useStreamVideoStoreValue } from '../contexts';
 import { Avatar } from './Avatar';
 
@@ -42,7 +43,9 @@ export const LocalVideoView: React.FC<LocalVideoViewProps> = ({
     return null;
   }
 
-  const isVideoMuted = !localParticipant.videoStream || !localParticipant.video;
+  const isVideoMuted =
+    !localParticipant.videoStream ||
+    !localParticipant.publishedTracks.includes(SfuModels.TrackType.VIDEO);
   if (isVideoMuted) {
     return (
       <View style={{ ...(style as Object), ...styles.avatarWrapper }}>

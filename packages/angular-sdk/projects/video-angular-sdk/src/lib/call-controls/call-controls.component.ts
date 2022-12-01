@@ -51,21 +51,23 @@ export class CallControlsComponent implements OnInit, OnDestroy {
         SfuModels.TrackType.AUDIO,
       ),
     );
-    this.call?.updateMuteState(
-      'audio',
-      !!this.localParticipant?.publishedTracks.includes(
-        SfuModels.TrackType.AUDIO,
-      ),
-    );
+    // this.call?.updateMuteState(
+    //   'audio',
+    //   !!this.localParticipant?.publishedTracks.includes(
+    //     SfuModels.TrackType.AUDIO,
+    //   ),
+    // );
+    console.warn(`Not yet implemented`);
   }
 
   updateVideoMuteState() {
-    this.call?.updateMuteState(
-      'video',
-      !!this.localParticipant?.publishedTracks.includes(
-        SfuModels.TrackType.VIDEO,
-      ),
-    );
+    // this.call?.updateMuteState(
+    //   'video',
+    //   !!this.localParticipant?.publishedTracks.includes(
+    //     SfuModels.TrackType.VIDEO,
+    //   ),
+    // );
+    console.warn(`Not yet implemented`);
   }
 
   toggleRecording() {
