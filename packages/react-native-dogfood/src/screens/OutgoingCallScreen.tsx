@@ -6,6 +6,7 @@ import { RootStackParamList } from '../../types';
 import {
   OutgoingCallView,
   useRemoteParticipants,
+  useTerminatedRingCall,
 } from '@stream-io/video-react-native-sdk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'OutgoingCallScreen'>;
@@ -15,16 +16,20 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
     (store) => store.loopbackMyVideo,
   );
   const remoteParticipants = useRemoteParticipants();
+  const terminatedRingCall = useTerminatedRingCall();
 
   const filteredParticipants = loopbackMyVideo
     ? remoteParticipants
     : remoteParticipants.filter((p) => !p.isLoggedInUser);
 
   useEffect(() => {
+    if (terminatedRingCall) {
+      navigation.navigate('HomeScreen');
+    }
     if (filteredParticipants.length > 0) {
       navigation.navigate('ActiveCall');
     }
-  }, [filteredParticipants, navigation]);
+  }, [filteredParticipants, navigation, terminatedRingCall]);
 
   return <OutgoingCallView />;
 };

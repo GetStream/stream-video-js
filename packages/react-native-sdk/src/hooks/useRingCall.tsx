@@ -1,4 +1,5 @@
 import {
+  useActiveRingCall,
   useIncomingRingCalls,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
@@ -12,6 +13,7 @@ export const useRingCall = () => {
   const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
+  const activeRingCall = useActiveRingCall();
   const incomingRingCalls = useIncomingRingCalls();
   const currentIncomingRingCall =
     incomingRingCalls[incomingRingCalls.length - 1];
@@ -50,5 +52,14 @@ export const useRingCall = () => {
     await client.rejectCall(currentIncomingRingCall.callCid);
   };
 
-  return { answerCall, rejectCall };
+  const cancelCall = async () => {
+    if (!client) {
+      return;
+    }
+    if (activeRingCall) {
+      await client.cancelCall(activeRingCall.callCid);
+    }
+  };
+
+  return { answerCall, rejectCall, cancelCall };
 };

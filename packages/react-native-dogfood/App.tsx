@@ -14,8 +14,11 @@ import OutgoingCallScreen from './src/screens/OutgoingCallScreen';
 import { StreamVideo } from '@stream-io/video-react-native-sdk';
 import { AppGlobalContextProvider } from './src/contexts/AppContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { LogBox } from 'react-native';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+LogBox.ignoreAllLogs();
 
 const StackNavigator = () => {
   useProntoLinkEffect();

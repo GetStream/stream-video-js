@@ -1,22 +1,12 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import PhoneDown from '../icons/PhoneDown';
-import Video from '../icons/Video';
-import VideoSlash from '../icons/VideoSlash';
-import Mic from '../icons/Mic';
-import MicOff from '../icons/MicOff';
 import { RTCView } from 'react-native-webrtc';
 import { UserInfoView } from './UserInfoView';
-import {
-  useActiveCall,
-  useActiveRingCall,
-  useLocalParticipant,
-  useStreamVideoClient,
-} from '@stream-io/video-react-bindings';
+import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
-import InCallManager from 'react-native-incall-manager';
-import { useCallKeep } from '../hooks/useCallKeep';
+import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
+import { useCall, useCallControls } from '../hooks';
 
 const styles = StyleSheet.create({
   container: {
@@ -79,40 +69,9 @@ const Background: React.FC = () => {
 };
 
 export const OutgoingCallView = () => {
-  const client = useStreamVideoClient();
-  const activeCall = useActiveCall();
-  const localParticipant = useLocalParticipant();
-
-  const activeRingCallMeta = useActiveRingCall();
-  const isAudioMuted = !localParticipant?.audio;
-  const isVideoMuted = !localParticipant?.video;
-
-  const { endCall } = useCallKeep();
-
-  const hangupHandler = async () => {
-    if (!activeCall) {
-      console.warn('Failed to leave call: call is undefined');
-      return;
-    }
-    try {
-      if (activeRingCallMeta) {
-        await client?.cancelCall(activeRingCallMeta.callCid);
-        endCall();
-      }
-      activeCall.leave();
-      InCallManager.stop();
-    } catch (error) {
-      console.warn('failed to leave call', error);
-    }
-  };
-
-  const videoToggle = async () => {
-    await activeCall?.updateMuteState('video', !isVideoMuted);
-  };
-
-  const audioToggle = async () => {
-    await activeCall?.updateMuteState('audio', !isAudioMuted);
-  };
+  const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
+    useCallControls();
+  const { hangupCall } = useCall();
 
   return (
     <>
@@ -122,7 +81,7 @@ export const OutgoingCallView = () => {
         <View style={styles.buttons}>
           <View style={styles.deviceControlButtons}>
             <CallControlsButton
-              onPress={audioToggle}
+              onPress={toggleAudioState}
               colorKey={!isAudioMuted ? 'activated' : 'deactivated'}
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}
@@ -130,7 +89,7 @@ export const OutgoingCallView = () => {
               {isAudioMuted ? <MicOff color="#fff" /> : <Mic color="#000" />}
             </CallControlsButton>
             <CallControlsButton
-              onPress={videoToggle}
+              onPress={toggleVideoState}
               colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}
@@ -144,7 +103,7 @@ export const OutgoingCallView = () => {
           </View>
 
           <CallControlsButton
-            onPress={hangupHandler}
+            onPress={hangupCall}
             colorKey={'cancel'}
             style={[styles.buttonStyle, styles.hangupButton]}
             svgContainerStyle={styles.svgStyle}

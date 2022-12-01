@@ -4,12 +4,10 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { TabBar } from '../components/TabBar';
 import Meeting from '../components/Meeting/Meeting';
 import Ringing from '../components/Ringing/Ringing';
-import { useCallKeep } from '../hooks/useCallKeep';
 import { RootStackParamList } from '../../types';
 import { mediaDevices } from 'react-native-webrtc';
 import {
   useIncomingRingCalls,
-  useTerminatedRingCall,
   useStreamVideoStoreSetState,
 } from '@stream-io/video-react-native-sdk';
 
@@ -37,10 +35,7 @@ export const HomeScreen = ({ navigation, route }: Props) => {
   const [loadingCall, setLoadingCall] = useState(false);
 
   const incomingRingCalls = useIncomingRingCalls();
-  const terminatedRingCallMeta = useTerminatedRingCall();
   const setState = useStreamVideoStoreSetState();
-
-  const { endCall } = useCallKeep();
 
   // run only once per app lifecycle
   useEffect(() => {
@@ -59,12 +54,8 @@ export const HomeScreen = ({ navigation, route }: Props) => {
   useEffect(() => {
     if (incomingRingCalls.length > 0) {
       navigation.navigate('IncomingCallScreen');
-    } else {
-      if (terminatedRingCallMeta) {
-        endCall();
-      }
     }
-  }, [incomingRingCalls, navigation, terminatedRingCallMeta, endCall]);
+  }, [incomingRingCalls, navigation]);
 
   return (
     <View style={styles.container}>

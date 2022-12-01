@@ -1,17 +1,14 @@
 import React from 'react';
 import { StyleSheet, Text, View, ImageBackground } from 'react-native';
 import { CallControlsButton } from './CallControlsButton';
-import PhoneDown from '../icons/PhoneDown';
-import Phone from '../icons/Phone';
-import Video from '../icons/Video';
 import { useActiveRingCallDetails } from '@stream-io/video-react-bindings';
-import VideoSlash from '../icons/VideoSlash';
 import { UserInfoView } from './UserInfoView';
 import {
   useStreamVideoStoreSetState,
   useStreamVideoStoreValue,
 } from '../contexts/StreamVideoContext';
 import { useRingCall } from '../hooks';
+import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 
 const styles = StyleSheet.create({
   background: {

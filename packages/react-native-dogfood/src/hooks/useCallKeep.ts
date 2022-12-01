@@ -1,34 +1,8 @@
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useCallback, useEffect } from 'react';
-import { PermissionsAndroid, Platform } from 'react-native';
-import InCallManager from 'react-native-incall-manager';
+import { useEffect } from 'react';
+import { PermissionsAndroid } from 'react-native';
 import RNCallKeep from 'react-native-callkeep';
-import { RootStackParamList } from '../../types';
-import {
-  useActiveCall,
-  useActiveRingCall,
-} from '@stream-io/video-react-native-sdk';
 
 export const useCallKeep = () => {
-  const call = useActiveCall();
-  const activeRingCallMeta = useActiveRingCall();
-
-  const navigation =
-    useNavigation<
-      NativeStackNavigationProp<RootStackParamList, 'ActiveCall'>
-    >();
-
-  const endCall = useCallback(async () => {
-    if (Platform.OS === 'ios' && activeRingCallMeta) {
-      await RNCallKeep.endCall(activeRingCallMeta.id);
-    }
-    call?.leave();
-    InCallManager.stop();
-
-    navigation.navigate('HomeScreen');
-  }, [navigation, activeRingCallMeta, call]);
-
   useEffect(() => {
     const options = {
       ios: {
@@ -61,8 +35,4 @@ export const useCallKeep = () => {
       console.log(error);
     }
   }, []);
-
-  return {
-    endCall,
-  };
 };
