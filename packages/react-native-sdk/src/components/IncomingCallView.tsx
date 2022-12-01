@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, ImageBackground } from 'react-native';
 import { CallControlsButton } from './CallControlsButton';
 import PhoneDown from '../icons/PhoneDown';
 import Phone from '../icons/Phone';
 import Video from '../icons/Video';
-import { useActiveRingCallDetails } from '@stream-io/video-react-bindings';
+import {
+  useActiveCall,
+  useActiveRingCallDetails,
+  useIncomingRingCalls,
+} from '@stream-io/video-react-bindings';
 import VideoSlash from '../icons/VideoSlash';
 import { UserInfoView } from './UserInfoView';
 import {
@@ -46,6 +50,17 @@ const styles = StyleSheet.create({
   },
 });
 
+export type IncomingCallViewProps = {
+  /**
+   * Handler called when the call is answered. Mostly used for navigation and related actions.
+   */
+  onAnswerCall: () => void;
+  /**
+   * Handler called when the call is rejected. Mostly used for navigation and related actions.
+   */
+  onRejectCall: () => void;
+};
+
 const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -67,10 +82,25 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   );
 };
 
-export const IncomingCallView = () => {
+export const IncomingCallView: React.FC<IncomingCallViewProps> = ({
+  onAnswerCall,
+  onRejectCall,
+}) => {
+  const activeCall = useActiveCall();
+  const incomingRingCalls = useIncomingRingCalls();
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const setState = useStreamVideoStoreSetState();
   const { answerCall, rejectCall } = useRingCall();
+
+  useEffect(() => {
+    if (activeCall) {
+      onAnswerCall();
+    } else {
+      if (!incomingRingCalls.length) {
+        onRejectCall();
+      }
+    }
+  });
 
   const videoToggle = async () => {
     setState((prevState) => ({

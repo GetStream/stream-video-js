@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import PhoneDown from '../icons/PhoneDown';
@@ -12,7 +12,9 @@ import {
   useActiveCall,
   useActiveRingCall,
   useLocalParticipant,
+  useRemoteParticipants,
   useStreamVideoClient,
+  useTerminatedRingCall,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import InCallManager from 'react-native-incall-manager';
@@ -60,6 +62,21 @@ const styles = StyleSheet.create({
   },
 });
 
+export type OutgoingCallViewProps = {
+  /**
+   * Flag to loop back your own video in the participants view.
+   */
+  loopBackMyVideo: boolean;
+  /**
+   * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
+   */
+  onHangupCall: () => void;
+  /**
+   * Handler called when the call is accepted by the callee. Mostly used for navigation and related actions.
+   */
+  onCallAccepted: () => void;
+};
+
 const Background: React.FC = () => {
   const localParticipant = useLocalParticipant();
   const localVideoStream = localParticipant?.videoStream;
@@ -78,14 +95,32 @@ const Background: React.FC = () => {
   );
 };
 
-export const OutgoingCallView = () => {
+export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
+  onHangupCall,
+  onCallAccepted,
+  loopBackMyVideo,
+}) => {
   const client = useStreamVideoClient();
   const activeCall = useActiveCall();
   const localParticipant = useLocalParticipant();
-
+  const terminatedRingCall = useTerminatedRingCall();
   const activeRingCallMeta = useActiveRingCall();
+  const remoteParticipants = useRemoteParticipants();
+
+  const filteredParticipants = loopBackMyVideo
+    ? remoteParticipants
+    : remoteParticipants.filter((p) => !p.isLoggedInUser);
   const isAudioMuted = !localParticipant?.audio;
   const isVideoMuted = !localParticipant?.video;
+
+  useEffect(() => {
+    if (terminatedRingCall) {
+      onHangupCall();
+    }
+    if (filteredParticipants.length > 0) {
+      onCallAccepted();
+    }
+  });
 
   const { endCall } = useCallKeep();
 
