@@ -35,6 +35,8 @@ jobs:
         with:
           path: './.eslintcache'
           key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}-${{ hashFiles('.eslintcache') }}
+      - name: Install Yarn Dependencies
+        run: yarn install --immutable
       - name: Build packages
         run: yarn build:all
       - name: Build RN SDK
@@ -103,15 +105,6 @@ jobs:
           distribution: 'zulu'
           java-version: '11'
           check-latest: true
-      - name: Build packages
-        env:
-          STREAM_COORDINATOR_RPC_URL: https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc/
-          STREAM_COORDINATOR_WS_URL: ws://wss-video-coordinator.oregon-v1.stream-io-video.com:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          STREAM_API_KEY: ${{ secrets.STREAM_API_KEY }}
-          STREAM_SECRET_KEY: ${{ secrets.STREAM_SECRET_KEY }}
-        run: yarn build:client
       - name: Cache Gradle
         uses: actions/cache@v3
         with:
