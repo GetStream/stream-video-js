@@ -12,7 +12,10 @@ export const watchParticipantJoined = (
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
     const { participant } = e.eventPayload.participantJoined;
     if (participant) {
-      store.addParticipant(participant);
+      store.setCurrentValue(store.participantsSubject, [
+        ...store.getCurrentValue(store.participantsSubject),
+        participant,
+      ]);
     }
   });
 };
@@ -28,7 +31,12 @@ export const watchParticipantLeft = (
     if (e.eventPayload.oneofKind !== 'participantLeft') return;
     const { participant } = e.eventPayload.participantLeft;
     if (participant) {
-      store.removeParticipant(participant);
+      store.setCurrentValue(
+        store.participantsSubject,
+        store
+          .getCurrentValue(store.participantsSubject)
+          .filter((p) => p.user?.id !== participant.user?.id),
+      );
     }
   });
 };
