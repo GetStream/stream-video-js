@@ -27,6 +27,14 @@ export class StreamVideoWriteableStateStore2 {
    */
   pendingCallsSubject = new BehaviorSubject<CallCreated[]>([]);
   /**
+   * A list of objects describing incoming calls.
+   */
+  incomingCalls$: Observable<CallCreated[]>;
+  /**
+   * A list of objects describing calls initiated by the current user (connectedUser).
+   */
+  outgoingCalls$: Observable<CallCreated[]>;
+  /**
    * A store that keeps track of all the notifications describing accepted call.
    */
   acceptedCallSubject = new BehaviorSubject<CallAccepted | undefined>(
@@ -72,11 +80,31 @@ export class StreamVideoWriteableStateStore2 {
     this.localParticipant$ = this.participantsSubject.pipe(
       map((participants) => participants.find((p) => p.isLoggedInUser)),
     );
+
     this.remoteParticipants$ = this.participantsSubject.pipe(
       map((participants) => participants.filter((p) => !p.isLoggedInUser)),
     );
+
     this.pinnedParticipants$ = this.participantsSubject.pipe(
       map((participants) => participants.filter((p) => p.isPinned)),
+    );
+
+    this.incomingCalls$ = this.pendingCallsSubject.pipe(
+      combineLatestWith(this.connectedUserSubject),
+      map(([pendingCalls, connectedUser]) =>
+        pendingCalls.filter(
+          (call) => call.call?.createdByUserId !== connectedUser?.id,
+        ),
+      ),
+    );
+
+    this.outgoingCalls$ = this.pendingCallsSubject.pipe(
+      combineLatestWith(this.connectedUserSubject),
+      map(([pendingCalls, connectedUser]) =>
+        pendingCalls.filter(
+          (call) => call.call?.createdByUserId === connectedUser?.id,
+        ),
+      ),
     );
 
     this.acceptedCallSubject
@@ -119,33 +147,6 @@ export class StreamVideoWriteableStateStore2 {
 
   setCurrentValue<T>(subject: Subject<T>, value: T) {
     subject.next(value);
-  }
-
-  asReadOnlyStore = () => {
-    return new StreamVideoReadOnlyStateStore2(this);
-  };
-
-  private pushUnique<T>(
-    subject: Subject<T[]>,
-    value: T,
-    predicate: (item: T) => boolean,
-  ) {
-    const existingValues = this.getCurrentValue(subject);
-    const valuePresent = existingValues.find(predicate);
-    if (!valuePresent) {
-      this.setCurrentValue(subject, [...existingValues, value]);
-    }
-  }
-
-  addCall<T extends CallCreated | CallAccepted | CallEnded>(
-    subject: BehaviorSubject<T[]>,
-    call: T,
-  ) {
-    this.pushUnique(
-      subject,
-      call,
-      (c) => c.call?.callCid === call.call?.callCid,
-    );
   }
 }
 
@@ -215,7 +216,6 @@ export class StreamVideoReadOnlyStateStore2 {
    * in case they want to show historical stats data.
    */
   callStatsReport$: Observable<CallStatsReport | undefined>;
-
   /**
    * Emits a boolean indicating whether a call recording is currently in progress.
    */
@@ -224,22 +224,8 @@ export class StreamVideoReadOnlyStateStore2 {
   constructor(store: StreamVideoWriteableStateStore2) {
     this.connectedUser$ = store.connectedUserSubject.asObservable();
     this.pendingCalls$ = store.pendingCallsSubject.asObservable();
-    this.incomingCalls$ = this.pendingCalls$.pipe(
-      combineLatestWith(this.connectedUser$),
-      map(([pendingCalls, connectedUser]) =>
-        pendingCalls.filter(
-          (call) => call.call?.createdByUserId !== connectedUser?.id,
-        ),
-      ),
-    );
-    this.outgoingCalls$ = this.pendingCalls$.pipe(
-      combineLatestWith(this.connectedUser$),
-      map(([pendingCalls, connectedUser]) =>
-        pendingCalls.filter(
-          (call) => call.call?.createdByUserId === connectedUser?.id,
-        ),
-      ),
-    );
+    this.incomingCalls$ = store.incomingCalls$;
+    this.outgoingCalls$ = store.outgoingCalls$;
     this.acceptedCall$ = store.acceptedCallSubject.asObservable();
     this.hangupNotifications$ = store.hangupNotificationsSubject.asObservable();
     this.activeCall$ = store.activeCallSubject.asObservable();

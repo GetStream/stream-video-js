@@ -245,9 +245,14 @@ export class StreamVideoClient {
       return;
     }
 
-    this.writeableStateStore2.addCall(
+    this.writeableStateStore2.setCurrentValue(
       this.writeableStateStore2.pendingCallsSubject,
-      event,
+      [
+        ...this.writeableStateStore2.getCurrentValue(
+          this.writeableStateStore2.pendingCallsSubject,
+        ),
+        event,
+      ],
     );
   };
 
