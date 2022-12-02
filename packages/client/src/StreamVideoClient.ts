@@ -330,10 +330,10 @@ export class StreamVideoClient {
       );
     } else {
       this.writeableStateStore2.setCurrentValue(
-        this.writeableStateStore2.rejectedCallNotificationsSubject,
+        this.writeableStateStore2.hangupNotificationsSubject,
         [
           ...this.writeableStateStore2.getCurrentValue(
-            this.writeableStateStore2.rejectedCallNotificationsSubject,
+            this.writeableStateStore2.hangupNotificationsSubject,
           ),
           event,
         ],
@@ -381,10 +381,10 @@ export class StreamVideoClient {
       );
     } else {
       this.writeableStateStore2.setCurrentValue(
-        this.writeableStateStore2.rejectedCallNotificationsSubject,
+        this.writeableStateStore2.hangupNotificationsSubject,
         [
           ...this.writeableStateStore2.getCurrentValue(
-            this.writeableStateStore2.rejectedCallNotificationsSubject,
+            this.writeableStateStore2.hangupNotificationsSubject,
           ),
           event,
         ],

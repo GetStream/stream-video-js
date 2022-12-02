@@ -35,7 +35,7 @@ export class StreamVideoWriteableStateStore2 {
   /**
    * A store that keeps track of cancellations and rejections for both incoming and outgoing calls
    */
-  rejectedCallNotificationsSubject = new BehaviorSubject<
+  hangupNotificationsSubject = new BehaviorSubject<
     (CallRejected | CallCancelled)[]
   >([]);
   /**
@@ -105,7 +105,7 @@ export class StreamVideoWriteableStateStore2 {
       } else {
         this.setCurrentValue(this.callRecordingInProgressSubject, false);
         this.setCurrentValue(this.participantsSubject, []);
-        this.setCurrentValue(this.rejectedCallNotificationsSubject, []);
+        this.setCurrentValue(this.hangupNotificationsSubject, []);
       }
     });
   }
@@ -178,7 +178,7 @@ export class StreamVideoReadOnlyStateStore2 {
   /**
    * A list of cancellations and rejections for both incoming and outgoing calls
    */
-  rejectedCallNotifications$: Observable<CallAccepted[]>;
+  hangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
   /**
    * The call controller instance representing the call the user attends.
    * The controller instance exposes call metadata as well.
@@ -191,7 +191,9 @@ export class StreamVideoReadOnlyStateStore2 {
   /**
    * All participants of the current call (this includes the current user and other participants as well).
    */
-  participants$: Observable<StreamVideoParticipant[]>;
+  participants$: Observable<
+    (StreamVideoParticipant | StreamVideoLocalParticipant)[]
+  >;
   /**
    * The local participant of the current call (the logged-in user).
    */
@@ -239,8 +241,7 @@ export class StreamVideoReadOnlyStateStore2 {
       ),
     );
     this.acceptedCall$ = store.acceptedCallSubject.asObservable();
-    this.rejectedCallNotifications$ =
-      store.rejectedCallNotificationsSubject.asObservable();
+    this.hangupNotifications$ = store.hangupNotificationsSubject.asObservable();
     this.activeCall$ = store.activeCallSubject.asObservable();
     this.participants$ = store.participantsSubject.asObservable();
     this.localParticipant$ = store.localParticipant$;
