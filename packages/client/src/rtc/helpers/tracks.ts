@@ -1,9 +1,9 @@
 import { TrackType } from '../../gen/video/sfu/models/models';
-import { StreamVideoLocalParticipant } from '../types';
+import type { StreamVideoParticipant } from '../types';
 
 export const trackTypeToParticipantStreamKey = (
   trackType: TrackType,
-): keyof StreamVideoLocalParticipant | undefined => {
+): keyof StreamVideoParticipant | undefined => {
   switch (trackType) {
     case TrackType.SCREEN_SHARE:
       return 'screenShareStream';

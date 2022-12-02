@@ -89,12 +89,23 @@ export const watchTrackUnpublished = (
     const {
       trackUnpublished: { type, sessionId },
     } = e.eventPayload;
+    const audioOrVideoOrScreenShareStreamProp =
+      trackTypeToParticipantStreamKey(type);
+    if (!audioOrVideoOrScreenShareStreamProp) return;
+
     store.updateParticipant(sessionId, (p) => {
-      const audioOrVideoOrScreenShareStreamProp =
-        trackTypeToParticipantStreamKey(type);
+      const unpublishedStream = p[audioOrVideoOrScreenShareStreamProp] as
+        | MediaStream
+        | undefined;
+
+      unpublishedStream?.getTracks().forEach((t) => {
+        t.stop();
+        unpublishedStream.removeTrack(t);
+      });
+
       return {
         publishedTracks: p.publishedTracks.filter((t) => t !== type),
-        [audioOrVideoOrScreenShareStreamProp!]: undefined,
+        [audioOrVideoOrScreenShareStreamProp]: undefined,
       };
     });
   });
