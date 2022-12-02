@@ -80,7 +80,7 @@ export const useAcceptedCall = () => {
   return useObservableValue(acceptedCall$);
 };
 
-export const useRejectedCallNotifications = () => {
-  const { rejectedCallNotifications$ } = useStore();
-  return useObservableValue(rejectedCallNotifications$);
+export const useHangUpNotifications = () => {
+  const { hangupNotifications$ } = useStore();
+  return useObservableValue(hangupNotifications$);
 };
