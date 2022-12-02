@@ -1,10 +1,11 @@
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 import { combineLatestWith, map, take } from 'rxjs/operators';
 import { UserInput } from '../gen/video/coordinator/user_v1/user';
 import {
   CallAccepted,
   CallCreated,
   CallEnded,
+  CallRejected,
 } from '../gen/video/coordinator/event_v1/event';
 import {
   StreamVideoLocalParticipant,
@@ -24,20 +25,78 @@ export class StreamVideoWriteableStateStore2 {
   activeCallSubject = new BehaviorSubject<CallController | undefined>(
     undefined,
   );
-  participantsSubject = new BehaviorSubject<
+  rejectedCallNotificationsSubject = new BehaviorSubject<CallRejected[]>([]);
+  participantsSubject = new ReplaySubject<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
-  >([]);
+  >(1);
+  /**
+   * Remote participants of the current call (this includes every participant except the logged-in user).
+   */
+  remoteParticipants$: Observable<StreamVideoParticipant[]>;
+  /**
+   * The local participant of the current call (the logged-in user).
+   */
+  localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
+  /**
+   * Pinned participants of the current call.
+   */
+  pinnedParticipants$: Observable<StreamVideoParticipant[]>;
   dominantSpeakerSubject = new BehaviorSubject<UserId | undefined>(undefined);
   callStatsReportSubject = new BehaviorSubject<CallStatsReport | undefined>(
     undefined,
   );
-  callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
+  callRecordingInProgressSubject = new ReplaySubject<boolean>(1);
 
-  getCurrentValue<T>(subject: BehaviorSubject<T>) {
-    return subject.getValue();
+  constructor() {
+    this.localParticipant$ = this.participantsSubject.pipe(
+      map((participants) => participants.find((p) => p.isLoggedInUser)),
+    );
+    this.remoteParticipants$ = this.participantsSubject.pipe(
+      map((participants) => participants.filter((p) => !p.isLoggedInUser)),
+    );
+    this.pinnedParticipants$ = this.participantsSubject.pipe(
+      map((participants) => participants.filter((p) => p.isPinned)),
+    );
+
+    this.acceptedCallSubject
+      .pipe(combineLatestWith(this.connectedUserSubject))
+      .subscribe(([acceptedCall, connectedUser]) => {
+        if (acceptedCall?.senderUserId === connectedUser?.id) {
+          this.setCurrentValue(
+            this.pendingCallsSubject,
+            this.getCurrentValue(this.pendingCallsSubject).filter(
+              (pendingCall) =>
+                pendingCall.call?.callCid !== acceptedCall?.call?.callCid,
+            ),
+          );
+        }
+      });
+
+    this.activeCallSubject.subscribe((callController) => {
+      if (callController) {
+        this.setCurrentValue(
+          this.pendingCallsSubject,
+          this.getCurrentValue(this.pendingCallsSubject).filter(
+            (call) => call.call?.callCid !== callController.data.call?.callCid,
+          ),
+        );
+        this.setCurrentValue(this.acceptedCallSubject, undefined);
+      } else {
+        this.setCurrentValue(this.callRecordingInProgressSubject, false);
+        this.setCurrentValue(this.participantsSubject, []);
+        this.setCurrentValue(this.rejectedCallNotificationsSubject, []);
+      }
+    });
   }
 
-  setCurrentValue<T>(subject: BehaviorSubject<T>, value: T) {
+  getCurrentValue<T>(observable: Observable<T>) {
+    let value!: T;
+    observable.pipe(take(1)).subscribe((v) => (value = v));
+
+    return value;
+  }
+
+  setCurrentValue<T>(subject: Subject<T>, value: T) {
     subject.next(value);
   }
 
@@ -46,7 +105,7 @@ export class StreamVideoWriteableStateStore2 {
   };
 
   private pushUnique<T>(
-    subject: BehaviorSubject<T[]>,
+    subject: Subject<T[]>,
     value: T,
     predicate: (item: T) => boolean,
   ) {
@@ -58,7 +117,7 @@ export class StreamVideoWriteableStateStore2 {
   }
 
   private removeUnique<T>(
-    subject: BehaviorSubject<T[]>,
+    subject: Subject<T[]>,
     predicate: (item: T) => boolean,
   ) {
     const existingValues = this.getCurrentValue(subject);
@@ -106,15 +165,37 @@ export class StreamVideoWriteableStateStore2 {
   }
 }
 
+/**
+ * A reactive store that exposes state variables in a reactive manner - you can subscribe to changes of the different state variables. This central store contains all the state variables related to [`StreamVideoClient`](./StreamVideClient.md) and [`Call`](./Call.md).
+ *
+ */
 export class StreamVideoReadOnlyStateStore2 {
   /**
    * Data describing a user successfully connected over WS to coordinator server.
    */
   connectedUser$: Observable<UserInput | undefined>;
+  /**
+   * A list of objects describing all created calls that have not been yet accepted, rejected nor cancelled.
+   */
   pendingCalls$: Observable<CallCreated[]>;
+  /**
+   * A list of objects describing calls initiated by the current user (connectedUser).
+   */
   outgoingCalls$: Observable<CallCreated[]>;
+  /**
+   * A list of objects describing incoming calls.
+   */
   incomingCalls$: Observable<CallCreated[]>;
+  /**
+   * The call data describing an incoming call accepted by a participant.
+   * Serves as a flag decide, whether an incoming call should be joined.
+   */
   acceptedCall$: Observable<CallAccepted | undefined>;
+  /**
+   * A list of CallRejected objects representing call members who have rejected
+   * to participate in the call.
+   */
+  rejectedCallNotifications$: Observable<CallAccepted[]>;
   /**
    * The call the current user participant is in.
    */
@@ -136,6 +217,10 @@ export class StreamVideoReadOnlyStateStore2 {
    */
   remoteParticipants$: Observable<StreamVideoParticipant[]>;
   /**
+   * Pinned participants of the current call.
+   */
+  pinnedParticipants$: Observable<StreamVideoParticipant[]>;
+  /**
    * The latest stats report of the current call.
    * When stats gathering is enabled, this observable will emit a new value
    * at a regular (configurable) interval.
@@ -153,14 +238,6 @@ export class StreamVideoReadOnlyStateStore2 {
   constructor(store: StreamVideoWriteableStateStore2) {
     this.connectedUser$ = store.connectedUserSubject.asObservable();
     this.pendingCalls$ = store.pendingCallsSubject.asObservable();
-    this.outgoingCalls$ = this.pendingCalls$.pipe(
-      combineLatestWith(this.connectedUser$),
-      map(([pendingCalls, connectedUser]) =>
-        pendingCalls.filter(
-          (call) => call.call?.createdByUserId === connectedUser?.id,
-        ),
-      ),
-    );
     this.incomingCalls$ = this.pendingCalls$.pipe(
       combineLatestWith(this.connectedUser$),
       map(([pendingCalls, connectedUser]) =>
@@ -169,31 +246,33 @@ export class StreamVideoReadOnlyStateStore2 {
         ),
       ),
     );
+    this.outgoingCalls$ = this.pendingCalls$.pipe(
+      combineLatestWith(this.connectedUser$),
+      map(([pendingCalls, connectedUser]) =>
+        pendingCalls.filter(
+          (call) => call.call?.createdByUserId === connectedUser?.id,
+        ),
+      ),
+    );
     this.acceptedCall$ = store.acceptedCallSubject.asObservable();
+    this.rejectedCallNotifications$ =
+      store.rejectedCallNotificationsSubject.asObservable();
     this.activeCall$ = store.activeCallSubject.asObservable();
-    this.dominantSpeaker$ = store.dominantSpeakerSubject.asObservable();
     this.participants$ = store.participantsSubject.asObservable();
-    this.localParticipant$ = this.participants$.pipe(
-      map((participants) =>
-        participants.find((p) => {
-          console.log('localParticipant$', p);
-          return p.isLoggedInUser;
-        }),
-      ),
-    );
-    this.remoteParticipants$ = this.participants$.pipe(
-      map((participants) =>
-        participants.filter((p) => {
-          console.log('remoteParticipants$', p);
-          return !p.isLoggedInUser;
-        }),
-      ),
-    );
+    this.localParticipant$ = store.localParticipant$;
+    this.remoteParticipants$ = store.remoteParticipants$;
+    this.pinnedParticipants$ = store.pinnedParticipants$;
+    this.dominantSpeaker$ = store.dominantSpeakerSubject.asObservable();
     this.callStatsReport$ = store.callStatsReportSubject.asObservable();
     this.callRecordingInProgress$ =
       store.callRecordingInProgressSubject.asObservable();
   }
 
+  /**
+   * This method allows you the get the current value of a state variable.
+   * @param observable
+   * @returns
+   */
   getCurrentValue<T>(observable: Observable<T>) {
     let value!: T;
     observable.pipe(take(1)).subscribe((v) => (value = v));

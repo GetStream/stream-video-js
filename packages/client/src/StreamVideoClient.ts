@@ -110,7 +110,7 @@ export class StreamVideoClient {
       this.writeableStateStore,
     );
     reportStats(
-      this.readOnlyStateStore,
+      this.readOnlyStateStore2,
       (e) => this.reportCallStats(e),
       (e) => this.reportCallStatEvent(e),
     );
@@ -277,7 +277,7 @@ export class StreamVideoClient {
       console.warn("Can't find call in CallCreated event");
       return;
     }
-    console.log('CallAccepted', event);
+
     const connectedUser = this.writeableStateStore2.getCurrentValue(
       this.writeableStateStore2.connectedUserSubject,
     );
@@ -286,16 +286,6 @@ export class StreamVideoClient {
       this.writeableStateStore2.setCurrentValue(
         this.writeableStateStore2.acceptedCallSubject,
         event,
-      );
-
-      const pendingCalls = this.writeableStateStore2.getCurrentValue(
-        this.writeableStateStore2.pendingCallsSubject,
-      );
-      this.writeableStateStore2.setCurrentValue(
-        this.writeableStateStore2.pendingCallsSubject,
-        pendingCalls.filter(
-          (pendingCall) => pendingCall.call?.callCid !== call.callCid,
-        ),
       );
     }
   };
@@ -330,33 +320,23 @@ export class StreamVideoClient {
     const connectedUser = this.writeableStateStore2.getCurrentValue(
       this.writeableStateStore2.connectedUserSubject,
     );
-    const participants = this.writeableStateStore2.getCurrentValue(
-      this.writeableStateStore2.participantsSubject,
-    );
-    const activeCall = this.writeableStateStore2.getCurrentValue(
-      this.writeableStateStore2.activeCallSubject,
-    );
 
-    const otherParticipants = participants.filter(
-      (p) => p.user?.id !== connectedUser?.id,
-    );
-
-    this.writeableStateStore2.setCurrentValue(
-      this.writeableStateStore2.pendingCallsSubject,
-      this.writeableStateStore2
-        .getCurrentValue(this.writeableStateStore2.pendingCallsSubject)
-        .filter((pendingCall) => pendingCall.call?.callCid !== call.callCid),
-    );
-
-    if (
-      otherParticipants.length === 0 &&
-      activeCall?.data.call?.callCid === call.callCid
-    ) {
-      // todo: MC do we want add a flag that will determine, whether to automatically hangup?
-      //  Meeting participants probably want to keep joined even though alone
+    if (event.call?.createdByUserId === connectedUser?.id) {
       this.writeableStateStore2.setCurrentValue(
-        this.writeableStateStore2.activeCallSubject,
-        undefined,
+        this.writeableStateStore2.pendingCallsSubject,
+        this.writeableStateStore2
+          .getCurrentValue(this.writeableStateStore2.pendingCallsSubject)
+          .filter((pendingCall) => pendingCall.call?.callCid !== call.callCid),
+      );
+    } else {
+      this.writeableStateStore2.setCurrentValue(
+        this.writeableStateStore2.rejectedCallNotificationsSubject,
+        [
+          ...this.writeableStateStore2.getCurrentValue(
+            this.writeableStateStore2.rejectedCallNotificationsSubject,
+          ),
+          event,
+        ],
       );
     }
   };
@@ -387,20 +367,6 @@ export class StreamVideoClient {
       console.log("Can't find call in CallCancelled event");
       return;
     }
-    // todo: MC this is a duplicate of onCallRejected - refactor it
-    const connectedUser = this.writeableStateStore2.getCurrentValue(
-      this.writeableStateStore2.connectedUserSubject,
-    );
-    const participants = this.writeableStateStore2.getCurrentValue(
-      this.writeableStateStore2.participantsSubject,
-    );
-    const activeCall = this.writeableStateStore2.getCurrentValue(
-      this.writeableStateStore2.activeCallSubject,
-    );
-
-    const otherParticipants = participants.filter(
-      (p) => p.user?.id !== connectedUser?.id,
-    );
 
     this.writeableStateStore2.setCurrentValue(
       this.writeableStateStore2.pendingCallsSubject,
@@ -408,18 +374,6 @@ export class StreamVideoClient {
         .getCurrentValue(this.writeableStateStore2.pendingCallsSubject)
         .filter((pendingCall) => pendingCall.call?.callCid !== call.callCid),
     );
-
-    if (
-      otherParticipants.length === 0 &&
-      activeCall?.data.call?.callCid === call.callCid
-    ) {
-      // todo: MC do we want add a flag that will determine, whether to automatically hangup?
-      //  Meeting participants probably want to keep joined even though alone
-      this.writeableStateStore2.setCurrentValue(
-        this.writeableStateStore2.activeCallSubject,
-        undefined,
-      );
-    }
   };
 
   /**
