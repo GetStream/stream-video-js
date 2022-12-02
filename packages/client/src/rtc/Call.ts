@@ -137,8 +137,8 @@ export class Call {
     this.publisher.close();
     this.client.close();
 
-    this.stateStore.setCurrentValue(
-      this.stateStore.callRecordingInProgressSubject,
+    this.stateStore2.setCurrentValue(
+      this.stateStore2.callRecordingInProgressSubject,
       false,
     );
 
