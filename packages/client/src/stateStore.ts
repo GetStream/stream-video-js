@@ -145,11 +145,8 @@ export class StreamVideoWriteableStateStore {
     patch:
       | StreamVideoParticipantPatch
       | ((p: StreamVideoParticipant) => StreamVideoParticipantPatch),
-  ): StreamVideoParticipant | StreamVideoLocalParticipant | undefined => {
-    const participants = this.getCurrentValue(
-      this.activeCallAllParticipantsSubject,
-    );
-    const participant = participants.find((p) => p.sessionId === sessionId);
+  ) => {
+    const participant = this.findParticipantBySessionId(sessionId);
     if (!participant) {
       console.warn(`Participant with sessionId ${sessionId} not found`);
       return;
@@ -163,14 +160,13 @@ export class StreamVideoWriteableStateStore {
       ...participant,
       ...thePatch,
     };
-    this.setCurrentValue(
+    return this.setCurrentValue(
       this.activeCallAllParticipantsSubject,
-      participants.map((p) =>
-        p.sessionId === sessionId ? updatedParticipant : p,
-      ),
+      (participants) =>
+        participants.map((p) =>
+          p.sessionId === sessionId ? updatedParticipant : p,
+        ),
     );
-
-    return updatedParticipant;
   };
 
   /**
