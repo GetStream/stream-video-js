@@ -69,7 +69,8 @@ export const IncomingCallView: React.FC<IncomingCallViewProps> = ({
         onRejectCall();
       }
     }
-  }, [activeCall, incomingRingCalls, onAnswerCall, onRejectCall]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCall, incomingRingCalls]);
 
   const videoToggle = async () => {
     setState((prevState) => ({

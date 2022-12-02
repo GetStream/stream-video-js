@@ -88,7 +88,8 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
     if (remoteParticipants.length > 0) {
       onCallAccepted();
     }
-  }, [terminatedRingCall, remoteParticipants, onCallAccepted, onHangupCall]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [terminatedRingCall, remoteParticipants]);
 
   // To terminate call after a certain duration of time. Currently let to 10 seconds.
   useEffect(() => {
