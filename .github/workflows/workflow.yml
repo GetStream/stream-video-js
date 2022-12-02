@@ -51,7 +51,7 @@ jobs:
             -Dsonar.projectKey=GetStream_stream-video-js
             -Dsonar.javascript.lcov.reportPaths=./packages/client/coverage/lcov.info
             -Dsonar.sources=packages/
-            -Dsonar.test.exclusions=**/__tests__/**
+            -Dsonar.test.exclusions=**/__tests__/**,**/*.java
             -Dsonar.verbose=true
 
 
