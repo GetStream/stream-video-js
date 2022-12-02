@@ -239,14 +239,12 @@ export class StreamVideoClient {
   joinCall = async (data: JoinCallRequest, sessionId?: string) => {
     const { response } = await this.client.joinCall(data);
     if (response.call && response.call.call && response.edges) {
-      const edge = await this.getCallEdgeServer(
-        response.call.call,
-        response.edges,
-      );
+      const callMeta = response.call.call;
+      const edge = await this.getCallEdgeServer(callMeta, response.edges);
       if (data.input?.ring) {
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.activeRingCallMetaSubject,
-          response.call.call,
+          callMeta,
         );
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.activeRingCallDetailsSubject,
@@ -258,7 +256,13 @@ export class StreamVideoClient {
         const selectedEdge = response.edges.find((e) => e.name === edgeName);
         const { server, iceServers, token } = edge.credentials;
         const sfuClient = new StreamSfuClient(server.url, token, sessionId);
-        this.activeCallId = response.call?.call?.callCid;
+        this.activeCallId = callMeta.callCid;
+
+        // TODO OL: compute the initial value from `activeCallSubject`
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.callRecordingInProgressSubject,
+          callMeta.recordingActive,
+        );
         return new Call(
           sfuClient,
           {
