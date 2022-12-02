@@ -300,7 +300,12 @@ export class Call {
       // @ts-ignore FIXME: OL: this is a hack
       transceiver.__trackType = TrackType.SCREEN_SHARE;
     } else {
-      screenShareTransceiver.sender.track?.stop();
+      if (screenShareTransceiver.direction !== 'inactive') {
+        screenShareTransceiver.sender.track?.stop();
+      }
+      // since we are reusing a transceiver that could have been made inactive
+      // we are updating its direction to sendonly in order to trigger re-negotiation
+      screenShareTransceiver.direction = 'sendonly';
       await screenShareTransceiver.sender.replaceTrack(screenShareTrack);
     }
 
@@ -314,20 +319,27 @@ export class Call {
     const transceiver = this.publisher.getTransceivers().find(
       (t) =>
         // @ts-ignore
-        t.__trackType === trackType &&
-        t.sender.track &&
-        t.currentDirection !== 'stopped',
+        t.__trackType === trackType && t.sender.track,
+      // t.currentDirection !== 'stopped',
     );
     if (transceiver && transceiver.sender.track) {
       const { track } = transceiver.sender;
-      track.stop();
-      // transceiver.stop();
 
-      const key = trackTypeToParticipantStreamKey(trackType);
-      if (key) {
+      // we want to detach the track from the transceiver
+      await transceiver.sender.replaceTrack(null);
+      // will trigger re-negotiation and the SFU will be notified that
+      // this transceiver sends nothing anymore
+      transceiver.direction = 'inactive';
+      // finally, we stop the track as it is no longer needed
+      // (this turns off the camera light indicator as well)
+      track.stop();
+
+      const audioOrVideoOrScreenShareStream =
+        trackTypeToParticipantStreamKey(trackType);
+      if (audioOrVideoOrScreenShareStream) {
         this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
           publishedTracks: p.publishedTracks.filter((t) => t !== trackType),
-          [key]: undefined,
+          [audioOrVideoOrScreenShareStream]: undefined,
         }));
       }
     }
