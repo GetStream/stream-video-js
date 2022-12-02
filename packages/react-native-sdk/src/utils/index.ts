@@ -10,7 +10,7 @@ export const generateCallTitle = (memberUserIds: string[]) => {
     return supportedAmountOfMemberUserIds.join(' and ');
   }
 
-  const allMemebersExceptLast = supportedAmountOfMemberUserIds.slice(0, -1);
+  const allMembersExceptLast = supportedAmountOfMemberUserIds.slice(0, -1);
   const lastMember = supportedAmountOfMemberUserIds.slice(-1)[0];
-  return `${allMemebersExceptLast.join(', ')}, and ${lastMember}`;
+  return `${allMembersExceptLast.join(', ')}, and ${lastMember}`;
 };
