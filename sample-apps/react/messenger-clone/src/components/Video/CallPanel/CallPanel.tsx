@@ -37,9 +37,6 @@ const ButtonControls = ({
 
   return (
     <div className="rmc__button-controls">
-      {/* {incomingCall && 'incoming'}
-      {outgoingCall && 'outgoing'} */}
-
       {incomingCall && !activeCall && !outgoingCall && (
         <>
           <button
@@ -76,7 +73,7 @@ const ButtonControls = ({
             className="rmc__button rmc__button--transparent"
             onClick={() => activeCall.updateMuteState('video', !isVideoMute)}
           >
-            {isAudioMute ? <VideocamOff /> : <Videocam />}
+            {isVideoMute ? <VideocamOff /> : <Videocam />}
           </button>
           <button
             className="rmc__button rmc__button--red"
