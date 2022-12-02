@@ -1,5 +1,11 @@
 import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
-import { find, map, pairwise, startWith, take } from 'rxjs/operators';
+import {
+  distinctUntilChanged,
+  map,
+  pairwise,
+  startWith,
+  take,
+} from 'rxjs/operators';
 import { Call } from './rtc/Call';
 import type { UserInput } from './gen/video/coordinator/user_v1/user';
 import {
@@ -57,6 +63,7 @@ export class StreamVideoWriteableStateStore {
    * Pinned participants of the current call.
    */
   pinnedParticipants$: Observable<StreamVideoParticipant[]>;
+  hasOngoingScreenShare$: Observable<boolean>;
 
   constructor() {
     this.terminatedRingCallMeta$ = this.activeRingCallMetaSubject.pipe(
@@ -84,6 +91,15 @@ export class StreamVideoWriteableStateStore {
         this.setCurrentValue(this.activeCallAllParticipantsSubject, []);
       }
     });
+
+    this.hasOngoingScreenShare$ = this.activeCallAllParticipantsSubject.pipe(
+      map((participants) => {
+        return participants.some((p) =>
+          p.publishedTracks.includes(TrackType.SCREEN_SHARE),
+        );
+      }),
+      distinctUntilChanged(),
+    );
   }
 
   getCurrentValue<T>(observable: Observable<T>) {
@@ -281,14 +297,7 @@ export class StreamVideoReadOnlyStateStore {
     this.activeCallLocalParticipant$ = store.activeCallLocalParticipant$;
     this.terminatedRingCallMeta$ = store.terminatedRingCallMeta$;
 
-    this.hasOngoingScreenShare$ = this.activeCallAllParticipants$.pipe(
-      find((participants) =>
-        participants.some((p) =>
-          p.publishedTracks.includes(TrackType.SCREEN_SHARE),
-        ),
-      ),
-      map((participant) => !!participant),
-    );
+    this.hasOngoingScreenShare$ = store.hasOngoingScreenShare$;
   }
 
   /**
