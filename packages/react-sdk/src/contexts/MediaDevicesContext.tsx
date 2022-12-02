@@ -31,8 +31,9 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   const [audioOutputDevices, setAudioOutputDevices] = useState<
     MediaDeviceInfo[]
   >([]);
-  const [isAudioOutputChangeSupported, setAudioOutputChangeSupported] =
-    useState<boolean>(false);
+  const [isAudioOutputChangeSupported] = useState<boolean>(() =>
+    checkIfAudioOutputChangeSupported(),
+  );
 
   useEffect(() => {
     const subscription = getAudioDevices().subscribe(setAudioDevices);
@@ -49,10 +50,6 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
       setAudioOutputDevices,
     );
     return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    setAudioOutputChangeSupported(checkIfAudioOutputChangeSupported());
   }, []);
 
   const contextValue = {
