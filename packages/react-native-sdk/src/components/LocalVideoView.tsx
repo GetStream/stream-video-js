@@ -46,8 +46,6 @@ export const LocalVideoView: React.FC<LocalVideoViewProps> = ({
   const isVideoMuted =
     !localParticipant.videoStream || !localParticipant.video || videoMuted;
 
-  console.log({ isVideoMuted });
-
   if (isVideoMuted) {
     return (
       <View style={{ ...(style as Object), ...styles.avatarWrapper }}>
