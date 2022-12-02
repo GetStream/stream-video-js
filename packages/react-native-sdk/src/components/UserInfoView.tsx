@@ -4,7 +4,11 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { MAX_AVATARS_IN_VIEW } from '../constants';
 import { generateCallTitle } from '../utils';
 
-export type SizeType = 'small' | 'medium' | 'large';
+enum AvatarModes {
+  small = 'small',
+  medium = 'medium',
+  large = 'large',
+}
 
 export const UserInfoView = () => {
   const activeRingCallDetails = useActiveRingCallDetails();
@@ -15,12 +19,15 @@ export const UserInfoView = () => {
     MAX_AVATARS_IN_VIEW,
   );
 
-  const avatarStyles =
-    memberUserIds.length >= MAX_AVATARS_IN_VIEW
-      ? styles.smallAvatar
-      : memberUserIds.length === MAX_AVATARS_IN_VIEW - 1
-      ? styles.mediumAvatar
-      : styles.largeAvatar;
+  const avatarSizeModes: { [key: number]: AvatarModes } = {
+    1: AvatarModes.large,
+    2: AvatarModes.medium,
+    3: AvatarModes.small,
+  };
+
+  const mode = avatarSizeModes[memberUserIds.length] || AvatarModes.small;
+
+  const avatarStyles = styles[`${mode}Avatar`];
 
   return (
     <View style={styles.userInfo}>
