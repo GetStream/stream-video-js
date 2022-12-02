@@ -6,8 +6,14 @@ import { useMediaDevices } from '../../contexts/MediaDevicesContext';
 
 export const DeviceSettings = (props: { activeCall: Call }) => {
   const { activeCall } = props;
-  const { audioDevices, videoDevices, getAudioStream, getVideoStream } =
-    useMediaDevices();
+  const {
+    audioDevices,
+    videoDevices,
+    audioOutputDevices,
+    isAudioOutputChangeSupported,
+    getAudioStream,
+    getVideoStream,
+  } = useMediaDevices();
 
   const [referenceElement, setReferenceElement] =
     useState<HTMLSpanElement | null>(null);
@@ -28,6 +34,11 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
       : getAudioStream(deviceId));
     activeCall.replaceMediaStream(kind, mediaStream);
   };
+
+  const setAudioOutputDevice = (deviceId: string) => {
+    activeCall?.setAudioOutputDevice(deviceId);
+  };
+
   return (
     <>
       <span
@@ -61,6 +72,16 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
               switchDevice('audioinput', deviceId);
             }}
           />
+          {isAudioOutputChangeSupported && (
+            <DeviceSelector
+              devices={audioOutputDevices}
+              label="Select audio output"
+              selectedDeviceId={localParticipant?.audioOutputDeviceId}
+              onChange={(deviceId) => {
+                setAudioOutputDevice(deviceId);
+              }}
+            />
+          )}
         </div>
       )}
     </>

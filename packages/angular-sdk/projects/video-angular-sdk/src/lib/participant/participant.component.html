@@ -2,7 +2,7 @@
   class="str-call__participant"
   [class.str-video__participant--speaking]="participant?.isSpeaking"
 >
-  <audio autoplay [srcObject]="participant?.audioStream"></audio>
+  <audio #audio autoplay [srcObject]="participant?.audioStream"></audio>
   <div class="str-video__video-container">
     <video
       #video

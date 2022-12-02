@@ -2,9 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import {
   Call,
   getAudioDevices,
+  getAudioOutputDevices,
   getAudioStream,
   getVideoDevices,
   getVideoStream,
+  checkIfAudioOutputChangeSupported,
 } from '@stream-io/video-client';
 import { Observable, Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
@@ -18,9 +20,12 @@ import { NgxPopperjsTriggers } from 'ngx-popperjs';
 export class DeviceSettingsComponent implements OnInit {
   currentlyUsedAudioDeviceId?: string;
   currentlyUsedVideoDeviceId?: string;
+  currentlyUsedAudioOutputDeviceId?: string;
   audioDevices$: Observable<MediaDeviceInfo[]>;
   videoDevices$: Observable<MediaDeviceInfo[]>;
+  audioOutputDevices$: Observable<MediaDeviceInfo[]>;
   popperTrigger = NgxPopperjsTriggers.click;
+  isAudioOuputDeviceChangeSupported = checkIfAudioOutputChangeSupported();
   private activeCall?: Call;
   private subscriptions: Subscription[] = [];
 
@@ -34,10 +39,12 @@ export class DeviceSettingsComponent implements OnInit {
       this.streamVideoService.activeCallLocalParticipant$.subscribe((p) => {
         this.currentlyUsedAudioDeviceId = p?.audioDeviceId;
         this.currentlyUsedVideoDeviceId = p?.videoDeviceId;
+        this.currentlyUsedAudioOutputDeviceId = p?.audioOutputDeviceId;
       }),
     );
     this.audioDevices$ = getAudioDevices();
     this.videoDevices$ = getVideoDevices();
+    this.audioOutputDevices$ = getAudioOutputDevices();
   }
 
   ngOnInit(): void {}
@@ -56,5 +63,10 @@ export class DeviceSettingsComponent implements OnInit {
       console.error(`Error during device changing`, error);
       throw error;
     }
+  }
+
+  async changeOutputDevice(event: any) {
+    const deviceId = event.target.value;
+    this.activeCall?.setAudioOutputDevice(deviceId);
   }
 }
