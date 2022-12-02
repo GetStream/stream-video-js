@@ -42,7 +42,7 @@ const getDevices = (constraints?: MediaStreamConstraints | undefined) => {
 };
 
 /**
- * [Tells if the browser support audio device output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId)
+ * [Tells if the browser supports audio output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId)
  */
 export const checkIfAudioOutputChangeSupported = () => {
   const element = document.createElement('audio');
