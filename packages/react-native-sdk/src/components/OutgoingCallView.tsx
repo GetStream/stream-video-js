@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import PhoneDown from '../icons/PhoneDown';
@@ -59,22 +59,12 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
   const terminatedRingCall = useTerminatedRingCall();
   const activeRingCallMeta = useActiveRingCall();
   const remoteParticipants = useRemoteParticipants();
+  const { endCall } = useCallKeep();
 
   const isAudioMuted = !localParticipant?.audio;
   const isVideoMuted = !localParticipant?.video;
 
-  useEffect(() => {
-    if (terminatedRingCall) {
-      onHangupCall();
-    }
-    if (remoteParticipants.length > 0) {
-      onCallAccepted();
-    }
-  }, [terminatedRingCall, remoteParticipants, onCallAccepted, onHangupCall]);
-
-  const { endCall } = useCallKeep();
-
-  const hangupHandler = async () => {
+  const hangupHandler = useCallback(async () => {
     if (!activeCall) {
       console.warn('Failed to leave call: call is undefined');
       return;
@@ -89,7 +79,26 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
     } catch (error) {
       console.warn('failed to leave call', error);
     }
-  };
+  }, [activeCall, activeRingCallMeta, client, endCall]);
+
+  useEffect(() => {
+    if (terminatedRingCall) {
+      onHangupCall();
+    }
+    if (remoteParticipants.length > 0) {
+      onCallAccepted();
+    }
+  }, [terminatedRingCall, remoteParticipants, onCallAccepted, onHangupCall]);
+
+  // To terminate call after a certain duration of time. Currently let to 10 seconds.
+  useEffect(() => {
+    const terminateCallAtMilliSeconds = 10000;
+    const timerId = setTimeout(() => {
+      hangupHandler();
+    }, terminateCallAtMilliSeconds);
+
+    return () => clearTimeout(timerId);
+  }, [hangupHandler]);
 
   const videoToggle = async () => {
     await activeCall?.updateMuteState('video', !isVideoMuted);
