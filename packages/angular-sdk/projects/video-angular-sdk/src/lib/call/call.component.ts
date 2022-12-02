@@ -6,6 +6,8 @@ import {
   StreamVideoLocalParticipant,
   watchForDisconnectedAudioDevice,
   watchForDisconnectedVideoDevice,
+  isAudioOutputChangeSupported,
+  watchForDisconnectedAudioOutputDevice,
 } from '@stream-io/video-client';
 import { map, Observable, Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
@@ -19,6 +21,7 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
   call!: Call;
   localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
   private subscriptions: Subscription[] = [];
+  private isAudioOuputDeviceChangeSupported = isAudioOutputChangeSupported;
 
   constructor(private streamVideoService: StreamVideoService) {
     this.localParticipant$ =
@@ -57,6 +60,13 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
               c.updateMuteState('video', true);
               const videoStream = await getVideoStream();
               c.replaceMediaStream('videoinput', videoStream);
+            }),
+          );
+          deviceDisconnectSubscriptions.push(
+            watchForDisconnectedAudioOutputDevice(
+              this.localParticipant$.pipe(map((p) => p?.audioOutputDeviceId)),
+            ).subscribe(async () => {
+              c.setAudioOutputDevice(undefined);
             }),
           );
         } else {
