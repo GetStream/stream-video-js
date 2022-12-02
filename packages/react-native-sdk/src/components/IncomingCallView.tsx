@@ -17,39 +17,6 @@ import {
 } from '../contexts/StreamVideoContext';
 import { useRingCall } from '../hooks';
 
-const styles = StyleSheet.create({
-  background: {
-    backgroundColor: '#272A30',
-  },
-  incomingCallText: {
-    marginTop: 16,
-    fontSize: 20,
-    textAlign: 'center',
-    color: '#FFFFFF',
-    fontWeight: '600',
-    opacity: 0.6,
-  },
-  buttons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 40,
-    marginTop: '40%',
-    position: 'absolute',
-    bottom: 90,
-    left: 0,
-    right: 0,
-  },
-  buttonStyle: {
-    height: 70,
-    width: 70,
-    borderRadius: 70,
-  },
-  svgStyle: {
-    height: 30,
-    width: 30,
-  },
-});
-
 export type IncomingCallViewProps = {
   /**
    * Handler called when the call is answered. Mostly used for navigation and related actions.
@@ -100,7 +67,7 @@ export const IncomingCallView: React.FC<IncomingCallViewProps> = ({
         onRejectCall();
       }
     }
-  });
+  }, [activeCall, incomingRingCalls, onAnswerCall, onRejectCall]);
 
   const videoToggle = async () => {
     setState((prevState) => ({
@@ -145,3 +112,36 @@ export const IncomingCallView: React.FC<IncomingCallViewProps> = ({
     </Background>
   );
 };
+
+const styles = StyleSheet.create({
+  background: {
+    backgroundColor: '#272A30',
+  },
+  incomingCallText: {
+    marginTop: 16,
+    fontSize: 20,
+    textAlign: 'center',
+    color: '#FFFFFF',
+    fontWeight: '600',
+    opacity: 0.6,
+  },
+  buttons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 40,
+    marginTop: '40%',
+    position: 'absolute',
+    bottom: 90,
+    left: 0,
+    right: 0,
+  },
+  buttonStyle: {
+    height: 70,
+    width: 70,
+    borderRadius: 70,
+  },
+  svgStyle: {
+    height: 30,
+    width: 30,
+  },
+});

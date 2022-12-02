@@ -1,6 +1,48 @@
 import { useActiveRingCallDetails } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
+import { MAX_AVATARS_IN_VIEW } from '../constants';
+import { generateCallTitle } from '../utils';
+
+export type SizeType = 'small' | 'medium' | 'large';
+
+export const UserInfoView = () => {
+  const activeRingCallDetails = useActiveRingCallDetails();
+
+  const memberUserIds = activeRingCallDetails?.memberUserIds || [];
+
+  const callTitle = generateCallTitle(memberUserIds);
+  const supportedAmountOfMemberUserIds = memberUserIds.slice(
+    0,
+    MAX_AVATARS_IN_VIEW,
+  );
+
+  const avatarStyles =
+    memberUserIds.length >= MAX_AVATARS_IN_VIEW
+      ? styles.smallAvatar
+      : memberUserIds.length === MAX_AVATARS_IN_VIEW - 1
+      ? styles.mediumAvatar
+      : styles.largeAvatar;
+
+  return (
+    <View style={styles.userInfo}>
+      <View style={styles.avatarView}>
+        {supportedAmountOfMemberUserIds.map((member) => {
+          return (
+            <Image
+              key={member}
+              style={[styles.avatar, avatarStyles]}
+              source={{
+                uri: `https://getstream.io/random_png/?id=${member}&name=${member}`,
+              }}
+            />
+          );
+        })}
+      </View>
+      <Text style={styles.name}>{callTitle}</Text>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   userInfo: {
@@ -39,48 +81,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
-const MAX_AVATARS_IN_VIEW = 3;
-export type SizeType = 'small' | 'medium' | 'large';
-
-// Utility to join strings with commas and 'and'
-function addCommasAndAnd(list: string[]) {
-  if (list.length < MAX_AVATARS_IN_VIEW) {
-    return list.join(' and ');
-  }
-  return `${list.slice(0, -1).join(', ')}, and ${list[list.length - 1]}`;
-}
-
-export const UserInfoView = () => {
-  const activeRingCallDetails = useActiveRingCallDetails();
-
-  const memberUserIds = activeRingCallDetails?.memberUserIds || [];
-
-  let name = addCommasAndAnd(memberUserIds.slice(0, MAX_AVATARS_IN_VIEW));
-
-  const avatarStyles =
-    memberUserIds.length >= MAX_AVATARS_IN_VIEW
-      ? styles.smallAvatar
-      : memberUserIds.length === MAX_AVATARS_IN_VIEW - 1
-      ? styles.mediumAvatar
-      : styles.largeAvatar;
-
-  return (
-    <View style={styles.userInfo}>
-      <View style={styles.avatarView}>
-        {memberUserIds.slice(0, MAX_AVATARS_IN_VIEW).map((member) => {
-          return (
-            <Image
-              key={member}
-              style={[styles.avatar, avatarStyles]}
-              source={{
-                uri: `https://getstream.io/random_png/?id=${member}&name=${member}`,
-              }}
-            />
-          );
-        })}
-      </View>
-      <Text style={styles.name}>{name}</Text>
-    </View>
-  );
-};
