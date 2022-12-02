@@ -1,22 +1,33 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { TabBar } from '../components/TabBar';
 import Meeting from '../components/Meeting/Meeting';
 import Ringing from '../components/Ringing/Ringing';
 import { useCallKeep } from '../hooks/useCallKeep';
 import { RootStackParamList } from '../../types';
 import { mediaDevices } from 'react-native-webrtc';
-import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import {
   useActiveRingCall,
   useIncomingRingCalls,
   useTerminatedRingCall,
+  useStreamVideoStoreSetState,
 } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
     marginTop: 20,
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 20,
+    fontWeight: 'bold',
   },
 });
 
@@ -24,11 +35,12 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 export const HomeScreen = ({ navigation, route }: Props) => {
   const [selectedTab, setSelectedTab] = useState('Meeting');
+  const [loadingCall, setLoadingCall] = useState(false);
 
   const activeRingCallMeta = useActiveRingCall();
   const incomingRingCalls = useIncomingRingCalls();
   const terminatedRingCallMeta = useTerminatedRingCall();
-  const setState = useAppGlobalStoreSetState();
+  const setState = useStreamVideoStoreSetState();
 
   const { displayIncomingCallNow, startCall, endCall } = useCallKeep();
 
@@ -69,11 +81,28 @@ export const HomeScreen = ({ navigation, route }: Props) => {
 
   return (
     <View style={styles.container}>
-      <TabBar selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
-      {selectedTab === 'Meeting' ? (
-        <Meeting navigation={navigation} route={route} />
+      {loadingCall ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size={'large'} />
+          <Text style={styles.loadingText}>Calling...</Text>
+        </View>
       ) : (
-        <Ringing navigation={navigation} route={route} />
+        <>
+          <TabBar selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+          {selectedTab === 'Meeting' ? (
+            <Meeting
+              navigation={navigation}
+              route={route}
+              setLoadingCall={setLoadingCall}
+            />
+          ) : (
+            <Ringing
+              navigation={navigation}
+              route={route}
+              setLoadingCall={setLoadingCall}
+            />
+          )}
+        </>
       )}
     </View>
   );

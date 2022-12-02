@@ -15,7 +15,7 @@
     "strict": true,
     "strictNullChecks": true,
     "sourceMap": true,
-    "jsx": "react-native"
+    "jsx": "react-jsxdev"
   },
   "include": ["./src", "index.ts"]
 }

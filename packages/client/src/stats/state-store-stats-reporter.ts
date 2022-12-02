@@ -62,7 +62,7 @@ export type StatsReporter = {
 };
 
 /**
- * Creates a new StatsReporter instance.
+ * Creates a new StatsReporter instance that collects metrics about the ongoing call and reports them to the state store
  */
 export const createStatsReporter = ({
   subscriber,
@@ -115,14 +115,13 @@ export const createStatsReporter = ({
   };
 
   const sessionIdsToTrack = new Set<string>();
-  const readOnlyStore = store.asReadOnlyStore();
 
   /**
    * The main stats reporting loop.
    */
   const run = async () => {
-    const participants = readOnlyStore.getCurrentValue(
-      readOnlyStore.activeCallAllParticipants$,
+    const participants = store.getCurrentValue(
+      store.activeCallAllParticipantsSubject,
     );
     const participantStats: ParticipantsStatsReport = {};
     const sessionIds = new Set(sessionIdsToTrack);
@@ -169,6 +168,11 @@ export const createStatsReporter = ({
         .then(aggregate),
     ]);
 
+    const [subscriberRawStats, publisherRawStats] = await Promise.all([
+      getRawStatsForTrack('subscriber'),
+      getRawStatsForTrack('publisher'),
+    ]);
+
     let latencyInMs = -1;
     if (latencyCheckUrl) {
       const [latencyInSeconds] = await measureResourceLoadLatencyTo(
@@ -183,6 +187,8 @@ export const createStatsReporter = ({
       latencyInMs: latencyInMs,
       publisherStats,
       subscriberStats,
+      subscriberRawStats,
+      publisherRawStats,
       participants: participantStats,
       timestamp: Date.now(),
     };
@@ -194,7 +200,7 @@ export const createStatsReporter = ({
   if (pollingIntervalInMs > 0) {
     const loop = async () => {
       await run().catch((e) => {
-        console.error('Failed to collect stats', e);
+        console.log('Failed to collect stats', e);
       });
       timeoutId = setTimeout(loop, pollingIntervalInMs);
     };

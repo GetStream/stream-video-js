@@ -59,10 +59,11 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private async joinCall(id: string, type = 'default') {
-    await this.videoService.videoClient?.joinCall({
+    const call = await this.videoService.videoClient?.joinCall({
       id,
       type,
       datacenterId: '',
     });
+    await call?.join();
   }
 }

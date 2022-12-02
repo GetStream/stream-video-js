@@ -8,7 +8,7 @@ interface AppGlobalStore {
   username: string;
   userImageUrl: string;
   localMediaStream: MediaStream | undefined;
-  cameraBackFacingMode: boolean;
+  videoClient: StreamVideoClient | undefined;
   loopbackMyVideo: boolean;
 }
 
@@ -24,8 +24,8 @@ export const {
     username: '',
     userImageUrl: '',
     localMediaStream: undefined,
+    videoClient: undefined,
     loopbackMyVideo: false,
-    cameraBackFacingMode: false,
   },
   ['username', 'userImageUrl'],
 );
