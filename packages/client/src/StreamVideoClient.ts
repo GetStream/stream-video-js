@@ -38,6 +38,8 @@ import {
   WebsocketClientEvent,
   WebsocketHealthcheck,
 } from './gen/video/coordinator/client_v1_rpc/websocket';
+import { reportStats } from './stats/coordinator-stats-reporter';
+import { Timestamp } from './gen/google/protobuf/timestamp';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   coordinatorRpcUrl:
@@ -62,6 +64,8 @@ export class StreamVideoClient {
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWSClient | undefined;
+  // TODO: this should come from the store
+  private activeCallId?: string;
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -91,6 +95,11 @@ export class StreamVideoClient {
     this.writeableStateStore = new StreamVideoWriteableStateStore();
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
       this.writeableStateStore,
+    );
+    reportStats(
+      this.readOnlyStateStore,
+      (e) => this.reportCallStats(e),
+      (e) => this.reportCallStatEvent(e),
     );
   }
 
@@ -230,14 +239,12 @@ export class StreamVideoClient {
   joinCall = async (data: JoinCallRequest, sessionId?: string) => {
     const { response } = await this.client.joinCall(data);
     if (response.call && response.call.call && response.edges) {
-      const edge = await this.getCallEdgeServer(
-        response.call.call,
-        response.edges,
-      );
+      const callMeta = response.call.call;
+      const edge = await this.getCallEdgeServer(callMeta, response.edges);
       if (data.input?.ring) {
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.activeRingCallMetaSubject,
-          response.call.call,
+          callMeta,
         );
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.activeRingCallDetailsSubject,
@@ -249,6 +256,13 @@ export class StreamVideoClient {
         const selectedEdge = response.edges.find((e) => e.name === edgeName);
         const { server, iceServers, token } = edge.credentials;
         const sfuClient = new StreamSfuClient(server.url, token, sessionId);
+        this.activeCallId = callMeta.callCid;
+
+        // TODO OL: compute the initial value from `activeCallSubject`
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.callRecordingInProgressSubject,
+          callMeta.recordingActive,
+        );
         return new Call(
           sfuClient,
           {
@@ -295,14 +309,25 @@ export class StreamVideoClient {
   };
 
   /**
-   * We should make this an internal method, SDKs shouldn't need this.
+   * Reports call WebRTC metrics to coordinator API
    * @param stats
    * @returns
    */
-  reportCallStats = async (
-    stats: ReportCallStatsRequest,
+  private reportCallStats = async (
+    stats: Object,
   ): Promise<ReportCallStatsResponse> => {
-    const response = await this.client.reportCallStats(stats);
+    // const callCid = this.writeableStateStore.getCurrentValue(
+    //   this.writeableStateStore.activeRingCallMetaSubject,
+    // )?.callCid;
+    const callCid = this.activeCallId;
+    if (!callCid) {
+      throw new Error('No active CallMeta ID found');
+    }
+    const request: ReportCallStatsRequest = {
+      callCid,
+      statsJson: new TextEncoder().encode(JSON.stringify(stats)),
+    };
+    const response = await this.client.reportCallStats(request);
     return response.response;
   };
 
@@ -364,10 +389,51 @@ export class StreamVideoClient {
     }
   };
 
-  reportCallStatEvent = async (
-    statEvent: ReportCallStatEventRequest,
+  /**
+   * Reports call events (for example local participant muted themselves) to the coordinator API
+   * @param statEvent
+   * @returns
+   */
+  private reportCallStatEvent = async (
+    statEvent: ReportCallStatEventRequest['event'],
   ): Promise<ReportCallStatEventResponse> => {
-    const response = await this.client.reportCallStatEvent(statEvent);
+    // const callCid = this.writeableStateStore.getCurrentValue(
+    //   this.writeableStateStore.activeRingCallMetaSubject,
+    // )?.callCid;
+    const callCid = this.activeCallId;
+    if (!callCid) {
+      throw new Error('No active CallMeta ID found');
+    }
+    const request: ReportCallStatEventRequest = {
+      callCid,
+      timestamp: Timestamp.fromDate(new Date()),
+      event: statEvent,
+    };
+    const response = await this.client.reportCallStatEvent(request);
     return response.response;
+  };
+
+  /**
+   * Sets the participant.isPinned value.
+   * @param sessionId the session id of the participant
+   * @param isPinned the value to set the participant.isPinned
+   * @returns
+   */
+  setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
+    const participants = this.writeableStateStore.getCurrentValue(
+      this.writeableStateStore.activeCallAllParticipantsSubject,
+    );
+
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.activeCallAllParticipantsSubject,
+      participants.map((p) => {
+        return p.sessionId === sessionId
+          ? {
+              ...p,
+              isPinned,
+            }
+          : p;
+      }),
+    );
   };
 }

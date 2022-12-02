@@ -1,7 +1,3 @@
-import {
-  MediaStateChange,
-  MediaStateChangeReason,
-} from '../gen/video/coordinator/stat_v1/stat';
 import type {
   Participant,
   VideoDimension,
@@ -21,6 +17,10 @@ export type StreamVideoParticipant = {
    * True when SDK defined audio-level threshold is exceeded.
    */
   isSpeaking?: boolean;
+  /**
+   * True when the participant is pinned
+   */
+  isPinned?: boolean;
 } & Participant;
 
 export type StreamVideoLocalParticipant = {
@@ -45,28 +45,6 @@ export type SubscriptionChange = {
 export type SubscriptionChanges = {
   [sessionId: string]: SubscriptionChange;
 };
-
-export type TrackChangedEvent = {
-  type: 'media_state_changed';
-  track: MediaStreamTrack;
-  change: MediaStateChange;
-  reason: MediaStateChangeReason;
-};
-
-export type ParticipantJoinedEvent = {
-  type: 'participant_joined';
-};
-
-export type ParticipantLeftEvent = {
-  type: 'participant_left';
-};
-
-export type StatEvent =
-  | TrackChangedEvent
-  | ParticipantJoinedEvent
-  | ParticipantLeftEvent;
-
-export type StatEventListener = (event: StatEvent) => void;
 
 export type CallOptions = {
   connectionConfig?: RTCConfiguration;
