@@ -20,17 +20,14 @@ import { StreamVideoWriteableStateStore } from '../stateStore';
 import type {
   CallOptions,
   PublishOptions,
-  StatEvent,
-  StatEventListener,
   StreamVideoParticipant,
   SubscriptionChanges,
 } from './types';
 import { debounceTime, Subject } from 'rxjs';
 import {
-  MediaStateChange,
-  MediaStateChangeReason,
-} from '../gen/video/coordinator/stat_v1/stat';
-import { createStatsReporter, StatsReporter } from '../stats/reporter';
+  createStatsReporter,
+  StatsReporter,
+} from '../stats/state-store-stats-reporter';
 
 /**
  * A `Call` object represents the active call, the user is part of.
@@ -48,7 +45,6 @@ export class Call {
 
   private statsReporter: StatsReporter;
   private joinResponseReady?: Promise<CallState | undefined>;
-  private statEventListeners: StatEventListener[];
 
   /**
    * Use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
@@ -76,7 +72,6 @@ export class Call {
       connectionConfig: this.options.connectionConfig,
     });
 
-    this.statEventListeners = [];
     this.statsReporter = createStatsReporter({
       subscriber: this.subscriber,
       publisher: this.publisher,
@@ -125,12 +120,6 @@ export class Call {
     this.publisher.getSenders().forEach((s) => {
       if (s.track) {
         s.track.stop();
-        this.publishStatEvent({
-          type: 'media_state_changed',
-          track: s.track,
-          change: MediaStateChange.ENDED,
-          reason: MediaStateChangeReason.CONNECTION,
-        });
       }
       this.publisher.removeTrack(s);
     });
@@ -150,17 +139,6 @@ export class Call {
    * @returns
    */
   join = async (videoStream?: MediaStream, audioStream?: MediaStream) => {
-    await this.client.signalReady.then((ws) => {
-      this.publishStatEvent({
-        type: 'participant_joined',
-      });
-      ws.addEventListener('close', () => {
-        this.publishStatEvent({
-          type: 'participant_left',
-        });
-      });
-    });
-
     if (this.joinResponseReady) {
       throw new Error(`Illegal State: Already joined.`);
     }
@@ -287,13 +265,6 @@ export class Call {
           console.log(`set codec preferences`, codecPreferences);
           videoTransceiver.setCodecPreferences(codecPreferences);
         }
-
-        this.publishStatEvent({
-          type: 'media_state_changed',
-          track: videoTrack,
-          change: MediaStateChange.STARTED,
-          reason: MediaStateChangeReason.CONNECTION,
-        });
       }
 
       this.stateStore.setCurrentValue(
@@ -332,12 +303,6 @@ export class Call {
           return p;
         }),
       );
-      this.publishStatEvent({
-        type: 'media_state_changed',
-        track: audioTrack,
-        change: MediaStateChange.STARTED,
-        reason: MediaStateChangeReason.CONNECTION,
-      });
     }
   };
 
@@ -448,7 +413,7 @@ export class Call {
   };
 
   /**
-   * TODO: this should be part of the state store.
+   * @deprecated use the `callStatsReport$` state store variable instead
    * @param kind
    * @param selector
    * @returns
@@ -480,16 +445,6 @@ export class Call {
     return this.statsReporter.stopReportingStatsFor(sessionId);
   };
 
-  onStatEvent = (fn: StatEventListener) => {
-    this.statEventListeners.push(fn);
-  };
-  offStatEvent = (fn: StatEventListener) => {
-    this.statEventListeners = this.statEventListeners.filter((f) => f !== fn);
-  };
-  private publishStatEvent = (event: StatEvent) => {
-    this.statEventListeners.forEach((fn) => fn(event));
-  };
-
   /**
    * Mute/unmute the video/audio stream of the current user.
    * @param trackKind
@@ -502,13 +457,6 @@ export class Call {
     const sender = senders.find((s) => s.track?.kind === trackKind);
     if (sender && sender.track) {
       sender.track.enabled = !isMute;
-
-      this.publishStatEvent({
-        type: 'media_state_changed',
-        track: sender.track,
-        change: isMute ? MediaStateChange.STARTED : MediaStateChange.ENDED,
-        reason: MediaStateChangeReason.MUTE,
-      });
 
       if (trackKind === 'audio') {
         return this.client.updateAudioMuteState(isMute);
