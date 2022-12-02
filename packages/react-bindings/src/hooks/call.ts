@@ -79,3 +79,8 @@ export const useAcceptedCall = () => {
   const { acceptedCall$ } = useStore();
   return useObservableValue(acceptedCall$);
 };
+
+export const useRejectedCallNotifications = () => {
+  const { rejectedCallNotifications$ } = useStore();
+  return useObservableValue(rejectedCallNotifications$);
+};
