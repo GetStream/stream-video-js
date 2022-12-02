@@ -146,6 +146,7 @@ export const CallPanel = () => {
         <div className="rmc__secondary-participant-wrapper">
           {localParticipant && (
             <ParticipantBox
+              isMuted={true}
               participant={localParticipant}
               call={activeCall}
               updateVideoSubscriptionForParticipant={
