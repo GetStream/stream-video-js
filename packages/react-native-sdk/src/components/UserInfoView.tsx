@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     flexWrap: 'wrap',
-    width: '80%',
+    width: '100%',
   },
   avatar: {
     borderRadius: 100,
@@ -71,8 +71,8 @@ const styles = StyleSheet.create({
     width: 200,
   },
   mediumAvatar: {
-    height: 110,
-    width: 110,
+    height: 120,
+    width: 120,
   },
   smallAvatar: {
     height: 100,
