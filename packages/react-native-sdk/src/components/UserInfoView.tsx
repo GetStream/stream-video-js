@@ -8,9 +8,7 @@ export type SizeType = 'small' | 'medium' | 'large';
 
 export const UserInfoView = () => {
   const activeRingCallDetails = useActiveRingCallDetails();
-
   const memberUserIds = activeRingCallDetails?.memberUserIds || [];
-
   const callTitle = generateCallTitle(memberUserIds);
   const supportedAmountOfMemberUserIds = memberUserIds.slice(
     0,

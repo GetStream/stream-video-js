@@ -34,17 +34,19 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   const activeRingCallDetails = useActiveRingCallDetails();
   const memberUserIds = activeRingCallDetails?.memberUserIds || [];
 
-  return memberUserIds.length ? (
-    <ImageBackground
-      blurRadius={10}
-      source={{
-        uri: `https://getstream.io/random_png/?id=${memberUserIds[0]}&name=${memberUserIds[0]}`,
-      }}
-      style={StyleSheet.absoluteFill}
-    >
-      {children}
-    </ImageBackground>
-  ) : (
+  if (memberUserIds.length)
+    return (
+      <ImageBackground
+        blurRadius={10}
+        source={{
+          uri: `https://getstream.io/random_png/?id=${memberUserIds[0]}&name=${memberUserIds[0]}`,
+        }}
+        style={StyleSheet.absoluteFill}
+      >
+        {children}
+      </ImageBackground>
+    );
+  return (
     <View style={[StyleSheet.absoluteFill, styles.background]}>{children}</View>
   );
 };
