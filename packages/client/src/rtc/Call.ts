@@ -217,7 +217,12 @@ export class Call {
         videoTransceiver.setCodecPreferences(codecPreferences);
       }
     } else {
-      currentVideoTransceiver.sender.track?.stop();
+      if (currentVideoTransceiver.direction !== 'inactive') {
+        currentVideoTransceiver.sender.track?.stop();
+      }
+      // since we are reusing a transceiver that could have been made inactive
+      // we are updating its direction to sendonly in order to trigger re-negotiation
+      currentVideoTransceiver.direction = 'sendonly';
       await currentVideoTransceiver.sender.replaceTrack(videoTrack);
     }
 
@@ -256,7 +261,12 @@ export class Call {
       // @ts-ignore
       audioTransceiver.__trackType = TrackType.AUDIO;
     } else {
-      audioTransceiver.sender.track?.stop();
+      if (audioTransceiver.direction !== 'inactive') {
+        audioTransceiver.sender.track?.stop();
+      }
+      // since we are reusing a transceiver that could have been made inactive
+      // we are updating its direction to sendonly in order to trigger re-negotiation
+      audioTransceiver.direction = 'sendonly';
       await audioTransceiver.sender.replaceTrack(audioTrack);
     }
 
