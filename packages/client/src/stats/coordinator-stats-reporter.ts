@@ -1,4 +1,4 @@
-import { StreamVideoReadOnlyStateStore } from '../stateStore';
+import { StreamVideoReadOnlyStateStore2 } from '../store';
 import {
   ReportCallStatEventRequest,
   ReportCallStatEventResponse,
@@ -15,11 +15,11 @@ import { pairwise, throttleTime } from 'rxjs';
 /**
  * Collects stat metrics and events from the state store and sends them to the Coordinator API
  * @param readOnlyStateStore
- * @param sendStat
+ * @param sendStatMetrics
  * @param sendStatEvent
  */
 export const reportStats = (
-  readOnlyStateStore: StreamVideoReadOnlyStateStore,
+  readOnlyStateStore: StreamVideoReadOnlyStateStore2,
   sendStatMetrics: (stats: Object) => Promise<ReportCallStatsResponse>,
   sendStatEvent: (
     statEvent: ReportCallStatEventRequest['event'],
@@ -30,7 +30,7 @@ export const reportStats = (
 };
 
 const reportStatMetrics = (
-  readOnlyStateStore: StreamVideoReadOnlyStateStore,
+  readOnlyStateStore: StreamVideoReadOnlyStateStore2,
   sendStatMetrics: (stats: Object) => Promise<ReportCallStatsResponse>,
 ) => {
   readOnlyStateStore.callStatsReport$
@@ -54,12 +54,12 @@ const reportStatMetrics = (
 };
 
 export const reportStatEvents = (
-  store: StreamVideoReadOnlyStateStore,
+  store: StreamVideoReadOnlyStateStore2,
   sendStatEvent: (
     statEvent: ReportCallStatEventRequest['event'],
   ) => Promise<ReportCallStatEventResponse>,
 ) => {
-  store.activeCallLocalParticipant$
+  store.localParticipant$
     .pipe(pairwise())
     .subscribe(([prevLocalParticipant, currentLocalParticipant]) => {
       if (!prevLocalParticipant && currentLocalParticipant) {
