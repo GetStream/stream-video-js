@@ -321,7 +321,7 @@ export class StreamVideoClient {
       this.writeableStateStore2.connectedUserSubject,
     );
 
-    if (event.call?.createdByUserId === connectedUser?.id) {
+    if (event.senderUserId === connectedUser?.id) {
       this.writeableStateStore2.setCurrentValue(
         this.writeableStateStore2.pendingCallsSubject,
         this.writeableStateStore2
@@ -368,12 +368,28 @@ export class StreamVideoClient {
       return;
     }
 
-    this.writeableStateStore2.setCurrentValue(
-      this.writeableStateStore2.pendingCallsSubject,
-      this.writeableStateStore2
-        .getCurrentValue(this.writeableStateStore2.pendingCallsSubject)
-        .filter((pendingCall) => pendingCall.call?.callCid !== call.callCid),
+    const connectedUser = this.writeableStateStore2.getCurrentValue(
+      this.writeableStateStore2.connectedUserSubject,
     );
+
+    if (event.senderUserId === connectedUser?.id) {
+      this.writeableStateStore2.setCurrentValue(
+        this.writeableStateStore2.pendingCallsSubject,
+        this.writeableStateStore2
+          .getCurrentValue(this.writeableStateStore2.pendingCallsSubject)
+          .filter((pendingCall) => pendingCall.call?.callCid !== call.callCid),
+      );
+    } else {
+      this.writeableStateStore2.setCurrentValue(
+        this.writeableStateStore2.rejectedCallNotificationsSubject,
+        [
+          ...this.writeableStateStore2.getCurrentValue(
+            this.writeableStateStore2.rejectedCallNotificationsSubject,
+          ),
+          event,
+        ],
+      );
+    }
   };
 
   /**
