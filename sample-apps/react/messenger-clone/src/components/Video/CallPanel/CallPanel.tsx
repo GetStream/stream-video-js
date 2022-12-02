@@ -69,6 +69,7 @@ const ButtonControls = ({
           <button
             className="rmc__button rmc__button--red"
             onClick={() => {
+              videoClient.cancelCall(activeCall.data.call.callCid);
               activeCall.leave();
             }}
           >
