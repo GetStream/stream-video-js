@@ -9,30 +9,6 @@ import {
   ViewStyle,
 } from 'react-native';
 
-const styles = StyleSheet.create({
-  container: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#0000000D',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
-    elevation: 12,
-  },
-  svgContainerStyle: {
-    width: 25,
-    height: 25,
-  },
-});
-
 type ColorKey = 'callToAction' | 'activated' | 'deactivated' | 'cancel';
 
 const colorKeyToBgColor = (colorKey: ColorKey): ColorValue => {
@@ -89,3 +65,27 @@ export const CallControlsButton = (
     </Pressable>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#0000000D',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.37,
+    shadowRadius: 7.49,
+    elevation: 12,
+  },
+  svgContainerStyle: {
+    width: 25,
+    height: 25,
+  },
+});

@@ -1,64 +1,22 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { RTCView } from 'react-native-webrtc';
 import { UserInfoView } from './UserInfoView';
 import {
+  useActiveCall,
+  useActiveRingCall,
   useLocalParticipant,
   useRemoteParticipants,
+  useStreamVideoClient,
   useTerminatedRingCall,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
 import { useCall, useCallControls, useCallKeep } from '../hooks';
-
-const styles = StyleSheet.create({
-  container: {
-    zIndex: 2,
-  },
-  background: {
-    backgroundColor: '#272A30',
-  },
-  callingText: {
-    fontSize: 20,
-    marginTop: 16,
-    textAlign: 'center',
-    color: '#FFFFFF',
-    fontWeight: '600',
-    opacity: 0.6,
-  },
-  buttons: {
-    position: 'absolute',
-    bottom: 90,
-    width: '100%',
-  },
-  deviceControlButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 20,
-  },
-  hangupButton: {
-    alignSelf: 'center',
-  },
-  buttonStyle: {
-    height: 70,
-    width: 70,
-    borderRadius: 70,
-  },
-  svgStyle: {
-    height: 30,
-    width: 30,
-  },
-  stream: {
-    flex: 1,
-  },
-});
+import InCallManager from 'react-native-incall-manager';
 
 export type OutgoingCallViewProps = {
-  /**
-   * Flag to loop back your own video in the participants view.
-   */
-  loopBackMyVideo: boolean;
   /**
    * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
    */
@@ -74,7 +32,9 @@ const Background: React.FC = () => {
   const localVideoStream = localParticipant?.videoStream;
   const isVideoMuted = !localParticipant?.video;
 
-  return !isVideoMuted ? (
+  if (isVideoMuted)
+    return <View style={[StyleSheet.absoluteFill, styles.background]} />;
+  return (
     <RTCView
       streamURL={localVideoStream?.toURL()}
       objectFit="cover"
@@ -82,37 +42,59 @@ const Background: React.FC = () => {
       style={styles.stream}
       mirror={true}
     />
-  ) : (
-    <View style={[StyleSheet.absoluteFill, styles.background]} />
   );
 };
 
 export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
   onHangupCall,
   onCallAccepted,
-  loopBackMyVideo,
 }) => {
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useCallControls();
   const { hangupCall } = useCall();
+  const client = useStreamVideoClient();
+  const activeCall = useActiveCall();
+  const activeRingCallMeta = useActiveRingCall();
   const terminatedRingCall = useTerminatedRingCall();
   const remoteParticipants = useRemoteParticipants();
-  const { startCall, endCall } = useCallKeep();
+  const { endCall } = useCallKeep();
 
-  const filteredParticipants = loopBackMyVideo
-    ? remoteParticipants
-    : remoteParticipants.filter((p) => !p.isLoggedInUser);
+  const hangupHandler = useCallback(async () => {
+    if (!activeCall) {
+      console.warn('Failed to leave call: call is undefined');
+      return;
+    }
+    try {
+      if (activeRingCallMeta) {
+        await client?.cancelCall(activeRingCallMeta.callCid);
+        endCall();
+      }
+      activeCall.leave();
+      InCallManager.stop();
+    } catch (error) {
+      console.warn('failed to leave call', error);
+    }
+  }, [activeCall, activeRingCallMeta, client, endCall]);
 
   useEffect(() => {
-    startCall();
     if (terminatedRingCall) {
       onHangupCall();
-      endCall();
     }
-    if (filteredParticipants.length > 0) {
+    if (remoteParticipants.length > 0) {
       onCallAccepted();
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [terminatedRingCall, remoteParticipants]);
+
+  // To terminate call after a certain duration of time. Currently let to 10 seconds.
+  useEffect(() => {
+    const terminateCallAtMilliSeconds = 10000;
+    const timerId = setTimeout(() => {
+      hangupHandler();
+    }, terminateCallAtMilliSeconds);
+
+    return () => clearTimeout(timerId);
+  }, [hangupHandler]);
 
   return (
     <>
@@ -157,3 +139,45 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    zIndex: 2,
+  },
+  background: {
+    backgroundColor: '#272A30',
+  },
+  callingText: {
+    fontSize: 20,
+    marginTop: 16,
+    textAlign: 'center',
+    color: '#FFFFFF',
+    fontWeight: '600',
+    opacity: 0.6,
+  },
+  buttons: {
+    position: 'absolute',
+    bottom: 90,
+    width: '100%',
+  },
+  deviceControlButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  hangupButton: {
+    alignSelf: 'center',
+  },
+  buttonStyle: {
+    height: 70,
+    width: 70,
+    borderRadius: 70,
+  },
+  svgStyle: {
+    height: 30,
+    width: 30,
+  },
+  stream: {
+    flex: 1,
+  },
+});

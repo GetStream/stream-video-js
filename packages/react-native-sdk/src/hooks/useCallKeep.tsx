@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import RNCallKeep from 'react-native-callkeep';
 import { useStreamVideoStoreValue } from '../contexts';
+import { generateCallTitle } from '../utils';
 
 export const useCallKeep = () => {
   const activeRingCall = useActiveRingCall();
@@ -26,11 +27,15 @@ export const useCallKeep = () => {
     }
   });
 
+  const callTitle = generateCallTitle(
+    activeRingCallDetails?.memberUserIds || [],
+  );
+
   const startCall = async () => {
     if (Platform.OS === 'ios' && activeRingCall) {
       await RNCallKeep.startCall(
         activeRingCall.id,
-        activeRingCall.id,
+        callTitle,
         activeRingCallDetails?.memberUserIds.join(','),
         'generic',
       );
@@ -38,7 +43,6 @@ export const useCallKeep = () => {
   };
 
   const endCall = async () => {
-    console.log({ activeRingCall });
     if (Platform.OS === 'ios' && activeRingCall) {
       await RNCallKeep.endCall(activeRingCall.id);
     }

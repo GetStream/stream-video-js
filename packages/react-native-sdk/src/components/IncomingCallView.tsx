@@ -14,39 +14,6 @@ import {
 import { useRingCall } from '../hooks';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 
-const styles = StyleSheet.create({
-  background: {
-    backgroundColor: '#272A30',
-  },
-  incomingCallText: {
-    marginTop: 16,
-    fontSize: 20,
-    textAlign: 'center',
-    color: '#FFFFFF',
-    fontWeight: '600',
-    opacity: 0.6,
-  },
-  buttons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 40,
-    marginTop: '40%',
-    position: 'absolute',
-    bottom: 90,
-    left: 0,
-    right: 0,
-  },
-  buttonStyle: {
-    height: 70,
-    width: 70,
-    borderRadius: 70,
-  },
-  svgStyle: {
-    height: 30,
-    width: 30,
-  },
-});
-
 export type IncomingCallViewProps = {
   /**
    * Handler called when the call is answered. Mostly used for navigation and related actions.
@@ -64,17 +31,19 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   const activeRingCallDetails = useActiveRingCallDetails();
   const memberUserIds = activeRingCallDetails?.memberUserIds || [];
 
-  return memberUserIds.length ? (
-    <ImageBackground
-      blurRadius={10}
-      source={{
-        uri: `https://getstream.io/random_png/?id=${memberUserIds[0]}&name=${memberUserIds[0]}`,
-      }}
-      style={StyleSheet.absoluteFill}
-    >
-      {children}
-    </ImageBackground>
-  ) : (
+  if (memberUserIds.length)
+    return (
+      <ImageBackground
+        blurRadius={10}
+        source={{
+          uri: `https://getstream.io/random_png/?id=${memberUserIds[0]}&name=${memberUserIds[0]}`,
+        }}
+        style={StyleSheet.absoluteFill}
+      >
+        {children}
+      </ImageBackground>
+    );
+  return (
     <View style={[StyleSheet.absoluteFill, styles.background]}>{children}</View>
   );
 };
@@ -97,7 +66,8 @@ export const IncomingCallView: React.FC<IncomingCallViewProps> = ({
         onRejectCall();
       }
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCall, incomingRingCalls]);
 
   const videoToggle = async () => {
     setState((prevState) => ({
@@ -142,3 +112,36 @@ export const IncomingCallView: React.FC<IncomingCallViewProps> = ({
     </Background>
   );
 };
+
+const styles = StyleSheet.create({
+  background: {
+    backgroundColor: '#272A30',
+  },
+  incomingCallText: {
+    marginTop: 16,
+    fontSize: 20,
+    textAlign: 'center',
+    color: '#FFFFFF',
+    fontWeight: '600',
+    opacity: 0.6,
+  },
+  buttons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 40,
+    marginTop: '40%',
+    position: 'absolute',
+    bottom: 90,
+    left: 0,
+    right: 0,
+  },
+  buttonStyle: {
+    height: 70,
+    width: 70,
+    borderRadius: 70,
+  },
+  svgStyle: {
+    height: 30,
+    width: 30,
+  },
+});
