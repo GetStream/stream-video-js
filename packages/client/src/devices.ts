@@ -41,17 +41,15 @@ const getDevices = (constraints?: MediaStreamConstraints | undefined) => {
   });
 };
 
-const checkIfAudioOutputChangeSupported = () => {
+/**
+ * [Tells if the browser support audio device output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId)
+ */
+export const checkIfAudioOutputChangeSupported = () => {
   const element = document.createElement('audio');
   const isFeatureSupported = (element as any).sinkId !== undefined;
 
   return isFeatureSupported;
 };
-
-/**
- * [Tells if the browser support audio device output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId)
- */
-export const isAudioOutputChangeSupported = checkIfAudioOutputChangeSupported();
 
 const audioDeviceConstraints = {
   audio: true,

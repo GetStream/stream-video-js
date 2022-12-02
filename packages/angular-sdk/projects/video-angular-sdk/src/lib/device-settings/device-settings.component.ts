@@ -6,7 +6,7 @@ import {
   getAudioStream,
   getVideoDevices,
   getVideoStream,
-  isAudioOutputChangeSupported,
+  checkIfAudioOutputChangeSupported,
 } from '@stream-io/video-client';
 import { Observable, Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
@@ -25,7 +25,7 @@ export class DeviceSettingsComponent implements OnInit {
   videoDevices$: Observable<MediaDeviceInfo[]>;
   audioOutputDevices$: Observable<MediaDeviceInfo[]>;
   popperTrigger = NgxPopperjsTriggers.click;
-  isAudioOuputDeviceChangeSupported = isAudioOutputChangeSupported;
+  isAudioOuputDeviceChangeSupported = checkIfAudioOutputChangeSupported();
   private activeCall?: Call;
   private subscriptions: Subscription[] = [];
 

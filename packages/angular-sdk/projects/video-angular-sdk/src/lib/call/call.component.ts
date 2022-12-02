@@ -6,7 +6,7 @@ import {
   StreamVideoLocalParticipant,
   watchForDisconnectedAudioDevice,
   watchForDisconnectedVideoDevice,
-  isAudioOutputChangeSupported,
+  checkIfAudioOutputChangeSupported,
   watchForDisconnectedAudioOutputDevice,
 } from '@stream-io/video-client';
 import { map, Observable, Subscription } from 'rxjs';
@@ -21,7 +21,8 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
   call!: Call;
   localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
   private subscriptions: Subscription[] = [];
-  private isAudioOuputDeviceChangeSupported = isAudioOutputChangeSupported;
+  private isAudioOuputDeviceChangeSupported =
+    checkIfAudioOutputChangeSupported();
 
   constructor(private streamVideoService: StreamVideoService) {
     this.localParticipant$ =
