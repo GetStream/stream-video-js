@@ -7,10 +7,12 @@ import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
-  template: `<div>Connected as {{ (user$ | async)?.name }}</div>
+  template: `<div class="container">
+    <div>Connected as {{ (user$ | async)?.name }}</div>
     <stream-call *ngIf="activeCall; else noCall"></stream-call>
 
-    <ng-template #noCall> Currently not in a call </ng-template>`,
+    <ng-template #noCall> Currently not in a call </ng-template>
+  </div>`,
 })
 export class AppComponent implements OnInit, OnDestroy {
   ownMediaStream?: MediaStream;
