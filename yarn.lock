@@ -4882,8 +4882,11 @@ __metadata:
     "@stream-io/video-client": "workspace:^"
     "@types/rimraf": ^3.0.2
     react: ^18.2.0
+    replace-in-file: ^6.3.5
     rimraf: ^3.0.2
     rxjs: ^7.5.0
+    typedoc: ^0.23.16
+    typedoc-plugin-markdown: ^3.13.6
     typescript: ^4.9.3
   peerDependencies:
     "@stream-io/video-client": "workspace:^"
