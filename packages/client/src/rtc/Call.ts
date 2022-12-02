@@ -27,16 +27,12 @@ import type {
   SubscriptionChanges,
 } from './types';
 import { debounceTime, Subject } from 'rxjs';
-import {
-  MediaStateChange,
-  MediaStateChangeReason,
-} from '../gen/video/coordinator/stat_v1/stat';
-import { createStatsReporter, StatsReporter } from '../stats/reporter';
 import { CallEnvelope } from '../gen/video/coordinator/client_v1_rpc/envelopes';
 import {
   createStatsReporter,
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
+
 /**
  * A `Call` object represents the active call, the user is part of.
  */
