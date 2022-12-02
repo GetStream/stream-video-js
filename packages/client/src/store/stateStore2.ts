@@ -3,6 +3,7 @@ import { combineLatestWith, map, take } from 'rxjs/operators';
 import { UserInput } from '../gen/video/coordinator/user_v1/user';
 import {
   CallAccepted,
+  CallCancelled,
   CallCreated,
   CallEnded,
   CallRejected,
@@ -17,15 +18,35 @@ import { Call as CallController } from '../rtc/Call';
 type UserId = string;
 
 export class StreamVideoWriteableStateStore2 {
-  connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined); // === connectedUserSubject
+  /**
+   * A store keeping data of a successfully connected user over WS to the coordinator server.
+   */
+  connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
+  /**
+   * A store that keeps track of all created calls that have not been yet accepted, rejected nor cancelled.
+   */
   pendingCallsSubject = new BehaviorSubject<CallCreated[]>([]);
+  /**
+   * A store that keeps track of all the notifications describing accepted call.
+   */
   acceptedCallSubject = new BehaviorSubject<CallAccepted | undefined>(
     undefined,
   );
+  /**
+   * A store that keeps track of cancellations and rejections for both incoming and outgoing calls
+   */
+  rejectedCallNotificationsSubject = new BehaviorSubject<
+    (CallRejected | CallCancelled)[]
+  >([]);
+  /**
+   * A store that keeps reference to a call controller instance.
+   */
   activeCallSubject = new BehaviorSubject<CallController | undefined>(
     undefined,
   );
-  rejectedCallNotificationsSubject = new BehaviorSubject<CallRejected[]>([]);
+  /**
+   * All participants of the current call (including the logged-in user).
+   */
   participantsSubject = new ReplaySubject<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >(1);
@@ -116,17 +137,6 @@ export class StreamVideoWriteableStateStore2 {
     }
   }
 
-  private removeUnique<T>(
-    subject: Subject<T[]>,
-    predicate: (item: T) => boolean,
-  ) {
-    const existingValues = this.getCurrentValue(subject);
-    const keptValues = existingValues.filter(predicate);
-    if (existingValues.length > keptValues.length) {
-      this.setCurrentValue(subject, keptValues);
-    }
-  }
-
   addCall<T extends CallCreated | CallAccepted | CallEnded>(
     subject: BehaviorSubject<T[]>,
     call: T,
@@ -135,32 +145,6 @@ export class StreamVideoWriteableStateStore2 {
       subject,
       call,
       (c) => c.call?.callCid === call.call?.callCid,
-    );
-  }
-
-  removeCall<T extends CallCreated | CallAccepted>(
-    subject: BehaviorSubject<T[]>,
-    call: Partial<T>,
-  ) {
-    this.removeUnique(subject, (c) => c.call?.callCid === call.call?.callCid);
-  }
-
-  addParticipant(
-    participant: StreamVideoParticipant | StreamVideoLocalParticipant,
-  ) {
-    this.pushUnique(
-      this.participantsSubject,
-      participant,
-      (p) => p.sessionId === participant.sessionId,
-    );
-  }
-
-  removeParticipant(
-    participant: StreamVideoParticipant | StreamVideoLocalParticipant,
-  ) {
-    this.removeUnique(
-      this.participantsSubject,
-      (p) => p.sessionId === participant.sessionId,
     );
   }
 }
@@ -192,12 +176,12 @@ export class StreamVideoReadOnlyStateStore2 {
    */
   acceptedCall$: Observable<CallAccepted | undefined>;
   /**
-   * A list of CallRejected objects representing call members who have rejected
-   * to participate in the call.
+   * A list of cancellations and rejections for both incoming and outgoing calls
    */
   rejectedCallNotifications$: Observable<CallAccepted[]>;
   /**
-   * The call the current user participant is in.
+   * The call controller instance representing the call the user attends.
+   * The controller instance exposes call metadata as well.
    */
   activeCall$: Observable<CallController | undefined>;
   /**
