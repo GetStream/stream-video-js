@@ -3,7 +3,7 @@ import {
   useAcceptedCall,
   useActiveCall,
   useOutgoingCalls,
-  useRejectedCallNotifications,
+  useHangUpNotifications,
   useRemoteParticipants,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
@@ -15,11 +15,11 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
   const outgoingCalls = useOutgoingCalls();
   const acceptedCall = useAcceptedCall();
   const remoteParticipants = useRemoteParticipants();
-  const rejectedCallNotifications = useRejectedCallNotifications();
+  const hangupNotifications = useHangUpNotifications();
 
   useEffect(() => {
     if (!videoClient) return;
-    const activeCallRejections = rejectedCallNotifications.filter(
+    const hangups = hangupNotifications.filter(
       (notification) =>
         notification.call?.callCid === activeCall?.data.call?.callCid,
     );
@@ -35,7 +35,7 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
       });
     } else if (
       activeCall &&
-      activeCallRejections.length > 0 &&
+      hangups.length > 0 &&
       remoteParticipants.length === 0
     ) {
       activeCall?.leave();
@@ -49,7 +49,7 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
     outgoingCalls,
     acceptedCall,
     remoteParticipants,
-    rejectedCallNotifications,
+    hangupNotifications,
   ]);
 
   if (!videoClient) return null;
