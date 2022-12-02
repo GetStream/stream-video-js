@@ -67,15 +67,6 @@ const ButtonControls = ({
       {activeCall && (
         <>
           <button
-            className="rmc__button rmc__button--red"
-            onClick={() => {
-              videoClient.cancelCall(activeCall.data.call.callCid);
-              activeCall.leave();
-            }}
-          >
-            <PhoneDisabled />
-          </button>
-          <button
             className="rmc__button rmc__button--transparent"
             onClick={() => activeCall.updateMuteState('audio', !isAudioMute)}
           >
@@ -86,6 +77,15 @@ const ButtonControls = ({
             onClick={() => activeCall.updateMuteState('video', !isVideoMute)}
           >
             {isAudioMute ? <VideocamOff /> : <Videocam />}
+          </button>
+          <button
+            className="rmc__button rmc__button--red"
+            onClick={() => {
+              videoClient.cancelCall(activeCall.data.call.callCid);
+              activeCall.leave();
+            }}
+          >
+            <PhoneDisabled />
           </button>
         </>
       )}
