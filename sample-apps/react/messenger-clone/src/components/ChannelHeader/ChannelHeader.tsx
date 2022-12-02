@@ -7,9 +7,9 @@ import {
   useTranslationContext,
 } from 'stream-chat-react';
 import { MemberInput } from '@stream-io/video-client';
+import { LocalPhone, PhoneDisabled } from '@mui/icons-material';
 
 import { Struct } from '@stream-io/video-client/dist/src/gen/google/protobuf/struct';
-
 import { MenuIcon } from './icons';
 import type { StreamChatType } from '../../types/chat';
 import {
@@ -114,10 +114,25 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
           })}
         </p>
       </div>
-      {/* TODO: MC: would need to have ws connection status flag to correctly reflect in UI (disabled etc.)*/}
-      <button disabled={disableCreateCall} onClick={onCreateCall}>
-        Call
-      </button>
+      {!activeCall ? (
+        <button
+          className="rmc__button rmc__button--green"
+          disabled={disableCreateCall}
+          onClick={onCreateCall}
+        >
+          <LocalPhone />
+        </button>
+      ) : (
+        <button
+          className="rmc__button rmc__button--red"
+          onClick={() => {
+            videoClient.cancelCall(activeCall.data.call.callCid);
+            activeCall.leave();
+          }}
+        >
+          <PhoneDisabled />
+        </button>
+      )}
     </div>
   );
 };
