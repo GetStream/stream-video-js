@@ -47,3 +47,20 @@ export const findOptimalVideoLayers = (videoTrack: MediaStreamTrack) => {
   }
   return optimalVideoLayers;
 };
+
+export const findOptimalScreenSharingLayers = (
+  videoTrack: MediaStreamTrack,
+): OptimalVideoLayer[] => {
+  const settings = videoTrack.getSettings();
+  return [
+    {
+      active: true,
+      rid: 'f',
+      width: settings.width || 0,
+      height: settings.height || 0,
+      maxBitrate: 3000000,
+      scaleResolutionDownBy: 1,
+      maxFramerate: 30,
+    },
+  ];
+};

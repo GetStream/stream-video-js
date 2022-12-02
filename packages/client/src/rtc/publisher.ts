@@ -2,10 +2,14 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import {
   PeerType,
   TrackInfo,
+  TrackType,
   VideoLayer,
 } from '../gen/video/sfu/models/models';
 import { getIceCandidate } from './helpers/iceCandidate';
-import { findOptimalVideoLayers } from './videoLayers';
+import {
+  findOptimalVideoLayers,
+  findOptimalScreenSharingLayers,
+} from './videoLayers';
 
 export type PublisherOpts = {
   rpcClient: StreamSfuClient;
@@ -60,24 +64,30 @@ export const createPublisher = ({
       .getTransceivers()
       .filter((t) => t.direction === 'sendonly' && !!t.sender.track)
       .map<TrackInfo>((transceiver) => {
+        // @ts-ignore FIXME: OL: this is a hack
+        const trackType = transceiver.__trackType;
         const track = transceiver.sender.track!;
-        const layers = findOptimalVideoLayers(track).map<VideoLayer>(
-          (optimalLayer) => ({
-            rid: optimalLayer.rid || '',
-            bitrate: optimalLayer.maxBitrate || 0,
-            fps: optimalLayer.maxFramerate || 0,
-            videoDimension: {
-              width: optimalLayer.width,
-              height: optimalLayer.height,
-            },
-          }),
-        );
+        const optimalLayers =
+          trackType === TrackType.VIDEO
+            ? findOptimalVideoLayers(track)
+            : trackType === TrackType.SCREEN_SHARE
+            ? findOptimalScreenSharingLayers(track)
+            : [];
+
+        const layers = optimalLayers.map<VideoLayer>((optimalLayer) => ({
+          rid: optimalLayer.rid || '',
+          bitrate: optimalLayer.maxBitrate || 0,
+          fps: optimalLayer.maxFramerate || 0,
+          videoDimension: {
+            width: optimalLayer.width,
+            height: optimalLayer.height,
+          },
+        }));
 
         return {
           trackId: track.id,
           layers: layers,
-          // @ts-ignore FIXME: OL: this is a hack
-          trackType: transceiver.__trackType,
+          trackType,
         };
       });
 
