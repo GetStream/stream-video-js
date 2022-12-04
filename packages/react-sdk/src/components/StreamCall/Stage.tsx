@@ -2,6 +2,7 @@ import {
   SfuModels,
   watchForDisconnectedAudioDevice,
   watchForDisconnectedVideoDevice,
+  watchForDisconnectedAudioOutputDevice,
 } from '@stream-io/video-client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Call } from '@stream-io/video-client';
@@ -76,6 +77,14 @@ export const Stage = (props: {
       }),
     );
 
+    subscriptions.push(
+      watchForDisconnectedAudioOutputDevice(
+        activeCallLocalParticipant$.pipe(map((p) => p?.audioOutputDeviceId)),
+      ).subscribe(() => {
+        call.setAudioOutputDevice(undefined);
+      }),
+    );
+
     return () => subscriptions.forEach((s) => s.unsubscribe());
   }, [activeCallLocalParticipant$, call, getVideoStream, getAudioStream]);
 
@@ -100,6 +109,7 @@ export const Stage = (props: {
           participant={localParticipant}
           isMuted
           call={call}
+          sinkId={localParticipant?.audioOutputDeviceId}
           updateVideoSubscriptionForParticipant={
             updateVideoSubscriptionForParticipant
           }
@@ -111,6 +121,7 @@ export const Stage = (props: {
           key={participant.sessionId}
           participant={participant}
           call={call}
+          sinkId={localParticipant?.audioOutputDeviceId}
           updateVideoSubscriptionForParticipant={
             updateVideoSubscriptionForParticipant
           }
