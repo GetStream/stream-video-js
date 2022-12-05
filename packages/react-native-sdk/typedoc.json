@@ -1,8 +1,10 @@
 {
   "plugin": ["typedoc-plugin-markdown"],
-  "entryPoints": ["./src/components", "./src/contexts", "./src/hooks"],
+  "entryPoints": ["./index.ts"],
   "externalPattern": ["**/node_modules/**", "**/dist/**"],
   "excludeExternals": true,
+  "hideBreadcrumbs": true,
+  "hideInPageTOC": true,
   "cleanOutputDir": true,
   "excludePrivate": true,
   "out": "temp-docs",
