@@ -3,6 +3,7 @@
   "entryPoints": ["."],
   "cleanOutputDir": true,
   "hideBreadcrumbs": true,
+  "excludeInternal": true,
   "hideInPageTOC": true,
   "excludePrivate": true,
   "out": "temp-docs",
