@@ -1,1 +1,23 @@
-<p>call-lobby works!</p>
+<div class="container">
+  <div class="start-call">
+    <button mat-flat-button color="primary">Start a call</button>
+    <div>You will be able to invite people once the call starts</div>
+  </div>
+  <div class="device-settings">
+    <ng-container [ngSwitch]="cameraState">
+      <video *ngSwitchCase="'on'" autoplay [srcObject]="videoStream"></video>
+      <div class="error" *ngSwitchCase="'error'">
+       {{cameraErrorMessage}}
+      </div>
+      <div *ngSwitchCase="'loading'" class="loading">
+        <mat-progress-spinner
+          class="example-margin"
+          color="primary"
+          diameter="50"
+          mode="indeterminate"
+        ></mat-progress-spinner>
+      </div>
+      <div class="off" *ngSwitchCase="'off'">Camera turned off</div>
+    </ng-container>
+  </div>
+</div>

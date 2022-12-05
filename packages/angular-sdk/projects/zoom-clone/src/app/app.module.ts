@@ -12,6 +12,7 @@ import { CallLobbyComponent } from './call-lobby/call-lobby.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatSnackBarModule,
     MatButtonModule,
     MatIconModule,
+    MatProgressSpinnerModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
