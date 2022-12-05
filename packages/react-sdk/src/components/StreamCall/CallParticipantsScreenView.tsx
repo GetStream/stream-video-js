@@ -1,10 +1,14 @@
 import { Call, SfuModels } from '@stream-io/video-client';
-import { useParticipants } from '@stream-io/video-react-bindings';
+import {
+  useLocalParticipant,
+  useParticipants,
+} from '@stream-io/video-react-bindings';
 import { ParticipantBox } from './ParticipantBox';
 import { Video } from './Video';
 
 export const CallParticipantsScreenView = (props: { call: Call }) => {
   const { call } = props;
+  const localParticipant = useLocalParticipant();
   const allParticipants = useParticipants();
   const firstScreenSharingParticipant = allParticipants.find((p) =>
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
@@ -25,6 +29,7 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
             key={participant.sessionId}
             participant={participant}
             call={call}
+            sinkId={localParticipant?.audioOutputDeviceId}
           />
         ))}
       </div>

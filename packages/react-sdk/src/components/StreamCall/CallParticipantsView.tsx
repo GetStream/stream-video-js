@@ -13,7 +13,12 @@ export const CallParticipantsView = (props: { call: Call }) => {
   return (
     <div className={`str-video__call-participants-view ${grid}`}>
       {localParticipant && (
-        <ParticipantBox participant={localParticipant} isMuted call={call} />
+        <ParticipantBox
+          participant={localParticipant}
+          isMuted
+          call={call}
+          sinkId={localParticipant.audioOutputDeviceId}
+        />
       )}
 
       {remoteParticipants.map((participant) => (
@@ -21,6 +26,7 @@ export const CallParticipantsView = (props: { call: Call }) => {
           key={participant.sessionId}
           participant={participant}
           call={call}
+          sinkId={localParticipant?.audioOutputDeviceId}
         />
       ))}
     </div>
