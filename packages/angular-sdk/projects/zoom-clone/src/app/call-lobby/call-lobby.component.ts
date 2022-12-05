@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { getAudioStream, getVideoStream } from '@stream-io/video-client';
 
@@ -7,13 +7,14 @@ import { getAudioStream, getVideoStream } from '@stream-io/video-client';
   templateUrl: './call-lobby.component.html',
   styleUrls: ['./call-lobby.component.scss'],
 })
-export class CallLobbyComponent implements OnInit {
+export class CallLobbyComponent implements OnInit, OnDestroy {
   videoStream?: MediaStream;
   cameraState: 'loading' | 'on' | 'off' | 'error' = 'loading';
   cameraErrorMessage?: string;
   audioStream?: MediaStream;
   audioState: 'loading' | 'on' | 'off' | 'error' = 'loading';
   audioErrorMessage?: string;
+  isSpeaking = false;
   constructor(private snackBar: MatSnackBar) {
     getVideoStream()
       .then((s) => {
@@ -33,6 +34,20 @@ export class CallLobbyComponent implements OnInit {
       .then((s) => {
         this.audioStream = s;
         this.audioState = 'on';
+        const audioContext = new AudioContext();
+        const audioStream = audioContext.createMediaStreamSource(
+          this.audioStream,
+        );
+        const analyser = audioContext.createAnalyser();
+        audioStream.connect(analyser);
+        analyser.fftSize = 32;
+
+        const frequencyArray = new Uint8Array(analyser.frequencyBinCount);
+        setInterval(() => {
+          console.log(frequencyArray);
+          analyser.getByteFrequencyData(frequencyArray);
+          this.isSpeaking = frequencyArray.find((v) => v >= 180) ? true : false;
+        }, 100);
       })
       .catch((err) => {
         if (err.code === 0) {
@@ -46,4 +61,8 @@ export class CallLobbyComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  ngOnDestroy(): void {
+    throw new Error('Method not implemented.');
+  }
 }
