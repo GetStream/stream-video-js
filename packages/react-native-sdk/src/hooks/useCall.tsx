@@ -1,6 +1,6 @@
 import { useActiveCall } from '@stream-io/video-react-bindings';
 import InCallManager from 'react-native-incall-manager';
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { useStreamVideoStoreSetState } from '../contexts';
 import { useRingCall } from './useRingCall';
 
@@ -22,7 +22,7 @@ export const useCall = () => {
     });
   }).current;
 
-  const hangupCall = async () => {
+  const hangupCall = useCallback(async () => {
     if (!activeCall) {
       console.warn('Failed to leave call: call is undefined');
       return;
@@ -35,7 +35,7 @@ export const useCall = () => {
     } catch (error) {
       console.warn('failed to leave call', error);
     }
-  };
+  }, [activeCall, cancelCall, resetCallState]);
 
   return { hangupCall };
 };

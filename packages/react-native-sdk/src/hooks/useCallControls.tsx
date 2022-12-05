@@ -2,6 +2,7 @@ import {
   useActiveCall,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
+import { useCallback } from 'react';
 import {
   useStreamVideoStoreSetState,
   useStreamVideoStoreValue,
@@ -22,17 +23,17 @@ export const useCallControls = () => {
   const isVideoMuted = !localParticipant?.video;
 
   // Handler to toggle the video mute state
-  const toggleVideoState = async () => {
+  const toggleVideoState = useCallback(async () => {
     await call?.updateMuteState('video', !isVideoMuted);
-  };
+  }, [call, isVideoMuted]);
 
   // Handler to toggle the audio mute state
-  const toggleAudioState = async () => {
+  const toggleAudioState = useCallback(async () => {
     await call?.updateMuteState('audio', !isAudioMuted);
-  };
+  }, [call, isAudioMuted]);
 
   // Handler to toggle the camera front and back facing mode
-  const toggleCamera = () => {
+  const toggleCamera = useCallback(() => {
     if (localMediaStream) {
       const [primaryVideoTrack] = localMediaStream.getVideoTracks();
       primaryVideoTrack._switchCamera();
@@ -40,7 +41,7 @@ export const useCallControls = () => {
         cameraBackFacingMode: !prevState.cameraBackFacingMode,
       }));
     }
-  };
+  }, [localMediaStream, setState]);
 
   // Handler to open/close the Chat window
   const toggleChat = () => {};

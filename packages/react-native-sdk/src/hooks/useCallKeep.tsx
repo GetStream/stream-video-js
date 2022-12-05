@@ -2,7 +2,7 @@ import {
   useActiveRingCall,
   useActiveRingCallDetails,
 } from '@stream-io/video-react-bindings';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
 import RNCallKeep from 'react-native-callkeep';
 import { useStreamVideoStoreValue } from '../contexts';
@@ -17,13 +17,13 @@ export const useCallKeep = () => {
 
   useEffect(() => {
     if (callKeepOptions) {
-      try {
-        RNCallKeep.setup(callKeepOptions).then((accepted) => {
+      RNCallKeep.setup(callKeepOptions)
+        .then((accepted) => {
           console.log('RNCallKeep initialized');
+        })
+        .catch((error) => {
+          console.log(error);
         });
-      } catch (error) {
-        console.log(error);
-      }
     }
   });
 
@@ -31,7 +31,7 @@ export const useCallKeep = () => {
     activeRingCallDetails?.memberUserIds || [],
   );
 
-  const startCall = async () => {
+  const startCall = useCallback(async () => {
     if (Platform.OS === 'ios' && activeRingCall) {
       await RNCallKeep.startCall(
         activeRingCall.id,
@@ -40,13 +40,13 @@ export const useCallKeep = () => {
         'generic',
       );
     }
-  };
+  }, [activeRingCall, callTitle, activeRingCallDetails]);
 
-  const endCall = async () => {
+  const endCall = useCallback(async () => {
     if (Platform.OS === 'ios' && activeRingCall) {
       await RNCallKeep.endCall(activeRingCall.id);
     }
-  };
+  }, [activeRingCall]);
 
   return { startCall, endCall };
 };
