@@ -1,7 +1,8 @@
 #!/bin/bash
 
 echo "Generating docs from the client..."
-yarn generate-docs:client > /dev/null
+yarn workspace @stream-io/video-client run clean:docs > /dev/null
+yarn workspace @stream-io/video-client run generate-docs:classes > /dev/null
 
 echo "Generating docs from react-bindings..."
 yarn generate-docs:react:bindings > /dev/null
