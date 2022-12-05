@@ -1,7 +1,3 @@
-import {
-  MediaStateChange,
-  MediaStateChangeReason,
-} from '../gen/video/coordinator/stat_v1/stat';
 import type {
   Participant,
   VideoDimension,
@@ -36,6 +32,13 @@ export type StreamVideoLocalParticipant = {
    * The device ID of the currently selected video input device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
    */
   videoDeviceId?: string;
+
+  /**
+   * The device ID of the currently selected audio output device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
+   *
+   * If the value is not defined, the user hasn't selected any device (in these cases the default system audio output could be used)
+   */
+  audioOutputDeviceId?: string;
 } & StreamVideoParticipant;
 
 export type SubscriptionChange = {
@@ -49,28 +52,6 @@ export type SubscriptionChange = {
 export type SubscriptionChanges = {
   [sessionId: string]: SubscriptionChange;
 };
-
-export type TrackChangedEvent = {
-  type: 'media_state_changed';
-  track: MediaStreamTrack;
-  change: MediaStateChange;
-  reason: MediaStateChangeReason;
-};
-
-export type ParticipantJoinedEvent = {
-  type: 'participant_joined';
-};
-
-export type ParticipantLeftEvent = {
-  type: 'participant_left';
-};
-
-export type StatEvent =
-  | TrackChangedEvent
-  | ParticipantJoinedEvent
-  | ParticipantLeftEvent;
-
-export type StatEventListener = (event: StatEvent) => void;
 
 export type CallOptions = {
   connectionConfig?: RTCConfiguration;

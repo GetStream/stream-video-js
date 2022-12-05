@@ -17,5 +17,6 @@
     "sourceMap": true,
     "jsx": "react-jsxdev"
   },
-  "include": ["./src", "index.ts"]
+  "include": ["./src", "index.ts"],
+  "exclude": ["./dist", "node_modules"]
 }

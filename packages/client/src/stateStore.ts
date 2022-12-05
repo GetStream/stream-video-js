@@ -61,7 +61,12 @@ export class StreamVideoWriteableStateStore {
     );
     this.activeCallLocalParticipant$ =
       this.activeCallAllParticipantsSubject.pipe(
-        map((participants) => participants.find((p) => p.isLoggedInUser)),
+        map(
+          (participants) =>
+            participants.find(
+              (p) => p.isLoggedInUser,
+            ) as StreamVideoLocalParticipant,
+        ),
       );
     this.activeCallRemoteParticipants$ =
       this.activeCallAllParticipantsSubject.pipe(

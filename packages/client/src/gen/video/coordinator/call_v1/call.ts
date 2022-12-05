@@ -84,6 +84,14 @@ export interface Call {
      * @generated from protobuf field: google.protobuf.Timestamp updated_at = 8;
      */
     updatedAt?: Timestamp;
+    /**
+     * @generated from protobuf field: bool recording_active = 9;
+     */
+    recordingActive: boolean;
+    /**
+     * @generated from protobuf field: bool broadcasting_active = 10;
+     */
+    broadcastingActive: boolean;
 }
 /**
  * CallDetails contains call additional details
@@ -237,11 +245,13 @@ class Call$Type extends MessageType<Call> {
             { no: 5, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ },
             { no: 6, name: "options", kind: "message", T: () => CallOptions },
             { no: 7, name: "created_at", kind: "message", T: () => Timestamp },
-            { no: 8, name: "updated_at", kind: "message", T: () => Timestamp }
+            { no: 8, name: "updated_at", kind: "message", T: () => Timestamp },
+            { no: 9, name: "recording_active", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 10, name: "broadcasting_active", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Call>): Call {
-        const message = { type: "", id: "", callCid: "", createdByUserId: "", customJson: new Uint8Array(0) };
+        const message = { type: "", id: "", callCid: "", createdByUserId: "", customJson: new Uint8Array(0), recordingActive: false, broadcastingActive: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Call>(this, message, value);
@@ -275,6 +285,12 @@ class Call$Type extends MessageType<Call> {
                     break;
                 case /* google.protobuf.Timestamp updated_at */ 8:
                     message.updatedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.updatedAt);
+                    break;
+                case /* bool recording_active */ 9:
+                    message.recordingActive = reader.bool();
+                    break;
+                case /* bool broadcasting_active */ 10:
+                    message.broadcastingActive = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -312,6 +328,12 @@ class Call$Type extends MessageType<Call> {
         /* google.protobuf.Timestamp updated_at = 8; */
         if (message.updatedAt)
             Timestamp.internalBinaryWrite(message.updatedAt, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
+        /* bool recording_active = 9; */
+        if (message.recordingActive !== false)
+            writer.tag(9, WireType.Varint).bool(message.recordingActive);
+        /* bool broadcasting_active = 10; */
+        if (message.broadcastingActive !== false)
+            writer.tag(10, WireType.Varint).bool(message.broadcastingActive);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

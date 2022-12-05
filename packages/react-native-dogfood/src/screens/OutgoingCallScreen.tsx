@@ -1,185 +1,25 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import React from 'react';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
-import ButtonContainer from '../components/CallControls/ButtonContainer';
-import PhoneDown from '../icons/PhoneDown';
-import Video from '../icons/Video';
-import VideoSlash from '../icons/VideoSlash';
-import { useRingCall } from '../hooks/useRingCall';
-import Mic from '../icons/Mic';
-import MicOff from '../icons/MicOff';
-import { RTCView } from 'react-native-webrtc';
-import { useCallKeep } from '../hooks/useCallKeep';
-import { UserInfoView } from '../components/UserInfoView';
-import {
-  useActiveCall,
-  useActiveRingCall,
-  useActiveRingCallDetails,
-  useLocalParticipant,
-  useRemoteParticipants,
-  useStreamVideoStoreValue,
-} from '@stream-io/video-react-native-sdk';
 
-const styles = StyleSheet.create({
-  container: {
-    height: '100%',
-  },
-  background: {
-    backgroundColor: 'black',
-    opacity: 0.9,
-  },
-  view: {
-    position: 'absolute',
-    zIndex: 5,
-    width: '100%',
-    height: '100%',
-  },
-  callingText: {
-    fontSize: 20,
-    marginTop: 16,
-    textAlign: 'center',
-    color: '#FFFFFF',
-    fontWeight: '600',
-    opacity: 0.6,
-  },
-  buttons: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    position: 'absolute',
-    bottom: 90,
-    left: 0,
-    right: 0,
-  },
-  buttonStyle: {
-    height: 70,
-    width: 70,
-    borderRadius: 70,
-  },
-  svg: {
-    height: 30,
-    width: 30,
-  },
-  stream: {
-    flex: 1,
-  },
-});
+import { OutgoingCallView } from '@stream-io/video-react-native-sdk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'OutgoingCallScreen'>;
 
-const Background = () => {
-  const localMediaStream = useStreamVideoStoreValue(
-    (store) => store.localMediaStream,
-  );
-  const localParticipant = useLocalParticipant();
-  const isVideoMuted = !localParticipant?.video;
-
-  return !isVideoMuted ? (
-    <RTCView
-      // @ts-ignore
-      streamURL={localMediaStream?.toURL()}
-      objectFit="cover"
-      zOrder={1}
-      style={styles.stream}
-      mirror={true}
-    />
-  ) : (
-    <View style={[styles.container, styles.background]} />
-  );
-};
-
 const OutgoingCallScreen = ({ navigation }: Props) => {
-  const loopbackMyVideo = useAppGlobalStoreValue(
-    (store) => store.loopbackMyVideo,
-  );
-  const remoteParticipants = useRemoteParticipants();
-  const localParticipant = useLocalParticipant();
-  const isVideoMuted = !localParticipant?.video;
-  const isAudioMuted = !localParticipant?.audio;
-  const username = useAppGlobalStoreValue((store) => store.username);
-
-  const filteredParticipants = loopbackMyVideo
-    ? remoteParticipants
-    : remoteParticipants.filter((p) => !p.isLoggedInUser);
-  const activeRingCallDetails = useActiveRingCallDetails();
-  const call = useActiveCall();
-  const activeRingCallMeta = useActiveRingCall();
-  const members = activeRingCallDetails?.members || {};
-  const memberUserIds = activeRingCallDetails?.memberUserIds || [];
-  const { cancelCall } = useRingCall();
-  const { endCall } = useCallKeep();
-
-  const hangupHandler = () => {
-    if (!call) {
-      console.warn('failed to leave call: ', 'call is undefined');
-      return;
-    }
-    try {
-      endCall();
-      if (
-        activeRingCallMeta &&
-        activeRingCallMeta.createdByUserId === username
-      ) {
-        cancelCall();
-      }
-    } catch (err) {
-      console.warn('failed to leave call', err);
-    }
+  const onHangupCall = () => {
+    navigation.navigate('HomeScreen');
   };
 
-  useEffect(() => {
-    if (filteredParticipants.length > 0) {
-      navigation.navigate('ActiveCall');
-    }
-  }, [filteredParticipants, navigation]);
-
-  const videoToggle = () => {
-    call?.updateMuteState('video', !isVideoMuted);
-  };
-
-  const audioToggle = () => {
-    call?.updateMuteState('audio', !isAudioMuted);
+  const onCallAccepted = () => {
+    navigation.navigate('ActiveCall');
   };
 
   return (
-    <>
-      <View style={styles.view}>
-        <UserInfoView memberUserIds={memberUserIds} members={members} />
-        <Text style={styles.callingText}>Calling...</Text>
-        <View style={styles.buttons}>
-          <ButtonContainer
-            onPress={audioToggle}
-            colorKey={isAudioMuted ? 'activated' : 'deactivated'}
-            style={styles.buttonStyle}
-            svgContainerStyle={styles.svg}
-          >
-            {isAudioMuted ? <Mic color="black" /> : <MicOff color="white" />}
-          </ButtonContainer>
-          <ButtonContainer
-            onPress={videoToggle}
-            colorKey={isVideoMuted ? 'activated' : 'deactivated'}
-            style={styles.buttonStyle}
-            svgContainerStyle={styles.svg}
-          >
-            {isVideoMuted ? (
-              <Video color="black" />
-            ) : (
-              <VideoSlash color="white" />
-            )}
-          </ButtonContainer>
-          <ButtonContainer
-            onPress={hangupHandler}
-            colorKey={'cancel'}
-            style={styles.buttonStyle}
-            svgContainerStyle={styles.svg}
-          >
-            <PhoneDown color="#fff" />
-          </ButtonContainer>
-        </View>
-      </View>
-      <Background />
-    </>
+    <OutgoingCallView
+      onCallAccepted={onCallAccepted}
+      onHangupCall={onHangupCall}
+    />
   );
 };
 
