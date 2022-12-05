@@ -10,9 +10,11 @@ h2 {
 .user {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
   cursor: pointer;
+  width: 40%;
+  margin: 4px auto;
 
   &:hover {
     .username {

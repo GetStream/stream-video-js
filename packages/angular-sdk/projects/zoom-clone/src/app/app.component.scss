@@ -2,6 +2,19 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  width: 100%;
+
+  h1 {
+    flex-grow: 1;
+    width: 100%;
+  }
+
+  .user-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+  }
 }
 
 mat-toolbar {

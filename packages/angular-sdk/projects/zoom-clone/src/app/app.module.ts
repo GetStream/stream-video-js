@@ -10,6 +10,8 @@ import { StreamVideoModule } from '@stream-io/video-angular-sdk';
 import { ProfilePictureComponent } from './profile-picture/profile-picture.component';
 import { CallLobbyComponent } from './call-lobby/call-lobby.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 @NgModule({
   declarations: [
@@ -25,6 +27,8 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
     BrowserAnimationsModule,
     StreamVideoModule,
     MatSnackBarModule,
+    MatButtonModule,
+    MatIconModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
