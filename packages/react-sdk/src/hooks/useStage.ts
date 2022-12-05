@@ -2,20 +2,18 @@ import {
   watchForDisconnectedAudioDevice,
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Call } from '@stream-io/video-client';
 import { useStore } from '@stream-io/video-react-bindings';
 
-import { useMediaDevices } from '../contexts';
+import { useLocalMediaStreamsContext, useMediaDevices } from '../contexts';
 import { useDebugPreferredVideoCodec } from '../components/Debug/useIsDebugMode';
 import { map, Subscription } from 'rxjs';
 
 // FIXME: use proper name
 export const useStage = (call?: Call) => {
   const { localParticipant$ } = useStore();
-
-  const [localAudioStream, setLocalAudioStream] = useState<MediaStream>();
-  const [localVideoStream, setLocalVideoStream] = useState<MediaStream>();
+  const { localVideoStream, localAudioStream } = useLocalMediaStreamsContext();
 
   const updateVideoSubscriptionForParticipant = useCallback(
     (sessionId: string, width: number, height: number) => {
@@ -32,14 +30,6 @@ export const useStage = (call?: Call) => {
   );
 
   const { getAudioStream, getVideoStream } = useMediaDevices();
-
-  useEffect(() => {
-    getAudioStream().then(setLocalAudioStream);
-  }, [getAudioStream]);
-
-  useEffect(() => {
-    getVideoStream().then(setLocalVideoStream);
-  }, [getVideoStream]);
 
   useEffect(() => {
     if (!call) return;
