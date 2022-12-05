@@ -273,16 +273,10 @@ export class StreamVideoClient {
       return;
     }
 
-    const connectedUser = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.connectedUserSubject,
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.acceptedCallSubject,
+      event,
     );
-
-    if (event.senderUserId === connectedUser?.id) {
-      this.writeableStateStore.setCurrentValue(
-        this.writeableStateStore.acceptedCallSubject,
-        event,
-      );
-    }
   };
 
   /**
@@ -312,28 +306,22 @@ export class StreamVideoClient {
       return;
     }
 
-    const connectedUser = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.connectedUserSubject,
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.pendingCallsSubject,
+      this.writeableStateStore
+        .getCurrentValue(this.writeableStateStore.pendingCallsSubject)
+        .filter((pendingCall) => pendingCall.call?.callCid !== call.callCid),
     );
 
-    if (event.senderUserId === connectedUser?.id) {
-      this.writeableStateStore.setCurrentValue(
-        this.writeableStateStore.pendingCallsSubject,
-        this.writeableStateStore
-          .getCurrentValue(this.writeableStateStore.pendingCallsSubject)
-          .filter((pendingCall) => pendingCall.call?.callCid !== call.callCid),
-      );
-    } else {
-      this.writeableStateStore.setCurrentValue(
-        this.writeableStateStore.hangupNotificationsSubject,
-        [
-          ...this.writeableStateStore.getCurrentValue(
-            this.writeableStateStore.hangupNotificationsSubject,
-          ),
-          event,
-        ],
-      );
-    }
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.hangupNotificationsSubject,
+      [
+        ...this.writeableStateStore.getCurrentValue(
+          this.writeableStateStore.hangupNotificationsSubject,
+        ),
+        event,
+      ],
+    );
   };
 
   /**
@@ -363,28 +351,22 @@ export class StreamVideoClient {
       return;
     }
 
-    const connectedUser = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.connectedUserSubject,
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.pendingCallsSubject,
+      this.writeableStateStore
+        .getCurrentValue(this.writeableStateStore.pendingCallsSubject)
+        .filter((pendingCall) => pendingCall.call?.callCid !== call.callCid),
     );
 
-    if (event.senderUserId === connectedUser?.id) {
-      this.writeableStateStore.setCurrentValue(
-        this.writeableStateStore.pendingCallsSubject,
-        this.writeableStateStore
-          .getCurrentValue(this.writeableStateStore.pendingCallsSubject)
-          .filter((pendingCall) => pendingCall.call?.callCid !== call.callCid),
-      );
-    } else {
-      this.writeableStateStore.setCurrentValue(
-        this.writeableStateStore.hangupNotificationsSubject,
-        [
-          ...this.writeableStateStore.getCurrentValue(
-            this.writeableStateStore.hangupNotificationsSubject,
-          ),
-          event,
-        ],
-      );
-    }
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.hangupNotificationsSubject,
+      [
+        ...this.writeableStateStore.getCurrentValue(
+          this.writeableStateStore.hangupNotificationsSubject,
+        ),
+        event,
+      ],
+    );
   };
 
   /**
@@ -397,7 +379,7 @@ export class StreamVideoClient {
     const { response } = await this.client.joinCall(data);
     if (response.call && response.call.call && response.edges) {
       const callMeta = response.call.call;
-      const edge = await this.getCallEdgeServer(callMeta, response.edges,);
+      const edge = await this.getCallEdgeServer(callMeta, response.edges);
 
       if (edge.credentials && edge.credentials.server) {
         const edgeName = edge.credentials.server.edgeName;
@@ -411,7 +393,7 @@ export class StreamVideoClient {
           this.writeableStateStore.callRecordingInProgressSubject,
           callMeta.recordingActive,
         );
-        const callController = new Call(
+        return new Call(
           response.call,
           sfuClient,
           {
@@ -423,8 +405,6 @@ export class StreamVideoClient {
           },
           this.writeableStateStore,
         );
-        await callController.join();
-        return callController;
       } else {
         // TODO: handle error?
         return undefined;
