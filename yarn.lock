@@ -4981,7 +4981,7 @@ __metadata:
     react-native-callkeep: ^4.3.3
     react-native-incall-manager: ^4.0.0
     react-native-svg: ^13.6.0
-    react-native-webrtc: ">=106.0.0-beta.7"
+    react-native-webrtc: 106.0.0-beta.7
     replace-in-file: ^6.3.5
     rimraf: ^3.0.2
     typedoc: ^0.23.16
@@ -19522,7 +19522,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-webrtc@npm:106.0.0-beta.7, react-native-webrtc@npm:>=106.0.0-beta.7":
+"react-native-webrtc@npm:106.0.0-beta.7":
   version: 106.0.0-beta.7
   resolution: "react-native-webrtc@npm:106.0.0-beta.7"
   dependencies:
