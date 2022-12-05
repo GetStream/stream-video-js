@@ -500,13 +500,13 @@ export class Call {
    */
   setAudioOutputDevice(deviceId?: string) {
     const localParticipant = this.stateStore.getCurrentValue(
-      this.stateStore.activeCallLocalParticipant$,
+      this.stateStore.localParticipant$,
     );
     const allParticipants = this.stateStore.getCurrentValue(
-      this.stateStore.activeCallAllParticipantsSubject,
+      this.stateStore.participantsSubject,
     );
     this.stateStore.setCurrentValue(
-      this.stateStore.activeCallAllParticipantsSubject,
+      this.stateStore.participantsSubject,
       allParticipants.map((p) =>
         p.sessionId === localParticipant?.sessionId
           ? { ...localParticipant, audioOutputDeviceId: deviceId }
