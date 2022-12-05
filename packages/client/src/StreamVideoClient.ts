@@ -1,6 +1,4 @@
 import {
-  StreamVideoReadOnlyStateStore2,
-  StreamVideoWriteableStateStore2,
   StreamVideoReadOnlyStateStore,
   StreamVideoWriteableStateStore,
 } from './store';
@@ -66,10 +64,7 @@ export class StreamVideoClient {
    * @angular If you're using our Angular SDK, you shouldn't be interacting with the state store directly, instead, you should be using the [`StreamVideoService`](./StreamVideoService.md).
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
-  readonly readOnlyStateStore2: StreamVideoReadOnlyStateStore2;
-  // Make it public temporary to ease SDK transition
-  readonly writeableStateStore: StreamVideoWriteableStateStore;
-  private writeableStateStore2: StreamVideoWriteableStateStore2;
+  private writeableStateStore: StreamVideoWriteableStateStore;
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWSClient | undefined;
@@ -100,9 +95,9 @@ export class StreamVideoClient {
         }),
       ],
     });
-    this.writeableStateStore2 = new StreamVideoWriteableStateStore2();
-    this.readOnlyStateStore2 = new StreamVideoReadOnlyStateStore2(
-      this.writeableStateStore2,
+    this.writeableStateStore = new StreamVideoWriteableStateStore();
+    this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
+      this.writeableStateStore,
     );
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
@@ -110,7 +105,7 @@ export class StreamVideoClient {
       this.writeableStateStore,
     );
     reportStats(
-      this.readOnlyStateStore2,
+      this.readOnlyStateStore,
       (e) => this.reportCallStats(e),
       (e) => this.reportCallStatEvent(e),
     );
@@ -136,11 +131,6 @@ export class StreamVideoClient {
     if (this.ws) {
       this.registerWSEventHandlers();
     }
-    this.writeableStateStore2.setCurrentValue(
-      this.writeableStateStore2.connectedUserSubject,
-      user,
-    );
-    // todo: MC: remove stateStore
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
       user,
@@ -238,18 +228,17 @@ export class StreamVideoClient {
    * @returns
    */
   onCallCreated = (event: CallCreated) => {
-    console.log('CallCreated', CallCreated);
     const { call } = event;
     if (!call) {
       console.warn("Can't find call in CallCreated event");
       return;
     }
 
-    this.writeableStateStore2.setCurrentValue(
-      this.writeableStateStore2.pendingCallsSubject,
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.pendingCallsSubject,
       [
-        ...this.writeableStateStore2.getCurrentValue(
-          this.writeableStateStore2.pendingCallsSubject,
+        ...this.writeableStateStore.getCurrentValue(
+          this.writeableStateStore.pendingCallsSubject,
         ),
         event,
       ],
@@ -283,13 +272,13 @@ export class StreamVideoClient {
       return;
     }
 
-    const connectedUser = this.writeableStateStore2.getCurrentValue(
-      this.writeableStateStore2.connectedUserSubject,
+    const connectedUser = this.writeableStateStore.getCurrentValue(
+      this.writeableStateStore.connectedUserSubject,
     );
 
     if (event.senderUserId === connectedUser?.id) {
-      this.writeableStateStore2.setCurrentValue(
-        this.writeableStateStore2.acceptedCallSubject,
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.acceptedCallSubject,
         event,
       );
     }
@@ -322,23 +311,23 @@ export class StreamVideoClient {
       return;
     }
 
-    const connectedUser = this.writeableStateStore2.getCurrentValue(
-      this.writeableStateStore2.connectedUserSubject,
+    const connectedUser = this.writeableStateStore.getCurrentValue(
+      this.writeableStateStore.connectedUserSubject,
     );
 
     if (event.senderUserId === connectedUser?.id) {
-      this.writeableStateStore2.setCurrentValue(
-        this.writeableStateStore2.pendingCallsSubject,
-        this.writeableStateStore2
-          .getCurrentValue(this.writeableStateStore2.pendingCallsSubject)
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.pendingCallsSubject,
+        this.writeableStateStore
+          .getCurrentValue(this.writeableStateStore.pendingCallsSubject)
           .filter((pendingCall) => pendingCall.call?.callCid !== call.callCid),
       );
     } else {
-      this.writeableStateStore2.setCurrentValue(
-        this.writeableStateStore2.hangupNotificationsSubject,
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.hangupNotificationsSubject,
         [
-          ...this.writeableStateStore2.getCurrentValue(
-            this.writeableStateStore2.hangupNotificationsSubject,
+          ...this.writeableStateStore.getCurrentValue(
+            this.writeableStateStore.hangupNotificationsSubject,
           ),
           event,
         ],
@@ -373,23 +362,23 @@ export class StreamVideoClient {
       return;
     }
 
-    const connectedUser = this.writeableStateStore2.getCurrentValue(
-      this.writeableStateStore2.connectedUserSubject,
+    const connectedUser = this.writeableStateStore.getCurrentValue(
+      this.writeableStateStore.connectedUserSubject,
     );
 
     if (event.senderUserId === connectedUser?.id) {
-      this.writeableStateStore2.setCurrentValue(
-        this.writeableStateStore2.pendingCallsSubject,
-        this.writeableStateStore2
-          .getCurrentValue(this.writeableStateStore2.pendingCallsSubject)
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.pendingCallsSubject,
+        this.writeableStateStore
+          .getCurrentValue(this.writeableStateStore.pendingCallsSubject)
           .filter((pendingCall) => pendingCall.call?.callCid !== call.callCid),
       );
     } else {
-      this.writeableStateStore2.setCurrentValue(
-        this.writeableStateStore2.hangupNotificationsSubject,
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.hangupNotificationsSubject,
         [
-          ...this.writeableStateStore2.getCurrentValue(
-            this.writeableStateStore2.hangupNotificationsSubject,
+          ...this.writeableStateStore.getCurrentValue(
+            this.writeableStateStore.hangupNotificationsSubject,
           ),
           event,
         ],
@@ -426,9 +415,7 @@ export class StreamVideoClient {
             latencyCheckUrl: selectedEdge?.latencyUrl,
             edgeName,
           },
-          // todo: MC: remove stateStore
           this.writeableStateStore,
-          this.writeableStateStore2,
         );
         await callController.join();
         return callController;
@@ -579,11 +566,11 @@ export class StreamVideoClient {
    */
   setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
     const participants = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.activeCallAllParticipantsSubject,
+      this.writeableStateStore.participantsSubject,
     );
 
     this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.activeCallAllParticipantsSubject,
+      this.writeableStateStore.participantsSubject,
       participants.map((p) => {
         return p.sessionId === sessionId
           ? {

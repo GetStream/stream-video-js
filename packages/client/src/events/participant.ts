@@ -1,12 +1,12 @@
 import { Dispatcher } from '../rtc/Dispatcher';
-import { StreamVideoWriteableStateStore2 } from '../store';
+import { StreamVideoWriteableStateStore } from '../store';
 
 /**
  * An event responder which handles the `participantJoined` event.
  */
 export const watchParticipantJoined = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore2,
+  store: StreamVideoWriteableStateStore,
 ) => {
   return dispatcher.on('participantJoined', (e) => {
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
@@ -25,7 +25,7 @@ export const watchParticipantJoined = (
  */
 export const watchParticipantLeft = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore2,
+  store: StreamVideoWriteableStateStore,
 ) => {
   return dispatcher.on('participantLeft', (e) => {
     if (e.eventPayload.oneofKind !== 'participantLeft') return;

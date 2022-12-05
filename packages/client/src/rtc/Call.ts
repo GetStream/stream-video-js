@@ -16,10 +16,7 @@ import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
-import {
-  StreamVideoWriteableStateStore,
-  StreamVideoWriteableStateStore2,
-} from '../store';
+import { StreamVideoWriteableStateStore } from '../store';
 import type {
   CallOptions,
   PublishOptions,
@@ -63,7 +60,6 @@ export class Call {
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
     private readonly stateStore: StreamVideoWriteableStateStore,
-    private readonly stateStore2: StreamVideoWriteableStateStore2,
   ) {
     this.data = data;
     this.currentUserId = stateStore.getCurrentValue(
@@ -90,7 +86,7 @@ export class Call {
     });
 
     const { dispatcher } = this.client;
-    registerEventHandlers(this, this.stateStore2, dispatcher);
+    registerEventHandlers(this, this.stateStore, dispatcher);
 
     this.trackSubscriptionsSubject
       .pipe(debounceTime(1200))
@@ -137,23 +133,17 @@ export class Call {
     this.publisher.close();
     this.client.close();
 
-    this.stateStore2.setCurrentValue(
-      this.stateStore2.callRecordingInProgressSubject,
+    this.stateStore.setCurrentValue(
+      this.stateStore.callRecordingInProgressSubject,
       false,
     );
 
-    this.stateStore2.setCurrentValue(
-      this.stateStore2.activeCallSubject,
-      undefined,
-    );
-
-    this.stateStore2.setCurrentValue(this.stateStore2.participantsSubject, []);
-
-    // todo: MC: remove stateStore
     this.stateStore.setCurrentValue(
       this.stateStore.activeCallSubject,
       undefined,
     );
+
+    this.stateStore.setCurrentValue(this.stateStore.participantsSubject, []);
   };
 
   /**
@@ -186,8 +176,8 @@ export class Call {
 
           const { callState } = event.eventPayload.joinResponse;
           const currentParticipants = callState?.participants || [];
-          this.stateStore2.setCurrentValue(
-            this.stateStore2.participantsSubject,
+          this.stateStore.setCurrentValue(
+            this.stateStore.participantsSubject,
             currentParticipants.map<StreamVideoParticipant>((participant) => {
               if (participant.sessionId === this.client.sessionId) {
                 const localParticipant = participant as StreamVideoParticipant;
@@ -198,18 +188,18 @@ export class Call {
               return participant;
             }),
           );
-          this.stateStore2.setCurrentValue(
-            this.stateStore2.activeCallSubject,
+          this.stateStore.setCurrentValue(
+            this.stateStore.activeCallSubject,
             this,
           );
-          this.stateStore2.setCurrentValue(
-            this.stateStore2.pendingCallsSubject,
-            this.stateStore2
-              .getCurrentValue(this.stateStore2.pendingCallsSubject)
+          this.stateStore.setCurrentValue(
+            this.stateStore.pendingCallsSubject,
+            this.stateStore
+              .getCurrentValue(this.stateStore.pendingCallsSubject)
               .filter((call) => call.call?.callCid !== this.data.call?.callCid),
           );
-          this.stateStore2.setCurrentValue(
-            this.stateStore2.acceptedCallSubject,
+          this.stateStore.setCurrentValue(
+            this.stateStore.acceptedCallSubject,
             undefined,
           );
 
@@ -301,22 +291,8 @@ export class Call {
         }
       }
 
-      this.stateStore2.setCurrentValue(
-        this.stateStore2.participantsSubject,
-        this.participants.map((p) => {
-          if (p.sessionId === this.client.sessionId) {
-            return {
-              ...p,
-              videoStream,
-              videoDeviceId: this.getActiveInputDeviceId('videoinput'),
-            };
-          }
-          return p;
-        }),
-      );
-
       this.stateStore.setCurrentValue(
-        this.stateStore.activeCallAllParticipantsSubject,
+        this.stateStore.participantsSubject,
         this.participants.map((p) => {
           if (p.sessionId === this.client.sessionId) {
             return {
@@ -338,27 +314,13 @@ export class Call {
         });
       }
 
-      this.stateStore2.setCurrentValue(
-        this.stateStore2.participantsSubject,
+      this.stateStore.setCurrentValue(
+        this.stateStore.participantsSubject,
         this.participants.map((p) => {
           if (p.sessionId === this.client.sessionId) {
             return {
               ...p,
               audioStream: audioStream,
-              audioDeviceId: this.getActiveInputDeviceId('audioinput'),
-            };
-          }
-          return p;
-        }),
-      );
-
-      this.stateStore.setCurrentValue(
-        this.stateStore.activeCallAllParticipantsSubject,
-        this.participants.map((p) => {
-          if (p.sessionId === this.client.sessionId) {
-            return {
-              ...p,
-              audioStream,
               audioDeviceId: this.getActiveInputDeviceId('audioinput'),
             };
           }
@@ -371,8 +333,7 @@ export class Call {
   /**
    * A method for switching an input device.
    * @param kind
-   * @param deviceId
-   * @param extras
+   * @param mediaStream
    * @returns
    */
   replaceMediaStream = async (
@@ -417,23 +378,8 @@ export class Call {
       : localParticipant?.video);
     this.updateMuteState(kind === 'audioinput' ? 'audio' : 'video', muteState);
 
-    this.stateStore2.setCurrentValue(
-      this.stateStore2.participantsSubject,
-      this.participants.map((p) => {
-        if (p.sessionId === this.client.sessionId) {
-          return {
-            ...p,
-            [kind === 'audioinput' ? 'audioTrack' : 'videoTrack']: mediaStream,
-            [kind === 'audioinput' ? 'audioDeviceId' : 'videoDeviceId']:
-              this.getActiveInputDeviceId(kind),
-          };
-        }
-        return p;
-      }),
-    );
-
     this.stateStore.setCurrentValue(
-      this.stateStore.activeCallAllParticipantsSubject,
+      this.stateStore.participantsSubject,
       this.participants.map((p) => {
         if (p.sessionId === this.client.sessionId) {
           return {
@@ -461,22 +407,8 @@ export class Call {
       return;
     }
 
-    this.stateStore2.setCurrentValue(
-      this.stateStore2.participantsSubject,
-      this.participants.map((participant) => {
-        const change = changes[participant.sessionId];
-        if (change) {
-          return {
-            ...participant,
-            videoDimension: change.videoDimension,
-          };
-        }
-        return participant;
-      }),
-    );
-
     this.stateStore.setCurrentValue(
-      this.stateStore.activeCallAllParticipantsSubject,
+      this.stateStore.participantsSubject,
       this.participants.map((participant) => {
         const change = changes[participant.sessionId];
         if (change) {
@@ -588,9 +520,7 @@ export class Call {
   };
 
   private get participants() {
-    return this.stateStore2.getCurrentValue(
-      this.stateStore2.participantsSubject,
-    );
+    return this.stateStore.getCurrentValue(this.stateStore.participantsSubject);
   }
 
   private handleOnTrack = (e: RTCTrackEvent) => {
@@ -633,8 +563,8 @@ export class Call {
     });
 
     if (e.track.kind === 'video') {
-      this.stateStore2.setCurrentValue(
-        this.stateStore2.participantsSubject,
+      this.stateStore.setCurrentValue(
+        this.stateStore.participantsSubject,
         this.participants.map((participant) => {
           if (participant.trackLookupPrefix === trackId) {
             return {
@@ -647,8 +577,8 @@ export class Call {
         }),
       );
     } else if (e.track.kind === 'audio') {
-      this.stateStore2.setCurrentValue(
-        this.stateStore2.participantsSubject,
+      this.stateStore.setCurrentValue(
+        this.stateStore.participantsSubject,
         this.participants.map((participant) => {
           if (participant.trackLookupPrefix === trackId) {
             return {

@@ -1,5 +1,5 @@
 import { Dispatcher } from '../rtc/Dispatcher';
-import { StreamVideoWriteableStateStore2 } from '../store';
+import { StreamVideoWriteableStateStore } from '../store';
 
 const SPEAKING_THRESHOLD = 0.3;
 
@@ -8,7 +8,7 @@ const SPEAKING_THRESHOLD = 0.3;
  */
 export const watchDominantSpeakerChanged = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore2,
+  store: StreamVideoWriteableStateStore,
 ) => {
   return dispatcher.on('dominantSpeakerChanged', (e) => {
     if (e.eventPayload.oneofKind !== 'dominantSpeakerChanged') return;
@@ -25,7 +25,7 @@ export const watchDominantSpeakerChanged = (
  */
 export const watchAudioLevelChanged = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore2,
+  store: StreamVideoWriteableStateStore,
 ) => {
   return dispatcher.on('audioLevelChanged', (e) => {
     if (e.eventPayload.oneofKind !== 'audioLevelChanged') return;

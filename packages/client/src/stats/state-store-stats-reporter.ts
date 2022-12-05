@@ -120,9 +120,7 @@ export const createStatsReporter = ({
    * The main stats reporting loop.
    */
   const run = async () => {
-    const participants = store.getCurrentValue(
-      store.activeCallAllParticipantsSubject,
-    );
+    const participants = store.getCurrentValue(store.participantsSubject);
     const participantStats: ParticipantsStatsReport = {};
     const sessionIds = new Set(sessionIdsToTrack);
     if (sessionIds.size > 0) {

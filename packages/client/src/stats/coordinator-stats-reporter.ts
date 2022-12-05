@@ -1,4 +1,4 @@
-import { StreamVideoReadOnlyStateStore2 } from '../store';
+import { StreamVideoReadOnlyStateStore } from '../store';
 import {
   ReportCallStatEventRequest,
   ReportCallStatEventResponse,
@@ -19,7 +19,7 @@ import { pairwise, throttleTime } from 'rxjs';
  * @param sendStatEvent
  */
 export const reportStats = (
-  readOnlyStateStore: StreamVideoReadOnlyStateStore2,
+  readOnlyStateStore: StreamVideoReadOnlyStateStore,
   sendStatMetrics: (stats: Object) => Promise<ReportCallStatsResponse>,
   sendStatEvent: (
     statEvent: ReportCallStatEventRequest['event'],
@@ -30,7 +30,7 @@ export const reportStats = (
 };
 
 const reportStatMetrics = (
-  readOnlyStateStore: StreamVideoReadOnlyStateStore2,
+  readOnlyStateStore: StreamVideoReadOnlyStateStore,
   sendStatMetrics: (stats: Object) => Promise<ReportCallStatsResponse>,
 ) => {
   readOnlyStateStore.callStatsReport$
@@ -54,7 +54,7 @@ const reportStatMetrics = (
 };
 
 export const reportStatEvents = (
-  store: StreamVideoReadOnlyStateStore2,
+  store: StreamVideoReadOnlyStateStore,
   sendStatEvent: (
     statEvent: ReportCallStatEventRequest['event'],
   ) => Promise<ReportCallStatEventResponse>,

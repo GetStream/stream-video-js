@@ -1,12 +1,12 @@
 import { Dispatcher } from '../rtc/Dispatcher';
-import { StreamVideoWriteableStateStore2 } from '../store';
+import { StreamVideoWriteableStateStore } from '../store';
 
 /**
  * Watches for `muteStateChanged` events (called if video or audio is turned on/off by a participant).
  */
 export const watchMuteStateChanged = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore2,
+  store: StreamVideoWriteableStateStore,
 ) => {
   return dispatcher.on('muteStateChanged', (e) => {
     if (e.eventPayload.oneofKind !== 'muteStateChanged') return;
