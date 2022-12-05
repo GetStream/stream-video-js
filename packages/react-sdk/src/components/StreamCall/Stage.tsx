@@ -1,4 +1,10 @@
-import { SfuModels } from '@stream-io/video-client';
+import {
+  SfuModels,
+  watchForDisconnectedAudioDevice,
+  watchForDisconnectedVideoDevice,
+  watchForDisconnectedAudioOutputDevice,
+} from '@stream-io/video-client';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Call } from '@stream-io/video-client';
 import {
   useLocalParticipant,
@@ -28,6 +34,7 @@ export const Stage = ({
           participant={localParticipant}
           isMuted
           call={call}
+          sinkId={localParticipant?.audioOutputDeviceId}
           updateVideoSubscriptionForParticipant={
             updateVideoSubscriptionForParticipant
           }
@@ -39,6 +46,7 @@ export const Stage = ({
           key={participant.sessionId}
           participant={participant}
           call={call}
+          sinkId={localParticipant?.audioOutputDeviceId}
           updateVideoSubscriptionForParticipant={
             updateVideoSubscriptionForParticipant
           }

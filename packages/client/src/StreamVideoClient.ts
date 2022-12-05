@@ -95,10 +95,6 @@ export class StreamVideoClient {
         }),
       ],
     });
-    this.writeableStateStore = new StreamVideoWriteableStateStore();
-    this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
-      this.writeableStateStore,
-    );
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
@@ -214,6 +210,11 @@ export class StreamVideoClient {
     }
   };
 
+  /**
+   * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, this will return an error.
+   * @param data
+   * @returns A call metadata with information about the call.
+   */
   createCall = async (data: CreateCallRequest) => {
     const callToCreate = await this.client.createCall(data);
     const { call: callEnvelope } = callToCreate.response;
@@ -395,16 +396,21 @@ export class StreamVideoClient {
   joinCall = async (data: JoinCallRequest, sessionId?: string) => {
     const { response } = await this.client.joinCall(data);
     if (response.call && response.call.call && response.edges) {
-      const edge = await this.getCallEdgeServer(
-        response.call.call,
-        response.edges,
-      );
+      const callMeta = response.call.call;
+      const edge = await this.getCallEdgeServer(callMeta, response.edges,);
 
       if (edge.credentials && edge.credentials.server) {
         const edgeName = edge.credentials.server.edgeName;
         const selectedEdge = response.edges.find((e) => e.name === edgeName);
         const { server, iceServers, token } = edge.credentials;
         const sfuClient = new StreamSfuClient(server.url, token, sessionId);
+        this.activeCallId = callMeta.callCid;
+
+        // TODO OL: compute the initial value from `activeCallSubject`
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.callRecordingInProgressSubject,
+          callMeta.recordingActive,
+        );
         const callController = new Call(
           response.call,
           sfuClient,
