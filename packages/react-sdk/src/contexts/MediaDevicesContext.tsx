@@ -21,6 +21,9 @@ export type MediaDevicesContextAPI = {
   getAudioStream: (deviceId?: string) => Promise<MediaStream>;
   getVideoStream: (deviceId?: string) => Promise<MediaStream>;
   isAudioOutputChangeSupported: boolean;
+  selectedAudioDeviceId: string;
+  selectedVideoDeviceId: string;
+  switchDevice: (kind: 'videoinput' | 'audioinput', deviceId: string) => void;
 };
 
 const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
@@ -28,12 +31,26 @@ const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
 export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedAudioDeviceId, selectAudioDeviceId] = useState('default');
+  const [selectedVideoDeviceId, selectVideoDeviceId] = useState('default');
   const [audioOutputDevices, setAudioOutputDevices] = useState<
     MediaDeviceInfo[]
   >([]);
   const [isAudioOutputChangeSupported] = useState<boolean>(() =>
     checkIfAudioOutputChangeSupported(),
   );
+
+  const switchDevice = async (
+    kind: 'videoinput' | 'audioinput',
+    deviceId: string,
+  ) => {
+    if (kind === 'videoinput') {
+      selectVideoDeviceId(deviceId);
+    }
+    if (kind === 'audioinput') {
+      selectAudioDeviceId(deviceId);
+    }
+  };
 
   useEffect(() => {
     const subscription = getAudioDevices().subscribe(setAudioDevices);
@@ -59,6 +76,9 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
     getAudioStream,
     getVideoStream,
     isAudioOutputChangeSupported,
+    selectedAudioDeviceId,
+    selectedVideoDeviceId,
+    switchDevice,
   };
 
   return (
