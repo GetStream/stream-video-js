@@ -22,42 +22,55 @@ export const LocalMediaStreamsContextProvider = ({
 }) => {
   const incomingCalls = useIncomingCalls();
   const outgoingCalls = useOutgoingCalls();
-  const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
+  const { selectedAudioDeviceId, selectedVideoDeviceId, switchDevice } =
+    useMediaDevices();
   const [localAudioStream, setLocalAudioStream] = useState<MediaStream>();
   const [localVideoStream, setLocalVideoStream] = useState<MediaStream>();
 
   useEffect(() => {
-    const deviceIdsForStream = localAudioStream
-      ?.getAudioTracks()
-      .map((track) => {
-        const settings = track.getSettings();
-        return settings.deviceId;
-      });
+    if (!(incomingCalls.length + outgoingCalls.length)) return;
 
-    if (
-      !(incomingCalls.length + outgoingCalls.length) ||
-      deviceIdsForStream?.includes(selectedAudioDeviceId)
-    )
-      return;
+    if (localAudioStream?.active) {
+      const [t] =
+        localAudioStream
+          .getAudioTracks()
+          .map((track) => track.getSettings().deviceId) ?? [];
 
-    getAudioStream(selectedAudioDeviceId).then(setLocalAudioStream);
+      if (t === selectedAudioDeviceId) return;
+    }
+
+    getAudioStream(selectedAudioDeviceId).then((stream) => {
+      setLocalAudioStream(stream);
+      if (selectedAudioDeviceId) return;
+      const [deviceId] = stream
+        .getAudioTracks()
+        .map((v) => v.getSettings().deviceId);
+      // @ts-ignore
+      switchDevice('audioinput', deviceId);
+    });
   }, [localAudioStream, incomingCalls, outgoingCalls, selectedAudioDeviceId]);
 
   useEffect(() => {
-    const deviceIdsForStream = localVideoStream
-      ?.getVideoTracks()
-      .map((track) => {
-        const settings = track.getSettings();
-        return settings.deviceId;
-      });
+    if (!(incomingCalls.length + outgoingCalls.length)) return;
 
-    if (
-      !(incomingCalls.length + outgoingCalls.length) ||
-      deviceIdsForStream?.includes(selectedVideoDeviceId)
-    )
-      return;
+    if (localVideoStream?.active) {
+      const [deviceId] =
+        localVideoStream
+          .getVideoTracks()
+          .map((track) => track.getSettings().deviceId) ?? [];
 
-    getVideoStream(selectedVideoDeviceId).then(setLocalVideoStream);
+      if (deviceId === selectedVideoDeviceId) return;
+    }
+
+    getVideoStream(selectedVideoDeviceId).then((stream) => {
+      setLocalVideoStream(stream);
+      if (selectedVideoDeviceId) return;
+      const [deviceId] = stream
+        .getVideoTracks()
+        .map((v) => v.getSettings().deviceId);
+      // @ts-ignore
+      switchDevice('videoinput', deviceId);
+    });
   }, [localVideoStream, incomingCalls, outgoingCalls, selectedVideoDeviceId]);
 
   return (

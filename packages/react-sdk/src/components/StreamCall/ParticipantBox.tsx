@@ -6,7 +6,7 @@ import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublish
 import { DebugStatsView } from '../Debug/DebugStatsView';
 
 export const ParticipantBox = (props: {
-  participant: StreamVideoParticipant;
+  participant?: StreamVideoParticipant;
   isMuted?: boolean;
   updateVideoSubscriptionForParticipant: (
     sessionId: string,
@@ -34,7 +34,7 @@ export const ParticipantBox = (props: {
     sessionId,
     audio,
     video,
-  } = participant;
+  } = participant ?? {};
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -42,7 +42,8 @@ export const ParticipantBox = (props: {
     const resizeObserver = new ResizeObserver(() => {
       const width = containerRef.current!.clientWidth;
       const height = containerRef.current!.clientHeight;
-      updateVideoSubscriptionForParticipant(sessionId, width, height);
+      if (sessionId)
+        updateVideoSubscriptionForParticipant(sessionId, width, height);
     });
     resizeObserver.observe(containerRef.current);
     return () => {
@@ -99,7 +100,7 @@ export const ParticipantBox = (props: {
         />
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
-            {participant.user?.id}
+            {participant?.user?.id}
             {!audio && (
               <span className="str-video__participant_name--audio-muted"></span>
             )}
@@ -107,7 +108,7 @@ export const ParticipantBox = (props: {
               <span className="str-video__participant_name--video-muted"></span>
             )}
           </span>
-          {isDebugMode && (
+          {isDebugMode && participant && (
             <>
               <DebugParticipantPublishQuality
                 updateVideoSubscriptionForParticipant={

@@ -17,11 +17,17 @@ import {
   VideocamOff,
 } from '@mui/icons-material';
 
-import { ParticipantBox, useStage } from '@stream-io/video-react-sdk';
+import {
+  ParticipantBox,
+  useStage,
+  DeviceSelector,
+  useMediaDevices,
+  useLocalMediaStreamsContext,
+} from '@stream-io/video-react-sdk';
 
 import { CallCreated } from '@stream-io/video-client';
 import { useChatContext } from 'stream-chat-react';
-import { ComponentProps, useMemo } from 'react';
+import { ComponentProps, useEffect, useMemo } from 'react';
 
 const ButtonControls = ({
   incomingCall,
@@ -30,6 +36,14 @@ const ButtonControls = ({
   const videoClient = useStreamVideoClient();
   const activeCall = useActiveCall();
 
+  const {
+    audioDevices,
+    videoDevices,
+    switchDevice,
+    selectedAudioDeviceId,
+    selectedVideoDeviceId,
+  } = useMediaDevices();
+
   const localParticipant = useLocalParticipant();
 
   const isAudioMute = !localParticipant?.audio;
@@ -37,6 +51,22 @@ const ButtonControls = ({
 
   return (
     <div className="rmc__button-controls">
+      <DeviceSelector
+        devices={audioDevices}
+        label="Select a Mic"
+        selectedDeviceId={selectedAudioDeviceId}
+        onChange={(deviceId) => {
+          switchDevice('audioinput', deviceId);
+        }}
+      />
+      <DeviceSelector
+        devices={videoDevices}
+        label="Select a Camera"
+        selectedDeviceId={selectedVideoDeviceId}
+        onChange={(deviceId) => {
+          switchDevice('videoinput', deviceId);
+        }}
+      />
       {incomingCall && !activeCall && !outgoingCall && (
         <>
           <button
@@ -126,6 +156,8 @@ export const CallPanel = () => {
   const [incomingCall] = useIncomingCalls();
   const [outgoingCall] = useOutgoingCalls();
 
+  const { localAudioStream, localVideoStream } = useLocalMediaStreamsContext();
+
   const { client } = useChatContext();
 
   const [unconnectedParticipant] = useMemo(() => {
@@ -144,22 +176,23 @@ export const CallPanel = () => {
     <div className="rmc__call-panel-backdrop">
       <div className="rmc__call-panel">
         <div className="rmc__secondary-participant-wrapper">
-          {localParticipant && (
-            <ParticipantBox
-              isMuted={true}
-              participant={localParticipant}
-              call={activeCall}
-              updateVideoSubscriptionForParticipant={
-                updateVideoSubscriptionForParticipant
+          <ParticipantBox
+            isMuted={true}
+            // @ts-ignore
+            participant={
+              localParticipant ?? {
+                audioStream: localAudioStream,
+                videoStream: localVideoStream,
+                audio: true,
+                video: true,
+                user: client.user,
               }
-            />
-          )}
-          {!localParticipant && (
-            <Placeholder
-              className="rmc__secondary-participant-placeholder"
-              src={client.user.image}
-            />
-          )}
+            }
+            call={activeCall}
+            updateVideoSubscriptionForParticipant={
+              updateVideoSubscriptionForParticipant
+            }
+          />
         </div>
 
         <div className="rmc__primary-participant-wrapper">

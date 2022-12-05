@@ -21,8 +21,8 @@ export type MediaDevicesContextAPI = {
   getAudioStream: (deviceId?: string) => Promise<MediaStream>;
   getVideoStream: (deviceId?: string) => Promise<MediaStream>;
   isAudioOutputChangeSupported: boolean;
-  selectedAudioDeviceId: string;
-  selectedVideoDeviceId: string;
+  selectedAudioDeviceId: string | undefined;
+  selectedVideoDeviceId: string | undefined;
   switchDevice: (kind: 'videoinput' | 'audioinput', deviceId: string) => void;
 };
 
@@ -31,8 +31,10 @@ const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
 export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
-  const [selectedAudioDeviceId, selectAudioDeviceId] = useState('default');
-  const [selectedVideoDeviceId, selectVideoDeviceId] = useState('default');
+  const [selectedAudioDeviceId, selectAudioDeviceId] =
+    useState<MediaDevicesContextAPI['selectedAudioDeviceId']>();
+  const [selectedVideoDeviceId, selectVideoDeviceId] =
+    useState<MediaDevicesContextAPI['selectedVideoDeviceId']>();
   const [audioOutputDevices, setAudioOutputDevices] = useState<
     MediaDeviceInfo[]
   >([]);

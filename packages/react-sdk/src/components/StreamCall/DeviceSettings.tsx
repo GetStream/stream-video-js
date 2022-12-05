@@ -88,7 +88,7 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
   );
 };
 
-const DeviceSelector = (props: {
+export const DeviceSelector = (props: {
   devices: MediaDeviceInfo[];
   selectedDeviceId?: string;
   label: string;
