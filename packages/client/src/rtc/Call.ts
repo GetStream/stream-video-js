@@ -457,22 +457,11 @@ export class Call {
    *
    * @param deviceId the selected device, `undefined` means the user wants to use the system's default audio output
    */
-  setAudioOutputDevice(deviceId?: string) {
-    const localParticipant = this.stateStore.getCurrentValue(
-      this.stateStore.activeCallLocalParticipant$,
-    );
-    const allParticipants = this.stateStore.getCurrentValue(
-      this.stateStore.activeCallAllParticipantsSubject,
-    );
-    this.stateStore.setCurrentValue(
-      this.stateStore.activeCallAllParticipantsSubject,
-      allParticipants.map((p) =>
-        p.sessionId === localParticipant?.sessionId
-          ? { ...localParticipant, audioOutputDeviceId: deviceId }
-          : p,
-      ),
-    );
-  }
+  setAudioOutputDevice = (deviceId?: string) => {
+    this.stateStore.updateParticipant(this.client.sessionId, {
+      audioOutputDeviceId: deviceId,
+    });
+  };
 
   updatePublishQuality = async (enabledRids: string[]) => {
     console.log(
