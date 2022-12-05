@@ -1,22 +1,13 @@
 @use '@angular/material' as mat;
+@use 'variables';
 
 @include mat.core();
 
-$my-primary: mat.define-palette(mat.$indigo-palette, 500);
-$my-accent: mat.define-palette(mat.$light-blue-palette, A200, A100, A400);
-
-$my-theme: mat.define-light-theme(
-  (
-    color: (
-      primary: $my-primary,
-      accent: $my-accent,
-    ),
-  )
-);
-
-@include mat.core-theme($my-theme);
-@include mat.all-component-themes($my-theme);
+@include mat.core-theme(variables.$my-theme);
+@include mat.all-component-themes(variables.$my-theme);
 
 body {
   margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen-Sans,
+    Ubuntu, Cantarell, Helvetica Neue, sans-serif;
 }
