@@ -7,7 +7,7 @@ import {
   shareReplay,
 } from 'rxjs';
 
-const getDevices = (constraints: MediaStreamConstraints | undefined) => {
+const getDevices = (constraints?: MediaStreamConstraints | undefined) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
     navigator.mediaDevices
       .getUserMedia(constraints)
@@ -41,6 +41,16 @@ const getDevices = (constraints: MediaStreamConstraints | undefined) => {
   });
 };
 
+/**
+ * [Tells if the browser supports audio output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId)
+ */
+export const checkIfAudioOutputChangeSupported = () => {
+  const element = document.createElement('audio');
+  const isFeatureSupported = (element as any).sinkId !== undefined;
+
+  return isFeatureSupported;
+};
+
 const audioDeviceConstraints = {
   audio: true,
 };
@@ -69,6 +79,17 @@ export const getAudioDevices = () => {
 export const getVideoDevices = () => {
   return videoDevices$.pipe(
     map((values) => values.filter((d) => d.kind === 'videoinput')),
+  );
+};
+
+/**
+ * Lists the list of available 'audiooutput' devices, if devices are added/removed - the list is updated
+ *
+ * @returns
+ */
+export const getAudioOutputDevices = () => {
+  return audioDevices$.pipe(
+    map((values) => values.filter((d) => d.kind === 'audiooutput')),
   );
 };
 
@@ -126,11 +147,21 @@ export const getScreenShareStream = async (
 };
 
 const watchForDisconnectedDevice = (
-  kind: Exclude<MediaDeviceKind, 'audiooutput'>,
+  kind: MediaDeviceKind,
   deviceId$: Observable<string | undefined>,
 ) => {
-  const devices$ =
-    kind === 'audioinput' ? getAudioDevices() : getVideoDevices();
+  let devices$;
+  switch (kind) {
+    case 'audioinput':
+      devices$ = getAudioDevices();
+      break;
+    case 'videoinput':
+      devices$ = getVideoDevices();
+      break;
+    case 'audiooutput':
+      devices$ = getAudioOutputDevices();
+      break;
+  }
   return combineLatest([devices$, deviceId$]).pipe(
     filter(
       ([devices, deviceId]) =>
@@ -160,4 +191,15 @@ export const watchForDisconnectedVideoDevice = (
   deviceId$: Observable<string | undefined>,
 ) => {
   return watchForDisconnectedDevice('videoinput', deviceId$);
+};
+
+/**
+ * Notifies the subscriber if a given 'audiooutput' device is disconnected
+ * @param deviceId$ an Observable that specifies which device to watch for
+ * @returns
+ */
+export const watchForDisconnectedAudioOutputDevice = (
+  deviceId$: Observable<string | undefined>,
+) => {
+  return watchForDisconnectedDevice('audiooutput', deviceId$);
 };

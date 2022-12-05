@@ -6,8 +6,14 @@ import { useMediaDevices } from '../../contexts/MediaDevicesContext';
 
 export const DeviceSettings = (props: { activeCall: Call }) => {
   const { activeCall } = props;
-  const { audioDevices, videoDevices, getAudioStream, getVideoStream } =
-    useMediaDevices();
+  const {
+    audioDevices,
+    videoDevices,
+    audioOutputDevices,
+    isAudioOutputChangeSupported,
+    getAudioStream,
+    getVideoStream,
+  } = useMediaDevices();
 
   const [referenceElement, setReferenceElement] =
     useState<HTMLSpanElement | null>(null);
@@ -32,6 +38,10 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
     } else {
       console.warn(`Unsupported device kind: ${kind}`);
     }
+  };
+
+  const setAudioOutputDevice = (deviceId: string) => {
+    activeCall?.setAudioOutputDevice(deviceId);
   };
 
   return (
@@ -67,6 +77,16 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
               switchDevice('audioinput', deviceId);
             }}
           />
+          {isAudioOutputChangeSupported && (
+            <DeviceSelector
+              devices={audioOutputDevices}
+              label="Select audio output"
+              selectedDeviceId={localParticipant?.audioOutputDeviceId}
+              onChange={(deviceId) => {
+                setAudioOutputDevice(deviceId);
+              }}
+            />
+          )}
         </div>
       )}
     </>

@@ -11,6 +11,7 @@ import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import type {
   CallOptions,
   PublishOptions,
+  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
@@ -145,7 +146,8 @@ export class Call {
             this.stateStore.activeCallAllParticipantsSubject,
             currentParticipants.map<StreamVideoParticipant>((participant) => {
               if (participant.sessionId === this.client.sessionId) {
-                const localParticipant = participant as StreamVideoParticipant;
+                const localParticipant =
+                  participant as StreamVideoLocalParticipant;
                 localParticipant.isLoggedInUser = true;
               }
               return participant;
@@ -447,6 +449,30 @@ export class Call {
   stopReportingStatsFor = (sessionId: string) => {
     return this.statsReporter.stopReportingStatsFor(sessionId);
   };
+
+  /**
+   * Sets the used audio output device
+   *
+   * This method only stores the selection, you'll have to implement the audio switching, for more information see: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId
+   *
+   * @param deviceId the selected device, `undefined` means the user wants to use the system's default audio output
+   */
+  setAudioOutputDevice(deviceId?: string) {
+    const localParticipant = this.stateStore.getCurrentValue(
+      this.stateStore.activeCallLocalParticipant$,
+    );
+    const allParticipants = this.stateStore.getCurrentValue(
+      this.stateStore.activeCallAllParticipantsSubject,
+    );
+    this.stateStore.setCurrentValue(
+      this.stateStore.activeCallAllParticipantsSubject,
+      allParticipants.map((p) =>
+        p.sessionId === localParticipant?.sessionId
+          ? { ...localParticipant, audioOutputDeviceId: deviceId }
+          : p,
+      ),
+    );
+  }
 
   updatePublishQuality = async (enabledRids: string[]) => {
     console.log(

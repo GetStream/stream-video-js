@@ -38,6 +38,7 @@ export const LocalVideoView: React.FC<LocalVideoViewProps> = ({
   const cameraBackFacingMode = useStreamVideoStoreValue(
     (store) => store.cameraBackFacingMode,
   );
+  const videoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
 
   if (!isVisible || !localParticipant) {
     return null;
@@ -45,7 +46,9 @@ export const LocalVideoView: React.FC<LocalVideoViewProps> = ({
 
   const isVideoMuted =
     !localParticipant.videoStream ||
-    !localParticipant.publishedTracks.includes(SfuModels.TrackType.VIDEO);
+    !localParticipant.publishedTracks.includes(SfuModels.TrackType.VIDEO) ||
+    videoMuted;
+
   if (isVideoMuted) {
     return (
       <View style={{ ...(style as Object), ...styles.avatarWrapper }}>

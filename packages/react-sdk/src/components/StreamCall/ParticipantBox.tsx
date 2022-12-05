@@ -14,8 +14,9 @@ export const ParticipantBox = (props: {
   participant: StreamVideoParticipant;
   isMuted?: boolean;
   call: Call;
+  sinkId?: string;
 }) => {
-  const { participant, isMuted = false, call } = props;
+  const { participant, isMuted = false, call, sinkId } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const {
@@ -58,11 +59,14 @@ export const ParticipantBox = (props: {
     if (!$el) return;
     if (audioStream) {
       $el.srcObject = audioStream;
+      if (($el as any).setSinkId) {
+        ($el as any).setSinkId(sinkId || '');
+      }
     }
     return () => {
       $el.srcObject = null;
     };
-  }, [audioStream]);
+  }, [audioStream, sinkId]);
 
   const isDebugMode = useIsDebugMode();
   return (

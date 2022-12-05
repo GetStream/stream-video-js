@@ -14,7 +14,7 @@ import {
   StreamVideoParticipant,
   SfuModels,
 } from '@stream-io/video-client';
-import { Subscription } from 'rxjs';
+import { pairwise, Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
 @Component({
@@ -28,7 +28,9 @@ export class ParticipantComponent
   @Input() participant?: StreamVideoParticipant;
   call?: Call;
   @ViewChild('video')
-  private videoElement!: ElementRef<HTMLElement> | undefined;
+  private videoElement!: ElementRef<HTMLElement>;
+  @ViewChild('audio')
+  private audioElement!: ElementRef<HTMLMediaElement>;
   private resizeObserver: ResizeObserver | undefined;
   private isViewInited = false;
   @HostBinding() class = 'str-video__participant-angular-host';
@@ -55,6 +57,20 @@ export class ParticipantComponent
     if (!this.participant?.isLoggedInUser) {
       this.registerResizeObserver();
     }
+    this.subscriptions.push(
+      this.streamVideoService.activeCallLocalParticipant$
+        .pipe(pairwise())
+        .subscribe(([prevParticipant, participant]) => {
+          if (
+            prevParticipant?.audioOutputDeviceId !==
+            participant?.audioOutputDeviceId
+          ) {
+            (this.audioElement.nativeElement as any).setSinkId(
+              participant?.audioOutputDeviceId || '',
+            );
+          }
+        }),
+    );
   }
 
   ngOnDestroy(): void {
