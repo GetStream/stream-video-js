@@ -12,15 +12,15 @@ export interface SDKStreamVideoStore {
   localMediaStream: MediaStream | undefined;
 }
 
-export const {
-  Provider,
-  useStoreValue: useStreamVideoStoreValue,
-  useStoreSetState: useStreamVideoStoreSetState,
-} = createStoreContext<SDKStreamVideoStore>({
-  cameraBackFacingMode: false,
-  isVideoMuted: false,
-  localMediaStream: undefined,
-});
+const { Provider, useStoreValue, useStoreSetState } =
+  createStoreContext<SDKStreamVideoStore>({
+    cameraBackFacingMode: false,
+    isVideoMuted: false,
+    localMediaStream: undefined,
+  });
+
+export const useStreamVideoStoreValue = useStoreValue;
+export const useStreamVideoStoreSetState = useStoreSetState;
 
 export const StreamVideo: React.FC<StreamVideoProps> = (
   props: PropsWithChildren<StreamVideoProps>,
