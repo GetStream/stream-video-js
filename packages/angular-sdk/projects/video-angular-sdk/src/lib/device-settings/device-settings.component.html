@@ -42,5 +42,22 @@
         </option>
       </select>
     </div>
+    <div *ngIf="isAudioOuputDeviceChangeSupported" class="str-video__device-settings__device-kind">
+      <div class="str-video__device-settings__device-selector-label">
+        Select audio output
+      </div>
+      <select
+        class="str-video__device-settings__device-selector"
+        [value]="currentlyUsedAudioOutputDeviceId"
+        (change)="changeOutputDevice($event)"
+      >
+        <option
+          *ngFor="let device of audioOutputDevices$ | async"
+          [value]="device.deviceId"
+        >
+          {{ device.label }}
+        </option>
+      </select>
+    </div>
   </div>
 </popper-content>

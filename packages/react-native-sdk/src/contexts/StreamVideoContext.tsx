@@ -8,6 +8,7 @@ import React, { PropsWithChildren } from 'react';
 
 export interface SDKStreamVideoStore {
   cameraBackFacingMode: boolean;
+  isVideoMuted: boolean;
   localMediaStream: MediaStream | undefined;
 }
 
@@ -17,6 +18,7 @@ export const {
   useStoreSetState: useStreamVideoStoreSetState,
 } = createStoreContext<SDKStreamVideoStore>({
   cameraBackFacingMode: false,
+  isVideoMuted: false,
   localMediaStream: undefined,
 });
 
