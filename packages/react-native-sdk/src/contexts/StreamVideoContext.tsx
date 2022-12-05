@@ -6,7 +6,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren } from 'react';
 
-export interface SDKStreamVideoStore {
+interface SDKStreamVideoStore {
   cameraBackFacingMode: boolean;
   isVideoMuted: boolean;
   localMediaStream: MediaStream | undefined;
