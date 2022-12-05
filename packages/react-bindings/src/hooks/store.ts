@@ -7,5 +7,5 @@ export const useStore = () => {
       `StreamVideoClient isn't initialized or this hook is called outside of <StreamVideo> context.`,
     );
   }
-  return client.readOnlyStateStore2;
+  return client.readOnlyStateStore;
 };
