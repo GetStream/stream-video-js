@@ -19,36 +19,35 @@ import { PeerType } from "../models/models";
 import { VideoDimension } from "../models/models";
 import { TrackType } from "../models/models";
 /**
- * @generated from protobuf message stream.video.sfu.signal.UpdateMuteStateRequest
+ * @generated from protobuf message stream.video.sfu.signal.UpdateMuteStatesRequest
  */
-export interface UpdateMuteStateRequest {
+export interface UpdateMuteStatesRequest {
     /**
      * @generated from protobuf field: string session_id = 1;
      */
     sessionId: string;
     /**
-     * @generated from protobuf oneof: mute
+     * @generated from protobuf field: repeated stream.video.sfu.signal.TrackMuteState mute_states = 3;
      */
-    mute: {
-        oneofKind: "audioMuteChanged";
-        /**
-         * @generated from protobuf field: stream.video.sfu.signal.AudioMuteChanged audio_mute_changed = 2;
-         */
-        audioMuteChanged: AudioMuteChanged;
-    } | {
-        oneofKind: "videoMuteChanged";
-        /**
-         * @generated from protobuf field: stream.video.sfu.signal.VideoMuteChanged video_mute_changed = 3;
-         */
-        videoMuteChanged: VideoMuteChanged;
-    } | {
-        oneofKind: undefined;
-    };
+    muteStates: TrackMuteState[];
 }
 /**
- * @generated from protobuf message stream.video.sfu.signal.UpdateMuteStateResponse
+ * @generated from protobuf message stream.video.sfu.signal.UpdateMuteStatesResponse
  */
-export interface UpdateMuteStateResponse {
+export interface UpdateMuteStatesResponse {
+}
+/**
+ * @generated from protobuf message stream.video.sfu.signal.TrackMuteState
+ */
+export interface TrackMuteState {
+    /**
+     * @generated from protobuf field: stream.video.sfu.models.TrackType track_type = 1;
+     */
+    trackType: TrackType;
+    /**
+     * @generated from protobuf field: bool muted = 2;
+     */
+    muted: boolean;
 }
 /**
  * @generated from protobuf message stream.video.sfu.signal.AudioMuteChanged
@@ -173,22 +172,21 @@ export interface SetPublisherResponse {
     iceRestart: boolean;
 }
 // @generated message type with reflection information, may provide speed optimized methods
-class UpdateMuteStateRequest$Type extends MessageType<UpdateMuteStateRequest> {
+class UpdateMuteStatesRequest$Type extends MessageType<UpdateMuteStatesRequest> {
     constructor() {
-        super("stream.video.sfu.signal.UpdateMuteStateRequest", [
+        super("stream.video.sfu.signal.UpdateMuteStatesRequest", [
             { no: 1, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "audio_mute_changed", kind: "message", oneof: "mute", T: () => AudioMuteChanged },
-            { no: 3, name: "video_mute_changed", kind: "message", oneof: "mute", T: () => VideoMuteChanged }
+            { no: 3, name: "mute_states", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TrackMuteState }
         ]);
     }
-    create(value?: PartialMessage<UpdateMuteStateRequest>): UpdateMuteStateRequest {
-        const message = { sessionId: "", mute: { oneofKind: undefined } };
+    create(value?: PartialMessage<UpdateMuteStatesRequest>): UpdateMuteStatesRequest {
+        const message = { sessionId: "", muteStates: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<UpdateMuteStateRequest>(this, message, value);
+            reflectionMergePartial<UpdateMuteStatesRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateMuteStateRequest): UpdateMuteStateRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateMuteStatesRequest): UpdateMuteStatesRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -196,17 +194,8 @@ class UpdateMuteStateRequest$Type extends MessageType<UpdateMuteStateRequest> {
                 case /* string session_id */ 1:
                     message.sessionId = reader.string();
                     break;
-                case /* stream.video.sfu.signal.AudioMuteChanged audio_mute_changed */ 2:
-                    message.mute = {
-                        oneofKind: "audioMuteChanged",
-                        audioMuteChanged: AudioMuteChanged.internalBinaryRead(reader, reader.uint32(), options, (message.mute as any).audioMuteChanged)
-                    };
-                    break;
-                case /* stream.video.sfu.signal.VideoMuteChanged video_mute_changed */ 3:
-                    message.mute = {
-                        oneofKind: "videoMuteChanged",
-                        videoMuteChanged: VideoMuteChanged.internalBinaryRead(reader, reader.uint32(), options, (message.mute as any).videoMuteChanged)
-                    };
+                case /* repeated stream.video.sfu.signal.TrackMuteState mute_states */ 3:
+                    message.muteStates.push(TrackMuteState.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -219,16 +208,13 @@ class UpdateMuteStateRequest$Type extends MessageType<UpdateMuteStateRequest> {
         }
         return message;
     }
-    internalBinaryWrite(message: UpdateMuteStateRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: UpdateMuteStatesRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string session_id = 1; */
         if (message.sessionId !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
-        /* stream.video.sfu.signal.AudioMuteChanged audio_mute_changed = 2; */
-        if (message.mute.oneofKind === "audioMuteChanged")
-            AudioMuteChanged.internalBinaryWrite(message.mute.audioMuteChanged, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.sfu.signal.VideoMuteChanged video_mute_changed = 3; */
-        if (message.mute.oneofKind === "videoMuteChanged")
-            VideoMuteChanged.internalBinaryWrite(message.mute.videoMuteChanged, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* repeated stream.video.sfu.signal.TrackMuteState mute_states = 3; */
+        for (let i = 0; i < message.muteStates.length; i++)
+            TrackMuteState.internalBinaryWrite(message.muteStates[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -236,25 +222,25 @@ class UpdateMuteStateRequest$Type extends MessageType<UpdateMuteStateRequest> {
     }
 }
 /**
- * @generated MessageType for protobuf message stream.video.sfu.signal.UpdateMuteStateRequest
+ * @generated MessageType for protobuf message stream.video.sfu.signal.UpdateMuteStatesRequest
  */
-export const UpdateMuteStateRequest = new UpdateMuteStateRequest$Type();
+export const UpdateMuteStatesRequest = new UpdateMuteStatesRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class UpdateMuteStateResponse$Type extends MessageType<UpdateMuteStateResponse> {
+class UpdateMuteStatesResponse$Type extends MessageType<UpdateMuteStatesResponse> {
     constructor() {
-        super("stream.video.sfu.signal.UpdateMuteStateResponse", []);
+        super("stream.video.sfu.signal.UpdateMuteStatesResponse", []);
     }
-    create(value?: PartialMessage<UpdateMuteStateResponse>): UpdateMuteStateResponse {
+    create(value?: PartialMessage<UpdateMuteStatesResponse>): UpdateMuteStatesResponse {
         const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<UpdateMuteStateResponse>(this, message, value);
+            reflectionMergePartial<UpdateMuteStatesResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateMuteStateResponse): UpdateMuteStateResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateMuteStatesResponse): UpdateMuteStatesResponse {
         return target ?? this.create();
     }
-    internalBinaryWrite(message: UpdateMuteStateResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: UpdateMuteStatesResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -262,9 +248,63 @@ class UpdateMuteStateResponse$Type extends MessageType<UpdateMuteStateResponse> 
     }
 }
 /**
- * @generated MessageType for protobuf message stream.video.sfu.signal.UpdateMuteStateResponse
+ * @generated MessageType for protobuf message stream.video.sfu.signal.UpdateMuteStatesResponse
  */
-export const UpdateMuteStateResponse = new UpdateMuteStateResponse$Type();
+export const UpdateMuteStatesResponse = new UpdateMuteStatesResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TrackMuteState$Type extends MessageType<TrackMuteState> {
+    constructor() {
+        super("stream.video.sfu.signal.TrackMuteState", [
+            { no: 1, name: "track_type", kind: "enum", T: () => ["stream.video.sfu.models.TrackType", TrackType, "TRACK_TYPE_"] },
+            { no: 2, name: "muted", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<TrackMuteState>): TrackMuteState {
+        const message = { trackType: 0, muted: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<TrackMuteState>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TrackMuteState): TrackMuteState {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.sfu.models.TrackType track_type */ 1:
+                    message.trackType = reader.int32();
+                    break;
+                case /* bool muted */ 2:
+                    message.muted = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TrackMuteState, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.sfu.models.TrackType track_type = 1; */
+        if (message.trackType !== 0)
+            writer.tag(1, WireType.Varint).int32(message.trackType);
+        /* bool muted = 2; */
+        if (message.muted !== false)
+            writer.tag(2, WireType.Varint).bool(message.muted);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.signal.TrackMuteState
+ */
+export const TrackMuteState = new TrackMuteState$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class AudioMuteChanged$Type extends MessageType<AudioMuteChanged> {
     constructor() {
@@ -750,5 +790,5 @@ export const SignalServer = new ServiceType("stream.video.sfu.signal.SignalServe
     { name: "SendAnswer", options: {}, I: SendAnswerRequest, O: SendAnswerResponse },
     { name: "IceTrickle", options: {}, I: ICETrickle, O: ICETrickleResponse },
     { name: "UpdateSubscriptions", options: {}, I: UpdateSubscriptionsRequest, O: UpdateSubscriptionsResponse },
-    { name: "UpdateMuteState", options: {}, I: UpdateMuteStateRequest, O: UpdateMuteStateResponse }
+    { name: "UpdateMuteStates", options: {}, I: UpdateMuteStatesRequest, O: UpdateMuteStatesResponse }
 ]);

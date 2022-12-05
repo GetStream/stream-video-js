@@ -9,8 +9,9 @@ import {
   SendAnswerRequest,
   SetPublisherRequest,
   TrackSubscriptionDetails,
+  UpdateMuteStatesRequest,
 } from './gen/video/sfu/signal_rpc/signal';
-import { ICETrickle } from './gen/video/sfu/models/models';
+import { ICETrickle, TrackType } from './gen/video/sfu/models/models';
 
 const hostnameFromUrl = (url: string) => {
   try {
@@ -117,6 +118,26 @@ export class StreamSfuClient {
 
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
     return this.rpc.iceTrickle({
+      ...data,
+      sessionId: this.sessionId,
+    });
+  };
+
+  updateMuteState = async (trackType: TrackType, muted: boolean) => {
+    return this.updateMuteStates({
+      muteStates: [
+        {
+          trackType,
+          muted,
+        },
+      ],
+    });
+  };
+
+  updateMuteStates = async (
+    data: Omit<UpdateMuteStatesRequest, 'sessionId'>,
+  ) => {
+    return this.rpc.updateMuteStates({
       ...data,
       sessionId: this.sessionId,
     });

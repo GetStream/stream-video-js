@@ -191,41 +191,41 @@ export class Call {
       return console.error(`There is no video track in the stream.`);
     }
 
-    const currentVideoTransceiver = this.publisher.getTransceivers().find(
+    const trackType = TrackType.VIDEO;
+    let transceiver = this.publisher.getTransceivers().find(
       (t) =>
         // @ts-ignore
-        t.__trackType === TrackType.VIDEO &&
+        t.__trackType === trackType &&
         t.sender.track &&
         t.sender.track?.kind === 'video',
     );
-    if (!currentVideoTransceiver) {
+    if (!transceiver) {
       const videoEncodings = findOptimalVideoLayers(videoTrack);
-      const videoTransceiver = this.publisher.addTransceiver(videoTrack, {
+      transceiver = this.publisher.addTransceiver(videoTrack, {
         direction: 'sendonly',
         streams: [videoStream],
         sendEncodings: videoEncodings,
       });
 
       // @ts-ignore
-      videoTransceiver.__trackType = TrackType.VIDEO;
+      transceiver.__trackType = trackType;
 
       const codecPreferences = getPreferredCodecs(
         'video',
         opts.preferredCodec || 'vp8',
       );
 
-      if ('setCodecPreferences' in videoTransceiver && codecPreferences) {
+      if ('setCodecPreferences' in transceiver && codecPreferences) {
         console.log(`set codec preferences`, codecPreferences);
-        videoTransceiver.setCodecPreferences(codecPreferences);
+        transceiver.setCodecPreferences(codecPreferences);
       }
     } else {
-      if (currentVideoTransceiver.direction !== 'inactive') {
-        currentVideoTransceiver.sender.track?.stop();
-      }
-      // since we are reusing a transceiver that could have been made inactive
-      // we are updating its direction to sendonly in order to trigger re-negotiation
-      currentVideoTransceiver.direction = 'sendonly';
-      await currentVideoTransceiver.sender.replaceTrack(videoTrack);
+      transceiver.sender.track?.stop();
+      await transceiver.sender.replaceTrack(videoTrack);
+    }
+
+    if (transceiver.sender.track) {
+      await this.client.updateMuteState(trackType, false);
     }
 
     this.stateStore.updateParticipant(this.client.sessionId, {
@@ -249,27 +249,27 @@ export class Call {
       return console.error(`There is no audio track in the stream`);
     }
 
-    const audioTransceiver = this.publisher.getTransceivers().find(
+    const trackType = TrackType.AUDIO;
+    let transceiver = this.publisher.getTransceivers().find(
       (t) =>
         // @ts-ignore
-        t.__trackType === TrackType.AUDIO &&
+        t.__trackType === trackType &&
         t.sender.track &&
         t.sender.track.kind === 'audio',
     );
-    if (!audioTransceiver) {
-      const audioTransceiver = this.publisher.addTransceiver(audioTrack, {
+    if (!transceiver) {
+      transceiver = this.publisher.addTransceiver(audioTrack, {
         direction: 'sendonly',
       });
       // @ts-ignore
-      audioTransceiver.__trackType = TrackType.AUDIO;
+      transceiver.__trackType = trackType;
     } else {
-      if (audioTransceiver.direction !== 'inactive') {
-        audioTransceiver.sender.track?.stop();
-      }
-      // since we are reusing a transceiver that could have been made inactive
-      // we are updating its direction to sendonly in order to trigger re-negotiation
-      audioTransceiver.direction = 'sendonly';
-      await audioTransceiver.sender.replaceTrack(audioTrack);
+      transceiver.sender.track?.stop();
+      await transceiver.sender.replaceTrack(audioTrack);
+    }
+
+    if (transceiver.sender.track) {
+      await this.client.updateMuteState(trackType, true);
     }
 
     this.stateStore.updateParticipant(this.client.sessionId, {
@@ -291,34 +291,34 @@ export class Call {
       return console.error(`There is no video track in the stream`);
     }
 
-    const screenShareTransceiver = this.publisher.getTransceivers().find(
+    // fires when browser's native 'Stop Sharing button' is clicked
+    const onTrackEnded = () => this.stopPublish(trackType);
+    screenShareTrack.addEventListener('ended', onTrackEnded);
+
+    const trackType = TrackType.SCREEN_SHARE;
+    let transceiver = this.publisher.getTransceivers().find(
       (t) =>
         // @ts-ignore
-        t.__trackType === TrackType.SCREEN_SHARE &&
+        t.__trackType === trackType &&
         t.sender.track &&
         t.sender.track.kind === 'video',
     );
-    if (!screenShareTransceiver) {
-      // fires when browser's native 'Stop Sharing button' is clicked
-      screenShareTrack.addEventListener('ended', () => {
-        this.stopPublish(TrackType.SCREEN_SHARE);
-      });
-
-      const transceiver = this.publisher.addTransceiver(screenShareTrack, {
+    if (!transceiver) {
+      transceiver = this.publisher.addTransceiver(screenShareTrack, {
         direction: 'sendonly',
         streams: [screenShareStream],
         // sendEncodings
       });
       // @ts-ignore FIXME: OL: this is a hack
-      transceiver.__trackType = TrackType.SCREEN_SHARE;
+      transceiver.__trackType = trackType;
     } else {
-      if (screenShareTransceiver.direction !== 'inactive') {
-        screenShareTransceiver.sender.track?.stop();
-      }
-      // since we are reusing a transceiver that could have been made inactive
-      // we are updating its direction to sendonly in order to trigger re-negotiation
-      screenShareTransceiver.direction = 'sendonly';
-      await screenShareTransceiver.sender.replaceTrack(screenShareTrack);
+      transceiver.sender.track?.removeEventListener('ended', onTrackEnded);
+      transceiver.sender.track?.stop();
+      await transceiver.sender.replaceTrack(screenShareTrack);
+    }
+
+    if (transceiver.sender.track) {
+      await this.client.updateMuteState(trackType, true);
     }
 
     this.stateStore.updateParticipant(this.client.sessionId, {
@@ -332,19 +332,10 @@ export class Call {
       (t) =>
         // @ts-ignore
         t.__trackType === trackType && t.sender.track,
-      // t.currentDirection !== 'stopped',
     );
     if (transceiver && transceiver.sender.track) {
-      const { track } = transceiver.sender;
-
-      // we want to detach the track from the transceiver
-      await transceiver.sender.replaceTrack(null);
-      // will trigger re-negotiation and the SFU will be notified that
-      // this transceiver sends nothing anymore
-      transceiver.direction = 'inactive';
-      // finally, we stop the track as it is no longer needed
-      // (this turns off the camera light indicator as well)
-      track.stop();
+      transceiver.sender.track.stop();
+      await this.client.updateMuteState(trackType, true);
 
       const audioOrVideoOrScreenShareStream =
         trackTypeToParticipantStreamKey(trackType);
