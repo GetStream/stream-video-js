@@ -106,20 +106,6 @@ export class StreamVideoWriteableStateStore {
       ),
     );
 
-    this.acceptedCallSubject
-      .pipe(combineLatestWith(this.connectedUserSubject))
-      .subscribe(([acceptedCall, connectedUser]) => {
-        if (acceptedCall?.senderUserId === connectedUser?.id) {
-          this.setCurrentValue(
-            this.pendingCallsSubject,
-            this.getCurrentValue(this.pendingCallsSubject).filter(
-              (pendingCall) =>
-                pendingCall.call?.callCid !== acceptedCall?.call?.callCid,
-            ),
-          );
-        }
-      });
-
     this.activeCallSubject.subscribe((callController) => {
       if (callController) {
         this.setCurrentValue(
