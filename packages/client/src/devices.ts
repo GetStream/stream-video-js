@@ -145,6 +145,7 @@ export const getScreenShareStream = async (
 ) => {
   return navigator.mediaDevices.getDisplayMedia({
     video: true,
+    audio: false,
     ...options,
   });
 };
