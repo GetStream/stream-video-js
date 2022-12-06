@@ -28,12 +28,12 @@ export const ParticipantBox = (props: {
     publishedTracks,
   } = participant ?? {};
 
-  const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
-  const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  const hasAudio = publishedTracks?.includes(SfuModels.TrackType.AUDIO);
+  const hasVideo = publishedTracks?.includes(SfuModels.TrackType.VIDEO);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || !hasVideo) return;
+    if (!container || !hasVideo || !sessionId) return;
 
     const resizeObserver = new ResizeObserver(() => {
       const width = container.clientWidth;
@@ -90,7 +90,7 @@ export const ParticipantBox = (props: {
         />
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
-            {participant?.user?.id}
+            {participant?.userId}
             {!hasAudio && (
               <span className="str-video__participant_name--audio-muted"></span>
             )}
