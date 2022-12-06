@@ -25,8 +25,14 @@ export const {
   callKeepOptions: undefined,
 });
 
-export const StreamVideo: React.FC<StreamVideoProps> = (
-  props: PropsWithChildren<StreamVideoProps>,
+export const StreamVideo: React.FC<
+  StreamVideoProps & {
+    callKeepOptions: CallKeepOptions;
+  }
+> = (
+  props: PropsWithChildren<StreamVideoProps> & {
+    callKeepOptions: CallKeepOptions;
+  },
 ) => {
   const { client, ...rest } = props;
   return (
