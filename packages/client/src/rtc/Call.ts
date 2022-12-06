@@ -228,10 +228,13 @@ export class Call {
       await this.client.updateMuteState(trackType, false);
     }
 
-    this.stateStore.updateParticipant(this.client.sessionId, {
+    this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
       videoStream,
       videoDeviceId: videoTrack.getSettings().deviceId,
-    });
+      publishedTracks: p.publishedTracks.includes(trackType)
+        ? p.publishedTracks
+        : [...p.publishedTracks, trackType],
+    }));
   };
 
   /**
@@ -272,10 +275,13 @@ export class Call {
       await this.client.updateMuteState(trackType, false);
     }
 
-    this.stateStore.updateParticipant(this.client.sessionId, {
+    this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
       audioStream,
       audioDeviceId: audioTrack.getSettings().deviceId,
-    });
+      publishedTracks: p.publishedTracks.includes(trackType)
+        ? p.publishedTracks
+        : [...p.publishedTracks, trackType],
+    }));
   };
 
   /**
@@ -321,9 +327,12 @@ export class Call {
       await this.client.updateMuteState(trackType, false);
     }
 
-    this.stateStore.updateParticipant(this.client.sessionId, {
+    this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
       screenShareStream,
-    });
+      publishedTracks: p.publishedTracks.includes(trackType)
+        ? p.publishedTracks
+        : [...p.publishedTracks, trackType],
+    }));
   };
 
   stopPublish = async (trackType: TrackType) => {
