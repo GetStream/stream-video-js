@@ -21,7 +21,7 @@ export const useRingCall = () => {
   const currentIncomingRingCall =
     incomingRingCalls[incomingRingCalls.length - 1];
   const isCallCreatedByUserLocalParticipant =
-    activeRingCall?.createdByUserId === localParticipant?.user?.id;
+    activeRingCall?.createdByUserId === localParticipant?.userId;
 
   const answerCall = async () => {
     if (!client) {
