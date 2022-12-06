@@ -508,7 +508,7 @@ export class Call {
       (p) => p.trackLookupPrefix === trackId,
     );
     if (!participantToUpdate) {
-      console.warn('Received track for unknown participant', trackId, e);
+      console.error('Received track for unknown participant', trackId, e);
       return;
     }
 
