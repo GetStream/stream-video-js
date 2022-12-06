@@ -19,29 +19,6 @@ export const useCallKeep = () => {
       NativeStackNavigationProp<RootStackParamList, 'ActiveCall'>
     >();
 
-  const startCall = useCallback(() => {
-    try {
-      if (activeRingCallMeta && Platform.OS === 'ios') {
-        RNCallKeep.startCall(
-          activeRingCallMeta.id,
-          '',
-          activeRingCallMeta.createdByUserId,
-          'generic',
-        );
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  }, [activeRingCallMeta]);
-
-  const displayIncomingCallNow = useCallback(() => {
-    try {
-      navigation.navigate('IncomingCallScreen');
-    } catch (error) {
-      console.log(error);
-    }
-  }, [navigation]);
-
   const endCall = useCallback(async () => {
     if (Platform.OS === 'ios' && activeRingCallMeta) {
       await RNCallKeep.endCall(activeRingCallMeta.id);
@@ -86,8 +63,6 @@ export const useCallKeep = () => {
   }, []);
 
   return {
-    displayIncomingCallNow,
-    startCall,
     endCall,
   };
 };

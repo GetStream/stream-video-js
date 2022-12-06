@@ -1,6 +1,15 @@
 import { StreamSfuClient } from '../StreamSfuClient';
-import { PeerType } from '../gen/video/sfu/models/models';
+import {
+  PeerType,
+  TrackInfo,
+  TrackType,
+  VideoLayer,
+} from '../gen/video/sfu/models/models';
 import { getIceCandidate } from './helpers/iceCandidate';
+import {
+  findOptimalVideoLayers,
+  findOptimalScreenSharingLayers,
+} from './videoLayers';
 
 export type PublisherOpts = {
   rpcClient: StreamSfuClient;
@@ -18,8 +27,7 @@ export const createPublisher = ({
       console.log('null ice candidate');
       return;
     }
-    await rpcClient.rpc.iceTrickle({
-      sessionId: rpcClient.sessionId,
+    await rpcClient.iceTrickle({
       iceCandidate: getIceCandidate(candidate),
       peerType: PeerType.PUBLISHER_UNSPECIFIED,
     });
@@ -52,9 +60,41 @@ export const createPublisher = ({
     const offer = await publisher.createOffer();
     await publisher.setLocalDescription(offer);
 
-    const response = await rpcClient.rpc.setPublisher({
+    const trackInfos = publisher
+      .getTransceivers()
+      .filter((t) => t.direction === 'sendonly' && !!t.sender.track)
+      .map<TrackInfo>((transceiver) => {
+        // @ts-ignore FIXME: OL: this is a hack
+        const trackType = transceiver.__trackType;
+        const track = transceiver.sender.track!;
+        const optimalLayers =
+          trackType === TrackType.VIDEO
+            ? findOptimalVideoLayers(track)
+            : trackType === TrackType.SCREEN_SHARE
+            ? findOptimalScreenSharingLayers(track)
+            : [];
+
+        const layers = optimalLayers.map<VideoLayer>((optimalLayer) => ({
+          rid: optimalLayer.rid || '',
+          bitrate: optimalLayer.maxBitrate || 0,
+          fps: optimalLayer.maxFramerate || 0,
+          videoDimension: {
+            width: optimalLayer.width,
+            height: optimalLayer.height,
+          },
+        }));
+
+        return {
+          trackId: track.id,
+          layers: layers,
+          trackType,
+        };
+      });
+
+    // TODO debounce for 250ms
+    const response = await rpcClient.setPublisher({
       sdp: offer.sdp || '',
-      sessionId: rpcClient.sessionId,
+      tracks: trackInfos,
     });
 
     await publisher.setRemoteDescription({
@@ -62,12 +102,12 @@ export const createPublisher = ({
       sdp: response.response.sdp,
     });
 
-    iceTrickleBuffer.publisherCandidates.subscribe((candidate) => {
+    iceTrickleBuffer.publisherCandidates.subscribe(async (candidate) => {
       try {
         const iceCandidate = JSON.parse(candidate.iceCandidate);
-        publisher.addIceCandidate(iceCandidate);
+        await publisher.addIceCandidate(iceCandidate);
       } catch (e) {
-        console.error(`An error occurred while adding ICE candidate`, e);
+        console.error(`[Publisher] ICE candidate error`, e, candidate);
       }
     });
   });

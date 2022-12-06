@@ -1,9 +1,11 @@
 // main entry point for component styles
 
 @import 'src/CallControls';
+@import 'src/CallParticipantView';
+@import 'src/CallParticipantsScreenView';
+@import 'src/CallParticipantsView';
 @import 'src/CallStats';
 @import 'src/DeviceSettings';
-@import 'src/Stage';
 @import 'src/StreamCall';
 
 @import './src/Debug';

@@ -11,11 +11,13 @@ import {
   MediaDirection,
 } from '../gen/video/coordinator/stat_v1/stat';
 import { pairwise, throttleTime } from 'rxjs';
+import { StreamVideoParticipant } from '../rtc/types';
+import { TrackType } from '../gen/video/sfu/models/models';
 
 /**
  * Collects stat metrics and events from the state store and sends them to the Coordinator API
  * @param readOnlyStateStore
- * @param sendStat
+ * @param sendStatMetrics
  * @param sendStatEvent
  */
 export const reportStats = (
@@ -115,12 +117,18 @@ export const reportStatEvents = (
         sendStatEvent(event);
       }
       if (prevLocalParticipant && currentLocalParticipant) {
-        if (prevLocalParticipant.audio !== currentLocalParticipant.audio) {
+        if (
+          isPublishingTrackOfType(prevLocalParticipant, TrackType.AUDIO) !==
+          isPublishingTrackOfType(currentLocalParticipant, TrackType.AUDIO)
+        ) {
           const event: ReportCallStatEventRequest['event'] = {
             oneofKind: 'mediaStateChanged',
             mediaStateChanged: {
               mediaType: MediaType.AUDIO,
-              change: currentLocalParticipant.audio
+              change: isPublishingTrackOfType(
+                currentLocalParticipant,
+                TrackType.AUDIO,
+              )
                 ? MediaStateChange.ENDED
                 : MediaStateChange.STARTED,
               reason: MediaStateChangeReason.MUTE,
@@ -129,12 +137,18 @@ export const reportStatEvents = (
           };
           sendStatEvent(event);
         }
-        if (prevLocalParticipant.video !== currentLocalParticipant.video) {
+        if (
+          isPublishingTrackOfType(prevLocalParticipant, TrackType.VIDEO) !==
+          isPublishingTrackOfType(currentLocalParticipant, TrackType.VIDEO)
+        ) {
           const event: ReportCallStatEventRequest['event'] = {
             oneofKind: 'mediaStateChanged',
             mediaStateChanged: {
               mediaType: MediaType.VIDEO,
-              change: currentLocalParticipant?.video
+              change: isPublishingTrackOfType(
+                currentLocalParticipant,
+                TrackType.VIDEO,
+              )
                 ? MediaStateChange.ENDED
                 : MediaStateChange.STARTED,
               reason: MediaStateChangeReason.MUTE,
@@ -146,3 +160,8 @@ export const reportStatEvents = (
       }
     });
 };
+
+const isPublishingTrackOfType = (
+  participant: StreamVideoParticipant,
+  type: TrackType,
+) => participant.publishedTracks.includes(type);

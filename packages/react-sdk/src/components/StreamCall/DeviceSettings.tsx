@@ -6,8 +6,14 @@ import { useMediaDevices } from '../../contexts/MediaDevicesContext';
 
 export const DeviceSettings = (props: { activeCall: Call }) => {
   const { activeCall } = props;
-  const { audioDevices, videoDevices, getAudioStream, getVideoStream } =
-    useMediaDevices();
+  const {
+    audioDevices,
+    videoDevices,
+    audioOutputDevices,
+    isAudioOutputChangeSupported,
+    getAudioStream,
+    getVideoStream,
+  } = useMediaDevices();
 
   const [referenceElement, setReferenceElement] =
     useState<HTMLSpanElement | null>(null);
@@ -23,11 +29,21 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
     kind: 'videoinput' | 'audioinput',
     deviceId: string,
   ) => {
-    const mediaStream = await (kind === 'videoinput'
-      ? getVideoStream(deviceId)
-      : getAudioStream(deviceId));
-    activeCall.replaceMediaStream(kind, mediaStream);
+    if (kind === 'audioinput') {
+      const audioStream = await getAudioStream(deviceId);
+      await activeCall.publishAudioStream(audioStream);
+    } else if (kind === 'videoinput') {
+      const videoStream = await getVideoStream(deviceId);
+      await activeCall.publishVideoStream(videoStream);
+    } else {
+      console.warn(`Unsupported device kind: ${kind}`);
+    }
   };
+
+  const setAudioOutputDevice = (deviceId: string) => {
+    activeCall?.setAudioOutputDevice(deviceId);
+  };
+
   return (
     <>
       <span
@@ -61,6 +77,16 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
               switchDevice('audioinput', deviceId);
             }}
           />
+          {isAudioOutputChangeSupported && (
+            <DeviceSelector
+              devices={audioOutputDevices}
+              label="Select audio output"
+              selectedDeviceId={localParticipant?.audioOutputDeviceId}
+              onChange={(deviceId) => {
+                setAudioOutputDevice(deviceId);
+              }}
+            />
+          )}
         </div>
       )}
     </>

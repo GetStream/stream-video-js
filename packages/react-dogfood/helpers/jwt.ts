@@ -14,7 +14,9 @@ export const createToken = (
     {
       iss: 'stream-video-js@v0.0.0',
       sub: `user/${userId}`,
-      iat: Math.round(Date.now() / 1000),
+      // subtract 3 seconds, sometimes the coordinator fails with
+      // "token used before issued at (iat)" error
+      iat: Math.round(Date.now() / 1000) - 3000,
       exp: Math.round(expiration),
       user_id: userId,
       ...rest,
