@@ -8,7 +8,7 @@ import {
   getVideoStream,
 } from '@stream-io/video-client';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { BehaviorSubject, map, Observable } from 'rxjs';
+import { BehaviorSubject, map, Observable, take } from 'rxjs';
 
 export type MediaStreamState = 'loading' | 'on' | 'off' | 'error' | 'initial';
 
@@ -64,7 +64,8 @@ export class DeviceManagerService {
     this.videoDevice$ = this.videoStream$.pipe(
       map((stream) => {
         if (stream) {
-          return stream.getVideoTracks()[0].getConstraints().deviceId as string;
+          return stream.getVideoTracks()[0].getCapabilities()
+            .deviceId as string;
         } else {
           return undefined;
         }
@@ -74,12 +75,19 @@ export class DeviceManagerService {
     this.audioDevice$ = this.audioStream$.pipe(
       map((stream) => {
         if (stream) {
-          return stream.getAudioTracks()[0].getConstraints().deviceId as string;
+          return stream.getAudioTracks()[0].getCapabilities()
+            .deviceId as string;
         } else {
           return undefined;
         }
       }),
     );
+
+    this.audioOutputDevices$
+      .pipe(take(1))
+      .subscribe((devices) =>
+        this.audioOutputDeviceSubject.next(devices[0].deviceId),
+      );
   }
 
   get audioState() {
@@ -114,8 +122,8 @@ export class DeviceManagerService {
     }
   }
 
-  startVideo() {
-    getVideoStream()
+  startVideo(deviceId?: string) {
+    getVideoStream(deviceId)
       .then((s) => {
         this.stopAudio();
         this.videoStreamSubject.next(s);
@@ -142,8 +150,8 @@ export class DeviceManagerService {
     this.videoStateSubject.next('off');
   }
 
-  startAudio() {
-    getAudioStream()
+  startAudio(deviceId?: string) {
+    getAudioStream(deviceId)
       .then((s) => {
         this.stopAudio();
         this.audioStreamSubject.next(s);
@@ -159,7 +167,7 @@ export class DeviceManagerService {
         setInterval(() => {
           this.analyser?.getByteFrequencyData(frequencyArray);
           this.isSpeakingSubject.next(
-            frequencyArray.find((v) => v >= 180) ? true : false,
+            frequencyArray.find((v) => v >= 150) ? true : false,
           );
         }, 100);
         this.audioStateSubject.next('on');

@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription, tap } from 'rxjs';
 import {
   DeviceManagerService,
   MediaStreamState,
@@ -13,6 +13,12 @@ import {
 export class DeviceControlComponent implements OnInit, OnDestroy {
   videoState?: MediaStreamState;
   audioState?: MediaStreamState;
+  audioDevices$: Observable<MediaDeviceInfo[]>;
+  videoDevices$: Observable<MediaDeviceInfo[]>;
+  audioOutputDevices$: Observable<MediaDeviceInfo[]>;
+  videoDevice$: Observable<string | undefined>;
+  audioDevice$: Observable<string | undefined>;
+  audioOutputDevice$: Observable<string | undefined>;
   private subscriptions: Subscription[] = [];
 
   constructor(private deviceManager: DeviceManagerService) {
@@ -22,6 +28,12 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.deviceManager.audioState$.subscribe((s) => (this.audioState = s)),
     );
+    this.audioDevices$ = this.deviceManager.audioDevices$;
+    this.videoDevices$ = this.deviceManager.videoDevices$;
+    this.audioOutputDevices$ = this.deviceManager.audioOutputDevices$;
+    this.videoDevice$ = this.deviceManager.videoDevice$.pipe(tap(console.log));
+    this.audioDevice$ = this.deviceManager.audioDevice$;
+    this.audioOutputDevice$ = this.deviceManager.audioOutputDevice$;
   }
 
   ngOnDestroy(): void {
@@ -34,6 +46,18 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
 
   toggleVideo() {
     this.deviceManager.toggleVideo();
+  }
+
+  selectAudioDevice(deviceId: string) {
+    this.deviceManager.startAudio(deviceId);
+  }
+
+  selectVideoDevice(deviceId: string) {
+    this.deviceManager.startVideo(deviceId);
+  }
+
+  selectAudioOutputDevice(deviceId: string) {
+    this.deviceManager.selectAudioOutput(deviceId);
   }
 
   ngOnInit(): void {}
