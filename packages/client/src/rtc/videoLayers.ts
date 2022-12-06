@@ -7,7 +7,7 @@ export type OptimalVideoLayer = RTCRtpEncodingParameters & {
   maxFramerate?: number;
 };
 
-export const findOptimalVideoLayers = async (mediaStream: MediaStream) => {
+export const findOptimalVideoLayers = (videoTrack: MediaStreamTrack) => {
   const steps: [number, number, number][] = [
     // [4096, 2160], // 4K
     // [1920, 1080, 3_072_000], // Full-HD
@@ -19,16 +19,15 @@ export const findOptimalVideoLayers = async (mediaStream: MediaStream) => {
   ];
 
   const optimalVideoLayers: OptimalVideoLayer[] = [];
+  const settings = videoTrack.getSettings();
   for (let step = 0; step < steps.length; step++) {
     const [w, h, maxBitrate] = steps[step];
-    const [videoTrack] = mediaStream.getVideoTracks();
-    const settings = videoTrack.getSettings();
-
     // found ideal layer
     if (w === settings.width && h === settings.height) {
       let scaleFactor: number = 1;
       ['f', 'h', 'q'].forEach((rid) => {
         optimalVideoLayers.push({
+          active: true,
           rid,
           width: w / scaleFactor,
           height: h / scaleFactor,
@@ -49,28 +48,19 @@ export const findOptimalVideoLayers = async (mediaStream: MediaStream) => {
   return optimalVideoLayers;
 };
 
-export const defaultVideoLayers: OptimalVideoLayer[] = [
-  {
-    rid: 'f',
-    maxBitrate: 500000,
-    maxFramerate: 30,
-    width: 640,
-    height: 480,
-  },
-  {
-    rid: 'h',
-    maxBitrate: 250000,
-    maxFramerate: 25,
-    width: 320,
-    height: 240,
-    scaleResolutionDownBy: 2.0,
-  },
-  {
-    rid: 'q',
-    maxBitrate: 125000,
-    maxFramerate: 20,
-    width: 160,
-    height: 120,
-    scaleResolutionDownBy: 4.0,
-  },
-];
+export const findOptimalScreenSharingLayers = (
+  videoTrack: MediaStreamTrack,
+): OptimalVideoLayer[] => {
+  const settings = videoTrack.getSettings();
+  return [
+    {
+      active: true,
+      rid: 'f',
+      width: settings.width || 0,
+      height: settings.height || 0,
+      maxBitrate: 3000000,
+      scaleResolutionDownBy: 1,
+      maxFramerate: 30,
+    },
+  ];
+};

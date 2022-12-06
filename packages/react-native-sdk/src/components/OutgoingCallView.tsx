@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { SfuModels } from '@stream-io/video-client';
 
 import { RTCView } from 'react-native-webrtc';
 import { UserInfoView } from './UserInfoView';
@@ -30,7 +31,9 @@ export type OutgoingCallViewProps = {
 const Background: React.FC = () => {
   const localParticipant = useLocalParticipant();
   const localVideoStream = localParticipant?.videoStream;
-  const isVideoMuted = !localParticipant?.video;
+  const isVideoMuted = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
 
   if (isVideoMuted)
     return <View style={[StyleSheet.absoluteFill, styles.background]} />;

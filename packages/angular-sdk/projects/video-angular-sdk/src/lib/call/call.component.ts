@@ -44,23 +44,22 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
           } catch (error) {
             throw error;
           }
-          this.call.publishMediaStreams(audioStream, videoStream);
+          await this.call.publishAudioStream(audioStream);
+          await this.call.publishVideoStream(videoStream);
           deviceDisconnectSubscriptions.push(
             watchForDisconnectedAudioDevice(
               this.localParticipant$.pipe(map((p) => p?.audioDeviceId)),
             ).subscribe(async () => {
-              c.updateMuteState('audio', true);
               const audioStream = await getAudioStream();
-              c.replaceMediaStream('audioinput', audioStream);
+              await c.publishAudioStream(audioStream);
             }),
           );
           deviceDisconnectSubscriptions.push(
             watchForDisconnectedVideoDevice(
               this.localParticipant$.pipe(map((p) => p?.videoDeviceId)),
             ).subscribe(async () => {
-              c.updateMuteState('video', true);
               const videoStream = await getVideoStream();
-              c.replaceMediaStream('videoinput', videoStream);
+              await c.publishVideoStream(videoStream);
             }),
           );
           deviceDisconnectSubscriptions.push(

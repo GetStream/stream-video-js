@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { RTCView } from 'react-native-webrtc';
+import { SfuModels } from '@stream-io/video-client';
 import {
   useActiveCall,
   useParticipants,
@@ -33,7 +34,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
 }: ParticipantViewProps) => {
   const call = useActiveCall();
   const participants = useParticipants();
-  const participant = participants.find((p) => p?.user?.id === participantId);
+  const participant = participants.find((p) => p.userId === participantId);
 
   const cameraBackFacingMode = useStreamVideoStoreValue(
     (store) => store.cameraBackFacingMode,
@@ -59,8 +60,9 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
 
   if (!participant) return null;
 
-  const { videoStream, audioStream, isSpeaking, user, isLoggedInUser, audio } =
-    participant;
+  const { videoStream, audioStream, isSpeaking, isLoggedInUser } = participant;
+  const audio = participant.publishedTracks.includes(SfuModels.TrackType.AUDIO);
+  const video = participant.publishedTracks.includes(SfuModels.TrackType.VIDEO);
 
   const mirror = isLoggedInUser && !cameraBackFacingMode;
   const MicIcon = !audio ? MicOff : Mic;
@@ -81,7 +83,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
         updateVideoSubscriptionForParticipant(width, height);
       }}
     >
-      {participant.video && videoStream ? (
+      {video && videoStream ? (
         <VideoRenderer
           mirror={mirror}
           mediaStream={videoStream}
@@ -92,7 +94,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
       )}
       {audioStream && <RTCView streamURL={audioStream.toURL()} />}
       <View style={styles.status}>
-        <Text style={styles.userNameLabel}>{user?.name || user?.id}</Text>
+        <Text style={styles.userNameLabel}>{participant.userId}</Text>
         <View style={styles.svgWrapper}>
           <MicIcon color="#FF003BFF" />
         </View>

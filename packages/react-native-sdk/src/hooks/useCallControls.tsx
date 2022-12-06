@@ -1,3 +1,4 @@
+import { SfuModels } from '@stream-io/video-client';
 import {
   useActiveCall,
   useLocalParticipant,
@@ -19,18 +20,22 @@ export const useCallControls = () => {
     (store) => store.cameraBackFacingMode,
   );
 
-  const isAudioMuted = !localParticipant?.audio;
-  const isVideoMuted = !localParticipant?.video;
+  const isAudioMuted = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.AUDIO,
+  );
+  const isVideoMuted = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
 
   // Handler to toggle the video mute state
   const toggleVideoState = useCallback(async () => {
-    await call?.updateMuteState('video', !isVideoMuted);
-  }, [call, isVideoMuted]);
+    await call?.stopPublish(SfuModels.TrackType.VIDEO);
+  }, [call]);
 
   // Handler to toggle the audio mute state
   const toggleAudioState = useCallback(async () => {
-    await call?.updateMuteState('audio', !isAudioMuted);
-  }, [call, isAudioMuted]);
+    await call?.stopPublish(SfuModels.TrackType.AUDIO);
+  }, [call]);
 
   // Handler to toggle the camera front and back facing mode
   const toggleCamera = useCallback(() => {
