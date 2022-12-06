@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Stage } from './Stage';
-import { Ping } from '../Ping';
 import { useCall } from '../../hooks/useCall';
 import { DeviceSettings } from './DeviceSettings';
 import { MediaDevicesProvider } from '../../contexts/MediaDevicesContext';
@@ -68,9 +67,6 @@ export const StreamCall = ({
                 <Stage call={activeCall} />
                 <CallControls call={activeCall} callMeta={activeCallMeta} />
               </>
-            )}
-            {activeCallMeta && (
-              <Ping activeCall={activeCallMeta} currentUser={currentUser} />
             )}
           </>
         )}
