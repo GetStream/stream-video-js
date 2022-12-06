@@ -1,6 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { getAudioStream, getVideoStream } from '@stream-io/video-client';
+import { Subscription } from 'rxjs';
+import {
+  DeviceManagerService,
+  MediaStreamState,
+} from '../device-manager.service';
 
 @Component({
   selector: 'app-call-lobby',
@@ -9,60 +12,53 @@ import { getAudioStream, getVideoStream } from '@stream-io/video-client';
 })
 export class CallLobbyComponent implements OnInit, OnDestroy {
   videoStream?: MediaStream;
-  cameraState: 'loading' | 'on' | 'off' | 'error' = 'loading';
-  cameraErrorMessage?: string;
+  videoState?: MediaStreamState;
+  videoErrorMessage?: string;
   audioStream?: MediaStream;
-  audioState: 'loading' | 'on' | 'off' | 'error' = 'loading';
+  audioState?: MediaStreamState;
   audioErrorMessage?: string;
   isSpeaking = false;
-  constructor(private snackBar: MatSnackBar) {
-    getVideoStream()
-      .then((s) => {
-        this.videoStream = s;
-        this.cameraState = 'on';
-      })
-      .catch((err) => {
-        if (err.code === 0) {
-          this.cameraErrorMessage = 'Permission denied for camera access';
-        } else {
-          this.cameraErrorMessage = `Video stream couldn't be started`;
-        }
-        this.cameraState = 'error';
-        this.snackBar.open(this.cameraErrorMessage);
-      });
-    getAudioStream()
-      .then((s) => {
-        this.audioStream = s;
-        this.audioState = 'on';
-        const audioContext = new AudioContext();
-        const audioStream = audioContext.createMediaStreamSource(
-          this.audioStream,
-        );
-        const analyser = audioContext.createAnalyser();
-        audioStream.connect(analyser);
-        analyser.fftSize = 32;
+  private subscripitions: Subscription[] = [];
 
-        const frequencyArray = new Uint8Array(analyser.frequencyBinCount);
-        setInterval(() => {
-          console.log(frequencyArray);
-          analyser.getByteFrequencyData(frequencyArray);
-          this.isSpeaking = frequencyArray.find((v) => v >= 180) ? true : false;
-        }, 100);
-      })
-      .catch((err) => {
-        if (err.code === 0) {
-          this.audioErrorMessage = 'Permission denied for camera access';
-        } else {
-          this.audioErrorMessage = `Video stream couldn't be started`;
-        }
-        this.audioState = 'error';
-        this.snackBar.open(this.audioErrorMessage);
-      });
+  constructor(private deviceManager: DeviceManagerService) {
+    this.deviceManager.startVideo();
+    this.deviceManager.startAudio();
+    this.subscripitions.push(
+      this.deviceManager.videoStream$.subscribe((s) => (this.videoStream = s)),
+    );
+    this.subscripitions.push(
+      this.deviceManager.videoState$.subscribe((s) => (this.videoState = s)),
+    );
+    this.subscripitions.push(
+      this.deviceManager.videoErrorMessage$.subscribe(
+        (s) => (this.videoErrorMessage = s),
+      ),
+    );
+    this.subscripitions.push(
+      this.deviceManager.audioStream$.subscribe((s) => (this.audioStream = s)),
+    );
+    this.subscripitions.push(
+      this.deviceManager.audioState$.subscribe((s) => (this.audioState = s)),
+    );
+    this.subscripitions.push(
+      this.deviceManager.audioErrorMessage$.subscribe(
+        (s) => (this.audioErrorMessage = s),
+      ),
+    );
+    this.subscripitions.push(
+      this.deviceManager.isSpeaking$.subscribe((s) => (this.isSpeaking = s)),
+    );
+  }
+
+  toggleAudio() {
+    this.deviceManager.toggleAudio();
+  }
+
+  toggleVideo() {
+    this.deviceManager.toggleVideo();
   }
 
   ngOnInit(): void {}
 
-  ngOnDestroy(): void {
-    throw new Error('Method not implemented.');
-  }
+  ngOnDestroy(): void {}
 }

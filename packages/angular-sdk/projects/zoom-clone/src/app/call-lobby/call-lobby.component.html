@@ -4,21 +4,48 @@
     <div>You will be able to invite people once the call starts</div>
   </div>
   <div class="device-settings">
-    <ng-container [ngSwitch]="cameraState">
+    <div class="video-container" [class.no-video]="videoState === 'off'" [ngSwitch]="videoState">
       <video *ngSwitchCase="'on'" autoplay [srcObject]="videoStream"></video>
       <div class="error" *ngSwitchCase="'error'">
-       {{cameraErrorMessage}}
+        {{ videoErrorMessage }}
       </div>
       <div *ngSwitchCase="'loading'" class="loading">
         <mat-progress-spinner
-          class="example-margin"
           color="primary"
           diameter="50"
           mode="indeterminate"
         ></mat-progress-spinner>
       </div>
-      <div class="off" *ngSwitchCase="'off'">Camera turned off</div>
-    </ng-container>
-    Is speaking: {{isSpeaking}}
+      <div class="video-off off" *ngSwitchCase="'off'">Camera turned off</div>
+      <ng-container *ngIf="videoState !== 'loading'">
+        <div [ngSwitch]="audioState" class="audio-state">
+          <div *ngSwitchCase="'on'">
+            <mat-icon class="mic" [class.speaking]="isSpeaking" fontIcon="mic"></mat-icon>
+          </div>
+          <div class="error" *ngSwitchCase="'error'">
+            {{ audioErrorMessage }}
+          </div>
+          <div *ngSwitchCase="'loading'" class="loading">
+            <mat-progress-spinner
+              color="primary"
+              diameter="20"
+              mode="indeterminate"
+            ></mat-progress-spinner>
+          </div>
+          <div class="mic off" *ngSwitchCase="'off'"><mat-icon fontIcon="mic_off"></mat-icon></div>
+        </div>
+      </ng-container>
+    </div>
+    <div class="device-controls">
+      <button mat-icon-button>
+        <mat-icon (click)="toggleAudio()" [fontIcon]="audioState === 'off' ? 'mic' : 'mic_off'"></mat-icon>
+      </button>
+      <button mat-icon-button>
+        <mat-icon (click)="toggleVideo()" [fontIcon]="videoState === 'off' ? 'videocam' : 'videocam_off'"></mat-icon>
+      </button>
+      <button mat-icon-button>
+        <mat-icon fontIcon="settings"></mat-icon>
+      </button>
+    </div>
   </div>
 </div>
