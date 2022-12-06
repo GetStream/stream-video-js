@@ -1,6 +1,7 @@
 import {
   watchForDisconnectedAudioDevice,
   watchForDisconnectedVideoDevice,
+  watchForDisconnectedAudioOutputDevice,
 } from '@stream-io/video-client';
 import { useCallback, useEffect } from 'react';
 import { Call } from '@stream-io/video-client';
@@ -54,8 +55,16 @@ export const useStage = (call?: Call) => {
       }),
     );
 
+    subscriptions.push(
+      watchForDisconnectedAudioOutputDevice(
+        localParticipant$.pipe(map((p) => p?.audioOutputDeviceId)),
+      ).subscribe(() => {
+        call.setAudioOutputDevice(undefined);
+      }),
+    );
+
     return () => subscriptions.forEach((s) => s.unsubscribe());
-  }, [localParticipant$, call, getVideoStream, getAudioStream]);
+  }, [localParticipant$, call]);
 
   const preferredCodec = useDebugPreferredVideoCodec();
   useEffect(() => {
