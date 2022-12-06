@@ -1,10 +1,4 @@
-import {
-  SfuModels,
-  watchForDisconnectedAudioDevice,
-  watchForDisconnectedVideoDevice,
-  watchForDisconnectedAudioOutputDevice,
-} from '@stream-io/video-client';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { SfuModels } from '@stream-io/video-client';
 import { Call } from '@stream-io/video-client';
 import {
   useLocalParticipant,
