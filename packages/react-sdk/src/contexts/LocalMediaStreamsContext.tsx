@@ -13,9 +13,10 @@ const LocalMediaStreamsContext = createContext<MediaStreamsContextType>({
   localVideoStream: undefined,
 });
 
+// this function has been written with a thought in mind which
+// is that we create separate MediaStreams for audio inputs
+// and video inputs meaning there's _always_ one track per stream (thus one deviceId)
 const getDeviceId = (mediaStream: MediaStream) => {
-  // considering the fact that we create separate MediaStreams for
-  // audio inputs and video inputs meaning one track per stream (one deviceId)
   const [deviceId] =
     mediaStream.getTracks().map((track) => track.getSettings().deviceId) ?? [];
   return deviceId;
@@ -24,7 +25,7 @@ const getDeviceId = (mediaStream: MediaStream) => {
 const getStream = (type: 'audioinput' | 'videoinput', deviceId?: string) =>
   type === 'audioinput' ? getAudioStream(deviceId) : getVideoStream(deviceId);
 
-const useLocalMediaStreamSetup = ({
+const useSetupLocalMediaStream = ({
   localStream,
   selectedDeviceId,
   setLocalStream,
@@ -33,7 +34,7 @@ const useLocalMediaStreamSetup = ({
   localStream?: MediaStream;
   setLocalStream: React.Dispatch<React.SetStateAction<MediaStream | undefined>>;
   selectedDeviceId?: string;
-  type: 'audioinput' | 'videoinput';
+  type: 'audioinput' | 'videoinput'; // FIXME: typing
 }) => {
   const pendingCalls = usePendingCalls();
   const { switchDevice } = useMediaDevices();
@@ -49,6 +50,7 @@ const useLocalMediaStreamSetup = ({
       });
     };
 
+    // request streams only if there's at least one pending call
     if (!pendingCalls.length) return cleanup;
 
     if (localStream?.active) {
@@ -78,14 +80,14 @@ export const LocalMediaStreamsContextProvider = ({
   const [localAudioStream, setLocalAudioStream] = useState<MediaStream>();
   const [localVideoStream, setLocalVideoStream] = useState<MediaStream>();
 
-  useLocalMediaStreamSetup({
+  useSetupLocalMediaStream({
     localStream: localAudioStream,
     setLocalStream: setLocalAudioStream,
     selectedDeviceId: selectedAudioDeviceId,
     type: 'audioinput',
   });
 
-  useLocalMediaStreamSetup({
+  useSetupLocalMediaStream({
     localStream: localVideoStream,
     setLocalStream: setLocalVideoStream,
     selectedDeviceId: selectedVideoDeviceId,
