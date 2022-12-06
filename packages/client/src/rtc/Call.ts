@@ -269,7 +269,7 @@ export class Call {
     }
 
     if (transceiver.sender.track) {
-      await this.client.updateMuteState(trackType, true);
+      await this.client.updateMuteState(trackType, false);
     }
 
     this.stateStore.updateParticipant(this.client.sessionId, {
@@ -318,7 +318,7 @@ export class Call {
     }
 
     if (transceiver.sender.track) {
-      await this.client.updateMuteState(trackType, true);
+      await this.client.updateMuteState(trackType, false);
     }
 
     this.stateStore.updateParticipant(this.client.sessionId, {
