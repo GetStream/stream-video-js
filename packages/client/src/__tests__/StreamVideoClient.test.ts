@@ -23,6 +23,7 @@ describe('StreamVideoClient', () => {
         createSocketConnection: vi.fn(),
       };
     });
+    vi.mock('../stats/coordinator-stats-reporter');
     client = new StreamVideoClient('123', {
       token: 'abc',
     });
@@ -62,6 +63,7 @@ describe('StreamVideoClient', () => {
     const p1 = mock<StreamVideoParticipant>({
       isPinned: false,
       sessionId: '123abc',
+      publishedTracks: [],
     });
     const p2 = mock<StreamVideoParticipant>({
       isPinned: false,

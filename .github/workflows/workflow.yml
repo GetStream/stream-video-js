@@ -45,15 +45,6 @@ jobs:
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
-        with:
-          args: >
-            -Dsonar.organization=getstream
-            -Dsonar.projectKey=GetStream_stream-video-js
-            -Dsonar.javascript.lcov.reportPaths=./packages/client/coverage/lcov.info
-            -Dsonar.sources=packages/
-            -Dsonar.test.exclusions=**/__tests__/**, **/android/**, **/ios/**
-            -Dsonar.verbose=true
-
 
       - name: Release packages
         run: echo 'TODO'
