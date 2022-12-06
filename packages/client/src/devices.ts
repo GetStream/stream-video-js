@@ -143,7 +143,10 @@ export const getScreenShareStream = async (
   // TODO OL: switch to `DisplayMediaStreamConstraints` once Angular supports it
   options?: Record<string, any>,
 ) => {
-  return navigator.mediaDevices.getDisplayMedia(options);
+  return navigator.mediaDevices.getDisplayMedia({
+    video: true,
+    ...options,
+  });
 };
 
 const watchForDisconnectedDevice = (
