@@ -4838,6 +4838,7 @@ __metadata:
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
+    "@stream-io/video-styling": "workspace:^"
     "@types/react": ^18.0.24
     "@types/react-dom": ^18.0.8
     "@vitejs/plugin-react": ^2.2.0
