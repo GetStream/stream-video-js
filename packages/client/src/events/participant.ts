@@ -1,5 +1,6 @@
 import { Dispatcher } from '../rtc/Dispatcher';
 import { StreamVideoWriteableStateStore } from '../store';
+import { trackTypeToParticipantStreamKey } from '../rtc/helpers/tracks';
 
 /**
  * An event responder which handles the `participantJoined` event.
@@ -12,10 +13,10 @@ export const watchParticipantJoined = (
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
     const { participant } = e.eventPayload.participantJoined;
     if (participant) {
-      store.setCurrentValue(store.participantsSubject, [
-        ...store.getCurrentValue(store.participantsSubject),
-        participant,
-      ]);
+      store.setCurrentValue(
+        store.participantsSubject,
+        (currentParticipants) => [...currentParticipants, participant],
+      );
     }
   });
 };
@@ -40,3 +41,43 @@ export const watchParticipantLeft = (
     }
   });
 };
+
+/**
+ * An event responder which handles the `trackPublished` event.
+ * The SFU will send this event when a participant publishes a track.
+ */
+export const watchTrackPublished = (
+  dispatcher: Dispatcher,
+  store: StreamVideoWriteableStateStore,
+) => {
+  return dispatcher.on('trackPublished', (e) => {
+    if (e.eventPayload.oneofKind !== 'trackPublished') return;
+    const {
+      trackPublished: { type, sessionId },
+    } = e.eventPayload;
+    store.updateParticipant(sessionId, (p) => ({
+      publishedTracks: [...p.publishedTracks, type].filter(unique),
+    }));
+  });
+};
+
+/**
+ * An event responder which handles the `trackUnpublished` event.
+ * The SFU will send this event when a participant unpublishes a track.
+ */
+export const watchTrackUnpublished = (
+  dispatcher: Dispatcher,
+  store: StreamVideoWriteableStateStore,
+) => {
+  return dispatcher.on('trackUnpublished', (e) => {
+    if (e.eventPayload.oneofKind !== 'trackUnpublished') return;
+    const {
+      trackUnpublished: { type, sessionId },
+    } = e.eventPayload;
+    store.updateParticipant(sessionId, (p) => ({
+      publishedTracks: p.publishedTracks.filter((t) => t !== type),
+    }));
+  });
+};
+
+const unique = <T>(v: T, i: number, arr: T[]) => arr.indexOf(v) === i;

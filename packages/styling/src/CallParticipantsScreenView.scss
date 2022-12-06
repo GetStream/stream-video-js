@@ -1,0 +1,28 @@
+.str-video__call-participants-screen-view {
+  height: 100%;
+  display: flex;
+  gap: 10px;
+
+  .str-video__call-participants-screen-view__screen {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    position: relative;
+  }
+
+  .str-video__call-participants-screen-view__participants {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 15px;
+  }
+
+  video {
+    min-height: 0;
+    width: 100%;
+    height: auto;
+  }
+}
