@@ -46,9 +46,9 @@
         left: 16px;
       }
 
-      .loading,
-      .error,
-      .off {
+      & > .loading,
+      & > .error,
+      & > .off {
         border-radius: 8px;
         border: 2px solid variables.$primary-color;
       }

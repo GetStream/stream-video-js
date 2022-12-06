@@ -1,7 +1,14 @@
 import { Injectable } from '@angular/core';
-import { getAudioStream, getVideoStream } from '@stream-io/video-client';
+import {
+  checkIfAudioOutputChangeSupported,
+  getAudioDevices,
+  getAudioOutputDevices,
+  getAudioStream,
+  getVideoDevices,
+  getVideoStream,
+} from '@stream-io/video-client';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, map, Observable } from 'rxjs';
 
 export type MediaStreamState = 'loading' | 'on' | 'off' | 'error' | 'initial';
 
@@ -9,6 +16,13 @@ export type MediaStreamState = 'loading' | 'on' | 'off' | 'error' | 'initial';
   providedIn: 'root',
 })
 export class DeviceManagerService {
+  audioDevices$ = getAudioDevices();
+  videoDevices$ = getVideoDevices();
+  audioOutputDevices$ = getAudioOutputDevices();
+  isAudioOutputChangeSupportedByBrowser = checkIfAudioOutputChangeSupported();
+  videoDevice$: Observable<string | undefined>;
+  audioDevice$: Observable<string | undefined>;
+  audioOutputDevice$: Observable<string | undefined>;
   videoState$: Observable<MediaStreamState>;
   videoErrorMessage$: Observable<string | undefined>;
   videoStream$: Observable<MediaStream | undefined>;
@@ -31,6 +45,9 @@ export class DeviceManagerService {
     undefined,
   );
   private isSpeakingSubject = new BehaviorSubject<boolean>(false);
+  private audioOutputDeviceSubject = new BehaviorSubject<string | undefined>(
+    undefined,
+  );
   private intervalId: any;
   private analyser?: AnalyserNode;
 
@@ -42,6 +59,27 @@ export class DeviceManagerService {
     this.audioErrorMessage$ = this.audioErrorMessageSubject.asObservable();
     this.audioStream$ = this.audioStreamSubject.asObservable();
     this.isSpeaking$ = this.isSpeakingSubject.asObservable();
+    this.audioOutputDevice$ = this.audioOutputDeviceSubject.asObservable();
+
+    this.videoDevice$ = this.videoStream$.pipe(
+      map((stream) => {
+        if (stream) {
+          return stream.getVideoTracks()[0].getConstraints().deviceId as string;
+        } else {
+          return undefined;
+        }
+      }),
+    );
+
+    this.audioDevice$ = this.audioStream$.pipe(
+      map((stream) => {
+        if (stream) {
+          return stream.getAudioTracks()[0].getConstraints().deviceId as string;
+        } else {
+          return undefined;
+        }
+      }),
+    );
   }
 
   get audioState() {
@@ -149,5 +187,9 @@ export class DeviceManagerService {
     this.analyser?.disconnect();
     this.audioStreamSubject.next(undefined);
     this.audioStateSubject.next('off');
+  }
+
+  selectAudioOutput(deviceId: string | undefined) {
+    this.audioOutputDeviceSubject.next(deviceId);
   }
 }

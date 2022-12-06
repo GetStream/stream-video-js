@@ -13,6 +13,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DeviceControlComponent } from './device-control/device-control.component';
 
 @NgModule({
   declarations: [
@@ -20,6 +21,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     UserSelectorComponent,
     ProfilePictureComponent,
     CallLobbyComponent,
+    DeviceControlComponent,
   ],
   imports: [
     BrowserModule,

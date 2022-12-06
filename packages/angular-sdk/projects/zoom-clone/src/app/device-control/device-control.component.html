@@ -1,0 +1,11 @@
+<div class="device-controls">
+  <button mat-icon-button>
+    <mat-icon (click)="toggleAudio()" [fontIcon]="audioState === 'off' ? 'mic' : 'mic_off'"></mat-icon>
+  </button>
+  <button mat-icon-button>
+    <mat-icon (click)="toggleVideo()" [fontIcon]="videoState === 'off' ? 'videocam' : 'videocam_off'"></mat-icon>
+  </button>
+  <button mat-icon-button>
+    <mat-icon fontIcon="settings"></mat-icon>
+  </button>
+</div>

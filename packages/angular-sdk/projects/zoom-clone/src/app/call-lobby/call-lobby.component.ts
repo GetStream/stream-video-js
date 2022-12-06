@@ -50,15 +50,9 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
     );
   }
 
-  toggleAudio() {
-    this.deviceManager.toggleAudio();
-  }
-
-  toggleVideo() {
-    this.deviceManager.toggleVideo();
-  }
-
   ngOnInit(): void {}
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    this.subscripitions.forEach((s) => s.unsubscribe());
+  }
 }
