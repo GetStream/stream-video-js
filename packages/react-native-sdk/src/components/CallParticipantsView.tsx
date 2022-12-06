@@ -88,7 +88,7 @@ export const CallParticipantsView: React.FC = () => {
     <View style={styles.container}>
       <LocalVideoView isVisible={isLocalVideoVisible} />
       {filteredParticipants.map((participant, index) => {
-        const userId = participant.user!.id;
+        const { userId } = participant;
         // The size of the participant video is determined by the mode/amount of participants.
         // When the mode is `fifth` the size is determined by the index of the participant.
         // The first 2 participants are shown in `medium` size and the last 3

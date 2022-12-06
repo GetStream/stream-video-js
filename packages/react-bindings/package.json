@@ -9,7 +9,7 @@
     "build": "tsc --project tsconfig.production.json"
   },
   "dependencies": {
-    "rxjs": "^7.5.0"
+    "rxjs": "^7.5.7"
   },
   "peerDependencies": {
     "@stream-io/video-client": "workspace:^",
@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@stream-io/video-client": "workspace:^",
+    "@types/react": "^18.0.25",
     "@types/rimraf": "^3.0.2",
     "react": "^18.2.0",
     "rimraf": "^3.0.2",

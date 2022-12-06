@@ -18,13 +18,11 @@ type AvatarProps = {
 const DEFAULT_AVATAR_RADIUS = 100;
 
 export const Avatar: React.FC<AvatarProps> = ({
-  participant: { user },
+  participant,
   radius = DEFAULT_AVATAR_RADIUS,
 }: AvatarProps) => {
-  const label = useMemo(
-    () => user?.name || user?.id || '?',
-    [user?.id, user?.name],
-  );
+  const label = useMemo(() => participant.userId || '?', [participant.userId]);
+  const imageUrl = undefined; // FIXME OL: fix with user data enriching
   return (
     <View
       style={{
@@ -34,10 +32,10 @@ export const Avatar: React.FC<AvatarProps> = ({
         width: radius,
       }}
     >
-      {user?.imageUrl ? (
+      {imageUrl ? (
         <Image
           source={{
-            uri: user.imageUrl,
+            uri: imageUrl,
           }}
           style={styles.image}
         />
