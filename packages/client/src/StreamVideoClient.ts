@@ -34,10 +34,6 @@ import {
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
 import { registerWSEventHandlers } from './ws/callUserEventHandlers';
-import {
-  WebsocketClientEvent,
-  WebsocketHealthcheck,
-} from './gen/video/coordinator/client_v1_rpc/websocket';
 import { reportStats } from './stats/coordinator-stats-reporter';
 import { Timestamp } from './gen/google/protobuf/timestamp';
 
@@ -164,23 +160,6 @@ export class StreamVideoClient {
    */
   off = <T>(event: string, fn: StreamEventListener<T>) => {
     return this.ws?.off(event, fn);
-  };
-
-  /**
-   *
-   * @param hc
-   *
-   * @deprecated We should move this functionality inside the client and make this an internal function.
-   */
-  setHealthcheckPayload = (hc: WebsocketHealthcheck) => {
-    this.ws?.keepAlive.setPayload(
-      WebsocketClientEvent.toBinary({
-        event: {
-          oneofKind: 'healthcheck',
-          healthcheck: hc,
-        },
-      }),
-    );
   };
 
   /**

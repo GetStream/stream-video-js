@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CallState } from '@stream-io/video-client/src/gen/video/sfu/models/models';
 import { Stage } from './Stage';
-import { Ping } from '../Ping';
 import { useCall } from '../../hooks/useCall';
 import { DeviceSettings } from './DeviceSettings';
 import { MediaDevicesProvider } from '../../contexts/MediaDevicesContext';
@@ -72,9 +71,6 @@ export const StreamCall = ({
                 />
                 <CallControls call={activeCall} callMeta={activeCallMeta} />
               </>
-            )}
-            {activeCallMeta && (
-              <Ping activeCall={activeCallMeta} currentUser={currentUser} />
             )}
           </>
         )}
