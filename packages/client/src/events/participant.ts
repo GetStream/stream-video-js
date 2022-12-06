@@ -1,6 +1,5 @@
 import { Dispatcher } from '../rtc/Dispatcher';
 import { StreamVideoWriteableStateStore } from '../store';
-import { trackTypeToParticipantStreamKey } from '../rtc/helpers/tracks';
 
 /**
  * An event responder which handles the `participantJoined` event.
@@ -36,7 +35,7 @@ export const watchParticipantLeft = (
         store.participantsSubject,
         store
           .getCurrentValue(store.participantsSubject)
-          .filter((p) => p.user?.id !== participant.user?.id),
+          .filter((p) => p.userId !== participant.userId),
       );
     }
   });
