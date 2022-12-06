@@ -1,18 +1,18 @@
 import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 import { combineLatestWith, map, take } from 'rxjs/operators';
-import { UserInput } from '../gen/video/coordinator/user_v1/user';
+import { UserInput } from './gen/video/coordinator/user_v1/user';
 import {
   CallAccepted,
   CallCancelled,
   CallCreated,
   CallRejected,
-} from '../gen/video/coordinator/event_v1/event';
+} from './gen/video/coordinator/event_v1/event';
 import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
-} from '../rtc/types';
-import { CallStatsReport } from '../stats/types';
-import { Call as CallController } from '../rtc/Call';
+} from './rtc/types';
+import { CallStatsReport } from './stats/types';
+import { Call as CallController } from './rtc/Call';
 
 type UserId = string;
 
