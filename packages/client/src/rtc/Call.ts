@@ -546,14 +546,14 @@ export class Call {
         ? 'screenShareStream'
         : 'videoStream';
 
-    // FIXME OL: enable later
-    // const previousStream = participantToUpdate[streamKindProp];
-    // if (previousStream) {
-    //   previousStream.getTracks().forEach((t) => {
-    //     // t.stop();
-    //     previousStream.removeTrack(t);
-    //   });
-    // }
+    const previousStream = participantToUpdate[streamKindProp];
+    if (previousStream) {
+      console.log(`Cleaning up previous remote tracks`, e.track.kind);
+      previousStream.getTracks().forEach((t) => {
+        t.stop();
+        previousStream.removeTrack(t);
+      });
+    }
     this.stateStore.updateParticipant(participantToUpdate.sessionId, {
       [streamKindProp]: primaryStream,
     });
