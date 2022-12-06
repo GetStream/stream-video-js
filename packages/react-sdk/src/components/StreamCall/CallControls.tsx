@@ -1,31 +1,18 @@
 import clsx from 'clsx';
-import {
-  ForwardedRef,
-  forwardRef,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import { map } from 'rxjs';
+import { ForwardedRef, forwardRef, useRef, useState } from 'react';
 import {
   Call,
   CallMeta,
-  getAudioStream,
   getScreenShareStream,
-  getVideoStream,
   SfuModels,
-  watchForDisconnectedAudioDevice,
-  watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
 import {
   useLocalParticipant,
   useStreamVideoClient,
   useIsCallRecordingInProgress,
-  useStore,
 } from '@stream-io/video-react-bindings';
 import { CallStats } from './CallStats';
-import { useDebugPreferredVideoCodec } from '../Debug/useIsDebugMode';
+import { useMediaPublisher } from '../../hooks';
 
 export const CallControls = (props: {
   call: Call;
@@ -37,7 +24,6 @@ export const CallControls = (props: {
   const client = useStreamVideoClient();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const localParticipant = useLocalParticipant();
-  const { activeCallLocalParticipant$ } = useStore();
   const isAudioMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
@@ -48,62 +34,15 @@ export const CallControls = (props: {
     SfuModels.TrackType.SCREEN_SHARE,
   );
 
-  const audioDeviceId = localParticipant?.audioDeviceId;
-  const videoDeviceId = localParticipant?.videoDeviceId;
+  // TODO: ??? how do these get there? after publish? **magic** (rely instead on MediaDevicesContext and DeviceSettings instead)
+  // const audioDeviceId = localParticipant?.audioDeviceId;
+  // const videoDeviceId = localParticipant?.videoDeviceId;
 
-  useEffect(() => {
-    if (initialAudioMuted) return;
-    getAudioStream(audioDeviceId).then((stream) => {
-      return call.publishAudioStream(stream);
-    });
-  }, [call, audioDeviceId, initialAudioMuted]);
-
-  const preferredCodec = useDebugPreferredVideoCodec();
-  useEffect(() => {
-    if (initialVideoMuted) return;
-    getVideoStream(videoDeviceId).then((stream) => {
-      return call.publishVideoStream(stream, { preferredCodec });
-    });
-  }, [videoDeviceId, call, preferredCodec, initialVideoMuted]);
-
-  const publishAudioStream = useCallback(async () => {
-    try {
-      const audioStream = await getAudioStream(audioDeviceId);
-      await call.publishAudioStream(audioStream);
-    } catch (e) {
-      console.log('Failed to publish audio stream', e);
-    }
-  }, [audioDeviceId, call]);
-
-  const publishVideoStream = useCallback(async () => {
-    try {
-      const videoStream = await getVideoStream(videoDeviceId);
-      await call.publishVideoStream(videoStream, { preferredCodec });
-    } catch (e) {
-      console.log('Failed to publish video stream', e);
-    }
-  }, [call, preferredCodec, videoDeviceId]);
-
-  useEffect(() => {
-    const subscription = watchForDisconnectedAudioDevice(
-      activeCallLocalParticipant$.pipe(map((p) => p?.audioDeviceId)),
-    ).subscribe(async () => {
-      await call.stopPublish(SfuModels.TrackType.AUDIO);
-    });
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [activeCallLocalParticipant$, call]);
-  useEffect(() => {
-    const subscription = watchForDisconnectedVideoDevice(
-      activeCallLocalParticipant$.pipe(map((p) => p?.videoDeviceId)),
-    ).subscribe(async () => {
-      await call.stopPublish(SfuModels.TrackType.VIDEO);
-    });
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [activeCallLocalParticipant$, call]);
+  const { publishAudioStream, publishVideoStream } = useMediaPublisher({
+    call,
+    initialAudioMuted,
+    initialVideoMuted,
+  });
 
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const statsAnchorRef = useRef<HTMLButtonElement>(null);
