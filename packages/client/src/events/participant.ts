@@ -89,25 +89,9 @@ export const watchTrackUnpublished = (
     const {
       trackUnpublished: { type, sessionId },
     } = e.eventPayload;
-    const audioOrVideoOrScreenShareStreamProp =
-      trackTypeToParticipantStreamKey(type);
-    if (!audioOrVideoOrScreenShareStreamProp) return;
-
-    store.updateParticipant(sessionId, (p) => {
-      const unpublishedStream = p[audioOrVideoOrScreenShareStreamProp] as
-        | MediaStream
-        | undefined;
-
-      unpublishedStream?.getTracks().forEach((t) => {
-        t.stop();
-        unpublishedStream.removeTrack(t);
-      });
-
-      return {
-        publishedTracks: p.publishedTracks.filter((t) => t !== type),
-        [audioOrVideoOrScreenShareStreamProp]: undefined,
-      };
-    });
+    store.updateParticipant(sessionId, (p) => ({
+      publishedTracks: p.publishedTracks.filter((t) => t !== type),
+    }));
   });
 };
 

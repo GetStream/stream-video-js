@@ -530,15 +530,22 @@ export class Call {
       );
     });
 
-    const key: keyof StreamVideoParticipant =
+    const streamKindProp: keyof StreamVideoParticipant =
       e.track.kind === 'audio'
         ? 'audioStream'
         : trackType === 'TRACK_TYPE_SCREEN_SHARE'
         ? 'screenShareStream'
         : 'videoStream';
 
+    const previousStream = participantToUpdate[streamKindProp];
+    if (previousStream) {
+      previousStream.getTracks().forEach((t) => {
+        t.stop();
+        previousStream.removeTrack(t);
+      });
+    }
     this.stateStore.updateParticipant(participantToUpdate.sessionId, {
-      [key]: primaryStream,
+      [streamKindProp]: primaryStream,
     });
   };
 
