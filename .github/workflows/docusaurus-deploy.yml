@@ -7,11 +7,11 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'packages/angular-sdk/**'
-      - 'packages/react-bindings/**'
-      - 'packages/client/**'
-      - 'packages/react-native-sdk/**'
+    # paths:
+    #   - 'packages/angular-sdk/**'
+    #   - 'packages/react-bindings/**'
+    #   - 'packages/client/**'
+    #   - 'packages/react-native-sdk/**'
 
 jobs:
   push_docusaurus:
@@ -38,7 +38,8 @@ jobs:
       - name: Push Angular SDK documentation
         uses: GetStream/push-stream-chat-docusaurus-action@main
         with:
-          target-branch: ${{ 'staging' }}
+          target-branch: 'staging'
+          destination-repository-name: 'stream-video-docusaurus'
           source-directory: 'packages/angular-sdk/docusaurus'
         env:
           DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
@@ -47,7 +48,8 @@ jobs:
       - name: Push React Native SDK documentation
         uses: GetStream/push-stream-chat-docusaurus-action@main
         with:
-          target-branch: ${{ 'staging' }}
+          target-branch: 'staging'
+          destination-repository-name: 'stream-video-docusaurus'
           source-directory: 'packages/react-native-sdk/docusaurus'
         env:
           DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
