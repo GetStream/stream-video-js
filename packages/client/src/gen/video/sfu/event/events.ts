@@ -14,11 +14,12 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Codec } from "../models/models";
 import { ConnectionQuality } from "../models/models";
+import { StreamQuality } from "../models/models";
 import { Participant } from "../models/models";
+import { Call } from "../models/models";
 import { CallState } from "../models/models";
-import { TrackType } from "../models/models";
-import { PeerType } from "../models/models";
-import { ICETrickle as ICETrickle$ } from "../models/models";
+import { CodecSettings } from "../models/models";
+import { ICETrickle } from "../models/models";
 /**
  * SFUEvent is a message that is sent from the SFU to the client.
  *
@@ -57,13 +58,31 @@ export interface SfuEvent {
         /**
          * @generated from protobuf field: stream.video.sfu.models.ICETrickle ice_trickle = 5;
          */
-        iceTrickle: ICETrickle$;
+        iceTrickle: ICETrickle;
     } | {
         oneofKind: "changePublishQuality";
         /**
          * @generated from protobuf field: stream.video.sfu.event.ChangePublishQuality change_publish_quality = 6;
          */
         changePublishQuality: ChangePublishQuality;
+    } | {
+        oneofKind: "localDeviceChange";
+        /**
+         * @generated from protobuf field: stream.video.sfu.event.LocalDeviceChange local_device_change = 7;
+         */
+        localDeviceChange: LocalDeviceChange;
+    } | {
+        oneofKind: "muteStateChanged";
+        /**
+         * @generated from protobuf field: stream.video.sfu.event.MuteStateChanged mute_state_changed = 8;
+         */
+        muteStateChanged: MuteStateChanged;
+    } | {
+        oneofKind: "videoQualityChanged";
+        /**
+         * @generated from protobuf field: stream.video.sfu.event.VideoQualityChanged video_quality_changed = 9;
+         */
+        videoQualityChanged: VideoQualityChanged;
     } | {
         oneofKind: "participantJoined";
         /**
@@ -95,33 +114,14 @@ export interface SfuEvent {
          */
         healthCheckResponse: HealthCheckResponse;
     } | {
-        oneofKind: "trackPublished";
+        oneofKind: "callEnded";
         /**
-         * @generated from protobuf field: stream.video.sfu.event.TrackPublished track_published = 16;
+         * @generated from protobuf field: stream.video.sfu.event.CallEnded call_ended = 15;
          */
-        trackPublished: TrackPublished;
-    } | {
-        oneofKind: "trackUnpublished";
-        /**
-         * @generated from protobuf field: stream.video.sfu.event.TrackUnpublished track_unpublished = 17;
-         */
-        trackUnpublished: TrackUnpublished;
+        callEnded: CallEnded;
     } | {
         oneofKind: undefined;
     };
-}
-/**
- * @generated from protobuf message stream.video.sfu.event.ICETrickle
- */
-export interface ICETrickle {
-    /**
-     * @generated from protobuf field: stream.video.sfu.models.PeerType peer_type = 1;
-     */
-    peerType: PeerType;
-    /**
-     * @generated from protobuf field: string ice_candidate = 2;
-     */
-    iceCandidate: string;
 }
 /**
  * SfuRequest is a message that is sent from the client to the SFU.
@@ -152,45 +152,19 @@ export interface SfuRequest {
  * @generated from protobuf message stream.video.sfu.event.HealthCheckRequest
  */
 export interface HealthCheckRequest {
+    /**
+     * @generated from protobuf field: string session_id = 1;
+     */
+    sessionId: string;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.HealthCheckResponse
  */
 export interface HealthCheckResponse {
-}
-/**
- * @generated from protobuf message stream.video.sfu.event.TrackPublished
- */
-export interface TrackPublished {
     /**
-     * @generated from protobuf field: string user_id = 1;
-     */
-    userId: string;
-    /**
-     * @generated from protobuf field: string session_id = 2;
+     * @generated from protobuf field: string session_id = 1;
      */
     sessionId: string;
-    /**
-     * @generated from protobuf field: stream.video.sfu.models.TrackType type = 3;
-     */
-    type: TrackType;
-}
-/**
- * @generated from protobuf message stream.video.sfu.event.TrackUnpublished
- */
-export interface TrackUnpublished {
-    /**
-     * @generated from protobuf field: string user_id = 1;
-     */
-    userId: string;
-    /**
-     * @generated from protobuf field: string session_id = 2;
-     */
-    sessionId: string;
-    /**
-     * @generated from protobuf field: stream.video.sfu.models.TrackType type = 3;
-     */
-    type: TrackType;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.JoinRequest
@@ -205,11 +179,13 @@ export interface JoinRequest {
      */
     sessionId: string;
     /**
-     * dumb SDP that allow us to extract subscriber's decode codecs
-     *
-     * @generated from protobuf field: string subscriber_sdp = 3;
+     * @generated from protobuf field: bool publish = 3;
      */
-    subscriberSdp: string; // TODO: we should know if this is going to be
+    publish: boolean;
+    /**
+     * @generated from protobuf field: stream.video.sfu.models.CodecSettings codec_settings = 4;
+     */
+    codecSettings?: CodecSettings; // TODO: we should know if this is going to be
     // - publishing and subscribing, or just subscribing for future routing
 }
 /**
@@ -217,11 +193,13 @@ export interface JoinRequest {
  */
 export interface JoinResponse {
     /**
-     * TODO: include full list of participants with track and audio info
-     *
      * @generated from protobuf field: stream.video.sfu.models.CallState call_state = 1;
      */
     callState?: CallState;
+    /**
+     * @generated from protobuf field: string own_session_id = 2;
+     */
+    ownSessionId: string; // TODO: include full list of participants with track and audio info
 }
 /**
  * ParticipantJoined is fired when a user joins a call
@@ -230,9 +208,9 @@ export interface JoinResponse {
  */
 export interface ParticipantJoined {
     /**
-     * @generated from protobuf field: string call_cid = 1;
+     * @generated from protobuf field: stream.video.sfu.models.Call call = 1;
      */
-    callCid: string;
+    call?: Call;
     /**
      * @generated from protobuf field: stream.video.sfu.models.Participant participant = 2;
      */
@@ -245,26 +223,49 @@ export interface ParticipantJoined {
  */
 export interface ParticipantLeft {
     /**
-     * @generated from protobuf field: string call_cid = 1;
+     * @generated from protobuf field: stream.video.sfu.models.Call call = 1;
      */
-    callCid: string;
+    call?: Call;
     /**
      * @generated from protobuf field: stream.video.sfu.models.Participant participant = 2;
      */
     participant?: Participant;
 }
 /**
+ * @generated from protobuf message stream.video.sfu.event.MuteStateChanged
+ */
+export interface MuteStateChanged {
+    /**
+     * @generated from protobuf field: string user_id = 1;
+     */
+    userId: string;
+    /**
+     * @generated from protobuf field: bool audio_muted = 2;
+     */
+    audioMuted: boolean;
+    /**
+     * @generated from protobuf field: bool video_muted = 3;
+     */
+    videoMuted: boolean;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.VideoQualityChanged
+ */
+export interface VideoQualityChanged {
+    /**
+     * @generated from protobuf field: repeated stream.video.sfu.models.StreamQuality stream_qualities = 1;
+     */
+    streamQualities: StreamQuality[];
+}
+/**
  * SubscriberOffer is sent when the SFU adds tracks to a subscription
+ * this usually happens when a user joins a call and starts sending video
  *
  * @generated from protobuf message stream.video.sfu.event.SubscriberOffer
  */
 export interface SubscriberOffer {
     /**
-     * @generated from protobuf field: bool ice_restart = 1;
-     */
-    iceRestart: boolean;
-    /**
-     * @generated from protobuf field: string sdp = 2;
+     * @generated from protobuf field: string sdp = 1;
      */
     sdp: string;
 }
@@ -278,6 +279,26 @@ export interface PublisherAnswer {
     sdp: string;
 }
 /**
+ * @generated from protobuf message stream.video.sfu.event.LocalDeviceChange
+ */
+export interface LocalDeviceChange {
+    /**
+     * @generated from protobuf field: string type = 1;
+     */
+    type: string;
+}
+/**
+ * ICECandidateTrickle is about the ICE nonsense stuff
+ *
+ * @generated from protobuf message stream.video.sfu.event.ICECandidateTrickle
+ */
+export interface ICECandidateTrickle {
+    /**
+     * @generated from protobuf field: string candidate = 1;
+     */
+    candidate: string;
+}
+/**
  * ConnectionQuality is sent to inform about connection quality changes
  * eg. thierry's connection is not good -> render a red icon Zoom style
  *
@@ -289,11 +310,7 @@ export interface ConnectionQualityChanged {
      */
     userId: string;
     /**
-     * @generated from protobuf field: string session_id = 2;
-     */
-    sessionId: string;
-    /**
-     * @generated from protobuf field: stream.video.sfu.models.ConnectionQuality connection_quality = 3;
+     * @generated from protobuf field: stream.video.sfu.models.ConnectionQuality connection_quality = 2;
      */
     connectionQuality: ConnectionQuality;
 }
@@ -307,29 +324,6 @@ export interface DominantSpeakerChanged {
      * @generated from protobuf field: string user_id = 1;
      */
     userId: string;
-    /**
-     * @generated from protobuf field: string session_id = 2;
-     */
-    sessionId: string;
-}
-/**
- * @generated from protobuf message stream.video.sfu.event.AudioLevel
- */
-export interface AudioLevel {
-    /**
-     * @generated from protobuf field: string user_id = 1;
-     */
-    userId: string;
-    /**
-     * @generated from protobuf field: string session_id = 2;
-     */
-    sessionId: string;
-    /**
-     * 0.0 means complete silence, 1.0 loudest
-     *
-     * @generated from protobuf field: float level = 3;
-     */
-    level: number;
 }
 /**
  * AudioLevelChanged is sent by the SFU to notify about audio levels by user
@@ -341,6 +335,35 @@ export interface AudioLevelChanged {
      * @generated from protobuf field: repeated stream.video.sfu.event.AudioLevel audio_levels = 1;
      */
     audioLevels: AudioLevel[];
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.CallEnded
+ */
+export interface CallEnded {
+    /**
+     * @generated from protobuf field: string message = 1;
+     */
+    message: string;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.AudioLevel
+ */
+export interface AudioLevel {
+    /**
+     * @generated from protobuf field: string user_id = 1;
+     */
+    userId: string;
+    /**
+     * 0.0 means complete silence, 1.0 loudest
+     *
+     * @generated from protobuf field: float level = 2;
+     */
+    level: number;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.AudioLayerSetting
+ */
+export interface AudioLayerSetting {
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.AudioMediaRequest
@@ -363,6 +386,10 @@ export interface AudioSender {
      * @generated from protobuf field: stream.video.sfu.models.Codec codec = 2;
      */
     codec?: Codec;
+    /**
+     * @generated from protobuf field: repeated stream.video.sfu.event.AudioLayerSetting layers = 3;
+     */
+    layers: AudioLayerSetting[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.VideoMediaRequest
@@ -471,15 +498,17 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
             { no: 2, name: "publisher_answer", kind: "message", oneof: "eventPayload", T: () => PublisherAnswer },
             { no: 3, name: "connection_quality_changed", kind: "message", oneof: "eventPayload", T: () => ConnectionQualityChanged },
             { no: 4, name: "audio_level_changed", kind: "message", oneof: "eventPayload", T: () => AudioLevelChanged },
-            { no: 5, name: "ice_trickle", kind: "message", oneof: "eventPayload", T: () => ICETrickle$ },
+            { no: 5, name: "ice_trickle", kind: "message", oneof: "eventPayload", T: () => ICETrickle },
             { no: 6, name: "change_publish_quality", kind: "message", oneof: "eventPayload", T: () => ChangePublishQuality },
+            { no: 7, name: "local_device_change", kind: "message", oneof: "eventPayload", T: () => LocalDeviceChange },
+            { no: 8, name: "mute_state_changed", kind: "message", oneof: "eventPayload", T: () => MuteStateChanged },
+            { no: 9, name: "video_quality_changed", kind: "message", oneof: "eventPayload", T: () => VideoQualityChanged },
             { no: 10, name: "participant_joined", kind: "message", oneof: "eventPayload", T: () => ParticipantJoined },
             { no: 11, name: "participant_left", kind: "message", oneof: "eventPayload", T: () => ParticipantLeft },
             { no: 12, name: "dominant_speaker_changed", kind: "message", oneof: "eventPayload", T: () => DominantSpeakerChanged },
             { no: 13, name: "join_response", kind: "message", oneof: "eventPayload", T: () => JoinResponse },
             { no: 14, name: "health_check_response", kind: "message", oneof: "eventPayload", T: () => HealthCheckResponse },
-            { no: 16, name: "track_published", kind: "message", oneof: "eventPayload", T: () => TrackPublished },
-            { no: 17, name: "track_unpublished", kind: "message", oneof: "eventPayload", T: () => TrackUnpublished }
+            { no: 15, name: "call_ended", kind: "message", oneof: "eventPayload", T: () => CallEnded }
         ]);
     }
     create(value?: PartialMessage<SfuEvent>): SfuEvent {
@@ -521,13 +550,31 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
                 case /* stream.video.sfu.models.ICETrickle ice_trickle */ 5:
                     message.eventPayload = {
                         oneofKind: "iceTrickle",
-                        iceTrickle: ICETrickle$.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).iceTrickle)
+                        iceTrickle: ICETrickle.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).iceTrickle)
                     };
                     break;
                 case /* stream.video.sfu.event.ChangePublishQuality change_publish_quality */ 6:
                     message.eventPayload = {
                         oneofKind: "changePublishQuality",
                         changePublishQuality: ChangePublishQuality.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).changePublishQuality)
+                    };
+                    break;
+                case /* stream.video.sfu.event.LocalDeviceChange local_device_change */ 7:
+                    message.eventPayload = {
+                        oneofKind: "localDeviceChange",
+                        localDeviceChange: LocalDeviceChange.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).localDeviceChange)
+                    };
+                    break;
+                case /* stream.video.sfu.event.MuteStateChanged mute_state_changed */ 8:
+                    message.eventPayload = {
+                        oneofKind: "muteStateChanged",
+                        muteStateChanged: MuteStateChanged.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).muteStateChanged)
+                    };
+                    break;
+                case /* stream.video.sfu.event.VideoQualityChanged video_quality_changed */ 9:
+                    message.eventPayload = {
+                        oneofKind: "videoQualityChanged",
+                        videoQualityChanged: VideoQualityChanged.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).videoQualityChanged)
                     };
                     break;
                 case /* stream.video.sfu.event.ParticipantJoined participant_joined */ 10:
@@ -560,16 +607,10 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
                         healthCheckResponse: HealthCheckResponse.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).healthCheckResponse)
                     };
                     break;
-                case /* stream.video.sfu.event.TrackPublished track_published */ 16:
+                case /* stream.video.sfu.event.CallEnded call_ended */ 15:
                     message.eventPayload = {
-                        oneofKind: "trackPublished",
-                        trackPublished: TrackPublished.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).trackPublished)
-                    };
-                    break;
-                case /* stream.video.sfu.event.TrackUnpublished track_unpublished */ 17:
-                    message.eventPayload = {
-                        oneofKind: "trackUnpublished",
-                        trackUnpublished: TrackUnpublished.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).trackUnpublished)
+                        oneofKind: "callEnded",
+                        callEnded: CallEnded.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).callEnded)
                     };
                     break;
                 default:
@@ -598,10 +639,19 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
             AudioLevelChanged.internalBinaryWrite(message.eventPayload.audioLevelChanged, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
         /* stream.video.sfu.models.ICETrickle ice_trickle = 5; */
         if (message.eventPayload.oneofKind === "iceTrickle")
-            ICETrickle$.internalBinaryWrite(message.eventPayload.iceTrickle, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+            ICETrickle.internalBinaryWrite(message.eventPayload.iceTrickle, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
         /* stream.video.sfu.event.ChangePublishQuality change_publish_quality = 6; */
         if (message.eventPayload.oneofKind === "changePublishQuality")
             ChangePublishQuality.internalBinaryWrite(message.eventPayload.changePublishQuality, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.sfu.event.LocalDeviceChange local_device_change = 7; */
+        if (message.eventPayload.oneofKind === "localDeviceChange")
+            LocalDeviceChange.internalBinaryWrite(message.eventPayload.localDeviceChange, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.sfu.event.MuteStateChanged mute_state_changed = 8; */
+        if (message.eventPayload.oneofKind === "muteStateChanged")
+            MuteStateChanged.internalBinaryWrite(message.eventPayload.muteStateChanged, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.sfu.event.VideoQualityChanged video_quality_changed = 9; */
+        if (message.eventPayload.oneofKind === "videoQualityChanged")
+            VideoQualityChanged.internalBinaryWrite(message.eventPayload.videoQualityChanged, writer.tag(9, WireType.LengthDelimited).fork(), options).join();
         /* stream.video.sfu.event.ParticipantJoined participant_joined = 10; */
         if (message.eventPayload.oneofKind === "participantJoined")
             ParticipantJoined.internalBinaryWrite(message.eventPayload.participantJoined, writer.tag(10, WireType.LengthDelimited).fork(), options).join();
@@ -617,12 +667,9 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         /* stream.video.sfu.event.HealthCheckResponse health_check_response = 14; */
         if (message.eventPayload.oneofKind === "healthCheckResponse")
             HealthCheckResponse.internalBinaryWrite(message.eventPayload.healthCheckResponse, writer.tag(14, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.sfu.event.TrackPublished track_published = 16; */
-        if (message.eventPayload.oneofKind === "trackPublished")
-            TrackPublished.internalBinaryWrite(message.eventPayload.trackPublished, writer.tag(16, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.sfu.event.TrackUnpublished track_unpublished = 17; */
-        if (message.eventPayload.oneofKind === "trackUnpublished")
-            TrackUnpublished.internalBinaryWrite(message.eventPayload.trackUnpublished, writer.tag(17, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.sfu.event.CallEnded call_ended = 15; */
+        if (message.eventPayload.oneofKind === "callEnded")
+            CallEnded.internalBinaryWrite(message.eventPayload.callEnded, writer.tag(15, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -633,60 +680,6 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
  * @generated MessageType for protobuf message stream.video.sfu.event.SfuEvent
  */
 export const SfuEvent = new SfuEvent$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class ICETrickle$Type extends MessageType<ICETrickle> {
-    constructor() {
-        super("stream.video.sfu.event.ICETrickle", [
-            { no: 1, name: "peer_type", kind: "enum", T: () => ["stream.video.sfu.models.PeerType", PeerType, "PEER_TYPE_"] },
-            { no: 2, name: "ice_candidate", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<ICETrickle>): ICETrickle {
-        const message = { peerType: 0, iceCandidate: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<ICETrickle>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ICETrickle): ICETrickle {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* stream.video.sfu.models.PeerType peer_type */ 1:
-                    message.peerType = reader.int32();
-                    break;
-                case /* string ice_candidate */ 2:
-                    message.iceCandidate = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: ICETrickle, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.sfu.models.PeerType peer_type = 1; */
-        if (message.peerType !== 0)
-            writer.tag(1, WireType.Varint).int32(message.peerType);
-        /* string ice_candidate = 2; */
-        if (message.iceCandidate !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.iceCandidate);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.event.ICETrickle
- */
-export const ICETrickle = new ICETrickle$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class SfuRequest$Type extends MessageType<SfuRequest> {
     constructor() {
@@ -750,19 +743,40 @@ export const SfuRequest = new SfuRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class HealthCheckRequest$Type extends MessageType<HealthCheckRequest> {
     constructor() {
-        super("stream.video.sfu.event.HealthCheckRequest", []);
+        super("stream.video.sfu.event.HealthCheckRequest", [
+            { no: 1, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
     }
     create(value?: PartialMessage<HealthCheckRequest>): HealthCheckRequest {
-        const message = {};
+        const message = { sessionId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<HealthCheckRequest>(this, message, value);
         return message;
     }
     internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: HealthCheckRequest): HealthCheckRequest {
-        return target ?? this.create();
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string session_id */ 1:
+                    message.sessionId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
     }
     internalBinaryWrite(message: HealthCheckRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string session_id = 1; */
+        if (message.sessionId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -776,19 +790,40 @@ export const HealthCheckRequest = new HealthCheckRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class HealthCheckResponse$Type extends MessageType<HealthCheckResponse> {
     constructor() {
-        super("stream.video.sfu.event.HealthCheckResponse", []);
+        super("stream.video.sfu.event.HealthCheckResponse", [
+            { no: 1, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
     }
     create(value?: PartialMessage<HealthCheckResponse>): HealthCheckResponse {
-        const message = {};
+        const message = { sessionId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<HealthCheckResponse>(this, message, value);
         return message;
     }
     internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: HealthCheckResponse): HealthCheckResponse {
-        return target ?? this.create();
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string session_id */ 1:
+                    message.sessionId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
     }
     internalBinaryWrite(message: HealthCheckResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string session_id = 1; */
+        if (message.sessionId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -800,138 +835,17 @@ class HealthCheckResponse$Type extends MessageType<HealthCheckResponse> {
  */
 export const HealthCheckResponse = new HealthCheckResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class TrackPublished$Type extends MessageType<TrackPublished> {
-    constructor() {
-        super("stream.video.sfu.event.TrackPublished", [
-            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "type", kind: "enum", T: () => ["stream.video.sfu.models.TrackType", TrackType, "TRACK_TYPE_"] }
-        ]);
-    }
-    create(value?: PartialMessage<TrackPublished>): TrackPublished {
-        const message = { userId: "", sessionId: "", type: 0 };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<TrackPublished>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TrackPublished): TrackPublished {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string user_id */ 1:
-                    message.userId = reader.string();
-                    break;
-                case /* string session_id */ 2:
-                    message.sessionId = reader.string();
-                    break;
-                case /* stream.video.sfu.models.TrackType type */ 3:
-                    message.type = reader.int32();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: TrackPublished, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string user_id = 1; */
-        if (message.userId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.userId);
-        /* string session_id = 2; */
-        if (message.sessionId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
-        /* stream.video.sfu.models.TrackType type = 3; */
-        if (message.type !== 0)
-            writer.tag(3, WireType.Varint).int32(message.type);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.event.TrackPublished
- */
-export const TrackPublished = new TrackPublished$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class TrackUnpublished$Type extends MessageType<TrackUnpublished> {
-    constructor() {
-        super("stream.video.sfu.event.TrackUnpublished", [
-            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "type", kind: "enum", T: () => ["stream.video.sfu.models.TrackType", TrackType, "TRACK_TYPE_"] }
-        ]);
-    }
-    create(value?: PartialMessage<TrackUnpublished>): TrackUnpublished {
-        const message = { userId: "", sessionId: "", type: 0 };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<TrackUnpublished>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TrackUnpublished): TrackUnpublished {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string user_id */ 1:
-                    message.userId = reader.string();
-                    break;
-                case /* string session_id */ 2:
-                    message.sessionId = reader.string();
-                    break;
-                case /* stream.video.sfu.models.TrackType type */ 3:
-                    message.type = reader.int32();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: TrackUnpublished, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string user_id = 1; */
-        if (message.userId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.userId);
-        /* string session_id = 2; */
-        if (message.sessionId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
-        /* stream.video.sfu.models.TrackType type = 3; */
-        if (message.type !== 0)
-            writer.tag(3, WireType.Varint).int32(message.type);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.event.TrackUnpublished
- */
-export const TrackUnpublished = new TrackUnpublished$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class JoinRequest$Type extends MessageType<JoinRequest> {
     constructor() {
         super("stream.video.sfu.event.JoinRequest", [
             { no: 1, name: "token", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "subscriber_sdp", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "publish", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 4, name: "codec_settings", kind: "message", T: () => CodecSettings }
         ]);
     }
     create(value?: PartialMessage<JoinRequest>): JoinRequest {
-        const message = { token: "", sessionId: "", subscriberSdp: "" };
+        const message = { token: "", sessionId: "", publish: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<JoinRequest>(this, message, value);
@@ -948,8 +862,11 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
                 case /* string session_id */ 2:
                     message.sessionId = reader.string();
                     break;
-                case /* string subscriber_sdp */ 3:
-                    message.subscriberSdp = reader.string();
+                case /* bool publish */ 3:
+                    message.publish = reader.bool();
+                    break;
+                case /* stream.video.sfu.models.CodecSettings codec_settings */ 4:
+                    message.codecSettings = CodecSettings.internalBinaryRead(reader, reader.uint32(), options, message.codecSettings);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -969,9 +886,12 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
         /* string session_id = 2; */
         if (message.sessionId !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
-        /* string subscriber_sdp = 3; */
-        if (message.subscriberSdp !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.subscriberSdp);
+        /* bool publish = 3; */
+        if (message.publish !== false)
+            writer.tag(3, WireType.Varint).bool(message.publish);
+        /* stream.video.sfu.models.CodecSettings codec_settings = 4; */
+        if (message.codecSettings)
+            CodecSettings.internalBinaryWrite(message.codecSettings, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -986,11 +906,12 @@ export const JoinRequest = new JoinRequest$Type();
 class JoinResponse$Type extends MessageType<JoinResponse> {
     constructor() {
         super("stream.video.sfu.event.JoinResponse", [
-            { no: 1, name: "call_state", kind: "message", T: () => CallState }
+            { no: 1, name: "call_state", kind: "message", T: () => CallState },
+            { no: 2, name: "own_session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<JoinResponse>): JoinResponse {
-        const message = {};
+        const message = { ownSessionId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<JoinResponse>(this, message, value);
@@ -1003,6 +924,9 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
             switch (fieldNo) {
                 case /* stream.video.sfu.models.CallState call_state */ 1:
                     message.callState = CallState.internalBinaryRead(reader, reader.uint32(), options, message.callState);
+                    break;
+                case /* string own_session_id */ 2:
+                    message.ownSessionId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1019,6 +943,9 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
         /* stream.video.sfu.models.CallState call_state = 1; */
         if (message.callState)
             CallState.internalBinaryWrite(message.callState, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string own_session_id = 2; */
+        if (message.ownSessionId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.ownSessionId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1033,12 +960,12 @@ export const JoinResponse = new JoinResponse$Type();
 class ParticipantJoined$Type extends MessageType<ParticipantJoined> {
     constructor() {
         super("stream.video.sfu.event.ParticipantJoined", [
-            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 1, name: "call", kind: "message", T: () => Call },
             { no: 2, name: "participant", kind: "message", T: () => Participant }
         ]);
     }
     create(value?: PartialMessage<ParticipantJoined>): ParticipantJoined {
-        const message = { callCid: "" };
+        const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ParticipantJoined>(this, message, value);
@@ -1049,8 +976,8 @@ class ParticipantJoined$Type extends MessageType<ParticipantJoined> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_cid */ 1:
-                    message.callCid = reader.string();
+                case /* stream.video.sfu.models.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
                     break;
                 case /* stream.video.sfu.models.Participant participant */ 2:
                     message.participant = Participant.internalBinaryRead(reader, reader.uint32(), options, message.participant);
@@ -1067,9 +994,9 @@ class ParticipantJoined$Type extends MessageType<ParticipantJoined> {
         return message;
     }
     internalBinaryWrite(message: ParticipantJoined, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_cid = 1; */
-        if (message.callCid !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* stream.video.sfu.models.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         /* stream.video.sfu.models.Participant participant = 2; */
         if (message.participant)
             Participant.internalBinaryWrite(message.participant, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
@@ -1087,12 +1014,12 @@ export const ParticipantJoined = new ParticipantJoined$Type();
 class ParticipantLeft$Type extends MessageType<ParticipantLeft> {
     constructor() {
         super("stream.video.sfu.event.ParticipantLeft", [
-            { no: 1, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 1, name: "call", kind: "message", T: () => Call },
             { no: 2, name: "participant", kind: "message", T: () => Participant }
         ]);
     }
     create(value?: PartialMessage<ParticipantLeft>): ParticipantLeft {
-        const message = { callCid: "" };
+        const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ParticipantLeft>(this, message, value);
@@ -1103,8 +1030,8 @@ class ParticipantLeft$Type extends MessageType<ParticipantLeft> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string call_cid */ 1:
-                    message.callCid = reader.string();
+                case /* stream.video.sfu.models.Call call */ 1:
+                    message.call = Call.internalBinaryRead(reader, reader.uint32(), options, message.call);
                     break;
                 case /* stream.video.sfu.models.Participant participant */ 2:
                     message.participant = Participant.internalBinaryRead(reader, reader.uint32(), options, message.participant);
@@ -1121,9 +1048,9 @@ class ParticipantLeft$Type extends MessageType<ParticipantLeft> {
         return message;
     }
     internalBinaryWrite(message: ParticipantLeft, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string call_cid = 1; */
-        if (message.callCid !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.callCid);
+        /* stream.video.sfu.models.Call call = 1; */
+        if (message.call)
+            Call.internalBinaryWrite(message.call, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         /* stream.video.sfu.models.Participant participant = 2; */
         if (message.participant)
             Participant.internalBinaryWrite(message.participant, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
@@ -1138,15 +1065,122 @@ class ParticipantLeft$Type extends MessageType<ParticipantLeft> {
  */
 export const ParticipantLeft = new ParticipantLeft$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class MuteStateChanged$Type extends MessageType<MuteStateChanged> {
+    constructor() {
+        super("stream.video.sfu.event.MuteStateChanged", [
+            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "audio_muted", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 3, name: "video_muted", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<MuteStateChanged>): MuteStateChanged {
+        const message = { userId: "", audioMuted: false, videoMuted: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<MuteStateChanged>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: MuteStateChanged): MuteStateChanged {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string user_id */ 1:
+                    message.userId = reader.string();
+                    break;
+                case /* bool audio_muted */ 2:
+                    message.audioMuted = reader.bool();
+                    break;
+                case /* bool video_muted */ 3:
+                    message.videoMuted = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: MuteStateChanged, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string user_id = 1; */
+        if (message.userId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.userId);
+        /* bool audio_muted = 2; */
+        if (message.audioMuted !== false)
+            writer.tag(2, WireType.Varint).bool(message.audioMuted);
+        /* bool video_muted = 3; */
+        if (message.videoMuted !== false)
+            writer.tag(3, WireType.Varint).bool(message.videoMuted);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.MuteStateChanged
+ */
+export const MuteStateChanged = new MuteStateChanged$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class VideoQualityChanged$Type extends MessageType<VideoQualityChanged> {
+    constructor() {
+        super("stream.video.sfu.event.VideoQualityChanged", [
+            { no: 1, name: "stream_qualities", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => StreamQuality }
+        ]);
+    }
+    create(value?: PartialMessage<VideoQualityChanged>): VideoQualityChanged {
+        const message = { streamQualities: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<VideoQualityChanged>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: VideoQualityChanged): VideoQualityChanged {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated stream.video.sfu.models.StreamQuality stream_qualities */ 1:
+                    message.streamQualities.push(StreamQuality.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: VideoQualityChanged, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated stream.video.sfu.models.StreamQuality stream_qualities = 1; */
+        for (let i = 0; i < message.streamQualities.length; i++)
+            StreamQuality.internalBinaryWrite(message.streamQualities[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.VideoQualityChanged
+ */
+export const VideoQualityChanged = new VideoQualityChanged$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class SubscriberOffer$Type extends MessageType<SubscriberOffer> {
     constructor() {
         super("stream.video.sfu.event.SubscriberOffer", [
-            { no: 1, name: "ice_restart", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 2, name: "sdp", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "sdp", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<SubscriberOffer>): SubscriberOffer {
-        const message = { iceRestart: false, sdp: "" };
+        const message = { sdp: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<SubscriberOffer>(this, message, value);
@@ -1157,10 +1191,7 @@ class SubscriberOffer$Type extends MessageType<SubscriberOffer> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* bool ice_restart */ 1:
-                    message.iceRestart = reader.bool();
-                    break;
-                case /* string sdp */ 2:
+                case /* string sdp */ 1:
                     message.sdp = reader.string();
                     break;
                 default:
@@ -1175,12 +1206,9 @@ class SubscriberOffer$Type extends MessageType<SubscriberOffer> {
         return message;
     }
     internalBinaryWrite(message: SubscriberOffer, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* bool ice_restart = 1; */
-        if (message.iceRestart !== false)
-            writer.tag(1, WireType.Varint).bool(message.iceRestart);
-        /* string sdp = 2; */
+        /* string sdp = 1; */
         if (message.sdp !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.sdp);
+            writer.tag(1, WireType.LengthDelimited).string(message.sdp);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1239,16 +1267,109 @@ class PublisherAnswer$Type extends MessageType<PublisherAnswer> {
  */
 export const PublisherAnswer = new PublisherAnswer$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class LocalDeviceChange$Type extends MessageType<LocalDeviceChange> {
+    constructor() {
+        super("stream.video.sfu.event.LocalDeviceChange", [
+            { no: 1, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<LocalDeviceChange>): LocalDeviceChange {
+        const message = { type: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<LocalDeviceChange>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LocalDeviceChange): LocalDeviceChange {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string type */ 1:
+                    message.type = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: LocalDeviceChange, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string type = 1; */
+        if (message.type !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.type);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.LocalDeviceChange
+ */
+export const LocalDeviceChange = new LocalDeviceChange$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ICECandidateTrickle$Type extends MessageType<ICECandidateTrickle> {
+    constructor() {
+        super("stream.video.sfu.event.ICECandidateTrickle", [
+            { no: 1, name: "candidate", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ICECandidateTrickle>): ICECandidateTrickle {
+        const message = { candidate: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ICECandidateTrickle>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ICECandidateTrickle): ICECandidateTrickle {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string candidate */ 1:
+                    message.candidate = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ICECandidateTrickle, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string candidate = 1; */
+        if (message.candidate !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.candidate);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.ICECandidateTrickle
+ */
+export const ICECandidateTrickle = new ICECandidateTrickle$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class ConnectionQualityChanged$Type extends MessageType<ConnectionQualityChanged> {
     constructor() {
         super("stream.video.sfu.event.ConnectionQualityChanged", [
             { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "connection_quality", kind: "enum", T: () => ["stream.video.sfu.models.ConnectionQuality", ConnectionQuality, "CONNECTION_QUALITY_"] }
+            { no: 2, name: "connection_quality", kind: "enum", T: () => ["stream.video.sfu.models.ConnectionQuality", ConnectionQuality, "CONNECTION_QUALITY_"] }
         ]);
     }
     create(value?: PartialMessage<ConnectionQualityChanged>): ConnectionQualityChanged {
-        const message = { userId: "", sessionId: "", connectionQuality: 0 };
+        const message = { userId: "", connectionQuality: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ConnectionQualityChanged>(this, message, value);
@@ -1262,10 +1383,7 @@ class ConnectionQualityChanged$Type extends MessageType<ConnectionQualityChanged
                 case /* string user_id */ 1:
                     message.userId = reader.string();
                     break;
-                case /* string session_id */ 2:
-                    message.sessionId = reader.string();
-                    break;
-                case /* stream.video.sfu.models.ConnectionQuality connection_quality */ 3:
+                case /* stream.video.sfu.models.ConnectionQuality connection_quality */ 2:
                     message.connectionQuality = reader.int32();
                     break;
                 default:
@@ -1283,12 +1401,9 @@ class ConnectionQualityChanged$Type extends MessageType<ConnectionQualityChanged
         /* string user_id = 1; */
         if (message.userId !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.userId);
-        /* string session_id = 2; */
-        if (message.sessionId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
-        /* stream.video.sfu.models.ConnectionQuality connection_quality = 3; */
+        /* stream.video.sfu.models.ConnectionQuality connection_quality = 2; */
         if (message.connectionQuality !== 0)
-            writer.tag(3, WireType.Varint).int32(message.connectionQuality);
+            writer.tag(2, WireType.Varint).int32(message.connectionQuality);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1303,12 +1418,11 @@ export const ConnectionQualityChanged = new ConnectionQualityChanged$Type();
 class DominantSpeakerChanged$Type extends MessageType<DominantSpeakerChanged> {
     constructor() {
         super("stream.video.sfu.event.DominantSpeakerChanged", [
-            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<DominantSpeakerChanged>): DominantSpeakerChanged {
-        const message = { userId: "", sessionId: "" };
+        const message = { userId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<DominantSpeakerChanged>(this, message, value);
@@ -1321,9 +1435,6 @@ class DominantSpeakerChanged$Type extends MessageType<DominantSpeakerChanged> {
             switch (fieldNo) {
                 case /* string user_id */ 1:
                     message.userId = reader.string();
-                    break;
-                case /* string session_id */ 2:
-                    message.sessionId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1340,9 +1451,6 @@ class DominantSpeakerChanged$Type extends MessageType<DominantSpeakerChanged> {
         /* string user_id = 1; */
         if (message.userId !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.userId);
-        /* string session_id = 2; */
-        if (message.sessionId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1353,67 +1461,6 @@ class DominantSpeakerChanged$Type extends MessageType<DominantSpeakerChanged> {
  * @generated MessageType for protobuf message stream.video.sfu.event.DominantSpeakerChanged
  */
 export const DominantSpeakerChanged = new DominantSpeakerChanged$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class AudioLevel$Type extends MessageType<AudioLevel> {
-    constructor() {
-        super("stream.video.sfu.event.AudioLevel", [
-            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "level", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ }
-        ]);
-    }
-    create(value?: PartialMessage<AudioLevel>): AudioLevel {
-        const message = { userId: "", sessionId: "", level: 0 };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<AudioLevel>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AudioLevel): AudioLevel {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string user_id */ 1:
-                    message.userId = reader.string();
-                    break;
-                case /* string session_id */ 2:
-                    message.sessionId = reader.string();
-                    break;
-                case /* float level */ 3:
-                    message.level = reader.float();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: AudioLevel, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string user_id = 1; */
-        if (message.userId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.userId);
-        /* string session_id = 2; */
-        if (message.sessionId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
-        /* float level = 3; */
-        if (message.level !== 0)
-            writer.tag(3, WireType.Bit32).float(message.level);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message stream.video.sfu.event.AudioLevel
- */
-export const AudioLevel = new AudioLevel$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class AudioLevelChanged$Type extends MessageType<AudioLevelChanged> {
     constructor() {
@@ -1461,6 +1508,133 @@ class AudioLevelChanged$Type extends MessageType<AudioLevelChanged> {
  * @generated MessageType for protobuf message stream.video.sfu.event.AudioLevelChanged
  */
 export const AudioLevelChanged = new AudioLevelChanged$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CallEnded$Type extends MessageType<CallEnded> {
+    constructor() {
+        super("stream.video.sfu.event.CallEnded", [
+            { no: 1, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CallEnded>): CallEnded {
+        const message = { message: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CallEnded>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallEnded): CallEnded {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string message */ 1:
+                    message.message = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CallEnded, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string message = 1; */
+        if (message.message !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.message);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.CallEnded
+ */
+export const CallEnded = new CallEnded$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AudioLevel$Type extends MessageType<AudioLevel> {
+    constructor() {
+        super("stream.video.sfu.event.AudioLevel", [
+            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "level", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AudioLevel>): AudioLevel {
+        const message = { userId: "", level: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AudioLevel>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AudioLevel): AudioLevel {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string user_id */ 1:
+                    message.userId = reader.string();
+                    break;
+                case /* float level */ 2:
+                    message.level = reader.float();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AudioLevel, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string user_id = 1; */
+        if (message.userId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.userId);
+        /* float level = 2; */
+        if (message.level !== 0)
+            writer.tag(2, WireType.Bit32).float(message.level);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.AudioLevel
+ */
+export const AudioLevel = new AudioLevel$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AudioLayerSetting$Type extends MessageType<AudioLayerSetting> {
+    constructor() {
+        super("stream.video.sfu.event.AudioLayerSetting", []);
+    }
+    create(value?: PartialMessage<AudioLayerSetting>): AudioLayerSetting {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AudioLayerSetting>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AudioLayerSetting): AudioLayerSetting {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: AudioLayerSetting, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.AudioLayerSetting
+ */
+export const AudioLayerSetting = new AudioLayerSetting$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class AudioMediaRequest$Type extends MessageType<AudioMediaRequest> {
     constructor() {
@@ -1513,11 +1687,12 @@ class AudioSender$Type extends MessageType<AudioSender> {
     constructor() {
         super("stream.video.sfu.event.AudioSender", [
             { no: 1, name: "media_request", kind: "message", T: () => AudioMediaRequest },
-            { no: 2, name: "codec", kind: "message", T: () => Codec }
+            { no: 2, name: "codec", kind: "message", T: () => Codec },
+            { no: 3, name: "layers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => AudioLayerSetting }
         ]);
     }
     create(value?: PartialMessage<AudioSender>): AudioSender {
-        const message = {};
+        const message = { layers: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<AudioSender>(this, message, value);
@@ -1533,6 +1708,9 @@ class AudioSender$Type extends MessageType<AudioSender> {
                     break;
                 case /* stream.video.sfu.models.Codec codec */ 2:
                     message.codec = Codec.internalBinaryRead(reader, reader.uint32(), options, message.codec);
+                    break;
+                case /* repeated stream.video.sfu.event.AudioLayerSetting layers */ 3:
+                    message.layers.push(AudioLayerSetting.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1552,6 +1730,9 @@ class AudioSender$Type extends MessageType<AudioSender> {
         /* stream.video.sfu.models.Codec codec = 2; */
         if (message.codec)
             Codec.internalBinaryWrite(message.codec, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* repeated stream.video.sfu.event.AudioLayerSetting layers = 3; */
+        for (let i = 0; i < message.layers.length; i++)
+            AudioLayerSetting.internalBinaryWrite(message.layers[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

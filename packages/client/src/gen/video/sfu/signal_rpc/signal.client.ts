@@ -5,8 +5,10 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { SignalServer } from "./signal";
-import type { UpdateMuteStatesResponse } from "./signal";
-import type { UpdateMuteStatesRequest } from "./signal";
+import type { UpdateVideoQualityResponse } from "./signal";
+import type { UpdateVideoQualityRequest } from "./signal";
+import type { UpdateMuteStateResponse } from "./signal";
+import type { UpdateMuteStateRequest } from "./signal";
 import type { UpdateSubscriptionsResponse } from "./signal";
 import type { UpdateSubscriptionsRequest } from "./signal";
 import type { ICETrickleResponse } from "./signal";
@@ -48,9 +50,13 @@ export interface ISignalServerClient {
      */
     updateSubscriptions(input: UpdateSubscriptionsRequest, options?: RpcOptions): UnaryCall<UpdateSubscriptionsRequest, UpdateSubscriptionsResponse>;
     /**
-     * @generated from protobuf rpc: UpdateMuteStates(stream.video.sfu.signal.UpdateMuteStatesRequest) returns (stream.video.sfu.signal.UpdateMuteStatesResponse);
+     * @generated from protobuf rpc: UpdateMuteState(stream.video.sfu.signal.UpdateMuteStateRequest) returns (stream.video.sfu.signal.UpdateMuteStateResponse);
      */
-    updateMuteStates(input: UpdateMuteStatesRequest, options?: RpcOptions): UnaryCall<UpdateMuteStatesRequest, UpdateMuteStatesResponse>;
+    updateMuteState(input: UpdateMuteStateRequest, options?: RpcOptions): UnaryCall<UpdateMuteStateRequest, UpdateMuteStateResponse>;
+    /**
+     * @generated from protobuf rpc: RequestVideoQuality(stream.video.sfu.signal.UpdateVideoQualityRequest) returns (stream.video.sfu.signal.UpdateVideoQualityResponse);
+     */
+    requestVideoQuality(input: UpdateVideoQualityRequest, options?: RpcOptions): UnaryCall<UpdateVideoQualityRequest, UpdateVideoQualityResponse>;
 }
 /**
  * @generated from protobuf service stream.video.sfu.signal.SignalServer
@@ -99,10 +105,17 @@ export class SignalServerClient implements ISignalServerClient, ServiceInfo {
         return stackIntercept<UpdateSubscriptionsRequest, UpdateSubscriptionsResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: UpdateMuteStates(stream.video.sfu.signal.UpdateMuteStatesRequest) returns (stream.video.sfu.signal.UpdateMuteStatesResponse);
+     * @generated from protobuf rpc: UpdateMuteState(stream.video.sfu.signal.UpdateMuteStateRequest) returns (stream.video.sfu.signal.UpdateMuteStateResponse);
      */
-    updateMuteStates(input: UpdateMuteStatesRequest, options?: RpcOptions): UnaryCall<UpdateMuteStatesRequest, UpdateMuteStatesResponse> {
+    updateMuteState(input: UpdateMuteStateRequest, options?: RpcOptions): UnaryCall<UpdateMuteStateRequest, UpdateMuteStateResponse> {
         const method = this.methods[4], opt = this._transport.mergeOptions(options);
-        return stackIntercept<UpdateMuteStatesRequest, UpdateMuteStatesResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<UpdateMuteStateRequest, UpdateMuteStateResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: RequestVideoQuality(stream.video.sfu.signal.UpdateVideoQualityRequest) returns (stream.video.sfu.signal.UpdateVideoQualityResponse);
+     */
+    requestVideoQuality(input: UpdateVideoQualityRequest, options?: RpcOptions): UnaryCall<UpdateVideoQualityRequest, UpdateVideoQualityResponse> {
+        const method = this.methods[5], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UpdateVideoQualityRequest, UpdateVideoQualityResponse>("unary", this._transport, method, opt, input);
     }
 }
