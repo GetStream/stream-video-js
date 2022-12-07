@@ -14,16 +14,21 @@
   },
   "peerDependencies": {
     "react": ">=17.0.0",
-    "react-native": ">=0.68.0",
+    "react-native": ">=0.67.0",
+    "react-native-callkeep": "^4.3.3",
+    "react-native-incall-manager": "^4.0.0",
     "react-native-svg": ">=13.6.0",
     "react-native-webrtc": ">=106.0.0-beta.7"
   },
   "devDependencies": {
-    "@types/react": "17.0.52",
-    "@types/react-native": "^0.70.6",
+    "@types/react": "18.0.25",
+    "@types/react-native": "^0.70.4",
+    "@types/react-native-incall-manager": "^3.2.1",
     "@types/rimraf": "^3.0.2",
+    "react-native-callkeep": "^4.3.3",
+    "react-native-incall-manager": "^4.0.0",
     "react-native-svg": "^13.6.0",
-    "react-native-webrtc": ">=106.0.0-beta.7",
+    "react-native-webrtc": "106.0.0-beta.7",
     "rimraf": "^3.0.2",
     "typescript": "^4.9.3"
   },

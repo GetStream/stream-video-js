@@ -17,14 +17,11 @@ export const watchCallCreatedEvent = (
       console.warn("Can't find call in CallCreated event");
       return;
     } else {
-      const currentIncomingRingCalls = store.getCurrentValue(
-        store.incomingRingCallsSubject,
-      );
       store.setCurrentValue(store.activeRingCallDetailsSubject, callDetails);
-      store.setCurrentValue(store.incomingRingCallsSubject, [
-        ...currentIncomingRingCalls,
-        call,
-      ]);
+      store.setCurrentValue(
+        store.incomingRingCallsSubject,
+        (currentIncomingRingCalls) => [...currentIncomingRingCalls, call],
+      );
     }
   });
 };
@@ -39,15 +36,13 @@ export const watchCallAcceptedEvent = (
       console.warn("Can't find call in CallAccepted event");
       return;
     } else {
-      const currentIncomingRingCalls = store.getCurrentValue(
-        store.incomingRingCallsSubject,
-      );
       store.setCurrentValue(
         store.incomingRingCallsSubject,
-        currentIncomingRingCalls.filter(
-          (currentIncomingRingCall) =>
-            currentIncomingRingCall.callCid !== call.callCid,
-        ),
+        (currentIncomingRingCalls) =>
+          currentIncomingRingCalls.filter(
+            (currentIncomingRingCall) =>
+              currentIncomingRingCall.callCid !== call.callCid,
+          ),
       );
     }
   });
@@ -63,15 +58,13 @@ export const watchCallRejectedEvent = (
       console.warn("Can't find call in CallRejected event");
       return;
     } else {
-      const currentIncomingRingCalls = store.getCurrentValue(
-        store.incomingRingCallsSubject,
-      );
       store.setCurrentValue(store.activeRingCallMetaSubject, undefined);
       store.setCurrentValue(
         store.incomingRingCallsSubject,
-        currentIncomingRingCalls.filter(
-          (incomingRingCall) => incomingRingCall.callCid !== call.callCid,
-        ),
+        (currentIncomingRingCalls) =>
+          currentIncomingRingCalls.filter(
+            (incomingRingCall) => incomingRingCall.callCid !== call.callCid,
+          ),
       );
     }
   });

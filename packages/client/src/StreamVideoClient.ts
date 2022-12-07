@@ -34,10 +34,8 @@ import {
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
 import { registerWSEventHandlers } from './ws/callUserEventHandlers';
-import {
-  WebsocketClientEvent,
-  WebsocketHealthcheck,
-} from './gen/video/coordinator/client_v1_rpc/websocket';
+import { reportStats } from './stats/coordinator-stats-reporter';
+import { Timestamp } from './gen/google/protobuf/timestamp';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   coordinatorRpcUrl:
@@ -62,6 +60,8 @@ export class StreamVideoClient {
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWSClient | undefined;
+  // TODO: this should come from the store
+  private activeCallId?: string;
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -91,6 +91,11 @@ export class StreamVideoClient {
     this.writeableStateStore = new StreamVideoWriteableStateStore();
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
       this.writeableStateStore,
+    );
+    reportStats(
+      this.readOnlyStateStore,
+      (e) => this.reportCallStats(e),
+      (e) => this.reportCallStatEvent(e),
     );
   }
 
@@ -158,23 +163,6 @@ export class StreamVideoClient {
   };
 
   /**
-   *
-   * @param hc
-   *
-   * @deprecated We should move this functionality inside the client and make this an internal function.
-   */
-  setHealthcheckPayload = (hc: WebsocketHealthcheck) => {
-    this.ws?.keepAlive.setPayload(
-      WebsocketClientEvent.toBinary({
-        event: {
-          oneofKind: 'healthcheck',
-          healthcheck: hc,
-        },
-      }),
-    );
-  };
-
-  /**
    * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, it will return the existing call.
    * @param data
    * @returns A call metadata with information about the call.
@@ -230,14 +218,12 @@ export class StreamVideoClient {
   joinCall = async (data: JoinCallRequest, sessionId?: string) => {
     const { response } = await this.client.joinCall(data);
     if (response.call && response.call.call && response.edges) {
-      const edge = await this.getCallEdgeServer(
-        response.call.call,
-        response.edges,
-      );
+      const callMeta = response.call.call;
+      const edge = await this.getCallEdgeServer(callMeta, response.edges);
       if (data.input?.ring) {
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.activeRingCallMetaSubject,
-          response.call.call,
+          callMeta,
         );
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.activeRingCallDetailsSubject,
@@ -249,12 +235,17 @@ export class StreamVideoClient {
         const selectedEdge = response.edges.find((e) => e.name === edgeName);
         const { server, iceServers, token } = edge.credentials;
         const sfuClient = new StreamSfuClient(server.url, token, sessionId);
+        this.activeCallId = callMeta.callCid;
+
+        // TODO OL: compute the initial value from `activeCallSubject`
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.callRecordingInProgressSubject,
+          callMeta.recordingActive,
+        );
         return new Call(
           sfuClient,
           {
-            connectionConfig:
-              this.toRtcConfiguration(iceServers) ||
-              this.defaultRtcConfiguration(server.url),
+            connectionConfig: this.toRtcConfiguration(iceServers),
             latencyCheckUrl: selectedEdge?.latencyUrl,
             edgeName,
           },
@@ -295,14 +286,25 @@ export class StreamVideoClient {
   };
 
   /**
-   * We should make this an internal method, SDKs shouldn't need this.
+   * Reports call WebRTC metrics to coordinator API
    * @param stats
    * @returns
    */
-  reportCallStats = async (
-    stats: ReportCallStatsRequest,
+  private reportCallStats = async (
+    stats: Object,
   ): Promise<ReportCallStatsResponse> => {
-    const response = await this.client.reportCallStats(stats);
+    // const callCid = this.writeableStateStore.getCurrentValue(
+    //   this.writeableStateStore.activeRingCallMetaSubject,
+    // )?.callCid;
+    const callCid = this.activeCallId;
+    if (!callCid) {
+      throw new Error('No active CallMeta ID found');
+    }
+    const request: ReportCallStatsRequest = {
+      callCid,
+      statsJson: new TextEncoder().encode(JSON.stringify(stats)),
+    };
+    const response = await this.client.reportCallStats(request);
     return response.response;
   };
 
@@ -342,32 +344,27 @@ export class StreamVideoClient {
     return rtcConfig;
   };
 
-  private defaultRtcConfiguration = (sfuUrl: string): RTCConfiguration => ({
-    iceServers: [
-      {
-        urls: 'stun:stun.l.google.com:19302',
-      },
-      {
-        urls: `turn:${this.hostnameFromUrl(sfuUrl)}:3478`,
-        username: 'video',
-        credential: 'video',
-      },
-    ],
-  });
-
-  private hostnameFromUrl = (url: string) => {
-    try {
-      return new URL(url).hostname;
-    } catch (e) {
-      console.warn(`Invalid URL. Can't extract hostname from it.`, e);
-      return url;
-    }
-  };
-
-  reportCallStatEvent = async (
-    statEvent: ReportCallStatEventRequest,
+  /**
+   * Reports call events (for example local participant muted themselves) to the coordinator API
+   * @param statEvent
+   * @returns
+   */
+  private reportCallStatEvent = async (
+    statEvent: ReportCallStatEventRequest['event'],
   ): Promise<ReportCallStatEventResponse> => {
-    const response = await this.client.reportCallStatEvent(statEvent);
+    // const callCid = this.writeableStateStore.getCurrentValue(
+    //   this.writeableStateStore.activeRingCallMetaSubject,
+    // )?.callCid;
+    const callCid = this.activeCallId;
+    if (!callCid) {
+      throw new Error('No active CallMeta ID found');
+    }
+    const request: ReportCallStatEventRequest = {
+      callCid,
+      timestamp: Timestamp.fromDate(new Date()),
+      event: statEvent,
+    };
+    const response = await this.client.reportCallStatEvent(request);
     return response.response;
   };
 

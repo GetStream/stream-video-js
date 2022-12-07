@@ -5,8 +5,8 @@
   "dependencies": {
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
-    "@mui/icons-material": "^5.10.9",
-    "@mui/material": "^5.10.12",
+    "@mui/icons-material": "^5.10.16",
+    "@mui/material": "^5.10.16",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
@@ -16,7 +16,7 @@
   "devDependencies": {
     "@types/node": "^18.11.9",
     "@types/react": "^18.0.25",
-    "@types/react-dom": "^18.0.8",
+    "@types/react-dom": "^18.0.9",
     "@types/rimraf": "^3.0.2",
     "react-scripts": "5.0.1",
     "rimraf": "^3.0.2",
