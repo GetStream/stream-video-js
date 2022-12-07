@@ -13,14 +13,14 @@
     ></video>
     <div class="str-video__participant_details">
       <span class="str-video__participant_name">
-        {{ participant?.user?.id }}
+        {{ participant?.userId }}
         <span
-          *ngIf="!participant?.audio"
+          *ngIf="!participant?.publishedTracks?.includes(TrackType.AUDIO)"
           class="str-video__participant_name--audio-muted"
         >
         </span>
         <span
-          *ngIf="!participant?.video"
+          *ngIf="!participant?.publishedTracks?.includes(TrackType.VIDEO)"
           class="str-video__participant_name--video-muted"
         >
         </span>

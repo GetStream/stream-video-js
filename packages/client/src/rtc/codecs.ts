@@ -1,13 +1,3 @@
-import * as SDPTransform from 'sdp-transform';
-import { defaultVideoLayers } from './videoLayers';
-import type { Codec } from '../gen/video/sfu/models/models';
-
-export const defaultVideoPublishEncodings: RTCRtpEncodingParameters[] =
-  defaultVideoLayers.map((layer) => ({
-    ...layer,
-    active: true,
-  }));
-
 export const getPreferredCodecs = (
   kind: 'audio' | 'video',
   videoCodec: string,
@@ -55,74 +45,17 @@ export const getPreferredCodecs = (
   ] as RTCRtpCodecCapability[];
 };
 
-export const getSenderCodecs = async (
-  kind: 'audio' | 'video',
-  pc?: RTCPeerConnection,
-) => {
-  if (!('getCapabilities' in RTCRtpSender)) {
-    console.warn('RTCRtpSender.getCapabilities is not supported');
-    return getCodecsFromPeerConnection(pc, kind, 'sendonly');
-  }
-  console.log('sender cap', RTCRtpSender.getCapabilities(kind));
-  return RTCRtpSender.getCapabilities(kind)?.codecs.map(toCodec) ?? [];
-};
+export const getGenericSdp = async (direction: RTCRtpTransceiverDirection) => {
+  const tempPc = new RTCPeerConnection();
+  tempPc.addTransceiver('audio', { direction });
+  tempPc.addTransceiver('video', { direction });
 
-export const getReceiverCodecs = async (
-  kind: 'audio' | 'video',
-  pc?: RTCPeerConnection,
-) => {
-  if (!('getCapabilities' in RTCRtpReceiver)) {
-    console.warn('RTCRtpReceiver.getCapabilities is not supported');
-    return getCodecsFromPeerConnection(pc, kind, 'recvonly');
-  }
-  console.log('receiver cap', RTCRtpReceiver.getCapabilities(kind));
-  return RTCRtpReceiver.getCapabilities(kind)?.codecs.map(toCodec) ?? [];
-};
+  const offer = await tempPc.createOffer();
+  const sdp = offer.sdp;
 
-const toCodec = (codec: RTCRtpCodecCapability): Codec => ({
-  hwAccelerated: true,
-  clockRate: codec.clockRate,
-  fmtpLine: codec.sdpFmtpLine || '',
-  mime: codec.mimeType,
-});
-
-const getCodecsFromPeerConnection = async (
-  pc: RTCPeerConnection | undefined,
-  kind: 'audio' | 'video',
-  direction: RTCRtpTransceiverDirection,
-) => {
-  let sdp =
-    direction === 'sendonly'
-      ? pc?.localDescription?.sdp
-      : direction === 'recvonly'
-      ? pc?.remoteDescription?.sdp
-      : null;
-
-  if (!sdp) {
-    const tempPc = new RTCPeerConnection();
-    const transceiver = tempPc.addTransceiver(kind);
-    transceiver.direction = direction;
-
-    const offer = await tempPc.createOffer();
-    sdp = offer.sdp;
-    tempPc.close();
-  }
-
-  const parsedSdp = SDPTransform.parse(sdp || '');
-  const supportedCodecs: Codec[] = [];
-  parsedSdp.media.forEach((media) => {
-    if (media.type === kind) {
-      media.rtp.forEach((rtp) => {
-        const fmtpLine = media.fmtp.find((f) => f.payload === rtp.payload);
-        supportedCodecs.push({
-          hwAccelerated: true,
-          clockRate: rtp.rate ?? 0,
-          fmtpLine: fmtpLine?.config ?? '',
-          mime: `${kind}/${rtp.codec}`,
-        });
-      });
-    }
+  tempPc.getTransceivers().forEach((t) => {
+    t.stop();
   });
-
-  return supportedCodecs;
+  tempPc.close();
+  return sdp;
 };

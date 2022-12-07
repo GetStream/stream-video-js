@@ -1,5 +1,11 @@
 import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
-import { take, map, pairwise, startWith } from 'rxjs/operators';
+import {
+  distinctUntilChanged,
+  map,
+  pairwise,
+  startWith,
+  take,
+} from 'rxjs/operators';
 import { Call } from './rtc/Call';
 import type { UserInput } from './gen/video/coordinator/user_v1/user';
 import {
@@ -7,10 +13,13 @@ import {
   CallDetails,
 } from './gen/video/coordinator/call_v1/call';
 import type {
-  StreamVideoParticipant,
   StreamVideoLocalParticipant,
+  StreamVideoParticipant,
+  StreamVideoParticipantPatch,
 } from './rtc/types';
+import { StreamVideoParticipantPatches } from './rtc/types';
 import type { CallStatsReport } from './stats/types';
+import { TrackType } from './gen/video/sfu/models/models';
 
 export class StreamVideoWriteableStateStore {
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
@@ -32,7 +41,9 @@ export class StreamVideoWriteableStateStore {
   activeCallRemoteParticipantSubject = new BehaviorSubject<
     StreamVideoParticipant[]
   >([]);
-  dominantSpeakerSubject = new BehaviorSubject<string | undefined>(undefined);
+  dominantSpeakerSubject = new BehaviorSubject<
+    StreamVideoParticipant | undefined
+  >(undefined);
   callStatsReportSubject = new BehaviorSubject<CallStatsReport | undefined>(
     undefined,
   );
@@ -52,6 +63,7 @@ export class StreamVideoWriteableStateStore {
    * Pinned participants of the current call.
    */
   pinnedParticipants$: Observable<StreamVideoParticipant[]>;
+  hasOngoingScreenShare$: Observable<boolean>;
 
   constructor() {
     this.terminatedRingCallMeta$ = this.activeRingCallMetaSubject.pipe(
@@ -84,6 +96,15 @@ export class StreamVideoWriteableStateStore {
         this.setCurrentValue(this.activeCallAllParticipantsSubject, []);
       }
     });
+
+    this.hasOngoingScreenShare$ = this.activeCallAllParticipantsSubject.pipe(
+      map((participants) => {
+        return participants.some((p) =>
+          p.publishedTracks.includes(TrackType.SCREEN_SHARE),
+        );
+      }),
+      distinctUntilChanged(),
+    );
   }
 
   getCurrentValue<T>(observable: Observable<T>) {
@@ -93,9 +114,108 @@ export class StreamVideoWriteableStateStore {
     return value;
   }
 
-  setCurrentValue<T>(subject: Subject<T>, value: T) {
-    subject.next(value);
+  /**
+   * Updates the value of the provided Subject.
+   * An `update` can either be a new value or a function which takes
+   * the current value and returns a new value.
+   *
+   * @param subject the subject to update.
+   * @param update the update to apply to the subject.
+   * @return the updated value.
+   */
+  setCurrentValue<T>(
+    subject: Subject<T>,
+    update: T | ((currentValue: T) => T),
+  ) {
+    const currentValue = this.getCurrentValue(subject);
+    const next =
+      // TypeScript needs more context to infer the type of update
+      typeof update === 'function' && update instanceof Function
+        ? update(currentValue)
+        : update;
+
+    subject.next(next);
+    return this.getCurrentValue(subject);
   }
+
+  /**
+   * Will try to find the participant with the given sessionId in the active call.
+   *
+   * @param sessionId the sessionId of the participant to find.
+   * @returns the participant with the given sessionId or undefined if not found.
+   */
+  findParticipantBySessionId = (
+    sessionId: string,
+  ): StreamVideoParticipant | undefined => {
+    const participants = this.getCurrentValue(
+      this.activeCallAllParticipantsSubject,
+    );
+    return participants.find((p) => p.sessionId === sessionId);
+  };
+
+  /**
+   * Updates a participant in the active call identified by the given `sessionId`.
+   * If the participant can't be found, this operation is no-op.
+   *
+   * @param sessionId the session ID of the participant to update.
+   * @param patch the patch to apply to the participant.
+   * @returns the updated participant or `undefined` if the participant couldn't be found.
+   */
+  updateParticipant = (
+    sessionId: string,
+    patch:
+      | StreamVideoParticipantPatch
+      | ((p: StreamVideoParticipant) => StreamVideoParticipantPatch),
+  ) => {
+    const participant = this.findParticipantBySessionId(sessionId);
+    if (!participant) {
+      console.warn(`Participant with sessionId ${sessionId} not found`);
+      return;
+    }
+
+    const thePatch = typeof patch === 'function' ? patch(participant) : patch;
+    const updatedParticipant:
+      | StreamVideoParticipant
+      | StreamVideoLocalParticipant = {
+      // FIXME OL: this is not a deep merge, we might want to revisit this
+      ...participant,
+      ...thePatch,
+    };
+    return this.setCurrentValue(
+      this.activeCallAllParticipantsSubject,
+      (participants) =>
+        participants.map((p) =>
+          p.sessionId === sessionId ? updatedParticipant : p,
+        ),
+    );
+  };
+
+  /**
+   * Updates all participants in the active call whose session ID is in the given `sessionIds`.
+   * If no patch are provided, this operation is no-op.
+   *
+   * @param patch the patch to apply to the participants.
+   * @returns all participants, with all patch applied.
+   */
+  updateParticipants = (patch: StreamVideoParticipantPatches) => {
+    if (Object.keys(patch).length === 0) {
+      return;
+    }
+    return this.setCurrentValue(
+      this.activeCallAllParticipantsSubject,
+      (participants) =>
+        participants.map((p) => {
+          const thePatch = patch[p.sessionId];
+          if (thePatch) {
+            return {
+              ...p,
+              ...thePatch,
+            };
+          }
+          return p;
+        }),
+    );
+  };
 }
 
 /**
@@ -116,9 +236,9 @@ export class StreamVideoReadOnlyStateStore {
   activeRingCallDetails$: Observable<CallDetails | undefined>;
   incomingRingCalls$: Observable<CallMeta[]>;
   /**
-   * The ID of the currently speaking user.
+   * The currently elected dominant speaker in the active call.
    */
-  dominantSpeaker$: Observable<string | undefined>;
+  dominantSpeaker$: Observable<StreamVideoParticipant | undefined>;
   terminatedRingCallMeta$: Observable<CallMeta | undefined>;
 
   /**
@@ -137,6 +257,18 @@ export class StreamVideoReadOnlyStateStore {
   activeCallLocalParticipant$: Observable<
     StreamVideoLocalParticipant | undefined
   >;
+
+  /**
+   * Emits true whenever there is an active screen sharing session within
+   * the current call. Useful for displaying a "screen sharing" indicator and
+   * switching the layout to a screen sharing layout.
+   *
+   * The actual screen sharing track isn't exposed here, but can be retrieved
+   * from the list of call participants. We also don't want to be limiting
+   * to the number of share screen tracks are displayed in a call.
+   */
+  hasOngoingScreenShare$: Observable<boolean>;
+
   /**
    * The latest stats report of the current call.
    * When stats gathering is enabled, this observable will emit a new value
@@ -169,6 +301,8 @@ export class StreamVideoReadOnlyStateStore {
     this.activeCallRemoteParticipants$ = store.activeCallRemoteParticipants$;
     this.activeCallLocalParticipant$ = store.activeCallLocalParticipant$;
     this.terminatedRingCallMeta$ = store.terminatedRingCallMeta$;
+
+    this.hasOngoingScreenShare$ = store.hasOngoingScreenShare$;
   }
 
   /**
