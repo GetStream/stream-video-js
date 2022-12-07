@@ -46,6 +46,14 @@ export class StreamVideoWriteableStateStore {
     (CallRejected | CallCancelled)[]
   >([]);
   /**
+   * A collection of local user's call rejections or cancellations;
+   */
+  myHangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
+  /**
+   * A collection of remote users' call rejections or cancellations;
+   */
+  remoteHangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
+  /**
    * A store that keeps reference to a call controller instance.
    */
   activeCallSubject = new BehaviorSubject<CallController | undefined>(
@@ -103,6 +111,19 @@ export class StreamVideoWriteableStateStore {
         pendingCalls.filter(
           (call) => call.call?.createdByUserId === connectedUser?.id,
         ),
+      ),
+    );
+
+    this.myHangupNotifications$ = this.hangupNotificationsSubject.pipe(
+      combineLatestWith(this.connectedUserSubject),
+      map(([hangups, connectedUser]) =>
+        hangups.filter((hangup) => hangup.senderUserId === connectedUser?.id),
+      ),
+    );
+    this.remoteHangupNotifications$ = this.hangupNotificationsSubject.pipe(
+      combineLatestWith(this.connectedUserSubject),
+      map(([hangups, connectedUser]) =>
+        hangups.filter((hangup) => hangup.senderUserId !== connectedUser?.id),
       ),
     );
 
@@ -166,6 +187,14 @@ export class StreamVideoReadOnlyStateStore {
    */
   hangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
   /**
+   * A collection of local user's call rejections or cancellations;
+   */
+  myHangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
+  /**
+   * A collection of remote users' call rejections or cancellations;
+   */
+  remoteHangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
+  /**
    * The call controller instance representing the call the user attends.
    * The controller instance exposes call metadata as well.
    */
@@ -213,6 +242,8 @@ export class StreamVideoReadOnlyStateStore {
     this.outgoingCalls$ = store.outgoingCalls$;
     this.acceptedCall$ = store.acceptedCallSubject.asObservable();
     this.hangupNotifications$ = store.hangupNotificationsSubject.asObservable();
+    this.myHangupNotifications$ = store.myHangupNotifications$;
+    this.remoteHangupNotifications$ = store.remoteHangupNotifications$;
     this.activeCall$ = store.activeCallSubject.asObservable();
     this.participants$ = store.participantsSubject.asObservable();
     this.localParticipant$ = store.localParticipant$;
