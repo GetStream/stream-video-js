@@ -4,7 +4,7 @@ type Props = {
   color: string;
 };
 
-const Mic = ({ color }: Props) => (
+export const Mic = ({ color }: Props) => (
   <Svg viewBox="0 0 22 28">
     <Path
       d="M11 17.6c2.459 0 4.444-1.923 4.444-4.305V4.683C15.444 2.301 13.46.378 11 .378 8.54.378 6.555 2.3 6.555 4.683v8.612c0 2.382 1.986 4.305 4.445 4.305Z"
@@ -16,5 +16,3 @@ const Mic = ({ color }: Props) => (
     />
   </Svg>
 );
-
-export default Mic;

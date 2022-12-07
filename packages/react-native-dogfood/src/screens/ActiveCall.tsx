@@ -1,27 +1,41 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import CallControls from '../components/CallControls';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../../types';
-import { CallParticipantsView } from '@stream-io/video-react-native-sdk';
+import {
+  CallControlsView,
+  CallParticipantsView,
+  useActiveCall,
+  useCallKeep,
+  useTerminatedRingCall,
+} from '@stream-io/video-react-native-sdk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ActiveCall'>;
 
-export default (_props: Props) => {
+export default (props: Props) => {
+  const activeCall = useActiveCall();
+  const terminatedRingCall = useTerminatedRingCall();
+  const { navigation } = props;
+  const { startCall, endCall } = useCallKeep();
+
+  useEffect(() => {
+    startCall();
+    if (!activeCall || terminatedRingCall) {
+      endCall();
+      navigation.navigate('HomeScreen');
+    }
+  }, [activeCall, terminatedRingCall, startCall, endCall, navigation]);
+
   return (
-    <SafeAreaView style={styles.body}>
+    <>
       <View style={styles.callParticipantsWrapper}>
         <CallParticipantsView />
       </View>
-      <CallControls />
-    </SafeAreaView>
+      <CallControlsView />
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  body: {
-    flex: 1,
-  },
   callParticipantsWrapper: { flex: 1, marginBottom: -20 },
 });

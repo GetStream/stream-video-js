@@ -1,11 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { SfuModels } from '@stream-io/video-client';
 
-import PhoneDown from '../icons/PhoneDown';
-import Video from '../icons/Video';
-import VideoSlash from '../icons/VideoSlash';
-import Mic from '../icons/Mic';
-import MicOff from '../icons/MicOff';
 import { RTCView } from 'react-native-webrtc';
 import { UserInfoView } from './UserInfoView';
 import {
@@ -17,8 +13,9 @@ import {
   useTerminatedRingCall,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
+import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
+import { useCall, useCallControls, useCallKeep } from '../hooks';
 import InCallManager from 'react-native-incall-manager';
-import { useCallKeep } from '../hooks/useCallKeep';
 
 export type OutgoingCallViewProps = {
   /**
@@ -34,7 +31,9 @@ export type OutgoingCallViewProps = {
 const Background: React.FC = () => {
   const localParticipant = useLocalParticipant();
   const localVideoStream = localParticipant?.videoStream;
-  const isVideoMuted = !localParticipant?.video;
+  const isVideoMuted = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
 
   if (isVideoMuted)
     return <View style={[StyleSheet.absoluteFill, styles.background]} />;
@@ -53,16 +52,15 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
   onHangupCall,
   onCallAccepted,
 }) => {
+  const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
+    useCallControls();
+  const { hangupCall } = useCall();
   const client = useStreamVideoClient();
   const activeCall = useActiveCall();
-  const localParticipant = useLocalParticipant();
-  const terminatedRingCall = useTerminatedRingCall();
   const activeRingCallMeta = useActiveRingCall();
+  const terminatedRingCall = useTerminatedRingCall();
   const remoteParticipants = useRemoteParticipants();
   const { endCall } = useCallKeep();
-
-  const isAudioMuted = !localParticipant?.audio;
-  const isVideoMuted = !localParticipant?.video;
 
   const hangupHandler = useCallback(async () => {
     if (!activeCall) {
@@ -91,23 +89,18 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [terminatedRingCall, remoteParticipants]);
 
-  // To terminate call after a certain duration of time. Currently let to 10 seconds.
+  // To terminate call after a certain duration of time. Currently set to 10 seconds.
   useEffect(() => {
     const terminateCallAtMilliSeconds = 10000;
-    const timerId = setTimeout(() => {
-      hangupHandler();
-    }, terminateCallAtMilliSeconds);
+    let timerId: ReturnType<typeof setTimeout>;
+    if (remoteParticipants.length === 0) {
+      timerId = setTimeout(() => {
+        hangupHandler();
+      }, terminateCallAtMilliSeconds);
+    }
 
     return () => clearTimeout(timerId);
-  }, [hangupHandler]);
-
-  const videoToggle = async () => {
-    await activeCall?.updateMuteState('video', !isVideoMuted);
-  };
-
-  const audioToggle = async () => {
-    await activeCall?.updateMuteState('audio', !isAudioMuted);
-  };
+  }, [hangupHandler, remoteParticipants]);
 
   return (
     <>
@@ -117,7 +110,7 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
         <View style={styles.buttons}>
           <View style={styles.deviceControlButtons}>
             <CallControlsButton
-              onPress={audioToggle}
+              onPress={toggleAudioState}
               colorKey={!isAudioMuted ? 'activated' : 'deactivated'}
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}
@@ -125,7 +118,7 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
               {isAudioMuted ? <MicOff color="#fff" /> : <Mic color="#000" />}
             </CallControlsButton>
             <CallControlsButton
-              onPress={videoToggle}
+              onPress={toggleVideoState}
               colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}
@@ -139,7 +132,7 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
           </View>
 
           <CallControlsButton
-            onPress={hangupHandler}
+            onPress={hangupCall}
             colorKey={'cancel'}
             style={[styles.buttonStyle, styles.hangupButton]}
             svgContainerStyle={styles.svgStyle}

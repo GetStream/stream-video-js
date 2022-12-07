@@ -1,14 +1,17 @@
-import {
-  type VideoDimension,
-  VideoQuality,
-} from './gen/video/sfu/models/models';
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
 import { createSignalClient, withHeaders } from './rpc';
 import { createWebSocketSignalChannel } from './rtc/signal';
-import { SfuRequest } from './gen/video/sfu/event/events';
+import { JoinRequest, SfuRequest } from './gen/video/sfu/event/events';
 import { Dispatcher } from './rtc/Dispatcher';
 import { v4 as uuidv4 } from 'uuid';
 import { IceTrickleBuffer } from './rtc/IceTrickleBuffer';
+import {
+  SendAnswerRequest,
+  SetPublisherRequest,
+  TrackSubscriptionDetails,
+  UpdateMuteStatesRequest,
+} from './gen/video/sfu/signal_rpc/signal';
+import { ICETrickle, TrackType } from './gen/video/sfu/models/models';
 
 const hostnameFromUrl = (url: string) => {
   try {
@@ -30,18 +33,15 @@ const toURL = (url: string) => {
 export class StreamSfuClient {
   readonly dispatcher = new Dispatcher();
   readonly iceTrickleBuffer = new IceTrickleBuffer();
-  sfuHost: string;
   // we generate uuid session id client side
-  sessionId: string;
-
-  rpc: SignalServerClient;
+  readonly sessionId: string;
+  private readonly rpc: SignalServerClient;
   // Current JWT token
-  token: string;
+  private readonly token: string;
   signalReady: Promise<WebSocket>;
-  private keepAliveInterval: any;
+  private keepAliveInterval?: NodeJS.Timeout;
 
   constructor(url: string, token: string, sessionId?: string) {
-    this.sfuHost = hostnameFromUrl(url);
     this.sessionId = sessionId || uuidv4();
     this.token = token;
     this.rpc = createSignalClient({
@@ -54,8 +54,9 @@ export class StreamSfuClient {
     });
 
     // FIXME: OL: this should come from the coordinator API
-    let wsEndpoint = `ws://${this.sfuHost}:3031/ws`;
-    if (!['localhost', '127.0.0.1'].includes(this.sfuHost)) {
+    const sfuHost = hostnameFromUrl(url);
+    let wsEndpoint = `ws://${sfuHost}:3031/ws`;
+    if (!['localhost', '127.0.0.1'].includes(sfuHost)) {
       const sfuUrl = toURL(url);
       if (sfuUrl) {
         sfuUrl.protocol = 'wss:';
@@ -94,58 +95,72 @@ export class StreamSfuClient {
     });
   };
 
-  updateAudioMuteState = async (muted: boolean) => {
-    const { response } = this.rpc.updateMuteState({
+  updateSubscriptions = async (subscriptions: TrackSubscriptionDetails[]) => {
+    return this.rpc.updateSubscriptions({
       sessionId: this.sessionId,
-      mute: {
-        oneofKind: 'audioMuteChanged',
-        audioMuteChanged: {
-          muted,
-        },
-      },
+      tracks: subscriptions,
     });
-    return response;
   };
 
-  updateVideoMuteState = async (muted: boolean) => {
-    const { response } = await this.rpc.updateMuteState({
+  setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
+    return this.rpc.setPublisher({
+      ...data,
       sessionId: this.sessionId,
-      mute: {
-        oneofKind: 'videoMuteChanged',
-        videoMuteChanged: {
-          muted,
-        },
-      },
     });
-    return response;
   };
 
-  // FIXME: OL: introduced as a dev-tool. Do we need to keep it?
-  requestVideoQuality = async (forUserId: string, quality: VideoQuality) => {
-    return this.rpc.requestVideoQuality({
+  sendAnswer = async (data: Omit<SendAnswerRequest, 'sessionId'>) => {
+    return this.rpc.sendAnswer({
+      ...data,
       sessionId: this.sessionId,
-      streamQualities: [
+    });
+  };
+
+  iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
+    return this.rpc.iceTrickle({
+      ...data,
+      sessionId: this.sessionId,
+    });
+  };
+
+  updateMuteState = async (trackType: TrackType, muted: boolean) => {
+    return this.updateMuteStates({
+      muteStates: [
         {
-          userId: forUserId,
-          videoQuality: quality,
+          trackType,
+          muted,
         },
       ],
     });
   };
 
-  updateSubscriptions = async (subscriptions: {
-    [key: string]: VideoDimension;
-  }) => {
-    if (Object.keys(subscriptions).length > 0) {
-      return this.rpc.updateSubscriptions({
-        sessionId: this.sessionId,
-        subscriptions,
-      });
-    }
+  updateMuteStates = async (
+    data: Omit<UpdateMuteStatesRequest, 'sessionId'>,
+  ) => {
+    return this.rpc.updateMuteStates({
+      ...data,
+      sessionId: this.sessionId,
+    });
+  };
+
+  join = async (data: Omit<JoinRequest, 'sessionId' | 'token'>) => {
+    const joinRequest = JoinRequest.create({
+      ...data,
+      sessionId: this.sessionId,
+      token: this.token,
+    });
+    return this.send(
+      SfuRequest.create({
+        requestPayload: {
+          oneofKind: 'joinRequest',
+          joinRequest,
+        },
+      }),
+    );
   };
 
   send = (message: SfuRequest) => {
-    this.signalReady.then((signal) => {
+    return this.signalReady.then((signal) => {
       signal.send(SfuRequest.toBinary(message));
     });
   };

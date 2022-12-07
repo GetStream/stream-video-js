@@ -5,25 +5,34 @@ import {
   StreamVideoProps,
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren } from 'react';
+import { CallKeepOptions } from '../types';
 
-export interface SDKStreamVideoStore {
+interface SDKStreamVideoStore {
   cameraBackFacingMode: boolean;
   isVideoMuted: boolean;
   localMediaStream: MediaStream | undefined;
+  callKeepOptions: CallKeepOptions | undefined;
 }
 
-export const {
-  Provider,
-  useStoreValue: useStreamVideoStoreValue,
-  useStoreSetState: useStreamVideoStoreSetState,
-} = createStoreContext<SDKStreamVideoStore>({
-  cameraBackFacingMode: false,
-  isVideoMuted: false,
-  localMediaStream: undefined,
-});
+const { Provider, useStoreValue, useStoreSetState } =
+  createStoreContext<SDKStreamVideoStore>({
+    cameraBackFacingMode: false,
+    isVideoMuted: false,
+    localMediaStream: undefined,
+    callKeepOptions: undefined,
+  });
 
-export const StreamVideo: React.FC<StreamVideoProps> = (
-  props: PropsWithChildren<StreamVideoProps>,
+export const useStreamVideoStoreValue = useStoreValue;
+export const useStreamVideoStoreSetState = useStoreSetState;
+
+export const StreamVideo: React.FC<
+  StreamVideoProps & {
+    callKeepOptions: CallKeepOptions;
+  }
+> = (
+  props: PropsWithChildren<StreamVideoProps> & {
+    callKeepOptions: CallKeepOptions;
+  },
 ) => {
   const { client, ...rest } = props;
   return (

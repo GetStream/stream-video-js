@@ -12,13 +12,10 @@ export const watchParticipantJoined = (
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
     const { participant } = e.eventPayload.participantJoined;
     if (participant) {
-      const currentParticipants = store.getCurrentValue(
+      store.setCurrentValue(
         store.activeCallAllParticipantsSubject,
+        (currentParticipants) => [...currentParticipants, participant],
       );
-      store.setCurrentValue(store.activeCallAllParticipantsSubject, [
-        ...currentParticipants,
-        participant,
-      ]);
     }
   });
 };
@@ -37,16 +34,18 @@ export const watchParticipantLeft = (
       const currentParticipants = store.getCurrentValue(
         store.activeCallAllParticipantsSubject,
       );
-      const activeCall = store.getCurrentValue(store.activeRingCallMetaSubject);
+      const activeRingCallMeta = store.getCurrentValue(
+        store.activeRingCallMetaSubject,
+      );
       const activeCallLocalParticipant = store.getCurrentValue(
         store.activeCallLocalParticipantSubject,
       );
-      if (activeCall) {
+      if (activeRingCallMeta) {
         if (
           currentParticipants.length === 2 &&
           participant.sessionId !== activeCallLocalParticipant?.sessionId
         ) {
-          store.setCurrentValue(store.activeRingCallMetaSubject, undefined);
+          store.setCurrentValue(store.activeCallSubject, undefined);
         }
       }
       store.setCurrentValue(
@@ -58,3 +57,43 @@ export const watchParticipantLeft = (
     }
   });
 };
+
+/**
+ * An event responder which handles the `trackPublished` event.
+ * The SFU will send this event when a participant publishes a track.
+ */
+export const watchTrackPublished = (
+  dispatcher: Dispatcher,
+  store: StreamVideoWriteableStateStore,
+) => {
+  return dispatcher.on('trackPublished', (e) => {
+    if (e.eventPayload.oneofKind !== 'trackPublished') return;
+    const {
+      trackPublished: { type, sessionId },
+    } = e.eventPayload;
+    store.updateParticipant(sessionId, (p) => ({
+      publishedTracks: [...p.publishedTracks, type].filter(unique),
+    }));
+  });
+};
+
+/**
+ * An event responder which handles the `trackUnpublished` event.
+ * The SFU will send this event when a participant unpublishes a track.
+ */
+export const watchTrackUnpublished = (
+  dispatcher: Dispatcher,
+  store: StreamVideoWriteableStateStore,
+) => {
+  return dispatcher.on('trackUnpublished', (e) => {
+    if (e.eventPayload.oneofKind !== 'trackUnpublished') return;
+    const {
+      trackUnpublished: { type, sessionId },
+    } = e.eventPayload;
+    store.updateParticipant(sessionId, (p) => ({
+      publishedTracks: p.publishedTracks.filter((t) => t !== type),
+    }));
+  });
+};
+
+const unique = <T>(v: T, i: number, arr: T[]) => arr.indexOf(v) === i;

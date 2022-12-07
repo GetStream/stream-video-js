@@ -26,10 +26,10 @@ Installs all Certs and Profiles necessary for appstore
 
 ## iOS
 
-### ios deploy_to_testflight_qa
+### ios build_ios
 
 ```sh
-[bundle exec] fastlane ios deploy_to_testflight_qa
+[bundle exec] fastlane ios build_ios
 ```
 
 Deploy iOS build to TestFlight QA
@@ -39,10 +39,10 @@ Deploy iOS build to TestFlight QA
 
 ## Android
 
-### android deploy_to_firebase
+### android build_android
 
 ```sh
-[bundle exec] fastlane android deploy_to_firebase
+[bundle exec] fastlane android build_android
 ```
 
 Deploy Android build to Firebase
