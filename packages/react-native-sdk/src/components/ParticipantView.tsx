@@ -6,11 +6,10 @@ import {
   useActiveCall,
   useParticipants,
 } from '@stream-io/video-react-bindings';
-import MicOff from '../icons/MicOff';
-import Mic from '../icons/Mic';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
 import { useStreamVideoStoreValue } from '../contexts';
+import { Mic, MicOff } from '../icons';
 
 type SizeType = 'small' | 'medium' | 'large' | 'xl';
 
