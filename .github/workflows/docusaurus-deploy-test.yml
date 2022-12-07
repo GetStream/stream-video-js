@@ -2,6 +2,7 @@ name: Push docusaurus documentation
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  NODE_OPTIONS: --openssl-legacy-provider # need for node 18 + docusaurus cli support
 
 on:
   push:
