@@ -18,7 +18,7 @@
     "@protobuf-ts/runtime": "^2.8.2",
     "@protobuf-ts/runtime-rpc": "^2.8.2",
     "@protobuf-ts/twirp-transport": "^2.8.2",
-    "rxjs": "^7.5.7",
+    "rxjs": "~7.5.7",
     "uuid": "^9.0.0",
     "webrtc-adapter": "^8.2.0"
   },

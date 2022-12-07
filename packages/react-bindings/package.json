@@ -10,7 +10,7 @@
     "generate-docs": "rimraf generated-docs && typedoc --options typedoc.json ./index.ts && replace-in-file '# @stream-io/video-react-bindings' '# Hooks' temp-docs/** && replace-in-file '.md' '' 'temp-docs/**' && mkdir generated-docs && cp temp-docs/modules.md generated-docs/hooks.md && rm -rf temp-docs"
   },
   "dependencies": {
-    "rxjs": "^7.5.7"
+    "rxjs": "~7.5.7"
   },
   "peerDependencies": {
     "@stream-io/video-client": "workspace:^",
