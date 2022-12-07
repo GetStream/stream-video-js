@@ -11,7 +11,7 @@ import { Avatar } from './Avatar';
 import { useStreamVideoStoreValue } from '../contexts';
 import { Mic, MicOff } from '../icons';
 
-export type SizeType = 'small' | 'medium' | 'large' | 'xl';
+type SizeType = 'small' | 'medium' | 'large' | 'xl';
 
 type ParticipantViewProps = {
   /**

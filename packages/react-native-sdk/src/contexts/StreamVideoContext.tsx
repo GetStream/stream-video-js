@@ -7,23 +7,23 @@ import {
 import React, { PropsWithChildren } from 'react';
 import { CallKeepOptions } from '../types';
 
-export interface SDKStreamVideoStore {
+interface SDKStreamVideoStore {
   cameraBackFacingMode: boolean;
   isVideoMuted: boolean;
   localMediaStream: MediaStream | undefined;
   callKeepOptions: CallKeepOptions | undefined;
 }
 
-export const {
-  Provider,
-  useStoreValue: useStreamVideoStoreValue,
-  useStoreSetState: useStreamVideoStoreSetState,
-} = createStoreContext<SDKStreamVideoStore>({
-  cameraBackFacingMode: false,
-  isVideoMuted: false,
-  localMediaStream: undefined,
-  callKeepOptions: undefined,
-});
+const { Provider, useStoreValue, useStoreSetState } =
+  createStoreContext<SDKStreamVideoStore>({
+    cameraBackFacingMode: false,
+    isVideoMuted: false,
+    localMediaStream: undefined,
+    callKeepOptions: undefined,
+  });
+
+export const useStreamVideoStoreValue = useStoreValue;
+export const useStreamVideoStoreSetState = useStoreSetState;
 
 export const StreamVideo: React.FC<
   StreamVideoProps & {

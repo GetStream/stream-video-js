@@ -7,6 +7,7 @@ env:
   APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
   APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
   APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+  SENTRY_RN_AUTH_TOKEN: ${{ secrets.SENTRY_RN_AUTH_TOKEN }}
 
 on:
   push:
@@ -72,6 +73,7 @@ jobs:
       - name: Build and deploy
         run: |
           cd packages/react-native-dogfood;
+          ./scripts/create-sentry-properties.sh;
           bundle exec fastlane ios deploy_to_testflight_qa;
   deploy_android:
     name: Deploy Android to Firebase App Distribution
@@ -119,4 +121,5 @@ jobs:
       - name: Build and deploy
         run: |
           cd packages/react-native-dogfood;
+          ./scripts/create-sentry-properties.sh;
           bundle exec fastlane android deploy_to_firebase;
