@@ -38,7 +38,8 @@ export class Call {
   /**@deprecated use store for this data */
   currentUserId: string;
   data: CallEnvelope;
-
+  /** Flag to indicate the call termination was already initiated */
+  left: boolean;
   private videoLayers?: OptimalVideoLayer[];
   private readonly subscriber: RTCPeerConnection;
   private readonly publisher: RTCPeerConnection;
@@ -63,6 +64,7 @@ export class Call {
     private readonly stateStore: StreamVideoWriteableStateStore,
   ) {
     this.data = data;
+    this.left = false;
     this.currentUserId = stateStore.getCurrentValue(
       stateStore.connectedUserSubject,
     )!.name;
@@ -121,6 +123,8 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = () => {
+    if (this.left) return;
+    this.left = true;
     this.statsReporter.stop();
     this.subscriber.close();
     this.publisher.getSenders().forEach((s) => {
@@ -193,16 +197,6 @@ export class Call {
           this.stateStore.setCurrentValue(
             this.stateStore.activeCallSubject,
             this,
-          );
-          this.stateStore.setCurrentValue(
-            this.stateStore.pendingCallsSubject,
-            this.stateStore
-              .getCurrentValue(this.stateStore.pendingCallsSubject)
-              .filter((call) => call.call?.callCid !== this.data.call?.callCid),
-          );
-          this.stateStore.setCurrentValue(
-            this.stateStore.acceptedCallSubject,
-            undefined,
           );
 
           this.client.keepAlive();
