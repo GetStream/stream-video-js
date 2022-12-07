@@ -9,7 +9,8 @@
     "start": "tsc --watch",
     "build": "tsc",
     "test": "vitest",
-    "generate-docs": "yarn generate-docs:classes && yarn generate-docs:utils",
+    "clean:docs": "rimraf generated-docs",
+    "generate-docs": "yarn clean:docs && yarn generate-docs:classes && yarn generate-docs:utils",
     "generate-docs:classes": "typedoc --options typedoc.json --exclude '!**/*(Call|StreamVideoClient).ts' ./index.ts && replace-in-file '# Class: ' '# ' temp-docs/** && cp -r temp-docs/classes/ generated-docs && rm -r temp-docs",
     "generate-docs:utils": "typedoc --options typedoc.json --exclude '!**/*(devices).ts' ./index.ts && replace-in-file '# @stream-io/video-client' '# Utilities' temp-docs/** && cp temp-docs/modules.md generated-docs/utilities.md && rm -r temp-docs"
   },
