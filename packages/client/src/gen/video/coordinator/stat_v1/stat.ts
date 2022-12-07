@@ -174,7 +174,11 @@ export enum MediaType {
     /**
      * @generated from protobuf enum value: MEDIA_TYPE_VIDEO = 2;
      */
-    VIDEO = 2
+    VIDEO = 2,
+    /**
+     * @generated from protobuf enum value: MEDIA_TYPE_SCREEN_SHARE = 3;
+     */
+    SCREEN_SHARE = 3
 }
 /**
  * @generated from protobuf enum stream.video.coordinator.stat_v1.MediaStateChange
