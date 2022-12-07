@@ -1,11 +1,6 @@
 import clsx from 'clsx';
 import { ForwardedRef, forwardRef, useRef, useState } from 'react';
-import {
-  Call,
-  CallMeta,
-  getScreenShareStream,
-  SfuModels,
-} from '@stream-io/video-client';
+import { Call, getScreenShareStream, SfuModels } from '@stream-io/video-client';
 import {
   useLocalParticipant,
   useStreamVideoClient,
@@ -16,11 +11,11 @@ import { useMediaPublisher } from '../../hooks';
 
 export const CallControls = (props: {
   call: Call;
-  callMeta?: CallMeta.Call;
   initialAudioMuted?: boolean;
   initialVideoMuted?: boolean;
 }) => {
-  const { call, callMeta, initialAudioMuted, initialVideoMuted } = props;
+  const { call, initialAudioMuted, initialVideoMuted } = props;
+  const callMeta = call.data.call;
   const client = useStreamVideoClient();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const localParticipant = useLocalParticipant();
