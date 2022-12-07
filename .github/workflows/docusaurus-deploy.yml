@@ -1,5 +1,8 @@
 name: Push docusaurus documentation
 
+env:
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
 on:
   push:
     branches:
