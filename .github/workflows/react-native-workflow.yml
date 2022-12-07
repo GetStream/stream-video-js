@@ -15,16 +15,14 @@ on:
       - 'packages/react-native-dogfood/**'
       - 'packages/client/**'
       - 'packages/react-native-sdk/**'
-    branches:
-      - main
 
 concurrency:
-  group: react-native-release
+  group: react-native-workflow-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   deploy_ios:
-    name: Deploy iOS to Testflight
+    name: Build iOS and Deploy-${{ github.ref == 'refs/heads/main' }}
     runs-on: macos-latest
     strategy:
       matrix:
@@ -70,13 +68,13 @@ jobs:
           command: |
             cd packages/react-native-dogfood/ios;
             bundle exec pod install;
-      - name: Build and deploy
+      - name: Build and optionally deploy
         run: |
           cd packages/react-native-dogfood;
           ./scripts/create-sentry-properties.sh;
-          bundle exec fastlane ios deploy_to_testflight_qa;
+          bundle exec fastlane build_ios deploy:${{ github.ref == 'refs/heads/main' }};
   deploy_android:
-    name: Deploy Android to Firebase App Distribution
+    name: Deploy Android and Deploy-${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -118,8 +116,8 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('packages/react-native-dogfood/*.gradle*', 'packages/react-native-dogfood/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: Build and deploy
+      - name: Build and optionally deploy
         run: |
           cd packages/react-native-dogfood;
           ./scripts/create-sentry-properties.sh;
-          bundle exec fastlane android deploy_to_firebase;
+          bundle exec fastlane build_android deploy:${{ github.ref == 'refs/heads/main' }};

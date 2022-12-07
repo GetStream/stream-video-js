@@ -31,44 +31,44 @@ lane :match_appstore do
   )
 end
 
-platform :ios do
-  desc "Deploy iOS build to TestFlight QA"
-  lane :deploy_to_testflight_qa do
-      app_store_connect_api_key()
 
-      match_appstore
+desc "iOS build"
+lane :build_ios do |options|
+    app_store_connect_api_key()
 
-      settings_to_override = {
-        :BUNDLE_IDENTIFIER => "io.getstream.rnvideosample",
-        :PROVISIONING_PROFILE_SPECIFIER => "match AppStore io.getstream.rnvideosample"
-      }
+    match_appstore
 
-      package = load_json(json_path: "./package.json")
-      increment_version_number(
-        version_number: package["version"],
-        xcodeproj: "./ios/StreamReactNativeVideoSDKSample.xcodeproj"
-      )
-      current_build_number = app_store_build_number(
-        live: false,
-        app_identifier: "io.getstream.rnvideosample",
-      )
-      increment_build_number(
-        build_number: current_build_number + 1,
-        xcodeproj: "./ios/StreamReactNativeVideoSDKSample.xcodeproj"
-      )
+    settings_to_override = {
+      :BUNDLE_IDENTIFIER => "io.getstream.rnvideosample",
+      :PROVISIONING_PROFILE_SPECIFIER => "match AppStore io.getstream.rnvideosample"
+    }
 
-      gym(
-          workspace: "./ios/StreamReactNativeVideoSDKSample.xcworkspace",
-          scheme: "StreamReactNativeVideoSDKSample",
-          export_method: "app-store",
-          export_options: "./fastlane/testflight_gym_export_options.plist",
-          silent: true,
-          clean: true,
-          xcargs: settings_to_override,
-          include_symbols: true,
-          output_directory: "./dist",
-      )
+    package = load_json(json_path: "./package.json")
+    increment_version_number(
+      version_number: package["version"],
+      xcodeproj: "./ios/StreamReactNativeVideoSDKSample.xcodeproj"
+    )
+    current_build_number = app_store_build_number(
+      live: false,
+      app_identifier: "io.getstream.rnvideosample",
+    )
+    increment_build_number(
+      build_number: current_build_number + 1,
+      xcodeproj: "./ios/StreamReactNativeVideoSDKSample.xcodeproj"
+    )
 
+    gym(
+        workspace: "./ios/StreamReactNativeVideoSDKSample.xcworkspace",
+        scheme: "StreamReactNativeVideoSDKSample",
+        export_method: "app-store",
+        export_options: "./fastlane/testflight_gym_export_options.plist",
+        silent: true,
+        clean: true,
+        xcargs: settings_to_override,
+        include_symbols: true,
+        output_directory: "./dist",
+    )
+    if options[:deploy]
       begin
         upload_to_testflight(
             groups: ['Dev Testers', 'Stream Testers'],
@@ -90,36 +90,37 @@ platform :ios do
           raise
         end
       end
-
-  end
+    end
 end
 
-platform :android do
-  desc "Deploy Android build to Firebase"
-  lane :deploy_to_firebase do
-      ENV["ENVFILE"] = ".env.production"
-      package = load_json(json_path: "./package.json")
-      increment_version_name(
-        gradle_file_path:"./android/app/build.gradle",
-        version_name: package["version"]
-      )
-      latest_app_distribution_release = firebase_app_distribution_get_latest_release(
-        app: "1:296557120037:android:b5d44592a3a4b44af60dcc"
-      )
-      latest_app_distribution_version_code = latest_app_distribution_release[:buildVersion].to_i
-      increment_version_code(
-        gradle_file_path:"./android/app/build.gradle",
-        version_code: latest_app_distribution_version_code + 1
-      )
-      gradle(
-        project_dir: "./android",
-        tasks: ["clean", "assembleRelease"]
-      )
+
+desc "Android build"
+lane :build_android do |options|
+    ENV["ENVFILE"] = ".env.production"
+    package = load_json(json_path: "./package.json")
+    increment_version_name(
+      gradle_file_path:"./android/app/build.gradle",
+      version_name: package["version"]
+    )
+    latest_app_distribution_release = firebase_app_distribution_get_latest_release(
+      app: "1:296557120037:android:b5d44592a3a4b44af60dcc"
+    )
+    latest_app_distribution_version_code = latest_app_distribution_release[:buildVersion].to_i
+    increment_version_code(
+      gradle_file_path:"./android/app/build.gradle",
+      version_code: latest_app_distribution_version_code + 1
+    )
+    gradle(
+      project_dir: "./android",
+      tasks: ["clean", "assembleRelease"]
+    )
+
+    if options[:deploy]
       firebase_app_distribution(
           app: "1:296557120037:android:b5d44592a3a4b44af60dcc",
           android_artifact_type: "APK",
           android_artifact_path: "./android/app/build/outputs/apk/release/app-release.apk",
           groups: "react-native-dev, video-sdk-non-devs"
       )
-  end
+    end
 end
