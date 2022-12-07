@@ -46,7 +46,10 @@ export class CallStatisticsComponent implements OnInit, OnDestroy {
         .pipe(pairwise())
         .subscribe(([prevReport, report]) => {
           this.datacenter = report?.datacenter;
-          this.latencyInMs = this.toStringWithUnit(report?.latencyInMs, 'ms');
+          this.latencyInMs = this.toStringWithUnit(
+            report?.publisherStats.averageRoundTripTimeInMs,
+            'ms',
+          );
           this.jitter = this.toStringWithUnit(
             report?.subscriberStats?.averageJitterInMs,
             'ms',
@@ -80,7 +83,9 @@ export class CallStatisticsComponent implements OnInit, OnDestroy {
               new Date(report.timestamp).toLocaleTimeString(),
             );
             this.lineChartData.datasets[0].data.shift();
-            this.lineChartData.datasets[0].data.push(report.latencyInMs);
+            this.lineChartData.datasets[0].data.push(
+              report.publisherStats.averageRoundTripTimeInMs,
+            );
             this.chart?.update();
           }
         }),

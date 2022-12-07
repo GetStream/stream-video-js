@@ -59,7 +59,7 @@ export const CallStats = (props: {
       const newLatencyBuffer = latencyBuffer.slice(-19);
       newLatencyBuffer.push({
         x: callStatsReport.timestamp,
-        y: callStatsReport.latencyInMs,
+        y: callStatsReport.publisherStats.averageRoundTripTimeInMs,
       });
       return newLatencyBuffer;
     });
@@ -90,7 +90,7 @@ export const CallStats = (props: {
             <StatCard label="Region" value={callStatsReport.datacenter} />
             <StatCard
               label="Latency"
-              value={`${callStatsReport.latencyInMs} ms.`}
+              value={`${callStatsReport.publisherStats.averageRoundTripTimeInMs} ms.`}
             />
             <StatCard
               label="Jitter"
