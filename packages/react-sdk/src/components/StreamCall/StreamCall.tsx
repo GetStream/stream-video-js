@@ -1,12 +1,10 @@
-import { PropsWithChildren, useEffect } from 'react';
+import { PropsWithChildren, useEffect, useRef } from 'react';
 import { CallCancelled, CallRejected } from '@stream-io/video-client';
 
 import {
   useAcceptedCall,
-  useActiveCall,
   useIncomingCalls,
   useOutgoingCalls,
-  useRemoteParticipants,
   useStore,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
@@ -24,16 +22,16 @@ export const StreamCall = ({
   leaveOnLeftAlone,
 }: PropsWithChildren<StreamCallProps>) => {
   const videoClient = useStreamVideoClient();
-  const activeCall = useActiveCall();
   const incomingCalls = useIncomingCalls();
   const outgoingCalls = useOutgoingCalls();
   const acceptedCall = useAcceptedCall();
-  const remoteParticipants = useRemoteParticipants();
   const { myHangupNotifications$ } = useStore();
   const { remoteHangupNotifications$ } = useStore();
 
+  const isJoiningRef = useRef(false);
+
   useEffect(() => {
-    if (!(videoClient && acceptedCall)) return;
+    if (!(videoClient && acceptedCall) || isJoiningRef.current) return;
 
     const callToJoin =
       outgoingCalls.length > 0
@@ -47,6 +45,7 @@ export const StreamCall = ({
         : undefined;
 
     if (callToJoin?.call) {
+      isJoiningRef.current = true;
       videoClient
         ?.joinCall({
           id: callToJoin.call.id,
@@ -90,15 +89,14 @@ export const StreamCall = ({
         });
     }
   }, [
-    activeCall,
     videoClient,
     outgoingCalls,
+    incomingCalls,
     acceptedCall,
-    remoteParticipants,
     myHangupNotifications$,
     remoteHangupNotifications$,
-    incomingCalls,
     leaveOnLeftAlone,
+    isJoiningRef,
   ]);
 
   if (!videoClient) return null;
