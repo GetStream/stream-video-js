@@ -22,9 +22,9 @@ export type MediaDevicesContextAPI = {
   getAudioStream: (deviceId?: string) => Promise<MediaStream>;
   getVideoStream: (deviceId?: string) => Promise<MediaStream>;
   isAudioOutputChangeSupported: boolean;
-  selectedAudioDeviceId: string | undefined;
-  selectedVideoDeviceId: string | undefined;
-  switchDevice: (kind: 'videoinput' | 'audioinput', deviceId: string) => void;
+  selectedAudioDeviceId?: string;
+  selectedVideoDeviceId?: string;
+  switchDevice: (kind: 'videoinput' | 'audioinput', deviceId?: string) => void;
 };
 
 const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
@@ -44,7 +44,7 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   );
 
   const switchDevice = useCallback(
-    async (kind: 'videoinput' | 'audioinput', deviceId: string) => {
+    async (kind: 'videoinput' | 'audioinput', deviceId?: string) => {
       if (kind === 'videoinput') {
         selectVideoDeviceId(deviceId);
       }

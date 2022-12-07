@@ -1,5 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { usePendingCalls } from '@stream-io/video-react-bindings';
+import {
+  useActiveCall,
+  usePendingCalls,
+} from '@stream-io/video-react-bindings';
 import { getAudioStream, getVideoStream } from '@stream-io/video-client';
 import { useMediaDevices } from './MediaDevicesContext';
 
@@ -37,6 +40,7 @@ const useSetupLocalMediaStream = ({
   type: 'audioinput' | 'videoinput'; // FIXME: typing
 }) => {
   const pendingCalls = usePendingCalls();
+  const call = useActiveCall();
   const { switchDevice } = useMediaDevices();
 
   useEffect(() => {
@@ -44,14 +48,11 @@ const useSetupLocalMediaStream = ({
 
     const cleanup = () => {
       effectInterrupted = true;
-      localStream?.getTracks().forEach((t) => {
-        console.log(t);
-        t.stop();
-      });
+      localStream?.getTracks().forEach((t) => t.stop());
     };
 
     // request streams only if there's at least one pending call
-    if (!pendingCalls.length) return cleanup;
+    if (!pendingCalls.length && !call) return cleanup;
 
     if (localStream?.active) {
       const deviceId = getDeviceId(localStream);
@@ -63,12 +64,11 @@ const useSetupLocalMediaStream = ({
       setLocalStream(stream);
       if (selectedDeviceId) return;
       const deviceId = getDeviceId(stream);
-      // @ts-ignore
       switchDevice(type, deviceId);
     });
 
     return cleanup;
-  }, [localStream, pendingCalls, selectedDeviceId]);
+  }, [localStream, pendingCalls, selectedDeviceId, call]);
 };
 
 export const LocalMediaStreamsContextProvider = ({
