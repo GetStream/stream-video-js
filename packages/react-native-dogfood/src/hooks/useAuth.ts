@@ -1,5 +1,6 @@
 import { StreamVideoClient } from '@stream-io/video-client';
 import { useEffect, useState } from 'react';
+import * as Sentry from '@sentry/react-native';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -48,7 +49,7 @@ export const useAuth = () => {
         };
 
         const token = await createToken(username, APIParams.apiSecret);
-
+        Sentry.setUser({ ...user, token });
         try {
           const _videoClient = new StreamVideoClient(APIParams.apiKey, {
             coordinatorWsUrl: clientParams.coordinatorWsUrl,

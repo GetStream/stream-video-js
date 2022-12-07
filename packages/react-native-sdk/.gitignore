@@ -63,3 +63,6 @@ buck-out/
 # Ruby / CocoaPods
 /ios/Pods/
 /vendor/bundle/
+
+# Ignore generated documentation.. it can always be regenerated
+docusaurus/docs/reactnative/reference/**/*.md

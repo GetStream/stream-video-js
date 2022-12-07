@@ -12,7 +12,7 @@ import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
 import { useStreamVideoStoreValue } from '../contexts';
 
-export type SizeType = 'small' | 'medium' | 'large' | 'xl';
+type SizeType = 'small' | 'medium' | 'large' | 'xl';
 
 type ParticipantViewProps = {
   /**
