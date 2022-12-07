@@ -6,7 +6,7 @@ env:
 on:
   push:
     branches:
-      - feat/docusaurus-push
+      - main
     paths:
       - 'packages/angular-sdk/**'
       - 'packages/react-bindings/**'
