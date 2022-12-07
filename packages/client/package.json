@@ -11,6 +11,7 @@
     "test": "vitest",
     "clean:docs": "rimraf generated-docs",
     "generate-docs": "yarn clean:docs && yarn generate-docs:classes && yarn generate-docs:utils",
+    "test-ci": "vitest --coverage",
     "generate-docs:classes": "typedoc --options typedoc.json --exclude '!**/*(Call|StreamVideoClient).ts' ./index.ts && replace-in-file '# Class: ' '# ' temp-docs/** && cp -r temp-docs/classes/ generated-docs && rm -r temp-docs",
     "generate-docs:utils": "typedoc --options typedoc.json --exclude '!**/*(devices).ts' ./index.ts && replace-in-file '# @stream-io/video-client' '# Utilities' temp-docs/** && cp temp-docs/modules.md generated-docs/utilities.md && rm -r temp-docs"
   },
@@ -25,12 +26,14 @@
   "devDependencies": {
     "@types/rimraf": "^3.0.2",
     "@types/uuid": "^8.3.4",
+    "@vitest/coverage-c8": "^0.25.3",
     "replace-in-file": "^6.3.5",
     "rimraf": "^3.0.2",
     "typedoc": "^0.23.21",
     "typedoc-plugin-markdown": "^3.13.6",
     "typescript": "^4.9.3",
     "vite": "^3.2.4",
-    "vitest": "^0.24.1"
+    "vitest": "^0.25.4",
+    "vitest-mock-extended": "^1.0.7"
   }
 }
