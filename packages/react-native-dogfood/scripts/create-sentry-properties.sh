@@ -11,7 +11,7 @@ fi
     echo 'defaults.project=video-dogfooding-react-native'
     echo 'auth.token='$SENTRY_RN_AUTH_TOKEN
     echo 'cli.executable=node_modules/@sentry/cli/bin/sentry-cli'
-} > ./ios/sentry-test.properties
+} > ./ios/sentry.properties
 
 {
     echo 'defaults.url=https://sentry.io/'
