@@ -92,7 +92,7 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
   // To terminate call after a certain duration of time. Currently set to 10 seconds.
   useEffect(() => {
     const terminateCallAtMilliSeconds = 10000;
-    let timerId: NodeJS.Timeout;
+    let timerId: ReturnType<typeof setTimeout>;
     if (remoteParticipants.length === 0) {
       timerId = setTimeout(() => {
         hangupHandler();
