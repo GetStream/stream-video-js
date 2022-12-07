@@ -76,6 +76,13 @@ platform :ios do
             reject_build_waiting_for_review: false,
             skip_waiting_for_build_processing: false,
         )
+        sentry_upload_dsym(
+          auth_token: ENV['SENTRY_RN_AUTH_TOKEN'],
+          org_slug: 'stream',
+          project_slug: 'video-dogfooding-react-native',
+          dsym_path: "./dist/StreamReactNativeVideoSDKSample.app.dSYM.zip",
+          info_plist: './ios/StreamReactNativeVideoSDKSample/Info.plist'
+        )
       rescue Exception => e
         if e.message.include? "Another build is in review"
           UI.important("Another build is already in beta review. Skipping beta review submission")

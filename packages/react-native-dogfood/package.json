@@ -17,6 +17,7 @@
     "@react-native-google-signin/google-signin": "^8.2.1",
     "@react-navigation/native": "^6.0.13",
     "@react-navigation/native-stack": "^6.9.1",
+    "@sentry/react-native": "^5.0.0-alpha.9",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-native-sdk": "workspace:^",
     "nanoid": "^4.0.0",
