@@ -1,5 +1,6 @@
 # Stream Video JS SDK
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=GetStream_stream-video-js&metric=alert_status&token=fdc1439303911957da9c7ff2ce505f94c3c14d36)](https://sonarcloud.io/summary/new_code?id=GetStream_stream-video-js)
 ## Dependencies
 
 Before you can run this project locally, the backend services has to be set up. In order to do so,
