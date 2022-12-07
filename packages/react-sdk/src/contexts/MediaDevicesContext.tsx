@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
 } from 'react';
 import {
   getAudioDevices,
@@ -42,17 +43,17 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
     checkIfAudioOutputChangeSupported(),
   );
 
-  const switchDevice = async (
-    kind: 'videoinput' | 'audioinput',
-    deviceId: string,
-  ) => {
-    if (kind === 'videoinput') {
-      selectVideoDeviceId(deviceId);
-    }
-    if (kind === 'audioinput') {
-      selectAudioDeviceId(deviceId);
-    }
-  };
+  const switchDevice = useCallback(
+    async (kind: 'videoinput' | 'audioinput', deviceId: string) => {
+      if (kind === 'videoinput') {
+        selectVideoDeviceId(deviceId);
+      }
+      if (kind === 'audioinput') {
+        selectAudioDeviceId(deviceId);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     const subscription = getAudioDevices().subscribe(setAudioDevices);

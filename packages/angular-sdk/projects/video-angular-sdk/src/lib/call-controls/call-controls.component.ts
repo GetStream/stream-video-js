@@ -1,5 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { StreamVideoParticipant, Call } from '@stream-io/video-client';
+import {
+  StreamVideoParticipant,
+  Call,
+  SfuModels,
+} from '@stream-io/video-client';
 import { NgxPopperjsTriggers } from 'ngx-popperjs';
 import { Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
@@ -15,6 +19,8 @@ export class CallControlsComponent implements OnInit, OnDestroy {
   isCallRecordingInProgress: boolean = false;
   popperTrigger = NgxPopperjsTriggers.click;
   private subscriptions: Subscription[] = [];
+
+  TrackType = SfuModels.TrackType;
 
   constructor(private streamVideoService: StreamVideoService) {
     this.subscriptions.push(
@@ -38,12 +44,30 @@ export class CallControlsComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
-  updateAudioMutaState() {
-    this.call?.updateMuteState('audio', !!this.localParticipant?.audio);
+  updateAudioMuteState() {
+    console.warn(
+      this.call,
+      !this.localParticipant?.publishedTracks.includes(
+        SfuModels.TrackType.AUDIO,
+      ),
+    );
+    // this.call?.updateMuteState(
+    //   'audio',
+    //   !!this.localParticipant?.publishedTracks.includes(
+    //     SfuModels.TrackType.AUDIO,
+    //   ),
+    // );
+    console.warn(`Not yet implemented`);
   }
 
-  updateVideoMutaState() {
-    this.call?.updateMuteState('video', !!this.localParticipant?.video);
+  updateVideoMuteState() {
+    // this.call?.updateMuteState(
+    //   'video',
+    //   !!this.localParticipant?.publishedTracks.includes(
+    //     SfuModels.TrackType.VIDEO,
+    //   ),
+    // );
+    console.warn(`Not yet implemented`);
   }
 
   toggleRecording() {

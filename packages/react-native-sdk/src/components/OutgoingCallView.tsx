@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { SfuModels } from '@stream-io/video-client';
 
 import PhoneDown from '../icons/PhoneDown';
 import Video from '../icons/Video';
@@ -34,7 +35,9 @@ export type OutgoingCallViewProps = {
 const Background: React.FC = () => {
   const localParticipant = useLocalParticipant();
   const localVideoStream = localParticipant?.videoStream;
-  const isVideoMuted = !localParticipant?.video;
+  const isVideoMuted = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
 
   if (isVideoMuted)
     return <View style={[StyleSheet.absoluteFill, styles.background]} />;
@@ -61,8 +64,12 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
   const remoteParticipants = useRemoteParticipants();
   const { endCall } = useCallKeep();
 
-  const isAudioMuted = !localParticipant?.audio;
-  const isVideoMuted = !localParticipant?.video;
+  const isAudioMuted = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.AUDIO,
+  );
+  const isVideoMuted = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
 
   const hangupHandler = useCallback(async () => {
     if (!activeCall) {
@@ -102,11 +109,11 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
   }, [hangupHandler]);
 
   const videoToggle = async () => {
-    await activeCall?.updateMuteState('video', !isVideoMuted);
+    await activeCall?.stopPublish(SfuModels.TrackType.VIDEO);
   };
 
   const audioToggle = async () => {
-    await activeCall?.updateMuteState('audio', !isAudioMuted);
+    await activeCall?.stopPublish(SfuModels.TrackType.AUDIO);
   };
 
   return (

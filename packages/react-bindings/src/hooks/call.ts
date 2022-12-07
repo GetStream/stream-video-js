@@ -84,3 +84,12 @@ export const useHangUpNotifications = () => {
   const { hangupNotifications$ } = useStore();
   return useObservableValue(hangupNotifications$);
 };
+
+/**
+ * Utility hook which provides a boolean indicating whether there is
+ * a participant in the current call which shares their screen.
+ */
+export const useHasOngoingScreenShare = () => {
+  const { hasOngoingScreenShare$ } = useStore();
+  return useObservableValue(hasOngoingScreenShare$);
+};

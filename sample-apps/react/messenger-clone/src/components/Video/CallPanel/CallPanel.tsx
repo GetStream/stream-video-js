@@ -19,7 +19,7 @@ import {
 
 import {
   ParticipantBox,
-  useStage,
+  useMediaPublisher,
   DeviceSelector,
   useMediaDevices,
   useLocalMediaStreamsContext,
@@ -46,8 +46,8 @@ const ButtonControls = ({
 
   const localParticipant = useLocalParticipant();
 
-  const isAudioMute = !localParticipant?.audio;
-  const isVideoMute = !localParticipant?.video;
+  const isAudioMute = false; // !localParticipant?.audio;
+  const isVideoMute = false; // !localParticipant?.video;
 
   return (
     <div className="rmc__button-controls">
@@ -95,13 +95,13 @@ const ButtonControls = ({
         <>
           <button
             className="rmc__button rmc__button--transparent"
-            onClick={() => activeCall.updateMuteState('audio', !isAudioMute)}
+            // onClick={() => activeCall.updateMuteState('audio', !isAudioMute)}
           >
             {isAudioMute ? <MicOff /> : <Mic />}
           </button>
           <button
             className="rmc__button rmc__button--transparent"
-            onClick={() => activeCall.updateMuteState('video', !isVideoMute)}
+            // onClick={() => activeCall.updateMuteState('video', !isVideoMute)}
           >
             {isVideoMute ? <VideocamOff /> : <Videocam />}
           </button>
@@ -168,7 +168,9 @@ export const CallPanel = () => {
     );
   }, [activeCall?.data.users, client.user.id]);
 
-  const { updateVideoSubscriptionForParticipant } = useStage(activeCall);
+  const { publishAudioStream, publishVideoStream } = useMediaPublisher({
+    call: activeCall,
+  });
 
   if (!pendingCalls.length && !activeCall) return null;
 
@@ -183,27 +185,17 @@ export const CallPanel = () => {
               localParticipant ?? {
                 audioStream: localAudioStream,
                 videoStream: localVideoStream,
-                audio: true,
-                video: true,
-                user: client.user,
+                // @ts-ignore
+                user: { userId: client.user.id },
               }
             }
             call={activeCall}
-            updateVideoSubscriptionForParticipant={
-              updateVideoSubscriptionForParticipant
-            }
           />
         </div>
 
         <div className="rmc__primary-participant-wrapper">
           {remoteParticipant && (
-            <ParticipantBox
-              participant={remoteParticipant}
-              call={activeCall}
-              updateVideoSubscriptionForParticipant={
-                updateVideoSubscriptionForParticipant
-              }
-            />
+            <ParticipantBox participant={remoteParticipant} call={activeCall} />
           )}
           {!remoteParticipant && (
             <Placeholder

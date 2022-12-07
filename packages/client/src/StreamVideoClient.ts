@@ -33,10 +33,7 @@ import {
 } from './ws';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
-import {
-  WebsocketClientEvent,
-  WebsocketHealthcheck,
-} from './gen/video/coordinator/client_v1_rpc/websocket';
+
 import {
   CallAccepted,
   CallCancelled,
@@ -168,23 +165,6 @@ export class StreamVideoClient {
    */
   off = <T>(event: string, fn: StreamEventListener<T>) => {
     return this.ws?.off(event, fn);
-  };
-
-  /**
-   *
-   * @param hc
-   *
-   * @deprecated We should move this functionality inside the client and make this an internal function.
-   */
-  setHealthcheckPayload = (hc: WebsocketHealthcheck) => {
-    this.ws?.keepAlive.setPayload(
-      WebsocketClientEvent.toBinary({
-        event: {
-          oneofKind: 'healthcheck',
-          healthcheck: hc,
-        },
-      }),
-    );
   };
 
   registerWSEventHandlers = () => {
@@ -397,9 +377,7 @@ export class StreamVideoClient {
           response.call,
           sfuClient,
           {
-            connectionConfig:
-              this.toRtcConfiguration(iceServers) ||
-              this.defaultRtcConfiguration(server.url),
+            connectionConfig: this.toRtcConfiguration(iceServers),
             latencyCheckUrl: selectedEdge?.latencyUrl,
             edgeName,
           },
@@ -496,28 +474,6 @@ export class StreamVideoClient {
       })),
     };
     return rtcConfig;
-  };
-
-  private defaultRtcConfiguration = (sfuUrl: string): RTCConfiguration => ({
-    iceServers: [
-      {
-        urls: 'stun:stun.l.google.com:19302',
-      },
-      {
-        urls: `turn:${this.hostnameFromUrl(sfuUrl)}:3478`,
-        username: 'video',
-        credential: 'video',
-      },
-    ],
-  });
-
-  private hostnameFromUrl = (url: string) => {
-    try {
-      return new URL(url).hostname;
-    } catch (e) {
-      console.warn(`Invalid URL. Can't extract hostname from it.`, e);
-      return url;
-    }
   };
 
   /**

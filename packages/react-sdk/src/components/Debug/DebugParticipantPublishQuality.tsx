@@ -4,13 +4,8 @@ import { Call, StreamVideoParticipant } from '@stream-io/video-client';
 export const DebugParticipantPublishQuality = (props: {
   participant: StreamVideoParticipant;
   call: Call;
-  updateVideoSubscriptionForParticipant: (
-    sessionId: string,
-    width: number,
-    height: number,
-  ) => void;
 }) => {
-  const { call, participant, updateVideoSubscriptionForParticipant } = props;
+  const { call, participant } = props;
   const [quality, setQuality] = useState<string>();
   const [publishStats, setPublishStats] = useState(() => ({
     f: true,
@@ -50,7 +45,14 @@ export const DebugParticipantPublishQuality = (props: {
           w = w / 4;
           h = h / 4;
         }
-        updateVideoSubscriptionForParticipant(participant.sessionId, w, h);
+        call.updateSubscriptionsPartial({
+          [participant.sessionId]: {
+            videoDimension: {
+              width: w,
+              height: h,
+            },
+          },
+        });
       }}
     >
       <option value="f">High (f)</option>

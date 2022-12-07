@@ -1,31 +1,24 @@
-import { createSubscriber } from './subscriber';
-import {
-  defaultVideoLayers,
-  findOptimalVideoLayers,
-  OptimalVideoLayer,
-} from './videoLayers';
 import { StreamSfuClient } from '../StreamSfuClient';
-import {
-  defaultVideoPublishEncodings,
-  getPreferredCodecs,
-  getReceiverCodecs,
-  getSenderCodecs,
-} from './codecs';
+import { createSubscriber } from './subscriber';
 import { createPublisher } from './publisher';
-import { CallState, VideoDimension } from '../gen/video/sfu/models/models';
+import { findOptimalVideoLayers } from './videoLayers';
+import { getGenericSdp, getPreferredCodecs } from './codecs';
+import { CallState, TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
-import { SfuRequest } from '../gen/video/sfu/event/events';
 import { SfuEventListener } from './Dispatcher';
-import { StreamVideoWriteableStateStore } from '../store';
+import { StreamVideoWriteableStateStore } from '../stateStore';
+import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import type {
   CallOptions,
   PublishOptions,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
+  StreamVideoParticipantPatches,
   SubscriptionChanges,
 } from './types';
 import { debounceTime, Subject } from 'rxjs';
 import { CallEnvelope } from '../gen/video/coordinator/client_v1_rpc/envelopes';
+import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import {
   createStatsReporter,
   StatsReporter,
@@ -40,12 +33,12 @@ export class Call {
   data: CallEnvelope;
   /** Flag to indicate the call termination was already initiated */
   left: boolean;
-  private videoLayers?: OptimalVideoLayer[];
+
   private readonly subscriber: RTCPeerConnection;
   private readonly publisher: RTCPeerConnection;
-  private readonly trackSubscriptionsSubject = new Subject<{
-    [key: string]: VideoDimension;
-  }>();
+  private readonly trackSubscriptionsSubject = new Subject<
+    TrackSubscriptionDetails[]
+  >();
 
   private statsReporter: StatsReporter;
   private joinResponseReady?: Promise<CallState | undefined>;
@@ -152,30 +145,17 @@ export class Call {
   };
 
   /**
-   * Joins the call and sets the necessary video and audio encoding configurations.
-   * @param videoStream
-   * @param audioStream
-   * @returns
+   * Will initiate a call session with the server and return the call state.
+   *
+   * @returns a promise which resolves once the call join-flow has finished.
    */
-  join = async (videoStream?: MediaStream, audioStream?: MediaStream) => {
+  join = async () => {
     if (this.joinResponseReady) {
       throw new Error(`Illegal State: Already joined.`);
     }
 
     this.joinResponseReady = new Promise<CallState | undefined>(
       async (resolve) => {
-        const [audioEncode, audioDecode, videoEncode, videoDecode] =
-          await Promise.all([
-            getSenderCodecs('audio'),
-            getReceiverCodecs('audio', this.subscriber),
-            getSenderCodecs('video'),
-            getReceiverCodecs('video', this.subscriber),
-          ]);
-
-        this.videoLayers = videoStream
-          ? await findOptimalVideoLayers(videoStream)
-          : defaultVideoLayers;
-
         this.client.dispatcher.on('joinResponse', (event) => {
           if (event.eventPayload.oneofKind !== 'joinResponse') return;
 
@@ -188,8 +168,6 @@ export class Call {
                 const localParticipant =
                   participant as StreamVideoLocalParticipant;
                 localParticipant.isLoggedInUser = true;
-                localParticipant.audioStream = audioStream;
-                localParticipant.videoStream = videoStream;
               }
               return participant;
             }),
@@ -203,38 +181,10 @@ export class Call {
           resolve(callState); // expose call state
         });
 
-        this.client.send(
-          SfuRequest.create({
-            requestPayload: {
-              oneofKind: 'joinRequest',
-              joinRequest: {
-                sessionId: this.client.sessionId,
-                token: this.client.token,
-                publish: true,
-                // FIXME OL: encode parameters and video layers
-                // should be announced when initiating "publish" operation
-                codecSettings: {
-                  audio: {
-                    encodes: audioEncode,
-                    decodes: audioDecode,
-                  },
-                  video: {
-                    encodes: videoEncode,
-                    decodes: videoDecode,
-                  },
-                  layers: this.videoLayers.map((layer) => ({
-                    rid: layer.rid!,
-                    bitrate: layer.maxBitrate!,
-                    videoDimension: {
-                      width: layer.width,
-                      height: layer.height,
-                    },
-                  })),
-                },
-              },
-            },
-          }),
-        );
+        const genericSdp = await getGenericSdp('recvonly');
+        await this.client.join({
+          subscriberSdp: genericSdp || '',
+        });
       },
     );
 
@@ -242,154 +192,188 @@ export class Call {
   };
 
   /**
-   * Starts publishing the given video and/or audio streams, the streams will be stopped if the user changes an input device, or if the user leaves the call.
-   * @param audioStream
-   * @param videoStream
-   * @param opts
+   * Starts publishing the given video stream to the call.
+   * The stream will be stopped if the user changes an input device, or if the user leaves the call.
+   *
+   * Consecutive calls to this method will replace the previously published stream.
+   *
+   * @param videoStream the video stream to publish.
+   * @param opts the options to use when publishing the stream.
    */
-  publishMediaStreams = async (
-    audioStream?: MediaStream,
-    videoStream?: MediaStream,
+  publishVideoStream = async (
+    videoStream: MediaStream,
     opts: PublishOptions = {},
   ) => {
-    if (!this.joinResponseReady) {
-      throw new Error(
-        `Illegal State: Can't publish. Please join the call first`,
-      );
+    await this.assertCallJoined();
+    const [videoTrack] = videoStream.getVideoTracks();
+    if (!videoTrack) {
+      return console.error(`There is no video track in the stream.`);
     }
 
-    // wait until we get a JoinResponse from the SFU, otherwise we risk
-    // breaking the ICETrickle flow.
-    await this.joinResponseReady;
-
-    if (videoStream) {
-      const videoEncodings: RTCRtpEncodingParameters[] =
-        this.videoLayers && this.videoLayers.length > 0
-          ? this.videoLayers
-          : defaultVideoPublishEncodings;
-
-      const [videoTrack] = videoStream.getVideoTracks();
-      if (videoTrack) {
-        const videoTransceiver = this.publisher.addTransceiver(videoTrack, {
-          direction: 'sendonly',
-          streams: [videoStream],
-          sendEncodings: videoEncodings,
-        });
-
-        const codecPreferences = getPreferredCodecs(
-          'video',
-          opts.preferredVideoCodec || 'vp8',
-        );
+    const trackType = TrackType.VIDEO;
+    let transceiver = this.publisher.getTransceivers().find(
+      (t) =>
         // @ts-ignore
-        if ('setCodecPreferences' in videoTransceiver && codecPreferences) {
-          console.log(`set codec preferences`, codecPreferences);
-          videoTransceiver.setCodecPreferences(codecPreferences);
-        }
-      }
+        t.__trackType === trackType &&
+        t.sender.track &&
+        t.sender.track?.kind === 'video',
+    );
+    if (!transceiver) {
+      const videoEncodings = findOptimalVideoLayers(videoTrack);
+      transceiver = this.publisher.addTransceiver(videoTrack, {
+        direction: 'sendonly',
+        streams: [videoStream],
+        sendEncodings: videoEncodings,
+      });
 
-      this.stateStore.setCurrentValue(
-        this.stateStore.participantsSubject,
-        this.participants.map((p) => {
-          if (p.sessionId === this.client.sessionId) {
-            return {
-              ...p,
-              videoStream,
-              videoDeviceId: this.getActiveInputDeviceId('videoinput'),
-            };
-          }
-          return p;
-        }),
+      // @ts-ignore
+      transceiver.__trackType = trackType;
+
+      const codecPreferences = getPreferredCodecs(
+        'video',
+        opts.preferredCodec || 'vp8',
       );
+
+      if ('setCodecPreferences' in transceiver && codecPreferences) {
+        console.log(`set codec preferences`, codecPreferences);
+        transceiver.setCodecPreferences(codecPreferences);
+      }
+    } else {
+      transceiver.sender.track?.stop();
+      await transceiver.sender.replaceTrack(videoTrack);
     }
 
-    if (audioStream) {
-      const [audioTrack] = audioStream.getAudioTracks();
-      if (audioTrack) {
-        this.publisher?.addTransceiver(audioTrack, {
-          direction: 'sendonly',
-        });
-      }
-
-      this.stateStore.setCurrentValue(
-        this.stateStore.participantsSubject,
-        this.participants.map((p) => {
-          if (p.sessionId === this.client.sessionId) {
-            return {
-              ...p,
-              audioStream: audioStream,
-              audioDeviceId: this.getActiveInputDeviceId('audioinput'),
-            };
-          }
-          return p;
-        }),
-      );
+    if (transceiver.sender.track) {
+      await this.client.updateMuteState(trackType, false);
     }
+
+    this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
+      videoStream,
+      videoDeviceId: videoTrack.getSettings().deviceId,
+      publishedTracks: p.publishedTracks.includes(trackType)
+        ? p.publishedTracks
+        : [...p.publishedTracks, trackType],
+    }));
   };
 
   /**
-   * A method for switching an input device.
-   * @param kind
-   * @param mediaStream
-   * @returns
+   * Starts publishing the given audio stream to the call.
+   * The stream will be stopped if the user changes an input device, or if the user leaves the call.
+   *
+   * Consecutive calls to this method will replace the audio stream that is currently being published.
+   *
+   * @param audioStream the audio stream to publish.
    */
-  replaceMediaStream = async (
-    kind: Exclude<MediaDeviceKind, 'audiooutput'>,
-    mediaStream: MediaStream,
-  ) => {
-    if (!this.publisher) {
-      // FIXME: OL: throw error instead?
-      console.warn(
-        `Can't change input device without publish connection established`,
-        kind,
-      );
-      return;
+  publishAudioStream = async (audioStream: MediaStream) => {
+    await this.assertCallJoined();
+    const [audioTrack] = audioStream.getAudioTracks();
+    if (!audioTrack) {
+      return console.error(`There is no audio track in the stream`);
     }
 
-    const [newTrack] =
-      kind === 'videoinput'
-        ? mediaStream.getVideoTracks()
-        : mediaStream.getAudioTracks();
-
-    const senders = this.publisher.getSenders();
-    const sender = senders.find((s) => s.track?.kind === newTrack.kind);
-    if (!sender || !sender.track || !newTrack) {
-      // FIXME: OL: maybe start publishing in this case?
-      console.warn(
-        `Can't find a sender for track with kind`,
-        newTrack,
-        kind,
-        senders,
-      );
-      return;
+    const trackType = TrackType.AUDIO;
+    let transceiver = this.publisher.getTransceivers().find(
+      (t) =>
+        // @ts-ignore
+        t.__trackType === trackType &&
+        t.sender.track &&
+        t.sender.track.kind === 'audio',
+    );
+    if (!transceiver) {
+      transceiver = this.publisher.addTransceiver(audioTrack, {
+        direction: 'sendonly',
+      });
+      // @ts-ignore
+      transceiver.__trackType = trackType;
+    } else {
+      transceiver.sender.track?.stop();
+      await transceiver.sender.replaceTrack(audioTrack);
     }
 
-    sender.track.stop(); // release old track
-    await sender.replaceTrack(newTrack);
+    if (transceiver.sender.track) {
+      await this.client.updateMuteState(trackType, false);
+    }
 
-    const localParticipant = this.participants.find(
-      (p) => p.sessionId === this.client.sessionId,
+    this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
+      audioStream,
+      audioDeviceId: audioTrack.getSettings().deviceId,
+      publishedTracks: p.publishedTracks.includes(trackType)
+        ? p.publishedTracks
+        : [...p.publishedTracks, trackType],
+    }));
+  };
+
+  /**
+   * Starts publishing the given screen-share stream to the call.
+   * Consecutive calls to this method will replace the previous screen-share stream.
+   *
+   * @param screenShareStream the screen-share stream to publish.
+   */
+  publishScreenShareStream = async (screenShareStream: MediaStream) => {
+    await this.assertCallJoined();
+    const [screenShareTrack] = screenShareStream.getVideoTracks();
+    if (!screenShareTrack) {
+      return console.error(`There is no video track in the stream`);
+    }
+
+    // fires when browser's native 'Stop Sharing button' is clicked
+    const onTrackEnded = () => this.stopPublish(trackType);
+    screenShareTrack.addEventListener('ended', onTrackEnded);
+
+    const trackType = TrackType.SCREEN_SHARE;
+    let transceiver = this.publisher.getTransceivers().find(
+      (t) =>
+        // @ts-ignore
+        t.__trackType === trackType &&
+        t.sender.track &&
+        t.sender.track.kind === 'video',
     );
-    const muteState = !(kind === 'audioinput'
-      ? localParticipant?.audio
-      : localParticipant?.video);
-    this.updateMuteState(kind === 'audioinput' ? 'audio' : 'video', muteState);
+    if (!transceiver) {
+      transceiver = this.publisher.addTransceiver(screenShareTrack, {
+        direction: 'sendonly',
+        streams: [screenShareStream],
+        // sendEncodings
+      });
+      // @ts-ignore FIXME: OL: this is a hack
+      transceiver.__trackType = trackType;
+    } else {
+      transceiver.sender.track?.removeEventListener('ended', onTrackEnded);
+      transceiver.sender.track?.stop();
+      await transceiver.sender.replaceTrack(screenShareTrack);
+    }
 
-    this.stateStore.setCurrentValue(
-      this.stateStore.participantsSubject,
-      this.participants.map((p) => {
-        if (p.sessionId === this.client.sessionId) {
-          return {
-            ...p,
-            [kind === 'audioinput' ? 'audioTrack' : 'videoTrack']: mediaStream,
-            [kind === 'audioinput' ? 'audioDeviceId' : 'videoDeviceId']:
-              this.getActiveInputDeviceId(kind),
-          };
-        }
-        return p;
-      }),
+    if (transceiver.sender.track) {
+      await this.client.updateMuteState(trackType, false);
+    }
+
+    this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
+      screenShareStream,
+      publishedTracks: p.publishedTracks.includes(trackType)
+        ? p.publishedTracks
+        : [...p.publishedTracks, trackType],
+    }));
+  };
+
+  stopPublish = async (trackType: TrackType) => {
+    console.log(`stopPublish`, TrackType[trackType]);
+    const transceiver = this.publisher.getTransceivers().find(
+      (t) =>
+        // @ts-ignore
+        t.__trackType === trackType && t.sender.track,
     );
+    if (transceiver && transceiver.sender.track) {
+      transceiver.sender.track.stop();
+      await this.client.updateMuteState(trackType, true);
 
-    return mediaStream; // for SDK use (preview video)
+      const audioOrVideoOrScreenShareStream =
+        trackTypeToParticipantStreamKey(trackType);
+      if (audioOrVideoOrScreenShareStream) {
+        this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
+          publishedTracks: p.publishedTracks.filter((t) => t !== trackType),
+          [audioOrVideoOrScreenShareStream]: undefined,
+        }));
+      }
+    }
   };
 
   /**
@@ -399,32 +383,53 @@ export class Call {
    * @param changes the list of subscription changes to do.
    */
   updateSubscriptionsPartial = (changes: SubscriptionChanges) => {
-    if (Object.keys(changes).length === 0) {
-      return;
-    }
-
-    this.stateStore.setCurrentValue(
-      this.stateStore.participantsSubject,
-      this.participants.map((participant) => {
-        const change = changes[participant.sessionId];
-        if (change) {
-          return {
-            ...participant,
+    const participants = this.stateStore.updateParticipants(
+      Object.entries(changes).reduce<StreamVideoParticipantPatches>(
+        (acc, [sessionId, change]) => {
+          acc[sessionId] = {
             videoDimension: change.videoDimension,
           };
-        }
-        return participant;
-      }),
+          return acc;
+        },
+        {},
+      ),
     );
 
-    this.updateSubscriptions(this.participants);
+    if (participants) {
+      this.updateSubscriptions(participants);
+    }
   };
 
   private updateSubscriptions = (participants: StreamVideoParticipant[]) => {
-    const subscriptions: { [key: string]: VideoDimension } = {};
+    const subscriptions: TrackSubscriptionDetails[] = [];
     participants.forEach((p) => {
-      if (p.videoDimension && !p.isLoggedInUser) {
-        subscriptions[p.user!.id] = p.videoDimension;
+      if (!p.isLoggedInUser) {
+        // if (p.videoDimension && p.publishedTracks.includes(TrackKind.VIDEO)) {
+        subscriptions.push({
+          userId: p.userId,
+          sessionId: p.sessionId,
+          trackType: TrackType.VIDEO,
+          dimension: p.videoDimension,
+        });
+        // }
+        // if (p.publishedTracks.includes(TrackKind.AUDIO)) {
+        subscriptions.push({
+          userId: p.userId,
+          sessionId: p.sessionId,
+          trackType: TrackType.AUDIO,
+        });
+        // }
+        // if (p.publishedTracks.includes(TrackKind.SCREEN_SHARE)) {
+        subscriptions.push({
+          userId: p.userId,
+          sessionId: p.sessionId,
+          trackType: TrackType.SCREEN_SHARE,
+          dimension: {
+            width: 1280,
+            height: 720,
+          },
+        });
+        // }
       }
     });
     // schedule update
@@ -465,49 +470,17 @@ export class Call {
   };
 
   /**
-   * Mute/unmute the video/audio stream of the current user.
-   * @param trackKind
-   * @param isMute
-   * @returns
-   */
-  updateMuteState = (trackKind: 'audio' | 'video', isMute: boolean) => {
-    if (!this.publisher) return;
-    const senders = this.publisher.getSenders();
-    const sender = senders.find((s) => s.track?.kind === trackKind);
-    if (sender && sender.track) {
-      sender.track.enabled = !isMute;
-
-      if (trackKind === 'audio') {
-        return this.client.updateAudioMuteState(isMute);
-      } else if (trackKind === 'video') {
-        return this.client.updateVideoMuteState(isMute);
-      }
-    }
-  };
-
-  /**
    * Sets the used audio output device
    *
    * This method only stores the selection, you'll have to implement the audio switching, for more information see: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId
    *
    * @param deviceId the selected device, `undefined` means the user wants to use the system's default audio output
    */
-  setAudioOutputDevice(deviceId?: string) {
-    const localParticipant = this.stateStore.getCurrentValue(
-      this.stateStore.localParticipant$,
-    );
-    const allParticipants = this.stateStore.getCurrentValue(
-      this.stateStore.participantsSubject,
-    );
-    this.stateStore.setCurrentValue(
-      this.stateStore.participantsSubject,
-      allParticipants.map((p) =>
-        p.sessionId === localParticipant?.sessionId
-          ? { ...localParticipant, audioOutputDeviceId: deviceId }
-          : p,
-      ),
-    );
-  }
+  setAudioOutputDevice = (deviceId?: string) => {
+    this.stateStore.updateParticipant(this.client.sessionId, {
+      audioOutputDeviceId: deviceId,
+    });
+  };
 
   updatePublishQuality = async (enabledRids: string[]) => {
     console.log(
@@ -544,22 +517,23 @@ export class Call {
   }
 
   private handleOnTrack = (e: RTCTrackEvent) => {
-    console.log('Got remote track:', e.track);
     const [primaryStream] = e.streams;
-    const [trackId] = primaryStream.id.split(':');
+    // TODO OL: extract track kind
+    const [trackId, trackType] = primaryStream.id.split(':');
+    console.log(`Got remote ${trackType} track:`, e.track);
     const participantToUpdate = this.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );
     if (!participantToUpdate) {
-      console.warn('Received track for unknown participant', trackId, e);
+      console.error('Received track for unknown participant', trackId, e);
       return;
     }
 
     e.track.addEventListener('mute', () => {
       console.log(
         `Track muted:`,
-        participantToUpdate.user!.id,
-        `${e.track.kind}:${trackId}`,
+        participantToUpdate.userId,
+        `${trackType}:${trackId}`,
         e.track,
       );
     });
@@ -567,8 +541,8 @@ export class Call {
     e.track.addEventListener('unmute', () => {
       console.log(
         `Track unmuted:`,
-        participantToUpdate.user!.id,
-        `${e.track.kind}:${trackId}`,
+        participantToUpdate.userId,
+        `${trackType}:${trackId}`,
         e.track,
       );
     });
@@ -576,54 +550,40 @@ export class Call {
     e.track.addEventListener('ended', () => {
       console.log(
         `Track ended:`,
-        participantToUpdate.user!.id,
-        `${e.track.kind}:${trackId}`,
+        participantToUpdate.userId,
+        `${trackType}:${trackId}`,
         e.track,
       );
     });
 
-    if (e.track.kind === 'video') {
-      this.stateStore.setCurrentValue(
-        this.stateStore.participantsSubject,
-        this.participants.map((participant) => {
-          if (participant.trackLookupPrefix === trackId) {
-            return {
-              // FIXME OL: shallow clone, switch to deep clone
-              ...participant,
-              videoStream: primaryStream,
-            };
-          }
-          return participant;
-        }),
-      );
-    } else if (e.track.kind === 'audio') {
-      this.stateStore.setCurrentValue(
-        this.stateStore.participantsSubject,
-        this.participants.map((participant) => {
-          if (participant.trackLookupPrefix === trackId) {
-            return {
-              // FIXME OL: shallow clone, switch to deep clone
-              ...participant,
-              audioStream: primaryStream,
-            };
-          }
-          return participant;
-        }),
-      );
+    const streamKindProp: keyof StreamVideoParticipant =
+      e.track.kind === 'audio'
+        ? 'audioStream'
+        : trackType === 'TRACK_TYPE_SCREEN_SHARE'
+        ? 'screenShareStream'
+        : 'videoStream';
+
+    const previousStream = participantToUpdate[streamKindProp];
+    if (previousStream) {
+      console.log(`Cleaning up previous remote tracks`, e.track.kind);
+      previousStream.getTracks().forEach((t) => {
+        t.stop();
+        previousStream.removeTrack(t);
+      });
     }
+    this.stateStore.updateParticipant(participantToUpdate.sessionId, {
+      [streamKindProp]: primaryStream,
+    });
   };
 
-  private getActiveInputDeviceId = (kind: MediaDeviceKind) => {
-    if (!this.publisher) return;
-
-    const trackKind =
-      kind === 'audioinput'
-        ? 'audio'
-        : kind === 'videoinput'
-        ? 'video'
-        : 'unknown';
-    const senders = this.publisher.getSenders();
-    const sender = senders.find((s) => s.track?.kind === trackKind);
-    return sender?.track?.getConstraints().deviceId as string;
+  private assertCallJoined = async () => {
+    if (!this.joinResponseReady) {
+      throw new Error(
+        `Illegal State: Can't publish. Please join the call first`,
+      );
+    }
+    // callee should wait until we get a JoinResponse from the SFU,
+    // otherwise we risk breaking the ICETrickle flow.
+    return this.joinResponseReady;
   };
 }

@@ -1,5 +1,6 @@
 import { Dispatcher } from '../rtc/Dispatcher';
-import { StreamVideoWriteableStateStore } from '../store';
+import { StreamVideoWriteableStateStore } from '../stateStore';
+import { StreamVideoParticipantPatches } from '../rtc/types';
 
 const SPEAKING_THRESHOLD = 0.3;
 
@@ -12,11 +13,11 @@ export const watchDominantSpeakerChanged = (
 ) => {
   return dispatcher.on('dominantSpeakerChanged', (e) => {
     if (e.eventPayload.oneofKind !== 'dominantSpeakerChanged') return;
-    const { dominantSpeakerChanged } = e.eventPayload;
-    store.setCurrentValue(
-      store.dominantSpeakerSubject,
-      dominantSpeakerChanged.userId,
-    );
+    const {
+      dominantSpeakerChanged: { sessionId },
+    } = e.eventPayload;
+    const dominantSpeaker = store.findParticipantBySessionId(sessionId);
+    store.setCurrentValue(store.dominantSpeakerSubject, dominantSpeaker);
   });
 };
 
@@ -29,32 +30,16 @@ export const watchAudioLevelChanged = (
 ) => {
   return dispatcher.on('audioLevelChanged', (e) => {
     if (e.eventPayload.oneofKind !== 'audioLevelChanged') return;
-    const { audioLevels } = e.eventPayload.audioLevelChanged;
-    const userIdLookup = audioLevels.reduce<Record<string, number>>(
-      (acc, current) => {
-        acc[current.userId] = current.level;
-        return acc;
-      },
-      {},
-    );
 
-    const participantsSubject = store.participantsSubject;
-    const participants = store.getCurrentValue(participantsSubject);
-    store.setCurrentValue(
-      participantsSubject,
-      participants.map((participant) => {
-        const { id } = participant.user!;
-        const audioLevel = userIdLookup[id];
-        if (participant.audioLevel !== audioLevel) {
-          // FIXME OL: consider doing deep-clone
-          return {
-            ...participant,
-            audioLevel,
-            isSpeaking: audioLevel >= SPEAKING_THRESHOLD,
-          };
-        }
-        return participant;
-      }),
+    const { audioLevels } = e.eventPayload.audioLevelChanged;
+    store.updateParticipants(
+      audioLevels.reduce<StreamVideoParticipantPatches>((drafts, current) => {
+        drafts[current.sessionId] = {
+          audioLevel: current.level,
+          isSpeaking: current.level > SPEAKING_THRESHOLD,
+        };
+        return drafts;
+      }, {}),
     );
   });
 };

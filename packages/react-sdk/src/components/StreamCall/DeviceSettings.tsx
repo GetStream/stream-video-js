@@ -11,8 +11,7 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
     videoDevices,
     audioOutputDevices,
     isAudioOutputChangeSupported,
-    getAudioStream,
-    getVideoStream,
+    switchDevice,
   } = useMediaDevices();
 
   const [referenceElement, setReferenceElement] =
@@ -24,16 +23,6 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
   const [isPopperOpen, setIsPopperOpen] = useState(false);
 
   const localParticipant = useLocalParticipant();
-
-  const switchDevice = async (
-    kind: 'videoinput' | 'audioinput',
-    deviceId: string,
-  ) => {
-    const mediaStream = await (kind === 'videoinput'
-      ? getVideoStream(deviceId)
-      : getAudioStream(deviceId));
-    activeCall.replaceMediaStream(kind, mediaStream);
-  };
 
   const setAudioOutputDevice = (deviceId: string) => {
     activeCall?.setAudioOutputDevice(deviceId);

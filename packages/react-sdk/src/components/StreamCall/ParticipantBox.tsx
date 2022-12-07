@@ -1,30 +1,23 @@
 import clsx from 'clsx';
 import { useEffect, useRef } from 'react';
-import { Call, StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  Call,
+  StreamVideoParticipant,
+  SfuModels,
+} from '@stream-io/video-client';
 import { useIsDebugMode } from '../Debug/useIsDebugMode';
 import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../Debug/DebugStatsView';
+import { Video } from './Video';
 
 export const ParticipantBox = (props: {
   participant?: StreamVideoParticipant;
   isMuted?: boolean;
-  updateVideoSubscriptionForParticipant: (
-    sessionId: string,
-    width: number,
-    height: number,
-  ) => void;
   call: Call;
   sinkId?: string;
 }) => {
-  const {
-    participant,
-    isMuted = false,
-    updateVideoSubscriptionForParticipant,
-    call,
-    sinkId,
-  } = props;
+  const { participant, isMuted = false, call, sinkId } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const {
     videoStream,
@@ -32,36 +25,33 @@ export const ParticipantBox = (props: {
     isLoggedInUser: isLocalParticipant,
     isSpeaking,
     sessionId,
-    audio,
-    video,
+    publishedTracks,
   } = participant ?? {};
 
+  const hasAudio = publishedTracks?.includes(SfuModels.TrackType.AUDIO);
+  const hasVideo = publishedTracks?.includes(SfuModels.TrackType.VIDEO);
+
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container || !hasVideo || !sessionId) return;
 
     const resizeObserver = new ResizeObserver(() => {
-      const width = containerRef.current!.clientWidth;
-      const height = containerRef.current!.clientHeight;
-      if (sessionId)
-        updateVideoSubscriptionForParticipant(sessionId, width, height);
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      call.updateSubscriptionsPartial({
+        [sessionId]: {
+          videoDimension: {
+            width,
+            height,
+          },
+        },
+      });
     });
-    resizeObserver.observe(containerRef.current);
+    resizeObserver.observe(container);
     return () => {
       resizeObserver.disconnect();
     };
-  }, [sessionId, updateVideoSubscriptionForParticipant]);
-
-  useEffect(() => {
-    const $el = videoRef.current;
-    console.log(`Attaching video stream`, $el, videoStream);
-    if (!$el) return;
-    if (videoStream) {
-      $el.srcObject = videoStream;
-    }
-    return () => {
-      $el.srcObject = null;
-    };
-  }, [videoStream]);
+  }, [hasVideo, sessionId, call]);
 
   useEffect(() => {
     const $el = audioRef.current;
@@ -89,31 +79,28 @@ export const ParticipantBox = (props: {
     >
       <audio autoPlay ref={audioRef} muted={isMuted} />
       <div className="str-video__video-container">
-        <video
+        <Video
+          stream={videoStream}
           className={clsx(
             'str-video__remote-video',
             isLocalParticipant && 'mirror',
           )}
           muted={isMuted}
           autoPlay
-          ref={videoRef}
         />
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
-            {participant?.user?.id}
-            {!audio && (
+            {participant?.userId}
+            {!hasAudio && (
               <span className="str-video__participant_name--audio-muted"></span>
             )}
-            {!video && (
+            {!hasVideo && (
               <span className="str-video__participant_name--video-muted"></span>
             )}
           </span>
           {isDebugMode && participant && (
             <>
               <DebugParticipantPublishQuality
-                updateVideoSubscriptionForParticipant={
-                  updateVideoSubscriptionForParticipant
-                }
                 participant={participant}
                 call={call}
               />

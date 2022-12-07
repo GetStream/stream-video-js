@@ -1,28 +1,51 @@
 import clsx from 'clsx';
 import { ForwardedRef, forwardRef, useRef, useState } from 'react';
-import { Call, CallMeta } from '@stream-io/video-client';
 import {
-  useParticipants,
+  Call,
+  CallMeta,
+  getScreenShareStream,
+  SfuModels,
+} from '@stream-io/video-client';
+import {
+  useLocalParticipant,
   useStreamVideoClient,
   useIsCallRecordingInProgress,
 } from '@stream-io/video-react-bindings';
 import { CallStats } from './CallStats';
+import { useMediaPublisher } from '../../hooks';
 
 export const CallControls = (props: {
   call: Call;
   callMeta?: CallMeta.Call;
+  initialAudioMuted?: boolean;
+  initialVideoMuted?: boolean;
 }) => {
-  const { call, callMeta } = props;
+  const { call, callMeta, initialAudioMuted, initialVideoMuted } = props;
   const client = useStreamVideoClient();
-  const participants = useParticipants();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
-  const localParticipant = participants.find((p) => p.isLoggedInUser);
-  const isAudioMute = !localParticipant?.audio;
-  const isVideoMute = !localParticipant?.video;
+  const localParticipant = useLocalParticipant();
+  const isAudioMute = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.AUDIO,
+  );
+  const isVideoMute = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
+  const isScreenSharing = localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.SCREEN_SHARE,
+  );
+
+  // TODO: ??? how do these get there? after publish? **magic** (rely instead on MediaDevicesContext and DeviceSettings instead)
+  // const audioDeviceId = localParticipant?.audioDeviceId;
+  // const videoDeviceId = localParticipant?.videoDeviceId;
+
+  const { publishAudioStream, publishVideoStream } = useMediaPublisher({
+    call,
+    initialAudioMuted,
+    initialVideoMuted,
+  });
 
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const statsAnchorRef = useRef<HTMLButtonElement>(null);
-
   return (
     <div className="str-video__call-controls">
       <Button
@@ -54,15 +77,39 @@ export const CallControls = (props: {
         }}
       />
       <Button
+        icon={isScreenSharing ? 'screen-share-on' : 'screen-share-off'}
+        title="Share screen"
+        onClick={async () => {
+          if (!isScreenSharing) {
+            const stream = await getScreenShareStream().catch((e) => {
+              console.log(`Can't share screen: ${e}`);
+            });
+            if (stream) {
+              await call.publishScreenShareStream(stream);
+            }
+          } else {
+            call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
+          }
+        }}
+      />
+      <Button
         icon={isAudioMute ? 'mic-off' : 'mic'}
         onClick={() => {
-          call.updateMuteState('audio', !isAudioMute);
+          if (isAudioMute) {
+            void publishAudioStream();
+          } else {
+            call.stopPublish(SfuModels.TrackType.AUDIO);
+          }
         }}
       />
       <Button
         icon={isVideoMute ? 'camera-off' : 'camera'}
         onClick={() => {
-          call.updateMuteState('video', !isVideoMute);
+          if (isVideoMute) {
+            void publishVideoStream();
+          } else {
+            call.stopPublish(SfuModels.TrackType.VIDEO);
+          }
         }}
       />
       <Button
