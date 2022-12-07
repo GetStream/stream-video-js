@@ -112,8 +112,7 @@ export const CallControls = (props: {
         variant="danger"
         onClick={() => {
           call.leave();
-          // FIXME: OL: move this away from here
-          alert('Call ended. You may close the window now.');
+          callMeta && client?.cancelCall(callMeta.callCid);
         }}
       />
     </div>
