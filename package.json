@@ -11,6 +11,7 @@
   "scripts": {
     "start:react:sdk": "yarn workspace @stream-io/video-react-sdk run start",
     "build:react:sdk": "yarn workspace @stream-io/video-react-sdk run build",
+    "build:react:stack": "yarn build:client && yarn build:react:bindings && yarn build:react:sdk",
     "start:react:bindings": "yarn workspace @stream-io/video-react-bindings run start",
     "build:react:bindings": "yarn workspace @stream-io/video-react-bindings run build",
     "build:react:dogfood": "yarn workspace @stream-io/video-react-dogfood run build",
