@@ -4972,6 +4972,7 @@ __metadata:
     "@mui/material": ^5.10.16
     "@sentry/nextjs": ^7.22.0
     "@stream-io/video-client": "workspace:^"
+    "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
     "@types/jsonwebtoken": ^8.5.9
