@@ -1,0 +1,50 @@
+name: Push docusaurus documentation
+
+on:
+  push:
+    branches:
+      - feat/docusaurus-push
+    paths:
+      - 'packages/angular-sdk/**'
+      - 'packages/react-bindings/**'
+      - 'packages/client/**'
+      - 'packages/react-native-sdk/**'
+
+jobs:
+  push_docusaurus:
+    name: Build and deploy the documentation
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+      - name: Install Dependencies
+        run: yarn install --immutable
+      - name: Build packages
+        run: yarn build:all
+      - name: Generate Angular documentation
+        run: yarn generate-docs:angular;
+      - name: Push Angular SDK documentation
+        uses: GetStream/push-stream-chat-docusaurus-action@main
+        with:
+          target-branch: ${{ 'staging' }}
+          source-directory: 'packages/angular-sdk/docusaurus'
+        env:
+          DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
+      - name: Generate React Native SDK documentation
+        run: yarn generate-docs:react-native:sdk;
+      - name: Push React Native SDK documentation
+        uses: GetStream/push-stream-chat-docusaurus-action@main
+        with:
+          target-branch: ${{ 'staging' }}
+          source-directory: 'packages/react-native-sdk/docusaurus'
+        env:
+          DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
