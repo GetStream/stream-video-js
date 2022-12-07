@@ -18,6 +18,7 @@ import { RootStackParamList } from '../../../types';
 import { joinCall } from '../../utils/callUtils';
 import {
   useActiveRingCall,
+  useCallKeep,
   useStreamVideoClient,
   useStreamVideoStoreValue,
 } from '@stream-io/video-react-native-sdk';
@@ -111,6 +112,7 @@ const Ringing = ({ navigation, setLoadingCall }: Props) => {
   }, [navigation, activeRingCallMeta]);
 
   const setState = useAppGlobalStoreSetState();
+  const { startCall } = useCallKeep();
 
   const startCallHandler = async () => {
     setLoadingCall(true);
@@ -137,6 +139,7 @@ const Ringing = ({ navigation, setLoadingCall }: Props) => {
           callId: callID,
           callType: 'default',
         }).then(() => {
+          startCall();
           setLoadingCall(false);
         });
       } catch (err) {
