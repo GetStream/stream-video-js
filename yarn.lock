@@ -6885,7 +6885,7 @@ __metadata:
     karma-jasmine: ~5.1.0
     karma-jasmine-html-reporter: ~2.0.0
     ng-packagr: ^14.1.0
-    ng2-charts: ^4.0.2
+    ng2-charts: ~4.0.2
     ngx-popperjs: ^14.1.2
     replace-in-file: ^6.3.5
     rxjs: ~7.5.7
@@ -16910,9 +16910,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ng2-charts@npm:^4.0.2":
-  version: 4.1.0
-  resolution: "ng2-charts@npm:4.1.0"
+"ng2-charts@npm:~4.0.2":
+  version: 4.0.2
+  resolution: "ng2-charts@npm:4.0.2"
   dependencies:
     lodash-es: ^4.17.15
     tslib: ^2.3.0
@@ -16920,9 +16920,9 @@ __metadata:
     "@angular/cdk": ">=14.0.0"
     "@angular/common": ">=14.0.0"
     "@angular/core": ">=14.0.0"
-    chart.js: ^3.4.0 || ^4.0.0
+    chart.js: ^3.4.0
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 9783dd7ae8013631fd0538b23e46e20fa2930b5f5de29a1a3a19e6560724fd079efe6d94980e5b84fa831a03af00a5eaa2712dfc9d033fa4081ac87e2cca1b02
+  checksum: cb53c19d29a0fbc95445e6d895318ce6a1c021b4ddd2a21090d3fd6f0fd5c1fe04298da26a9f8f9d0c6cce5a9b19b3e0c1ec328d2ce35f98c9b0f610f46d56ab
   languageName: node
   linkType: hard
 
