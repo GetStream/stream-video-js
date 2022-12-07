@@ -77,7 +77,7 @@ platform :ios do
             skip_waiting_for_build_processing: false,
         )
         sentry_upload_dsym(
-          auth_token: '659819c871f54e659866cff74b65c9bf2347d280cb0b4a07be0c70e8291da37c',
+          auth_token: ENV['SENTRY_RN_AUTH_TOKEN'],
           org_slug: 'stream',
           project_slug: 'video-dogfooding-react-native',
           dsym_path: "./dist/StreamReactNativeVideoSDKSample.app.dSYM.zip",
