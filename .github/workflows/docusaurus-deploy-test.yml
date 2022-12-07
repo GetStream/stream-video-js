@@ -6,7 +6,7 @@ env:
 on:
   push:
     branches:
-      - main
+      - fix/docs-push-action
     # paths:
     #   - 'packages/angular-sdk/**'
     #   - 'packages/react-bindings/**'
@@ -36,7 +36,7 @@ jobs:
       - name: Generate Angular documentation
         run: yarn generate-docs:angular;
       - name: Push Angular SDK documentation
-        uses: GetStream/push-stream-chat-docusaurus-action@main
+        uses: GetStream/push-stream-chat-docusaurus-action@source-dir-fix
         with:
           target-branch: 'staging'
           destination-repository-name: 'stream-video-docusaurus'
@@ -46,7 +46,7 @@ jobs:
       - name: Generate React Native SDK documentation
         run: yarn generate-docs:react-native:sdk;
       - name: Push React Native SDK documentation
-        uses: GetStream/push-stream-chat-docusaurus-action@main
+        uses: GetStream/push-stream-chat-docusaurus-action@source-dir-fix
         with:
           target-branch: 'staging'
           destination-repository-name: 'stream-video-docusaurus'
