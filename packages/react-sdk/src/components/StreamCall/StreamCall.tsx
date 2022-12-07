@@ -1,26 +1,36 @@
-import { ReactNode, useEffect } from 'react';
+import { PropsWithChildren, useEffect } from 'react';
+import { CallCancelled, CallRejected } from '@stream-io/video-client';
+
 import {
   useAcceptedCall,
   useActiveCall,
-  useOutgoingCalls,
-  useHangUpNotifications,
-  useRemoteParticipants,
-  useStreamVideoClient,
   useIncomingCalls,
+  useOutgoingCalls,
+  useRemoteParticipants,
+  useStore,
+  useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import {
   LocalMediaStreamsContextProvider,
   MediaDevicesProvider,
 } from '../../contexts';
 
-export const StreamCall = ({ children }: { children: ReactNode }) => {
+type StreamCallProps = {
+  leaveOnLeftAlone?: boolean;
+};
+
+export const StreamCall = ({
+  children,
+  leaveOnLeftAlone,
+}: PropsWithChildren<StreamCallProps>) => {
   const videoClient = useStreamVideoClient();
   const activeCall = useActiveCall();
   const incomingCalls = useIncomingCalls();
   const outgoingCalls = useOutgoingCalls();
   const acceptedCall = useAcceptedCall();
   const remoteParticipants = useRemoteParticipants();
-  const hangupNotifications = useHangUpNotifications();
+  const { myHangupNotifications$ } = useStore();
+  const { remoteHangupNotifications$ } = useStore();
 
   useEffect(() => {
     if (!(videoClient && acceptedCall)) return;
@@ -44,42 +54,51 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
           // FIXME: OL optional, but it is marked as required in proto
           datacenterId: '',
         })
-        .then((call) => call?.join());
+        .then((call) => {
+          if (call?.left) return call;
+          const filterActiveCallHangups = (
+            acc: Set<string>,
+            notification: CallCancelled | CallRejected,
+          ) => {
+            if (notification.call?.callCid === call?.data.call?.callCid) {
+              acc.add(notification.senderUserId);
+            }
+            return acc;
+          };
+          myHangupNotifications$.subscribe((notifications) => {
+            const myHangups = notifications.reduce(
+              filterActiveCallHangups,
+              new Set(),
+            );
+            myHangups.size > 0 && call?.leave();
+          });
+
+          remoteHangupNotifications$.subscribe((notifications) => {
+            const members = call?.data.details?.memberUserIds || [];
+            const wasLeftAlone =
+              notifications.reduce(filterActiveCallHangups, new Set()).size ===
+              members.length - 1;
+
+            if (wasLeftAlone && leaveOnLeftAlone) {
+              call?.leave();
+            }
+          });
+          return call;
+        })
+        .then((call) => {
+          !call?.left && call?.join();
+        });
     }
-    return () => {
-      // activeCall?.leave();
-    };
   }, [
     activeCall,
     videoClient,
     outgoingCalls,
     acceptedCall,
     remoteParticipants,
-    hangupNotifications,
+    myHangupNotifications$,
+    remoteHangupNotifications$,
     incomingCalls,
-  ]);
-
-  useEffect(() => {
-    if (!(videoClient && hangupNotifications.length > 0)) return;
-    const hangups = hangupNotifications.filter(
-      (notification) =>
-        notification.call?.callCid === activeCall?.data.call?.callCid,
-    );
-
-    if (hangups.length > 0 && remoteParticipants.length === 0) {
-      activeCall?.leave();
-    }
-    return () => {
-      // activeCall?.leave();
-    };
-  }, [
-    activeCall,
-    videoClient,
-    outgoingCalls,
-    acceptedCall,
-    remoteParticipants,
-    hangupNotifications,
-    incomingCalls,
+    leaveOnLeftAlone,
   ]);
 
   if (!videoClient) return null;
