@@ -6,6 +6,7 @@
   max-width: 1280px;
   min-height: 0;
   max-height: 100%;
+  overflow: hidden;
 
   .str-video__video-container {
     position: relative;
@@ -13,6 +14,7 @@
 
   .str-video__video-container {
     min-height: 0;
+    max-height: 100%;
     display: flex;
     flex-direction: column;
 
@@ -21,6 +23,7 @@
       border: 2px solid transparent;
       background-size: contain;
       width: 100%;
+      object-fit: cover;
 
       &.mirror {
         transform: rotateY(180deg);

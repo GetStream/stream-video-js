@@ -13,17 +13,31 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
   const firstScreenSharingParticipant = allParticipants.find((p) =>
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
   );
+
+  const columns = `columns-${Math.min(
+    Math.ceil(allParticipants.length / 4),
+    3,
+  )}`;
   return (
     <div className="str-video__call-participants-screen-view">
       <div className="str-video__call-participants-screen-view__screen">
-        <Video
-          stream={firstScreenSharingParticipant?.screenShareStream}
-          className="str-video__screen-share"
-          autoPlay
-          muted
-        />
+        {firstScreenSharingParticipant && (
+          <>
+            <Video
+              stream={firstScreenSharingParticipant.screenShareStream}
+              className="str-video__screen-share"
+              autoPlay
+              muted
+            />
+            <span className="str-video__call-participants-screen-view__screen__presenter">
+              {firstScreenSharingParticipant.userId} is presenting their screen
+            </span>
+          </>
+        )}
       </div>
-      <div className="str-video__call-participants-screen-view__participants">
+      <div
+        className={`str-video__call-participants-screen-view__participants ${columns}`}
+      >
         {allParticipants.map((participant) => (
           <ParticipantBox
             key={participant.sessionId}
