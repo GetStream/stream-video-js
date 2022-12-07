@@ -1,6 +1,5 @@
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import { Dispatcher } from '../rtc/Dispatcher';
-import { trackTypeToParticipantStreamKey } from '../rtc/helpers/tracks';
 
 /**
  * An event responder which handles the `participantJoined` event.

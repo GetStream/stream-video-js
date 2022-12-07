@@ -1,4 +1,8 @@
-import { SfuModels } from '@stream-io/video-client';
+import {
+  getAudioStream,
+  getVideoStream,
+  SfuModels,
+} from '@stream-io/video-client';
 import {
   useActiveCall,
   useLocalParticipant,
@@ -27,15 +31,44 @@ export const useCallControls = () => {
     SfuModels.TrackType.VIDEO,
   );
 
+  const audioDeviceId = localParticipant?.audioDeviceId;
+  const videoDeviceId = localParticipant?.videoDeviceId;
+
+  const publishAudioStream = useCallback(async () => {
+    try {
+      const audioStream = await getAudioStream(audioDeviceId);
+      if (call) await call.publishAudioStream(audioStream);
+    } catch (e) {
+      console.log('Failed to publish audio stream', e);
+    }
+  }, [audioDeviceId, call]);
+
+  const publishVideoStream = useCallback(async () => {
+    try {
+      const videoStream = await getVideoStream(videoDeviceId);
+      if (call) await call.publishVideoStream(videoStream);
+    } catch (e) {
+      console.log('Failed to publish video stream', e);
+    }
+  }, [call, videoDeviceId]);
+
   // Handler to toggle the video mute state
   const toggleVideoState = useCallback(async () => {
-    await call?.stopPublish(SfuModels.TrackType.VIDEO);
-  }, [call]);
+    if (isVideoMuted) {
+      publishVideoStream();
+    } else {
+      await call?.stopPublish(SfuModels.TrackType.VIDEO);
+    }
+  }, [call, isVideoMuted, publishVideoStream]);
 
   // Handler to toggle the audio mute state
   const toggleAudioState = useCallback(async () => {
-    await call?.stopPublish(SfuModels.TrackType.AUDIO);
-  }, [call]);
+    if (isAudioMuted) {
+      publishAudioStream();
+    } else {
+      await call?.stopPublish(SfuModels.TrackType.AUDIO);
+    }
+  }, [call, isAudioMuted, publishAudioStream]);
 
   // Handler to toggle the camera front and back facing mode
   const toggleCamera = useCallback(() => {
