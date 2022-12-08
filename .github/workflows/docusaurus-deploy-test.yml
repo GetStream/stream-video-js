@@ -6,12 +6,12 @@ env:
 on:
   push:
     branches:
-      - main
-    paths:
-      - 'packages/angular-sdk/**'
-      - 'packages/react-bindings/**'
-      - 'packages/client/**'
-      - 'packages/react-native-sdk/**'
+      - fix/docs-push-action
+    # paths:
+    #   - 'packages/angular-sdk/**'
+    #   - 'packages/react-bindings/**'
+    #   - 'packages/client/**'
+    #   - 'packages/react-native-sdk/**'
 
 jobs:
   push_docusaurus:
