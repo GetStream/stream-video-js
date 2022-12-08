@@ -22,8 +22,8 @@ cp temp-docs/modules.md generated-docs/components.md
 rm -rf temp-docs
 
 # copy the docs to react-native docusaurus
-cp -a ../client/generated-docs/. docusaurus/docs/react-native/reference
-cp -a ../react-bindings/generated-docs/. docusaurus/docs/react-native/reference
-cp -a ./generated-docs/. docusaurus/docs/react-native/reference
+cp -a ../client/generated-docs/. docusaurus/docs/reactnative/reference
+cp -a ../react-bindings/generated-docs/. docusaurus/docs/reactnative/reference
+cp -a ./generated-docs/. docusaurus/docs/reactnative/reference
 
 echo "Done!"
