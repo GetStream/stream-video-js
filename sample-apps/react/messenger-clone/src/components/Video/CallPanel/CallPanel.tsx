@@ -25,14 +25,17 @@ import {
   useLocalMediaStreamsContext,
 } from '@stream-io/video-react-sdk';
 
-import { CallCreated } from '@stream-io/video-client';
+import { CallCreated, SfuModels } from '@stream-io/video-client';
 import { useChatContext } from 'stream-chat-react';
-import { ComponentProps, useEffect, useMemo } from 'react';
+import { ComponentProps, useMemo } from 'react';
 
 const ButtonControls = ({
   incomingCall,
   outgoingCall,
-}: Record<'incomingCall' | 'outgoingCall', CallCreated>) => {
+  publishAudioStream,
+  publishVideoStream,
+}: Record<'incomingCall' | 'outgoingCall', CallCreated> &
+  Record<'publishAudioStream' | 'publishVideoStream', () => Promise<void>>) => {
   const videoClient = useStreamVideoClient();
   const activeCall = useActiveCall();
 
@@ -46,8 +49,12 @@ const ButtonControls = ({
 
   const localParticipant = useLocalParticipant();
 
-  const isAudioMute = false; // !localParticipant?.audio;
-  const isVideoMute = false; // !localParticipant?.video;
+  const isAudioMute = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.AUDIO,
+  );
+  const isVideoMute = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
 
   return (
     <div className="rmc__button-controls">
@@ -95,13 +102,25 @@ const ButtonControls = ({
         <>
           <button
             className="rmc__button rmc__button--transparent"
-            // onClick={() => activeCall.updateMuteState('audio', !isAudioMute)}
+            onClick={() => {
+              if (isAudioMute) {
+                void publishAudioStream();
+              } else {
+                void activeCall?.stopPublish(SfuModels.TrackType.AUDIO);
+              }
+            }}
           >
             {isAudioMute ? <MicOff /> : <Mic />}
           </button>
           <button
             className="rmc__button rmc__button--transparent"
-            // onClick={() => activeCall.updateMuteState('video', !isVideoMute)}
+            onClick={() => {
+              if (isVideoMute) {
+                void publishVideoStream();
+              } else {
+                void activeCall?.stopPublish(SfuModels.TrackType.VIDEO);
+              }
+            }}
           >
             {isVideoMute ? <VideocamOff /> : <Videocam />}
           </button>
@@ -185,8 +204,7 @@ export const CallPanel = () => {
               localParticipant ?? {
                 audioStream: localAudioStream,
                 videoStream: localVideoStream,
-                // @ts-ignore
-                user: { userId: client.user.id },
+                userId: client.user.id,
               }
             }
             call={activeCall}
@@ -206,6 +224,8 @@ export const CallPanel = () => {
         </div>
 
         <ButtonControls
+          publishAudioStream={publishAudioStream}
+          publishVideoStream={publishVideoStream}
           incomingCall={incomingCall}
           outgoingCall={outgoingCall}
         />
