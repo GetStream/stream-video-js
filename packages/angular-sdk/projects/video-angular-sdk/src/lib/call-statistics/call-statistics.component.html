@@ -38,6 +38,12 @@
     <ng-container
       *ngTemplateOutlet="
         statCard;
+        context: { label: 'Publish resolution', value: publishResolution }
+      "
+    ></ng-container>
+    <ng-container
+      *ngTemplateOutlet="
+        statCard;
         context: {
           label: 'Publish quality drop reason',
           value: publishQualityLimit
@@ -47,13 +53,16 @@
     <ng-container
       *ngTemplateOutlet="
         statCard;
-        context: { label: 'Publish resolution', value: publishResolution }
+        context: { label: 'Receiving resolution', value: subscriberResolution }
       "
     ></ng-container>
     <ng-container
       *ngTemplateOutlet="
         statCard;
-        context: { label: 'Receiving resolution', value: subscriberResolution }
+        context: {
+          label: 'Receive quality drop reason',
+          value: subscribeQualityLimit
+        }
       "
     ></ng-container>
     <ng-container
