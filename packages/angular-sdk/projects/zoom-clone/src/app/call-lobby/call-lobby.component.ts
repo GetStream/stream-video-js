@@ -1,9 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { StreamVideoService } from '@stream-io/video-angular-sdk';
 import { Subscription } from 'rxjs';
 import {
   DeviceManagerService,
   MediaStreamState,
 } from '../device-manager.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-call-lobby',
@@ -20,7 +23,12 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   isSpeaking = false;
   private subscripitions: Subscription[] = [];
 
-  constructor(private deviceManager: DeviceManagerService) {
+  constructor(
+    private deviceManager: DeviceManagerService,
+    private streamVideoService: StreamVideoService,
+    private snackBar: MatSnackBar,
+    private router: Router,
+  ) {
     this.deviceManager.startVideo();
     this.deviceManager.startAudio();
     this.subscripitions.push(
@@ -54,5 +62,27 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscripitions.forEach((s) => s.unsubscribe());
+  }
+
+  async startCall() {
+    try {
+      const callMeta = await this.streamVideoService.videoClient?.createCall({
+        type: 'default',
+      });
+      const callId = callMeta!.call!.id;
+      const call = await this.streamVideoService.videoClient?.joinCall({
+        id: callId,
+        type: 'default',
+        datacenterId: '',
+      });
+      await call?.join();
+      this.snackBar.open(
+        `Send this link to others to join: ${window.location.host}/call?callid=${callId}`,
+        'Dismiss',
+      );
+      this.router.navigateByUrl(`call?callid=${callId}`);
+    } catch (err) {
+      this.snackBar.open(`Call couldn't be started`);
+    }
   }
 }

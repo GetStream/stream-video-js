@@ -1,0 +1,33 @@
+@use '../../variables';
+
+:host {
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+}
+
+.call {
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
+  .participants {
+    flex-grow: 1;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+
+    &.multiple {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, 50%);
+    }
+  }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}

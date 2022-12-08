@@ -49,17 +49,15 @@
       & > .loading,
       & > .error,
       & > .off {
-        border-radius: 8px;
-        border: 2px solid variables.$primary-color;
+        @include variables.video-border;
       }
     }
 
     video {
+      @include variables.video-border;
       max-width: 100%;
       max-height: 100%;
       transform: rotateY(180deg);
-      border-radius: 8px;
-      border: 2px solid variables.$primary-color;
     }
 
     .loading,
@@ -79,6 +77,7 @@
       justify-content: center;
 
       .mic {
+        box-sizing: content-box;
         background-color: grey;
         color: white;
         border-radius: 50%;

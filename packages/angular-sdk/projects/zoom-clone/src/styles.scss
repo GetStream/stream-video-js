@@ -1,5 +1,8 @@
 @use '@angular/material' as mat;
 @use 'variables';
+@layer default {
+  @import '~@stream-io/video-styling/index.scss';
+}
 
 @include mat.core();
 
@@ -10,9 +13,34 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen-Sans,
     Ubuntu, Cantarell, Helvetica Neue, sans-serif;
+  background-color: #424242;
+  color: white;
 }
 
 html,
 body {
   height: 100%;
+}
+
+@layer overrides {
+  .str-call__participant {
+    @include variables.video-border;
+
+    .str-video__video-container,
+    video {
+      border-radius: inherit;
+    }
+  }
+
+  .str-video__participant-angular-host {
+    max-width: 100%;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+video {
+  margin: 0;
 }

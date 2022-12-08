@@ -1,10 +1,10 @@
 @use '@angular/material' as mat;
 @use 'sass:map';
 
-$my-primary: mat.define-palette(mat.$indigo-palette, 500);
-$my-accent: mat.define-palette(mat.$light-blue-palette, A200, A100, A400);
+$my-primary: mat.define-palette(mat.$blue-palette, 500);
+$my-accent: mat.define-palette(mat.$grey-palette, A200, A100, A400);
 
-$my-theme: mat.define-light-theme(
+$my-theme: mat.define-dark-theme(
   (
     color: (
       primary: $my-primary,
@@ -18,3 +18,7 @@ $primary-text-color: white;
 
 $accent-color: mat.get-color-from-palette($my-accent, 500);
 $accent-text-color: black;
+
+@mixin video-border {
+  border-radius: 8px;
+}

@@ -6,11 +6,20 @@ import {
   getAudioStream,
   getVideoDevices,
   getVideoStream,
+  watchForDisconnectedAudioDevice,
+  watchForDisconnectedAudioOutputDevice,
+  watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject, map, Observable, take } from 'rxjs';
 
-export type MediaStreamState = 'loading' | 'on' | 'off' | 'error' | 'initial';
+export type MediaStreamState =
+  | 'loading'
+  | 'on'
+  | 'off'
+  | 'error'
+  | 'initial'
+  | 'disconnected';
 
 @Injectable({
   providedIn: 'root',
@@ -88,6 +97,20 @@ export class DeviceManagerService {
       .subscribe((devices) =>
         this.audioOutputDeviceSubject.next(devices[0].deviceId),
       );
+
+    watchForDisconnectedAudioDevice(this.audioDevice$).subscribe(() => {
+      this.audioStateSubject.next('disconnected');
+    });
+
+    watchForDisconnectedVideoDevice(this.videoDevice$).subscribe(() => {
+      this.videoStateSubject.next('disconnected');
+    });
+
+    watchForDisconnectedAudioOutputDevice(this.audioOutputDevice$).subscribe(
+      () => {
+        this.audioOutputDeviceSubject.next(undefined);
+      },
+    );
   }
 
   get audioState() {

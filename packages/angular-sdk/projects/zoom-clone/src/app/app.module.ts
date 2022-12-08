@@ -16,6 +16,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DeviceControlComponent } from './device-control/device-control.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
+import { CallComponent } from './call/call.component';
 
 @NgModule({
   declarations: [
@@ -24,6 +25,7 @@ import { MatSelectModule } from '@angular/material/select';
     ProfilePictureComponent,
     CallLobbyComponent,
     DeviceControlComponent,
+    CallComponent,
   ],
   imports: [
     BrowserModule,

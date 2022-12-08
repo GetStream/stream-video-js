@@ -1,9 +1,9 @@
 <div class="device-controls">
   <button mat-icon-button>
-    <mat-icon (click)="toggleAudio()" [fontIcon]="audioState === 'off' ? 'mic' : 'mic_off'"></mat-icon>
+    <mat-icon (click)="toggleAudio()" [fontIcon]="audioState === 'off' ? 'mic_off' : 'mic'"></mat-icon>
   </button>
   <button mat-icon-button>
-    <mat-icon (click)="toggleVideo()" [fontIcon]="videoState === 'off' ? 'videocam' : 'videocam_off'"></mat-icon>
+    <mat-icon (click)="toggleVideo()" [fontIcon]="videoState === 'off' ? 'videocam_off' : 'videocam'"></mat-icon>
   </button>
   <button mat-icon-button>
     <mat-icon fontIcon="settings" [matMenuTriggerFor]="menu"></mat-icon>
