@@ -7,7 +7,7 @@ import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { Observable, Subscription, take, tap } from 'rxjs';
+import { Observable, Subscription, take } from 'rxjs';
 import { DeviceManagerService } from '../device-manager.service';
 
 @Component({

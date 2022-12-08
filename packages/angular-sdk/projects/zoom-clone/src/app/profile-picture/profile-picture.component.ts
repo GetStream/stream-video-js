@@ -9,8 +9,6 @@ export class ProfilePictureComponent implements OnInit {
   @Input() url?: string;
   @Input() name?: string;
 
-  constructor() {}
-
   ngOnInit(): void {}
 
   get initials() {

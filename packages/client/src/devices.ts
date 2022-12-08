@@ -1,11 +1,4 @@
-import {
-  combineLatest,
-  filter,
-  firstValueFrom,
-  map,
-  Observable,
-  shareReplay,
-} from 'rxjs';
+import { combineLatest, filter, map, Observable, shareReplay } from 'rxjs';
 
 const getDevices = (constraints?: MediaStreamConstraints | undefined) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {

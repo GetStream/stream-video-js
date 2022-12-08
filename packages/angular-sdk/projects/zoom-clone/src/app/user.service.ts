@@ -58,6 +58,4 @@ export class UserService {
     },
   ];
   selectedUserId?: string;
-
-  constructor() {}
 }
