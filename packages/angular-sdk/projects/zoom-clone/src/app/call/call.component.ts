@@ -19,6 +19,7 @@ export class CallComponent implements OnInit, OnDestroy {
   call!: Call;
   remoteParticipants$: Observable<StreamVideoParticipant[]>;
   localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
+  TrackType = SfuModels.TrackType;
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -75,5 +76,17 @@ export class CallComponent implements OnInit, OnDestroy {
 
   trackBySessionId(_: number, item: StreamVideoParticipant) {
     return item.sessionId;
+  }
+
+  toggleAudioMuteState(userId: string, isMuted: boolean) {
+    alert('Not yet supported');
+  }
+
+  toggleVideoMuteState(userId: string, isMuted: boolean) {
+    alert('Not yet supported');
+  }
+
+  muteAll() {
+    alert('Not yet supported');
   }
 }

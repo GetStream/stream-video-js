@@ -42,3 +42,10 @@
     <app-device-control></app-device-control>
   </div>
 </div>
+
+<ng-template #invite>
+  Send this link to others to join: {{inviteLink}}
+  <button mat-button>
+    <mat-icon (click)="copyLink()" fontIcon="content_copy"></mat-icon>
+  </button>
+</ng-template>

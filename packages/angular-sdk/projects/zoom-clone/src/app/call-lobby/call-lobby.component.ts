@@ -1,11 +1,17 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { StreamVideoService } from '@stream-io/video-angular-sdk';
 import { Subscription } from 'rxjs';
 import {
   DeviceManagerService,
   MediaStreamState,
 } from '../device-manager.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CallMeta } from '@stream-io/video-client';
 
@@ -25,6 +31,8 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   joinOrCreate: 'join' | 'create' = 'create';
   callMeta?: CallMeta.Call;
   private subscripitions: Subscription[] = [];
+  @ViewChild('invite') private inviteRef!: TemplateRef<any>;
+  private snackBarRef?: MatSnackBarRef<any>;
 
   constructor(
     private deviceManager: DeviceManagerService,
@@ -85,18 +93,34 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
     this.subscripitions.forEach((s) => s.unsubscribe());
   }
 
+  get inviteLink() {
+    return `${window.location.host}/call?callid=${this.callMeta?.id}`;
+  }
+
+  copyLink() {
+    navigator.clipboard.writeText(this.inviteLink);
+    this.snackBarRef?.dismiss();
+  }
+
   async startCall() {
     try {
       let callId: string;
       if (this.joinOrCreate === 'create') {
-        const callMeta = await this.streamVideoService.videoClient?.createCall({
+        const response = await this.streamVideoService.videoClient?.createCall({
           type: 'default',
         });
-        callId = callMeta!.call!.id;
+        this.callMeta = response?.call;
+        callId = this.callMeta!.id;
       } else {
         callId = this.callMeta!.id;
       }
       await this.joinCall(callId);
+      if (this.joinOrCreate === 'create') {
+        this.snackBarRef = this.snackBar.openFromTemplate(this.inviteRef, {
+          duration: 10000,
+        });
+      }
+      this.router.navigate(['call'], { queryParams: { callid: callId } });
     } catch (err) {
       this.snackBar.open(`Call couldn't be started`);
     }
@@ -109,10 +133,5 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
       datacenterId: '',
     });
     await call?.join();
-    this.snackBar.open(
-      `Send this link to others to join: ${window.location.host}/call?callid=${callId}`,
-      'Dismiss',
-    );
-    this.router.navigate(['call'], { queryParams: { callid: callId } });
   }
 }
