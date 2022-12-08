@@ -28,13 +28,13 @@ const getDevices = (constraints?: MediaStreamConstraints | undefined) => {
       subscriber.next(allDevices);
     };
 
-    navigator.mediaDevices.addEventListener(
+    navigator.mediaDevices.addEventListener?.(
       'devicechange',
       deviceChangeHandler,
     );
 
     return () =>
-      navigator.mediaDevices.removeEventListener(
+      navigator.mediaDevices.removeEventListener?.(
         'devicechange',
         deviceChangeHandler,
       );

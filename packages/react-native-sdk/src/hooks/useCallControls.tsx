@@ -12,17 +12,22 @@ import {
   useStreamVideoStoreSetState,
   useStreamVideoStoreValue,
 } from '../contexts';
+import { useMediaDevices } from '../contexts/MediaDevicesContext';
 
 export const useCallControls = () => {
   const localParticipant = useLocalParticipant();
   const call = useActiveCall();
   const setState = useStreamVideoStoreSetState();
-  const localMediaStream = useStreamVideoStoreValue(
-    (store) => store.localMediaStream,
-  );
+
   const cameraBackFacingMode = useStreamVideoStoreValue(
     (store) => store.cameraBackFacingMode,
   );
+  const {
+    audioDevice,
+    currentVideoDevice,
+    videoDevices,
+    setCurrentVideoDevice,
+  } = useMediaDevices();
 
   const isAudioMuted = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
@@ -31,26 +36,28 @@ export const useCallControls = () => {
     SfuModels.TrackType.VIDEO,
   );
 
-  const audioDeviceId = localParticipant?.audioDeviceId;
-  const videoDeviceId = localParticipant?.videoDeviceId;
-
   const publishAudioStream = useCallback(async () => {
     try {
-      const audioStream = await getAudioStream(audioDeviceId);
-      if (call) await call.publishAudioStream(audioStream);
+      // Client picks up the default audio stream. For mobile devices there will always be one audio input
+      if (audioDevice) {
+        const audioStream = await getAudioStream(audioDevice.deviceId);
+        if (call) await call.publishAudioStream(audioStream);
+      }
     } catch (e) {
       console.log('Failed to publish audio stream', e);
     }
-  }, [audioDeviceId, call]);
+  }, [audioDevice, call]);
 
   const publishVideoStream = useCallback(async () => {
     try {
-      const videoStream = await getVideoStream(videoDeviceId);
-      if (call) await call.publishVideoStream(videoStream);
+      if (currentVideoDevice) {
+        const videoStream = await getVideoStream(currentVideoDevice.deviceId);
+        if (call) await call.publishVideoStream(videoStream);
+      }
     } catch (e) {
       console.log('Failed to publish video stream', e);
     }
-  }, [call, videoDeviceId]);
+  }, [call, currentVideoDevice]);
 
   // Handler to toggle the video mute state
   const toggleVideoState = useCallback(async () => {
@@ -72,14 +79,18 @@ export const useCallControls = () => {
 
   // Handler to toggle the camera front and back facing mode
   const toggleCamera = useCallback(() => {
-    if (localMediaStream) {
-      const [primaryVideoTrack] = localMediaStream.getVideoTracks();
-      primaryVideoTrack._switchCamera();
-      setState((prevState) => ({
-        cameraBackFacingMode: !prevState.cameraBackFacingMode,
-      }));
-    }
-  }, [localMediaStream, setState]);
+    const videoDevice = videoDevices.find(
+      (videoDevice) =>
+        videoDevice.kind === 'videoinput' &&
+        (cameraBackFacingMode
+          ? videoDevice.facing === 'front'
+          : videoDevice.facing === 'environment'),
+    );
+    setCurrentVideoDevice(videoDevice);
+    setState((prevState) => ({
+      cameraBackFacingMode: !prevState.cameraBackFacingMode,
+    }));
+  }, [cameraBackFacingMode, setCurrentVideoDevice, videoDevices, setState]);
 
   // Handler to open/close the Chat window
   const toggleChat = () => {};

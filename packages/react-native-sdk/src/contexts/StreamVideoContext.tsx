@@ -6,6 +6,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren } from 'react';
 import { CallKeepOptions } from '../types';
+import { MediaDevicesProvider } from './MediaDevicesContext';
 
 interface SDKStreamVideoStore {
   cameraBackFacingMode: boolean;
@@ -37,7 +38,9 @@ export const StreamVideo: React.FC<
   const { client, ...rest } = props;
   return (
     <StreamVideoProvider client={client}>
-      <Provider {...rest} />
+      <MediaDevicesProvider>
+        <Provider {...rest} />
+      </MediaDevicesProvider>
     </StreamVideoProvider>
   );
 };
