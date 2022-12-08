@@ -2,6 +2,7 @@ export type BaseStats = {
   bytesSent?: number;
   bytesReceived?: number;
   codec?: string;
+  currentRoundTripTime?: number;
   frameWidth?: number;
   frameHeight?: number;
   framesPerSecond?: number;
@@ -22,6 +23,7 @@ export type AggregatedStatsReport = {
   totalBytesSent: number;
   totalBytesReceived: number;
   averageJitterInMs: number;
+  averageRoundTripTimeInMs: number;
   qualityLimitationReasons: string;
   highestFrameWidth: number;
   highestFrameHeight: number;
@@ -35,7 +37,6 @@ export type ParticipantsStatsReport = {
 
 export type CallStatsReport = {
   datacenter: string;
-  latencyInMs: number;
   publisherStats: AggregatedStatsReport;
   publisherRawStats?: RTCStatsReport;
   subscriberStats: AggregatedStatsReport;

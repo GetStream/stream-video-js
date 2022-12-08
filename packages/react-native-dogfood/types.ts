@@ -116,7 +116,7 @@ export type EventHandler = (event: SfuEvent) => void;
 
 export type RootStackParamList = {
   HomeScreen: undefined;
-  ActiveCall: undefined;
+  ActiveCallScreen: undefined;
   IncomingCallScreen: undefined;
   OutgoingCallScreen: undefined;
 };

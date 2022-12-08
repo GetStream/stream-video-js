@@ -12,8 +12,10 @@ import { StreamVideoService } from '../video.service';
 export class CallStatisticsComponent implements OnInit, OnDestroy {
   datacenter?: string;
   latencyInMs?: string;
-  jitter?: string;
-  qualityLimit?: string;
+  receiveJitter?: string;
+  sendJitter?: string;
+  publishQualityLimit?: string;
+  subscribeQualityLimit?: string;
   publishResolution?: string;
   subscriberResolution?: string;
   publishBitrate?: string;
@@ -46,12 +48,22 @@ export class CallStatisticsComponent implements OnInit, OnDestroy {
         .pipe(pairwise())
         .subscribe(([prevReport, report]) => {
           this.datacenter = report?.datacenter;
-          this.latencyInMs = this.toStringWithUnit(report?.latencyInMs, 'ms');
-          this.jitter = this.toStringWithUnit(
+          this.latencyInMs = this.toStringWithUnit(
+            report?.publisherStats.averageRoundTripTimeInMs,
+            'ms',
+          );
+          this.receiveJitter = this.toStringWithUnit(
             report?.subscriberStats?.averageJitterInMs,
             'ms',
           );
-          this.qualityLimit = report?.publisherStats?.qualityLimitationReasons;
+          this.sendJitter = this.toStringWithUnit(
+            report?.publisherStats?.averageJitterInMs,
+            'ms',
+          );
+          this.publishQualityLimit =
+            report?.publisherStats?.qualityLimitationReasons;
+          this.subscribeQualityLimit =
+            report?.subscriberStats.qualityLimitationReasons;
           this.publishResolution = this.toFrameSizeString(
             report?.publisherStats?.highestFrameWidth,
             report?.publisherStats?.highestFrameHeight,
@@ -80,7 +92,9 @@ export class CallStatisticsComponent implements OnInit, OnDestroy {
               new Date(report.timestamp).toLocaleTimeString(),
             );
             this.lineChartData.datasets[0].data.shift();
-            this.lineChartData.datasets[0].data.push(report.latencyInMs);
+            this.lineChartData.datasets[0].data.push(
+              report.publisherStats.averageRoundTripTimeInMs,
+            );
             this.chart?.update();
           }
         }),

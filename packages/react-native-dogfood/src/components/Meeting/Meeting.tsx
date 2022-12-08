@@ -51,7 +51,7 @@ const Meeting = ({ navigation, setLoadingCall }: Props) => {
           if (!response) {
             throw new Error('Call is not defined');
           }
-          navigation.navigate('ActiveCall');
+          navigation.navigate('ActiveCallScreen');
         } catch (err) {
           console.log(err);
         }
