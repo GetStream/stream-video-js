@@ -61,7 +61,7 @@ export class StreamVideoClient {
    * @angular If you're using our Angular SDK, you shouldn't be interacting with the state store directly, instead, you should be using the [`StreamVideoService`](./StreamVideoService.md).
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
-  private writeableStateStore: StreamVideoWriteableStateStore;
+  writeableStateStore: StreamVideoWriteableStateStore;
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWSClient | undefined;
