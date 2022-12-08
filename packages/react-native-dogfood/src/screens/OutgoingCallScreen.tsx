@@ -12,7 +12,7 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
   };
 
   const onCallAccepted = () => {
-    navigation.navigate('ActiveCall');
+    navigation.navigate('ActiveCallScreen');
   };
 
   return (
