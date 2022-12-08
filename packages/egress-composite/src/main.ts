@@ -96,7 +96,7 @@ import './style.css';
 
   let shuffleIntervalId: NodeJS.Timeout;
   const highlightSpeaker = createSpeakerUpdater(call);
-  store$.activeCallRemoteParticipants$.subscribe((remoteParticipants) => {
+  store$.remoteParticipants$.subscribe((remoteParticipants) => {
     remoteParticipants.forEach(attachAudioTrack);
 
     console.log('remoteParticipants updated', remoteParticipants);
