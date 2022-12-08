@@ -146,6 +146,7 @@ export class DeviceManagerService {
   }
 
   startVideo(deviceId?: string) {
+    this.videoStateSubject.next('loading');
     getVideoStream(deviceId)
       .then((s) => {
         this.stopAudio();
@@ -174,6 +175,7 @@ export class DeviceManagerService {
   }
 
   startAudio(deviceId?: string) {
+    this.audioStateSubject.next('loading');
     getAudioStream(deviceId)
       .then((s) => {
         this.stopAudio();

@@ -18,6 +18,21 @@
     height: 100%;
     max-height: 100%;
     min-height: 0;
+    position: relative;
+
+    &.only-host {
+      .local-participant {
+        position: static;
+      }
+    }
+
+    .local-participant {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      top: 0;
+      left: 0;
+    }
 
     &.multiple {
       display: grid;

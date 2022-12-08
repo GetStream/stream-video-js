@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { StreamVideoService } from '@stream-io/video-angular-sdk';
-import { UserInput } from '@stream-io/video-client';
-import { environment } from 'projects/sample-app/src/environments/environment';
-import { Observable } from 'rxjs';
+import { Call, UserInput } from '@stream-io/video-client';
+import { Observable, take } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +20,13 @@ export class AppComponent {
   }
 
   disconnect() {
+    let activeCall: Call | undefined;
+    this.streamVideoService.activeCall$
+      .pipe(take(1))
+      .subscribe((c) => (activeCall = c));
+    if (activeCall) {
+      activeCall.leave();
+    }
     this.router.navigateByUrl('user-selector');
   }
 }

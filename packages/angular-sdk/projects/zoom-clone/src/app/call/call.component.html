@@ -1,7 +1,7 @@
 <div class="call">
-  <div class="participants" [class.multiple]="(remoteParticipants$ | async)!.length > 0">
+  <div class="participants" [class.multiple]="(remoteParticipants$ | async)!.length > 1" [class.only-host]="(remoteParticipants$ | async)!.length === 0">
     <stream-participant *ngFor="let participant of (remoteParticipants$ | async); trackBy: trackBySessionId" [participant]="participant"></stream-participant>
-    <stream-participant *ngIf="(localParticipant$ | async) as participant" [participant]="participant"></stream-participant>
+    <stream-participant cdkDrag  class="local-participant" *ngIf="(localParticipant$ | async) as participant" [participant]="participant"></stream-participant>
   </div>
   <div class="toolbar">
     <app-device-control></app-device-control>

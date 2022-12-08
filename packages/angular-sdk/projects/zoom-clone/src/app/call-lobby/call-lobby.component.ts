@@ -7,6 +7,7 @@ import {
 } from '../device-manager.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CallMeta } from '@stream-io/video-client';
 
 @Component({
   selector: 'app-call-lobby',
@@ -22,7 +23,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   audioErrorMessage?: string;
   isSpeaking = false;
   joinOrCreate: 'join' | 'create' = 'create';
-  private joinCallId?: string;
+  callMeta?: CallMeta.Call;
   private subscripitions: Subscription[] = [];
 
   constructor(
@@ -60,9 +61,21 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
       this.deviceManager.isSpeaking$.subscribe((s) => (this.isSpeaking = s)),
     );
 
-    this.activatedRoute.queryParams.subscribe((params) => {
-      this.joinCallId = params['callid'];
-      this.joinOrCreate = this.joinCallId ? 'join' : 'create';
+    this.activatedRoute.queryParams.subscribe(async (params) => {
+      const callid = params['callid'];
+      this.joinOrCreate = callid ? 'join' : 'create';
+      if (this.joinOrCreate === 'join') {
+        try {
+          const response =
+            await this.streamVideoService.videoClient?.getOrCreateCall({
+              type: 'default',
+              id: callid,
+            });
+          this.callMeta = response?.call;
+        } catch (error) {
+          this.snackBar.open(`Couldn't establish connection`);
+        }
+      }
     });
   }
 
@@ -81,7 +94,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
         });
         callId = callMeta!.call!.id;
       } else {
-        callId = this.joinCallId!;
+        callId = this.callMeta!.id;
       }
       await this.joinCall(callId);
     } catch (err) {

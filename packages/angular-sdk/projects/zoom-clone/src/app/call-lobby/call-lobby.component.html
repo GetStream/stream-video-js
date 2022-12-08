@@ -1,7 +1,10 @@
 <div class="container">
   <div class="start-call">
-    <button mat-flat-button color="primary" (click)="startCall()">{{joinOrCreate === 'create' ? 'Start a call' : 'Join call'}}</button>
+    <button mat-flat-button color="primary" [disabled]="joinOrCreate === 'join' && !callMeta" (click)="startCall()">{{joinOrCreate === 'create' ? 'Start a call' : 'Join call'}}</button>
     <div *ngIf="joinOrCreate === 'create'">You will be able to invite people once the call starts</div>
+    <div *ngIf="joinOrCreate === 'join'">
+      Already in this call: TODO not yet supported
+    </div>
   </div>
   <div class="device-settings">
     <div class="video-container" [class.no-video]="videoState === 'off'" [ngSwitch]="videoState">

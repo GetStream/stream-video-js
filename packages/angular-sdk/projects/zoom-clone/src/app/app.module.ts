@@ -17,6 +17,7 @@ import { DeviceControlComponent } from './device-control/device-control.componen
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { CallComponent } from './call/call.component';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 @NgModule({
   declarations: [
@@ -39,6 +40,7 @@ import { CallComponent } from './call/call.component';
     MatProgressSpinnerModule,
     MatMenuModule,
     MatSelectModule,
+    DragDropModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
