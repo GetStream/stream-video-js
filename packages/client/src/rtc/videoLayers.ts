@@ -8,7 +8,6 @@ export type OptimalVideoLayer = RTCRtpEncodingParameters & {
 };
 
 export const findOptimalVideoLayers = (videoTrack: MediaStreamTrack) => {
-  // https://chromium.googlesource.com/external/webrtc/+/refs/heads/main/media/engine/simulcast.cc#90
   const steps: [number, number, number][] = [
     [1920, 1080, 3000000],
     [1280, 720, 1250000],
@@ -26,7 +25,10 @@ export const findOptimalVideoLayers = (videoTrack: MediaStreamTrack) => {
     if (w === settings.width && h === settings.height) {
       let scaleFactor: number = 1;
       ['f', 'h', 'q'].forEach((rid) => {
-        optimalVideoLayers.push({
+        // Reversing the order [f, h, q] to [q, h, f] as Chrome uses encoding index
+        // when deciding which layer to disable when CPU or bandwidth is constrained.
+        // Encodings should be ordered in increasing spatial resolution order.
+        optimalVideoLayers.unshift({
           active: true,
           rid,
           width: w / scaleFactor,
@@ -45,6 +47,30 @@ export const findOptimalVideoLayers = (videoTrack: MediaStreamTrack) => {
       break;
     }
   }
+
+  const ridMapping = ['q', 'h', 'f'];
+  // According to the information found here:
+  // https://chromium.googlesource.com/external/webrtc/+/refs/heads/main/media/engine/simulcast.cc#90
+  const size = Math.max(settings.width || 0, settings.height || 0);
+  if (size <= 320) {
+    // provide only one layer 320x240 (q), the one with the highest quality
+    return optimalVideoLayers
+      .filter((layer) => layer.rid === 'f')
+      .map((layer, index) => ({
+        ...layer,
+        rid: ridMapping[index],
+      }));
+  } else if (size <= 640) {
+    // provide two layers, 160x120 (q) and 640x480 (h)
+    return optimalVideoLayers
+      .filter((layer) => layer.rid !== 'h')
+      .map((layer, index) => ({
+        ...layer,
+        rid: ridMapping[index],
+      }));
+  }
+
+  // provide three layers for sizes > 640x480
   return optimalVideoLayers;
 };
 
@@ -55,7 +81,7 @@ export const findOptimalScreenSharingLayers = (
   return [
     {
       active: true,
-      rid: 'f',
+      rid: 'q', // single track, start from 'q'
       width: settings.width || 0,
       height: settings.height || 0,
       maxBitrate: 3000000,
