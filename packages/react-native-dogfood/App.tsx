@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import ActiveCallScreen from './src/screens/ActiveCall';
+import ActiveCallScreen from './src/screens/ActiveCallScreen';
 import { RootStackParamList } from './types';
 import LoginScreen from './src/screens/LoginScreen';
 import { NavigationHeader } from './src/components/NavigationHeader';
@@ -59,7 +59,7 @@ const StackNavigator = () => {
           options={{ header: NavigationHeader }}
         />
         <Stack.Screen
-          name="ActiveCall"
+          name="ActiveCallScreen"
           component={ActiveCallScreen}
           options={{ headerShown: false }}
         />

@@ -7,7 +7,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'IncomingCallScreen'>;
 
 const IncomingCallScreen = ({ navigation }: Props) => {
   const onAnswerCall = () => {
-    navigation.navigate('ActiveCall');
+    navigation.navigate('ActiveCallScreen');
   };
 
   const onRejectCall = () => {

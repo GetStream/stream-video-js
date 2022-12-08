@@ -1,3 +1,4 @@
+export * from './ActiveCall';
 export * from './IncomingCallView';
 export * from './OutgoingCallView';
 export * from './Avatar';
