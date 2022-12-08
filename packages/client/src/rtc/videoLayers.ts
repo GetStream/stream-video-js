@@ -47,31 +47,42 @@ export const findOptimalVideoLayers = (videoTrack: MediaStreamTrack) => {
       break;
     }
   }
+  // for simplicity, we start with all layers enabled, then this function
+  // will clear/reassign the layers that are not needed
+  return withSimulcastConstraints(settings, optimalVideoLayers);
+};
 
-  const ridMapping = ['q', 'h', 'f'];
-  // According to the information found here:
-  // https://chromium.googlesource.com/external/webrtc/+/refs/heads/main/media/engine/simulcast.cc#90
+/**
+ * Browsers have different simulcast constraints for different video resolutions.
+ *
+ * This function modifies the provided list of video layers according to the
+ * current implementation of simulcast constraints in the Chromium based browsers.
+ *
+ * https://chromium.googlesource.com/external/webrtc/+/refs/heads/main/media/engine/simulcast.cc#90
+ */
+const withSimulcastConstraints = (
+  settings: MediaTrackSettings,
+  optimalVideoLayers: OptimalVideoLayer[],
+) => {
+  let layers;
+
   const size = Math.max(settings.width || 0, settings.height || 0);
   if (size <= 320) {
     // provide only one layer 320x240 (q), the one with the highest quality
-    return optimalVideoLayers
-      .filter((layer) => layer.rid === 'f')
-      .map((layer, index) => ({
-        ...layer,
-        rid: ridMapping[index],
-      }));
+    layers = optimalVideoLayers.filter((layer) => layer.rid === 'f');
   } else if (size <= 640) {
     // provide two layers, 160x120 (q) and 640x480 (h)
-    return optimalVideoLayers
-      .filter((layer) => layer.rid !== 'h')
-      .map((layer, index) => ({
-        ...layer,
-        rid: ridMapping[index],
-      }));
+    layers = optimalVideoLayers.filter((layer) => layer.rid !== 'h');
+  } else {
+    // provide three layers for sizes > 640x480
+    layers = optimalVideoLayers;
   }
 
-  // provide three layers for sizes > 640x480
-  return optimalVideoLayers;
+  const ridMapping = ['q', 'h', 'f'];
+  return layers.map((layer, index) => ({
+    ...layer,
+    rid: ridMapping[index], // reassign rid
+  }));
 };
 
 export const findOptimalScreenSharingLayers = (
