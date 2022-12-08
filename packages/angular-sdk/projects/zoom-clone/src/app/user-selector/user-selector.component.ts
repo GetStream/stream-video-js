@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { UserSelectionItem, UserService } from '../user.service';
 
 @Component({
@@ -10,7 +10,11 @@ import { UserSelectionItem, UserService } from '../user.service';
 export class UserSelectorComponent implements OnInit {
   users: UserSelectionItem[];
 
-  constructor(private router: Router, private userService: UserService) {
+  constructor(
+    private router: Router,
+    private userService: UserService,
+    private route: ActivatedRoute,
+  ) {
     this.users = this.userService.users;
   }
 
@@ -18,6 +22,8 @@ export class UserSelectorComponent implements OnInit {
 
   userSelected(userId: string) {
     this.userService.selectedUserId = userId;
-    this.router.navigateByUrl('/call-lobby');
+    this.router.navigate(['call-lobby'], {
+      queryParams: this.route.snapshot.queryParams,
+    });
   }
 }

@@ -17,11 +17,6 @@ export class AppComponent {
     private streamVideoService: StreamVideoService,
     private router: Router,
   ) {
-    const apiKey = environment.apiKey;
-    const token = environment.token;
-    const baseCoordinatorUrl = environment.coordinatorUrl;
-    const baseWsUrl = environment.wsUrl;
-    this.streamVideoService.init(apiKey, token, baseCoordinatorUrl, baseWsUrl);
     this.connectedUser$ = this.streamVideoService.user$;
   }
 

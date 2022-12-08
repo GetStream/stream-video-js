@@ -21,7 +21,7 @@ const routes: Routes = [
   {
     path: 'call',
     component: CallComponent,
-    canActivate: [ActiveCallService],
+    canActivate: [ConnectUserService, ActiveCallService],
   },
   { path: '', pathMatch: 'full', redirectTo: 'user-selector' },
 ];

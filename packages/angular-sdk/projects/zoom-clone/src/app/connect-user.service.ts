@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CanActivate, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router } from '@angular/router';
 import { StreamVideoService } from '@stream-io/video-angular-sdk';
 import { environment } from 'projects/sample-app/src/environments/environment';
+import { take } from 'rxjs';
 import { UserService } from './user.service';
 
 @Injectable({
@@ -16,25 +17,42 @@ export class ConnectUserService implements CanActivate {
     private snackBar: MatSnackBar,
   ) {}
 
-  async canActivate() {
+  async canActivate(route: ActivatedRouteSnapshot) {
     const user = this.userService.users.find(
       (u) => u.user.id === this.userService.selectedUserId,
     );
     if (!user) {
-      this.router.navigateByUrl('user-selector');
+      this.router.navigate(['user-selector'], {
+        queryParams: route.queryParams,
+      });
       return false;
     } else {
-      try {
-        await this.videoService.videoClient?.connect(
-          environment.apiKey,
-          user.token,
-          user.user,
-        );
+      let connectedUser;
+      this.videoService.user$
+        .pipe(take(1))
+        .subscribe((u) => (connectedUser = u));
+      if (connectedUser) {
         return true;
-      } catch (err) {
-        this.snackBar.open(`Couldn't connect with user: ${user.user.name}`);
-        this.router.navigateByUrl('user-selector');
-        return false;
+      } else {
+        try {
+          const apiKey = environment.apiKey;
+          const token = user.token;
+          const baseCoordinatorUrl = environment.coordinatorUrl;
+          const baseWsUrl = environment.wsUrl;
+          this.videoService.init(apiKey, token, baseCoordinatorUrl, baseWsUrl);
+          await this.videoService.videoClient?.connect(
+            environment.apiKey,
+            user.token,
+            user.user,
+          );
+          return true;
+        } catch (err) {
+          this.snackBar.open(`Couldn't connect with user: ${user.user.name}`);
+          this.router.navigate(['user-selector'], {
+            queryParams: route.queryParams,
+          });
+          return false;
+        }
       }
     }
   }

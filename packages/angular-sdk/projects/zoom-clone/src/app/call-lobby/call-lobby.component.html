@@ -1,7 +1,7 @@
 <div class="container">
   <div class="start-call">
-    <button mat-flat-button color="primary" (click)="startCall()">Start a call</button>
-    <div>You will be able to invite people once the call starts</div>
+    <button mat-flat-button color="primary" (click)="startCall()">{{joinOrCreate === 'create' ? 'Start a call' : 'Join call'}}</button>
+    <div *ngIf="joinOrCreate === 'create'">You will be able to invite people once the call starts</div>
   </div>
   <div class="device-settings">
     <div class="video-container" [class.no-video]="videoState === 'off'" [ngSwitch]="videoState">

@@ -6,7 +6,7 @@ import {
   MediaStreamState,
 } from '../device-manager.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-call-lobby',
@@ -21,6 +21,8 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   audioState?: MediaStreamState;
   audioErrorMessage?: string;
   isSpeaking = false;
+  joinOrCreate: 'join' | 'create' = 'create';
+  private joinCallId?: string;
   private subscripitions: Subscription[] = [];
 
   constructor(
@@ -28,6 +30,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
     private streamVideoService: StreamVideoService,
     private snackBar: MatSnackBar,
     private router: Router,
+    private activatedRoute: ActivatedRoute,
   ) {
     this.deviceManager.startVideo();
     this.deviceManager.startAudio();
@@ -56,6 +59,11 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
     this.subscripitions.push(
       this.deviceManager.isSpeaking$.subscribe((s) => (this.isSpeaking = s)),
     );
+
+    this.activatedRoute.queryParams.subscribe((params) => {
+      this.joinCallId = params['callid'];
+      this.joinOrCreate = this.joinCallId ? 'join' : 'create';
+    });
   }
 
   ngOnInit(): void {}
@@ -66,23 +74,32 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
 
   async startCall() {
     try {
-      const callMeta = await this.streamVideoService.videoClient?.createCall({
-        type: 'default',
-      });
-      const callId = callMeta!.call!.id;
-      const call = await this.streamVideoService.videoClient?.joinCall({
-        id: callId,
-        type: 'default',
-        datacenterId: '',
-      });
-      await call?.join();
-      this.snackBar.open(
-        `Send this link to others to join: ${window.location.host}/call?callid=${callId}`,
-        'Dismiss',
-      );
-      this.router.navigateByUrl(`call?callid=${callId}`);
+      let callId: string;
+      if (this.joinOrCreate === 'create') {
+        const callMeta = await this.streamVideoService.videoClient?.createCall({
+          type: 'default',
+        });
+        callId = callMeta!.call!.id;
+      } else {
+        callId = this.joinCallId!;
+      }
+      await this.joinCall(callId);
     } catch (err) {
       this.snackBar.open(`Call couldn't be started`);
     }
+  }
+
+  private async joinCall(callId: string) {
+    const call = await this.streamVideoService.videoClient?.joinCall({
+      id: callId,
+      type: 'default',
+      datacenterId: '',
+    });
+    await call?.join();
+    this.snackBar.open(
+      `Send this link to others to join: ${window.location.host}/call?callid=${callId}`,
+      'Dismiss',
+    );
+    this.router.navigate(['call'], { queryParams: { callid: callId } });
   }
 }

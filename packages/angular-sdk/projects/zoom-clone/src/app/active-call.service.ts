@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router } from '@angular/router';
 import { StreamVideoService } from '@stream-io/video-angular-sdk';
 import { map, tap } from 'rxjs';
 
@@ -12,11 +12,13 @@ export class ActiveCallService implements CanActivate {
     private router: Router,
   ) {}
 
-  canActivate() {
+  canActivate(route: ActivatedRouteSnapshot) {
     return this.streamVideoService.activeCall$.pipe(
       tap((c) => {
         if (!c) {
-          this.router.navigateByUrl('/call-lobby');
+          this.router.navigate(['call-lobby'], {
+            queryParams: route.queryParams,
+          });
         }
       }),
       map((c) => !!c),
