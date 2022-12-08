@@ -10,7 +10,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "generate-docs": "typedoc --options typedoc.json --exclude '!**/*(stream-video.module|video.service).ts' ./projects/video-angular-sdk/src/public-api.ts && replace-in-file '# Class: ' '# ' temp-docs/** && cp -r temp-docs/classes/ generated-docs && rm -r temp-docs",
-    "copy-docs": "cp -a ../client/generated-docs/. docusaurus/docs/Angular/reference && cp -a ./generated-docs/ docusaurus/docs/Angular/reference/."
+    "copy-docs": "cp -a ../client/generated-docs/. docusaurus/docs/Angular/reference && cp -a ./generated-docs/. docusaurus/docs/Angular/reference"
   },
   "private": true,
   "dependencies": {
