@@ -3,6 +3,8 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 on: [push]
 
@@ -40,6 +42,9 @@ jobs:
 
       - name: Test packages
         run: yarn test:ci:all
+
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
 
       - name: Release packages
         run: echo 'TODO'

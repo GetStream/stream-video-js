@@ -83,7 +83,7 @@ export const CallControls = (props: {
               await call.publishScreenShareStream(stream);
             }
           } else {
-            call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
+            await call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
           }
         }}
       />
@@ -93,7 +93,7 @@ export const CallControls = (props: {
           if (isAudioMute) {
             void publishAudioStream();
           } else {
-            call.stopPublish(SfuModels.TrackType.AUDIO);
+            void call.stopPublish(SfuModels.TrackType.AUDIO);
           }
         }}
       />
@@ -103,7 +103,7 @@ export const CallControls = (props: {
           if (isVideoMute) {
             void publishVideoStream();
           } else {
-            call.stopPublish(SfuModels.TrackType.VIDEO);
+            void call.stopPublish(SfuModels.TrackType.VIDEO);
           }
         }}
       />

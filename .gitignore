@@ -22,7 +22,7 @@ dist
 
 .eslintcache
 .idea
-
+coverage
 
 /**/generated-docs
 /**/temp-docs

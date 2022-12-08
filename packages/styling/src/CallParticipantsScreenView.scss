@@ -12,12 +12,29 @@
     position: relative;
   }
 
+  .str-video__call-participants-screen-view__screen__presenter {
+    padding: 10px 0 10px 10px;
+  }
+
   .str-video__call-participants-screen-view__participants {
     flex: 1;
     display: flex;
     flex-direction: column;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 15px;
+
+    &.columns-2 {
+      .str-video__participant {
+        width: 45%;
+      }
+    }
+
+    &.columns-3 {
+      .str-video__participant {
+        width: 40%;
+      }
+    }
   }
 
   video {

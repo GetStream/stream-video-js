@@ -6,7 +6,6 @@ import type {
   StatsReport,
 } from './types';
 import { StreamVideoWriteableStateStore } from '../store';
-import { measureResourceLoadLatencyTo } from '../rpc';
 
 export type StatsReporterOpts = {
   subscriber: RTCPeerConnection;
@@ -171,18 +170,8 @@ export const createStatsReporter = ({
       getRawStatsForTrack('publisher'),
     ]);
 
-    let latencyInMs = -1;
-    if (latencyCheckUrl) {
-      const [latencyInSeconds] = await measureResourceLoadLatencyTo(
-        latencyCheckUrl,
-        1,
-        500,
-      );
-      latencyInMs = latencyInSeconds * 1000;
-    }
     const statsReport: CallStatsReport = {
       datacenter: edgeName || 'N/A',
-      latencyInMs: latencyInMs,
       publisherStats,
       subscriberStats,
       subscriberRawStats,
@@ -259,10 +248,25 @@ const transform = (
         (s) => s.type === 'codec' && s.id === rtcStreamStats.codecId,
       ) as { mimeType: string } | undefined; // FIXME OL: incorrect type!
 
+      const transport = stats.find(
+        (s) => s.type === 'transport' && s.id === rtcStreamStats.transportId,
+      ) as RTCTransportStats | undefined;
+
+      let roundTripTime: number | undefined;
+      if (transport && transport.dtlsState === 'connected') {
+        const candidatePair = stats.find(
+          (s) =>
+            s.type === 'candidate-pair' &&
+            s.id === transport.selectedCandidatePairId,
+        ) as RTCIceCandidatePairStats | undefined;
+        roundTripTime = candidatePair?.currentRoundTripTime;
+      }
+
       return {
         bytesSent: rtcStreamStats.bytesSent,
         bytesReceived: rtcStreamStats.bytesReceived,
         codec: codec?.mimeType,
+        currentRoundTripTime: roundTripTime,
         frameHeight: rtcStreamStats.frameHeight,
         frameWidth: rtcStreamStats.frameWidth,
         framesPerSecond: rtcStreamStats.framesPerSecond,
@@ -292,6 +296,7 @@ const aggregate = (stats: StatsReport): AggregatedStatsReport => {
     totalBytesSent: 0,
     totalBytesReceived: 0,
     averageJitterInMs: 0,
+    averageRoundTripTimeInMs: 0,
     qualityLimitationReasons: 'none',
     highestFrameWidth: 0,
     highestFrameHeight: 0,
@@ -308,6 +313,7 @@ const aggregate = (stats: StatsReport): AggregatedStatsReport => {
     acc.totalBytesSent += stream.bytesSent || 0;
     acc.totalBytesReceived += stream.bytesReceived || 0;
     acc.averageJitterInMs += stream.jitter || 0;
+    acc.averageRoundTripTimeInMs += stream.currentRoundTripTime || 0;
 
     // naive calculation of the highest resolution
     const streamArea = area(stream.frameWidth || 0, stream.frameHeight || 0);
@@ -325,6 +331,9 @@ const aggregate = (stats: StatsReport): AggregatedStatsReport => {
   if (streams.length > 0) {
     report.averageJitterInMs = Math.round(
       (report.averageJitterInMs / streams.length) * 1000,
+    );
+    report.averageRoundTripTimeInMs = Math.round(
+      (report.averageRoundTripTimeInMs / streams.length) * 1000,
     );
   }
 
