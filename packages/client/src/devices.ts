@@ -51,10 +51,10 @@ export const checkIfAudioOutputChangeSupported = () => {
   return isFeatureSupported;
 };
 
-const audioDeviceConstraints = {
+const audioDeviceConstraints: MediaStreamConstraints = {
   audio: true,
 };
-const videoDeviceConstraints = {
+const videoDeviceConstraints: MediaStreamConstraints = {
   video: { width: 960, height: 540 },
 };
 
@@ -108,9 +108,19 @@ const getStream = async (
     const selectedDevice = allDevices[0];
     deviceId = selectedDevice.deviceId;
   }
-  return navigator.mediaDevices.getUserMedia({
-    [kind === 'audioinput' ? 'audio' : 'video']: { deviceId },
-  });
+  const type = kind === 'audioinput' ? 'audio' : 'video';
+  const defaultConstraints =
+    type === 'audio' ? audioDeviceConstraints : videoDeviceConstraints;
+
+  // merge the default constraints with the deviceId
+  const constraints: MediaStreamConstraints = {
+    [type]: {
+      ...(defaultConstraints[type] as {}),
+      deviceId,
+    },
+  };
+
+  return navigator.mediaDevices.getUserMedia(constraints);
 };
 
 /**
