@@ -6,6 +6,9 @@ import { SfuModels } from '@stream-io/video-client';
 import { useStreamVideoStoreValue } from '../contexts';
 import { Avatar } from './Avatar';
 
+/**
+ * Props to be passed for the LocalVideoView component.
+ */
 export interface LocalVideoViewProps {
   /**
    * Indicates whether the local video view is visible or not
