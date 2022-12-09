@@ -4,13 +4,12 @@ import { CallControlsButton } from './CallControlsView/CallControlsButton';
 import {
   useActiveCall,
   useIncomingCalls,
-  usePendingCalls,
 } from '@stream-io/video-react-bindings';
 import { UserInfoView } from './UserInfoView';
 import {
   useStreamVideoStoreSetState,
   useStreamVideoStoreValue,
-} from '../contexts/StreamVideoContext';
+} from '../contexts';
 import { useRingCall } from '../hooks';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 
@@ -31,8 +30,11 @@ interface IncomingCallViewProps {
 const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const activeCall = usePendingCalls();
-  const memberUserIds = activeCall[0].callDetails?.memberUserIds || [];
+  const incomingCalls = useIncomingCalls();
+  const memberUserIds =
+    (incomingCalls.length &&
+      incomingCalls[incomingCalls.length - 1].callDetails?.memberUserIds) ||
+    [];
 
   if (memberUserIds.length)
     return (
@@ -55,21 +57,21 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
 export const IncomingCallView = (props: IncomingCallViewProps) => {
   const { onAnswerCall, onRejectCall } = props;
   const activeCall = useActiveCall();
-  const incomingRingCalls = useIncomingCalls();
+  const incomingCalls = useIncomingCalls();
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const setState = useStreamVideoStoreSetState();
   const { answerCall, rejectCall } = useRingCall();
 
   useEffect(() => {
-    if (activeCall) {
+    if (activeCall?.data.call) {
       onAnswerCall();
     } else {
-      if (!incomingRingCalls.length) {
+      if (!incomingCalls.length) {
         onRejectCall();
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCall, incomingRingCalls]);
+  }, [activeCall, incomingCalls]);
 
   const videoToggle = async () => {
     setState((prevState) => ({

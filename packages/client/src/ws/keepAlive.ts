@@ -1,15 +1,6 @@
 import type { StreamWSClient } from './types';
 
-export interface KeepAlive {
-  cancelPendingPing: () => void;
-  schedulePing: () => void;
-  setPayload: (payload: Uint8Array) => void;
-}
-
-export const keepAlive = (
-  client: StreamWSClient,
-  timeThreshold: number,
-): KeepAlive => {
+export const keepAlive = (client: StreamWSClient, timeThreshold: number) => {
   let timeoutId: NodeJS.Timeout;
   let data: Uint8Array;
   return {
@@ -29,3 +20,5 @@ export const keepAlive = (
     },
   };
 };
+
+export type KeepAlive = ReturnType<typeof keepAlive>;

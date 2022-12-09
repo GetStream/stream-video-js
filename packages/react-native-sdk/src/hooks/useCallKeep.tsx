@@ -7,6 +7,8 @@ import { generateCallTitle } from '../utils';
 
 export const useCallKeep = () => {
   const activeCall = useActiveCall();
+  const activeCallMeta = activeCall?.data.call;
+  const activeCallDetails = activeCall?.data.details;
   const callKeepOptions = useStreamVideoStoreValue(
     (store) => store.callKeepOptions,
   );
@@ -29,21 +31,21 @@ export const useCallKeep = () => {
   );
 
   const startCall = useCallback(async () => {
-    if (Platform.OS === 'ios' && activeCall && activeCall.data.call) {
+    if (Platform.OS === 'ios' && activeCallMeta && activeCallDetails) {
       await RNCallKeep.startCall(
-        activeCall.data.call?.id,
+        activeCallMeta.id,
         callTitle,
-        activeCall.data.details?.memberUserIds.join(','),
+        activeCallDetails.memberUserIds.join(','),
         'generic',
       );
     }
-  }, [activeCall, callTitle]);
+  }, [activeCallMeta, activeCallDetails, callTitle]);
 
   const endCall = useCallback(async () => {
-    if (Platform.OS === 'ios' && activeCall?.data.call) {
-      await RNCallKeep.endCall(activeCall.data.call.id);
+    if (Platform.OS === 'ios' && activeCallMeta) {
+      await RNCallKeep.endCall(activeCallMeta.id);
     }
-  }, [activeCall]);
+  }, [activeCallMeta]);
 
   return { startCall, endCall };
 };

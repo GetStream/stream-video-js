@@ -8,7 +8,7 @@ import {
   useStore,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import { useStreamVideoStoreValue } from './StreamVideoContext';
+import { useStoreValue } from './StreamVideoContext';
 
 /**
  * StreamCall is a wrapper component that handles incoming and outgoing calls.
@@ -16,9 +16,7 @@ import { useStreamVideoStoreValue } from './StreamVideoContext';
  */
 export const StreamCall = ({ children }: PropsWithChildren<{}>) => {
   const videoClient = useStreamVideoClient();
-  const leaveOnLeftAlone = useStreamVideoStoreValue(
-    (state) => state.leaveOnLeftAlone,
-  );
+  const leaveOnLeftAlone = useStoreValue((state) => state.leaveOnLeftAlone);
   const incomingCalls = useIncomingCalls();
   const outgoingCalls = useOutgoingCalls();
   const acceptedCall = useAcceptedCall();
