@@ -8,12 +8,15 @@ import { useCallKeep } from '../hooks';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 
-export type ActiveCallProps = {
+/**
+ * Props to be passed for the ActiveCall component.
+ */
+export interface ActiveCallProps {
   /**
    * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
    */
   onHangupCall: () => void;
-};
+}
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useActiveCall();

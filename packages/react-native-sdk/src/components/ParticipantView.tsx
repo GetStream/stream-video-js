@@ -13,7 +13,7 @@ import { Mic, MicOff } from '../icons';
 
 type SizeType = 'small' | 'medium' | 'large' | 'xl';
 
-type ParticipantViewProps = {
+interface ParticipantViewProps {
   /**
    * The size of the participant that correlates to a specific layout
    */
@@ -22,16 +22,14 @@ type ParticipantViewProps = {
    * The id of the participant that will be displayed
    */
   participantId: string;
-};
+}
 
-export const ParticipantView: React.FC<ParticipantViewProps> = ({
-  /**
-   * A Wrapper around a participant renders either the participants view
-   * and additional info, by an absence of a video track only an avatar/initials and audio track will be rendered.
-   */
-  size,
-  participantId,
-}: ParticipantViewProps) => {
+/**
+ * A Wrapper around a participant renders either the participants view
+ * and additional info, by an absence of a video track only an avatar/initials and audio track will be rendered.
+ */
+export const ParticipantView = (props: ParticipantViewProps) => {
+  const { size, participantId } = props;
   const call = useActiveCall();
   const participants = useParticipants();
   const participant = participants.find((p) => p.userId === participantId);

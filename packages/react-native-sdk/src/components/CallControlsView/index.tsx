@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native';
-import { useCall, useCallControls } from '../hooks';
+import { useCall, useCallControls } from '../../hooks';
 import {
   CameraSwitch,
   Chat,
@@ -8,7 +8,7 @@ import {
   PhoneDown,
   Video,
   VideoSlash,
-} from '../icons';
+} from '../../icons';
 import { CallControlsButton } from './CallControlsButton';
 
 const styles = StyleSheet.create({

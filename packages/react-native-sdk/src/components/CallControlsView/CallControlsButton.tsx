@@ -9,6 +9,9 @@ import {
   ViewStyle,
 } from 'react-native';
 
+/**
+ * Mapping of the background color of the button to the required button state.
+ */
 type ColorKey = 'callToAction' | 'activated' | 'deactivated' | 'cancel';
 
 const colorKeyToBgColor = (colorKey: ColorKey): ColorValue => {
@@ -24,7 +27,7 @@ const colorKeyToBgColor = (colorKey: ColorKey): ColorValue => {
   }
 };
 
-type CallControlsButtonProps = {
+interface CallControlsButtonProps {
   /**
    * onPress handler called when a single tap gesture is detected.
    */
@@ -41,7 +44,7 @@ type CallControlsButtonProps = {
    * Style of the SVG rendered inside the button.
    */
   svgContainerStyle?: StyleProp<ViewStyle>;
-};
+}
 
 export const CallControlsButton = (
   props: React.PropsWithChildren<CallControlsButtonProps>,
