@@ -7,7 +7,7 @@ import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { Observable, Subscription, take } from 'rxjs';
+import { combineLatest, Observable, Subscription, take } from 'rxjs';
 import { DeviceManagerService } from '../device-manager.service';
 
 @Component({
@@ -20,6 +20,7 @@ export class CallComponent implements OnInit, OnDestroy {
   remoteParticipants$: Observable<StreamVideoParticipant[]>;
   localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
   TrackType = SfuModels.TrackType;
+  isLocalParticipantCallOwner = false;
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -59,6 +60,22 @@ export class CallComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.deviceManager.audioOutputDevice$.subscribe((d) => {
         this.call.setAudioOutputDevice(d);
+      }),
+    );
+    this.subscriptions.push(
+      combineLatest([
+        this.streamVideoService.user$,
+        this.streamVideoService.activeCallMeta$,
+      ]).subscribe(([user, activeCallMeta]) => {
+        if (
+          user &&
+          activeCallMeta &&
+          user?.id === activeCallMeta.createdByUserId
+        ) {
+          this.isLocalParticipantCallOwner = true;
+        } else {
+          this.isLocalParticipantCallOwner = false;
+        }
       }),
     );
   }

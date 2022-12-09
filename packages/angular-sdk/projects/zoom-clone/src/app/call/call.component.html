@@ -6,7 +6,7 @@
   <div class="toolbar">
     <app-device-control></app-device-control>
     <div>
-      <button mat-icon-button>
+      <button mat-icon-button *ngIf="isLocalParticipantCallOwner">
         <mat-icon fontIcon="group" [matMenuTriggerFor]="menu"></mat-icon>
       </button>
       <mat-menu #menu="matMenu">
