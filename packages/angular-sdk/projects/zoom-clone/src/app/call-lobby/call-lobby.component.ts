@@ -5,12 +5,12 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { StreamVideoService } from '@stream-io/video-angular-sdk';
-import { Subscription } from 'rxjs';
 import {
+  StreamVideoService,
   DeviceManagerService,
   MediaStreamState,
-} from '../device-manager.service';
+} from '@stream-io/video-angular-sdk';
+import { Subscription } from 'rxjs';
 import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CallMeta } from '@stream-io/video-client';

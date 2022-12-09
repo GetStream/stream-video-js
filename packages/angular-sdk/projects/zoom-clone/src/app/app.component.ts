@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
-import { StreamVideoService } from '@stream-io/video-angular-sdk';
+import {
+  StreamVideoService,
+  DeviceManagerService,
+} from '@stream-io/video-angular-sdk';
 import { Call, UserInput } from '@stream-io/video-client';
 import { Observable, take } from 'rxjs';
-import { DeviceManagerService } from './device-manager.service';
 
 @Component({
   selector: 'app-root',

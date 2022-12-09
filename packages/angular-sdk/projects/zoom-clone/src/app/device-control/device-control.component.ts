@@ -3,7 +3,7 @@ import { Observable, Subscription } from 'rxjs';
 import {
   DeviceManagerService,
   MediaStreamState,
-} from '../device-manager.service';
+} from '@stream-io/video-angular-sdk';
 
 @Component({
   selector: 'app-device-control',
