@@ -87,7 +87,7 @@ export const useHangUpNotifications = () => {
  * Utility hook which provides a list of all call rejections (I refused to join when somebody called me)
  * or cancellations (I have left an active call or have cancelled my outgoing call before joining it) do by me.
  */
-export const useMyHangUpNotifications = () => {
+export const useLocalHangUpNotifications = () => {
   const { localHangupNotifications$ } = useStore();
   return useObservableValue(localHangupNotifications$);
 };
