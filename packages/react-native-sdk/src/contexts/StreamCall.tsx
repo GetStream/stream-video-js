@@ -8,32 +8,28 @@ import {
   useStore,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import {
-  LocalMediaStreamsContextProvider,
-  MediaDevicesProvider,
-} from '../../contexts';
-import { useConnectedUser } from '@stream-io/video-react-bindings/dist/src/hooks/user';
+import { useStoreValue } from './StreamVideoContext';
 
-type StreamCallProps = {
-  leaveOnLeftAlone?: boolean;
-};
-
-export const StreamCall = ({
-  children,
-  leaveOnLeftAlone,
-}: PropsWithChildren<StreamCallProps>) => {
+/**
+ * StreamCall is a wrapper component that handles incoming and outgoing calls.
+ * Optionally leaves a call when the user is the only one left in the call.
+ */
+export const StreamCall = ({ children }: PropsWithChildren<{}>) => {
   const videoClient = useStreamVideoClient();
-  const user = useConnectedUser();
+  const leaveOnLeftAlone = useStoreValue((state) => state.leaveOnLeftAlone);
   const incomingCalls = useIncomingCalls();
   const outgoingCalls = useOutgoingCalls();
   const acceptedCall = useAcceptedCall();
-  const { localHangupNotifications$ } = useStore();
+  const { myHangupNotifications$ } = useStore();
   const { remoteHangupNotifications$ } = useStore();
 
   const isJoiningRef = useRef(false);
 
   useEffect(() => {
     if (!(videoClient && acceptedCall) || isJoiningRef.current) return;
+
+    /** functions to unsubscribe from rxjs subscriptions */
+    const rxUnsubscribeFuncs: (() => void)[] = [];
 
     const callToJoin =
       outgoingCalls.length > 0
@@ -42,14 +38,11 @@ export const StreamCall = ({
           )
         : incomingCalls.length > 0
         ? incomingCalls.find(
-            (c) =>
-              c.call?.callCid === acceptedCall?.call?.callCid &&
-              acceptedCall.senderUserId === user?.id,
+            (c) => c.call?.callCid === acceptedCall?.call?.callCid,
           )
         : undefined;
 
     if (callToJoin?.call) {
-      isJoiningRef.current = true;
       videoClient
         ?.joinCall({
           id: callToJoin.call.id,
@@ -58,6 +51,7 @@ export const StreamCall = ({
           datacenterId: '',
         })
         .then((call) => {
+          isJoiningRef.current = false;
           if (call?.left) return call;
           const filterActiveCallHangups = (
             acc: Set<string>,
@@ -68,49 +62,57 @@ export const StreamCall = ({
             }
             return acc;
           };
-          localHangupNotifications$.subscribe((notifications) => {
-            const myHangups = notifications.reduce(
-              filterActiveCallHangups,
-              new Set(),
-            );
-            myHangups.size > 0 && call?.leave();
-          });
+          const myHangupSub = myHangupNotifications$.subscribe(
+            (notifications) => {
+              const myHangups = notifications.reduce(
+                filterActiveCallHangups,
+                new Set(),
+              );
+              myHangups.size > 0 && call?.leave();
+            },
+          );
 
-          remoteHangupNotifications$.subscribe((notifications) => {
-            const members = call?.data.details?.memberUserIds || [];
-            const wasLeftAlone =
-              notifications.reduce(filterActiveCallHangups, new Set()).size ===
-              members.length - 1;
+          const remoteHangupSub = remoteHangupNotifications$.subscribe(
+            (notifications) => {
+              const members = call?.data.details?.memberUserIds || [];
+              const wasLeftAlone =
+                notifications.reduce(filterActiveCallHangups, new Set())
+                  .size ===
+                members.length - 1;
 
-            if (wasLeftAlone && leaveOnLeftAlone) {
-              call?.leave();
-            }
-          });
+              if (wasLeftAlone && leaveOnLeftAlone) {
+                call?.leave();
+              }
+            },
+          );
+          rxUnsubscribeFuncs.push(
+            () => myHangupSub.unsubscribe(),
+            () => remoteHangupSub.unsubscribe(),
+          );
           return call;
         })
         .then((call) => {
           !call?.left && call?.join();
+        })
+        .catch((err) => {
+          isJoiningRef.current = false;
         });
+      return () => {
+        rxUnsubscribeFuncs.forEach((f) => f());
+      };
     }
   }, [
     videoClient,
     outgoingCalls,
     incomingCalls,
     acceptedCall,
-    localHangupNotifications$,
+    myHangupNotifications$,
     remoteHangupNotifications$,
     leaveOnLeftAlone,
     isJoiningRef,
-    user,
   ]);
 
   if (!videoClient) return null;
 
-  return (
-    <MediaDevicesProvider>
-      <LocalMediaStreamsContextProvider>
-        {children}
-      </LocalMediaStreamsContextProvider>
-    </MediaDevicesProvider>
-  );
+  return <>{children}</>;
 };

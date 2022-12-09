@@ -1,43 +1,17 @@
 import createStoreContext from './createStoreContext';
-import {
-  StreamVideo as StreamVideoProvider,
-  StreamVideoProps,
-} from '@stream-io/video-react-bindings';
-import React, { PropsWithChildren } from 'react';
 import { CallKeepOptions } from '../types';
-import { MediaDevicesProvider } from './MediaDevicesContext';
 
-interface SDKStreamVideoStore {
+export interface SDKStreamVideoStore {
   cameraBackFacingMode: boolean;
   isVideoMuted: boolean;
+  leaveOnLeftAlone: boolean;
   callKeepOptions: CallKeepOptions | undefined;
 }
 
-const { Provider, useStoreValue, useStoreSetState } =
+export const { Provider, useStoreValue, useStoreSetState } =
   createStoreContext<SDKStreamVideoStore>({
     cameraBackFacingMode: false,
     isVideoMuted: false,
+    leaveOnLeftAlone: false, // true on ringing, false on meeting
     callKeepOptions: undefined,
   });
-
-export const useStreamVideoStoreValue = useStoreValue;
-export const useStreamVideoStoreSetState = useStoreSetState;
-
-export const StreamVideo: React.FC<
-  StreamVideoProps & {
-    callKeepOptions: CallKeepOptions;
-  }
-> = (
-  props: PropsWithChildren<StreamVideoProps> & {
-    callKeepOptions: CallKeepOptions;
-  },
-) => {
-  const { client, ...rest } = props;
-  return (
-    <StreamVideoProvider client={client}>
-      <MediaDevicesProvider>
-        <Provider {...rest} />
-      </MediaDevicesProvider>
-    </StreamVideoProvider>
-  );
-};

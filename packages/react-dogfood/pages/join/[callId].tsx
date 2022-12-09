@@ -10,7 +10,7 @@ import {
 import { UserInput } from '@stream-io/video-client';
 import { useMemo } from 'react';
 import Head from 'next/head';
-import { StreamMeeting } from '@stream-io/video-react-sdk/dist/src/components/StreamMeeting/StreamMeeting';
+import { StreamMeeting } from '@stream-io/video-react-sdk';
 import { MeetingUI } from '../../components/MeetingUI';
 
 type JoinCallProps = {
