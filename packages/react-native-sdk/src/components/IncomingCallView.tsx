@@ -4,6 +4,7 @@ import { CallControlsButton } from './CallControlsButton';
 import {
   useActiveCall,
   useIncomingCalls,
+  usePendingCalls,
 } from '@stream-io/video-react-bindings';
 import { UserInfoView } from './UserInfoView';
 import {
@@ -27,9 +28,8 @@ export type IncomingCallViewProps = {
 const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const activeCall = useActiveCall();
-  const activeRingCallDetails = activeCall?.data.details;
-  const memberUserIds = activeRingCallDetails?.memberUserIds || [];
+  const activeCall = usePendingCalls();
+  const memberUserIds = activeCall[0].callDetails?.memberUserIds || [];
 
   if (memberUserIds.length)
     return (

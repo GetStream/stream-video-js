@@ -17,7 +17,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../types';
 import { joinCall } from '../../utils/callUtils';
 import {
-  useActiveRingCall,
+  useActiveCall,
   useCallKeep,
   useStreamVideoClient,
   useStreamVideoStoreValue,
@@ -95,7 +95,7 @@ const Ringing = ({ navigation, setLoadingCall }: Props) => {
   );
   const username = useAppGlobalStoreValue((store) => store.username);
   const ringingUsers = useAppGlobalStoreValue((store) => store.ringingUsers);
-  const activeRingCallMeta = useActiveRingCall();
+  const activeCall = useActiveCall();
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },
@@ -106,10 +106,10 @@ const Ringing = ({ navigation, setLoadingCall }: Props) => {
   ];
 
   useEffect(() => {
-    if (activeRingCallMeta) {
+    if (activeCall?.data.call) {
       navigation.navigate('OutgoingCallScreen');
     }
-  }, [navigation, activeRingCallMeta]);
+  }, [navigation, activeCall]);
 
   const setState = useAppGlobalStoreSetState();
   const { startCall } = useCallKeep();

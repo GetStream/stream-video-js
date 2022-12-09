@@ -7,7 +7,7 @@ import Ringing from '../components/Ringing/Ringing';
 import { RootStackParamList } from '../../types';
 import { mediaDevices } from 'react-native-webrtc';
 import {
-  useIncomingRingCalls,
+  useIncomingCalls,
   useStreamVideoStoreSetState,
 } from '@stream-io/video-react-native-sdk';
 
@@ -34,7 +34,7 @@ export const HomeScreen = ({ navigation, route }: Props) => {
   const [selectedTab, setSelectedTab] = useState('Meeting');
   const [loadingCall, setLoadingCall] = useState(false);
 
-  const incomingRingCalls = useIncomingRingCalls();
+  const incomingRingCalls = useIncomingCalls();
   const setState = useStreamVideoStoreSetState();
 
   // run only once per app lifecycle
