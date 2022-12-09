@@ -88,6 +88,6 @@ export const useHangUpNotifications = () => {
  * or cancellations (I have left an active call or have cancelled my outgoing call before joining it) do by me.
  */
 export const useMyHangUpNotifications = () => {
-  const { myHangupNotifications$ } = useStore();
-  return useObservableValue(myHangupNotifications$);
+  const { localHangupNotifications$ } = useStore();
+  return useObservableValue(localHangupNotifications$);
 };

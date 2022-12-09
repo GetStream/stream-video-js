@@ -54,7 +54,7 @@ export class StreamVideoWriteableStateStore {
   /**
    * A collection of local user's call rejections or cancellations;
    */
-  myHangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
+  localHangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
   /**
    * A collection of remote users' call rejections or cancellations;
    */
@@ -124,7 +124,7 @@ export class StreamVideoWriteableStateStore {
       ),
     );
 
-    this.myHangupNotifications$ = this.hangupNotificationsSubject.pipe(
+    this.localHangupNotifications$ = this.hangupNotificationsSubject.pipe(
       combineLatestWith(this.connectedUserSubject),
       map(([hangups, connectedUser]) =>
         hangups.filter((hangup) => hangup.senderUserId === connectedUser?.id),
@@ -301,7 +301,7 @@ export class StreamVideoReadOnlyStateStore {
   /**
    * A collection of local user's call rejections or cancellations;
    */
-  myHangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
+  localHangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
   /**
    * A collection of remote users' call rejections or cancellations;
    */
@@ -364,7 +364,7 @@ export class StreamVideoReadOnlyStateStore {
     this.outgoingCalls$ = store.outgoingCalls$;
     this.acceptedCall$ = store.acceptedCallSubject.asObservable();
     this.hangupNotifications$ = store.hangupNotificationsSubject.asObservable();
-    this.myHangupNotifications$ = store.myHangupNotifications$;
+    this.localHangupNotifications$ = store.localHangupNotifications$;
     this.remoteHangupNotifications$ = store.remoteHangupNotifications$;
     this.activeCall$ = store.activeCallSubject.asObservable();
     this.participants$ = store.participantsSubject.asObservable();

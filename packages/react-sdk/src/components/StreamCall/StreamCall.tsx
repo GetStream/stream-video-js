@@ -12,6 +12,7 @@ import {
   LocalMediaStreamsContextProvider,
   MediaDevicesProvider,
 } from '../../contexts';
+import { useConnectedUser } from '@stream-io/video-react-bindings/dist/src/hooks/user';
 
 type StreamCallProps = {
   leaveOnLeftAlone?: boolean;
@@ -22,10 +23,11 @@ export const StreamCall = ({
   leaveOnLeftAlone,
 }: PropsWithChildren<StreamCallProps>) => {
   const videoClient = useStreamVideoClient();
+  const user = useConnectedUser();
   const incomingCalls = useIncomingCalls();
   const outgoingCalls = useOutgoingCalls();
   const acceptedCall = useAcceptedCall();
-  const { myHangupNotifications$ } = useStore();
+  const { localHangupNotifications$ } = useStore();
   const { remoteHangupNotifications$ } = useStore();
 
   const isJoiningRef = useRef(false);
@@ -40,7 +42,9 @@ export const StreamCall = ({
           )
         : incomingCalls.length > 0
         ? incomingCalls.find(
-            (c) => c.call?.callCid === acceptedCall?.call?.callCid,
+            (c) =>
+              c.call?.callCid === acceptedCall?.call?.callCid &&
+              acceptedCall.senderUserId === user?.id,
           )
         : undefined;
 
@@ -64,7 +68,7 @@ export const StreamCall = ({
             }
             return acc;
           };
-          myHangupNotifications$.subscribe((notifications) => {
+          localHangupNotifications$.subscribe((notifications) => {
             const myHangups = notifications.reduce(
               filterActiveCallHangups,
               new Set(),
@@ -93,10 +97,11 @@ export const StreamCall = ({
     outgoingCalls,
     incomingCalls,
     acceptedCall,
-    myHangupNotifications$,
+    localHangupNotifications$,
     remoteHangupNotifications$,
     leaveOnLeftAlone,
     isJoiningRef,
+    user,
   ]);
 
   if (!videoClient) return null;
