@@ -3,8 +3,7 @@ import { StyleSheet, Text, View, ImageBackground } from 'react-native';
 import { CallControlsButton } from './CallControlsButton';
 import {
   useActiveCall,
-  useActiveRingCallDetails,
-  useIncomingRingCalls,
+  useIncomingCalls,
 } from '@stream-io/video-react-bindings';
 import { UserInfoView } from './UserInfoView';
 import {
@@ -28,7 +27,8 @@ export type IncomingCallViewProps = {
 const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const activeRingCallDetails = useActiveRingCallDetails();
+  const activeCall = useActiveCall();
+  const activeRingCallDetails = activeCall?.data.details;
   const memberUserIds = activeRingCallDetails?.memberUserIds || [];
 
   if (memberUserIds.length)
@@ -53,7 +53,7 @@ export const IncomingCallView: React.FC<IncomingCallViewProps> = ({
   onRejectCall,
 }) => {
   const activeCall = useActiveCall();
-  const incomingRingCalls = useIncomingRingCalls();
+  const incomingRingCalls = useIncomingCalls();
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const setState = useStreamVideoStoreSetState();
   const { answerCall, rejectCall } = useRingCall();

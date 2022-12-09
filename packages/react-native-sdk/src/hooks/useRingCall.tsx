@@ -1,6 +1,6 @@
 import {
-  useActiveRingCall,
-  useIncomingRingCalls,
+  useActiveCall,
+  useIncomingCalls,
   useLocalParticipant,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
@@ -15,20 +15,20 @@ export const useRingCall = () => {
   const localMediaStream = useStreamVideoStoreValue(
     (store) => store.localMediaStream,
   );
-  const activeRingCall = useActiveRingCall();
-  const incomingRingCalls = useIncomingRingCalls();
+  const activeRingCall = useActiveCall();
+  const incomingRingCalls = useIncomingCalls();
   const { endCall } = useCallKeep();
   const currentIncomingRingCall =
     incomingRingCalls[incomingRingCalls.length - 1];
   const isCallCreatedByUserLocalParticipant =
-    activeRingCall?.createdByUserId === localParticipant?.userId;
+    activeRingCall?.data?.call?.createdByUserId === localParticipant?.userId;
 
   const answerCall = async () => {
     if (!client) {
       return;
     }
     const call = await client.joinCall({
-      id: currentIncomingRingCall.id,
+      id: currentIncomingRingCall.call?.id,
       type: 'default',
       datacenterId: '',
       input: {
