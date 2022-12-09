@@ -48,6 +48,10 @@ export class StreamVideoService {
    * The `videoClient` lets interact with our API, please refer to the [`StreamVideoClient`](./StreamVideoClient.mdx) for more information.
    */
   videoClient: StreamVideoClient | undefined;
+  /**
+   * The call metadata of the ongoing call
+   * The call metadata becomes available before the `activeCall$`
+   */
   activeCallMeta$: Observable<CallMeta.Call | undefined>;
   activeRingCallDetails$: Observable<CallMeta.CallDetails | undefined>;
   terminatedRingCallMeta$: Observable<CallMeta.Call | undefined>;
@@ -135,7 +139,7 @@ export class StreamVideoService {
     });
 
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.activeRingCallMeta$.subscribe(
+      this.videoClient.readOnlyStateStore?.activeCallMeta$.subscribe(
         this.activeCallMetaSubject,
       ),
     );
