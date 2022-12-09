@@ -10,7 +10,7 @@ import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { combineLatest, Observable, Subscription, take } from 'rxjs';
+import { combineLatest, Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-call',
