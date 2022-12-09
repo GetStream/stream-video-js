@@ -10,7 +10,7 @@ import { UserInfoView } from './UserInfoView';
 import {
   useStreamVideoStoreSetState,
   useStreamVideoStoreValue,
-} from '../contexts/StreamVideoContext';
+} from '../contexts';
 import { useRingCall } from '../hooks';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 
