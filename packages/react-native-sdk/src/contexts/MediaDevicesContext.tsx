@@ -3,7 +3,6 @@ import {
   PropsWithChildren,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from 'react';
 import {
@@ -84,5 +83,5 @@ export const useMediaDevices = () => {
   if (!value) {
     throw new Error(`MediaDevicesContext is null`);
   }
-  return value as MediaDevicesContextAPI;
+  return value;
 };
