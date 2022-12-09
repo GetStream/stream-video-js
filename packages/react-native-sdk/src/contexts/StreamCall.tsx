@@ -20,7 +20,7 @@ export const StreamCall = ({ children }: PropsWithChildren<{}>) => {
   const incomingCalls = useIncomingCalls();
   const outgoingCalls = useOutgoingCalls();
   const acceptedCall = useAcceptedCall();
-  const { myHangupNotifications$ } = useStore();
+  const { localHangupNotifications$ } = useStore();
   const { remoteHangupNotifications$ } = useStore();
 
   const isJoiningRef = useRef(false);
@@ -62,7 +62,7 @@ export const StreamCall = ({ children }: PropsWithChildren<{}>) => {
             }
             return acc;
           };
-          const myHangupSub = myHangupNotifications$.subscribe(
+          const myHangupSub = localHangupNotifications$.subscribe(
             (notifications) => {
               const myHangups = notifications.reduce(
                 filterActiveCallHangups,
@@ -106,7 +106,7 @@ export const StreamCall = ({ children }: PropsWithChildren<{}>) => {
     outgoingCalls,
     incomingCalls,
     acceptedCall,
-    myHangupNotifications$,
+    localHangupNotifications$,
     remoteHangupNotifications$,
     leaveOnLeftAlone,
     isJoiningRef,
