@@ -6,8 +6,8 @@ import { RTCView } from 'react-native-webrtc';
 import { UserInfoView } from './UserInfoView';
 import {
   useActiveCall,
-  useHangUpNotifications,
   useLocalParticipant,
+  useRemoteHanguUpNotifications,
   useRemoteParticipants,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
@@ -38,8 +38,12 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
   const client = useStreamVideoClient();
   const activeCall = useActiveCall();
   const activeCallMeta = activeCall?.data.call;
-  const hangUpNotifications = useHangUpNotifications();
+  const remoteHangUpNotifications = useRemoteHanguUpNotifications();
   const remoteParticipants = useRemoteParticipants();
+  const isHangUpCall = remoteHangUpNotifications.find(
+    (remoteHangUpNotification) =>
+      remoteHangUpNotification.call?.callCid === activeCallMeta?.callCid,
+  );
   const { endCall } = useCallKeep();
 
   const hangupHandler = useCallback(async () => {
@@ -48,6 +52,8 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
       return;
     }
     try {
+      console.log({ activeCallMeta });
+
       if (activeCallMeta) {
         await client?.cancelCall(activeCallMeta.callCid);
         endCall();
@@ -60,14 +66,14 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
   }, [activeCall, activeCallMeta, client, endCall]);
 
   useEffect(() => {
-    if (hangUpNotifications.length > 0) {
+    if (isHangUpCall) {
       onHangupCall();
     }
-    if (remoteParticipants.length > 0) {
-      onCallAccepted();
-    }
+    // if (remoteParticipants.length > 0) {
+    //   onCallAccepted();
+    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hangUpNotifications, remoteParticipants]);
+  }, [remoteHangUpNotifications, remoteParticipants]);
 
   // To terminate call after a certain duration of time. Currently set to 10 seconds.
   useEffect(() => {
@@ -81,6 +87,11 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
 
     return () => clearTimeout(timerId);
   }, [hangupHandler, remoteParticipants]);
+
+  const hangupCallHandler = async () => {
+    await hangupCall();
+    onHangupCall();
+  };
 
   return (
     <>
@@ -112,7 +123,7 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
           </View>
 
           <CallControlsButton
-            onPress={hangupCall}
+            onPress={hangupCallHandler}
             colorKey={'cancel'}
             style={[styles.buttonStyle, styles.hangupButton]}
             svgContainerStyle={styles.svgStyle}

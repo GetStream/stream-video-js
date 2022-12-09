@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, ImageBackground } from 'react-native';
 import { CallControlsButton } from './CallControlsView/CallControlsButton';
 import { useIncomingCalls } from '@stream-io/video-react-bindings';
@@ -56,6 +56,12 @@ export const IncomingCallView = (props: IncomingCallViewProps) => {
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const setState = useStreamVideoStoreSetState();
   const { answerCall, rejectCall } = useRingCall();
+  const incomingCalls = useIncomingCalls();
+
+  useEffect(() => {
+    if (incomingCalls.length === 0) onRejectCall();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [incomingCalls]);
 
   const videoToggle = async () => {
     setState((prevState) => ({
