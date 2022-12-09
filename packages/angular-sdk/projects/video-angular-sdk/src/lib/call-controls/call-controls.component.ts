@@ -3,6 +3,7 @@ import {
   StreamVideoParticipant,
   Call,
   SfuModels,
+  CallMeta,
 } from '@stream-io/video-client';
 import { NgxPopperjsTriggers } from 'ngx-popperjs';
 import { Subscription } from 'rxjs';
@@ -19,6 +20,7 @@ export class CallControlsComponent implements OnInit, OnDestroy {
   isCallRecordingInProgress: boolean = false;
   popperTrigger = NgxPopperjsTriggers.click;
   private subscriptions: Subscription[] = [];
+  private activeCallMeta!: CallMeta.Call;
 
   TrackType = SfuModels.TrackType;
 
@@ -34,6 +36,11 @@ export class CallControlsComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.streamVideoService.activeCallLocalParticipant$.subscribe(
         (p) => (this.localParticipant = p),
+      ),
+    );
+    this.subscriptions.push(
+      this.streamVideoService.activeCallMeta$.subscribe(
+        (callMeta) => (this.activeCallMeta = callMeta!),
       ),
     );
   }
@@ -71,11 +78,15 @@ export class CallControlsComponent implements OnInit, OnDestroy {
   }
 
   toggleRecording() {
-    alert('Not yet implemented');
-    // TODO: call meta should be part of the store
-    // this.isCallRecordingInProgress
-    //   ? this.streamVideoService.videoClient?.stopRecording('', '')
-    //   : this.streamVideoService.videoClient?.startRecording('', '');
+    this.isCallRecordingInProgress
+      ? this.streamVideoService.videoClient?.stopRecording(
+          this.activeCallMeta.id,
+          this.activeCallMeta.type,
+        )
+      : this.streamVideoService.videoClient?.startRecording(
+          this.activeCallMeta.id,
+          this.activeCallMeta.type,
+        );
   }
 
   endCall() {
