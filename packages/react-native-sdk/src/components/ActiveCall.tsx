@@ -35,9 +35,13 @@ export const ActiveCall = (props: ActiveCallProps) => {
   useEffect(() => {
     try {
       if (currentVideoDevice) {
-        getVideoStream(currentVideoDevice.deviceId).then((stream) =>
-          activeCall?.publishVideoStream(stream),
-        );
+        getVideoStream(currentVideoDevice.deviceId).then((stream) => {
+          if (currentVideoDevice.facing === 'environment') {
+            const [primaryVideoTrack] = stream.getVideoTracks();
+            primaryVideoTrack._switchCamera();
+          }
+          activeCall?.publishVideoStream(stream);
+        });
       }
     } catch (error) {
       console.log(error);
