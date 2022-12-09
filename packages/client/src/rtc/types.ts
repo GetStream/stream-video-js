@@ -24,9 +24,15 @@ export type StreamVideoParticipant = {
 
   /**
    * The preferred video dimensions for this participant.
-   * Set it to null to disable video.
+   * Set it to `undefined` to unsubscribe from this participant's video.
    */
   videoDimension?: VideoDimension;
+
+  /**
+   * The preferred screen share dimensions for this participant.
+   * Set it to `undefined` to unsubscribe from this participant's screen share.
+   */
+  screenShareDimension?: VideoDimension;
 
   /**
    * True if the participant is the local participant.
@@ -85,7 +91,7 @@ export type SubscriptionChange = {
    * The video dimension to request.
    * Set it to `undefined` in case you want to unsubscribe.
    */
-  videoDimension: VideoDimension | undefined;
+  dimension: VideoDimension | undefined;
 };
 
 export type SubscriptionChanges = {

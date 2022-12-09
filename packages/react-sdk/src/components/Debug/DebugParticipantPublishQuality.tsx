@@ -21,7 +21,6 @@ export const DebugParticipantPublishQuality = (props: {
       const [videoLayer] = videoSenders.map(({ layers }) => {
         return layers.map((l) => ({ [l.name]: l.active }));
       });
-      // @ts-ignore
       setPublishStats((s) => ({
         ...s,
         ...videoLayer,
@@ -36,18 +35,18 @@ export const DebugParticipantPublishQuality = (props: {
       onChange={(e) => {
         const value = e.target.value;
         setQuality(value);
-        let w = 1280;
-        let h = 720;
+        let w = 960;
+        let h = 540;
         if (value === 'h') {
-          w = w / 2; // 640
-          h = h / 2; // 360
+          w = w / 2; // 480
+          h = h / 2; // 270
         } else if (value === 'q') {
-          w = w / 4; // 320
-          h = h / 4; // 180
+          w = w / 4; // 240
+          h = h / 4; // 135
         }
-        call.updateSubscriptionsPartial({
+        call.updateSubscriptionsPartial('video', {
           [participant.sessionId]: {
-            videoDimension: {
+            dimension: {
               width: w,
               height: h,
             },
