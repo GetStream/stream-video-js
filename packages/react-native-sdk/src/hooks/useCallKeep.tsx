@@ -1,7 +1,4 @@
-import {
-  useActiveRingCall,
-  useActiveRingCallDetails,
-} from '@stream-io/video-react-bindings';
+import { useActiveCall } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
 import RNCallKeep from 'react-native-callkeep';
@@ -9,8 +6,7 @@ import { useStreamVideoStoreValue } from '../contexts';
 import { generateCallTitle } from '../utils';
 
 export const useCallKeep = () => {
-  const activeRingCall = useActiveRingCall();
-  const activeRingCallDetails = useActiveRingCallDetails();
+  const activeCall = useActiveCall();
   const callKeepOptions = useStreamVideoStoreValue(
     (store) => store.callKeepOptions,
   );
@@ -29,25 +25,25 @@ export const useCallKeep = () => {
   }, []);
 
   const callTitle = generateCallTitle(
-    activeRingCallDetails?.memberUserIds || [],
+    activeCall?.data.details?.memberUserIds || [],
   );
 
   const startCall = useCallback(async () => {
-    if (Platform.OS === 'ios' && activeRingCall) {
+    if (Platform.OS === 'ios' && activeCall && activeCall.data.call) {
       await RNCallKeep.startCall(
-        activeRingCall.id,
+        activeCall.data.call?.id,
         callTitle,
-        activeRingCallDetails?.memberUserIds.join(','),
+        activeCall.data.details?.memberUserIds.join(','),
         'generic',
       );
     }
-  }, [activeRingCall, callTitle, activeRingCallDetails]);
+  }, [activeCall, callTitle]);
 
   const endCall = useCallback(async () => {
-    if (Platform.OS === 'ios' && activeRingCall) {
-      await RNCallKeep.endCall(activeRingCall.id);
+    if (Platform.OS === 'ios' && activeCall?.data.call) {
+      await RNCallKeep.endCall(activeCall.data.call.id);
     }
-  }, [activeRingCall]);
+  }, [activeCall]);
 
   return { startCall, endCall };
 };

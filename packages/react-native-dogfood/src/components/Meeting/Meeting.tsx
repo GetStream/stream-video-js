@@ -18,10 +18,7 @@ import { joinCall } from '../../utils/callUtils';
 import { meetingId } from '../../modules/helpers/meetingId';
 
 import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
-import {
-  useStreamVideoClient,
-  useStreamVideoStoreValue,
-} from '@stream-io/video-react-native-sdk';
+import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'> & {
   setLoadingCall: (loading: boolean) => void;
@@ -33,17 +30,15 @@ const Meeting = ({ navigation, setLoadingCall }: Props) => {
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
-  const localMediaStream = useStreamVideoStoreValue(
-    (store) => store.localMediaStream,
-  );
+
   const setState = useAppGlobalStoreSetState();
 
   const joinCallHandler = useCallback(
     async (callId: string) => {
-      if (videoClient && localMediaStream) {
+      if (videoClient) {
         setLoadingCall(true);
         try {
-          const response = await joinCall(videoClient, localMediaStream, {
+          const response = await joinCall(videoClient, {
             autoJoin: true,
             callId,
             callType: 'default',
@@ -58,11 +53,11 @@ const Meeting = ({ navigation, setLoadingCall }: Props) => {
         setLoadingCall(false);
       }
     },
-    [localMediaStream, navigation, setLoadingCall, videoClient],
+    [navigation, setLoadingCall, videoClient],
   );
 
   useEffect(() => {
-    if (localMediaStream && videoClient) {
+    if (videoClient) {
       const subscription = prontoCallId$.subscribe((prontoCallId) => {
         if (prontoCallId) {
           setState({
@@ -74,7 +69,7 @@ const Meeting = ({ navigation, setLoadingCall }: Props) => {
       });
       return () => subscription.unsubscribe();
     }
-  }, [joinCallHandler, localMediaStream, setState, videoClient]);
+  }, [joinCallHandler, setState, videoClient]);
 
   const handleCopyInviteLink = useCallback(
     () =>

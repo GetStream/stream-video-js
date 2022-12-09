@@ -1,4 +1,3 @@
-import { MediaStream } from 'react-native-webrtc';
 import createStoreContext from './createStoreContext';
 
 interface AppGlobalStore {
@@ -7,8 +6,6 @@ interface AppGlobalStore {
   ringingUsers: string[];
   username: string;
   userImageUrl: string;
-  localMediaStream: MediaStream | undefined;
-  videoClient: StreamVideoClient | undefined;
   loopbackMyVideo: boolean;
 }
 
@@ -23,8 +20,6 @@ export const {
     ringingUsers: [],
     username: '',
     userImageUrl: '',
-    localMediaStream: undefined,
-    videoClient: undefined,
     loopbackMyVideo: false,
   },
   ['username', 'userImageUrl'],

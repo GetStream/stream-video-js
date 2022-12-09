@@ -1,4 +1,4 @@
-import { useActiveRingCallDetails } from '@stream-io/video-react-bindings';
+import { usePendingCalls } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { MAX_AVATARS_IN_VIEW } from '../constants';
@@ -11,8 +11,8 @@ enum AvatarModes {
 }
 
 export const UserInfoView = () => {
-  const activeRingCallDetails = useActiveRingCallDetails();
-  const memberUserIds = activeRingCallDetails?.memberUserIds || [];
+  const activeCall = usePendingCalls();
+  const memberUserIds = activeCall[0].callDetails?.memberUserIds || [];
   const callTitle = generateCallTitle(memberUserIds);
   const supportedAmountOfMemberUserIds = memberUserIds.slice(
     0,
@@ -37,6 +37,7 @@ export const UserInfoView = () => {
             <Image
               key={member}
               style={[styles.avatar, avatarStyles]}
+              // FIXME: use real avatar from coordinator this is temporary
               source={{
                 uri: `https://getstream.io/random_png/?id=${member}&name=${member}`,
               }}

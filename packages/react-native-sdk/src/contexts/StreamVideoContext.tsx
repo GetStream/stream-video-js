@@ -1,16 +1,17 @@
 import createStoreContext from './createStoreContext';
-import { MediaStream } from 'react-native-webrtc';
 import {
   StreamVideo as StreamVideoProvider,
   StreamVideoProps,
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren } from 'react';
 import { CallKeepOptions } from '../types';
+import { StreamCall } from './StreamCall';
+import { MediaDevicesProvider } from './MediaDevicesContext';
 
 interface SDKStreamVideoStore {
   cameraBackFacingMode: boolean;
   isVideoMuted: boolean;
-  localMediaStream: MediaStream | undefined;
+  leaveOnLeftAlone: boolean;
   callKeepOptions: CallKeepOptions | undefined;
 }
 
@@ -18,7 +19,7 @@ const { Provider, useStoreValue, useStoreSetState } =
   createStoreContext<SDKStreamVideoStore>({
     cameraBackFacingMode: false,
     isVideoMuted: false,
-    localMediaStream: undefined,
+    leaveOnLeftAlone: false, // true on ringing, false on meeting
     callKeepOptions: undefined,
   });
 
@@ -34,10 +35,17 @@ export const StreamVideo: React.FC<
     callKeepOptions: CallKeepOptions;
   },
 ) => {
-  const { client, ...rest } = props;
+  // FIXME: callKeepOptions is not used
+  const { client, children } = props;
   return (
     <StreamVideoProvider client={client}>
-      <Provider {...rest} />
+      <StreamCall />
+      <MediaDevicesProvider>
+        <Provider>
+          <StreamCall />
+          {children}
+        </Provider>
+      </MediaDevicesProvider>
     </StreamVideoProvider>
   );
 };

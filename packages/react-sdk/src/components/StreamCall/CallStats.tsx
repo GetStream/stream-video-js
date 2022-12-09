@@ -93,20 +93,28 @@ export const CallStats = (props: {
               value={`${callStatsReport.publisherStats.averageRoundTripTimeInMs} ms.`}
             />
             <StatCard
-              label="Jitter"
+              label="Receive jitter"
               value={`${callStatsReport.subscriberStats.averageJitterInMs} ms.`}
             />
             <StatCard
-              label="Quality drop reason"
-              value={callStatsReport.publisherStats.qualityLimitationReasons}
+              label="Publish jitter"
+              value={`${callStatsReport.publisherStats.averageJitterInMs} ms.`}
             />
             <StatCard
               label="Publish resolution"
               value={toFrameSize(callStatsReport.publisherStats)}
             />
             <StatCard
+              label="Publish quality drop reason"
+              value={callStatsReport.publisherStats.qualityLimitationReasons}
+            />
+            <StatCard
               label="Receiving resolution"
               value={toFrameSize(callStatsReport.subscriberStats)}
+            />
+            <StatCard
+              label="Receive quality drop reason"
+              value={callStatsReport.subscriberStats.qualityLimitationReasons}
             />
             <StatCard label="Publish bitrate" value={publishBitrate} />
             <StatCard label="Receiving bitrate" value={subscribeBitrate} />

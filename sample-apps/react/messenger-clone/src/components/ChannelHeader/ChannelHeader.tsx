@@ -49,6 +49,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
       id: meetingId(),
       type: 'default',
       input: {
+        ring: true,
         members: Object.values(channel.state.members).map(
           (member) =>
             ({

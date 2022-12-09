@@ -12,8 +12,10 @@ import { StreamVideoService } from '../video.service';
 export class CallStatisticsComponent implements OnInit, OnDestroy {
   datacenter?: string;
   latencyInMs?: string;
-  jitter?: string;
-  qualityLimit?: string;
+  receiveJitter?: string;
+  sendJitter?: string;
+  publishQualityLimit?: string;
+  subscribeQualityLimit?: string;
   publishResolution?: string;
   subscriberResolution?: string;
   publishBitrate?: string;
@@ -50,11 +52,18 @@ export class CallStatisticsComponent implements OnInit, OnDestroy {
             report?.publisherStats.averageRoundTripTimeInMs,
             'ms',
           );
-          this.jitter = this.toStringWithUnit(
+          this.receiveJitter = this.toStringWithUnit(
             report?.subscriberStats?.averageJitterInMs,
             'ms',
           );
-          this.qualityLimit = report?.publisherStats?.qualityLimitationReasons;
+          this.sendJitter = this.toStringWithUnit(
+            report?.publisherStats?.averageJitterInMs,
+            'ms',
+          );
+          this.publishQualityLimit =
+            report?.publisherStats?.qualityLimitationReasons;
+          this.subscribeQualityLimit =
+            report?.subscriberStats.qualityLimitationReasons;
           this.publishResolution = this.toFrameSizeString(
             report?.publisherStats?.highestFrameWidth,
             report?.publisherStats?.highestFrameHeight,

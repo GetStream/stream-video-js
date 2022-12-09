@@ -5,11 +5,7 @@ import { TabBar } from '../components/TabBar';
 import Meeting from '../components/Meeting/Meeting';
 import Ringing from '../components/Ringing/Ringing';
 import { RootStackParamList } from '../../types';
-import { mediaDevices } from 'react-native-webrtc';
-import {
-  useIncomingRingCalls,
-  useStreamVideoStoreSetState,
-} from '@stream-io/video-react-native-sdk';
+import { useIncomingCalls } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -34,22 +30,7 @@ export const HomeScreen = ({ navigation, route }: Props) => {
   const [selectedTab, setSelectedTab] = useState('Meeting');
   const [loadingCall, setLoadingCall] = useState(false);
 
-  const incomingRingCalls = useIncomingRingCalls();
-  const setState = useStreamVideoStoreSetState();
-
-  // run only once per app lifecycle
-  useEffect(() => {
-    const configure = async () => {
-      const mediaStream = await mediaDevices.getUserMedia({
-        audio: true,
-        video: true,
-      });
-      setState({
-        localMediaStream: mediaStream,
-      });
-    };
-    configure();
-  }, [setState]);
+  const incomingRingCalls = useIncomingCalls();
 
   useEffect(() => {
     if (incomingRingCalls.length > 0) {
