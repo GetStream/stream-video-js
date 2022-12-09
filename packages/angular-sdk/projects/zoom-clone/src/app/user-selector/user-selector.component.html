@@ -1,0 +1,10 @@
+<h2>Choose your user</h2>
+
+<ng-container *ngFor="let user of users">
+  <div class="user" (click)="userSelected(user.user.id)">
+    <app-profile-picture [url]="user.user.imageUrl" [name]="user.user.name"></app-profile-picture>
+    <div class="username">
+      {{user.user.name}}
+    </div>
+  </div>
+</ng-container>
