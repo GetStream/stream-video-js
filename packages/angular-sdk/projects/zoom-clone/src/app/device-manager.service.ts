@@ -10,9 +10,16 @@ import {
   watchForDisconnectedAudioOutputDevice,
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject, map, Observable, take } from 'rxjs';
 
+/**
+ * `loading` means that a stream is currently being retrieved from the browser
+ * `on` means that there is an ongoing media stream
+ * `off` means that the user decided to turn off the stream
+ * `error` means an error occurred while trying to retrieve a stream (for example the user didn't give permission to use camera/microphone)
+ * `initial` is the default state, which means we didn't try to start a stream yet
+ * `disconnected` means the stream is lost due to a device being disconnected/lost
+ */
 export type MediaStreamState =
   | 'loading'
   | 'on'
@@ -25,19 +32,61 @@ export type MediaStreamState =
   providedIn: 'root',
 })
 export class DeviceManagerService {
+  /**
+   * The list of available 'audioinput' devices, if devices are added/removed - the list is updated
+   */
   audioDevices$ = getAudioDevices();
+  /**
+   * The list of available 'videoinput' devices, if devices are added/removed - the list is updated
+   */
   videoDevices$ = getVideoDevices();
+  /**
+   * The list of available 'audiooutput' devices, if devices are added/removed - the list is updated
+   */
   audioOutputDevices$ = getAudioOutputDevices();
+  /**
+   * [Tells if the browser supports audio output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId)
+   */
   isAudioOutputChangeSupportedByBrowser = checkIfAudioOutputChangeSupported();
+  /**
+   * The `deviceId` of the currently selected video input device
+   */
   videoDevice$: Observable<string | undefined>;
+  /**
+   * The `deviceId` of the currently selected audio input device
+   */
   audioDevice$: Observable<string | undefined>;
+  /**
+   * The `deviceId` of the currently selected audio output device
+   */
   audioOutputDevice$: Observable<string | undefined>;
+  /**
+   * Provides detailed information about the video stream, you can use this stream to visaully display the state on the UI
+   */
   videoState$: Observable<MediaStreamState>;
+  /**
+   * If `videoState$` is `error` this stream emits the error message, so additional explanation can be provided to users
+   */
   videoErrorMessage$: Observable<string | undefined>;
+  /**
+   * The video media stream, you can start and stop it with the `startVideo` and `stopVideo` methods
+   */
   videoStream$: Observable<MediaStream | undefined>;
+  /**
+   * Provides detailed information about the audio stream, you can use this stream to visaully display the state on the UI
+   */
   audioState$: Observable<MediaStreamState>;
+  /**
+   * If `audioState$` is `error` this stream emits the error message, so additional explanation can be provided to users
+   */
   audioErrorMessage$: Observable<string | undefined>;
+  /**
+   * The audio media stream, you can start and stop it with the `startAudio` and `stopAudio` methods
+   */
   audioStream$: Observable<MediaStream | undefined>;
+  /**
+   * `true` if there is an audio stream turned on, and detected audio levels suggest that the user is currently speaking
+   */
   isSpeaking$: Observable<boolean>;
   private videoStateSubject = new BehaviorSubject<MediaStreamState>('initial');
   private videoErrorMessageSubject = new BehaviorSubject<string | undefined>(
@@ -60,7 +109,7 @@ export class DeviceManagerService {
   private intervalId: any;
   private analyser?: AnalyserNode;
 
-  constructor(private snackBar: MatSnackBar) {
+  constructor() {
     this.videoState$ = this.videoStateSubject.asObservable();
     this.videoErrorMessage$ = this.videoErrorMessageSubject.asObservable();
     this.videoStream$ = this.videoStreamSubject.asObservable();
@@ -164,7 +213,6 @@ export class DeviceManagerService {
           );
         }
         this.videoStateSubject.next('error');
-        this.snackBar.open(this.videoErrorMessageSubject.getValue()!);
       });
   }
 
@@ -211,7 +259,6 @@ export class DeviceManagerService {
           );
         }
         this.audioStateSubject.next('error');
-        this.snackBar.open(this.audioErrorMessageSubject.getValue()!);
       });
   }
 
