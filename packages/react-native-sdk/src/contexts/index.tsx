@@ -23,7 +23,7 @@ export const StreamVideo = (
   const { client, children } = props;
   return (
     <StreamVideoProvider client={client}>
-      <StreamCall />
+      {/* <StreamCall /> */}
       <MediaDevicesProvider>
         <Provider>
           <StreamCall>{children}</StreamCall>
