@@ -11,22 +11,19 @@ const getDevices = (constraints?: MediaStreamConstraints | undefined) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
     navigator.mediaDevices
       .getUserMedia(constraints)
-      .then(
-        (media) => {
-          // in Firefox, devices can be enumerated after userMedia is requested
-          // and permissions granted. Otherwise, device labels are empty
-          navigator.mediaDevices.enumerateDevices().then((devices) => {
-            subscriber.next(devices);
-            // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
-            media.getTracks().forEach((t) => t.stop());
-          });
-        },
-        (error) => {
-          console.error('Failed to get devices', error);
-          subscriber.error(error);
-        },
-      )
-      .catch((error) => subscriber.error(error));
+      .then((media) => {
+        // in Firefox, devices can be enumerated after userMedia is requested
+        // and permissions granted. Otherwise, device labels are empty
+        navigator.mediaDevices.enumerateDevices().then((devices) => {
+          subscriber.next(devices);
+          // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
+          media.getTracks().forEach((t) => t.stop());
+        });
+      })
+      .catch((error) => {
+        console.error('Failed to get devices', error);
+        subscriber.error(error);
+      });
 
     const deviceChangeHandler = async () => {
       const allDevices = await navigator.mediaDevices.enumerateDevices();
@@ -127,7 +124,7 @@ const getStream = async (
   };
 
   try {
-    return navigator.mediaDevices.getUserMedia(constraints);
+    return await navigator.mediaDevices.getUserMedia(constraints);
   } catch (e) {
     console.error(`Failed to get ${type} stream for device ${deviceId}`, e);
     return null;
@@ -165,7 +162,7 @@ export const getScreenShareStream = async (
   options?: Record<string, any>,
 ) => {
   try {
-    return navigator.mediaDevices.getDisplayMedia({
+    return await navigator.mediaDevices.getDisplayMedia({
       video: true,
       audio: false,
       ...options,
