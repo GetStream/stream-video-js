@@ -18,8 +18,8 @@ export type MediaDevicesContextAPI = {
   audioDevices: MediaDeviceInfo[];
   videoDevices: MediaDeviceInfo[];
   audioOutputDevices: MediaDeviceInfo[];
-  getAudioStream: (deviceId?: string) => Promise<MediaStream>;
-  getVideoStream: (deviceId?: string) => Promise<MediaStream>;
+  getAudioStream: (deviceId?: string) => Promise<MediaStream | null>;
+  getVideoStream: (deviceId?: string) => Promise<MediaStream | null>;
   isAudioOutputChangeSupported: boolean;
 };
 

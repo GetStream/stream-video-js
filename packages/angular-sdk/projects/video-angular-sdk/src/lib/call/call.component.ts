@@ -32,8 +32,8 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
       this.streamVideoService.activeCall$.subscribe(async (c) => {
         if (c) {
           this.call = c;
-          let audioStream: MediaStream;
-          let videoStream: MediaStream;
+          let audioStream: MediaStream | null = null;
+          let videoStream: MediaStream | null = null;
           try {
             audioStream = await getAudioStream();
           } catch (error) {
@@ -44,14 +44,20 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
           } catch (error) {
             throw error;
           }
-          await this.call.publishAudioStream(audioStream);
-          await this.call.publishVideoStream(videoStream);
+          if (audioStream) {
+            await this.call.publishAudioStream(audioStream);
+          }
+          if (videoStream) {
+            await this.call.publishVideoStream(videoStream);
+          }
           deviceDisconnectSubscriptions.push(
             watchForDisconnectedAudioDevice(
               this.localParticipant$.pipe(map((p) => p?.audioDeviceId)),
             ).subscribe(async () => {
               const audioStream = await getAudioStream();
-              await c.publishAudioStream(audioStream);
+              if (audioStream) {
+                await c.publishAudioStream(audioStream);
+              }
             }),
           );
           deviceDisconnectSubscriptions.push(
@@ -59,7 +65,9 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
               this.localParticipant$.pipe(map((p) => p?.videoDeviceId)),
             ).subscribe(async () => {
               const videoStream = await getVideoStream();
-              await c.publishVideoStream(videoStream);
+              if (videoStream) {
+                await c.publishVideoStream(videoStream);
+              }
             }),
           );
           deviceDisconnectSubscriptions.push(

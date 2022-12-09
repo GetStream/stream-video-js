@@ -54,7 +54,9 @@ export const CallControls = (props: {
   useEffect(() => {
     if (initialAudioMuted) return;
     getAudioStream(audioDeviceId).then((stream) => {
-      return call.publishAudioStream(stream);
+      if (stream) {
+        return call.publishAudioStream(stream);
+      }
     });
   }, [call, audioDeviceId, initialAudioMuted]);
 
@@ -62,14 +64,18 @@ export const CallControls = (props: {
   useEffect(() => {
     if (initialVideoMuted) return;
     getVideoStream(videoDeviceId).then((stream) => {
-      return call.publishVideoStream(stream, { preferredCodec });
+      if (stream) {
+        return call.publishVideoStream(stream, { preferredCodec });
+      }
     });
   }, [videoDeviceId, call, preferredCodec, initialVideoMuted]);
 
   const publishAudioStream = useCallback(async () => {
     try {
       const audioStream = await getAudioStream(audioDeviceId);
-      await call.publishAudioStream(audioStream);
+      if (audioStream) {
+        await call.publishAudioStream(audioStream);
+      }
     } catch (e) {
       console.log('Failed to publish audio stream', e);
     }
@@ -78,7 +84,9 @@ export const CallControls = (props: {
   const publishVideoStream = useCallback(async () => {
     try {
       const videoStream = await getVideoStream(videoDeviceId);
-      await call.publishVideoStream(videoStream, { preferredCodec });
+      if (videoStream) {
+        await call.publishVideoStream(videoStream, { preferredCodec });
+      }
     } catch (e) {
       console.log('Failed to publish video stream', e);
     }

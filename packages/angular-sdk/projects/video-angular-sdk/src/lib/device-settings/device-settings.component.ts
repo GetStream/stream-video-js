@@ -57,10 +57,14 @@ export class DeviceSettingsComponent implements OnInit {
     try {
       if (kind === 'audioinput') {
         const audioStream = await getAudioStream(deviceId);
-        await this.activeCall?.publishAudioStream(audioStream);
+        if (audioStream) {
+          await this.activeCall?.publishAudioStream(audioStream);
+        }
       } else if (kind === 'videoinput') {
         const videoStream = await getVideoStream(deviceId);
-        await this.activeCall?.publishVideoStream(videoStream);
+        if (videoStream) {
+          await this.activeCall?.publishVideoStream(videoStream);
+        }
       } else {
         console.warn(`Unsupported device kind: ${kind}`);
       }

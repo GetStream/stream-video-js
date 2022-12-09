@@ -11,15 +11,21 @@ const getDevices = (constraints?: MediaStreamConstraints | undefined) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
     navigator.mediaDevices
       .getUserMedia(constraints)
-      .then((media) => {
-        // in Firefox, devices can be enumerated after userMedia is requested
-        // and permissions granted. Otherwise, device labels are empty
-        navigator.mediaDevices.enumerateDevices().then((devices) => {
-          subscriber.next(devices);
-          // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
-          media.getTracks().forEach((t) => t.stop());
-        });
-      })
+      .then(
+        (media) => {
+          // in Firefox, devices can be enumerated after userMedia is requested
+          // and permissions granted. Otherwise, device labels are empty
+          navigator.mediaDevices.enumerateDevices().then((devices) => {
+            subscriber.next(devices);
+            // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
+            media.getTracks().forEach((t) => t.stop());
+          });
+        },
+        (error) => {
+          console.error('Failed to get devices', error);
+          subscriber.error(error);
+        },
+      )
       .catch((error) => subscriber.error(error));
 
     const deviceChangeHandler = async () => {
@@ -120,7 +126,12 @@ const getStream = async (
     },
   };
 
-  return navigator.mediaDevices.getUserMedia(constraints);
+  try {
+    return navigator.mediaDevices.getUserMedia(constraints);
+  } catch (e) {
+    console.error(`Failed to get ${type} stream for device ${deviceId}`, e);
+    return null;
+  }
 };
 
 /**
@@ -153,11 +164,16 @@ export const getScreenShareStream = async (
   // TODO OL: switch to `DisplayMediaStreamConstraints` once Angular supports it
   options?: Record<string, any>,
 ) => {
-  return navigator.mediaDevices.getDisplayMedia({
-    video: true,
-    audio: false,
-    ...options,
-  });
+  try {
+    return navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: false,
+      ...options,
+    });
+  } catch (e) {
+    console.error('Failed to get screen share stream', e);
+    return null;
+  }
 };
 
 const watchForDisconnectedDevice = (
