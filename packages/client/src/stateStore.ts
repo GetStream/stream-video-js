@@ -21,6 +21,7 @@ import {
 import { CallStatsReport } from './stats/types';
 import { Call as CallController } from './rtc/Call';
 import { TrackType } from './gen/video/sfu/models/models';
+import { Call } from './gen/video/coordinator/call_v1/call';
 
 export class StreamVideoWriteableStateStore {
   /**
@@ -96,8 +97,8 @@ export class StreamVideoWriteableStateStore {
    * The call metadata of the ongoing call
    * The call metadata becomes available before the `activeCall$`
    */
-  activeCallMetaSubject: BehaviorSubject<CallMeta | undefined> =
-    new BehaviorSubject<CallMeta | undefined>(undefined);
+  activeCallMetaSubject: BehaviorSubject<Call | undefined> =
+    new BehaviorSubject<Call | undefined>(undefined);
 
   constructor() {
     this.localParticipant$ = this.participantsSubject.pipe(
@@ -366,8 +367,8 @@ export class StreamVideoReadOnlyStateStore {
    * The call metadata of the ongoing call
    * The call metadata becomes available before the `activeCall$`
    */
-  activeCallMeta$: Observable<CallMeta | undefined> = new Observable<
-    CallMeta | undefined
+  activeCallMeta$: Observable<Call | undefined> = new Observable<
+    Call | undefined
   >(undefined);
 
   constructor(store: StreamVideoWriteableStateStore) {
