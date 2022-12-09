@@ -149,7 +149,7 @@ export class DeviceManagerService {
     this.videoStateSubject.next('loading');
     getVideoStream(deviceId)
       .then((s) => {
-        this.stopAudio();
+        this.stopVideo();
         this.videoStreamSubject.next(s);
         this.videoStateSubject.next('on');
       })
@@ -169,7 +169,10 @@ export class DeviceManagerService {
   }
 
   stopVideo() {
-    this.videoStream?.getTracks().forEach((t) => t.stop());
+    if (!this.videoStream) {
+      return;
+    }
+    this.videoStream.getTracks().forEach((t) => t.stop());
     this.videoStreamSubject.next(undefined);
     this.videoStateSubject.next('off');
   }
@@ -213,7 +216,10 @@ export class DeviceManagerService {
   }
 
   stopAudio() {
-    this.audioStream?.getTracks().forEach((t) => t.stop());
+    if (!this.audioStream) {
+      return;
+    }
+    this.audioStream.getTracks().forEach((t) => t.stop());
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }

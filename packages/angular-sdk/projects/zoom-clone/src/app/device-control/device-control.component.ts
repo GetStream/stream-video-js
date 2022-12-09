@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Observable, Subscription, tap } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import {
   DeviceManagerService,
   MediaStreamState,
@@ -31,7 +31,7 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
     this.audioDevices$ = this.deviceManager.audioDevices$;
     this.videoDevices$ = this.deviceManager.videoDevices$;
     this.audioOutputDevices$ = this.deviceManager.audioOutputDevices$;
-    this.videoDevice$ = this.deviceManager.videoDevice$.pipe(tap(console.log));
+    this.videoDevice$ = this.deviceManager.videoDevice$;
     this.audioDevice$ = this.deviceManager.audioDevice$;
     this.audioOutputDevice$ = this.deviceManager.audioOutputDevice$;
   }
