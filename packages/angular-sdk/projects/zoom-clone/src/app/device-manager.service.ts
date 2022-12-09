@@ -262,7 +262,7 @@ export class DeviceManagerService {
         this.analyser.fftSize = 32;
 
         const frequencyArray = new Uint8Array(this.analyser.frequencyBinCount);
-        setInterval(() => {
+        this.intervalId = setInterval(() => {
           this.analyser?.getByteFrequencyData(frequencyArray);
           this.isSpeakingSubject.next(
             frequencyArray.find((v) => v >= 150) ? true : false,
