@@ -41,6 +41,9 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
     private router: Router,
     private activatedRoute: ActivatedRoute,
   ) {
+    this.deviceManager.initAudioDevices();
+    this.deviceManager.initVideoDevices();
+    this.deviceManager.initAudioOutputDevices();
     this.deviceManager.startVideo();
     this.deviceManager.startAudio();
     this.subscripitions.push(

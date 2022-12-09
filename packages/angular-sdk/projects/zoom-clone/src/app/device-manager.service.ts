@@ -10,7 +10,7 @@ import {
   watchForDisconnectedAudioOutputDevice,
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
-import { BehaviorSubject, map, Observable, take } from 'rxjs';
+import { BehaviorSubject, map, Observable, ReplaySubject, take } from 'rxjs';
 
 /**
  * `loading` means that a stream is currently being retrieved from the browser
@@ -34,16 +34,19 @@ export type MediaStreamState =
 export class DeviceManagerService {
   /**
    * The list of available 'audioinput' devices, if devices are added/removed - the list is updated
+   * Since some browsers require permissions for listing the devices the list is not initialized by default, you have to call `initAudioDevices` for that in order to have full control over when the permission window will be displayed
    */
-  audioDevices$ = getAudioDevices();
+  audioDevices$: Observable<MediaDeviceInfo[]>;
   /**
    * The list of available 'videoinput' devices, if devices are added/removed - the list is updated
+   * Since some browsers require permissions for listing the devices the list is not initialized by default, you have to call `initVideoDevices` for that in order to have full control over when the permission window will be displayed
    */
-  videoDevices$ = getVideoDevices();
+  videoDevices$: Observable<MediaDeviceInfo[]>;
   /**
    * The list of available 'audiooutput' devices, if devices are added/removed - the list is updated
+   *  Since some browsers require permissions for listing the devices the list is not initialized by default, you have to call `initAudioOutputDevices` for that in order to have full control over when the permission window will be displayed
    */
-  audioOutputDevices$ = getAudioOutputDevices();
+  audioOutputDevices$: Observable<MediaDeviceInfo[]>;
   /**
    * [Tells if the browser supports audio output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId)
    */
@@ -108,6 +111,9 @@ export class DeviceManagerService {
   );
   private intervalId: any;
   private analyser?: AnalyserNode;
+  private audioDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
+  private videoDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
+  private audioOutputDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
 
   constructor() {
     this.videoState$ = this.videoStateSubject.asObservable();
@@ -141,19 +147,35 @@ export class DeviceManagerService {
       }),
     );
 
+    this.audioDevices$ = this.audioDevicesSubject.asObservable();
+    this.videoDevices$ = this.videoDevicesSubject.asObservable();
+    this.audioOutputDevices$ = this.audioOutputDevicesSubject.asObservable();
+
     this.audioOutputDevices$
       .pipe(take(1))
       .subscribe((devices) =>
         this.audioOutputDeviceSubject.next(devices[0].deviceId),
       );
+  }
+
+  initAudioDevices() {
+    getAudioDevices().subscribe(this.audioDevicesSubject);
 
     watchForDisconnectedAudioDevice(this.audioDevice$).subscribe(() => {
       this.audioStateSubject.next('disconnected');
     });
+  }
+
+  initVideoDevices() {
+    getVideoDevices().subscribe(this.videoDevicesSubject);
 
     watchForDisconnectedVideoDevice(this.videoDevice$).subscribe(() => {
       this.videoStateSubject.next('disconnected');
     });
+  }
+
+  initAudioOutputDevices() {
+    getAudioOutputDevices().subscribe(this.audioOutputDevicesSubject);
 
     watchForDisconnectedAudioOutputDevice(this.audioOutputDevice$).subscribe(
       () => {
