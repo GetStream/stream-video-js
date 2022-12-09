@@ -36,14 +36,14 @@ export const DebugParticipantPublishQuality = (props: {
       onChange={(e) => {
         const value = e.target.value;
         setQuality(value);
-        let w = 640;
-        let h = 480;
+        let w = 1280;
+        let h = 720;
         if (value === 'h') {
-          w = w / 2;
-          h = h / 2;
+          w = w / 2; // 640
+          h = h / 2; // 360
         } else if (value === 'q') {
-          w = w / 4;
-          h = h / 4;
+          w = w / 4; // 320
+          h = h / 4; // 180
         }
         call.updateSubscriptionsPartial({
           [participant.sessionId]: {
