@@ -31,7 +31,7 @@ export const StreamCall = ({ children }: PropsWithChildren<{}>) => {
     if (!(videoClient && acceptedCall) || isJoiningRef.current) return;
 
     /** functions to unsubscribe from rxjs subscriptions */
-    const rxUnsubscribeFuncs = { current: [] as (() => void)[] };
+    const rxUnsubscribeFuncs: (() => void)[] = [];
 
     const callToJoin =
       outgoingCalls.length > 0
@@ -87,7 +87,7 @@ export const StreamCall = ({ children }: PropsWithChildren<{}>) => {
               }
             },
           );
-          rxUnsubscribeFuncs.current.push(
+          rxUnsubscribeFuncs.push(
             () => myHangupSub.unsubscribe(),
             () => remoteHangupSub.unsubscribe(),
           );
@@ -100,7 +100,7 @@ export const StreamCall = ({ children }: PropsWithChildren<{}>) => {
           isJoiningRef.current = false;
         });
       return () => {
-        rxUnsubscribeFuncs.current.forEach((f) => f());
+        rxUnsubscribeFuncs.forEach((f) => f());
       };
     }
   }, [
