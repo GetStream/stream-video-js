@@ -18,6 +18,7 @@ import { Participant } from "../models/models";
 import { CallState } from "../models/models";
 import { TrackType } from "../models/models";
 import { PeerType } from "../models/models";
+import { Error as Error$ } from "../models/models";
 import { ICETrickle as ICETrickle$ } from "../models/models";
 /**
  * SFUEvent is a message that is sent from the SFU to the client.
@@ -107,8 +108,23 @@ export interface SfuEvent {
          */
         trackUnpublished: TrackUnpublished;
     } | {
+        oneofKind: "error";
+        /**
+         * @generated from protobuf field: stream.video.sfu.event.Error error = 18;
+         */
+        error: Error;
+    } | {
         oneofKind: undefined;
     };
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.Error
+ */
+export interface Error {
+    /**
+     * @generated from protobuf field: stream.video.sfu.models.Error error = 4;
+     */
+    error?: Error$;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.ICETrickle
@@ -479,7 +495,8 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
             { no: 13, name: "join_response", kind: "message", oneof: "eventPayload", T: () => JoinResponse },
             { no: 14, name: "health_check_response", kind: "message", oneof: "eventPayload", T: () => HealthCheckResponse },
             { no: 16, name: "track_published", kind: "message", oneof: "eventPayload", T: () => TrackPublished },
-            { no: 17, name: "track_unpublished", kind: "message", oneof: "eventPayload", T: () => TrackUnpublished }
+            { no: 17, name: "track_unpublished", kind: "message", oneof: "eventPayload", T: () => TrackUnpublished },
+            { no: 18, name: "error", kind: "message", oneof: "eventPayload", T: () => Error }
         ]);
     }
     create(value?: PartialMessage<SfuEvent>): SfuEvent {
@@ -572,6 +589,12 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
                         trackUnpublished: TrackUnpublished.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).trackUnpublished)
                     };
                     break;
+                case /* stream.video.sfu.event.Error error */ 18:
+                    message.eventPayload = {
+                        oneofKind: "error",
+                        error: Error.internalBinaryRead(reader, reader.uint32(), options, (message.eventPayload as any).error)
+                    };
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -623,6 +646,9 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         /* stream.video.sfu.event.TrackUnpublished track_unpublished = 17; */
         if (message.eventPayload.oneofKind === "trackUnpublished")
             TrackUnpublished.internalBinaryWrite(message.eventPayload.trackUnpublished, writer.tag(17, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.sfu.event.Error error = 18; */
+        if (message.eventPayload.oneofKind === "error")
+            Error.internalBinaryWrite(message.eventPayload.error, writer.tag(18, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -633,6 +659,53 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
  * @generated MessageType for protobuf message stream.video.sfu.event.SfuEvent
  */
 export const SfuEvent = new SfuEvent$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Error$Type extends MessageType<Error> {
+    constructor() {
+        super("stream.video.sfu.event.Error", [
+            { no: 4, name: "error", kind: "message", T: () => Error$ }
+        ]);
+    }
+    create(value?: PartialMessage<Error>): Error {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Error>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Error): Error {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.sfu.models.Error error */ 4:
+                    message.error = Error$.internalBinaryRead(reader, reader.uint32(), options, message.error);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Error, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.sfu.models.Error error = 4; */
+        if (message.error)
+            Error$.internalBinaryWrite(message.error, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.Error
+ */
+export const Error = new Error$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ICETrickle$Type extends MessageType<ICETrickle> {
     constructor() {
