@@ -1,14 +1,16 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { StreamVideoService } from '@stream-io/video-angular-sdk';
+import {
+  StreamVideoService,
+  InCallDeviceManagerService,
+} from '@stream-io/video-angular-sdk';
 import {
   Call,
   SfuModels,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { combineLatest, Observable, Subscription, take } from 'rxjs';
-import { DeviceManagerService } from '../device-manager.service';
+import { combineLatest, Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-call',
@@ -25,43 +27,22 @@ export class CallComponent implements OnInit, OnDestroy {
 
   constructor(
     private streamVideoService: StreamVideoService,
-    private deviceManager: DeviceManagerService,
     private router: Router,
+    private inCallDeviceManager: InCallDeviceManagerService,
   ) {
     this.subscriptions.push(
-      this.streamVideoService.activeCall$.subscribe((c) => (this.call = c!)),
+      this.streamVideoService.activeCall$.subscribe((c) => {
+        if (c) {
+          this.inCallDeviceManager.start();
+        } else {
+          this.inCallDeviceManager.stop();
+        }
+      }),
     );
     this.remoteParticipants$ =
       this.streamVideoService.activeCallRemoteParticipants$;
     this.localParticipant$ =
       this.streamVideoService.activeCallLocalParticipant$;
-    this.subscriptions.push(
-      this.deviceManager.videoState$.subscribe((s) => {
-        if (s === 'on') {
-          this.deviceManager.videoStream$
-            .pipe(take(1))
-            .subscribe((stream) => this.call.publishVideoStream(stream!));
-        } else {
-          this.call.stopPublish(SfuModels.TrackType.VIDEO);
-        }
-      }),
-    );
-    this.subscriptions.push(
-      this.deviceManager.audioState$.subscribe((s) => {
-        if (s === 'on') {
-          this.deviceManager.audioStream$
-            .pipe(take(1))
-            .subscribe((stream) => this.call.publishAudioStream(stream!));
-        } else {
-          this.call.stopPublish(SfuModels.TrackType.AUDIO);
-        }
-      }),
-    );
-    this.subscriptions.push(
-      this.deviceManager.audioOutputDevice$.subscribe((d) => {
-        this.call.setAudioOutputDevice(d);
-      }),
-    );
     this.subscriptions.push(
       combineLatest([
         this.streamVideoService.user$,

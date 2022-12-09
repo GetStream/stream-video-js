@@ -28,6 +28,9 @@ export type MediaStreamState =
   | 'initial'
   | 'disconnected';
 
+/**
+ * This service can be used to list devices (audio input, video input and audio output), start/stop media streams and switch between devices
+ */
 @Injectable({
   providedIn: 'root',
 })

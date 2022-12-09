@@ -9,3 +9,5 @@ export * from './lib/call-controls/call-controls.component';
 export * from './lib/participant/participant.component';
 export * from './lib/stage/stage.component';
 export * from './lib/device-settings/device-settings.component';
+export * from './lib/device-manager.service';
+export * from './lib/in-call-device-manager.service';
