@@ -11,14 +11,14 @@ import { useCallKeep } from './useCallKeep';
 export const useRingCall = () => {
   const client = useStreamVideoClient();
   const localParticipant = useLocalParticipant();
+  const activeCall = useActiveCall();
+  const activeCallMeta = activeCall?.data.call;
 
-  const activeRingCall = useActiveCall();
-  const incomingRingCalls = useIncomingCalls();
+  const incomingCalls = useIncomingCalls();
   const { endCall } = useCallKeep();
-  const currentIncomingRingCall =
-    incomingRingCalls[incomingRingCalls.length - 1];
+  const currentIncomingRingCall = incomingCalls[incomingCalls.length - 1];
   const isCallCreatedByUserLocalParticipant =
-    activeRingCall?.data?.call?.createdByUserId === localParticipant?.userId;
+    activeCallMeta?.createdByUserId === localParticipant?.userId;
 
   const answerCall = async () => {
     if (!client || !currentIncomingRingCall.call) {
@@ -53,17 +53,12 @@ export const useRingCall = () => {
   }, [client, currentIncomingRingCall]);
 
   const cancelCall = useCallback(async () => {
-    if (
-      !client ||
-      !activeRingCall ||
-      !activeRingCall.data.call ||
-      !isCallCreatedByUserLocalParticipant
-    ) {
+    if (!client || !activeCallMeta || !isCallCreatedByUserLocalParticipant) {
       return;
     }
     endCall();
-    await client.cancelCall(activeRingCall.data.call.callCid);
-  }, [activeRingCall, client, endCall, isCallCreatedByUserLocalParticipant]);
+    await client.cancelCall(activeCallMeta.callCid);
+  }, [activeCallMeta, client, endCall, isCallCreatedByUserLocalParticipant]);
 
   return { answerCall, rejectCall, cancelCall };
 };

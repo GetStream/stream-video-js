@@ -37,7 +37,8 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
   const { hangupCall } = useCall();
   const client = useStreamVideoClient();
   const activeCall = useActiveCall();
-  const terminatedRingCall = useHangUpNotifications();
+  const activeCallMeta = activeCall?.data.call;
+  const hangUpNotifications = useHangUpNotifications();
   const remoteParticipants = useRemoteParticipants();
   const { endCall } = useCallKeep();
 
@@ -47,8 +48,8 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
       return;
     }
     try {
-      if (activeCall.data.call) {
-        await client?.cancelCall(activeCall.data.call.callCid);
+      if (activeCallMeta) {
+        await client?.cancelCall(activeCallMeta.callCid);
         endCall();
       }
       activeCall.leave();
@@ -56,21 +57,21 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
     } catch (error) {
       console.warn('failed to leave call', error);
     }
-  }, [activeCall, client, endCall]);
+  }, [activeCall, activeCallMeta, client, endCall]);
 
   useEffect(() => {
-    if (terminatedRingCall.length > 0) {
+    if (hangUpNotifications.length > 0) {
       onHangupCall();
     }
     if (remoteParticipants.length > 0) {
       onCallAccepted();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [terminatedRingCall, remoteParticipants]);
+  }, [hangUpNotifications, remoteParticipants]);
 
   // To terminate call after a certain duration of time. Currently set to 10 seconds.
   useEffect(() => {
-    const terminateCallAtMilliSeconds = 10000;
+    const terminateCallAtMilliSeconds = 20000;
     let timerId: ReturnType<typeof setTimeout>;
     if (remoteParticipants.length === 0) {
       timerId = setTimeout(() => {
