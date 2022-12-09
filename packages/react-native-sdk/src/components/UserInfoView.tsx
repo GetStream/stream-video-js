@@ -1,4 +1,4 @@
-import { useActiveRingCallDetails } from '@stream-io/video-react-bindings';
+import { useActiveCall } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { MAX_AVATARS_IN_VIEW } from '../constants';
@@ -11,8 +11,8 @@ enum AvatarModes {
 }
 
 export const UserInfoView = () => {
-  const activeRingCallDetails = useActiveRingCallDetails();
-  const memberUserIds = activeRingCallDetails?.memberUserIds || [];
+  const activeCall = useActiveCall();
+  const memberUserIds = activeCall?.data.details?.memberUserIds || [];
   const callTitle = generateCallTitle(memberUserIds);
   const supportedAmountOfMemberUserIds = memberUserIds.slice(
     0,

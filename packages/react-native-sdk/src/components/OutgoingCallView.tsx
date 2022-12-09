@@ -6,11 +6,10 @@ import { RTCView } from 'react-native-webrtc';
 import { UserInfoView } from './UserInfoView';
 import {
   useActiveCall,
-  useActiveRingCall,
+  useHangUpNotifications,
   useLocalParticipant,
   useRemoteParticipants,
   useStreamVideoClient,
-  useTerminatedRingCall,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
@@ -57,8 +56,7 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
   const { hangupCall } = useCall();
   const client = useStreamVideoClient();
   const activeCall = useActiveCall();
-  const activeRingCallMeta = useActiveRingCall();
-  const terminatedRingCall = useTerminatedRingCall();
+  const terminatedRingCall = useHangUpNotifications();
   const remoteParticipants = useRemoteParticipants();
   const { endCall } = useCallKeep();
 
@@ -68,8 +66,8 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
       return;
     }
     try {
-      if (activeRingCallMeta) {
-        await client?.cancelCall(activeRingCallMeta.callCid);
+      if (activeCall.data.call) {
+        await client?.cancelCall(activeCall.data.call.callCid);
         endCall();
       }
       activeCall.leave();
@@ -77,10 +75,10 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
     } catch (error) {
       console.warn('failed to leave call', error);
     }
-  }, [activeCall, activeRingCallMeta, client, endCall]);
+  }, [activeCall, client, endCall]);
 
   useEffect(() => {
-    if (terminatedRingCall) {
+    if (terminatedRingCall.length > 0) {
       onHangupCall();
     }
     if (remoteParticipants.length > 0) {

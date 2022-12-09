@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import {
   useActiveCall,
-  useTerminatedRingCall,
+  useHangUpNotifications,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { useCallKeep } from '../hooks';
@@ -17,13 +17,13 @@ export type ActiveCallProps = {
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useActiveCall();
-  const terminatedRingCall = useTerminatedRingCall();
+  const terminatedRingCall = useHangUpNotifications();
   const { startCall, endCall } = useCallKeep();
   const { onHangupCall } = props;
 
   useEffect(() => {
     startCall();
-    if (!activeCall || terminatedRingCall) {
+    if (!activeCall || terminatedRingCall.length > 0) {
       endCall();
       onHangupCall();
     }
