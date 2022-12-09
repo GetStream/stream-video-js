@@ -36,8 +36,8 @@ type VideoRendererProps = {
    * to limit the number of utilized layers in the stacking space to the
    * minimum sufficient for the desired display. For example, a video call
    * application usually needs a maximum of two zOrder values: 0 for the
-   * remote video(s) which appear in the background, and 1 for the local
-   * video(s) which appear above the remote video(s).
+   * remote one or more videos which appear in the background, and 1 for the local
+   * one or more videos which appear above the remote one or more videos.
    */
   zOrder?: number;
   /**
