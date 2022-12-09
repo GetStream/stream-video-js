@@ -44,20 +44,14 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
           } catch (error) {
             throw error;
           }
-          if (audioStream) {
-            await this.call.publishAudioStream(audioStream);
-          }
-          if (videoStream) {
-            await this.call.publishVideoStream(videoStream);
-          }
+          await this.call.publishAudioStream(audioStream);
+          await this.call.publishVideoStream(videoStream);
           deviceDisconnectSubscriptions.push(
             watchForDisconnectedAudioDevice(
               this.localParticipant$.pipe(map((p) => p?.audioDeviceId)),
             ).subscribe(async () => {
               const audioStream = await getAudioStream();
-              if (audioStream) {
-                await c.publishAudioStream(audioStream);
-              }
+              await c.publishAudioStream(audioStream);
             }),
           );
           deviceDisconnectSubscriptions.push(
@@ -65,9 +59,7 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
               this.localParticipant$.pipe(map((p) => p?.videoDeviceId)),
             ).subscribe(async () => {
               const videoStream = await getVideoStream();
-              if (videoStream) {
-                await c.publishVideoStream(videoStream);
-              }
+              await c.publishVideoStream(videoStream);
             }),
           );
           deviceDisconnectSubscriptions.push(

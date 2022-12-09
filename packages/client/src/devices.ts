@@ -127,7 +127,7 @@ const getStream = async (
     return await navigator.mediaDevices.getUserMedia(constraints);
   } catch (e) {
     console.error(`Failed to get ${type} stream for device ${deviceId}`, e);
-    return null;
+    throw e;
   }
 };
 
@@ -169,7 +169,7 @@ export const getScreenShareStream = async (
     });
   } catch (e) {
     console.error('Failed to get screen share stream', e);
-    return null;
+    throw e;
   }
 };
 
