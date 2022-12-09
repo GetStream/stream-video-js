@@ -24,6 +24,7 @@ export const useRingCall = () => {
     if (!client || !currentIncomingRingCall.call) {
       return;
     }
+    await client.acceptCall(currentIncomingRingCall.call.callCid);
     const call = await client.joinCall({
       id: currentIncomingRingCall.call.id,
       type: 'default',
@@ -41,7 +42,6 @@ export const useRingCall = () => {
       InCallManager.start({ media: 'video' });
       InCallManager.setForceSpeakerphoneOn(true);
       await call.join();
-      await client.acceptCall(currentIncomingRingCall.call.callCid);
     }
   };
 
