@@ -30,7 +30,6 @@ export const useCreateStreamVideoClient = ({
 
   useEffect(
     () => {
-      console.log('coordinatorWsUrl', coordinatorWsUrl, client);
       const connection = disconnectRef.current.then(() =>
         client?.connect(apiKey, token, user).catch((err) => {
           console.error(`Failed to establish connection`, err);
