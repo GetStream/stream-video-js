@@ -32,8 +32,8 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
       this.streamVideoService.activeCall$.subscribe(async (c) => {
         if (c) {
           this.call = c;
-          let audioStream: MediaStream | null = null;
-          let videoStream: MediaStream | null = null;
+          let audioStream: MediaStream;
+          let videoStream: MediaStream;
           try {
             audioStream = await getAudioStream();
           } catch (error) {
