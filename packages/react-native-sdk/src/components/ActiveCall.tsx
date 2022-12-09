@@ -10,12 +10,15 @@ import { CallParticipantsView } from './CallParticipantsView';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
 import { getAudioStream, getVideoStream } from '@stream-io/video-client';
 
-export type ActiveCallProps = {
+/**
+ * Props to be passed for the ActiveCall component.
+ */
+export interface ActiveCallProps {
   /**
    * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
    */
   onHangupCall: () => void;
-};
+}
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useActiveCall();
