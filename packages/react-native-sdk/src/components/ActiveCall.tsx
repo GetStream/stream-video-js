@@ -22,7 +22,7 @@ export interface ActiveCallProps {
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useActiveCall();
-  const terminatedRingCall = useHangUpNotifications();
+  const hangUpNotifications = useHangUpNotifications();
   const { startCall, endCall } = useCallKeep();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
   const { onHangupCall } = props;
@@ -53,12 +53,12 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
   useEffect(() => {
     startCall();
-    if (!activeCall || terminatedRingCall.length > 0) {
+    if (!activeCall || hangUpNotifications.length > 0) {
       endCall();
       onHangupCall();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCall, terminatedRingCall]);
+  }, [activeCall, hangUpNotifications]);
 
   return (
     <>
