@@ -1,5 +1,4 @@
 import createStoreContext from './createStoreContext';
-import { MediaStream } from 'react-native-webrtc';
 import {
   StreamVideo as StreamVideoProvider,
   StreamVideoProps,
@@ -11,7 +10,6 @@ import { MediaDevicesProvider } from './MediaDevicesContext';
 interface SDKStreamVideoStore {
   cameraBackFacingMode: boolean;
   isVideoMuted: boolean;
-  localMediaStream: MediaStream | undefined;
   callKeepOptions: CallKeepOptions | undefined;
 }
 
@@ -19,7 +17,6 @@ const { Provider, useStoreValue, useStoreSetState } =
   createStoreContext<SDKStreamVideoStore>({
     cameraBackFacingMode: false,
     isVideoMuted: false,
-    localMediaStream: undefined,
     callKeepOptions: undefined,
   });
 

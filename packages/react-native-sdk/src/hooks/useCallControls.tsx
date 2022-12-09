@@ -52,6 +52,10 @@ export const useCallControls = () => {
     try {
       if (currentVideoDevice) {
         const videoStream = await getVideoStream(currentVideoDevice.deviceId);
+        if (currentVideoDevice.facing === 'environment') {
+          const [primaryVideoTrack] = videoStream.getVideoTracks();
+          primaryVideoTrack._switchCamera();
+        }
         if (call) await call.publishVideoStream(videoStream);
       }
     } catch (e) {
