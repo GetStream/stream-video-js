@@ -3,6 +3,7 @@ import {
   PropsWithChildren,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import {
@@ -64,7 +65,7 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   const contextValue = {
     audioDevice: audioDevices[0],
     // Mobile devices generally stream front facing stream when a call starts
-    currentVideoDevice: currentVideoDevice,
+    currentVideoDevice,
     getAudioStream,
     getVideoStream,
     setCurrentVideoDevice,
@@ -81,7 +82,7 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
 export const useMediaDevices = () => {
   const value = useContext(MediaDevicesContext);
   if (!value) {
-    console.warn(`Null MediaDevicesContext`);
+    throw new Error(`MediaDevicesContext is null`);
   }
   return value as MediaDevicesContextAPI;
 };
