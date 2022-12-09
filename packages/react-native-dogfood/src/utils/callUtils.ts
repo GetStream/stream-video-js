@@ -1,10 +1,8 @@
 import { MemberInput, StreamVideoClient } from '@stream-io/video-client';
 import InCallManager from 'react-native-incall-manager';
-import { MediaStream } from 'react-native-webrtc';
 
 const joinCall = async (
   videoClient: StreamVideoClient,
-  localMediaStream: MediaStream,
   callDetails: {
     autoJoin?: boolean;
     callId: string;
@@ -41,8 +39,6 @@ const joinCall = async (
     InCallManager.start({ media: 'video' });
     InCallManager.setForceSpeakerphoneOn(true);
     await call.join();
-    await call.publishAudioStream(localMediaStream);
-    await call.publishVideoStream(localMediaStream);
     return call;
   } catch (err) {
     console.warn('failed to join call', err);

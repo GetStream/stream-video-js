@@ -6,15 +6,12 @@ import {
 } from '@stream-io/video-react-bindings';
 import { useCallback } from 'react';
 import InCallManager from 'react-native-incall-manager';
-import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { useCallKeep } from './useCallKeep';
 
 export const useRingCall = () => {
   const client = useStreamVideoClient();
   const localParticipant = useLocalParticipant();
-  const localMediaStream = useStreamVideoStoreValue(
-    (store) => store.localMediaStream,
-  );
+
   const activeRingCall = useActiveCall();
   const incomingRingCalls = useIncomingCalls();
   const { endCall } = useCallKeep();
@@ -44,8 +41,6 @@ export const useRingCall = () => {
       InCallManager.start({ media: 'video' });
       InCallManager.setForceSpeakerphoneOn(true);
       await call.join();
-      await call.publishAudioStream(localMediaStream);
-      await call.publishVideoStream(localMediaStream);
       await client.acceptCall(currentIncomingRingCall.call.callCid);
     }
   };

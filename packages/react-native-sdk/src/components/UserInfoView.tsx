@@ -37,6 +37,7 @@ export const UserInfoView = () => {
             <Image
               key={member}
               style={[styles.avatar, avatarStyles]}
+              // FIXME: use real avatar from coordinator this is temporary
               source={{
                 uri: `https://getstream.io/random_png/?id=${member}&name=${member}`,
               }}

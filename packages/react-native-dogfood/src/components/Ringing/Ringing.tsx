@@ -20,7 +20,6 @@ import {
   useActiveCall,
   useCallKeep,
   useStreamVideoClient,
-  useStreamVideoStoreValue,
 } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
@@ -90,9 +89,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'> & {
 const Ringing = ({ navigation, setLoadingCall }: Props) => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
   const videoClient = useStreamVideoClient();
-  const localMediaStream = useStreamVideoStoreValue(
-    (store) => store.localMediaStream,
-  );
   const username = useAppGlobalStoreValue((store) => store.username);
   const ringingUsers = useAppGlobalStoreValue((store) => store.ringingUsers);
   const activeCall = useActiveCall();
@@ -116,7 +112,7 @@ const Ringing = ({ navigation, setLoadingCall }: Props) => {
 
   const startCallHandler = async () => {
     setLoadingCall(true);
-    if (videoClient && localMediaStream) {
+    if (videoClient) {
       try {
         const callID = uuidv4().toLowerCase();
         let ringingUserIds = !ringingUserIdsText
@@ -126,7 +122,7 @@ const Ringing = ({ navigation, setLoadingCall }: Props) => {
           setState({ ringingUsers: ringingUserIds });
         }
         await setState({ ringingCallID: callID });
-        await joinCall(videoClient, localMediaStream, {
+        await joinCall(videoClient, {
           autoJoin: true,
           ring: true,
           members: ringingUserIds.map((user) => {

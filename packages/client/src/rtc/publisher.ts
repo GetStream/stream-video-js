@@ -88,6 +88,7 @@ export const createPublisher = ({
           trackId: track.id,
           layers: layers,
           trackType,
+          mid: transceiver.mid || '',
         };
       });
 

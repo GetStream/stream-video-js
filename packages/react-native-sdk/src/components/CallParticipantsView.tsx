@@ -57,12 +57,11 @@ const modeToSize: { [key in Modes]: SizeType | undefined } = {
 
 const localVideoVisibleModes = [Modes.full, Modes.half];
 
-export const CallParticipantsView: React.FC = () => {
-  /**
-   * CallParticipantsView is a component that displays the participants in a call.
-   * This component supports the rendering of up to 5 participants.
-   */
-
+/**
+ * CallParticipantsView is a component that displays the participants in a call.
+ * This component supports the rendering of up to 5 participants.
+ */
+export const CallParticipantsView = () => {
   const allParticipants = useParticipants();
   const remoteParticipants = useRemoteParticipants();
   const mode =

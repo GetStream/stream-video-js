@@ -165,6 +165,10 @@ export interface TrackInfo {
      * @generated from protobuf field: repeated stream.video.sfu.models.VideoLayer layers = 5;
      */
     layers: VideoLayer[];
+    /**
+     * @generated from protobuf field: string mid = 6;
+     */
+    mid: string;
 }
 /**
  * todo remove this
@@ -208,6 +212,19 @@ export interface Call {
      * @generated from protobuf field: google.protobuf.Timestamp updated_at = 7;
      */
     updatedAt?: Timestamp;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.models.Error
+ */
+export interface Error {
+    /**
+     * @generated from protobuf field: stream.video.sfu.models.ErrorCode code = 1;
+     */
+    code: ErrorCode;
+    /**
+     * @generated from protobuf field: string message = 2;
+     */
+    message: string;
 }
 /**
  * @generated from protobuf enum stream.video.sfu.models.PeerType
@@ -290,6 +307,19 @@ export enum TrackType {
      * @generated from protobuf enum value: TRACK_TYPE_SCREEN_SHARE_AUDIO = 4;
      */
     SCREEN_SHARE_AUDIO = 4
+}
+/**
+ * @generated from protobuf enum stream.video.sfu.models.ErrorCode
+ */
+export enum ErrorCode {
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_UNSPECIFIED = 0;
+     */
+    UNSPECIFIED = 0,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_PUBLISH_TRACK_MISMATCH = 1;
+     */
+    PUBLISH_TRACK_MISMATCH = 1
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {
@@ -746,11 +776,12 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
         super("stream.video.sfu.models.TrackInfo", [
             { no: 1, name: "track_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "track_type", kind: "enum", T: () => ["stream.video.sfu.models.TrackType", TrackType, "TRACK_TYPE_"] },
-            { no: 5, name: "layers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => VideoLayer }
+            { no: 5, name: "layers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => VideoLayer },
+            { no: 6, name: "mid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<TrackInfo>): TrackInfo {
-        const message = { trackId: "", trackType: 0, layers: [] };
+        const message = { trackId: "", trackType: 0, layers: [], mid: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<TrackInfo>(this, message, value);
@@ -769,6 +800,9 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
                     break;
                 case /* repeated stream.video.sfu.models.VideoLayer layers */ 5:
                     message.layers.push(VideoLayer.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string mid */ 6:
+                    message.mid = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -791,6 +825,9 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
         /* repeated stream.video.sfu.models.VideoLayer layers = 5; */
         for (let i = 0; i < message.layers.length; i++)
             VideoLayer.internalBinaryWrite(message.layers[i], writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        /* string mid = 6; */
+        if (message.mid !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.mid);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -890,3 +927,57 @@ class Call$Type extends MessageType<Call> {
  * @generated MessageType for protobuf message stream.video.sfu.models.Call
  */
 export const Call = new Call$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Error$Type extends MessageType<Error> {
+    constructor() {
+        super("stream.video.sfu.models.Error", [
+            { no: 1, name: "code", kind: "enum", T: () => ["stream.video.sfu.models.ErrorCode", ErrorCode, "ERROR_CODE_"] },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Error>): Error {
+        const message = { code: 0, message: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Error>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Error): Error {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* stream.video.sfu.models.ErrorCode code */ 1:
+                    message.code = reader.int32();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Error, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.sfu.models.ErrorCode code = 1; */
+        if (message.code !== 0)
+            writer.tag(1, WireType.Varint).int32(message.code);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.Error
+ */
+export const Error = new Error$Type();
