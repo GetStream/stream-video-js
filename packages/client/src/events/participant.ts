@@ -35,7 +35,7 @@ export const watchParticipantLeft = (
         store.participantsSubject,
         store
           .getCurrentValue(store.participantsSubject)
-          .filter((p) => p.userId !== participant.userId),
+          .filter((p) => p.sessionId !== participant.sessionId),
       );
     }
   });
