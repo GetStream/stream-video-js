@@ -1,6 +1,6 @@
 import {
   useActiveCall,
-  useMyHangUpNotifications,
+  useLocalHangUpNotifications,
 } from '@stream-io/video-react-bindings';
 import {
   CallControls,
@@ -16,7 +16,7 @@ type MeetingUIProps = {
 export const MeetingUI = ({ callId }: MeetingUIProps) => {
   const router = useRouter();
   const activeCall = useActiveCall();
-  const hangups = useMyHangUpNotifications();
+  const hangups = useLocalHangUpNotifications();
 
   const iHangedUp = hangups.find((hangup) => hangup.call.id === callId);
 
