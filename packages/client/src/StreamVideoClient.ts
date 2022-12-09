@@ -65,9 +65,6 @@ export class StreamVideoClient {
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWSClient | undefined;
-  // TODO: this should come from the store
-  private activeCallId?: string;
-
   /**
    * You should create only one instance of `StreamVideoClient`.
    * @angular If you're using our Angular SDK, you shouldn't be calling the `constructor` directly, instead you should be using [`StreamVideoClient` service](./StreamVideoClient.md).
@@ -366,7 +363,10 @@ export class StreamVideoClient {
         const selectedEdge = response.edges.find((e) => e.name === edgeName);
         const { server, iceServers, token } = edge.credentials;
         const sfuClient = new StreamSfuClient(server.url, token, sessionId);
-        this.activeCallId = callMeta.callCid;
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.activeCallMetaSubject,
+          callMeta,
+        );
 
         // TODO OL: compute the initial value from `activeCallSubject`
         this.writeableStateStore.setCurrentValue(
@@ -425,10 +425,9 @@ export class StreamVideoClient {
   private reportCallStats = async (
     stats: Object,
   ): Promise<ReportCallStatsResponse> => {
-    // const callCid = this.writeableStateStore.getCurrentValue(
-    //   this.writeableStateStore.activeRingCallMetaSubject,
-    // )?.callCid;
-    const callCid = this.activeCallId;
+    const callCid = this.writeableStateStore.getCurrentValue(
+      this.writeableStateStore.activeCallMetaSubject,
+    )?.callCid;
     if (!callCid) {
       throw new Error('No active CallMeta ID found');
     }
@@ -484,10 +483,9 @@ export class StreamVideoClient {
   private reportCallStatEvent = async (
     statEvent: ReportCallStatEventRequest['event'],
   ): Promise<ReportCallStatEventResponse> => {
-    // const callCid = this.writeableStateStore.getCurrentValue(
-    //   this.writeableStateStore.activeRingCallMetaSubject,
-    // )?.callCid;
-    const callCid = this.activeCallId;
+    const callCid = this.writeableStateStore.getCurrentValue(
+      this.writeableStateStore.activeCallMetaSubject,
+    )?.callCid;
     if (!callCid) {
       throw new Error('No active CallMeta ID found');
     }

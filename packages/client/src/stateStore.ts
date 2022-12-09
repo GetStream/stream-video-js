@@ -92,6 +92,12 @@ export class StreamVideoWriteableStateStore {
   );
   callRecordingInProgressSubject = new ReplaySubject<boolean>(1);
   hasOngoingScreenShare$: Observable<boolean>;
+  /**
+   * The call metadata of the ongoing call
+   * The call metadata becomes available before the `activeCall$`
+   */
+  activeCallMetaSubject: BehaviorSubject<CallMeta | undefined> =
+    new BehaviorSubject<CallMeta | undefined>(undefined);
 
   constructor() {
     this.localParticipant$ = this.participantsSubject.pipe(
@@ -356,6 +362,13 @@ export class StreamVideoReadOnlyStateStore {
    * Emits a boolean indicating whether a call recording is currently in progress.
    */
   callRecordingInProgress$: Observable<boolean>;
+  /**
+   * The call metadata of the ongoing call
+   * The call metadata becomes available before the `activeCall$`
+   */
+  activeCallMeta$: Observable<CallMeta | undefined> = new Observable<
+    CallMeta | undefined
+  >(undefined);
 
   constructor(store: StreamVideoWriteableStateStore) {
     this.connectedUser$ = store.connectedUserSubject.asObservable();
@@ -376,6 +389,7 @@ export class StreamVideoReadOnlyStateStore {
     this.callRecordingInProgress$ =
       store.callRecordingInProgressSubject.asObservable();
     this.hasOngoingScreenShare$ = store.hasOngoingScreenShare$;
+    this.activeCallMeta$ = store.activeCallMetaSubject.asObservable();
   }
 
   /**
