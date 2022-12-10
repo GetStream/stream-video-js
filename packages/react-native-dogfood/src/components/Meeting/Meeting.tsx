@@ -14,7 +14,6 @@ import {
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { joinCall } from '../../utils/callUtils';
 import { meetingId } from '../../modules/helpers/meetingId';
 
 import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
@@ -24,7 +23,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'> & {
   setLoadingCall: (loading: boolean) => void;
 };
 
-const Meeting = ({ navigation, setLoadingCall }: Props) => {
+const Meeting = ({ navigation }: Props) => {
   const meetingCallID = useAppGlobalStoreValue((store) => store.meetingCallID);
   const videoClient = useStreamVideoClient();
   const loopbackMyVideo = useAppGlobalStoreValue(
@@ -33,28 +32,9 @@ const Meeting = ({ navigation, setLoadingCall }: Props) => {
 
   const setState = useAppGlobalStoreSetState();
 
-  const joinCallHandler = useCallback(
-    async (callId: string) => {
-      if (videoClient) {
-        setLoadingCall(true);
-        try {
-          const response = await joinCall(videoClient, {
-            autoJoin: true,
-            callId,
-            callType: 'default',
-          });
-          if (!response) {
-            throw new Error('Call is not defined');
-          }
-          navigation.navigate('ActiveCallScreen');
-        } catch (err) {
-          console.log(err);
-        }
-        setLoadingCall(false);
-      }
-    },
-    [navigation, setLoadingCall, videoClient],
-  );
+  const joinCallHandler = useCallback(() => {
+    navigation.navigate('MeetingScreen');
+  }, [navigation]);
 
   useEffect(() => {
     if (videoClient) {
@@ -64,12 +44,12 @@ const Meeting = ({ navigation, setLoadingCall }: Props) => {
             meetingCallID: prontoCallId,
           });
           prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
-          joinCallHandler(prontoCallId);
+          navigation.navigate('MeetingScreen');
         }
       });
       return () => subscription.unsubscribe();
     }
-  }, [joinCallHandler, setState, videoClient]);
+  }, [joinCallHandler, setState, videoClient, navigation]);
 
   const handleCopyInviteLink = useCallback(
     () =>
@@ -103,7 +83,7 @@ const Meeting = ({ navigation, setLoadingCall }: Props) => {
         title={'Create or Join call with callID: ' + meetingCallID}
         color="blue"
         disabled={!meetingCallID}
-        onPress={() => joinCallHandler(meetingCallID)}
+        onPress={joinCallHandler}
       />
       <View style={styles.switchContainer}>
         <Text style={styles.loopbackText}>Loopback my video(Debug Mode)</Text>
