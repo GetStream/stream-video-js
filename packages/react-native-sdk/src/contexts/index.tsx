@@ -5,7 +5,6 @@ import {
 import React, { PropsWithChildren } from 'react';
 import { CallKeepOptions } from '../types';
 import { MediaDevicesProvider } from './MediaDevicesContext';
-import { StreamCall } from './StreamCall';
 import {
   useStoreValue,
   useStoreSetState,
@@ -23,11 +22,8 @@ export const StreamVideo = (
   const { client, children } = props;
   return (
     <StreamVideoProvider client={client}>
-      {/* <StreamCall /> */}
       <MediaDevicesProvider>
-        <Provider>
-          <StreamCall>{children}</StreamCall>
-        </Provider>
+        <Provider>{children}</Provider>
       </MediaDevicesProvider>
     </StreamVideoProvider>
   );
