@@ -5,6 +5,7 @@ import { SfuModels } from '@stream-io/video-client';
 import { RTCView } from 'react-native-webrtc';
 import { UserInfoView } from './UserInfoView';
 import {
+  useAcceptedCall,
   useActiveCall,
   useLocalParticipant,
   useRemoteHanguUpNotifications,
@@ -39,6 +40,7 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
   const activeCall = useActiveCall();
   const activeCallMeta = activeCall?.data.call;
   const remoteHangUpNotifications = useRemoteHanguUpNotifications();
+  const acceptedCall = useAcceptedCall();
   const remoteParticipants = useRemoteParticipants();
   const isHangUpCall = remoteHangUpNotifications.find(
     (remoteHangUpNotification) =>
@@ -52,8 +54,6 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
       return;
     }
     try {
-      console.log({ activeCallMeta });
-
       if (activeCallMeta) {
         await client?.cancelCall(activeCallMeta.callCid);
         endCall();
@@ -66,12 +66,12 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
   }, [activeCall, activeCallMeta, client, endCall]);
 
   useEffect(() => {
+    if (acceptedCall?.call) {
+      onCallAccepted();
+    }
     if (isHangUpCall) {
       onHangupCall();
     }
-    // if (remoteParticipants.length > 0) {
-    //   onCallAccepted();
-    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remoteHangUpNotifications, remoteParticipants]);
 
