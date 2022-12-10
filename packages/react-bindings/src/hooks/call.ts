@@ -92,7 +92,7 @@ export const useLocalHangUpNotifications = () => {
   return useObservableValue(localHangupNotifications$);
 };
 
-export const useRemoteHanguUpNotifications = () => {
+export const useRemoteHangUpNotifications = () => {
   const { remoteHangupNotifications$ } = useStore();
   return useObservableValue(remoteHangupNotifications$);
 };

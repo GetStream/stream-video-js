@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, ImageBackground } from 'react-native';
-import { CallControlsButton } from './CallControlsView/CallControlsButton';
+import { CallControlsButton } from './CallControlsButton';
 import { useIncomingCalls } from '@stream-io/video-react-bindings';
 import { UserInfoView } from './UserInfoView';
 import {

@@ -8,11 +8,11 @@ import {
   useAcceptedCall,
   useActiveCall,
   useLocalParticipant,
-  useRemoteHanguUpNotifications,
+  useRemoteHangUpNotifications,
   useRemoteParticipants,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import { CallControlsButton } from './CallControlsView/CallControlsButton';
+import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
 import { useCall, useCallControls, useCallKeep } from '../hooks';
 import InCallManager from 'react-native-incall-manager';
@@ -39,7 +39,7 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
   const client = useStreamVideoClient();
   const activeCall = useActiveCall();
   const activeCallMeta = activeCall?.data.call;
-  const remoteHangUpNotifications = useRemoteHanguUpNotifications();
+  const remoteHangUpNotifications = useRemoteHangUpNotifications();
   const acceptedCall = useAcceptedCall();
   const remoteParticipants = useRemoteParticipants();
   const isHangUpCall = remoteHangUpNotifications.find(
