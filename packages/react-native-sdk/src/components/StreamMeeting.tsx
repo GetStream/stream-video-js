@@ -2,6 +2,7 @@ import { CreateCallInput } from '@stream-io/video-client';
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 import { PropsWithChildren, useEffect } from 'react';
 import { MediaDevicesProvider } from '../contexts/MediaDevicesContext';
+import InCallManager from 'react-native-incall-manager';
 
 export type StreamMeetingProps = {
   callId: string;
@@ -35,12 +36,14 @@ export const StreamMeeting = ({
           // FIXME: OL optional, but it is marked as required in proto
           datacenterId: '',
         });
+        InCallManager.start({ media: 'video' });
+        InCallManager.setForceSpeakerphoneOn(true);
         await call?.join();
       }
     };
 
     initiateMeeting().catch((e) => {
-      console.error(`Failed to getOrCreateCall`, callId, callType, e);
+      console.error(`Failed to getOrCreateCall/joinCall`, callId, callType, e);
     });
   }, [callId, client, callType, currentUser, autoJoin, input]);
 
