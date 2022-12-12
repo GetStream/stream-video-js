@@ -94,7 +94,6 @@ export type SubscriptionChanges = {
 
 export type CallOptions = {
   connectionConfig?: RTCConfiguration;
-  latencyCheckUrl?: string;
   edgeName?: string;
 };
 

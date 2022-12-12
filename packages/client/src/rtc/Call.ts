@@ -69,7 +69,6 @@ export class Call {
       subscriber: this.subscriber,
       publisher: this.publisher,
       store: stateStore,
-      latencyCheckUrl: this.options.latencyCheckUrl,
       edgeName: this.options.edgeName,
     });
 
