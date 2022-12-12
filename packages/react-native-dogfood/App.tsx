@@ -15,6 +15,7 @@ import { StreamVideo } from '@stream-io/video-react-native-sdk';
 import { AppGlobalContextProvider } from './src/contexts/AppContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PermissionsAndroid } from 'react-native';
+import { MeetingScreen } from './src/screens/MeetingScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -71,6 +72,11 @@ const StackNavigator = () => {
         <Stack.Screen
           name="OutgoingCallScreen"
           component={OutgoingCallScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="MeetingScreen"
+          component={MeetingScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

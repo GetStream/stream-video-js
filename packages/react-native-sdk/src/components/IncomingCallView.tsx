@@ -1,10 +1,7 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, ImageBackground } from 'react-native';
-import { CallControlsButton } from './CallControlsView/CallControlsButton';
-import {
-  useActiveCall,
-  useIncomingCalls,
-} from '@stream-io/video-react-bindings';
+import { CallControlsButton } from './CallControlsButton';
+import { useIncomingCalls } from '@stream-io/video-react-bindings';
 import { UserInfoView } from './UserInfoView';
 import {
   useStreamVideoStoreSetState,
@@ -56,27 +53,30 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
 
 export const IncomingCallView = (props: IncomingCallViewProps) => {
   const { onAnswerCall, onRejectCall } = props;
-  const activeCall = useActiveCall();
-  const incomingCalls = useIncomingCalls();
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const setState = useStreamVideoStoreSetState();
   const { answerCall, rejectCall } = useRingCall();
+  const incomingCalls = useIncomingCalls();
 
   useEffect(() => {
-    if (activeCall?.data.call) {
-      onAnswerCall();
-    } else {
-      if (!incomingCalls.length) {
-        onRejectCall();
-      }
-    }
+    if (incomingCalls.length === 0) onRejectCall();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCall, incomingCalls]);
+  }, [incomingCalls]);
 
   const videoToggle = async () => {
     setState((prevState) => ({
       isVideoMuted: !prevState.isVideoMuted,
     }));
+  };
+
+  const answerCallHandler = async () => {
+    await answerCall();
+    onAnswerCall();
+  };
+
+  const rejectCallHandler = async () => {
+    await rejectCall();
+    onRejectCall();
   };
 
   return (
@@ -85,7 +85,7 @@ export const IncomingCallView = (props: IncomingCallViewProps) => {
       <Text style={styles.incomingCallText}>Incoming Call...</Text>
       <View style={styles.buttons}>
         <CallControlsButton
-          onPress={rejectCall}
+          onPress={rejectCallHandler}
           colorKey={'cancel'}
           style={styles.buttonStyle}
           svgContainerStyle={styles.svgStyle}
@@ -105,7 +105,7 @@ export const IncomingCallView = (props: IncomingCallViewProps) => {
           )}
         </CallControlsButton>
         <CallControlsButton
-          onPress={answerCall}
+          onPress={answerCallHandler}
           colorKey={'callToAction'}
           style={styles.buttonStyle}
           svgContainerStyle={styles.svgStyle}

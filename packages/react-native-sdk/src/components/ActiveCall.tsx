@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import {
   useActiveCall,
-  useHangUpNotifications,
+  useRemoteHangUpNotifications,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { useCallKeep } from '../hooks';
@@ -22,10 +22,18 @@ export interface ActiveCallProps {
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useActiveCall();
-  const hangUpNotifications = useHangUpNotifications();
-  const { startCall, endCall } = useCallKeep();
+  const activeCallMeta = activeCall?.data.call;
+  const remoteHangUpNotifications = useRemoteHangUpNotifications();
+  const { startCall } = useCallKeep();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
   const { onHangupCall } = props;
+
+  const isCallHangedUpByCaller = remoteHangUpNotifications.find(
+    (remoteHangUpNotification) =>
+      remoteHangUpNotification.call?.callCid === activeCallMeta?.callCid &&
+      remoteHangUpNotification.call?.createdByUserId ===
+        activeCallMeta?.createdByUserId,
+  );
 
   useEffect(() => {
     if (audioDevice) {
@@ -53,19 +61,18 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
   useEffect(() => {
     startCall();
-    if (!activeCall || hangUpNotifications.length > 0) {
-      endCall();
+    if (isCallHangedUpByCaller) {
       onHangupCall();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCall, hangUpNotifications]);
+  }, [activeCall, isCallHangedUpByCaller]);
 
   return (
     <>
       <View style={styles.callParticipantsWrapper}>
         <CallParticipantsView />
       </View>
-      <CallControlsView />
+      <CallControlsView onHangupCall={onHangupCall} />
     </>
   );
 };

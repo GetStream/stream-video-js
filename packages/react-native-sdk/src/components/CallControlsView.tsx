@@ -1,5 +1,11 @@
+import {
+  useActiveCall,
+  useLocalParticipant,
+  useRemoteParticipants,
+} from '@stream-io/video-react-bindings';
+import { useCallback, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useCall, useCallControls } from '../../hooks';
+import { useCall, useCallControls, useCallKeep } from '../hooks';
 import {
   CameraSwitch,
   Chat,
@@ -8,7 +14,7 @@ import {
   PhoneDown,
   Video,
   VideoSlash,
-} from '../../icons';
+} from '../icons';
 import { CallControlsButton } from './CallControlsButton';
 
 const styles = StyleSheet.create({
@@ -29,7 +35,17 @@ const styles = StyleSheet.create({
   },
 });
 
-export const CallControlsView = () => {
+/**
+ * Props to be passed for the CallControlsView component.
+ */
+export interface CallControlsViewProps {
+  /**
+   * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
+   */
+  onHangupCall: () => void;
+}
+
+export const CallControlsView = (props: CallControlsViewProps) => {
   const {
     isAudioMuted,
     isVideoMuted,
@@ -40,6 +56,28 @@ export const CallControlsView = () => {
     toggleChat,
   } = useCallControls();
   const { hangupCall } = useCall();
+  const { endCall } = useCallKeep();
+  const { onHangupCall } = props;
+  const remoteParticipants = useRemoteParticipants();
+  const localParticipant = useLocalParticipant();
+  const activeCall = useActiveCall();
+  const activeCallMeta = activeCall?.data.call;
+
+  const hangupCallHandler = useCallback(async () => {
+    onHangupCall();
+    await hangupCall();
+    await endCall();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hangupCall, endCall]);
+
+  useEffect(() => {
+    if (
+      remoteParticipants.length === 0 &&
+      localParticipant?.userId === activeCallMeta?.createdByUserId
+    ) {
+      hangupCallHandler();
+    }
+  }, [activeCallMeta, remoteParticipants, localParticipant, hangupCallHandler]);
 
   return (
     <View style={styles.container}>
@@ -72,7 +110,7 @@ export const CallControlsView = () => {
       >
         <CameraSwitch color={cameraBackFacingMode ? '#ffffff' : '#080707'} />
       </CallControlsButton>
-      <CallControlsButton onPress={hangupCall} colorKey="cancel">
+      <CallControlsButton onPress={hangupCallHandler} colorKey="cancel">
         <PhoneDown color="#ffffff" />
       </CallControlsButton>
     </View>

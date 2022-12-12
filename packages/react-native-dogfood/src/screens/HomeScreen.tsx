@@ -29,14 +29,13 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 export const HomeScreen = ({ navigation, route }: Props) => {
   const [selectedTab, setSelectedTab] = useState('Meeting');
   const [loadingCall, setLoadingCall] = useState(false);
-
-  const incomingRingCalls = useIncomingCalls();
+  const incomingCalls = useIncomingCalls();
 
   useEffect(() => {
-    if (incomingRingCalls.length > 0) {
+    if (incomingCalls.length > 0) {
       navigation.navigate('IncomingCallScreen');
     }
-  }, [incomingRingCalls, navigation]);
+  }, [incomingCalls, navigation]);
 
   return (
     <View style={styles.container}>
@@ -49,11 +48,7 @@ export const HomeScreen = ({ navigation, route }: Props) => {
         <>
           <TabBar selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
           {selectedTab === 'Meeting' ? (
-            <Meeting
-              navigation={navigation}
-              route={route}
-              setLoadingCall={setLoadingCall}
-            />
+            <Meeting navigation={navigation} route={route} />
           ) : (
             <Ringing
               navigation={navigation}
