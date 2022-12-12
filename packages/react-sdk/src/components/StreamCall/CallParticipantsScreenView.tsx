@@ -37,7 +37,8 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
       <div
         className={clsx(
           `str-video__call-participants-screen-view__participants`,
-          `columns-${Math.min(Math.ceil(allParticipants.length / 4), 3)}`,
+          // show 4 participants in a column, up to three columns
+          `columns-${Math.min(Math.floor(allParticipants.length / 4), 3)}`,
         )}
       >
         {allParticipants.map((participant) => (
