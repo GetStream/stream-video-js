@@ -229,7 +229,6 @@ export class StreamVideoClient {
       }
       if (edge.credentials && edge.credentials.server) {
         const edgeName = edge.credentials.server.edgeName;
-        const selectedEdge = response.edges.find((e) => e.name === edgeName);
         const { server, iceServers, token } = edge.credentials;
         const sfuClient = new StreamSfuClient(server.url, token, sessionId);
         this.writeableStateStore.setCurrentValue(
@@ -246,7 +245,6 @@ export class StreamVideoClient {
           sfuClient,
           {
             connectionConfig: this.toRtcConfiguration(iceServers),
-            latencyCheckUrl: selectedEdge?.latencyUrl,
             edgeName,
           },
           this.writeableStateStore,
