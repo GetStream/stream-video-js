@@ -17,15 +17,11 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { meetingId } from '../../modules/helpers/meetingId';
 
 import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
-import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'> & {
-  setLoadingCall: (loading: boolean) => void;
-};
+type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 const Meeting = ({ navigation }: Props) => {
   const meetingCallID = useAppGlobalStoreValue((store) => store.meetingCallID);
-  const videoClient = useStreamVideoClient();
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
@@ -37,19 +33,17 @@ const Meeting = ({ navigation }: Props) => {
   }, [navigation]);
 
   useEffect(() => {
-    if (videoClient) {
-      const subscription = prontoCallId$.subscribe((prontoCallId) => {
-        if (prontoCallId) {
-          setState({
-            meetingCallID: prontoCallId,
-          });
-          prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
-          navigation.navigate('MeetingScreen');
-        }
-      });
-      return () => subscription.unsubscribe();
-    }
-  }, [joinCallHandler, setState, videoClient, navigation]);
+    const subscription = prontoCallId$.subscribe((prontoCallId) => {
+      if (prontoCallId) {
+        setState({
+          meetingCallID: prontoCallId,
+        });
+        prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
+        navigation.navigate('MeetingScreen');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [joinCallHandler, setState, navigation]);
 
   const handleCopyInviteLink = useCallback(
     () =>

@@ -48,11 +48,7 @@ export const HomeScreen = ({ navigation, route }: Props) => {
         <>
           <TabBar selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
           {selectedTab === 'Meeting' ? (
-            <Meeting
-              navigation={navigation}
-              route={route}
-              setLoadingCall={setLoadingCall}
-            />
+            <Meeting navigation={navigation} route={route} />
           ) : (
             <Ringing
               navigation={navigation}
