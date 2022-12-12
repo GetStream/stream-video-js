@@ -56,7 +56,7 @@ export class StreamVideoService {
   activeRingCallDetails$: Observable<CallMeta.CallDetails | undefined>;
   terminatedRingCallMeta$: Observable<CallMeta.Call | undefined>;
   /**
-   * Emits a boolean indicating whether a call recording is currently in progress.
+   * Emits a `boolean` indicating whether a call recording is currently in progress.
    */
   callRecordingInProgress$: Observable<boolean>;
   /**

@@ -29,7 +29,7 @@ const colorKeyToBgColor = (colorKey: ColorKey): ColorValue => {
 
 interface CallControlsButtonProps {
   /**
-   * onPress handler called when a single tap gesture is detected.
+   * `onPress` handler called when a single tap gesture is detected.
    */
   onPress: PressableProps['onPress'];
   /**

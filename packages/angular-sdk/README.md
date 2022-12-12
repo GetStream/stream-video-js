@@ -4,9 +4,9 @@ Angular workspace for the `@stream-io/video-angular-sdk` package and for the sam
 
 ## Running
 
-Run the application `yarn start:angular` - this will start the SDK package in watch mode, and run the sample application also in watch mode (you can call this from the repositorty root (`../`))
+Run the application `yarn start:angular` - this will start the SDK package in watch mode, and run the sample application also in watch mode (you can call this from the repository root (`../`))
 
-You can override the default config params in `projects/sample-app/src/environments/environment.ts`
+You can override the default config-params in `projects/sample-app/src/environments/environment.ts`
 
 Navigate to `localhost:4200?callid=<call-id>` to join an existing call
 
@@ -36,7 +36,7 @@ The documentation can be found in `docusaurus` folder.
 
 Some (but not all) parts of the documentation is generated from the source code, run the `yarn run generate-docs:angular` command to trigger documentation generation.
 
-The command doesn't have a "watch" function, so you'll have to rerun the command whenever the relevant source code is changed and you want to generate the documentaiton.
+The command doesn't have a "watch" function, so you'll have to rerun the command whenever the relevant source code is changed and you want to generate the documentation.
 
 ### Run the docs
 
