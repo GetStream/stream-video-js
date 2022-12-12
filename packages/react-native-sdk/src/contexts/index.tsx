@@ -4,7 +4,6 @@ import {
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren } from 'react';
 import { CallKeepOptions } from '../types';
-import { MediaDevicesProvider } from './MediaDevicesContext';
 import {
   useStoreValue,
   useStoreSetState,
@@ -22,9 +21,7 @@ export const StreamVideo = (
   const { client, children } = props;
   return (
     <StreamVideoProvider client={client}>
-      <MediaDevicesProvider>
-        <Provider>{children}</Provider>
-      </MediaDevicesProvider>
+      <Provider>{children}</Provider>
     </StreamVideoProvider>
   );
 };
