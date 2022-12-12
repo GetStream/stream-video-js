@@ -15,7 +15,7 @@
       <select
         class="str-video__device-settings__device-selector"
         [value]="currentlyUsedVideoDeviceId"
-        (change)="changeInputDevice('videoinput', $event)"
+        (change)="selectVideoDevice($event)"
       >
         <option
           *ngFor="let device of videoDevices$ | async"
@@ -32,7 +32,7 @@
       <select
         class="str-video__device-settings__device-selector"
         [value]="currentlyUsedAudioDeviceId"
-        (change)="changeInputDevice('audioinput', $event)"
+        (change)="selectAudioDevice($event)"
       >
         <option
           *ngFor="let device of audioDevices$ | async"
@@ -49,7 +49,7 @@
       <select
         class="str-video__device-settings__device-selector"
         [value]="currentlyUsedAudioOutputDeviceId"
-        (change)="changeOutputDevice($event)"
+        (change)="selectAudioOutputDevice($event)"
       >
         <option
           *ngFor="let device of audioOutputDevices$ | async"

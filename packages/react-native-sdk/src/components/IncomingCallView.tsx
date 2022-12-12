@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, ImageBackground } from 'react-native';
-import { CallControlsButton } from './CallControlsButton';
+import { CallControlsButton } from './CallControlsView/CallControlsButton';
 import {
   useActiveCall,
   useActiveRingCallDetails,
@@ -14,7 +14,10 @@ import {
 import { useRingCall } from '../hooks';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 
-export type IncomingCallViewProps = {
+/**
+ * Props to be passed for the IncomingCallView component.
+ */
+interface IncomingCallViewProps {
   /**
    * Handler called when the call is answered. Mostly used for navigation and related actions.
    */
@@ -23,11 +26,9 @@ export type IncomingCallViewProps = {
    * Handler called when the call is rejected. Mostly used for navigation and related actions.
    */
   onRejectCall: () => void;
-};
+}
 
-const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+const Background = ({ children }: React.PropsWithChildren<{}>) => {
   const activeRingCallDetails = useActiveRingCallDetails();
   const memberUserIds = activeRingCallDetails?.memberUserIds || [];
 
@@ -36,6 +37,7 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
       <ImageBackground
         blurRadius={10}
         source={{
+          //FIXME: This is a temporary solution to get a random image for the background. Replace with image from coordinator
           uri: `https://getstream.io/random_png/?id=${memberUserIds[0]}&name=${memberUserIds[0]}`,
         }}
         style={StyleSheet.absoluteFill}
@@ -48,10 +50,8 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   );
 };
 
-export const IncomingCallView: React.FC<IncomingCallViewProps> = ({
-  onAnswerCall,
-  onRejectCall,
-}) => {
+export const IncomingCallView = (props: IncomingCallViewProps) => {
+  const { onAnswerCall, onRejectCall } = props;
   const activeCall = useActiveCall();
   const incomingRingCalls = useIncomingRingCalls();
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);

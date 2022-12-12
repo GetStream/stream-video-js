@@ -1,0 +1,38 @@
+<div class="call">
+  <div class="participants" [class.multiple]="(remoteParticipants$ | async)!.length > 1" [class.only-host]="(remoteParticipants$ | async)!.length === 0">
+    <stream-participant *ngFor="let participant of (remoteParticipants$ | async); trackBy: trackBySessionId" [participant]="participant"></stream-participant>
+    <stream-participant cdkDrag  class="local-participant" *ngIf="(localParticipant$ | async) as participant" [participant]="participant"></stream-participant>
+  </div>
+  <div class="toolbar">
+    <app-device-control></app-device-control>
+    <div>
+      <button mat-icon-button *ngIf="isLocalParticipantCallOwner">
+        <mat-icon fontIcon="group" [matMenuTriggerFor]="menu"></mat-icon>
+      </button>
+      <mat-menu #menu="matMenu">
+        <ng-container *ngIf="(localParticipant$ | async) as participant">
+          <ng-container *ngTemplateOutlet="user; context: {userId: participant.userId, hasAudio: participant.publishedTracks.includes(TrackType.AUDIO),  hasVideo: participant.publishedTracks.includes(TrackType.VIDEO)}"></ng-container>
+        </ng-container>
+        <ng-container *ngFor="let participant of (remoteParticipants$ | async)">
+          <ng-container *ngTemplateOutlet="user; context: {userId: participant.userId, hasAudio: participant.publishedTracks.includes(TrackType.AUDIO),  hasVideo: participant.publishedTracks.includes(TrackType.VIDEO)}"></ng-container>
+        </ng-container>
+        <button mat-button (click)="muteAll()">Mute all</button>
+      </mat-menu>
+      <button mat-icon-button color="warn">
+        <mat-icon (click)="endCall()" fontIcon="call_end"></mat-icon>
+      </button>
+    </div>
+  </div>
+</div>
+
+<ng-template #user let-userId="userId" let-hasAudio="hasAudio" let-hasVideo="hasVideo">
+  <div class="user">
+    {{userId}}
+    <button mat-icon-button>
+      <mat-icon (click)="toggleAudioMuteState(userId, !hasAudio)" [fontIcon]="hasAudio ? 'mic' : 'mic_off'"></mat-icon>
+    </button>
+    <button mat-icon-button>
+      <mat-icon (click)="toggleVideoMuteState(userId, !hasVideo)" [fontIcon]="hasVideo ? 'videocam' : 'videocam_off'"></mat-icon>
+    </button>
+  </div>
+</ng-template>

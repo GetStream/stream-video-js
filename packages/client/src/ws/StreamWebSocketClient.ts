@@ -36,7 +36,7 @@ export class StreamWebSocketClient implements StreamWSClient {
 
     this.keepAlive = keepAlive(
       this,
-      20 * 1000, // in seconds
+      30 * 1000, // in seconds
     );
   }
 
@@ -58,6 +58,8 @@ export class StreamWebSocketClient implements StreamWSClient {
         }),
       );
       this.off('healthcheck', catchOneHealthcheckMessage);
+      // schedule pinging once the payload is set
+      this.keepAlive.schedulePing();
     };
     this.on('healthcheck', catchOneHealthcheckMessage);
 
@@ -69,7 +71,6 @@ export class StreamWebSocketClient implements StreamWSClient {
 
     this.ws = await createCoordinatorWebSocket(this.endpoint, authRequest, {
       onMessage: (message: WebsocketEvent) => {
-        this.keepAlive.schedulePing();
         this.dispatchMessage(message);
       },
 

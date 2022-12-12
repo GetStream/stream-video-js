@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 
-type VideoRendererProps = {
+export interface VideoRendererProps {
   /**
    * The stream that should be rendered.
    */
@@ -56,19 +56,19 @@ type VideoRendererProps = {
    * The default is `{ flex: 1 }`
    */
   style?: StyleProp<ViewStyle>;
-};
+}
 
-export const VideoRenderer: React.FC<VideoRendererProps> = ({
-  mediaStream,
-  mirror = false,
-  style = { flex: 1 },
-  zOrder = undefined,
-  objectFit = 'cover',
-}: VideoRendererProps) => {
-  /**
-   * Lower level component, that represents only the video part (wrapper around the WebRTC)
-   */
-
+/**
+ * Lower level component, that represents only the video part (wrapper around the WebRTC)
+ */
+export const VideoRenderer = (props: VideoRendererProps) => {
+  const {
+    mediaStream,
+    mirror = false,
+    style = { flex: 1 },
+    zOrder = undefined,
+    objectFit = 'cover',
+  } = props;
   return (
     <RTCView
       streamURL={mediaStream.toURL()}

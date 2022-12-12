@@ -1,23 +1,14 @@
-import { Component, OnInit } from '@angular/core';
-import {
-  Call,
-  getAudioDevices,
-  getAudioOutputDevices,
-  getAudioStream,
-  getVideoDevices,
-  getVideoStream,
-  checkIfAudioOutputChangeSupported,
-} from '@stream-io/video-client';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
-import { StreamVideoService } from '../video.service';
 import { NgxPopperjsTriggers } from 'ngx-popperjs';
+import { DeviceManagerService } from '../device-manager.service';
 
 @Component({
   selector: 'stream-device-settings',
   templateUrl: './device-settings.component.html',
   styles: [],
 })
-export class DeviceSettingsComponent implements OnInit {
+export class DeviceSettingsComponent implements OnInit, OnDestroy {
   currentlyUsedAudioDeviceId?: string;
   currentlyUsedVideoDeviceId?: string;
   currentlyUsedAudioOutputDeviceId?: string;
@@ -25,53 +16,46 @@ export class DeviceSettingsComponent implements OnInit {
   videoDevices$: Observable<MediaDeviceInfo[]>;
   audioOutputDevices$: Observable<MediaDeviceInfo[]>;
   popperTrigger = NgxPopperjsTriggers.click;
-  isAudioOuputDeviceChangeSupported = checkIfAudioOutputChangeSupported();
-  private activeCall?: Call;
+  isAudioOuputDeviceChangeSupported =
+    this.deviceManager.isAudioOutputChangeSupportedByBrowser;
   private subscriptions: Subscription[] = [];
 
-  constructor(private streamVideoService: StreamVideoService) {
+  constructor(private deviceManager: DeviceManagerService) {
+    this.audioDevices$ = this.deviceManager.audioDevices$;
+    this.videoDevices$ = this.deviceManager.videoDevices$;
+    this.audioOutputDevices$ = this.deviceManager.audioOutputDevices$;
     this.subscriptions.push(
-      this.streamVideoService.activeCall$.subscribe(
-        (c) => (this.activeCall = c),
+      this.deviceManager.audioDevice$.subscribe(
+        (d) => (this.currentlyUsedAudioDeviceId = d),
       ),
     );
     this.subscriptions.push(
-      this.streamVideoService.activeCallLocalParticipant$.subscribe((p) => {
-        this.currentlyUsedAudioDeviceId = p?.audioDeviceId;
-        this.currentlyUsedVideoDeviceId = p?.videoDeviceId;
-        this.currentlyUsedAudioOutputDeviceId = p?.audioOutputDeviceId;
-      }),
+      this.deviceManager.videoDevice$.subscribe(
+        (d) => (this.currentlyUsedVideoDeviceId = d),
+      ),
     );
-    this.audioDevices$ = getAudioDevices();
-    this.videoDevices$ = getVideoDevices();
-    this.audioOutputDevices$ = getAudioOutputDevices();
+    this.subscriptions.push(
+      this.deviceManager.audioOutputDevice$.subscribe(
+        (d) => (this.currentlyUsedAudioOutputDeviceId = d),
+      ),
+    );
   }
 
   ngOnInit(): void {}
 
-  async changeInputDevice(
-    kind: Exclude<MediaDeviceKind, 'audiooutput'>,
-    event: any,
-  ) {
-    const deviceId = event.target.value;
-    try {
-      if (kind === 'audioinput') {
-        const audioStream = await getAudioStream(deviceId);
-        await this.activeCall?.publishAudioStream(audioStream);
-      } else if (kind === 'videoinput') {
-        const videoStream = await getVideoStream(deviceId);
-        await this.activeCall?.publishVideoStream(videoStream);
-      } else {
-        console.warn(`Unsupported device kind: ${kind}`);
-      }
-    } catch (error) {
-      console.error(`Error during device changing`, error);
-      throw error;
-    }
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
-  async changeOutputDevice(event: any) {
-    const deviceId = event.target.value;
-    this.activeCall?.setAudioOutputDevice(deviceId);
+  selectAudioDevice(event: any) {
+    this.deviceManager.startAudio(event.target.value);
+  }
+
+  selectVideoDevice(event: any) {
+    this.deviceManager.startVideo(event.target.value);
+  }
+
+  selectAudioOutputDevice(event: any) {
+    this.deviceManager.selectAudioOutput(event.target.value);
   }
 }

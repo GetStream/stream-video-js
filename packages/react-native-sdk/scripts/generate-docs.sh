@@ -15,15 +15,19 @@ npx typedoc --options typedoc.json
 
 # preprocess the docs to our specific needs
 npx replace-in-file '# @stream-io/video-react-native-sdk' '# Components' 'temp-docs/**' > /dev/null
+npx replace-in-file '# Interface: ' '# ' 'temp-docs/**' > /dev/null
+sed -i '' -e 's/interfaces/..\/Interfaces/g' 'temp-docs/modules.md'
+sed -i '' -e 's/\.md/\//g' 'temp-docs/modules.md'
 
 # copy from the temp-docs to the structure we want in docusaurus
 mkdir generated-docs
+cp -r temp-docs/interfaces generated-docs/Interfaces
 cp temp-docs/modules.md generated-docs/components.md
 rm -rf temp-docs
 
 # copy the docs to react-native docusaurus
-cp -r ../client/generated-docs/ docusaurus/docs/reactnative/reference
-cp -r ../react-bindings/generated-docs/ docusaurus/docs/reactnative/reference
-cp -r ./generated-docs/ docusaurus/docs/reactnative/reference
+cp -a ../client/generated-docs/. docusaurus/docs/reactnative/reference
+cp -a ../react-bindings/generated-docs/. docusaurus/docs/reactnative/reference
+cp -a ./generated-docs/. docusaurus/docs/reactnative/reference
 
 echo "Done!"
