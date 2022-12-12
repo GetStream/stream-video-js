@@ -36,18 +36,18 @@ export type MediaStreamState =
 })
 export class DeviceManagerService {
   /**
-   * The list of available 'audioinput' devices, if devices are added/removed - the list is updated
+   * The list of available `audioinput` devices, if devices are added/removed - the list is updated
    * Since some browsers require permissions for listing the devices the list is not initialized by default, you have to call `initAudioDevices` for that in order to have full control over when the permission window will be displayed
    */
   audioDevices$: Observable<MediaDeviceInfo[]>;
   /**
-   * The list of available 'videoinput' devices, if devices are added/removed - the list is updated
+   * The list of available `videoinput` devices, if devices are added/removed - the list is updated
    * Since some browsers require permissions for listing the devices the list is not initialized by default, you have to call `initVideoDevices` for that in order to have full control over when the permission window will be displayed
    */
   videoDevices$: Observable<MediaDeviceInfo[]>;
   /**
-   * The list of available 'audiooutput' devices, if devices are added/removed - the list is updated
-   *  Since some browsers require permissions for listing the devices the list is not initialized by default, you have to call `initAudioOutputDevices` for that in order to have full control over when the permission window will be displayed
+   * The list of available `audiooutput` devices, if devices are added/removed - the list is updated
+   * Since some browsers require permissions for listing the devices the list is not initialized by default, you have to call `initAudioOutputDevices` for that in order to have full control over when the permission window will be displayed
    */
   audioOutputDevices$: Observable<MediaDeviceInfo[]>;
   /**
@@ -67,7 +67,7 @@ export class DeviceManagerService {
    */
   audioOutputDevice$: Observable<string | undefined>;
   /**
-   * Provides detailed information about the video stream, you can use this stream to visaully display the state on the UI
+   * Provides detailed information about the video stream, you can use this stream to visually display the state on the UI
    */
   videoState$: Observable<MediaStreamState>;
   /**
@@ -79,7 +79,7 @@ export class DeviceManagerService {
    */
   videoStream$: Observable<MediaStream | undefined>;
   /**
-   * Provides detailed information about the audio stream, you can use this stream to visaully display the state on the UI
+   * Provides detailed information about the audio stream, you can use this stream to visually display the state on the UI
    */
   audioState$: Observable<MediaStreamState>;
   /**

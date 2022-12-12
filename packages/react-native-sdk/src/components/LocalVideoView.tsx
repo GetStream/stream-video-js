@@ -23,8 +23,8 @@ export interface LocalVideoViewProps {
    *     width: 80,
    *     right: 16,
    *     top: 60,
-   *     borderRadius: 10,
-   *     zIndex: 1,
+   *     `borderRadius`: 10,
+   *     `zIndex`: 1,
    *   }`
    */
   style?: StyleProp<ViewStyle>;

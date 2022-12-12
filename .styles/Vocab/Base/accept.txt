@@ -1,13 +1,6 @@
-boolean
 docusaurus
-borderRadius
-zIndex
 callee
-onPress
 Pressable
-RTCView
-RTCViews
-zOrder
 renderers
 screenshare
 proto
