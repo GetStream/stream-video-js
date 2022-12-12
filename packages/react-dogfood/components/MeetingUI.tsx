@@ -18,13 +18,14 @@ export const MeetingUI = ({ callId }: MeetingUIProps) => {
   const activeCall = useActiveCall();
   const hangups = useLocalHangUpNotifications();
 
-  const iHangedUp = hangups.find((hangup) => hangup.call.id === callId);
+  if (!activeCall) return <div>loading</div>;
 
-  if (iHangedUp) {
+  const shouldLeave = hangups.find((hangup) => hangup.call.id === callId);
+
+  if (shouldLeave) {
+    activeCall.leave();
     router.push('/');
   }
-
-  if (!activeCall) return <div>loading</div>;
 
   const { type, id } = activeCall.data.call;
 
