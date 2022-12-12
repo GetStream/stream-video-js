@@ -8,7 +8,7 @@ import {
   Button,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { RootStackParamList } from '../../../types';
+import { MeetingStackParamList } from '../../../types';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -18,9 +18,9 @@ import { meetingId } from '../../modules/helpers/meetingId';
 
 import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
+type Props = NativeStackScreenProps<MeetingStackParamList, 'JoinMeetingScreen'>;
 
-const Meeting = ({ navigation }: Props) => {
+const JoinMeetingScreen = ({ navigation }: Props) => {
   const meetingCallID = useAppGlobalStoreValue((store) => store.meetingCallID);
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
@@ -134,4 +134,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Meeting;
+export default JoinMeetingScreen;

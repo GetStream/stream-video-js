@@ -5,11 +5,11 @@ import {
   StreamMeeting,
   useActiveCall,
 } from '@stream-io/video-react-native-sdk';
-import { RootStackParamList } from '../../types';
-import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import { MeetingStackParamList } from '../../../types';
+import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'MeetingScreen'>;
+type Props = NativeStackScreenProps<MeetingStackParamList, 'MeetingScreen'>;
 
 export const MeetingScreen = ({ navigation }: Props) => {
   const username = useAppGlobalStoreValue((store) => store.username);
@@ -24,7 +24,9 @@ export const MeetingScreen = ({ navigation }: Props) => {
       autoJoin={true}
     >
       {activeCall ? (
-        <ActiveCall onHangupCall={() => navigation.navigate('HomeScreen')} />
+        <ActiveCall
+          onHangupCall={() => navigation.navigate('JoinMeetingScreen')}
+        />
       ) : (
         <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
       )}

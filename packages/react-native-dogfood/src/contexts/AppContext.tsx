@@ -1,9 +1,10 @@
+import { MemberInput } from '@stream-io/video-client';
 import createStoreContext from './createStoreContext';
 
 interface AppGlobalStore {
   meetingCallID: string;
   ringingCallID: string;
-  ringingUsers: string[];
+  ringingUsers: MemberInput[];
   username: string;
   userImageUrl: string;
   loopbackMyVideo: boolean;

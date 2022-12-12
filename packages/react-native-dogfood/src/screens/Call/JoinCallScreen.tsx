@@ -14,13 +14,8 @@ import {
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../../types';
-import { joinCall } from '../../utils/callUtils';
-import {
-  useActiveCall,
-  useCallKeep,
-  useStreamVideoClient,
-} from '@stream-io/video-react-native-sdk';
+import { RingingStackParamList } from '../../../types';
+import { useActiveCall } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -82,13 +77,10 @@ const styles = StyleSheet.create({
   },
 });
 
-type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'> & {
-  setLoadingCall: (loading: boolean) => void;
-};
+type Props = NativeStackScreenProps<RingingStackParamList, 'JoinCallScreen'>;
 
-const Ringing = ({ navigation, setLoadingCall }: Props) => {
+const JoinCallScreen = ({ navigation }: Props) => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
-  const videoClient = useStreamVideoClient();
   const username = useAppGlobalStoreValue((store) => store.username);
   const ringingUsers = useAppGlobalStoreValue((store) => store.ringingUsers);
   const activeCall = useActiveCall();
@@ -103,54 +95,42 @@ const Ringing = ({ navigation, setLoadingCall }: Props) => {
 
   useEffect(() => {
     if (activeCall?.data.call) {
-      navigation.navigate('OutgoingCallScreen');
+      navigation.navigate('CallScreen');
     }
   }, [navigation, activeCall]);
 
   const setState = useAppGlobalStoreSetState();
-  const { startCall } = useCallKeep();
 
   const startCallHandler = async () => {
-    setLoadingCall(true);
-    if (videoClient) {
-      try {
-        const callID = uuidv4().toLowerCase();
-        let ringingUserIds = !ringingUserIdsText
-          ? ringingUsers
-          : ringingUserIdsText.split(',');
-        if (ringingUserIdsText !== '') {
-          setState({ ringingUsers: ringingUserIds });
-        }
-        await setState({ ringingCallID: callID });
-        await joinCall(videoClient, {
-          autoJoin: true,
-          ring: true,
-          members: ringingUserIds.map((user) => {
-            return {
-              userId: user,
-              role: 'member',
-              customJson: new Uint8Array(),
-            };
-          }),
-          callId: callID,
-          callType: 'default',
-        }).then(() => {
-          startCall();
-          setLoadingCall(false);
+    const callID = uuidv4().toLowerCase();
+    let ringingUserIds = !ringingUserIdsText
+      ? ringingUsers
+      : ringingUserIdsText.split(',').map((ringingUserId) => {
+          return {
+            userId: ringingUserId,
+            role: 'member',
+            customJson: new Uint8Array(),
+          };
         });
-      } catch (err) {
-        console.log(err);
-      }
-    }
+    setState({
+      ringingUsers: ringingUserIds,
+      ringingCallID: callID,
+    });
+    navigation.navigate('CallScreen');
   };
 
   const ringingUsersSetHandler = (userId: string) => {
-    if (!ringingUsers.includes(userId)) {
-      setState({ ringingUsers: [...ringingUsers, userId] });
+    if (!ringingUsers.find((ringingUser) => ringingUser.userId === userId)) {
+      setState({
+        ringingUsers: [
+          ...ringingUsers,
+          { userId: userId, role: 'member', customJson: new Uint8Array() },
+        ],
+      });
     } else {
       setState({
         ringingUsers: ringingUsers.filter(
-          (ringingUser) => ringingUser !== userId,
+          (ringingUser) => ringingUser.userId !== userId,
         ),
       });
     }
@@ -183,7 +163,9 @@ const Ringing = ({ navigation, setLoadingCall }: Props) => {
                 <Text
                   style={[
                     styles.text,
-                    ringingUsers.includes(user.id)
+                    ringingUsers.find(
+                      (ringingUser) => ringingUser.userId === user.id,
+                    )
                       ? styles.selectedParticipant
                       : null,
                   ]}
@@ -203,4 +185,4 @@ const Ringing = ({ navigation, setLoadingCall }: Props) => {
   );
 };
 
-export default Ringing;
+export default JoinCallScreen;
