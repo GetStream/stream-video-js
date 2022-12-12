@@ -63,9 +63,9 @@ import './style.css';
 
   store$.dominantSpeaker$.subscribe((dominantSpeaker) => {
     if (dominantSpeaker) {
-      call.updateSubscriptionsPartial({
+      call.updateSubscriptionsPartial('video', {
         [dominantSpeaker.sessionId]: {
-          videoDimension: {
+          dimension: {
             width: 1920,
             height: 1080,
           },
@@ -152,16 +152,16 @@ function createSpeakerUpdater(call: Call) {
   let lastSpeaker: StreamVideoParticipant | undefined;
   return function highlightSpeaker(speaker?: StreamVideoParticipant) {
     if (speaker && speaker.sessionId !== lastSpeaker?.sessionId) {
-      call.updateSubscriptionsPartial({
+      call.updateSubscriptionsPartial('video', {
         [speaker.sessionId]: {
-          videoDimension: {
+          dimension: {
             width: 1920,
             height: 1080,
           },
         },
         ...(lastSpeaker && {
           [lastSpeaker.sessionId]: {
-            videoDimension: undefined,
+            dimension: undefined,
           },
         }),
       });
