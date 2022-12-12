@@ -39,11 +39,11 @@ const Meeting = ({ navigation }: Props) => {
           meetingCallID: prontoCallId,
         });
         prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
-        navigation.navigate('MeetingScreen');
+        joinCallHandler();
       }
     });
     return () => subscription.unsubscribe();
-  }, [joinCallHandler, setState, navigation]);
+  }, [joinCallHandler, setState]);
 
   const handleCopyInviteLink = useCallback(
     () =>
