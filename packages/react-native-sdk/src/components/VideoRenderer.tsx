@@ -18,26 +18,26 @@ export interface VideoRendererProps {
   mirror?: boolean;
   /**
    * Similarly to the CSS property z-index, specifies the z-order of this
-   * RTCView in the stacking space of all RTCViews. When RTCViews overlap,
-   * zOrder determines which one covers the other. An RTCView with a larger
-   * zOrder generally covers an RTCView with a lower one.
+   * `RTCView` in the stacking space of all `RTCView`s. When `RTCView`s overlap,
+   * `zOrder` determines which one covers the other. An `RTCView` with a larger
+   * `zOrder` generally covers an RTCView with a lower one.
    *
-   * Non-overlapping RTCViews may safely share a z-order (because one does not
+   * Non-overlapping `RTCView`s may safely share a z-order (because one does not
    * have to cover the other).
    *
-   * The support for zOrder is platform-dependent and/or
-   * implementation-specific. Thus, specifying a value for zOrder is to be
+   * The support for `zOrder` is platform-dependent and/or
+   * implementation-specific. Thus, specifying a value for `zOrder` is to be
    * thought of as giving a hint rather than as imposing a requirement. For
-   * example, video renderers such as RTCView are commonly implemented using
+   * example, video renderers such as `RTCView` are commonly implemented using
    * OpenGL and OpenGL views may have different numbers of layers in their
    * stacking space. Android has three: a layer bellow the window (aka
    * default), a layer bellow the window again but above the previous layer
    * (aka media overlay), and above the window. Consequently, it is advisable
    * to limit the number of utilized layers in the stacking space to the
    * minimum sufficient for the desired display. For example, a video call
-   * application usually needs a maximum of two zOrder values: 0 for the
-   * remote video(s) which appear in the background, and 1 for the local
-   * video(s) which appear above the remote video(s).
+   * application usually needs a maximum of two `zOrder` values: 0 for the
+   * remote one or more videos which appear in the background, and 1 for the local
+   * one or more videos which appear above the remote one or more videos.
    */
   zOrder?: number;
   /**
@@ -51,7 +51,7 @@ export interface VideoRendererProps {
    */
   objectFit?: 'contain' | 'cover';
   /**
-   * Style to override the default style of the RTCView.
+   * Style to override the default style of the `RTCView`.
    * @defaultValue
    * The default is `{ flex: 1 }`
    */

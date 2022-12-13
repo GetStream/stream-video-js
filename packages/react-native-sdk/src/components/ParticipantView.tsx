@@ -44,9 +44,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         return null;
       }
 
-      call.updateSubscriptionsPartial({
+      call.updateSubscriptionsPartial('video', {
         [participant.sessionId]: {
-          videoDimension: {
+          dimension: {
             width: Math.trunc(width),
             height: Math.trunc(height),
           },

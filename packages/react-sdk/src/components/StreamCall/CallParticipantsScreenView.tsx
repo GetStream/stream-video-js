@@ -5,6 +5,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { ParticipantBox } from './ParticipantBox';
 import { Video } from './Video';
+import clsx from 'clsx';
 
 export const CallParticipantsScreenView = (props: { call: Call }) => {
   const { call } = props;
@@ -14,17 +15,15 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
   );
 
-  const columns = `columns-${Math.min(
-    Math.ceil(allParticipants.length / 4),
-    3,
-  )}`;
   return (
     <div className="str-video__call-participants-screen-view">
       <div className="str-video__call-participants-screen-view__screen">
         {firstScreenSharingParticipant && (
           <>
             <Video
-              stream={firstScreenSharingParticipant.screenShareStream}
+              participant={firstScreenSharingParticipant}
+              call={call}
+              kind="screen"
               className="str-video__screen-share"
               autoPlay
               muted
@@ -36,7 +35,11 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
         )}
       </div>
       <div
-        className={`str-video__call-participants-screen-view__participants ${columns}`}
+        className={clsx(
+          `str-video__call-participants-screen-view__participants`,
+          // show 4 participants in a column, up to three columns
+          `columns-${Math.min(Math.floor(allParticipants.length / 4), 3)}`,
+        )}
       >
         {allParticipants.map((participant) => (
           <ParticipantBox

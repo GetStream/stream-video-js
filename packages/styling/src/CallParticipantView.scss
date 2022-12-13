@@ -8,6 +8,16 @@
   max-height: 100%;
   overflow: hidden;
 
+  .str-call__participant {
+    min-height: 0;
+    max-height: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+  }
+
   .str-video__video-container {
     position: relative;
   }

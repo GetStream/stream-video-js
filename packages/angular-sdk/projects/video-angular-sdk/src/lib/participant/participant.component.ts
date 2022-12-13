@@ -89,9 +89,9 @@ export class ParticipantComponent
   }
 
   private updateTrackSubscriptions() {
-    this.call?.updateSubscriptionsPartial({
+    this.call?.updateSubscriptionsPartial('video', {
       [this.participant?.sessionId || '']: {
-        videoDimension: this.videoDimension,
+        dimension: this.videoDimension,
       },
     });
   }
