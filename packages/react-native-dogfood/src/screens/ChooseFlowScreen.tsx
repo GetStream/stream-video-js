@@ -1,6 +1,6 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect } from 'react';
-import { Button, SafeAreaView, StyleSheet } from 'react-native';
+import { Button, SafeAreaView, StyleSheet, View } from 'react-native';
 import { RootStackParamList } from '../../types';
 import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { prontoCallId$ } from '../hooks/useProntoLinkEffect';
@@ -25,19 +25,16 @@ export const ChooseFlowScreen = (props: Props) => {
   }, [setState, navigation]);
 
   const onMeetingSelect = () => {
-    navigation.navigate('Meeting', {
-      screen: 'JoinMeetingScreen',
-    });
+    setState({ appMode: 'Meeting' });
   };
   const onRingingSelect = () => {
-    navigation.navigate('Ringing', {
-      screen: 'JoinCallScreen',
-    });
+    setState({ appMode: 'Ringing' });
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[StyleSheet.absoluteFill, styles.container]}>
       <Button title="Meeting" onPress={onMeetingSelect} />
+      <View style={styles.separator} />
       <Button title="Ringing" onPress={onRingingSelect} />
     </SafeAreaView>
   );
@@ -46,5 +43,11 @@ export const ChooseFlowScreen = (props: Props) => {
 const styles = StyleSheet.create({
   container: {
     padding: 10,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  separator: {
+    marginTop: 10,
   },
 });

@@ -1,5 +1,8 @@
 import { CreateCallInput } from '@stream-io/video-client';
-import { useStreamVideoClient } from '@stream-io/video-react-bindings';
+import {
+  useActiveCall,
+  useStreamVideoClient,
+} from '@stream-io/video-react-bindings';
 import { PropsWithChildren, useEffect } from 'react';
 import { MediaDevicesProvider } from '../contexts/MediaDevicesContext';
 import InCallManager from 'react-native-incall-manager';
@@ -10,6 +13,7 @@ export type StreamMeetingProps = {
   currentUser: string;
   autoJoin?: boolean;
   input?: CreateCallInput;
+  onActiveCall?: () => void;
 };
 
 export const StreamMeeting = ({
@@ -19,8 +23,10 @@ export const StreamMeeting = ({
   currentUser,
   autoJoin,
   input,
+  onActiveCall,
 }: PropsWithChildren<StreamMeetingProps>) => {
   const client = useStreamVideoClient();
+  const activeCall = useActiveCall();
 
   useEffect(() => {
     if (!client) return;
@@ -46,6 +52,13 @@ export const StreamMeeting = ({
       console.error(`Failed to getOrCreateCall/joinCall`, callId, callType, e);
     });
   }, [callId, client, callType, currentUser, autoJoin, input]);
+
+  useEffect(() => {
+    if (activeCall && onActiveCall) {
+      onActiveCall();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCall]);
 
   return <MediaDevicesProvider>{children}</MediaDevicesProvider>;
 };

@@ -4,7 +4,6 @@ import {
   useRemoteHangUpNotifications,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
-import { useCallKeep } from '../hooks';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
@@ -24,7 +23,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useActiveCall();
   const activeCallMeta = activeCall?.data.call;
   const remoteHangUpNotifications = useRemoteHangUpNotifications();
-  const { startCall } = useCallKeep();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
   const { onHangupCall } = props;
 
@@ -60,10 +58,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
   }, [activeCall, currentVideoDevice]);
 
   useEffect(() => {
-    startCall();
-    if (isCallHangedUpByCaller) {
-      onHangupCall();
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCall, isCallHangedUpByCaller]);
 

@@ -6,7 +6,6 @@ import {
 } from '@stream-io/video-react-bindings';
 import { useCallback } from 'react';
 import InCallManager from 'react-native-incall-manager';
-import { useCallKeep } from './useCallKeep';
 
 export const useRingCall = () => {
   const client = useStreamVideoClient();
@@ -15,7 +14,6 @@ export const useRingCall = () => {
   const activeCallMeta = activeCall?.data.call;
 
   const incomingCalls = useIncomingCalls();
-  const { endCall } = useCallKeep();
   const currentIncomingRingCall = incomingCalls[incomingCalls.length - 1];
   const isCallCreatedByUserLocalParticipant =
     activeCallMeta?.createdByUserId === localParticipant?.userId;
@@ -56,9 +54,8 @@ export const useRingCall = () => {
     if (!client || !activeCallMeta || !isCallCreatedByUserLocalParticipant) {
       return;
     }
-    endCall();
     await client.cancelCall(activeCallMeta.callCid);
-  }, [activeCallMeta, client, endCall, isCallCreatedByUserLocalParticipant]);
+  }, [activeCallMeta, client, isCallCreatedByUserLocalParticipant]);
 
   return { answerCall, rejectCall, cancelCall };
 };

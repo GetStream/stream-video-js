@@ -123,13 +123,12 @@ export type MeetingStackParamList = {
 export type RingingStackParamList = {
   JoinCallScreen: undefined;
   CallScreen: undefined;
+  IncomingCallScreen: undefined;
+  OutgoingCallScreen: undefined;
 };
 
 export type RootStackParamList = {
-  HomeScreen: undefined;
   ActiveCallScreen: undefined;
-  IncomingCallScreen: undefined;
-  OutgoingCallScreen: undefined;
   ChooseFlowScreen: undefined;
   Meeting: NavigatorScreenParams<MeetingStackParamList>;
   Ringing: NavigatorScreenParams<RingingStackParamList>;

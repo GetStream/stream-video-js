@@ -1,5 +1,9 @@
-import { CreateCallInput, MemberInput } from '@stream-io/video-client';
-import { useStreamVideoClient } from '@stream-io/video-react-bindings';
+import { CreateCallInput } from '@stream-io/video-client';
+import {
+  useIncomingCalls,
+  useOutgoingCalls,
+  useStreamVideoClient,
+} from '@stream-io/video-react-bindings';
 import { PropsWithChildren, useEffect } from 'react';
 import { MediaDevicesProvider } from '../contexts/MediaDevicesContext';
 
@@ -8,8 +12,9 @@ export type StreamCallProps = {
   callType: string;
   currentUser: string;
   autoJoin?: boolean;
-  members: MemberInput[];
   input?: CreateCallInput;
+  onIncomingCall?: () => void;
+  onOutgoingCall?: () => void;
 };
 
 export const StreamCall = ({
@@ -19,36 +24,41 @@ export const StreamCall = ({
   currentUser,
   autoJoin,
   input,
-  members,
+  onIncomingCall,
+  onOutgoingCall,
 }: PropsWithChildren<StreamCallProps>) => {
   const client = useStreamVideoClient();
+  const incomingCalls = useIncomingCalls();
+  const outgoingCalls = useOutgoingCalls();
 
   useEffect(() => {
     if (!client) return;
-    const initiateMeeting = async () => {
-      const descriptors = { id: callId, type: callType };
-      const callMetadata = await client.getOrCreateCall({
-        ...descriptors,
+    const initiateCall = async () => {
+      client.createCall({
+        id: callId,
+        type: callType,
         input,
       });
-      if (callMetadata?.call?.createdByUserId === currentUser || autoJoin) {
-        const call = await client.joinCall({
-          ...descriptors,
-          // FIXME: OL optional, but it is marked as required in proto
-          datacenterId: '',
-          input: {
-            ring: true,
-            members,
-          },
-        });
-        await call?.join();
-      }
     };
 
-    initiateMeeting().catch((e) => {
-      console.error(`Failed to getOrCreateCall`, callId, callType, e);
+    initiateCall().catch((e) => {
+      console.error(`Failed to createCall`, callId, callType, e);
     });
-  }, [callId, client, callType, currentUser, autoJoin, input, members]);
+  }, [callId, client, callType, currentUser, autoJoin, input]);
+
+  useEffect(() => {
+    if (incomingCalls.length && onIncomingCall) {
+      onIncomingCall();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [incomingCalls]);
+
+  useEffect(() => {
+    if (outgoingCalls.length && onOutgoingCall) {
+      onOutgoingCall();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outgoingCalls]);
 
   return <MediaDevicesProvider>{children}</MediaDevicesProvider>;
 };

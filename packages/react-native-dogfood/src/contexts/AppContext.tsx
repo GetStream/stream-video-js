@@ -8,6 +8,7 @@ interface AppGlobalStore {
   username: string;
   userImageUrl: string;
   loopbackMyVideo: boolean;
+  appMode: 'Meeting' | 'Ringing' | 'None';
 }
 
 export const {
@@ -22,6 +23,7 @@ export const {
     username: '',
     userImageUrl: '',
     loopbackMyVideo: false,
+    appMode: 'None',
   },
-  ['username', 'userImageUrl'],
+  ['username', 'userImageUrl', 'appMode'],
 );

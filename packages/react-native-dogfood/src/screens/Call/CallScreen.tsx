@@ -25,20 +25,25 @@ export const CallScreen = ({ navigation }: Props) => {
     navigation.navigate('JoinCallScreen');
   };
 
+  let content;
+  if (incomingCalls.length > 0) {
+    content = (
+      <IncomingCallView
+        onAnswerCall={onAnswerCall}
+        onRejectCall={onRejectCall}
+      />
+    );
+  }
+
   return (
     <StreamCall
       currentUser={username}
       callId={ringingCallID}
       callType={'default'}
       autoJoin={true}
-      members={ringingUsers}
+      input={{ ring: true, members: ringingUsers }}
     >
-      {incomingCalls.length && (
-        <IncomingCallView
-          onAnswerCall={onAnswerCall}
-          onRejectCall={onRejectCall}
-        />
-      )}
+      {content}
     </StreamCall>
   );
 };

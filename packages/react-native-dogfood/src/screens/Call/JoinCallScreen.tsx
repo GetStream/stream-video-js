@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Button,
   Pressable,
@@ -15,7 +15,6 @@ import {
 } from '../../contexts/AppContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RingingStackParamList } from '../../../types';
-import { useActiveCall } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -79,11 +78,10 @@ const styles = StyleSheet.create({
 
 type Props = NativeStackScreenProps<RingingStackParamList, 'JoinCallScreen'>;
 
-const JoinCallScreen = ({ navigation }: Props) => {
+const JoinCallScreen = ({}: Props) => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
   const username = useAppGlobalStoreValue((store) => store.username);
   const ringingUsers = useAppGlobalStoreValue((store) => store.ringingUsers);
-  const activeCall = useActiveCall();
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },
@@ -92,12 +90,6 @@ const JoinCallScreen = ({ navigation }: Props) => {
     { id: 'oliver', name: 'Oliver Lazoroski' },
     { id: 'zita', name: 'Zita Szupera' },
   ];
-
-  useEffect(() => {
-    if (activeCall?.data.call) {
-      navigation.navigate('CallScreen');
-    }
-  }, [navigation, activeCall]);
 
   const setState = useAppGlobalStoreSetState();
 
@@ -116,7 +108,6 @@ const JoinCallScreen = ({ navigation }: Props) => {
       ringingUsers: ringingUserIds,
       ringingCallID: callID,
     });
-    navigation.navigate('CallScreen');
   };
 
   const ringingUsersSetHandler = (userId: string) => {

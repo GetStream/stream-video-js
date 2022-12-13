@@ -3,9 +3,9 @@ import {
   useLocalParticipant,
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useCall, useCallControls, useCallKeep } from '../hooks';
+import { useCall, useCallControls } from '../hooks';
 import {
   CameraSwitch,
   Chat,
@@ -56,7 +56,6 @@ export const CallControlsView = (props: CallControlsViewProps) => {
     toggleChat,
   } = useCallControls();
   const { hangupCall } = useCall();
-  const { endCall } = useCallKeep();
   const { onHangupCall } = props;
   const remoteParticipants = useRemoteParticipants();
   const localParticipant = useLocalParticipant();
@@ -66,18 +65,8 @@ export const CallControlsView = (props: CallControlsViewProps) => {
   const hangupCallHandler = useCallback(async () => {
     onHangupCall();
     await hangupCall();
-    await endCall();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hangupCall, endCall]);
-
-  useEffect(() => {
-    if (
-      remoteParticipants.length === 0 &&
-      localParticipant?.userId === activeCallMeta?.createdByUserId
-    ) {
-      hangupCallHandler();
-    }
-  }, [activeCallMeta, remoteParticipants, localParticipant, hangupCallHandler]);
+  }, [hangupCall]);
 
   return (
     <View style={styles.container}>
