@@ -11,7 +11,7 @@ import { DebugStatsView } from '../Debug/DebugStatsView';
 import { Video } from './Video';
 
 export const ParticipantBox = (props: {
-  participant?: StreamVideoParticipant;
+  participant: StreamVideoParticipant;
   isMuted?: boolean;
   call: Call;
   sinkId?: string;
@@ -24,10 +24,10 @@ export const ParticipantBox = (props: {
     isLoggedInUser: isLocalParticipant,
     isSpeaking,
     publishedTracks,
-  } = participant ?? {};
+  } = participant;
 
-  const hasAudio = publishedTracks?.includes(SfuModels.TrackType.AUDIO);
-  const hasVideo = publishedTracks?.includes(SfuModels.TrackType.VIDEO);
+  const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
+  const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
 
   useEffect(() => {
     const $el = audioRef.current;
@@ -67,7 +67,7 @@ export const ParticipantBox = (props: {
         />
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
-            {participant?.userId}
+            {participant.userId}
             {!hasAudio && (
               <span className="str-video__participant_name--audio-muted"></span>
             )}
@@ -75,7 +75,7 @@ export const ParticipantBox = (props: {
               <span className="str-video__participant_name--video-muted"></span>
             )}
           </span>
-          {isDebugMode && participant && (
+          {isDebugMode && (
             <>
               <DebugParticipantPublishQuality
                 participant={participant}
