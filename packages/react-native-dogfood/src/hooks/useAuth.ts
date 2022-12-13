@@ -8,8 +8,8 @@ import {
 import { createToken } from '../modules/helpers/jwt';
 
 const APIParams = {
-  apiKey: 'key10', // see <video>/data/fixtures/apps.yaml for API key/secret
-  apiSecret: 'secret10',
+  apiKey: 'us83cfwuhy8n', // see <video>/data/fixtures/apps.yaml for API key/secret
+  apiSecret: '4rvyp4jv4da46f36ep96ck4yshjmrtweme2xujv4cftepprckqn9r3w8sn7aywcx',
 };
 
 export const useAuth = () => {
