@@ -195,6 +195,18 @@ export class StreamVideoClient {
   createCall = async (data: CreateCallRequest) => {
     const callToCreate = await this.client.createCall(data);
     const { call: callEnvelope } = callToCreate.response;
+    if (callEnvelope) {
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.pendingCallsSubject,
+        [
+          ...this.writeableStateStore.getCurrentValue(
+            this.writeableStateStore.pendingCallsSubject,
+          ),
+          callEnvelope,
+        ],
+      );
+    }
+
     return callEnvelope;
   };
 
@@ -234,12 +246,17 @@ export class StreamVideoClient {
       callCid,
       eventType: UserEventType.ACCEPTED_CALL,
     });
+    const [type, id] = callCid.split(':');
+    const callController = await this.joinCall({ id, type, datacenterId: '' });
+    callController?.join();
+    return callController;
   };
 
+  // FIXME: MC: do we need to keep information about accepted calls in the store?
   /**
    * Event handler invoked upon delivery of CallAccepted Websocket event
    * Updates the state store and notifies its subscribers that
-   * the call is now considered active.
+   * the given user will be joining the call.
    * @param event received CallAccepted Websocket event
    * @returns
    */
@@ -263,6 +280,12 @@ export class StreamVideoClient {
    * @returns
    */
   rejectCall = async (callCid: string) => {
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.pendingCallsSubject,
+      this.writeableStateStore
+        .getCurrentValue(this.writeableStateStore.pendingCallsSubject)
+        .filter((incomingCall) => incomingCall.call?.callCid !== callCid),
+    );
     await this.client.sendEvent({
       callCid,
       eventType: UserEventType.REJECTED_CALL,
@@ -272,7 +295,7 @@ export class StreamVideoClient {
   /**
    * Event handler invoked upon delivery of CallRejected Websocket event.
    * Updates the state store and notifies its subscribers that
-   * the call is now considered terminated.
+   * the given user will not be joining the call.
    * @param event received CallRejected Websocket event
    * @returns
    */
@@ -282,13 +305,6 @@ export class StreamVideoClient {
       console.warn("Can't find call in CallRejected event");
       return;
     }
-
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.pendingCallsSubject,
-      this.writeableStateStore
-        .getCurrentValue(this.writeableStateStore.pendingCallsSubject)
-        .filter((pendingCall) => pendingCall.call?.callCid !== call.callCid),
-    );
 
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.hangupNotificationsSubject,
@@ -308,6 +324,26 @@ export class StreamVideoClient {
    * @returns
    */
   cancelCall = async (callCid: string) => {
+    const activeCall = this.writeableStateStore.getCurrentValue(
+      this.writeableStateStore.activeCallSubject,
+    );
+    const pendingCalls = this.writeableStateStore.getCurrentValue(
+      this.writeableStateStore.pendingCallsSubject,
+    );
+    const filteredPendingCalls = pendingCalls.filter(
+      (outCall) => outCall.call?.callCid !== callCid,
+    );
+
+    if (activeCall?.data.call?.callCid === callCid) {
+      await activeCall.leave();
+    }
+    if (filteredPendingCalls.length < pendingCalls.length) {
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.pendingCallsSubject,
+        filteredPendingCalls,
+      );
+    }
+
     await this.client.sendEvent({
       callCid,
       eventType: UserEventType.CANCELLED_CALL,
@@ -327,13 +363,6 @@ export class StreamVideoClient {
       console.log("Can't find call in CallCancelled event");
       return;
     }
-
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.pendingCallsSubject,
-      this.writeableStateStore
-        .getCurrentValue(this.writeableStateStore.pendingCallsSubject)
-        .filter((pendingCall) => pendingCall.call?.callCid !== call.callCid),
-    );
 
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.hangupNotificationsSubject,
@@ -373,7 +402,8 @@ export class StreamVideoClient {
           this.writeableStateStore.callRecordingInProgressSubject,
           callMeta.recordingActive,
         );
-        return new Call(
+
+        const call = new Call(
           response.call,
           sfuClient,
           {
@@ -383,6 +413,13 @@ export class StreamVideoClient {
           },
           this.writeableStateStore,
         );
+
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.activeCallSubject,
+          call,
+        );
+
+        return call;
       } else {
         // TODO: handle error?
         return undefined;

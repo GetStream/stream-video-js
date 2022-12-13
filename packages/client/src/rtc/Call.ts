@@ -31,9 +31,6 @@ export class Call {
   /**@deprecated use store for this data */
   currentUserId: string;
   data: CallEnvelope;
-  /** Flag to indicate the call termination was already initiated */
-  left: boolean;
-
   private readonly subscriber: RTCPeerConnection;
   private readonly publisher: RTCPeerConnection;
   private readonly trackSubscriptionsSubject = new Subject<
@@ -57,7 +54,6 @@ export class Call {
     private readonly stateStore: StreamVideoWriteableStateStore,
   ) {
     this.data = data;
-    this.left = false;
     this.currentUserId = stateStore.getCurrentValue(
       stateStore.connectedUserSubject,
     )!.name;
@@ -116,8 +112,11 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = () => {
-    if (this.left) return;
-    this.left = true;
+    if (!this.joinResponseReady) {
+      throw new Error('Cannot leave call that has already been left.');
+    }
+    this.joinResponseReady = undefined;
+
     this.statsReporter.stop();
     this.subscriber.close();
     this.publisher.getSenders().forEach((s) => {
@@ -132,16 +131,9 @@ export class Call {
     this.client.close();
 
     this.stateStore.setCurrentValue(
-      this.stateStore.callRecordingInProgressSubject,
-      false,
-    );
-
-    this.stateStore.setCurrentValue(
       this.stateStore.activeCallSubject,
       undefined,
     );
-
-    this.stateStore.setCurrentValue(this.stateStore.participantsSubject, []);
   };
 
   /**
@@ -171,10 +163,6 @@ export class Call {
               }
               return participant;
             }),
-          );
-          this.stateStore.setCurrentValue(
-            this.stateStore.activeCallSubject,
-            this,
           );
 
           this.client.keepAlive();
