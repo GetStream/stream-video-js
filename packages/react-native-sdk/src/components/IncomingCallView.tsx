@@ -24,33 +24,6 @@ interface IncomingCallViewProps {
   onRejectCall: () => void;
 }
 
-const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const incomingCalls = useIncomingCalls();
-  const memberUserIds =
-    (incomingCalls.length &&
-      incomingCalls[incomingCalls.length - 1].callDetails?.memberUserIds) ||
-    [];
-
-  if (memberUserIds.length)
-    return (
-      <ImageBackground
-        blurRadius={10}
-        source={{
-          //FIXME: This is a temporary solution to get a random image for the background. Replace with image from coordinator
-          uri: `https://getstream.io/random_png/?id=${memberUserIds[0]}&name=${memberUserIds[0]}`,
-        }}
-        style={StyleSheet.absoluteFill}
-      >
-        {children}
-      </ImageBackground>
-    );
-  return (
-    <View style={[StyleSheet.absoluteFill, styles.background]}>{children}</View>
-  );
-};
-
 export const IncomingCallView = (props: IncomingCallViewProps) => {
   const { onAnswerCall, onRejectCall } = props;
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
@@ -114,6 +87,33 @@ export const IncomingCallView = (props: IncomingCallViewProps) => {
         </CallControlsButton>
       </View>
     </Background>
+  );
+};
+
+const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const incomingCalls = useIncomingCalls();
+  const memberUserIds =
+    (incomingCalls.length &&
+      incomingCalls[incomingCalls.length - 1].callDetails?.memberUserIds) ||
+    [];
+
+  if (memberUserIds.length)
+    return (
+      <ImageBackground
+        blurRadius={10}
+        source={{
+          //FIXME: This is a temporary solution to get a random image for the background. Replace with image from coordinator
+          uri: `https://getstream.io/random_png/?id=${memberUserIds[0]}&name=${memberUserIds[0]}`,
+        }}
+        style={StyleSheet.absoluteFill}
+      >
+        {children}
+      </ImageBackground>
+    );
+  return (
+    <View style={[StyleSheet.absoluteFill, styles.background]}>{children}</View>
   );
 };
 

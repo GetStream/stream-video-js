@@ -10,12 +10,10 @@ import {
   useLocalParticipant,
   useRemoteHangUpNotifications,
   useRemoteParticipants,
-  useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
-import { useCall, useCallControls, useCallKeep } from '../hooks';
-import InCallManager from 'react-native-incall-manager';
+import { useCall, useCallControls } from '../hooks';
 
 /**
  * Props to be passed for the OutgoingCallView component.
@@ -36,7 +34,6 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useCallControls();
   const { hangupCall } = useCall();
-  const client = useStreamVideoClient();
   const activeCall = useActiveCall();
   const activeCallMeta = activeCall?.data.call;
   const remoteHangUpNotifications = useRemoteHangUpNotifications();
@@ -46,31 +43,19 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
     (remoteHangUpNotification) =>
       remoteHangUpNotification.call?.callCid === activeCallMeta?.callCid,
   );
-  const { endCall } = useCallKeep();
 
-  const hangupHandler = useCallback(async () => {
-    if (!activeCall) {
-      console.warn('Failed to leave call: call is undefined');
-      return;
-    }
-    try {
-      if (activeCallMeta) {
-        await client?.cancelCall(activeCallMeta.callCid);
-        endCall();
-      }
-      activeCall.leave();
-      InCallManager.stop();
-    } catch (error) {
-      console.warn('failed to leave call', error);
-    }
-  }, [activeCall, activeCallMeta, client, endCall]);
+  const hangupCallHandler = useCallback(async () => {
+    await hangupCall();
+    onHangupCall();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hangupCall]);
 
   useEffect(() => {
     if (acceptedCall?.call) {
       onCallAccepted();
     }
     if (isHangUpCall) {
-      onHangupCall();
+      hangupCallHandler();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remoteHangUpNotifications, remoteParticipants]);
@@ -81,17 +66,12 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
     let timerId: ReturnType<typeof setTimeout>;
     if (remoteParticipants.length === 0) {
       timerId = setTimeout(() => {
-        hangupHandler();
+        hangupCallHandler();
       }, terminateCallAtMilliSeconds);
     }
 
     return () => clearTimeout(timerId);
-  }, [hangupHandler, remoteParticipants]);
-
-  const hangupCallHandler = async () => {
-    await hangupCall();
-    onHangupCall();
-  };
+  }, [hangupCallHandler, remoteParticipants]);
 
   return (
     <>

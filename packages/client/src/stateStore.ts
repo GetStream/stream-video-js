@@ -366,13 +366,6 @@ export class StreamVideoReadOnlyStateStore {
    * Emits a boolean indicating whether a call recording is currently in progress.
    */
   callRecordingInProgress$: Observable<boolean>;
-  /**
-   * The call metadata of the ongoing call
-   * The call metadata becomes available before the `activeCall$`
-   */
-  activeCallMeta$: Observable<Call | undefined> = new Observable<
-    Call | undefined
-  >(undefined);
 
   constructor(store: StreamVideoWriteableStateStore) {
     this.connectedUser$ = store.connectedUserSubject.asObservable();
@@ -393,7 +386,6 @@ export class StreamVideoReadOnlyStateStore {
     this.callRecordingInProgress$ =
       store.callRecordingInProgressSubject.asObservable();
     this.hasOngoingScreenShare$ = store.hasOngoingScreenShare$;
-    this.activeCallMeta$ = store.activeCallMetaSubject.asObservable();
   }
 
   /**
