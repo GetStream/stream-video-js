@@ -8,10 +8,7 @@ import {
   useStore,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import {
-  LocalMediaStreamsContextProvider,
-  MediaDevicesProvider,
-} from '../../contexts';
+import { MediaDevicesProvider } from '../../contexts';
 import { useConnectedUser } from '@stream-io/video-react-bindings/dist/src/hooks/user';
 
 type StreamCallProps = {
@@ -106,11 +103,5 @@ export const StreamCall = ({
 
   if (!videoClient) return null;
 
-  return (
-    <MediaDevicesProvider>
-      <LocalMediaStreamsContextProvider>
-        {children}
-      </LocalMediaStreamsContextProvider>
-    </MediaDevicesProvider>
-  );
+  return <MediaDevicesProvider>{children}</MediaDevicesProvider>;
 };

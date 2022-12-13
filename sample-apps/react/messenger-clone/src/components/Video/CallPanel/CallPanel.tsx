@@ -22,7 +22,6 @@ import {
   useMediaPublisher,
   DeviceSelector,
   useMediaDevices,
-  useLocalMediaStreamsContext,
 } from '@stream-io/video-react-sdk';
 
 import { CallCreated, SfuModels } from '@stream-io/video-client';
@@ -181,7 +180,7 @@ export const CallPanel = () => {
   const incomingCalls = useIncomingCalls();
   const [outgoingCall] = useOutgoingCalls();
 
-  const { localAudioStream, localVideoStream } = useLocalMediaStreamsContext();
+  const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
 
   const { client } = useChatContext();
 
@@ -195,6 +194,8 @@ export const CallPanel = () => {
 
   const { publishAudioStream, publishVideoStream } = useMediaPublisher({
     call: activeCall,
+    audioDeviceId: selectedAudioDeviceId,
+    videoDeviceId: selectedVideoDeviceId,
   });
 
   if (!(pendingCalls.length || activeCall)) return null;
@@ -203,18 +204,19 @@ export const CallPanel = () => {
     <div className="rmc__call-panel-backdrop">
       <div className="rmc__call-panel">
         <div className="rmc__secondary-participant-wrapper">
-          <ParticipantBox
-            isMuted={true}
-            // @ts-ignore
-            participant={
-              localParticipant ?? {
-                audioStream: localAudioStream,
-                videoStream: localVideoStream,
-                userId: client.user.id,
-              }
-            }
-            call={activeCall}
-          />
+          {localParticipant && (
+            <ParticipantBox
+              isMuted={true}
+              participant={localParticipant}
+              call={activeCall}
+            />
+          )}
+          {!localParticipant && (
+            <Placeholder
+              className="rmc__secondary-participant-placeholder"
+              src={client.user.image}
+            />
+          )}
         </div>
 
         <div className="rmc__primary-participant-wrapper">
