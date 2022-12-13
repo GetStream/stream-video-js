@@ -1,8 +1,8 @@
 import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 import {
+  combineLatestWith,
   distinctUntilChanged,
   map,
-  combineLatestWith,
   take,
 } from 'rxjs/operators';
 import { UserInput } from './gen/video/coordinator/user_v1/user';
@@ -22,6 +22,7 @@ import { CallStatsReport } from './stats/types';
 import { Call as CallController } from './rtc/Call';
 import { TrackType } from './gen/video/sfu/models/models';
 import { Call } from './gen/video/coordinator/call_v1/call';
+import { CallEnvelope } from './gen/video/coordinator/client_v1_rpc/envelopes';
 
 export class StreamVideoWriteableStateStore {
   /**
@@ -31,7 +32,7 @@ export class StreamVideoWriteableStateStore {
   /**
    * A store that keeps track of all created calls that have not been yet accepted, rejected nor cancelled.
    */
-  pendingCallsSubject = new BehaviorSubject<CallCreated[]>([]);
+  pendingCallsSubject = new BehaviorSubject<(CallCreated | CallEnvelope)[]>([]);
   /**
    * A list of objects describing incoming calls.
    */
@@ -39,7 +40,7 @@ export class StreamVideoWriteableStateStore {
   /**
    * A list of objects describing calls initiated by the current user (connectedUser).
    */
-  outgoingCalls$: Observable<CallCreated[]>;
+  outgoingCalls$: Observable<CallEnvelope[]>;
   /**
    * A store that keeps track of all the notifications describing accepted call.
    */
@@ -115,19 +116,21 @@ export class StreamVideoWriteableStateStore {
 
     this.incomingCalls$ = this.pendingCallsSubject.pipe(
       combineLatestWith(this.connectedUserSubject),
-      map(([pendingCalls, connectedUser]) =>
-        pendingCalls.filter(
-          (call) => call.call?.createdByUserId !== connectedUser?.id,
-        ),
+      map(
+        ([pendingCalls, connectedUser]) =>
+          pendingCalls.filter(
+            (call) => call.call?.createdByUserId !== connectedUser?.id,
+          ) as CallCreated[],
       ),
     );
 
     this.outgoingCalls$ = this.pendingCallsSubject.pipe(
       combineLatestWith(this.connectedUserSubject),
-      map(([pendingCalls, connectedUser]) =>
-        pendingCalls.filter(
-          (call) => call.call?.createdByUserId === connectedUser?.id,
-        ),
+      map(
+        ([pendingCalls, connectedUser]) =>
+          pendingCalls.filter(
+            (call) => call.call?.createdByUserId === connectedUser?.id,
+          ) as CallEnvelope[],
       ),
     );
 
@@ -287,11 +290,11 @@ export class StreamVideoReadOnlyStateStore {
   /**
    * A list of objects describing all created calls that have not been yet accepted, rejected nor cancelled.
    */
-  pendingCalls$: Observable<CallCreated[]>;
+  pendingCalls$: Observable<(CallCreated | CallEnvelope)[]>;
   /**
    * A list of objects describing calls initiated by the current user (connectedUser).
    */
-  outgoingCalls$: Observable<CallCreated[]>;
+  outgoingCalls$: Observable<CallEnvelope[]>;
   /**
    * A list of objects describing incoming calls.
    */
