@@ -111,8 +111,7 @@ export const CallControls = (props: {
         icon="call-end"
         variant="danger"
         onClick={() => {
-          call.leave();
-          callMeta && client?.cancelCall(callMeta.callCid);
+          call.data.call && client?.cancelCall(call.data.call?.callCid);
         }}
       />
     </div>
