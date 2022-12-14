@@ -27,14 +27,21 @@ import {
 import { CallCreated, SfuModels } from '@stream-io/video-client';
 import { useChatContext } from 'stream-chat-react';
 import { ComponentProps, useMemo } from 'react';
+import { CallEnvelope } from '@stream-io/video-client/dist/src/gen/video/coordinator/client_v1_rpc/envelopes';
+
+type ButtonControlsProps = {
+  publishAudioStream: () => Promise<void>;
+  publishVideoStream: () => Promise<void>;
+  incomingCall?: CallCreated;
+  outgoingCall?: CallEnvelope;
+};
 
 const ButtonControls = ({
   incomingCall,
   outgoingCall,
   publishAudioStream,
   publishVideoStream,
-}: Record<'incomingCall' | 'outgoingCall', CallCreated> &
-  Record<'publishAudioStream' | 'publishVideoStream', () => Promise<void>>) => {
+}: ButtonControlsProps) => {
   const videoClient = useStreamVideoClient();
   const activeCall = useActiveCall();
 
@@ -127,7 +134,6 @@ const ButtonControls = ({
             className="rmc__button rmc__button--red"
             onClick={() => {
               videoClient.cancelCall(activeCall.data.call.callCid);
-              activeCall.leave();
             }}
           >
             <PhoneDisabled />
@@ -166,12 +172,12 @@ const Placeholder = ({
 };
 
 export const CallPanel = () => {
-  const pendingCalls = usePendingCalls();
   const activeCall = useActiveCall();
   const [remoteParticipant] = useRemoteParticipants();
   const localParticipant = useLocalParticipant();
 
-  const [incomingCall] = useIncomingCalls();
+  const pendingCalls = usePendingCalls();
+  const incomingCalls = useIncomingCalls();
   const [outgoingCall] = useOutgoingCalls();
 
   const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
@@ -192,7 +198,7 @@ export const CallPanel = () => {
     videoDeviceId: selectedVideoDeviceId,
   });
 
-  if (!pendingCalls.length && !activeCall) return null;
+  if (!(pendingCalls.length || activeCall)) return null;
 
   return (
     <div className="rmc__call-panel-backdrop">
@@ -228,7 +234,7 @@ export const CallPanel = () => {
         <ButtonControls
           publishAudioStream={publishAudioStream}
           publishVideoStream={publishVideoStream}
-          incomingCall={incomingCall}
+          incomingCall={incomingCalls[0]}
           outgoingCall={outgoingCall}
         />
       </div>
