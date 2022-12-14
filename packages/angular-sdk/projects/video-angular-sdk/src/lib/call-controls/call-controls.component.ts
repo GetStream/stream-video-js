@@ -1,11 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import {
-  StreamVideoParticipant,
-  Call,
-  SfuModels,
-} from '@stream-io/video-client';
+import { Call, SfuModels, CallMeta } from '@stream-io/video-client';
 import { NgxPopperjsTriggers } from 'ngx-popperjs';
 import { Subscription } from 'rxjs';
+import {
+  DeviceManagerService,
+  MediaStreamState,
+} from '../device-manager.service';
 import { StreamVideoService } from '../video.service';
 
 @Component({
@@ -14,15 +14,20 @@ import { StreamVideoService } from '../video.service';
   styles: [],
 })
 export class CallControlsComponent implements OnInit, OnDestroy {
-  localParticipant?: StreamVideoParticipant;
+  videoState?: MediaStreamState;
+  audioState?: MediaStreamState;
   call?: Call;
   isCallRecordingInProgress: boolean = false;
   popperTrigger = NgxPopperjsTriggers.click;
   private subscriptions: Subscription[] = [];
+  private activeCallMeta!: CallMeta.Call;
 
   TrackType = SfuModels.TrackType;
 
-  constructor(private streamVideoService: StreamVideoService) {
+  constructor(
+    private streamVideoService: StreamVideoService,
+    private deviceManager: DeviceManagerService,
+  ) {
     this.subscriptions.push(
       this.streamVideoService.callRecordingInProgress$.subscribe(
         (inProgress) => (this.isCallRecordingInProgress = inProgress),
@@ -32,9 +37,15 @@ export class CallControlsComponent implements OnInit, OnDestroy {
       this.streamVideoService.activeCall$.subscribe((c) => (this.call = c)),
     );
     this.subscriptions.push(
-      this.streamVideoService.activeCallLocalParticipant$.subscribe(
-        (p) => (this.localParticipant = p),
+      this.streamVideoService.activeCallMeta$.subscribe(
+        (callMeta) => (this.activeCallMeta = callMeta!),
       ),
+    );
+    this.subscriptions.push(
+      this.deviceManager.videoState$.subscribe((s) => (this.videoState = s)),
+    );
+    this.subscriptions.push(
+      this.deviceManager.audioState$.subscribe((s) => (this.audioState = s)),
     );
   }
 
@@ -44,38 +55,24 @@ export class CallControlsComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
-  updateAudioMuteState() {
-    console.warn(
-      this.call,
-      !this.localParticipant?.publishedTracks.includes(
-        SfuModels.TrackType.AUDIO,
-      ),
-    );
-    // this.call?.updateMuteState(
-    //   'audio',
-    //   !!this.localParticipant?.publishedTracks.includes(
-    //     SfuModels.TrackType.AUDIO,
-    //   ),
-    // );
-    console.warn(`Not yet implemented`);
+  toggleAudio() {
+    this.deviceManager.toggleAudio();
   }
 
-  updateVideoMuteState() {
-    // this.call?.updateMuteState(
-    //   'video',
-    //   !!this.localParticipant?.publishedTracks.includes(
-    //     SfuModels.TrackType.VIDEO,
-    //   ),
-    // );
-    console.warn(`Not yet implemented`);
+  toggleVideo() {
+    this.deviceManager.toggleVideo();
   }
 
   toggleRecording() {
-    alert('Not yet implemented');
-    // TODO: call meta should be part of the store
-    // this.isCallRecordingInProgress
-    //   ? this.streamVideoService.videoClient?.stopRecording('', '')
-    //   : this.streamVideoService.videoClient?.startRecording('', '');
+    this.isCallRecordingInProgress
+      ? this.streamVideoService.videoClient?.stopRecording(
+          this.activeCallMeta.id,
+          this.activeCallMeta.type,
+        )
+      : this.streamVideoService.videoClient?.startRecording(
+          this.activeCallMeta.id,
+          this.activeCallMeta.type,
+        );
   }
 
   endCall() {

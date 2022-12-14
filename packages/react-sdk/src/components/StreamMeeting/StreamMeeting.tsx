@@ -47,11 +47,5 @@ export const StreamMeeting = ({
     });
   }, [callId, client, callType, currentUser, autoJoin, input]);
 
-  return (
-    <MediaDevicesProvider>
-      <LocalMediaStreamsContextProvider>
-        {children}
-      </LocalMediaStreamsContextProvider>
-    </MediaDevicesProvider>
-  );
+  return <MediaDevicesProvider>{children}</MediaDevicesProvider>;
 };

@@ -1,15 +1,8 @@
 import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
-import {
-  Call,
-  getAudioStream,
-  getVideoStream,
-  StreamVideoLocalParticipant,
-  watchForDisconnectedAudioDevice,
-  watchForDisconnectedVideoDevice,
-  checkIfAudioOutputChangeSupported,
-  watchForDisconnectedAudioOutputDevice,
-} from '@stream-io/video-client';
-import { map, Observable, Subscription } from 'rxjs';
+import { Call, StreamVideoLocalParticipant } from '@stream-io/video-client';
+import { Observable, Subscription } from 'rxjs';
+import { DeviceManagerService } from '../device-manager.service';
+import { InCallDeviceManagerService } from '../in-call-device-manager.service';
 import { StreamVideoService } from '../video.service';
 
 @Component({
@@ -21,57 +14,26 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
   call!: Call;
   localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
   private subscriptions: Subscription[] = [];
-  private isAudioOuputDeviceChangeSupported =
-    checkIfAudioOutputChangeSupported();
 
-  constructor(private streamVideoService: StreamVideoService) {
+  constructor(
+    private streamVideoService: StreamVideoService,
+    private inCallDeviceManager: InCallDeviceManagerService,
+    private deviceManager: DeviceManagerService,
+  ) {
+    this.deviceManager.initAudioDevices();
+    this.deviceManager.initVideoDevices();
+    this.deviceManager.initAudioOutputDevices();
+    this.deviceManager.startAudio();
+    this.deviceManager.startVideo();
     this.localParticipant$ =
       this.streamVideoService.activeCallLocalParticipant$;
-    let deviceDisconnectSubscriptions: Subscription[] = [];
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe(async (c) => {
+        this.call = c!;
         if (c) {
-          this.call = c;
-          let audioStream: MediaStream;
-          let videoStream: MediaStream;
-          try {
-            audioStream = await getAudioStream();
-          } catch (error) {
-            throw error;
-          }
-          try {
-            videoStream = await getVideoStream();
-          } catch (error) {
-            throw error;
-          }
-          await this.call.publishAudioStream(audioStream);
-          await this.call.publishVideoStream(videoStream);
-          deviceDisconnectSubscriptions.push(
-            watchForDisconnectedAudioDevice(
-              this.localParticipant$.pipe(map((p) => p?.audioDeviceId)),
-            ).subscribe(async () => {
-              const audioStream = await getAudioStream();
-              await c.publishAudioStream(audioStream);
-            }),
-          );
-          deviceDisconnectSubscriptions.push(
-            watchForDisconnectedVideoDevice(
-              this.localParticipant$.pipe(map((p) => p?.videoDeviceId)),
-            ).subscribe(async () => {
-              const videoStream = await getVideoStream();
-              await c.publishVideoStream(videoStream);
-            }),
-          );
-          deviceDisconnectSubscriptions.push(
-            watchForDisconnectedAudioOutputDevice(
-              this.localParticipant$.pipe(map((p) => p?.audioOutputDeviceId)),
-            ).subscribe(async () => {
-              c.setAudioOutputDevice(undefined);
-            }),
-          );
+          this.inCallDeviceManager.start();
         } else {
-          deviceDisconnectSubscriptions.forEach((s) => s.unsubscribe());
-          deviceDisconnectSubscriptions = [];
+          this.inCallDeviceManager.stop();
         }
       }),
     );

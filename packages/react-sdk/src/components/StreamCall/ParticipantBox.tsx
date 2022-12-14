@@ -11,47 +11,23 @@ import { DebugStatsView } from '../Debug/DebugStatsView';
 import { Video } from './Video';
 
 export const ParticipantBox = (props: {
-  participant?: StreamVideoParticipant;
+  participant: StreamVideoParticipant;
   isMuted?: boolean;
   call: Call;
   sinkId?: string;
 }) => {
   const { participant, isMuted = false, call, sinkId } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const {
     videoStream,
     audioStream,
     isLoggedInUser: isLocalParticipant,
     isSpeaking,
-    sessionId,
     publishedTracks,
-  } = participant ?? {};
+  } = participant;
 
-  const hasAudio = publishedTracks?.includes(SfuModels.TrackType.AUDIO);
-  const hasVideo = publishedTracks?.includes(SfuModels.TrackType.VIDEO);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || !hasVideo || !sessionId) return;
-
-    const resizeObserver = new ResizeObserver(() => {
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-      call.updateSubscriptionsPartial({
-        [sessionId]: {
-          videoDimension: {
-            width,
-            height,
-          },
-        },
-      });
-    });
-    resizeObserver.observe(container);
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [hasVideo, sessionId, call]);
+  const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
+  const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
 
   useEffect(() => {
     const $el = audioRef.current;
@@ -75,12 +51,13 @@ export const ParticipantBox = (props: {
         'str-video__participant',
         isSpeaking && 'str-video__participant--speaking',
       )}
-      ref={containerRef}
     >
       <audio autoPlay ref={audioRef} muted={isMuted} />
       <div className="str-video__video-container">
         <Video
-          stream={videoStream}
+          call={call}
+          participant={participant}
+          kind="video"
           className={clsx(
             'str-video__remote-video',
             isLocalParticipant && 'mirror',
@@ -90,7 +67,7 @@ export const ParticipantBox = (props: {
         />
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
-            {participant?.userId}
+            {participant.userId}
             {!hasAudio && (
               <span className="str-video__participant_name--audio-muted"></span>
             )}
@@ -98,7 +75,7 @@ export const ParticipantBox = (props: {
               <span className="str-video__participant_name--video-muted"></span>
             )}
           </span>
-          {isDebugMode && participant && (
+          {isDebugMode && (
             <>
               <DebugParticipantPublishQuality
                 participant={participant}
