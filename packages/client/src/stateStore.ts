@@ -28,7 +28,7 @@ import { CallEnvelope } from './gen/video/coordinator/client_v1_rpc/envelopes';
 type UserID = string;
 
 export type RemoteHangupNotification = {
-  hangups: Set<UserID>;
+  hungUpByUsers: Set<UserID>;
   targetCall: {
     callCid: string;
     memberUserIds: string[];
@@ -162,6 +162,7 @@ export class StreamVideoWriteableStateStore {
         hangups.filter((hangup) => hangup.senderUserId !== connectedUser?.id),
       ),
     );
+
     this.activeCallHangupNotifications$ = this.remoteHangupNotifications$.pipe(
       map((hangups) => {
         const activeCall = this.getCurrentValue(this.activeCallSubject);
@@ -184,7 +185,7 @@ export class StreamVideoWriteableStateStore {
       map(({ targetCall, hangups }) => {
         return {
           targetCall,
-          hangups: hangups.reduce((acc, hangup) => {
+          hungUpByUsers: hangups.reduce((acc, hangup) => {
             if (hangup.call?.callCid === targetCall.callCid) {
               acc.add(hangup.senderUserId);
             }
@@ -215,7 +216,7 @@ export class StreamVideoWriteableStateStore {
         map(({ hangups, targetCall }) => {
           return {
             targetCall,
-            hangups: hangups.reduce((acc, hangup) => {
+            hungUpByUsers: hangups.reduce((acc, hangup) => {
               if (hangup.call?.callCid === targetCall.callCid) {
                 acc.add(hangup.senderUserId);
               }
@@ -246,7 +247,7 @@ export class StreamVideoWriteableStateStore {
         map(({ hangups, targetCall }) => {
           return {
             targetCall,
-            hangups: hangups.reduce((acc, hangup) => {
+            hungUpByUsers: hangups.reduce((acc, hangup) => {
               if (hangup.call?.callCid === targetCall.callCid) {
                 acc.add(hangup.senderUserId);
               }
