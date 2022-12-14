@@ -2,43 +2,39 @@ import {
   useActiveCall,
   useIncomingCalls,
   useLocalParticipant,
-  useOutgoingCalls,
   usePendingCalls,
   useRemoteParticipants,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 
 import {
-  PhoneDisabled,
   LocalPhone,
-  MicOff,
   Mic,
+  MicOff,
+  PhoneDisabled,
   Videocam,
   VideocamOff,
 } from '@mui/icons-material';
 
 import {
-  ParticipantBox,
-  useMediaPublisher,
   DeviceSelector,
+  ParticipantBox,
   useMediaDevices,
+  useMediaPublisher,
 } from '@stream-io/video-react-sdk';
 
 import { CallCreated, SfuModels } from '@stream-io/video-client';
 import { useChatContext } from 'stream-chat-react';
 import { ComponentProps, useMemo } from 'react';
-import { CallEnvelope } from '@stream-io/video-client/dist/src/gen/video/coordinator/client_v1_rpc/envelopes';
 
 type ButtonControlsProps = {
   publishAudioStream: () => Promise<void>;
   publishVideoStream: () => Promise<void>;
   incomingCall?: CallCreated;
-  outgoingCall?: CallEnvelope;
 };
 
 const ButtonControls = ({
   incomingCall,
-  outgoingCall,
   publishAudioStream,
   publishVideoStream,
 }: ButtonControlsProps) => {
@@ -80,7 +76,7 @@ const ButtonControls = ({
           switchDevice('videoinput', deviceId);
         }}
       />
-      {incomingCall && !activeCall && !outgoingCall && (
+      {incomingCall && !activeCall && (
         <>
           <button
             className="rmc__button rmc__button--green"
@@ -95,14 +91,6 @@ const ButtonControls = ({
             <PhoneDisabled />
           </button>
         </>
-      )}
-      {outgoingCall && !activeCall && (
-        <button
-          className="rmc__button rmc__button--red"
-          onClick={() => videoClient.cancelCall(outgoingCall.call.callCid)}
-        >
-          <PhoneDisabled />
-        </button>
       )}
       {activeCall && (
         <>
@@ -178,7 +166,6 @@ export const CallPanel = () => {
 
   const pendingCalls = usePendingCalls();
   const incomingCalls = useIncomingCalls();
-  const [outgoingCall] = useOutgoingCalls();
 
   const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
 
@@ -235,7 +222,6 @@ export const CallPanel = () => {
           publishAudioStream={publishAudioStream}
           publishVideoStream={publishVideoStream}
           incomingCall={incomingCalls[0]}
-          outgoingCall={outgoingCall}
         />
       </div>
     </div>
