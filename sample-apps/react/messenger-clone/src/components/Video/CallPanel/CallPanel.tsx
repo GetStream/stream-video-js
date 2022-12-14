@@ -159,7 +159,15 @@ const Placeholder = ({
   );
 };
 
-export const CallPanel = () => {
+export const CallPannelOuter = () => {
+  const activeCall = useActiveCall();
+
+  if (!activeCall) return <div>placeholder</div>;
+
+  return <CallPanel />;
+};
+
+const CallPanel = () => {
   const activeCall = useActiveCall();
   const [remoteParticipant] = useRemoteParticipants();
   const localParticipant = useLocalParticipant();

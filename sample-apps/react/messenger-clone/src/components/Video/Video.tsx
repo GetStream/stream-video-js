@@ -7,7 +7,7 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { StreamChatType } from '../../types/chat';
-import { CallPanel } from './CallPanel/CallPanel';
+import { CallPannelOuter } from './CallPanel/CallPanel';
 
 type VideoProps = {
   user: StreamChatType['userType'];
@@ -31,7 +31,7 @@ export const Video = ({
     <StreamVideo client={client}>
       {children}
       <StreamCall leaveOnLeftAlone>
-        <CallPanel />
+        <CallPannelOuter />
       </StreamCall>
     </StreamVideo>
   );
