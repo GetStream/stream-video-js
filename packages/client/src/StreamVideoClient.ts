@@ -248,7 +248,7 @@ export class StreamVideoClient {
     });
     const [type, id] = callCid.split(':');
     const callController = await this.joinCall({ id, type, datacenterId: '' });
-    callController?.join();
+    await callController?.join();
     return callController;
   };
 
