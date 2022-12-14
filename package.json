@@ -29,6 +29,7 @@
     "build:client": "yarn workspace @stream-io/video-client run build",
     "start:client": "yarn workspace @stream-io/video-client run start",
     "build:react:deps": "yarn build:client && yarn build:react:bindings && yarn build:react:sdk && yarn build:styling",
+    "build:react-native:deps": "yarn build:client && yarn build:react:bindings && yarn build:react-native:sdk",
     "build:vercel": "yarn build:react:deps && yarn build:react:dogfood",
     "build:react:app": "yarn build:react:deps && yarn workspace @stream-io/video-react-sample-app run build",
     "start:egress": "yarn workspace @stream-io/egress-composite start",
