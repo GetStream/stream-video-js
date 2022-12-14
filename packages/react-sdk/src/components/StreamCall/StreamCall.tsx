@@ -1,10 +1,12 @@
-import { PropsWithChildren, useEffect } from 'react';
+import { PropsWithChildren, useCallback, useEffect } from 'react';
 import { RemoteHangupNotification } from '@stream-io/video-client';
 
 import {
   useActiveCall,
+  useActiveCallHangUpNotification,
+  useIncomingCallHangUpNotification,
+  useOutgoingCallHangUpNotification,
   useOutgoingCalls,
-  useStore,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { MediaDevicesProvider } from '../../contexts';
@@ -20,11 +22,9 @@ export const StreamCall = ({
   const videoClient = useStreamVideoClient();
   const [outgoingCall] = useOutgoingCalls();
   const activeCall = useActiveCall();
-  const {
-    activeCallHangupNotifications$,
-    outgoingCallHangupNotifications$,
-    incomingCallHangupNotifications$,
-  } = useStore();
+  const activeCallHangupNotification = useActiveCallHangUpNotification();
+  const outgoingCallHangupNotification = useOutgoingCallHangUpNotification();
+  const incomingCallHangupNotification = useIncomingCallHangUpNotification();
 
   useEffect(() => {
     if (!(videoClient && outgoingCall?.call) || activeCall) return;
@@ -41,40 +41,38 @@ export const StreamCall = ({
       });
   }, [videoClient, outgoingCall, activeCall]);
 
-  useEffect(() => {
-    if (!videoClient) return;
-    const cancelCallOnRemoteHangup = ({
-      hangups,
-      targetCall,
-    }: RemoteHangupNotification) => {
+  const cancelCallOnRemoteHangup = useCallback(
+    ({ hungUpByUsers, targetCall }: RemoteHangupNotification) => {
+      if (!videoClient) return;
+
       const hungUpByCreator =
-        !!targetCall.callCreatedBy && hangups.has(targetCall.callCreatedBy);
+        !!targetCall.callCreatedBy &&
+        hungUpByUsers.has(targetCall.callCreatedBy);
       const isLeftAlone = targetCall.memberUserIds.every((memberId) =>
-        hangups.has(memberId),
+        hungUpByUsers.has(memberId),
       );
       if (isLeftAlone || hungUpByCreator) {
         videoClient.cancelCall(targetCall.callCid);
       }
-    };
+    },
+    [videoClient],
+  );
 
-    const activeCallHangupsSubscription =
-      activeCallHangupNotifications$.subscribe(cancelCallOnRemoteHangup);
-
-    const outgoingCallHangupsSubscription =
-      outgoingCallHangupNotifications$.subscribe(cancelCallOnRemoteHangup);
-
-    const incomingCallHangupsSubscription =
-      incomingCallHangupNotifications$.subscribe(cancelCallOnRemoteHangup);
-    return () => {
-      activeCallHangupsSubscription.unsubscribe();
-      outgoingCallHangupsSubscription.unsubscribe();
-      incomingCallHangupsSubscription.unsubscribe();
-    };
+  useEffect(() => {
+    if (activeCallHangupNotification) {
+      cancelCallOnRemoteHangup(activeCallHangupNotification);
+    }
+    if (outgoingCallHangupNotification) {
+      cancelCallOnRemoteHangup(outgoingCallHangupNotification);
+    }
+    if (incomingCallHangupNotification) {
+      cancelCallOnRemoteHangup(incomingCallHangupNotification);
+    }
   }, [
-    videoClient,
-    activeCallHangupNotifications$,
-    outgoingCallHangupNotifications$,
-    incomingCallHangupNotifications$,
+    activeCallHangupNotification,
+    outgoingCallHangupNotification,
+    incomingCallHangupNotification,
+    cancelCallOnRemoteHangup,
   ]);
 
   if (!videoClient) return null;

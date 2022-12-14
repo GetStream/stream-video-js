@@ -96,3 +96,18 @@ export const useRemoteHangUpNotifications = () => {
   const { remoteHangupNotifications$ } = useStore();
   return useObservableValue(remoteHangupNotifications$);
 };
+
+export const useActiveCallHangUpNotification = () => {
+  const { activeCallHangupNotifications$ } = useStore();
+  return useObservableValue(activeCallHangupNotifications$);
+};
+
+export const useOutgoingCallHangUpNotification = () => {
+  const { outgoingCallHangupNotifications$ } = useStore();
+  return useObservableValue(outgoingCallHangupNotifications$);
+};
+
+export const useIncomingCallHangUpNotification = () => {
+  const { incomingCallHangupNotifications$ } = useStore();
+  return useObservableValue(incomingCallHangupNotifications$);
+};
