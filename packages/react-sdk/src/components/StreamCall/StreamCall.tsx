@@ -1,15 +1,13 @@
-import { PropsWithChildren, useEffect, useRef } from 'react';
-import { CallCancelled, CallRejected } from '@stream-io/video-client';
+import { PropsWithChildren, useEffect } from 'react';
+import { RemoteHangupNotification } from '@stream-io/video-client';
 
 import {
-  useAcceptedCall,
-  useIncomingCalls,
+  useActiveCall,
   useOutgoingCalls,
   useStore,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { MediaDevicesProvider } from '../../contexts';
-import { useConnectedUser } from '@stream-io/video-react-bindings/dist/src/hooks/user';
 
 type StreamCallProps = {
   leaveOnLeftAlone?: boolean;
@@ -20,85 +18,63 @@ export const StreamCall = ({
   leaveOnLeftAlone,
 }: PropsWithChildren<StreamCallProps>) => {
   const videoClient = useStreamVideoClient();
-  const user = useConnectedUser();
-  const incomingCalls = useIncomingCalls();
-  const outgoingCalls = useOutgoingCalls();
-  const acceptedCall = useAcceptedCall();
-  const { localHangupNotifications$ } = useStore();
-  const { remoteHangupNotifications$ } = useStore();
-
-  const isJoiningRef = useRef(false);
+  const [outgoingCall] = useOutgoingCalls();
+  const activeCall = useActiveCall();
+  const {
+    activeCallHangupNotifications$,
+    outgoingCallHangupNotifications$,
+    incomingCallHangupNotifications$,
+  } = useStore();
 
   useEffect(() => {
-    if (!(videoClient && acceptedCall) || isJoiningRef.current) return;
+    if (!(videoClient && outgoingCall?.call) || activeCall) return;
 
-    const callToJoin =
-      outgoingCalls.length > 0
-        ? outgoingCalls.find(
-            (c) => c.call?.callCid === acceptedCall?.call?.callCid,
-          )
-        : incomingCalls.length > 0
-        ? incomingCalls.find(
-            (c) =>
-              c.call?.callCid === acceptedCall?.call?.callCid &&
-              acceptedCall.senderUserId === user?.id,
-          )
-        : undefined;
+    videoClient
+      ?.joinCall({
+        id: outgoingCall.call.id,
+        type: outgoingCall.call.type,
+        // FIXME: OL optional, but it is marked as required in proto
+        datacenterId: '',
+      })
+      .then((call) => {
+        call?.join();
+      });
+  }, [videoClient, outgoingCall, activeCall]);
 
-    if (callToJoin?.call) {
-      isJoiningRef.current = true;
-      videoClient
-        ?.joinCall({
-          id: callToJoin.call.id,
-          type: callToJoin.call.type,
-          // FIXME: OL optional, but it is marked as required in proto
-          datacenterId: '',
-        })
-        .then((call) => {
-          if (call?.left) return call;
-          const filterActiveCallHangups = (
-            acc: Set<string>,
-            notification: CallCancelled | CallRejected,
-          ) => {
-            if (notification.call?.callCid === call?.data.call?.callCid) {
-              acc.add(notification.senderUserId);
-            }
-            return acc;
-          };
-          localHangupNotifications$.subscribe((notifications) => {
-            const myHangups = notifications.reduce(
-              filterActiveCallHangups,
-              new Set(),
-            );
-            myHangups.size > 0 && call?.leave();
-          });
+  useEffect(() => {
+    if (!videoClient) return;
+    const cancelCallOnRemoteHangup = ({
+      hangups,
+      targetCall,
+    }: RemoteHangupNotification) => {
+      const hungUpByCreator =
+        !!targetCall.callCreatedBy && hangups.has(targetCall.callCreatedBy);
+      const isLeftAlone = targetCall.memberUserIds.every((memberId) =>
+        hangups.has(memberId),
+      );
+      if (isLeftAlone || hungUpByCreator) {
+        videoClient.cancelCall(targetCall.callCid);
+      }
+    };
 
-          remoteHangupNotifications$.subscribe((notifications) => {
-            const members = call?.data.details?.memberUserIds || [];
-            const wasLeftAlone =
-              notifications.reduce(filterActiveCallHangups, new Set()).size ===
-              members.length - 1;
+    const activeCallHangupsSubscription =
+      activeCallHangupNotifications$.subscribe(cancelCallOnRemoteHangup);
 
-            if (wasLeftAlone && leaveOnLeftAlone) {
-              call?.leave();
-            }
-          });
-          return call;
-        })
-        .then((call) => {
-          !call?.left && call?.join();
-        });
-    }
+    const outgoingCallHangupsSubscription =
+      outgoingCallHangupNotifications$.subscribe(cancelCallOnRemoteHangup);
+
+    const incomingCallHangupsSubscription =
+      incomingCallHangupNotifications$.subscribe(cancelCallOnRemoteHangup);
+    return () => {
+      activeCallHangupsSubscription.unsubscribe();
+      outgoingCallHangupsSubscription.unsubscribe();
+      incomingCallHangupsSubscription.unsubscribe();
+    };
   }, [
     videoClient,
-    outgoingCalls,
-    incomingCalls,
-    acceptedCall,
-    localHangupNotifications$,
-    remoteHangupNotifications$,
-    leaveOnLeftAlone,
-    isJoiningRef,
-    user,
+    activeCallHangupNotifications$,
+    outgoingCallHangupNotifications$,
+    incomingCallHangupNotifications$,
   ]);
 
   if (!videoClient) return null;
