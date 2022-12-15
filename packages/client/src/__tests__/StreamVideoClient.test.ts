@@ -72,8 +72,8 @@ describe('StreamVideoClient', () => {
     let pinnedParticipants = getPinnedParticipants();
     expect(pinnedParticipants).toHaveLength(0);
 
-    client.writeableStateStore.setCurrentValue(
-      client.writeableStateStore.participantsSubject,
+    client['writeableStateStore'].setCurrentValue(
+      client['writeableStateStore'].participantsSubject,
       [p1, p2],
     );
 
