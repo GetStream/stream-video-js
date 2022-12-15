@@ -31,18 +31,40 @@ export const useMediaPublisher = ({
   const { localParticipant$ } = useStore();
 
   useEffect(() => {
+    let interrupted = false;
+
     if (initialAudioMuted) return;
+
     getAudioStream(audioDeviceId).then((stream) => {
+      if (interrupted && stream.active)
+        return stream.getTracks().forEach((t) => t.stop());
+
       return call.publishAudioStream(stream);
     });
+
+    return () => {
+      interrupted = true;
+      call.stopPublish(SfuModels.TrackType.AUDIO);
+    };
   }, [call, audioDeviceId, initialAudioMuted]);
 
   const preferredCodec = useDebugPreferredVideoCodec();
   useEffect(() => {
+    let interrupted = false;
+
     if (initialVideoMuted) return;
+
     getVideoStream(videoDeviceId).then((stream) => {
+      if (interrupted && stream.active)
+        return stream.getTracks().forEach((t) => t.stop());
+
       return call.publishVideoStream(stream, { preferredCodec });
     });
+
+    return () => {
+      interrupted = true;
+      call.stopPublish(SfuModels.TrackType.VIDEO);
+    };
   }, [videoDeviceId, call, preferredCodec, initialVideoMuted]);
 
   const publishAudioStream = useCallback(async () => {
