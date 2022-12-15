@@ -353,7 +353,6 @@ export class Call {
     );
     if (transceiver && transceiver.sender.track) {
       transceiver.sender.track.stop();
-      await transceiver.sender.replaceTrack(null);
       await this.client.updateMuteState(trackType, true);
 
       const audioOrVideoOrScreenShareStream =
