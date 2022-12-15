@@ -13,11 +13,13 @@ import { MediaDevicesProvider } from '../../contexts';
 
 type StreamCallProps = {
   leaveOnLeftAlone?: boolean;
+  leaveOnCreatorLeft?: boolean;
 };
 
 export const StreamCall = ({
   children,
   leaveOnLeftAlone,
+  leaveOnCreatorLeft,
 }: PropsWithChildren<StreamCallProps>) => {
   const videoClient = useStreamVideoClient();
   const [outgoingCall] = useOutgoingCalls();
@@ -51,11 +53,14 @@ export const StreamCall = ({
       const isLeftAlone = targetCall.memberUserIds.every((memberId) =>
         hungUpByUsers.has(memberId),
       );
-      if (isLeftAlone || hungUpByCreator) {
+      if (
+        (isLeftAlone && leaveOnLeftAlone) ||
+        (hungUpByCreator && leaveOnCreatorLeft)
+      ) {
         videoClient.cancelCall(targetCall.callCid);
       }
     },
-    [videoClient],
+    [videoClient, leaveOnCreatorLeft, leaveOnLeftAlone],
   );
 
   useEffect(() => {

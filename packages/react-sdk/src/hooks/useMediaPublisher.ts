@@ -22,7 +22,7 @@ export const useMediaPublisher = ({
   videoDeviceId,
   audioDeviceId,
 }: {
-  call?: Call;
+  call: Call;
   initialAudioMuted?: boolean;
   initialVideoMuted?: boolean;
   audioDeviceId?: string;
@@ -33,7 +33,7 @@ export const useMediaPublisher = ({
   useEffect(() => {
     if (initialAudioMuted) return;
     getAudioStream(audioDeviceId).then((stream) => {
-      return call?.publishAudioStream(stream);
+      return call.publishAudioStream(stream);
     });
   }, [call, audioDeviceId, initialAudioMuted]);
 
@@ -41,14 +41,14 @@ export const useMediaPublisher = ({
   useEffect(() => {
     if (initialVideoMuted) return;
     getVideoStream(videoDeviceId).then((stream) => {
-      return call?.publishVideoStream(stream, { preferredCodec });
+      return call.publishVideoStream(stream, { preferredCodec });
     });
   }, [videoDeviceId, call, preferredCodec, initialVideoMuted]);
 
   const publishAudioStream = useCallback(async () => {
     try {
       const audioStream = await getAudioStream(audioDeviceId);
-      await call?.publishAudioStream(audioStream);
+      await call.publishAudioStream(audioStream);
     } catch (e) {
       console.log('Failed to publish audio stream', e);
     }
@@ -57,7 +57,7 @@ export const useMediaPublisher = ({
   const publishVideoStream = useCallback(async () => {
     try {
       const videoStream = await getVideoStream(videoDeviceId);
-      await call?.publishVideoStream(videoStream, { preferredCodec });
+      await call.publishVideoStream(videoStream, { preferredCodec });
     } catch (e) {
       console.log('Failed to publish video stream', e);
     }
@@ -67,7 +67,7 @@ export const useMediaPublisher = ({
     const subscription = watchForDisconnectedAudioDevice(
       localParticipant$.pipe(map((p) => p?.audioDeviceId)),
     ).subscribe(async () => {
-      await call?.stopPublish(SfuModels.TrackType.AUDIO);
+      await call.stopPublish(SfuModels.TrackType.AUDIO);
     });
     return () => {
       subscription.unsubscribe();
@@ -78,7 +78,7 @@ export const useMediaPublisher = ({
     const subscription = watchForDisconnectedVideoDevice(
       localParticipant$.pipe(map((p) => p?.videoDeviceId)),
     ).subscribe(async () => {
-      await call?.stopPublish(SfuModels.TrackType.VIDEO);
+      await call.stopPublish(SfuModels.TrackType.VIDEO);
     });
     return () => {
       subscription.unsubscribe();
