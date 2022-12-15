@@ -327,12 +327,11 @@ export class StreamVideoClient {
       return;
     }
 
-    store.setCurrentValue(
-      store.pendingCallsSubject,
-      store
-        .getCurrentValue(store.pendingCallsSubject)
-        .filter(
-          (incomingCall) => incomingCall.call?.callCid !== event.call?.callCid,
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.pendingCallsSubject,
+      (pendingCalls) =>
+        pendingCalls.filter(
+          (pendingCalls) => pendingCalls.call?.callCid !== event.call?.callCid,
         ),
     );
   };
@@ -350,11 +349,10 @@ export class StreamVideoClient {
     if (activeCall?.data.call?.callCid === callCid) {
       activeCall.leave();
     } else {
-      store.setCurrentValue(
-        store.pendingCallsSubject,
-        store
-          .getCurrentValue(store.pendingCallsSubject)
-          .filter((pendingCall) => pendingCall.call?.callCid !== callCid),
+      store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+        pendingCalls.filter(
+          (pendingCall) => pendingCall.call?.callCid !== callCid,
+        ),
       );
     }
 
@@ -390,13 +388,10 @@ export class StreamVideoClient {
       return;
     }
 
-    store.setCurrentValue(
-      store.pendingCallsSubject,
-      store
-        .getCurrentValue(store.pendingCallsSubject)
-        .filter(
-          (incomingCall) => incomingCall.call?.callCid !== event.call?.callCid,
-        ),
+    store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+      pendingCalls.filter(
+        (pendingCall) => pendingCall.call?.callCid !== event.call?.callCid,
+      ),
     );
   };
 
