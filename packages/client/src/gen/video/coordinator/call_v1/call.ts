@@ -25,9 +25,9 @@ export interface CallType {
      */
     name: string;
     /**
-     * @generated from protobuf field: stream.video.coordinator.call_v1.CallOptions options = 2;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallSettings settings = 2;
      */
-    options?: CallOptions;
+    settings?: CallSettings;
     /**
      * @generated from protobuf field: google.protobuf.Timestamp created_at = 3;
      */
@@ -60,7 +60,7 @@ export interface Call {
      */
     callCid: string;
     /**
-     * The id of the user that created this room.
+     * The id of the user that created this call.
      *
      * @generated from protobuf field: string created_by_user_id = 4;
      */
@@ -70,12 +70,12 @@ export interface Call {
      */
     customJson: Uint8Array;
     /**
-     * Room options that are set explicitly in this room
-     * This set of options does not include RoomType options
+     * Call settings overrides that are set explicitly in this call
+     * This set of settings does not include CallType settings
      *
-     * @generated from protobuf field: stream.video.coordinator.call_v1.CallOptions options = 6;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallSettings settings_overrides = 6;
      */
-    options?: CallOptions;
+    settingsOverrides?: CallSettings;
     /**
      * @generated from protobuf field: google.protobuf.Timestamp created_at = 7;
      */
@@ -85,10 +85,14 @@ export interface Call {
      */
     updatedAt?: Timestamp;
     /**
+     * If true, the call is currently recording
+     *
      * @generated from protobuf field: bool recording_active = 9;
      */
     recordingActive: boolean;
     /**
+     * If true, the call is currently broadcasting
+     *
      * @generated from protobuf field: bool broadcasting_active = 10;
      */
     broadcastingActive: boolean;
@@ -100,11 +104,11 @@ export interface Call {
  */
 export interface CallDetails {
     /**
-     * Call options merged with CallType options
+     * Call settings_overrides merged with CallType settings
      *
-     * @generated from protobuf field: stream.video.coordinator.call_v1.CallOptions options = 1;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallSettings settings = 1;
      */
-    options?: CallOptions;
+    settings?: CallSettings;
     /**
      * Ordered list of member user IDs
      *
@@ -112,7 +116,7 @@ export interface CallDetails {
      */
     memberUserIds: string[];
     /**
-     * Room members map indexed by Member.user_id
+     * Call members map indexed by Member.user_id
      * Cannot have more than 100 members
      *
      * @generated from protobuf field: map<string, stream.video.coordinator.member_v1.Member> members = 3;
@@ -122,28 +126,32 @@ export interface CallDetails {
     };
 }
 /**
- * CallOptions contains all options available to change for a CallType
- * Options can also be set on the call level where they will be merged with call options using `proto.Merge`
+ * CallSettings contains all options available to change for a CallType
+ * Settings can also be set on the call level where they will be merged with call options using `json.Merge`
  * To make sure options can be overridden on the call level, all underlying option fields should be optional
  *
- * @generated from protobuf message stream.video.coordinator.call_v1.CallOptions
+ * @generated from protobuf message stream.video.coordinator.call_v1.CallSettings
  */
-export interface CallOptions {
+export interface CallSettings {
     /**
-     * @generated from protobuf field: stream.video.coordinator.call_v1.RecordingOptions recording = 1;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.RecordingSettings recording = 1;
      */
-    recording?: RecordingOptions;
+    recording?: RecordingSettings;
     /**
-     * @generated from protobuf field: stream.video.coordinator.call_v1.BroadcastingOptions broadcasting = 2;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.BroadcastingSettings broadcasting = 2;
      */
-    broadcasting?: BroadcastingOptions;
+    broadcasting?: BroadcastingSettings;
+    /**
+     * @generated from protobuf field: stream.video.coordinator.call_v1.GeofencingSettings geofencing = 3;
+     */
+    geofencing?: GeofencingSettings;
 }
 /**
- * Contains all options regarding to call recording
+ * Contains all settings regarding to call recording
  *
- * @generated from protobuf message stream.video.coordinator.call_v1.RecordingOptions
+ * @generated from protobuf message stream.video.coordinator.call_v1.RecordingSettings
  */
-export interface RecordingOptions {
+export interface RecordingSettings {
     /**
      * Whether recording feature is enabled
      * Default: false
@@ -153,11 +161,11 @@ export interface RecordingOptions {
     enabled?: boolean;
 }
 /**
- * Contains all options regarding to call broadcasting
+ * Contains all settings regarding to call broadcasting
  *
- * @generated from protobuf message stream.video.coordinator.call_v1.BroadcastingOptions
+ * @generated from protobuf message stream.video.coordinator.call_v1.BroadcastingSettings
  */
-export interface BroadcastingOptions {
+export interface BroadcastingSettings {
     /**
      * Whether broadcasting feature is enabled
      * Default: false
@@ -166,12 +174,26 @@ export interface BroadcastingOptions {
      */
     enabled?: boolean;
 }
+/**
+ * Contains all settings regarding to call geofencing
+ * Initialization of geofencing enables the feature
+ *
+ * @generated from protobuf message stream.video.coordinator.call_v1.GeofencingSettings
+ */
+export interface GeofencingSettings {
+    /**
+     * Names of the geofences that are selected
+     *
+     * @generated from protobuf field: repeated string names = 1;
+     */
+    names: string[];
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class CallType$Type extends MessageType<CallType> {
     constructor() {
         super("stream.video.coordinator.call_v1.CallType", [
             { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "options", kind: "message", T: () => CallOptions },
+            { no: 2, name: "settings", kind: "message", T: () => CallSettings },
             { no: 3, name: "created_at", kind: "message", T: () => Timestamp },
             { no: 4, name: "updated_at", kind: "message", T: () => Timestamp }
         ]);
@@ -191,8 +213,8 @@ class CallType$Type extends MessageType<CallType> {
                 case /* string name */ 1:
                     message.name = reader.string();
                     break;
-                case /* stream.video.coordinator.call_v1.CallOptions options */ 2:
-                    message.options = CallOptions.internalBinaryRead(reader, reader.uint32(), options, message.options);
+                case /* stream.video.coordinator.call_v1.CallSettings settings */ 2:
+                    message.settings = CallSettings.internalBinaryRead(reader, reader.uint32(), options, message.settings);
                     break;
                 case /* google.protobuf.Timestamp created_at */ 3:
                     message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
@@ -215,9 +237,9 @@ class CallType$Type extends MessageType<CallType> {
         /* string name = 1; */
         if (message.name !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.name);
-        /* stream.video.coordinator.call_v1.CallOptions options = 2; */
-        if (message.options)
-            CallOptions.internalBinaryWrite(message.options, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallSettings settings = 2; */
+        if (message.settings)
+            CallSettings.internalBinaryWrite(message.settings, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         /* google.protobuf.Timestamp created_at = 3; */
         if (message.createdAt)
             Timestamp.internalBinaryWrite(message.createdAt, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
@@ -243,7 +265,7 @@ class Call$Type extends MessageType<Call> {
             { no: 3, name: "call_cid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "created_by_user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
             { no: 5, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ },
-            { no: 6, name: "options", kind: "message", T: () => CallOptions },
+            { no: 6, name: "settings_overrides", kind: "message", T: () => CallSettings },
             { no: 7, name: "created_at", kind: "message", T: () => Timestamp },
             { no: 8, name: "updated_at", kind: "message", T: () => Timestamp },
             { no: 9, name: "recording_active", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
@@ -277,8 +299,8 @@ class Call$Type extends MessageType<Call> {
                 case /* bytes custom_json */ 5:
                     message.customJson = reader.bytes();
                     break;
-                case /* stream.video.coordinator.call_v1.CallOptions options */ 6:
-                    message.options = CallOptions.internalBinaryRead(reader, reader.uint32(), options, message.options);
+                case /* stream.video.coordinator.call_v1.CallSettings settings_overrides */ 6:
+                    message.settingsOverrides = CallSettings.internalBinaryRead(reader, reader.uint32(), options, message.settingsOverrides);
                     break;
                 case /* google.protobuf.Timestamp created_at */ 7:
                     message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
@@ -319,9 +341,9 @@ class Call$Type extends MessageType<Call> {
         /* bytes custom_json = 5; */
         if (message.customJson.length)
             writer.tag(5, WireType.LengthDelimited).bytes(message.customJson);
-        /* stream.video.coordinator.call_v1.CallOptions options = 6; */
-        if (message.options)
-            CallOptions.internalBinaryWrite(message.options, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallSettings settings_overrides = 6; */
+        if (message.settingsOverrides)
+            CallSettings.internalBinaryWrite(message.settingsOverrides, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
         /* google.protobuf.Timestamp created_at = 7; */
         if (message.createdAt)
             Timestamp.internalBinaryWrite(message.createdAt, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
@@ -348,7 +370,7 @@ export const Call = new Call$Type();
 class CallDetails$Type extends MessageType<CallDetails> {
     constructor() {
         super("stream.video.coordinator.call_v1.CallDetails", [
-            { no: 1, name: "options", kind: "message", T: () => CallOptions },
+            { no: 1, name: "settings", kind: "message", T: () => CallSettings },
             { no: 2, name: "member_user_ids", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "members", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "message", T: () => Member } }
         ]);
@@ -365,8 +387,8 @@ class CallDetails$Type extends MessageType<CallDetails> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* stream.video.coordinator.call_v1.CallOptions options */ 1:
-                    message.options = CallOptions.internalBinaryRead(reader, reader.uint32(), options, message.options);
+                case /* stream.video.coordinator.call_v1.CallSettings settings */ 1:
+                    message.settings = CallSettings.internalBinaryRead(reader, reader.uint32(), options, message.settings);
                     break;
                 case /* repeated string member_user_ids */ 2:
                     message.memberUserIds.push(reader.string());
@@ -402,9 +424,9 @@ class CallDetails$Type extends MessageType<CallDetails> {
         map[key ?? ""] = val ?? Member.create();
     }
     internalBinaryWrite(message: CallDetails, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.coordinator.call_v1.CallOptions options = 1; */
-        if (message.options)
-            CallOptions.internalBinaryWrite(message.options, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallSettings settings = 1; */
+        if (message.settings)
+            CallSettings.internalBinaryWrite(message.settings, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         /* repeated string member_user_ids = 2; */
         for (let i = 0; i < message.memberUserIds.length; i++)
             writer.tag(2, WireType.LengthDelimited).string(message.memberUserIds[i]);
@@ -426,30 +448,34 @@ class CallDetails$Type extends MessageType<CallDetails> {
  */
 export const CallDetails = new CallDetails$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CallOptions$Type extends MessageType<CallOptions> {
+class CallSettings$Type extends MessageType<CallSettings> {
     constructor() {
-        super("stream.video.coordinator.call_v1.CallOptions", [
-            { no: 1, name: "recording", kind: "message", T: () => RecordingOptions },
-            { no: 2, name: "broadcasting", kind: "message", T: () => BroadcastingOptions }
+        super("stream.video.coordinator.call_v1.CallSettings", [
+            { no: 1, name: "recording", kind: "message", T: () => RecordingSettings },
+            { no: 2, name: "broadcasting", kind: "message", T: () => BroadcastingSettings },
+            { no: 3, name: "geofencing", kind: "message", T: () => GeofencingSettings }
         ]);
     }
-    create(value?: PartialMessage<CallOptions>): CallOptions {
+    create(value?: PartialMessage<CallSettings>): CallSettings {
         const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<CallOptions>(this, message, value);
+            reflectionMergePartial<CallSettings>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallOptions): CallOptions {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallSettings): CallSettings {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* stream.video.coordinator.call_v1.RecordingOptions recording */ 1:
-                    message.recording = RecordingOptions.internalBinaryRead(reader, reader.uint32(), options, message.recording);
+                case /* stream.video.coordinator.call_v1.RecordingSettings recording */ 1:
+                    message.recording = RecordingSettings.internalBinaryRead(reader, reader.uint32(), options, message.recording);
                     break;
-                case /* stream.video.coordinator.call_v1.BroadcastingOptions broadcasting */ 2:
-                    message.broadcasting = BroadcastingOptions.internalBinaryRead(reader, reader.uint32(), options, message.broadcasting);
+                case /* stream.video.coordinator.call_v1.BroadcastingSettings broadcasting */ 2:
+                    message.broadcasting = BroadcastingSettings.internalBinaryRead(reader, reader.uint32(), options, message.broadcasting);
+                    break;
+                case /* stream.video.coordinator.call_v1.GeofencingSettings geofencing */ 3:
+                    message.geofencing = GeofencingSettings.internalBinaryRead(reader, reader.uint32(), options, message.geofencing);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -462,13 +488,16 @@ class CallOptions$Type extends MessageType<CallOptions> {
         }
         return message;
     }
-    internalBinaryWrite(message: CallOptions, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* stream.video.coordinator.call_v1.RecordingOptions recording = 1; */
+    internalBinaryWrite(message: CallSettings, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* stream.video.coordinator.call_v1.RecordingSettings recording = 1; */
         if (message.recording)
-            RecordingOptions.internalBinaryWrite(message.recording, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* stream.video.coordinator.call_v1.BroadcastingOptions broadcasting = 2; */
+            RecordingSettings.internalBinaryWrite(message.recording, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.BroadcastingSettings broadcasting = 2; */
         if (message.broadcasting)
-            BroadcastingOptions.internalBinaryWrite(message.broadcasting, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+            BroadcastingSettings.internalBinaryWrite(message.broadcasting, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.GeofencingSettings geofencing = 3; */
+        if (message.geofencing)
+            GeofencingSettings.internalBinaryWrite(message.geofencing, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -476,24 +505,24 @@ class CallOptions$Type extends MessageType<CallOptions> {
     }
 }
 /**
- * @generated MessageType for protobuf message stream.video.coordinator.call_v1.CallOptions
+ * @generated MessageType for protobuf message stream.video.coordinator.call_v1.CallSettings
  */
-export const CallOptions = new CallOptions$Type();
+export const CallSettings = new CallSettings$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class RecordingOptions$Type extends MessageType<RecordingOptions> {
+class RecordingSettings$Type extends MessageType<RecordingSettings> {
     constructor() {
-        super("stream.video.coordinator.call_v1.RecordingOptions", [
+        super("stream.video.coordinator.call_v1.RecordingSettings", [
             { no: 1, name: "enabled", kind: "scalar", opt: true, T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
-    create(value?: PartialMessage<RecordingOptions>): RecordingOptions {
+    create(value?: PartialMessage<RecordingSettings>): RecordingSettings {
         const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<RecordingOptions>(this, message, value);
+            reflectionMergePartial<RecordingSettings>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RecordingOptions): RecordingOptions {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RecordingSettings): RecordingSettings {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -512,7 +541,7 @@ class RecordingOptions$Type extends MessageType<RecordingOptions> {
         }
         return message;
     }
-    internalBinaryWrite(message: RecordingOptions, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: RecordingSettings, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* optional bool enabled = 1; */
         if (message.enabled !== undefined)
             writer.tag(1, WireType.Varint).bool(message.enabled);
@@ -523,24 +552,24 @@ class RecordingOptions$Type extends MessageType<RecordingOptions> {
     }
 }
 /**
- * @generated MessageType for protobuf message stream.video.coordinator.call_v1.RecordingOptions
+ * @generated MessageType for protobuf message stream.video.coordinator.call_v1.RecordingSettings
  */
-export const RecordingOptions = new RecordingOptions$Type();
+export const RecordingSettings = new RecordingSettings$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class BroadcastingOptions$Type extends MessageType<BroadcastingOptions> {
+class BroadcastingSettings$Type extends MessageType<BroadcastingSettings> {
     constructor() {
-        super("stream.video.coordinator.call_v1.BroadcastingOptions", [
+        super("stream.video.coordinator.call_v1.BroadcastingSettings", [
             { no: 1, name: "enabled", kind: "scalar", opt: true, T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
-    create(value?: PartialMessage<BroadcastingOptions>): BroadcastingOptions {
+    create(value?: PartialMessage<BroadcastingSettings>): BroadcastingSettings {
         const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<BroadcastingOptions>(this, message, value);
+            reflectionMergePartial<BroadcastingSettings>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: BroadcastingOptions): BroadcastingOptions {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: BroadcastingSettings): BroadcastingSettings {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -559,7 +588,7 @@ class BroadcastingOptions$Type extends MessageType<BroadcastingOptions> {
         }
         return message;
     }
-    internalBinaryWrite(message: BroadcastingOptions, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: BroadcastingSettings, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* optional bool enabled = 1; */
         if (message.enabled !== undefined)
             writer.tag(1, WireType.Varint).bool(message.enabled);
@@ -570,6 +599,53 @@ class BroadcastingOptions$Type extends MessageType<BroadcastingOptions> {
     }
 }
 /**
- * @generated MessageType for protobuf message stream.video.coordinator.call_v1.BroadcastingOptions
+ * @generated MessageType for protobuf message stream.video.coordinator.call_v1.BroadcastingSettings
  */
-export const BroadcastingOptions = new BroadcastingOptions$Type();
+export const BroadcastingSettings = new BroadcastingSettings$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GeofencingSettings$Type extends MessageType<GeofencingSettings> {
+    constructor() {
+        super("stream.video.coordinator.call_v1.GeofencingSettings", [
+            { no: 1, name: "names", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GeofencingSettings>): GeofencingSettings {
+        const message = { names: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GeofencingSettings>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GeofencingSettings): GeofencingSettings {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated string names */ 1:
+                    message.names.push(reader.string());
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GeofencingSettings, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated string names = 1; */
+        for (let i = 0; i < message.names.length; i++)
+            writer.tag(1, WireType.LengthDelimited).string(message.names[i]);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.coordinator.call_v1.GeofencingSettings
+ */
+export const GeofencingSettings = new GeofencingSettings$Type();

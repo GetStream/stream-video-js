@@ -7,7 +7,10 @@ import {
   watchTrackPublished,
   watchTrackUnpublished,
 } from '../events/participant';
-import { watchChangePublishQuality } from '../events/internal';
+import {
+  watchChangePublishQuality,
+  watchConnectionQualityChanged,
+} from '../events/internal';
 import {
   watchAudioLevelChanged,
   watchDominantSpeakerChanged,
@@ -19,6 +22,7 @@ export const registerEventHandlers = (
   dispatcher: Dispatcher,
 ) => {
   watchChangePublishQuality(dispatcher, call);
+  watchConnectionQualityChanged(dispatcher, store);
 
   watchParticipantJoined(dispatcher, store);
   watchParticipantLeft(dispatcher, store);

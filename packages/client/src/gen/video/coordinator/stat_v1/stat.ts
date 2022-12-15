@@ -126,7 +126,19 @@ export interface CallParticipantTimeline {
      */
     userId: string;
     /**
-     * @generated from protobuf field: repeated stream.video.coordinator.stat_v1.TimelineEvent events = 2;
+     * time when participant joined
+     *
+     * @generated from protobuf field: google.protobuf.Timestamp start = 2;
+     */
+    start?: Timestamp;
+    /**
+     * time when participant left
+     *
+     * @generated from protobuf field: google.protobuf.Timestamp end = 3;
+     */
+    end?: Timestamp;
+    /**
+     * @generated from protobuf field: repeated stream.video.coordinator.stat_v1.TimelineEvent events = 4;
      */
     events: TimelineEvent[];
 }
@@ -504,7 +516,9 @@ class CallParticipantTimeline$Type extends MessageType<CallParticipantTimeline> 
     constructor() {
         super("stream.video.coordinator.stat_v1.CallParticipantTimeline", [
             { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1" } } } },
-            { no: 2, name: "events", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TimelineEvent }
+            { no: 2, name: "start", kind: "message", T: () => Timestamp },
+            { no: 3, name: "end", kind: "message", T: () => Timestamp },
+            { no: 4, name: "events", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TimelineEvent }
         ]);
     }
     create(value?: PartialMessage<CallParticipantTimeline>): CallParticipantTimeline {
@@ -522,7 +536,13 @@ class CallParticipantTimeline$Type extends MessageType<CallParticipantTimeline> 
                 case /* string user_id */ 1:
                     message.userId = reader.string();
                     break;
-                case /* repeated stream.video.coordinator.stat_v1.TimelineEvent events */ 2:
+                case /* google.protobuf.Timestamp start */ 2:
+                    message.start = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.start);
+                    break;
+                case /* google.protobuf.Timestamp end */ 3:
+                    message.end = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.end);
+                    break;
+                case /* repeated stream.video.coordinator.stat_v1.TimelineEvent events */ 4:
                     message.events.push(TimelineEvent.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
@@ -540,9 +560,15 @@ class CallParticipantTimeline$Type extends MessageType<CallParticipantTimeline> 
         /* string user_id = 1; */
         if (message.userId !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.userId);
-        /* repeated stream.video.coordinator.stat_v1.TimelineEvent events = 2; */
+        /* google.protobuf.Timestamp start = 2; */
+        if (message.start)
+            Timestamp.internalBinaryWrite(message.start, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.Timestamp end = 3; */
+        if (message.end)
+            Timestamp.internalBinaryWrite(message.end, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* repeated stream.video.coordinator.stat_v1.TimelineEvent events = 4; */
         for (let i = 0; i < message.events.length; i++)
-            TimelineEvent.internalBinaryWrite(message.events[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+            TimelineEvent.internalBinaryWrite(message.events[i], writer.tag(4, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

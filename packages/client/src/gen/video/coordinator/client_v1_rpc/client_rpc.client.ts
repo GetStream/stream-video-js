@@ -153,7 +153,7 @@ export interface IClientRPCClient {
      * @generated from protobuf rpc: StopRecording(stream.video.coordinator.client_v1_rpc.StopRecordingRequest) returns (stream.video.coordinator.client_v1_rpc.StopRecordingResponse);
      */
     stopRecording(input: StopRecordingRequest, options?: RpcOptions): UnaryCall<StopRecordingRequest, StopRecordingResponse>;
-    // UpdateMembers creates or updates members in a room.
+    // UpdateMembers creates or updates members in a call.
 
     /**
      * Adds members to a call
@@ -365,7 +365,7 @@ export class ClientRPCClient implements IClientRPCClient, ServiceInfo {
         const method = this.methods[15], opt = this._transport.mergeOptions(options);
         return stackIntercept<StopRecordingRequest, StopRecordingResponse>("unary", this._transport, method, opt, input);
     }
-    // UpdateMembers creates or updates members in a room.
+    // UpdateMembers creates or updates members in a call.
 
     /**
      * Adds members to a call

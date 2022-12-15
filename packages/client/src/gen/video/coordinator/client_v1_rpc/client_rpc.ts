@@ -27,7 +27,7 @@ import { User } from "../user_v1/user";
 import { MembersEnvelope } from "./envelopes";
 import { CallsEnvelope } from "./envelopes";
 import { Sort } from "../utils_v1/utils";
-import { CallOptions } from "../call_v1/call";
+import { CallSettings } from "../call_v1/call";
 import { Edge } from "../edge_v1/edge";
 import { UserInput } from "../user_v1/user";
 import { CallEnvelope } from "./envelopes";
@@ -259,11 +259,11 @@ export interface CallInput {
      */
     customJson: Uint8Array;
     /**
-     * Call options to set
+     * Call settings to be overridden specifically
      *
-     * @generated from protobuf field: stream.video.coordinator.call_v1.CallOptions options = 2;
+     * @generated from protobuf field: stream.video.coordinator.call_v1.CallSettings settings_overrides = 2;
      */
-    options?: CallOptions;
+    settingsOverrides?: CallSettings;
 }
 /**
  * @generated from protobuf message stream.video.coordinator.client_v1_rpc.GetOrCreateCallResponse
@@ -1517,7 +1517,7 @@ class CallInput$Type extends MessageType<CallInput> {
     constructor() {
         super("stream.video.coordinator.client_v1_rpc.CallInput", [
             { no: 1, name: "custom_json", kind: "scalar", T: 12 /*ScalarType.BYTES*/ },
-            { no: 2, name: "options", kind: "message", T: () => CallOptions }
+            { no: 2, name: "settings_overrides", kind: "message", T: () => CallSettings }
         ]);
     }
     create(value?: PartialMessage<CallInput>): CallInput {
@@ -1535,8 +1535,8 @@ class CallInput$Type extends MessageType<CallInput> {
                 case /* bytes custom_json */ 1:
                     message.customJson = reader.bytes();
                     break;
-                case /* stream.video.coordinator.call_v1.CallOptions options */ 2:
-                    message.options = CallOptions.internalBinaryRead(reader, reader.uint32(), options, message.options);
+                case /* stream.video.coordinator.call_v1.CallSettings settings_overrides */ 2:
+                    message.settingsOverrides = CallSettings.internalBinaryRead(reader, reader.uint32(), options, message.settingsOverrides);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1553,9 +1553,9 @@ class CallInput$Type extends MessageType<CallInput> {
         /* bytes custom_json = 1; */
         if (message.customJson.length)
             writer.tag(1, WireType.LengthDelimited).bytes(message.customJson);
-        /* stream.video.coordinator.call_v1.CallOptions options = 2; */
-        if (message.options)
-            CallOptions.internalBinaryWrite(message.options, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* stream.video.coordinator.call_v1.CallSettings settings_overrides = 2; */
+        if (message.settingsOverrides)
+            CallSettings.internalBinaryWrite(message.settingsOverrides, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

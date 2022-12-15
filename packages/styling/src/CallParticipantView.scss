@@ -89,6 +89,23 @@
     }
   }
 
+  .str-video__participant__connection-quality {
+    width: 24px;
+    height: 24px;
+    background-size: cover;
+    margin-left: 5px;
+
+    &--poor {
+      background-color: Icons.$icon-connection-quality-poor;
+    }
+    &--good {
+      background-image: Icons.$icon-connection-quality-good;
+    }
+    &--excellent {
+      background-image: Icons.$icon-connection-quality-excellent;
+    }
+  }
+
   video {
     min-height: 0;
   }
