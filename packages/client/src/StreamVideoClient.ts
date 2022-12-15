@@ -61,7 +61,7 @@ export class StreamVideoClient {
    * @angular If you're using our Angular SDK, you shouldn't be interacting with the state store directly, instead, you should be using the [`StreamVideoService`](./StreamVideoService.md).
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
-  writeableStateStore: StreamVideoWriteableStateStore;
+  private readonly writeableStateStore: StreamVideoWriteableStateStore;
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWSClient | undefined;
@@ -194,20 +194,15 @@ export class StreamVideoClient {
    */
   createCall = async (data: CreateCallRequest) => {
     const callToCreate = await this.client.createCall(data);
-    const { call: callEnvelope } = callToCreate.response;
-    if (callEnvelope) {
+    const { call } = callToCreate.response;
+    if (call) {
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
-        [
-          ...this.writeableStateStore.getCurrentValue(
-            this.writeableStateStore.pendingCallsSubject,
-          ),
-          callEnvelope,
-        ],
+        (pendingCalls) => [...pendingCalls, call],
       );
     }
 
-    return callEnvelope;
+    return call;
   };
 
   /**
@@ -226,12 +221,7 @@ export class StreamVideoClient {
 
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
-      [
-        ...this.writeableStateStore.getCurrentValue(
-          this.writeableStateStore.pendingCallsSubject,
-        ),
-        event,
-      ],
+      (pendingCalls) => [...pendingCalls, event],
     );
   };
 
@@ -282,9 +272,10 @@ export class StreamVideoClient {
   rejectCall = async (callCid: string) => {
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
-      this.writeableStateStore
-        .getCurrentValue(this.writeableStateStore.pendingCallsSubject)
-        .filter((incomingCall) => incomingCall.call?.callCid !== callCid),
+      (pendingCalls) =>
+        pendingCalls.filter(
+          (incomingCall) => incomingCall.call?.callCid !== callCid,
+        ),
     );
     await this.client.sendEvent({
       callCid,
@@ -335,7 +326,7 @@ export class StreamVideoClient {
     );
 
     if (activeCall?.data.call?.callCid === callCid) {
-      await activeCall.leave();
+      activeCall.leave();
     }
     if (filteredPendingCalls.length < pendingCalls.length) {
       this.writeableStateStore.setCurrentValue(
@@ -366,12 +357,7 @@ export class StreamVideoClient {
 
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.hangupNotificationsSubject,
-      [
-        ...this.writeableStateStore.getCurrentValue(
-          this.writeableStateStore.hangupNotificationsSubject,
-        ),
-        event,
-      ],
+      (hangupNotifications) => [...hangupNotifications, event],
     );
   };
 
@@ -540,20 +526,8 @@ export class StreamVideoClient {
    * @returns
    */
   setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
-    const participants = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.participantsSubject,
-    );
-
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.participantsSubject,
-      participants.map((p) => {
-        return p.sessionId === sessionId
-          ? {
-              ...p,
-              isPinned,
-            }
-          : p;
-      }),
-    );
+    this.writeableStateStore.updateParticipant(sessionId, {
+      isPinned,
+    });
   };
 }

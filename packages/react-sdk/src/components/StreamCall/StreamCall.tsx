@@ -32,7 +32,7 @@ export const StreamCall = ({
     if (!(videoClient && outgoingCall?.call) || activeCall) return;
 
     videoClient
-      ?.joinCall({
+      .joinCall({
         id: outgoingCall.call.id,
         type: outgoingCall.call.type,
         // FIXME: OL optional, but it is marked as required in proto
@@ -44,8 +44,8 @@ export const StreamCall = ({
   }, [videoClient, outgoingCall, activeCall]);
 
   const cancelCallOnRemoteHangup = useCallback(
-    ({ hungUpByUsers, targetCall }: RemoteHangupNotification) => {
-      if (!videoClient) return;
+    async ({ hungUpByUsers, targetCall }: RemoteHangupNotification) => {
+      if (!videoClient || !leaveOnLeftAlone) return;
 
       const hungUpByCreator =
         !!targetCall.callCreatedBy &&
@@ -57,7 +57,7 @@ export const StreamCall = ({
         (isLeftAlone && leaveOnLeftAlone) ||
         (hungUpByCreator && leaveOnCreatorLeft)
       ) {
-        videoClient.cancelCall(targetCall.callCid);
+        await videoClient.cancelCall(targetCall.callCid);
       }
     },
     [videoClient, leaveOnCreatorLeft, leaveOnLeftAlone],

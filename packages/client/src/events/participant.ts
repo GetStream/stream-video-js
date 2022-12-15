@@ -31,11 +31,8 @@ export const watchParticipantLeft = (
     if (e.eventPayload.oneofKind !== 'participantLeft') return;
     const { participant } = e.eventPayload.participantLeft;
     if (participant) {
-      store.setCurrentValue(
-        store.participantsSubject,
-        store
-          .getCurrentValue(store.participantsSubject)
-          .filter((p) => p.sessionId !== participant.sessionId),
+      store.setCurrentValue(store.participantsSubject, (participants) =>
+        participants.filter((p) => p.sessionId !== participant.sessionId),
       );
     }
   });

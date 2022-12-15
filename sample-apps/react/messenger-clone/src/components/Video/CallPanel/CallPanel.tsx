@@ -100,7 +100,7 @@ const ButtonControls = ({
               if (isAudioMute) {
                 void publishAudioStream();
               } else {
-                void activeCall?.stopPublish(SfuModels.TrackType.AUDIO);
+                void activeCall.stopPublish(SfuModels.TrackType.AUDIO);
               }
             }}
           >
@@ -112,7 +112,7 @@ const ButtonControls = ({
               if (isVideoMute) {
                 void publishVideoStream();
               } else {
-                void activeCall?.stopPublish(SfuModels.TrackType.VIDEO);
+                void activeCall.stopPublish(SfuModels.TrackType.VIDEO);
               }
             }}
           >

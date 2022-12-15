@@ -44,6 +44,7 @@ export class StreamVideoWriteableStateStore {
   /**
    * A store that keeps track of all created calls that have not been yet accepted, rejected nor cancelled.
    */
+  // FIXME OL: extract a common type
   pendingCallsSubject = new BehaviorSubject<(CallCreated | CallEnvelope)[]>([]);
   /**
    * A list of objects describing incoming calls.
