@@ -52,7 +52,10 @@ export type StreamVideoParticipant = {
    * True when the participant is pinned
    */
   isPinned?: boolean;
-} & Participant;
+} & Participant & {
+    imageUrl?: string;
+    name?: string;
+  };
 
 export type StreamVideoLocalParticipant = {
   /**
