@@ -26,6 +26,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { CallStats } from './CallStats';
 import { useDebugPreferredVideoCodec } from '../Debug/useIsDebugMode';
+import { Notification } from './Notification';
 
 export const CallControls = (props: {
   call: Call;
@@ -137,22 +138,39 @@ export const CallControls = (props: {
           setIsStatsOpen((v) => !v);
         }}
       />
-      <Button
-        icon={isScreenSharing ? 'screen-share-on' : 'screen-share-off'}
-        title="Share screen"
-        onClick={async () => {
-          if (!isScreenSharing) {
-            const stream = await getScreenShareStream().catch((e) => {
-              console.log(`Can't share screen: ${e}`);
-            });
-            if (stream) {
-              await call.publishScreenShareStream(stream);
+      <Notification
+        message={
+          <>
+            <span>You are presenting your screen &nbsp;</span>
+            <button
+              type="button"
+              onClick={() => {
+                void call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
+              }}
+            >
+              Stop presenting
+            </button>
+          </>
+        }
+        isVisible={isScreenSharing}
+      >
+        <Button
+          icon={isScreenSharing ? 'screen-share-on' : 'screen-share-off'}
+          title="Share screen"
+          onClick={async () => {
+            if (!isScreenSharing) {
+              const stream = await getScreenShareStream().catch((e) => {
+                console.log(`Can't share screen: ${e}`);
+              });
+              if (stream) {
+                await call.publishScreenShareStream(stream);
+              }
+            } else {
+              await call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
             }
-          } else {
-            await call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
-          }
-        }}
-      />
+          }}
+        />
+      </Notification>
       <Button
         icon={isAudioMute ? 'mic-off' : 'mic'}
         onClick={() => {

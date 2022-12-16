@@ -23,8 +23,9 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
 
   return (
     <>
-      {children}
-      <span ref={setAnchor} data-popper-anchor="" />
+      <span ref={setAnchor} data-popper-anchor="">
+        {children}
+      </span>
       {isVisible && (
         <div
           className="str-video__notification"
