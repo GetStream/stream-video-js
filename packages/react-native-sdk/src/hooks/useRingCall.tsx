@@ -12,7 +12,7 @@ export const useRingCall = () => {
   const activeCallMeta = activeCall?.data.call;
   const [incomingCall] = useIncomingCalls();
 
-  const answerCall = useCallback(async () => {
+  const answerCall = useCallback(() => {
     if (!client || !incomingCall.call) {
       return;
     }
