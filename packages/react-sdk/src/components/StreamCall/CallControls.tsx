@@ -14,8 +14,9 @@ export const CallControls = (props: {
   call: Call;
   initialAudioMuted?: boolean;
   initialVideoMuted?: boolean;
+  onLeave?: () => void;
 }) => {
-  const { call, initialAudioMuted, initialVideoMuted } = props;
+  const { call, initialAudioMuted, initialVideoMuted, onLeave } = props;
   const callMeta = call.data.call;
   const client = useStreamVideoClient();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
@@ -113,8 +114,11 @@ export const CallControls = (props: {
       <Button
         icon="call-end"
         variant="danger"
-        onClick={() => {
-          call.data.call && client?.cancelCall(call.data.call?.callCid);
+        onClick={async () => {
+          if (client && call.data.call?.callCid) {
+            await client?.cancelCall(call.data.call?.callCid);
+            onLeave?.();
+          }
         }}
       />
     </div>
