@@ -32,7 +32,7 @@ export class AppComponent implements OnInit, OnDestroy {
       }),
     );
     this.subscriptions.push(
-      this.videoService.activeCallMeta$.subscribe((c) => console.log(c)),
+      this.videoService.acceptedCall$.subscribe((c) => console.log(c)),
     );
   }
 
