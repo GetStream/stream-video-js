@@ -94,7 +94,7 @@ import './style.css';
       return;
     }
     const remoteParticipants = store$.getCurrentValue(
-      store$.activeCallRemoteParticipants$,
+      store$.remoteParticipants$,
     );
 
     screenSharingParticipant = remoteParticipants.find((p) =>
@@ -113,7 +113,7 @@ import './style.css';
     }
   });
 
-  store$.activeCallRemoteParticipants$.subscribe((participants) => {
+  store$.remoteParticipants$.subscribe((participants) => {
     if (!screenSharingParticipant) return;
 
     const sessionId = screenSharingParticipant.sessionId;
