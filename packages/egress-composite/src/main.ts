@@ -1,5 +1,6 @@
 import {
   Call,
+  SfuModels,
   StreamVideoClient,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
@@ -72,6 +73,77 @@ import './style.css';
         },
       });
     }
+  });
+
+  let screenSharingParticipant: StreamVideoParticipant | undefined;
+  store$.hasOngoingScreenShare$.subscribe((hasOngoingScreenShare) => {
+    const app = document.getElementById('app')!;
+    app.classList.toggle('screen-share-mode', hasOngoingScreenShare);
+
+    if (!hasOngoingScreenShare) {
+      screenSharingParticipant = undefined;
+      const $screenShareEl = document.getElementById(
+        'screen-share',
+      ) as HTMLVideoElement;
+      $screenShareEl.classList.toggle('hidden', true);
+      $screenShareEl.srcObject = null;
+
+      const $screenSharerNameEl =
+        document.getElementById('screen-sharer-name')!;
+      $screenSharerNameEl.textContent = '';
+      return;
+    }
+    const remoteParticipants = store$.getCurrentValue(
+      store$.activeCallRemoteParticipants$,
+    );
+
+    screenSharingParticipant = remoteParticipants.find((p) =>
+      p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
+    );
+
+    if (screenSharingParticipant) {
+      call.updateSubscriptionsPartial('screen', {
+        [screenSharingParticipant.sessionId]: {
+          dimension: {
+            width: 1920,
+            height: 1080,
+          },
+        },
+      });
+    }
+  });
+
+  store$.activeCallRemoteParticipants$.subscribe((participants) => {
+    if (!screenSharingParticipant) return;
+
+    const sessionId = screenSharingParticipant.sessionId;
+    const screenSharer = participants.find((p) => p.sessionId === sessionId);
+    if (!screenSharer) {
+      console.error(`Can't find participant with id: ${sessionId}`);
+      return;
+    }
+    const { screenShareStream } = screenSharer;
+    if (!screenShareStream) {
+      console.error(
+        `Can't find screen share stream for participant with id: ${sessionId}`,
+      );
+      return;
+    }
+
+    const $screenShareEl = document.getElementById(
+      'screen-share',
+    ) as HTMLVideoElement;
+    if (!$screenShareEl) {
+      console.error(`Can't find screen share element`);
+      return;
+    }
+
+    $screenShareEl.classList.toggle('hidden', false);
+    $screenShareEl.srcObject = screenShareStream;
+    $screenShareEl.play();
+
+    const $screenSharerNameEl = document.getElementById('screen-sharer-name')!;
+    $screenSharerNameEl.textContent = `Presenter: ${screenSharer.userId}`;
   });
 
   call.on('participantLeft', (event) => {
@@ -151,7 +223,11 @@ function createSpeakerUpdater(call: Call) {
   let $currentVideoEl = $videoA;
   let lastSpeaker: StreamVideoParticipant | undefined;
   return function highlightSpeaker(speaker?: StreamVideoParticipant) {
-    if (speaker && speaker.sessionId !== lastSpeaker?.sessionId) {
+    if (
+      speaker &&
+      speaker.sessionId !== lastSpeaker?.sessionId &&
+      speaker.publishedTracks.includes(SfuModels.TrackType.VIDEO)
+    ) {
       call.updateSubscriptionsPartial('video', {
         [speaker.sessionId]: {
           dimension: {
@@ -185,14 +261,7 @@ function createSpeakerUpdater(call: Call) {
 }
 
 function updateCurrentSpeakerName(speaker: StreamVideoParticipant) {
-  let $userNameEl = document.getElementById('current-user-name');
-  if (!$userNameEl) {
-    $userNameEl = document.createElement('span');
-    $userNameEl.id = 'current-user-name';
-
-    document.getElementById('app')!.appendChild($userNameEl);
-  }
-
+  const $userNameEl = document.getElementById('current-user-name')!;
   $userNameEl.innerText = speaker.userId ?? 'N/A';
   $userNameEl.title = speaker.sessionId;
 }
