@@ -42,7 +42,6 @@ export const ChooseFlowScreen = (props: Props) => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 10,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
