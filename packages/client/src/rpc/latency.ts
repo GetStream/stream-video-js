@@ -11,7 +11,7 @@ const toSeconds = (ms: number) => ms / 1000;
 export const measureResourceLoadLatencyTo = async (
   endpoint: string,
   rounds: number,
-  timeoutAfterMs: number = 3000,
+  timeoutAfterMs: number = 1500,
 ) => {
   const measurements: number[] = [];
   await Promise.all(
@@ -20,19 +20,23 @@ export const measureResourceLoadLatencyTo = async (
       .map(async () => {
         const start = Date.now();
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeoutAfterMs);
+        const abortTimeout = setTimeout(() => {
+          controller.abort();
+        }, timeoutAfterMs);
         try {
           const src = new URL(endpoint);
-          src.searchParams.set('rand', `react_${Math.random() * 10000000}`);
+          src.searchParams.set('r', `js_${Math.random() * 10000000}`);
           await fetch(src.toString(), {
             signal: controller.signal,
           }).then((response) => response.blob());
+          const latency = Date.now() - start;
+          measurements.push(toSeconds(latency));
         } catch (e) {
           console.debug(`failed to measure latency to ${endpoint}`, e);
+          measurements.push(-1); // indicate error in measurement
         }
-        clearTimeout(timeoutId); // clear timeout incase fetch completes before timeout
-        const latency = Date.now() - start;
-        measurements.push(toSeconds(latency));
+        // clear timeout in case fetch completes before timeout
+        clearTimeout(abortTimeout);
       }),
   );
   return measurements;
