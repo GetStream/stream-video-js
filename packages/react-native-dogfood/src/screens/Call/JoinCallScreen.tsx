@@ -13,8 +13,6 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RingingStackParamList } from '../../../types';
 import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
@@ -77,9 +75,7 @@ const styles = StyleSheet.create({
   },
 });
 
-type Props = NativeStackScreenProps<RingingStackParamList, 'JoinCallScreen'>;
-
-const JoinCallScreen = ({}: Props) => {
+const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
   const username = useAppGlobalStoreValue((store) => store.username);
   const ringingUsers = useAppGlobalStoreValue((store) => store.ringingUsers);
