@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   StyleSheet,
   TextInput,
@@ -6,31 +6,29 @@ import {
   Text,
   Switch,
   Button,
+  ActivityIndicator,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { MeetingStackParamList } from '../../../types';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { meetingId } from '../../modules/helpers/meetingId';
 
 import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
 
-type Props = NativeStackScreenProps<MeetingStackParamList, 'JoinMeetingScreen'>;
-
-const JoinMeetingScreen = ({ navigation }: Props) => {
+const JoinMeetingScreen = () => {
   const meetingCallID = useAppGlobalStoreValue((store) => store.meetingCallID);
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
+  const [callID, setCallId] = useState('');
 
   const setState = useAppGlobalStoreSetState();
 
   const joinCallHandler = useCallback(() => {
-    navigation.navigate('MeetingScreen');
-  }, [navigation]);
+    setState({ meetingCallID: callID });
+  }, [setState, callID]);
 
   useEffect(() => {
     const subscription = prontoCallId$.subscribe((prontoCallId) => {
@@ -53,7 +51,7 @@ const JoinMeetingScreen = ({ navigation }: Props) => {
     [meetingCallID],
   );
 
-  return (
+  return !meetingCallID ? (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Text style={styles.headerText}>{'Whats the call ID?'}</Text>
@@ -61,8 +59,8 @@ const JoinMeetingScreen = ({ navigation }: Props) => {
           title={'Randomise'}
           color="blue"
           onPress={() => {
-            const callID = meetingId();
-            setState({ meetingCallID: callID });
+            const ramdomCallID = meetingId();
+            setCallId(ramdomCallID);
           }}
         />
       </View>
@@ -70,13 +68,13 @@ const JoinMeetingScreen = ({ navigation }: Props) => {
         style={styles.textInput}
         placeholder={'Type your call ID here...'}
         placeholderTextColor={'#8C8C8CFF'}
-        value={meetingCallID}
-        onChangeText={(text) => setState({ meetingCallID: text.trim() })}
+        value={callID}
+        onChangeText={(text) => setCallId(text.trim().split(' ').join('-'))}
       />
       <Button
-        title={'Create or Join call with callID: ' + meetingCallID}
+        title={'Create or Join call with callID: ' + callID}
         color="blue"
-        disabled={!meetingCallID}
+        disabled={!callID}
         onPress={joinCallHandler}
       />
       <View style={styles.switchContainer}>
@@ -96,6 +94,8 @@ const JoinMeetingScreen = ({ navigation }: Props) => {
         onPress={handleCopyInviteLink}
       />
     </View>
+  ) : (
+    <ActivityIndicator style={[StyleSheet.absoluteFill]} />
   );
 };
 

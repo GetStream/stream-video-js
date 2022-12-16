@@ -4,7 +4,6 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { PropsWithChildren, useEffect } from 'react';
-import { MediaDevicesProvider } from '../contexts/MediaDevicesContext';
 import InCallManager from 'react-native-incall-manager';
 
 export type StreamMeetingProps = {
@@ -48,9 +47,16 @@ export const StreamMeeting = ({
       }
     };
 
-    initiateMeeting().catch((e) => {
-      console.error(`Failed to getOrCreateCall/joinCall`, callId, callType, e);
-    });
+    if (callId) {
+      initiateMeeting().catch((e) => {
+        console.error(
+          `Failed to getOrCreateCall/joinCall`,
+          callId,
+          callType,
+          e,
+        );
+      });
+    }
   }, [callId, client, callType, currentUser, autoJoin, input]);
 
   useEffect(() => {
@@ -60,5 +66,5 @@ export const StreamMeeting = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCall]);
 
-  return <MediaDevicesProvider>{children}</MediaDevicesProvider>;
+  return <>{children}</>;
 };

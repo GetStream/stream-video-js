@@ -28,6 +28,7 @@ import JoinCallScreen from './src/screens/Call/JoinCallScreen';
 import { ChooseFlowScreen } from './src/screens/ChooseFlowScreen';
 import IncomingCallScreen from './src/screens/Call/IncomingCallScreen';
 import OutgoingCallScreen from './src/screens/Call/OutgoingCallScreen';
+import { StreamMeeting } from '@stream-io/video-react-native-sdk/src/components/StreamMeeting';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const MeetingStack = createNativeStackNavigator<MeetingStackParamList>();
@@ -55,20 +56,32 @@ const RingingStack = createNativeStackNavigator<RingingStackParamList>();
 //   },
 // };
 
-const Meeting = () => {
+const Meeting = (props: NativeStackScreenProps<MeetingStackParamList>) => {
+  const username = useAppGlobalStoreValue((store) => store.username);
+  const meetingCallID = useAppGlobalStoreValue((store) => store.meetingCallID);
+  const { navigation } = props;
+
   return (
-    <MeetingStack.Navigator>
-      <MeetingStack.Screen
-        name="JoinMeetingScreen"
-        component={JoinMeetingScreen}
-        options={{ header: NavigationHeader }}
-      />
-      <MeetingStack.Screen
-        name="MeetingScreen"
-        component={MeetingScreen}
-        options={{ headerShown: false }}
-      />
-    </MeetingStack.Navigator>
+    <StreamMeeting
+      currentUser={username}
+      callId={meetingCallID}
+      callType={'default'}
+      autoJoin={true}
+      onActiveCall={() => navigation.navigate('MeetingScreen')}
+    >
+      <MeetingStack.Navigator>
+        <MeetingStack.Screen
+          name="JoinMeetingScreen"
+          component={JoinMeetingScreen}
+          options={{ header: NavigationHeader }}
+        />
+        <MeetingStack.Screen
+          name="MeetingScreen"
+          component={MeetingScreen}
+          options={{ headerShown: false }}
+        />
+      </MeetingStack.Navigator>
+    </StreamMeeting>
   );
 };
 

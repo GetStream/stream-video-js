@@ -9,6 +9,7 @@ import {
   useStoreSetState,
   Provider,
 } from './StreamVideoContext';
+import { MediaDevicesProvider } from './MediaDevicesContext';
 
 export const StreamVideo = (
   props: PropsWithChildren<
@@ -21,7 +22,9 @@ export const StreamVideo = (
   const { client, children } = props;
   return (
     <StreamVideoProvider client={client}>
-      <Provider>{children}</Provider>
+      <MediaDevicesProvider>
+        <Provider>{children}</Provider>
+      </MediaDevicesProvider>
     </StreamVideoProvider>
   );
 };

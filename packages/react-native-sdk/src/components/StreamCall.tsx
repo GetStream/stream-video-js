@@ -5,7 +5,6 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { PropsWithChildren, useEffect } from 'react';
-import { MediaDevicesProvider } from '../contexts/MediaDevicesContext';
 
 export type StreamCallProps = {
   automaticHungupTime?: number;
@@ -55,5 +54,5 @@ export const StreamCall = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incomingCall, outgoingCall, activeCall]);
 
-  return <MediaDevicesProvider>{children}</MediaDevicesProvider>;
+  return <>{children}</>;
 };
