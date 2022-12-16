@@ -23,6 +23,7 @@ import {
   createStatsReporter,
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
+import { StreamVideoClient } from '../StreamVideoClient';
 
 /**
  * A `Call` object represents the active call, the user is part of.
@@ -50,6 +51,7 @@ export class Call {
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
     private readonly stateStore: StreamVideoWriteableStateStore,
+    private readonly streamVideoClient: StreamVideoClient,
   ) {
     this.data = data;
     this.subscriber = createSubscriber({
@@ -71,7 +73,12 @@ export class Call {
     });
 
     const { dispatcher } = this.client;
-    registerEventHandlers(this, this.stateStore, dispatcher);
+    registerEventHandlers(
+      this,
+      this.stateStore,
+      dispatcher,
+      this.streamVideoClient,
+    );
 
     this.trackSubscriptionsSubject
       .pipe(debounceTime(1200))
