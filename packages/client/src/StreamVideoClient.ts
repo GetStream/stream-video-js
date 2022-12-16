@@ -475,13 +475,16 @@ export class StreamVideoClient {
    */
   private reportCallStats = async (
     stats: Object,
-  ): Promise<ReportCallStatsResponse> => {
+  ): Promise<ReportCallStatsResponse | void> => {
     const callCid = this.writeableStateStore.getCurrentValue(
       this.writeableStateStore.activeCallSubject,
     )?.data.call?.callCid;
+
     if (!callCid) {
-      throw new Error('No active CallMeta ID found');
+      console.log("There isn't an active call");
+      return;
     }
+
     const request: ReportCallStatsRequest = {
       callCid,
       statsJson: new TextEncoder().encode(JSON.stringify(stats)),
@@ -533,12 +536,14 @@ export class StreamVideoClient {
    */
   private reportCallStatEvent = async (
     statEvent: ReportCallStatEventRequest['event'],
-  ): Promise<ReportCallStatEventResponse> => {
+  ): Promise<ReportCallStatEventResponse | void> => {
     const callCid = this.writeableStateStore.getCurrentValue(
       this.writeableStateStore.activeCallSubject,
     )?.data.call?.callCid;
+
     if (!callCid) {
-      throw new Error('No active CallMeta ID found');
+      console.log("There isn't an active call");
+      return;
     }
     const request: ReportCallStatEventRequest = {
       callCid,
