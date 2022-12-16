@@ -51,7 +51,10 @@ const JoinMeetingScreen = () => {
     [meetingCallID],
   );
 
-  return !meetingCallID ? (
+  if (meetingCallID) {
+    return <ActivityIndicator style={[StyleSheet.absoluteFill]} />;
+  }
+  return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Text style={styles.headerText}>{'Whats the call ID?'}</Text>
@@ -94,8 +97,6 @@ const JoinMeetingScreen = () => {
         onPress={handleCopyInviteLink}
       />
     </View>
-  ) : (
-    <ActivityIndicator style={[StyleSheet.absoluteFill]} />
   );
 };
 
