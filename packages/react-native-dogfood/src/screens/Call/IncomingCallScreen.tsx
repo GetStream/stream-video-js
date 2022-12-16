@@ -1,17 +1,20 @@
 import React from 'react';
 import { IncomingCallView } from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../types';
+import { RingingStackParamList } from '../../../types';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'IncomingCallScreen'>;
+type Props = NativeStackScreenProps<
+  RingingStackParamList,
+  'IncomingCallScreen'
+>;
 
 const IncomingCallScreen = ({ navigation }: Props) => {
   const onAnswerCall = () => {
-    navigation.navigate('ActiveCallScreen');
+    navigation.navigate('CallScreen');
   };
 
   const onRejectCall = () => {
-    navigation.navigate('HomeScreen');
+    navigation.navigate('JoinCallScreen');
   };
 
   return (

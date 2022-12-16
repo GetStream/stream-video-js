@@ -1,13 +1,14 @@
 import React, { useEffect } from 'react';
-import {
-  useActiveCall,
-  useRemoteHangUpNotifications,
-} from '@stream-io/video-react-bindings';
+import { useActiveCall } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
 import { getAudioStream, getVideoStream } from '@stream-io/video-client';
+import {
+  useStreamVideoStoreSetState,
+  useStreamVideoStoreValue,
+} from '../contexts';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -21,17 +22,10 @@ export interface ActiveCallProps {
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useActiveCall();
-  const activeCallMeta = activeCall?.data.call;
-  const remoteHangUpNotifications = useRemoteHangUpNotifications();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
   const { onHangupCall } = props;
-
-  const isCallHangedUpByCaller = remoteHangUpNotifications.find(
-    (remoteHangUpNotification) =>
-      remoteHangUpNotification.call?.callCid === activeCallMeta?.callCid &&
-      remoteHangUpNotification.call?.createdByUserId ===
-        activeCallMeta?.createdByUserId,
-  );
+  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
+  const setState = useStreamVideoStoreSetState();
 
   useEffect(() => {
     if (audioDevice) {
@@ -43,7 +37,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
   useEffect(() => {
     try {
-      if (currentVideoDevice) {
+      if (currentVideoDevice && !isVideoMuted) {
         getVideoStream(currentVideoDevice.deviceId).then((stream) => {
           if (currentVideoDevice.facing === 'environment') {
             const [primaryVideoTrack] = stream.getVideoTracks();
@@ -55,11 +49,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
     } catch (error) {
       console.log(error);
     }
-  }, [activeCall, currentVideoDevice]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCall, isCallHangedUpByCaller]);
+  }, [activeCall, currentVideoDevice, isVideoMuted, setState]);
 
   return (
     <>

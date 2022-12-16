@@ -1,5 +1,5 @@
-import { CreateCallInput } from '@stream-io/video-client';
 import {
+  useActiveCall,
   useIncomingCalls,
   useOutgoingCalls,
   useStreamVideoClient,
@@ -8,57 +8,52 @@ import { PropsWithChildren, useEffect } from 'react';
 import { MediaDevicesProvider } from '../contexts/MediaDevicesContext';
 
 export type StreamCallProps = {
-  callId: string;
-  callType: string;
-  currentUser: string;
-  autoJoin?: boolean;
-  input?: CreateCallInput;
+  automaticHungupTime?: number;
+  onAcceptCall?: () => void;
   onIncomingCall?: () => void;
+  onHangupCall?: () => void;
   onOutgoingCall?: () => void;
 };
 
 export const StreamCall = ({
   children,
-  callId,
-  callType,
-  currentUser,
-  autoJoin,
-  input,
+  onAcceptCall,
   onIncomingCall,
   onOutgoingCall,
 }: PropsWithChildren<StreamCallProps>) => {
-  const client = useStreamVideoClient();
-  const incomingCalls = useIncomingCalls();
-  const outgoingCalls = useOutgoingCalls();
+  const videoClient = useStreamVideoClient();
+  const [incomingCall] = useIncomingCalls();
+  const [outgoingCall] = useOutgoingCalls();
+  const activeCall = useActiveCall();
 
+  // Effect to deal with the case that the outgoing call should be joined as soon as it is created by the user
   useEffect(() => {
-    if (!client) return;
-    const initiateCall = async () => {
-      client.createCall({
-        id: callId,
-        type: callType,
-        input,
-      });
-    };
-
-    initiateCall().catch((e) => {
-      console.error(`Failed to createCall`, callId, callType, e);
-    });
-  }, [callId, client, callType, currentUser, autoJoin, input]);
-
-  useEffect(() => {
-    if (incomingCalls.length && onIncomingCall) {
-      onIncomingCall();
+    if (!(videoClient && outgoingCall?.call) || activeCall) {
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [incomingCalls]);
+    videoClient
+      .joinCall({
+        id: outgoingCall.call.id,
+        type: outgoingCall.call.type,
+        datacenterId: '',
+      })
+      .then((call) => {
+        call?.join();
+      })
+      .catch((error) => console.log('Error joining an outgoing call', error));
+  }, [videoClient, outgoingCall, activeCall]);
 
+  // Effect to deal with incoming call notifications
   useEffect(() => {
-    if (outgoingCalls.length && onOutgoingCall) {
+    if (outgoingCall && onOutgoingCall) {
       onOutgoingCall();
+    } else if (incomingCall && onIncomingCall) {
+      onIncomingCall();
+    } else if (activeCall && onAcceptCall) {
+      onAcceptCall();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [outgoingCalls]);
+  }, [incomingCall, outgoingCall, activeCall]);
 
   return <MediaDevicesProvider>{children}</MediaDevicesProvider>;
 };

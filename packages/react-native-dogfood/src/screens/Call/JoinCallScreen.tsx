@@ -15,6 +15,7 @@ import {
 } from '../../contexts/AppContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RingingStackParamList } from '../../../types';
+import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -82,6 +83,7 @@ const JoinCallScreen = ({}: Props) => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
   const username = useAppGlobalStoreValue((store) => store.username);
   const ringingUsers = useAppGlobalStoreValue((store) => store.ringingUsers);
+  const client = useStreamVideoClient();
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },
@@ -108,6 +110,20 @@ const JoinCallScreen = ({}: Props) => {
       ringingUsers: ringingUserIds,
       ringingCallID: callID,
     });
+    if (client) {
+      client
+        .createCall({
+          id: callID,
+          type: 'default',
+          input: {
+            ring: true,
+            members: ringingUserIds,
+          },
+        })
+        .catch((error) =>
+          console.log('Failed to createCall', callID, 'default', error),
+        );
+    }
   };
 
   const ringingUsersSetHandler = (userId: string) => {

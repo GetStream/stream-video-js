@@ -1,8 +1,3 @@
-import {
-  useActiveCall,
-  useLocalParticipant,
-  useRemoteParticipants,
-} from '@stream-io/video-react-bindings';
 import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useCall, useCallControls } from '../hooks';
@@ -57,14 +52,10 @@ export const CallControlsView = (props: CallControlsViewProps) => {
   } = useCallControls();
   const { hangupCall } = useCall();
   const { onHangupCall } = props;
-  const remoteParticipants = useRemoteParticipants();
-  const localParticipant = useLocalParticipant();
-  const activeCall = useActiveCall();
-  const activeCallMeta = activeCall?.data.call;
 
   const hangupCallHandler = useCallback(async () => {
-    onHangupCall();
     await hangupCall();
+    onHangupCall();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hangupCall]);
 

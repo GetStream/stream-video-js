@@ -13,7 +13,7 @@ import {
 export const StreamVideo = (
   props: PropsWithChildren<
     StreamVideoProps & {
-      callKeepOptions: CallKeepOptions;
+      callKeepOptions?: CallKeepOptions;
     }
   >,
 ) => {
