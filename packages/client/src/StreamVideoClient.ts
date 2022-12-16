@@ -61,7 +61,7 @@ export class StreamVideoClient {
    * @angular If you're using our Angular SDK, you shouldn't be interacting with the state store directly, instead, you should be using the [`StreamVideoService`](./StreamVideoService.md).
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
-  writeableStateStore: StreamVideoWriteableStateStore;
+  private readonly writeableStateStore: StreamVideoWriteableStateStore;
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWSClient | undefined;
@@ -194,20 +194,22 @@ export class StreamVideoClient {
    */
   createCall = async (data: CreateCallRequest) => {
     const callToCreate = await this.client.createCall(data);
-    const { call: callEnvelope } = callToCreate.response;
-    if (callEnvelope) {
+    const { call } = callToCreate.response;
+    if (call) {
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
-        [
-          ...this.writeableStateStore.getCurrentValue(
-            this.writeableStateStore.pendingCallsSubject,
-          ),
-          callEnvelope,
+        (pendingCalls) => [
+          ...pendingCalls,
+          {
+            call: call.call,
+            callDetails: call.details,
+            ringing: !!data.input?.ring,
+          },
         ],
       );
     }
 
-    return callEnvelope;
+    return call;
   };
 
   /**
@@ -224,14 +226,17 @@ export class StreamVideoClient {
       return;
     }
 
+    const store = this.writeableStateStore;
+    const currentUser = store.getCurrentValue(store.connectedUserSubject);
+
+    if (currentUser?.id === call.createdByUserId) {
+      console.warn('Received CallCreated event sent by the current user');
+      return;
+    }
+
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
-      [
-        ...this.writeableStateStore.getCurrentValue(
-          this.writeableStateStore.pendingCallsSubject,
-        ),
-        event,
-      ],
+      (pendingCalls) => [...pendingCalls, event],
     );
   };
 
@@ -252,7 +257,6 @@ export class StreamVideoClient {
     return callController;
   };
 
-  // FIXME: MC: do we need to keep information about accepted calls in the store?
   /**
    * Event handler invoked upon delivery of CallAccepted Websocket event
    * Updates the state store and notifies its subscribers that
@@ -263,14 +267,9 @@ export class StreamVideoClient {
   onCallAccepted = (event: CallAccepted) => {
     const { call } = event;
     if (!call) {
-      console.warn("Can't find call in CallCreated event");
+      console.warn("Can't find call in CallAccepted event");
       return;
     }
-
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.acceptedCallSubject,
-      event,
-    );
   };
 
   /**
@@ -282,9 +281,10 @@ export class StreamVideoClient {
   rejectCall = async (callCid: string) => {
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
-      this.writeableStateStore
-        .getCurrentValue(this.writeableStateStore.pendingCallsSubject)
-        .filter((incomingCall) => incomingCall.call?.callCid !== callCid),
+      (pendingCalls) =>
+        pendingCalls.filter(
+          (incomingCall) => incomingCall.call?.callCid !== callCid,
+        ),
     );
     await this.client.sendEvent({
       callCid,
@@ -305,15 +305,34 @@ export class StreamVideoClient {
       console.warn("Can't find call in CallRejected event");
       return;
     }
+    // currently not supporting automatic call drop for 1:M calls
+    const memberUserIds = event.callDetails?.memberUserIds || [];
+    if (memberUserIds.length > 1) {
+      return;
+    }
+
+    const store = this.writeableStateStore;
+    const currentUser = store.getCurrentValue(store.connectedUserSubject);
+    if (currentUser?.id === event.senderUserId) {
+      console.warn('Received CallRejected event sent by the current user');
+      return;
+    }
+
+    const pendingCall = store
+      .getCurrentValue(store.pendingCallsSubject)
+      .find((pendingCall) => pendingCall.call?.callCid === call.callCid);
+
+    if (pendingCall?.call?.createdByUserId !== currentUser?.id) {
+      console.warn('Received CallRejected event for an incoming call');
+      return;
+    }
 
     this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.hangupNotificationsSubject,
-      [
-        ...this.writeableStateStore.getCurrentValue(
-          this.writeableStateStore.hangupNotificationsSubject,
+      this.writeableStateStore.pendingCallsSubject,
+      (pendingCalls) =>
+        pendingCalls.filter(
+          (pendingCalls) => pendingCalls.call?.callCid !== event.call?.callCid,
         ),
-        event,
-      ],
     );
   };
 
@@ -324,30 +343,27 @@ export class StreamVideoClient {
    * @returns
    */
   cancelCall = async (callCid: string) => {
-    const activeCall = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.activeCallSubject,
-    );
-    const pendingCalls = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.pendingCallsSubject,
-    );
-    const filteredPendingCalls = pendingCalls.filter(
-      (outCall) => outCall.call?.callCid !== callCid,
-    );
+    const store = this.writeableStateStore;
+    const activeCall = store.getCurrentValue(store.activeCallSubject);
 
     if (activeCall?.data.call?.callCid === callCid) {
-      await activeCall.leave();
-    }
-    if (filteredPendingCalls.length < pendingCalls.length) {
-      this.writeableStateStore.setCurrentValue(
-        this.writeableStateStore.pendingCallsSubject,
-        filteredPendingCalls,
+      activeCall.leave();
+    } else {
+      store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+        pendingCalls.filter(
+          (pendingCall) => pendingCall.call?.callCid !== callCid,
+        ),
       );
     }
 
-    await this.client.sendEvent({
-      callCid,
-      eventType: UserEventType.CANCELLED_CALL,
-    });
+    const remoteParticipants = store.getCurrentValue(store.remoteParticipants$);
+
+    if (!remoteParticipants.length) {
+      await this.client.sendEvent({
+        callCid,
+        eventType: UserEventType.CANCELLED_CALL,
+      });
+    }
   };
 
   /**
@@ -364,14 +380,18 @@ export class StreamVideoClient {
       return;
     }
 
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.hangupNotificationsSubject,
-      [
-        ...this.writeableStateStore.getCurrentValue(
-          this.writeableStateStore.hangupNotificationsSubject,
-        ),
-        event,
-      ],
+    const store = this.writeableStateStore;
+    const currentUser = store.getCurrentValue(store.connectedUserSubject);
+
+    if (currentUser?.id === event.senderUserId) {
+      console.warn('Received CallCancelled event sent by the current user');
+      return;
+    }
+
+    store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+      pendingCalls.filter(
+        (pendingCall) => pendingCall.call?.callCid !== event.call?.callCid,
+      ),
     );
   };
 
@@ -391,10 +411,6 @@ export class StreamVideoClient {
         const edgeName = edge.credentials.server.edgeName;
         const { server, iceServers, token } = edge.credentials;
         const sfuClient = new StreamSfuClient(server.url, token, sessionId);
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.activeCallMetaSubject,
-          callMeta,
-        );
 
         // TODO OL: compute the initial value from `activeCallSubject`
         this.writeableStateStore.setCurrentValue(
@@ -461,8 +477,8 @@ export class StreamVideoClient {
     stats: Object,
   ): Promise<ReportCallStatsResponse> => {
     const callCid = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.activeCallMetaSubject,
-    )?.callCid;
+      this.writeableStateStore.activeCallSubject,
+    )?.data.call?.callCid;
     if (!callCid) {
       throw new Error('No active CallMeta ID found');
     }
@@ -519,8 +535,8 @@ export class StreamVideoClient {
     statEvent: ReportCallStatEventRequest['event'],
   ): Promise<ReportCallStatEventResponse> => {
     const callCid = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.activeCallMetaSubject,
-    )?.callCid;
+      this.writeableStateStore.activeCallSubject,
+    )?.data.call?.callCid;
     if (!callCid) {
       throw new Error('No active CallMeta ID found');
     }
@@ -540,20 +556,8 @@ export class StreamVideoClient {
    * @returns
    */
   setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
-    const participants = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.participantsSubject,
-    );
-
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.participantsSubject,
-      participants.map((p) => {
-        return p.sessionId === sessionId
-          ? {
-              ...p,
-              isPinned,
-            }
-          : p;
-      }),
-    );
+    this.writeableStateStore.updateParticipant(sessionId, {
+      isPinned,
+    });
   };
 }

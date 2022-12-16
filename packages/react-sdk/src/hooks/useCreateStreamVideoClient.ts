@@ -31,14 +31,14 @@ export const useCreateStreamVideoClient = ({
   useEffect(
     () => {
       const connection = disconnectRef.current.then(() =>
-        client?.connect(apiKey, token, user).catch((err) => {
+        client.connect(apiKey, token, user).catch((err) => {
           console.error(`Failed to establish connection`, err);
         }),
       );
 
       return () => {
-        connection?.then(() => {
-          disconnectRef.current = client?.disconnect();
+        connection.then(() => {
+          disconnectRef.current = client.disconnect();
           disconnectRef.current.catch((err) => {
             console.error(`Failed to disconnect`, err);
           });

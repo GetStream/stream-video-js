@@ -11,7 +11,7 @@ export const UserList = () => {
         style={{ display: 'flex', flexDirection: 'column', gap: 5 }}
       >
         {users.map((u) => (
-          <li className="user-list-item">
+          <li className="user-list-item" key={u.id}>
             <a
               className="user-list-item--link"
               href={`${window.location.origin}?ut=${u.token}&uid=${u.id}`}

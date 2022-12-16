@@ -4,15 +4,10 @@ import {
   distinctUntilChanged,
   map,
   take,
-  filter,
 } from 'rxjs/operators';
 import { UserInput } from './gen/video/coordinator/user_v1/user';
-import {
-  CallAccepted,
-  CallCancelled,
-  CallCreated,
-  CallRejected,
-} from './gen/video/coordinator/event_v1/event';
+import { Call, CallDetails } from './gen/video/coordinator/call_v1/call';
+import { CallAccepted } from './gen/video/coordinator/event_v1/event';
 import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
@@ -22,18 +17,11 @@ import {
 import { CallStatsReport } from './stats/types';
 import { Call as CallController } from './rtc/Call';
 import { TrackType } from './gen/video/sfu/models/models';
-import { Call } from './gen/video/coordinator/call_v1/call';
-import { CallEnvelope } from './gen/video/coordinator/client_v1_rpc/envelopes';
 
-type UserID = string;
-
-export type RemoteHangupNotification = {
-  hungUpByUsers: Set<UserID>;
-  targetCall: {
-    callCid: string;
-    memberUserIds: string[];
-    callCreatedBy?: string;
-  };
+export type PendingCall = {
+  call?: Call;
+  callDetails?: CallDetails;
+  ringing: boolean; // FIXME: CreateCallInput.ring vs CallCreated.ringing
 };
 
 export class StreamVideoWriteableStateStore {
@@ -44,39 +32,22 @@ export class StreamVideoWriteableStateStore {
   /**
    * A store that keeps track of all created calls that have not been yet accepted, rejected nor cancelled.
    */
-  pendingCallsSubject = new BehaviorSubject<(CallCreated | CallEnvelope)[]>([]);
+  pendingCallsSubject = new BehaviorSubject<PendingCall[]>([]);
   /**
    * A list of objects describing incoming calls.
    */
-  incomingCalls$: Observable<CallCreated[]>;
+  incomingCalls$: Observable<PendingCall[]>;
   /**
    * A list of objects describing calls initiated by the current user (connectedUser).
    */
-  outgoingCalls$: Observable<CallEnvelope[]>;
+  outgoingCalls$: Observable<PendingCall[]>;
   /**
    * A store that keeps track of all the notifications describing accepted call.
    */
+  // todo: Currently not updating this Subject
   acceptedCallSubject = new BehaviorSubject<CallAccepted | undefined>(
     undefined,
   );
-  /**
-   * A store that keeps track of cancellations and rejections for both incoming and outgoing calls
-   */
-  hangupNotificationsSubject = new BehaviorSubject<
-    (CallRejected | CallCancelled)[]
-  >([]);
-  /**
-   * A collection of local user's call rejections or cancellations;
-   */
-  localHangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
-  /**
-   * A collection of remote users' call rejections or cancellations;
-   */
-  remoteHangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
-  activeCallHangupNotifications$: Observable<RemoteHangupNotification>;
-  outgoingCallHangupNotifications$: Observable<RemoteHangupNotification>;
-  incomingCallHangupNotifications$: Observable<RemoteHangupNotification>;
-
   /**
    * A store that keeps reference to a call controller instance.
    */
@@ -110,12 +81,6 @@ export class StreamVideoWriteableStateStore {
   );
   callRecordingInProgressSubject = new ReplaySubject<boolean>(1);
   hasOngoingScreenShare$: Observable<boolean>;
-  /**
-   * The call metadata of the ongoing call
-   * The call metadata becomes available before the `activeCall$`
-   */
-  activeCallMetaSubject: BehaviorSubject<Call | undefined> =
-    new BehaviorSubject<Call | undefined>(undefined);
 
   constructor() {
     this.localParticipant$ = this.participantsSubject.pipe(
@@ -132,130 +97,21 @@ export class StreamVideoWriteableStateStore {
 
     this.incomingCalls$ = this.pendingCallsSubject.pipe(
       combineLatestWith(this.connectedUserSubject),
-      map(
-        ([pendingCalls, connectedUser]) =>
-          pendingCalls.filter(
-            (call) => call.call?.createdByUserId !== connectedUser?.id,
-          ) as CallCreated[],
+      map(([pendingCalls, connectedUser]) =>
+        pendingCalls.filter(
+          (call) => call.call?.createdByUserId !== connectedUser?.id,
+        ),
       ),
     );
 
     this.outgoingCalls$ = this.pendingCallsSubject.pipe(
       combineLatestWith(this.connectedUserSubject),
-      map(
-        ([pendingCalls, connectedUser]) =>
-          pendingCalls.filter(
-            (call) => call.call?.createdByUserId === connectedUser?.id,
-          ) as CallEnvelope[],
+      map(([pendingCalls, connectedUser]) =>
+        pendingCalls.filter(
+          (call) => call.call?.createdByUserId === connectedUser?.id,
+        ),
       ),
     );
-
-    this.localHangupNotifications$ = this.hangupNotificationsSubject.pipe(
-      combineLatestWith(this.connectedUserSubject),
-      map(([hangups, connectedUser]) =>
-        hangups.filter((hangup) => hangup.senderUserId === connectedUser?.id),
-      ),
-    );
-    this.remoteHangupNotifications$ = this.hangupNotificationsSubject.pipe(
-      combineLatestWith(this.connectedUserSubject),
-      map(([hangups, connectedUser]) =>
-        hangups.filter((hangup) => hangup.senderUserId !== connectedUser?.id),
-      ),
-    );
-
-    this.activeCallHangupNotifications$ = this.remoteHangupNotifications$.pipe(
-      map((hangups) => {
-        const activeCall = this.getCurrentValue(this.activeCallSubject);
-        return {
-          targetCall: {
-            callCid: activeCall?.data.call?.callCid,
-            callCreatedBy: activeCall?.data.call?.createdByUserId,
-            memberUserIds: activeCall?.data.details?.memberUserIds || [],
-          },
-          hangups,
-        };
-      }),
-      filter(({ targetCall, hangups }) => {
-        const lastHangup = hangups[hangups.length - 1];
-        return (
-          !!targetCall.callCid &&
-          lastHangup.call?.callCid === targetCall.callCid
-        );
-      }),
-      map(({ targetCall, hangups }) => {
-        return {
-          targetCall,
-          hungUpByUsers: hangups.reduce((acc, hangup) => {
-            if (hangup.call?.callCid === targetCall.callCid) {
-              acc.add(hangup.senderUserId);
-            }
-            return acc;
-          }, new Set<UserID>()),
-        } as RemoteHangupNotification;
-      }),
-    );
-
-    this.outgoingCallHangupNotifications$ =
-      this.remoteHangupNotifications$.pipe(
-        map((hangups) => {
-          const calls = this.getCurrentValue(this.outgoingCalls$);
-          const lastHangup = hangups[hangups.length - 1];
-          const targetCall = calls.find(
-            (calls) => lastHangup.call?.callCid === calls?.call?.callCid,
-          );
-          return {
-            hangups,
-            targetCall: {
-              callCid: targetCall?.call?.callCid,
-              memberUserIds: targetCall?.details?.memberUserIds,
-              callCreatedBy: targetCall?.call?.createdByUserId,
-            },
-          };
-        }),
-        filter(({ targetCall }) => !!targetCall.callCid),
-        map(({ hangups, targetCall }) => {
-          return {
-            targetCall,
-            hungUpByUsers: hangups.reduce((acc, hangup) => {
-              if (hangup.call?.callCid === targetCall.callCid) {
-                acc.add(hangup.senderUserId);
-              }
-              return acc;
-            }, new Set<UserID>()),
-          } as RemoteHangupNotification;
-        }),
-      );
-
-    this.incomingCallHangupNotifications$ =
-      this.remoteHangupNotifications$.pipe(
-        map((hangups) => {
-          const calls = this.getCurrentValue(this.incomingCalls$);
-          const lastHangup = hangups[hangups.length - 1];
-          const targetCall = calls.find(
-            (calls) => lastHangup.call?.callCid === calls?.call?.callCid,
-          );
-          return {
-            hangups,
-            targetCall: {
-              callCid: targetCall?.call?.callCid,
-              memberUserIds: targetCall?.callDetails?.memberUserIds,
-              callCreatedBy: targetCall?.call?.createdByUserId,
-            },
-          };
-        }),
-        filter(({ targetCall }) => !!targetCall.callCid),
-        map(({ hangups, targetCall }) => {
-          return {
-            targetCall,
-            hungUpByUsers: hangups.reduce((acc, hangup) => {
-              if (hangup.call?.callCid === targetCall.callCid) {
-                acc.add(hangup.senderUserId);
-              }
-              return acc;
-            }, new Set<UserID>()),
-          } as RemoteHangupNotification;
-        }),
-      );
 
     this.activeCallSubject.subscribe((callController) => {
       if (callController) {
@@ -269,7 +125,6 @@ export class StreamVideoWriteableStateStore {
       } else {
         this.setCurrentValue(this.callRecordingInProgressSubject, false);
         this.setCurrentValue(this.participantsSubject, []);
-        this.setCurrentValue(this.hangupNotificationsSubject, []);
       }
     });
 
@@ -400,32 +255,20 @@ export class StreamVideoReadOnlyStateStore {
   /**
    * A list of objects describing all created calls that have not been yet accepted, rejected nor cancelled.
    */
-  pendingCalls$: Observable<(CallCreated | CallEnvelope)[]>;
+  pendingCalls$: Observable<PendingCall[]>;
   /**
    * A list of objects describing calls initiated by the current user (connectedUser).
    */
-  outgoingCalls$: Observable<CallEnvelope[]>;
+  outgoingCalls$: Observable<PendingCall[]>;
   /**
    * A list of objects describing incoming calls.
    */
-  incomingCalls$: Observable<CallCreated[]>;
+  incomingCalls$: Observable<PendingCall[]>;
   /**
    * The call data describing an incoming call accepted by a participant.
    * Serves as a flag decide, whether an incoming call should be joined.
    */
   acceptedCall$: Observable<CallAccepted | undefined>;
-  /**
-   * A list of cancellations and rejections for both incoming and outgoing calls
-   */
-  hangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
-  /**
-   * A collection of local user's call rejections or cancellations;
-   */
-  localHangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
-  /**
-   * A collection of remote users' call rejections or cancellations;
-   */
-  remoteHangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
   /**
    * The call controller instance representing the call the user attends.
    * The controller instance exposes call metadata as well.
@@ -449,9 +292,6 @@ export class StreamVideoReadOnlyStateStore {
    * Remote participants of the current call (this includes every participant except the logged-in user).
    */
   remoteParticipants$: Observable<StreamVideoParticipant[]>;
-  activeCallHangupNotifications$: Observable<RemoteHangupNotification>;
-  outgoingCallHangupNotifications$: Observable<RemoteHangupNotification>;
-  incomingCallHangupNotifications$: Observable<RemoteHangupNotification>;
   /**
    * Pinned participants of the current call.
    */
@@ -486,14 +326,6 @@ export class StreamVideoReadOnlyStateStore {
     this.incomingCalls$ = store.incomingCalls$;
     this.outgoingCalls$ = store.outgoingCalls$;
     this.acceptedCall$ = store.acceptedCallSubject.asObservable();
-    this.hangupNotifications$ = store.hangupNotificationsSubject.asObservable();
-    this.localHangupNotifications$ = store.localHangupNotifications$;
-    this.remoteHangupNotifications$ = store.remoteHangupNotifications$;
-    this.activeCallHangupNotifications$ = store.activeCallHangupNotifications$;
-    this.outgoingCallHangupNotifications$ =
-      store.outgoingCallHangupNotifications$;
-    this.incomingCallHangupNotifications$ =
-      store.incomingCallHangupNotifications$;
     this.activeCall$ = store.activeCallSubject.asObservable();
     this.participants$ = store.participantsSubject.asObservable();
     this.localParticipant$ = store.localParticipant$;

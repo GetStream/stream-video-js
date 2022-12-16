@@ -28,8 +28,6 @@ import {
  * A `Call` object represents the active call, the user is part of.
  */
 export class Call {
-  /**@deprecated use store for this data */
-  currentUserId: string;
   data: CallEnvelope;
   private readonly subscriber: RTCPeerConnection;
   private readonly publisher: RTCPeerConnection;
@@ -54,10 +52,6 @@ export class Call {
     private readonly stateStore: StreamVideoWriteableStateStore,
   ) {
     this.data = data;
-    this.currentUserId = stateStore.getCurrentValue(
-      stateStore.connectedUserSubject,
-    )!.name;
-
     this.subscriber = createSubscriber({
       rpcClient: this.client,
       connectionConfig: this.options.connectionConfig,
