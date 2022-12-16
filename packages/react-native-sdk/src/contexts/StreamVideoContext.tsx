@@ -4,7 +4,7 @@ import { CallKeepOptions } from '../types';
 export interface SDKStreamVideoStore {
   cameraBackFacingMode: boolean;
   isVideoMuted: boolean;
-  callKeepOptions?: CallKeepOptions | undefined;
+  callKeepOptions?: CallKeepOptions;
 }
 
 export const { Provider, useStoreValue, useStoreSetState } =
