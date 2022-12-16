@@ -9,10 +9,7 @@ import {
   View,
 } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  useAppGlobalStoreSetState,
-  useAppGlobalStoreValue,
-} from '../../contexts/AppContext';
+import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
@@ -78,7 +75,7 @@ const styles = StyleSheet.create({
 const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
   const username = useAppGlobalStoreValue((store) => store.username);
-  const ringingUsers = useAppGlobalStoreValue((store) => store.ringingUsers);
+  const [ringingUsers, setRingingUsers] = useState<string[]>([]);
   const client = useStreamVideoClient();
 
   const users = [
@@ -89,17 +86,12 @@ const JoinCallScreen = () => {
     { id: 'zita', name: 'Zita Szupera' },
   ];
 
-  const setState = useAppGlobalStoreSetState();
-
   const startCallHandler = async () => {
     const callID = uuidv4().toLowerCase();
     let ringingUserIds = !ringingUserIdsText
       ? ringingUsers
       : ringingUserIdsText.split(',');
-    setState({
-      ringingUsers: ringingUserIds,
-      ringingCallID: callID,
-    });
+
     if (client) {
       try {
         client.createCall({
@@ -127,15 +119,11 @@ const JoinCallScreen = () => {
 
   const ringingUsersSetHandler = (userId: string) => {
     if (!isRingingUserSelected(userId)) {
-      setState({
-        ringingUsers: [...ringingUsers, userId],
-      });
+      setRingingUsers((prevState) => [...prevState, userId]);
     } else {
-      setState({
-        ringingUsers: ringingUsers.filter(
-          (ringingUser) => ringingUser !== userId,
-        ),
-      });
+      setRingingUsers(
+        ringingUsers.filter((ringingUser) => ringingUser !== userId),
+      );
     }
   };
 
