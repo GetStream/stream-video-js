@@ -1,0 +1,22 @@
+@use './Icons';
+
+.str-video__notification {
+  background-color: #1c1e22;
+  border-radius: 8px;
+  padding: 10px 10px;
+  display: flex;
+  gap: 10px;
+  min-width: 250px;
+
+  .str-video__notification__icon {
+    background-image: Icons.$icon-info-icon;
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+  }
+
+  .str-video__notification__message {
+    flex: 1;
+    font-size: 12px;
+  }
+}

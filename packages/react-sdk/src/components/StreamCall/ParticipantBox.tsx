@@ -2,13 +2,14 @@ import clsx from 'clsx';
 import { useEffect, useRef } from 'react';
 import {
   Call,
-  StreamVideoParticipant,
   SfuModels,
+  StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { useIsDebugMode } from '../Debug/useIsDebugMode';
 import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../Debug/DebugStatsView';
 import { Video } from './Video';
+import { Notification } from './Notification';
 
 export const ParticipantBox = (props: {
   participant: StreamVideoParticipant;
@@ -24,6 +25,7 @@ export const ParticipantBox = (props: {
     isLoggedInUser: isLocalParticipant,
     isSpeaking,
     publishedTracks,
+    connectionQuality,
   } = participant;
 
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
@@ -44,8 +46,8 @@ export const ParticipantBox = (props: {
     };
   }, [audioStream, sinkId]);
 
-  const connectionQuality = String(
-    SfuModels.ConnectionQuality[participant.connectionQuality],
+  const connectionQualityAsString = String(
+    SfuModels.ConnectionQuality[connectionQuality],
   ).toLowerCase();
 
   const isDebugMode = useIsDebugMode();
@@ -72,13 +74,21 @@ export const ParticipantBox = (props: {
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
             {participant.userId}
-            <span
-              className={clsx(
-                'str-video__participant__connection-quality',
-                `str-video__participant__connection-quality--${connectionQuality}`,
-              )}
-              title={connectionQuality}
-            ></span>
+            <Notification
+              isVisible={
+                isLocalParticipant &&
+                connectionQuality === SfuModels.ConnectionQuality.POOR
+              }
+              message="Poor connection quality. Please check your internet connection."
+            >
+              <span
+                className={clsx(
+                  'str-video__participant__connection-quality',
+                  `str-video__participant__connection-quality--${connectionQualityAsString}`,
+                )}
+                title={connectionQualityAsString}
+              />
+            </Notification>
             {!hasAudio && (
               <span className="str-video__participant_name--audio-muted"></span>
             )}
