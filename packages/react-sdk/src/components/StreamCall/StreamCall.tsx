@@ -1,116 +1,33 @@
-import { PropsWithChildren, useEffect, useRef } from 'react';
-import { CallCancelled, CallRejected } from '@stream-io/video-client';
+import { ReactNode, useEffect } from 'react';
 
 import {
-  useAcceptedCall,
-  useIncomingCalls,
+  useActiveCall,
   useOutgoingCalls,
-  useStore,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import {
-  LocalMediaStreamsContextProvider,
-  MediaDevicesProvider,
-} from '../../contexts';
-import { useConnectedUser } from '@stream-io/video-react-bindings/dist/src/hooks/user';
+import { MediaDevicesProvider } from '../../contexts';
 
-type StreamCallProps = {
-  leaveOnLeftAlone?: boolean;
-};
-
-export const StreamCall = ({
-  children,
-  leaveOnLeftAlone,
-}: PropsWithChildren<StreamCallProps>) => {
+export const StreamCall = ({ children }: { children: ReactNode }) => {
   const videoClient = useStreamVideoClient();
-  const user = useConnectedUser();
-  const incomingCalls = useIncomingCalls();
-  const outgoingCalls = useOutgoingCalls();
-  const acceptedCall = useAcceptedCall();
-  const { localHangupNotifications$ } = useStore();
-  const { remoteHangupNotifications$ } = useStore();
-
-  const isJoiningRef = useRef(false);
+  const [outgoingCall] = useOutgoingCalls();
+  const activeCall = useActiveCall();
 
   useEffect(() => {
-    if (!(videoClient && acceptedCall) || isJoiningRef.current) return;
+    if (!(videoClient && outgoingCall?.call) || activeCall) return;
 
-    const callToJoin =
-      outgoingCalls.length > 0
-        ? outgoingCalls.find(
-            (c) => c.call?.callCid === acceptedCall?.call?.callCid,
-          )
-        : incomingCalls.length > 0
-        ? incomingCalls.find(
-            (c) =>
-              c.call?.callCid === acceptedCall?.call?.callCid &&
-              acceptedCall.senderUserId === user?.id,
-          )
-        : undefined;
-
-    if (callToJoin?.call) {
-      isJoiningRef.current = true;
-      videoClient
-        ?.joinCall({
-          id: callToJoin.call.id,
-          type: callToJoin.call.type,
-          // FIXME: OL optional, but it is marked as required in proto
-          datacenterId: '',
-        })
-        .then((call) => {
-          if (call?.left) return call;
-          const filterActiveCallHangups = (
-            acc: Set<string>,
-            notification: CallCancelled | CallRejected,
-          ) => {
-            if (notification.call?.callCid === call?.data.call?.callCid) {
-              acc.add(notification.senderUserId);
-            }
-            return acc;
-          };
-          localHangupNotifications$.subscribe((notifications) => {
-            const myHangups = notifications.reduce(
-              filterActiveCallHangups,
-              new Set(),
-            );
-            myHangups.size > 0 && call?.leave();
-          });
-
-          remoteHangupNotifications$.subscribe((notifications) => {
-            const members = call?.data.details?.memberUserIds || [];
-            const wasLeftAlone =
-              notifications.reduce(filterActiveCallHangups, new Set()).size ===
-              members.length - 1;
-
-            if (wasLeftAlone && leaveOnLeftAlone) {
-              call?.leave();
-            }
-          });
-          return call;
-        })
-        .then((call) => {
-          !call?.left && call?.join();
-        });
-    }
-  }, [
-    videoClient,
-    outgoingCalls,
-    incomingCalls,
-    acceptedCall,
-    localHangupNotifications$,
-    remoteHangupNotifications$,
-    leaveOnLeftAlone,
-    isJoiningRef,
-    user,
-  ]);
+    videoClient
+      ?.joinCall({
+        id: outgoingCall.call.id,
+        type: outgoingCall.call.type,
+        // FIXME: OL optional, but it is marked as required in proto
+        datacenterId: '',
+      })
+      .then((call) => {
+        call?.join();
+      });
+  }, [videoClient, outgoingCall, activeCall]);
 
   if (!videoClient) return null;
 
-  return (
-    <MediaDevicesProvider>
-      <LocalMediaStreamsContextProvider>
-        {children}
-      </LocalMediaStreamsContextProvider>
-    </MediaDevicesProvider>
-  );
+  return <MediaDevicesProvider>{children}</MediaDevicesProvider>;
 };

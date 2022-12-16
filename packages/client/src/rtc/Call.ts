@@ -28,12 +28,7 @@ import {
  * A `Call` object represents the active call, the user is part of.
  */
 export class Call {
-  /**@deprecated use store for this data */
-  currentUserId: string;
   data: CallEnvelope;
-  /** Flag to indicate the call termination was already initiated */
-  left: boolean;
-
   private readonly subscriber: RTCPeerConnection;
   private readonly publisher: RTCPeerConnection;
   private readonly trackSubscriptionsSubject = new Subject<
@@ -57,11 +52,6 @@ export class Call {
     private readonly stateStore: StreamVideoWriteableStateStore,
   ) {
     this.data = data;
-    this.left = false;
-    this.currentUserId = stateStore.getCurrentValue(
-      stateStore.connectedUserSubject,
-    )!.name;
-
     this.subscriber = createSubscriber({
       rpcClient: this.client,
       connectionConfig: this.options.connectionConfig,
@@ -77,7 +67,6 @@ export class Call {
       subscriber: this.subscriber,
       publisher: this.publisher,
       store: stateStore,
-      latencyCheckUrl: this.options.latencyCheckUrl,
       edgeName: this.options.edgeName,
     });
 
@@ -116,8 +105,11 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = () => {
-    if (this.left) return;
-    this.left = true;
+    if (!this.joinResponseReady) {
+      throw new Error('Cannot leave call that has already been left.');
+    }
+    this.joinResponseReady = undefined;
+
     this.statsReporter.stop();
     this.subscriber.close();
     this.publisher.getSenders().forEach((s) => {
@@ -132,16 +124,9 @@ export class Call {
     this.client.close();
 
     this.stateStore.setCurrentValue(
-      this.stateStore.callRecordingInProgressSubject,
-      false,
-    );
-
-    this.stateStore.setCurrentValue(
       this.stateStore.activeCallSubject,
       undefined,
     );
-
-    this.stateStore.setCurrentValue(this.stateStore.participantsSubject, []);
   };
 
   /**
@@ -171,10 +156,6 @@ export class Call {
               }
               return participant;
             }),
-          );
-          this.stateStore.setCurrentValue(
-            this.stateStore.activeCallSubject,
-            this,
           );
 
           this.client.keepAlive();
@@ -380,15 +361,27 @@ export class Call {
    * Update track subscription configuration for one or more participants.
    * You have to create a subscription for each participant you want to receive any kind of track.
    *
+   * @param kind the kind of subscription to update.
    * @param changes the list of subscription changes to do.
    */
-  updateSubscriptionsPartial = (changes: SubscriptionChanges) => {
+  updateSubscriptionsPartial = (
+    kind: 'video' | 'screen',
+    changes: SubscriptionChanges,
+  ) => {
     const participants = this.stateStore.updateParticipants(
       Object.entries(changes).reduce<StreamVideoParticipantPatches>(
         (acc, [sessionId, change]) => {
-          acc[sessionId] = {
-            videoDimension: change.videoDimension,
-          };
+          const prop: keyof StreamVideoParticipant | undefined =
+            kind === 'video'
+              ? 'videoDimension'
+              : kind === 'screen'
+              ? 'screenShareDimension'
+              : undefined;
+          if (prop) {
+            acc[sessionId] = {
+              [prop]: change.dimension,
+            };
+          }
           return acc;
         },
         {},
@@ -403,33 +396,32 @@ export class Call {
   private updateSubscriptions = (participants: StreamVideoParticipant[]) => {
     const subscriptions: TrackSubscriptionDetails[] = [];
     participants.forEach((p) => {
-      if (!p.isLoggedInUser) {
-        // if (p.videoDimension && p.publishedTracks.includes(TrackKind.VIDEO)) {
+      if (p.isLoggedInUser) return;
+      if (p.videoDimension && p.publishedTracks.includes(TrackType.VIDEO)) {
         subscriptions.push({
           userId: p.userId,
           sessionId: p.sessionId,
           trackType: TrackType.VIDEO,
           dimension: p.videoDimension,
         });
-        // }
-        // if (p.publishedTracks.includes(TrackKind.AUDIO)) {
+      }
+      if (p.publishedTracks.includes(TrackType.AUDIO)) {
         subscriptions.push({
           userId: p.userId,
           sessionId: p.sessionId,
           trackType: TrackType.AUDIO,
         });
-        // }
-        // if (p.publishedTracks.includes(TrackKind.SCREEN_SHARE)) {
+      }
+      if (
+        p.screenShareDimension &&
+        p.publishedTracks.includes(TrackType.SCREEN_SHARE)
+      ) {
         subscriptions.push({
           userId: p.userId,
           sessionId: p.sessionId,
           trackType: TrackType.SCREEN_SHARE,
-          dimension: {
-            width: 1280,
-            height: 720,
-          },
+          dimension: p.screenShareDimension,
         });
-        // }
       }
     });
     // schedule update
@@ -518,7 +510,7 @@ export class Call {
 
   private handleOnTrack = (e: RTCTrackEvent) => {
     const [primaryStream] = e.streams;
-    // TODO OL: extract track kind
+    // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
     const [trackId, trackType] = primaryStream.id.split(':');
     console.log(`Got remote ${trackType} track:`, e.track);
     const participantToUpdate = this.participants.find(
@@ -556,13 +548,18 @@ export class Call {
       );
     });
 
-    const streamKindProp: keyof StreamVideoParticipant =
-      e.track.kind === 'audio'
-        ? 'audioStream'
-        : trackType === 'TRACK_TYPE_SCREEN_SHARE'
-        ? 'screenShareStream'
-        : 'videoStream';
+    const streamKindProp = (
+      {
+        TRACK_TYPE_AUDIO: 'audioStream',
+        TRACK_TYPE_VIDEO: 'videoStream',
+        TRACK_TYPE_SCREEN_SHARE: 'screenShareStream',
+      } as Record<string, 'audioStream' | 'videoStream' | 'screenShareStream'>
+    )[trackType];
 
+    if (!streamKindProp) {
+      console.error('Unknown track type', trackType);
+      return;
+    }
     const previousStream = participantToUpdate[streamKindProp];
     if (previousStream) {
       console.log(`Cleaning up previous remote tracks`, e.track.kind);

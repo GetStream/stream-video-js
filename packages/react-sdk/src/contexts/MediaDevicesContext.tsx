@@ -33,9 +33,9 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedAudioDeviceId, selectAudioDeviceId] =
-    useState<MediaDevicesContextAPI['selectedAudioDeviceId']>();
+    useState<MediaDevicesContextAPI['selectedAudioDeviceId']>('default');
   const [selectedVideoDeviceId, selectVideoDeviceId] =
-    useState<MediaDevicesContextAPI['selectedVideoDeviceId']>();
+    useState<MediaDevicesContextAPI['selectedVideoDeviceId']>('default');
   const [audioOutputDevices, setAudioOutputDevices] = useState<
     MediaDeviceInfo[]
   >([]);

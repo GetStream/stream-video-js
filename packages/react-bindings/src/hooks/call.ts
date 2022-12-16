@@ -72,27 +72,3 @@ export const useAcceptedCall = () => {
   const { acceptedCall$ } = useStore();
   return useObservableValue(acceptedCall$);
 };
-
-/**
- * Utility hook which provides a list of all call rejections (I refused to join when somebody called me)
- * or cancellations (I have left an active call or have cancelled my outgoing call before joining it).
- * The list is not filtered by user, so it contains all the notifications done by any user for all the initiated calls.
- */
-export const useHangUpNotifications = () => {
-  const { hangupNotifications$ } = useStore();
-  return useObservableValue(hangupNotifications$);
-};
-
-/**
- * Utility hook which provides a list of all call rejections (I refused to join when somebody called me)
- * or cancellations (I have left an active call or have cancelled my outgoing call before joining it) do by me.
- */
-export const useLocalHangUpNotifications = () => {
-  const { localHangupNotifications$ } = useStore();
-  return useObservableValue(localHangupNotifications$);
-};
-
-export const useRemoteHangUpNotifications = () => {
-  const { remoteHangupNotifications$ } = useStore();
-  return useObservableValue(remoteHangupNotifications$);
-};

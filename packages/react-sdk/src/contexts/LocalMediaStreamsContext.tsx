@@ -71,6 +71,9 @@ const useSetupLocalMediaStream = ({
   }, [localStream, pendingCalls, selectedDeviceId, call]);
 };
 
+/**
+ * @deprecated No longer used, remove later
+ */
 export const LocalMediaStreamsContextProvider = ({
   children,
 }: {

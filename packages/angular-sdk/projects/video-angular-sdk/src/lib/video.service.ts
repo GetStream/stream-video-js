@@ -52,7 +52,7 @@ export class StreamVideoService {
   videoClient: StreamVideoClient | undefined;
   hangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
   /**
-   * Emits a boolean indicating whether a call recording is currently in progress.
+   * Emits a `boolean` indicating whether a call recording is currently in progress.
    */
   callRecordingInProgress$: Observable<boolean>;
   /**

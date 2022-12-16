@@ -4,10 +4,14 @@ import {
   watchForDisconnectedAudioOutputDevice, // TODO: ???
 } from '@stream-io/video-client';
 import { useCallback, useEffect } from 'react';
-import { Call, SfuModels } from '@stream-io/video-client';
+import {
+  Call,
+  SfuModels,
+  getAudioStream,
+  getVideoStream,
+} from '@stream-io/video-client';
 import { useStore } from '@stream-io/video-react-bindings';
 
-import { useLocalMediaStreamsContext } from '../contexts';
 import { useDebugPreferredVideoCodec } from '../components/Debug/useIsDebugMode';
 import { map } from 'rxjs';
 
@@ -15,48 +19,77 @@ export const useMediaPublisher = ({
   call,
   initialAudioMuted,
   initialVideoMuted,
+  videoDeviceId,
+  audioDeviceId,
 }: {
-  call?: Call;
+  call: Call;
   initialAudioMuted?: boolean;
   initialVideoMuted?: boolean;
+  audioDeviceId?: string;
+  videoDeviceId?: string;
 }) => {
   const { localParticipant$ } = useStore();
-  const { localVideoStream, localAudioStream } = useLocalMediaStreamsContext();
 
   useEffect(() => {
-    if (initialAudioMuted || !localAudioStream) return;
-    call?.publishAudioStream(localAudioStream);
-  }, [call, localAudioStream, initialAudioMuted]);
+    let interrupted = false;
+
+    if (initialAudioMuted) return;
+
+    getAudioStream(audioDeviceId).then((stream) => {
+      if (interrupted && stream.active)
+        return stream.getTracks().forEach((t) => t.stop());
+
+      return call.publishAudioStream(stream);
+    });
+
+    return () => {
+      interrupted = true;
+      call.stopPublish(SfuModels.TrackType.AUDIO);
+    };
+  }, [call, audioDeviceId, initialAudioMuted]);
 
   const preferredCodec = useDebugPreferredVideoCodec();
   useEffect(() => {
-    if (initialVideoMuted || !localVideoStream) return;
-    call?.publishVideoStream(localVideoStream, { preferredCodec });
-  }, [call, preferredCodec, initialVideoMuted, localVideoStream]);
+    let interrupted = false;
+
+    if (initialVideoMuted) return;
+
+    getVideoStream(videoDeviceId).then((stream) => {
+      if (interrupted && stream.active)
+        return stream.getTracks().forEach((t) => t.stop());
+
+      return call.publishVideoStream(stream, { preferredCodec });
+    });
+
+    return () => {
+      interrupted = true;
+      call.stopPublish(SfuModels.TrackType.VIDEO);
+    };
+  }, [videoDeviceId, call, preferredCodec, initialVideoMuted]);
 
   const publishAudioStream = useCallback(async () => {
     try {
-      if (!localAudioStream) return;
-      await call?.publishAudioStream(localAudioStream);
+      const audioStream = await getAudioStream(audioDeviceId);
+      await call.publishAudioStream(audioStream);
     } catch (e) {
       console.log('Failed to publish audio stream', e);
     }
-  }, [localAudioStream, call]);
+  }, [audioDeviceId, call]);
 
   const publishVideoStream = useCallback(async () => {
     try {
-      if (!localVideoStream) return;
-      await call?.publishVideoStream(localVideoStream, { preferredCodec });
+      const videoStream = await getVideoStream(videoDeviceId);
+      await call.publishVideoStream(videoStream, { preferredCodec });
     } catch (e) {
       console.log('Failed to publish video stream', e);
     }
-  }, [call, preferredCodec, localVideoStream]);
+  }, [call, preferredCodec, videoDeviceId]);
 
   useEffect(() => {
     const subscription = watchForDisconnectedAudioDevice(
       localParticipant$.pipe(map((p) => p?.audioDeviceId)),
     ).subscribe(async () => {
-      await call?.stopPublish(SfuModels.TrackType.AUDIO);
+      await call.stopPublish(SfuModels.TrackType.AUDIO);
     });
     return () => {
       subscription.unsubscribe();
@@ -67,7 +100,7 @@ export const useMediaPublisher = ({
     const subscription = watchForDisconnectedVideoDevice(
       localParticipant$.pipe(map((p) => p?.videoDeviceId)),
     ).subscribe(async () => {
-      await call?.stopPublish(SfuModels.TrackType.VIDEO);
+      await call.stopPublish(SfuModels.TrackType.VIDEO);
     });
     return () => {
       subscription.unsubscribe();

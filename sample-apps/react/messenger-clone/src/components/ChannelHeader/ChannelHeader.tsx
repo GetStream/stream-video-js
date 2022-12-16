@@ -32,7 +32,8 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
 
   const { channel, watcher_count } =
     useChannelStateContext<StreamChatType>('ChannelHeader');
-  const { openMobileNav } = useChatContext<StreamChatType>('ChannelHeader');
+  const { openMobileNav, client } =
+    useChatContext<StreamChatType>('ChannelHeader');
   const { t } = useTranslationContext('ChannelHeader');
   const { displayImage, displayTitle } = useChannelPreviewInfo({
     channel,
@@ -50,9 +51,9 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
       type: 'default',
       input: {
         ring: true,
-        members: Object.values(channel.state.members).map(
-          (member) =>
-            ({
+        members: Object.values(channel.state.members).reduce((acc, member) => {
+          if (member.user_id !== client.user.id) {
+            acc.push({
               userId: member.user.id,
               role: member.user.role,
               customJson: Struct.toBinary(Struct.fromJson({})),
@@ -64,11 +65,13 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
                 customJson: Struct.toBinary(Struct.fromJson({})),
                 teams: [],
               },
-            } as MemberInput),
-        ),
+            } as MemberInput);
+          }
+          return acc;
+        }, []),
       },
     });
-  }, [channel.state.members, videoClient]);
+  }, [client.user.id, channel.state.members, videoClient]);
 
   const disableCreateCall = !videoClient || !!activeCall;
 
@@ -128,7 +131,6 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
           className="rmc__button rmc__button--red"
           onClick={() => {
             videoClient.cancelCall(activeCall.data.call.callCid);
-            activeCall.leave();
           }}
         >
           <PhoneDisabled />

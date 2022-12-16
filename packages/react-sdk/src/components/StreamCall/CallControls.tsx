@@ -8,6 +8,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { CallStats } from './CallStats';
 import { useMediaPublisher } from '../../hooks';
+import { useMediaDevices } from '../../contexts';
 
 export const CallControls = (props: {
   call: Call;
@@ -29,14 +30,16 @@ export const CallControls = (props: {
     SfuModels.TrackType.SCREEN_SHARE,
   );
 
-  // TODO: ??? how do these get there? after publish? **magic** (rely instead on MediaDevicesContext and DeviceSettings instead)
   // const audioDeviceId = localParticipant?.audioDeviceId;
   // const videoDeviceId = localParticipant?.videoDeviceId;
+  const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
 
   const { publishAudioStream, publishVideoStream } = useMediaPublisher({
     call,
     initialAudioMuted,
     initialVideoMuted,
+    audioDeviceId: selectedAudioDeviceId,
+    videoDeviceId: selectedVideoDeviceId,
   });
 
   const [isStatsOpen, setIsStatsOpen] = useState(false);
@@ -111,8 +114,7 @@ export const CallControls = (props: {
         icon="call-end"
         variant="danger"
         onClick={() => {
-          call.leave();
-          callMeta && client?.cancelCall(callMeta.callCid);
+          call.data.call && client?.cancelCall(call.data.call?.callCid);
         }}
       />
     </div>

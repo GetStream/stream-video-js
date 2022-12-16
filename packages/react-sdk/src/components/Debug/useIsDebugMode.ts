@@ -5,7 +5,7 @@ const useQueryParams = () => {
 };
 
 /**
- * Internal purpose hook. Enables certain dev mode tools.
+ * Internal purpose hook. Enables certain development mode tools.
  */
 export const useIsDebugMode = () => {
   const params = useQueryParams();

@@ -30,7 +30,7 @@ export const Video = ({
   return (
     <StreamVideo client={client}>
       {children}
-      <StreamCall leaveOnLeftAlone>
+      <StreamCall>
         <CallPanel />
       </StreamCall>
     </StreamVideo>
