@@ -6,7 +6,14 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-on: [push]
+on:
+  # Trigger flow when pushing in main or pull requests, and when creating
+  # a pull request.
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [ opened, synchronize, reopened ]
 
 jobs:
   test-and-build:

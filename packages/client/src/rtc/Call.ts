@@ -177,6 +177,7 @@ export class Call {
    * The stream will be stopped if the user changes an input device, or if the user leaves the call.
    *
    * Consecutive calls to this method will replace the previously published stream.
+   * The previous video stream will be stopped.
    *
    * @param videoStream the video stream to publish.
    * @param opts the options to use when publishing the stream.
@@ -242,6 +243,7 @@ export class Call {
    * The stream will be stopped if the user changes an input device, or if the user leaves the call.
    *
    * Consecutive calls to this method will replace the audio stream that is currently being published.
+   * The previous audio stream will be stopped.
    *
    * @param audioStream the audio stream to publish.
    */
@@ -286,7 +288,9 @@ export class Call {
 
   /**
    * Starts publishing the given screen-share stream to the call.
+   *
    * Consecutive calls to this method will replace the previous screen-share stream.
+   * The previous screen-share stream will be stopped.
    *
    * @param screenShareStream the screen-share stream to publish.
    */
@@ -335,6 +339,12 @@ export class Call {
     }));
   };
 
+  /**
+   * Stops publishing the given track type to the call, if it is currently being published.
+   * Underlying track will be stopped and removed from the publisher.
+   *
+   * @param trackType the track type to stop publishing.
+   */
   stopPublish = async (trackType: TrackType) => {
     console.log(`stopPublish`, TrackType[trackType]);
     const transceiver = this.publisher.getTransceivers().find(

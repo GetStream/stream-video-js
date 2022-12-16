@@ -30,7 +30,7 @@ export interface Member {
      */
     userId: string;
     /**
-     * The role of the member in this room
+     * The role of the member in this call
      *
      * @generated from protobuf field: string role = 3;
      */
