@@ -20,11 +20,10 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
     navigation.navigate('JoinCallScreen');
   };
 
-  return activeCall ? (
-    <OutgoingCallView onHangupCall={onHangupCall} />
-  ) : (
-    <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
-  );
+  if (!activeCall) {
+    return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
+  }
+  return <OutgoingCallView onHangupCall={onHangupCall} />;
 };
 
 export default OutgoingCallScreen;

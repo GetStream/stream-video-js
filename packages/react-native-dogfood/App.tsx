@@ -20,7 +20,6 @@ import {
   useAppGlobalStoreValue,
 } from './src/contexts/AppContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-// import { PermissionsAndroid } from 'react-native';
 import { MeetingScreen } from './src/screens/Meeting/MeetingScreen';
 import { CallScreen } from './src/screens/Call/CallScreen';
 import JoinMeetingScreen from './src/screens/Meeting/JoinMeetingScreen';
@@ -33,28 +32,6 @@ import { StreamMeeting } from '@stream-io/video-react-native-sdk/src/components/
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const MeetingStack = createNativeStackNavigator<MeetingStackParamList>();
 const RingingStack = createNativeStackNavigator<RingingStackParamList>();
-
-// const callKeepOptions = {
-//   ios: {
-//     appName: 'StreamReactNativeVideoSDKSample',
-//   },
-//   android: {
-//     alertTitle: 'Permissions required',
-//     alertDescription: 'This application needs to access your phone accounts',
-//     cancelButton: 'Cancel',
-//     okButton: 'ok',
-//     imageName: 'phone_account_icon',
-//     additionalPermissions: [PermissionsAndroid.PERMISSIONS.READ_CONTACTS],
-//     selfManaged: true,
-//     // Required to get audio in background when using Android 11
-//     foregroundService: {
-//       channelId: 'io.getstream.rnvideosample',
-//       channelName: 'Foreground service for the app Stream React Native Dogfood',
-//       notificationTitle: 'App is running on background',
-//       notificationIcon: 'Path to the resource icon of the notification',
-//     },
-//   },
-// };
 
 const Meeting = (props: NativeStackScreenProps<MeetingStackParamList>) => {
   const username = useAppGlobalStoreValue((store) => store.username);

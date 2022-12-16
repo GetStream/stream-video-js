@@ -107,23 +107,26 @@ const JoinCallScreen = () => {
       ringingCallID: callID,
     });
     if (client) {
-      client
-        .createCall({
+      try {
+        client.createCall({
           id: callID,
           type: 'default',
           input: {
             ring: true,
             members: ringingUserIds,
           },
-        })
-        .catch((error) =>
-          console.log('Failed to createCall', callID, 'default', error),
-        );
+        });
+      } catch (error) {
+        console.log('Failed to createCall', callID, 'default', error);
+      }
     }
   };
 
+  const isRingingUserSelected = (userId: string) =>
+    ringingUsers.find((ringingUser) => ringingUser.userId === userId);
+
   const ringingUsersSetHandler = (userId: string) => {
-    if (!ringingUsers.find((ringingUser) => ringingUser.userId === userId)) {
+    if (!isRingingUserSelected(userId)) {
       setState({
         ringingUsers: [
           ...ringingUsers,
@@ -166,9 +169,7 @@ const JoinCallScreen = () => {
                 <Text
                   style={[
                     styles.text,
-                    ringingUsers.find(
-                      (ringingUser) => ringingUser.userId === user.id,
-                    )
+                    isRingingUserSelected(user.id)
                       ? styles.selectedParticipant
                       : null,
                   ]}
