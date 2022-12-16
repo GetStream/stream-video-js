@@ -5,6 +5,7 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { PropsWithChildren, useEffect } from 'react';
+import InCallManager from 'react-native-incall-manager';
 
 export type StreamCallProps = {
   automaticHungupTime?: number;
@@ -27,19 +28,24 @@ export const StreamCall = ({
 
   // Effect to deal with the case that the outgoing call should be joined as soon as it is created by the user
   useEffect(() => {
-    if (!(videoClient && outgoingCall?.call) || activeCall) {
-      return;
-    }
-    videoClient
-      .joinCall({
-        id: outgoingCall.call.id,
-        type: outgoingCall.call.type,
-        datacenterId: '',
-      })
-      .then((call) => {
-        call?.join();
-      })
-      .catch((error) => console.log('Error joining an outgoing call', error));
+    const startOutgoingCall = async () => {
+      if (!(videoClient && outgoingCall?.call) || activeCall) {
+        return;
+      }
+      try {
+        const call = await videoClient.joinCall({
+          id: outgoingCall.call.id,
+          type: outgoingCall.call.type,
+          datacenterId: '',
+        });
+        await call?.join();
+        InCallManager.start({ media: 'video' });
+        InCallManager.setForceSpeakerphoneOn(true);
+      } catch (error) {
+        console.log('Failed to join the call', error);
+      }
+    };
+    startOutgoingCall();
   }, [videoClient, outgoingCall, activeCall]);
 
   // Effect to deal with incoming call notifications
