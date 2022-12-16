@@ -95,13 +95,7 @@ const JoinCallScreen = () => {
     const callID = uuidv4().toLowerCase();
     let ringingUserIds = !ringingUserIdsText
       ? ringingUsers
-      : ringingUserIdsText.split(',').map((ringingUserId) => {
-          return {
-            userId: ringingUserId,
-            role: 'member',
-            customJson: new Uint8Array(),
-          };
-        });
+      : ringingUserIdsText.split(',');
     setState({
       ringingUsers: ringingUserIds,
       ringingCallID: callID,
@@ -113,7 +107,13 @@ const JoinCallScreen = () => {
           type: 'default',
           input: {
             ring: true,
-            members: ringingUserIds,
+            members: ringingUserIds.map((ringingUserId) => {
+              return {
+                userId: ringingUserId,
+                role: 'member',
+                customJson: new Uint8Array(),
+              };
+            }),
           },
         });
       } catch (error) {
@@ -123,20 +123,17 @@ const JoinCallScreen = () => {
   };
 
   const isRingingUserSelected = (userId: string) =>
-    ringingUsers.find((ringingUser) => ringingUser.userId === userId);
+    ringingUsers.find((ringingUser) => ringingUser === userId);
 
   const ringingUsersSetHandler = (userId: string) => {
     if (!isRingingUserSelected(userId)) {
       setState({
-        ringingUsers: [
-          ...ringingUsers,
-          { userId: userId, role: 'member', customJson: new Uint8Array() },
-        ],
+        ringingUsers: [...ringingUsers, userId],
       });
     } else {
       setState({
         ringingUsers: ringingUsers.filter(
-          (ringingUser) => ringingUser.userId !== userId,
+          (ringingUser) => ringingUser !== userId,
         ),
       });
     }
