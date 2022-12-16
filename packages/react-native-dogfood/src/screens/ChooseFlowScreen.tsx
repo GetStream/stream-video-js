@@ -18,7 +18,7 @@ export const ChooseFlowScreen = (props: Props) => {
           meetingCallID: prontoCallId,
         });
         prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
-        navigation.navigate('Meeting', { screen: 'MeetingScreen' });
+        setState({ appMode: 'Meeting' });
       }
     });
     return () => subscription.unsubscribe();
