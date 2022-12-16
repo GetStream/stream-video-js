@@ -16,7 +16,7 @@ export const useRingCall = () => {
     if (!client || !incomingCall.call) {
       return;
     }
-    await client
+    client
       .acceptCall(incomingCall.call.callCid)
       .then(() => {
         InCallManager.start({ media: 'video' });
