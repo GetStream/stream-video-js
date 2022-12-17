@@ -12,7 +12,6 @@ export type StatsReporterOpts = {
   publisher: RTCPeerConnection;
   store: StreamVideoWriteableStateStore;
   pollingIntervalInMs?: number;
-  latencyCheckUrl?: string;
   edgeName?: string;
 };
 
@@ -67,7 +66,6 @@ export const createStatsReporter = ({
   subscriber,
   publisher,
   store,
-  latencyCheckUrl,
   edgeName,
   pollingIntervalInMs = 2000,
 }: StatsReporterOpts): StatsReporter => {

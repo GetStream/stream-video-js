@@ -69,7 +69,6 @@ export class Call {
       subscriber: this.subscriber,
       publisher: this.publisher,
       store: stateStore,
-      latencyCheckUrl: this.options.latencyCheckUrl,
       edgeName: this.options.edgeName,
     });
 
@@ -177,6 +176,7 @@ export class Call {
    * The stream will be stopped if the user changes an input device, or if the user leaves the call.
    *
    * Consecutive calls to this method will replace the previously published stream.
+   * The previous video stream will be stopped.
    *
    * @param videoStream the video stream to publish.
    * @param opts the options to use when publishing the stream.
@@ -242,6 +242,7 @@ export class Call {
    * The stream will be stopped if the user changes an input device, or if the user leaves the call.
    *
    * Consecutive calls to this method will replace the audio stream that is currently being published.
+   * The previous audio stream will be stopped.
    *
    * @param audioStream the audio stream to publish.
    */
@@ -286,7 +287,9 @@ export class Call {
 
   /**
    * Starts publishing the given screen-share stream to the call.
+   *
    * Consecutive calls to this method will replace the previous screen-share stream.
+   * The previous screen-share stream will be stopped.
    *
    * @param screenShareStream the screen-share stream to publish.
    */
@@ -335,6 +338,12 @@ export class Call {
     }));
   };
 
+  /**
+   * Stops publishing the given track type to the call, if it is currently being published.
+   * Underlying track will be stopped and removed from the publisher.
+   *
+   * @param trackType the track type to stop publishing.
+   */
   stopPublish = async (trackType: TrackType) => {
     console.log(`stopPublish`, TrackType[trackType]);
     const transceiver = this.publisher.getTransceivers().find(
@@ -361,15 +370,27 @@ export class Call {
    * Update track subscription configuration for one or more participants.
    * You have to create a subscription for each participant you want to receive any kind of track.
    *
+   * @param kind the kind of subscription to update.
    * @param changes the list of subscription changes to do.
    */
-  updateSubscriptionsPartial = (changes: SubscriptionChanges) => {
+  updateSubscriptionsPartial = (
+    kind: 'video' | 'screen',
+    changes: SubscriptionChanges,
+  ) => {
     const participants = this.stateStore.updateParticipants(
       Object.entries(changes).reduce<StreamVideoParticipantPatches>(
         (acc, [sessionId, change]) => {
-          acc[sessionId] = {
-            videoDimension: change.videoDimension,
-          };
+          const prop: keyof StreamVideoParticipant | undefined =
+            kind === 'video'
+              ? 'videoDimension'
+              : kind === 'screen'
+              ? 'screenShareDimension'
+              : undefined;
+          if (prop) {
+            acc[sessionId] = {
+              [prop]: change.dimension,
+            };
+          }
           return acc;
         },
         {},
@@ -384,33 +405,32 @@ export class Call {
   private updateSubscriptions = (participants: StreamVideoParticipant[]) => {
     const subscriptions: TrackSubscriptionDetails[] = [];
     participants.forEach((p) => {
-      if (!p.isLoggedInUser) {
-        // if (p.videoDimension && p.publishedTracks.includes(TrackKind.VIDEO)) {
+      if (p.isLoggedInUser) return;
+      if (p.videoDimension && p.publishedTracks.includes(TrackType.VIDEO)) {
         subscriptions.push({
           userId: p.userId,
           sessionId: p.sessionId,
           trackType: TrackType.VIDEO,
           dimension: p.videoDimension,
         });
-        // }
-        // if (p.publishedTracks.includes(TrackKind.AUDIO)) {
+      }
+      if (p.publishedTracks.includes(TrackType.AUDIO)) {
         subscriptions.push({
           userId: p.userId,
           sessionId: p.sessionId,
           trackType: TrackType.AUDIO,
         });
-        // }
-        // if (p.publishedTracks.includes(TrackKind.SCREEN_SHARE)) {
+      }
+      if (
+        p.screenShareDimension &&
+        p.publishedTracks.includes(TrackType.SCREEN_SHARE)
+      ) {
         subscriptions.push({
           userId: p.userId,
           sessionId: p.sessionId,
           trackType: TrackType.SCREEN_SHARE,
-          dimension: {
-            width: 1280,
-            height: 720,
-          },
+          dimension: p.screenShareDimension,
         });
-        // }
       }
     });
     // schedule update
@@ -501,7 +521,7 @@ export class Call {
 
   private handleOnTrack = (e: RTCTrackEvent) => {
     const [primaryStream] = e.streams;
-    // TODO OL: extract track kind
+    // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
     const [trackId, trackType] = primaryStream.id.split(':');
     console.log(`Got remote ${trackType} track:`, e.track);
     const participantToUpdate = this.participants.find(
@@ -539,13 +559,18 @@ export class Call {
       );
     });
 
-    const streamKindProp: keyof StreamVideoParticipant =
-      e.track.kind === 'audio'
-        ? 'audioStream'
-        : trackType === 'TRACK_TYPE_SCREEN_SHARE'
-        ? 'screenShareStream'
-        : 'videoStream';
+    const streamKindProp = (
+      {
+        TRACK_TYPE_AUDIO: 'audioStream',
+        TRACK_TYPE_VIDEO: 'videoStream',
+        TRACK_TYPE_SCREEN_SHARE: 'screenShareStream',
+      } as Record<string, 'audioStream' | 'videoStream' | 'screenShareStream'>
+    )[trackType];
 
+    if (!streamKindProp) {
+      console.error('Unknown track type', trackType);
+      return;
+    }
     const previousStream = participantToUpdate[streamKindProp];
     if (previousStream) {
       console.log(`Cleaning up previous remote tracks`, e.track.kind);

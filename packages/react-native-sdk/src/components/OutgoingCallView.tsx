@@ -12,12 +12,15 @@ import {
   useStreamVideoClient,
   useTerminatedRingCall,
 } from '@stream-io/video-react-bindings';
-import { CallControlsButton } from './CallControlsButton';
+import { CallControlsButton } from './CallControlsView/CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
 import { useCall, useCallControls, useCallKeep } from '../hooks';
 import InCallManager from 'react-native-incall-manager';
 
-export type OutgoingCallViewProps = {
+/**
+ * Props to be passed for the OutgoingCallView component.
+ */
+export interface OutgoingCallViewProps {
   /**
    * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
    */
@@ -26,32 +29,10 @@ export type OutgoingCallViewProps = {
    * Handler called when the call is accepted by the callee. Mostly used for navigation and related actions.
    */
   onCallAccepted: () => void;
-};
+}
 
-const Background: React.FC = () => {
-  const localParticipant = useLocalParticipant();
-  const localVideoStream = localParticipant?.videoStream;
-  const isVideoMuted = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.VIDEO,
-  );
-
-  if (isVideoMuted)
-    return <View style={[StyleSheet.absoluteFill, styles.background]} />;
-  return (
-    <RTCView
-      streamURL={localVideoStream?.toURL()}
-      objectFit="cover"
-      zOrder={1}
-      style={styles.stream}
-      mirror={true}
-    />
-  );
-};
-
-export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
-  onHangupCall,
-  onCallAccepted,
-}) => {
+export const OutgoingCallView = (props: OutgoingCallViewProps) => {
+  const { onHangupCall, onCallAccepted } = props;
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useCallControls();
   const { hangupCall } = useCall();
@@ -143,6 +124,26 @@ export const OutgoingCallView: React.FC<OutgoingCallViewProps> = ({
       </View>
       <Background />
     </>
+  );
+};
+
+const Background = () => {
+  const localParticipant = useLocalParticipant();
+  const localVideoStream = localParticipant?.videoStream;
+  const isVideoMuted = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
+
+  if (isVideoMuted)
+    return <View style={[StyleSheet.absoluteFill, styles.background]} />;
+  return (
+    <RTCView
+      streamURL={localVideoStream?.toURL()}
+      objectFit="cover"
+      zOrder={1}
+      style={styles.stream}
+      mirror={true}
+    />
   );
 };
 

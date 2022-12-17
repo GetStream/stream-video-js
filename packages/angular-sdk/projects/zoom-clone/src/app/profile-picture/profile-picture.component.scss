@@ -1,0 +1,13 @@
+@use '../../variables';
+
+.circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: variables.$primary-color;
+  color: variables.$primary-text-color;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}

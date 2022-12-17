@@ -20,7 +20,10 @@ const getDevices = (constraints?: MediaStreamConstraints | undefined) => {
           media.getTracks().forEach((t) => t.stop());
         });
       })
-      .catch((error) => subscriber.error(error));
+      .catch((error) => {
+        console.error('Failed to get devices', error);
+        subscriber.error(error);
+      });
 
     const deviceChangeHandler = async () => {
       const allDevices = await navigator.mediaDevices.enumerateDevices();
@@ -28,13 +31,13 @@ const getDevices = (constraints?: MediaStreamConstraints | undefined) => {
       subscriber.next(allDevices);
     };
 
-    navigator.mediaDevices.addEventListener(
+    navigator.mediaDevices.addEventListener?.(
       'devicechange',
       deviceChangeHandler,
     );
 
     return () =>
-      navigator.mediaDevices.removeEventListener(
+      navigator.mediaDevices.removeEventListener?.(
         'devicechange',
         deviceChangeHandler,
       );
@@ -120,7 +123,12 @@ const getStream = async (
     },
   };
 
-  return navigator.mediaDevices.getUserMedia(constraints);
+  try {
+    return await navigator.mediaDevices.getUserMedia(constraints);
+  } catch (e) {
+    console.error(`Failed to get ${type} stream for device ${deviceId}`, e);
+    throw e;
+  }
 };
 
 /**
@@ -153,11 +161,16 @@ export const getScreenShareStream = async (
   // TODO OL: switch to `DisplayMediaStreamConstraints` once Angular supports it
   options?: Record<string, any>,
 ) => {
-  return navigator.mediaDevices.getDisplayMedia({
-    video: true,
-    audio: false,
-    ...options,
-  });
+  try {
+    return await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: false,
+      ...options,
+    });
+  } catch (e) {
+    console.error('Failed to get screen share stream', e);
+    throw e;
+  }
 };
 
 const watchForDisconnectedDevice = (

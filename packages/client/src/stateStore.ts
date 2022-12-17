@@ -64,6 +64,12 @@ export class StreamVideoWriteableStateStore {
    */
   pinnedParticipants$: Observable<StreamVideoParticipant[]>;
   hasOngoingScreenShare$: Observable<boolean>;
+  /**
+   * The call metadata of the ongoing call
+   * The call metadata becomes available before the `activeCall$`
+   */
+  activeCallMetaSubject: BehaviorSubject<CallMeta | undefined> =
+    new BehaviorSubject<CallMeta | undefined>(undefined);
 
   constructor() {
     this.terminatedRingCallMeta$ = this.activeRingCallMetaSubject.pipe(
@@ -94,6 +100,7 @@ export class StreamVideoWriteableStateStore {
         this.setCurrentValue(this.activeRingCallMetaSubject, undefined);
         this.setCurrentValue(this.activeRingCallDetailsSubject, undefined);
         this.setCurrentValue(this.activeCallAllParticipantsSubject, []);
+        this.setCurrentValue(this.activeCallMetaSubject, undefined);
       }
     });
 
@@ -198,9 +205,7 @@ export class StreamVideoWriteableStateStore {
    * @returns all participants, with all patch applied.
    */
   updateParticipants = (patch: StreamVideoParticipantPatches) => {
-    if (Object.keys(patch).length === 0) {
-      return;
-    }
+    if (Object.keys(patch).length === 0) return;
     return this.setCurrentValue(
       this.activeCallAllParticipantsSubject,
       (participants) =>
@@ -283,6 +288,13 @@ export class StreamVideoReadOnlyStateStore {
    * Emits a boolean indicating whether a call recording is currently in progress.
    */
   callRecordingInProgress$: Observable<boolean>;
+  /**
+   * The call metadata of the ongoing call
+   * The call metadata becomes available before the `activeCall$`
+   */
+  activeCallMeta$: Observable<CallMeta | undefined> = new Observable<
+    CallMeta | undefined
+  >(undefined);
 
   constructor(store: StreamVideoWriteableStateStore) {
     this.connectedUser$ = store.connectedUserSubject.asObservable();
@@ -303,6 +315,7 @@ export class StreamVideoReadOnlyStateStore {
     this.terminatedRingCallMeta$ = store.terminatedRingCallMeta$;
 
     this.hasOngoingScreenShare$ = store.hasOngoingScreenShare$;
+    this.activeCallMeta$ = store.activeCallMetaSubject.asObservable();
   }
 
   /**

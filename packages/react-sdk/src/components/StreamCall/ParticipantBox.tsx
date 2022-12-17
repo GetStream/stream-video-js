@@ -2,13 +2,14 @@ import clsx from 'clsx';
 import { useEffect, useRef } from 'react';
 import {
   Call,
-  StreamVideoParticipant,
   SfuModels,
+  StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { useIsDebugMode } from '../Debug/useIsDebugMode';
 import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../Debug/DebugStatsView';
 import { Video } from './Video';
+import { Notification } from './Notification';
 
 export const ParticipantBox = (props: {
   participant: StreamVideoParticipant;
@@ -18,40 +19,17 @@ export const ParticipantBox = (props: {
 }) => {
   const { participant, isMuted = false, call, sinkId } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const {
     videoStream,
     audioStream,
     isLoggedInUser: isLocalParticipant,
     isSpeaking,
-    sessionId,
     publishedTracks,
+    connectionQuality,
   } = participant;
 
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || !hasVideo) return;
-
-    const resizeObserver = new ResizeObserver(() => {
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-      call.updateSubscriptionsPartial({
-        [sessionId]: {
-          videoDimension: {
-            width,
-            height,
-          },
-        },
-      });
-    });
-    resizeObserver.observe(container);
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [hasVideo, sessionId, call]);
 
   useEffect(() => {
     const $el = audioRef.current;
@@ -68,6 +46,10 @@ export const ParticipantBox = (props: {
     };
   }, [audioStream, sinkId]);
 
+  const connectionQualityAsString = String(
+    SfuModels.ConnectionQuality[connectionQuality],
+  ).toLowerCase();
+
   const isDebugMode = useIsDebugMode();
   return (
     <div
@@ -75,12 +57,13 @@ export const ParticipantBox = (props: {
         'str-video__participant',
         isSpeaking && 'str-video__participant--speaking',
       )}
-      ref={containerRef}
     >
       <audio autoPlay ref={audioRef} muted={isMuted} />
       <div className="str-video__video-container">
         <Video
-          stream={videoStream}
+          call={call}
+          participant={participant}
+          kind="video"
           className={clsx(
             'str-video__remote-video',
             isLocalParticipant && 'mirror',
@@ -91,6 +74,21 @@ export const ParticipantBox = (props: {
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
             {participant.userId}
+            <Notification
+              isVisible={
+                isLocalParticipant &&
+                connectionQuality === SfuModels.ConnectionQuality.POOR
+              }
+              message="Poor connection quality. Please check your internet connection."
+            >
+              <span
+                className={clsx(
+                  'str-video__participant__connection-quality',
+                  `str-video__participant__connection-quality--${connectionQualityAsString}`,
+                )}
+                title={connectionQualityAsString}
+              />
+            </Notification>
             {!hasAudio && (
               <span className="str-video__participant_name--audio-muted"></span>
             )}

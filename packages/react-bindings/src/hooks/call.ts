@@ -42,6 +42,14 @@ export const useActiveRingCall = () => {
 };
 
 /**
+ * Utility hook which provides the currently active call meta.
+ */
+export const useActiveCallMeta = () => {
+  const { activeCallMeta$ } = useStore();
+  return useObservableValue(activeCallMeta$);
+};
+
+/**
  * Utility hook which provides the currently terminated ring call meta.
  */
 export const useTerminatedRingCall = () => {

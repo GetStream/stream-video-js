@@ -6,7 +6,10 @@ import { SfuModels } from '@stream-io/video-client';
 import { useStreamVideoStoreValue } from '../contexts';
 import { Avatar } from './Avatar';
 
-type LocalVideoViewProps = {
+/**
+ * Props to be passed for the LocalVideoView component.
+ */
+export interface LocalVideoViewProps {
   /**
    * Indicates whether the local video view is visible or not
    */
@@ -20,20 +23,18 @@ type LocalVideoViewProps = {
    *     width: 80,
    *     right: 16,
    *     top: 60,
-   *     borderRadius: 10,
-   *     zIndex: 1,
+   *     `borderRadius`: 10,
+   *     `zIndex`: 1,
    *   }`
    */
   style?: StyleProp<ViewStyle>;
-};
+}
 
-export const LocalVideoView: React.FC<LocalVideoViewProps> = ({
-  isVisible,
-  style = styles.container,
-}: LocalVideoViewProps) => {
-  /**
-   * This component renders the local participant's video.
-   */
+/**
+ * This component renders the local participant's video.
+ */
+export const LocalVideoView = (props: LocalVideoViewProps) => {
+  const { isVisible, style = styles.container } = props;
   const localParticipant = useLocalParticipant();
   const cameraBackFacingMode = useStreamVideoStoreValue(
     (store) => store.cameraBackFacingMode,
