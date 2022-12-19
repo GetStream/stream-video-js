@@ -11,6 +11,7 @@ import { map } from 'rxjs';
 import {
   Call,
   CallMeta,
+  createSpeechDetector,
   getAudioStream,
   getScreenShareStream,
   getVideoStream,
@@ -26,6 +27,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { CallStats } from './CallStats';
 import { useDebugPreferredVideoCodec } from '../Debug/useIsDebugMode';
+import { Notification } from './Notification';
 
 export const CallControls = (props: {
   call: Call;
@@ -50,6 +52,42 @@ export const CallControls = (props: {
 
   const audioDeviceId = localParticipant?.audioDeviceId;
   const videoDeviceId = localParticipant?.videoDeviceId;
+
+  const [isSpeakingWhileMuted, setIsSpeakingWhileMuted] = useState(false);
+  useEffect(() => {
+    // do nothing when unmute
+    if (!isAudioMute) return;
+    let disposeSpeechDetector: ReturnType<typeof createSpeechDetector>;
+    const notifySpeakingWhileMuted = async () => {
+      const audioStream = await getAudioStream(audioDeviceId);
+      disposeSpeechDetector = createSpeechDetector(
+        audioStream,
+        (isSpeechDetected) => {
+          setIsSpeakingWhileMuted((isNotified) => {
+            return isNotified ? isNotified : isSpeechDetected;
+          });
+        },
+      );
+    };
+
+    notifySpeakingWhileMuted().catch((e) => {
+      console.error(`Failed to notify speaking when muted`, e);
+    });
+    return () => {
+      disposeSpeechDetector?.();
+      setIsSpeakingWhileMuted(false);
+    };
+  }, [audioDeviceId, isAudioMute]);
+
+  useEffect(() => {
+    if (!isSpeakingWhileMuted) return;
+    const timeout = setTimeout(() => {
+      setIsSpeakingWhileMuted(false);
+    }, 3500);
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [isSpeakingWhileMuted]);
 
   useEffect(() => {
     if (initialAudioMuted) return;
@@ -153,16 +191,21 @@ export const CallControls = (props: {
           }
         }}
       />
-      <Button
-        icon={isAudioMute ? 'mic-off' : 'mic'}
-        onClick={() => {
-          if (isAudioMute) {
-            void publishAudioStream();
-          } else {
-            void call.stopPublish(SfuModels.TrackType.AUDIO);
-          }
-        }}
-      />
+      <Notification
+        message="You are muted. Unmute to speak."
+        isVisible={isSpeakingWhileMuted}
+      >
+        <Button
+          icon={isAudioMute ? 'mic-off' : 'mic'}
+          onClick={() => {
+            if (isAudioMute) {
+              void publishAudioStream();
+            } else {
+              void call.stopPublish(SfuModels.TrackType.AUDIO);
+            }
+          }}
+        />
+      </Notification>
       <Button
         icon={isVideoMute ? 'camera-off' : 'camera'}
         onClick={() => {
