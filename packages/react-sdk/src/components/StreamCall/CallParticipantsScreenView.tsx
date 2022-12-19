@@ -1,4 +1,3 @@
-import clsx from 'clsx';
 import { useState } from 'react';
 import { Call, SfuModels } from '@stream-io/video-client';
 import {
