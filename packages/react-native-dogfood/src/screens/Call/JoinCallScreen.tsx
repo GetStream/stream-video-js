@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Button,
   Pressable,
@@ -9,18 +9,8 @@ import {
   View,
 } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  useAppGlobalStoreSetState,
-  useAppGlobalStoreValue,
-} from '../../contexts/AppContext';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../../types';
-import { joinCall } from '../../utils/callUtils';
-import {
-  useActiveCall,
-  useCallKeep,
-  useStreamVideoClient,
-} from '@stream-io/video-react-native-sdk';
+import { useAppGlobalStoreValue } from '../../contexts/AppContext';
+import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 const styles = StyleSheet.create({
   container: {
@@ -82,16 +72,11 @@ const styles = StyleSheet.create({
   },
 });
 
-type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'> & {
-  setLoadingCall: (loading: boolean) => void;
-};
-
-const Ringing = ({ navigation, setLoadingCall }: Props) => {
+const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
-  const videoClient = useStreamVideoClient();
   const username = useAppGlobalStoreValue((store) => store.username);
-  const ringingUsers = useAppGlobalStoreValue((store) => store.ringingUsers);
-  const activeCall = useActiveCall();
+  const [ringingUsers, setRingingUsers] = useState<string[]>([]);
+  const client = useStreamVideoClient();
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },
@@ -101,58 +86,44 @@ const Ringing = ({ navigation, setLoadingCall }: Props) => {
     { id: 'zita', name: 'Zita Szupera' },
   ];
 
-  useEffect(() => {
-    if (activeCall?.data.call) {
-      navigation.navigate('OutgoingCallScreen');
-    }
-  }, [navigation, activeCall]);
-
-  const setState = useAppGlobalStoreSetState();
-  const { startCall } = useCallKeep();
-
   const startCallHandler = async () => {
-    setLoadingCall(true);
-    if (videoClient) {
+    const callID = uuidv4().toLowerCase();
+    let ringingUserIds = !ringingUserIdsText
+      ? ringingUsers
+      : ringingUserIdsText.split(',');
+
+    if (client) {
       try {
-        const callID = uuidv4().toLowerCase();
-        let ringingUserIds = !ringingUserIdsText
-          ? ringingUsers
-          : ringingUserIdsText.split(',');
-        if (ringingUserIdsText !== '') {
-          setState({ ringingUsers: ringingUserIds });
-        }
-        await setState({ ringingCallID: callID });
-        await joinCall(videoClient, {
-          autoJoin: true,
-          ring: true,
-          members: ringingUserIds.map((user) => {
-            return {
-              userId: user,
-              role: 'member',
-              customJson: new Uint8Array(),
-            };
-          }),
-          callId: callID,
-          callType: 'default',
-        }).then(() => {
-          startCall();
-          setLoadingCall(false);
+        client.createCall({
+          id: callID,
+          type: 'default',
+          input: {
+            ring: true,
+            members: ringingUserIds.map((ringingUserId) => {
+              return {
+                userId: ringingUserId,
+                role: 'member',
+                customJson: new Uint8Array(),
+              };
+            }),
+          },
         });
-      } catch (err) {
-        console.log(err);
+      } catch (error) {
+        console.log('Failed to createCall', callID, 'default', error);
       }
     }
   };
 
+  const isRingingUserSelected = (userId: string) =>
+    ringingUsers.find((ringingUser) => ringingUser === userId);
+
   const ringingUsersSetHandler = (userId: string) => {
-    if (!ringingUsers.includes(userId)) {
-      setState({ ringingUsers: [...ringingUsers, userId] });
+    if (!isRingingUserSelected(userId)) {
+      setRingingUsers((prevState) => [...prevState, userId]);
     } else {
-      setState({
-        ringingUsers: ringingUsers.filter(
-          (ringingUser) => ringingUser !== userId,
-        ),
-      });
+      setRingingUsers(
+        ringingUsers.filter((ringingUser) => ringingUser !== userId),
+      );
     }
   };
 
@@ -183,7 +154,7 @@ const Ringing = ({ navigation, setLoadingCall }: Props) => {
                 <Text
                   style={[
                     styles.text,
-                    ringingUsers.includes(user.id)
+                    isRingingUserSelected(user.id)
                       ? styles.selectedParticipant
                       : null,
                   ]}
@@ -203,4 +174,4 @@ const Ringing = ({ navigation, setLoadingCall }: Props) => {
   );
 };
 
-export default Ringing;
+export default JoinCallScreen;

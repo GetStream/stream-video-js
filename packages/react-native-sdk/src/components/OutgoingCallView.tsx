@@ -1,19 +1,13 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SfuModels } from '@stream-io/video-client';
 
 import { RTCView } from 'react-native-webrtc';
 import { UserInfoView } from './UserInfoView';
-import {
-  useAcceptedCall,
-  useActiveCall,
-  useLocalParticipant,
-  useRemoteHangUpNotifications,
-  useRemoteParticipants,
-} from '@stream-io/video-react-bindings';
+import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
-import { useCall, useCallControls } from '../hooks';
+import { useCallControls, useRingCall } from '../hooks';
 
 /**
  * Props to be passed for the OutgoingCallView component.
@@ -23,55 +17,19 @@ export interface OutgoingCallViewProps {
    * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
    */
   onHangupCall: () => void;
-  /**
-   * Handler called when the call is accepted by the callee. Mostly used for navigation and related actions.
-   */
-  onCallAccepted: () => void;
 }
 
 export const OutgoingCallView = (props: OutgoingCallViewProps) => {
-  const { onHangupCall, onCallAccepted } = props;
+  const { onHangupCall } = props;
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useCallControls();
-  const { hangupCall } = useCall();
-  const activeCall = useActiveCall();
-  const activeCallMeta = activeCall?.data.call;
-  const remoteHangUpNotifications = useRemoteHangUpNotifications();
-  const acceptedCall = useAcceptedCall();
-  const remoteParticipants = useRemoteParticipants();
-  const isHangUpCall = remoteHangUpNotifications.find(
-    (remoteHangUpNotification) =>
-      remoteHangUpNotification.call?.callCid === activeCallMeta?.callCid,
-  );
+  const { cancelCall } = useRingCall();
 
   const hangupCallHandler = useCallback(async () => {
-    await hangupCall();
+    await cancelCall();
     onHangupCall();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hangupCall]);
-
-  useEffect(() => {
-    if (acceptedCall?.call) {
-      onCallAccepted();
-    }
-    if (isHangUpCall) {
-      hangupCallHandler();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remoteHangUpNotifications, remoteParticipants]);
-
-  // To terminate call after a certain duration of time. Currently set to 10 seconds.
-  useEffect(() => {
-    const terminateCallAtMilliSeconds = 20000;
-    let timerId: ReturnType<typeof setTimeout>;
-    if (remoteParticipants.length === 0) {
-      timerId = setTimeout(() => {
-        hangupCallHandler();
-      }, terminateCallAtMilliSeconds);
-    }
-
-    return () => clearTimeout(timerId);
-  }, [hangupCallHandler, remoteParticipants]);
+  }, [cancelCall]);
 
   return (
     <>

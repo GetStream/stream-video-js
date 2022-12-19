@@ -1,11 +1,11 @@
 import { sign } from 'react-native-pure-jwt';
 
 export const createToken = async (userId: string, jwtSecret: string) => {
-  return await sign(
+  const token = await sign(
     {
       iss: 'stream-video-js@v0.0.0',
       sub: `user/${userId}`,
-      iat: Math.round(Date.now() / 10000),
+      iat: Math.round(Date.now() / 1000) - 3000,
       user_id: userId,
     },
     jwtSecret,
@@ -13,4 +13,5 @@ export const createToken = async (userId: string, jwtSecret: string) => {
       alg: 'HS256',
     },
   );
+  return token;
 };
