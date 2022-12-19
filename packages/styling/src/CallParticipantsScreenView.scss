@@ -4,7 +4,7 @@
   gap: 10px;
 
   .str-video__call-participants-screen-view__screen {
-    flex: 3;
+    flex: 4;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -15,6 +15,9 @@
 
   .str-video__call-participants-screen-view__wrapper {
     position: relative;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
   }
 
   .str-video__call-participants-screen-view__overlay {
@@ -43,29 +46,17 @@
     flex-wrap: wrap;
     justify-content: center;
     gap: 15px;
+    overflow: scroll;
+    scrollbar-width: none;
 
-    &.columns-1 {
-      .str-video__participant {
-        width: 100%;
-      }
-    }
-
-    &.columns-2 {
-      .str-video__participant {
-        width: 45%;
-      }
-    }
-
-    &.columns-3 {
-      .str-video__participant {
-        width: 40%;
-      }
+    &::-webkit-scrollbar {
+      display: none;
     }
   }
 
   video {
     min-height: 0;
     width: 100%;
-    height: auto;
+    height: 100%;
   }
 }

@@ -63,13 +63,7 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
           </>
         )}
       </div>
-      <div
-        className={clsx(
-          `str-video__call-participants-screen-view__participants`,
-          // show 4 participants in a column, up to three columns
-          `columns-${Math.min(Math.ceil(allParticipants.length / 4), 3)}`,
-        )}
-      >
+      <div className="str-video__call-participants-screen-view__participants">
         {allParticipants.map((participant) => (
           <ParticipantBox
             key={participant.sessionId}
