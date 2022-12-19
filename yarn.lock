@@ -5241,6 +5241,7 @@ __metadata:
     "@mui/icons-material": ^5.10.16
     "@mui/material": ^5.10.16
     "@stream-io/video-client": "workspace:^"
+    "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
     "@types/node": ^18.11.9

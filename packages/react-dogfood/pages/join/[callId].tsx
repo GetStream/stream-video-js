@@ -61,7 +61,7 @@ const JoinCall = (props: JoinCallProps) => {
           callType={callType}
           autoJoin={autoJoin}
         >
-          <MeetingUI callId={callId} />
+          <MeetingUI />
         </StreamMeeting>
       </StreamVideo>
     </div>

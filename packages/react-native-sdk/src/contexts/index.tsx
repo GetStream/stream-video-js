@@ -9,11 +9,12 @@ import {
   useStoreSetState,
   Provider,
 } from './StreamVideoContext';
+import { MediaDevicesProvider } from './MediaDevicesContext';
 
 export const StreamVideo = (
   props: PropsWithChildren<
     StreamVideoProps & {
-      callKeepOptions: CallKeepOptions;
+      callKeepOptions?: CallKeepOptions;
     }
   >,
 ) => {
@@ -21,7 +22,9 @@ export const StreamVideo = (
   const { client, children } = props;
   return (
     <StreamVideoProvider client={client}>
-      <Provider>{children}</Provider>
+      <MediaDevicesProvider>
+        <Provider>{children}</Provider>
+      </MediaDevicesProvider>
     </StreamVideoProvider>
   );
 };

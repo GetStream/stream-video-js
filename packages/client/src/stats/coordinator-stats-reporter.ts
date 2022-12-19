@@ -22,10 +22,10 @@ import { TrackType } from '../gen/video/sfu/models/models';
  */
 export const reportStats = (
   readOnlyStateStore: StreamVideoReadOnlyStateStore,
-  sendStatMetrics: (stats: Object) => Promise<ReportCallStatsResponse>,
+  sendStatMetrics: (stats: Object) => Promise<ReportCallStatsResponse | void>,
   sendStatEvent: (
     statEvent: ReportCallStatEventRequest['event'],
-  ) => Promise<ReportCallStatEventResponse>,
+  ) => Promise<ReportCallStatEventResponse | void>,
 ) => {
   reportStatMetrics(readOnlyStateStore, sendStatMetrics);
   reportStatEvents(readOnlyStateStore, sendStatEvent);
@@ -33,7 +33,7 @@ export const reportStats = (
 
 const reportStatMetrics = (
   readOnlyStateStore: StreamVideoReadOnlyStateStore,
-  sendStatMetrics: (stats: Object) => Promise<ReportCallStatsResponse>,
+  sendStatMetrics: (stats: Object) => Promise<ReportCallStatsResponse | void>,
 ) => {
   readOnlyStateStore.callStatsReport$
     .pipe(throttleTime(15000))
@@ -59,7 +59,7 @@ export const reportStatEvents = (
   store: StreamVideoReadOnlyStateStore,
   sendStatEvent: (
     statEvent: ReportCallStatEventRequest['event'],
-  ) => Promise<ReportCallStatEventResponse>,
+  ) => Promise<ReportCallStatEventResponse | void>,
 ) => {
   store.localParticipant$
     .pipe(pairwise())

@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import {
   Call,
-  CallCancelled,
+  CallAccepted,
   CallCreated,
-  CallRejected,
   CallStatsReport,
   StreamVideoClient,
   StreamVideoLocalParticipant,
@@ -30,27 +29,28 @@ export class StreamVideoService {
    */
   activeCall$: Observable<Call | undefined>;
   /**
+   * The accepted call metadata.
+   */
+  acceptedCall$: Observable<CallAccepted | undefined>;
+  /**
    * All participants of the current call (this includes the current user and other participants as well).
    */
-  activeCallAllParticipants$: Observable<
+  participants$: Observable<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >;
   /**
    * Remote participants of the current call (this includes every participant expect the logged-in user).
    */
-  activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
+  remoteParticipants$: Observable<StreamVideoParticipant[]>;
   /**
    * The local participant of the current call (the logged-in user).
    */
-  activeCallLocalParticipant$: Observable<
-    StreamVideoLocalParticipant | undefined
-  >;
+  localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
   incomingRingCalls$: Observable<CallCreated[]>;
   /**
    * The `videoClient` lets interact with our API, please refer to the [`StreamVideoClient`](./StreamVideoClient.mdx) for more information.
    */
   videoClient: StreamVideoClient | undefined;
-  hangupNotifications$: Observable<(CallRejected | CallCancelled)[]>;
   /**
    * Emits a `boolean` indicating whether a call recording is currently in progress.
    */
@@ -65,18 +65,16 @@ export class StreamVideoService {
   );
   private activeCallSubject: ReplaySubject<Call | undefined> =
     new ReplaySubject(1);
-  private hangupNotificationsSubject: ReplaySubject<
-    (CallRejected | CallCancelled)[]
-  > = new ReplaySubject(1);
+
+  private acceptedCallSubject: ReplaySubject<CallAccepted | undefined> =
+    new ReplaySubject(1);
   private incomingRingCallsSubject: ReplaySubject<CallCreated[]> =
     new ReplaySubject(1);
-  private activeCallAllParticipantsSubject: ReplaySubject<
-    StreamVideoParticipant[]
-  > = new ReplaySubject(1);
-  private activeCallRemoteParticipantsSubject: ReplaySubject<
-    StreamVideoParticipant[]
-  > = new ReplaySubject(1);
-  private activeCallLocalParticipantSubject: ReplaySubject<
+  private allParticipantsSubject: ReplaySubject<StreamVideoParticipant[]> =
+    new ReplaySubject(1);
+  private remoteParticipantsSubject: ReplaySubject<StreamVideoParticipant[]> =
+    new ReplaySubject(1);
+  private localParticipantSubject: ReplaySubject<
     StreamVideoParticipant | undefined
   > = new ReplaySubject(1);
   private callRecordingInProgressSubject: ReplaySubject<boolean> =
@@ -91,14 +89,11 @@ export class StreamVideoService {
   constructor() {
     this.user$ = this.userSubject.asObservable();
     this.activeCall$ = this.activeCallSubject.asObservable();
+    this.acceptedCall$ = this.acceptedCallSubject.asObservable();
     this.incomingRingCalls$ = this.incomingRingCallsSubject.asObservable();
-    this.activeCallAllParticipants$ =
-      this.activeCallAllParticipantsSubject.asObservable();
-    this.activeCallRemoteParticipants$ =
-      this.activeCallRemoteParticipantsSubject.asObservable();
-    this.activeCallLocalParticipant$ =
-      this.activeCallLocalParticipantSubject.asObservable();
-    this.hangupNotifications$ = this.hangupNotificationsSubject.asObservable();
+    this.participants$ = this.allParticipantsSubject.asObservable();
+    this.remoteParticipants$ = this.remoteParticipantsSubject.asObservable();
+    this.localParticipant$ = this.localParticipantSubject.asObservable();
     this.callRecordingInProgress$ =
       this.callRecordingInProgressSubject.asObservable();
     this.callStatsReport$ = this.callStatsReportSubject.asObservable();
@@ -126,12 +121,6 @@ export class StreamVideoService {
     });
 
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.hangupNotifications$.subscribe(
-        this.hangupNotificationsSubject,
-      ),
-    );
-
-    this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.connectedUser$.subscribe(
         this.userSubject,
       ),
@@ -142,23 +131,28 @@ export class StreamVideoService {
       ),
     );
     this.subscriptions.push(
+      this.videoClient.readOnlyStateStore.acceptedCall$.subscribe(
+        this.acceptedCallSubject,
+      ),
+    );
+    this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.incomingCalls$.subscribe(
         this.incomingRingCallsSubject,
       ),
     );
     this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.participants$.subscribe(
-        this.activeCallAllParticipantsSubject,
+        this.allParticipantsSubject,
       ),
     );
     this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.remoteParticipants$.subscribe(
-        this.activeCallRemoteParticipantsSubject,
+        this.remoteParticipantsSubject,
       ),
     );
     this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.localParticipant$.subscribe(
-        this.activeCallLocalParticipantSubject,
+        this.localParticipantSubject,
       ),
     );
     this.subscriptions.push(

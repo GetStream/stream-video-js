@@ -4,6 +4,7 @@ import {
   TrackInfo,
   TrackType,
   VideoLayer,
+  VideoQuality,
 } from '../gen/video/sfu/models/models';
 import { getIceCandidate } from './helpers/iceCandidate';
 import {
@@ -78,6 +79,7 @@ export const createPublisher = ({
           rid: optimalLayer.rid || '',
           bitrate: optimalLayer.maxBitrate || 0,
           fps: optimalLayer.maxFramerate || 0,
+          quality: ridToVideoQuality(optimalLayer.rid || ''),
           videoDimension: {
             width: optimalLayer.width,
             height: optimalLayer.height,
@@ -114,4 +116,14 @@ export const createPublisher = ({
   });
 
   return publisher;
+};
+
+const ridToVideoQuality = (rid: string): VideoQuality => {
+  return rid === 'q'
+    ? VideoQuality.LOW_UNSPECIFIED
+    : rid === 'h'
+    ? VideoQuality.MID
+    : rid === 'f'
+    ? VideoQuality.HIGH
+    : VideoQuality.HIGH; // default to HIGH
 };

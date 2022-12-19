@@ -44,6 +44,10 @@ export const ParticipantBox = (props: {
     };
   }, [audioStream, sinkId]);
 
+  const connectionQuality = String(
+    SfuModels.ConnectionQuality[participant.connectionQuality],
+  ).toLowerCase();
+
   const isDebugMode = useIsDebugMode();
   return (
     <div
@@ -68,6 +72,13 @@ export const ParticipantBox = (props: {
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
             {participant.userId}
+            <span
+              className={clsx(
+                'str-video__participant__connection-quality',
+                `str-video__participant__connection-quality--${connectionQuality}`,
+              )}
+              title={connectionQuality}
+            ></span>
             {!hasAudio && (
               <span className="str-video__participant_name--audio-muted"></span>
             )}

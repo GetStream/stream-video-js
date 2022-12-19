@@ -37,9 +37,11 @@ export class CallControlsComponent implements OnInit, OnDestroy {
       this.streamVideoService.activeCall$.subscribe((c) => (this.call = c)),
     );
     this.subscriptions.push(
-      this.streamVideoService.activeCallMeta$.subscribe(
-        (callMeta) => (this.activeCallMeta = callMeta!),
-      ),
+      this.streamVideoService.acceptedCall$.subscribe((acceptedCall) => {
+        if (acceptedCall && acceptedCall.call) {
+          this.activeCallMeta = acceptedCall.call;
+        }
+      }),
     );
     this.subscriptions.push(
       this.deviceManager.videoState$.subscribe((s) => (this.videoState = s)),
