@@ -17,6 +17,7 @@ import type {
   SubscriptionChanges,
 } from './types';
 import { debounceTime, Subject } from 'rxjs';
+import { CallEnvelope } from '../gen/video/coordinator/client_v1_rpc/envelopes';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import {
   createStatsReporter,
@@ -27,9 +28,7 @@ import {
  * A `Call` object represents the active call, the user is part of.
  */
 export class Call {
-  /**@deprecated use store for this data */
-  currentUserId: string;
-
+  data: CallEnvelope;
   private readonly subscriber: RTCPeerConnection;
   private readonly publisher: RTCPeerConnection;
   private readonly trackSubscriptionsSubject = new Subject<
@@ -42,18 +41,17 @@ export class Call {
   /**
    * Use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    * @param client
+   * @param data
    * @param options
    * @param stateStore
    */
   constructor(
+    data: CallEnvelope,
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
     private readonly stateStore: StreamVideoWriteableStateStore,
   ) {
-    this.currentUserId = stateStore.getCurrentValue(
-      stateStore.connectedUserSubject,
-    )!.name;
-
+    this.data = data;
     this.subscriber = createSubscriber({
       rpcClient: this.client,
       connectionConfig: this.options.connectionConfig,
@@ -107,13 +105,20 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = () => {
+    if (!this.joinResponseReady) {
+      throw new Error('Cannot leave call that has already been left.');
+    }
+    this.joinResponseReady = undefined;
+
     this.statsReporter.stop();
     this.subscriber.close();
     this.publisher.getSenders().forEach((s) => {
       if (s.track) {
         s.track.stop();
       }
-      this.publisher.removeTrack(s);
+      if (this.publisher.signalingState !== 'closed') {
+        this.publisher.removeTrack(s);
+      }
     });
     this.publisher.close();
     this.client.close();
@@ -142,7 +147,7 @@ export class Call {
           const { callState } = event.eventPayload.joinResponse;
           const currentParticipants = callState?.participants || [];
           this.stateStore.setCurrentValue(
-            this.stateStore.activeCallAllParticipantsSubject,
+            this.stateStore.participantsSubject,
             currentParticipants.map<StreamVideoParticipant>((participant) => {
               if (participant.sessionId === this.client.sessionId) {
                 const localParticipant =
@@ -152,12 +157,8 @@ export class Call {
               return participant;
             }),
           );
-          this.client.keepAlive();
-          this.stateStore.setCurrentValue(
-            this.stateStore.activeCallSubject,
-            this,
-          );
 
+          this.client.keepAlive();
           resolve(callState); // expose call state
         });
 
@@ -514,9 +515,7 @@ export class Call {
   };
 
   private get participants() {
-    return this.stateStore.getCurrentValue(
-      this.stateStore.activeCallAllParticipantsSubject,
-    );
+    return this.stateStore.getCurrentValue(this.stateStore.participantsSubject);
   }
 
   private handleOnTrack = (e: RTCTrackEvent) => {

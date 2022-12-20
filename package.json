@@ -5,7 +5,8 @@
   "packageManager": "yarn@3.2.4",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "sample-apps/**/*"
   ],
   "scripts": {
     "start:react:sdk": "yarn workspace @stream-io/video-react-sdk run start",
@@ -27,6 +28,7 @@
     "build:client": "yarn workspace @stream-io/video-client run build",
     "start:client": "yarn workspace @stream-io/video-client run start",
     "build:react:deps": "yarn build:client && yarn build:react:bindings && yarn build:react:sdk && yarn build:styling",
+    "build:react-native:deps": "yarn build:client && yarn build:react:bindings && yarn build:react-native:sdk",
     "build:vercel": "yarn build:react:deps && yarn build:react:dogfood",
     "build:react:app": "yarn build:react:deps && yarn workspace @stream-io/video-react-sample-app run build",
     "start:egress": "yarn workspace @stream-io/egress-composite start",
@@ -36,6 +38,7 @@
     "lint:all": "eslint --cache --fix 'packages/**/*.{ts,tsx}'",
     "lint:ci:all": "eslint --cache 'packages/**/*.{ts,tsx}'",
     "test:ci:all": "yarn workspaces foreach -vt run test:ci",
+    "dev:messenger:react": "yarn workspace @stream-io/messenger-clone-react run dev",
     "generate-docs:client": "yarn workspace @stream-io/video-client run generate-docs",
     "generate-docs:react:bindings": "yarn workspace @stream-io/video-react-bindings run generate-docs",
     "generate-docs:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run generate-docs",

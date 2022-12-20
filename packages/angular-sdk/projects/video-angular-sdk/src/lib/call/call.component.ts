@@ -25,8 +25,7 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.deviceManager.initAudioOutputDevices();
     this.deviceManager.startAudio();
     this.deviceManager.startVideo();
-    this.localParticipant$ =
-      this.streamVideoService.activeCallLocalParticipant$;
+    this.localParticipant$ = this.streamVideoService.localParticipant$;
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe(async (c) => {
         this.call = c!;

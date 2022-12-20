@@ -1,0 +1,36 @@
+{
+  "name": "@stream-io/messenger-clone-react",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "scripts:init-users": "node scripts/generateUsers.mjs"
+  },
+  "dependencies": {
+    "@mui/icons-material": "^5.10.16",
+    "@stream-io/video-client": "workspace:^",
+    "@stream-io/video-react-bindings": "workspace:^",
+    "@stream-io/video-react-sdk": "workspace:^",
+    "@stream-io/video-styling": "workspace:^",
+    "clsx": "^1.2.1",
+    "dayjs": "^1.11.6",
+    "immer": "^9.0.16",
+    "nanoid": "^4.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sass": "^1.56.1",
+    "stream-chat": "^8.1.1",
+    "stream-chat-react": "^10.4.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.24",
+    "@types/react-dom": "^18.0.8",
+    "@vitejs/plugin-react": "^2.2.0",
+    "dotenv": "^16.0.3",
+    "typescript": "^4.6.4",
+    "vite": "^3.2.3"
+  }
+}

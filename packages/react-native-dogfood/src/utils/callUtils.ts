@@ -8,30 +8,21 @@ const joinCall = async (
     callId: string;
     callType: string;
     ring?: boolean;
-    members?: MemberInput[];
+    members: MemberInput[];
   },
 ) => {
   const { members, ring, callId, callType } = callDetails;
   let call;
-  if (members && ring) {
-    call = await videoClient.joinCall({
-      id: callId,
-      type: callType,
-      // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
-      datacenterId: '',
-      input: {
-        ring: ring,
-        members: members,
-      },
-    });
-  } else {
-    call = await videoClient.joinCall({
-      id: callId,
-      type: callType,
-      // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
-      datacenterId: '',
-    });
-  }
+  call = await videoClient.joinCall({
+    id: callId,
+    type: callType,
+    // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
+    datacenterId: '',
+    input: {
+      ring: ring,
+      members: members,
+    },
+  });
   if (!call) {
     throw new Error(`Failed to join a call with id: ${callId}`);
   }

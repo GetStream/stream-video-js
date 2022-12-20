@@ -1,21 +1,13 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SfuModels } from '@stream-io/video-client';
 
 import { RTCView } from 'react-native-webrtc';
 import { UserInfoView } from './UserInfoView';
-import {
-  useActiveCall,
-  useActiveRingCall,
-  useLocalParticipant,
-  useRemoteParticipants,
-  useStreamVideoClient,
-  useTerminatedRingCall,
-} from '@stream-io/video-react-bindings';
-import { CallControlsButton } from './CallControlsView/CallControlsButton';
+import { useLocalParticipant } from '@stream-io/video-react-bindings';
+import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
-import { useCall, useCallControls, useCallKeep } from '../hooks';
-import InCallManager from 'react-native-incall-manager';
+import { useCallControls, useRingCall } from '../hooks';
 
 /**
  * Props to be passed for the OutgoingCallView component.
@@ -25,63 +17,19 @@ export interface OutgoingCallViewProps {
    * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
    */
   onHangupCall: () => void;
-  /**
-   * Handler called when the call is accepted by the callee. Mostly used for navigation and related actions.
-   */
-  onCallAccepted: () => void;
 }
 
 export const OutgoingCallView = (props: OutgoingCallViewProps) => {
-  const { onHangupCall, onCallAccepted } = props;
+  const { onHangupCall } = props;
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useCallControls();
-  const { hangupCall } = useCall();
-  const client = useStreamVideoClient();
-  const activeCall = useActiveCall();
-  const activeRingCallMeta = useActiveRingCall();
-  const terminatedRingCall = useTerminatedRingCall();
-  const remoteParticipants = useRemoteParticipants();
-  const { endCall } = useCallKeep();
+  const { cancelCall } = useRingCall();
 
-  const hangupHandler = useCallback(async () => {
-    if (!activeCall) {
-      console.warn('Failed to leave call: call is undefined');
-      return;
-    }
-    try {
-      if (activeRingCallMeta) {
-        await client?.cancelCall(activeRingCallMeta.callCid);
-        endCall();
-      }
-      activeCall.leave();
-      InCallManager.stop();
-    } catch (error) {
-      console.warn('failed to leave call', error);
-    }
-  }, [activeCall, activeRingCallMeta, client, endCall]);
-
-  useEffect(() => {
-    if (terminatedRingCall) {
-      onHangupCall();
-    }
-    if (remoteParticipants.length > 0) {
-      onCallAccepted();
-    }
+  const hangupCallHandler = useCallback(async () => {
+    await cancelCall();
+    onHangupCall();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [terminatedRingCall, remoteParticipants]);
-
-  // To terminate call after a certain duration of time. Currently set to 10 seconds.
-  useEffect(() => {
-    const terminateCallAtMilliSeconds = 10000;
-    let timerId: ReturnType<typeof setTimeout>;
-    if (remoteParticipants.length === 0) {
-      timerId = setTimeout(() => {
-        hangupHandler();
-      }, terminateCallAtMilliSeconds);
-    }
-
-    return () => clearTimeout(timerId);
-  }, [hangupHandler, remoteParticipants]);
+  }, [cancelCall]);
 
   return (
     <>
@@ -113,7 +61,7 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
           </View>
 
           <CallControlsButton
-            onPress={hangupCall}
+            onPress={hangupCallHandler}
             colorKey={'cancel'}
             style={[styles.buttonStyle, styles.hangupButton]}
             svgContainerStyle={styles.svgStyle}

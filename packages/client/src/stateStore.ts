@@ -1,46 +1,78 @@
 import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 import {
+  combineLatestWith,
   distinctUntilChanged,
   map,
-  pairwise,
-  startWith,
   take,
 } from 'rxjs/operators';
-import { Call } from './rtc/Call';
-import type { UserInput } from './gen/video/coordinator/user_v1/user';
+import { UserInput } from './gen/video/coordinator/user_v1/user';
+import { Call, CallDetails } from './gen/video/coordinator/call_v1/call';
+import { CallAccepted } from './gen/video/coordinator/event_v1/event';
 import {
-  Call as CallMeta,
-  CallDetails,
-} from './gen/video/coordinator/call_v1/call';
-import type {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatch,
+  StreamVideoParticipantPatches,
 } from './rtc/types';
-import { StreamVideoParticipantPatches } from './rtc/types';
-import type { CallStatsReport } from './stats/types';
+import { CallStatsReport } from './stats/types';
+import { Call as CallController } from './rtc/Call';
 import { TrackType } from './gen/video/sfu/models/models';
 
+export type PendingCall = {
+  call?: Call;
+  callDetails?: CallDetails;
+  ringing: boolean; // FIXME: CreateCallInput.ring vs CallCreated.ringing
+};
+
 export class StreamVideoWriteableStateStore {
+  /**
+   * A store keeping data of a successfully connected user over WS to the coordinator server.
+   */
   connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
-  incomingRingCallsSubject = new BehaviorSubject<CallMeta[]>([]);
-  activeCallSubject = new BehaviorSubject<Call | undefined>(undefined);
-  activeRingCallMetaSubject = new ReplaySubject<CallMeta | undefined>(1);
-  activeRingCallDetailsSubject = new ReplaySubject<CallDetails | undefined>(1);
-  terminatedRingCallMetaSubject = new BehaviorSubject<CallMeta | undefined>(
+  /**
+   * A store that keeps track of all created calls that have not been yet accepted, rejected nor cancelled.
+   */
+  pendingCallsSubject = new BehaviorSubject<PendingCall[]>([]);
+  /**
+   * A list of objects describing incoming calls.
+   */
+  incomingCalls$: Observable<PendingCall[]>;
+  /**
+   * A list of objects describing calls initiated by the current user (connectedUser).
+   */
+  outgoingCalls$: Observable<PendingCall[]>;
+  /**
+   * A store that keeps track of all the notifications describing accepted call.
+   */
+  // todo: Currently not updating this Subject
+  acceptedCallSubject = new BehaviorSubject<CallAccepted | undefined>(
     undefined,
   );
-
-  activeCallAllParticipantsSubject = new ReplaySubject<
+  /**
+   * A store that keeps reference to a call controller instance.
+   */
+  activeCallSubject = new BehaviorSubject<CallController | undefined>(
+    undefined,
+  );
+  /**
+   * All participants of the current call (including the logged-in user).
+   */
+  participantsSubject = new ReplaySubject<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >(1);
-  activeCallLocalParticipantSubject = new BehaviorSubject<
-    StreamVideoParticipant | undefined
-  >(undefined);
-  // FIXME OL: this subject is unused?
-  activeCallRemoteParticipantSubject = new BehaviorSubject<
-    StreamVideoParticipant[]
-  >([]);
+
+  /**
+   * Remote participants of the current call (this includes every participant except the logged-in user).
+   */
+  remoteParticipants$: Observable<StreamVideoParticipant[]>;
+  /**
+   * The local participant of the current call (the logged-in user).
+   */
+  localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
+  /**
+   * Pinned participants of the current call.
+   */
+  pinnedParticipants$: Observable<StreamVideoParticipant[]>;
   dominantSpeakerSubject = new BehaviorSubject<
     StreamVideoParticipant | undefined
   >(undefined);
@@ -48,63 +80,55 @@ export class StreamVideoWriteableStateStore {
     undefined,
   );
   callRecordingInProgressSubject = new ReplaySubject<boolean>(1);
-  terminatedRingCallMeta$: Observable<CallMeta | undefined>;
-  /**
-   * Remote participants of the current call (this includes every participant except the logged-in user).
-   */
-  activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
-  /**
-   * The local participant of the current call (the logged-in user).
-   */
-  activeCallLocalParticipant$: Observable<
-    StreamVideoLocalParticipant | undefined
-  >;
-  /**
-   * Pinned participants of the current call.
-   */
-  pinnedParticipants$: Observable<StreamVideoParticipant[]>;
   hasOngoingScreenShare$: Observable<boolean>;
-  /**
-   * The call metadata of the ongoing call
-   * The call metadata becomes available before the `activeCall$`
-   */
-  activeCallMetaSubject: BehaviorSubject<CallMeta | undefined> =
-    new BehaviorSubject<CallMeta | undefined>(undefined);
 
   constructor() {
-    this.terminatedRingCallMeta$ = this.activeRingCallMetaSubject.pipe(
-      startWith(undefined),
-      pairwise(),
-      map(([prevValue]) => prevValue),
+    this.localParticipant$ = this.participantsSubject.pipe(
+      map((participants) => participants.find((p) => p.isLoggedInUser)),
     );
-    this.activeCallLocalParticipant$ =
-      this.activeCallAllParticipantsSubject.pipe(
-        map(
-          (participants) =>
-            participants.find(
-              (p) => p.isLoggedInUser,
-            ) as StreamVideoLocalParticipant,
-        ),
-      );
-    this.activeCallRemoteParticipants$ =
-      this.activeCallAllParticipantsSubject.pipe(
-        map((participants) => participants.filter((p) => !p.isLoggedInUser)),
-      );
-    this.pinnedParticipants$ = this.activeCallAllParticipantsSubject.pipe(
+
+    this.remoteParticipants$ = this.participantsSubject.pipe(
+      map((participants) => participants.filter((p) => !p.isLoggedInUser)),
+    );
+
+    this.pinnedParticipants$ = this.participantsSubject.pipe(
       map((participants) => participants.filter((p) => p.isPinned)),
     );
 
-    this.activeCallSubject.subscribe((c) => {
-      if (!c) {
+    this.incomingCalls$ = this.pendingCallsSubject.pipe(
+      combineLatestWith(this.connectedUserSubject),
+      map(([pendingCalls, connectedUser]) =>
+        pendingCalls.filter(
+          (call) => call.call?.createdByUserId !== connectedUser?.id,
+        ),
+      ),
+    );
+
+    this.outgoingCalls$ = this.pendingCallsSubject.pipe(
+      combineLatestWith(this.connectedUserSubject),
+      map(([pendingCalls, connectedUser]) =>
+        pendingCalls.filter(
+          (call) => call.call?.createdByUserId === connectedUser?.id,
+        ),
+      ),
+    );
+
+    this.activeCallSubject.subscribe((callController) => {
+      if (callController) {
+        this.setCurrentValue(
+          this.pendingCallsSubject,
+          this.getCurrentValue(this.pendingCallsSubject).filter(
+            (call) => call.call?.callCid !== callController.data.call?.callCid,
+          ),
+        );
+        this.setCurrentValue(this.acceptedCallSubject, undefined);
+      } else {
         this.setCurrentValue(this.callRecordingInProgressSubject, false);
-        this.setCurrentValue(this.activeRingCallMetaSubject, undefined);
-        this.setCurrentValue(this.activeRingCallDetailsSubject, undefined);
-        this.setCurrentValue(this.activeCallAllParticipantsSubject, []);
-        this.setCurrentValue(this.activeCallMetaSubject, undefined);
+        this.setCurrentValue(this.participantsSubject, []);
       }
     });
 
-    this.hasOngoingScreenShare$ = this.activeCallAllParticipantsSubject.pipe(
+    this.hasOngoingScreenShare$ = this.participantsSubject.pipe(
       map((participants) => {
         return participants.some((p) =>
           p.publishedTracks.includes(TrackType.SCREEN_SHARE),
@@ -154,9 +178,7 @@ export class StreamVideoWriteableStateStore {
   findParticipantBySessionId = (
     sessionId: string,
   ): StreamVideoParticipant | undefined => {
-    const participants = this.getCurrentValue(
-      this.activeCallAllParticipantsSubject,
-    );
+    const participants = this.getCurrentValue(this.participantsSubject);
     return participants.find((p) => p.sessionId === sessionId);
   };
 
@@ -188,12 +210,10 @@ export class StreamVideoWriteableStateStore {
       ...participant,
       ...thePatch,
     };
-    return this.setCurrentValue(
-      this.activeCallAllParticipantsSubject,
-      (participants) =>
-        participants.map((p) =>
-          p.sessionId === sessionId ? updatedParticipant : p,
-        ),
+    return this.setCurrentValue(this.participantsSubject, (participants) =>
+      participants.map((p) =>
+        p.sessionId === sessionId ? updatedParticipant : p,
+      ),
     );
   };
 
@@ -205,20 +225,20 @@ export class StreamVideoWriteableStateStore {
    * @returns all participants, with all patch applied.
    */
   updateParticipants = (patch: StreamVideoParticipantPatches) => {
-    if (Object.keys(patch).length === 0) return;
-    return this.setCurrentValue(
-      this.activeCallAllParticipantsSubject,
-      (participants) =>
-        participants.map((p) => {
-          const thePatch = patch[p.sessionId];
-          if (thePatch) {
-            return {
-              ...p,
-              ...thePatch,
-            };
-          }
-          return p;
-        }),
+    if (Object.keys(patch).length === 0) {
+      return;
+    }
+    return this.setCurrentValue(this.participantsSubject, (participants) =>
+      participants.map((p) => {
+        const thePatch = patch[p.sessionId];
+        if (thePatch) {
+          return {
+            ...p,
+            ...thePatch,
+          };
+        }
+        return p;
+      }),
     );
   };
 }
@@ -229,40 +249,53 @@ export class StreamVideoWriteableStateStore {
  */
 export class StreamVideoReadOnlyStateStore {
   /**
-   * The currently connected user.
-   *
+   * Data describing a user successfully connected over WS to coordinator server.
    */
   connectedUser$: Observable<UserInput | undefined>;
   /**
-   * The call the current user participant is in.
+   * A list of objects describing all created calls that have not been yet accepted, rejected nor cancelled.
    */
-  activeCall$: Observable<Call | undefined>;
-  activeRingCallMeta$: Observable<CallMeta | undefined>;
-  activeRingCallDetails$: Observable<CallDetails | undefined>;
-  incomingRingCalls$: Observable<CallMeta[]>;
+  pendingCalls$: Observable<PendingCall[]>;
+  /**
+   * A list of objects describing calls initiated by the current user (connectedUser).
+   */
+  outgoingCalls$: Observable<PendingCall[]>;
+  /**
+   * A list of objects describing incoming calls.
+   */
+  incomingCalls$: Observable<PendingCall[]>;
+  /**
+   * The call data describing an incoming call accepted by a participant.
+   * Serves as a flag decide, whether an incoming call should be joined.
+   */
+  acceptedCall$: Observable<CallAccepted | undefined>;
+  /**
+   * The call controller instance representing the call the user attends.
+   * The controller instance exposes call metadata as well.
+   */
+  activeCall$: Observable<CallController | undefined>;
   /**
    * The currently elected dominant speaker in the active call.
    */
   dominantSpeaker$: Observable<StreamVideoParticipant | undefined>;
-  terminatedRingCallMeta$: Observable<CallMeta | undefined>;
-
   /**
    * All participants of the current call (this includes the current user and other participants as well).
    */
-  activeCallAllParticipants$: Observable<
+  participants$: Observable<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >;
   /**
-   * Remote participants of the current call (this includes every participant except the logged-in user).
-   */
-  activeCallRemoteParticipants$: Observable<StreamVideoParticipant[]>;
-  /**
    * The local participant of the current call (the logged-in user).
    */
-  activeCallLocalParticipant$: Observable<
-    StreamVideoLocalParticipant | undefined
-  >;
-
+  localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
+  /**
+   * Remote participants of the current call (this includes every participant except the logged-in user).
+   */
+  remoteParticipants$: Observable<StreamVideoParticipant[]>;
+  /**
+   * Pinned participants of the current call.
+   */
+  pinnedParticipants$: Observable<StreamVideoParticipant[]>;
   /**
    * Emits true whenever there is an active screen sharing session within
    * the current call. Useful for displaying a "screen sharing" indicator and
@@ -273,7 +306,6 @@ export class StreamVideoReadOnlyStateStore {
    * to the number of share screen tracks are displayed in a call.
    */
   hasOngoingScreenShare$: Observable<boolean>;
-
   /**
    * The latest stats report of the current call.
    * When stats gathering is enabled, this observable will emit a new value
@@ -283,39 +315,27 @@ export class StreamVideoReadOnlyStateStore {
    * in case they want to show historical stats data.
    */
   callStatsReport$: Observable<CallStatsReport | undefined>;
-
   /**
    * Emits a boolean indicating whether a call recording is currently in progress.
    */
   callRecordingInProgress$: Observable<boolean>;
-  /**
-   * The call metadata of the ongoing call
-   * The call metadata becomes available before the `activeCall$`
-   */
-  activeCallMeta$: Observable<CallMeta | undefined> = new Observable<
-    CallMeta | undefined
-  >(undefined);
 
   constructor(store: StreamVideoWriteableStateStore) {
     this.connectedUser$ = store.connectedUserSubject.asObservable();
+    this.pendingCalls$ = store.pendingCallsSubject.asObservable();
+    this.incomingCalls$ = store.incomingCalls$;
+    this.outgoingCalls$ = store.outgoingCalls$;
+    this.acceptedCall$ = store.acceptedCallSubject.asObservable();
     this.activeCall$ = store.activeCallSubject.asObservable();
-    this.activeRingCallMeta$ = store.activeRingCallMetaSubject.asObservable();
-    this.activeRingCallDetails$ =
-      store.activeRingCallDetailsSubject.asObservable();
-    this.incomingRingCalls$ = store.incomingRingCallsSubject.asObservable();
+    this.participants$ = store.participantsSubject.asObservable();
+    this.localParticipant$ = store.localParticipant$;
+    this.remoteParticipants$ = store.remoteParticipants$;
+    this.pinnedParticipants$ = store.pinnedParticipants$;
     this.dominantSpeaker$ = store.dominantSpeakerSubject.asObservable();
-
     this.callStatsReport$ = store.callStatsReportSubject.asObservable();
     this.callRecordingInProgress$ =
       store.callRecordingInProgressSubject.asObservable();
-    this.activeCallAllParticipants$ =
-      store.activeCallAllParticipantsSubject.asObservable();
-    this.activeCallRemoteParticipants$ = store.activeCallRemoteParticipants$;
-    this.activeCallLocalParticipant$ = store.activeCallLocalParticipant$;
-    this.terminatedRingCallMeta$ = store.terminatedRingCallMeta$;
-
     this.hasOngoingScreenShare$ = store.hasOngoingScreenShare$;
-    this.activeCallMeta$ = store.activeCallMetaSubject.asObservable();
   }
 
   /**

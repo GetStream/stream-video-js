@@ -1,66 +1,43 @@
 import {
-  useActiveRingCall,
-  useIncomingRingCalls,
-  useLocalParticipant,
+  useActiveCall,
+  useIncomingCalls,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { useCallback } from 'react';
 import InCallManager from 'react-native-incall-manager';
-import { useCallKeep } from './useCallKeep';
 
 export const useRingCall = () => {
   const client = useStreamVideoClient();
-  const localParticipant = useLocalParticipant();
+  const activeCall = useActiveCall();
+  const activeCallMeta = activeCall?.data.call;
+  const [incomingCall] = useIncomingCalls();
 
-  const activeRingCall = useActiveRingCall();
-  const incomingRingCalls = useIncomingRingCalls();
-  const { endCall } = useCallKeep();
-  const currentIncomingRingCall =
-    incomingRingCalls[incomingRingCalls.length - 1];
-  const isCallCreatedByUserLocalParticipant =
-    activeRingCall?.createdByUserId === localParticipant?.userId;
-
-  const answerCall = async () => {
-    if (!client) {
+  const answerCall = useCallback(() => {
+    if (!client || !incomingCall.call) {
       return;
     }
-    const call = await client.joinCall({
-      id: currentIncomingRingCall.id,
-      type: 'default',
-      datacenterId: '',
-      input: {
-        ring: true,
-        members: [],
-      },
-    });
-    if (!call) {
-      throw new Error(
-        `Failed to join a call with id: ${currentIncomingRingCall.id}`,
-      );
-    } else {
-      InCallManager.start({ media: 'video' });
-      InCallManager.setForceSpeakerphoneOn(true);
-      await call.join();
-      await client.acceptCall(currentIncomingRingCall.callCid);
-    }
-  };
+    client
+      .acceptCall(incomingCall.call.callCid)
+      .then(() => {
+        InCallManager.start({ media: 'video' });
+        InCallManager.setForceSpeakerphoneOn(true);
+      })
+      .catch((error) => console.log('Error accepting call', error));
+  }, [client, incomingCall]);
 
   const rejectCall = useCallback(async () => {
-    if (!client) {
+    if (!client || !incomingCall.call) {
       return;
     }
-    await client.rejectCall(currentIncomingRingCall.callCid);
-  }, [client, currentIncomingRingCall]);
+    await client.rejectCall(incomingCall.call.callCid);
+  }, [client, incomingCall]);
 
   const cancelCall = useCallback(async () => {
-    if (!client) {
+    if (!client || !activeCallMeta) {
       return;
     }
-    if (activeRingCall && isCallCreatedByUserLocalParticipant) {
-      endCall();
-      await client.cancelCall(activeRingCall.callCid);
-    }
-  }, [activeRingCall, client, endCall, isCallCreatedByUserLocalParticipant]);
+    await client.cancelCall(activeCallMeta.callCid);
+  }, [activeCallMeta, client]);
 
   return { answerCall, rejectCall, cancelCall };
 };

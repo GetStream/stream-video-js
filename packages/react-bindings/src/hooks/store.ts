@@ -1,5 +1,8 @@
 import { useStreamVideoClient } from '../contexts';
 
+/**
+ * Utility hook which provides access to client's state store.
+ */
 export const useStore = () => {
   const client = useStreamVideoClient();
   if (!client) {

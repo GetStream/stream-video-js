@@ -7,8 +7,8 @@ import { mock } from 'vitest-mock-extended';
 describe('StreamVideoClient', () => {
   let client: StreamVideoClient;
   const getPinnedParticipants = () =>
-    client.writeableStateStore.getCurrentValue(
-      client.writeableStateStore.pinnedParticipants$,
+    client.readOnlyStateStore.getCurrentValue(
+      client.readOnlyStateStore.pinnedParticipants$,
     );
 
   beforeEach(() => {
@@ -53,8 +53,8 @@ describe('StreamVideoClient', () => {
   it('does not pin a participant ', async () => {
     client.setParticipantIsPinned('non-existing-essionid', true);
 
-    const participantsInStore = client.writeableStateStore.getCurrentValue(
-      client.writeableStateStore.pinnedParticipants$,
+    const participantsInStore = client.readOnlyStateStore.getCurrentValue(
+      client.readOnlyStateStore.pinnedParticipants$,
     );
     expect(participantsInStore).toHaveLength(0);
   });
@@ -72,8 +72,8 @@ describe('StreamVideoClient', () => {
     let pinnedParticipants = getPinnedParticipants();
     expect(pinnedParticipants).toHaveLength(0);
 
-    client.writeableStateStore.setCurrentValue(
-      client.writeableStateStore.activeCallAllParticipantsSubject,
+    client['writeableStateStore'].setCurrentValue(
+      client['writeableStateStore'].participantsSubject,
       [p1, p2],
     );
 
