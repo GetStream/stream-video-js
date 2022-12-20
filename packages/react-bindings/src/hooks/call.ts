@@ -18,6 +18,14 @@ export const useCurrentCallStatsReport = () => {
 };
 
 /**
+ * Utility hook which provides the dominant speaker of the current call.
+ */
+export const useDominantSpeaker = () => {
+  const { dominantSpeaker$ } = useStore();
+  return useObservableValue(dominantSpeaker$);
+};
+
+/**
  * Utility hook which provides the currently active call.
  */
 export const useActiveCall = () => {

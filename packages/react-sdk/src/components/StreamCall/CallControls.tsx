@@ -56,7 +56,7 @@ export const CallControls = (props: {
   const [isSpeakingWhileMuted, setIsSpeakingWhileMuted] = useState(false);
   useEffect(() => {
     // do nothing when unmute
-    if (!isAudioMute) return;
+    if (!isAudioMute || !audioDeviceId) return;
     let disposeSpeechDetector: ReturnType<typeof createSpeechDetector>;
     const notifySpeakingWhileMuted = async () => {
       const audioStream = await getAudioStream(audioDeviceId);

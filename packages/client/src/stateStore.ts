@@ -60,6 +60,15 @@ export class StreamVideoWriteableStateStore {
    * Pinned participants of the current call.
    */
   pinnedParticipants$: Observable<StreamVideoParticipant[]>;
+
+  /**
+   * The currently elected dominant speaker in the active call.
+   */
+  dominantSpeaker$: Observable<StreamVideoParticipant | undefined>;
+
+  /**
+   * An observable which emits whenever a screen share is started or stopped.
+   */
   hasOngoingScreenShare$: Observable<boolean>;
   /**
    * The call metadata of the ongoing call
@@ -89,6 +98,10 @@ export class StreamVideoWriteableStateStore {
       );
     this.pinnedParticipants$ = this.activeCallAllParticipantsSubject.pipe(
       map((participants) => participants.filter((p) => p.isPinned)),
+    );
+
+    this.dominantSpeaker$ = this.activeCallAllParticipantsSubject.pipe(
+      map((participants) => participants.find((p) => p.isDominantSpeaker)),
     );
 
     this.activeCallSubject.subscribe((c) => {
@@ -237,6 +250,11 @@ export class StreamVideoReadOnlyStateStore {
   activeRingCallMeta$: Observable<CallMeta | undefined>;
   activeRingCallDetails$: Observable<CallDetails | undefined>;
   incomingRingCalls$: Observable<CallMeta[]>;
+  /**
+   * The currently elected dominant speaker in the active call.
+   */
+  dominantSpeaker$: Observable<StreamVideoParticipant | undefined>;
+
   terminatedRingCallMeta$: Observable<CallMeta | undefined>;
 
   /**
@@ -296,6 +314,7 @@ export class StreamVideoReadOnlyStateStore {
     this.activeRingCallDetails$ =
       store.activeRingCallDetailsSubject.asObservable();
     this.incomingRingCalls$ = store.incomingRingCallsSubject.asObservable();
+    this.dominantSpeaker$ = store.dominantSpeaker$;
 
     this.callStatsReport$ = store.callStatsReportSubject.asObservable();
     this.callRecordingInProgress$ =
