@@ -15,18 +15,18 @@ import {
   watchAudioLevelChanged,
   watchDominantSpeakerChanged,
 } from '../events/speaker';
-import { StreamVideoClient } from '../StreamVideoClient';
+import { Batcher } from '../Batcher';
 
 export const registerEventHandlers = (
   call: Call,
   store: StreamVideoWriteableStateStore,
   dispatcher: Dispatcher,
-  streamVideoClient: StreamVideoClient,
+  userBatcher: Batcher<string>,
 ) => {
   watchChangePublishQuality(dispatcher, call);
   watchConnectionQualityChanged(dispatcher, store);
 
-  watchParticipantJoined(dispatcher, store, streamVideoClient);
+  watchParticipantJoined(dispatcher, store, userBatcher);
   watchParticipantLeft(dispatcher, store);
 
   watchTrackPublished(dispatcher, store);
