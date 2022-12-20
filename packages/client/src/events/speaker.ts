@@ -2,8 +2,6 @@ import { Dispatcher } from '../rtc/Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import { StreamVideoParticipantPatches } from '../rtc/types';
 
-const SPEAKING_THRESHOLD = 0.3;
-
 /**
  * Watches for `dominantSpeakerChanged` events.
  */
@@ -16,8 +14,28 @@ export const watchDominantSpeakerChanged = (
     const {
       dominantSpeakerChanged: { sessionId },
     } = e.eventPayload;
-    const dominantSpeaker = store.findParticipantBySessionId(sessionId);
-    store.setCurrentValue(store.dominantSpeakerSubject, dominantSpeaker);
+    store.setCurrentValue(
+      store.activeCallAllParticipantsSubject,
+      (participants) =>
+        participants.map((participant) => {
+          // mark the new dominant speaker
+          if (participant.sessionId === sessionId) {
+            return {
+              ...participant,
+              isDominantSpeaker: true,
+            };
+          }
+          // unmark the old dominant speaker
+          if (participant.isDominantSpeaker) {
+            return {
+              ...participant,
+              isDominantSpeaker: false,
+            };
+          }
+          // no change
+          return participant;
+        }),
+    );
   });
 };
 
@@ -33,12 +51,12 @@ export const watchAudioLevelChanged = (
 
     const { audioLevels } = e.eventPayload.audioLevelChanged;
     store.updateParticipants(
-      audioLevels.reduce<StreamVideoParticipantPatches>((drafts, current) => {
-        drafts[current.sessionId] = {
+      audioLevels.reduce<StreamVideoParticipantPatches>((patches, current) => {
+        patches[current.sessionId] = {
           audioLevel: current.level,
-          isSpeaking: current.level > SPEAKING_THRESHOLD,
+          isSpeaking: current.isSpeaking,
         };
-        return drafts;
+        return patches;
       }, {}),
     );
   });

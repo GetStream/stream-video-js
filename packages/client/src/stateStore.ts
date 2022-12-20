@@ -41,9 +41,6 @@ export class StreamVideoWriteableStateStore {
   activeCallRemoteParticipantSubject = new BehaviorSubject<
     StreamVideoParticipant[]
   >([]);
-  dominantSpeakerSubject = new BehaviorSubject<
-    StreamVideoParticipant | undefined
-  >(undefined);
   callStatsReportSubject = new BehaviorSubject<CallStatsReport | undefined>(
     undefined,
   );
@@ -240,10 +237,6 @@ export class StreamVideoReadOnlyStateStore {
   activeRingCallMeta$: Observable<CallMeta | undefined>;
   activeRingCallDetails$: Observable<CallDetails | undefined>;
   incomingRingCalls$: Observable<CallMeta[]>;
-  /**
-   * The currently elected dominant speaker in the active call.
-   */
-  dominantSpeaker$: Observable<StreamVideoParticipant | undefined>;
   terminatedRingCallMeta$: Observable<CallMeta | undefined>;
 
   /**
@@ -303,7 +296,6 @@ export class StreamVideoReadOnlyStateStore {
     this.activeRingCallDetails$ =
       store.activeRingCallDetailsSubject.asObservable();
     this.incomingRingCalls$ = store.incomingRingCallsSubject.asObservable();
-    this.dominantSpeaker$ = store.dominantSpeakerSubject.asObservable();
 
     this.callStatsReport$ = store.callStatsReportSubject.asObservable();
     this.callRecordingInProgress$ =
