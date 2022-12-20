@@ -94,32 +94,7 @@ export class StreamVideoClient {
       this.writeableStateStore,
     );
 
-    // TODO: move batch handler to own method
-    this.userBatcher = new Batcher<string>(3000, (data) => {
-      this.client
-        .queryUsers({
-          mqJson: new TextEncoder().encode(
-            JSON.stringify({ id: { $in: data } }),
-          ), // Struct.toBinary(Struct.fromJson({ id: { $in: data } })),
-          sorts: [],
-        })
-        .then((r) => r.response)
-        .then(({ users }) => {
-          const mappedUsers = users.reduce<Record<string, User>>((pv, cv) => {
-            pv[cv.id] ??= cv;
-            return pv;
-          }, {});
-
-          this.writeableStateStore.setCurrentValue(
-            this.writeableStateStore.participantsSubject,
-            (participants) =>
-              participants.map((p) => {
-                const u = mappedUsers[p.userId];
-                return u ? { ...p, ...u } : p;
-              }),
-          );
-        });
-    });
+    this.userBatcher = new Batcher<string>(3000, this.handleUserBatch);
 
     reportStats(
       this.readOnlyStateStore,
@@ -127,6 +102,34 @@ export class StreamVideoClient {
       (e) => this.reportCallStatEvent(e),
     );
   }
+
+  private handleUserBatch = (idList: string[]) => {
+    this.client
+      .queryUsers({
+        mqJson: new TextEncoder().encode(
+          JSON.stringify({ id: { $in: idList } }),
+        ),
+        sorts: [],
+      })
+      .then(({ response: { users } }) => {
+        const mappedUsers = users.reduce<Record<string, User>>(
+          (userMap, user) => {
+            userMap[user.id] ??= user;
+            return userMap;
+          },
+          {},
+        );
+
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.participantsSubject,
+          (participants) =>
+            participants.map((participant) => {
+              const user = mappedUsers[participant.userId];
+              return user ? { ...participant, user } : participant;
+            }),
+        );
+      });
+  };
 
   /**
    * Connects the given user to the client.
@@ -453,8 +456,7 @@ export class StreamVideoClient {
             edgeName,
           },
           this.writeableStateStore,
-          // FIXME: pass down only batcher instance
-          this,
+          this.userBatcher,
         );
 
         this.writeableStateStore.setCurrentValue(
