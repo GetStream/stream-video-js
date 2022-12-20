@@ -1,3 +1,4 @@
+import { User } from '../gen/video/coordinator/user_v1/user';
 import type {
   Participant,
   VideoDimension,
@@ -52,10 +53,12 @@ export type StreamVideoParticipant = {
    * True when the participant is pinned
    */
   isPinned?: boolean;
-} & Participant & {
-    imageUrl?: string;
-    name?: string;
-  };
+
+  /**
+   * User metadata (profile picture, name...)
+   */
+  user?: User;
+} & Participant;
 
 export type StreamVideoLocalParticipant = {
   /**
