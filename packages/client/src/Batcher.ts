@@ -10,13 +10,13 @@ export class Batcher<ItemType> {
   }
 
   private scheduleTimeout = () => {
-    this.clearTimeout();
     this.timeoutId = setTimeout(() => {
       try {
         if (!this.items.length) return;
         console.log('triggering batch', JSON.stringify(this.items));
         this.requestFunction(this.items);
         this.items = [];
+        this.clearTimeout();
       } catch (error) {
         console.error(error);
       }
@@ -35,7 +35,7 @@ export class Batcher<ItemType> {
 
   public pushItem = (item: ItemType) => {
     this.items.push(item);
-    this.scheduleTimeout();
+    if (!this.timeoutId) this.scheduleTimeout();
   };
 
   // TODO: probably add <removeItem> in case user leaves the call before batch function triggers
