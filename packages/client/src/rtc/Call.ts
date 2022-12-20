@@ -11,7 +11,6 @@ import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import type {
   CallOptions,
   PublishOptions,
-  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
@@ -23,7 +22,7 @@ import {
   createStatsReporter,
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
-import { StreamVideoClient } from '../StreamVideoClient';
+import { Batcher } from '../Batcher';
 
 /**
  * A `Call` object represents the active call, the user is part of.
@@ -51,7 +50,7 @@ export class Call {
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
     private readonly stateStore: StreamVideoWriteableStateStore,
-    private readonly streamVideoClient: StreamVideoClient,
+    private readonly userBatcher: Batcher<string>,
   ) {
     this.data = data;
     this.subscriber = createSubscriber({
@@ -73,12 +72,7 @@ export class Call {
     });
 
     const { dispatcher } = this.client;
-    registerEventHandlers(
-      this,
-      this.stateStore,
-      dispatcher,
-      this.streamVideoClient,
-    );
+    registerEventHandlers(this, this.stateStore, dispatcher, this.userBatcher);
 
     this.trackSubscriptionsSubject
       .pipe(debounceTime(1200))
@@ -119,6 +113,8 @@ export class Call {
 
     this.statsReporter.stop();
     this.subscriber.close();
+    this.userBatcher.clearItems();
+
     this.publisher.getSenders().forEach((s) => {
       if (s.track) {
         s.track.stop();
@@ -153,15 +149,22 @@ export class Call {
 
           const { callState } = event.eventPayload.joinResponse;
           const currentParticipants = callState?.participants || [];
+
+          const { users } = this.data;
+
           this.stateStore.setCurrentValue(
             this.stateStore.participantsSubject,
             currentParticipants.map<StreamVideoParticipant>((participant) => {
-              if (participant.sessionId === this.client.sessionId) {
-                const localParticipant =
-                  participant as StreamVideoLocalParticipant;
-                localParticipant.isLoggedInUser = true;
-              }
-              return participant;
+              const userData = users[participant.userId];
+
+              // FIXME: not sure if I like this side effect in mapping function
+              if (!userData) this.userBatcher.pushItem(participant.userId);
+
+              return {
+                ...participant,
+                isLoggedInUser: participant.sessionId === this.client.sessionId,
+                user: userData,
+              };
             }),
           );
 

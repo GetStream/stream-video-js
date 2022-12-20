@@ -1,7 +1,6 @@
-import { User } from '../gen/video/coordinator/user_v1/user';
+import { Batcher } from '../Batcher';
 import { Dispatcher } from '../rtc/Dispatcher';
 import { StreamVideoWriteableStateStore } from '../store';
-import { StreamVideoClient } from '../StreamVideoClient';
 
 /**
  * An event responder which handles the `participantJoined` event.
@@ -9,27 +8,24 @@ import { StreamVideoClient } from '../StreamVideoClient';
 export const watchParticipantJoined = (
   dispatcher: Dispatcher,
   store: StreamVideoWriteableStateStore,
-  streamVideoClient: StreamVideoClient,
+  userBatcher: Batcher<string>,
 ) => {
   return dispatcher.on('participantJoined', (e) => {
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
     const { participant } = e.eventPayload.participantJoined;
     const call = store.getCurrentValue(store.activeCallSubject);
 
-    const { users = {} } = call?.data ?? {};
+    const { users } = call!.data;
 
     // TODO: handle the case where non-creator of the call joins the call first (current user)
     // TODO: test reconnect (leave and join again)
+    // TODO: when triggering a refresh while in a active call, populate "unknown" user data on re-join
     console.log('batch', 'ParticipantJoined', participant?.userId);
 
-    const userData: User | undefined = participant?.userId
-      ? users[participant.userId]
-      : undefined;
+    const userData = users[participant!.userId];
 
     // if user is in call.data.users, update from there, otherwise pull from coordinator
-    if (!userData && participant?.userId) {
-      streamVideoClient.userBatcher.pushItem(participant.userId);
-    }
+    if (!userData) userBatcher.pushItem(participant!.userId);
 
     if (participant) {
       store.setCurrentValue(
@@ -38,7 +34,7 @@ export const watchParticipantJoined = (
           ...currentParticipants,
           {
             ...participant,
-            ...userData,
+            user: userData,
           },
         ],
       );
