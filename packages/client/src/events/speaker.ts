@@ -14,6 +14,8 @@ export const watchDominantSpeakerChanged = (
     const {
       dominantSpeakerChanged: { sessionId },
     } = e.eventPayload;
+    const dominantSpeaker = store.getCurrentValue(store.dominantSpeaker$);
+    if (sessionId === dominantSpeaker?.sessionId) return;
     store.setCurrentValue(
       store.activeCallAllParticipantsSubject,
       (participants) =>

@@ -307,6 +307,14 @@ export class StreamVideoReadOnlyStateStore {
     CallMeta | undefined
   >(undefined);
 
+  /**
+   * This method allows you the get the current value of a state variable.
+   *
+   * @param observable the observable to get the current value of.
+   * @returns the current value of the observable.
+   */
+  getCurrentValue: <T>(observable: Observable<T>) => T;
+
   constructor(store: StreamVideoWriteableStateStore) {
     this.connectedUser$ = store.connectedUserSubject.asObservable();
     this.activeCall$ = store.activeCallSubject.asObservable();
@@ -327,17 +335,8 @@ export class StreamVideoReadOnlyStateStore {
 
     this.hasOngoingScreenShare$ = store.hasOngoingScreenShare$;
     this.activeCallMeta$ = store.activeCallMetaSubject.asObservable();
-  }
 
-  /**
-   * This method allows you the get the current value of a state variable.
-   * @param observable
-   * @returns
-   */
-  getCurrentValue<T>(observable: Observable<T>) {
-    let value!: T;
-    observable.pipe(take(1)).subscribe((v) => (value = v));
-
-    return value;
+    // re-expose
+    this.getCurrentValue = store.getCurrentValue;
   }
 }
