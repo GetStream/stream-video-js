@@ -355,6 +355,10 @@ export interface AudioLevel {
      * @generated from protobuf field: float level = 3;
      */
     level: number;
+    /**
+     * @generated from protobuf field: bool is_speaking = 4;
+     */
+    isSpeaking: boolean;
 }
 /**
  * AudioLevelChanged is sent by the SFU to notify about audio levels by user
@@ -1488,11 +1492,12 @@ class AudioLevel$Type extends MessageType<AudioLevel> {
         super("stream.video.sfu.event.AudioLevel", [
             { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "level", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ }
+            { no: 3, name: "level", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ },
+            { no: 4, name: "is_speaking", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<AudioLevel>): AudioLevel {
-        const message = { userId: "", sessionId: "", level: 0 };
+        const message = { userId: "", sessionId: "", level: 0, isSpeaking: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<AudioLevel>(this, message, value);
@@ -1511,6 +1516,9 @@ class AudioLevel$Type extends MessageType<AudioLevel> {
                     break;
                 case /* float level */ 3:
                     message.level = reader.float();
+                    break;
+                case /* bool is_speaking */ 4:
+                    message.isSpeaking = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1533,6 +1541,9 @@ class AudioLevel$Type extends MessageType<AudioLevel> {
         /* float level = 3; */
         if (message.level !== 0)
             writer.tag(3, WireType.Bit32).float(message.level);
+        /* bool is_speaking = 4; */
+        if (message.isSpeaking !== false)
+            writer.tag(4, WireType.Varint).bool(message.isSpeaking);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

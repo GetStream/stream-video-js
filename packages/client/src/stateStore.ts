@@ -1,10 +1,6 @@
-import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
-import {
-  combineLatestWith,
-  distinctUntilChanged,
-  map,
-  take,
-} from 'rxjs/operators';
+import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
+import { combineLatestWith, distinctUntilChanged, map } from 'rxjs/operators';
+import { RxUtils } from './store';
 import { UserInput } from './gen/video/coordinator/user_v1/user';
 import { Call, CallDetails } from './gen/video/coordinator/call_v1/call';
 import { CallAccepted } from './gen/video/coordinator/event_v1/event';
@@ -73,9 +69,12 @@ export class StreamVideoWriteableStateStore {
    * Pinned participants of the current call.
    */
   pinnedParticipants$: Observable<StreamVideoParticipant[]>;
-  dominantSpeakerSubject = new BehaviorSubject<
-    StreamVideoParticipant | undefined
-  >(undefined);
+
+  /**
+   * The currently elected dominant speaker in the active call.
+   */
+  dominantSpeaker$: Observable<StreamVideoParticipant | undefined>;
+
   callStatsReportSubject = new BehaviorSubject<CallStatsReport | undefined>(
     undefined,
   );
@@ -93,6 +92,10 @@ export class StreamVideoWriteableStateStore {
 
     this.pinnedParticipants$ = this.participantsSubject.pipe(
       map((participants) => participants.filter((p) => p.isPinned)),
+    );
+
+    this.dominantSpeaker$ = this.participantsSubject.pipe(
+      map((participants) => participants.find((p) => p.isDominantSpeaker)),
     );
 
     this.incomingCalls$ = this.pendingCallsSubject.pipe(
@@ -138,12 +141,13 @@ export class StreamVideoWriteableStateStore {
     );
   }
 
-  getCurrentValue<T>(observable: Observable<T>) {
-    let value!: T;
-    observable.pipe(take(1)).subscribe((v) => (value = v));
-
-    return value;
-  }
+  /**
+   * Gets the current value of an observable, or undefined if the observable has
+   * not emitted a value yet.
+   *
+   * @param observable$ the observable to get the value from.
+   */
+  getCurrentValue = RxUtils.getCurrentValue;
 
   /**
    * Updates the value of the provided Subject.
@@ -154,20 +158,7 @@ export class StreamVideoWriteableStateStore {
    * @param update the update to apply to the subject.
    * @return the updated value.
    */
-  setCurrentValue<T>(
-    subject: Subject<T>,
-    update: T | ((currentValue: T) => T),
-  ) {
-    const currentValue = this.getCurrentValue(subject);
-    const next =
-      // TypeScript needs more context to infer the type of update
-      typeof update === 'function' && update instanceof Function
-        ? update(currentValue)
-        : update;
-
-    subject.next(next);
-    return this.getCurrentValue(subject);
-  }
+  setCurrentValue = RxUtils.setCurrentValue;
 
   /**
    * Will try to find the participant with the given sessionId in the active call.
@@ -320,33 +311,35 @@ export class StreamVideoReadOnlyStateStore {
    */
   callRecordingInProgress$: Observable<boolean>;
 
+  /**
+   * This method allows you the get the current value of a state variable.
+   *
+   * @param observable the observable to get the current value of.
+   * @returns the current value of the observable.
+   */
+  getCurrentValue: <T>(observable: Observable<T>) => T;
+
   constructor(store: StreamVideoWriteableStateStore) {
+    // convert and expose subjects as observables
     this.connectedUser$ = store.connectedUserSubject.asObservable();
     this.pendingCalls$ = store.pendingCallsSubject.asObservable();
-    this.incomingCalls$ = store.incomingCalls$;
-    this.outgoingCalls$ = store.outgoingCalls$;
     this.acceptedCall$ = store.acceptedCallSubject.asObservable();
     this.activeCall$ = store.activeCallSubject.asObservable();
     this.participants$ = store.participantsSubject.asObservable();
-    this.localParticipant$ = store.localParticipant$;
-    this.remoteParticipants$ = store.remoteParticipants$;
-    this.pinnedParticipants$ = store.pinnedParticipants$;
-    this.dominantSpeaker$ = store.dominantSpeakerSubject.asObservable();
     this.callStatsReport$ = store.callStatsReportSubject.asObservable();
     this.callRecordingInProgress$ =
       store.callRecordingInProgressSubject.asObservable();
+
+    // re-expose observables
+    this.localParticipant$ = store.localParticipant$;
+    this.remoteParticipants$ = store.remoteParticipants$;
+    this.pinnedParticipants$ = store.pinnedParticipants$;
+    this.dominantSpeaker$ = store.dominantSpeaker$;
     this.hasOngoingScreenShare$ = store.hasOngoingScreenShare$;
-  }
+    this.incomingCalls$ = store.incomingCalls$;
+    this.outgoingCalls$ = store.outgoingCalls$;
 
-  /**
-   * This method allows you the get the current value of a state variable.
-   * @param observable
-   * @returns
-   */
-  getCurrentValue<T>(observable: Observable<T>) {
-    let value!: T;
-    observable.pipe(take(1)).subscribe((v) => (value = v));
-
-    return value;
+    // re-expose methods
+    this.getCurrentValue = store.getCurrentValue;
   }
 }

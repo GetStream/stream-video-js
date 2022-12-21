@@ -1,12 +1,18 @@
 import clsx from 'clsx';
-import { ForwardedRef, forwardRef, useRef, useState } from 'react';
-import { Call, getScreenShareStream, SfuModels } from '@stream-io/video-client';
+import { ForwardedRef, forwardRef, useEffect, useRef, useState } from 'react';
+import {
+  Call,
+  createSoundDetector,
+  getScreenShareStream,
+  SfuModels,
+} from '@stream-io/video-client';
 import {
   useLocalParticipant,
   useStreamVideoClient,
   useIsCallRecordingInProgress,
 } from '@stream-io/video-react-bindings';
 import { CallStats } from './CallStats';
+import { Notification } from './Notification';
 import { useMediaPublisher } from '../../hooks';
 import { useMediaDevices } from '../../contexts';
 
@@ -31,10 +37,8 @@ export const CallControls = (props: {
     SfuModels.TrackType.SCREEN_SHARE,
   );
 
-  // const audioDeviceId = localParticipant?.audioDeviceId;
-  // const videoDeviceId = localParticipant?.videoDeviceId;
-  const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
-
+  const { getAudioStream, selectedAudioDeviceId, selectedVideoDeviceId } =
+    useMediaDevices();
   const { publishAudioStream, publishVideoStream } = useMediaPublisher({
     call,
     initialAudioMuted,
@@ -42,6 +46,43 @@ export const CallControls = (props: {
     audioDeviceId: selectedAudioDeviceId,
     videoDeviceId: selectedVideoDeviceId,
   });
+
+  const audioDeviceId = localParticipant?.audioDeviceId;
+  const [isSpeakingWhileMuted, setIsSpeakingWhileMuted] = useState(false);
+  useEffect(() => {
+    // do nothing when not muted
+    if (!isAudioMute) return;
+    const disposeSoundDetector = getAudioStream(audioDeviceId).then(
+      (audioStream) =>
+        createSoundDetector(audioStream, (isSpeechDetected) => {
+          setIsSpeakingWhileMuted((isNotified) =>
+            isNotified ? isNotified : isSpeechDetected,
+          );
+        }),
+    );
+    disposeSoundDetector.catch((err) => {
+      console.error('Error while creating sound detector', err);
+    });
+    return () => {
+      disposeSoundDetector
+        .then((dispose) => dispose())
+        .catch((err) => {
+          console.error('Error while disposing sound detector', err);
+        });
+      setIsSpeakingWhileMuted(false);
+    };
+  }, [audioDeviceId, getAudioStream, isAudioMute]);
+
+  useEffect(() => {
+    if (!isSpeakingWhileMuted) return;
+    const timeout = setTimeout(() => {
+      setIsSpeakingWhileMuted(false);
+    }, 3500);
+    return () => {
+      clearTimeout(timeout);
+      setIsSpeakingWhileMuted(false);
+    };
+  }, [isSpeakingWhileMuted]);
 
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const statsAnchorRef = useRef<HTMLButtonElement>(null);
@@ -91,16 +132,21 @@ export const CallControls = (props: {
           }
         }}
       />
-      <Button
-        icon={isAudioMute ? 'mic-off' : 'mic'}
-        onClick={() => {
-          if (isAudioMute) {
-            void publishAudioStream();
-          } else {
-            void call.stopPublish(SfuModels.TrackType.AUDIO);
-          }
-        }}
-      />
+      <Notification
+        message="You are muted. Unmute to speak."
+        isVisible={isSpeakingWhileMuted}
+      >
+        <Button
+          icon={isAudioMute ? 'mic-off' : 'mic'}
+          onClick={() => {
+            if (isAudioMute) {
+              void publishAudioStream();
+            } else {
+              void call.stopPublish(SfuModels.TrackType.AUDIO);
+            }
+          }}
+        />
+      </Notification>
       <Button
         icon={isVideoMute ? 'camera-off' : 'camera'}
         onClick={() => {

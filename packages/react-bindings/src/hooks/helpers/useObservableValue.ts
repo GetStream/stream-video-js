@@ -1,19 +1,17 @@
+import type { Observable } from 'rxjs';
 import { useEffect, useState } from 'react';
-import { Observable, take } from 'rxjs';
+import { RxUtils } from '@stream-io/video-client';
 
 export const useObservableValue = <T>(observable$: Observable<T>) => {
-  const [value, setValue] = useState<T>(() => getCurrentValue(observable$));
+  const [value, setValue] = useState<T>(() =>
+    RxUtils.getCurrentValue(observable$),
+  );
   useEffect(() => {
     const subscription = observable$.subscribe(setValue);
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [observable$]);
-
-  return value;
-};
-
-const getCurrentValue = <T>(observable$: Observable<T>) => {
-  let value!: T;
-  observable$.pipe(take(1)).subscribe((v) => (value = v));
 
   return value;
 };

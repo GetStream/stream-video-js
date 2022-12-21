@@ -55,6 +55,18 @@ export interface Participant {
      * @generated from protobuf field: stream.video.sfu.models.ConnectionQuality connection_quality = 6;
      */
     connectionQuality: ConnectionQuality;
+    /**
+     * @generated from protobuf field: bool is_speaking = 7;
+     */
+    isSpeaking: boolean;
+    /**
+     * @generated from protobuf field: bool is_dominant_speaker = 8;
+     */
+    isDominantSpeaker: boolean;
+    /**
+     * @generated from protobuf field: float audio_level = 9;
+     */
+    audioLevel: number;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.StreamQuality
@@ -409,11 +421,14 @@ class Participant$Type extends MessageType<Participant> {
             { no: 3, name: "published_tracks", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["stream.video.sfu.models.TrackType", TrackType, "TRACK_TYPE_"] },
             { no: 4, name: "joined_at", kind: "message", T: () => Timestamp },
             { no: 5, name: "track_lookup_prefix", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "connection_quality", kind: "enum", T: () => ["stream.video.sfu.models.ConnectionQuality", ConnectionQuality, "CONNECTION_QUALITY_"] }
+            { no: 6, name: "connection_quality", kind: "enum", T: () => ["stream.video.sfu.models.ConnectionQuality", ConnectionQuality, "CONNECTION_QUALITY_"] },
+            { no: 7, name: "is_speaking", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 8, name: "is_dominant_speaker", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 9, name: "audio_level", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ }
         ]);
     }
     create(value?: PartialMessage<Participant>): Participant {
-        const message = { userId: "", sessionId: "", publishedTracks: [], trackLookupPrefix: "", connectionQuality: 0 };
+        const message = { userId: "", sessionId: "", publishedTracks: [], trackLookupPrefix: "", connectionQuality: 0, isSpeaking: false, isDominantSpeaker: false, audioLevel: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Participant>(this, message, value);
@@ -445,6 +460,15 @@ class Participant$Type extends MessageType<Participant> {
                     break;
                 case /* stream.video.sfu.models.ConnectionQuality connection_quality */ 6:
                     message.connectionQuality = reader.int32();
+                    break;
+                case /* bool is_speaking */ 7:
+                    message.isSpeaking = reader.bool();
+                    break;
+                case /* bool is_dominant_speaker */ 8:
+                    message.isDominantSpeaker = reader.bool();
+                    break;
+                case /* float audio_level */ 9:
+                    message.audioLevel = reader.float();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -480,6 +504,15 @@ class Participant$Type extends MessageType<Participant> {
         /* stream.video.sfu.models.ConnectionQuality connection_quality = 6; */
         if (message.connectionQuality !== 0)
             writer.tag(6, WireType.Varint).int32(message.connectionQuality);
+        /* bool is_speaking = 7; */
+        if (message.isSpeaking !== false)
+            writer.tag(7, WireType.Varint).bool(message.isSpeaking);
+        /* bool is_dominant_speaker = 8; */
+        if (message.isDominantSpeaker !== false)
+            writer.tag(8, WireType.Varint).bool(message.isDominantSpeaker);
+        /* float audio_level = 9; */
+        if (message.audioLevel !== 0)
+            writer.tag(9, WireType.Bit32).float(message.audioLevel);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

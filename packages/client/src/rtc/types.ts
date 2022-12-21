@@ -3,7 +3,7 @@ import type {
   VideoDimension,
 } from '../gen/video/sfu/models/models';
 
-export type StreamVideoParticipant = {
+export interface StreamVideoParticipant extends Participant {
   /**
    * The participant's audio stream, if they are publishing audio and
    * we have subscribed to it.
@@ -40,21 +40,12 @@ export type StreamVideoParticipant = {
   isLoggedInUser?: boolean;
 
   /**
-   * Audio level of the current participant [0 - silence, 1 - loudest].
-   */
-  audioLevel?: number;
-
-  /**
-   * True when SDK defined audio-level threshold is exceeded.
-   */
-  isSpeaking?: boolean;
-  /**
    * True when the participant is pinned
    */
   isPinned?: boolean;
-} & Participant;
+}
 
-export type StreamVideoLocalParticipant = {
+export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
   /**
    * The device ID of the currently selected audio input device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
    */
@@ -70,7 +61,7 @@ export type StreamVideoLocalParticipant = {
    * If the value is not defined, the user hasn't selected any device (in these cases the default system audio output could be used)
    */
   audioOutputDeviceId?: string;
-} & StreamVideoParticipant;
+}
 
 /**
  * A partial representation of the StreamVideoParticipant.

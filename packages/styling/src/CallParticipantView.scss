@@ -76,6 +76,15 @@
       background-image: Icons.$icon-mic-off;
     }
 
+    .str-video__participant_name--dominant_speaker {
+      @include icon();
+      background-image: Icons.$icon-dominant-speaker;
+
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
     .str-video__participant_name--video-muted {
       @include icon();
       background-image: Icons.$icon-camera-off;
