@@ -2,6 +2,7 @@ import { StreamVideoParticipant } from '@stream-io/video-client';
 import { Cross, Pin, SpotLight } from '../icons';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { generateParticipantTitle } from '../utils';
+import { useCallback } from 'react';
 
 const options = [
   { title: 'Spotlight Video', icon: <SpotLight color="#72767E" /> },
@@ -17,6 +18,11 @@ type CallParticipantOptionsType = {
 
 export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
   const { participant, setSelectedParticipant } = props;
+
+  const onCloseParticipantOptions = useCallback(() => {
+    setSelectedParticipant(undefined);
+  }, [setSelectedParticipant]);
+
   return (
     <View style={styles.menu}>
       <View style={styles.participantInfo}>
@@ -34,10 +40,7 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
           </Text>
         </View>
 
-        <Pressable
-          style={styles.icon}
-          onPress={() => setSelectedParticipant(undefined)}
-        >
+        <Pressable style={styles.icon} onPress={onCloseParticipantOptions}>
           <Cross color="#000000" />
         </Pressable>
       </View>

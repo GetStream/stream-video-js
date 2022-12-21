@@ -2,7 +2,7 @@ import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
 import { useParticipants } from '@stream-io/video-react-bindings';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { MicOff, ThreeDots, VideoSlash } from '../icons';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
 
@@ -22,9 +22,9 @@ const CallParticipantInfoView = (props: CallParticipantInfoViewType) => {
     SfuModels.TrackType.VIDEO,
   );
 
-  const optionsOpenHandler = () => {
+  const optionsOpenHandler = useCallback(() => {
     setSelectedParticipant(participant);
-  };
+  }, [participant, setSelectedParticipant]);
 
   return (
     <View style={styles.participant}>
