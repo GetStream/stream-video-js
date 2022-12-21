@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { ForwardedRef, forwardRef, useEffect, useRef, useState } from 'react';
 import {
   Call,
-  createSpeechDetector,
+  createSoundDetector,
   getScreenShareStream,
   SfuModels,
 } from '@stream-io/video-client';
@@ -52,10 +52,10 @@ export const CallControls = (props: {
   useEffect(() => {
     // do nothing when unmute
     if (!isAudioMute || !audioDeviceId) return;
-    let disposeSpeechDetector: ReturnType<typeof createSpeechDetector>;
+    let disposeSoundDetector: ReturnType<typeof createSoundDetector>;
     const notifySpeakingWhileMuted = async () => {
       const audioStream = await getAudioStream(audioDeviceId);
-      disposeSpeechDetector = createSpeechDetector(
+      disposeSoundDetector = createSoundDetector(
         audioStream,
         (isSpeechDetected) => {
           setIsSpeakingWhileMuted((isNotified) => {
@@ -69,7 +69,7 @@ export const CallControls = (props: {
       console.error(`Failed to notify speaking when muted`, e);
     });
     return () => {
-      disposeSpeechDetector?.();
+      disposeSoundDetector?.();
       setIsSpeakingWhileMuted(false);
     };
   }, [audioDeviceId, getAudioStream, isAudioMute]);

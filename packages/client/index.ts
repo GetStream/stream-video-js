@@ -23,4 +23,4 @@ export * from './src/StreamSfuClient';
 export * from './src/devices';
 export * from './src/store';
 
-export * from './src/helpers/speechDetector';
+export * from './src/helpers/sound-detector';

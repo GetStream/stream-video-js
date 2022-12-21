@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {
   checkIfAudioOutputChangeSupported,
-  createSpeechDetector,
+  createSoundDetector,
   getAudioDevices,
   getAudioOutputDevices,
   getAudioStream,
@@ -113,7 +113,7 @@ export class DeviceManagerService {
   private audioOutputDeviceSubject = new BehaviorSubject<string | undefined>(
     undefined,
   );
-  private disposeSpeechDetector?: () => Promise<void>;
+  private disposeSoundDetector?: () => Promise<void>;
   private audioDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
   private videoDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
   private audioOutputDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
@@ -256,7 +256,7 @@ export class DeviceManagerService {
       .then((audioStream) => {
         this.stopAudio();
         this.audioStreamSubject.next(audioStream);
-        this.disposeSpeechDetector = createSpeechDetector(
+        this.disposeSoundDetector = createSoundDetector(
           audioStream,
           (isSpeechDetected) => {
             this.isSpeakingSubject.next(isSpeechDetected);
@@ -283,7 +283,7 @@ export class DeviceManagerService {
       return;
     }
     this.audioStream.getTracks().forEach((t) => t.stop());
-    this.disposeSpeechDetector?.();
+    this.disposeSoundDetector?.();
     this.audioStreamSubject.next(undefined);
     this.audioStateSubject.next('off');
   }
