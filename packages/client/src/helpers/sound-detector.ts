@@ -1,12 +1,12 @@
 export type SoundDetectorOptions = {
   /**
-   * Defines how often the speech detector should check for speech.
+   * Defines how often the detector should check whether a sound is present.
    * Defaults to 500ms.
    */
   detectionFrequencyInMs?: number;
 
   /**
-   * Defines the threshold for the audio level to be considered speech.
+   * Defines the audio level threshold before a "change" is emitted.
    * Defaults to 150. This value should be in the range of 0-255.
    */
   audioLevelThreshold?: number;
@@ -19,7 +19,7 @@ export type SoundDetectorOptions = {
   fftSize?: number;
 
   /**
-   * Defines whether the provided audio stream should be stopped (destoyed)
+   * Defines whether the provided audio stream should be stopped (destroyed)
    * when the sound detector is stopped.
    *
    * Defaults to `true`.
