@@ -98,6 +98,10 @@ const Ringing = (props: NativeStackScreenProps<RingingStackParamList>) => {
           component={OutgoingCallScreen}
           options={{ headerShown: false }}
         />
+        <MeetingStack.Screen
+          name="CallParticipantsInfoScreen"
+          component={CallParticipansInfoScreen}
+        />
       </RingingStack.Navigator>
     </StreamCall>
   );

@@ -126,6 +126,7 @@ export type RingingStackParamList = {
   CallScreen: undefined;
   IncomingCallScreen: undefined;
   OutgoingCallScreen: undefined;
+  CallParticipantsInfoScreen: undefined;
 };
 
 export type RootStackParamList = {

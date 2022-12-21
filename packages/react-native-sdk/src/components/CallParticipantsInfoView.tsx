@@ -1,7 +1,7 @@
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
 import { useParticipants } from '@stream-io/video-react-bindings';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { MicOff, ThreeDots, VideoSlash } from '../icons';
+import { MicOff, ScreenShare, ThreeDots, VideoSlash } from '../icons';
 import { useCallback, useState } from 'react';
 import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
@@ -20,6 +20,9 @@ const CallParticipantInfoView = (props: CallParticipantInfoViewType) => {
   );
   const isVideoMuted = !participant?.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
+  );
+  const isScreenSharing = participant?.publishedTracks.includes(
+    SfuModels.TrackType.SCREEN_SHARE,
   );
 
   const optionsOpenHandler = useCallback(() => {
@@ -40,6 +43,11 @@ const CallParticipantInfoView = (props: CallParticipantInfoViewType) => {
           (participant.isLoggedInUser ? ' (You)' : '')}
       </Text>
       <View style={styles.icons}>
+        {isScreenSharing && (
+          <View style={styles.screenShareIcon}>
+            <ScreenShare color="#20E070" />
+          </View>
+        )}
         {isAudioMuted && (
           <View style={styles.icon}>
             <MicOff color="#FF3742" />
@@ -116,7 +124,12 @@ const styles = StyleSheet.create({
   icon: {
     height: 20,
     width: 20,
-    marginLeft: 5,
+    marginLeft: 10,
+  },
+  screenShareIcon: {
+    height: 24,
+    width: 24,
+    marginLeft: 10,
   },
   modal: {
     alignItems: 'center',

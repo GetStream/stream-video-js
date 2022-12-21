@@ -13,3 +13,4 @@ export * from './Pin';
 export * from './Spotlight';
 export * from './VideoOff';
 export * from './Cross';
+export * from './ScreenShare';

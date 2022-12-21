@@ -10,13 +10,14 @@ export const MeetingScreen = ({ navigation }: Props) => {
     navigation.navigate('JoinMeetingScreen');
   };
 
-  const onOpenParticipantsViewHandler = () => {
+  const onOpenCallParticipantsInfoViewHandler = () => {
     navigation.navigate('CallParticipantsInfoScreen');
   };
+
   return (
     <ActiveCall
       onHangupCall={onHangupCallHandler}
-      onOpenParticipantsView={onOpenParticipantsViewHandler}
+      onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
     />
   );
 };

@@ -25,14 +25,14 @@ export interface ActiveCallProps {
   /**
    * Handler called when participant icon is called
    */
-  onOpenParticipantsView: () => void;
+  onOpenCallParticipantsInfoView: () => void;
 }
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useActiveCall();
   const participants = useParticipants();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
-  const { onHangupCall, onOpenParticipantsView } = props;
+  const { onHangupCall, onOpenCallParticipantsInfoView } = props;
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const setState = useStreamVideoStoreSetState();
 
@@ -64,7 +64,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
     <View style={StyleSheet.absoluteFill}>
       <Pressable
         style={styles.participantIcon}
-        onPress={onOpenParticipantsView}
+        onPress={onOpenCallParticipantsInfoView}
       >
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{participants.length}</Text>
