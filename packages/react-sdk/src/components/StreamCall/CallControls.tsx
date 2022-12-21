@@ -50,26 +50,25 @@ export const CallControls = (props: {
   const audioDeviceId = localParticipant?.audioDeviceId;
   const [isSpeakingWhileMuted, setIsSpeakingWhileMuted] = useState(false);
   useEffect(() => {
-    // do nothing when unmute
-    if (!isAudioMute || !audioDeviceId) return;
-    let disposeSoundDetector: ReturnType<typeof createSoundDetector>;
-    const notifySpeakingWhileMuted = async () => {
-      const audioStream = await getAudioStream(audioDeviceId);
-      disposeSoundDetector = createSoundDetector(
-        audioStream,
-        (isSpeechDetected) => {
-          setIsSpeakingWhileMuted((isNotified) => {
-            return isNotified ? isNotified : isSpeechDetected;
-          });
-        },
-      );
-    };
-
-    notifySpeakingWhileMuted().catch((e) => {
-      console.error(`Failed to notify speaking when muted`, e);
+    // do nothing when not muted
+    if (!isAudioMute) return;
+    const disposeSoundDetector = getAudioStream(audioDeviceId).then(
+      (audioStream) =>
+        createSoundDetector(audioStream, (isSpeechDetected) => {
+          setIsSpeakingWhileMuted((isNotified) =>
+            isNotified ? isNotified : isSpeechDetected,
+          );
+        }),
+    );
+    disposeSoundDetector.catch((err) => {
+      console.error('Error while creating sound detector', err);
     });
     return () => {
-      disposeSoundDetector?.();
+      disposeSoundDetector
+        .then((dispose) => dispose())
+        .catch((err) => {
+          console.error('Error while disposing sound detector', err);
+        });
       setIsSpeakingWhileMuted(false);
     };
   }, [audioDeviceId, getAudioStream, isAudioMute]);
@@ -81,6 +80,7 @@ export const CallControls = (props: {
     }, 3500);
     return () => {
       clearTimeout(timeout);
+      setIsSpeakingWhileMuted(false);
     };
   }, [isSpeakingWhileMuted]);
 
