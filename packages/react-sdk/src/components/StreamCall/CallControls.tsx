@@ -1,12 +1,18 @@
 import clsx from 'clsx';
-import { ForwardedRef, forwardRef, useRef, useState } from 'react';
-import { Call, getScreenShareStream, SfuModels } from '@stream-io/video-client';
+import { ForwardedRef, forwardRef, useEffect, useRef, useState } from 'react';
+import {
+  Call,
+  createSpeechDetector,
+  getScreenShareStream,
+  SfuModels,
+} from '@stream-io/video-client';
 import {
   useLocalParticipant,
   useStreamVideoClient,
   useIsCallRecordingInProgress,
 } from '@stream-io/video-react-bindings';
 import { CallStats } from './CallStats';
+import { Notification } from './Notification';
 import { useMediaPublisher } from '../../hooks';
 import { useMediaDevices } from '../../contexts';
 
@@ -31,10 +37,8 @@ export const CallControls = (props: {
     SfuModels.TrackType.SCREEN_SHARE,
   );
 
-  // const audioDeviceId = localParticipant?.audioDeviceId;
-  // const videoDeviceId = localParticipant?.videoDeviceId;
-  const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
-
+  const { getAudioStream, selectedAudioDeviceId, selectedVideoDeviceId } =
+    useMediaDevices();
   const { publishAudioStream, publishVideoStream } = useMediaPublisher({
     call,
     initialAudioMuted,
@@ -43,7 +47,7 @@ export const CallControls = (props: {
     videoDeviceId: selectedVideoDeviceId,
   });
 
-
+  const audioDeviceId = localParticipant?.audioDeviceId;
   const [isSpeakingWhileMuted, setIsSpeakingWhileMuted] = useState(false);
   useEffect(() => {
     // do nothing when unmute
@@ -68,7 +72,7 @@ export const CallControls = (props: {
       disposeSpeechDetector?.();
       setIsSpeakingWhileMuted(false);
     };
-  }, [audioDeviceId, isAudioMute]);
+  }, [audioDeviceId, getAudioStream, isAudioMute]);
 
   useEffect(() => {
     if (!isSpeakingWhileMuted) return;
