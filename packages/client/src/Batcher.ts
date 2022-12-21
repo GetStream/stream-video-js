@@ -1,22 +1,20 @@
-export class Batcher<ItemType> {
-  private items: Array<ItemType>;
+export class Batcher<BatchItemType> {
+  private batch: Array<BatchItemType>;
   private timeoutId: NodeJS.Timeout | undefined;
 
   constructor(
     private readonly timeoutInterval: number,
-    private readonly requestFunction: (data: Array<ItemType>) => void,
+    private readonly requestFunction: (data: Array<BatchItemType>) => void,
   ) {
-    this.items = [];
+    this.batch = [];
   }
 
   private scheduleTimeout = () => {
     this.timeoutId = setTimeout(() => {
       try {
-        if (!this.items.length) return;
-        console.log('triggering batch', JSON.stringify(this.items));
-        this.requestFunction(this.items);
-        this.items = [];
-        this.clearTimeout();
+        if (!this.batch.length) return;
+        this.requestFunction(this.batch);
+        this.clearBatch();
       } catch (error) {
         console.error(error);
       }
@@ -28,15 +26,18 @@ export class Batcher<ItemType> {
     this.timeoutId = undefined;
   };
 
-  public clearItems = () => {
-    this.items = [];
+  public clearBatch = () => {
+    this.batch = [];
     this.clearTimeout();
   };
 
-  public pushItem = (item: ItemType) => {
-    this.items.push(item);
+  public addToBatch = (item: BatchItemType) => {
+    this.batch.push(item);
     if (!this.timeoutId) this.scheduleTimeout();
   };
 
-  // TODO: probably add <removeItem> in case user leaves the call before batch function triggers
+  public removeFromBatch = (item: BatchItemType) => {
+    const itemIndex = this.batch.indexOf(item);
+    if (itemIndex > -1) this.batch.splice(itemIndex, 1);
+  };
 }

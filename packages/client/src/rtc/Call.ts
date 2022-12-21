@@ -113,7 +113,7 @@ export class Call {
 
     this.statsReporter.stop();
     this.subscriber.close();
-    this.userBatcher.clearItems();
+    this.userBatcher.clearBatch();
 
     this.publisher.getSenders().forEach((s) => {
       if (s.track) {
@@ -157,8 +157,8 @@ export class Call {
             currentParticipants.map<StreamVideoParticipant>((participant) => {
               const userData = users[participant.userId];
 
-              // FIXME: not sure if I like this side effect in mapping function
-              if (!userData) this.userBatcher.pushItem(participant.userId);
+              // FIXME: not sure if I like this side effect in a mapping function
+              if (!userData) this.userBatcher.addToBatch(participant.userId);
 
               return {
                 ...participant,

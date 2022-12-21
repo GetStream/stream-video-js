@@ -13,32 +13,22 @@ export const watchParticipantJoined = (
   return dispatcher.on('participantJoined', (e) => {
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
     const { participant } = e.eventPayload.participantJoined;
+    if (!participant) return;
+
     const call = store.getCurrentValue(store.activeCallSubject);
 
+    // FIXME: this part is being repeated in call.join event as well
     const { users } = call!.data;
+    const userData = users[participant.userId];
+    if (!userData) userBatcher.addToBatch(participant.userId);
 
-    // TODO: handle the case where non-creator of the call joins the call first (current user)
-    // TODO: test reconnect (leave and join again)
-    // TODO: when triggering a refresh while in a active call, populate "unknown" user data on re-join
-    console.log('batch', 'ParticipantJoined', participant?.userId);
-
-    const userData = users[participant!.userId];
-
-    // if user is in call.data.users, update from there, otherwise pull from coordinator
-    if (!userData) userBatcher.pushItem(participant!.userId);
-
-    if (participant) {
-      store.setCurrentValue(
-        store.participantsSubject,
-        (currentParticipants) => [
-          ...currentParticipants,
-          {
-            ...participant,
-            user: userData,
-          },
-        ],
-      );
-    }
+    store.setCurrentValue(store.participantsSubject, (currentParticipants) => [
+      ...currentParticipants,
+      {
+        ...participant,
+        user: userData,
+      },
+    ]);
   });
 };
 
@@ -52,11 +42,11 @@ export const watchParticipantLeft = (
   return dispatcher.on('participantLeft', (e) => {
     if (e.eventPayload.oneofKind !== 'participantLeft') return;
     const { participant } = e.eventPayload.participantLeft;
-    if (participant) {
-      store.setCurrentValue(store.participantsSubject, (participants) =>
-        participants.filter((p) => p.sessionId !== participant.sessionId),
-      );
-    }
+    if (!participant) return;
+
+    store.setCurrentValue(store.participantsSubject, (participants) =>
+      participants.filter((p) => p.sessionId !== participant.sessionId),
+    );
   });
 };
 
