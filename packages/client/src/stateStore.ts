@@ -1,10 +1,6 @@
-import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
-import {
-  combineLatestWith,
-  distinctUntilChanged,
-  map,
-  take,
-} from 'rxjs/operators';
+import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
+import { combineLatestWith, distinctUntilChanged, map } from 'rxjs/operators';
+import { RxUtils } from './store';
 import { UserInput } from './gen/video/coordinator/user_v1/user';
 import { Call, CallDetails } from './gen/video/coordinator/call_v1/call';
 import { CallAccepted } from './gen/video/coordinator/event_v1/event';
@@ -145,12 +141,13 @@ export class StreamVideoWriteableStateStore {
     );
   }
 
-  getCurrentValue<T>(observable: Observable<T>) {
-    let value!: T;
-    observable.pipe(take(1)).subscribe((v) => (value = v));
-
-    return value;
-  }
+  /**
+   * Gets the current value of an observable, or undefined if the observable has
+   * not emitted a value yet.
+   *
+   * @param observable$ the observable to get the value from.
+   */
+  getCurrentValue = RxUtils.getCurrentValue;
 
   /**
    * Updates the value of the provided Subject.
@@ -161,20 +158,7 @@ export class StreamVideoWriteableStateStore {
    * @param update the update to apply to the subject.
    * @return the updated value.
    */
-  setCurrentValue<T>(
-    subject: Subject<T>,
-    update: T | ((currentValue: T) => T),
-  ) {
-    const currentValue = this.getCurrentValue(subject);
-    const next =
-      // TypeScript needs more context to infer the type of update
-      typeof update === 'function' && update instanceof Function
-        ? update(currentValue)
-        : update;
-
-    subject.next(next);
-    return this.getCurrentValue(subject);
-  }
+  setCurrentValue = RxUtils.setCurrentValue;
 
   /**
    * Will try to find the participant with the given sessionId in the active call.
