@@ -1,5 +1,5 @@
-import { StreamVideoWriteableStateStore } from '../stateStore';
 import { Dispatcher } from '../rtc/Dispatcher';
+import { StreamVideoWriteableStateStore } from '../store';
 
 /**
  * An event responder which handles the `participantJoined` event.
@@ -13,7 +13,7 @@ export const watchParticipantJoined = (
     const { participant } = e.eventPayload.participantJoined;
     if (participant) {
       store.setCurrentValue(
-        store.activeCallAllParticipantsSubject,
+        store.participantsSubject,
         (currentParticipants) => [...currentParticipants, participant],
       );
     }
@@ -31,28 +31,8 @@ export const watchParticipantLeft = (
     if (e.eventPayload.oneofKind !== 'participantLeft') return;
     const { participant } = e.eventPayload.participantLeft;
     if (participant) {
-      const currentParticipants = store.getCurrentValue(
-        store.activeCallAllParticipantsSubject,
-      );
-      const activeRingCallMeta = store.getCurrentValue(
-        store.activeRingCallMetaSubject,
-      );
-      const activeCallLocalParticipant = store.getCurrentValue(
-        store.activeCallLocalParticipantSubject,
-      );
-      if (activeRingCallMeta) {
-        if (
-          currentParticipants.length === 2 &&
-          participant.sessionId !== activeCallLocalParticipant?.sessionId
-        ) {
-          store.setCurrentValue(store.activeCallSubject, undefined);
-        }
-      }
-      store.setCurrentValue(
-        store.activeCallAllParticipantsSubject,
-        currentParticipants.filter(
-          (p) => p.sessionId !== participant.sessionId,
-        ),
+      store.setCurrentValue(store.participantsSubject, (participants) =>
+        participants.filter((p) => p.sessionId !== participant.sessionId),
       );
     }
   });

@@ -1,14 +1,14 @@
 import React, { useEffect } from 'react';
-import {
-  useActiveCall,
-  useTerminatedRingCall,
-} from '@stream-io/video-react-bindings';
+import { useActiveCall } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
-import { useCallKeep } from '../hooks';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
 import { getAudioStream, getVideoStream } from '@stream-io/video-client';
+import {
+  useStreamVideoStoreSetState,
+  useStreamVideoStoreValue,
+} from '../contexts';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -22,10 +22,10 @@ export interface ActiveCallProps {
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useActiveCall();
-  const terminatedRingCall = useTerminatedRingCall();
-  const { startCall, endCall } = useCallKeep();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
   const { onHangupCall } = props;
+  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
+  const setState = useStreamVideoStoreSetState();
 
   useEffect(() => {
     if (audioDevice) {
@@ -37,7 +37,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
   useEffect(() => {
     try {
-      if (currentVideoDevice) {
+      if (currentVideoDevice && !isVideoMuted) {
         getVideoStream(currentVideoDevice.deviceId).then((stream) => {
           if (currentVideoDevice.facing === 'environment') {
             const [primaryVideoTrack] = stream.getVideoTracks();
@@ -49,23 +49,14 @@ export const ActiveCall = (props: ActiveCallProps) => {
     } catch (error) {
       console.log(error);
     }
-  }, [activeCall, currentVideoDevice]);
-
-  useEffect(() => {
-    startCall();
-    if (!activeCall || terminatedRingCall) {
-      endCall();
-      onHangupCall();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCall, terminatedRingCall]);
+  }, [activeCall, currentVideoDevice, isVideoMuted, setState]);
 
   return (
     <>
       <View style={styles.callParticipantsWrapper}>
         <CallParticipantsView />
       </View>
-      <CallControlsView />
+      <CallControlsView onHangupCall={onHangupCall} />
     </>
   );
 };

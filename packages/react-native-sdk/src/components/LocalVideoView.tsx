@@ -39,16 +39,14 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
   const cameraBackFacingMode = useStreamVideoStoreValue(
     (store) => store.cameraBackFacingMode,
   );
-  const videoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
 
   if (!isVisible || !localParticipant) {
     return null;
   }
 
-  const isVideoMuted =
-    !localParticipant.videoStream ||
-    !localParticipant.publishedTracks.includes(SfuModels.TrackType.VIDEO) ||
-    videoMuted;
+  const isVideoMuted = !localParticipant.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
 
   if (isVideoMuted) {
     return (

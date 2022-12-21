@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
 } from 'react';
 import {
   getAudioDevices,
@@ -21,6 +22,9 @@ export type MediaDevicesContextAPI = {
   getAudioStream: (deviceId?: string) => Promise<MediaStream>;
   getVideoStream: (deviceId?: string) => Promise<MediaStream>;
   isAudioOutputChangeSupported: boolean;
+  selectedAudioDeviceId?: string;
+  selectedVideoDeviceId?: string;
+  switchDevice: (kind: 'videoinput' | 'audioinput', deviceId?: string) => void;
 };
 
 const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
@@ -28,11 +32,27 @@ const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
 export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedAudioDeviceId, selectAudioDeviceId] =
+    useState<MediaDevicesContextAPI['selectedAudioDeviceId']>('default');
+  const [selectedVideoDeviceId, selectVideoDeviceId] =
+    useState<MediaDevicesContextAPI['selectedVideoDeviceId']>('default');
   const [audioOutputDevices, setAudioOutputDevices] = useState<
     MediaDeviceInfo[]
   >([]);
   const [isAudioOutputChangeSupported] = useState<boolean>(() =>
     checkIfAudioOutputChangeSupported(),
+  );
+
+  const switchDevice = useCallback(
+    async (kind: 'videoinput' | 'audioinput', deviceId?: string) => {
+      if (kind === 'videoinput') {
+        selectVideoDeviceId(deviceId);
+      }
+      if (kind === 'audioinput') {
+        selectAudioDeviceId(deviceId);
+      }
+    },
+    [],
   );
 
   useEffect(() => {
@@ -59,6 +79,9 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
     getAudioStream,
     getVideoStream,
     isAudioOutputChangeSupported,
+    selectedAudioDeviceId,
+    selectedVideoDeviceId,
+    switchDevice,
   };
 
   return (

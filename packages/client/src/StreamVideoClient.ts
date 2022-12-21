@@ -1,7 +1,7 @@
 import {
   StreamVideoReadOnlyStateStore,
   StreamVideoWriteableStateStore,
-} from './stateStore';
+} from './store';
 import type { Call as CallMeta } from './gen/video/coordinator/call_v1/call';
 import type {
   CreateCallRequest,
@@ -33,7 +33,13 @@ import {
 } from './ws';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
-import { registerWSEventHandlers } from './ws/callUserEventHandlers';
+
+import {
+  CallAccepted,
+  CallCancelled,
+  CallCreated,
+  CallRejected,
+} from './gen/video/coordinator/event_v1/event';
 import { reportStats } from './stats/coordinator-stats-reporter';
 import { Timestamp } from './gen/google/protobuf/timestamp';
 
@@ -55,8 +61,7 @@ export class StreamVideoClient {
    * @angular If you're using our Angular SDK, you shouldn't be interacting with the state store directly, instead, you should be using the [`StreamVideoService`](./StreamVideoService.md).
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
-  // Make it public temporary to ease SDK transition
-  readonly writeableStateStore: StreamVideoWriteableStateStore;
+  private readonly writeableStateStore: StreamVideoWriteableStateStore;
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWSClient | undefined;
@@ -114,7 +119,7 @@ export class StreamVideoClient {
       user,
     );
     if (this.ws) {
-      registerWSEventHandlers(this, this.writeableStateStore);
+      this.registerWSEventHandlers();
     }
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
@@ -159,9 +164,17 @@ export class StreamVideoClient {
     return this.ws?.off(event, fn);
   };
 
+  registerWSEventHandlers = () => {
+    this.on('callCreated', this.onCallCreated);
+    this.on('callAccepted', this.onCallAccepted);
+    this.on('callRejected', this.onCallRejected);
+    this.on('callCancelled', this.onCallCancelled);
+  };
+
   /**
-   * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, it will return the existing call.
-   * @param data
+   * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, this will return an error.
+   * Causes the CallCreated event to be emitted to all the call members.
+   * @param data CreateCallRequest payload object
    * @returns A call metadata with information about the call.
    */
   getOrCreateCall = async (data: GetOrCreateCallRequest) => {
@@ -181,29 +194,205 @@ export class StreamVideoClient {
    */
   createCall = async (data: CreateCallRequest) => {
     const callToCreate = await this.client.createCall(data);
-    const { call: callEnvelope } = callToCreate.response;
-    return callEnvelope;
+    const { call } = callToCreate.response;
+    if (call) {
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.pendingCallsSubject,
+        (pendingCalls) => [
+          ...pendingCalls,
+          {
+            call: call.call,
+            callDetails: call.details,
+            ringing: !!data.input?.ring,
+          },
+        ],
+      );
+    }
+
+    return call;
   };
 
+  /**
+   * Event handler invoked upon delivery of CallCreated Websocket event
+   * Updates the state store and notifies its subscribers that
+   * a new pending call has been initiated.
+   * @param event received CallCreated Websocket event
+   * @returns
+   */
+  onCallCreated = (event: CallCreated) => {
+    const { call } = event;
+    if (!call) {
+      console.warn("Can't find call in CallCreated event");
+      return;
+    }
+
+    const store = this.writeableStateStore;
+    const currentUser = store.getCurrentValue(store.connectedUserSubject);
+
+    if (currentUser?.id === call.createdByUserId) {
+      console.warn('Received CallCreated event sent by the current user');
+      return;
+    }
+
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.pendingCallsSubject,
+      (pendingCalls) => [...pendingCalls, event],
+    );
+  };
+
+  /**
+   * Signals other users that I have accepted the incoming call.
+   * Causes the CallAccepted event to be emitted to all the call members.
+   * @param callCid config ID of the rejected call
+   * @returns
+   */
   acceptCall = async (callCid: string) => {
     await this.client.sendEvent({
       callCid,
       eventType: UserEventType.ACCEPTED_CALL,
     });
+    const [type, id] = callCid.split(':');
+    const callController = await this.joinCall({ id, type, datacenterId: '' });
+    await callController?.join();
+    return callController;
   };
 
+  /**
+   * Event handler invoked upon delivery of CallAccepted Websocket event
+   * Updates the state store and notifies its subscribers that
+   * the given user will be joining the call.
+   * @param event received CallAccepted Websocket event
+   * @returns
+   */
+  onCallAccepted = (event: CallAccepted) => {
+    const { call } = event;
+    if (!call) {
+      console.warn("Can't find call in CallAccepted event");
+      return;
+    }
+  };
+
+  /**
+   * Signals other users that I have rejected the incoming call.
+   * Causes the CallRejected event to be emitted to all the call members.
+   * @param callCid config ID of the rejected call
+   * @returns
+   */
   rejectCall = async (callCid: string) => {
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.pendingCallsSubject,
+      (pendingCalls) =>
+        pendingCalls.filter(
+          (incomingCall) => incomingCall.call?.callCid !== callCid,
+        ),
+    );
     await this.client.sendEvent({
       callCid,
       eventType: UserEventType.REJECTED_CALL,
     });
   };
 
+  /**
+   * Event handler invoked upon delivery of CallRejected Websocket event.
+   * Updates the state store and notifies its subscribers that
+   * the given user will not be joining the call.
+   * @param event received CallRejected Websocket event
+   * @returns
+   */
+  onCallRejected = (event: CallRejected) => {
+    const { call } = event;
+    if (!call) {
+      console.warn("Can't find call in CallRejected event");
+      return;
+    }
+    // currently not supporting automatic call drop for 1:M calls
+    const memberUserIds = event.callDetails?.memberUserIds || [];
+    if (memberUserIds.length > 1) {
+      return;
+    }
+
+    const store = this.writeableStateStore;
+    const currentUser = store.getCurrentValue(store.connectedUserSubject);
+    if (currentUser?.id === event.senderUserId) {
+      console.warn('Received CallRejected event sent by the current user');
+      return;
+    }
+
+    const pendingCall = store
+      .getCurrentValue(store.pendingCallsSubject)
+      .find((pendingCall) => pendingCall.call?.callCid === call.callCid);
+
+    if (pendingCall?.call?.createdByUserId !== currentUser?.id) {
+      console.warn('Received CallRejected event for an incoming call');
+      return;
+    }
+
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.pendingCallsSubject,
+      (pendingCalls) =>
+        pendingCalls.filter(
+          (pendingCalls) => pendingCalls.call?.callCid !== event.call?.callCid,
+        ),
+    );
+  };
+
+  /**
+   * Signals other users that I have cancelled my call to them before they accepted it.
+   * Causes the CallCancelled event to be emitted to all the call members.
+   * @param callCid config ID of the cancelled call
+   * @returns
+   */
   cancelCall = async (callCid: string) => {
-    await this.client.sendEvent({
-      callCid,
-      eventType: UserEventType.CANCELLED_CALL,
-    });
+    const store = this.writeableStateStore;
+    const activeCall = store.getCurrentValue(store.activeCallSubject);
+
+    if (activeCall?.data.call?.callCid === callCid) {
+      activeCall.leave();
+    } else {
+      store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+        pendingCalls.filter(
+          (pendingCall) => pendingCall.call?.callCid !== callCid,
+        ),
+      );
+    }
+
+    const remoteParticipants = store.getCurrentValue(store.remoteParticipants$);
+
+    if (!remoteParticipants.length) {
+      await this.client.sendEvent({
+        callCid,
+        eventType: UserEventType.CANCELLED_CALL,
+      });
+    }
+  };
+
+  /**
+   * Event handler invoked upon delivery of CallCancelled Websocket event
+   * Updates the state store and notifies its subscribers that
+   * the call is now considered terminated.
+   * @param event received CallCancelled Websocket event
+   * @returns
+   */
+  onCallCancelled = (event: CallCancelled) => {
+    const { call } = event;
+    if (!call) {
+      console.log("Can't find call in CallCancelled event");
+      return;
+    }
+
+    const store = this.writeableStateStore;
+    const currentUser = store.getCurrentValue(store.connectedUserSubject);
+
+    if (currentUser?.id === event.senderUserId) {
+      console.warn('Received CallCancelled event sent by the current user');
+      return;
+    }
+
+    store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+      pendingCalls.filter(
+        (pendingCall) => pendingCall.call?.callCid !== event.call?.callCid,
+      ),
+    );
   };
 
   /**
@@ -217,31 +406,20 @@ export class StreamVideoClient {
     if (response.call && response.call.call && response.edges) {
       const callMeta = response.call.call;
       const edge = await this.getCallEdgeServer(callMeta, response.edges);
-      if (data.input?.ring) {
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.activeRingCallMetaSubject,
-          callMeta,
-        );
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.activeRingCallDetailsSubject,
-          response.call.details,
-        );
-      }
+
       if (edge.credentials && edge.credentials.server) {
         const edgeName = edge.credentials.server.edgeName;
         const { server, iceServers, token } = edge.credentials;
         const sfuClient = new StreamSfuClient(server.url, token, sessionId);
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.activeCallMetaSubject,
-          callMeta,
-        );
 
         // TODO OL: compute the initial value from `activeCallSubject`
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.callRecordingInProgressSubject,
           callMeta.recordingActive,
         );
-        return new Call(
+
+        const call = new Call(
+          response.call,
           sfuClient,
           {
             connectionConfig: this.toRtcConfiguration(iceServers),
@@ -249,6 +427,13 @@ export class StreamVideoClient {
           },
           this.writeableStateStore,
         );
+
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.activeCallSubject,
+          call,
+        );
+
+        return call;
       } else {
         // TODO: handle error?
         return undefined;
@@ -290,13 +475,16 @@ export class StreamVideoClient {
    */
   private reportCallStats = async (
     stats: Object,
-  ): Promise<ReportCallStatsResponse> => {
+  ): Promise<ReportCallStatsResponse | void> => {
     const callCid = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.activeCallMetaSubject,
-    )?.callCid;
+      this.writeableStateStore.activeCallSubject,
+    )?.data.call?.callCid;
+
     if (!callCid) {
-      throw new Error('No active CallMeta ID found');
+      console.log("There isn't an active call");
+      return;
     }
+
     const request: ReportCallStatsRequest = {
       callCid,
       statsJson: new TextEncoder().encode(JSON.stringify(stats)),
@@ -348,12 +536,14 @@ export class StreamVideoClient {
    */
   private reportCallStatEvent = async (
     statEvent: ReportCallStatEventRequest['event'],
-  ): Promise<ReportCallStatEventResponse> => {
+  ): Promise<ReportCallStatEventResponse | void> => {
     const callCid = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.activeCallMetaSubject,
-    )?.callCid;
+      this.writeableStateStore.activeCallSubject,
+    )?.data.call?.callCid;
+
     if (!callCid) {
-      throw new Error('No active CallMeta ID found');
+      console.log("There isn't an active call");
+      return;
     }
     const request: ReportCallStatEventRequest = {
       callCid,
@@ -371,20 +561,8 @@ export class StreamVideoClient {
    * @returns
    */
   setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
-    const participants = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.activeCallAllParticipantsSubject,
-    );
-
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.activeCallAllParticipantsSubject,
-      participants.map((p) => {
-        return p.sessionId === sessionId
-          ? {
-              ...p,
-              isPinned,
-            }
-          : p;
-      }),
-    );
+    this.writeableStateStore.updateParticipant(sessionId, {
+      isPinned,
+    });
   };
 }

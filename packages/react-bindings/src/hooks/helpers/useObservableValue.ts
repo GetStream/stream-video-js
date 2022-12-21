@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Observable, take } from 'rxjs';
 
 export const useObservableValue = <T>(observable$: Observable<T>) => {

@@ -11,8 +11,7 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
     videoDevices,
     audioOutputDevices,
     isAudioOutputChangeSupported,
-    getAudioStream,
-    getVideoStream,
+    switchDevice,
   } = useMediaDevices();
 
   const [referenceElement, setReferenceElement] =
@@ -24,21 +23,6 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
   const [isPopperOpen, setIsPopperOpen] = useState(false);
 
   const localParticipant = useLocalParticipant();
-
-  const switchDevice = async (
-    kind: 'videoinput' | 'audioinput',
-    deviceId: string,
-  ) => {
-    if (kind === 'audioinput') {
-      const audioStream = await getAudioStream(deviceId);
-      await activeCall.publishAudioStream(audioStream);
-    } else if (kind === 'videoinput') {
-      const videoStream = await getVideoStream(deviceId);
-      await activeCall.publishVideoStream(videoStream);
-    } else {
-      console.warn(`Unsupported device kind: ${kind}`);
-    }
-  };
 
   const setAudioOutputDevice = (deviceId: string) => {
     activeCall?.setAudioOutputDevice(deviceId);
@@ -93,7 +77,7 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
   );
 };
 
-const DeviceSelector = (props: {
+export const DeviceSelector = (props: {
   devices: MediaDeviceInfo[];
   selectedDeviceId?: string;
   label: string;
