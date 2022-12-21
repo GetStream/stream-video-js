@@ -10,6 +10,7 @@ import {
   SfuModels,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
+import { VideoPlaceholder } from './VideoPlaceholder';
 
 export const Video = (
   props: DetailedHTMLProps<
@@ -84,6 +85,14 @@ export const Video = (
       resizeObserver.disconnect();
     };
   }, [updateSubscription]);
+
+  if (!isPublishingTrack)
+    return (
+      <VideoPlaceholder
+        imageSrc={participant.user?.imageUrl}
+        userId={participant.userId}
+      />
+    );
 
   return (
     <video
