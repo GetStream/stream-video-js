@@ -13,9 +13,8 @@ export class StageComponent implements OnInit {
   localParticipant$: Observable<StreamVideoParticipant | undefined>;
 
   constructor(private streamVideoService: StreamVideoService) {
-    this.participants$ = this.streamVideoService.activeCallRemoteParticipants$;
-    this.localParticipant$ =
-      this.streamVideoService.activeCallLocalParticipant$;
+    this.participants$ = this.streamVideoService.remoteParticipants$;
+    this.localParticipant$ = this.streamVideoService.localParticipant$;
   }
 
   ngOnInit(): void {}

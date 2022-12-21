@@ -58,7 +58,7 @@ export class ParticipantComponent
       this.registerResizeObserver();
     }
     this.subscriptions.push(
-      this.streamVideoService.activeCallLocalParticipant$
+      this.streamVideoService.localParticipant$
         .pipe(pairwise())
         .subscribe(([prevParticipant, participant]) => {
           if (

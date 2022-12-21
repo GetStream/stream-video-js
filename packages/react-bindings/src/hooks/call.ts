@@ -10,6 +10,15 @@ export const useIsCallRecordingInProgress = () => {
 };
 
 /**
+ * Utility hook which provides a boolean indicating whether there is
+ * a participant in the current call which shares their screen.
+ */
+export const useHasOngoingScreenShare = () => {
+  const { hasOngoingScreenShare$ } = useStore();
+  return useObservableValue(hasOngoingScreenShare$);
+};
+
+/**
  * Utility hook which provides the latest stats report of the current call.
  */
 export const useCurrentCallStatsReport = () => {
@@ -26,7 +35,7 @@ export const useDominantSpeaker = () => {
 };
 
 /**
- * Utility hook which provides the currently active call.
+ * Utility hook which provides controller for the currently active call and active call's metadata.
  */
 export const useActiveCall = () => {
   const { activeCall$ } = useStore();
@@ -34,50 +43,32 @@ export const useActiveCall = () => {
 };
 
 /**
- * Utility hook which provides the currently active ring-call meta.
+ * Utility hook which provides a list of all notifications about created calls.
+ * In the ring call settings, these calls can be outgoing (I have called somebody)
+ * or incoming (somebody has called me).
  */
-export const useActiveRingCall = () => {
-  const { activeRingCallMeta$ } = useStore();
-  return useObservableValue(activeRingCallMeta$);
+export const usePendingCalls = () => {
+  const { pendingCalls$ } = useStore();
+  return useObservableValue(pendingCalls$);
 };
 
 /**
- * Utility hook which provides the currently active call meta.
+ * Utility hook which provides a list of all incoming ring calls (somebody calls me).
  */
-export const useActiveCallMeta = () => {
-  const { activeCallMeta$ } = useStore();
-  return useObservableValue(activeCallMeta$);
+export const useIncomingCalls = () => {
+  const { incomingCalls$ } = useStore();
+  return useObservableValue(incomingCalls$);
 };
 
 /**
- * Utility hook which provides the currently terminated ring call meta.
+ * Utility hook which provides a list of all outgoing ring calls (I call somebody).
  */
-export const useTerminatedRingCall = () => {
-  const { terminatedRingCallMeta$ } = useStore();
-  return useObservableValue(terminatedRingCallMeta$);
+export const useOutgoingCalls = () => {
+  const { outgoingCalls$ } = useStore();
+  return useObservableValue(outgoingCalls$);
 };
 
-/**
- * Utility hook which provides the currently active ring-call details.
- */
-export const useActiveRingCallDetails = () => {
-  const { activeRingCallDetails$ } = useStore();
-  return useObservableValue(activeRingCallDetails$);
-};
-
-/**
- * Utility hook which provides a list of all incoming ring calls.
- */
-export const useIncomingRingCalls = () => {
-  const { incomingRingCalls$ } = useStore();
-  return useObservableValue(incomingRingCalls$);
-};
-
-/**
- * Utility hook which provides a boolean indicating whether there is
- * a participant in the current call which shares their screen.
- */
-export const useHasOngoingScreenShare = () => {
-  const { hasOngoingScreenShare$ } = useStore();
-  return useObservableValue(hasOngoingScreenShare$);
+export const useAcceptedCall = () => {
+  const { acceptedCall$ } = useStore();
+  return useObservableValue(acceptedCall$);
 };

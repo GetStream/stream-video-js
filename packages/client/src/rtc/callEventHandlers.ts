@@ -1,6 +1,6 @@
 import { Call } from './Call';
 import { Dispatcher } from './Dispatcher';
-import { StreamVideoWriteableStateStore } from '../stateStore';
+import { StreamVideoWriteableStateStore } from '../store';
 import {
   watchParticipantJoined,
   watchParticipantLeft,

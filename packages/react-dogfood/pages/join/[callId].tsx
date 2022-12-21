@@ -4,13 +4,14 @@ import { unstable_getServerSession } from 'next-auth';
 import { GetServerSidePropsContext } from 'next';
 import { createToken } from '../../helpers/jwt';
 import {
-  useCreateStreamVideoClient,
   StreamVideo,
-  StreamCall,
+  useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { UserInput } from '@stream-io/video-client';
 import { useMemo } from 'react';
 import Head from 'next/head';
+import { StreamMeeting } from '@stream-io/video-react-sdk';
+import { MeetingUI } from '../../components/MeetingUI';
 
 type JoinCallProps = {
   user: UserInput;
@@ -54,12 +55,14 @@ const JoinCall = (props: JoinCallProps) => {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <StreamVideo client={client}>
-        <StreamCall
+        <StreamMeeting
           currentUser={loggedInUser.name}
           callId={callId}
           callType={callType}
           autoJoin={autoJoin}
-        />
+        >
+          <MeetingUI />
+        </StreamMeeting>
       </StreamVideo>
     </div>
   );

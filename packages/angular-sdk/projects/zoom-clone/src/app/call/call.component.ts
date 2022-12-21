@@ -18,7 +18,7 @@ import { combineLatest, Observable, Subscription } from 'rxjs';
   styleUrls: ['./call.component.scss'],
 })
 export class CallComponent implements OnInit, OnDestroy {
-  call!: Call;
+  call: Call | undefined;
   remoteParticipants$: Observable<StreamVideoParticipant[]>;
   localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
   TrackType = SfuModels.TrackType;
@@ -33,36 +33,32 @@ export class CallComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe((c) => {
         if (c) {
+          this.call = c;
           this.inCallDeviceManager.start();
         } else {
           this.inCallDeviceManager.stop();
+          this.call = undefined;
         }
       }),
     );
-    this.remoteParticipants$ =
-      this.streamVideoService.activeCallRemoteParticipants$;
-    this.localParticipant$ =
-      this.streamVideoService.activeCallLocalParticipant$;
+    this.remoteParticipants$ = this.streamVideoService.remoteParticipants$;
+    this.localParticipant$ = this.streamVideoService.localParticipant$;
     this.subscriptions.push(
       combineLatest([
         this.streamVideoService.user$,
-        this.streamVideoService.activeCallMeta$,
-      ]).subscribe(([user, activeCallMeta]) => {
-        if (
+        this.streamVideoService.acceptedCall$,
+      ]).subscribe(([user, acceptedCall]) => {
+        this.isLocalParticipantCallOwner = !!(
           user &&
-          activeCallMeta &&
-          user?.id === activeCallMeta.createdByUserId
-        ) {
-          this.isLocalParticipantCallOwner = true;
-        } else {
-          this.isLocalParticipantCallOwner = false;
-        }
+          acceptedCall &&
+          user?.id === acceptedCall.senderUserId
+        );
       }),
     );
   }
 
   endCall() {
-    this.call.leave();
+    this.call?.leave();
     this.router.navigateByUrl('/call-lobby');
   }
 

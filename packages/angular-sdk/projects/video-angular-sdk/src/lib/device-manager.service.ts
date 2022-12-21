@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import {
   checkIfAudioOutputChangeSupported,
+  createSoundDetector,
   getAudioDevices,
   getAudioOutputDevices,
   getAudioStream,
@@ -112,8 +113,7 @@ export class DeviceManagerService {
   private audioOutputDeviceSubject = new BehaviorSubject<string | undefined>(
     undefined,
   );
-  private intervalId: any;
-  private analyser?: AnalyserNode;
+  private disposeSoundDetector?: () => Promise<void>;
   private audioDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
   private videoDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
   private audioOutputDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
@@ -253,24 +253,15 @@ export class DeviceManagerService {
   startAudio(deviceId?: string) {
     this.audioStateSubject.next('loading');
     getAudioStream(deviceId)
-      .then((s) => {
+      .then((audioStream) => {
         this.stopAudio();
-        this.audioStreamSubject.next(s);
-        const audioContext = new AudioContext();
-        const audioStream = audioContext.createMediaStreamSource(
-          this.audioStream!,
+        this.audioStreamSubject.next(audioStream);
+        this.disposeSoundDetector = createSoundDetector(
+          audioStream,
+          (isSpeechDetected) => {
+            this.isSpeakingSubject.next(isSpeechDetected);
+          },
         );
-        this.analyser = audioContext.createAnalyser();
-        audioStream.connect(this.analyser);
-        this.analyser.fftSize = 32;
-
-        const frequencyArray = new Uint8Array(this.analyser.frequencyBinCount);
-        this.intervalId = setInterval(() => {
-          this.analyser?.getByteFrequencyData(frequencyArray);
-          this.isSpeakingSubject.next(
-            frequencyArray.find((v) => v >= 150) ? true : false,
-          );
-        }, 100);
         this.audioStateSubject.next('on');
       })
       .catch((err) => {
@@ -292,10 +283,7 @@ export class DeviceManagerService {
       return;
     }
     this.audioStream.getTracks().forEach((t) => t.stop());
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-    }
-    this.analyser?.disconnect();
+    this.disposeSoundDetector?.();
     this.audioStreamSubject.next(undefined);
     this.audioStateSubject.next('off');
   }

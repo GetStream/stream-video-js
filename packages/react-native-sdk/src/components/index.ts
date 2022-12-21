@@ -7,3 +7,5 @@ export * from './LocalVideoView';
 export * from './ParticipantView';
 export * from './CallParticipantsView';
 export * from './CallControlsView';
+export * from './StreamMeeting';
+export * from './StreamCall';

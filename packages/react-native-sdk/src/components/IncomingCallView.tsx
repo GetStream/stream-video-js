@@ -1,16 +1,12 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View, ImageBackground } from 'react-native';
-import { CallControlsButton } from './CallControlsView/CallControlsButton';
-import {
-  useActiveCall,
-  useActiveRingCallDetails,
-  useIncomingRingCalls,
-} from '@stream-io/video-react-bindings';
+import { CallControlsButton } from './CallControlsButton';
+import { useIncomingCalls } from '@stream-io/video-react-bindings';
 import { UserInfoView } from './UserInfoView';
 import {
   useStreamVideoStoreSetState,
   useStreamVideoStoreValue,
-} from '../contexts/StreamVideoContext';
+} from '../contexts';
 import { useRingCall } from '../hooks';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 
@@ -28,51 +24,26 @@ interface IncomingCallViewProps {
   onRejectCall: () => void;
 }
 
-const Background = ({ children }: React.PropsWithChildren<{}>) => {
-  const activeRingCallDetails = useActiveRingCallDetails();
-  const memberUserIds = activeRingCallDetails?.memberUserIds || [];
-
-  if (memberUserIds.length)
-    return (
-      <ImageBackground
-        blurRadius={10}
-        source={{
-          //FIXME: This is a temporary solution to get a random image for the background. Replace with image from coordinator
-          uri: `https://getstream.io/random_png/?id=${memberUserIds[0]}&name=${memberUserIds[0]}`,
-        }}
-        style={StyleSheet.absoluteFill}
-      >
-        {children}
-      </ImageBackground>
-    );
-  return (
-    <View style={[StyleSheet.absoluteFill, styles.background]}>{children}</View>
-  );
-};
-
 export const IncomingCallView = (props: IncomingCallViewProps) => {
   const { onAnswerCall, onRejectCall } = props;
-  const activeCall = useActiveCall();
-  const incomingRingCalls = useIncomingRingCalls();
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const setState = useStreamVideoStoreSetState();
   const { answerCall, rejectCall } = useRingCall();
-
-  useEffect(() => {
-    if (activeCall) {
-      onAnswerCall();
-    } else {
-      if (!incomingRingCalls.length) {
-        onRejectCall();
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCall, incomingRingCalls]);
 
   const videoToggle = async () => {
     setState((prevState) => ({
       isVideoMuted: !prevState.isVideoMuted,
     }));
+  };
+
+  const answerCallHandler = async () => {
+    await answerCall();
+    onAnswerCall();
+  };
+
+  const rejectCallHandler = async () => {
+    await rejectCall();
+    onRejectCall();
   };
 
   return (
@@ -81,7 +52,7 @@ export const IncomingCallView = (props: IncomingCallViewProps) => {
       <Text style={styles.incomingCallText}>Incoming Call...</Text>
       <View style={styles.buttons}>
         <CallControlsButton
-          onPress={rejectCall}
+          onPress={rejectCallHandler}
           colorKey={'cancel'}
           style={styles.buttonStyle}
           svgContainerStyle={styles.svgStyle}
@@ -101,7 +72,7 @@ export const IncomingCallView = (props: IncomingCallViewProps) => {
           )}
         </CallControlsButton>
         <CallControlsButton
-          onPress={answerCall}
+          onPress={answerCallHandler}
           colorKey={'callToAction'}
           style={styles.buttonStyle}
           svgContainerStyle={styles.svgStyle}
@@ -110,6 +81,33 @@ export const IncomingCallView = (props: IncomingCallViewProps) => {
         </CallControlsButton>
       </View>
     </Background>
+  );
+};
+
+const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const incomingCalls = useIncomingCalls();
+  const memberUserIds =
+    (incomingCalls.length &&
+      incomingCalls[incomingCalls.length - 1].callDetails?.memberUserIds) ||
+    [];
+
+  if (memberUserIds.length)
+    return (
+      <ImageBackground
+        blurRadius={10}
+        source={{
+          //FIXME: This is a temporary solution to get a random image for the background. Replace with image from coordinator
+          uri: `https://getstream.io/random_png/?id=${memberUserIds[0]}&name=${memberUserIds[0]}`,
+        }}
+        style={StyleSheet.absoluteFill}
+      >
+        {children}
+      </ImageBackground>
+    );
+  return (
+    <View style={[StyleSheet.absoluteFill, styles.background]}>{children}</View>
   );
 };
 
