@@ -29,10 +29,10 @@
     "@vitest/coverage-c8": "^0.25.3",
     "replace-in-file": "^6.3.5",
     "rimraf": "^3.0.2",
-    "typedoc": "^0.23.21",
+    "typedoc": "^0.23.23",
     "typedoc-plugin-markdown": "^3.13.6",
-    "typescript": "^4.9.3",
-    "vite": "^3.2.4",
+    "typescript": "^4.9.4",
+    "vite": "^3.2.5",
     "vitest": "^0.25.4",
     "vitest-mock-extended": "^1.0.7"
   }
