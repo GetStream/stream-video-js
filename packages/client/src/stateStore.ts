@@ -336,23 +336,26 @@ export class StreamVideoReadOnlyStateStore {
   getCurrentValue: <T>(observable: Observable<T>) => T;
 
   constructor(store: StreamVideoWriteableStateStore) {
+    // convert and expose subjects as observables
     this.connectedUser$ = store.connectedUserSubject.asObservable();
     this.pendingCalls$ = store.pendingCallsSubject.asObservable();
-    this.incomingCalls$ = store.incomingCalls$;
-    this.outgoingCalls$ = store.outgoingCalls$;
     this.acceptedCall$ = store.acceptedCallSubject.asObservable();
     this.activeCall$ = store.activeCallSubject.asObservable();
     this.participants$ = store.participantsSubject.asObservable();
+    this.callStatsReport$ = store.callStatsReportSubject.asObservable();
+    this.callRecordingInProgress$ =
+      store.callRecordingInProgressSubject.asObservable();
+
+    // re-expose observables
     this.localParticipant$ = store.localParticipant$;
     this.remoteParticipants$ = store.remoteParticipants$;
     this.pinnedParticipants$ = store.pinnedParticipants$;
     this.dominantSpeaker$ = store.dominantSpeaker$;
-    this.callStatsReport$ = store.callStatsReportSubject.asObservable();
-    this.callRecordingInProgress$ =
-      store.callRecordingInProgressSubject.asObservable();
     this.hasOngoingScreenShare$ = store.hasOngoingScreenShare$;
+    this.incomingCalls$ = store.incomingCalls$;
+    this.outgoingCalls$ = store.outgoingCalls$;
 
-    // re-expose
+    // re-expose methods
     this.getCurrentValue = store.getCurrentValue;
   }
 }
