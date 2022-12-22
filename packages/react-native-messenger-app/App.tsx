@@ -1,87 +1,89 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * Generated with the TypeScript template
- * https://github.com/react-native-community/react-native-template-typescript
- *
- * @format
- */
-
-import React, {useMemo} from 'react';
+import React from 'react';
 import {UserList} from './src/components/UserList';
-import {AppProvider, useAppContext} from './src/context/AppContext';
+import {StreamChatProvider} from './src/context/StreamChatContext';
 import {useClient} from './src/hooks/useClient';
-import {
-  ChannelList,
-  Chat,
-  OverlayProvider,
-  Streami18n,
-} from 'stream-chat-react-native';
-import {StreamChatGenerics} from './src/types';
+import {Chat, OverlayProvider, Streami18n} from 'stream-chat-react-native';
+import {StreamChatGenerics, NavigationStackParamsList} from './src/types';
 import {
   SafeAreaProvider,
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import {useStreamChatTheme} from './useStreamChatTheme';
-import {ChannelSort} from 'stream-chat';
-import {View} from 'react-native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {ChannelListScreen} from './src/screens/ChannelListScreen';
+import {NavigationContainer} from '@react-navigation/native';
+import {ChannelScreen} from './src/screens/ChannelScreen';
+import {ThreadScreen} from './src/screens/ThreadScreen';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {ActivityIndicator, StyleSheet} from 'react-native';
+import {NavigationHeader} from './src/components/NavigationHeader';
+import {
+  AppGlobalContextProvider,
+  useAppGlobalStoreValue,
+} from './src/context/AppContext';
 
 const streami18n = new Streami18n({
   language: 'en',
 });
 
-const sort: ChannelSort<StreamChatGenerics> = {last_message_at: -1};
-const options = {
-  presence: true,
-  state: true,
-  watch: true,
-  limit: 30,
-};
+const Stack = createNativeStackNavigator<NavigationStackParamsList>();
 
-const RenderView = () => {
-  const {userId, userToken, setChannel} = useAppContext();
+const Messenger = () => {
+  const userId = useAppGlobalStoreValue(store => store.userId);
+  const userToken = useAppGlobalStoreValue(store => store.userToken);
   const {bottom} = useSafeAreaInsets();
   const theme = useStreamChatTheme();
 
-  const filters = {
-    type: 'messaging',
-    members: {$in: [userId]},
-  };
-
   const client = useClient({
     apiKey: '5mxvmc2t4qys',
-    userData: {id: userId!!},
+    userData: {id: userId},
     tokenOrProvider: userToken,
   });
 
   if (!client) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
+      </SafeAreaView>
+    );
+  }
+  return (
+    <StreamChatProvider>
+      <GestureHandlerRootView style={styles.container}>
+        <OverlayProvider<StreamChatGenerics>
+          bottomInset={bottom}
+          i18nInstance={streami18n}
+          value={{style: theme}}>
+          <Chat client={client} i18nInstance={streami18n}>
+            <Stack.Navigator>
+              <Stack.Screen
+                name="ChannelListScreen"
+                component={ChannelListScreen}
+                options={{header: NavigationHeader}}
+              />
+              <Stack.Screen name="ChannelScreen" component={ChannelScreen} />
+              <Stack.Screen name="ThreadScreen" component={ThreadScreen} />
+            </Stack.Navigator>
+          </Chat>
+        </OverlayProvider>
+      </GestureHandlerRootView>
+    </StreamChatProvider>
+  );
+};
+
+const RenderView = () => {
+  const userId = useAppGlobalStoreValue(store => store.userId);
+  const userToken = useAppGlobalStoreValue(store => store.userToken);
+
+  if (!(userId && userToken)) {
     return (
       <SafeAreaView>
         <UserList />
       </SafeAreaView>
     );
   } else {
-    return (
-      <OverlayProvider<StreamChatGenerics>
-        bottomInset={bottom}
-        i18nInstance={streami18n}
-        value={{style: theme}}>
-        <Chat client={client} i18nInstance={streami18n}>
-          <SafeAreaView style={{height: '100%'}}>
-            <ChannelList<StreamChatGenerics>
-              filters={filters}
-              onSelect={channel => {
-                setChannel(channel);
-              }}
-              options={options}
-              sort={sort}
-            />
-          </SafeAreaView>
-        </Chat>
-      </OverlayProvider>
-    );
+    return <Messenger />;
   }
 };
 
@@ -89,13 +91,21 @@ const App = () => {
   const theme = useStreamChatTheme();
 
   return (
-    <AppProvider>
-      <SafeAreaProvider
-        style={{backgroundColor: theme.colors?.white_snow || '#FCFCFC'}}>
-        <RenderView />
-      </SafeAreaProvider>
-    </AppProvider>
+    <NavigationContainer>
+      <AppGlobalContextProvider>
+        <SafeAreaProvider
+          style={{backgroundColor: theme.colors?.white_snow || '#FCFCFC'}}>
+          <RenderView />
+        </SafeAreaProvider>
+      </AppGlobalContextProvider>
+    </NavigationContainer>
   );
 };
 
 export default App;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

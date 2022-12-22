@@ -15,3 +15,9 @@ export type StreamChatGenerics = {
   reactionType: LocalReactionType;
   userType: LocalUserType;
 };
+
+export type NavigationStackParamsList = {
+  ChannelListScreen: undefined;
+  ChannelScreen: undefined;
+  ThreadScreen: undefined;
+};
