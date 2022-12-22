@@ -2,6 +2,7 @@ import React from 'react';
 import {IncomingCallView} from '@stream-io/video-react-native-sdk';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {NavigationStackParamsList} from '../types';
+import {useStreamChatContext} from '../context/StreamChatContext';
 
 type Props = NativeStackScreenProps<
   NavigationStackParamsList,
@@ -9,12 +10,17 @@ type Props = NativeStackScreenProps<
 >;
 
 const IncomingCallScreen = ({navigation}: Props) => {
+  const {channel} = useStreamChatContext();
   const onAnswerCall = () => {
     navigation.navigate('ActiveCallScreen');
   };
 
   const onRejectCall = () => {
-    navigation.navigate('ChannelScreen');
+    if (!channel) {
+      navigation.navigate('ChannelListScreen');
+    } else {
+      navigation.navigate('ChannelScreen');
+    }
   };
 
   return (

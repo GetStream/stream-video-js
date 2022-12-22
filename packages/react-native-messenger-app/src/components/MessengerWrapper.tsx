@@ -4,10 +4,9 @@ import {
   Streami18n,
   useChatContext,
 } from 'stream-chat-react-native';
-import type {StreamChatGenerics, VideoProps} from '../types';
-import React, {PropsWithChildren, ReactNode, useMemo} from 'react';
+import React, {PropsWithChildren, useMemo} from 'react';
 import {useVideoClient} from '../hooks/useVideoClient';
-import {StreamVideo} from '@stream-io/video-react-native-sdk';
+import {StreamCall, StreamVideo} from '@stream-io/video-react-native-sdk';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useAppGlobalStoreValue} from '../context/AppContext';
 import {userFromToken} from '../utils/userFromToken';
@@ -15,8 +14,19 @@ import {useChatClient} from '../hooks/useChatClient';
 import {StreamChatProvider} from '../context/StreamChatContext';
 import {useStreamChatTheme} from '../../useStreamChatTheme';
 import {AuthProgressLoader} from './AuthProgressLoader';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import type {
+  NavigationStackParamsList,
+  StreamChatGenerics,
+  VideoProps,
+} from '../types';
 
-export const Video = ({children}: {children: ReactNode}) => {
+export const Video = ({
+  children,
+  navigation,
+}: PropsWithChildren<{
+  navigation: NativeStackNavigationProp<NavigationStackParamsList>;
+}>) => {
   const {client} = useChatContext<StreamChatGenerics>();
 
   const user = useMemo<VideoProps['user']>(
@@ -37,14 +47,28 @@ export const Video = ({children}: {children: ReactNode}) => {
   if (!videoClient) {
     return <AuthProgressLoader />;
   }
-  return <StreamVideo client={videoClient}>{children}</StreamVideo>;
+  return (
+    <StreamVideo client={videoClient}>
+      <StreamCall
+        onAcceptCall={() => navigation.navigate('ActiveCallScreen')}
+        onOutgoingCall={() => navigation.navigate('OutgoingCallScreen')}
+        onIncomingCall={() => navigation.navigate('IncomingCallScreen')}>
+        {children}
+      </StreamCall>
+    </StreamVideo>
+  );
 };
 
 const streami18n = new Streami18n({
   language: 'en',
 });
 
-export const MessengerWrapper = ({children}: PropsWithChildren<{}>) => {
+export const MessengerWrapper = ({
+  children,
+  navigation,
+}: PropsWithChildren<{
+  navigation: NativeStackNavigationProp<NavigationStackParamsList>;
+}>) => {
   const userToken = useAppGlobalStoreValue(store => store.userToken);
   const user = useMemo(() => userFromToken(userToken), [userToken]);
   const chatClient = useChatClient({
@@ -66,7 +90,11 @@ export const MessengerWrapper = ({children}: PropsWithChildren<{}>) => {
       value={{style: theme}}>
       <Chat client={chatClient} i18nInstance={streami18n}>
         <StreamChatProvider>
-          {chatClient ? <Video>{children}</Video> : <>{children}</>}
+          {chatClient ? (
+            <Video navigation={navigation}>{children}</Video>
+          ) : (
+            <>{children}</>
+          )}
         </StreamChatProvider>
       </Chat>
     </OverlayProvider>
