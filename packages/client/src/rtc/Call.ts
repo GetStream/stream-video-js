@@ -150,22 +150,22 @@ export class Call {
           const { callState } = event.eventPayload.joinResponse;
           const currentParticipants = callState?.participants || [];
 
+          // get user data from the call envelope (invited participants)
           const { users } = this.data;
+
+          // request user data for uninvited users
+          currentParticipants.forEach((participant) => {
+            const userData = users[participant.userId];
+            if (!userData) this.userBatcher.addToBatch(participant.userId);
+          });
 
           this.stateStore.setCurrentValue(
             this.stateStore.participantsSubject,
-            currentParticipants.map<StreamVideoParticipant>((participant) => {
-              const userData = users[participant.userId];
-
-              // FIXME: not sure if I like this side effect in a mapping function
-              if (!userData) this.userBatcher.addToBatch(participant.userId);
-
-              return {
-                ...participant,
-                isLoggedInUser: participant.sessionId === this.client.sessionId,
-                user: userData,
-              };
-            }),
+            currentParticipants.map<StreamVideoParticipant>((participant) => ({
+              ...participant,
+              isLoggedInUser: participant.sessionId === this.client.sessionId,
+              user: users[participant.userId],
+            })),
           );
 
           this.client.keepAlive();
