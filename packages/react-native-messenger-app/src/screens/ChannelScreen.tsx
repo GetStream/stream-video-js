@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {useAppContext} from '../context/StreamChatContext';
+import {useStreamChatContext} from '../context/StreamChatContext';
 import {useHeaderHeight} from '@react-navigation/elements';
 import {
   Channel,
@@ -19,7 +19,7 @@ type ChannelScreenProps = NativeStackScreenProps<
 >;
 
 export const ChannelScreen = (props: ChannelScreenProps) => {
-  const {channel, setThread, thread} = useAppContext();
+  const {channel, setThread, thread} = useStreamChatContext();
   const headerHeight = useHeaderHeight();
   const {setTopInset} = useAttachmentPickerContext();
   const {overlay} = useOverlayContext();
