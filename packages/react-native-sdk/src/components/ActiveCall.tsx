@@ -1,9 +1,6 @@
 import React, { useEffect } from 'react';
-import {
-  useActiveCall,
-  useParticipants,
-} from '@stream-io/video-react-bindings';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useActiveCall } from '@stream-io/video-react-bindings';
+import { StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
@@ -12,7 +9,7 @@ import {
   useStreamVideoStoreSetState,
   useStreamVideoStoreValue,
 } from '../contexts';
-import { Participants } from '../icons';
+import { CallParticipantsBadge } from './CallParticipantsBadge';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -23,14 +20,13 @@ export interface ActiveCallProps {
    */
   onHangupCall: () => void;
   /**
-   * Handler called when participant icon is called
+   * Handler called when the participants info button is pressed in the active call screen.
    */
   onOpenCallParticipantsInfoView: () => void;
 }
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useActiveCall();
-  const participants = useParticipants();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
   const { onHangupCall, onOpenCallParticipantsInfoView } = props;
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
@@ -62,17 +58,9 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
   return (
     <View style={StyleSheet.absoluteFill}>
-      <Pressable
-        style={styles.participantIcon}
-        onPress={onOpenCallParticipantsInfoView}
-      >
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{participants.length}</Text>
-        </View>
-        <View style={styles.icon}>
-          <Participants color="#fff" />
-        </View>
-      </Pressable>
+      <CallParticipantsBadge
+        onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
+      />
       <View style={styles.callParticipantsWrapper}>
         <CallParticipantsView />
       </View>
@@ -83,26 +71,4 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const styles = StyleSheet.create({
   callParticipantsWrapper: { flex: 1, marginBottom: -20 },
-  participantIcon: {
-    position: 'absolute',
-    right: 20,
-    top: 40,
-    zIndex: 2,
-  },
-  icon: { height: 24, width: 27 },
-  badge: {
-    backgroundColor: '#72767E',
-    borderRadius: 30,
-    padding: 4,
-    position: 'relative',
-    left: 10,
-    top: 5,
-    zIndex: 4,
-  },
-  badgeText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
 });

@@ -13,21 +13,20 @@ type CallParticipantInfoViewType = {
   >;
 };
 
-const CallParticipantInfoView = (props: CallParticipantInfoViewType) => {
+const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   const { participant, setSelectedParticipant } = props;
-  const isAudioMuted = !participant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
-  const isVideoMuted = !participant?.publishedTracks.includes(
-    SfuModels.TrackType.VIDEO,
-  );
-  const isScreenSharing = participant?.publishedTracks.includes(
-    SfuModels.TrackType.SCREEN_SHARE,
-  );
 
   const optionsOpenHandler = useCallback(() => {
     setSelectedParticipant(participant);
   }, [participant, setSelectedParticipant]);
+
+  if (!participant) return null;
+  const { publishedTracks } = participant;
+  const isAudioMuted = publishedTracks.includes(SfuModels.TrackType.AUDIO);
+  const isVideoMuted = publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  const isScreenSharing = publishedTracks.includes(
+    SfuModels.TrackType.SCREEN_SHARE,
+  );
 
   return (
     <View style={styles.participant}>
@@ -76,7 +75,7 @@ export const CallParticipantsInfoView = () => {
     <>
       {participants.map((participant) => {
         return (
-          <CallParticipantInfoView
+          <CallParticipantInfoItem
             key={participant.userId}
             participant={participant}
             setSelectedParticipant={setSelectedParticipant}
