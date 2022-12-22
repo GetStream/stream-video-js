@@ -4,7 +4,6 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useHeaderHeight} from '@react-navigation/elements';
 import {Channel, Thread, useOverlayContext} from 'stream-chat-react-native';
 import {Platform, StyleSheet, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {useStreamChatContext} from '../context/StreamChatContext';
 
 type ThreadScreenProps = NativeStackScreenProps<
@@ -25,19 +24,15 @@ export const ThreadScreen = (props: ThreadScreenProps) => {
   }, [overlay, navigation]);
 
   return (
-    <SafeAreaView>
-      <Channel
-        channel={channel!!}
-        keyboardVerticalOffset={headerHeight}
-        thread={thread}
-        threadList>
-        <View style={styles.container}>
-          <Thread<StreamChatGenerics>
-            onThreadDismount={() => setThread(null)}
-          />
-        </View>
-      </Channel>
-    </SafeAreaView>
+    <Channel
+      channel={channel!!}
+      keyboardVerticalOffset={headerHeight}
+      thread={thread}
+      threadList>
+      <View style={styles.container}>
+        <Thread<StreamChatGenerics> onThreadDismount={() => setThread(null)} />
+      </View>
+    </Channel>
   );
 };
 

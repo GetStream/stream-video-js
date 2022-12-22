@@ -1,20 +1,26 @@
 import {useEffect, useState} from 'react';
-import {StreamChat} from 'stream-chat';
+import {StreamChat, OwnUserResponse, UserResponse} from 'stream-chat';
 import {StreamChatGenerics} from '../types';
 
-export const useClient = <SCG extends StreamChatGenerics = StreamChatGenerics>({
+export const useChatClient = <
+  SCG extends StreamChatGenerics = StreamChatGenerics,
+>({
   apiKey,
   userData,
   tokenOrProvider,
 }: {
   apiKey: string;
-  userData: {id: string};
+  userData?: OwnUserResponse<SCG> | UserResponse<SCG>;
   tokenOrProvider?: string;
 }) => {
   const [chatClient, setChatClient] = useState<StreamChat<SCG> | null>(null);
 
   useEffect(() => {
     const client = new StreamChat<SCG>(apiKey);
+
+    if (!userData) {
+      return;
+    }
 
     let didUserConnectInterrupt = false;
     let connectionPromise = client
@@ -31,11 +37,10 @@ export const useClient = <SCG extends StreamChatGenerics = StreamChatGenerics>({
       connectionPromise
         .then(() => client.disconnectUser())
         .then(() => {
-          console.log('connection closed');
+          console.log('Connection closed');
         });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiKey, userData.id, tokenOrProvider]);
+  }, [apiKey, userData, tokenOrProvider]);
 
   return chatClient;
 };

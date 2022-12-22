@@ -11,7 +11,6 @@ import {
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {NavigationStackParamsList, StreamChatGenerics} from '../types';
 import {Platform, StyleSheet, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 
 type ChannelScreenProps = NativeStackScreenProps<
   NavigationStackParamsList,
@@ -40,24 +39,22 @@ export const ChannelScreen = (props: ChannelScreenProps) => {
   }
 
   return (
-    <SafeAreaView>
-      <Channel
-        channel={channel}
-        keyboardVerticalOffset={headerHeight}
-        thread={thread}>
-        <View style={styles.container}>
-          <MessageList<StreamChatGenerics>
-            onThreadSelect={threadMessage => {
-              setThread(threadMessage);
-              if (channel?.id) {
-                navigation.navigate('ThreadScreen');
-              }
-            }}
-          />
-          <MessageInput />
-        </View>
-      </Channel>
-    </SafeAreaView>
+    <Channel
+      channel={channel}
+      keyboardVerticalOffset={headerHeight}
+      thread={thread}>
+      <View style={styles.container}>
+        <MessageList<StreamChatGenerics>
+          onThreadSelect={threadMessage => {
+            setThread(threadMessage);
+            if (channel?.id) {
+              navigation.navigate('ThreadScreen');
+            }
+          }}
+        />
+        <MessageInput />
+      </View>
+    </Channel>
   );
 };
 
