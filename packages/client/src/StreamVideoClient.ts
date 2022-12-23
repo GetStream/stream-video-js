@@ -19,18 +19,14 @@ import type {
   ICEServer,
   Latency,
 } from './gen/video/coordinator/edge_v1/edge';
-import type { UserInput } from './gen/video/coordinator/user_v1/user';
+import type { User, UserInput } from './gen/video/coordinator/user_v1/user';
 import {
   createCoordinatorClient,
   measureResourceLoadLatencyTo,
   StreamVideoClientOptions,
   withHeaders,
 } from './rpc';
-import {
-  createSocketConnection,
-  StreamEventListener,
-  StreamWSClient,
-} from './ws';
+import { createSocketConnection, StreamEventListener } from './ws';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
 
@@ -42,6 +38,8 @@ import {
 } from './gen/video/coordinator/event_v1/event';
 import { reportStats } from './stats/coordinator-stats-reporter';
 import { Timestamp } from './gen/google/protobuf/timestamp';
+import { StreamWebSocketClient } from './ws/StreamWebSocketClient';
+import { Batcher } from './Batcher';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   coordinatorRpcUrl:
@@ -64,7 +62,8 @@ export class StreamVideoClient {
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
-  private ws: StreamWSClient | undefined;
+  private ws: StreamWebSocketClient | undefined;
+  public readonly userBatcher: Batcher<string>;
   /**
    * You should create only one instance of `StreamVideoClient`.
    * @angular If you're using our Angular SDK, you shouldn't be calling the `constructor` directly, instead you should be using [`StreamVideoClient` service](./StreamVideoClient.md).
@@ -94,12 +93,43 @@ export class StreamVideoClient {
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
       this.writeableStateStore,
     );
+
+    this.userBatcher = new Batcher<string>(3000, this.handleUserBatch);
+
     reportStats(
       this.readOnlyStateStore,
       (e) => this.reportCallStats(e),
       (e) => this.reportCallStatEvent(e),
     );
   }
+
+  private handleUserBatch = (idList: string[]) => {
+    this.client
+      .queryUsers({
+        mqJson: new TextEncoder().encode(
+          JSON.stringify({ id: { $in: idList } }),
+        ),
+        sorts: [],
+      })
+      .then(({ response: { users } }) => {
+        const mappedUsers = users.reduce<Record<string, User>>(
+          (userMap, user) => {
+            userMap[user.id] ??= user;
+            return userMap;
+          },
+          {},
+        );
+
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.participantsSubject,
+          (participants) =>
+            participants.map((participant) => {
+              const user = mappedUsers[participant.userId];
+              return user ? { ...participant, user } : participant;
+            }),
+        );
+      });
+  };
 
   /**
    * Connects the given user to the client.
@@ -426,6 +456,7 @@ export class StreamVideoClient {
             edgeName,
           },
           this.writeableStateStore,
+          this.userBatcher,
         );
 
         this.writeableStateStore.setCurrentValue(

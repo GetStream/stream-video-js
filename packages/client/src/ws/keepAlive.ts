@@ -1,6 +1,9 @@
-import type { StreamWSClient } from './types';
+import { StreamWebSocketClient } from './StreamWebSocketClient';
 
-export const keepAlive = (client: StreamWSClient, timeThreshold: number) => {
+export const keepAlive = (
+  client: StreamWebSocketClient,
+  timeThreshold: number,
+) => {
   let timeoutId: NodeJS.Timeout;
   let data: Uint8Array;
   return {

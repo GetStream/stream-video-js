@@ -1,3 +1,4 @@
+import { Batcher } from '../Batcher';
 import { Dispatcher } from '../rtc/Dispatcher';
 import { StreamVideoWriteableStateStore } from '../store';
 
@@ -7,16 +8,27 @@ import { StreamVideoWriteableStateStore } from '../store';
 export const watchParticipantJoined = (
   dispatcher: Dispatcher,
   store: StreamVideoWriteableStateStore,
+  userBatcher: Batcher<string>,
 ) => {
   return dispatcher.on('participantJoined', (e) => {
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
     const { participant } = e.eventPayload.participantJoined;
-    if (participant) {
-      store.setCurrentValue(
-        store.participantsSubject,
-        (currentParticipants) => [...currentParticipants, participant],
-      );
-    }
+    if (!participant) return;
+
+    const call = store.getCurrentValue(store.activeCallSubject);
+
+    // FIXME: this part is being repeated in call.join event as well
+    const { users } = call!.data;
+    const userData = users[participant.userId];
+    if (!userData) userBatcher.addToBatch(participant.userId);
+
+    store.setCurrentValue(store.participantsSubject, (currentParticipants) => [
+      ...currentParticipants,
+      {
+        ...participant,
+        user: userData,
+      },
+    ]);
   });
 };
 
@@ -30,11 +42,11 @@ export const watchParticipantLeft = (
   return dispatcher.on('participantLeft', (e) => {
     if (e.eventPayload.oneofKind !== 'participantLeft') return;
     const { participant } = e.eventPayload.participantLeft;
-    if (participant) {
-      store.setCurrentValue(store.participantsSubject, (participants) =>
-        participants.filter((p) => p.sessionId !== participant.sessionId),
-      );
-    }
+    if (!participant) return;
+
+    store.setCurrentValue(store.participantsSubject, (participants) =>
+      participants.filter((p) => p.sessionId !== participant.sessionId),
+    );
   });
 };
 

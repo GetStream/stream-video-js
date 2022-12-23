@@ -21,9 +21,12 @@ export interface AvatarProps {
 const DEFAULT_AVATAR_RADIUS = 100;
 
 export const Avatar = (props: AvatarProps) => {
-  const { participant, radius = DEFAULT_AVATAR_RADIUS } = props;
-  const label = useMemo(() => participant.userId || '?', [participant.userId]);
-  const imageUrl = undefined; // FIXME OL: fix with user data enriching
+  const {
+    participant: { userId, user },
+    radius = DEFAULT_AVATAR_RADIUS,
+  } = props;
+  const label = useMemo(() => userId || '?', [userId]);
+  const imageUrl = user?.imageUrl;
   return (
     <View
       style={{
