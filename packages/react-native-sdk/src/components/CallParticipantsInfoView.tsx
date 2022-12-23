@@ -22,8 +22,8 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
 
   if (!participant) return null;
   const { publishedTracks } = participant;
-  const isAudioMuted = publishedTracks.includes(SfuModels.TrackType.AUDIO);
-  const isVideoMuted = publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
+  const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
   const isScreenSharing = publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
   );
