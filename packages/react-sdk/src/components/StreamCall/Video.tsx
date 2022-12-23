@@ -38,7 +38,7 @@ export const Video = (
   useEffect(() => {
     const $el = videoRef.current;
     if (!$el) return;
-    if (stream && stream !== $el.srcObject) {
+    if (stream && stream !== $el.srcObject && isPublishingTrack) {
       $el.srcObject = stream;
       if (Browsers.isSafari() || Browsers.isFirefox()) {
         // Firefox and Safari have some timing issue
@@ -53,7 +53,7 @@ export const Video = (
     return () => {
       $el.srcObject = null;
     };
-  }, [stream]);
+  }, [stream, isPublishingTrack]);
 
   const lastDimensionRef = useRef<SfuModels.VideoDimension | undefined>();
   const updateSubscription = useCallback(() => {
