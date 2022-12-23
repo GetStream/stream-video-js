@@ -1,5 +1,5 @@
 module.exports = {
   root: true,
-  extends: '@react-native-community',
+  extends: '@rnx-kit',
   ignorePatterns: ['node_modules'],
 };
