@@ -3,7 +3,8 @@
 buildscript {
     ext {
         buildToolsVersion = "31.0.0"
-        minSdkVersion = 21
+        // Upgraded the version of minSDK for this - https://github.com/react-native-webrtc/react-native-webrtc/issues/720#issuecomment-552374206
+        minSdkVersion = 24
         compileSdkVersion = 31
         targetSdkVersion = 31
 
