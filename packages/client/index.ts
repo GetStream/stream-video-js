@@ -24,3 +24,4 @@ export * from './src/devices';
 export * from './src/store';
 
 export * from './src/helpers/sound-detector';
+export * as Browsers from './src/helpers/browsers';

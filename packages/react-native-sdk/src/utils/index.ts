@@ -14,3 +14,10 @@ export const generateCallTitle = (memberUserIds: string[]) => {
   const lastMember = supportedAmountOfMemberUserIds.slice(-1)[0];
   return `${allMembersExceptLast.join(', ')}, and ${lastMember}`;
 };
+
+// Utility to truncate long strings
+export const generateParticipantTitle = (memberUserId: string) => {
+  return memberUserId.length > 15
+    ? memberUserId.slice(0, 15) + '...'
+    : memberUserId;
+};

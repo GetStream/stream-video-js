@@ -6,6 +6,7 @@ import {
   VideoHTMLAttributes,
 } from 'react';
 import {
+  Browsers,
   Call,
   SfuModels,
   StreamVideoParticipant,
@@ -36,8 +37,17 @@ export const Video = (
   useEffect(() => {
     const $el = videoRef.current;
     if (!$el) return;
-    if (stream) {
+    if (stream && stream !== $el.srcObject) {
       $el.srcObject = stream;
+      if (Browsers.isSafari() || Browsers.isFirefox()) {
+        // Firefox and Safari have some timing issue
+        setTimeout(() => {
+          $el.srcObject = stream;
+          $el.play().catch((e) => {
+            console.error(`Failed to play stream`, e);
+          });
+        }, 0);
+      }
     }
     return () => {
       $el.srcObject = null;
@@ -87,6 +97,8 @@ export const Video = (
 
   return (
     <video
+      autoPlay
+      playsInline
       {...rest}
       data-user-id={participant.userId}
       data-session-id={sessionId}

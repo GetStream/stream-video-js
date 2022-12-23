@@ -118,6 +118,7 @@ export type EventHandler = (event: SfuEvent) => void;
 export type MeetingStackParamList = {
   JoinMeetingScreen: undefined;
   MeetingScreen: undefined;
+  CallParticipantsInfoScreen: undefined;
 };
 
 export type RingingStackParamList = {
@@ -125,6 +126,7 @@ export type RingingStackParamList = {
   CallScreen: undefined;
   IncomingCallScreen: undefined;
   OutgoingCallScreen: undefined;
+  CallParticipantsInfoScreen: undefined;
 };
 
 export type RootStackParamList = {
