@@ -23,6 +23,7 @@ import {ChannelHeader} from './src/components/ChannelHeader';
 import IncomingCallScreen from './src/screens/IncomingCallScreen';
 import {ActiveCallScreen} from './src/screens/ActiveCallScreen';
 import OutgoingCallScreen from './src/screens/OutgoingCallScreen';
+import {CallParticipansInfoScreen} from './src/screens/CallParticipantsInfoScreen';
 
 const Stack = createNativeStackNavigator<NavigationStackParamsList>();
 
@@ -60,6 +61,10 @@ const Messenger = () => {
           name="OutgoingCallScreen"
           component={OutgoingCallScreen}
           options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="CallParticipantsInfoScreen"
+          component={CallParticipansInfoScreen}
         />
       </Stack.Navigator>
     </MessengerWrapper>

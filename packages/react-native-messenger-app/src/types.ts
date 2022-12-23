@@ -25,6 +25,7 @@ export type NavigationStackParamsList = {
   IncomingCallScreen: undefined;
   OutgoingCallScreen: undefined;
   ActiveCallScreen: undefined;
+  CallParticipantsInfoScreen: undefined;
 };
 
 export type VideoProps = {

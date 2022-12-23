@@ -22,8 +22,17 @@ export const ActiveCallScreen = ({navigation}: Props) => {
     }
   };
 
+  const onOpenCallParticipantsInfoViewHandler = () => {
+    navigation.navigate('CallParticipantsInfoScreen');
+  };
+
   if (!activeCall) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
-  return <ActiveCall onHangupCall={onHangupCall} />;
+  return (
+    <ActiveCall
+      onHangupCall={onHangupCall}
+      onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
+    />
+  );
 };
