@@ -1,3 +1,4 @@
+import { User } from '../gen/video/coordinator/user_v1/user';
 import type {
   Participant,
   VideoDimension,
@@ -43,6 +44,11 @@ export interface StreamVideoParticipant extends Participant {
    * True when the participant is pinned
    */
   isPinned?: boolean;
+
+  /**
+   * User metadata (profile picture, name...)
+   */
+  user?: User;
 }
 
 export interface StreamVideoLocalParticipant extends StreamVideoParticipant {

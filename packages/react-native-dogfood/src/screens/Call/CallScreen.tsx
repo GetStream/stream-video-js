@@ -9,10 +9,21 @@ type Props = NativeStackScreenProps<RingingStackParamList, 'CallScreen'>;
 export const CallScreen = ({ navigation }: Props) => {
   const activeCall = useActiveCall();
 
+  const onHangupCallHandler = () => {
+    navigation.navigate('JoinCallScreen');
+  };
+
+  const onOpenCallParticipantsInfoViewHandler = () => {
+    navigation.navigate('CallParticipantsInfoScreen');
+  };
+
   if (!activeCall) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
   return (
-    <ActiveCall onHangupCall={() => navigation.navigate('JoinCallScreen')} />
+    <ActiveCall
+      onHangupCall={onHangupCallHandler}
+      onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
+    />
   );
 };

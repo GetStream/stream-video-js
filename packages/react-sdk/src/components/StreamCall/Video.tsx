@@ -6,10 +6,12 @@ import {
   VideoHTMLAttributes,
 } from 'react';
 import {
+  Browsers,
   Call,
   SfuModels,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
+import { VideoPlaceholder } from './VideoPlaceholder';
 
 export const Video = (
   props: DetailedHTMLProps<
@@ -36,8 +38,17 @@ export const Video = (
   useEffect(() => {
     const $el = videoRef.current;
     if (!$el) return;
-    if (stream) {
+    if (stream && stream !== $el.srcObject) {
       $el.srcObject = stream;
+      if (Browsers.isSafari() || Browsers.isFirefox()) {
+        // Firefox and Safari have some timing issue
+        setTimeout(() => {
+          $el.srcObject = stream;
+          $el.play().catch((e) => {
+            console.error(`Failed to play stream`, e);
+          });
+        }, 0);
+      }
     }
     return () => {
       $el.srcObject = null;
@@ -85,8 +96,18 @@ export const Video = (
     };
   }, [updateSubscription]);
 
+  if (!isPublishingTrack)
+    return (
+      <VideoPlaceholder
+        imageSrc={participant.user?.imageUrl}
+        userId={participant.userId}
+      />
+    );
+
   return (
     <video
+      autoPlay
+      playsInline
       {...rest}
       data-user-id={participant.userId}
       data-session-id={sessionId}

@@ -7,12 +7,12 @@ import {
 import { UserInput } from '../gen/video/coordinator/user_v1/user';
 import { KeepAlive, keepAlive } from './keepAlive';
 
-import type { StreamEventListener, StreamWSClient } from './types';
+import type { StreamEventListener } from './types';
 import { createCoordinatorWebSocket } from './socket';
 
 const WS_STATE_OPEN = 1;
 
-export class StreamWebSocketClient implements StreamWSClient {
+export class StreamWebSocketClient {
   private readonly endpoint: string;
   private readonly apiKey: string;
   private readonly token: string;
