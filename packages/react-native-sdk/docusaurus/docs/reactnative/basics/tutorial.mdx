@@ -49,6 +49,57 @@ AppRegistry.registerComponent(appName, () => App);
 Step 1: Simple Video Meeting
 
 
+```tsx
+import React from 'react';
+import {ActivityIndicator, SafeAreaView, StyleSheet} from 'react-native';
+import {
+  ActiveCall,
+  StreamMeeting,
+  StreamVideo,
+} from '@stream-io/video-react-native-sdk';
+import {useVideoClient} from './src/hooks/useVideoClient';
+
+const user = {
+  id: 'stevey',
+  name: 'Stevey',
+  imageUrl: 'https://randomuser.me/api/portraits/men/47.jpg',
+  role: 'user',
+  teams: [],
+  customJson: new Uint8Array(),
+};
+const token = 'YOUR_TOKEN';
+
+const App = () => {
+  const {videoClient} = useVideoClient({user, token});
+  if (!videoClient) {
+    return (
+      <SafeAreaView style={{flex: 1}}>
+        <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <StreamVideo client={videoClient}>
+      <StreamMeeting
+        currentUser={user.id}
+        callId={'best-meeting-ever'}
+        callType={'default'}
+        autoJoin={true}
+        onActiveCall={() => console.log('onActiveCall')}>
+        <ActiveCall
+          onHangupCall={() => console.log('onHangupCall')}
+          onOpenCallParticipantsInfoView={() =>
+            console.log('onOpenCallParticipantsInfoViewHandler')
+          }
+        />
+      </StreamMeeting>
+    </StreamVideo>
+  );
+};
+
+````
+
 
 Install navigation dependencies
 ```
