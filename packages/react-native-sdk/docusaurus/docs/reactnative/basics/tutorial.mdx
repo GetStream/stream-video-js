@@ -11,10 +11,40 @@ npx react-native init StreamMeetingTutorial --template react-native-template-typ
 
 Install Stream's Video SDK and it's peer dependencies
 ```
-yarn add stream-video-react-native stream-video-react-bindings stream-video
+yarn add stream-video-react-native stream-video-react-bindings stream-video react-native-webrtc
+react-native-incall-manager react-native-svg text-encoding-polyfill
 ```
 
+
 Some dependencies require us to make changes to our application for all
-functionalities to be available. Please follow the following steps:
+functionalities to be available. Please apply the following steps:
 
 
+- `react-native-webrtc` installation on [Android](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/AndroidInstallation.md) and [iOS](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/iOSInstallation.md)
+- `react-native-svg` be aware of [compatibility](https://github.com/software-mansion/react-native-svg#supported-react-native-versions) with RN versions and [troubleshooting](https://github.com/software-mansion/react-native-svg#troubleshooting) steps
+
+- Add the following imports at the top of your `index.js` file
+
+```ts
+/** URL polyfill */
+import 'text-encoding-polyfill';
+/** Text decoder polyfill */
+import 'react-native-url-polyfill/auto';
+/** crypto.getRandomValues polyfill for uuid */
+import 'react-native-get-random-values';
+
+import {AppRegistry} from 'react-native';
+import App from './App';
+import {name as appName} from './app.json';
+
+AppRegistry.registerComponent(appName, () => App);
+```
+
+Step 1: Simple Video Meeting
+
+
+
+Install navigation dependencies
+```
+yarn add stream-video-react-native stream-video-react-bindings stream-video react-native-webrtc
+```
