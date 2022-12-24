@@ -1,9 +1,25 @@
 import { useActiveCall } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
-import RNCallKeep from 'react-native-callkeep';
 import { useStreamVideoStoreValue } from '../contexts';
 import { generateCallTitle } from '../utils';
+import { CallKeepOptions } from '../types';
+
+let RNCallKeep = {
+  setup: (options: CallKeepOptions) =>
+    new Promise((resolve, reject) => reject()),
+  startCall: (
+    uuid: string,
+    handle: string,
+    contactIdentifier?: string,
+    handleType?: 'generic' | 'number' | 'email',
+    hasVideo?: boolean,
+  ) => new Promise((resolve, reject) => reject()),
+  endCall: (uuid: string) => new Promise((resolve, reject) => reject()),
+};
+try {
+  RNCallKeep = require('react-native-callkeep');
+} catch (e) {}
 
 export const useCallKeep = () => {
   const activeCall = useActiveCall();
