@@ -47,17 +47,17 @@ AppRegistry.registerComponent(appName, () => App);
 ```
 
 Step 1: Simple Video Meeting
+============================
+We will start by creating a simple video meeting with Stream's Video SDK.
 
+### Create a StreamVideoClient
+
+First things first we will create a `StreamVideoClient` that will be used to communicate to Stream's Video backend.
+We will also create a `StreamVideoView` that will be used to render the video stream.
 
 ```tsx
 import React from 'react';
-import {ActivityIndicator, SafeAreaView, StyleSheet} from 'react-native';
-import {
-  ActiveCall,
-  StreamMeeting,
-  StreamVideo,
-} from '@stream-io/video-react-native-sdk';
-import {useVideoClient} from './src/hooks/useVideoClient';
+import {StreamVideoClient} from '@stream-io/video-client';
 
 const user = {
   id: 'stevey',
@@ -67,17 +67,72 @@ const user = {
   teams: [],
   customJson: new Uint8Array(),
 };
-const token = 'YOUR_TOKEN';
+const USER_TOKEN = 'YOUR_TOKEN';
+const API_KEY = 'YOUR_TOKEN';
+const videoClient = new StreamVideoClient(API_KEY, {
+  sendJson: true,
+  token: USER_TOKEN,
+});
+```
+
+### Connecting and disconnecting from the video client
+
+We will connect to the Stream's client instance we've created right after the component has mounted.
+When the component unmounts we will disconnect from the client.
+
+```tsx
+import React, {useEffect, useState} from 'react';
+import {ActivityIndicator, SafeAreaView, StyleSheet} from 'react-native';
+
+...
 
 const App = () => {
-  const {videoClient} = useVideoClient({user, token});
-  if (!videoClient) {
+const [connected, setConnected] = useState(false);
+  useEffect(() => {
+    const run = async () => {
+      try {
+        await videoClient.connect(API_KEY, USER_TOKEN, user);
+        setConnected(true);
+      } catch (err) {
+        console.error('Failed to establish connection', err);
+      }
+    };
+    run();
+
+    return () => {
+      videoClient.disconnect();
+    };
+  }, []);
+
+  if (!connected) {
     return (
       <SafeAreaView style={{flex: 1}}>
         <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
       </SafeAreaView>
     );
   }
+
+  return (
+    <SafeAreaView style={{flex: 1}}>
+      <Text>We're connected now and ready to go 🚀</Text>
+    </SafeAreaView>
+  );
+```
+
+### Provide the video client and meeting logics to the rest of the app
+
+Our `StreamVideo` component will provide our recently created videoClient to the rest of the underlying components.
+Make sure to wrap your entire application in `StreamVideo`.
+The `StreamMeeting` component will take care of creating and joining a call.
+
+```tsx
+import React from 'react';
+import {StreamMeeting, StreamVideo, } from '@stream-io/video-react-native-sdk';
+
+...
+
+const App = () => {
+  ...
 
   return (
     <StreamVideo client={videoClient}>
@@ -87,6 +142,36 @@ const App = () => {
         callType={'default'}
         autoJoin={true}
         onActiveCall={() => console.log('onActiveCall')}>
+        <Text>We're almost ready to start our first video call</Text>
+      </StreamMeeting>
+    </StreamVideo>
+  );
+};
+
+````
+
+### Render the video call
+
+Our `ActiveCall` component consists of controls (hangup, un/mute audio/camera, invert camera)
+and the video's of the participants.
+
+```tsx
+import React from 'react';
+import {
+  ActiveCall,
+  StreamMeeting,
+  StreamVideo,
+} from '@stream-io/video-react-native-sdk';
+...
+
+const App = () => {
+  ...
+
+  return (
+    <StreamVideo client={videoClient}>
+      <StreamMeeting
+        ...
+      >
         <ActiveCall
           onHangupCall={() => console.log('onHangupCall')}
           onOpenCallParticipantsInfoView={() =>
@@ -99,7 +184,6 @@ const App = () => {
 };
 
 ````
-
 
 Install navigation dependencies
 ```
