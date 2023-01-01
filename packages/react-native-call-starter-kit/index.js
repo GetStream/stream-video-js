@@ -16,14 +16,4 @@ if (Platform.OS !== 'web') {
   registerGlobals();
 }
 
-AppRegistry.registerHeadlessTask(
-  'RNCallKeepBackgroundMessage',
-  () =>
-    ({name, callUUID, handle}) => {
-      // TODO: Make your call here
-
-      return Promise.resolve();
-    },
-);
-
 AppRegistry.registerComponent(appName, () => App);
