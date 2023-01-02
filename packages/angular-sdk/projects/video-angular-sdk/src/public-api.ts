@@ -12,3 +12,4 @@ export * from './lib/device-settings/device-settings.component';
 export * from './lib/device-manager.service';
 export * from './lib/in-call-device-manager.service';
 export * from './lib/call-participants-view/call-participants-view.component';
+export * from './lib/call-participants-screenshare-view/call-participants-screenshare-view.component';

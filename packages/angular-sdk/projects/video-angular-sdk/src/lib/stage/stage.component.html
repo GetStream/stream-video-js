@@ -1,3 +1,8 @@
 <div class="str-video__stage">
- <stream-call-participants-view></stream-call-participants-view>
+  <stream-call-participants-screenshare-view
+    *ngIf="(hasOngoingScreenshare$ | async) === true; else participants"
+  ></stream-call-participants-screenshare-view>
+  <ng-template #participants>
+    <stream-call-participants-view></stream-call-participants-view>
+  </ng-template>
 </div>

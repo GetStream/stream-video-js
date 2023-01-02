@@ -9,6 +9,7 @@ import { NgxPopperjsModule } from 'ngx-popperjs';
 import { CallStatisticsComponent } from './call-statistics/call-statistics.component';
 import { NgChartsModule } from 'ng2-charts';
 import { CallParticipantsViewComponent } from './call-participants-view/call-participants-view.component';
+import { CallParticipantsScreenshareViewComponent } from './call-participants-screenshare-view/call-participants-screenshare-view.component';
 
 /**
  * This Angular Module is the entry point of the SDK, import this Angular module in your application, all services defined by the SDK are created by importing this module
@@ -22,6 +23,7 @@ import { CallParticipantsViewComponent } from './call-participants-view/call-par
     DeviceSettingsComponent,
     CallStatisticsComponent,
     CallParticipantsViewComponent,
+    CallParticipantsScreenshareViewComponent,
   ],
   imports: [CommonModule, NgxPopperjsModule, NgChartsModule],
   exports: [

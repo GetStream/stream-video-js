@@ -60,6 +60,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.activeCall?.leave();
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 

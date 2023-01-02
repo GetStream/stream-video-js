@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
 @Component({
@@ -7,7 +8,12 @@ import { StreamVideoService } from '../video.service';
   styles: [],
 })
 export class StageComponent implements OnInit {
-  constructor(private streamVideoService: StreamVideoService) {}
+  hasOngoingScreenshare$: Observable<boolean>;
+
+  constructor(private streamVideoService: StreamVideoService) {
+    this.hasOngoingScreenshare$ =
+      this.streamVideoService.hasOngoingScreenShare$;
+  }
 
   ngOnInit(): void {}
 }
