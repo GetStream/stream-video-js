@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import {
   checkIfAudioOutputChangeSupported,
   createSoundDetector,
@@ -138,7 +138,7 @@ export class DeviceManagerService {
     MediaStream | undefined
   >(undefined);
 
-  constructor() {
+  constructor(private ngZone: NgZone) {
     this.videoState$ = this.videoStateSubject.asObservable();
     this.videoErrorMessage$ = this.videoErrorMessageSubject.asObservable();
     this.videoStream$ = this.videoStreamSubject.asObservable();
@@ -300,12 +300,15 @@ export class DeviceManagerService {
       .then((audioStream) => {
         this.stopAudio();
         this.audioStreamSubject.next(audioStream);
-        this.disposeSoundDetector = createSoundDetector(
-          audioStream,
-          (isSpeechDetected) => {
-            this.isSpeakingSubject.next(isSpeechDetected);
-          },
-        );
+        this.disposeSoundDetector = this.ngZone.runOutsideAngular(() => {
+          return createSoundDetector(audioStream, (isSpeechDetected) => {
+            if (isSpeechDetected !== this.isSpeakingSubject.getValue()) {
+              this.ngZone.run(() => {
+                this.isSpeakingSubject.next(isSpeechDetected);
+              });
+            }
+          });
+        });
         this.audioStateSubject.next('on');
       })
       .catch((err) => {

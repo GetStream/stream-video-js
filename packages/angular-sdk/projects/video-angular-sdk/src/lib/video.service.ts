@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import {
   Call,
   CallAccepted,
@@ -98,7 +98,7 @@ export class StreamVideoService {
   /**
    * You don't need to create a `StreamVideoService` instance directly, it will be available for you by importing the `StreamVideoModule` Angular module.
    */
-  constructor() {
+  constructor(private ngZone: NgZone) {
     this.user$ = this.userSubject.asObservable();
     this.activeCall$ = this.activeCallSubject.asObservable();
     this.acceptedCall$ = this.acceptedCallSubject.asObservable();
@@ -135,54 +135,95 @@ export class StreamVideoService {
     });
 
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.connectedUser$.subscribe(
-        this.userSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.connectedUser$.subscribe({
+        next: (v) => this.ngZone.run(() => this.userSubject.next(v)),
+        error: (e) => this.ngZone.run(() => this.userSubject.error(e)),
+        complete: () => this.ngZone.run(() => this.userSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.activeCall$.subscribe(
-        this.activeCallSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.activeCall$.subscribe({
+        next: (v) => this.ngZone.run(() => this.activeCallSubject.next(v)),
+        error: (e) => this.ngZone.run(() => this.activeCallSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.activeCallSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore.acceptedCall$.subscribe(
-        this.acceptedCallSubject,
-      ),
+      this.videoClient.readOnlyStateStore.acceptedCall$.subscribe({
+        next: (v) => this.ngZone.run(() => this.acceptedCallSubject.next(v)),
+        error: (e) => this.ngZone.run(() => this.acceptedCallSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.acceptedCallSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.incomingCalls$.subscribe(
-        this.incomingRingCallsSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.incomingCalls$.subscribe({
+        next: (v) =>
+          this.ngZone.run(() => this.incomingRingCallsSubject.next(v)),
+        error: (e) =>
+          this.ngZone.run(() => this.incomingRingCallsSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.incomingRingCallsSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.participants$.subscribe(
-        this.allParticipantsSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.participants$.subscribe({
+        next: (v) => this.ngZone.run(() => this.allParticipantsSubject.next(v)),
+        error: (e) =>
+          this.ngZone.run(() => this.allParticipantsSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.allParticipantsSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.remoteParticipants$.subscribe(
-        this.remoteParticipantsSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.remoteParticipants$.subscribe({
+        next: (v) =>
+          this.ngZone.run(() => this.remoteParticipantsSubject.next(v)),
+        error: (e) =>
+          this.ngZone.run(() => this.remoteParticipantsSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.remoteParticipantsSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.localParticipant$.subscribe(
-        this.localParticipantSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.localParticipant$.subscribe({
+        next: (v) =>
+          this.ngZone.run(() => this.localParticipantSubject.next(v)),
+        error: (e) =>
+          this.ngZone.run(() => this.localParticipantSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.localParticipantSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.callRecordingInProgress$.subscribe(
-        this.callRecordingInProgressSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.callRecordingInProgress$.subscribe({
+        next: (v) =>
+          this.ngZone.run(() => this.callRecordingInProgressSubject.next(v)),
+        error: (e) =>
+          this.ngZone.run(() => this.callRecordingInProgressSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.callRecordingInProgressSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.callStatsReport$.subscribe(
-        this.callStatsReportSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.callStatsReport$.subscribe({
+        next: (v) => this.ngZone.run(() => this.callStatsReportSubject.next(v)),
+        error: (e) =>
+          this.ngZone.run(() => this.callStatsReportSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.callStatsReportSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.hasOngoingScreenShare$.subscribe(
-        this.hasOngoingScreenShareSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.hasOngoingScreenShare$.subscribe({
+        next: (v) =>
+          this.ngZone.run(() => this.hasOngoingScreenShareSubject.next(v)),
+        error: (e) =>
+          this.ngZone.run(() => this.hasOngoingScreenShareSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.hasOngoingScreenShareSubject.complete()),
+      }),
     );
 
     return this.videoClient;
