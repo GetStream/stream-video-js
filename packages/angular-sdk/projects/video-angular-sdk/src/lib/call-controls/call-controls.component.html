@@ -1,16 +1,20 @@
 <div class="str-video__call-controls">
-  <button *ngIf="call"
+  <button
+    *ngIf="call"
     class="str-video__call-controls__button"
     [ngClass]="{
-      'str-video__call-controls__button--icon-recording-on': isCallRecordingInProgress,
-      'str-video__call-controls__button--icon-recording-off': !isCallRecordingInProgress
+      'str-video__call-controls__button--icon-recording-on':
+        isCallRecordingInProgress,
+      'str-video__call-controls__button--icon-recording-off':
+        !isCallRecordingInProgress
     }"
     (click)="toggleRecording()"
   ></button>
   <popper-content #statistics>
     <stream-call-statistics></stream-call-statistics>
   </popper-content>
-  <button *ngIf="call"
+  <button
+    *ngIf="call"
     class="str-video__call-controls__button str-video__call-controls__button--icon-stats"
     [popper]="statistics"
     [popperTrigger]="popperTrigger"
@@ -18,20 +22,26 @@
   <button
     class="str-video__call-controls__button"
     [ngClass]="{
-      'str-video__call-controls__button--icon-mic':
-        audioState === 'on',
-      'str-video__call-controls__button--icon-mic-off':
-        audioState !== 'on'
+      'str-video__call-controls__button--icon-screen-share-on':
+        screenShareState === 'on',
+      'str-video__call-controls__button--icon-screen-share-off':
+        screenShareState !== 'on'
+    }"
+    (click)="toggleScreenShare()"
+  ></button>
+  <button
+    class="str-video__call-controls__button"
+    [ngClass]="{
+      'str-video__call-controls__button--icon-mic': audioState === 'on',
+      'str-video__call-controls__button--icon-mic-off': audioState !== 'on'
     }"
     (click)="toggleAudio()"
   ></button>
   <button
     class="str-video__call-controls__button"
     [ngClass]="{
-      'str-video__call-controls__button--icon-camera':
-        videoState === 'on',
-      'str-video__call-controls__button--icon-camera-off':
-        videoState !== 'on'
+      'str-video__call-controls__button--icon-camera': videoState === 'on',
+      'str-video__call-controls__button--icon-camera-off': videoState !== 'on'
     }"
     (click)="toggleVideo()"
   ></button>

@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import {
   DeviceManagerService,
   MediaStreamState,
+  ScreenShareState,
 } from '../device-manager.service';
 import { StreamVideoService } from '../video.service';
 
@@ -16,6 +17,7 @@ import { StreamVideoService } from '../video.service';
 export class CallControlsComponent implements OnInit, OnDestroy {
   videoState?: MediaStreamState;
   audioState?: MediaStreamState;
+  screenShareState?: ScreenShareState;
   call?: Call;
   isCallRecordingInProgress: boolean = false;
   popperTrigger = NgxPopperjsTriggers.click;
@@ -49,6 +51,11 @@ export class CallControlsComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.deviceManager.audioState$.subscribe((s) => (this.audioState = s)),
     );
+    this.subscriptions.push(
+      this.deviceManager.screenShareState$.subscribe(
+        (s) => (this.screenShareState = s),
+      ),
+    );
   }
 
   ngOnInit(): void {}
@@ -63,6 +70,10 @@ export class CallControlsComponent implements OnInit, OnDestroy {
 
   toggleVideo() {
     this.deviceManager.toggleVideo();
+  }
+
+  toggleScreenShare() {
+    this.deviceManager.toggleScreenShare();
   }
 
   toggleRecording() {
