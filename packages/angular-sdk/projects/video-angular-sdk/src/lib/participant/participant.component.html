@@ -2,16 +2,26 @@
   class="str-call__participant"
   [class.str-video__participant--speaking]="participant?.isSpeaking"
 >
-  <audio #audio autoplay [muted]="participant?.isLoggedInUser" [srcObject]="participant?.audioStream"></audio>
+  <audio
+    *ngIf="kind === 'video'"
+    #audio
+    autoplay
+    [muted]="participant?.isLoggedInUser"
+    [srcObject]="participant?.audioStream"
+  ></audio>
   <div class="str-video__video-container">
     <video
       #video
-      [srcObject]="participant?.videoStream"
+      [srcObject]="
+        kind === 'video'
+          ? participant?.videoStream
+          : participant?.screenShareStream
+      "
       class="str-video__remote-video"
-      [class.mirror]="participant?.isLoggedInUser"
+      [class.mirror]="kind === 'video' && participant?.isLoggedInUser"
       autoplay
     ></video>
-    <div class="str-video__participant_details">
+    <div *ngIf="kind === 'video'" class="str-video__participant_details">
       <span class="str-video__participant_name">
         {{ participant?.userId }}
         <span

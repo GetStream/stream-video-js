@@ -47,6 +47,19 @@ export class InCallDeviceManagerService {
             }),
           );
           this.subscriptions.push(
+            this.deviceManager.screenShareState$.subscribe((s) => {
+              if (s === 'on') {
+                this.deviceManager.screenShareStream$
+                  .pipe(take(1))
+                  .subscribe((stream) =>
+                    call.publishScreenShareStream(stream!),
+                  );
+              } else {
+                call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
+              }
+            }),
+          );
+          this.subscriptions.push(
             this.deviceManager.audioOutputDevice$.subscribe((d) => {
               call.setAudioOutputDevice(d);
             }),

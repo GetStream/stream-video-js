@@ -25,6 +25,7 @@ import { StreamVideoService } from '../video.service';
 export class ParticipantComponent
   implements AfterViewInit, OnDestroy, OnChanges
 {
+  @Input() kind: 'screen' | 'video' = 'video';
   @Input() participant?: StreamVideoParticipant;
   call?: Call;
   @ViewChild('video')
@@ -89,7 +90,7 @@ export class ParticipantComponent
   }
 
   private updateTrackSubscriptions() {
-    this.call?.updateSubscriptionsPartial('video', {
+    this.call?.updateSubscriptionsPartial(this.kind, {
       [this.participant?.sessionId || '']: {
         dimension: this.videoDimension,
       },

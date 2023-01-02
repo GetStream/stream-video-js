@@ -5,6 +5,7 @@ import {
   getAudioDevices,
   getAudioOutputDevices,
   getAudioStream,
+  getScreenShareStream,
   getVideoDevices,
   getVideoStream,
   watchForDisconnectedAudioDevice,
@@ -19,18 +20,16 @@ import { BehaviorSubject, map, Observable, ReplaySubject, take } from 'rxjs';
  * `off` means that the user decided to turn off the stream
  * `error` means an error occurred while trying to retrieve a stream (for example the user didn't give permission to use camera/microphone)
  * `initial` is the default state, which means we didn't try to start a stream yet
- * `disconnected` means the stream is lost due to a device being disconnected/lost
  */
-export type MediaStreamState =
-  | 'loading'
-  | 'on'
-  | 'off'
-  | 'error'
-  | 'initial'
-  | 'disconnected';
+export type ScreenShareState = 'loading' | 'on' | 'off' | 'error' | 'initial';
 
 /**
- * This service can be used to list devices (audio input, video input and audio output), start/stop media streams and switch between devices
+ * `disconnected` means the stream is lost due to a device being disconnected/lost
+ */
+export type MediaStreamState = ScreenShareState | 'disconnected';
+
+/**
+ * This service can be used to list devices (audio input, video input and audio output), start/stop media streams (including screenshare) and switch between devices
  */
 @Injectable({
   providedIn: 'root',
@@ -95,6 +94,18 @@ export class DeviceManagerService {
    * `true` if there is an audio stream turned on, and detected audio levels suggest that the user is currently speaking
    */
   isSpeaking$: Observable<boolean>;
+  /**
+   * Provides detailed information about the screenshare stream, you can use this stream to visually display the state on the UI
+   */
+  screenShareState$: Observable<ScreenShareState>;
+  /**
+   * If `screenShareState$` is `error` this stream emits the error message, so additional explanation can be provided to users
+   */
+  screenShareErrorMessage$: Observable<string | undefined>;
+  /**
+   * The screenshare media stream, you can start and stop it with the `startScreenShare` and `stopScreenShare` methods
+   */
+  screenShareStream$: Observable<MediaStream | undefined>;
   private videoStateSubject = new BehaviorSubject<MediaStreamState>('initial');
   private videoErrorMessageSubject = new BehaviorSubject<string | undefined>(
     undefined,
@@ -117,6 +128,15 @@ export class DeviceManagerService {
   private audioDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
   private videoDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
   private audioOutputDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
+  private screenShareStateSubject = new BehaviorSubject<ScreenShareState>(
+    'initial',
+  );
+  private screenShareErrorMessageSubject = new BehaviorSubject<
+    string | undefined
+  >(undefined);
+  private screenShareStreamSubject = new BehaviorSubject<
+    MediaStream | undefined
+  >(undefined);
 
   constructor() {
     this.videoState$ = this.videoStateSubject.asObservable();
@@ -159,6 +179,11 @@ export class DeviceManagerService {
       .subscribe((devices) =>
         this.audioOutputDeviceSubject.next(devices[0].deviceId),
       );
+
+    this.screenShareState$ = this.screenShareStateSubject.asObservable();
+    this.screenShareStream$ = this.screenShareStreamSubject.asObservable();
+    this.screenShareErrorMessage$ =
+      this.screenShareErrorMessageSubject.asObservable();
   }
 
   initAudioDevices() {
@@ -203,8 +228,16 @@ export class DeviceManagerService {
     return this.videoStreamSubject.getValue();
   }
 
+  get screenShareState() {
+    return this.screenShareStateSubject.getValue();
+  }
+
+  get screenShareStream() {
+    return this.screenShareStreamSubject.getValue();
+  }
+
   toggleVideo() {
-    if (this.videoState === 'off') {
+    if (this.videoState === 'off' || this.videoState === 'initial') {
       this.startVideo();
     } else if (this.videoState === 'on') {
       this.stopVideo();
@@ -212,10 +245,21 @@ export class DeviceManagerService {
   }
 
   toggleAudio() {
-    if (this.audioState === 'off') {
+    if (this.audioState === 'off' || this.audioState === 'initial') {
       this.startAudio();
     } else if (this.audioState === 'on') {
       this.stopAudio();
+    }
+  }
+
+  toggleScreenShare() {
+    if (
+      this.screenShareState === 'off' ||
+      this.screenShareState === 'initial'
+    ) {
+      this.startScreenShare();
+    } else if (this.screenShareState === 'on') {
+      this.stopScreenShare();
     }
   }
 
@@ -286,6 +330,31 @@ export class DeviceManagerService {
     this.disposeSoundDetector?.();
     this.audioStreamSubject.next(undefined);
     this.audioStateSubject.next('off');
+  }
+
+  startScreenShare() {
+    this.screenShareStateSubject.next('loading');
+    getScreenShareStream()
+      .then((s) => {
+        this.stopScreenShare();
+        this.screenShareStreamSubject.next(s);
+        this.screenShareStateSubject.next('on');
+      })
+      .catch(() => {
+        this.screenShareErrorMessageSubject.next(
+          `Screen share stream couldn't be started`,
+        );
+        this.screenShareStateSubject.next('error');
+      });
+  }
+
+  stopScreenShare() {
+    if (!this.screenShareStream) {
+      return;
+    }
+    this.screenShareStream.getTracks().forEach((t) => t.stop());
+    this.screenShareStreamSubject.next(undefined);
+    this.screenShareStateSubject.next('off');
   }
 
   selectAudioOutput(deviceId: string | undefined) {
