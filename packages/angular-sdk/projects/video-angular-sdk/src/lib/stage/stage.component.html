@@ -1,14 +1,3 @@
 <div class="str-video__stage">
-  <div class="str-video__call-participants-view str-video__grid-{{ (participants$ | async)!.length + 1 }}">
-    <stream-participant
-      [participant]="(localParticipant$ | async)!"
-    ></stream-participant>
-    <stream-participant
-      *ngFor="
-        let participant of participants$ | async;
-        trackBy: trackByParticipantId
-      "
-      [participant]="participant"
-    ></stream-participant>
-  </div>
+ <stream-call-participants-view></stream-call-participants-view>
 </div>

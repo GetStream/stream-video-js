@@ -1,6 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { StreamVideoParticipant } from '@stream-io/video-client';
-import { Observable } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
 @Component({
@@ -9,17 +7,7 @@ import { StreamVideoService } from '../video.service';
   styles: [],
 })
 export class StageComponent implements OnInit {
-  participants$: Observable<StreamVideoParticipant[]>;
-  localParticipant$: Observable<StreamVideoParticipant | undefined>;
-
-  constructor(private streamVideoService: StreamVideoService) {
-    this.participants$ = this.streamVideoService.remoteParticipants$;
-    this.localParticipant$ = this.streamVideoService.localParticipant$;
-  }
+  constructor(private streamVideoService: StreamVideoService) {}
 
   ngOnInit(): void {}
-
-  trackByParticipantId(_: number, item: StreamVideoParticipant) {
-    return item.userId || undefined + item.sessionId;
-  }
 }
