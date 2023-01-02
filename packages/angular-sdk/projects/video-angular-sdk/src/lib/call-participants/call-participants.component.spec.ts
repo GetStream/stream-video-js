@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CallParticipantsViewComponent } from './call-participants-view.component';
+import { CallParticipantsViewComponent } from './call-participants.component';
 
 describe('CallParticipantsViewComponent', () => {
   let component: CallParticipantsViewComponent;

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CallParticipantsScreenshareViewComponent } from './call-participants-screenshare-view.component';
+import { CallParticipantsScreenshareViewComponent } from './call-participants-screenshare.component';
 
 describe('CallParticipantsScreenshareViewComponent', () => {
   let component: CallParticipantsScreenshareViewComponent;

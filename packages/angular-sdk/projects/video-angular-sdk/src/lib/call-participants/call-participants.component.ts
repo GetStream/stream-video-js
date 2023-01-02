@@ -4,11 +4,11 @@ import { Observable } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
 @Component({
-  selector: 'stream-call-participants-view',
-  templateUrl: './call-participants-view.component.html',
+  selector: 'stream-call-participants',
+  templateUrl: './call-participants.component.html',
   styles: [],
 })
-export class CallParticipantsViewComponent implements OnInit {
+export class CallParticipantsComponent implements OnInit {
   participants$: Observable<StreamVideoParticipant[]>;
   localParticipant$: Observable<StreamVideoParticipant | undefined>;
 

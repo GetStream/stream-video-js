@@ -4,13 +4,11 @@ import { Observable, Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
 @Component({
-  selector: 'stream-call-participants-screenshare-view',
-  templateUrl: './call-participants-screenshare-view.component.html',
+  selector: 'stream-call-participants-screenshare',
+  templateUrl: './call-participants-screenshare.component.html',
   styles: [],
 })
-export class CallParticipantsScreenshareViewComponent
-  implements OnInit, OnDestroy
-{
+export class CallParticipantsScreenshareComponent implements OnInit, OnDestroy {
   firstScreenSharingParticipant: StreamVideoParticipant | undefined;
   isOverlayVisible = false;
   participants$: Observable<StreamVideoParticipant[]>;
