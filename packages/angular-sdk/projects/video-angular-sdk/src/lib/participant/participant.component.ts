@@ -28,6 +28,7 @@ export class ParticipantComponent
   @Input() kind: 'screen' | 'video' = 'video';
   @Input() participant?: StreamVideoParticipant;
   call?: Call;
+  isProfileImageError = false;
   @ViewChild('video')
   private videoElement!: ElementRef<HTMLElement>;
   @ViewChild('audio')
@@ -47,15 +48,19 @@ export class ParticipantComponent
     if (
       changes['participant']?.previousValue?.isLoggedInUser &&
       !changes['participant']?.currentValue?.isLoggedInUser &&
-      this.isViewInited
+      this.isViewInited &&
+      this.isPublishingTrack
     ) {
       this.registerResizeObserver();
+    }
+    if (changes['participant']) {
+      this.isProfileImageError = false;
     }
   }
 
   ngAfterViewInit(): void {
     this.isViewInited = true;
-    if (!this.participant?.isLoggedInUser) {
+    if (!this.participant?.isLoggedInUser && this.isPublishingTrack) {
       this.registerResizeObserver();
     }
     this.subscriptions.push(
@@ -77,6 +82,14 @@ export class ParticipantComponent
   ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
     this.subscriptions.forEach((s) => s.unsubscribe());
+  }
+
+  get isPublishingTrack() {
+    return this.participant?.publishedTracks.includes(
+      this.kind === 'screen'
+        ? SfuModels.TrackType.SCREEN_SHARE
+        : SfuModels.TrackType.VIDEO,
+    );
   }
 
   private registerResizeObserver() {

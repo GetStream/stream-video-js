@@ -12,6 +12,7 @@
   <div class="str-video__video-container">
     <video
       #video
+      *ngIf="isPublishingTrack; else noVideo"
       [srcObject]="
         kind === 'video'
           ? participant?.videoStream
@@ -38,3 +39,31 @@
     </div>
   </div>
 </div>
+
+<ng-template #noVideo>
+  <div class="str-video__participant-placeholder">
+    <div
+      *ngIf="
+        !participant?.user?.imageUrl || isProfileImageError;
+        else profileImage
+      "
+      class="str-video__placeholder--initials-fallback"
+    >
+      <h2>{{ participant?.user?.name?.at(0) }}</h2>
+    </div>
+    <ng-template #profileImage>
+      <img
+        (error)="isProfileImageError = true"
+        alt="participant-placeholder"
+        class="str-video__participant-placeholder--avatar"
+        [src]="participant?.user?.imageUrl"
+      />
+      <div class="str-video__participant-placeholder--backdrop"></div>
+      <img
+        alt="participant-placeholder-background"
+        class="str-video__participant-placeholder--avatar-background"
+        [src]="participant?.user?.imageUrl"
+      />
+    </ng-template>
+  </div>
+</ng-template>
