@@ -1,8 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Call, SfuModels, CallMeta } from '@stream-io/video-client';
 import { NgxPopperjsTriggers } from 'ngx-popperjs';
-import { Subscription } from 'rxjs';
+import { combineLatest, Subscription } from 'rxjs';
 import {
+  AudioMediaStreamState,
   DeviceManagerService,
   MediaStreamState,
   ScreenShareState,
@@ -16,10 +17,11 @@ import { StreamVideoService } from '../video.service';
 })
 export class CallControlsComponent implements OnInit, OnDestroy {
   videoState?: MediaStreamState;
-  audioState?: MediaStreamState;
+  audioState?: AudioMediaStreamState;
   screenShareState?: ScreenShareState;
   call?: Call;
   isCallRecordingInProgress: boolean = false;
+  isSpeakingWhileMuted = false;
   popperTrigger = NgxPopperjsTriggers.click;
   private subscriptions: Subscription[] = [];
   private activeCallMeta!: CallMeta.Call;
@@ -55,6 +57,15 @@ export class CallControlsComponent implements OnInit, OnDestroy {
       this.deviceManager.screenShareState$.subscribe(
         (s) => (this.screenShareState = s),
       ),
+    );
+    this.subscriptions.push(
+      combineLatest([
+        this.deviceManager.audioState$,
+        this.deviceManager.isSpeaking$,
+      ]).subscribe(([audioState, isSpeaking]) => {
+        this.isSpeakingWhileMuted =
+          audioState === 'detecting-speech-while-muted' && isSpeaking;
+      }),
     );
   }
 
