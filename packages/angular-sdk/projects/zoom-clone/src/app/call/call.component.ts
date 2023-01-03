@@ -10,7 +10,7 @@ import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { combineLatest, Observable, Subscription } from 'rxjs';
+import { combineLatest, map, Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-call',
@@ -21,6 +21,8 @@ export class CallComponent implements OnInit, OnDestroy {
   call: Call | undefined;
   remoteParticipants$: Observable<StreamVideoParticipant[]>;
   localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
+  hasScreenshare$: Observable<boolean>;
+  screenSharingParticipant$: Observable<StreamVideoParticipant | undefined>;
   TrackType = SfuModels.TrackType;
   isLocalParticipantCallOwner = false;
   private subscriptions: Subscription[] = [];
@@ -54,6 +56,14 @@ export class CallComponent implements OnInit, OnDestroy {
           user?.id === acceptedCall.senderUserId
         );
       }),
+    );
+    this.hasScreenshare$ = this.streamVideoService.hasOngoingScreenShare$;
+    this.screenSharingParticipant$ = this.streamVideoService.participants$.pipe(
+      map((participants) =>
+        participants.find((p) =>
+          p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
+        ),
+      ),
     );
   }
 

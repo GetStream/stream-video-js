@@ -11,6 +11,13 @@
       [fontIcon]="videoState === 'on' ? 'videocam' : 'videocam_off'"
     ></mat-icon>
   </button>
+  <button *ngIf="(inCall$ | async) === true" mat-icon-button>
+    <mat-icon
+      [color]="screenShareState === 'on' ? 'primary' : 'none'"
+      (click)="toggleScreenShare()"
+      fontIcon="desktop_windows"
+    ></mat-icon>
+  </button>
   <button mat-icon-button>
     <mat-icon fontIcon="settings" [matMenuTriggerFor]="menu"></mat-icon>
   </button>

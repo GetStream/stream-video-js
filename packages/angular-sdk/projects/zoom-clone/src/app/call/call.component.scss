@@ -34,9 +34,25 @@
       left: 0;
     }
 
-    &.multiple {
+    &.multiple:not(.screenshare) {
       display: grid;
       grid-template-columns: repeat(auto-fit, 50%);
+    }
+
+    &.multiple.screenshare {
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+
+      .remote-participants {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin: 16px 0;
+        align-items: center;
+        justify-content: center;
+        min-width: 300px;
+      }
     }
   }
 
