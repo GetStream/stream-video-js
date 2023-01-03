@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import {
+  AudioMediaStreamState,
   DeviceManagerService,
   MediaStreamState,
 } from '@stream-io/video-angular-sdk';
@@ -12,7 +13,7 @@ import {
 })
 export class DeviceControlComponent implements OnInit, OnDestroy {
   videoState?: MediaStreamState;
-  audioState?: MediaStreamState;
+  audioState?: AudioMediaStreamState;
   audioDevices$: Observable<MediaDeviceInfo[]>;
   videoDevices$: Observable<MediaDeviceInfo[]>;
   audioOutputDevices$: Observable<MediaDeviceInfo[]>;

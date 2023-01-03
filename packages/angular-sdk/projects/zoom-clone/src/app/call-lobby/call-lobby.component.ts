@@ -9,6 +9,7 @@ import {
   StreamVideoService,
   DeviceManagerService,
   MediaStreamState,
+  AudioMediaStreamState,
 } from '@stream-io/video-angular-sdk';
 import { Subscription } from 'rxjs';
 import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
@@ -25,7 +26,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   videoState?: MediaStreamState;
   videoErrorMessage?: string;
   audioStream?: MediaStream;
-  audioState?: MediaStreamState;
+  audioState?: AudioMediaStreamState;
   audioErrorMessage?: string;
   isSpeaking = false;
   joinOrCreate: 'join' | 'create' = 'create';
