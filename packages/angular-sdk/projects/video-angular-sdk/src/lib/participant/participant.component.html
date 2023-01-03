@@ -26,6 +26,11 @@
       <span class="str-video__participant_name">
         {{ participant?.userId }}
         <span
+          *ngIf="participant?.isDominantSpeaker"
+          class="str-video__participant_name--dominant_speaker"
+          title="Dominant speaker"
+        ></span>
+        <span
           *ngIf="!participant?.publishedTracks?.includes(TrackType.AUDIO)"
           class="str-video__participant_name--audio-muted"
         >
