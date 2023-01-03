@@ -31,6 +31,12 @@
           title="Dominant speaker"
         ></span>
         <span
+          class="str-video__participant__connection-quality str-video__participant__connection-quality--{{
+            connectionQuality
+          }}"
+          title="{{ connectionQuality }}"
+        ></span>
+        <span
           *ngIf="!participant?.publishedTracks?.includes(TrackType.AUDIO)"
           class="str-video__participant_name--audio-muted"
         >

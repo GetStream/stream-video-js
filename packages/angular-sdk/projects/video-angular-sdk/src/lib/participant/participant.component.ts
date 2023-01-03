@@ -29,6 +29,7 @@ export class ParticipantComponent
   @Input() participant?: StreamVideoParticipant;
   call?: Call;
   isProfileImageError = false;
+  connectionQuality?: string;
   @ViewChild('video')
   private videoElement!: ElementRef<HTMLElement>;
   @ViewChild('audio')
@@ -53,7 +54,16 @@ export class ParticipantComponent
     ) {
       this.registerResizeObserver();
     }
-    if (changes['participant']) {
+    if (changes['participant'] && this.participant) {
+      this.connectionQuality = String(
+        SfuModels.ConnectionQuality[this.participant.connectionQuality],
+      ).toLowerCase();
+    }
+    if (
+      changes['participant'] &&
+      changes['participant']?.previousValue?.sessionId !==
+        changes['participant']?.currentValue?.sessionId
+    ) {
       this.isProfileImageError = false;
     }
   }
