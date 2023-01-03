@@ -12,6 +12,7 @@
   <div class="str-video__video-container">
     <video
       #video
+      *ngIf="isPublishingTrack; else noVideo"
       [srcObject]="
         kind === 'video'
           ? participant?.videoStream
@@ -24,6 +25,17 @@
     <div *ngIf="kind === 'video'" class="str-video__participant_details">
       <span class="str-video__participant_name">
         {{ participant?.userId }}
+        <span
+          *ngIf="participant?.isDominantSpeaker"
+          class="str-video__participant_name--dominant_speaker"
+          title="Dominant speaker"
+        ></span>
+        <span
+          class="str-video__participant__connection-quality str-video__participant__connection-quality--{{
+            connectionQuality
+          }}"
+          title="{{ connectionQuality }}"
+        ></span>
         <span
           *ngIf="!participant?.publishedTracks?.includes(TrackType.AUDIO)"
           class="str-video__participant_name--audio-muted"
@@ -38,3 +50,31 @@
     </div>
   </div>
 </div>
+
+<ng-template #noVideo>
+  <div class="str-video__participant-placeholder">
+    <div
+      *ngIf="
+        !participant?.user?.imageUrl || isProfileImageError;
+        else profileImage
+      "
+      class="str-video__placeholder--initials-fallback"
+    >
+      <h2>{{ participant?.user?.name?.at(0) }}</h2>
+    </div>
+    <ng-template #profileImage>
+      <img
+        (error)="isProfileImageError = true"
+        alt="participant-placeholder"
+        class="str-video__participant-placeholder--avatar"
+        [src]="participant?.user?.imageUrl"
+      />
+      <div class="str-video__participant-placeholder--backdrop"></div>
+      <img
+        alt="participant-placeholder-background"
+        class="str-video__participant-placeholder--avatar-background"
+        [src]="participant?.user?.imageUrl"
+      />
+    </ng-template>
+  </div>
+</ng-template>

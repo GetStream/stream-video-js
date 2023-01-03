@@ -43,6 +43,13 @@ export class InCallDeviceManagerService {
                   .subscribe((stream) => call.publishAudioStream(stream!));
               } else {
                 call.stopPublish(SfuModels.TrackType.AUDIO);
+                if (s === 'off') {
+                  let audioDevice: string | undefined;
+                  this.deviceManager.audioDevice$
+                    .pipe(take(1))
+                    .subscribe((d) => (audioDevice = d));
+                  this.deviceManager.startAudio(audioDevice, true);
+                }
               }
             }),
           );

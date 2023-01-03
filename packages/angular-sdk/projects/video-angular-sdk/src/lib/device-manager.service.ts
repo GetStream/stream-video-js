@@ -29,6 +29,13 @@ export type ScreenShareState = 'loading' | 'on' | 'off' | 'error' | 'initial';
 export type MediaStreamState = ScreenShareState | 'disconnected';
 
 /**
+ * `detecting-speech-while-muted` means the audio is turned off by the user (audio stream is not transmitted in a call), but we have a local audio stream started in order to detect speech while muted
+ */
+export type AudioMediaStreamState =
+  | MediaStreamState
+  | 'detecting-speech-while-muted';
+
+/**
  * This service can be used to list devices (audio input, video input and audio output), start/stop media streams (including screenshare) and switch between devices
  */
 @Injectable({
@@ -81,7 +88,7 @@ export class DeviceManagerService {
   /**
    * Provides detailed information about the audio stream, you can use this stream to visually display the state on the UI
    */
-  audioState$: Observable<MediaStreamState>;
+  audioState$: Observable<AudioMediaStreamState>;
   /**
    * If `audioState$` is `error` this stream emits the error message, so additional explanation can be provided to users
    */
@@ -91,7 +98,7 @@ export class DeviceManagerService {
    */
   audioStream$: Observable<MediaStream | undefined>;
   /**
-   * `true` if there is an audio stream turned on, and detected audio levels suggest that the user is currently speaking
+   * `true` if `audioState$` is `on` or `detecting-speech-while-muted`, and detected audio levels suggest that the user is currently speaking
    */
   isSpeaking$: Observable<boolean>;
   /**
@@ -113,7 +120,9 @@ export class DeviceManagerService {
   private videoStreamSubject = new BehaviorSubject<MediaStream | undefined>(
     undefined,
   );
-  private audioStateSubject = new BehaviorSubject<MediaStreamState>('initial');
+  private audioStateSubject = new BehaviorSubject<AudioMediaStreamState>(
+    'initial',
+  );
   private audioErrorMessageSubject = new BehaviorSubject<string | undefined>(
     undefined,
   );
@@ -249,6 +258,8 @@ export class DeviceManagerService {
       this.startAudio();
     } else if (this.audioState === 'on') {
       this.stopAudio();
+    } else if (this.audioState === 'detecting-speech-while-muted') {
+      this.audioStateSubject.next('on');
     }
   }
 
@@ -294,7 +305,12 @@ export class DeviceManagerService {
     this.videoStateSubject.next('off');
   }
 
-  startAudio(deviceId?: string) {
+  /**
+   *
+   * @param deviceId
+   * @param isSilent if `true` `audioState$` will be `detecting-speech-while-muted` instead of `on` after stream is started
+   */
+  startAudio(deviceId?: string, isSilent = false) {
     this.audioStateSubject.next('loading');
     getAudioStream(deviceId)
       .then((audioStream) => {
@@ -309,7 +325,9 @@ export class DeviceManagerService {
             }
           });
         });
-        this.audioStateSubject.next('on');
+        this.audioStateSubject.next(
+          isSilent ? 'detecting-speech-while-muted' : 'on',
+        );
       })
       .catch((err) => {
         if (err.code === 0) {

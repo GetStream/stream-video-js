@@ -1,3 +1,6 @@
+<div *ngIf="isSpeakingWhileMuted" class="str-video__notification">
+  You are muted. Unmute to speak.
+</div>
 <div class="str-video__call-controls">
   <button
     *ngIf="call"
@@ -10,15 +13,17 @@
     }"
     (click)="toggleRecording()"
   ></button>
-  <popper-content #statistics>
-    <stream-call-statistics></stream-call-statistics>
-  </popper-content>
-  <button
-    *ngIf="call"
-    class="str-video__call-controls__button str-video__call-controls__button--icon-stats"
-    [popper]="statistics"
-    [popperTrigger]="popperTrigger"
-  ></button>
+  <div>
+    <popper-content #statistics>
+      <stream-call-statistics></stream-call-statistics>
+    </popper-content>
+    <button
+      *ngIf="call"
+      class="str-video__call-controls__button str-video__call-controls__button--icon-stats"
+      [popper]="statistics"
+      [popperTrigger]="popperTrigger"
+    ></button>
+  </div>
   <button
     class="str-video__call-controls__button"
     [ngClass]="{
