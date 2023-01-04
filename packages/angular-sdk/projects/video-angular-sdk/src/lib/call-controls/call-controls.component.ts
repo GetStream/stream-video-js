@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Call, SfuModels, CallMeta } from '@stream-io/video-client';
+import { Call, SfuModels } from '@stream-io/video-client';
 import { NgxPopperjsTriggers } from 'ngx-popperjs';
 import { combineLatest, Subscription } from 'rxjs';
 import {
@@ -24,7 +24,6 @@ export class CallControlsComponent implements OnInit, OnDestroy {
   isSpeakingWhileMuted = false;
   popperTrigger = NgxPopperjsTriggers.click;
   private subscriptions: Subscription[] = [];
-  private activeCallMeta!: CallMeta.Call;
 
   TrackType = SfuModels.TrackType;
 
@@ -39,13 +38,6 @@ export class CallControlsComponent implements OnInit, OnDestroy {
     );
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe((c) => (this.call = c)),
-    );
-    this.subscriptions.push(
-      this.streamVideoService.acceptedCall$.subscribe((acceptedCall) => {
-        if (acceptedCall && acceptedCall.call) {
-          this.activeCallMeta = acceptedCall.call;
-        }
-      }),
     );
     this.subscriptions.push(
       this.deviceManager.videoState$.subscribe((s) => (this.videoState = s)),
@@ -90,12 +82,12 @@ export class CallControlsComponent implements OnInit, OnDestroy {
   toggleRecording() {
     this.isCallRecordingInProgress
       ? this.streamVideoService.videoClient?.stopRecording(
-          this.activeCallMeta.id,
-          this.activeCallMeta.type,
+          this.call!.data.call!.id,
+          this.call!.data.call!.type,
         )
       : this.streamVideoService.videoClient?.startRecording(
-          this.activeCallMeta.id,
-          this.activeCallMeta.type,
+          this.call!.data.call!.id,
+          this.call!.data.call!.type,
         );
   }
 

@@ -8,7 +8,6 @@ import {
 } from '@stream-io/video-angular-sdk';
 import {
   Call,
-  CallMeta,
   SfuModels,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
@@ -29,7 +28,6 @@ export class CallComponent implements OnInit, OnDestroy {
   TrackType = SfuModels.TrackType;
   isLocalParticipantCallOwner = false;
   isCallRecordingInProgress = false;
-  activeCallMeta?: CallMeta.Call;
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -55,12 +53,12 @@ export class CallComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       combineLatest([
         this.streamVideoService.user$,
-        this.streamVideoService.acceptedCall$,
-      ]).subscribe(([user, acceptedCall]) => {
+        this.streamVideoService.activeCall$,
+      ]).subscribe(([user, activeCall]) => {
         this.isLocalParticipantCallOwner = !!(
           user &&
-          acceptedCall &&
-          user?.id === acceptedCall.senderUserId
+          activeCall &&
+          user?.id === activeCall.data.call!.createdByUserId
         );
       }),
     );
@@ -104,12 +102,12 @@ export class CallComponent implements OnInit, OnDestroy {
   toggleRecording() {
     this.isCallRecordingInProgress
       ? this.streamVideoService.videoClient?.stopRecording(
-          this.activeCallMeta!.id,
-          this.activeCallMeta!.type,
+          this.call!.data.call!.id,
+          this.call!.data.call!.type,
         )
       : this.streamVideoService.videoClient?.startRecording(
-          this.activeCallMeta!.id,
-          this.activeCallMeta!.type,
+          this.call!.data.call!.id,
+          this.call!.data.call!.type,
         );
   }
 
