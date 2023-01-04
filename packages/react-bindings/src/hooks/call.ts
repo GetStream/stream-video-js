@@ -20,6 +20,13 @@ export const useHasOngoingScreenShare = () => {
 
 /**
  * Utility hook which provides the latest stats report of the current call.
+ *
+ * The latest stats report of the current call.
+ * When stats gathering is enabled, this observable will emit a new value
+ * at a regular (configurable) interval.
+ *
+ * Consumers of this observable can implement their own batching logic
+ * in case they want to show historical stats data.
  */
 export const useCurrentCallStatsReport = () => {
   const { callStatsReport$ } = useStore();
@@ -36,6 +43,7 @@ export const useDominantSpeaker = () => {
 
 /**
  * Utility hook which provides controller for the currently active call and active call's metadata.
+ * `activeCall$` will be set after calling [`join` on a `Call` instance](./Call.md/#join) and cleared after calling [`leave`](./Call.md/#leave).
  */
 export const useActiveCall = () => {
   const { activeCall$ } = useStore();

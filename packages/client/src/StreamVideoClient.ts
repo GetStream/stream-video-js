@@ -51,11 +51,11 @@ const defaultOptions: Partial<StreamVideoClientOptions> = {
 };
 
 /**
- * A `StreamVideoClient` instance lets you communicate with our API, and sign in with the current user.
+ * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
  */
 export class StreamVideoClient {
   /**
-   * A reactive store that exposes the state variables in a reactive manner - you can subscribe to changes of the different state variables.
+   * A reactive store that exposes all the state variables in a reactive manner - you can subscribe to changes of the different state variables. Our library is built in a way that all state changes are exposed in this store, so all UI changes in your application should be handled by subscribing to these variables.
    * @angular If you're using our Angular SDK, you shouldn't be interacting with the state store directly, instead, you should be using the [`StreamVideoService`](./StreamVideoService.md).
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
@@ -63,10 +63,13 @@ export class StreamVideoClient {
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWebSocketClient | undefined;
+  /**
+   * @internal
+   */
   public readonly userBatcher: Batcher<string>;
   /**
    * You should create only one instance of `StreamVideoClient`.
-   * @angular If you're using our Angular SDK, you shouldn't be calling the `constructor` directly, instead you should be using [`StreamVideoClient` service](./StreamVideoClient.md).
+   * @angular If you're using our Angular SDK, you shouldn't be calling the `constructor` directly, instead you should be using [`StreamVideoService`](./StreamVideoService.md/#init).
    * @param apiKey your Stream API key
    * @param opts
    */
@@ -134,7 +137,7 @@ export class StreamVideoClient {
   /**
    * Connects the given user to the client.
    * Only one user can connect at a time, if you want to change users, call `disconnect` before connecting a new user.
-   * If the connection is successful, the connected user state variable will be updated accordingly.
+   * If the connection is successful, the connected user [state variable](#readonlystatestore) will be updated accordingly.
    * @param apiKey
    * @param token
    * @param user
@@ -160,7 +163,7 @@ export class StreamVideoClient {
   /**
    * Disconnects the currently connected user from the client.
    *
-   * If the connection is successfully disconnected, the connected user state variable will be updated accordingly
+   * If the connection is successfully disconnected, the connected user [state variable](#readonlystatestore) will be updated accordingly
    * @returns
    */
   disconnect = async () => {
@@ -175,7 +178,7 @@ export class StreamVideoClient {
 
   /**
    * You can subscribe to WebSocket events provided by the API. To remove a subscription, call the `off` method.
-   * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the reactive state store.
+   * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the reactive [state store](#readonlystatestore).
    * @param event
    * @param fn
    * @returns
@@ -194,7 +197,7 @@ export class StreamVideoClient {
     return this.ws?.off(event, fn);
   };
 
-  registerWSEventHandlers = () => {
+  private registerWSEventHandlers = () => {
     this.on('callCreated', this.onCallCreated);
     this.on('callAccepted', this.onCallAccepted);
     this.on('callRejected', this.onCallRejected);
@@ -249,7 +252,7 @@ export class StreamVideoClient {
    * @param event received CallCreated Websocket event
    * @returns
    */
-  onCallCreated = (event: CallCreated) => {
+  private onCallCreated = (event: CallCreated) => {
     const { call } = event;
     if (!call) {
       console.warn("Can't find call in CallCreated event");
@@ -272,7 +275,7 @@ export class StreamVideoClient {
 
   /**
    * Signals other users that I have accepted the incoming call.
-   * Causes the CallAccepted event to be emitted to all the call members.
+   * Causes the `CallAccepted` event to be emitted to all the call members.
    * @param callCid config ID of the rejected call
    * @returns
    */
@@ -294,7 +297,7 @@ export class StreamVideoClient {
    * @param event received CallAccepted Websocket event
    * @returns
    */
-  onCallAccepted = (event: CallAccepted) => {
+  private onCallAccepted = (event: CallAccepted) => {
     const { call } = event;
     if (!call) {
       console.warn("Can't find call in CallAccepted event");
@@ -304,7 +307,7 @@ export class StreamVideoClient {
 
   /**
    * Signals other users that I have rejected the incoming call.
-   * Causes the CallRejected event to be emitted to all the call members.
+   * Causes the `CallRejected` event to be emitted to all the call members.
    * @param callCid config ID of the rejected call
    * @returns
    */
@@ -329,7 +332,7 @@ export class StreamVideoClient {
    * @param event received CallRejected Websocket event
    * @returns
    */
-  onCallRejected = (event: CallRejected) => {
+  private onCallRejected = (event: CallRejected) => {
     const { call } = event;
     if (!call) {
       console.warn("Can't find call in CallRejected event");
@@ -403,7 +406,7 @@ export class StreamVideoClient {
    * @param event received CallCancelled Websocket event
    * @returns
    */
-  onCallCancelled = (event: CallCancelled) => {
+  private onCallCancelled = (event: CallCancelled) => {
     const { call } = event;
     if (!call) {
       console.log("Can't find call in CallCancelled event");
@@ -475,6 +478,11 @@ export class StreamVideoClient {
     }
   };
 
+  /**
+   * Starts recording for the call described by the given `callId` and `callType`.
+   * @param callId you can extract the `callId` from a [`Call` instance](./Call.md/#data)
+   * @param callType you can extract the `callType` from a [`Call` instance](./Call.md/#data)
+   */
   startRecording = async (callId: string, callType: string) => {
     await this.client.startRecording({
       callId,
@@ -487,6 +495,11 @@ export class StreamVideoClient {
     );
   };
 
+  /**
+   * Stops recording for the call described by the given `callId` and `callType`.
+   * @param callId you can extract the `callId` from a [`Call` instance](./Call.md/#data)
+   * @param callType you can extract the `callType` from a [`Call` instance](./Call.md/#data)
+   */
   stopRecording = async (callId: string, callType: string) => {
     await this.client.stopRecording({
       callId,
@@ -586,7 +599,7 @@ export class StreamVideoClient {
   };
 
   /**
-   * Sets the participant.isPinned value.
+   * Sets the `participant.isPinned` value.
    * @param sessionId the session id of the participant
    * @param isPinned the value to set the participant.isPinned
    * @returns
