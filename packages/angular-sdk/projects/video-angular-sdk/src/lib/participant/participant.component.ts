@@ -46,25 +46,36 @@ export class ParticipantComponent
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (
-      changes['participant']?.previousValue?.isLoggedInUser &&
-      !changes['participant']?.currentValue?.isLoggedInUser &&
-      this.isViewInited &&
-      this.isPublishingTrack
-    ) {
-      this.registerResizeObserver();
-    }
-    if (changes['participant'] && this.participant) {
-      this.connectionQuality = String(
-        SfuModels.ConnectionQuality[this.participant.connectionQuality],
-      ).toLowerCase();
-    }
+    console.warn(
+      changes['participant']?.previousValue?.sessionId,
+      changes['participant']?.currentValue?.sessionId,
+    );
     if (
       changes['participant'] &&
       changes['participant']?.previousValue?.sessionId !==
         changes['participant']?.currentValue?.sessionId
     ) {
       this.isProfileImageError = false;
+      this.resizeObserver?.disconnect();
+      this.resizeObserver = undefined;
+    }
+    if (
+      (changes['participant']?.previousValue?.sessionId !==
+        changes['participant']?.currentValue?.sessionId ||
+        !this.resizeObserver) &&
+      !changes['participant']?.currentValue?.isLoggedInUser &&
+      this.isViewInited &&
+      this.isPublishingTrack
+    ) {
+      // Wait for video element to appear in DOM
+      setTimeout(() => {
+        this.registerResizeObserver();
+      }, 0);
+    }
+    if (changes['participant'] && this.participant) {
+      this.connectionQuality = String(
+        SfuModels.ConnectionQuality[this.participant.connectionQuality],
+      ).toLowerCase();
     }
   }
 

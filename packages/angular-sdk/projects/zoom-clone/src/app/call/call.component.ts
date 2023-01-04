@@ -78,7 +78,6 @@ export class CallComponent implements OnInit, OnDestroy {
         this.deviceManager.audioState$,
         this.deviceManager.isSpeaking$,
       ]).subscribe(([audioState, isSpeaking]) => {
-        console.warn(audioState, isSpeaking);
         const isSpeakingWhileMuted =
           audioState === 'detecting-speech-while-muted' && isSpeaking;
         if (isSpeakingWhileMuted) {
