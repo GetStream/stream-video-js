@@ -8,6 +8,7 @@ import {
 } from '@stream-io/video-angular-sdk';
 import {
   Call,
+  CallMeta,
   SfuModels,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
@@ -27,6 +28,8 @@ export class CallComponent implements OnInit, OnDestroy {
   screenSharingParticipant$: Observable<StreamVideoParticipant | undefined>;
   TrackType = SfuModels.TrackType;
   isLocalParticipantCallOwner = false;
+  isCallRecordingInProgress = false;
+  activeCallMeta?: CallMeta.Call;
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -87,11 +90,28 @@ export class CallComponent implements OnInit, OnDestroy {
         }
       }),
     );
+    this.subscriptions.push(
+      this.streamVideoService.callRecordingInProgress$.subscribe(
+        (inProgress) => (this.isCallRecordingInProgress = inProgress),
+      ),
+    );
   }
 
   endCall() {
     this.call?.leave();
     this.router.navigateByUrl('/call-lobby');
+  }
+
+  toggleRecording() {
+    this.isCallRecordingInProgress
+      ? this.streamVideoService.videoClient?.stopRecording(
+          this.activeCallMeta!.id,
+          this.activeCallMeta!.type,
+        )
+      : this.streamVideoService.videoClient?.startRecording(
+          this.activeCallMeta!.id,
+          this.activeCallMeta!.type,
+        );
   }
 
   ngOnInit(): void {}

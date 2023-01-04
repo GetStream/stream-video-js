@@ -44,7 +44,16 @@
     </div>
   </ng-template>
   <div class="toolbar">
-    <app-device-control></app-device-control>
+    <div class="left-side">
+      <app-device-control></app-device-control>
+      <button
+        mat-icon-button
+        [color]="isCallRecordingInProgress ? 'warn' : 'none'"
+        (click)="toggleRecording()"
+      >
+        <mat-icon fontIcon="radio_button_checked"></mat-icon>
+      </button>
+    </div>
     <div>
       <button mat-icon-button *ngIf="isLocalParticipantCallOwner">
         <mat-icon fontIcon="group" [matMenuTriggerFor]="menu"></mat-icon>
