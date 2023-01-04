@@ -1,8 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import {
   StreamVideoService,
   InCallDeviceManagerService,
+  DeviceManagerService,
 } from '@stream-io/video-angular-sdk';
 import {
   Call,
@@ -31,6 +33,8 @@ export class CallComponent implements OnInit, OnDestroy {
     private streamVideoService: StreamVideoService,
     private router: Router,
     private inCallDeviceManager: InCallDeviceManagerService,
+    private snackBar: MatSnackBar,
+    private deviceManager: DeviceManagerService,
   ) {
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe((c) => {
@@ -64,6 +68,24 @@ export class CallComponent implements OnInit, OnDestroy {
           p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
         ),
       ),
+    );
+    let snackBarRef: MatSnackBarRef<any>;
+    this.subscriptions.push(
+      combineLatest([
+        this.deviceManager.audioState$,
+        this.deviceManager.isSpeaking$,
+      ]).subscribe(([audioState, isSpeaking]) => {
+        console.warn(audioState, isSpeaking);
+        const isSpeakingWhileMuted =
+          audioState === 'detecting-speech-while-muted' && isSpeaking;
+        if (isSpeakingWhileMuted) {
+          snackBarRef = this.snackBar.open(
+            `You're muted, unmute yourself to speak.`,
+          );
+        } else if (snackBarRef) {
+          snackBarRef.dismiss();
+        }
+      }),
     );
   }
 
