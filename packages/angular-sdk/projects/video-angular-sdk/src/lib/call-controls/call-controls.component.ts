@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Call, SfuModels, CallMeta } from '@stream-io/video-client';
+import { Call, SfuModels } from '@stream-io/video-client';
 import { NgxPopperjsTriggers } from 'ngx-popperjs';
 import { combineLatest, Subscription } from 'rxjs';
 import {

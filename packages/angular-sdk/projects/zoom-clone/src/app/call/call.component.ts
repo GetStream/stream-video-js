@@ -8,7 +8,6 @@ import {
 } from '@stream-io/video-angular-sdk';
 import {
   Call,
-  CallMeta,
   SfuModels,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
