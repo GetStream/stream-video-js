@@ -46,10 +46,6 @@ export class ParticipantComponent
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.warn(
-      changes['participant']?.previousValue?.sessionId,
-      changes['participant']?.currentValue?.sessionId,
-    );
     if (
       changes['participant'] &&
       changes['participant']?.previousValue?.sessionId !==

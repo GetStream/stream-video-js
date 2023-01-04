@@ -32,9 +32,6 @@ export class AppComponent implements OnInit, OnDestroy {
         return (this.activeCall = c);
       }),
     );
-    this.subscriptions.push(
-      this.videoService.acceptedCall$.subscribe((c) => console.log(c)),
-    );
   }
 
   async ngOnInit() {
