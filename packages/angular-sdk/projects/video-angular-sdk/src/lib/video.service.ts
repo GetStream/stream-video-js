@@ -14,7 +14,7 @@ import { Observable, ReplaySubject, Subscription } from 'rxjs';
 /**
  * The `StreamVideoService` is an Angular service that is responsible for the followings:
  * 1. it lets you create a [StreamVideoClient](StreamVideoClient.md) instance to interact with our API
- * 2. you can subscribe to state changes using the [`RxJS Observables`](https://rxjs.dev/guide/observable) defined on this class.
+ * 2. you can subscribe to state changes using the [`RxJS Observables`](https://rxjs.dev/guide/observable) defined in this class. Our library is built in a way that all state changes are exposed in this store, so all UI changes in your application should be handled by subscribing to these variables.
  */
 @Injectable({
   providedIn: 'root',
@@ -25,7 +25,9 @@ export class StreamVideoService {
    */
   user$: Observable<UserInput | undefined>;
   /**
-   * The call the current user participates in.
+   * The call controller instance representing the call the user attends.
+   * The controller instance exposes call metadata as well.
+   * `activeCall$` will be set after calling [`join` on a `Call` instance](./Call.md/#join) and cleared after calling [`leave`](./Call.md/#leave).
    */
   activeCall$: Observable<Call | undefined>;
   /**
@@ -56,7 +58,12 @@ export class StreamVideoService {
    */
   callRecordingInProgress$: Observable<boolean>;
   /**
-   * Periodically emits statistics about the active call
+   * The latest stats report of the current call.
+   * When stats gathering is enabled, this observable will emit a new value
+   * at a regular (configurable) interval.
+   *
+   * Consumers of this observable can implement their own batching logic
+   * in case they want to show historical stats data.
    */
   callStatsReport$: Observable<CallStatsReport | undefined>;
   /**

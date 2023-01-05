@@ -263,6 +263,7 @@ export class StreamVideoReadOnlyStateStore {
   /**
    * The call controller instance representing the call the user attends.
    * The controller instance exposes call metadata as well.
+   * `activeCall$` will be set after calling [`join` on a `Call` instance](./Call.md/#join) and cleared after calling [`leave`](./Call.md/#leave).
    */
   activeCall$: Observable<CallController | undefined>;
   /**

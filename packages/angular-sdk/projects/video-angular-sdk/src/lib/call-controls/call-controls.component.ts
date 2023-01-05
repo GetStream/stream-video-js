@@ -2,12 +2,12 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Call, SfuModels } from '@stream-io/video-client';
 import { NgxPopperjsTriggers } from 'ngx-popperjs';
 import { combineLatest, Subscription } from 'rxjs';
+import { DeviceManagerService } from '../device-manager.service';
 import {
   AudioMediaStreamState,
-  DeviceManagerService,
   MediaStreamState,
   ScreenShareState,
-} from '../device-manager.service';
+} from '../types';
 import { StreamVideoService } from '../video.service';
 
 @Component({
