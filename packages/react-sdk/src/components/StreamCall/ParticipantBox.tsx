@@ -4,11 +4,13 @@ import {
   Call,
   SfuModels,
   StreamVideoParticipant,
+  VisibilityState,
 } from '@stream-io/video-client';
 import { useIsDebugMode } from '../Debug/useIsDebugMode';
 import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../Debug/DebugStatsView';
 import { Video } from './Video';
+import { VideoPlaceholder } from './VideoPlaceholder';
 import { Notification } from './Notification';
 
 export const ParticipantBox = (props: {
@@ -27,6 +29,7 @@ export const ParticipantBox = (props: {
     isSpeaking,
     publishedTracks,
     connectionQuality,
+    viewportVisibilityState,
   } = participant;
 
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
@@ -59,19 +62,27 @@ export const ParticipantBox = (props: {
         isSpeaking && 'str-video__participant--speaking',
       )}
     >
-      <audio autoPlay ref={audioRef} muted={isMuted} />
+      {hasAudio && <audio autoPlay ref={audioRef} muted={isMuted} />}
       <div className="str-video__video-container">
-        <Video
-          call={call}
-          participant={participant}
-          kind="video"
-          className={clsx(
-            'str-video__remote-video',
-            isLocalParticipant && 'mirror',
-          )}
-          muted={isMuted}
-          autoPlay
-        />
+        {!hasVideo || viewportVisibilityState === VisibilityState.INVISIBLE ? (
+          <VideoPlaceholder
+            call={call}
+            sessionId={participant.sessionId}
+            userId={participant.userId}
+            imageSrc={participant.user?.imageUrl}
+          />
+        ) : (
+          <Video
+            call={call}
+            participant={participant}
+            kind="video"
+            className={clsx(
+              'str-video__remote-video',
+              isLocalParticipant && 'mirror',
+            )}
+            muted={isMuted}
+          />
+        )}
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
             {participant.userId}

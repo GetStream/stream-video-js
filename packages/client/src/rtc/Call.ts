@@ -3,10 +3,19 @@ import { createSubscriber } from './subscriber';
 import { createPublisher } from './publisher';
 import { findOptimalVideoLayers } from './videoLayers';
 import { getGenericSdp, getPreferredCodecs } from './codecs';
-import { CallState, TrackType } from '../gen/video/sfu/models/models';
+import {
+  CallState,
+  TrackType,
+  VideoDimension,
+} from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuEventListener } from './Dispatcher';
 import { StreamVideoWriteableStateStore } from '../stateStore';
+import {
+  TrackedObject,
+  ViewportTracker,
+  VisibilityState,
+} from '../helpers/ViewportTracker';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import type {
   CallOptions,
@@ -38,6 +47,7 @@ export class Call {
     TrackSubscriptionDetails[]
   >();
 
+  viewportTracker: ViewportTracker;
   private statsReporter: StatsReporter;
   private joinResponseReady?: Promise<CallState | undefined>;
   private transceiverMapping: {
@@ -50,6 +60,7 @@ export class Call {
    * @param data
    * @param options
    * @param stateStore
+   * @param userBatcher
    */
   constructor(
     data: CallEnvelope,
@@ -87,6 +98,10 @@ export class Call {
       .subscribe((subscriptions) =>
         this.client.updateSubscriptions(subscriptions),
       );
+
+    this.viewportTracker = new ViewportTracker(
+      this.handleOnObjectViewportVisibleStateChange,
+    );
   }
 
   /**
@@ -550,16 +565,48 @@ export class Call {
     }
   };
 
-  private get participants() {
-    return this.stateStore.getCurrentValue(this.stateStore.participantsSubject);
-  }
+  private handleOnObjectViewportVisibleStateChange = (
+    trackedObject: TrackedObject,
+    isVisible: boolean,
+  ) => {
+    const { sessionId, element, trackType } = trackedObject;
+    let dimension: VideoDimension | undefined;
+    if (isVisible) {
+      dimension = {
+        width: element.clientWidth,
+        height: element.clientHeight,
+      };
+    }
+
+    const kind =
+      trackType === TrackType.VIDEO
+        ? 'video'
+        : trackType === TrackType.SCREEN_SHARE
+        ? 'screen'
+        : null;
+    if (!kind) {
+      console.warn('ViewportTracker unknown track kind', trackType);
+      return;
+    }
+    this.updateSubscriptionsPartial(kind, {
+      [sessionId]: {
+        dimension,
+      },
+    });
+
+    this.stateStore.updateParticipant(sessionId, {
+      viewportVisibilityState: isVisible
+        ? VisibilityState.VISIBLE
+        : VisibilityState.INVISIBLE,
+    });
+  };
 
   private handleOnTrack = (e: RTCTrackEvent) => {
     const [primaryStream] = e.streams;
     // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
     const [trackId, trackType] = primaryStream.id.split(':');
     console.log(`Got remote ${trackType} track:`, e.track);
-    const participantToUpdate = this.participants.find(
+    const participantToUpdate = this.stateStore.findParticipant(
       (p) => p.trackLookupPrefix === trackId,
     );
     if (!participantToUpdate) {

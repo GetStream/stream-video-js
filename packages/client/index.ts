@@ -24,4 +24,5 @@ export * from './src/devices';
 export * from './src/store';
 
 export * from './src/helpers/sound-detector';
+export * from './src/helpers/ViewportTracker';
 export * as Browsers from './src/helpers/browsers';

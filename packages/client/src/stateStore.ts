@@ -166,11 +166,19 @@ export class StreamVideoWriteableStateStore {
    * @param sessionId the sessionId of the participant to find.
    * @returns the participant with the given sessionId or undefined if not found.
    */
-  findParticipantBySessionId = (
-    sessionId: string,
-  ): StreamVideoParticipant | undefined => {
+  findParticipantBySessionId = (sessionId: string) => {
+    return this.findParticipant((p) => p.sessionId === sessionId);
+  };
+
+  /**
+   * Will search for a participant which fulfills the given predicate.
+   *
+   * @param predicate the predicate to use.
+   * @returns the participant or {@code undefined}.
+   */
+  findParticipant = (predicate: (p: StreamVideoParticipant) => boolean) => {
     const participants = this.getCurrentValue(this.participantsSubject);
-    return participants.find((p) => p.sessionId === sessionId);
+    return participants.find(predicate);
   };
 
   /**

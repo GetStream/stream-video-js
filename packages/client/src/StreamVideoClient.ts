@@ -101,8 +101,14 @@ export class StreamVideoClient {
 
     reportStats(
       this.readOnlyStateStore,
-      (e) => this.reportCallStats(e),
-      (e) => this.reportCallStatEvent(e),
+      (e) =>
+        this.reportCallStats(e).catch((err) => {
+          console.error('Failed to report stats', err);
+        }),
+      (e) =>
+        this.reportCallStatEvent(e).catch((err) => {
+          console.error('Failed to report stats', err);
+        }),
     );
   }
 

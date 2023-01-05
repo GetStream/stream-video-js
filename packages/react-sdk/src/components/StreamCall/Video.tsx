@@ -11,7 +11,6 @@ import {
   SfuModels,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { VideoPlaceholder } from './VideoPlaceholder';
 
 export const Video = (
   props: DetailedHTMLProps<
@@ -27,12 +26,21 @@ export const Video = (
   const { sessionId, videoStream, screenShareStream, publishedTracks } =
     participant;
 
-  const stream = kind === 'video' ? videoStream : screenShareStream;
-  const isPublishingTrack = publishedTracks.includes(
+  const trackType =
     kind === 'video'
       ? SfuModels.TrackType.VIDEO
-      : SfuModels.TrackType.SCREEN_SHARE,
-  );
+      : kind === 'screen'
+      ? SfuModels.TrackType.SCREEN_SHARE
+      : SfuModels.TrackType.UNSPECIFIED;
+
+  const stream =
+    trackType === SfuModels.TrackType.VIDEO
+      ? videoStream
+      : trackType === SfuModels.TrackType.SCREEN_SHARE
+      ? screenShareStream
+      : null;
+
+  const isPublishingTrack = publishedTracks.includes(trackType);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
@@ -96,22 +104,14 @@ export const Video = (
     };
   }, [updateSubscription]);
 
-  if (!isPublishingTrack)
-    return (
-      <VideoPlaceholder
-        imageSrc={participant.user?.imageUrl}
-        userId={participant.userId}
-      />
-    );
+  useEffect(() => {
+    const $trackedElement = videoRef.current;
+    if (!$trackedElement) return;
+    call.viewportTracker.addObject(sessionId, trackType, $trackedElement);
+    return () => {
+      call.viewportTracker.removeObject(sessionId, trackType, $trackedElement);
+    };
+  }, [call, sessionId, trackType]);
 
-  return (
-    <video
-      autoPlay
-      playsInline
-      {...rest}
-      data-user-id={participant.userId}
-      data-session-id={sessionId}
-      ref={videoRef}
-    />
-  );
+  return <video autoPlay playsInline {...rest} ref={videoRef} />;
 };

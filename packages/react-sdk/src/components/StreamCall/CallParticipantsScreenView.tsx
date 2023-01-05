@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Call, SfuModels } from '@stream-io/video-client';
 import {
   useLocalParticipant,
@@ -19,6 +19,15 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
     () =>
       firstScreenSharingParticipant?.sessionId === localParticipant?.sessionId,
   );
+
+  const participantsViewport = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!participantsViewport.current) return;
+    call.viewportTracker.setViewport(participantsViewport.current);
+    return () => {
+      call.viewportTracker.setViewport(undefined);
+    };
+  }, [call]);
 
   return (
     <div className="str-video__call-participants-screen-view">
@@ -62,7 +71,10 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
           </>
         )}
       </div>
-      <div className="str-video__call-participants-screen-view__participants">
+      <div
+        className="str-video__call-participants-screen-view__participants"
+        ref={participantsViewport}
+      >
         {allParticipants.map((participant) => (
           <ParticipantBox
             key={participant.sessionId}

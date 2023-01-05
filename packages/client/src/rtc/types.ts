@@ -3,10 +3,11 @@ import type {
   Participant,
   VideoDimension,
 } from '../gen/video/sfu/models/models';
+import { VisibilityState } from '../helpers/ViewportTracker';
 
 export interface StreamVideoParticipant extends Participant {
   /**
-   * The participant's audio stream, if they are publishing audio and
+   * The participant's audio stream, if they are publishing audio, and
    * we have subscribed to it.
    */
   audioStream?: MediaStream;
@@ -39,6 +40,12 @@ export interface StreamVideoParticipant extends Participant {
    * True if the participant is the local participant.
    */
   isLoggedInUser?: boolean;
+
+  /**
+   * The visibility state of the participant's video element
+   * within the pre-configured viewport.
+   */
+  viewportVisibilityState?: VisibilityState;
 
   /**
    * True when the participant is pinned
