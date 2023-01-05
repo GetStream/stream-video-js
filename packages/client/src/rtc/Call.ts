@@ -40,6 +40,9 @@ export class Call {
 
   private statsReporter: StatsReporter;
   private joinResponseReady?: Promise<CallState | undefined>;
+  private transceiverMapping: {
+    [key in TrackType]: RTCRtpTransceiver | undefined;
+  };
 
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
@@ -62,10 +65,12 @@ export class Call {
       onTrack: this.handleOnTrack,
     });
 
-    this.publisher = createPublisher({
+    const { publisher, transceiverMapping } = createPublisher({
       rpcClient: this.client,
       connectionConfig: this.options.connectionConfig,
     });
+    this.publisher = publisher;
+    this.transceiverMapping = transceiverMapping;
 
     this.statsReporter = createStatsReporter({
       subscriber: this.subscriber,
@@ -212,13 +217,14 @@ export class Call {
     }
 
     const trackType = TrackType.VIDEO;
-    let transceiver = this.publisher.getTransceivers().find(
-      (t) =>
-        // @ts-ignore
-        t.__trackType === trackType &&
-        t.sender.track &&
-        t.sender.track?.kind === 'video',
-    );
+    let transceiver = this.publisher
+      .getTransceivers()
+      .find(
+        (t) =>
+          t === this.transceiverMapping[trackType] &&
+          t.sender.track &&
+          t.sender.track?.kind === 'video',
+      );
     if (!transceiver) {
       const videoEncodings = findOptimalVideoLayers(videoTrack);
       transceiver = this.publisher.addTransceiver(videoTrack, {
@@ -227,8 +233,7 @@ export class Call {
         sendEncodings: videoEncodings,
       });
 
-      // @ts-ignore
-      transceiver.__trackType = trackType;
+      this.transceiverMapping[trackType] = transceiver;
 
       const codecPreferences = getPreferredCodecs(
         'video',
@@ -276,19 +281,19 @@ export class Call {
     }
 
     const trackType = TrackType.AUDIO;
-    let transceiver = this.publisher.getTransceivers().find(
-      (t) =>
-        // @ts-ignore
-        t.__trackType === trackType &&
-        t.sender.track &&
-        t.sender.track.kind === 'audio',
-    );
+    let transceiver = this.publisher
+      .getTransceivers()
+      .find(
+        (t) =>
+          t === this.transceiverMapping[trackType] &&
+          t.sender.track &&
+          t.sender.track.kind === 'audio',
+      );
     if (!transceiver) {
       transceiver = this.publisher.addTransceiver(audioTrack, {
         direction: 'sendonly',
       });
-      // @ts-ignore
-      transceiver.__trackType = trackType;
+      this.transceiverMapping[trackType] = transceiver;
     } else {
       transceiver.sender.track?.stop();
       await transceiver.sender.replaceTrack(audioTrack);
@@ -329,21 +334,21 @@ export class Call {
     screenShareTrack.addEventListener('ended', onTrackEnded);
 
     const trackType = TrackType.SCREEN_SHARE;
-    let transceiver = this.publisher.getTransceivers().find(
-      (t) =>
-        // @ts-ignore
-        t.__trackType === trackType &&
-        t.sender.track &&
-        t.sender.track.kind === 'video',
-    );
+    let transceiver = this.publisher
+      .getTransceivers()
+      .find(
+        (t) =>
+          t === this.transceiverMapping[trackType] &&
+          t.sender.track &&
+          t.sender.track.kind === 'video',
+      );
     if (!transceiver) {
       transceiver = this.publisher.addTransceiver(screenShareTrack, {
         direction: 'sendonly',
         streams: [screenShareStream],
         // sendEncodings
       });
-      // @ts-ignore FIXME: OL: this is a hack
-      transceiver.__trackType = trackType;
+      this.transceiverMapping[trackType] = transceiver;
     } else {
       transceiver.sender.track?.removeEventListener('ended', onTrackEnded);
       transceiver.sender.track?.stop();
@@ -372,11 +377,9 @@ export class Call {
    */
   stopPublish = async (trackType: TrackType) => {
     console.log(`stopPublish`, TrackType[trackType]);
-    const transceiver = this.publisher.getTransceivers().find(
-      (t) =>
-        // @ts-ignore
-        t.__trackType === trackType && t.sender.track,
-    );
+    const transceiver = this.publisher
+      .getTransceivers()
+      .find((t) => t === this.transceiverMapping[trackType] && t.sender.track);
     if (transceiver && transceiver.sender.track) {
       transceiver.sender.track.stop();
       await this.client.updateMuteState(trackType, true);
