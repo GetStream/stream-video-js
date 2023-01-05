@@ -7,7 +7,8 @@
 3. Run `yarn build:all` to build the dependent packages
 4. Move to `cd packages/react-native-dogfood/`
 5. Run `npx pod-install` to install pods (ios only)
-6. Run `yarn ios` and/or `yarn android` to run the app
+6. Follow [this guide](https://www.notion.so/stream-wiki/Video-dogfood-app-8fd4b72b2ac9495eb55872f5a70b5f6d) and setup Sentry error tracking (or: `SENTRY_RN_AUTH_TOKEN=<your-token> ./scripts/create-sentry-properties.sh`)
+8. Run `yarn ios` and/or `yarn android` to run the app
 
 ## Invite links to install app on devices
 
