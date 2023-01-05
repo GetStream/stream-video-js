@@ -1,5 +1,6 @@
 import {
   Component,
+  NgZone,
   OnDestroy,
   OnInit,
   TemplateRef,
@@ -41,6 +42,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private router: Router,
     private activatedRoute: ActivatedRoute,
+    private ngZone: NgZone,
   ) {
     this.deviceManager.initAudioDevices();
     this.deviceManager.initVideoDevices();
@@ -131,10 +133,12 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   }
 
   private async joinCall(callId: string) {
-    const call = await this.streamVideoService.videoClient?.joinCall({
-      id: callId,
-      type: 'default',
-      datacenterId: '',
+    const call = await this.ngZone.runOutsideAngular(() => {
+      return this.streamVideoService.videoClient?.joinCall({
+        id: callId,
+        type: 'default',
+        datacenterId: '',
+      });
     });
     await call?.join();
   }
