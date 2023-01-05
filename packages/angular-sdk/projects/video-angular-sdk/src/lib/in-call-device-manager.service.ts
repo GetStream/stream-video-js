@@ -21,7 +21,7 @@ export class InCallDeviceManagerService {
   ) {}
 
   /**
-   * This method will subscribe to the [`activeCall$` state variable](./StreamVideoService.md/#activecall) and apply the device settings to the current active call
+   * This method will subscribe to the [`activeCall$` state variable](./StreamVideoService.md/#activecall) and apply the device settings to the current active call.
    *
    * The method takes the audio, video and screen share streams and audio output setting from the [`DeviceManagerService`](./DeviceManagerService.md) and forwards them to the active call.
    * If a new call is started, this method will apply the existing device settings to the call.

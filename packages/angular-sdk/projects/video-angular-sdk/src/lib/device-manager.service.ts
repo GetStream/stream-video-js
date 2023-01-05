@@ -20,7 +20,7 @@ import {
 import { BehaviorSubject, map, Observable, ReplaySubject, take } from 'rxjs';
 
 /**
- * This service gives a high-level API for listing devices (audio input, video input and audio output), starting/stopping media streams (including screenshare) and switching between devices.
+ * This service gives a high-level API for listing devices (audio input, video input, and audio output), starting/stopping media streams (including screen share), and switching between devices.
  */
 @Injectable({
   providedIn: 'root',
@@ -49,15 +49,15 @@ export class DeviceManagerService {
    */
   isAudioOutputChangeSupportedByBrowser = checkIfAudioOutputChangeSupported();
   /**
-   * The `deviceId` of the currently selected video input device
+   * The `deviceId` of the currently selected video input device. If the device is disconnected, the value is set to `undefined`.
    */
   videoDevice$: Observable<string | undefined>;
   /**
-   * The `deviceId` of the currently selected audio input device
+   * The `deviceId` of the currently selected audio input device. If the device is disconnected, the value is set to `undefined`.
    */
   audioDevice$: Observable<string | undefined>;
   /**
-   * The `deviceId` of the currently selected audio output device
+   * The `deviceId` of the currently selected audio output device. If the device is disconnected, the value is set to `undefined`.
    */
   audioOutputDevice$: Observable<string | undefined>;
   /**
@@ -89,7 +89,7 @@ export class DeviceManagerService {
    */
   isSpeaking$: Observable<boolean>;
   /**
-   * Provides detailed information about the screenshare stream, you can use this stream to visually display the state on the UI
+   * Provides detailed information about the screen share stream, you can use this stream to visually display the state on the UI
    */
   screenShareState$: Observable<ScreenShareState>;
   /**
@@ -97,7 +97,7 @@ export class DeviceManagerService {
    */
   screenShareErrorMessage$: Observable<string | undefined>;
   /**
-   * The screenshare media stream, you can start and stop it with the [`startScreenShare`](#startscreenshare) and [`stopScreenShare`](#stopscreenshare) methods (or [`toggleScreenShare`](#togglescreenshare))
+   * The screen share media stream, you can start and stop it with the [`startScreenShare`](#startscreenshare) and [`stopScreenShare`](#stopscreenshare) methods (or [`toggleScreenShare`](#togglescreenshare))
    */
   screenShareStream$: Observable<MediaStream | undefined>;
   private videoStateSubject = new BehaviorSubject<MediaStreamState>('initial');
@@ -183,7 +183,7 @@ export class DeviceManagerService {
   }
 
   /**
-   * Requests permission to use audio devices and intializes the [`audioDevices$`](#audiodevices) list
+   * Requests permission to use audio devices and initializes the [`audioDevices$`](#audiodevices) list
    */
   initAudioDevices() {
     getAudioDevices().subscribe(this.audioDevicesSubject);
@@ -194,7 +194,7 @@ export class DeviceManagerService {
   }
 
   /**
-   * Requests permission to use video devices and intializes the [`videoDevices$`](#videodevices) list
+   * Requests permission to use video devices and initializes the [`videoDevices$`](#videodevices) list
    */
   initVideoDevices() {
     getVideoDevices().subscribe(this.videoDevicesSubject);
@@ -205,7 +205,7 @@ export class DeviceManagerService {
   }
 
   /**
-   * Requests permission to use audio devices and intializes the [`audioOutputDevices$`](#audiooutputdevices) list
+   * Requests permission to use audio devices and initializes the [`audioOutputDevices$`](#audiooutputdevices) list
    */
   initAudioOutputDevices() {
     getAudioOutputDevices().subscribe(this.audioOutputDevicesSubject);
@@ -242,7 +242,7 @@ export class DeviceManagerService {
   }
 
   /**
-   * If there is an existing screenshare stream, it will stop that. If not, it will start a new one.
+   * If there is an existing screen share stream, it will stop that. If not, it will start a new one.
    */
   toggleScreenShare() {
     if (
@@ -346,7 +346,7 @@ export class DeviceManagerService {
   }
 
   /**
-   * Prompts the user for a permission to share a screen, and starts the stream if the user granted permission. If there is an existing stream, the method will take care of the necessary cleanup.
+   * Prompts the user for permission to share a screen and starts the stream if the user granted permission. If there is an existing stream, the method will take care of the necessary cleanup.
    */
   startScreenShare() {
     this.screenShareStateSubject.next('loading');
@@ -382,7 +382,7 @@ export class DeviceManagerService {
   }
 
   /**
-   * Sets [`audioOutputDevice$`](#audiooutputdevice). Selecting audio output device only makes sense if the [browser supports changing audio output on 'audio' elements](#isaudiooutputchangesupportedbybrowser)
+   * Sets [`audioOutputDevice$`](#audiooutputdevice). Selecting an audio output device only makes sense if the [browser supports changing audio output on 'audio' elements](#isaudiooutputchangesupportedbybrowser)
    * @param deviceId
    */
   selectAudioOutput(deviceId: string | undefined) {

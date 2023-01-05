@@ -360,8 +360,8 @@ export class StreamVideoClient {
 
   /**
    * Starts recording for the call described by the given `callId` and `callType`.
-   * @param callId you can extract the `callId` from a [`Call` instance](./Call.md/#data)
-   * @param callType you can extract the `callType` from a [`Call` instance](./Call.md/#data)
+   * @param callId can be extracted from a [`Call` instance](./Call.md/#data)
+   * @param callType can be extracted from a [`Call` instance](./Call.md/#data)
    */
   startRecording = async (callId: string, callType: string) => {
     await this.client.startRecording({
@@ -377,8 +377,8 @@ export class StreamVideoClient {
 
   /**
    * Stops recording for the call described by the given `callId` and `callType`.
-   * @param callId you can extract the `callId` from a [`Call` instance](./Call.md/#data)
-   * @param callType you can extract the `callType` from a [`Call` instance](./Call.md/#data)
+   * @param callId can be extracted from a [`Call` instance](./Call.md/#data)
+   * @param callType can be extracted from a [`Call` instance](./Call.md/#data)
    */
   stopRecording = async (callId: string, callType: string) => {
     await this.client.stopRecording({
