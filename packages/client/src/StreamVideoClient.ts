@@ -30,16 +30,16 @@ import { createSocketConnection, StreamEventListener } from './ws';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
 
-import {
-  CallAccepted,
-  CallCancelled,
-  CallCreated,
-  CallRejected,
-} from './gen/video/coordinator/event_v1/event';
 import { reportStats } from './stats/coordinator-stats-reporter';
 import { Timestamp } from './gen/google/protobuf/timestamp';
 import { StreamWebSocketClient } from './ws/StreamWebSocketClient';
 import { Batcher } from './Batcher';
+import {
+  watchCallAccepted,
+  watchCallCancelled,
+  watchCallCreated,
+  watchCallRejected,
+} from './events/call';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   coordinatorRpcUrl:
@@ -152,7 +152,10 @@ export class StreamVideoClient {
       user,
     );
     if (this.ws) {
-      this.registerWSEventHandlers();
+      watchCallCancelled(this.on, this.writeableStateStore);
+      watchCallCreated(this.on, this.writeableStateStore);
+      watchCallAccepted(this.on);
+      watchCallRejected(this.on, this.writeableStateStore);
     }
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
@@ -197,13 +200,6 @@ export class StreamVideoClient {
     return this.ws?.off(event, fn);
   };
 
-  private registerWSEventHandlers = () => {
-    this.on('callCreated', this.onCallCreated);
-    this.on('callAccepted', this.onCallAccepted);
-    this.on('callRejected', this.onCallRejected);
-    this.on('callCancelled', this.onCallCancelled);
-  };
-
   /**
    * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, this will return an error.
    * Causes the CallCreated event to be emitted to all the call members.
@@ -246,34 +242,6 @@ export class StreamVideoClient {
   };
 
   /**
-   * Event handler invoked upon delivery of CallCreated Websocket event
-   * Updates the state store and notifies its subscribers that
-   * a new pending call has been initiated.
-   * @param event received CallCreated Websocket event
-   * @returns
-   */
-  private onCallCreated = (event: CallCreated) => {
-    const { call } = event;
-    if (!call) {
-      console.warn("Can't find call in CallCreated event");
-      return;
-    }
-
-    const store = this.writeableStateStore;
-    const currentUser = store.getCurrentValue(store.connectedUserSubject);
-
-    if (currentUser?.id === call.createdByUserId) {
-      console.warn('Received CallCreated event sent by the current user');
-      return;
-    }
-
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.pendingCallsSubject,
-      (pendingCalls) => [...pendingCalls, event],
-    );
-  };
-
-  /**
    * Signals other users that I have accepted the incoming call.
    * Causes the `CallAccepted` event to be emitted to all the call members.
    * @param callCid config ID of the rejected call
@@ -288,21 +256,6 @@ export class StreamVideoClient {
     const callController = await this.joinCall({ id, type, datacenterId: '' });
     await callController?.join();
     return callController;
-  };
-
-  /**
-   * Event handler invoked upon delivery of CallAccepted Websocket event
-   * Updates the state store and notifies its subscribers that
-   * the given user will be joining the call.
-   * @param event received CallAccepted Websocket event
-   * @returns
-   */
-  private onCallAccepted = (event: CallAccepted) => {
-    const { call } = event;
-    if (!call) {
-      console.warn("Can't find call in CallAccepted event");
-      return;
-    }
   };
 
   /**
@@ -323,50 +276,6 @@ export class StreamVideoClient {
       callCid,
       eventType: UserEventType.REJECTED_CALL,
     });
-  };
-
-  /**
-   * Event handler invoked upon delivery of CallRejected Websocket event.
-   * Updates the state store and notifies its subscribers that
-   * the given user will not be joining the call.
-   * @param event received CallRejected Websocket event
-   * @returns
-   */
-  private onCallRejected = (event: CallRejected) => {
-    const { call } = event;
-    if (!call) {
-      console.warn("Can't find call in CallRejected event");
-      return;
-    }
-    // currently not supporting automatic call drop for 1:M calls
-    const memberUserIds = event.callDetails?.memberUserIds || [];
-    if (memberUserIds.length > 1) {
-      return;
-    }
-
-    const store = this.writeableStateStore;
-    const currentUser = store.getCurrentValue(store.connectedUserSubject);
-    if (currentUser?.id === event.senderUserId) {
-      console.warn('Received CallRejected event sent by the current user');
-      return;
-    }
-
-    const pendingCall = store
-      .getCurrentValue(store.pendingCallsSubject)
-      .find((pendingCall) => pendingCall.call?.callCid === call.callCid);
-
-    if (pendingCall?.call?.createdByUserId !== currentUser?.id) {
-      console.warn('Received CallRejected event for an incoming call');
-      return;
-    }
-
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.pendingCallsSubject,
-      (pendingCalls) =>
-        pendingCalls.filter(
-          (pendingCalls) => pendingCalls.call?.callCid !== event.call?.callCid,
-        ),
-    );
   };
 
   /**
@@ -397,35 +306,6 @@ export class StreamVideoClient {
         eventType: UserEventType.CANCELLED_CALL,
       });
     }
-  };
-
-  /**
-   * Event handler invoked upon delivery of CallCancelled Websocket event
-   * Updates the state store and notifies its subscribers that
-   * the call is now considered terminated.
-   * @param event received CallCancelled Websocket event
-   * @returns
-   */
-  private onCallCancelled = (event: CallCancelled) => {
-    const { call } = event;
-    if (!call) {
-      console.log("Can't find call in CallCancelled event");
-      return;
-    }
-
-    const store = this.writeableStateStore;
-    const currentUser = store.getCurrentValue(store.connectedUserSubject);
-
-    if (currentUser?.id === event.senderUserId) {
-      console.warn('Received CallCancelled event sent by the current user');
-      return;
-    }
-
-    store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
-      pendingCalls.filter(
-        (pendingCall) => pendingCall.call?.callCid !== event.call?.callCid,
-      ),
-    );
   };
 
   /**
