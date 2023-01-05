@@ -1,6 +1,8 @@
 <div
   class="str-call__participant"
-  [class.str-video__participant--speaking]="participant?.isSpeaking"
+  [class.str-video__participant--speaking]="
+    participant?.isSpeaking && kind === 'video'
+  "
 >
   <audio
     *ngIf="kind === 'video'"
