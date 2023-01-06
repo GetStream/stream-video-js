@@ -72,7 +72,7 @@ To create the token, you can use the same client imported above and use the `_ge
 const token = client._getToken() || `Your Token`;
 ```
 
-Once the user object and token are created, we can authenticate the client. In the starter kit, we have created a hook which takes in the user object and the token and returns the `videoClient` from it.
+Once the user object and token are created, we can authenticate the client. In the starter kit, we have created a hook which takes in the user object and the token and returns the `client` from it.
 
 ```tsx
 import {StreamVideoClient} from '@stream-io/video-client';
@@ -82,7 +82,7 @@ const APIParams = {
   apiKey: `Your Key`
 };
 
-const _videoClient = new StreamVideoClient(APIParams.apiKey, {
+const client = new StreamVideoClient(APIParams.apiKey, {
   sendJson: true,
   token,
 });
@@ -106,7 +106,7 @@ const App = () => {
   useEffect(() => {
     const run = async () => {
       try {
-        await videoClient.connect(APIParams.apiKey, token, user);
+        await client.connect(APIParams.apiKey, token, user);
         setConnected(true);
       } catch (err) {
         setError(`Failed to establish connection - ${err}`);
@@ -114,7 +114,7 @@ const App = () => {
     };
     run();
     return () => {
-      videoClient.disconnect();
+      client.disconnect();
     };
   }, []);
 
@@ -138,9 +138,9 @@ const App = () => {
 
 ### Providing the video client and Call logic to the rest of the app
 
-Our `StreamVideo` component will provide our recently created videoClient to the rest of the underlying components.
+Our `StreamVideo` component will provide our recently created video client to the rest of the underlying components.
 
-The `videoClient` created above can be used as follows and needs to be provided to the `client` prop of the `StreamVideo` component.
+The `client` created above can be used as follows and needs to be provided to the `client` prop of the `StreamVideo` component.
 
 _Note: Make sure to wrap your entire application in `StreamVideo`._
 
@@ -156,7 +156,7 @@ import {StreamMeeting, StreamCall } from '@stream-io/video-react-native-sdk';
 const App = () => {
   ...
   return (
-    <StreamVideo client={videoClient}>
+    <StreamVideo client={client}>
       <StreamMeeting
         onAcceptCall={() => navigation.navigate('ActiveCallScreen')}
         onOutgoingCall={() => navigation.navigate('OutgoingCallScreen')}
