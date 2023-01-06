@@ -30,6 +30,21 @@ Run the application `yarn start:react:app` (make sure the server is already runn
 2.  Run: `rm -rf packages/react-sample-app/node_modules/.cache`
 3.  Re-run the app `yarn start:react:app`
 
+If you want to connect to the SFU and the coordinator running locally, you have to change the URL in
+[App.tsx](packages/react-sample-app/src/App.tsx). It should look something like this
+```ts
+  const client = useCreateStreamVideoClient({
+    // proxied to http://localhost:26991
+    coordinatorRpcUrl: 'http://localhost:26991/rpc',
+    coordinatorWsUrl:
+      'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+    apiKey: 'us83cfwuhy8n', // see <video>/data/fixtures/apps.yaml for API key/secret
+    token: participants[currentUser],
+    user,
+  });
+```
+Then recompile the app - step (3) in [Setup](#setup) section here and then `yarn start:react:app`.
+
 ### Angular
 
 See [Angular SDK's Readme](./packages/angular-sdk/README.md)

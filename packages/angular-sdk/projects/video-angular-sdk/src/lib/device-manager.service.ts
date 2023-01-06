@@ -1,10 +1,16 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
+import {
+  AudioMediaStreamState,
+  MediaStreamState,
+  ScreenShareState,
+} from './types';
 import {
   checkIfAudioOutputChangeSupported,
   createSoundDetector,
   getAudioDevices,
   getAudioOutputDevices,
   getAudioStream,
+  getScreenShareStream,
   getVideoDevices,
   getVideoStream,
   watchForDisconnectedAudioDevice,
@@ -14,41 +20,28 @@ import {
 import { BehaviorSubject, map, Observable, ReplaySubject, take } from 'rxjs';
 
 /**
- * `loading` means that a stream is currently being retrieved from the browser
- * `on` means that there is an ongoing media stream
- * `off` means that the user decided to turn off the stream
- * `error` means an error occurred while trying to retrieve a stream (for example the user didn't give permission to use camera/microphone)
- * `initial` is the default state, which means we didn't try to start a stream yet
- * `disconnected` means the stream is lost due to a device being disconnected/lost
- */
-export type MediaStreamState =
-  | 'loading'
-  | 'on'
-  | 'off'
-  | 'error'
-  | 'initial'
-  | 'disconnected';
-
-/**
- * This service can be used to list devices (audio input, video input and audio output), start/stop media streams and switch between devices
+ * This service gives a high-level API for listing devices (audio input, video input, and audio output), starting/stopping media streams (including screen share), and switching between devices.
  */
 @Injectable({
   providedIn: 'root',
 })
 export class DeviceManagerService {
   /**
-   * The list of available `audioinput` devices, if devices are added/removed - the list is updated
-   * Since some browsers require permissions for listing the devices the list is not initialized by default, you have to call `initAudioDevices` for that in order to have full control over when the permission window will be displayed
+   * The list of available `audioinput` devices, if devices are added/removed - the list is updated.
+   *
+   * Listing the devices requires permission from the user. The list is not initialized by default, you have to call [`initAudioDevices`](#initaudiodevices) to have full control over when the permission window will be displayed.
    */
   audioDevices$: Observable<MediaDeviceInfo[]>;
   /**
-   * The list of available `videoinput` devices, if devices are added/removed - the list is updated
-   * Since some browsers require permissions for listing the devices the list is not initialized by default, you have to call `initVideoDevices` for that in order to have full control over when the permission window will be displayed
+   * The list of available `videoinput` devices, if devices are added/removed - the list is updated.
+   *
+   * Listing the devices requires permission from the user. The list is not initialized by default, you have to call [`initVideoDevices`](#initvideodevices) to have full control over when the permission window will be displayed.
    */
   videoDevices$: Observable<MediaDeviceInfo[]>;
   /**
-   * The list of available `audiooutput` devices, if devices are added/removed - the list is updated
-   * Since some browsers require permissions for listing the devices the list is not initialized by default, you have to call `initAudioOutputDevices` for that in order to have full control over when the permission window will be displayed
+   * The list of available `audiooutput` devices, if devices are added/removed - the list is updated.
+   *
+   * Listing the devices requires permission from the user. The list is not initialized by default, you have to call [`initAudioOutputDevices`](#initaudiooutputdevices) to have full control over when the permission window will be displayed.
    */
   audioOutputDevices$: Observable<MediaDeviceInfo[]>;
   /**
@@ -56,15 +49,15 @@ export class DeviceManagerService {
    */
   isAudioOutputChangeSupportedByBrowser = checkIfAudioOutputChangeSupported();
   /**
-   * The `deviceId` of the currently selected video input device
+   * The `deviceId` of the currently selected video input device. If the device is disconnected, the value is set to `undefined`.
    */
   videoDevice$: Observable<string | undefined>;
   /**
-   * The `deviceId` of the currently selected audio input device
+   * The `deviceId` of the currently selected audio input device. If the device is disconnected, the value is set to `undefined`.
    */
   audioDevice$: Observable<string | undefined>;
   /**
-   * The `deviceId` of the currently selected audio output device
+   * The `deviceId` of the currently selected audio output device. If the device is disconnected, the value is set to `undefined`.
    */
   audioOutputDevice$: Observable<string | undefined>;
   /**
@@ -76,25 +69,37 @@ export class DeviceManagerService {
    */
   videoErrorMessage$: Observable<string | undefined>;
   /**
-   * The video media stream, you can start and stop it with the `startVideo` and `stopVideo` methods
+   * The video media stream, you can start and stop it with the [`startVideo`](#startvideo) and [`stopVideo`](#stopvideo) methods (or [`toggleVideo`](#togglevideo))
    */
   videoStream$: Observable<MediaStream | undefined>;
   /**
    * Provides detailed information about the audio stream, you can use this stream to visually display the state on the UI
    */
-  audioState$: Observable<MediaStreamState>;
+  audioState$: Observable<AudioMediaStreamState>;
   /**
    * If `audioState$` is `error` this stream emits the error message, so additional explanation can be provided to users
    */
   audioErrorMessage$: Observable<string | undefined>;
   /**
-   * The audio media stream, you can start and stop it with the `startAudio` and `stopAudio` methods
+   * The audio media stream, you can start and stop it with the [`startAudio`](#startaudio) and [`stopAudio`](#stopaudio) methods (or [`toggleAudio`](#toggleaudio))
    */
   audioStream$: Observable<MediaStream | undefined>;
   /**
-   * `true` if there is an audio stream turned on, and detected audio levels suggest that the user is currently speaking
+   * `true` if `audioState$` is `on` or `detecting-speech-while-muted`, and detected audio levels suggest that the user is currently speaking
    */
   isSpeaking$: Observable<boolean>;
+  /**
+   * Provides detailed information about the screen share stream, you can use this stream to visually display the state on the UI
+   */
+  screenShareState$: Observable<ScreenShareState>;
+  /**
+   * If `screenShareState$` is `error` this stream emits the error message, so additional explanation can be provided to users
+   */
+  screenShareErrorMessage$: Observable<string | undefined>;
+  /**
+   * The screen share media stream, you can start and stop it with the [`startScreenShare`](#startscreenshare) and [`stopScreenShare`](#stopscreenshare) methods (or [`toggleScreenShare`](#togglescreenshare))
+   */
+  screenShareStream$: Observable<MediaStream | undefined>;
   private videoStateSubject = new BehaviorSubject<MediaStreamState>('initial');
   private videoErrorMessageSubject = new BehaviorSubject<string | undefined>(
     undefined,
@@ -102,7 +107,9 @@ export class DeviceManagerService {
   private videoStreamSubject = new BehaviorSubject<MediaStream | undefined>(
     undefined,
   );
-  private audioStateSubject = new BehaviorSubject<MediaStreamState>('initial');
+  private audioStateSubject = new BehaviorSubject<AudioMediaStreamState>(
+    'initial',
+  );
   private audioErrorMessageSubject = new BehaviorSubject<string | undefined>(
     undefined,
   );
@@ -117,8 +124,17 @@ export class DeviceManagerService {
   private audioDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
   private videoDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
   private audioOutputDevicesSubject = new ReplaySubject<MediaDeviceInfo[]>(1);
+  private screenShareStateSubject = new BehaviorSubject<ScreenShareState>(
+    'initial',
+  );
+  private screenShareErrorMessageSubject = new BehaviorSubject<
+    string | undefined
+  >(undefined);
+  private screenShareStreamSubject = new BehaviorSubject<
+    MediaStream | undefined
+  >(undefined);
 
-  constructor() {
+  constructor(private ngZone: NgZone) {
     this.videoState$ = this.videoStateSubject.asObservable();
     this.videoErrorMessage$ = this.videoErrorMessageSubject.asObservable();
     this.videoStream$ = this.videoStreamSubject.asObservable();
@@ -159,8 +175,16 @@ export class DeviceManagerService {
       .subscribe((devices) =>
         this.audioOutputDeviceSubject.next(devices[0].deviceId),
       );
+
+    this.screenShareState$ = this.screenShareStateSubject.asObservable();
+    this.screenShareStream$ = this.screenShareStreamSubject.asObservable();
+    this.screenShareErrorMessage$ =
+      this.screenShareErrorMessageSubject.asObservable();
   }
 
+  /**
+   * Requests permission to use audio devices and initializes the [`audioDevices$`](#audiodevices) list
+   */
   initAudioDevices() {
     getAudioDevices().subscribe(this.audioDevicesSubject);
 
@@ -169,6 +193,9 @@ export class DeviceManagerService {
     });
   }
 
+  /**
+   * Requests permission to use video devices and initializes the [`videoDevices$`](#videodevices) list
+   */
   initVideoDevices() {
     getVideoDevices().subscribe(this.videoDevicesSubject);
 
@@ -177,6 +204,9 @@ export class DeviceManagerService {
     });
   }
 
+  /**
+   * Requests permission to use audio devices and initializes the [`audioOutputDevices$`](#audiooutputdevices) list
+   */
   initAudioOutputDevices() {
     getAudioOutputDevices().subscribe(this.audioOutputDevicesSubject);
 
@@ -187,38 +217,48 @@ export class DeviceManagerService {
     );
   }
 
-  get audioState() {
-    return this.audioStateSubject.getValue();
-  }
-
-  get audioStream() {
-    return this.audioStreamSubject.getValue();
-  }
-
-  get videoState() {
-    return this.videoStateSubject.getValue();
-  }
-
-  get videoStream() {
-    return this.videoStreamSubject.getValue();
-  }
-
+  /**
+   * If there is an existing video stream, it will stop that. If not, it will start a new one.
+   */
   toggleVideo() {
-    if (this.videoState === 'off') {
+    if (this.videoState === 'off' || this.videoState === 'initial') {
       this.startVideo();
     } else if (this.videoState === 'on') {
       this.stopVideo();
     }
   }
 
+  /**
+   * If there is an existing audio stream, it will stop that. If not, it will start a new one.
+   */
   toggleAudio() {
-    if (this.audioState === 'off') {
+    if (this.audioState === 'off' || this.audioState === 'initial') {
       this.startAudio();
     } else if (this.audioState === 'on') {
       this.stopAudio();
+    } else if (this.audioState === 'detecting-speech-while-muted') {
+      this.audioStateSubject.next('on');
     }
   }
 
+  /**
+   * If there is an existing screen share stream, it will stop that. If not, it will start a new one.
+   */
+  toggleScreenShare() {
+    if (
+      this.screenShareState === 'off' ||
+      this.screenShareState === 'initial'
+    ) {
+      this.startScreenShare();
+    } else if (this.screenShareState === 'on') {
+      this.stopScreenShare();
+    }
+  }
+
+  /**
+   * Starts a new video stream with the given `deviceId`. If there is an existing stream, the method will take care of the necessary cleanup.
+   * @param deviceId if nothing is provided it will use the first available device
+   */
   startVideo(deviceId?: string) {
     this.videoStateSubject.next('loading');
     getVideoStream(deviceId)
@@ -241,6 +281,9 @@ export class DeviceManagerService {
       });
   }
 
+  /**
+   * If there is an existing video stream, it will stop it.
+   */
   stopVideo() {
     if (!this.videoStream) {
       return;
@@ -250,19 +293,30 @@ export class DeviceManagerService {
     this.videoStateSubject.next('off');
   }
 
-  startAudio(deviceId?: string) {
+  /**
+   *
+   * Starts a new audio stream with the given `deviceId`. If there is an existing stream, the method will take care of the necessary cleanup.
+   * @param deviceId if nothing is provided it will use the first available device
+   * @param isSilent if `true` `audioState$` will be `detecting-speech-while-muted` instead of `on` after stream is started
+   */
+  startAudio(deviceId?: string, isSilent = false) {
     this.audioStateSubject.next('loading');
     getAudioStream(deviceId)
       .then((audioStream) => {
         this.stopAudio();
         this.audioStreamSubject.next(audioStream);
-        this.disposeSoundDetector = createSoundDetector(
-          audioStream,
-          (isSpeechDetected) => {
-            this.isSpeakingSubject.next(isSpeechDetected);
-          },
+        this.disposeSoundDetector = this.ngZone.runOutsideAngular(() => {
+          return createSoundDetector(audioStream, (isSpeechDetected) => {
+            if (isSpeechDetected !== this.isSpeakingSubject.getValue()) {
+              this.ngZone.run(() => {
+                this.isSpeakingSubject.next(isSpeechDetected);
+              });
+            }
+          });
+        });
+        this.audioStateSubject.next(
+          isSilent ? 'detecting-speech-while-muted' : 'on',
         );
-        this.audioStateSubject.next('on');
       })
       .catch((err) => {
         if (err.code === 0) {
@@ -278,6 +332,9 @@ export class DeviceManagerService {
       });
   }
 
+  /**
+   * If there is an existing audio stream, it will stop it.
+   */
   stopAudio() {
     if (!this.audioStream) {
       return;
@@ -288,7 +345,71 @@ export class DeviceManagerService {
     this.audioStateSubject.next('off');
   }
 
+  /**
+   * Prompts the user for permission to share a screen and starts the stream if the user granted permission. If there is an existing stream, the method will take care of the necessary cleanup.
+   */
+  startScreenShare() {
+    this.screenShareStateSubject.next('loading');
+    getScreenShareStream()
+      .then((s) => {
+        this.stopScreenShare();
+        s.getVideoTracks().forEach((t) => {
+          t.addEventListener('ended', () => {
+            this.stopScreenShare();
+          });
+        });
+        this.screenShareStreamSubject.next(s);
+        this.screenShareStateSubject.next('on');
+      })
+      .catch(() => {
+        this.screenShareErrorMessageSubject.next(
+          `Screen share stream couldn't be started`,
+        );
+        this.screenShareStateSubject.next('off');
+      });
+  }
+
+  /**
+   * If there is an existing screen share stream, it will stop it.
+   */
+  stopScreenShare() {
+    if (!this.screenShareStream) {
+      return;
+    }
+    this.screenShareStream.getTracks().forEach((t) => t.stop());
+    this.screenShareStreamSubject.next(undefined);
+    this.screenShareStateSubject.next('off');
+  }
+
+  /**
+   * Sets [`audioOutputDevice$`](#audiooutputdevice). Selecting an audio output device only makes sense if the [browser supports changing audio output on 'audio' elements](#isaudiooutputchangesupportedbybrowser)
+   * @param deviceId
+   */
   selectAudioOutput(deviceId: string | undefined) {
     this.audioOutputDeviceSubject.next(deviceId);
+  }
+
+  private get audioState() {
+    return this.audioStateSubject.getValue();
+  }
+
+  private get audioStream() {
+    return this.audioStreamSubject.getValue();
+  }
+
+  private get videoState() {
+    return this.videoStateSubject.getValue();
+  }
+
+  private get videoStream() {
+    return this.videoStreamSubject.getValue();
+  }
+
+  private get screenShareState() {
+    return this.screenShareStateSubject.getValue();
+  }
+
+  private get screenShareStream() {
+    return this.screenShareStreamSubject.getValue();
   }
 }

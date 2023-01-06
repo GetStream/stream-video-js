@@ -25,9 +25,12 @@ import {
 import { Batcher } from '../Batcher';
 
 /**
- * A `Call` object represents the active call, the user is part of.
+ * A `Call` object represents the active call the user is part of. It's not enough to have a `Call` instance, you will also need to call the [`join`](#join) method.
  */
 export class Call {
+  /**
+   * Contains metadata about the call, for example who created the call. You can also extract the call ID from this object, which you'll need for certain API calls (for example to start a recording).
+   */
   data: CallEnvelope;
   private readonly subscriber: RTCPeerConnection;
   private readonly publisher: RTCPeerConnection;
@@ -37,9 +40,12 @@ export class Call {
 
   private statsReporter: StatsReporter;
   private joinResponseReady?: Promise<CallState | undefined>;
+  private transceiverMapping: {
+    [key in TrackType]: RTCRtpTransceiver | undefined;
+  };
 
   /**
-   * Use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
+   * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    * @param client
    * @param data
    * @param options
@@ -59,10 +65,12 @@ export class Call {
       onTrack: this.handleOnTrack,
     });
 
-    this.publisher = createPublisher({
+    const { publisher, transceiverMapping } = createPublisher({
       rpcClient: this.client,
       connectionConfig: this.options.connectionConfig,
     });
+    this.publisher = publisher;
+    this.transceiverMapping = transceiverMapping;
 
     this.statsReporter = createStatsReporter({
       subscriber: this.subscriber,
@@ -83,7 +91,7 @@ export class Call {
 
   /**
    * You can subscribe to WebSocket events provided by the API. To remove a subscription, call the `off` method.
-   * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the reactive state store.
+   * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the [reactive state store](./StreamVideoClient.md/#readonlystatestore).
    * @param eventName
    * @param fn
    * @returns
@@ -134,6 +142,8 @@ export class Call {
 
   /**
    * Will initiate a call session with the server and return the call state.
+   *
+   * If the join was successful the [`activeCall$` state variable](./StreamVideClient/#readonlystatestore) will be set
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
@@ -186,8 +196,12 @@ export class Call {
    * Starts publishing the given video stream to the call.
    * The stream will be stopped if the user changes an input device, or if the user leaves the call.
    *
+   * If the method was successful the [`activeCall$` state variable](./StreamVideClient/#readonlystatestore) will be cleared
+   *
    * Consecutive calls to this method will replace the previously published stream.
    * The previous video stream will be stopped.
+   *
+   * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
    *
    * @param videoStream the video stream to publish.
    * @param opts the options to use when publishing the stream.
@@ -203,13 +217,14 @@ export class Call {
     }
 
     const trackType = TrackType.VIDEO;
-    let transceiver = this.publisher.getTransceivers().find(
-      (t) =>
-        // @ts-ignore
-        t.__trackType === trackType &&
-        t.sender.track &&
-        t.sender.track?.kind === 'video',
-    );
+    let transceiver = this.publisher
+      .getTransceivers()
+      .find(
+        (t) =>
+          t === this.transceiverMapping[trackType] &&
+          t.sender.track &&
+          t.sender.track?.kind === 'video',
+      );
     if (!transceiver) {
       const videoEncodings = findOptimalVideoLayers(videoTrack);
       transceiver = this.publisher.addTransceiver(videoTrack, {
@@ -218,8 +233,7 @@ export class Call {
         sendEncodings: videoEncodings,
       });
 
-      // @ts-ignore
-      transceiver.__trackType = trackType;
+      this.transceiverMapping[trackType] = transceiver;
 
       const codecPreferences = getPreferredCodecs(
         'video',
@@ -255,6 +269,8 @@ export class Call {
    * Consecutive calls to this method will replace the audio stream that is currently being published.
    * The previous audio stream will be stopped.
    *
+   * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
+   *
    * @param audioStream the audio stream to publish.
    */
   publishAudioStream = async (audioStream: MediaStream) => {
@@ -265,19 +281,19 @@ export class Call {
     }
 
     const trackType = TrackType.AUDIO;
-    let transceiver = this.publisher.getTransceivers().find(
-      (t) =>
-        // @ts-ignore
-        t.__trackType === trackType &&
-        t.sender.track &&
-        t.sender.track.kind === 'audio',
-    );
+    let transceiver = this.publisher
+      .getTransceivers()
+      .find(
+        (t) =>
+          t === this.transceiverMapping[trackType] &&
+          t.sender.track &&
+          t.sender.track.kind === 'audio',
+      );
     if (!transceiver) {
       transceiver = this.publisher.addTransceiver(audioTrack, {
         direction: 'sendonly',
       });
-      // @ts-ignore
-      transceiver.__trackType = trackType;
+      this.transceiverMapping[trackType] = transceiver;
     } else {
       transceiver.sender.track?.stop();
       await transceiver.sender.replaceTrack(audioTrack);
@@ -302,6 +318,8 @@ export class Call {
    * Consecutive calls to this method will replace the previous screen-share stream.
    * The previous screen-share stream will be stopped.
    *
+   * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
+   *
    * @param screenShareStream the screen-share stream to publish.
    */
   publishScreenShareStream = async (screenShareStream: MediaStream) => {
@@ -316,21 +334,21 @@ export class Call {
     screenShareTrack.addEventListener('ended', onTrackEnded);
 
     const trackType = TrackType.SCREEN_SHARE;
-    let transceiver = this.publisher.getTransceivers().find(
-      (t) =>
-        // @ts-ignore
-        t.__trackType === trackType &&
-        t.sender.track &&
-        t.sender.track.kind === 'video',
-    );
+    let transceiver = this.publisher
+      .getTransceivers()
+      .find(
+        (t) =>
+          t === this.transceiverMapping[trackType] &&
+          t.sender.track &&
+          t.sender.track.kind === 'video',
+      );
     if (!transceiver) {
       transceiver = this.publisher.addTransceiver(screenShareTrack, {
         direction: 'sendonly',
         streams: [screenShareStream],
         // sendEncodings
       });
-      // @ts-ignore FIXME: OL: this is a hack
-      transceiver.__trackType = trackType;
+      this.transceiverMapping[trackType] = transceiver;
     } else {
       transceiver.sender.track?.removeEventListener('ended', onTrackEnded);
       transceiver.sender.track?.stop();
@@ -353,15 +371,15 @@ export class Call {
    * Stops publishing the given track type to the call, if it is currently being published.
    * Underlying track will be stopped and removed from the publisher.
    *
+   * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
+   *
    * @param trackType the track type to stop publishing.
    */
   stopPublish = async (trackType: TrackType) => {
     console.log(`stopPublish`, TrackType[trackType]);
-    const transceiver = this.publisher.getTransceivers().find(
-      (t) =>
-        // @ts-ignore
-        t.__trackType === trackType && t.sender.track,
-    );
+    const transceiver = this.publisher
+      .getTransceivers()
+      .find((t) => t === this.transceiverMapping[trackType] && t.sender.track);
     if (transceiver && transceiver.sender.track) {
       transceiver.sender.track.stop();
       await this.client.updateMuteState(trackType, true);
@@ -379,7 +397,8 @@ export class Call {
 
   /**
    * Update track subscription configuration for one or more participants.
-   * You have to create a subscription for each participant you want to receive any kind of track.
+   * You have to create a subscription for each participant for all the different kinds of tracks you want to receive.
+   * You can only subscribe for tracks after the participant started publishing the given kind of track.
    *
    * @param kind the kind of subscription to update.
    * @param changes the list of subscription changes to do.
@@ -449,7 +468,7 @@ export class Call {
   };
 
   /**
-   * @deprecated use the `callStatsReport$` state store variable instead
+   * @deprecated use the `callStatsReport$` state [store variable](./StreamVideoClient.md/#readonlystatestore) instead
    * @param kind
    * @param selector
    * @returns
@@ -462,7 +481,7 @@ export class Call {
   };
 
   /**
-   * Will enhance the reported stats with additional participant-specific information.
+   * Will enhance the reported stats with additional participant-specific information (`callStatsReport$` state [store variable](./StreamVideoClient.md/#readonlystatestore)).
    * This is usually helpful when detailed stats for a specific participant are needed.
    *
    * @param sessionId the sessionId to start reporting for.
@@ -482,9 +501,11 @@ export class Call {
   };
 
   /**
-   * Sets the used audio output device
+   * Sets the used audio output device (`audioOutputDeviceId` of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore)).
    *
-   * This method only stores the selection, you'll have to implement the audio switching, for more information see: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId
+   * This method only stores the selection, if you're using custom UI components, you'll have to implement the audio switching, for more information see: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId.
+   *
+   * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
    *
    * @param deviceId the selected device, `undefined` means the user wants to use the system's default audio output
    */
@@ -494,6 +515,11 @@ export class Call {
     });
   };
 
+  /**
+   * @internal
+   * @param enabledRids
+   * @returns
+   */
   updatePublishQuality = async (enabledRids: string[]) => {
     console.log(
       'Updating publish quality, qualities requested by SFU:',

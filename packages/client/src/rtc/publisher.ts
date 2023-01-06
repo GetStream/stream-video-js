@@ -22,6 +22,15 @@ export const createPublisher = ({
   rpcClient,
 }: PublisherOpts) => {
   const publisher = new RTCPeerConnection(connectionConfig);
+  const transceiverMapping: {
+    [key in TrackType]: RTCRtpTransceiver | undefined;
+  } = {
+    [TrackType.AUDIO]: undefined,
+    [TrackType.VIDEO]: undefined,
+    [TrackType.SCREEN_SHARE]: undefined,
+    [TrackType.SCREEN_SHARE_AUDIO]: undefined,
+    [TrackType.UNSPECIFIED]: undefined,
+  };
   publisher.addEventListener('icecandidate', async (e) => {
     const { candidate } = e;
     if (!candidate) {
@@ -65,8 +74,12 @@ export const createPublisher = ({
       .getTransceivers()
       .filter((t) => t.direction === 'sendonly' && !!t.sender.track)
       .map<TrackInfo>((transceiver) => {
-        // @ts-ignore FIXME: OL: this is a hack
-        const trackType = transceiver.__trackType;
+        const trackType = Number(
+          Object.keys(transceiverMapping).find(
+            (key) =>
+              transceiverMapping[key as any as TrackType] === transceiver,
+          ),
+        );
         const track = transceiver.sender.track!;
         const optimalLayers =
           trackType === TrackType.VIDEO
@@ -115,7 +128,7 @@ export const createPublisher = ({
     });
   });
 
-  return publisher;
+  return { publisher, transceiverMapping };
 };
 
 const ridToVideoQuality = (rid: string): VideoQuality => {

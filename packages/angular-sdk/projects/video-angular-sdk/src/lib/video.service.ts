@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import {
   Call,
   CallAccepted,
@@ -14,7 +14,7 @@ import { Observable, ReplaySubject, Subscription } from 'rxjs';
 /**
  * The `StreamVideoService` is an Angular service that is responsible for the followings:
  * 1. it lets you create a [StreamVideoClient](StreamVideoClient.md) instance to interact with our API
- * 2. you can subscribe to state changes using the [`RxJS Observables`](https://rxjs.dev/guide/observable) defined on this class.
+ * 2. you can subscribe to state changes using the [`RxJS Observables`](https://rxjs.dev/guide/observable) defined in this class. Our library is built in a way that all state changes are exposed in this store, so all UI changes in your application should be handled by subscribing to these variables.
  */
 @Injectable({
   providedIn: 'root',
@@ -25,7 +25,9 @@ export class StreamVideoService {
    */
   user$: Observable<UserInput | undefined>;
   /**
-   * The call the current user participates in.
+   * The call controller instance representing the call the user attends.
+   * The controller instance exposes call metadata as well.
+   * `activeCall$` will be set after calling [`join` on a `Call` instance](./Call.md/#join) and cleared after calling [`leave`](./Call.md/#leave).
    */
   activeCall$: Observable<Call | undefined>;
   /**
@@ -56,9 +58,24 @@ export class StreamVideoService {
    */
   callRecordingInProgress$: Observable<boolean>;
   /**
-   * Periodically emits statistics about the active call
+   * The latest stats report of the current call.
+   * When stats gathering is enabled, this observable will emit a new value
+   * at a regular (configurable) interval.
+   *
+   * Consumers of this observable can implement their own batching logic
+   * in case they want to show historical stats data.
    */
   callStatsReport$: Observable<CallStatsReport | undefined>;
+  /**
+   * Emits true whenever there is an active screen sharing session within
+   * the current call. Useful for displaying a "screen sharing" indicator and
+   * switching the layout to a screen sharing layout.
+   *
+   * The actual screen sharing track isn't exposed here, but can be retrieved
+   * from the list of call participants. We also don't want to be limiting
+   * to the number of share screen tracks are displayed in a call.
+   */
+  hasOngoingScreenShare$: Observable<boolean>;
 
   private userSubject: ReplaySubject<UserInput | undefined> = new ReplaySubject(
     1,
@@ -81,12 +98,14 @@ export class StreamVideoService {
     new ReplaySubject(1);
   private callStatsReportSubject: ReplaySubject<CallStatsReport | undefined> =
     new ReplaySubject(1);
+  private hasOngoingScreenShareSubject: ReplaySubject<boolean> =
+    new ReplaySubject(1);
   private subscriptions: Subscription[] = [];
 
   /**
    * You don't need to create a `StreamVideoService` instance directly, it will be available for you by importing the `StreamVideoModule` Angular module.
    */
-  constructor() {
+  constructor(private ngZone: NgZone) {
     this.user$ = this.userSubject.asObservable();
     this.activeCall$ = this.activeCallSubject.asObservable();
     this.acceptedCall$ = this.acceptedCallSubject.asObservable();
@@ -97,6 +116,8 @@ export class StreamVideoService {
     this.callRecordingInProgress$ =
       this.callRecordingInProgressSubject.asObservable();
     this.callStatsReport$ = this.callStatsReportSubject.asObservable();
+    this.hasOngoingScreenShare$ =
+      this.hasOngoingScreenShareSubject.asObservable();
   }
 
   init(
@@ -121,49 +142,95 @@ export class StreamVideoService {
     });
 
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.connectedUser$.subscribe(
-        this.userSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.connectedUser$.subscribe({
+        next: (v) => this.ngZone.run(() => this.userSubject.next(v)),
+        error: (e) => this.ngZone.run(() => this.userSubject.error(e)),
+        complete: () => this.ngZone.run(() => this.userSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.activeCall$.subscribe(
-        this.activeCallSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.activeCall$.subscribe({
+        next: (v) => this.ngZone.run(() => this.activeCallSubject.next(v)),
+        error: (e) => this.ngZone.run(() => this.activeCallSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.activeCallSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore.acceptedCall$.subscribe(
-        this.acceptedCallSubject,
-      ),
+      this.videoClient.readOnlyStateStore.acceptedCall$.subscribe({
+        next: (v) => this.ngZone.run(() => this.acceptedCallSubject.next(v)),
+        error: (e) => this.ngZone.run(() => this.acceptedCallSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.acceptedCallSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.incomingCalls$.subscribe(
-        this.incomingRingCallsSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.incomingCalls$.subscribe({
+        next: (v) =>
+          this.ngZone.run(() => this.incomingRingCallsSubject.next(v)),
+        error: (e) =>
+          this.ngZone.run(() => this.incomingRingCallsSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.incomingRingCallsSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.participants$.subscribe(
-        this.allParticipantsSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.participants$.subscribe({
+        next: (v) => this.ngZone.run(() => this.allParticipantsSubject.next(v)),
+        error: (e) =>
+          this.ngZone.run(() => this.allParticipantsSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.allParticipantsSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.remoteParticipants$.subscribe(
-        this.remoteParticipantsSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.remoteParticipants$.subscribe({
+        next: (v) =>
+          this.ngZone.run(() => this.remoteParticipantsSubject.next(v)),
+        error: (e) =>
+          this.ngZone.run(() => this.remoteParticipantsSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.remoteParticipantsSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.localParticipant$.subscribe(
-        this.localParticipantSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.localParticipant$.subscribe({
+        next: (v) =>
+          this.ngZone.run(() => this.localParticipantSubject.next(v)),
+        error: (e) =>
+          this.ngZone.run(() => this.localParticipantSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.localParticipantSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.callRecordingInProgress$.subscribe(
-        this.callRecordingInProgressSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.callRecordingInProgress$.subscribe({
+        next: (v) =>
+          this.ngZone.run(() => this.callRecordingInProgressSubject.next(v)),
+        error: (e) =>
+          this.ngZone.run(() => this.callRecordingInProgressSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.callRecordingInProgressSubject.complete()),
+      }),
     );
     this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.callStatsReport$.subscribe(
-        this.callStatsReportSubject,
-      ),
+      this.videoClient.readOnlyStateStore?.callStatsReport$.subscribe({
+        next: (v) => this.ngZone.run(() => this.callStatsReportSubject.next(v)),
+        error: (e) =>
+          this.ngZone.run(() => this.callStatsReportSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.callStatsReportSubject.complete()),
+      }),
+    );
+    this.subscriptions.push(
+      this.videoClient.readOnlyStateStore?.hasOngoingScreenShare$.subscribe({
+        next: (v) =>
+          this.ngZone.run(() => this.hasOngoingScreenShareSubject.next(v)),
+        error: (e) =>
+          this.ngZone.run(() => this.hasOngoingScreenShareSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.hasOngoingScreenShareSubject.complete()),
+      }),
     );
 
     return this.videoClient;

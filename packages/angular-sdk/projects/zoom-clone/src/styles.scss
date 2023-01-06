@@ -35,6 +35,12 @@ body {
   .str-video__participant-angular-host {
     max-width: 100%;
   }
+
+  .str-video__participant--speaking {
+    .str-video__remote-video {
+      border: 2px solid variables.$primary-color;
+    }
+  }
 }
 
 * {

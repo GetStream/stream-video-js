@@ -1,8 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
+import { map, Observable, Subscription } from 'rxjs';
 import {
+  AudioMediaStreamState,
   DeviceManagerService,
   MediaStreamState,
+  ScreenShareState,
+  StreamVideoService,
 } from '@stream-io/video-angular-sdk';
 
 @Component({
@@ -12,21 +15,31 @@ import {
 })
 export class DeviceControlComponent implements OnInit, OnDestroy {
   videoState?: MediaStreamState;
-  audioState?: MediaStreamState;
+  audioState?: AudioMediaStreamState;
+  screenShareState?: ScreenShareState;
   audioDevices$: Observable<MediaDeviceInfo[]>;
   videoDevices$: Observable<MediaDeviceInfo[]>;
   audioOutputDevices$: Observable<MediaDeviceInfo[]>;
   videoDevice$: Observable<string | undefined>;
   audioDevice$: Observable<string | undefined>;
   audioOutputDevice$: Observable<string | undefined>;
+  inCall$: Observable<boolean>;
   private subscriptions: Subscription[] = [];
 
-  constructor(private deviceManager: DeviceManagerService) {
+  constructor(
+    private deviceManager: DeviceManagerService,
+    private streamVideoService: StreamVideoService,
+  ) {
     this.subscriptions.push(
       this.deviceManager.videoState$.subscribe((s) => (this.videoState = s)),
     );
     this.subscriptions.push(
       this.deviceManager.audioState$.subscribe((s) => (this.audioState = s)),
+    );
+    this.subscriptions.push(
+      this.deviceManager.screenShareState$.subscribe(
+        (s) => (this.screenShareState = s),
+      ),
     );
     this.audioDevices$ = this.deviceManager.audioDevices$;
     this.videoDevices$ = this.deviceManager.videoDevices$;
@@ -34,6 +47,7 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
     this.videoDevice$ = this.deviceManager.videoDevice$;
     this.audioDevice$ = this.deviceManager.audioDevice$;
     this.audioOutputDevice$ = this.deviceManager.audioOutputDevice$;
+    this.inCall$ = this.streamVideoService.activeCall$.pipe(map((c) => !!c));
   }
 
   ngOnDestroy(): void {
@@ -46,6 +60,10 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
 
   toggleVideo() {
     this.deviceManager.toggleVideo();
+  }
+
+  toggleScreenShare() {
+    this.deviceManager.toggleScreenShare();
   }
 
   selectAudioDevice(deviceId: string) {
