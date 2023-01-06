@@ -162,9 +162,8 @@ export class Publisher {
       'Updating publish quality, qualities requested by SFU:',
       enabledRids,
     );
-    const videoSender = this.publisher
-      ?.getSenders()
-      .find((s) => s.track?.kind === 'video');
+
+    const videoSender = this.transceiverRegistry[TrackType.VIDEO]?.sender;
 
     if (!videoSender) return;
 
