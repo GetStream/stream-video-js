@@ -6,10 +6,11 @@ import type {
   StatsReport,
 } from './types';
 import { StreamVideoWriteableStateStore } from '../store';
+import { Publisher } from '../rtc/publisher';
 
 export type StatsReporterOpts = {
   subscriber: RTCPeerConnection;
-  publisher: RTCPeerConnection;
+  publisher: Publisher;
   store: StreamVideoWriteableStateStore;
   pollingIntervalInMs?: number;
   edgeName?: string;
