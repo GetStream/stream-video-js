@@ -9,7 +9,7 @@
   overflow: hidden;
 
   @mixin video-border {
-    border: 2px solid #005fff;
+    border: 2px solid var(--str-video__primary-color);
   }
 
   .str-call__participant {
