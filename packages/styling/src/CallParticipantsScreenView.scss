@@ -1,7 +1,7 @@
 .str-video__call-participants-screen-view {
   height: 100%;
   display: flex;
-  gap: 10px;
+  gap: 0.625rem;
 
   .str-video__call-participants-screen-view__screen {
     flex: 4;
@@ -9,8 +9,8 @@
     flex-direction: column;
     justify-content: center;
     height: 100%;
-    gap: 8px;
-    padding: 5px;
+    gap: 0.5rem;
+    padding: 0.3125rem;
   }
 
   .str-video__call-participants-screen-view__wrapper {
@@ -29,12 +29,12 @@
     bottom: 0;
     display: flex;
     align-items: flex-end;
-    gap: 25px;
-    padding: 30px 10px;
+    gap: 1.5625rem;
+    padding: 2rem 0.75rem;
   }
 
   .str-video__call-participants-screen-view__screen__presenter {
-    padding: 10px 0 10px 10px;
+    padding: 0.625rem 0 0.625rem 0.625rem;
     background-color: var(--str-video__background-color1);
     border-radius: var(--str-video__border-radius1);
   }
@@ -45,7 +45,7 @@
     flex-direction: column;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 15px;
+    gap: 1rem;
     overflow: scroll;
     scrollbar-width: none;
 

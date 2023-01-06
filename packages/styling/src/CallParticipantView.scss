@@ -59,25 +59,24 @@
 
   .str-video__participant_details {
     position: absolute;
-    left: 10px;
-    bottom: 20px;
+    left: 0.625rem;
+    bottom: 1.25rem;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 0.3125rem;
   }
 
   .str-video__participant_name {
-    padding: 6px;
     border-radius: var(--str-video__border-radius1);
     display: flex;
     align-items: center;
+    gap: 0.3125rem;
 
     @mixin icon {
       $icon-size: 15px;
       width: $icon-size;
       height: $icon-size;
       background-size: $icon-size;
-      margin: 2px;
     }
 
     .str-video__participant_name--audio-muted {
@@ -103,7 +102,7 @@
       @include icon();
       background-image: Icons.$icon-network-quality;
       cursor: pointer;
-      margin-right: 10px;
+      margin-right: 0.625rem;
     }
   }
 
@@ -111,8 +110,8 @@
     display: inline-block;
     width: 24px;
     height: 24px;
+    display: block;
     background-size: cover;
-    margin-left: 5px;
 
     &--poor {
       background-image: Icons.$icon-connection-quality-poor;

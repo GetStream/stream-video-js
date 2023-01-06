@@ -4,6 +4,7 @@
   display: inline-block;
   width: 36px;
   height: 36px;
+  cursor: pointer;
 
   background-image: Icons.$icon-settings;
   background-repeat: no-repeat;
@@ -18,7 +19,7 @@
 
 .str-video__device-settings {
   background-color: var(--str-video__background-color2);
-  padding: 10px;
+  padding: 0.625rem;
   border-radius: var(--str-video__border-radius1);
   box-shadow: 0 0 4px 1px var(--str-video__background-color2);
   z-index: 10;

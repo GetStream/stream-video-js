@@ -1,13 +1,13 @@
 .str-video__call-stats {
   background-color: var(--str-video__background-color1);
   border-radius: var(--str-video__border-radius1);
-  padding: 10px 15px;
+  padding: 0.625rem 1rem;
   width: 400px;
 
   .str-video__call-stats__title {
     .str-video__call-stats__close {
       float: right;
-      font-size: 20px;
+      font-size: 1.25rem;
       color: var(--str-video__text-color2);
       cursor: pointer;
       width: 30px;
@@ -24,27 +24,27 @@
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
-    gap: 15px;
-    padding: 0 0 15px 0;
+    gap: 1rem;
+    padding: 0 0 1rem 0;
   }
 
   .str-video__call-stats__card {
     background-color: var(--str-video__background-color2);
     border-radius: var(--str-video__border-radius1);
     width: 175px;
-    padding: 8px 8px;
+    padding: 0.5rem 0.5rem;
 
     .str-video__call-stats__card_label {
       color: var(--str-video__text-color2);
-      font-size: 9px;
+      font-size: 0.5625rem;
       font-weight: 500;
       text-transform: uppercase;
     }
 
     .str-video__call-stats__card_value {
-      font-size: 17px;
+      font-size: 1.0625rem;
       font-weight: 500;
-      line-height: 20px;
+      line-height: 1.25rem;
     }
   }
 }

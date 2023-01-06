@@ -3,12 +3,12 @@
 .str-video__call-controls {
   display: flex;
   justify-content: center;
-  gap: 15px;
-  padding: 15px 0;
+  gap: 1rem;
+  padding: 1rem 0;
 
   .str-video__call-controls__button {
     border-radius: var(--str-video__border-radius1);
-    font-size: 20px;
+    font-size: 1.25rem;
     display: inline-block;
     height: 36px;
     width: 36px;
