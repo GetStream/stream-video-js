@@ -15,7 +15,7 @@ Finally, let's get started with the Stream React Native Video integration. To do
 Install Stream's Video SDK and its peer dependencies by:
 
 ```bash
-yarn add stream-video-react-native stream-video-react-bindings stream-video react-native-webrtc react-native-incall-manager react-native-svg text-encoding-polyfill
+yarn add stream-video-react-native react-native-webrtc react-native-incall-manager react-native-svg text-encoding-polyfill
 ```
 
 Some dependencies require us to make changes to our application for all functionalities to be available. Please apply the following steps:
@@ -80,7 +80,6 @@ import {StreamVideoClient} from '@stream-io/video-client';
 
 const APIParams = {
   apiKey: `Your Key`
-  apiSecret: `Your Secret`,
 };
 
 const _videoClient = new StreamVideoClient(APIParams.apiKey, {
@@ -97,18 +96,20 @@ _Note: We will use APIKey, user and the token from above._
 
 ```tsx
 import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, SafeAreaView, StyleSheet} from 'react-native';
+import {ActivityIndicator, SafeAreaView, StyleSheet, Text} from 'react-native';
 ...
 
 const App = () => {
   const [connected, setConnected] = useState(false);
+  const [error, setError] = useState(undefined);
+
   useEffect(() => {
     const run = async () => {
       try {
         await videoClient.connect(APIParams.apiKey, token, user);
         setConnected(true);
       } catch (err) {
-        console.error('Failed to establish connection', err);
+        setError(`Failed to establish connection - ${err}`);
       }
     };
     run();
@@ -116,19 +117,23 @@ const App = () => {
       videoClient.disconnect();
     };
   }, []);
+
   if (!connected) {
     return (
-      <SafeAreaView style={{flex: 1}}>
+      <SafeAreaView style={{ flex: 1 }}>
         <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
       </SafeAreaView>
     );
   }
-  return (
-    <SafeAreaView style={{flex: 1}}>
+
+  return !error ? (
+    <SafeAreaView style={{ flex: 1 }}>
       <Text>We're connected now and ready to go 🚀</Text>
     </SafeAreaView>
+  ) : (
+    <Text>{error}</Text>
   );
-
+};
 ```
 
 ### Providing the video client and Call logic to the rest of the app
