@@ -1,7 +1,7 @@
 @use './Icons';
 
 .str-video__notification {
-  background-color: #1c1e22;
+  background-color: var(--str-video__background-color1);
   border-radius: 8px;
   padding: 10px 10px;
   display: flex;

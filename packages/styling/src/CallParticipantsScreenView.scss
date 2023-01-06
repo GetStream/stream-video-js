@@ -22,7 +22,7 @@
 
   .str-video__call-participants-screen-view__overlay {
     position: absolute;
-    background-color: rgba(39, 42, 48, 0.75);
+    background-color: var(--str-video__overlay-color);
     top: 0;
     left: 0;
     right: 0;
@@ -35,7 +35,7 @@
 
   .str-video__call-participants-screen-view__screen__presenter {
     padding: 10px 0 10px 10px;
-    background-color: #353a42;
+    background-color: var(--str-video__background-color1);
     border-radius: 8px;
   }
 

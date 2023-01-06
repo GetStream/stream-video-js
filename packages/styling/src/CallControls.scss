@@ -8,7 +8,6 @@
 
   .str-video__call-controls__button {
     border-radius: 8px;
-    color: #ffffff;
     font-size: 20px;
     display: inline-block;
     height: 36px;
@@ -22,15 +21,15 @@
     cursor: pointer;
 
     &:hover {
-      background-color: #1c1e22;
+      background-color: var(--str-video__background-color1);
       text-decoration: none;
     }
 
     &--variant-danger {
-      background-color: #ff3742;
+      background-color: var(--str-video__danger-color1);
 
       &:hover {
-        background-color: #ff000e;
+        background-color: var(----str-video__danger-color2);
       }
     }
 

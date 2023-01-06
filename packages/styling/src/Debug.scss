@@ -5,8 +5,8 @@
   overflow: scroll;
   height: 600px;
   width: 500px;
-  background-color: lightgrey;
-  color: black;
+  background-color: var(--str-video__background-color1);
+  color: var(--str-video__text-color1);
   z-index: 10;
 }
 

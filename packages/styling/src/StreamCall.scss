@@ -1,6 +1,6 @@
 .str-video__call {
-  background-color: #272a30;
-  color: #fff;
+  background-color: var(--str-video__background-color2);
+  color: var(--str-video__text-color1);
   width: 100%;
   height: 100%;
   overflow: hidden;

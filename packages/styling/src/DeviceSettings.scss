@@ -9,15 +9,15 @@
 
   &:hover,
   &:focus {
-    background-color: #1c1e22;
+    background-color: var(--str-video__background-color1);
     border-radius: 8px;
   }
 }
 
 .str-video__device-settings {
-  background-color: #272a30;
+  background-color: var(--str-video__background-color2);
   padding: 10px;
   border-radius: 8px;
-  box-shadow: 0 0 4px 1px #272a30;
+  box-shadow: 0 0 4px 1px var(--str-video__background-color2);
   z-index: 10;
 }
