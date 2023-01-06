@@ -6,3 +6,5 @@ export * from './src/hooks';
 // Overriding 'StreamVideo' from '@stream-io/video-react-bindings'
 // Explicitly re-exporting to resolve ambiguity.
 export { StreamVideo } from './src/contexts';
+
+export * from './src/utils/RNViewportTracker';

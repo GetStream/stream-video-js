@@ -6,6 +6,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { PropsWithChildren, useEffect } from 'react';
 import InCallManager from 'react-native-incall-manager';
+import { RNViewportTracker } from '../utils/RNViewportTracker';
 
 export type StreamCallProps = {
   automaticHungupTime?: number;
@@ -33,11 +34,16 @@ export const StreamCall = ({
         return;
       }
       try {
-        const call = await videoClient.joinCall({
-          id: outgoingCall.call.id,
-          type: outgoingCall.call.type,
-          datacenterId: '',
-        });
+        const call = await videoClient.joinCall(
+          {
+            id: outgoingCall.call.id,
+            type: outgoingCall.call.type,
+            datacenterId: '',
+          },
+          {
+            viewportTracker: RNViewportTracker,
+          },
+        );
         await call?.join();
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);

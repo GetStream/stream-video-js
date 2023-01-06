@@ -1,5 +1,12 @@
-import type { TrackType } from '../../gen/video/sfu/models/models';
-import type { TrackedObject, ViewportTrackerCallback } from './types';
+import type {
+  TrackType,
+  VideoDimension,
+} from '../../gen/video/sfu/models/models';
+import type {
+  TrackedObject,
+  ViewportTracker,
+  ViewportTrackerCallback,
+} from './types';
 
 /**
  * Default options.
@@ -13,19 +20,19 @@ const defaultIntersectionObserverOptions: IntersectionObserverInit = {
  * It's primary use within this SDK is to track participant's video elements and
  * notify when they enter or leave the viewport.
  */
-export class ViewportTracker {
-  private trackedObjects = new Map<string, TrackedObject[]>();
+export class DOMViewportTracker implements ViewportTracker<HTMLElement> {
+  private trackedObjects = new Map<string, TrackedObject<HTMLElement>[]>();
   private intersectionObserver: IntersectionObserver;
   private viewport?: HTMLElement;
 
   /**
-   * Constructs new instance of the {@link ViewportTracker}.
+   * Constructs new instance of the {@link DOMViewportTracker}.
    *
    * @param onObjectViewportVisibleStateChange the callback to invoke whenever
    * a tracked object's visibility state (within the viewport) changes.
    */
   constructor(
-    private onObjectViewportVisibleStateChange: ViewportTrackerCallback,
+    private onObjectViewportVisibleStateChange: ViewportTrackerCallback<HTMLElement>,
   ) {
     this.intersectionObserver = new IntersectionObserver(
       this.onIntersect,
@@ -41,7 +48,7 @@ export class ViewportTracker {
    */
   setViewport = (
     viewport?: HTMLElement,
-    options?: IntersectionObserverInit,
+    options?: Omit<IntersectionObserverInit, 'root'>,
   ) => {
     if (this.viewport === viewport) return;
     if (this.intersectionObserver) {
@@ -54,7 +61,7 @@ export class ViewportTracker {
     this.intersectionObserver = new IntersectionObserver(this.onIntersect, {
       ...defaultIntersectionObserverOptions,
       ...options,
-      root: this.viewport || options?.root,
+      root: this.viewport,
     });
 
     this.trackedObjects.forEach((trackedObjects) => {
@@ -121,9 +128,17 @@ export class ViewportTracker {
       const element = entry.target as HTMLElement;
       const trackedObject = this.findObjectForElement(element);
       if (trackedObject) {
+        let dimension: VideoDimension | undefined;
+        if (entry.isIntersecting) {
+          dimension = {
+            width: element.clientWidth,
+            height: element.clientHeight,
+          };
+        }
         this.onObjectViewportVisibleStateChange(
           trackedObject,
           entry.isIntersecting,
+          dimension,
         );
       }
     });

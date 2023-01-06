@@ -47,7 +47,16 @@ export class Call {
     TrackSubscriptionDetails[]
   >();
 
-  viewportTracker: ViewportTracker;
+  /**
+   * The default viewport tracker dedicated to this call.
+   *
+   * This tracker instance is configured to stop incoming video tracks
+   * of the participants which aren't visible in the pre-configured viewport.
+   * This optimization technique drastically reduces the bandwidth usage
+   * in large meetings, and it also saves a lot of battery on mobile devices.
+   */
+  viewportTracker: ViewportTracker<unknown>;
+
   private statsReporter: StatsReporter;
   private joinResponseReady?: Promise<CallState | undefined>;
   private transceiverMapping: {
@@ -56,11 +65,11 @@ export class Call {
 
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
-   * @param client
-   * @param data
-   * @param options
-   * @param stateStore
-   * @param userBatcher
+   * @param client the signaling client.
+   * @param data the call metadata.
+   * @param options call options.
+   * @param stateStore the state store.
+   * @param userBatcher the userBatcher service instance.
    */
   constructor(
     data: CallEnvelope,
@@ -99,7 +108,7 @@ export class Call {
         this.client.updateSubscriptions(subscriptions),
       );
 
-    this.viewportTracker = new ViewportTracker(
+    this.viewportTracker = new options.ViewportTrackerCtor(
       this.handleOnObjectViewportVisibleStateChange,
     );
   }
@@ -566,18 +575,11 @@ export class Call {
   };
 
   private handleOnObjectViewportVisibleStateChange = (
-    trackedObject: TrackedObject,
+    trackedObject: TrackedObject<unknown>,
     isVisible: boolean,
+    dimension: VideoDimension | undefined,
   ) => {
-    const { sessionId, element, trackType } = trackedObject;
-    let dimension: VideoDimension | undefined;
-    if (isVisible) {
-      dimension = {
-        width: element.clientWidth,
-        height: element.clientHeight,
-      };
-    }
-
+    const { sessionId, trackType } = trackedObject;
     const kind =
       trackType === TrackType.VIDEO
         ? 'video'
@@ -585,9 +587,10 @@ export class Call {
         ? 'screen'
         : null;
     if (!kind) {
-      console.warn('ViewportTracker unknown track kind', trackType);
+      console.warn('Unknown track kind', trackType);
       return;
     }
+
     this.updateSubscriptionsPartial(kind, {
       [sessionId]: {
         dimension,

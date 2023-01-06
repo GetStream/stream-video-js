@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
+import { useActiveCall } from '@stream-io/video-react-bindings';
+import { SfuModels } from '@stream-io/video-client';
 
 export interface VideoRendererProps {
   /**
@@ -69,6 +71,25 @@ export const VideoRenderer = (props: VideoRendererProps) => {
     zOrder = undefined,
     objectFit = 'cover',
   } = props;
+
+  const videoRef = useRef(null);
+  const call = useActiveCall();
+  useEffect(() => {
+    const trackedElement = videoRef.current;
+    if (!trackedElement) return;
+    call?.viewportTracker.addObject(
+      'sessionId',
+      SfuModels.TrackType.VIDEO,
+      trackedElement,
+    );
+    return () => {
+      call?.viewportTracker.removeObject(
+        'sessionId',
+        SfuModels.TrackType.VIDEO,
+        trackedElement,
+      );
+    };
+  }, [call]);
   return (
     <RTCView
       // Since we stream the audio/video on mute/unmute, the mediaStream might not be available for a split second hence check for mediaStream is added
@@ -77,6 +98,7 @@ export const VideoRenderer = (props: VideoRendererProps) => {
       style={style}
       objectFit={objectFit}
       zOrder={zOrder}
+      ref={videoRef}
     />
   );
 };

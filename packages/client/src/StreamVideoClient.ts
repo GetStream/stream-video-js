@@ -40,6 +40,8 @@ import {
   watchCallCreated,
   watchCallRejected,
 } from './events/call';
+import { DOMViewportTracker } from './helpers/ViewportTracker';
+import { JoinCallOptions } from './types';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   coordinatorRpcUrl:
@@ -63,10 +65,8 @@ export class StreamVideoClient {
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWebSocketClient | undefined;
-  /**
-   * @internal
-   */
-  public readonly userBatcher: Batcher<string>;
+  private readonly userBatcher: Batcher<string>;
+
   /**
    * You should create only one instance of `StreamVideoClient`.
    * @angular If you're using our Angular SDK, you shouldn't be calling the `constructor` directly, instead you should be using [`StreamVideoService`](./StreamVideoService.md/#init).
@@ -315,53 +315,56 @@ export class StreamVideoClient {
   };
 
   /**
-   * Allows you to create a new call with the given parameters and joins the call immediately. If a call with the same combination of `type` and `id` already exists, it will join the existing call.
-   * @param data
-   * @param sessionId
+   * Allows you to create a new call with the given parameters and joins the call immediately.
+   * If a call with the same combination of `type` and `id` already exists, it will join the existing call.
+   *
+   * @param data the data describing the call.
+   * @param options the configuration options.
    * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
    */
-  joinCall = async (data: JoinCallRequest, sessionId?: string) => {
+  joinCall = async <ElementType>(
+    data: JoinCallRequest,
+    options: JoinCallOptions<ElementType> = {},
+  ) => {
     const { response } = await this.client.joinCall(data);
-    if (response.call && response.call.call && response.edges) {
-      const callMeta = response.call.call;
-      const edge = await this.getCallEdgeServer(callMeta, response.edges);
-
-      if (edge.credentials && edge.credentials.server) {
-        const edgeName = edge.credentials.server.edgeName;
-        const { server, iceServers, token } = edge.credentials;
-        const sfuClient = new StreamSfuClient(server.url, token, sessionId);
-
-        // TODO OL: compute the initial value from `activeCallSubject`
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.callRecordingInProgressSubject,
-          callMeta.recordingActive,
-        );
-
-        const call = new Call(
-          response.call,
-          sfuClient,
-          {
-            connectionConfig: this.toRtcConfiguration(iceServers),
-            edgeName,
-          },
-          this.writeableStateStore,
-          this.userBatcher,
-        );
-
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.activeCallSubject,
-          call,
-        );
-
-        return call;
-      } else {
-        // TODO: handle error?
-        return undefined;
-      }
-    } else {
+    const callEnvelope = response.call;
+    if (!callEnvelope || !callEnvelope.call || !response.edges) {
       // TODO: handle error?
       return undefined;
     }
+    const callMeta = callEnvelope.call;
+    const edge = await this.getCallEdgeServer(callMeta, response.edges);
+    if (!edge.credentials || !edge.credentials.server) {
+      // TODO: handle error?
+      return undefined;
+    }
+    // TODO OL: compute the initial value from `activeCallSubject`
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.callRecordingInProgressSubject,
+      callMeta.recordingActive,
+    );
+
+    const { server, iceServers, token } = edge.credentials;
+    const sfuClient = new StreamSfuClient(server.url, token);
+    const call = new Call(
+      callEnvelope,
+      sfuClient,
+      {
+        // @ts-ignore
+        ViewportTrackerCtor: options.viewportTracker || DOMViewportTracker,
+        connectionConfig: this.toRtcConfiguration(iceServers),
+        edgeName: server?.edgeName,
+      },
+      this.writeableStateStore,
+      this.userBatcher,
+    );
+
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.activeCallSubject,
+      call,
+    );
+
+    return call;
   };
 
   /**

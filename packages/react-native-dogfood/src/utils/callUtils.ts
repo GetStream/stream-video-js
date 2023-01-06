@@ -1,5 +1,6 @@
 import { MemberInput, StreamVideoClient } from '@stream-io/video-client';
 import InCallManager from 'react-native-incall-manager';
+import { RNViewportTracker } from '@stream-io/video-react-native-sdk';
 
 const joinCall = async (
   videoClient: StreamVideoClient,
@@ -13,16 +14,21 @@ const joinCall = async (
 ) => {
   const { members, ring, callId, callType } = callDetails;
   let call;
-  call = await videoClient.joinCall({
-    id: callId,
-    type: callType,
-    // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
-    datacenterId: '',
-    input: {
-      ring: ring,
-      members: members,
+  call = await videoClient.joinCall(
+    {
+      id: callId,
+      type: callType,
+      // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
+      datacenterId: '',
+      input: {
+        ring: ring,
+        members: members,
+      },
     },
-  });
+    {
+      viewportTracker: RNViewportTracker,
+    },
+  );
   if (!call) {
     throw new Error(`Failed to join a call with id: ${callId}`);
   }

@@ -3,7 +3,10 @@ import type {
   Participant,
   VideoDimension,
 } from '../gen/video/sfu/models/models';
-import { VisibilityState } from '../helpers/ViewportTracker';
+import {
+  ViewportTrackerCtor,
+  VisibilityState,
+} from '../helpers/ViewportTracker';
 
 export interface StreamVideoParticipant extends Participant {
   /**
@@ -105,6 +108,7 @@ export type SubscriptionChanges = {
 export type CallOptions = {
   connectionConfig?: RTCConfiguration;
   edgeName?: string;
+  ViewportTrackerCtor: ViewportTrackerCtor<unknown>;
 };
 
 export type PublishOptions = {

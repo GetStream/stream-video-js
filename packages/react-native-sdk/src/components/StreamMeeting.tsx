@@ -5,6 +5,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { PropsWithChildren, useEffect } from 'react';
 import InCallManager from 'react-native-incall-manager';
+import { RNViewportTracker } from '../utils/RNViewportTracker';
 
 export type StreamMeetingProps = {
   callId: string;
@@ -36,11 +37,16 @@ export const StreamMeeting = ({
         input,
       });
       if (callMetadata?.call?.createdByUserId === currentUser || autoJoin) {
-        const call = await client.joinCall({
-          ...descriptors,
-          // FIXME: OL optional, but it is marked as required in proto
-          datacenterId: '',
-        });
+        const call = await client.joinCall(
+          {
+            ...descriptors,
+            // FIXME: OL optional, but it is marked as required in proto
+            datacenterId: '',
+          },
+          {
+            viewportTracker: RNViewportTracker,
+          },
+        );
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
         await call?.join();
