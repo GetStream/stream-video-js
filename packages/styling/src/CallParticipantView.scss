@@ -39,7 +39,7 @@
     flex-direction: column;
 
     .str-video__remote-video {
-      border-radius: 12px;
+      border-radius: var(--str-video__border-radius2);
       border: 2px solid transparent;
       background-size: contain;
       width: 100%;
@@ -68,7 +68,7 @@
 
   .str-video__participant_name {
     padding: 6px;
-    border-radius: 6px;
+    border-radius: var(--str-video__border-radius1);
     display: flex;
     align-items: center;
 

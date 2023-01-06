@@ -2,7 +2,7 @@
 
 .str-video__notification {
   background-color: var(--str-video__background-color1);
-  border-radius: 8px;
+  border-radius: var(--str-video__border-radius1);
   padding: 10px 10px;
   display: flex;
   gap: 10px;

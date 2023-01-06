@@ -36,7 +36,7 @@
   .str-video__call-participants-screen-view__screen__presenter {
     padding: 10px 0 10px 10px;
     background-color: var(--str-video__background-color1);
-    border-radius: 8px;
+    border-radius: var(--str-video__border-radius1);
   }
 
   .str-video__call-participants-screen-view__participants {

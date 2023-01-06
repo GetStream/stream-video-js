@@ -7,7 +7,7 @@
   padding: 15px 0;
 
   .str-video__call-controls__button {
-    border-radius: 8px;
+    border-radius: var(--str-video__border-radius1);
     font-size: 20px;
     display: inline-block;
     height: 36px;
@@ -29,7 +29,7 @@
       background-color: var(--str-video__danger-color1);
 
       &:hover {
-        background-color: var(----str-video__danger-color2);
+        background-color: var(--str-video__danger-color2);
       }
     }
 

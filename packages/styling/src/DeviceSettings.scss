@@ -10,14 +10,14 @@
   &:hover,
   &:focus {
     background-color: var(--str-video__background-color1);
-    border-radius: 8px;
+    border-radius: var(--str-video__border-radius1);
   }
 }
 
 .str-video__device-settings {
   background-color: var(--str-video__background-color2);
   padding: 10px;
-  border-radius: 8px;
+  border-radius: var(--str-video__border-radius1);
   box-shadow: 0 0 4px 1px var(--str-video__background-color2);
   z-index: 10;
 }
