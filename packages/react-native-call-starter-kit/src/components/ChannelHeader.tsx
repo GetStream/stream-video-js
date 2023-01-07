@@ -24,24 +24,20 @@ export const ChannelHeader = (props: ChannelHeaderProps) => {
 
     if (videoClient) {
       try {
-        videoClient
-          ?.createCall({
-            id: callID,
-            type: 'default',
-            input: {
-              ring: true,
-              members: members.map(ringingUserId => {
-                return {
-                  userId: ringingUserId,
-                  role: 'member',
-                  customJson: new Uint8Array(),
-                };
-              }),
-            },
-          })
-          .then(response => {
-            console.log(response);
-          });
+        videoClient?.createCall({
+          id: callID,
+          type: 'default',
+          input: {
+            ring: true,
+            members: members.map(ringingUserId => {
+              return {
+                userId: ringingUserId,
+                role: 'member',
+                customJson: new Uint8Array(),
+              };
+            }),
+          },
+        });
       } catch (error) {
         console.log('Failed to createCall', callID, 'default', error);
       }
