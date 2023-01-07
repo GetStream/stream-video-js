@@ -408,7 +408,7 @@ PODS:
     - React-Core
   - RNCClipboard (1.11.1):
     - React-Core
-  - RNGoogleSignin (8.2.1):
+  - RNGoogleSignin (8.2.2):
     - GoogleSignIn (~> 6.2)
     - React-Core
   - RNScreens (3.18.2):
@@ -680,7 +680,7 @@ SPEC CHECKSUMS:
   RNCallKeep: 0654c8913d1bd24a3441c588b22503828793ad63
   RNCAsyncStorage: 8616bd5a58af409453ea4e1b246521bb76578d60
   RNCClipboard: 2834e1c4af68697089cdd455ee4a4cdd198fa7dd
-  RNGoogleSignin: 3db2d849581299f425f5b61b90cb482a9e68c7af
+  RNGoogleSignin: 81521697b2c8f97f9a586ac7257b1a1d9b51b115
   RNScreens: 34cc502acf1b916c582c60003dc3089fa01dc66d
   RNSentry: 56e67020e45e81cc94231819df968dbc41890364
   RNSVG: 3a79c0c4992213e4f06c08e62730c5e7b9e4dc17

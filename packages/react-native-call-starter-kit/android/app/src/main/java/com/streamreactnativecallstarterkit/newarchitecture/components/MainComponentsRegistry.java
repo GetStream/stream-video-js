@@ -1,4 +1,4 @@
-package com.streamreactnativemessengerapp.newarchitecture.components;
+package com.streamreactnativecallstarterkit.newarchitecture.components;
 
 import com.facebook.jni.HybridData;
 import com.facebook.proguard.annotations.DoNotStrip;

@@ -20,6 +20,7 @@ import type {
   StreamChatGenerics,
   VideoProps,
 } from '../types';
+import {STREAM_API_KEY} from 'react-native-dotenv';
 
 export const Video = ({
   children,
@@ -72,7 +73,7 @@ export const MessengerWrapper = ({
   const userToken = useAppGlobalStoreValue(store => store.userToken);
   const user = useMemo(() => userFromToken(userToken), [userToken]);
   const chatClient = useChatClient({
-    apiKey: '5mxvmc2t4qys',
+    apiKey: STREAM_API_KEY,
     userData: user,
     tokenOrProvider: userToken,
   });
