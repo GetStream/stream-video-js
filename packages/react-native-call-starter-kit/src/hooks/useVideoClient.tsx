@@ -1,6 +1,5 @@
 import {StreamVideoClient} from '@stream-io/video-client';
 import {useEffect, useState} from 'react';
-import {useAppGlobalStoreValue} from '../context/AppContext';
 import {VideoProps} from '../types';
 import {STREAM_API_KEY, STREAM_API_SECRET} from 'react-native-dotenv';
 
@@ -10,18 +9,12 @@ const APIParams = {
 };
 
 export const useVideoClient = ({user, token}: VideoProps) => {
-  const isStoreInitialized = useAppGlobalStoreValue(
-    store => store.isStoreInitialized,
-  );
   const [videoClient, setVideoClient] = useState<StreamVideoClient>();
   const [authenticationInProgress, setAuthenticationInProgress] =
     useState(true);
 
   useEffect(() => {
     const run = async () => {
-      if (!isStoreInitialized) {
-        return;
-      }
       setAuthenticationInProgress(true);
 
       try {
@@ -39,7 +32,7 @@ export const useVideoClient = ({user, token}: VideoProps) => {
     };
 
     run();
-  }, [isStoreInitialized, token, user]);
+  }, [token, user]);
 
   return {authenticationInProgress, videoClient};
 };

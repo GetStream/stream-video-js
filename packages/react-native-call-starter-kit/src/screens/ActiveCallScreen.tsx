@@ -3,7 +3,7 @@ import {ActiveCall, useActiveCall} from '@stream-io/video-react-native-sdk';
 import {ActivityIndicator, StyleSheet} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {NavigationStackParamsList} from '../types';
-import {useStreamChatContext} from '../context/StreamChatContext';
+import {useAppContext} from '../context/AppContext';
 
 type Props = NativeStackScreenProps<
   NavigationStackParamsList,
@@ -12,7 +12,7 @@ type Props = NativeStackScreenProps<
 
 export const ActiveCallScreen = ({navigation}: Props) => {
   const activeCall = useActiveCall();
-  const {channel} = useStreamChatContext();
+  const {channel} = useAppContext();
 
   const onHangupCall = () => {
     if (!channel) {

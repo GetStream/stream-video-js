@@ -1,10 +1,11 @@
 import React from 'react';
 import {Image, Pressable, StyleSheet, Text, View} from 'react-native';
 import users from '../data/users.json';
-import {useAppGlobalStoreSetState} from '../context/AppContext';
+import {useAppContext} from '../context/AppContext';
 
 export const UserList = () => {
-  const setState = useAppGlobalStoreSetState();
+  const {loginHandler} = useAppContext();
+
   return (
     <View style={styles.container}>
       <Text style={styles.chooseText}>Choose your user:</Text>
@@ -14,7 +15,7 @@ export const UserList = () => {
             style={styles.user}
             key={user.id}
             onPress={() => {
-              setState({
+              loginHandler({
                 userId: user.id,
                 userImageUrl: user.image,
                 userToken: user.token,

@@ -6,7 +6,7 @@ import {
 import {ActivityIndicator, StyleSheet} from 'react-native';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {NavigationStackParamsList} from '../types';
-import {useStreamChatContext} from '../context/StreamChatContext';
+import {useAppContext} from '../context/AppContext';
 
 type Props = NativeStackScreenProps<
   NavigationStackParamsList,
@@ -15,7 +15,7 @@ type Props = NativeStackScreenProps<
 
 const OutgoingCallScreen = ({navigation}: Props) => {
   const activeCall = useActiveCall();
-  const {channel} = useStreamChatContext();
+  const {channel} = useAppContext();
 
   const onHangupCall = () => {
     if (!channel) {

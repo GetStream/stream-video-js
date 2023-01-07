@@ -14,22 +14,28 @@ import {ThreadScreen} from './src/screens/ThreadScreen';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaView, StyleSheet} from 'react-native';
 import {NavigationHeader} from './src/components/NavigationHeader';
-import {
-  AppGlobalContextProvider,
-  useAppGlobalStoreValue,
-} from './src/context/AppContext';
 import {MessengerWrapper} from './src/components/MessengerWrapper';
 import {ChannelHeader} from './src/components/ChannelHeader';
 import IncomingCallScreen from './src/screens/IncomingCallScreen';
 import {ActiveCallScreen} from './src/screens/ActiveCallScreen';
 import OutgoingCallScreen from './src/screens/OutgoingCallScreen';
 import {CallParticipansInfoScreen} from './src/screens/CallParticipantsInfoScreen';
+import {AppProvider, useAppContext} from './src/context/AppContext';
 
 const Stack = createNativeStackNavigator<NavigationStackParamsList>();
 
 const Messenger = () => {
+  const {userId, userToken} = useAppContext();
   const navigation =
     useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();
+
+  if (!(userId && userToken)) {
+    return (
+      <SafeAreaView>
+        <UserList />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <MessengerWrapper navigation={navigation}>
@@ -71,35 +77,23 @@ const Messenger = () => {
   );
 };
 
-const RenderView = () => {
-  const userId = useAppGlobalStoreValue(store => store.userId);
-  const userToken = useAppGlobalStoreValue(store => store.userToken);
+const App = () => {
   const theme = useStreamChatTheme();
 
-  if (!(userId && userToken)) {
-    return (
-      <SafeAreaView>
-        <UserList />
-      </SafeAreaView>
-    );
-  }
   return (
-    <SafeAreaProvider
-      style={{backgroundColor: theme.colors?.white_snow || '#FCFCFC'}}>
-      <GestureHandlerRootView style={styles.container}>
-        <Messenger />
-      </GestureHandlerRootView>
-    </SafeAreaProvider>
-  );
-};
-
-const App = () => {
-  return (
-    <NavigationContainer>
-      <AppGlobalContextProvider>
-        <RenderView />
-      </AppGlobalContextProvider>
-    </NavigationContainer>
+    <GestureHandlerRootView style={styles.container}>
+      <SafeAreaProvider
+        style={[
+          styles.container,
+          {backgroundColor: theme.colors?.white_snow || '#FCFCFC'},
+        ]}>
+        <NavigationContainer>
+          <AppProvider>
+            <Messenger />
+          </AppProvider>
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 };
 

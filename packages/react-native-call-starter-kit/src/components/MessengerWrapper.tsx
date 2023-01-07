@@ -8,10 +8,8 @@ import React, {PropsWithChildren, useMemo} from 'react';
 import {useVideoClient} from '../hooks/useVideoClient';
 import {StreamCall, StreamVideo} from '@stream-io/video-react-native-sdk';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useAppGlobalStoreValue} from '../context/AppContext';
 import {userFromToken} from '../utils/userFromToken';
 import {useChatClient} from '../hooks/useChatClient';
-import {StreamChatProvider} from '../context/StreamChatContext';
 import {useStreamChatTheme} from '../../useStreamChatTheme';
 import {AuthProgressLoader} from './AuthProgressLoader';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -21,8 +19,9 @@ import type {
   VideoProps,
 } from '../types';
 import {STREAM_API_KEY} from 'react-native-dotenv';
+import {useAppContext} from '../context/AppContext';
 
-export const Video = ({
+export const VideoWrapper = ({
   children,
   navigation,
 }: PropsWithChildren<{
@@ -48,6 +47,7 @@ export const Video = ({
   if (!videoClient) {
     return <AuthProgressLoader />;
   }
+
   return (
     <StreamVideo client={videoClient}>
       <StreamCall
@@ -70,7 +70,7 @@ export const MessengerWrapper = ({
 }: PropsWithChildren<{
   navigation: NativeStackNavigationProp<NavigationStackParamsList>;
 }>) => {
-  const userToken = useAppGlobalStoreValue(store => store.userToken);
+  const {userToken} = useAppContext();
   const user = useMemo(() => userFromToken(userToken), [userToken]);
   const chatClient = useChatClient({
     apiKey: STREAM_API_KEY,
@@ -90,13 +90,7 @@ export const MessengerWrapper = ({
       i18nInstance={streami18n}
       value={{style: theme}}>
       <Chat client={chatClient} i18nInstance={streami18n}>
-        <StreamChatProvider>
-          {chatClient ? (
-            <Video navigation={navigation}>{children}</Video>
-          ) : (
-            <>{children}</>
-          )}
-        </StreamChatProvider>
+        <VideoWrapper navigation={navigation}>{children}</VideoWrapper>
       </Chat>
     </OverlayProvider>
   );

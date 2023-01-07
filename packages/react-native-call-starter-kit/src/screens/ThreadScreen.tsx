@@ -4,7 +4,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useHeaderHeight} from '@react-navigation/elements';
 import {Channel, Thread, useOverlayContext} from 'stream-chat-react-native';
 import {Platform, StyleSheet, View} from 'react-native';
-import {useStreamChatContext} from '../context/StreamChatContext';
+import {useAppContext} from '../context/AppContext';
 
 type ThreadScreenProps = NativeStackScreenProps<
   NavigationStackParamsList,
@@ -13,7 +13,7 @@ type ThreadScreenProps = NativeStackScreenProps<
 
 export const ThreadScreen = (props: ThreadScreenProps) => {
   const {navigation} = props;
-  const {channel, setThread, thread} = useStreamChatContext();
+  const {channel, setThread, thread} = useAppContext();
   const headerHeight = useHeaderHeight();
   const {overlay} = useOverlayContext();
 

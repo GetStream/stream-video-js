@@ -2,7 +2,7 @@ import React from 'react';
 import {IncomingCallView} from '@stream-io/video-react-native-sdk';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {NavigationStackParamsList} from '../types';
-import {useStreamChatContext} from '../context/StreamChatContext';
+import {useAppContext} from '../context/AppContext';
 
 type Props = NativeStackScreenProps<
   NavigationStackParamsList,
@@ -10,7 +10,7 @@ type Props = NativeStackScreenProps<
 >;
 
 const IncomingCallScreen = ({navigation}: Props) => {
-  const {channel} = useStreamChatContext();
+  const {channel} = useAppContext();
   const onAnswerCall = () => {
     navigation.navigate('ActiveCallScreen');
   };

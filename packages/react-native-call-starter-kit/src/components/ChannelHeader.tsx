@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {Call} from '../icons/Call';
-import {useStreamChatContext} from '../context/StreamChatContext';
+import {useAppContext} from '../context/AppContext';
 import {Back} from '../icons/Back';
 import {NativeStackHeaderProps} from '@react-navigation/native-stack';
 import {useStreamVideoClient} from '@stream-io/video-react-native-sdk';
@@ -12,7 +12,7 @@ type ChannelHeaderProps = NativeStackHeaderProps;
 
 export const ChannelHeader = (props: ChannelHeaderProps) => {
   const {navigation} = props;
-  const {channel} = useStreamChatContext();
+  const {channel} = useAppContext();
   const {client} = useChatContext();
   const videoClient = useStreamVideoClient();
   const members = Object.keys(channel?.state?.members || {}).filter(
