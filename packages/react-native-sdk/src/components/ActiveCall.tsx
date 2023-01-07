@@ -44,10 +44,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
     try {
       if (currentVideoDevice && !isVideoMuted) {
         getVideoStream(currentVideoDevice.deviceId).then((stream) => {
-          if (currentVideoDevice.facing === 'environment') {
-            const [primaryVideoTrack] = stream.getVideoTracks();
-            primaryVideoTrack._switchCamera();
-          }
           activeCall?.publishVideoStream(stream);
         });
       }

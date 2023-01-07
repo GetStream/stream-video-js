@@ -17,7 +17,8 @@ export const environment = {
     name: 'angular-sdk',
     role: 'admin',
     teams: ['team-1, team-2'],
-    imageUrl: '/profile.png',
+    imageUrl:
+      'https://images.unsplash.com/photo-1548802673-380ab8ebc7b7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1335&q=80',
     customJson: new Uint8Array(),
   },
   token:

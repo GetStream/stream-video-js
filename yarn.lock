@@ -21656,9 +21656,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-webrtc@npm:^106.0.0-beta.7":
-  version: 106.0.1
-  resolution: "react-native-webrtc@npm:106.0.1"
+"react-native-webrtc@patch:react-native-webrtc@npm%3A106.0.0-beta.7#./.yarn/patches/react-native-webrtc+106.0.0-beta.7.patch::locator=%40stream-io%2Fvideo-js-root%40workspace%3A.":
+  version: 106.0.0-beta.7
+  resolution: "react-native-webrtc@patch:react-native-webrtc@npm%3A106.0.0-beta.7#./.yarn/patches/react-native-webrtc+106.0.0-beta.7.patch::version=106.0.0-beta.7&hash=404a2d&locator=%40stream-io%2Fvideo-js-root%40workspace%3A."
   dependencies:
     adm-zip: 0.5.9
     base64-js: 1.5.1
@@ -21667,7 +21667,7 @@ __metadata:
     tar: 6.1.11
   peerDependencies:
     react-native: ">=0.60.0"
-  checksum: 1f15179f37e56ea772db8a843aa47e5ab1b5e08d9382c8cacb656df40fb45e8e48783b6ba1776d0e423d309c10c154a14a27a017364fc833baf41eb279f92046
+  checksum: 15aa2e2dc3d6476d41ed42bd23ab90224d444c9975041217f90ca89054256d1f752a3e3cd9c8dbb4374e408411c7f020baf33a5fe66f538b80bf690ca2bf0234
   languageName: node
   linkType: hard
 

@@ -1,10 +1,7 @@
 import { PropsWithChildren, useEffect } from 'react';
 import { CreateCallInput } from '@stream-io/video-client';
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
-import {
-  LocalMediaStreamsContextProvider,
-  MediaDevicesProvider,
-} from '../../contexts';
+import { MediaDevicesProvider } from '../../contexts';
 
 export type StreamMeetingProps = {
   callId: string;

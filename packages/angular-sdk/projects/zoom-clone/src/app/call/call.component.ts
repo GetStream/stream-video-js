@@ -1,8 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import {
   StreamVideoService,
   InCallDeviceManagerService,
+  DeviceManagerService,
 } from '@stream-io/video-angular-sdk';
 import {
   Call,
@@ -10,7 +12,7 @@ import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { combineLatest, Observable, Subscription } from 'rxjs';
+import { combineLatest, map, Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-call',
@@ -21,14 +23,19 @@ export class CallComponent implements OnInit, OnDestroy {
   call: Call | undefined;
   remoteParticipants$: Observable<StreamVideoParticipant[]>;
   localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
+  hasScreenshare$: Observable<boolean>;
+  screenSharingParticipant$: Observable<StreamVideoParticipant | undefined>;
   TrackType = SfuModels.TrackType;
   isLocalParticipantCallOwner = false;
+  isCallRecordingInProgress = false;
   private subscriptions: Subscription[] = [];
 
   constructor(
     private streamVideoService: StreamVideoService,
     private router: Router,
     private inCallDeviceManager: InCallDeviceManagerService,
+    private snackBar: MatSnackBar,
+    private deviceManager: DeviceManagerService,
   ) {
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe((c) => {
@@ -46,20 +53,62 @@ export class CallComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       combineLatest([
         this.streamVideoService.user$,
-        this.streamVideoService.acceptedCall$,
-      ]).subscribe(([user, acceptedCall]) => {
+        this.streamVideoService.activeCall$,
+      ]).subscribe(([user, activeCall]) => {
         this.isLocalParticipantCallOwner = !!(
           user &&
-          acceptedCall &&
-          user?.id === acceptedCall.senderUserId
+          activeCall &&
+          user?.id === activeCall.data.call!.createdByUserId
         );
       }),
+    );
+    this.hasScreenshare$ = this.streamVideoService.hasOngoingScreenShare$;
+    this.screenSharingParticipant$ = this.streamVideoService.participants$.pipe(
+      map((participants) =>
+        participants.find((p) =>
+          p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
+        ),
+      ),
+    );
+    let snackBarRef: MatSnackBarRef<any>;
+    this.subscriptions.push(
+      combineLatest([
+        this.deviceManager.audioState$,
+        this.deviceManager.isSpeaking$,
+      ]).subscribe(([audioState, isSpeaking]) => {
+        const isSpeakingWhileMuted =
+          audioState === 'detecting-speech-while-muted' && isSpeaking;
+        if (isSpeakingWhileMuted) {
+          snackBarRef = this.snackBar.open(
+            `You're muted, unmute yourself to speak.`,
+          );
+        } else if (snackBarRef) {
+          snackBarRef.dismiss();
+        }
+      }),
+    );
+    this.subscriptions.push(
+      this.streamVideoService.callRecordingInProgress$.subscribe(
+        (inProgress) => (this.isCallRecordingInProgress = inProgress),
+      ),
     );
   }
 
   endCall() {
     this.call?.leave();
     this.router.navigateByUrl('/call-lobby');
+  }
+
+  toggleRecording() {
+    this.isCallRecordingInProgress
+      ? this.streamVideoService.videoClient?.stopRecording(
+          this.call!.data.call!.id,
+          this.call!.data.call!.type,
+        )
+      : this.streamVideoService.videoClient?.startRecording(
+          this.call!.data.call!.id,
+          this.call!.data.call!.type,
+        );
   }
 
   ngOnInit(): void {}

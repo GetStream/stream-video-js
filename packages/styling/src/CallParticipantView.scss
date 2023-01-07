@@ -8,6 +8,10 @@
   max-height: 100%;
   overflow: hidden;
 
+  @mixin video-border {
+    border: 2px solid #005fff;
+  }
+
   .str-call__participant {
     min-height: 0;
     max-height: 100%;
@@ -16,6 +20,12 @@
     flex-direction: column;
     align-items: stretch;
     justify-content: center;
+
+    &.str-video__participant--speaking {
+      .str-video__remote-video {
+        @include video-border;
+      }
+    }
   }
 
   .str-video__video-container {
@@ -43,7 +53,7 @@
 
   &.str-video__participant--speaking {
     .str-video__remote-video {
-      border: 2px solid #005fff;
+      @include video-border;
     }
   }
 

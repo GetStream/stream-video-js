@@ -20,6 +20,14 @@ export class InCallDeviceManagerService {
     private deviceManager: DeviceManagerService,
   ) {}
 
+  /**
+   * This method will subscribe to the [`activeCall$` state variable](./StreamVideoService.md/#activecall) and apply the device settings to the current active call.
+   *
+   * The method takes the audio, video and screen share streams and audio output setting from the [`DeviceManagerService`](./DeviceManagerService.md) and forwards them to the active call.
+   * If a new call is started, this method will apply the existing device settings to the call.
+   *
+   * Additionally if the audio stream is stopped, this method will start a "silent" audio stream that won't be published to the call, but will be used to check if the [user is speaking while muted](./DeviceManagerService.md#isspeaking).
+   */
   start() {
     this.callSubscription = this.streamVideoService.activeCall$.subscribe(
       (call) => {
@@ -43,6 +51,26 @@ export class InCallDeviceManagerService {
                   .subscribe((stream) => call.publishAudioStream(stream!));
               } else {
                 call.stopPublish(SfuModels.TrackType.AUDIO);
+                if (s === 'off') {
+                  let audioDevice: string | undefined;
+                  this.deviceManager.audioDevice$
+                    .pipe(take(1))
+                    .subscribe((d) => (audioDevice = d));
+                  this.deviceManager.startAudio(audioDevice, true);
+                }
+              }
+            }),
+          );
+          this.subscriptions.push(
+            this.deviceManager.screenShareState$.subscribe((s) => {
+              if (s === 'on') {
+                this.deviceManager.screenShareStream$
+                  .pipe(take(1))
+                  .subscribe((stream) =>
+                    call.publishScreenShareStream(stream!),
+                  );
+              } else {
+                call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
               }
             }),
           );
@@ -58,6 +86,9 @@ export class InCallDeviceManagerService {
     );
   }
 
+  /**
+   * This method removes the subscription to the [`activeCall$` state variable](./StreamVideoService.md/#activecall).
+   */
   stop() {
     this.callSubscription?.unsubscribe();
   }
