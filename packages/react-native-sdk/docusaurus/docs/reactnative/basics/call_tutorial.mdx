@@ -146,7 +146,7 @@ _Note: Make sure to wrap your entire application in `StreamVideo`._
 
 To enable calling in the application, you must wrap the `StreamCall` component on top of the navigator flows. The `StreamCall` component expects handlers on what should happen when a call is accepted, on starting an outgoing call and on receiving an incoming call.
 
-_Note: This component must be a child of the `StreamVideo` component._
+_Note: The `StreamCall` component must be a child of the `StreamVideo` component._
 
 ```tsx
 import React from 'react';
@@ -169,7 +169,46 @@ const App = () => {
 
 ```
 
-In our example, we navigate to particular screens where we render the `IncomingCallView`, `OutgoingCallView` and `ActiveCall` components. This is done using the package [react-navigation](http://reactnavigation.org/).
+_Note: In our example, we navigate to particular screens where we render the `IncomingCallView`, `OutgoingCallView` and `ActiveCall` components. This is done using the package [react-navigation](http://reactnavigation.org/)._
+
+### Creating the call
+
+To create/start a call, you can use the `createCall` function provided by the video client. This expects `callId`, `type` and `input` for the call. The `input` field expects the `ring` as `true` and the `members` to whom we want to call. An example of the usage is shared below:
+
+```tsx
+import React, {useCallback} from 'react';
+import {useStreamVideoClient} from '@stream-io/video-react-native-sdk';
+...
+
+export default () => {
+	const videoClient = useStreamVideoClient();
+
+	const joinCallHandler = useCallback(() => {
+	  if (videoClient) {
+	    try {
+	      videoClient?.createCall({
+	        id: callID,
+	        type: 'default',
+	        input: {
+	          ring: true,
+	          members: members.map((memberId) => {
+	            return {
+	              userId: memberId,
+	              role: 'member',
+	              customJson: new Uint8Array(),
+	            };
+	          }),
+	        },
+	      });
+	    } catch (error) {
+	      console.log('Failed to createCall', callID, 'default', error);
+	    }
+	  }
+	}, [videoClient, members]);
+}
+```
+
+_Note: In our application, we derive the `members` from `channel.state?.members`._
 
 ### Rendering the Active call view
 
