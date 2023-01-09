@@ -4,6 +4,7 @@ import {NavigationStackParamsList} from './src/types';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {useStreamChatTheme} from './useStreamChatTheme';
 import {
+  NativeStackHeaderProps,
   NativeStackNavigationProp,
   createNativeStackNavigator,
 } from '@react-navigation/native-stack';
@@ -23,6 +24,10 @@ import {CallParticipansInfoScreen} from './src/screens/CallParticipantsInfoScree
 import {AppProvider, useAppContext} from './src/context/AppContext';
 
 const Stack = createNativeStackNavigator<NavigationStackParamsList>();
+
+function ChannelHeaderComponent(props: NativeStackHeaderProps) {
+  return <ChannelHeader {...props} />;
+}
 
 const Messenger = () => {
   const {userId, userToken} = useAppContext();
@@ -49,7 +54,7 @@ const Messenger = () => {
           name="ChannelScreen"
           component={ChannelScreen}
           options={{
-            header: props => <ChannelHeader {...props} />,
+            header: ChannelHeaderComponent,
           }}
         />
         <Stack.Screen name="ThreadScreen" component={ThreadScreen} />

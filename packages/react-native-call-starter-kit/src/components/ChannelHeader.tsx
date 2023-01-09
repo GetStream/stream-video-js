@@ -44,9 +44,13 @@ export const ChannelHeader = (props: ChannelHeaderProps) => {
     }
   }, [videoClient, members]);
 
+  const goBackHandler = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => navigation.goBack()} style={styles.icon}>
+      <Pressable onPress={goBackHandler} style={styles.icon}>
         <Back color="#52be80" />
       </Pressable>
       <Text style={styles.name}>

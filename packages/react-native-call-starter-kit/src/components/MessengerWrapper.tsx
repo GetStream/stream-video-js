@@ -4,7 +4,7 @@ import {
   Streami18n,
   useChatContext,
 } from 'stream-chat-react-native';
-import React, {PropsWithChildren, useMemo} from 'react';
+import React, {PropsWithChildren, useCallback, useMemo} from 'react';
 import {useVideoClient} from '../hooks/useVideoClient';
 import {StreamCall, StreamVideo} from '@stream-io/video-react-native-sdk';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -44,6 +44,18 @@ export const VideoWrapper = ({
 
   const {videoClient} = useVideoClient({user, token});
 
+  const acceptCallHandler = useCallback(() => {
+    navigation.navigate('ActiveCallScreen');
+  }, [navigation]);
+
+  const outgoingCallHandler = useCallback(() => {
+    navigation.navigate('OutgoingCallScreen');
+  }, [navigation]);
+
+  const incomingCallHandler = useCallback(() => {
+    navigation.navigate('IncomingCallScreen');
+  }, [navigation]);
+
   if (!videoClient) {
     return <AuthProgressLoader />;
   }
@@ -51,9 +63,9 @@ export const VideoWrapper = ({
   return (
     <StreamVideo client={videoClient}>
       <StreamCall
-        onAcceptCall={() => navigation.navigate('ActiveCallScreen')}
-        onOutgoingCall={() => navigation.navigate('OutgoingCallScreen')}
-        onIncomingCall={() => navigation.navigate('IncomingCallScreen')}>
+        onAcceptCall={acceptCallHandler}
+        onOutgoingCall={outgoingCallHandler}
+        onIncomingCall={incomingCallHandler}>
         {children}
       </StreamCall>
     </StreamVideo>
