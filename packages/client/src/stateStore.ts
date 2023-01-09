@@ -17,7 +17,6 @@ import { TrackType } from './gen/video/sfu/models/models';
 export type PendingCall = {
   call?: Call;
   callDetails?: CallDetails;
-  ringing: boolean; // FIXME: CreateCallInput.ring vs CallCreated.ringing
 };
 
 export class StreamVideoWriteableStateStore {

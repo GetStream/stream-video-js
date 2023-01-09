@@ -40,8 +40,11 @@ import {
   watchCallCreated,
   watchCallRejected,
 } from './events/call';
+import { CALL_CONFIG } from './config/defaultConfigs';
+import { CallConfig } from './config/types';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
+  callConfig: CALL_CONFIG.meeting,
   coordinatorRpcUrl:
     'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
   coordinatorWsUrl:
@@ -203,12 +206,22 @@ export class StreamVideoClient {
   /**
    * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, this will return an error.
    * Causes the CallCreated event to be emitted to all the call members.
-   * @param data CreateCallRequest payload object
+   * @param {GetOrCreateCallRequest} data CreateCallRequest payload object
    * @returns A call metadata with information about the call.
    */
   getOrCreateCall = async (data: GetOrCreateCallRequest) => {
     const { response } = await this.client.getOrCreateCall(data);
     if (response.call) {
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.pendingCallsSubject,
+        (pendingCalls) => [
+          ...pendingCalls,
+          {
+            call: response.call?.call,
+            callDetails: response.call?.details,
+          },
+        ],
+      );
       return response.call;
     } else {
       // TODO: handle error?
@@ -218,7 +231,7 @@ export class StreamVideoClient {
 
   /**
    * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, this will return an error.
-   * @param data
+   * @param {CreateCallRequest} data
    * @returns A call metadata with information about the call.
    */
   createCall = async (data: CreateCallRequest) => {
@@ -232,7 +245,6 @@ export class StreamVideoClient {
           {
             call: call.call,
             callDetails: call.details,
-            ringing: !!data.input?.ring,
           },
         ],
       );
@@ -306,6 +318,13 @@ export class StreamVideoClient {
         eventType: UserEventType.CANCELLED_CALL,
       });
     }
+  };
+
+  /**
+   * Updates the general call configuration.
+   */
+  updateCallConfig = (config: CallConfig) => {
+    this.options.callConfig = config;
   };
 
   /**
