@@ -2,7 +2,16 @@
   background-color: var(--str-video__background-color1);
   border-radius: var(--str-video__border-radius1);
   padding: 0.625rem 1rem;
-  width: 400px;
+  width: 30%;
+
+  &.str-video__call-stats-angular {
+    width: 400px;
+
+    canvas {
+      width: 400px;
+      height: 200px;
+    }
+  }
 
   .str-video__call-stats__title {
     .str-video__call-stats__close {
@@ -21,17 +30,18 @@
   }
 
   .str-video__call-stats__card-container {
+    --gap: 1rem;
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
-    gap: 1rem;
+    gap: var(--gap);
     padding: 0 0 1rem 0;
   }
 
   .str-video__call-stats__card {
     background-color: var(--str-video__background-color2);
     border-radius: var(--str-video__border-radius1);
-    width: 175px;
+    width: calc(50% - calc(var(--gap) / 2));
     padding: 0.5rem 0.5rem;
 
     .str-video__call-stats__card_label {
@@ -46,5 +56,9 @@
       font-weight: 500;
       line-height: 1.25rem;
     }
+  }
+
+  .str-video__call-stats-line-chart-container {
+    height: 15vh;
   }
 }
