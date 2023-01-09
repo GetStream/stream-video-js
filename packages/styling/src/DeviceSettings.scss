@@ -1,14 +1,18 @@
-@use './Icons';
-
-.str-video__device-settings__icon {
-  display: inline-block;
-  width: 36px;
-  height: 36px;
+.str-video__device-settings__button {
   cursor: pointer;
+  border: none;
+  background-color: transparent;
 
-  background-image: Icons.$icon-settings;
-  background-repeat: no-repeat;
-  background-position: center;
+  .str-video__device-settings__icon {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+
+    mask-image: var(--str-video__icon--settings);
+    mask-repeat: no-repeat;
+    mask-position: center;
+    background-color: var(--str-video__text-color1);
+  }
 
   &:hover,
   &:focus {

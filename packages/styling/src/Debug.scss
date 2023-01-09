@@ -1,5 +1,3 @@
-@use './Icons';
-
 .str-video__debug__track-stats {
   font-size: 0.6rem;
   overflow: scroll;
@@ -16,6 +14,6 @@
   height: 24px;
   background-position: center;
   background-repeat: no-repeat;
-  background-image: Icons.$icon-network-quality;
+  background-image: var(--str-video__icon--network-quality);
   cursor: pointer;
 }

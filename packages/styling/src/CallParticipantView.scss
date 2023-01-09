@@ -1,5 +1,3 @@
-@use './Icons';
-
 .str-video__participant,
 .str-video__participant-angular-host {
   width: 100%;
@@ -76,31 +74,32 @@
       $icon-size: 15px;
       width: $icon-size;
       height: $icon-size;
-      background-size: $icon-size;
+      mask-size: $icon-size;
+      background-color: var(--str-video__text-color1);
     }
 
     .str-video__participant_name--audio-muted {
       @include icon();
-      background-image: Icons.$icon-mic-off;
+      mask-image: var(--str-video__icon--mic-off);
     }
 
     .str-video__participant_name--dominant_speaker {
       @include icon();
-      background-image: Icons.$icon-dominant-speaker;
+      mask-image: var(--str-video__icon--dominant-speaker);
 
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      mask-position: center;
     }
 
     .str-video__participant_name--video-muted {
       @include icon();
-      background-image: Icons.$icon-camera-off;
+      mask-image: var(--str-video__icon--camera-off);
     }
 
     .str-video__participant_name--network-stats {
       @include icon();
-      background-image: Icons.$icon-network-quality;
+      background-image: var(--str-video__icon--network-quality);
       cursor: pointer;
       margin-right: 0.625rem;
     }
@@ -114,13 +113,13 @@
     background-size: cover;
 
     &--poor {
-      background-image: Icons.$icon-connection-quality-poor;
+      background-image: var(--str-video__icon--connection-quality-poor);
     }
     &--good {
-      background-image: Icons.$icon-connection-quality-good;
+      background-image: var(--str-video__icon--connection-quality-good);
     }
     &--excellent {
-      background-image: Icons.$icon-connection-quality-excellent;
+      background-image: var(--str-video__icon--connection-quality-excellent);
     }
   }
 

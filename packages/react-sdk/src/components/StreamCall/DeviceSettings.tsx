@@ -30,14 +30,16 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
 
   return (
     <>
-      <span
-        className="str-video__device-settings__icon"
+      <button
+        className="str-video__device-settings__button"
         tabIndex={0}
         ref={setReferenceElement}
         onClick={() => {
           setIsPopperOpen((v) => !v);
         }}
-      />
+      >
+        <span className="str-video__device-settings__icon" />
+      </button>
       {isPopperOpen && (
         <div
           className="str-video__device-settings"
