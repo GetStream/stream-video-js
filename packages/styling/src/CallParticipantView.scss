@@ -6,7 +6,7 @@
   max-width: 1280px;
   min-height: 0;
   max-height: 100%;
-  overflow: hidden;
+  height: 100%;
 
   @mixin video-border {
     border: 2px solid var(--str-video__primary-color);
