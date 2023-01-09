@@ -71,7 +71,7 @@
     gap: 0.3125rem;
 
     @mixin icon {
-      $icon-size: 15px;
+      $icon-size: 1rem;
       width: $icon-size;
       height: $icon-size;
       mask-size: $icon-size;
@@ -107,8 +107,8 @@
 
   .str-video__participant__connection-quality {
     display: inline-block;
-    width: 24px;
-    height: 24px;
+    width: 1.5rem;
+    height: 1.5rem;
     display: block;
     background-size: cover;
 

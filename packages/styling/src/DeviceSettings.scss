@@ -5,12 +5,13 @@
 
   .str-video__device-settings__icon {
     display: inline-block;
-    width: 36px;
-    height: 36px;
+    width: 1.5rem;
+    height: 1.5rem;
 
     mask-image: var(--str-video__icon--settings);
     mask-repeat: no-repeat;
     mask-position: center;
+    mask-size: contain;
     background-color: var(--str-video__text-color1);
   }
 
