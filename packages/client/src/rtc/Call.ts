@@ -1,8 +1,7 @@
 import { StreamSfuClient } from '../StreamSfuClient';
 import { createSubscriber } from './subscriber';
-import { createPublisher } from './publisher';
-import { findOptimalVideoLayers } from './videoLayers';
-import { getGenericSdp, getPreferredCodecs } from './codecs';
+import { Publisher } from './publisher';
+import { getGenericSdp } from './codecs';
 import { CallState, TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuEventListener } from './Dispatcher';
@@ -33,7 +32,7 @@ export class Call {
    */
   data: CallEnvelope;
   private readonly subscriber: RTCPeerConnection;
-  private readonly publisher: RTCPeerConnection;
+  private readonly publisher: Publisher;
   private readonly trackSubscriptionsSubject = new Subject<
     TrackSubscriptionDetails[]
   >();
@@ -62,7 +61,7 @@ export class Call {
       onTrack: this.handleOnTrack,
     });
 
-    this.publisher = createPublisher({
+    this.publisher = new Publisher({
       rpcClient: this.client,
       connectionConfig: this.options.connectionConfig,
     });
@@ -118,15 +117,7 @@ export class Call {
     this.subscriber.close();
     this.userBatcher.clearBatch();
 
-    this.publisher.getSenders().forEach((s) => {
-      if (s.track) {
-        s.track.stop();
-      }
-      if (this.publisher.signalingState !== 'closed') {
-        this.publisher.removeTrack(s);
-      }
-    });
-    this.publisher.close();
+    this.publisher.stopPublishing();
     this.client.close();
 
     this.stateStore.setCurrentValue(
@@ -212,40 +203,17 @@ export class Call {
     }
 
     const trackType = TrackType.VIDEO;
-    let transceiver = this.publisher.getTransceivers().find(
-      (t) =>
-        // @ts-ignore
-        t.__trackType === trackType &&
-        t.sender.track &&
-        t.sender.track?.kind === 'video',
-    );
-    if (!transceiver) {
-      const videoEncodings = findOptimalVideoLayers(videoTrack);
-      transceiver = this.publisher.addTransceiver(videoTrack, {
-        direction: 'sendonly',
-        streams: [videoStream],
-        sendEncodings: videoEncodings,
-      });
 
-      // @ts-ignore
-      transceiver.__trackType = trackType;
-
-      const codecPreferences = getPreferredCodecs(
-        'video',
-        opts.preferredCodec || 'vp8',
+    try {
+      await this.publisher.publishStream(
+        videoStream,
+        videoTrack,
+        trackType,
+        opts,
       );
-
-      if ('setCodecPreferences' in transceiver && codecPreferences) {
-        console.log(`set codec preferences`, codecPreferences);
-        transceiver.setCodecPreferences(codecPreferences);
-      }
-    } else {
-      transceiver.sender.track?.stop();
-      await transceiver.sender.replaceTrack(videoTrack);
-    }
-
-    if (transceiver.sender.track) {
       await this.client.updateMuteState(trackType, false);
+    } catch (e) {
+      throw e;
     }
 
     this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
@@ -276,26 +244,11 @@ export class Call {
     }
 
     const trackType = TrackType.AUDIO;
-    let transceiver = this.publisher.getTransceivers().find(
-      (t) =>
-        // @ts-ignore
-        t.__trackType === trackType &&
-        t.sender.track &&
-        t.sender.track.kind === 'audio',
-    );
-    if (!transceiver) {
-      transceiver = this.publisher.addTransceiver(audioTrack, {
-        direction: 'sendonly',
-      });
-      // @ts-ignore
-      transceiver.__trackType = trackType;
-    } else {
-      transceiver.sender.track?.stop();
-      await transceiver.sender.replaceTrack(audioTrack);
-    }
-
-    if (transceiver.sender.track) {
+    try {
+      await this.publisher.publishStream(audioStream, audioTrack, trackType);
       await this.client.updateMuteState(trackType, false);
+    } catch (e) {
+      throw e;
     }
 
     this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
@@ -329,29 +282,15 @@ export class Call {
     screenShareTrack.addEventListener('ended', onTrackEnded);
 
     const trackType = TrackType.SCREEN_SHARE;
-    let transceiver = this.publisher.getTransceivers().find(
-      (t) =>
-        // @ts-ignore
-        t.__trackType === trackType &&
-        t.sender.track &&
-        t.sender.track.kind === 'video',
-    );
-    if (!transceiver) {
-      transceiver = this.publisher.addTransceiver(screenShareTrack, {
-        direction: 'sendonly',
-        streams: [screenShareStream],
-        // sendEncodings
-      });
-      // @ts-ignore FIXME: OL: this is a hack
-      transceiver.__trackType = trackType;
-    } else {
-      transceiver.sender.track?.removeEventListener('ended', onTrackEnded);
-      transceiver.sender.track?.stop();
-      await transceiver.sender.replaceTrack(screenShareTrack);
-    }
-
-    if (transceiver.sender.track) {
+    try {
+      await this.publisher.publishStream(
+        screenShareStream,
+        screenShareTrack,
+        trackType,
+      );
       await this.client.updateMuteState(trackType, false);
+    } catch (e) {
+      throw e;
     }
 
     this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
@@ -372,13 +311,8 @@ export class Call {
    */
   stopPublish = async (trackType: TrackType) => {
     console.log(`stopPublish`, TrackType[trackType]);
-    const transceiver = this.publisher.getTransceivers().find(
-      (t) =>
-        // @ts-ignore
-        t.__trackType === trackType && t.sender.track,
-    );
-    if (transceiver && transceiver.sender.track) {
-      transceiver.sender.track.stop();
+    const wasPublishing = this.publisher.unpublishStream(trackType);
+    if (wasPublishing) {
       await this.client.updateMuteState(trackType, true);
 
       const audioOrVideoOrScreenShareStream =
@@ -518,33 +452,7 @@ export class Call {
    * @returns
    */
   updatePublishQuality = async (enabledRids: string[]) => {
-    console.log(
-      'Updating publish quality, qualities requested by SFU:',
-      enabledRids,
-    );
-    const videoSender = this.publisher
-      ?.getSenders()
-      .find((s) => s.track?.kind === 'video');
-
-    if (!videoSender) return;
-
-    const params = await videoSender.getParameters();
-    let changed = false;
-    params.encodings.forEach((enc) => {
-      console.log(enc.rid, enc.active);
-      // flip 'active' flag only when necessary
-      const shouldEnable = enabledRids.includes(enc.rid!);
-      if (shouldEnable !== enc.active) {
-        enc.active = shouldEnable;
-        changed = true;
-      }
-    });
-    if (changed) {
-      if (params.encodings.length === 0) {
-        console.warn('No suitable video encoding quality found');
-      }
-      await videoSender.setParameters(params);
-    }
+    this.publisher.updateVideoPublishQuality(enabledRids);
   };
 
   private get participants() {
