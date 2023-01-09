@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {
   OutgoingCallView,
   useActiveCall,
@@ -13,22 +13,22 @@ type Props = NativeStackScreenProps<
   'OutgoingCallScreen'
 >;
 
-const OutgoingCallScreen = ({navigation}: Props) => {
+function OutgoingCallScreen({navigation}: Props) {
   const activeCall = useActiveCall();
   const {channel} = useAppContext();
 
-  const onHangupCall = () => {
+  const onHangupCall = useCallback(() => {
     if (!channel) {
       navigation.navigate('ChannelListScreen');
     } else {
       navigation.navigate('ChannelScreen');
     }
-  };
+  }, [channel, navigation]);
 
   if (!activeCall) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
   return <OutgoingCallView onHangupCall={onHangupCall} />;
-};
+}
 
 export default OutgoingCallScreen;

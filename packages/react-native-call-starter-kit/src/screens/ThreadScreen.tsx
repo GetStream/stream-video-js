@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {NavigationStackParamsList, StreamChatGenerics} from '../types';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useHeaderHeight} from '@react-navigation/elements';
@@ -11,8 +11,7 @@ type ThreadScreenProps = NativeStackScreenProps<
   'ThreadScreen'
 >;
 
-export const ThreadScreen = (props: ThreadScreenProps) => {
-  const {navigation} = props;
+export function ThreadScreen({navigation}: ThreadScreenProps) {
   const {channel, setThread, thread} = useAppContext();
   const headerHeight = useHeaderHeight();
   const {overlay} = useOverlayContext();
@@ -23,6 +22,10 @@ export const ThreadScreen = (props: ThreadScreenProps) => {
     });
   }, [overlay, navigation]);
 
+  const onThreadDismountHandler = useCallback(() => {
+    setThread(null);
+  }, [setThread]);
+
   return (
     <Channel
       channel={channel!!}
@@ -30,11 +33,13 @@ export const ThreadScreen = (props: ThreadScreenProps) => {
       thread={thread}
       threadList>
       <View style={styles.container}>
-        <Thread<StreamChatGenerics> onThreadDismount={() => setThread(null)} />
+        <Thread<StreamChatGenerics>
+          onThreadDismount={onThreadDismountHandler}
+        />
       </View>
     </Channel>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {

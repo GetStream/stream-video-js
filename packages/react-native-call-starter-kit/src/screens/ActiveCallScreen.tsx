@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {ActiveCall, useActiveCall} from '@stream-io/video-react-native-sdk';
 import {ActivityIndicator, StyleSheet} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -10,21 +10,21 @@ type Props = NativeStackScreenProps<
   'ActiveCallScreen'
 >;
 
-export const ActiveCallScreen = ({navigation}: Props) => {
+export function ActiveCallScreen({navigation}: Props) {
   const activeCall = useActiveCall();
   const {channel} = useAppContext();
 
-  const onHangupCall = () => {
+  const onHangupCall = useCallback(() => {
     if (!channel) {
       navigation.navigate('ChannelListScreen');
     } else {
       navigation.navigate('ChannelScreen');
     }
-  };
+  }, [navigation, channel]);
 
-  const onOpenCallParticipantsInfoViewHandler = () => {
+  const onOpenCallParticipantsInfoViewHandler = useCallback(() => {
     navigation.navigate('CallParticipantsInfoScreen');
-  };
+  }, [navigation]);
 
   if (!activeCall) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
@@ -35,4 +35,4 @@ export const ActiveCallScreen = ({navigation}: Props) => {
       onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
     />
   );
-};
+}

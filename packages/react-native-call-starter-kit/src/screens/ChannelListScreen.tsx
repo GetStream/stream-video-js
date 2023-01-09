@@ -19,9 +19,8 @@ type ChannelListScreenProps = NativeStackScreenProps<
   'ChannelListScreen'
 >;
 
-export const ChannelListScreen = (props: ChannelListScreenProps) => {
+export function ChannelListScreen({navigation}: ChannelListScreenProps) {
   const {setChannel, userId} = useAppContext();
-  const {navigation} = props;
 
   const filters = {
     type: 'messaging',
@@ -41,7 +40,7 @@ export const ChannelListScreen = (props: ChannelListScreenProps) => {
       />
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
