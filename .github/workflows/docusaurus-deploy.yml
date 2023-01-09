@@ -7,11 +7,13 @@ on:
   push:
     branches:
       - main
+      - docs
     paths:
       - 'packages/angular-sdk/**'
       - 'packages/react-bindings/**'
       - 'packages/client/**'
       - 'packages/react-native-sdk/**'
+      - 'packages/react-sdk/**'
 
 jobs:
   push_docusaurus:
@@ -33,6 +35,7 @@ jobs:
         run: yarn install --immutable
       - name: Build packages
         run: yarn build:all
+
       - name: Generate Angular documentation
         run: yarn generate-docs:angular;
       - name: Push Angular SDK documentation
@@ -44,6 +47,7 @@ jobs:
         env:
           DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
           NODE_OPTIONS: '--openssl-legacy-provider' # need for node 18 + docusaurus cli support
+
       - name: Generate React Native SDK documentation
         run: yarn generate-docs:react-native:sdk;
       - name: Push React Native SDK documentation
@@ -55,3 +59,15 @@ jobs:
         env:
           DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
           NODE_OPTIONS: '--openssl-legacy-provider' # need for node 18 + docusaurus cli support
+
+      - name: Generate React SDK documentation
+        run: yarn generate-docs:react:sdk
+      - name: Push React SDK documentation
+        uses: GetStream/push-stream-chat-docusaurus-action@main
+        with:
+          target-branch: 'staging'
+          destination-repository-name: 'stream-video-docusaurus'
+          source-directory: 'packages/react-sdk/docusaurus'
+        env:
+            DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
+            NODE_OPTIONS: '--openssl-legacy-provider' # need for node 18 + docusaurus cli support
