@@ -1,11 +1,11 @@
-import React, { useCallback } from 'react';
-import { LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
-import { RTCView } from 'react-native-webrtc';
-import { SfuModels } from '@stream-io/video-client';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { MediaStream, RTCView } from 'react-native-webrtc';
 import {
-  useActiveCall,
-  useParticipants,
-} from '@stream-io/video-react-bindings';
+  StreamVideoLocalParticipant,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
+import { useActiveCall } from '@stream-io/video-react-bindings';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
 import { useStreamVideoStoreValue } from '../contexts';
@@ -19,9 +19,9 @@ interface ParticipantViewProps {
    */
   size: SizeType;
   /**
-   * The id of the participant that will be displayed
+   * The participant that will be displayed
    */
-  participantId: string;
+  participant: StreamVideoParticipant | StreamVideoLocalParticipant;
 }
 
 /**
@@ -29,62 +29,54 @@ interface ParticipantViewProps {
  * and additional info, by an absence of a video track only an avatar/initials and audio track will be rendered.
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
-  const { size, participantId } = props;
+  const { size, participant } = props;
   const call = useActiveCall();
-  const participants = useParticipants();
-  const participant = participants.find((p) => p.userId === participantId);
 
   const cameraBackFacingMode = useStreamVideoStoreValue(
     (store) => store.cameraBackFacingMode,
   );
 
-  const updateVideoSubscriptionForParticipant = useCallback(
-    (width: number, height: number) => {
-      if (!call || !participant) {
-        return null;
-      }
-
-      call.updateSubscriptionsPartial('video', {
-        [participant.sessionId]: {
-          dimension: {
-            width: Math.trunc(width),
-            height: Math.trunc(height),
-          },
+  const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
+    if (!call) {
+      return;
+    }
+    const { height, width } = event.nativeEvent.layout;
+    call.updateSubscriptionsPartial('video', {
+      [participant.sessionId]: {
+        dimension: {
+          width: Math.trunc(width),
+          height: Math.trunc(height),
         },
-      });
-    },
-    [call, participant],
-  );
+      },
+    });
+  };
 
-  if (!participant) return null;
+  const { isSpeaking, isLoggedInUser } = participant;
 
-  const { videoStream, audioStream, isSpeaking, isLoggedInUser } = participant;
-  const audio = participant.publishedTracks.includes(SfuModels.TrackType.AUDIO);
-  const video = participant.publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  console.log({ screenshareStream: participant.screenShareStream });
+
+  // NOTE: We have to cast to MediaStream type from webrtc
+  // as JS client sends the web navigators' mediastream type instead
+  const videoStreamToShow = (participant.screenShareStream ??
+    participant.videoStream) as MediaStream | undefined;
+  const audioStream = participant.audioStream as MediaStream | undefined;
 
   const mirror = isLoggedInUser && !cameraBackFacingMode;
-  const MicIcon = !audio ? MicOff : Mic;
-  const dominantSpeakerStyle = isSpeaking && {
-    borderColor: '#005FFF',
-    borderWidth: 2,
-  };
+  const MicIcon = !audioStream ? MicOff : Mic;
 
   return (
     <View
       style={[
         styles.containerBase,
         styles[`${size}Container`],
-        dominantSpeakerStyle,
+        isSpeaking ? styles.dominantSpeaker : {},
       ]}
-      onLayout={(event: LayoutChangeEvent) => {
-        const { height, width } = event.nativeEvent.layout;
-        updateVideoSubscriptionForParticipant(width, height);
-      }}
+      onLayout={onLayout}
     >
-      {video && videoStream ? (
+      {!!videoStreamToShow ? (
         <VideoRenderer
           mirror={mirror}
-          mediaStream={videoStream}
+          mediaStream={videoStreamToShow}
           style={styles.videoRenderer}
         />
       ) : (
@@ -139,5 +131,9 @@ const styles = StyleSheet.create({
     height: 16,
     width: 16,
     marginLeft: 6,
+  },
+  dominantSpeaker: {
+    borderColor: '#005FFF',
+    borderWidth: 2,
   },
 });
