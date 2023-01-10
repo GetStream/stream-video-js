@@ -1,21 +1,19 @@
-@use './Icons';
-
 .str-video__debug__track-stats {
-  font-size: 8pt;
+  font-size: 0.6rem;
   overflow: scroll;
   height: 600px;
   width: 500px;
-  background-color: lightgrey;
-  color: black;
+  background-color: var(--str-video__background-color1);
+  color: var(--str-video__text-color1);
   z-index: 10;
 }
 
 .str-video__debug__track-stats-icon {
   display: inline-block;
-  width: 24px;
-  height: 24px;
+  width: 1.5rem;
+  height: 1.5rem;
   background-position: center;
   background-repeat: no-repeat;
-  background-image: Icons.$icon-network-quality;
+  background-image: var(--str-video__icon--network-quality);
   cursor: pointer;
 }

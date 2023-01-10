@@ -1,15 +1,13 @@
-@use './Icons';
-
 .str-video__participant,
 .str-video__participant-angular-host {
   width: 100%;
   max-width: 1280px;
   min-height: 0;
   max-height: 100%;
-  overflow: hidden;
+  height: 100%;
 
   @mixin video-border {
-    border: 2px solid #005fff;
+    border: 2px solid var(--str-video__primary-color);
   }
 
   .str-call__participant {
@@ -39,7 +37,7 @@
     flex-direction: column;
 
     .str-video__remote-video {
-      border-radius: 12px;
+      border-radius: var(--str-video__border-radius2);
       border: 2px solid transparent;
       background-size: contain;
       width: 100%;
@@ -59,70 +57,68 @@
 
   .str-video__participant_details {
     position: absolute;
-    left: 10px;
-    bottom: 20px;
+    left: 0.625rem;
+    bottom: 1.25rem;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 0.3125rem;
   }
 
   .str-video__participant_name {
-    color: #ffffff;
-    padding: 6px;
-    border-radius: 6px;
+    border-radius: var(--str-video__border-radius1);
     display: flex;
     align-items: center;
+    gap: 0.3125rem;
 
     @mixin icon {
-      $icon-size: 15px;
+      $icon-size: 1rem;
       width: $icon-size;
       height: $icon-size;
-      background-size: $icon-size;
-      margin: 2px;
+      mask-size: $icon-size;
+      background-color: var(--str-video__text-color1);
     }
 
     .str-video__participant_name--audio-muted {
       @include icon();
-      background-image: Icons.$icon-mic-off;
+      mask-image: var(--str-video__icon--mic-off);
     }
 
     .str-video__participant_name--dominant_speaker {
       @include icon();
-      background-image: Icons.$icon-dominant-speaker;
+      mask-image: var(--str-video__icon--dominant-speaker);
 
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      mask-position: center;
     }
 
     .str-video__participant_name--video-muted {
       @include icon();
-      background-image: Icons.$icon-camera-off;
+      mask-image: var(--str-video__icon--camera-off);
     }
 
     .str-video__participant_name--network-stats {
       @include icon();
-      background-image: Icons.$icon-network-quality;
+      background-image: var(--str-video__icon--network-quality);
       cursor: pointer;
-      margin-right: 10px;
+      margin-right: 0.625rem;
     }
   }
 
   .str-video__participant__connection-quality {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: block;
     background-size: cover;
-    margin-left: 5px;
 
     &--poor {
-      background-image: Icons.$icon-connection-quality-poor;
+      background-image: var(--str-video__icon--connection-quality-poor);
     }
     &--good {
-      background-image: Icons.$icon-connection-quality-good;
+      background-image: var(--str-video__icon--connection-quality-good);
     }
     &--excellent {
-      background-image: Icons.$icon-connection-quality-excellent;
+      background-image: var(--str-video__icon--connection-quality-excellent);
     }
   }
 
