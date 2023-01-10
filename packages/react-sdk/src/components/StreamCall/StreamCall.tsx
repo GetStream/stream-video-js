@@ -1,6 +1,7 @@
 import { ReactNode, useEffect } from 'react';
 
 import {
+  useAcceptedCall,
   useActiveCall,
   useOutgoingCalls,
   useStreamVideoClient,
@@ -10,22 +11,31 @@ import { MediaDevicesProvider } from '../../contexts';
 export const StreamCall = ({ children }: { children: ReactNode }) => {
   const videoClient = useStreamVideoClient();
   const [outgoingCall] = useOutgoingCalls();
+  const acceptedCall = useAcceptedCall();
   const activeCall = useActiveCall();
 
   useEffect(() => {
-    if (!(videoClient && outgoingCall?.call) || activeCall) return;
+    if (!videoClient || activeCall) return;
 
-    videoClient
-      ?.joinCall({
+    if (outgoingCall?.call && videoClient.callConfig.joinCallInstantly) {
+      videoClient.joinCallInstantly({
         id: outgoingCall.call.id,
         type: outgoingCall.call.type,
         // FIXME: OL optional, but it is marked as required in proto
         datacenterId: '',
-      })
-      .then((call) => {
-        call?.join();
       });
-  }, [videoClient, outgoingCall, activeCall]);
+    } else if (
+      acceptedCall?.call &&
+      !videoClient.callConfig.joinCallInstantly
+    ) {
+      videoClient.joinCallInstantly({
+        id: acceptedCall.call.id,
+        type: acceptedCall.call.type,
+        // FIXME: OL optional, but it is marked as required in proto
+        datacenterId: '',
+      });
+    }
+  }, [videoClient, outgoingCall, acceptedCall, activeCall]);
 
   if (!videoClient) return null;
 
