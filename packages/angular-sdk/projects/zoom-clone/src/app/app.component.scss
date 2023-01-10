@@ -8,6 +8,10 @@
   flex-direction: column;
 }
 
+mat-toolbar {
+  z-index: 1;
+}
+
 .toolbar-container {
   display: flex;
   gap: 8px;
