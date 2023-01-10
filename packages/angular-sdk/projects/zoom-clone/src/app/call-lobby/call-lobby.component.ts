@@ -16,6 +16,8 @@ import { Subscription } from 'rxjs';
 import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CallMeta } from '@stream-io/video-client';
+import { ChannelService, ChatClientService } from 'stream-chat-angular';
+import { UserService } from '../user.service';
 
 @Component({
   selector: 'app-call-lobby',
@@ -43,6 +45,9 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
     private router: Router,
     private activatedRoute: ActivatedRoute,
     private ngZone: NgZone,
+    private channelService: ChannelService,
+    private chatClientService: ChatClientService,
+    private userService: UserService,
   ) {
     this.deviceManager.initAudioDevices();
     this.deviceManager.initVideoDevices();
@@ -140,6 +145,16 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
         datacenterId: '',
       });
     });
+    if (this.joinOrCreate === 'create') {
+      const channel = this.chatClientService.chatClient.channel(
+        'messaging',
+        callId,
+        // TODO: hacky workaround for permission problems
+        { members: this.userService.users.map((u) => `${u.user.id}_video`) },
+      );
+      await channel.create();
+    }
+    await this.channelService.init({ id: { $eq: callId } });
     await call?.join();
   }
 }
