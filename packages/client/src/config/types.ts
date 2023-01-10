@@ -25,5 +25,5 @@ export type CallConfig = {
    * If not defined, the call will not be cancelled automatically by the client and the user is expected to cancel or leave the call manually.
    * Note: Is relevant to outgoing calls only.
    */
-  ringingTimeoutMs?: number;
+  ringingTimeout?: number;
 };
