@@ -140,6 +140,24 @@ export interface CreateCallInput {
      * @generated from protobuf field: optional bool ring = 3;
      */
     ring?: boolean;
+    /**
+     * @generated from protobuf oneof: created_by
+     */
+    createdBy: {
+        oneofKind: "userId";
+        /**
+         * @generated from protobuf field: string user_id = 4;
+         */
+        userId: string;
+    } | {
+        oneofKind: "user";
+        /**
+         * @generated from protobuf field: stream.video.coordinator.user_v1.UserInput user = 5;
+         */
+        user: UserInput;
+    } | {
+        oneofKind: undefined;
+    };
 }
 /**
  * A request message for GetOrCreateCall endpoint
@@ -1206,11 +1224,13 @@ class CreateCallInput$Type extends MessageType<CreateCallInput> {
         super("stream.video.coordinator.client_v1_rpc.CreateCallInput", [
             { no: 1, name: "call", kind: "message", T: () => CallInput },
             { no: 2, name: "members", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => MemberInput },
-            { no: 3, name: "ring", kind: "scalar", opt: true, T: 8 /*ScalarType.BOOL*/ }
+            { no: 3, name: "ring", kind: "scalar", opt: true, T: 8 /*ScalarType.BOOL*/ },
+            { no: 4, name: "user_id", kind: "scalar", oneof: "createdBy", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "user", kind: "message", oneof: "createdBy", T: () => UserInput }
         ]);
     }
     create(value?: PartialMessage<CreateCallInput>): CreateCallInput {
-        const message = { members: [] };
+        const message = { members: [], createdBy: { oneofKind: undefined } };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateCallInput>(this, message, value);
@@ -1229,6 +1249,18 @@ class CreateCallInput$Type extends MessageType<CreateCallInput> {
                     break;
                 case /* optional bool ring */ 3:
                     message.ring = reader.bool();
+                    break;
+                case /* string user_id */ 4:
+                    message.createdBy = {
+                        oneofKind: "userId",
+                        userId: reader.string()
+                    };
+                    break;
+                case /* stream.video.coordinator.user_v1.UserInput user */ 5:
+                    message.createdBy = {
+                        oneofKind: "user",
+                        user: UserInput.internalBinaryRead(reader, reader.uint32(), options, (message.createdBy as any).user)
+                    };
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1251,6 +1283,12 @@ class CreateCallInput$Type extends MessageType<CreateCallInput> {
         /* optional bool ring = 3; */
         if (message.ring !== undefined)
             writer.tag(3, WireType.Varint).bool(message.ring);
+        /* string user_id = 4; */
+        if (message.createdBy.oneofKind === "userId")
+            writer.tag(4, WireType.LengthDelimited).string(message.createdBy.userId);
+        /* stream.video.coordinator.user_v1.UserInput user = 5; */
+        if (message.createdBy.oneofKind === "user")
+            UserInput.internalBinaryWrite(message.createdBy.user, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
