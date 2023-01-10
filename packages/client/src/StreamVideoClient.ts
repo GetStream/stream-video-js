@@ -66,6 +66,7 @@ export class StreamVideoClient {
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWebSocketClient | undefined;
+  private outgoingCallCancellation: ReturnType<typeof setTimeout> | undefined;
   /**
    * @internal
    */
@@ -164,8 +165,17 @@ export class StreamVideoClient {
     if (this.ws) {
       watchCallCancelled(this.on, this.writeableStateStore);
       watchCallCreated(this.on, this.writeableStateStore);
-      watchCallAccepted(this.on, this.writeableStateStore);
-      watchCallRejected(this.on, this.writeableStateStore);
+      watchCallAccepted(
+        this.on,
+        this.writeableStateStore,
+        this.clearCallCancellation,
+      );
+      watchCallRejected(
+        this.on,
+        this.writeableStateStore,
+        this.clearCallCancellation,
+        this.callConfig,
+      );
     }
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
@@ -242,9 +252,12 @@ export class StreamVideoClient {
    * @returns A call metadata with information about the call.
    */
   createCall = async (data: CreateCallRequest) => {
-    const callToCreate = await this.client.createCall(data);
-    const { call } = callToCreate.response;
-    if (call) {
+    const createdCall = await this.client.createCall(data);
+    const { call } = createdCall.response;
+
+    if (call && call.call?.callCid) {
+      this.scheduleCallCancellation(call.call?.callCid);
+
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
         (pendingCalls) => [
@@ -304,6 +317,7 @@ export class StreamVideoClient {
    * @returns
    */
   cancelCall = async (callCid: string) => {
+    this.clearCallCancellation();
     const store = this.writeableStateStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
 
@@ -520,6 +534,36 @@ export class StreamVideoClient {
     };
     const response = await this.client.reportCallStatEvent(request);
     return response.response;
+  };
+
+  /**
+   * Schedules automatic call cancellation.
+   * The cancellation is intended for the scenarios, when the call has been rejected
+   * or not accepted by all the call members.
+   * @param {string} callCid
+   */
+  private scheduleCallCancellation = (callCid: string) => {
+    if (!this.callConfig.ringingTimeout) return;
+    this.outgoingCallCancellation = setTimeout(
+      () => this.cancelCall(callCid),
+      this.callConfig.ringingTimeout,
+    );
+  };
+
+  /**
+   * Cancels the automatic call cancellation.
+   * Indented for the scenario, when a call has been accepted by at least one member
+   * or if the call has been cancelled manually before the cancellation timeout expires.
+   */
+  private clearCallCancellation = () => {
+    console.log(
+      'XXXX, this.outgoingCallCancellation',
+      this.outgoingCallCancellation,
+    );
+    if (this.outgoingCallCancellation) {
+      clearTimeout(this.outgoingCallCancellation);
+      this.outgoingCallCancellation = undefined;
+    }
   };
 
   /**

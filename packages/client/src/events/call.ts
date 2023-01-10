@@ -6,6 +6,7 @@ import {
 } from '../gen/video/coordinator/event_v1/event';
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import { StreamEventListener } from '../ws';
+import { CallConfig } from '../config/types';
 
 /**
  * Event handler that watches the delivery of CallCreated Websocket event
@@ -45,6 +46,7 @@ export const watchCallCreated = (
 export const watchCallAccepted = (
   on: <T>(event: string, fn: StreamEventListener<T>) => void,
   store: StreamVideoWriteableStateStore,
+  clearCallCancellation: () => void,
 ) => {
   on('callAccepted', (event: CallAccepted) => {
     const { call } = event;
@@ -53,12 +55,45 @@ export const watchCallAccepted = (
       return;
     }
 
+    // todo: verify that CallAccepted event is sent only to the creator of the call
     const currentUser = store.getCurrentValue(store.connectedUserSubject);
 
-    if (currentUser?.id === call.createdByUserId) {
+    if (currentUser?.id === event.senderUserId) {
       console.warn('Received CallAccepted event sent by the current user');
       return;
     }
+
+    const rejectedIncomingCall = store
+      .getCurrentValue(store.incomingCalls$)
+      .find((incomingCall) => incomingCall.call?.callCid === call.callCid);
+
+    if (rejectedIncomingCall) {
+      console.warn('Received CallAccepted event for an incoming call');
+      return;
+    }
+
+    const acceptedOutgoingCall = store
+      .getCurrentValue(store.outgoingCalls$)
+      .find(
+        (outgoingCall) =>
+          call.callCid !== undefined &&
+          outgoingCall.call?.callCid === call.callCid,
+      );
+    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const acceptedActiveCall =
+      activeCall?.data.call?.callCid !== undefined &&
+      activeCall.data.call.callCid === call.callCid
+        ? activeCall
+        : undefined;
+
+    if (!acceptedOutgoingCall && !acceptedActiveCall) {
+      console.warn(
+        `CallAccepted event received for a non-existent outgoing call (CID: ${call.callCid}`,
+      );
+      return;
+    }
+
+    clearCallCancellation();
     store.setCurrentValue(store.acceptedCallSubject, event);
   });
 };
@@ -71,16 +106,13 @@ export const watchCallAccepted = (
 export const watchCallRejected = (
   on: <T>(event: string, fn: StreamEventListener<T>) => void,
   store: StreamVideoWriteableStateStore,
+  clearCallCancellation: () => void,
+  callConfig: CallConfig,
 ) => {
   on('callRejected', (event: CallRejected) => {
     const { call } = event;
     if (!call) {
       console.warn("Can't find call in CallRejected event");
-      return;
-    }
-    // currently not supporting automatic call drop for 1:M calls
-    const memberUserIds = event.callDetails?.memberUserIds || [];
-    if (memberUserIds.length > 1) {
       return;
     }
 
@@ -90,12 +122,45 @@ export const watchCallRejected = (
       return;
     }
 
-    const pendingCall = store
-      .getCurrentValue(store.pendingCallsSubject)
-      .find((pendingCall) => pendingCall.call?.callCid === call.callCid);
+    const rejectedIncomingCall = store
+      .getCurrentValue(store.incomingCalls$)
+      .find((incomingCall) => incomingCall.call?.callCid === call.callCid);
 
-    if (pendingCall?.call?.createdByUserId !== currentUser?.id) {
+    if (rejectedIncomingCall) {
       console.warn('Received CallRejected event for an incoming call');
+      return;
+    }
+
+    const rejectedOutgoingCall = store
+      .getCurrentValue(store.outgoingCalls$)
+      .find(
+        (outgoingCall) =>
+          call.callCid !== undefined &&
+          outgoingCall.call?.callCid === call.callCid,
+      );
+    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const rejectedActiveCall =
+      activeCall?.data.call?.callCid !== undefined &&
+      activeCall.data.call.callCid === call.callCid
+        ? activeCall
+        : undefined;
+
+    if (!rejectedOutgoingCall && !rejectedActiveCall) {
+      console.warn(
+        `CallRejected event received for a non-existent outgoing call (CID: ${call.callCid}`,
+      );
+      return;
+    }
+
+    // todo: clear call cancellation only if leaveCallOnLeftAlone enabled and really left alone
+    const wasLeftAlone = undefined;
+    if (callConfig.leaveCallOnLeftAlone && wasLeftAlone) {
+      clearCallCancellation();
+    }
+
+    // currently not supporting automatic call drop for 1:M calls
+    const memberUserIds = event.callDetails?.memberUserIds || [];
+    if (memberUserIds.length > 1) {
       return;
     }
 
