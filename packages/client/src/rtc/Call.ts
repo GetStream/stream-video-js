@@ -504,7 +504,7 @@ export class Call {
         TRACK_TYPE_AUDIO: 'audioStream',
         TRACK_TYPE_VIDEO: 'videoStream',
         TRACK_TYPE_SCREEN_SHARE: 'screenShareStream',
-      } as Record<string, 'audioStream' | 'videoStream' | 'screenShareStream'>
+      } as const
     )[trackType];
 
     if (!streamKindProp) {
