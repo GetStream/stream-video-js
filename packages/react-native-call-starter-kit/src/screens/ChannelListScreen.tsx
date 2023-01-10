@@ -4,8 +4,7 @@ import {ChannelList} from 'stream-chat-react-native';
 import type {ChannelSort} from 'stream-chat';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import type {NavigationStackParamsList, StreamChatGenerics} from '../types';
-import {useStreamChatContext} from '../context/StreamChatContext';
-import {useAppGlobalStoreValue} from '../context/AppContext';
+import {useAppContext} from '../context/AppContext';
 
 const sort: ChannelSort<StreamChatGenerics> = {last_message_at: -1};
 const options = {
@@ -20,10 +19,8 @@ type ChannelListScreenProps = NativeStackScreenProps<
   'ChannelListScreen'
 >;
 
-export const ChannelListScreen = (props: ChannelListScreenProps) => {
-  const {setChannel} = useStreamChatContext();
-  const userId = useAppGlobalStoreValue(store => store.userId);
-  const {navigation} = props;
+export function ChannelListScreen({navigation}: ChannelListScreenProps) {
+  const {setChannel, userId} = useAppContext();
 
   const filters = {
     type: 'messaging',
@@ -43,7 +40,7 @@ export const ChannelListScreen = (props: ChannelListScreenProps) => {
       />
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {

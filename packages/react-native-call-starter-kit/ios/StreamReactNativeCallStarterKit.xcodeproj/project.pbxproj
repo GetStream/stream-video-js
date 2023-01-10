@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00E356F31AD99517003FC87E /* StreamReactNativeMessengerAppTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* StreamReactNativeMessengerAppTests.m */; };
-		0C80B921A6F3F58F76C31292 /* libPods-StreamReactNativeMessengerApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-StreamReactNativeMessengerApp.a */; };
+		00E356F31AD99517003FC87E /* StreamReactNativeCallStarterKitTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* StreamReactNativeCallStarterKitTests.m */; };
+		0C80B921A6F3F58F76C31292 /* libPods-StreamReactNativeCallStarterKit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-StreamReactNativeCallStarterKit.a */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		7699B88040F8A987B510C191 /* libPods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.a */; };
+		7699B88040F8A987B510C191 /* libPods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
@@ -22,27 +22,27 @@
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
-			remoteInfo = StreamReactNativeMessengerApp;
+			remoteInfo = StreamReactNativeCallStarterKit;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		00E356EE1AD99517003FC87E /* StreamReactNativeMessengerAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StreamReactNativeMessengerAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		00E356EE1AD99517003FC87E /* StreamReactNativeCallStarterKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StreamReactNativeCallStarterKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00E356F21AD99517003FC87E /* StreamReactNativeMessengerAppTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = StreamReactNativeMessengerAppTests.m; sourceTree = "<group>"; };
-		13B07F961A680F5B00A75B9A /* StreamReactNativeMessengerApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StreamReactNativeMessengerApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = StreamReactNativeMessengerApp/AppDelegate.h; sourceTree = "<group>"; };
-		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = StreamReactNativeMessengerApp/AppDelegate.mm; sourceTree = "<group>"; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = StreamReactNativeMessengerApp/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = StreamReactNativeMessengerApp/Info.plist; sourceTree = "<group>"; };
-		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = StreamReactNativeMessengerApp/main.m; sourceTree = "<group>"; };
-		19F6CBCC0A4E27FBF8BF4A61 /* libPods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		3B4392A12AC88292D35C810B /* Pods-StreamReactNativeMessengerApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeMessengerApp.debug.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeMessengerApp/Pods-StreamReactNativeMessengerApp.debug.xcconfig"; sourceTree = "<group>"; };
-		5709B34CF0A7D63546082F79 /* Pods-StreamReactNativeMessengerApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeMessengerApp.release.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeMessengerApp/Pods-StreamReactNativeMessengerApp.release.xcconfig"; sourceTree = "<group>"; };
-		5B7EB9410499542E8C5724F5 /* Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.debug.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.debug.xcconfig"; sourceTree = "<group>"; };
-		5DCACB8F33CDC322A6C60F78 /* libPods-StreamReactNativeMessengerApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StreamReactNativeMessengerApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = StreamReactNativeMessengerApp/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		89C6BE57DB24E9ADA2F236DE /* Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.release.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.release.xcconfig"; sourceTree = "<group>"; };
+		00E356F21AD99517003FC87E /* StreamReactNativeCallStarterKitTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = StreamReactNativeCallStarterKitTests.m; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* StreamReactNativeCallStarterKit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StreamReactNativeCallStarterKit.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = StreamReactNativeCallStarterKit/AppDelegate.h; sourceTree = "<group>"; };
+		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = StreamReactNativeCallStarterKit/AppDelegate.mm; sourceTree = "<group>"; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = StreamReactNativeCallStarterKit/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = StreamReactNativeCallStarterKit/Info.plist; sourceTree = "<group>"; };
+		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = StreamReactNativeCallStarterKit/main.m; sourceTree = "<group>"; };
+		19F6CBCC0A4E27FBF8BF4A61 /* libPods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4392A12AC88292D35C810B /* Pods-StreamReactNativeCallStarterKit.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeCallStarterKit.debug.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeCallStarterKit/Pods-StreamReactNativeCallStarterKit.debug.xcconfig"; sourceTree = "<group>"; };
+		5709B34CF0A7D63546082F79 /* Pods-StreamReactNativeCallStarterKit.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeCallStarterKit.release.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeCallStarterKit/Pods-StreamReactNativeCallStarterKit.release.xcconfig"; sourceTree = "<group>"; };
+		5B7EB9410499542E8C5724F5 /* Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.debug.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.debug.xcconfig"; sourceTree = "<group>"; };
+		5DCACB8F33CDC322A6C60F78 /* libPods-StreamReactNativeCallStarterKit.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StreamReactNativeCallStarterKit.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = StreamReactNativeCallStarterKit/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		89C6BE57DB24E9ADA2F236DE /* Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.release.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -51,7 +51,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7699B88040F8A987B510C191 /* libPods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.a in Frameworks */,
+				7699B88040F8A987B510C191 /* libPods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -59,20 +59,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0C80B921A6F3F58F76C31292 /* libPods-StreamReactNativeMessengerApp.a in Frameworks */,
+				0C80B921A6F3F58F76C31292 /* libPods-StreamReactNativeCallStarterKit.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00E356EF1AD99517003FC87E /* StreamReactNativeMessengerAppTests */ = {
+		00E356EF1AD99517003FC87E /* StreamReactNativeCallStarterKitTests */ = {
 			isa = PBXGroup;
 			children = (
-				00E356F21AD99517003FC87E /* StreamReactNativeMessengerAppTests.m */,
+				00E356F21AD99517003FC87E /* StreamReactNativeCallStarterKitTests.m */,
 				00E356F01AD99517003FC87E /* Supporting Files */,
 			);
-			path = StreamReactNativeMessengerAppTests;
+			path = StreamReactNativeCallStarterKitTests;
 			sourceTree = "<group>";
 		};
 		00E356F01AD99517003FC87E /* Supporting Files */ = {
@@ -83,7 +83,7 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		13B07FAE1A68108700A75B9A /* StreamReactNativeMessengerApp */ = {
+		13B07FAE1A68108700A75B9A /* StreamReactNativeCallStarterKit */ = {
 			isa = PBXGroup;
 			children = (
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
@@ -93,15 +93,15 @@
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
 			);
-			name = StreamReactNativeMessengerApp;
+			name = StreamReactNativeCallStarterKit;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				5DCACB8F33CDC322A6C60F78 /* libPods-StreamReactNativeMessengerApp.a */,
-				19F6CBCC0A4E27FBF8BF4A61 /* libPods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.a */,
+				5DCACB8F33CDC322A6C60F78 /* libPods-StreamReactNativeCallStarterKit.a */,
+				19F6CBCC0A4E27FBF8BF4A61 /* libPods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -116,9 +116,9 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				13B07FAE1A68108700A75B9A /* StreamReactNativeMessengerApp */,
+				13B07FAE1A68108700A75B9A /* StreamReactNativeCallStarterKit */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
-				00E356EF1AD99517003FC87E /* StreamReactNativeMessengerAppTests */,
+				00E356EF1AD99517003FC87E /* StreamReactNativeCallStarterKitTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
@@ -131,8 +131,8 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* StreamReactNativeMessengerApp.app */,
-				00E356EE1AD99517003FC87E /* StreamReactNativeMessengerAppTests.xctest */,
+				13B07F961A680F5B00A75B9A /* StreamReactNativeCallStarterKit.app */,
+				00E356EE1AD99517003FC87E /* StreamReactNativeCallStarterKitTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -140,10 +140,10 @@
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				3B4392A12AC88292D35C810B /* Pods-StreamReactNativeMessengerApp.debug.xcconfig */,
-				5709B34CF0A7D63546082F79 /* Pods-StreamReactNativeMessengerApp.release.xcconfig */,
-				5B7EB9410499542E8C5724F5 /* Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.debug.xcconfig */,
-				89C6BE57DB24E9ADA2F236DE /* Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.release.xcconfig */,
+				3B4392A12AC88292D35C810B /* Pods-StreamReactNativeCallStarterKit.debug.xcconfig */,
+				5709B34CF0A7D63546082F79 /* Pods-StreamReactNativeCallStarterKit.release.xcconfig */,
+				5B7EB9410499542E8C5724F5 /* Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.debug.xcconfig */,
+				89C6BE57DB24E9ADA2F236DE /* Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -151,9 +151,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		00E356ED1AD99517003FC87E /* StreamReactNativeMessengerAppTests */ = {
+		00E356ED1AD99517003FC87E /* StreamReactNativeCallStarterKitTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "StreamReactNativeMessengerAppTests" */;
+			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "StreamReactNativeCallStarterKitTests" */;
 			buildPhases = (
 				A55EABD7B0C7F3A422A6CC61 /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
@@ -167,14 +167,14 @@
 			dependencies = (
 				00E356F51AD99517003FC87E /* PBXTargetDependency */,
 			);
-			name = StreamReactNativeMessengerAppTests;
-			productName = StreamReactNativeMessengerAppTests;
-			productReference = 00E356EE1AD99517003FC87E /* StreamReactNativeMessengerAppTests.xctest */;
+			name = StreamReactNativeCallStarterKitTests;
+			productName = StreamReactNativeCallStarterKitTests;
+			productReference = 00E356EE1AD99517003FC87E /* StreamReactNativeCallStarterKitTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		13B07F861A680F5B00A75B9A /* StreamReactNativeMessengerApp */ = {
+		13B07F861A680F5B00A75B9A /* StreamReactNativeCallStarterKit */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "StreamReactNativeMessengerApp" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "StreamReactNativeCallStarterKit" */;
 			buildPhases = (
 				C38B50BA6285516D6DCD4F65 /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
@@ -189,9 +189,9 @@
 			);
 			dependencies = (
 			);
-			name = StreamReactNativeMessengerApp;
-			productName = StreamReactNativeMessengerApp;
-			productReference = 13B07F961A680F5B00A75B9A /* StreamReactNativeMessengerApp.app */;
+			name = StreamReactNativeCallStarterKit;
+			productName = StreamReactNativeCallStarterKit;
+			productReference = 13B07F961A680F5B00A75B9A /* StreamReactNativeCallStarterKit.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -211,7 +211,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "StreamReactNativeMessengerApp" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "StreamReactNativeCallStarterKit" */;
 			compatibilityVersion = "Xcode 12.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -224,8 +224,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* StreamReactNativeMessengerApp */,
-				00E356ED1AD99517003FC87E /* StreamReactNativeMessengerAppTests */,
+				13B07F861A680F5B00A75B9A /* StreamReactNativeCallStarterKit */,
+				00E356ED1AD99517003FC87E /* StreamReactNativeCallStarterKitTests */,
 			);
 		};
 /* End PBXProject section */
@@ -272,15 +272,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeMessengerApp/Pods-StreamReactNativeMessengerApp-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeCallStarterKit/Pods-StreamReactNativeCallStarterKit-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeMessengerApp/Pods-StreamReactNativeMessengerApp-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeCallStarterKit/Pods-StreamReactNativeCallStarterKit-frameworks-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeMessengerApp/Pods-StreamReactNativeMessengerApp-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeCallStarterKit/Pods-StreamReactNativeCallStarterKit-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		A55EABD7B0C7F3A422A6CC61 /* [CP] Check Pods Manifest.lock */ = {
@@ -298,7 +298,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -320,7 +320,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-StreamReactNativeMessengerApp-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-StreamReactNativeCallStarterKit-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -333,15 +333,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		E235C05ADACE081382539298 /* [CP] Copy Pods Resources */ = {
@@ -350,15 +350,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeMessengerApp/Pods-StreamReactNativeMessengerApp-resources-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeCallStarterKit/Pods-StreamReactNativeCallStarterKit-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeMessengerApp/Pods-StreamReactNativeMessengerApp-resources-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeCallStarterKit/Pods-StreamReactNativeCallStarterKit-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeMessengerApp/Pods-StreamReactNativeMessengerApp-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeCallStarterKit/Pods-StreamReactNativeCallStarterKit-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		F6A41C54EA430FDDC6A6ED99 /* [CP] Copy Pods Resources */ = {
@@ -367,15 +367,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests-resources-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests-resources-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests/Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests/Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		FD10A7F022414F080027D42C /* Start Packager */ = {
@@ -404,7 +404,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00E356F31AD99517003FC87E /* StreamReactNativeMessengerAppTests.m in Sources */,
+				00E356F31AD99517003FC87E /* StreamReactNativeCallStarterKitTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -422,7 +422,7 @@
 /* Begin PBXTargetDependency section */
 		00E356F51AD99517003FC87E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 13B07F861A680F5B00A75B9A /* StreamReactNativeMessengerApp */;
+			target = 13B07F861A680F5B00A75B9A /* StreamReactNativeCallStarterKit */;
 			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -430,14 +430,14 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5B7EB9410499542E8C5724F5 /* Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.debug.xcconfig */;
+			baseConfigurationReference = 5B7EB9410499542E8C5724F5 /* Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = StreamReactNativeMessengerAppTests/Info.plist;
+				INFOPLIST_FILE = StreamReactNativeCallStarterKitTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -451,17 +451,17 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StreamReactNativeMessengerApp.app/StreamReactNativeMessengerApp";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StreamReactNativeCallStarterKit.app/StreamReactNativeCallStarterKit";
 			};
 			name = Debug;
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 89C6BE57DB24E9ADA2F236DE /* Pods-StreamReactNativeMessengerApp-StreamReactNativeMessengerAppTests.release.xcconfig */;
+			baseConfigurationReference = 89C6BE57DB24E9ADA2F236DE /* Pods-StreamReactNativeCallStarterKit-StreamReactNativeCallStarterKitTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
-				INFOPLIST_FILE = StreamReactNativeMessengerAppTests/Info.plist;
+				INFOPLIST_FILE = StreamReactNativeCallStarterKitTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -475,20 +475,20 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StreamReactNativeMessengerApp.app/StreamReactNativeMessengerApp";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StreamReactNativeCallStarterKit.app/StreamReactNativeCallStarterKit";
 			};
 			name = Release;
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 3B4392A12AC88292D35C810B /* Pods-StreamReactNativeMessengerApp.debug.xcconfig */;
+			baseConfigurationReference = 3B4392A12AC88292D35C810B /* Pods-StreamReactNativeCallStarterKit.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = EHV7XZLAHA;
 				ENABLE_BITCODE = NO;
-				INFOPLIST_FILE = StreamReactNativeMessengerApp/Info.plist;
+				INFOPLIST_FILE = StreamReactNativeCallStarterKit/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -499,7 +499,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = StreamReactNativeMessengerApp;
+				PRODUCT_NAME = StreamReactNativeCallStarterKit;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -508,13 +508,13 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5709B34CF0A7D63546082F79 /* Pods-StreamReactNativeMessengerApp.release.xcconfig */;
+			baseConfigurationReference = 5709B34CF0A7D63546082F79 /* Pods-StreamReactNativeCallStarterKit.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = EHV7XZLAHA;
-				INFOPLIST_FILE = StreamReactNativeMessengerApp/Info.plist;
+				INFOPLIST_FILE = StreamReactNativeCallStarterKit/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -525,7 +525,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = StreamReactNativeMessengerApp;
+				PRODUCT_NAME = StreamReactNativeCallStarterKit;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -671,7 +671,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "StreamReactNativeMessengerAppTests" */ = {
+		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "StreamReactNativeCallStarterKitTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				00E356F61AD99517003FC87E /* Debug */,
@@ -680,7 +680,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "StreamReactNativeMessengerApp" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "StreamReactNativeCallStarterKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -689,7 +689,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "StreamReactNativeMessengerApp" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "StreamReactNativeCallStarterKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,

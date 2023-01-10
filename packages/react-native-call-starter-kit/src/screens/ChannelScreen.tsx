@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {useStreamChatContext} from '../context/StreamChatContext';
+import {useAppContext} from '../context/AppContext';
 import {useHeaderHeight} from '@react-navigation/elements';
 import {
   Channel,
@@ -17,12 +17,11 @@ type ChannelScreenProps = NativeStackScreenProps<
   'ChannelScreen'
 >;
 
-export const ChannelScreen = (props: ChannelScreenProps) => {
-  const {channel, setThread, thread} = useStreamChatContext();
+export function ChannelScreen({navigation}: ChannelScreenProps) {
+  const {channel, setThread, thread} = useAppContext();
   const headerHeight = useHeaderHeight();
   const {setTopInset} = useAttachmentPickerContext();
   const {overlay} = useOverlayContext();
-  const {navigation} = props;
 
   useEffect(() => {
     navigation.setOptions({
@@ -56,7 +55,7 @@ export const ChannelScreen = (props: ChannelScreenProps) => {
       </View>
     </Channel>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {

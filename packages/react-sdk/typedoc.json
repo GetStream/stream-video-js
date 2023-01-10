@@ -1,0 +1,14 @@
+{
+  "plugin": ["typedoc-plugin-markdown"],
+  "cleanOutputDir": true,
+  "out": "temp-docs",
+  "entryPoints": ["./index.ts"],
+  "externalPattern": ["**/node_modules/**", "**/dist/**"],
+  "excludeExternals": true,
+  "excludePrivate": true,
+  "excludeNotDocumented": false,
+  "hideBreadcrumbs": true,
+  "hideInPageTOC": true,
+  "logLevel": "Error",
+  "tsconfig": "./tsconfig.json"
+}

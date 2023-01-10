@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {Call} from '../icons/Call';
-import {useStreamChatContext} from '../context/StreamChatContext';
+import {useAppContext} from '../context/AppContext';
 import {Back} from '../icons/Back';
 import {NativeStackHeaderProps} from '@react-navigation/native-stack';
 import {useStreamVideoClient} from '@stream-io/video-react-native-sdk';
@@ -12,7 +12,7 @@ type ChannelHeaderProps = NativeStackHeaderProps;
 
 export const ChannelHeader = (props: ChannelHeaderProps) => {
   const {navigation} = props;
-  const {channel} = useStreamChatContext();
+  const {channel} = useAppContext();
   const {client} = useChatContext();
   const videoClient = useStreamVideoClient();
   const members = Object.keys(channel?.state?.members || {}).filter(
@@ -24,33 +24,33 @@ export const ChannelHeader = (props: ChannelHeaderProps) => {
 
     if (videoClient) {
       try {
-        videoClient
-          ?.createCall({
-            id: callID,
-            type: 'default',
-            input: {
-              ring: true,
-              members: members.map(ringingUserId => {
-                return {
-                  userId: ringingUserId,
-                  role: 'member',
-                  customJson: new Uint8Array(),
-                };
-              }),
-            },
-          })
-          .then(response => {
-            console.log(response);
-          });
+        videoClient?.createCall({
+          id: callID,
+          type: 'default',
+          input: {
+            ring: true,
+            members: members.map(ringingUserId => {
+              return {
+                userId: ringingUserId,
+                role: 'member',
+                customJson: new Uint8Array(),
+              };
+            }),
+          },
+        });
       } catch (error) {
         console.log('Failed to createCall', callID, 'default', error);
       }
     }
   }, [videoClient, members]);
 
+  const goBackHandler = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => navigation.goBack()} style={styles.icon}>
+      <Pressable onPress={goBackHandler} style={styles.icon}>
         <Back color="#52be80" />
       </Pressable>
       <Text style={styles.name}>

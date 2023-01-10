@@ -25,8 +25,11 @@ import { StreamVideoService } from '../video.service';
 export class ParticipantComponent
   implements AfterViewInit, OnDestroy, OnChanges
 {
+  @Input() kind: 'screen' | 'video' = 'video';
   @Input() participant?: StreamVideoParticipant;
   call?: Call;
+  isProfileImageError = false;
+  connectionQuality?: string;
   @ViewChild('video')
   private videoElement!: ElementRef<HTMLElement>;
   @ViewChild('audio')
@@ -44,17 +47,37 @@ export class ParticipantComponent
 
   ngOnChanges(changes: SimpleChanges): void {
     if (
-      changes['participant']?.previousValue?.isLoggedInUser &&
-      !changes['participant']?.currentValue?.isLoggedInUser &&
-      this.isViewInited
+      changes['participant'] &&
+      changes['participant']?.previousValue?.sessionId !==
+        changes['participant']?.currentValue?.sessionId
     ) {
-      this.registerResizeObserver();
+      this.isProfileImageError = false;
+      this.resizeObserver?.disconnect();
+      this.resizeObserver = undefined;
+    }
+    if (
+      (changes['participant']?.previousValue?.sessionId !==
+        changes['participant']?.currentValue?.sessionId ||
+        !this.resizeObserver) &&
+      !changes['participant']?.currentValue?.isLoggedInUser &&
+      this.isViewInited &&
+      this.isPublishingTrack
+    ) {
+      // Wait for video element to appear in DOM
+      setTimeout(() => {
+        this.registerResizeObserver();
+      }, 0);
+    }
+    if (changes['participant'] && this.participant) {
+      this.connectionQuality = String(
+        SfuModels.ConnectionQuality[this.participant.connectionQuality],
+      ).toLowerCase();
     }
   }
 
   ngAfterViewInit(): void {
     this.isViewInited = true;
-    if (!this.participant?.isLoggedInUser) {
+    if (!this.participant?.isLoggedInUser && this.isPublishingTrack) {
       this.registerResizeObserver();
     }
     this.subscriptions.push(
@@ -78,6 +101,14 @@ export class ParticipantComponent
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
+  get isPublishingTrack() {
+    return this.participant?.publishedTracks.includes(
+      this.kind === 'screen'
+        ? SfuModels.TrackType.SCREEN_SHARE
+        : SfuModels.TrackType.VIDEO,
+    );
+  }
+
   private registerResizeObserver() {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
@@ -89,7 +120,7 @@ export class ParticipantComponent
   }
 
   private updateTrackSubscriptions() {
-    this.call?.updateSubscriptionsPartial('video', {
+    this.call?.updateSubscriptionsPartial(this.kind, {
       [this.participant?.sessionId || '']: {
         dimension: this.videoDimension,
       },

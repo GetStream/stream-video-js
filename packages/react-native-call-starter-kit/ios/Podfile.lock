@@ -303,7 +303,7 @@ PODS:
   - React-jsinspector (0.70.4)
   - React-logger (0.70.4):
     - glog
-  - react-native-cameraroll (5.2.0):
+  - react-native-cameraroll (5.2.1):
     - React-Core
   - react-native-document-picker (8.1.3):
     - React-Core
@@ -685,7 +685,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 4a893fc8f683b91befcaf56c44ad8be4506b6828
   React-jsinspector: 1d5a9e84e419a57cabc23249aec3d837d1b03a80
   React-logger: f8071ad48248781d5afdb8a07f778758529d3019
-  react-native-cameraroll: 0ff04cc4e0ff5f19a94ff4313e5c8bc4503cd86d
+  react-native-cameraroll: f94bf9f46c998963ecd2bb6e9a3f9cca59b6d9f1
   react-native-document-picker: 958e2bc82e128be69055be261aeac8d872c8d34c
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
@@ -719,6 +719,6 @@ SPEC CHECKSUMS:
   Yoga: 1f02ef4ce4469aefc36167138441b27d988282b1
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 2ab0943f494c920b3019b71cf25dc6d347774f82
+PODFILE CHECKSUM: d851fcc60ec0203011403e87942ce46ac609b89d
 
 COCOAPODS: 1.11.3

@@ -45,7 +45,9 @@ const getDevices = (constraints?: MediaStreamConstraints | undefined) => {
 };
 
 /**
- * [Tells if the browser supports audio output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId)
+ * [Tells if the browser supports audio output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId).
+ *
+ * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  */
 export const checkIfAudioOutputChangeSupported = () => {
   if (typeof document === 'undefined') return false;
@@ -67,7 +69,9 @@ const audioDevices$ = getDevices(audioDeviceConstraints).pipe(shareReplay(1));
 const videoDevices$ = getDevices(videoDeviceConstraints).pipe(shareReplay(1));
 
 /**
- * Lists the list of available 'audioinput' devices, if devices are added/removed - the list is updated
+ * Prompts the user for a permission to use audio devices (if not already granted) and lists the available 'audioinput' devices, if devices are added/removed the list is updated.
+ *
+ * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @returns
  */
 export const getAudioDevices = () => {
@@ -77,7 +81,9 @@ export const getAudioDevices = () => {
 };
 
 /**
- * Lists the list of available 'videoinput' devices, if devices are added/removed - the list is updated
+ * Prompts the user for a permission to use video devices (if not already granted) and lists the available 'videoinput' devices, if devices are added/removed the list is updated.
+ *
+ * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @returns
  */
 export const getVideoDevices = () => {
@@ -87,8 +93,9 @@ export const getVideoDevices = () => {
 };
 
 /**
- * Lists the list of available 'audiooutput' devices, if devices are added/removed - the list is updated
+ * Prompts the user for a permission to use audio devices (if not already granted) and lists the available 'audiooutput' devices, if devices are added/removed the list is updated. Selecting 'audiooutput' device only makes sense if [the browser has support for changing audio output on 'audio' elements](#checkifaudiooutputchangesupported)
  *
+ * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @returns
  */
 export const getAudioOutputDevices = () => {
@@ -133,7 +140,9 @@ const getStream = async (
 };
 
 /**
- * Returns an 'audioinput' media stream with the given `deviceId`, if no `deviceId` is provided, it uses the first available device
+ * Returns an 'audioinput' media stream with the given `deviceId`, if no `deviceId` is provided, it uses the first available device.
+ *
+ * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @param deviceId
  * @returns
  */
@@ -142,7 +151,9 @@ export const getAudioStream = async (deviceId?: string) => {
 };
 
 /**
- * Returns a 'videoinput' media stream with the given `deviceId`, if no `deviceId` is provided, it uses the first available device
+ * Returns a 'videoinput' media stream with the given `deviceId`, if no `deviceId` is provided, it uses the first available device.
+ *
+ * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @param deviceId
  * @returns
  */
@@ -156,7 +167,9 @@ export const getVideoStream = async (deviceId?: string) => {
  *
  * The callers of this API are responsible to handle the possible errors.
  *
- * @param options any additional options to pass to the `getDisplayMedia` API.
+ * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
+ *
+ * @param options any additional options to pass to the [`getDisplayMedia`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia) API.
  */
 export const getScreenShareStream = async (
   // TODO OL: switch to `DisplayMediaStreamConstraints` once Angular supports it
@@ -201,6 +214,8 @@ const watchForDisconnectedDevice = (
 
 /**
  * Notifies the subscriber if a given 'audioinput' device is disconnected
+ *
+ * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @param deviceId$ an Observable that specifies which device to watch for
  * @returns
  */
@@ -212,6 +227,8 @@ export const watchForDisconnectedAudioDevice = (
 
 /**
  * Notifies the subscriber if a given 'videoinput' device is disconnected
+ *
+ * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @param deviceId$ an Observable that specifies which device to watch for
  * @returns
  */
@@ -223,6 +240,8 @@ export const watchForDisconnectedVideoDevice = (
 
 /**
  * Notifies the subscriber if a given 'audiooutput' device is disconnected
+ *
+ * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @param deviceId$ an Observable that specifies which device to watch for
  * @returns
  */

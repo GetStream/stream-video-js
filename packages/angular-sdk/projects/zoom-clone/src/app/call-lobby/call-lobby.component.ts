@@ -1,5 +1,6 @@
 import {
   Component,
+  NgZone,
   OnDestroy,
   OnInit,
   TemplateRef,
@@ -9,11 +10,14 @@ import {
   StreamVideoService,
   DeviceManagerService,
   MediaStreamState,
+  AudioMediaStreamState,
 } from '@stream-io/video-angular-sdk';
 import { Subscription } from 'rxjs';
 import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CallMeta } from '@stream-io/video-client';
+import { ChannelService, ChatClientService } from 'stream-chat-angular';
+import { UserService } from '../user.service';
 
 @Component({
   selector: 'app-call-lobby',
@@ -25,7 +29,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   videoState?: MediaStreamState;
   videoErrorMessage?: string;
   audioStream?: MediaStream;
-  audioState?: MediaStreamState;
+  audioState?: AudioMediaStreamState;
   audioErrorMessage?: string;
   isSpeaking = false;
   joinOrCreate: 'join' | 'create' = 'create';
@@ -40,6 +44,10 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private router: Router,
     private activatedRoute: ActivatedRoute,
+    private ngZone: NgZone,
+    private channelService: ChannelService,
+    private chatClientService: ChatClientService,
+    private userService: UserService,
   ) {
     this.deviceManager.initAudioDevices();
     this.deviceManager.initVideoDevices();
@@ -130,11 +138,23 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   }
 
   private async joinCall(callId: string) {
-    const call = await this.streamVideoService.videoClient?.joinCall({
-      id: callId,
-      type: 'default',
-      datacenterId: '',
+    const call = await this.ngZone.runOutsideAngular(() => {
+      return this.streamVideoService.videoClient?.joinCall({
+        id: callId,
+        type: 'default',
+        datacenterId: '',
+      });
     });
+    if (this.joinOrCreate === 'create') {
+      const channel = this.chatClientService.chatClient.channel(
+        'messaging',
+        callId,
+        // TODO: hacky workaround for permission problems
+        { members: this.userService.users.map((u) => `${u.user.id}_video`) },
+      );
+      await channel.create();
+    }
+    await this.channelService.init({ id: { $eq: callId } });
     await call?.join();
   }
 }

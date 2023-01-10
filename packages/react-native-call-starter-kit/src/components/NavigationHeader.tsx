@@ -1,9 +1,6 @@
 import React from 'react';
 import {Alert, Image, Pressable, StyleSheet, Text, View} from 'react-native';
-import {
-  useAppGlobalStoreSetState,
-  useAppGlobalStoreValue,
-} from '../context/AppContext';
+import {useAppContext} from '../context/AppContext';
 
 const styles = StyleSheet.create({
   header: {
@@ -27,10 +24,9 @@ const styles = StyleSheet.create({
 });
 
 export const NavigationHeader = () => {
-  const setState = useAppGlobalStoreSetState();
-  const userImageUrl = useAppGlobalStoreValue(store => store.userImageUrl);
+  const {userImageUrl, logoutHandler} = useAppContext();
 
-  const logoutHandler = () => {
+  const logout = () => {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [
       {
         text: 'Cancel',
@@ -41,7 +37,7 @@ export const NavigationHeader = () => {
         text: 'OK',
         onPress: async () => {
           try {
-            setState({userId: '', userToken: '', userImageUrl: ''});
+            logoutHandler();
           } catch (error) {
             console.error('Failed to disconnect', error);
           }
@@ -60,7 +56,7 @@ export const NavigationHeader = () => {
           style={styles.avatar}
         />
       )}
-      <Pressable onPress={logoutHandler}>
+      <Pressable onPress={logout}>
         <Text style={styles.unset}>Logout</Text>
       </Pressable>
     </View>

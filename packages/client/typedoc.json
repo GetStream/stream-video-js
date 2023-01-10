@@ -4,6 +4,7 @@
   "hideBreadcrumbs": true,
   "hideInPageTOC": true,
   "excludePrivate": true,
+  "excludeInternal": true,
   "out": "temp-docs",
   "logLevel": "Error",
   "tsconfig": "./tsconfig.json"

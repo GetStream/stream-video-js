@@ -1,13 +1,54 @@
 @use '@angular/material' as mat;
 @use 'variables';
 @layer default {
-  @import '~@stream-io/video-styling/index.scss';
+  @import '@stream-io/video-styling/index.scss';
+}
+@import 'stream-chat-angular/src/assets/styles/v2/scss/index.scss';
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+}
+
+#root {
+  display: flex;
+  height: 100%;
+
+  stream-channel-list {
+    width: 30%;
+  }
+
+  stream-channel {
+    width: 100%;
+  }
+
+  stream-thread {
+    width: 45%;
+  }
 }
 
 @include mat.core();
 
 @include mat.core-theme(variables.$my-theme);
 @include mat.all-component-themes(variables.$my-theme);
+
+.str-chat {
+  --str-chat__primary-color: #{variables.$primary-color};
+  --str-chat__active-primary-color: #{variables.$primary-color};
+  --str-chat__background-color: #424242;
+  --str-chat__secondary-background-color: #424242;
+  --str-chat__surface-color: #424242;
+  --str-chat__secondary-surface-color: #212121;
+  --str-chat__primary-surface-color: #212121;
+  --str-chat__primary-surface-color-low-emphasis: #212121;
+  --str-chat__on-primary-color: white;
+  --str-chat__text-color: white;
+  --str-chat__text-low-emphasis-color: white;
+}
 
 body {
   margin: 0;
@@ -22,6 +63,11 @@ body {
   height: 100%;
 }
 
+// TODO fix this in chat SDK
+.str-chat__ul li:first-of-type {
+  padding-top: 50px;
+}
+
 @layer overrides {
   .str-call__participant {
     @include variables.video-border;
@@ -34,6 +80,12 @@ body {
 
   .str-video__participant-angular-host {
     max-width: 100%;
+  }
+
+  .str-video__participant--speaking {
+    .str-video__remote-video {
+      border: 2px solid variables.$primary-color;
+    }
   }
 }
 

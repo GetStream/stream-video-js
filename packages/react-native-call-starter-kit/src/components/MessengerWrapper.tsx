@@ -4,14 +4,12 @@ import {
   Streami18n,
   useChatContext,
 } from 'stream-chat-react-native';
-import React, {PropsWithChildren, useMemo} from 'react';
+import React, {PropsWithChildren, useCallback, useMemo} from 'react';
 import {useVideoClient} from '../hooks/useVideoClient';
 import {StreamCall, StreamVideo} from '@stream-io/video-react-native-sdk';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useAppGlobalStoreValue} from '../context/AppContext';
 import {userFromToken} from '../utils/userFromToken';
 import {useChatClient} from '../hooks/useChatClient';
-import {StreamChatProvider} from '../context/StreamChatContext';
 import {useStreamChatTheme} from '../../useStreamChatTheme';
 import {AuthProgressLoader} from './AuthProgressLoader';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -20,8 +18,10 @@ import type {
   StreamChatGenerics,
   VideoProps,
 } from '../types';
-
-export const Video = ({
+import {STREAM_API_KEY} from 'react-native-dotenv';
+import {useAppContext} from '../context/AppContext';
+console.log('STREAM_API_KEY', STREAM_API_KEY);
+export const VideoWrapper = ({
   children,
   navigation,
 }: PropsWithChildren<{
@@ -44,15 +44,28 @@ export const Video = ({
 
   const {videoClient} = useVideoClient({user, token});
 
+  const acceptCallHandler = useCallback(() => {
+    navigation.navigate('ActiveCallScreen');
+  }, [navigation]);
+
+  const outgoingCallHandler = useCallback(() => {
+    navigation.navigate('OutgoingCallScreen');
+  }, [navigation]);
+
+  const incomingCallHandler = useCallback(() => {
+    navigation.navigate('IncomingCallScreen');
+  }, [navigation]);
+
   if (!videoClient) {
     return <AuthProgressLoader />;
   }
+
   return (
     <StreamVideo client={videoClient}>
       <StreamCall
-        onAcceptCall={() => navigation.navigate('ActiveCallScreen')}
-        onOutgoingCall={() => navigation.navigate('OutgoingCallScreen')}
-        onIncomingCall={() => navigation.navigate('IncomingCallScreen')}>
+        onAcceptCall={acceptCallHandler}
+        onOutgoingCall={outgoingCallHandler}
+        onIncomingCall={incomingCallHandler}>
         {children}
       </StreamCall>
     </StreamVideo>
@@ -69,10 +82,10 @@ export const MessengerWrapper = ({
 }: PropsWithChildren<{
   navigation: NativeStackNavigationProp<NavigationStackParamsList>;
 }>) => {
-  const userToken = useAppGlobalStoreValue(store => store.userToken);
+  const {userToken} = useAppContext();
   const user = useMemo(() => userFromToken(userToken), [userToken]);
   const chatClient = useChatClient({
-    apiKey: '5mxvmc2t4qys',
+    apiKey: STREAM_API_KEY,
     userData: user,
     tokenOrProvider: userToken,
   });
@@ -89,13 +102,7 @@ export const MessengerWrapper = ({
       i18nInstance={streami18n}
       value={{style: theme}}>
       <Chat client={chatClient} i18nInstance={streami18n}>
-        <StreamChatProvider>
-          {chatClient ? (
-            <Video navigation={navigation}>{children}</Video>
-          ) : (
-            <>{children}</>
-          )}
-        </StreamChatProvider>
+        <VideoWrapper navigation={navigation}>{children}</VideoWrapper>
       </Chat>
     </OverlayProvider>
   );

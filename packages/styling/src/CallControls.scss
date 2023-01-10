@@ -1,77 +1,82 @@
-@use './Icons';
-
 .str-video__call-controls {
   display: flex;
   justify-content: center;
-  gap: 15px;
-  padding: 15px 0;
+  gap: 1rem;
+  padding: 1rem 0;
 
   .str-video__call-controls__button {
-    border-radius: 8px;
-    color: #ffffff;
-    font-size: 20px;
-    display: inline-block;
-    height: 36px;
-    width: 36px;
-    background-repeat: no-repeat;
-    background-position: center;
+    border-radius: var(--str-video__border-radius1);
     text-decoration: none;
     box-shadow: none;
     border: none;
     background-color: transparent;
     cursor: pointer;
+    height: 2.25rem;
+    width: 2.25rem;
 
     &:hover {
-      background-color: #1c1e22;
+      background-color: var(--str-video__background-color1);
       text-decoration: none;
     }
 
     &--variant-danger {
-      background-color: #ff3742;
+      background-color: var(--str-video__danger-color1);
 
       &:hover {
-        background-color: #ff000e;
+        background-color: var(--str-video__danger-color2);
       }
     }
 
-    &--icon-recording-on {
-      background-image: Icons.$icon-recording-on;
-    }
+    .str-video__call-controls__button--icon {
+      background-color: var(--str-video__text-color1);
+      mask-repeat: no-repeat;
+      mask-position: center;
+      mask-size: contain;
+      width: 100%;
+      height: 100%;
+      display: block;
 
-    &--icon-recording-off {
-      background-image: Icons.$icon-recording-off;
-    }
+      &-recording-on {
+        mask-image: var(--str-video__icon--recording-on);
+        background-color: var(--str-video__danger-color1);
+      }
 
-    &--icon-screen-share-on {
-      background-image: Icons.$icon-screen-share-on;
-    }
+      &-recording-off {
+        mask-image: var(--str-video__icon--recording-off);
+      }
 
-    &--icon-screen-share-off {
-      background-image: Icons.$icon-screen-share-off;
-    }
+      &-screen-share-on {
+        mask-image: var(--str-video__icon--screen-share-on);
+        background-color: var(--str-video__primary-color);
+      }
 
-    &--icon-mic {
-      background-image: Icons.$icon-mic;
-    }
+      &-screen-share-off {
+        mask-image: var(--str-video__icon--screen-share-off);
+      }
 
-    &--icon-mic-off {
-      background-image: Icons.$icon-mic-off;
-    }
+      &-mic {
+        mask-image: var(--str-video__icon--mic);
+      }
 
-    &--icon-camera {
-      background-image: Icons.$icon-camera;
-    }
+      &-mic-off {
+        mask-image: var(--str-video__icon--mic-off);
+      }
 
-    &--icon-camera-off {
-      background-image: Icons.$icon-camera-off;
-    }
+      &-camera {
+        mask-image: var(--str-video__icon--camera);
+      }
 
-    &--icon-call-end {
-      background-image: Icons.$icon-call-end;
-    }
+      &-camera-off {
+        mask-image: var(--str-video__icon--camera-off);
+      }
 
-    &--icon-stats {
-      background-image: Icons.$icon-info-icon;
+      &-call-end {
+        mask-image: var(--str-video__icon--call-end);
+      }
+
+      &-stats {
+        mask-image: var(--str-video__icon--info-icon);
+      }
     }
   }
 }

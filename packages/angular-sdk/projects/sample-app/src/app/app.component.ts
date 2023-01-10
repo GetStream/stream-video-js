@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Call } from '@stream-io/video-client';
 import { StreamVideoService } from '@stream-io/video-angular-sdk';
@@ -23,6 +23,7 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private activatedRoute: ActivatedRoute,
     private videoService: StreamVideoService,
+    private ngZone: NgZone,
   ) {
     this.user$ = this.videoService.user$;
 
@@ -30,9 +31,6 @@ export class AppComponent implements OnInit, OnDestroy {
       this.videoService.activeCall$.subscribe((c: Call | undefined) => {
         return (this.activeCall = c);
       }),
-    );
-    this.subscriptions.push(
-      this.videoService.acceptedCall$.subscribe((c) => console.log(c)),
     );
   }
 
@@ -60,14 +58,17 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.activeCall?.leave();
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   private async joinCall(id: string, type = 'default') {
-    const call = await this.videoService.videoClient?.joinCall({
-      id,
-      type,
-      datacenterId: '',
+    const call = await this.ngZone.runOutsideAngular(() => {
+      return this.videoService.videoClient?.joinCall({
+        id,
+        type,
+        datacenterId: '',
+      });
     });
     await call?.join();
   }
