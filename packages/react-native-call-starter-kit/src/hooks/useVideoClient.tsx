@@ -2,7 +2,8 @@ import {StreamVideoClient} from '@stream-io/video-client';
 import {useEffect, useState} from 'react';
 import {VideoProps} from '../types';
 import {STREAM_API_KEY, STREAM_API_SECRET} from 'react-native-dotenv';
-
+console.log('STREAM_API_KEY', STREAM_API_KEY);
+console.log('STREAM_API_SECRET', STREAM_API_SECRET);
 const APIParams = {
   apiKey: STREAM_API_KEY, // see <video>/data/fixtures/apps.yaml for API key/secret
   apiSecret: STREAM_API_SECRET,

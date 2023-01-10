@@ -20,7 +20,7 @@ import type {
 } from '../types';
 import {STREAM_API_KEY} from 'react-native-dotenv';
 import {useAppContext} from '../context/AppContext';
-
+console.log('STREAM_API_KEY', STREAM_API_KEY);
 export const VideoWrapper = ({
   children,
   navigation,
