@@ -44,7 +44,6 @@ import { CALL_CONFIG } from './config/defaultConfigs';
 import { CallConfig } from './config/types';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
-  callConfig: CALL_CONFIG.meeting,
   coordinatorRpcUrl:
     'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
   coordinatorWsUrl:
@@ -57,6 +56,7 @@ const defaultOptions: Partial<StreamVideoClientOptions> = {
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
  */
 export class StreamVideoClient {
+  callConfig: CallConfig;
   /**
    * A reactive store that exposes all the state variables in a reactive manner - you can subscribe to changes of the different state variables. Our library is built in a way that all state changes are exposed in this store, so all UI changes in your application should be handled by subscribing to these variables.
    * @angular If you're using our Angular SDK, you shouldn't be interacting with the state store directly, instead, you should be using the [`StreamVideoService`](./StreamVideoService.md).
@@ -75,8 +75,15 @@ export class StreamVideoClient {
    * @angular If you're using our Angular SDK, you shouldn't be calling the `constructor` directly, instead you should be using [`StreamVideoService`](./StreamVideoService.md/#init).
    * @param apiKey your Stream API key
    * @param opts
+   * @param {CallConfig} [callConfig=CALL_CONFIG.meeting] custom call configuration
    */
-  constructor(apiKey: string, opts: StreamVideoClientOptions) {
+  constructor(
+    apiKey: string,
+    opts: StreamVideoClientOptions,
+    callConfig: CallConfig = CALL_CONFIG.meeting,
+  ) {
+    this.callConfig = callConfig;
+
     const options = {
       ...defaultOptions,
       ...opts,
@@ -324,7 +331,7 @@ export class StreamVideoClient {
    * Updates the general call configuration.
    */
   updateCallConfig = (config: CallConfig) => {
-    this.options.callConfig = config;
+    this.callConfig = config;
   };
 
   /**

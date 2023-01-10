@@ -1,10 +1,4 @@
-import { CallConfig } from '../config/types';
-
 export type StreamVideoClientOptions = {
-  /**
-   * The default call configuration. Defaults to "meeting" call configuration.
-   */
-  callConfig?: CallConfig;
   /**
    * The baseURL for the RPC calls
    */
