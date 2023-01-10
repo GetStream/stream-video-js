@@ -131,7 +131,6 @@ const App = () => {
                     callType={callType}
                     input={callInput}
                     currentUser={currentUser}
-                    autoJoin
                   >
                     <MeetingUI />
                   </StreamMeeting>
