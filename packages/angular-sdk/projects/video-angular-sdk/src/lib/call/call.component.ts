@@ -1,4 +1,10 @@
-import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
+import {
+  AfterViewChecked,
+  Component,
+  HostBinding,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { Call, StreamVideoLocalParticipant } from '@stream-io/video-client';
 import { Observable, Subscription } from 'rxjs';
 import { DeviceManagerService } from '../device-manager.service';
@@ -13,6 +19,7 @@ import { StreamVideoService } from '../video.service';
 export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
   call!: Call;
   localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
+  @HostBinding('class') class = 'str-video__call-angular-host';
   private subscriptions: Subscription[] = [];
 
   constructor(
