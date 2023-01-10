@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostBinding, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
@@ -9,6 +9,7 @@ import { StreamVideoService } from '../video.service';
 })
 export class StageComponent implements OnInit {
   hasOngoingScreenshare$: Observable<boolean>;
+  @HostBinding('class') class = 'str-video__stage-angular-host';
 
   constructor(private streamVideoService: StreamVideoService) {
     this.hasOngoingScreenshare$ =

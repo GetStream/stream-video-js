@@ -1,5 +1,7 @@
 // main entry point for component styles
 
+@use 'src/_Variables';
+
 @import 'src/CallControls';
 @import 'src/CallParticipantView';
 @import 'src/CallParticipantsScreenView';

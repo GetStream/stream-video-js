@@ -184,18 +184,24 @@ const Button = forwardRef(
     const { icon, variant, onClick, ...rest } = props;
     return (
       <button
+        className={clsx(
+          'str-video__call-controls__button',
+          variant && `str-video__call-controls__button--variant-${variant}`,
+        )}
         onClick={(e) => {
           e.preventDefault();
           onClick?.();
         }}
-        className={clsx(
-          'str-video__call-controls__button',
-          icon && `str-video__call-controls__button--icon-${icon}`,
-          variant && `str-video__call-controls__button--variant-${variant}`,
-        )}
         ref={ref}
         {...rest}
-      />
+      >
+        <span
+          className={clsx(
+            'str-video__call-controls__button--icon',
+            icon && `str-video__call-controls__button--icon-${icon}`,
+          )}
+        ></span>
+      </button>
     );
   },
 );
