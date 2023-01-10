@@ -44,6 +44,7 @@ export const watchCallCreated = (
  */
 export const watchCallAccepted = (
   on: <T>(event: string, fn: StreamEventListener<T>) => void,
+  store: StreamVideoWriteableStateStore,
 ) => {
   on('callAccepted', (event: CallAccepted) => {
     const { call } = event;
@@ -51,6 +52,14 @@ export const watchCallAccepted = (
       console.warn("Can't find call in CallAccepted event");
       return;
     }
+
+    const currentUser = store.getCurrentValue(store.connectedUserSubject);
+
+    if (currentUser?.id === call.createdByUserId) {
+      console.warn('Received CallAccepted event sent by the current user');
+      return;
+    }
+    store.setCurrentValue(store.acceptedCallSubject, event);
   });
 };
 

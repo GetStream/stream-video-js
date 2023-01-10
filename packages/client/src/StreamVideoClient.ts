@@ -164,7 +164,7 @@ export class StreamVideoClient {
     if (this.ws) {
       watchCallCancelled(this.on, this.writeableStateStore);
       watchCallCreated(this.on, this.writeableStateStore);
-      watchCallAccepted(this.on);
+      watchCallAccepted(this.on, this.writeableStateStore);
       watchCallRejected(this.on, this.writeableStateStore);
     }
     this.writeableStateStore.setCurrentValue(
@@ -373,6 +373,11 @@ export class StreamVideoClient {
           call,
         );
 
+        this.writeableStateStore.setCurrentValue(
+          this.writeableStateStore.acceptedCallSubject,
+          undefined,
+        );
+
         return call;
       } else {
         // TODO: handle error?
@@ -382,6 +387,19 @@ export class StreamVideoClient {
       // TODO: handle error?
       return undefined;
     }
+  };
+
+  /**
+   * Performs the whole chain of operations to establish active call connection
+   * @param {JoinCallRequest} data payload object for the join call request
+   */
+  joinCallInstantly = async (data: JoinCallRequest) => {
+    const callController = await this.joinCall(data);
+    if (!callController) {
+      console.error('Failed to establish call connection');
+      return;
+    }
+    await callController.join();
   };
 
   /**
