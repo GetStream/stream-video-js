@@ -1,13 +1,13 @@
-<span
+<button
+  class="str-video__device-settings__button"
   [popper]="deviceSettings"
   [popperTrigger]="popperTrigger"
-  class="str-video__device-settings__icon"
   tabindex="0"
-></span>
+>
+  <span class="str-video__device-settings__icon"></span>
+</button>
 <popper-content #deviceSettings>
-  <div
-    class="str-video__device-settings"
-  >
+  <div class="str-video__device-settings">
     <div class="str-video__device-settings__device-kind">
       <div class="str-video__device-settings__device-selector-label">
         Select camera
@@ -42,7 +42,10 @@
         </option>
       </select>
     </div>
-    <div *ngIf="isAudioOuputDeviceChangeSupported" class="str-video__device-settings__device-kind">
+    <div
+      *ngIf="isAudioOuputDeviceChangeSupported"
+      class="str-video__device-settings__device-kind"
+    >
       <div class="str-video__device-settings__device-selector-label">
         Select audio output
       </div>
