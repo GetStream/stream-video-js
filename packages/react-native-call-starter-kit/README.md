@@ -15,8 +15,6 @@ STREAM_API_SECRET=u54nds9v328s4b6g56juvsmj5j9nevetdqjszwdt2qr5ubfkswh5rjhmzuw9rv
 
 The following are the installation steps to run the application:
 
-Common steps:
-
 - Clone the [repository](https://github.com/GetStream/stream-video-js).
 - Install the dependencies by doing `yarn install` or `npm install`.
 - Run `yarn build:all`. This will build the client and the other packages required for the application to work.
