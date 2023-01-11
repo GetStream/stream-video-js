@@ -86,7 +86,7 @@ export class Call {
   /**
    * You can subscribe to WebSocket events provided by the API. To remove a subscription, call the `off` method.
    * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the [reactive state store](./StreamVideoClient.md/#readonlystatestore).
-   * @param eventName
+   * @param eventName the name of the event you want to subscribe to.
    * @param fn
    * @returns
    */
