@@ -14,6 +14,10 @@ export type CallConfig = {
    */
   autoRejectTimeout?: number;
   /**
+   * Optional parameter enabling automatic rejections of incoming calls while participating at an active call.
+   */
+  autoRejectWhenInCall?: boolean;
+  /**
    * Flag signals to SDK components not to wait until CallAccepted event is received,
    * but join the call immediately upon emitting a new PendingCall by the stateStore.
    * Note: Is relevant to outgoing calls only.

@@ -34,6 +34,18 @@ export const watchCallCreated = (
       return;
     }
 
+    const activeCall = store.getCurrentValue(store.activeCallSubject);
+
+    if (
+      callConfig.autoRejectWhenInCall &&
+      activeCall &&
+      activeCall.data.call?.callCid === call.callCid
+    ) {
+      callDropScheduler.scheduleReject(call.callCid, 500);
+      // todo: should we record the automatic rejection in the store?
+      return;
+    }
+
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) => [
       ...pendingCalls,
       event,
