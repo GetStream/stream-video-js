@@ -2167,16 +2167,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.10.2, @babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.16.3, @babel/runtime@npm:^7.17.2, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.18.9, @babel/runtime@npm:^7.20.1, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7":
-  version: 7.20.6
-  resolution: "@babel/runtime@npm:7.20.6"
-  dependencies:
-    regenerator-runtime: ^0.13.11
-  checksum: 42a8504db21031b1859fbc0f52d698a3d2f5ada9519eb76c6f96a7e657d8d555732a18fe71ef428a67cc9fc81ca0d3562fb7afdc70549c5fec343190cbaa9b03
-  languageName: node
-  linkType: hard
-
-"@babel/runtime@npm:^7.12.0":
+"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.10.2, @babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.16.3, @babel/runtime@npm:^7.17.2, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.18.9, @babel/runtime@npm:^7.20.1, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7":
   version: 7.20.7
   resolution: "@babel/runtime@npm:7.20.7"
   dependencies:
@@ -4326,22 +4317,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-navigation/core@npm:^6.4.3":
-  version: 6.4.3
-  resolution: "@react-navigation/core@npm:6.4.3"
-  dependencies:
-    "@react-navigation/routers": ^6.1.5
-    escape-string-regexp: ^4.0.0
-    nanoid: ^3.1.23
-    query-string: ^7.0.0
-    react-is: ^16.13.0
-    use-latest-callback: ^0.1.5
-  peerDependencies:
-    react: "*"
-  checksum: f12ed9cc19cd417a2fd28d3c29469df600faf2dfc676e65b1636dca6b4b58c11dde88324774f295a2f84ad096bd9381465b8b925d10344c08601da04467ddc88
-  languageName: node
-  linkType: hard
-
 "@react-navigation/core@npm:^6.4.6":
   version: 6.4.6
   resolution: "@react-navigation/core@npm:6.4.6"
@@ -4370,35 +4345,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-navigation/elements@npm:^1.3.9":
-  version: 1.3.9
-  resolution: "@react-navigation/elements@npm:1.3.9"
-  peerDependencies:
-    "@react-navigation/native": ^6.0.0
-    react: "*"
-    react-native: "*"
-    react-native-safe-area-context: ">= 3.0.0"
-  checksum: e8c4dde8fda013f4357e11773dc0f2537dad244e283d9671f0ad80a3bdb4c6781da197205118e5957d62bb55075dd420572a7e337c5336c2c1a115eb24887a00
-  languageName: node
-  linkType: hard
-
-"@react-navigation/native-stack@npm:^6.9.1":
-  version: 6.9.4
-  resolution: "@react-navigation/native-stack@npm:6.9.4"
-  dependencies:
-    "@react-navigation/elements": ^1.3.9
-    warn-once: ^0.1.0
-  peerDependencies:
-    "@react-navigation/native": ^6.0.0
-    react: "*"
-    react-native: "*"
-    react-native-safe-area-context: ">= 3.0.0"
-    react-native-screens: ">= 3.0.0"
-  checksum: a29534d2a428eaf29a78e435f3a3ca15f8142f97d77225c4c254879bcd3959b02d96af99d9ce02535ad1d3aaf55a6df42cad6608a995e7b20c66b15e0662f202
-  languageName: node
-  linkType: hard
-
-"@react-navigation/native-stack@npm:^6.9.7":
+"@react-navigation/native-stack@npm:^6.9.1, @react-navigation/native-stack@npm:^6.9.7":
   version: 6.9.8
   resolution: "@react-navigation/native-stack@npm:6.9.8"
   dependencies:
@@ -4414,22 +4361,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-navigation/native@npm:^6.0.13":
-  version: 6.0.16
-  resolution: "@react-navigation/native@npm:6.0.16"
-  dependencies:
-    "@react-navigation/core": ^6.4.3
-    escape-string-regexp: ^4.0.0
-    fast-deep-equal: ^3.1.3
-    nanoid: ^3.1.23
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  checksum: e936181a8fbe6aa1bbd5c415276b8cc34bfd6abeb3cec47637f3eca43a610a693a8d6f23c8eb0cfc72856784104dc70f64516d4493a0b879b43a88e9a5ae5117
-  languageName: node
-  linkType: hard
-
-"@react-navigation/native@npm:^6.1.1":
+"@react-navigation/native@npm:^6.0.13, @react-navigation/native@npm:^6.1.1":
   version: 6.1.2
   resolution: "@react-navigation/native@npm:6.1.2"
   dependencies:
@@ -4441,15 +4373,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 1bdf5339cccc1c40f780929738790f6d7d80533c80c3db80c598870f124782d83f4842b63a2bced55e040d120fc0de419d780fd906108c5358a83cde540b595e
-  languageName: node
-  linkType: hard
-
-"@react-navigation/routers@npm:^6.1.5":
-  version: 6.1.5
-  resolution: "@react-navigation/routers@npm:6.1.5"
-  dependencies:
-    nanoid: ^3.1.23
-  checksum: 5aaa71cd83ec91c5f1caa1ba94230822181abaf72be52af81ebb0d35a79cde917929d64f38aef407c46781dcaf1e5fa4ee70fce367cc363aa4bc57e881c669e7
   languageName: node
   linkType: hard
 
@@ -18453,7 +18376,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ngx-popperjs@npm:^12.2.1 || ^13.0.0 || ^14.0.0":
+"ngx-popperjs@npm:^12.2.1 || ^13.0.0 || ^14.0.0, ngx-popperjs@npm:^14.1.2":
   version: 14.1.6
   resolution: "ngx-popperjs@npm:14.1.6"
   dependencies:
@@ -18464,20 +18387,6 @@ __metadata:
     "@angular/core": ^14.0.1
     rxjs: ^7.4.0
   checksum: b612ccbf34c5ccda658f5659dfcc8393357eef0a330a6b24fffdaed49d201f9b291c0a8e8b1148d91a6290eae6258f5a055e1875c843c1d6868a56a3c0747b62
-  languageName: node
-  linkType: hard
-
-"ngx-popperjs@npm:^14.1.2":
-  version: 14.1.2
-  resolution: "ngx-popperjs@npm:14.1.2"
-  dependencies:
-    "@popperjs/core": ^2.11.5
-    tslib: ^2.3.0
-  peerDependencies:
-    "@angular/common": ^14.0.1
-    "@angular/core": ^14.0.1
-    rxjs: ^7.4.0
-  checksum: c985f107242c42b9a761445d5e73c1542daee7f071f28643603fbd85fb8d7b5822ed6ac4de25af9553849c84c4b03945fefe6d06e72813f34b0517f3fde669c8
   languageName: node
   linkType: hard
 
@@ -20965,7 +20874,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"query-string@npm:^7.0.0, query-string@npm:^7.1.3":
+"query-string@npm:^7.1.3":
   version: 7.1.3
   resolution: "query-string@npm:7.1.3"
   dependencies:
@@ -23602,24 +23511,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat@npm:^8.1.3":
-  version: 8.1.3
-  resolution: "stream-chat@npm:8.1.3"
-  dependencies:
-    "@babel/runtime": ^7.16.3
-    "@types/jsonwebtoken": ^8.5.6
-    "@types/ws": ^7.4.0
-    axios: ^0.22.0
-    base64-js: ^1.5.1
-    form-data: ^4.0.0
-    isomorphic-ws: ^4.0.1
-    jsonwebtoken: ^8.5.1
-    ws: ^7.4.4
-  checksum: 1e28717e883d674491984d861d136a659ba6ffd1f2beceaa4af00bb9a069a7dd54c921d11897b51f522be9af08e6691b4950e25df1bc1f6e7e1717e62b4c3d4d
-  languageName: node
-  linkType: hard
-
-"stream-chat@npm:^8.2.1":
+"stream-chat@npm:^8.1.3, stream-chat@npm:^8.2.1":
   version: 8.2.1
   resolution: "stream-chat@npm:8.2.1"
   dependencies:
