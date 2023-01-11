@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import {
   StreamVideoLocalParticipant,
@@ -22,6 +22,14 @@ interface ParticipantViewProps {
    * The participant that will be displayed
    */
   participant: StreamVideoParticipant | StreamVideoLocalParticipant;
+  /**
+   * The video kind that will be displayed
+   */
+  kind: 'video' | 'screen';
+  /**
+   * Any custom style to be merged with the participant view
+   */
+  style?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -41,7 +49,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       return;
     }
     const { height, width } = event.nativeEvent.layout;
-    call.updateSubscriptionsPartial('video', {
+    call.updateSubscriptionsPartial(props.kind, {
       [participant.sessionId]: {
         dimension: {
           width: Math.trunc(width),
@@ -53,12 +61,14 @@ export const ParticipantView = (props: ParticipantViewProps) => {
 
   const { isSpeaking, isLoggedInUser } = participant;
 
-  console.log({ screenshareStream: participant.screenShareStream });
-
   // NOTE: We have to cast to MediaStream type from webrtc
   // as JS client sends the web navigators' mediastream type instead
-  const videoStreamToShow = (participant.screenShareStream ??
-    participant.videoStream) as MediaStream | undefined;
+  const videoStream = (
+    props.kind === 'video'
+      ? participant.videoStream
+      : participant.screenShareStream
+  ) as MediaStream | undefined;
+
   const audioStream = participant.audioStream as MediaStream | undefined;
 
   const mirror = isLoggedInUser && !cameraBackFacingMode;
@@ -70,25 +80,37 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         styles.containerBase,
         styles[`${size}Container`],
         isSpeaking ? styles.dominantSpeaker : {},
+        props.style,
       ]}
       onLayout={onLayout}
     >
-      {!!videoStreamToShow ? (
+      {!!videoStream ? (
         <VideoRenderer
           mirror={mirror}
-          mediaStream={videoStreamToShow}
+          mediaStream={videoStream}
           style={styles.videoRenderer}
         />
       ) : (
         <Avatar participant={participant} />
       )}
-      {audioStream && <RTCView streamURL={audioStream.toURL()} />}
-      <View style={styles.status}>
-        <Text style={styles.userNameLabel}>{participant.userId}</Text>
-        <View style={styles.svgWrapper}>
-          <MicIcon color="#FF003BFF" />
+      {props.kind === 'video' && !!audioStream && (
+        <RTCView streamURL={audioStream.toURL()} />
+      )}
+      {props.kind === 'video' && (
+        <View style={styles.status}>
+          <Text style={styles.userNameLabel}>{participant.userId}</Text>
+          <View style={styles.svgWrapper}>
+            <MicIcon color="#FF003BFF" />
+          </View>
         </View>
-      </View>
+      )}
+      {props.kind === 'screen' && (
+        <View style={styles.screenViewStatus}>
+          <Text style={styles.userNameLabel}>
+            {participant.userId} is presenting
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -113,13 +135,27 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  screenVideoRenderer: {
+    flex: 1,
+    justifyContent: 'center',
+    borderRadius: 16,
+    marginLeft: 8,
+  },
   status: {
     flexDirection: 'row',
     alignItems: 'center',
     position: 'absolute',
     left: 6,
-    top: 6,
+    bottom: 6,
     padding: 6,
+    borderRadius: 6,
+    backgroundColor: '#1C1E22',
+  },
+  screenViewStatus: {
+    position: 'absolute',
+    left: 8,
+    top: 8,
+    padding: 4,
     borderRadius: 6,
     backgroundColor: '#1C1E22',
   },
