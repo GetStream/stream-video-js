@@ -5,7 +5,7 @@ import { getGenericSdp } from './codecs';
 import { CallState, TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuEventListener } from './Dispatcher';
-import { StreamVideoWriteableStateStore } from '../stateStore';
+import { StreamVideoWriteableStateStore } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import type {
   CallOptions,

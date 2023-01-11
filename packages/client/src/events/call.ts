@@ -4,7 +4,7 @@ import {
   CallCreated,
   CallRejected,
 } from '../gen/video/coordinator/event_v1/event';
-import { StreamVideoWriteableStateStore } from '../stateStore';
+import { StreamVideoWriteableStateStore } from '../store';
 import { StreamEventListener } from '../ws';
 
 /**
