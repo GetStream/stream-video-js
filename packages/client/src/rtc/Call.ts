@@ -5,7 +5,7 @@ import { getGenericSdp } from './codecs';
 import { CallState, TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuEventListener } from './Dispatcher';
-import { StreamVideoWriteableStateStore } from '../store';
+import { ActiveCallData, StreamVideoWriteableStateStore } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import type {
   CallOptions,
@@ -15,7 +15,6 @@ import type {
   SubscriptionChanges,
 } from './types';
 import { debounceTime, Subject } from 'rxjs';
-import { CallEnvelope } from '../gen/video/coordinator/client_v1_rpc/envelopes';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import {
   createStatsReporter,
@@ -30,7 +29,7 @@ export class Call {
   /**
    * Contains metadata about the call, for example who created the call. You can also extract the call ID from this object, which you'll need for certain API calls (for example to start a recording).
    */
-  data: CallEnvelope;
+  data: ActiveCallData;
   private readonly subscriber: RTCPeerConnection;
   private readonly publisher: Publisher;
   private readonly trackSubscriptionsSubject = new Subject<
@@ -48,7 +47,7 @@ export class Call {
    * @param stateStore
    */
   constructor(
-    data: CallEnvelope,
+    data: ActiveCallData,
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
     private readonly stateStore: StreamVideoWriteableStateStore,
