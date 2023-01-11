@@ -42,6 +42,7 @@ import {
 } from './events/call';
 import { CALL_CONFIG } from './config/defaultConfigs';
 import { CallConfig } from './config/types';
+import { CallDropScheduler } from './CallDropScheduler';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   coordinatorRpcUrl:
@@ -66,7 +67,7 @@ export class StreamVideoClient {
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWebSocketClient | undefined;
-  private outgoingCallCancellation: ReturnType<typeof setTimeout> | undefined;
+  private callDropScheduler: CallDropScheduler;
   /**
    * @internal
    */
@@ -109,6 +110,10 @@ export class StreamVideoClient {
     );
 
     this.userBatcher = new Batcher<string>(3000, this.handleUserBatch);
+    this.callDropScheduler = new CallDropScheduler(
+      this.rejectCall,
+      this.cancelCall,
+    );
 
     reportStats(
       this.readOnlyStateStore,
@@ -163,17 +168,26 @@ export class StreamVideoClient {
       user,
     );
     if (this.ws) {
-      watchCallCancelled(this.on, this.writeableStateStore);
-      watchCallCreated(this.on, this.writeableStateStore);
+      watchCallCancelled(
+        this.on,
+        this.writeableStateStore,
+        this.callDropScheduler,
+      );
+      watchCallCreated(
+        this.on,
+        this.writeableStateStore,
+        this.callDropScheduler,
+        this.callConfig,
+      );
       watchCallAccepted(
         this.on,
         this.writeableStateStore,
-        this.clearCallCancellation,
+        this.callDropScheduler,
       );
       watchCallRejected(
         this.on,
         this.writeableStateStore,
-        this.clearCallCancellation,
+        this.callDropScheduler,
         this.callConfig,
       );
     }
@@ -256,7 +270,10 @@ export class StreamVideoClient {
     const { call } = createdCall.response;
 
     if (call && call.call?.callCid) {
-      this.scheduleCallCancellation(call.call?.callCid);
+      this.callDropScheduler.scheduleCancel(
+        call.call?.callCid,
+        this.callConfig.autoCancelTimeout,
+      );
 
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
@@ -280,6 +297,7 @@ export class StreamVideoClient {
    * @returns
    */
   acceptCall = async (callCid: string) => {
+    this.callDropScheduler.cancelDrop(callCid);
     await this.client.sendEvent({
       callCid,
       eventType: UserEventType.ACCEPTED_CALL,
@@ -297,6 +315,7 @@ export class StreamVideoClient {
    * @returns
    */
   rejectCall = async (callCid: string) => {
+    this.callDropScheduler.cancelDrop(callCid);
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
       (pendingCalls) =>
@@ -317,7 +336,7 @@ export class StreamVideoClient {
    * @returns
    */
   cancelCall = async (callCid: string) => {
-    this.clearCallCancellation();
+    this.callDropScheduler.cancelDrop(callCid);
     const store = this.writeableStateStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
 
@@ -534,36 +553,6 @@ export class StreamVideoClient {
     };
     const response = await this.client.reportCallStatEvent(request);
     return response.response;
-  };
-
-  /**
-   * Schedules automatic call cancellation.
-   * The cancellation is intended for the scenarios, when the call has been rejected
-   * or not accepted by all the call members.
-   * @param {string} callCid
-   */
-  private scheduleCallCancellation = (callCid: string) => {
-    if (!this.callConfig.ringingTimeout) return;
-    this.outgoingCallCancellation = setTimeout(
-      () => this.cancelCall(callCid),
-      this.callConfig.ringingTimeout,
-    );
-  };
-
-  /**
-   * Cancels the automatic call cancellation.
-   * Indented for the scenario, when a call has been accepted by at least one member
-   * or if the call has been cancelled manually before the cancellation timeout expires.
-   */
-  private clearCallCancellation = () => {
-    console.log(
-      'XXXX, this.outgoingCallCancellation',
-      this.outgoingCallCancellation,
-    );
-    if (this.outgoingCallCancellation) {
-      clearTimeout(this.outgoingCallCancellation);
-      this.outgoingCallCancellation = undefined;
-    }
   };
 
   /**

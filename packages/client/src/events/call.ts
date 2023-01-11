@@ -4,6 +4,7 @@ import {
   CallCreated,
   CallRejected,
 } from '../gen/video/coordinator/event_v1/event';
+import { CallDropScheduler } from '../CallDropScheduler';
 import { StreamVideoWriteableStateStore } from '../stateStore';
 import { StreamEventListener } from '../ws';
 import { CallConfig } from '../config/types';
@@ -16,6 +17,8 @@ import { CallConfig } from '../config/types';
 export const watchCallCreated = (
   on: <T>(event: string, fn: StreamEventListener<T>) => void,
   store: StreamVideoWriteableStateStore,
+  callDropScheduler: CallDropScheduler,
+  callConfig: CallConfig,
 ) => {
   on('callCreated', (event: CallCreated) => {
     const { call } = event;
@@ -35,6 +38,10 @@ export const watchCallCreated = (
       ...pendingCalls,
       event,
     ]);
+    callDropScheduler.scheduleReject(
+      call.callCid,
+      callConfig.autoRejectTimeout,
+    );
   });
 };
 
@@ -46,7 +53,7 @@ export const watchCallCreated = (
 export const watchCallAccepted = (
   on: <T>(event: string, fn: StreamEventListener<T>) => void,
   store: StreamVideoWriteableStateStore,
-  clearCallCancellation: () => void,
+  callDropScheduler: CallDropScheduler,
 ) => {
   on('callAccepted', (event: CallAccepted) => {
     const { call } = event;
@@ -93,7 +100,7 @@ export const watchCallAccepted = (
       return;
     }
 
-    clearCallCancellation();
+    callDropScheduler.cancelDrop(call.callCid);
     store.setCurrentValue(store.acceptedCallSubject, event);
   });
 };
@@ -106,7 +113,7 @@ export const watchCallAccepted = (
 export const watchCallRejected = (
   on: <T>(event: string, fn: StreamEventListener<T>) => void,
   store: StreamVideoWriteableStateStore,
-  clearCallCancellation: () => void,
+  callDropScheduler: CallDropScheduler,
   callConfig: CallConfig,
 ) => {
   on('callRejected', (event: CallRejected) => {
@@ -155,7 +162,7 @@ export const watchCallRejected = (
     // todo: clear call cancellation only if leaveCallOnLeftAlone enabled and really left alone
     const wasLeftAlone = undefined;
     if (callConfig.leaveCallOnLeftAlone && wasLeftAlone) {
-      clearCallCancellation();
+      callDropScheduler.cancelDrop(call.callCid);
     }
 
     // currently not supporting automatic call drop for 1:M calls
@@ -180,6 +187,7 @@ export const watchCallRejected = (
 export const watchCallCancelled = (
   on: <T>(event: string, fn: StreamEventListener<T>) => void,
   store: StreamVideoWriteableStateStore,
+  callDropScheduler: CallDropScheduler,
 ) => {
   on('callCancelled', (event: CallCancelled) => {
     const { call } = event;
@@ -194,6 +202,8 @@ export const watchCallCancelled = (
       console.warn('Received CallCancelled event sent by the current user');
       return;
     }
+
+    callDropScheduler.cancelDrop(call.callCid);
 
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
       pendingCalls.filter(
