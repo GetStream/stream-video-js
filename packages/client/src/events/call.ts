@@ -112,6 +112,11 @@ export const watchCallAccepted = (
       return;
     }
 
+    // once in active call, it is unnecessary to keep track of accepted call events
+    if (event.call?.callCid === acceptedActiveCall?.data.call?.callCid) {
+      return;
+    }
+
     callDropScheduler.cancelDrop(call.callCid);
     store.setCurrentValue(store.acceptedCallSubject, event);
   });
