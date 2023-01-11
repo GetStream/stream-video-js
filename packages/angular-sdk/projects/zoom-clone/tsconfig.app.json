@@ -3,7 +3,8 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "../../out-tsc/app",
-    "types": []
+    "types": [],
+    "allowSyntheticDefaultImports": true
   },
   "files": [
     "src/main.ts",

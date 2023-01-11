@@ -18,6 +18,11 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { CallComponent } from './call/call.component';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { TranslateModule } from '@ngx-translate/core';
+import {
+  StreamAutocompleteTextareaModule,
+  StreamChatModule,
+} from 'stream-chat-angular';
 
 @NgModule({
   declarations: [
@@ -41,6 +46,9 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
     MatMenuModule,
     MatSelectModule,
     DragDropModule,
+    TranslateModule.forRoot(),
+    StreamAutocompleteTextareaModule,
+    StreamChatModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
