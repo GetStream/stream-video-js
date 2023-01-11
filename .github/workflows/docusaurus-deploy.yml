@@ -14,6 +14,16 @@ on:
       - 'packages/client/**'
       - 'packages/react-native-sdk/**'
       - 'packages/react-sdk/**'
+      - '.github/workflows/docusaurus-deploy.yml'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'packages/angular-sdk/**'
+      - 'packages/react-bindings/**'
+      - 'packages/client/**'
+      - 'packages/react-native-sdk/**'
+      - 'packages/react-sdk/**'
+      - '.github/workflows/docusaurus-deploy.yml'
 
 jobs:
   push_docusaurus:
@@ -69,5 +79,5 @@ jobs:
           destination-repository-name: 'stream-video-docusaurus'
           source-directory: 'packages/react-sdk/docusaurus'
         env:
-            DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
-            NODE_OPTIONS: '--openssl-legacy-provider' # need for node 18 + docusaurus cli support
+          DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
+          NODE_OPTIONS: '--openssl-legacy-provider' # need for node 18 + docusaurus cli support

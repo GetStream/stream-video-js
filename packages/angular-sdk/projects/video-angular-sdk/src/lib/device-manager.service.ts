@@ -221,7 +221,11 @@ export class DeviceManagerService {
    * If there is an existing video stream, it will stop that. If not, it will start a new one.
    */
   toggleVideo() {
-    if (this.videoState === 'off' || this.videoState === 'initial') {
+    if (
+      this.videoState === 'off' ||
+      this.videoState === 'initial' ||
+      this.videoState === 'disconnected'
+    ) {
       this.startVideo();
     } else if (this.videoState === 'on') {
       this.stopVideo();
@@ -232,7 +236,11 @@ export class DeviceManagerService {
    * If there is an existing audio stream, it will stop that. If not, it will start a new one.
    */
   toggleAudio() {
-    if (this.audioState === 'off' || this.audioState === 'initial') {
+    if (
+      this.audioState === 'off' ||
+      this.audioState === 'initial' ||
+      this.audioState === 'disconnected'
+    ) {
       this.startAudio();
     } else if (this.audioState === 'on') {
       this.stopAudio();
