@@ -305,6 +305,8 @@ export class Call {
    * Stops publishing the given track type to the call, if it is currently being published.
    * Underlying track will be stopped and removed from the publisher.
    *
+   * The `audioDeviceId`/`videoDeviceId` property of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore) won't be updated, you can do that by calling the [`setAudioDevice`](#setaudiodevice)/[`setVideoDevice`](#setvideodevice) method.
+   *
    * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
    *
    * @param trackType the track type to stop publishing.
@@ -432,7 +434,7 @@ export class Call {
   };
 
   /**
-   * Sets the used audio output device (`audioOutputDeviceId` of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore)).
+   * Sets the used audio output device (`audioOutputDeviceId` of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore).
    *
    * This method only stores the selection, if you're using custom UI components, you'll have to implement the audio switching, for more information see: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId.
    *
@@ -443,6 +445,36 @@ export class Call {
   setAudioOutputDevice = (deviceId?: string) => {
     this.stateStore.updateParticipant(this.client.sessionId, {
       audioOutputDeviceId: deviceId,
+    });
+  };
+
+  /**
+   * Sets the `audioDeviceId` property of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore)).
+   *
+   * This method only stores the selection, if you want to start publishing a media stream call the [`publishAudioStream` method](#publishaudiostream) that will set `audioDeviceId` as well.
+   *
+   * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
+   *
+   * @param deviceId the selected device, pass `undefined` to clear the device selection
+   */
+  setAudioDevice = (deviceId?: string) => {
+    this.stateStore.updateParticipant(this.client.sessionId, {
+      audioDeviceId: deviceId,
+    });
+  };
+
+  /**
+   * Sets the `videoDeviceId` property of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore).
+   *
+   * This method only stores the selection, if you want to start publishing a media stream call the [`publishVideoStream` method](#publishvideostream) that will set `videoDeviceId` as well.
+   *
+   * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
+   *
+   * @param deviceId the selected device, pass `undefined` to clear the device selection
+   */
+  setVideoDevice = (deviceId?: string) => {
+    this.stateStore.updateParticipant(this.client.sessionId, {
+      videoDeviceId: deviceId,
     });
   };
 
