@@ -75,6 +75,16 @@ export class InCallDeviceManagerService {
             }),
           );
           this.subscriptions.push(
+            this.deviceManager.audioDevice$.subscribe((d) => {
+              call.setAudioDevice(d);
+            }),
+          );
+          this.subscriptions.push(
+            this.deviceManager.audioDevice$.subscribe((d) => {
+              call.setVideoDevice(d);
+            }),
+          );
+          this.subscriptions.push(
             this.deviceManager.audioOutputDevice$.subscribe((d) => {
               call.setAudioOutputDevice(d);
             }),
