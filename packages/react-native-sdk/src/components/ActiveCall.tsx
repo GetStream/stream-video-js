@@ -34,21 +34,23 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
   useEffect(() => {
     if (audioDevice) {
-      getAudioStream(audioDevice.deviceId).then((stream) =>
-        activeCall?.publishAudioStream(stream),
-      );
+      getAudioStream(audioDevice.deviceId)
+        .then((stream) => activeCall?.publishAudioStream(stream))
+        .catch((error) => {
+          console.log(error);
+        });
     }
   }, [activeCall, audioDevice]);
 
   useEffect(() => {
-    try {
-      if (currentVideoDevice && !isVideoMuted) {
-        getVideoStream(currentVideoDevice.deviceId).then((stream) => {
+    if (currentVideoDevice && !isVideoMuted) {
+      getVideoStream(currentVideoDevice.deviceId)
+        .then((stream) => {
           activeCall?.publishVideoStream(stream);
+        })
+        .catch((error) => {
+          console.log(error);
         });
-      }
-    } catch (error) {
-      console.log(error);
     }
   }, [activeCall, currentVideoDevice, isVideoMuted, setState]);
 
