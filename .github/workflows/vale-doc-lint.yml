@@ -15,7 +15,7 @@ jobs:
           # More info: https://github.com/errata-ai/vale-action and https://github.com/reviewdog/reviewdog#filter-mode
           filter_mode: nofilter
           # github-pr-check, github-pr-review, github-check
-          reporter: github-pr-check
+          reporter: github-check
           # Set fail_on_error to true to make sure builds fail.
           fail_on_error: true
           files: '["packages/angular-sdk/README.md","packages/angular-sdk/docusaurus","packages/angular-sdk/projects/video-angular-sdk/src","packages/react-native-sdk/README.md","packages/react-native-sdk/docusaurus","packages/react-native-sdk/src","packages/react-sdk/README.md","packages/react-sdk/src"]'
