@@ -7,7 +7,7 @@ The documentation can be found in `docusaurus` folder.
 Start the docusaurus using `stream-chat-docusaurus-cli`,
 
 ```
-npx stream-chat-docusaurus -s`
+npx stream-chat-docusaurus -s
 ```
 
 ### Generate Docs from source-code

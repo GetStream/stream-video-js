@@ -89,6 +89,7 @@ export const useMediaPublisher = ({
     const subscription = watchForDisconnectedAudioDevice(
       localParticipant$.pipe(map((p) => p?.audioDeviceId)),
     ).subscribe(async () => {
+      call.setAudioDevice(undefined);
       await call.stopPublish(SfuModels.TrackType.AUDIO);
     });
     return () => {
@@ -100,6 +101,7 @@ export const useMediaPublisher = ({
     const subscription = watchForDisconnectedVideoDevice(
       localParticipant$.pipe(map((p) => p?.videoDeviceId)),
     ).subscribe(async () => {
+      call.setVideoDevice(undefined);
       await call.stopPublish(SfuModels.TrackType.VIDEO);
     });
     return () => {
