@@ -6,7 +6,9 @@
     "ng": "ng",
     "start": "rm -rf dist && ng build --project video-angular-sdk --watch --configuration development & (wait-on dist && ng serve sample-app --host 0.0.0.0)",
     "start:zoom": "rm -rf dist && ng build --project video-angular-sdk --watch --configuration development & (wait-on dist && ng serve zoom-clone --host 0.0.0.0)",
-    "build": "ng build --project video-angular-sdk && ng build --project sample-app",
+    "build": "ng build --project video-angular-sdk && ng build --project sample-app && ng build --project zoom-clone",
+    "build:sample": "ng build --project sample-app",
+    "build:zoom": "ng build --project zoom-clone",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
@@ -62,6 +64,7 @@
     "typedoc": "^0.23.23",
     "typedoc-plugin-markdown": "^3.13.6",
     "typescript": "~4.7.4",
+    "vercel": "^28.11.0",
     "wait-on": "^6.0.1"
   }
 }
