@@ -5,7 +5,7 @@ export const CALL_CONFIG: Record<CallType, CallConfig> = {
     autoRejectTimeout: 30 * 1000,
     autoRejectWhenInCall: false,
     leaveCallOnLeftAlone: true,
-    joinCallInstantly: true,
+    joinCallInstantly: false,
     playSounds: true,
     videoEnabled: false,
   },

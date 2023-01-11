@@ -26,6 +26,7 @@ export type CallConfig = {
   /**
    * Flag signals to SDK components to invoke activeCall.leave() once there all participants left
    * and the rest of the members rejected the incoming call.
+   * Note: Currently supported only for 1:1 calls.
    */
   leaveCallOnLeftAlone?: boolean;
   /**

@@ -172,6 +172,7 @@ export class StreamVideoClient {
         this.on,
         this.writeableStateStore,
         this.callDropScheduler,
+        this.callConfig,
       );
       watchCallCreated(
         this.on,
@@ -404,11 +405,6 @@ export class StreamVideoClient {
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.activeCallSubject,
           call,
-        );
-
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.acceptedCallSubject,
-          undefined,
         );
 
         return call;

@@ -171,23 +171,24 @@ export const watchCallRejected = (
       return;
     }
 
-    // todo: clear call cancellation only if leaveCallOnLeftAlone enabled and really left alone
-    const wasLeftAlone = undefined;
+    // currently not supporting automatic call drop for 1:M calls
+    const wasLeftAlone =
+      event.callDetails?.memberUserIds.length === 1 &&
+      event.senderUserId === event.callDetails.memberUserIds[0];
+
     if (callConfig.leaveCallOnLeftAlone && wasLeftAlone) {
       callDropScheduler.cancelDrop(call.callCid);
-    }
 
-    // currently not supporting automatic call drop for 1:M calls
-    const memberUserIds = event.callDetails?.memberUserIds || [];
-    if (memberUserIds.length > 1) {
-      return;
-    }
+      store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+        pendingCalls.filter(
+          (pendingCalls) => pendingCalls.call?.callCid !== event.call?.callCid,
+        ),
+      );
 
-    store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
-      pendingCalls.filter(
-        (pendingCalls) => pendingCalls.call?.callCid !== event.call?.callCid,
-      ),
-    );
+      if (rejectedActiveCall) {
+        rejectedActiveCall.leave();
+      }
+    }
   });
 };
 
@@ -200,6 +201,7 @@ export const watchCallCancelled = (
   on: <T>(event: string, fn: StreamEventListener<T>) => void,
   store: StreamVideoWriteableStateStore,
   callDropScheduler: CallDropScheduler,
+  callConfig: CallConfig,
 ) => {
   on('callCancelled', (event: CallCancelled) => {
     const { call } = event;
@@ -215,12 +217,57 @@ export const watchCallCancelled = (
       return;
     }
 
+    const cancelledOutgoingCall = store
+      .getCurrentValue(store.outgoingCalls$)
+      .find(
+        (outgoingCall) =>
+          call.callCid !== undefined &&
+          outgoingCall.call?.callCid === call.callCid,
+      );
+
+    if (cancelledOutgoingCall) {
+      console.warn(
+        `Outgoing call cancelled by another user (userId: ${event.senderUserId})`,
+      );
+      return;
+    }
+
+    const cancelledIncomingCall = store
+      .getCurrentValue(store.incomingCalls$)
+      .find((incomingCall) => incomingCall.call?.callCid === call.callCid);
+
+    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const cancelledActiveCall =
+      activeCall?.data.call?.callCid !== undefined &&
+      activeCall.data.call.callCid === call.callCid
+        ? activeCall
+        : undefined;
+
+    if (!cancelledIncomingCall && !cancelledActiveCall) {
+      console.warn(
+        `CallCancelled event received for a non-existent incoming call (CID: ${call.callCid}`,
+      );
+      return;
+    }
+
     callDropScheduler.cancelDrop(call.callCid);
 
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
       pendingCalls.filter(
-        (pendingCall) => pendingCall.call?.callCid !== event.call?.callCid,
+        (pendingCalls) => pendingCalls.call?.callCid !== event.call?.callCid,
       ),
     );
+
+    // currently not supporting automatic call drop for 1:M calls
+    const wasLeftAlone =
+      event.callDetails?.memberUserIds.length === 1 &&
+      event.senderUserId === event.callDetails.memberUserIds[0];
+    if (
+      callConfig.leaveCallOnLeftAlone &&
+      wasLeftAlone &&
+      cancelledActiveCall
+    ) {
+      cancelledActiveCall.leave();
+    }
   });
 };
