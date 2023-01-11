@@ -19,10 +19,11 @@ dist
 .angular
 .env
 !packages/angular-sdk/docusaurus/.env
+!packages/react-sdk/docusaurus/.env
 
 .eslintcache
-.idea
 coverage
 
 /**/generated-docs
 /**/temp-docs
+/**/docusaurus/docs/*/reference/**/*.md

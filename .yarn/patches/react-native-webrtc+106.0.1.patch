@@ -1,0 +1,13 @@
+diff --git a/android/src/main/java/com/oney/WebRTCModule/GetUserMediaImpl.java b/android/src/main/java/com/oney/WebRTCModule/GetUserMediaImpl.java
+index b131db5..44f4308 100644
+--- a/android/src/main/java/com/oney/WebRTCModule/GetUserMediaImpl.java
++++ b/android/src/main/java/com/oney/WebRTCModule/GetUserMediaImpl.java
+@@ -152,7 +152,7 @@ class GetUserMediaImpl {
+             }
+             WritableMap params = Arguments.createMap();
+             params.putString("facing", isFrontFacing ? "front" : "environment");
+-            params.putString("deviceId", "" + i);
++            params.putString("deviceId", deviceName);
+             params.putString("groupId", "");
+             params.putString("label", deviceName);
+             params.putString("kind", "videoinput");
