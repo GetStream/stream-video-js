@@ -57,6 +57,9 @@ const defaultOptions: Partial<StreamVideoClientOptions> = {
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
  */
 export class StreamVideoClient {
+  /**
+   * Configuration parameters for controlling call behavior.
+   */
   callConfig: CallConfig;
   /**
    * A reactive store that exposes all the state variables in a reactive manner - you can subscribe to changes of the different state variables. Our library is built in a way that all state changes are exposed in this store, so all UI changes in your application should be handled by subscribing to these variables.
@@ -340,8 +343,9 @@ export class StreamVideoClient {
     this.callDropScheduler.cancelDrop(callCid);
     const store = this.writeableStateStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const leavingActiveCall = activeCall?.data.call?.callCid === callCid;
 
-    if (activeCall?.data.call?.callCid === callCid) {
+    if (leavingActiveCall) {
       activeCall.leave();
     } else {
       store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
@@ -353,7 +357,7 @@ export class StreamVideoClient {
 
     const remoteParticipants = store.getCurrentValue(store.remoteParticipants$);
 
-    if (!remoteParticipants.length) {
+    if (!remoteParticipants.length && !leavingActiveCall) {
       await this.client.sendEvent({
         callCid,
         eventType: UserEventType.CANCELLED_CALL,
@@ -400,6 +404,7 @@ export class StreamVideoClient {
           },
           this.writeableStateStore,
           this.userBatcher,
+          this.callConfig,
         );
 
         this.writeableStateStore.setCurrentValue(

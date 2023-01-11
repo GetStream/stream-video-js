@@ -21,6 +21,7 @@ import {
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
 import { Batcher } from '../Batcher';
+import { CallConfig } from '../config/types';
 
 /**
  * A `Call` object represents the active call the user is part of. It's not enough to have a `Call` instance, you will also need to call the [`join`](#join) method.
@@ -45,6 +46,8 @@ export class Call {
    * @param data
    * @param options
    * @param stateStore
+   * @param userBatcher
+   * @param callConfig
    */
   constructor(
     data: ActiveCallData,
@@ -52,6 +55,7 @@ export class Call {
     private readonly options: CallOptions,
     private readonly stateStore: StreamVideoWriteableStateStore,
     private readonly userBatcher: Batcher<string>,
+    private readonly callConfig: CallConfig,
   ) {
     this.data = data;
     this.subscriber = createSubscriber({
@@ -73,7 +77,13 @@ export class Call {
     });
 
     const { dispatcher } = this.client;
-    registerEventHandlers(this, this.stateStore, dispatcher, this.userBatcher);
+    registerEventHandlers(
+      this,
+      this.stateStore,
+      dispatcher,
+      this.userBatcher,
+      callConfig,
+    );
 
     this.trackSubscriptionsSubject
       .pipe(debounceTime(1200))
