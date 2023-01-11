@@ -1,6 +1,6 @@
 import { Dispatcher } from '../rtc/Dispatcher';
 import { Call } from '../rtc/Call';
-import { StreamVideoWriteableStateStore } from '../stateStore';
+import { StreamVideoWriteableStateStore } from '../store';
 import { StreamVideoParticipantPatches } from '../rtc/types';
 
 /**

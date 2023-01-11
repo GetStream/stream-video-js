@@ -1,18 +1,18 @@
 import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import { combineLatestWith, distinctUntilChanged, map } from 'rxjs/operators';
-import { RxUtils } from './store';
-import { UserInput } from './gen/video/coordinator/user_v1/user';
-import { Call, CallDetails } from './gen/video/coordinator/call_v1/call';
-import { CallAccepted } from './gen/video/coordinator/event_v1/event';
+import * as RxUtils from './rxUtils';
+import { UserInput } from '../gen/video/coordinator/user_v1/user';
+import { Call, CallDetails } from '../gen/video/coordinator/call_v1/call';
+import { CallAccepted } from '../gen/video/coordinator/event_v1/event';
 import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatch,
   StreamVideoParticipantPatches,
-} from './rtc/types';
-import { CallStatsReport } from './stats/types';
-import { Call as CallController } from './rtc/Call';
-import { TrackType } from './gen/video/sfu/models/models';
+} from '../rtc/types';
+import { CallStatsReport } from '../stats/types';
+import { Call as CallController } from '../rtc/Call';
+import { TrackType } from '../gen/video/sfu/models/models';
 
 export type PendingCall = {
   call?: Call;
