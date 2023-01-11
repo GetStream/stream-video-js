@@ -7,6 +7,7 @@ import {
 } from '@stream-io/video-angular-sdk';
 import { Call, UserInput } from '@stream-io/video-client';
 import { Observable, take } from 'rxjs';
+import { StreamI18nService, ThemeService } from 'stream-chat-angular';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +22,8 @@ export class AppComponent {
     private router: Router,
     private snackBar: MatSnackBar,
     private deviceManagerService: DeviceManagerService,
+    private streamI18nService: StreamI18nService,
+    private themeService: ThemeService,
   ) {
     this.connectedUser$ = this.streamVideoService.user$;
     this.deviceManagerService.audioErrorMessage$.subscribe((e) => {
@@ -33,6 +36,8 @@ export class AppComponent {
         this.snackBar.open(e);
       }
     });
+    this.streamI18nService.setTranslation();
+    this.themeService.theme$.next('dark');
   }
 
   disconnect() {

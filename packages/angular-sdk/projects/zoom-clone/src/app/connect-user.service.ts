@@ -2,8 +2,9 @@ import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRouteSnapshot, CanActivate, Router } from '@angular/router';
 import { StreamVideoService } from '@stream-io/video-angular-sdk';
-import { environment } from 'projects/sample-app/src/environments/environment';
 import { take } from 'rxjs';
+import { ChatClientService } from 'stream-chat-angular';
+import { environment } from '../environments/environment';
 import { UserService } from './user.service';
 
 @Injectable({
@@ -15,6 +16,7 @@ export class ConnectUserService implements CanActivate {
     private userService: UserService,
     private router: Router,
     private snackBar: MatSnackBar,
+    private chatClientService: ChatClientService,
   ) {}
 
   async canActivate(route: ActivatedRouteSnapshot) {
@@ -45,8 +47,14 @@ export class ConnectUserService implements CanActivate {
             user.token,
             user.user,
           );
+          await this.chatClientService.init(
+            environment.chatApiKey,
+            `${user.user.id}_video`,
+            user.chatToken,
+          );
           return true;
         } catch (err) {
+          console.error(err);
           this.snackBar.open(`Couldn't connect with user: ${user.user.name}`);
           this.router.navigate(['user-selector'], {
             queryParams: route.queryParams,

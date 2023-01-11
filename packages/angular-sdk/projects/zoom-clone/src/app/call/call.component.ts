@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import {
@@ -13,6 +13,7 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { combineLatest, map, Observable, Subscription } from 'rxjs';
+import { ChannelService } from 'stream-chat-angular';
 
 @Component({
   selector: 'app-call',
@@ -28,6 +29,7 @@ export class CallComponent implements OnInit, OnDestroy {
   TrackType = SfuModels.TrackType;
   isLocalParticipantCallOwner = false;
   isCallRecordingInProgress = false;
+  isChatOpen = false;
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -36,6 +38,8 @@ export class CallComponent implements OnInit, OnDestroy {
     private inCallDeviceManager: InCallDeviceManagerService,
     private snackBar: MatSnackBar,
     private deviceManager: DeviceManagerService,
+    private channelService: ChannelService,
+    private ngZone: NgZone,
   ) {
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe((c) => {
@@ -76,6 +80,7 @@ export class CallComponent implements OnInit, OnDestroy {
         this.deviceManager.audioState$,
         this.deviceManager.isSpeaking$,
       ]).subscribe(([audioState, isSpeaking]) => {
+        console.warn(audioState, isSpeaking);
         const isSpeakingWhileMuted =
           audioState === 'detecting-speech-while-muted' && isSpeaking;
         if (isSpeakingWhileMuted) {
@@ -91,6 +96,15 @@ export class CallComponent implements OnInit, OnDestroy {
       this.streamVideoService.callRecordingInProgress$.subscribe(
         (inProgress) => (this.isCallRecordingInProgress = inProgress),
       ),
+    );
+    this.subscriptions.push(
+      this.channelService.activeChannel$.subscribe((activeChannel) => {
+        if (activeChannel) {
+          activeChannel.on('message.new', () => {
+            this.ngZone.run(() => (this.isChatOpen = true));
+          });
+        }
+      }),
     );
   }
 
