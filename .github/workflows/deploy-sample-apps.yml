@@ -12,12 +12,11 @@ on:
       - 'packages/react-sdk/**'
       - 'packages/react-bindings/**'
       - 'packages/styling/**'
-
-#  pull_request:
-#    types:
-#      - opened
-#      - synchronize
-#      - reopened
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 jobs:
   build-and-deploy-react-messenger-clone:
