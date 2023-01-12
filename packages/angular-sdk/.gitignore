@@ -45,3 +45,4 @@ Thumbs.db
 docusaurus/docs/Angular/reference/**/*.md
 docusaurus/docs/Angular/ui-components/theming-and-css.mdx
 docusaurus/shared
+.vercel

@@ -27,6 +27,7 @@
     "start:styling": "yarn workspace @stream-io/video-styling run start",
     "build:client": "yarn workspace @stream-io/video-client run build",
     "start:client": "yarn workspace @stream-io/video-client run start",
+    "build:angular:deps": "yarn build:client && yarn build:styling",
     "build:react:deps": "yarn build:client && yarn build:react:bindings && yarn build:react:sdk && yarn build:styling",
     "build:react-native:deps": "yarn build:client && yarn build:react:bindings && yarn build:react-native:sdk",
     "build:vercel": "yarn build:react:deps && yarn build:react:dogfood",
@@ -58,7 +59,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.8.1",
     "typescript": "^4.9.4",
-    "vercel": "^28.9.0"
+    "vercel": "^28.11.0"
   },
   "resolutions": {
     "react-native-pure-jwt@^3.0.1": "patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch",
