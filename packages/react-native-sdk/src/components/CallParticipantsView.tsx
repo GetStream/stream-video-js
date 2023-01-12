@@ -3,9 +3,10 @@ import { StyleSheet, View } from 'react-native';
 import { ParticipantView } from './ParticipantView';
 import { LocalVideoView } from './LocalVideoView';
 import {
-  useParticipants,
+  useLocalParticipant,
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 
 type SizeType = React.ComponentProps<typeof ParticipantView>['size'];
 
@@ -57,18 +58,42 @@ const modeToSize: { [key in Modes]: SizeType | undefined } = {
 
 const localVideoVisibleModes = [Modes.full, Modes.half];
 
+const participantSwappingLogic = (
+  remoteParticipants: StreamVideoParticipant[],
+) => {
+  const data = [...remoteParticipants];
+  const isSpeakingParticipant = data.filter(
+    (participant) => participant.isSpeaking && !participant.isDominantSpeaker,
+  );
+  const notIsSpeakingParticipants = data.filter(
+    (participant) => !participant.isSpeaking,
+  );
+
+  if (isSpeakingParticipant)
+    remoteParticipants = [
+      ...isSpeakingParticipant,
+      ...notIsSpeakingParticipants,
+    ];
+
+  return remoteParticipants;
+};
+
 /**
  * CallParticipantsView is a component that displays the participants in a call.
  * This component supports the rendering of up to 5 participants.
  */
 export const CallParticipantsView = () => {
-  const allParticipants = useParticipants();
   const remoteParticipants = useRemoteParticipants();
+  const localParticipant = useLocalParticipant();
+
+  const mainRemoteParticipants = participantSwappingLogic(remoteParticipants);
+  const mainParticipants = [localParticipant, ...mainRemoteParticipants];
+
   const mode =
-    activeCallAllParticipantsLengthToMode[allParticipants.length] ||
+    activeCallAllParticipantsLengthToMode[mainParticipants.length] ||
     Modes.fifth;
 
-  const isUserIsAloneInCall = allParticipants.length === 1;
+  const isUserIsAloneInCall = mainParticipants.length === 1;
 
   const isLocalVideoVisible = useMemo(
     () => localVideoVisibleModes.includes(mode) && !isUserIsAloneInCall,
@@ -76,10 +101,10 @@ export const CallParticipantsView = () => {
   );
   const showUserInParticipantView = !isLocalVideoVisible;
   const filteredParticipants = showUserInParticipantView
-    ? allParticipants
-    : remoteParticipants;
+    ? mainParticipants
+    : mainRemoteParticipants;
 
-  if (allParticipants.length === 0) {
+  if (mainParticipants.length === 0) {
     return null;
   }
 
@@ -87,22 +112,24 @@ export const CallParticipantsView = () => {
     <View style={styles.container}>
       <LocalVideoView isVisible={isLocalVideoVisible} />
       {filteredParticipants.map((participant, index) => {
-        const { userId } = participant;
-        // The size of the participant video is determined by the mode/amount of participants.
-        // When the mode is `fifth` the size is determined by the index of the participant.
-        // The first 2 participants are shown in `medium` size and the last 3
-        // participants are shown in `small` size.
-        const calculateFiveOrMoreParticipantsSize = (i: number) =>
-          i > 1 ? 'small' : 'medium';
-        const size =
-          modeToSize[mode] || calculateFiveOrMoreParticipantsSize(index);
-        return (
-          <ParticipantView
-            key={`${userId}/${participant.sessionId}`}
-            participantId={userId}
-            size={size}
-          />
-        );
+        if (participant) {
+          const { userId } = participant;
+          // The size of the participant video is determined by the mode/amount of participants.
+          // When the mode is `fifth` the size is determined by the index of the participant.
+          // The first 2 participants are shown in `medium` size and the last 3
+          // participants are shown in `small` size.
+          const calculateFiveOrMoreParticipantsSize = (i: number) =>
+            i > 1 ? 'small' : 'medium';
+          const size =
+            modeToSize[mode] || calculateFiveOrMoreParticipantsSize(index);
+          return (
+            <ParticipantView
+              key={`${userId}/${participant.sessionId}`}
+              participantId={userId}
+              size={size}
+            />
+          );
+        }
       })}
     </View>
   );
