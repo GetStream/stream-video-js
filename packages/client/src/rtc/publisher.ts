@@ -300,8 +300,6 @@ export class Publisher {
       ? VideoQuality.LOW_UNSPECIFIED
       : rid === 'h'
       ? VideoQuality.MID
-      : rid === 'f'
-      ? VideoQuality.HIGH
       : VideoQuality.HIGH; // default to HIGH
   };
 }
