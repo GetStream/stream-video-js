@@ -42,7 +42,8 @@ testem.log
 Thumbs.db
 
 
-docusaurus/docs/Angular/reference/**/*.md
+docusaurus/docs/Angular/core/**/*.md
 docusaurus/docs/Angular/ui-components/theming-and-css.mdx
+docusaurus/docs/Angular/ui-components/**/*.md
 docusaurus/shared
 .vercel

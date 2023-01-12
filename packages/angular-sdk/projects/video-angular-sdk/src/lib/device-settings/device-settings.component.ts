@@ -3,6 +3,11 @@ import { Observable, Subscription } from 'rxjs';
 import { NgxPopperjsTriggers } from 'ngx-popperjs';
 import { DeviceManagerService } from '../device-manager.service';
 
+/**
+ * The `DeviceSettingsComponent` can be used to select video, audio and audio output (if the current browser supports it) device.
+ *
+ * Selector: `stream-device-settings`
+ */
 @Component({
   selector: 'stream-device-settings',
   templateUrl: './device-settings.component.html',

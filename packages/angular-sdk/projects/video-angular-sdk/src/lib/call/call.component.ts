@@ -11,6 +11,11 @@ import { DeviceManagerService } from '../device-manager.service';
 import { InCallDeviceManagerService } from '../in-call-device-manager.service';
 import { StreamVideoService } from '../video.service';
 
+/**
+ * The `CallComponent` displays video/audio/screen share streams of participants and call and device controls (start/stop recording, hangup, select camera, mute audio etc.).
+ *
+ * Selector: `stream-call`
+ */
 @Component({
   selector: 'stream-call',
   templateUrl: './call.component.html',

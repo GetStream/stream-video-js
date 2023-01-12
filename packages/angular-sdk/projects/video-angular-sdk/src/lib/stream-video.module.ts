@@ -14,7 +14,7 @@ import {
 } from '../public-api';
 
 /**
- * This Angular Module is the entry point of the SDK, import this Angular module in your application, all services defined by the SDK are created by importing this module
+ * This Angular Module is the entry point of the SDK, import this Angular module in your application, all services and UI components defined by the SDK belong to this module.
  */
 @NgModule({
   declarations: [
