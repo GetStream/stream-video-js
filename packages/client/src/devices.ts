@@ -1,13 +1,19 @@
 import {
   combineLatest,
+  concatMap,
+  debounceTime,
   filter,
   firstValueFrom,
+  from,
+  fromEvent,
   map,
+  merge,
   Observable,
+  of,
   shareReplay,
 } from 'rxjs';
 
-const getDevices = (constraints?: MediaStreamConstraints | undefined) => {
+const getDevices = (constraints?: MediaStreamConstraints) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
     navigator.mediaDevices
       .getUserMedia(constraints)
@@ -18,29 +24,13 @@ const getDevices = (constraints?: MediaStreamConstraints | undefined) => {
           subscriber.next(devices);
           // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
           media.getTracks().forEach((t) => t.stop());
+          subscriber.complete();
         });
       })
       .catch((error) => {
         console.error('Failed to get devices', error);
         subscriber.error(error);
       });
-
-    const deviceChangeHandler = async () => {
-      const allDevices = await navigator.mediaDevices.enumerateDevices();
-
-      subscriber.next(allDevices);
-    };
-
-    navigator.mediaDevices.addEventListener?.(
-      'devicechange',
-      deviceChangeHandler,
-    );
-
-    return () =>
-      navigator.mediaDevices.removeEventListener?.(
-        'devicechange',
-        deviceChangeHandler,
-      );
   });
 };
 
@@ -58,15 +48,32 @@ export const checkIfAudioOutputChangeSupported = () => {
 };
 
 const audioDeviceConstraints: MediaStreamConstraints = {
-  audio: true,
+  audio: { noiseSuppression: true },
 };
 const videoDeviceConstraints: MediaStreamConstraints = {
   video: { width: 960, height: 540 },
 };
 
 // Audio and video devices are requested in two separate requests: that way users will be presented with two separate prompts -> they can give access to just camera, or just microphone
-const audioDevices$ = getDevices(audioDeviceConstraints).pipe(shareReplay(1));
-const videoDevices$ = getDevices(videoDeviceConstraints).pipe(shareReplay(1));
+const deviceChange$ =
+  // NextJS patch, doesn't affect runtime
+  typeof navigator === 'undefined'
+    ? of([])
+    : fromEvent(navigator.mediaDevices, 'devicechange').pipe(
+        debounceTime(500),
+        concatMap(() => from(navigator.mediaDevices.enumerateDevices())),
+        shareReplay(1),
+      );
+
+const audioDevices$ = merge(
+  getDevices(audioDeviceConstraints),
+  deviceChange$,
+).pipe(shareReplay(1));
+
+const videoDevices$ = merge(
+  getDevices(videoDeviceConstraints),
+  deviceChange$,
+).pipe(shareReplay(1));
 
 /**
  * Prompts the user for a permission to use audio devices (if not already granted) and lists the available 'audioinput' devices, if devices are added/removed the list is updated.
@@ -74,11 +81,10 @@ const videoDevices$ = getDevices(videoDeviceConstraints).pipe(shareReplay(1));
  * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @returns
  */
-export const getAudioDevices = () => {
-  return audioDevices$.pipe(
+export const getAudioDevices = () =>
+  audioDevices$.pipe(
     map((values) => values.filter((d) => d.kind === 'audioinput')),
   );
-};
 
 /**
  * Prompts the user for a permission to use video devices (if not already granted) and lists the available 'videoinput' devices, if devices are added/removed the list is updated.
@@ -86,11 +92,12 @@ export const getAudioDevices = () => {
  * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @returns
  */
-export const getVideoDevices = () => {
-  return videoDevices$.pipe(
-    map((values) => values.filter((d) => d.kind === 'videoinput')),
+export const getVideoDevices = () =>
+  videoDevices$.pipe(
+    map((values) =>
+      values.filter((d) => d.kind === 'videoinput' && d.deviceId.length),
+    ),
   );
-};
 
 /**
  * Prompts the user for a permission to use audio devices (if not already granted) and lists the available 'audiooutput' devices, if devices are added/removed the list is updated. Selecting 'audiooutput' device only makes sense if [the browser has support for changing audio output on 'audio' elements](#checkifaudiooutputchangesupported)

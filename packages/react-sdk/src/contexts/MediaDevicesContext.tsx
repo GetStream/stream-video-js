@@ -14,6 +14,7 @@ import {
   getAudioOutputDevices,
   checkIfAudioOutputChangeSupported,
 } from '@stream-io/video-client';
+import { useActiveCall } from '@stream-io/video-react-bindings';
 
 export type MediaDevicesContextAPI = {
   audioDevices: MediaDeviceInfo[];
@@ -43,6 +44,8 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
     checkIfAudioOutputChangeSupported(),
   );
 
+  const activeCall = useActiveCall();
+
   const switchDevice = useCallback(
     async (kind: 'videoinput' | 'audioinput', deviceId?: string) => {
       if (kind === 'videoinput') {
@@ -56,21 +59,25 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   );
 
   useEffect(() => {
+    if (!activeCall) return;
+
     const subscription = getAudioDevices().subscribe(setAudioDevices);
     return () => subscription.unsubscribe();
-  }, []);
+  }, [activeCall]);
 
   useEffect(() => {
+    if (!activeCall) return;
     const subscription = getVideoDevices().subscribe(setVideoDevices);
     return () => subscription.unsubscribe();
-  }, []);
+  }, [activeCall]);
 
   useEffect(() => {
+    if (!activeCall) return;
     const subscription = getAudioOutputDevices().subscribe(
       setAudioOutputDevices,
     );
     return () => subscription.unsubscribe();
-  }, []);
+  }, [activeCall]);
 
   const contextValue = {
     audioDevices,
