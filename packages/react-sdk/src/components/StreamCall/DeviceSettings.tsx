@@ -12,6 +12,8 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
     audioOutputDevices,
     isAudioOutputChangeSupported,
     switchDevice,
+    selectedAudioDeviceId,
+    selectedVideoDeviceId,
   } = useMediaDevices();
 
   const [referenceElement, setReferenceElement] =
@@ -50,7 +52,7 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
           <DeviceSelector
             devices={videoDevices}
             label="Select a Camera"
-            selectedDeviceId={localParticipant?.videoDeviceId}
+            selectedDeviceId={selectedVideoDeviceId}
             onChange={(deviceId) => {
               switchDevice('videoinput', deviceId);
             }}
@@ -58,7 +60,7 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
           <DeviceSelector
             devices={audioDevices}
             label="Select a Mic"
-            selectedDeviceId={localParticipant?.audioDeviceId}
+            selectedDeviceId={selectedAudioDeviceId}
             onChange={(deviceId) => {
               switchDevice('audioinput', deviceId);
             }}
