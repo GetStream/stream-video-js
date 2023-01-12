@@ -4,6 +4,11 @@ import { BaseChartDirective } from 'ng2-charts';
 import { pairwise, Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
+/**
+ * The `CallStatisticsComponent` displays statistics about the call the user participates in.
+ *
+ * Selector: `stream-call-statistics`
+ */
 @Component({
   selector: 'stream-call-statistics',
   templateUrl: './call-statistics.component.html',

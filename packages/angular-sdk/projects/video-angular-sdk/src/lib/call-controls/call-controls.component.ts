@@ -10,6 +10,13 @@ import {
 } from '../types';
 import { StreamVideoService } from '../video.service';
 
+/**
+ * The `CallControlsComponent` displays call and device management (start/stop recording, hangup, mute audio etc.) related actions.
+ *
+ * The component can be used if the user is in a call or even if not in a call (however some actions aren't visible in that case).
+ *
+ * Selector: `stream-call-controls`
+ */
 @Component({
   selector: 'stream-call-controls',
   templateUrl: './call-controls.component.html',

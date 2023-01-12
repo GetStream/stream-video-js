@@ -13,4 +13,5 @@ export * from './lib/device-manager.service';
 export * from './lib/in-call-device-manager.service';
 export * from './lib/call-participants/call-participants.component';
 export * from './lib/call-participants-screenshare/call-participants-screenshare.component';
+export * from './lib/call-statistics/call-statistics.component';
 export * from './lib/types';
