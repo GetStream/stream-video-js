@@ -92,7 +92,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       )}
       {audioStream && <RTCView streamURL={audioStream.toURL()} />}
       <View style={styles.status}>
-        <Text style={styles.userNameLabel}>{participant.userId}</Text>
+        <Text style={styles.userNameLabel}>
+          {participant.userId + (participant.isLoggedInUser ? '(You)' : '')}
+        </Text>
         <View style={styles.svgWrapper}>
           <MicIcon color="#FF003BFF" />
         </View>
