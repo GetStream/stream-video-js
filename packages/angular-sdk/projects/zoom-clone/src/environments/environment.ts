@@ -4,9 +4,10 @@
 
 export const environment = {
   production: false,
-  coordinatorUrl: '/rpc',
+  coordinatorUrl:
+    'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
   wsUrl:
-    'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+    'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
   apiKey: 'us83cfwuhy8n',
   chatApiKey: 'qygw7k5cvvkx',
 };
