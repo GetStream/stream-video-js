@@ -64,11 +64,10 @@ const localVideoVisibleModes = [Modes.full, Modes.half];
 export const CallParticipantsView = () => {
   const localParticipant = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
-  const allParticipants = [];
+  let allParticipants = remoteParticipants;
   if (localParticipant) {
-    allParticipants.push(localParticipant);
+    allParticipants = [localParticipant, ...allParticipants];
   }
-  allParticipants.push(...remoteParticipants);
   const mode =
     activeCallAllParticipantsLengthToMode[allParticipants.length] ||
     Modes.fifth;
