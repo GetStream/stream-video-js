@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRouteSnapshot, CanActivate, Router } from '@angular/router';
 import { StreamVideoService } from '@stream-io/video-angular-sdk';
-import { take } from 'rxjs';
+import { BehaviorSubject, take } from 'rxjs';
 import { ChatClientService } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 import { UserService } from './user.service';
@@ -11,6 +11,8 @@ import { UserService } from './user.service';
   providedIn: 'root',
 })
 export class ConnectUserService implements CanActivate {
+  isConnecting$ = new BehaviorSubject(false);
+
   constructor(
     private videoService: StreamVideoService,
     private userService: UserService,
@@ -20,6 +22,7 @@ export class ConnectUserService implements CanActivate {
   ) {}
 
   async canActivate(route: ActivatedRouteSnapshot) {
+    this.isConnecting$.next(true);
     const user = this.userService.users.find(
       (u) => u.user.id === this.userService.selectedUserId,
     );
@@ -27,6 +30,7 @@ export class ConnectUserService implements CanActivate {
       this.router.navigate(['user-selector'], {
         queryParams: route.queryParams,
       });
+      this.isConnecting$.next(false);
       return false;
     } else {
       let connectedUser;
@@ -34,6 +38,7 @@ export class ConnectUserService implements CanActivate {
         .pipe(take(1))
         .subscribe((u) => (connectedUser = u));
       if (connectedUser) {
+        this.isConnecting$.next(false);
         return true;
       } else {
         try {
@@ -52,6 +57,7 @@ export class ConnectUserService implements CanActivate {
             `${user.user.id}_video`,
             user.chatToken,
           );
+          this.isConnecting$.next(false);
           return true;
         } catch (err) {
           console.error(err);
@@ -59,6 +65,7 @@ export class ConnectUserService implements CanActivate {
           this.router.navigate(['user-selector'], {
             queryParams: route.queryParams,
           });
+          this.isConnecting$.next(false);
           return false;
         }
       }

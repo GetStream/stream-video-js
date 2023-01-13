@@ -36,7 +36,7 @@ const Root = () => {
 
   const userToken = params.ut ?? (import.meta.env.VITE_USER_TOKEN as string);
 
-  const user = useMemo(() => userFromToken(userToken), []);
+  const user = useMemo(() => userFromToken(userToken), [userToken]);
 
   if (!user?.id) return <UserList />;
 

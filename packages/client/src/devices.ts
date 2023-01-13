@@ -9,6 +9,7 @@ import {
   map,
   merge,
   Observable,
+  of,
   shareReplay,
 } from 'rxjs';
 
@@ -54,16 +55,21 @@ const videoDeviceConstraints: MediaStreamConstraints = {
 };
 
 // Audio and video devices are requested in two separate requests: that way users will be presented with two separate prompts -> they can give access to just camera, or just microphone
-const deviceChange$ = fromEvent(navigator.mediaDevices, 'devicechange').pipe(
-  debounceTime(500),
-  concatMap(() => from(navigator.mediaDevices.enumerateDevices())),
-  shareReplay(1),
-);
+const deviceChange$ =
+  // NextJS patch, doesn't affect runtime
+  typeof navigator === 'undefined'
+    ? of([])
+    : fromEvent(navigator.mediaDevices, 'devicechange').pipe(
+        debounceTime(500),
+        concatMap(() => from(navigator.mediaDevices.enumerateDevices())),
+        shareReplay(1),
+      );
 
 const audioDevices$ = merge(
   getDevices(audioDeviceConstraints),
   deviceChange$,
 ).pipe(shareReplay(1));
+
 const videoDevices$ = merge(
   getDevices(videoDeviceConstraints),
   deviceChange$,
@@ -88,7 +94,9 @@ export const getAudioDevices = () =>
  */
 export const getVideoDevices = () =>
   videoDevices$.pipe(
-    map((values) => values.filter((d) => d.kind === 'videoinput')),
+    map((values) =>
+      values.filter((d) => d.kind === 'videoinput' && d.deviceId.length),
+    ),
   );
 
 /**

@@ -41,14 +41,12 @@ export const ActiveCall = (props: ActiveCallProps) => {
   }, [activeCall, audioDevice]);
 
   useEffect(() => {
-    try {
-      if (currentVideoDevice && !isVideoMuted) {
-        getVideoStream(currentVideoDevice.deviceId).then((stream) => {
+    if (currentVideoDevice && !isVideoMuted) {
+      getVideoStream(currentVideoDevice.deviceId)
+        .then((stream) => {
           activeCall?.publishVideoStream(stream);
-        });
-      }
-    } catch (error) {
-      console.log(error);
+        })
+        .catch((error) => console.log(error));
     }
   }, [activeCall, currentVideoDevice, isVideoMuted, setState]);
 

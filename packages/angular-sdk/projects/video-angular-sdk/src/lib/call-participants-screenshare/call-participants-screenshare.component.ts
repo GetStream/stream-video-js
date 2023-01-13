@@ -3,6 +3,11 @@ import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
 import { Observable, Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
+/**
+ * The `CallParticipantsScreenshareComponent` component displays an ongoing screen share and call participants in a scrollable list.
+ *
+ * Selector: `stream-call-participants-screenshare`
+ */
 @Component({
   selector: 'stream-call-participants-screenshare',
   templateUrl: './call-participants-screenshare.component.html',
