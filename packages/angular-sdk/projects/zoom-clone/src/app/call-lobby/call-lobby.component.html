@@ -1,13 +1,36 @@
 <div class="container">
   <div class="start-call">
-    <button mat-flat-button color="primary" [disabled]="joinOrCreate === 'join' && !callMeta" (click)="startCall()">{{joinOrCreate === 'create' ? 'Start a call' : 'Join call'}}</button>
-    <div *ngIf="joinOrCreate === 'create'">You will be able to invite people once the call starts</div>
+    <button
+      mat-flat-button
+      color="primary"
+      [disabled]="
+        (joinOrCreate === 'join' && !callMeta) || isJoinOrCreateInProgress
+      "
+      (click)="startOrJoinCall()"
+    >
+      <div class="join-button-content">
+        {{ joinOrCreate === 'create' ? 'Start a call' : 'Join call' }}
+        <mat-progress-spinner
+          *ngIf="isJoinOrCreateInProgress"
+          color="primary"
+          diameter="15"
+          mode="indeterminate"
+        ></mat-progress-spinner>
+      </div>
+    </button>
+    <div *ngIf="joinOrCreate === 'create'">
+      You will be able to invite people once the call starts
+    </div>
     <div *ngIf="joinOrCreate === 'join'">
       Already in this call: TODO not yet supported
     </div>
   </div>
   <div class="device-settings">
-    <div class="video-container" [class.no-video]="videoState === 'off'" [ngSwitch]="videoState">
+    <div
+      class="video-container"
+      [class.no-video]="videoState === 'off'"
+      [ngSwitch]="videoState"
+    >
       <video *ngSwitchCase="'on'" autoplay [srcObject]="videoStream"></video>
       <div class="error" *ngSwitchCase="'error'">
         {{ videoErrorMessage }}
@@ -23,7 +46,11 @@
       <ng-container *ngIf="videoState !== 'loading'">
         <div [ngSwitch]="audioState" class="audio-state">
           <div *ngSwitchCase="'on'">
-            <mat-icon class="mic" [class.speaking]="isSpeaking" fontIcon="mic"></mat-icon>
+            <mat-icon
+              class="mic"
+              [class.speaking]="isSpeaking"
+              fontIcon="mic"
+            ></mat-icon>
           </div>
           <div class="error" *ngSwitchCase="'error'">
             {{ audioErrorMessage }}
@@ -35,7 +62,9 @@
               mode="indeterminate"
             ></mat-progress-spinner>
           </div>
-          <div class="mic off" *ngSwitchCase="'off'"><mat-icon fontIcon="mic_off"></mat-icon></div>
+          <div class="mic off" *ngSwitchCase="'off'">
+            <mat-icon fontIcon="mic_off"></mat-icon>
+          </div>
         </div>
       </ng-container>
     </div>
@@ -44,7 +73,7 @@
 </div>
 
 <ng-template #invite>
-  Send this link to others to join: {{inviteLink}}
+  Send this link to others to join: {{ inviteLink }}
   <button mat-button>
     <mat-icon (click)="copyLink()" fontIcon="content_copy"></mat-icon>
   </button>
