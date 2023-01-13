@@ -91,6 +91,9 @@ export class InCallDeviceManagerService {
           );
         } else {
           this.subscriptions.forEach((s) => s.unsubscribe());
+          this.deviceManager.stopScreenShare();
+          this.deviceManager.stopAudio();
+          this.deviceManager.stopVideo();
         }
       },
     );
