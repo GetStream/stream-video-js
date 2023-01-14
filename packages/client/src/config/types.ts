@@ -6,13 +6,13 @@ export type CallConfig = {
    * If not defined, the call will not be cancelled automatically by the client and the user is expected to cancel or leave the call manually.
    * Note: Is relevant to outgoing calls only.
    */
-  autoCancelTimeout?: number;
+  autoCancelTimeoutInMs?: number;
   /**
    * Optional parameter to define after how many milliseconds an incoming ring call should be automatically rejected.
    * If not defined, the call will not be rejected automatically by the client and the user is expected to reject the call manually.
    * Note: Is relevant to incoming calls only.
    */
-  autoRejectTimeout?: number;
+  autoRejectTimeoutInMs?: number;
   /**
    * Optional parameter enabling automatic rejections of incoming calls while participating at an active call.
    */
@@ -24,17 +24,7 @@ export type CallConfig = {
    */
   joinCallInstantly?: boolean;
   /**
-   * Flag signals to SDK components to invoke activeCall.leave() once there all participants left
-   * and the rest of the members rejected the incoming call.
-   * Note: Currently supported only for 1:1 calls.
-   */
-  leaveCallOnLeftAlone?: boolean;
-  /**
    * Flag signals, whether sounds should be played upon initiation of a new call.
    */
   playSounds?: boolean;
-  /**
-   * Flag signals whether video stream should be automatically published and received by other participants.
-   */
-  videoEnabled?: boolean;
 };

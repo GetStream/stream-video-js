@@ -38,7 +38,6 @@ export const watchParticipantJoined = (
 export const watchParticipantLeft = (
   dispatcher: Dispatcher,
   store: StreamVideoWriteableStateStore,
-  leaveCallOnLeftAlone: boolean,
 ) => {
   return dispatcher.on('participantLeft', (e) => {
     if (e.eventPayload.oneofKind !== 'participantLeft') return;
@@ -54,15 +53,6 @@ export const watchParticipantLeft = (
     store.setCurrentValue(store.participantsSubject, (participants) =>
       participants.filter((p) => p.sessionId !== participant.sessionId),
     );
-
-    const remoteParticipants = store.getCurrentValue(store.remoteParticipants$);
-    const wasLeftAlone =
-      activeCall?.data.details?.memberUserIds.length === 1 &&
-      remoteParticipants.length === 0;
-
-    if (leaveCallOnLeftAlone && wasLeftAlone) {
-      activeCall?.leave();
-    }
   });
 };
 
