@@ -70,7 +70,7 @@ export class StreamVideoClient {
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWebSocketClient | undefined;
-  private callDropScheduler: CallDropScheduler;
+  private callDropScheduler: CallDropScheduler | undefined;
   /**
    * @internal
    */
@@ -113,10 +113,6 @@ export class StreamVideoClient {
     );
 
     this.userBatcher = new Batcher<string>(3000, this.handleUserBatch);
-    this.callDropScheduler = new CallDropScheduler(
-      this.rejectCall,
-      this.cancelCall,
-    );
 
     reportStats(
       this.readOnlyStateStore,
@@ -171,29 +167,17 @@ export class StreamVideoClient {
       user,
     );
     if (this.ws) {
-      watchCallCancelled(
-        this.on,
+      this.callDropScheduler = new CallDropScheduler(
         this.writeableStateStore,
-        this.callDropScheduler,
         this.callConfig,
+        this.rejectCall,
+        this.cancelCall,
       );
-      watchCallCreated(
-        this.on,
-        this.writeableStateStore,
-        this.callDropScheduler,
-        this.callConfig,
-      );
-      watchCallAccepted(
-        this.on,
-        this.writeableStateStore,
-        this.callDropScheduler,
-      );
-      watchCallRejected(
-        this.on,
-        this.writeableStateStore,
-        this.callDropScheduler,
-        this.callConfig,
-      );
+
+      watchCallCreated(this.on, this.writeableStateStore);
+      watchCallAccepted(this.on, this.writeableStateStore);
+      watchCallRejected(this.on, this.writeableStateStore);
+      watchCallCancelled(this.on, this.writeableStateStore);
     }
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
@@ -209,6 +193,7 @@ export class StreamVideoClient {
    */
   disconnect = async () => {
     if (!this.ws) return;
+    this.callDropScheduler?.cleanUp();
     this.ws.disconnect();
     this.ws = undefined;
     this.writeableStateStore.setCurrentValue(
@@ -273,12 +258,7 @@ export class StreamVideoClient {
     const createdCall = await this.client.createCall(data);
     const { call } = createdCall.response;
 
-    if (call && call.call?.callCid) {
-      this.callDropScheduler.scheduleCancel(
-        call.call?.callCid,
-        this.callConfig.autoCancelTimeout,
-      );
-
+    if (call) {
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
         (pendingCalls) => [
@@ -301,7 +281,6 @@ export class StreamVideoClient {
    * @returns
    */
   acceptCall = async (callCid: string) => {
-    this.callDropScheduler.cancelDrop(callCid);
     await this.client.sendEvent({
       callCid,
       eventType: UserEventType.ACCEPTED_CALL,
@@ -319,7 +298,6 @@ export class StreamVideoClient {
    * @returns
    */
   rejectCall = async (callCid: string) => {
-    this.callDropScheduler.cancelDrop(callCid);
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
       (pendingCalls) =>
@@ -340,7 +318,6 @@ export class StreamVideoClient {
    * @returns
    */
   cancelCall = async (callCid: string) => {
-    this.callDropScheduler.cancelDrop(callCid);
     const store = this.writeableStateStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     const leavingActiveCall = activeCall?.data.call?.callCid === callCid;
@@ -371,6 +348,10 @@ export class StreamVideoClient {
   updateCallConfig = (config: CallConfig) => {
     this.callConfig = config;
   };
+  // todo: change signature joinCall = async <ElementType>(
+  //     data: JoinCallRequest,
+  //     options: JoinCallOptions<ElementType> = {},
+  //   ) => {
 
   /**
    * Allows you to create a new call with the given parameters and joins the call immediately. If a call with the same combination of `type` and `id` already exists, it will join the existing call.
@@ -404,7 +385,6 @@ export class StreamVideoClient {
           },
           this.writeableStateStore,
           this.userBatcher,
-          this.callConfig,
         );
 
         this.writeableStateStore.setCurrentValue(

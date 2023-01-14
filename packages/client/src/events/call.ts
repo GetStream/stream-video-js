@@ -5,9 +5,7 @@ import {
   CallRejected,
 } from '../gen/video/coordinator/event_v1/event';
 import { StreamVideoWriteableStateStore } from '../store';
-import { CallDropScheduler } from '../CallDropScheduler';
 import { StreamEventListener } from '../ws';
-import { CallConfig } from '../config/types';
 
 /**
  * Event handler that watches the delivery of CallCreated Websocket event
@@ -17,8 +15,6 @@ import { CallConfig } from '../config/types';
 export const watchCallCreated = (
   on: <T>(event: string, fn: StreamEventListener<T>) => void,
   store: StreamVideoWriteableStateStore,
-  callDropScheduler: CallDropScheduler,
-  callConfig: CallConfig,
 ) => {
   on('callCreated', (event: CallCreated) => {
     const { call } = event;
@@ -34,26 +30,10 @@ export const watchCallCreated = (
       return;
     }
 
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
-
-    if (
-      callConfig.autoRejectWhenInCall &&
-      activeCall &&
-      activeCall.data.call?.callCid === call.callCid
-    ) {
-      callDropScheduler.scheduleReject(call.callCid, 500);
-      // todo: should we record the automatic rejection in the store?
-      return;
-    }
-
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) => [
       ...pendingCalls,
       event,
     ]);
-    callDropScheduler.scheduleReject(
-      call.callCid,
-      callConfig.autoRejectTimeout,
-    );
   });
 };
 
@@ -65,7 +45,6 @@ export const watchCallCreated = (
 export const watchCallAccepted = (
   on: <T>(event: string, fn: StreamEventListener<T>) => void,
   store: StreamVideoWriteableStateStore,
-  callDropScheduler: CallDropScheduler,
 ) => {
   on('callAccepted', (event: CallAccepted) => {
     const { call } = event;
@@ -74,7 +53,6 @@ export const watchCallAccepted = (
       return;
     }
 
-    // todo: verify that CallAccepted event is sent only to the creator of the call
     const currentUser = store.getCurrentValue(store.connectedUserSubject);
 
     if (currentUser?.id === event.senderUserId) {
@@ -82,11 +60,11 @@ export const watchCallAccepted = (
       return;
     }
 
-    const rejectedIncomingCall = store
+    const acceptedIncomingCall = store
       .getCurrentValue(store.incomingCalls$)
       .find((incomingCall) => incomingCall.call?.callCid === call.callCid);
 
-    if (rejectedIncomingCall) {
+    if (acceptedIncomingCall) {
       console.warn('Received CallAccepted event for an incoming call');
       return;
     }
@@ -117,7 +95,6 @@ export const watchCallAccepted = (
       return;
     }
 
-    callDropScheduler.cancelDrop(call.callCid);
     store.setCurrentValue(store.acceptedCallSubject, event);
   });
 };
@@ -130,8 +107,6 @@ export const watchCallAccepted = (
 export const watchCallRejected = (
   on: <T>(event: string, fn: StreamEventListener<T>) => void,
   store: StreamVideoWriteableStateStore,
-  callDropScheduler: CallDropScheduler,
-  callConfig: CallConfig,
 ) => {
   on('callRejected', (event: CallRejected) => {
     const { call } = event;
@@ -181,18 +156,12 @@ export const watchCallRejected = (
       event.callDetails?.memberUserIds.length === 1 &&
       event.senderUserId === event.callDetails.memberUserIds[0];
 
-    if (callConfig.leaveCallOnLeftAlone && wasLeftAlone) {
-      callDropScheduler.cancelDrop(call.callCid);
-
+    if (wasLeftAlone) {
       store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
         pendingCalls.filter(
           (pendingCalls) => pendingCalls.call?.callCid !== event.call?.callCid,
         ),
       );
-
-      if (rejectedActiveCall) {
-        rejectedActiveCall.leave();
-      }
     }
   });
 };
@@ -205,8 +174,6 @@ export const watchCallRejected = (
 export const watchCallCancelled = (
   on: <T>(event: string, fn: StreamEventListener<T>) => void,
   store: StreamVideoWriteableStateStore,
-  callDropScheduler: CallDropScheduler,
-  callConfig: CallConfig,
 ) => {
   on('callCancelled', (event: CallCancelled) => {
     const { call } = event;
@@ -255,24 +222,10 @@ export const watchCallCancelled = (
       return;
     }
 
-    callDropScheduler.cancelDrop(call.callCid);
-
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
       pendingCalls.filter(
         (pendingCalls) => pendingCalls.call?.callCid !== event.call?.callCid,
       ),
     );
-
-    // currently not supporting automatic call drop for 1:M calls
-    const wasLeftAlone =
-      event.callDetails?.memberUserIds.length === 1 &&
-      event.senderUserId === event.callDetails.memberUserIds[0];
-    if (
-      callConfig.leaveCallOnLeftAlone &&
-      wasLeftAlone &&
-      cancelledActiveCall
-    ) {
-      cancelledActiveCall.leave();
-    }
   });
 };
