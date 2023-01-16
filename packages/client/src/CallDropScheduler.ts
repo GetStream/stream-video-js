@@ -164,6 +164,9 @@ export class CallDropScheduler {
   };
 
   cleanUp = () => {
+    Object.values(this.autoCallDropSchedule).forEach((timeoutRef) =>
+      clearTimeout(timeoutRef),
+    );
     this.autoCallDropSchedule = {};
     Object.values(this.storeSubscriptions).forEach((subscription) =>
       subscription.unsubscribe(),
