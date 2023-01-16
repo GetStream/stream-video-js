@@ -58,22 +58,25 @@ const modeToSize: { [key in Modes]: SizeType | undefined } = {
 
 const localVideoVisibleModes = [Modes.full, Modes.half];
 
-const participantSwappingLogic = (
+const remoteParticipantsSwappingLogic = (
   remoteParticipants: StreamVideoParticipant[],
 ) => {
   const data = [...remoteParticipants];
-  const isSpeakingParticipant = data.filter(
+  const dominantSpeakers = data.filter(
+    (participant) => participant.isDominantSpeaker,
+  );
+  const speakingParticipants = data.filter(
     (participant) => participant.isSpeaking && !participant.isDominantSpeaker,
   );
-  const notIsSpeakingParticipants = data.filter(
-    (participant) => !participant.isSpeaking,
+  const notSpeakingParticipants = data.filter(
+    (participant) => !participant.isSpeaking && !participant.isDominantSpeaker,
   );
 
-  if (isSpeakingParticipant)
-    remoteParticipants = [
-      ...isSpeakingParticipant,
-      ...notIsSpeakingParticipants,
-    ];
+  remoteParticipants = [
+    ...dominantSpeakers,
+    ...speakingParticipants,
+    ...notSpeakingParticipants,
+  ];
 
   return remoteParticipants;
 };
@@ -84,17 +87,17 @@ const participantSwappingLogic = (
  */
 export const CallParticipantsView = () => {
   const localParticipant = useLocalParticipant();
-  const remoteParticipants = useRemoteParticipants();
-  const mainRemoteParticipants = participantSwappingLogic(remoteParticipants);
-  let mainParticipants = mainRemoteParticipants;
+  let remoteParticipants = useRemoteParticipants();
+  remoteParticipants = remoteParticipantsSwappingLogic(remoteParticipants);
+  let allParticipants = remoteParticipants;
   if (localParticipant) {
-    mainParticipants = [localParticipant, ...mainParticipants];
+    allParticipants = [localParticipant, ...allParticipants];
   }
   const mode =
-    activeCallAllParticipantsLengthToMode[mainParticipants.length] ||
+    activeCallAllParticipantsLengthToMode[allParticipants.length] ||
     Modes.fifth;
 
-  const isUserIsAloneInCall = mainParticipants.length === 1;
+  const isUserIsAloneInCall = allParticipants.length === 1;
 
   const isLocalVideoVisible = useMemo(
     () => localVideoVisibleModes.includes(mode) && !isUserIsAloneInCall,
@@ -102,10 +105,10 @@ export const CallParticipantsView = () => {
   );
   const showUserInParticipantView = !isLocalVideoVisible;
   const filteredParticipants = showUserInParticipantView
-    ? mainParticipants
-    : mainRemoteParticipants;
+    ? allParticipants
+    : remoteParticipants;
 
-  if (mainParticipants.length === 0) {
+  if (allParticipants.length === 0) {
     return null;
   }
 
@@ -113,24 +116,22 @@ export const CallParticipantsView = () => {
     <View style={styles.container}>
       <LocalVideoView isVisible={isLocalVideoVisible} />
       {filteredParticipants.map((participant, index) => {
-        if (participant) {
-          const { userId } = participant;
-          // The size of the participant video is determined by the mode/amount of participants.
-          // When the mode is `fifth` the size is determined by the index of the participant.
-          // The first 2 participants are shown in `medium` size and the last 3
-          // participants are shown in `small` size.
-          const calculateFiveOrMoreParticipantsSize = (i: number) =>
-            i > 1 ? 'small' : 'medium';
-          const size =
-            modeToSize[mode] || calculateFiveOrMoreParticipantsSize(index);
-          return (
-            <ParticipantView
-              key={`${userId}/${participant.sessionId}`}
-              participantId={userId}
-              size={size}
-            />
-          );
-        }
+        const { userId } = participant;
+        // The size of the participant video is determined by the mode/amount of participants.
+        // When the mode is `fifth` the size is determined by the index of the participant.
+        // The first 2 participants are shown in `medium` size and the last 3
+        // participants are shown in `small` size.
+        const calculateFiveOrMoreParticipantsSize = (i: number) =>
+          i > 1 ? 'small' : 'medium';
+        const size =
+          modeToSize[mode] || calculateFiveOrMoreParticipantsSize(index);
+        return (
+          <ParticipantView
+            key={`${userId}/${participant.sessionId}`}
+            participantId={userId}
+            size={size}
+          />
+        );
       })}
     </View>
   );
