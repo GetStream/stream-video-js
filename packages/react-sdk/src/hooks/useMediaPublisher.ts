@@ -10,7 +10,7 @@ import {
   getAudioStream,
   getVideoStream,
 } from '@stream-io/video-client';
-import { useStore } from '@stream-io/video-react-bindings';
+import { useLocalParticipant, useStore } from '@stream-io/video-react-bindings';
 
 import { useDebugPreferredVideoCodec } from '../components/Debug/useIsDebugMode';
 import { map } from 'rxjs';
@@ -30,10 +30,23 @@ export const useMediaPublisher = ({
 }) => {
   const { localParticipant$ } = useStore();
 
+  const participant = useLocalParticipant();
+
+  const isPublishingVideo = participant?.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
+
+  const isPublishingAudio = participant?.publishedTracks.includes(
+    SfuModels.TrackType.AUDIO,
+  );
+
   useEffect(() => {
     let interrupted = false;
 
-    if (initialAudioMuted) return;
+    // isPublishingAudio/Video can be initially undefined (participant comes later)
+    // - which is something we want to have the effect publish initial stream
+    // we only strictly check if it's false to see if the user is muted while changing devices
+    if (initialAudioMuted || isPublishingAudio === false) return;
 
     getAudioStream(audioDeviceId).then((stream) => {
       if (interrupted && stream.active)
@@ -46,13 +59,13 @@ export const useMediaPublisher = ({
       interrupted = true;
       call.stopPublish(SfuModels.TrackType.AUDIO);
     };
-  }, [call, audioDeviceId, initialAudioMuted]);
+  }, [call, audioDeviceId]);
 
   const preferredCodec = useDebugPreferredVideoCodec();
   useEffect(() => {
     let interrupted = false;
 
-    if (initialVideoMuted) return;
+    if (initialVideoMuted || isPublishingVideo === false) return;
 
     getVideoStream(videoDeviceId).then((stream) => {
       if (interrupted && stream.active)
@@ -65,7 +78,7 @@ export const useMediaPublisher = ({
       interrupted = true;
       call.stopPublish(SfuModels.TrackType.VIDEO);
     };
-  }, [videoDeviceId, call, preferredCodec, initialVideoMuted]);
+  }, [videoDeviceId, call, preferredCodec]);
 
   const publishAudioStream = useCallback(async () => {
     try {

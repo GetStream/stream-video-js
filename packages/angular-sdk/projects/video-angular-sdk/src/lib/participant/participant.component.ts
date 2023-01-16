@@ -17,6 +17,11 @@ import {
 import { pairwise, Subscription } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
+/**
+ * The `ParticipantComponent` displays the video and audio or screen share stream of a participant along with some status information.
+ *
+ * Selector: `stream-participant`
+ */
 @Component({
   selector: 'stream-participant',
   templateUrl: './participant.component.html',
@@ -25,7 +30,14 @@ import { StreamVideoService } from '../video.service';
 export class ParticipantComponent
   implements AfterViewInit, OnDestroy, OnChanges
 {
+  /**
+   * `video` means that the video and audio stream of a participant is displayed, `screen` means that the screen share stream is showed.
+   * @category Input
+   */
   @Input() kind: 'screen' | 'video' = 'video';
+  /**
+   * @category Input
+   */
   @Input() participant?: StreamVideoParticipant;
   call?: Call;
   isProfileImageError = false;

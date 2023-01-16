@@ -66,6 +66,7 @@
     ></span>
   </button>
   <button
+    *ngIf="call"
     class="str-video__call-controls__button str-video__call-controls__button--variant-danger"
     (click)="endCall()"
   >
