@@ -18,7 +18,7 @@ const LocalMediaStreamsContext = createContext<MediaStreamsContextType>({
 
 // this function has been written with a thought in mind which
 // is that we create separate MediaStreams for audio inputs
-// and video inputs meaning there's _always_ one track per stream (thus one deviceId)
+// and video inputs meaning there's *always* one track per stream (thus one `deviceId`)
 const getDeviceId = (mediaStream: MediaStream) => {
   const [deviceId] =
     mediaStream.getTracks().map((track) => track.getSettings().deviceId) ?? [];

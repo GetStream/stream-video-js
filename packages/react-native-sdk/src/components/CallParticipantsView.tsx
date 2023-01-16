@@ -83,12 +83,13 @@ const participantSwappingLogic = (
  * This component supports the rendering of up to 5 participants.
  */
 export const CallParticipantsView = () => {
-  const remoteParticipants = useRemoteParticipants();
   const localParticipant = useLocalParticipant();
-
+  const remoteParticipants = useRemoteParticipants();
   const mainRemoteParticipants = participantSwappingLogic(remoteParticipants);
-  const mainParticipants = [localParticipant, ...mainRemoteParticipants];
-
+  let mainParticipants = mainRemoteParticipants;
+  if (localParticipant) {
+    mainParticipants = [localParticipant, ...mainParticipants];
+  }
   const mode =
     activeCallAllParticipantsLengthToMode[mainParticipants.length] ||
     Modes.fifth;
