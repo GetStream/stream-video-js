@@ -58,7 +58,7 @@ const modeToSize: { [key in Modes]: SizeType | undefined } = {
 
 const localVideoVisibleModes = [Modes.full, Modes.half];
 
-const remoteParticipantsSwappingLogic = (
+const putRemoteParticipantsInView = (
   remoteParticipants: StreamVideoParticipant[],
 ) => {
   const data = [...remoteParticipants];
@@ -88,7 +88,7 @@ const remoteParticipantsSwappingLogic = (
 export const CallParticipantsView = () => {
   const localParticipant = useLocalParticipant();
   let remoteParticipants = useRemoteParticipants();
-  remoteParticipants = remoteParticipantsSwappingLogic(remoteParticipants);
+  remoteParticipants = putRemoteParticipantsInView(remoteParticipants);
   let allParticipants = remoteParticipants;
   if (localParticipant) {
     allParticipants = [localParticipant, ...allParticipants];
