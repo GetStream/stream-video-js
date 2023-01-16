@@ -343,17 +343,6 @@ export class StreamVideoClient {
   };
 
   /**
-   * Updates the general call configuration.
-   */
-  updateCallConfig = (config: CallConfig) => {
-    this.callConfig = config;
-  };
-  // todo: change signature joinCall = async <ElementType>(
-  //     data: JoinCallRequest,
-  //     options: JoinCallOptions<ElementType> = {},
-  //   ) => {
-
-  /**
    * Allows you to create a new call with the given parameters and joins the call immediately. If a call with the same combination of `type` and `id` already exists, it will join the existing call.
    * @param data
    * @param sessionId
