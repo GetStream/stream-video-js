@@ -40,16 +40,24 @@ export class CallDropScheduler {
     this.scheduleCancelAfterTimeout();
     this.startCancellingDrops();
   }
+
+  private static getLatestCall = (
+    from: PendingCall[],
+    compareTo: PendingCall[],
+  ) => {
+    return from > compareTo ? from.at(-1) : undefined;
+  };
   private startAutoRejectWhenInCall = () => {
     if (!this.callConfig.autoRejectWhenInCall) return;
 
     this.storeSubscriptions.autoRejectWhenInCall =
       this.pairwiseIncomingCalls$.subscribe(
         async ([prevCalls, currentCalls]) => {
-          const newIncomingCall =
-            currentCalls.length > prevCalls.length
-              ? currentCalls.slice(-1)[0]
-              : undefined;
+          const newIncomingCall = CallDropScheduler.getLatestCall(
+            currentCalls,
+            prevCalls,
+          );
+
           if (!newIncomingCall) return;
 
           const activeCall = this.store.getCurrentValue(
@@ -68,10 +76,10 @@ export class CallDropScheduler {
 
     this.storeSubscriptions.autoRejectTimeoutInMs =
       this.pairwiseIncomingCalls$.subscribe(([prevCalls, currentCalls]) => {
-        const newIncomingCall =
-          currentCalls.length > prevCalls.length
-            ? currentCalls.slice(-1)[0]
-            : undefined;
+        const newIncomingCall = CallDropScheduler.getLatestCall(
+          currentCalls,
+          prevCalls,
+        );
 
         const activeCall = this.store.getCurrentValue(
           this.store.activeCallSubject,
@@ -90,10 +98,11 @@ export class CallDropScheduler {
     if (!this.callConfig.autoCancelTimeoutInMs) return;
     this.storeSubscriptions.autoCancelTimeoutInMs =
       this.pairwiseOutgoingCalls$.subscribe(([prevCalls, currentCalls]) => {
-        const newOutgoingCall =
-          currentCalls.length > prevCalls.length
-            ? currentCalls.slice(-1)[0]
-            : undefined;
+        const newOutgoingCall = CallDropScheduler.getLatestCall(
+          currentCalls,
+          prevCalls,
+        );
+
         if (!newOutgoingCall?.call?.callCid) return;
         this.scheduleCancel(newOutgoingCall.call.callCid);
       });
@@ -102,10 +111,11 @@ export class CallDropScheduler {
   private startCancellingDrops = () => {
     this.storeSubscriptions.cancelDropOnPendingCallRemoval =
       this.pairwisePendingCalls$.subscribe(([prevCalls, currentCalls]) => {
-        const removedCall =
-          prevCalls.length > currentCalls.length
-            ? prevCalls.slice(-1)[0]
-            : undefined;
+        const removedCall = CallDropScheduler.getLatestCall(
+          prevCalls,
+          currentCalls,
+        );
+
         if (removedCall?.call?.callCid) {
           this.cancelDrop(removedCall?.call?.callCid);
         }
