@@ -91,6 +91,9 @@ export class InCallDeviceManagerService {
           );
         } else {
           this.subscriptions.forEach((s) => s.unsubscribe());
+          this.deviceManager.stopScreenShare();
+          this.deviceManager.stopAudio();
+          this.deviceManager.stopVideo();
         }
       },
     );
@@ -100,6 +103,7 @@ export class InCallDeviceManagerService {
    * This method removes the subscription to the [`activeCall$` state variable](./StreamVideoService.md/#activecall).
    */
   stop() {
+    this.subscriptions.forEach((s) => s.unsubscribe());
     this.callSubscription?.unsubscribe();
   }
 }

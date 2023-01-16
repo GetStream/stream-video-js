@@ -34,6 +34,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   isSpeaking = false;
   joinOrCreate: 'join' | 'create' = 'create';
   callMeta?: CallMeta.Call;
+  isJoinOrCreateInProgress = false;
   private subscripitions: Subscription[] = [];
   @ViewChild('invite') private inviteRef!: TemplateRef<any>;
   private snackBarRef?: MatSnackBarRef<any>;
@@ -113,7 +114,8 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
     this.snackBarRef?.dismiss();
   }
 
-  async startCall() {
+  async startOrJoinCall() {
+    this.isJoinOrCreateInProgress = true;
     try {
       let callId: string;
       if (this.joinOrCreate === 'create') {
@@ -131,8 +133,10 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
           duration: 10000,
         });
       }
+      this.isJoinOrCreateInProgress = false;
       this.router.navigate(['call'], { queryParams: { callid: callId } });
     } catch (err) {
+      this.isJoinOrCreateInProgress = false;
       this.snackBar.open(`Call couldn't be started`);
     }
   }
