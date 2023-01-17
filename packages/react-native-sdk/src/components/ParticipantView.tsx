@@ -37,7 +37,7 @@ interface ParticipantViewProps {
  * and additional info, by an absence of a video track only an avatar and audio track will be rendered.
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
-  const { size, participant } = props;
+  const { size, participant, kind } = props;
   const call = useActiveCall();
 
   const cameraBackFacingMode = useStreamVideoStoreValue(
@@ -88,6 +88,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         <VideoRenderer
           mirror={mirror}
           mediaStream={videoStream}
+          objectFit={kind === 'screen' ? 'contain' : 'cover'}
           style={styles.videoRenderer}
         />
       ) : (
