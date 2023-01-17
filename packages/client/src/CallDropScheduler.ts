@@ -72,7 +72,9 @@ export class CallDropScheduler {
   };
 
   private scheduleRejectAfterTimeout = () => {
-    if (!this.callConfig.autoRejectTimeoutInMs) return;
+    const { autoRejectTimeoutInMs } = this.callConfig;
+    if (typeof autoRejectTimeoutInMs !== 'number' || autoRejectTimeoutInMs < 0)
+      return;
 
     this.storeSubscriptions.autoRejectTimeoutInMs =
       this.pairwiseIncomingCalls$.subscribe(([prevCalls, currentCalls]) => {
@@ -95,7 +97,10 @@ export class CallDropScheduler {
   };
 
   private scheduleCancelAfterTimeout = () => {
-    if (!this.callConfig.autoCancelTimeoutInMs) return;
+    const { autoCancelTimeoutInMs } = this.callConfig;
+    if (typeof autoCancelTimeoutInMs !== 'number' || autoCancelTimeoutInMs < 0)
+      return;
+
     this.storeSubscriptions.autoCancelTimeoutInMs =
       this.pairwiseOutgoingCalls$.subscribe(([prevCalls, currentCalls]) => {
         const newOutgoingCall = CallDropScheduler.getLatestCall(
