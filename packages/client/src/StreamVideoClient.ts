@@ -230,19 +230,15 @@ export class StreamVideoClient {
    * @returns A call metadata with information about the call.
    */
   getOrCreateCall = async (data: GetOrCreateCallRequest) => {
-    const { response } = await this.client.getOrCreateCall(data);
-    if (response.call) {
+    const {
+      response: { call },
+    } = await this.client.getOrCreateCall(data);
+    if (call) {
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => [
-          ...pendingCalls,
-          {
-            call: response.call?.call,
-            callDetails: response.call?.details,
-          },
-        ],
+        (pendingCalls) => [...pendingCalls, call],
       );
-      return response.call;
+      return call;
     } else {
       // TODO: handle error?
       return undefined;
@@ -261,13 +257,7 @@ export class StreamVideoClient {
     if (call) {
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => [
-          ...pendingCalls,
-          {
-            call: call.call,
-            callDetails: call.details,
-          },
-        ],
+        (pendingCalls) => [...pendingCalls, call],
       );
     }
 

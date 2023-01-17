@@ -5,19 +5,10 @@ export type CallCID = string;
 
 export type PendingCall = {
   call?: Call;
-  callDetails?: CallDetails;
-};
-
-// todo: unify callDetails and details
-// export type ActiveCallData = PendingCall & {
-//   users: {
-//     [key: string]: User;
-//   };
-// };
-export type ActiveCallData = {
-  call?: Call;
   details?: CallDetails;
   users: {
     [key: string]: User;
   };
 };
+
+export type ActiveCallData = PendingCall;

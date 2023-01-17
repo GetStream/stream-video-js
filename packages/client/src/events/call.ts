@@ -16,7 +16,7 @@ export const watchCallCreated = (
   on: <T>(event: string, fn: StreamEventListener<T>) => void,
   store: StreamVideoWriteableStateStore,
 ) => {
-  on('callCreated', (event: CallCreated) => {
+  on('callCreated', (event: CallCreated, envelopes) => {
     const { call } = event;
     if (!call) {
       console.warn("Can't find call in CallCreated event");
@@ -32,7 +32,7 @@ export const watchCallCreated = (
 
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) => [
       ...pendingCalls,
-      event,
+      { call: event.call, details: event.callDetails, users: envelopes.users },
     ]);
   });
 };
