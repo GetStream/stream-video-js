@@ -233,7 +233,15 @@ export class StreamVideoClient {
     const {
       response: { call },
     } = await this.client.getOrCreateCall(data);
-    if (call) {
+
+    const pendingCalls = this.writeableStateStore.getCurrentValue(
+      this.writeableStateStore.pendingCallsSubject,
+    );
+    const callAlreadyRegistered = pendingCalls.find(
+      (pendingCall) => pendingCall.call?.callCid === call?.call?.callCid,
+    );
+
+    if (call && !callAlreadyRegistered) {
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
         (pendingCalls) => [...pendingCalls, call],
