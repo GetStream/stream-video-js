@@ -31,7 +31,7 @@ export const StreamMeeting = ({
         callMetadata?.call?.createdByUserId === currentUser ||
         client.callConfig.joinCallInstantly
       ) {
-        await client.joinCallInstantly({
+        await client.joinCall({
           ...descriptors,
           // FIXME: OL optional, but it is marked as required in proto
           datacenterId: '',

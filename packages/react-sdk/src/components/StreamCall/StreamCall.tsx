@@ -18,7 +18,7 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
     if (!videoClient || activeCall) return;
 
     if (outgoingCall?.call && videoClient.callConfig.joinCallInstantly) {
-      videoClient.joinCallInstantly({
+      videoClient.joinCall({
         id: outgoingCall.call.id,
         type: outgoingCall.call.type,
         // FIXME: OL optional, but it is marked as required in proto
@@ -28,7 +28,7 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
       acceptedCall?.call &&
       !videoClient.callConfig.joinCallInstantly
     ) {
-      videoClient.joinCallInstantly({
+      videoClient.joinCall({
         id: acceptedCall.call.id,
         type: acceptedCall.call.type,
         // FIXME: OL optional, but it is marked as required in proto
