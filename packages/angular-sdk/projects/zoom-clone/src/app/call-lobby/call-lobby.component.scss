@@ -18,6 +18,13 @@
     align-items: center;
     justify-content: center;
     text-align: center;
+
+    .join-button-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
   }
 
   .device-settings {

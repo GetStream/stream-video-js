@@ -3,6 +3,11 @@ import { StreamVideoParticipant } from '@stream-io/video-client';
 import { Observable } from 'rxjs';
 import { StreamVideoService } from '../video.service';
 
+/**
+ * The `CallParticipantsComponent` component displays call participants in a grid.
+ *
+ * Selector: `stream-call-participants`
+ */
 @Component({
   selector: 'stream-call-participants',
   templateUrl: './call-participants.component.html',

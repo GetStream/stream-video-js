@@ -33,8 +33,8 @@ interface ParticipantViewProps {
 }
 
 /**
- * A Wrapper around a participant renders either the participants view
- * and additional info, by an absence of a video track only an avatar/initials and audio track will be rendered.
+ * Renders either the participants' video track or screenShare track
+ * and additional info, by an absence of a video track only an avatar and audio track will be rendered.
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
   const { size, participant } = props;

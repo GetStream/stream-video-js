@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { ParticipantView } from './ParticipantView';
 import { LocalVideoView } from './LocalVideoView';
 import {
-  useParticipants,
+  useLocalParticipant,
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
 
@@ -62,8 +62,12 @@ const localVideoVisibleModes = [Modes.full, Modes.half];
  * This component supports the rendering of up to 5 participants.
  */
 export const CallParticipantsView = () => {
-  const allParticipants = useParticipants();
+  const localParticipant = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
+  let allParticipants = remoteParticipants;
+  if (localParticipant) {
+    allParticipants = [localParticipant, ...allParticipants];
+  }
   const mode =
     activeCallAllParticipantsLengthToMode[allParticipants.length] ||
     Modes.fifth;
