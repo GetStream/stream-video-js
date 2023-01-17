@@ -45,7 +45,7 @@ export class CallDropScheduler {
     from: PendingCall[],
     compareTo: PendingCall[],
   ) => {
-    return from > compareTo ? from.at(-1) : undefined;
+    return from > compareTo ? from.slice(-1)[0] : undefined;
   };
   private startAutoRejectWhenInCall = () => {
     if (!this.callConfig.autoRejectWhenInCall) return;
