@@ -366,6 +366,8 @@ export class StreamVideoClient {
           this.userBatcher,
         );
 
+        await call.join();
+
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.activeCallSubject,
           call,
@@ -380,19 +382,6 @@ export class StreamVideoClient {
       // TODO: handle error?
       return undefined;
     }
-  };
-
-  /**
-   * Performs the whole chain of operations to establish active call connection
-   * @param {JoinCallRequest} data payload object for the join call request
-   */
-  joinCallInstantly = async (data: JoinCallRequest) => {
-    const callController = await this.joinCall(data);
-    if (!callController) {
-      console.error('Failed to establish call connection');
-      return;
-    }
-    await callController.join();
   };
 
   /**
