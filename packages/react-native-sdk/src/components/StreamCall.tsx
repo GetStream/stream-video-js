@@ -33,12 +33,11 @@ export const StreamCall = ({
         return;
       }
       try {
-        const call = await videoClient.joinCall({
+        await videoClient.joinCall({
           id: outgoingCall.call.id,
           type: outgoingCall.call.type,
           datacenterId: '',
         });
-        await call?.join();
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
       } catch (error) {
