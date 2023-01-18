@@ -1,9 +1,16 @@
 import { useActiveCall } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
-import RNCallKeep from 'react-native-callkeep';
 import { useStreamVideoStoreValue } from '../contexts';
 import { generateCallTitle } from '../utils';
+
+type RNCallKeepType = typeof import('react-native-callkeep').default;
+
+let RNCallKeep: RNCallKeepType | undefined;
+
+try {
+  RNCallKeep = require('react-native-callkeep').default;
+} catch (e) {}
 
 export const useCallKeep = () => {
   const activeCall = useActiveCall();
@@ -12,12 +19,17 @@ export const useCallKeep = () => {
   const callKeepOptions = useStreamVideoStoreValue(
     (store) => store.callKeepOptions,
   );
+  if (!RNCallKeep) {
+    throw Error(
+      "react-native-callkeep library is not installed. Please install it using 'yarn add react-native-callkeep' or 'npm install react-native-callkeep'",
+    );
+  }
 
   useEffect(() => {
     if (callKeepOptions) {
-      RNCallKeep.setup(callKeepOptions)
+      RNCallKeep?.setup(callKeepOptions)
         .then((accepted) => {
-          console.log('RNCallKeep initialized');
+          console.log('RNCallKeep initialized: ', { accepted });
         })
         .catch((error) => {
           console.log(error);
@@ -32,7 +44,7 @@ export const useCallKeep = () => {
 
   const startCall = useCallback(async () => {
     if (Platform.OS === 'ios' && activeCallMeta && activeCallDetails) {
-      await RNCallKeep.startCall(
+      await RNCallKeep?.startCall(
         activeCallMeta.id,
         callTitle,
         activeCallDetails.memberUserIds.join(','),
@@ -43,7 +55,7 @@ export const useCallKeep = () => {
 
   const endCall = useCallback(async () => {
     if (Platform.OS === 'ios' && activeCallMeta) {
-      await RNCallKeep.endCall(activeCallMeta.id);
+      await RNCallKeep?.endCall(activeCallMeta.id);
     }
   }, [activeCallMeta]);
 

@@ -3,13 +3,13 @@ import {
   StreamVideoProps,
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren } from 'react';
-import { CallKeepOptions } from '../types';
 import {
   useStoreValue,
   useStoreSetState,
   Provider,
 } from './StreamVideoContext';
 import { MediaDevicesProvider } from './MediaDevicesContext';
+import { CallKeepOptions } from '../types';
 
 export const StreamVideo = (
   props: PropsWithChildren<
