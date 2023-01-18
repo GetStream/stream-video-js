@@ -6,6 +6,7 @@
     "ng": "ng",
     "start": "rm -rf dist && ng build --project video-angular-sdk --watch --configuration development & (wait-on dist && ng serve sample-app --host 0.0.0.0)",
     "start:zoom": "rm -rf dist && ng build --project video-angular-sdk --watch --configuration development & (wait-on dist && ng serve zoom-clone --host 0.0.0.0)",
+    "start:messenger": "rm -rf dist && ng build --project video-angular-sdk --watch --configuration development & (wait-on dist && ng serve messenger-clone --host 0.0.0.0)",
     "build": "ng build --project video-angular-sdk && ng build --project sample-app && yarn build:zoom",
     "build:sample": "ng build --project sample-app",
     "build:zoom": "node set-env.js projects/zoom-clone/src/environments/environment.prod.ts && ng build --project zoom-clone",
