@@ -5162,6 +5162,8 @@ __metadata:
     "@types/rimraf": ^3.0.2
     "@types/uuid": ^8.3.4
     "@vitest/coverage-c8": ^0.25.3
+    axios: ^1.2.3
+    isomorphic-ws: ^5.0.0
     replace-in-file: ^6.3.5
     rimraf: ^3.0.2
     rxjs: ~7.5.7
@@ -7694,6 +7696,17 @@ __metadata:
   dependencies:
     follow-redirects: ^1.14.7
   checksum: 2a8a3787c05f2a0c9c3878f49782357e2a9f38945b93018fb0c4fd788171c43dceefbb577988628e09fea53952744d1ecebde234b561f1e703aa43e0a598a3ad
+  languageName: node
+  linkType: hard
+
+"axios@npm:^1.2.3":
+  version: 1.2.3
+  resolution: "axios@npm:1.2.3"
+  dependencies:
+    follow-redirects: ^1.15.0
+    form-data: ^4.0.0
+    proxy-from-env: ^1.1.0
+  checksum: 52802a1e317e8a6fd2c014aa06a6978ea8381142c98e91f2be5e9e213b77b541451e588e17a3d6db2d6e76faea82911239ca4981d7af959d67fb66018dab3ac9
   languageName: node
   linkType: hard
 
@@ -12540,7 +12553,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.14.4, follow-redirects@npm:^1.14.7":
+"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.14.4, follow-redirects@npm:^1.14.7, follow-redirects@npm:^1.15.0":
   version: 1.15.2
   resolution: "follow-redirects@npm:1.15.2"
   peerDependenciesMeta:
@@ -12741,7 +12754,7 @@ __metadata:
 
 "fsevents@patch:fsevents@^2.1.2#~builtin<compat/fsevents>, fsevents@patch:fsevents@^2.3.2#~builtin<compat/fsevents>, fsevents@patch:fsevents@~2.3.2#~builtin<compat/fsevents>":
   version: 2.3.2
-  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=18f3a7"
+  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=df0bf1"
   dependencies:
     node-gyp: latest
   conditions: os=darwin
@@ -14519,6 +14532,15 @@ __metadata:
   peerDependencies:
     ws: "*"
   checksum: d7190eadefdc28bdb93d67b5f0c603385aaf87724fa2974abb382ac1ec9756ed2cfb27065cbe76122879c2d452e2982bc4314317f3d6c737ddda6c047328771a
+  languageName: node
+  linkType: hard
+
+"isomorphic-ws@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "isomorphic-ws@npm:5.0.0"
+  peerDependencies:
+    ws: "*"
+  checksum: e20eb2aee09ba96247465fda40c6d22c1153394c0144fa34fe6609f341af4c8c564f60ea3ba762335a7a9c306809349f9b863c8beedf2beea09b299834ad5398
   languageName: node
   linkType: hard
 
@@ -21154,7 +21176,7 @@ __metadata:
 
 "react-native-callkeep@patch:react-native-callkeep@npm%3A4.3.3#./.yarn/patches/react-native-callkeep-npm-4.3.3-71db80f4ef.patch::locator=%40stream-io%2Fvideo-js-root%40workspace%3A.":
   version: 4.3.3
-  resolution: "react-native-callkeep@patch:react-native-callkeep@npm%3A4.3.3#./.yarn/patches/react-native-callkeep-npm-4.3.3-71db80f4ef.patch::version=4.3.3&hash=833266&locator=%40stream-io%2Fvideo-js-root%40workspace%3A."
+  resolution: "react-native-callkeep@patch:react-native-callkeep@npm%3A4.3.3#./.yarn/patches/react-native-callkeep-npm-4.3.3-71db80f4ef.patch::version=4.3.3&hash=a64b3e&locator=%40stream-io%2Fvideo-js-root%40workspace%3A."
   peerDependencies:
     react-native: ">=0.40.0"
   checksum: f1400475510edda12e77f66cd1ae76905ea5ee3bc572cffb97b7b75ae44b96009d7626c5c50dadecdad8a13f5d4590a91c9e8f9a8caa312d7883477e4f6576c8
@@ -21332,7 +21354,7 @@ __metadata:
 
 "react-native-pure-jwt@patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch::locator=%40stream-io%2Fvideo-js-root%40workspace%3A.":
   version: 3.0.1
-  resolution: "react-native-pure-jwt@patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch::version=3.0.1&hash=555da9&locator=%40stream-io%2Fvideo-js-root%40workspace%3A."
+  resolution: "react-native-pure-jwt@patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch::version=3.0.1&hash=0d10fd&locator=%40stream-io%2Fvideo-js-root%40workspace%3A."
   peerDependencies:
     react-native: ">=0.41.2"
   checksum: fd9452acfa80f7777c41bdf792cb560e8044125708e1e5a61c478d9e8da283c40e9c3769900d4a1a1d7f7fc58e9e6025feefaf07f48b6a92bd698b3363d47176
@@ -22159,7 +22181,7 @@ __metadata:
 
 "resolve@patch:resolve@1.22.1#~builtin<compat/resolve>, resolve@patch:resolve@^1.1.7#~builtin<compat/resolve>, resolve@patch:resolve@^1.10.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.14.2#~builtin<compat/resolve>, resolve@patch:resolve@^1.18.1#~builtin<compat/resolve>, resolve@patch:resolve@^1.19.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.20.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.22.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.22.1#~builtin<compat/resolve>":
   version: 1.22.1
-  resolution: "resolve@patch:resolve@npm%3A1.22.1#~builtin<compat/resolve>::version=1.22.1&hash=07638b"
+  resolution: "resolve@patch:resolve@npm%3A1.22.1#~builtin<compat/resolve>::version=1.22.1&hash=c3c19d"
   dependencies:
     is-core-module: ^2.9.0
     path-parse: ^1.0.7
@@ -22172,7 +22194,7 @@ __metadata:
 
 "resolve@patch:resolve@^2.0.0-next.3#~builtin<compat/resolve>":
   version: 2.0.0-next.4
-  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.4#~builtin<compat/resolve>::version=2.0.0-next.4&hash=07638b"
+  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.4#~builtin<compat/resolve>::version=2.0.0-next.4&hash=c3c19d"
   dependencies:
     is-core-module: ^2.9.0
     path-parse: ^1.0.7
@@ -24684,7 +24706,7 @@ __metadata:
 
 "typescript@patch:typescript@4.3.4#~builtin<compat/typescript>":
   version: 4.3.4
-  resolution: "typescript@patch:typescript@npm%3A4.3.4#~builtin<compat/typescript>::version=4.3.4&hash=701156"
+  resolution: "typescript@patch:typescript@npm%3A4.3.4#~builtin<compat/typescript>::version=4.3.4&hash=dba6d9"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
@@ -24694,17 +24716,17 @@ __metadata:
 
 "typescript@patch:typescript@^4.9.4#~builtin<compat/typescript>":
   version: 4.9.4
-  resolution: "typescript@patch:typescript@npm%3A4.9.4#~builtin<compat/typescript>::version=4.9.4&hash=701156"
+  resolution: "typescript@patch:typescript@npm%3A4.9.4#~builtin<compat/typescript>::version=4.9.4&hash=ad5954"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 37f6e2c3c5e2aa5934b85b0fddbf32eeac8b1bacf3a5b51d01946936d03f5377fe86255d4e5a4ae628fd0cd553386355ad362c57f13b4635064400f3e8e05b9d
+  checksum: 1caaea6cb7f813e64345190fddc4e6c924d0b698ab81189b503763c4a18f7f5501c69362979d36e19c042d89d936443e768a78b0675690b35eb663d19e0eae71
   languageName: node
   linkType: hard
 
 "typescript@patch:typescript@~4.7.4#~builtin<compat/typescript>":
   version: 4.7.4
-  resolution: "typescript@patch:typescript@npm%3A4.7.4#~builtin<compat/typescript>::version=4.7.4&hash=701156"
+  resolution: "typescript@patch:typescript@npm%3A4.7.4#~builtin<compat/typescript>::version=4.7.4&hash=65a307"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
