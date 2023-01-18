@@ -72,6 +72,8 @@ const JoinMeetingScreen = () => {
         placeholder={'Type your call ID here...'}
         placeholderTextColor={'#8C8C8CFF'}
         value={callID}
+        autoCapitalize="none"
+        autoCorrect={false}
         onChangeText={(text) => setCallId(text.trim().split(' ').join('-'))}
       />
       <Button
