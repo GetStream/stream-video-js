@@ -40,6 +40,7 @@ import {
   watchCallCreated,
   watchCallRejected,
 } from './events/call';
+import { StreamCoordinatorClient } from './ws/StreamCoordinatorClient';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   coordinatorRpcUrl:
@@ -63,6 +64,9 @@ export class StreamVideoClient {
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWebSocketClient | undefined;
+
+  private coordinatorClient = new StreamCoordinatorClient();
+
   /**
    * @internal
    */
@@ -161,6 +165,8 @@ export class StreamVideoClient {
       this.writeableStateStore.connectedUserSubject,
       user,
     );
+
+    await this.coordinatorClient.connect();
   };
 
   /**
@@ -207,6 +213,8 @@ export class StreamVideoClient {
    * @returns A call metadata with information about the call.
    */
   getOrCreateCall = async (data: GetOrCreateCallRequest) => {
+    await this.coordinatorClient.getOrCreateCall(data.id, 'default');
+
     const { response } = await this.client.getOrCreateCall(data);
     if (response.call) {
       return response.call;
@@ -315,6 +323,8 @@ export class StreamVideoClient {
    * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
    */
   joinCall = async (data: JoinCallRequest, sessionId?: string) => {
+    await this.coordinatorClient.joinCall(data.id, 'default');
+
     const { response } = await this.client.joinCall(data);
     if (response.call && response.call.call && response.edges) {
       const callMeta = response.call.call;
