@@ -16,27 +16,11 @@ export const useCallKeep = () => {
   const activeCall = useActiveCall();
   const activeCallMeta = activeCall?.data.call;
   const activeCallDetails = activeCall?.data.details;
-  const callKeepOptions = useStreamVideoStoreValue(
-    (store) => store.callKeepOptions,
-  );
   if (!RNCallKeep) {
     throw Error(
       "react-native-callkeep library is not installed. Please install it using 'yarn add react-native-callkeep' or 'npm install react-native-callkeep'",
     );
   }
-
-  useEffect(() => {
-    if (callKeepOptions) {
-      RNCallKeep?.setup(callKeepOptions)
-        .then((accepted) => {
-          console.log('RNCallKeep initialized: ', { accepted });
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const callTitle = generateCallTitle(
     activeCall?.data.details?.memberUserIds || [],
