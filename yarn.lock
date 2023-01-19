@@ -5273,7 +5273,7 @@ __metadata:
     prettier: 2.8.1
     react: 18.2.0
     react-native: 0.70.6
-    react-native-callkeep: ^4.3.3
+    react-native-callkeep: ^4.3.4
     react-native-get-random-values: ^1.8.0
     react-native-incall-manager: ^4.0.0
     react-native-polyfill-globals: ^3.1.0
@@ -5301,7 +5301,7 @@ __metadata:
     "@types/react-native": ^0.70.4
     "@types/react-native-incall-manager": ^3.2.1
     "@types/rimraf": ^3.0.2
-    react-native-callkeep: ^4.3.3
+    react-native-callkeep: ^4.3.4
     react-native-incall-manager: ^4.0.0
     react-native-svg: ^13.6.0
     react-native-webrtc: ~106.0.4
@@ -5313,7 +5313,7 @@ __metadata:
   peerDependencies:
     react: ">=17.0.0"
     react-native: ">=0.67.0"
-    react-native-callkeep: ^4.3.3
+    react-native-callkeep: ">=4.3.4"
     react-native-incall-manager: ^4.0.0
     react-native-svg: ">=13.6.0"
     react-native-webrtc: ">=106.0.4"
@@ -21143,21 +21143,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-callkeep@npm:4.3.3":
-  version: 4.3.3
-  resolution: "react-native-callkeep@npm:4.3.3"
+"react-native-callkeep@npm:^4.3.3, react-native-callkeep@npm:^4.3.4":
+  version: 4.3.4
+  resolution: "react-native-callkeep@npm:4.3.4"
   peerDependencies:
     react-native: ">=0.40.0"
-  checksum: 799277737fdeff3bd76de6d94a1d70b1018510bdde96243aa991c50aa365446efd6e79d6407a355c10940b6d91c59c0b9ec06a3981bf555e0d7cab9999070e34
-  languageName: node
-  linkType: hard
-
-"react-native-callkeep@patch:react-native-callkeep@npm%3A4.3.3#./.yarn/patches/react-native-callkeep-npm-4.3.3-71db80f4ef.patch::locator=%40stream-io%2Fvideo-js-root%40workspace%3A.":
-  version: 4.3.3
-  resolution: "react-native-callkeep@patch:react-native-callkeep@npm%3A4.3.3#./.yarn/patches/react-native-callkeep-npm-4.3.3-71db80f4ef.patch::version=4.3.3&hash=833266&locator=%40stream-io%2Fvideo-js-root%40workspace%3A."
-  peerDependencies:
-    react-native: ">=0.40.0"
-  checksum: f1400475510edda12e77f66cd1ae76905ea5ee3bc572cffb97b7b75ae44b96009d7626c5c50dadecdad8a13f5d4590a91c9e8f9a8caa312d7883477e4f6576c8
+  checksum: 8a0781e98def6b12ec81dbdc90753ca42e2d9dd3f86155774fa85c11f85394fad45792bd5ff2fd41fa6e2d8930ea7fe103d12be7fbe0e5c262a36048fc36e194
   languageName: node
   linkType: hard
 
