@@ -1,4 +1,5 @@
 import {
+  useAcceptedCall,
   useActiveCall,
   useIncomingCalls,
   useOutgoingCalls,
@@ -24,21 +25,32 @@ export const StreamCall = ({
   const videoClient = useStreamVideoClient();
   const [incomingCall] = useIncomingCalls();
   const [outgoingCall] = useOutgoingCalls();
+  const acceptedCall = useAcceptedCall();
   const activeCall = useActiveCall();
 
   // Effect to deal with the case that the outgoing call should be joined as soon as it is created by the user
   useEffect(() => {
     const startOutgoingCall = async () => {
-      if (!(videoClient && outgoingCall?.call) || activeCall) {
+      if (!videoClient || activeCall) {
         return;
       }
       try {
-        const call = await videoClient.joinCall({
-          id: outgoingCall.call.id,
-          type: outgoingCall.call.type,
-          datacenterId: '',
-        });
-        await call?.join();
+        if (outgoingCall?.call && videoClient.callConfig.joinCallInstantly) {
+          await videoClient.joinCall({
+            id: outgoingCall.call.id,
+            type: outgoingCall.call.type,
+            datacenterId: '',
+          });
+        } else if (
+          acceptedCall?.call &&
+          !videoClient.callConfig.joinCallInstantly
+        ) {
+          await videoClient.joinCall({
+            id: acceptedCall.call.id,
+            type: acceptedCall.call.type,
+            datacenterId: '',
+          });
+        }
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
       } catch (error) {
@@ -46,7 +58,7 @@ export const StreamCall = ({
       }
     };
     startOutgoingCall();
-  }, [videoClient, outgoingCall, activeCall]);
+  }, [videoClient, outgoingCall, activeCall, acceptedCall]);
 
   // Effect to deal with incoming call notifications
   useEffect(() => {

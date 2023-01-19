@@ -50,6 +50,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
       id: meetingId(),
       type: 'default',
       input: {
+        createdBy: { oneofKind: 'userId', userId: client.user.id },
         ring: true,
         members: Object.values(channel.state.members).reduce((acc, member) => {
           if (member.user_id !== client.user.id) {

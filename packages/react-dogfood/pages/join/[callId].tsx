@@ -25,7 +25,6 @@ const JoinCall = (props: JoinCallProps) => {
   const router = useRouter();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
-  const autoJoin = Boolean(router.query['auto_join']) || true;
 
   const { userToken, user, coordinatorRpcUrl, coordinatorWsUrl, apiKey } =
     props;
@@ -59,7 +58,6 @@ const JoinCall = (props: JoinCallProps) => {
           currentUser={loggedInUser.name}
           callId={callId}
           callType={callType}
-          autoJoin={autoJoin}
         >
           <MeetingUI />
         </StreamMeeting>
