@@ -5317,6 +5317,9 @@ __metadata:
     react-native-incall-manager: ^4.0.0
     react-native-svg: ">=13.6.0"
     react-native-webrtc: ">=106.0.4"
+  peerDependenciesMeta:
+    react-native-callkeep:
+      optional: true
   languageName: unknown
   linkType: soft
 
