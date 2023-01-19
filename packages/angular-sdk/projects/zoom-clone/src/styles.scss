@@ -63,11 +63,6 @@ body {
   height: 100%;
 }
 
-// TODO fix this in chat SDK
-.str-chat__ul li:first-of-type {
-  padding-top: 50px;
-}
-
 @layer overrides {
   .str-call__participant {
     @include variables.video-border;

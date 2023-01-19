@@ -38,14 +38,14 @@ export class UserService {
     {
       user: {
         id: 'bob',
-        name: 'bob',
+        name: 'Bob',
         role: 'user',
         teams: [],
-        imageUrl: '',
+        imageUrl: 'https://randomuser.me/api/portraits/men/42.jpg',
         customJson: new Uint8Array(),
       },
       token:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoibWFyayJ9.DQaMyVHfhzy8P6rbdCBzX7PVFsxKlMjQhwT7Du98ikQ',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYm9iIn0.A1YC1qSR7Fb_fNHQK2QMpdOHbsk_jaRrIu22fNe0ITE',
     },
     {
       user: {
@@ -74,7 +74,7 @@ export class UserService {
     {
       user: {
         id: 'john',
-        name: 'john',
+        name: 'John',
         role: 'user',
         teams: [],
         imageUrl: 'https://randomuser.me/api/portraits/men/54.jpg',

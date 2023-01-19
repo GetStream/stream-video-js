@@ -23,6 +23,10 @@ import {
   StreamChatModule,
 } from 'stream-chat-angular';
 import { ChatComponent } from './chat/chat.component';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
+import { UserAutocompleteComponent } from './user-autocomplete/user-autocomplete.component';
 
 @NgModule({
   declarations: [
@@ -32,6 +36,7 @@ import { ChatComponent } from './chat/chat.component';
     DeviceControlComponent,
     CallComponent,
     ChatComponent,
+    UserAutocompleteComponent,
   ],
   imports: [
     BrowserModule,
@@ -49,6 +54,9 @@ import { ChatComponent } from './chat/chat.component';
     TranslateModule.forRoot(),
     StreamAutocompleteTextareaModule,
     StreamChatModule,
+    MatAutocompleteModule,
+    ReactiveFormsModule,
+    MatInputModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
