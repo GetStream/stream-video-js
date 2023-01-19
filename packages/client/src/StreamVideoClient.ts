@@ -148,6 +148,7 @@ export class StreamVideoClient {
    * @returns
    */
   connect = async (apiKey: string, token: string, user: UserInput) => {
+    await this.coordinatorClient.connect();
     if (this.ws) return;
     this.ws = await createSocketConnection(
       this.options.coordinatorWsUrl!,
@@ -165,8 +166,6 @@ export class StreamVideoClient {
       this.writeableStateStore.connectedUserSubject,
       user,
     );
-
-    await this.coordinatorClient.connect();
   };
 
   /**

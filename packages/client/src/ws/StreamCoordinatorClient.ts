@@ -6,20 +6,10 @@ export class StreamCoordinatorClient {
 
   connect = async () => {
     await this.wsConnection.connect();
-    // this.wsConnection.ws?.send(
-    //   JSON.stringify({
-    //     token:
-    //       'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoib2wiLCJleHAiOjE2NzQ5MzgwNTN9.DH5fhvOT4A0K4sWnRaORMDDoKi9af8PqRagEj53UQLk',
-    //     user_details: {
-    //       id: 'ol',
-    //       name: 'ol',
-    //       username: 'ol',
-    //     },
-    //   }),
-    // );
   };
 
   getOrCreateCall = async (id: string, type: string) => {
+    await new Promise<void>((resolve) => setTimeout(resolve, 1200));
     await axios.post(
       `http://localhost:3030/video/call/${type}/${id}`,
       {
@@ -30,7 +20,7 @@ export class StreamCoordinatorClient {
           // id: `${Math.round(Math.random() * 1000)}`,
           // type: 'default',
           team: 'alpha',
-          members: [],
+          members: [{ user_id: 'ol', user: { id: 'ol' } }],
         },
       },
       {
