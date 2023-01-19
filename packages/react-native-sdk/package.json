@@ -21,6 +21,11 @@
     "react-native-svg": ">=13.6.0",
     "react-native-webrtc": ">=106.0.4"
   },
+  "peerDependenciesMeta": {
+    "react-native-callkeep": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@types/react": "18.0.26",
     "@types/react-native": "^0.70.4",
