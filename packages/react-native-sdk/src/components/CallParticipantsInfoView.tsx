@@ -76,7 +76,7 @@ export const CallParticipantsInfoView = () => {
       {participants.map((participant) => {
         return (
           <CallParticipantInfoItem
-            key={participant.userId}
+            key={`${participant.userId}${participant.sessionId}`}
             participant={participant}
             setSelectedParticipant={setSelectedParticipant}
           />

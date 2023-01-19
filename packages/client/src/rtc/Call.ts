@@ -14,7 +14,13 @@ import type {
   StreamVideoParticipantPatches,
   SubscriptionChanges,
 } from './types';
-import { debounceTime, Subject } from 'rxjs';
+import {
+  BehaviorSubject,
+  debounceTime,
+  filter,
+  Subject,
+  takeWhile,
+} from 'rxjs';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import {
   createStatsReporter,
@@ -37,7 +43,7 @@ export class Call {
   >();
 
   private statsReporter: StatsReporter;
-  private joinResponseReady?: Promise<CallState | undefined>;
+  private joined$ = new BehaviorSubject<boolean>(false);
 
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
@@ -108,10 +114,10 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = () => {
-    if (!this.joinResponseReady) {
+    if (!this.joined$.getValue()) {
       throw new Error('Cannot leave call that has already been left.');
     }
-    this.joinResponseReady = undefined;
+    this.joined$.next(false);
 
     this.statsReporter.stop();
     this.subscriber.close();
@@ -134,11 +140,11 @@ export class Call {
    * @returns a promise which resolves once the call join-flow has finished.
    */
   join = async () => {
-    if (this.joinResponseReady) {
+    if (this.joined$.getValue() === true) {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    this.joinResponseReady = new Promise<CallState | undefined>(
+    const joinResponseReady = new Promise<CallState | undefined>(
       async (resolve) => {
         this.client.dispatcher.on('joinResponse', (event) => {
           if (event.eventPayload.oneofKind !== 'joinResponse') return;
@@ -165,6 +171,7 @@ export class Call {
           );
 
           this.client.keepAlive();
+          this.joined$.next(true);
           resolve(callState); // expose call state
         });
 
@@ -175,7 +182,7 @@ export class Call {
       },
     );
 
-    return this.joinResponseReady;
+    return joinResponseReady;
   };
 
   /**
@@ -196,6 +203,8 @@ export class Call {
     videoStream: MediaStream,
     opts: PublishOptions = {},
   ) => {
+    // we should wait until we get a JoinResponse from the SFU,
+    // otherwise we risk breaking the ICETrickle flow.
     await this.assertCallJoined();
     const [videoTrack] = videoStream.getVideoTracks();
     if (!videoTrack) {
@@ -237,6 +246,8 @@ export class Call {
    * @param audioStream the audio stream to publish.
    */
   publishAudioStream = async (audioStream: MediaStream) => {
+    // we should wait until we get a JoinResponse from the SFU,
+    // otherwise we risk breaking the ICETrickle flow.
     await this.assertCallJoined();
     const [audioTrack] = audioStream.getAudioTracks();
     if (!audioTrack) {
@@ -271,6 +282,8 @@ export class Call {
    * @param screenShareStream the screen-share stream to publish.
    */
   publishScreenShareStream = async (screenShareStream: MediaStream) => {
+    // we should wait until we get a JoinResponse from the SFU,
+    // otherwise we risk breaking the ICETrickle flow.
     await this.assertCallJoined();
     const [screenShareTrack] = screenShareStream.getVideoTracks();
     if (!screenShareTrack) {
@@ -536,7 +549,7 @@ export class Call {
         TRACK_TYPE_AUDIO: 'audioStream',
         TRACK_TYPE_VIDEO: 'videoStream',
         TRACK_TYPE_SCREEN_SHARE: 'screenShareStream',
-      } as Record<string, 'audioStream' | 'videoStream' | 'screenShareStream'>
+      } as const
     )[trackType];
 
     if (!streamKindProp) {
@@ -556,14 +569,16 @@ export class Call {
     });
   };
 
-  private assertCallJoined = async () => {
-    if (!this.joinResponseReady) {
-      throw new Error(
-        `Illegal State: Can't publish. Please join the call first`,
-      );
-    }
-    // callee should wait until we get a JoinResponse from the SFU,
-    // otherwise we risk breaking the ICETrickle flow.
-    return this.joinResponseReady;
+  private assertCallJoined = () => {
+    return new Promise<void>((resolve) => {
+      this.joined$
+        .pipe(
+          takeWhile((isJoined) => !isJoined, true),
+          filter((isJoined) => isJoined),
+        )
+        .subscribe(() => {
+          resolve();
+        });
+    });
   };
 }
