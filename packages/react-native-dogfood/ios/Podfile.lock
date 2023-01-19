@@ -88,7 +88,7 @@ PODS:
     - AppAuth/Core (~> 1.6)
     - GTMSessionFetcher/Core (< 3.0, >= 1.5)
   - GTMSessionFetcher/Core (2.3.0)
-  - hermes-engine (0.70.4)
+  - hermes-engine (0.70.6)
   - JitsiWebRTC (106.0.0)
   - JWT (3.0.0-beta.12):
     - Base64 (~> 1.1.2)
@@ -402,7 +402,7 @@ PODS:
     - React-perflogger (= 0.70.6)
   - ReactNativeIncallManager (4.0.1):
     - React-Core
-  - RNCallKeep (4.3.3):
+  - RNCallKeep (4.3.4):
     - React
   - RNCAsyncStorage (1.17.11):
     - React-Core
@@ -640,7 +640,7 @@ SPEC CHECKSUMS:
   GoogleSignIn: 5651ce3a61e56ca864160e79b484cd9ed3f49b7a
   GTMAppAuth: 0ff230db599948a9ad7470ca667337803b3fc4dd
   GTMSessionFetcher: 3a63d75eecd6aa32c2fc79f578064e1214dfdec2
-  hermes-engine: 3623325e0d0676a45fbc544d72c57dd79fce7446
+  hermes-engine: 2af7b7a59128f250adfd86f15aa1d5a2ecd39995
   JitsiWebRTC: f441eb0e2d67f0588bf24e21c5162e97342714fb
   JWT: 9b5c05abbcc1a0e69c3c91e1655b3387fc7e581d
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
@@ -677,7 +677,7 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: 15437b576139df27635400de0599d9844f1ab817
   ReactCommon: 349be31adeecffc7986a0de875d7fb0dcf4e251c
   ReactNativeIncallManager: 0d2cf9f4d50359728a30c08549762fe67a2efb81
-  RNCallKeep: 0654c8913d1bd24a3441c588b22503828793ad63
+  RNCallKeep: 599cfb9c1639c6053acbde47577eb14a1d76ed53
   RNCAsyncStorage: 8616bd5a58af409453ea4e1b246521bb76578d60
   RNCClipboard: 2834e1c4af68697089cdd455ee4a4cdd198fa7dd
   RNGoogleSignin: 3db2d849581299f425f5b61b90cb482a9e68c7af
