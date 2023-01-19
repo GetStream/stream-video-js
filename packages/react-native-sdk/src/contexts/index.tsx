@@ -9,16 +9,8 @@ import {
   Provider,
 } from './StreamVideoContext';
 import { MediaDevicesProvider } from './MediaDevicesContext';
-import { CallKeepOptions } from '../types';
 
-export const StreamVideo = (
-  props: PropsWithChildren<
-    StreamVideoProps & {
-      callKeepOptions?: CallKeepOptions;
-    }
-  >,
-) => {
-  // FIXME: callKeepOptions is not used
+export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
   const { client, children } = props;
   return (
     <StreamVideoProvider client={client}>
