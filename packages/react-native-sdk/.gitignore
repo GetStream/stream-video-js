@@ -66,3 +66,5 @@ buck-out/
 
 # Ignore generated documentation.. it can always be regenerated
 docusaurus/docs/reactnative/reference/**/*.md
+# Shared docs come from cli, so we don't want to commit them here
+docusaurus/shared
