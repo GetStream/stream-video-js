@@ -41,8 +41,14 @@ export const watchParticipantLeft = (
 ) => {
   return dispatcher.on('participantLeft', (e) => {
     if (e.eventPayload.oneofKind !== 'participantLeft') return;
-    const { participant } = e.eventPayload.participantLeft;
+    const { participant, callCid } = e.eventPayload.participantLeft;
     if (!participant) return;
+
+    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    if (callCid !== activeCall?.data.call?.callCid) {
+      console.warn('Received participantLeft notification for a unknown call');
+      return;
+    }
 
     store.setCurrentValue(store.participantsSubject, (participants) =>
       participants.filter((p) => p.sessionId !== participant.sessionId),

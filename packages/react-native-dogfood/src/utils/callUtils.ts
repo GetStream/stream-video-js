@@ -1,4 +1,8 @@
-import { MemberInput, StreamVideoClient } from '@stream-io/video-client';
+import {
+  CreateCallInput,
+  MemberInput,
+  StreamVideoClient,
+} from '@stream-io/video-client';
 import InCallManager from 'react-native-incall-manager';
 
 const joinCall = async (
@@ -7,11 +11,12 @@ const joinCall = async (
     autoJoin?: boolean;
     callId: string;
     callType: string;
+    createdBy: CreateCallInput['createdBy'];
     ring?: boolean;
     members: MemberInput[];
   },
 ) => {
-  const { members, ring, callId, callType } = callDetails;
+  const { members, ring, callId, callType, createdBy } = callDetails;
   let call;
   call = await videoClient.joinCall({
     id: callId,
@@ -19,6 +24,7 @@ const joinCall = async (
     // FIXME: OL this needs to come from somewhere // TODO: SANTHOSH, this is optional, check its purpose
     datacenterId: '',
     input: {
+      createdBy: createdBy,
       ring: ring,
       members: members,
     },

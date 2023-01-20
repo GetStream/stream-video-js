@@ -5,5 +5,5 @@ export type Envelopes = Omit<WebsocketEvent, 'event'>;
 
 export type StreamEventListener<T = WrappedEvent> = (
   eventMessage: T,
-  envelopes?: Envelopes,
+  envelopes: Envelopes,
 ) => void;
