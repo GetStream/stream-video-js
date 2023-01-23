@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type {
   ChannelFilters,
   ChannelOptions,
@@ -13,19 +14,16 @@ import {
   Thread,
   Window,
 } from 'stream-chat-react';
-
 import { ChannelHeader } from './components/ChannelHeader';
 import Video from './components/Video/Video';
 import { CustomChannelSearch } from './components/CustomChannelSearch';
 import { CustomEventComponent } from './components/CustomEventComponent';
+import { Sidebar } from './components/Sidebar';
 import { UserList } from './components/UserList';
-
 import { useClient } from './hooks';
 import { userFromToken } from './utils/userFromToken';
 
 import type { StreamChatType } from './types/chat';
-
-import { useMemo } from 'react';
 
 const apiKey = import.meta.env.VITE_STREAM_KEY as string;
 
@@ -68,13 +66,15 @@ const App = ({
   return (
     <Chat client={client}>
       <Video>
-        <ChannelList
-          filters={filters}
-          options={options}
-          showChannelSearch
-          sort={sort}
-          ChannelSearch={CustomChannelSearch}
-        />
+        <Sidebar>
+          <ChannelList
+            filters={filters}
+            options={options}
+            showChannelSearch
+            sort={sort}
+            ChannelSearch={CustomChannelSearch}
+          />
+        </Sidebar>
         <Channel MessageSystem={CustomEventComponent}>
           <Window>
             <ChannelHeader />

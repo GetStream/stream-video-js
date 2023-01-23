@@ -2,7 +2,8 @@
   @import 'stream-chat-react/dist/scss/v2/index.scss';
 }
 
-@import 'layout';
-@import './QuickDial.scss';
-@import './UserList.scss';
-@import './CallPanel.scss';
+@import "layout";
+@import "./QuickDial.scss";
+@import "Sidebar";
+@import "./UserList.scss";
+@import "./CallPanel.scss";

@@ -18,7 +18,7 @@ export const UserInfoView = () => {
   const activeCallDetails = activeCall?.data.details;
   const incomingCalls = useIncomingCalls();
   const incomingCallDetails =
-    incomingCalls.length && incomingCalls[incomingCalls.length - 1].callDetails;
+    incomingCalls.length && incomingCalls[incomingCalls.length - 1].details;
   const memberUserIds =
     (activeCallDetails && activeCallDetails.memberUserIds) ||
     (incomingCallDetails && incomingCallDetails?.memberUserIds) ||

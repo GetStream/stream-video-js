@@ -36,14 +36,13 @@ export const StreamMeeting = ({
         input,
       });
       if (callMetadata?.call?.createdByUserId === currentUser || autoJoin) {
-        const call = await client.joinCall({
+        await client.joinCall({
           ...descriptors,
           // FIXME: OL optional, but it is marked as required in proto
           datacenterId: '',
         });
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
-        await call?.join();
       }
     };
 

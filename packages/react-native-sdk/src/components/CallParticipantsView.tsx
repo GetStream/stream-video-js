@@ -128,8 +128,9 @@ export const CallParticipantsView = () => {
         return (
           <ParticipantView
             key={`${userId}/${participant.sessionId}`}
-            participantId={userId}
+            participant={participant}
             size={size}
+            kind="video"
           />
         );
       })}
