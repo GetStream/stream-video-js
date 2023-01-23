@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button } from './Button';
+import { CallControlsButton } from './CallControlsButton';
 import { Call } from '@stream-io/video-client';
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 
@@ -11,7 +11,7 @@ export type CancelCallButtonProps = {
 export const CancelCallButton = ({ call, onLeave }: CancelCallButtonProps) => {
   const client = useStreamVideoClient();
   return (
-    <Button
+    <CallControlsButton
       icon="call-end"
       variant="danger"
       onClick={async () => {

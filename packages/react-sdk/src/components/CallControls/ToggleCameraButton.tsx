@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
-import { Button } from './Button';
+import { CallControlsButton } from './CallControlsButton';
 import { useVideoPublisher, VideoPublisherInit } from '../../hooks';
 
 export type ToggleCameraButtonProps = VideoPublisherInit;
@@ -13,7 +13,7 @@ export const ToggleCameraButton = (props: ToggleCameraButtonProps) => {
   );
   const publishVideoStream = useVideoPublisher(props);
   return (
-    <Button
+    <CallControlsButton
       icon={isVideoMute ? 'camera-off' : 'camera'}
       onClick={() => {
         if (isVideoMute) {

@@ -4,7 +4,7 @@ import {
   useIsCallRecordingInProgress,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import { Button } from './Button';
+import { CallControlsButton } from './CallControlsButton';
 
 export type RecordCallButtonProps = {
   call: Call;
@@ -15,7 +15,7 @@ export const RecordCallButton = ({ call }: RecordCallButtonProps) => {
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const callMeta = call.data.call;
   return (
-    <Button
+    <CallControlsButton
       icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
       title="Record call"
       onClick={() => {

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Call, getScreenShareStream, SfuModels } from '@stream-io/video-client';
-import { Button } from './Button';
+import { CallControlsButton } from './CallControlsButton';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 
 export type ScreenShareButtonProps = {
@@ -13,7 +13,7 @@ export const ScreenShareButton = ({ call }: ScreenShareButtonProps) => {
     SfuModels.TrackType.SCREEN_SHARE,
   );
   return (
-    <Button
+    <CallControlsButton
       icon={isScreenSharing ? 'screen-share-on' : 'screen-share-off'}
       title="Share screen"
       onClick={async () => {

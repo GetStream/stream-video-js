@@ -2,7 +2,7 @@ import * as React from 'react';
 import { ForwardedRef, forwardRef } from 'react';
 import clsx from 'clsx';
 
-export const Button = forwardRef(
+export const CallControlsButton = forwardRef(
   (
     props: {
       icon: string;

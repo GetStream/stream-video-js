@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button } from './Button';
+import { CallControlsButton } from './CallControlsButton';
 import { AudioPublisherInit, useAudioPublisher } from '../../hooks';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
@@ -13,7 +13,7 @@ export const ToggleAudioButton = (props: ToggleAudioButtonProps) => {
     SfuModels.TrackType.AUDIO,
   );
   return (
-    <Button
+    <CallControlsButton
       icon={isAudioMute ? 'mic-off' : 'mic'}
       onClick={() => {
         if (isAudioMute) {

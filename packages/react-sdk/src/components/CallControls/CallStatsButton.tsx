@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { CallStats } from '../StreamCall/CallStats';
-import { Button } from './Button';
+import { CallControlsButton } from './CallControlsButton';
 import { useRef, useState } from 'react';
 
 export const CallStatsButton = () => {
@@ -16,7 +16,7 @@ export const CallStatsButton = () => {
           }}
         />
       )}
-      <Button
+      <CallControlsButton
         icon="stats"
         title="Statistics"
         ref={statsAnchorRef}
