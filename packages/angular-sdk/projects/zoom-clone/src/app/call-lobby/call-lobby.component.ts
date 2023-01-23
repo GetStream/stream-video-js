@@ -159,6 +159,5 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
       await channel.create();
     }
     await this.channelService.init({ id: { $eq: callId } });
-    await call?.join();
   }
 }
