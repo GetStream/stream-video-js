@@ -1,67 +1,70 @@
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { StableWSConnection } from './connection/StableWsConnection';
+import {
+  GetCallEdgeServerRequest,
+  GetCallEdgeServerResponse,
+  GetOrCreateCallRequest,
+  GetOrCreateCallResponse,
+  JoinCallResponse,
+} from '../gen/coordinator';
 
 export class StreamCoordinatorClient {
   wsConnection = new StableWSConnection();
+  private api: AxiosInstance;
+
+  constructor() {
+    this.api = axios.create({
+      baseURL: 'http://localhost:3030/video',
+      params: {
+        user_id: 'ol',
+        api_key: '892s22ypvt6m',
+      },
+      headers: {
+        Authorization: this.wsConnection.token,
+        'stream-auth-type': 'jwt',
+      },
+    });
+  }
 
   connect = async () => {
-    await this.wsConnection.connect();
+    const connection = await this.wsConnection.connect();
+    if (connection) {
+      this.api.defaults.params.connection_id = connection.connection_id;
+    }
   };
 
-  getOrCreateCall = async (id: string, type: string) => {
+  getOrCreateCall = async (
+    id: string,
+    type: string,
+    data: GetOrCreateCallRequest,
+  ) => {
+    // FIXME OL: remove once React waits until client WS is connected
     await new Promise<void>((resolve) => setTimeout(resolve, 1200));
-    await axios.post(
-      `http://localhost:3030/video/call/${type}/${id}`,
-      {
-        id,
-        type,
-        ring: true,
-        data: {
-          // id: `${Math.round(Math.random() * 1000)}`,
-          // type: 'default',
-          team: 'alpha',
-          members: [{ user_id: 'ol', user: { id: 'ol' } }],
-        },
-      },
-      {
-        params: {
-          connection_id: this.wsConnection.connectionID,
-          user_id: 'ol',
-          api_key: '892s22ypvt6m',
-        },
-        headers: {
-          Authorization: `${this.wsConnection.token}`,
-          'stream-auth-type': 'jwt',
-        },
-      },
-    );
+
+    return this.api.post<
+      GetOrCreateCallRequest,
+      GetOrCreateCallResponse,
+      GetOrCreateCallRequest
+    >(`call/${type}/${id}`, data);
   };
 
-  joinCall = async (id: string, type: string) => {
-    return await axios.post(
-      `http://localhost:3030/video/join_call/${type}/${id}`,
-      {
-        id,
-        type,
-        ring: true,
-        data: {
-          // id: `${Math.round(Math.random() * 1000)}`,
-          // type: 'default',
-          team: 'alpha',
-          members: [],
-        },
-      },
-      {
-        params: {
-          connection_id: this.wsConnection.connectionID,
-          user_id: 'ol',
-          api_key: '892s22ypvt6m',
-        },
-        headers: {
-          Authorization: `${this.wsConnection.token}`,
-          'stream-auth-type': 'jwt',
-        },
-      },
-    );
+  joinCall = async (id: string, type: string, data: GetOrCreateCallRequest) => {
+    return this.api.post<
+      GetOrCreateCallRequest,
+      JoinCallResponse,
+      GetOrCreateCallRequest
+    >(`join_call/${type}/${id}`, data);
+  };
+
+  getCallEdgeServer = async (
+    id: string,
+    type: string,
+    data: GetCallEdgeServerRequest,
+  ) => {
+    return this.api.post<
+      GetCallEdgeServerRequest,
+      GetCallEdgeServerResponse,
+      GetCallEdgeServerRequest
+    >(`get_call_edge_server/${type}/${id}`, data);
   };
 }

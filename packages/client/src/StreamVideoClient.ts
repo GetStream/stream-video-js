@@ -212,7 +212,24 @@ export class StreamVideoClient {
    * @returns A call metadata with information about the call.
    */
   getOrCreateCall = async (data: GetOrCreateCallRequest) => {
-    await this.coordinatorClient.getOrCreateCall(data.id, 'default');
+    const callResponse = await this.coordinatorClient.getOrCreateCall(
+      data.id,
+      'default',
+      {
+        ring: data.input?.ring,
+        data: {
+          members: [
+            {
+              user_id: 'ol',
+              user: {
+                id: 'ol',
+              },
+            },
+          ],
+        },
+      },
+    );
+    console.log('callResponse', callResponse);
 
     const { response } = await this.client.getOrCreateCall(data);
     if (response.call) {
@@ -322,7 +339,19 @@ export class StreamVideoClient {
    * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
    */
   joinCall = async (data: JoinCallRequest, sessionId?: string) => {
-    await this.coordinatorClient.joinCall(data.id, 'default');
+    await this.coordinatorClient.joinCall(data.id, 'default', {
+      ring: data.input?.ring,
+      data: {
+        members: [
+          {
+            user_id: 'ol',
+            user: {
+              id: 'ol',
+            },
+          },
+        ],
+      },
+    });
 
     const { response } = await this.client.joinCall(data);
     if (response.call && response.call.call && response.edges) {
@@ -446,6 +475,21 @@ export class StreamVideoClient {
         measurements: latencyByEdge,
       },
     });
+
+    const edgeServer2 = await this.coordinatorClient.getCallEdgeServer(
+      call.id,
+      call.type,
+      {
+        latency_measurements: Object.entries(latencyByEdge).reduce<
+          Record<string, Array<number>>
+        >((acc, [dc, measurements]) => {
+          acc[dc] = measurements.measurementsSeconds;
+          return acc;
+        }, {}),
+      },
+    );
+
+    console.log('edgeServer2', edgeServer2);
 
     return edgeServer.response;
   };

@@ -12,6 +12,7 @@
     "clean:docs": "rimraf generated-docs",
     "generate-docs": "yarn clean:docs && yarn generate-docs:classes && yarn generate-docs:utils",
     "test-ci": "vitest --coverage",
+    "generate:open-api": "./generate-openapi.sh",
     "generate-docs:classes": "typedoc --options typedoc.json --exclude '!**/*(Call|StreamVideoClient).ts' ./index.ts && replace-in-file '# Class: ' '# ' temp-docs/** && cp -a temp-docs/classes/. generated-docs && rm -r temp-docs",
     "generate-docs:utils": "typedoc --options typedoc.json --exclude '!**/*(devices).ts' ./index.ts && replace-in-file '# @stream-io/video-client' '# Utilities' temp-docs/** && cp temp-docs/modules.md generated-docs/utilities.md && rm -r temp-docs"
   },
@@ -23,12 +24,16 @@
     "isomorphic-ws": "^5.0.0",
     "rxjs": "~7.5.7",
     "uuid": "^9.0.0",
-    "webrtc-adapter": "^8.2.0"
+    "webrtc-adapter": "^8.2.0",
+    "ws": "^8.12.0"
   },
   "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.5.2",
     "@types/rimraf": "^3.0.2",
     "@types/uuid": "^8.3.4",
+    "@types/ws": "^8.5.4",
     "@vitest/coverage-c8": "^0.25.3",
+    "prettier": "^2.8.3",
     "replace-in-file": "^6.3.5",
     "rimraf": "^3.0.2",
     "typedoc": "^0.23.23",
