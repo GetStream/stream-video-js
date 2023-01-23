@@ -61,24 +61,21 @@ const localVideoVisibleModes = [Modes.full, Modes.half];
 const putRemoteParticipantsInView = (
   remoteParticipants: StreamVideoParticipant[],
 ) => {
-  const data = [...remoteParticipants];
-  const dominantSpeakers = data.filter(
+  const dominantSpeakers = remoteParticipants.filter(
     (participant) => participant.isDominantSpeaker,
   );
-  const speakingParticipants = data.filter(
+  const speakingParticipants = remoteParticipants.filter(
     (participant) => participant.isSpeaking && !participant.isDominantSpeaker,
   );
-  const notSpeakingParticipants = data.filter(
+  const notSpeakingParticipants = remoteParticipants.filter(
     (participant) => !participant.isSpeaking && !participant.isDominantSpeaker,
   );
 
-  remoteParticipants = [
+  return [
     ...dominantSpeakers,
     ...speakingParticipants,
     ...notSpeakingParticipants,
   ];
-
-  return remoteParticipants;
 };
 
 /**
@@ -88,7 +85,10 @@ const putRemoteParticipantsInView = (
 export const CallParticipantsView = () => {
   const localParticipant = useLocalParticipant();
   let remoteParticipants = useRemoteParticipants();
-  remoteParticipants = putRemoteParticipantsInView(remoteParticipants);
+  const remoteParticipantsInView = useMemo(
+    () => putRemoteParticipantsInView(remoteParticipants),
+    [remoteParticipants],
+  );
   let allParticipants = remoteParticipants;
   if (localParticipant) {
     allParticipants = [localParticipant, ...allParticipants];
@@ -106,7 +106,7 @@ export const CallParticipantsView = () => {
   const showUserInParticipantView = !isLocalVideoVisible;
   const filteredParticipants = showUserInParticipantView
     ? allParticipants
-    : remoteParticipants;
+    : remoteParticipantsInView;
 
   if (allParticipants.length === 0) {
     return null;
