@@ -17,7 +17,14 @@ import {
   watchForDisconnectedAudioOutputDevice,
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
-import { BehaviorSubject, map, Observable, ReplaySubject, take } from 'rxjs';
+import {
+  BehaviorSubject,
+  distinctUntilChanged,
+  map,
+  Observable,
+  ReplaySubject,
+  take,
+} from 'rxjs';
 
 /**
  * This service gives a high-level API for listing devices (audio input, video input, and audio output), starting/stopping media streams (including screen share), and switching between devices.
@@ -133,6 +140,7 @@ export class DeviceManagerService {
   private screenShareStreamSubject = new BehaviorSubject<
     MediaStream | undefined
   >(undefined);
+  private isNonSilentAudioStartInProgress = false;
 
   constructor(private ngZone: NgZone) {
     this.videoState$ = this.videoStateSubject.asObservable();
@@ -153,6 +161,7 @@ export class DeviceManagerService {
           return undefined;
         }
       }),
+      distinctUntilChanged(),
     );
 
     this.audioDevice$ = this.audioStream$.pipe(
@@ -164,6 +173,7 @@ export class DeviceManagerService {
           return undefined;
         }
       }),
+      distinctUntilChanged(),
     );
 
     this.audioDevices$ = this.audioDevicesSubject.asObservable();
@@ -285,6 +295,7 @@ export class DeviceManagerService {
             `Video stream couldn't be started`,
           );
         }
+        this.stopVideo();
         this.videoStateSubject.next('error');
       });
   }
@@ -308,11 +319,18 @@ export class DeviceManagerService {
    * @param isSilent if `true` `audioState$` will be `detecting-speech-while-muted` instead of `on` after stream is started
    */
   startAudio(deviceId?: string, isSilent = false) {
+    if (this.isNonSilentAudioStartInProgress === true && isSilent) {
+      return;
+    }
+    this.isNonSilentAudioStartInProgress = !isSilent;
     this.audioStateSubject.next('loading');
     getAudioStream(deviceId)
       .then((audioStream) => {
+        if (this.isNonSilentAudioStartInProgress && isSilent) {
+          audioStream.getTracks().forEach((t) => t.stop());
+          return;
+        }
         this.stopAudio();
-        this.audioStreamSubject.next(audioStream);
         this.disposeSoundDetector = this.ngZone.runOutsideAngular(() => {
           return createSoundDetector(audioStream, (isSpeechDetected) => {
             if (isSpeechDetected !== this.isSpeakingSubject.getValue()) {
@@ -322,11 +340,16 @@ export class DeviceManagerService {
             }
           });
         });
+        this.audioStreamSubject.next(audioStream);
         this.audioStateSubject.next(
           isSilent ? 'detecting-speech-while-muted' : 'on',
         );
+        this.isNonSilentAudioStartInProgress = false;
       })
       .catch((err) => {
+        if (this.isNonSilentAudioStartInProgress && isSilent) {
+          return;
+        }
         if (err.code === 0) {
           this.audioErrorMessageSubject.next(
             'Permission denied for camera access',
@@ -336,7 +359,9 @@ export class DeviceManagerService {
             `Video stream couldn't be started`,
           );
         }
+        this.stopAudio();
         this.audioStateSubject.next('error');
+        this.isNonSilentAudioStartInProgress = false;
       });
   }
 
@@ -350,6 +375,7 @@ export class DeviceManagerService {
     this.audioStream.getTracks().forEach((t) => t.stop());
     this.disposeSoundDetector?.();
     this.audioStreamSubject.next(undefined);
+    console.log('emitting off');
     this.audioStateSubject.next('off');
   }
 
@@ -370,10 +396,10 @@ export class DeviceManagerService {
         this.screenShareStateSubject.next('on');
       })
       .catch(() => {
+        this.stopScreenShare();
         this.screenShareErrorMessageSubject.next(
           `Screen share stream couldn't be started`,
         );
-        this.screenShareStateSubject.next('off');
       });
   }
 

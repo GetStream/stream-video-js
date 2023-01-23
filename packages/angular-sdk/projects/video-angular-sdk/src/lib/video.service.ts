@@ -1,4 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
+import { CallConfig } from '@stream-io/video-client';
 import {
   Call,
   CallAccepted,
@@ -125,6 +126,7 @@ export class StreamVideoService {
     token: string,
     baseCoordinatorUrl: string,
     baseWsUrl: string,
+    callConfig?: CallConfig,
   ) {
     if (this.videoClient) {
       console.warn(
@@ -134,12 +136,16 @@ export class StreamVideoService {
       this.subscriptions.forEach((s) => s.unsubscribe());
     }
 
-    this.videoClient = new StreamVideoClient(apiKey, {
-      coordinatorRpcUrl: baseCoordinatorUrl,
-      coordinatorWsUrl: baseWsUrl,
-      sendJson: true,
-      token,
-    });
+    this.videoClient = new StreamVideoClient(
+      apiKey,
+      {
+        coordinatorRpcUrl: baseCoordinatorUrl,
+        coordinatorWsUrl: baseWsUrl,
+        sendJson: true,
+        token,
+      },
+      callConfig,
+    );
 
     this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.connectedUser$.subscribe({
