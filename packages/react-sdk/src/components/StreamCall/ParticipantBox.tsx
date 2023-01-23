@@ -9,7 +9,7 @@ import { useIsDebugMode } from '../Debug/useIsDebugMode';
 import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../Debug/DebugStatsView';
 import { Video } from './Video';
-import { Notification } from './Notification';
+import { Notification } from '../Notification';
 
 export const ParticipantBox = (props: {
   participant: StreamVideoParticipant;
