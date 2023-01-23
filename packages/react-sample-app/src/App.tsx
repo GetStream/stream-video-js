@@ -87,6 +87,7 @@ const App = () => {
     setCallId(id);
     setCallType('default');
     setCallInput({
+      createdBy: { oneofKind: 'userId', userId: currentUser },
       members: participants.map((userId) => ({
         userId,
         role: 'admin',
@@ -131,7 +132,6 @@ const App = () => {
                     callType={callType}
                     input={callInput}
                     currentUser={currentUser}
-                    autoJoin
                   >
                     <MeetingUI />
                   </StreamMeeting>

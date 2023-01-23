@@ -2,8 +2,8 @@ import { Injectable, NgZone } from '@angular/core';
 import {
   Call,
   CallAccepted,
-  CallCreated,
   CallStatsReport,
+  PendingCall,
   StreamVideoClient,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
@@ -48,7 +48,7 @@ export class StreamVideoService {
    * The local participant of the current call (the logged-in user).
    */
   localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
-  incomingRingCalls$: Observable<CallCreated[]>;
+  incomingRingCalls$: Observable<PendingCall[]>;
   /**
    * The `videoClient` lets interact with our API, please refer to the [`StreamVideoClient`](./StreamVideoClient.mdx) for more information.
    */
@@ -85,7 +85,7 @@ export class StreamVideoService {
 
   private acceptedCallSubject: ReplaySubject<CallAccepted | undefined> =
     new ReplaySubject(1);
-  private incomingRingCallsSubject: ReplaySubject<CallCreated[]> =
+  private incomingRingCallsSubject: ReplaySubject<PendingCall[]> =
     new ReplaySubject(1);
   private allParticipantsSubject: ReplaySubject<StreamVideoParticipant[]> =
     new ReplaySubject(1);

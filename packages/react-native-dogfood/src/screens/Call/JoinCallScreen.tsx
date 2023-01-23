@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Button,
   Pressable,
@@ -86,7 +86,7 @@ const JoinCallScreen = () => {
     { id: 'zita', name: 'Zita Szupera' },
   ];
 
-  const startCallHandler = async () => {
+  const startCallHandler = useCallback(async () => {
     const callID = uuidv4().toLowerCase();
     let ringingUserIds = !ringingUserIdsText
       ? ringingUsers
@@ -94,10 +94,11 @@ const JoinCallScreen = () => {
 
     if (client) {
       try {
-        client.createCall({
+        await client.createCall({
           id: callID,
           type: 'default',
           input: {
+            createdBy: { oneofKind: 'userId', userId: username },
             ring: true,
             members: ringingUserIds.map((ringingUserId) => {
               return {
@@ -112,7 +113,7 @@ const JoinCallScreen = () => {
         console.log('Failed to createCall', callID, 'default', error);
       }
     }
-  };
+  }, [ringingUsers, ringingUserIdsText, client, username]);
 
   const isRingingUserSelected = (userId: string) =>
     ringingUsers.find((ringingUser) => ringingUser === userId);

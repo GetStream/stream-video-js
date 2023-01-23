@@ -40,6 +40,9 @@ import {
   watchCallCreated,
   watchCallRejected,
 } from './events/call';
+import { CALL_CONFIG } from './config/defaultConfigs';
+import { CallConfig } from './config/types';
+import { CallDropScheduler } from './CallDropScheduler';
 import { StreamCoordinatorClient } from './ws/StreamCoordinatorClient';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
@@ -56,6 +59,10 @@ const defaultOptions: Partial<StreamVideoClientOptions> = {
  */
 export class StreamVideoClient {
   /**
+   * Configuration parameters for controlling call behavior.
+   */
+  callConfig: CallConfig;
+  /**
    * A reactive store that exposes all the state variables in a reactive manner - you can subscribe to changes of the different state variables. Our library is built in a way that all state changes are exposed in this store, so all UI changes in your application should be handled by subscribing to these variables.
    * @angular If you're using our Angular SDK, you shouldn't be interacting with the state store directly, instead, you should be using the [`StreamVideoService`](./StreamVideoService.md).
    */
@@ -64,6 +71,7 @@ export class StreamVideoClient {
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
   private ws: StreamWebSocketClient | undefined;
+  private callDropScheduler: CallDropScheduler | undefined;
 
   private coordinatorClient = new StreamCoordinatorClient();
 
@@ -76,8 +84,15 @@ export class StreamVideoClient {
    * @angular If you're using our Angular SDK, you shouldn't be calling the `constructor` directly, instead you should be using [`StreamVideoService`](./StreamVideoService.md/#init).
    * @param apiKey your Stream API key
    * @param opts
+   * @param {CallConfig} [callConfig=CALL_CONFIG.meeting] custom call configuration
    */
-  constructor(apiKey: string, opts: StreamVideoClientOptions) {
+  constructor(
+    apiKey: string,
+    opts: StreamVideoClientOptions,
+    callConfig: CallConfig = CALL_CONFIG.meeting,
+  ) {
+    this.callConfig = callConfig;
+
     const options = {
       ...defaultOptions,
       ...opts,
@@ -157,10 +172,17 @@ export class StreamVideoClient {
       user,
     );
     if (this.ws) {
-      watchCallCancelled(this.on, this.writeableStateStore);
+      this.callDropScheduler = new CallDropScheduler(
+        this.writeableStateStore,
+        this.callConfig,
+        this.rejectCall,
+        this.cancelCall,
+      );
+
       watchCallCreated(this.on, this.writeableStateStore);
-      watchCallAccepted(this.on);
+      watchCallAccepted(this.on, this.writeableStateStore);
       watchCallRejected(this.on, this.writeableStateStore);
+      watchCallCancelled(this.on, this.writeableStateStore);
     }
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
@@ -176,6 +198,7 @@ export class StreamVideoClient {
    */
   disconnect = async () => {
     if (!this.ws) return;
+    this.callDropScheduler?.cleanUp();
     this.ws.disconnect();
     this.ws = undefined;
     this.writeableStateStore.setCurrentValue(
@@ -208,7 +231,7 @@ export class StreamVideoClient {
   /**
    * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, this will return an error.
    * Causes the CallCreated event to be emitted to all the call members.
-   * @param data CreateCallRequest payload object
+   * @param {GetOrCreateCallRequest} data CreateCallRequest payload object
    * @returns A call metadata with information about the call.
    */
   getOrCreateCall = async (data: GetOrCreateCallRequest) => {
@@ -231,9 +254,23 @@ export class StreamVideoClient {
     );
     console.log('callResponse', callResponse);
 
-    const { response } = await this.client.getOrCreateCall(data);
-    if (response.call) {
-      return response.call;
+    const {
+      response: { call },
+    } = await this.client.getOrCreateCall(data);
+
+    const pendingCalls = this.writeableStateStore.getCurrentValue(
+      this.writeableStateStore.pendingCallsSubject,
+    );
+    const callAlreadyRegistered = pendingCalls.find(
+      (pendingCall) => pendingCall.call?.callCid === call?.call?.callCid,
+    );
+
+    if (call && !callAlreadyRegistered) {
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.pendingCallsSubject,
+        (pendingCalls) => [...pendingCalls, call],
+      );
+      return call;
     } else {
       // TODO: handle error?
       return undefined;
@@ -242,23 +279,17 @@ export class StreamVideoClient {
 
   /**
    * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, this will return an error.
-   * @param data
+   * @param {CreateCallRequest} data
    * @returns A call metadata with information about the call.
    */
   createCall = async (data: CreateCallRequest) => {
-    const callToCreate = await this.client.createCall(data);
-    const { call } = callToCreate.response;
+    const createdCall = await this.client.createCall(data);
+    const { call } = createdCall.response;
+
     if (call) {
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => [
-          ...pendingCalls,
-          {
-            call: call.call,
-            callDetails: call.details,
-            ringing: !!data.input?.ring,
-          },
-        ],
+        (pendingCalls) => [...pendingCalls, call],
       );
     }
 
@@ -311,8 +342,9 @@ export class StreamVideoClient {
   cancelCall = async (callCid: string) => {
     const store = this.writeableStateStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const leavingActiveCall = activeCall?.data.call?.callCid === callCid;
 
-    if (activeCall?.data.call?.callCid === callCid) {
+    if (leavingActiveCall) {
       activeCall.leave();
     } else {
       store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
@@ -324,7 +356,7 @@ export class StreamVideoClient {
 
     const remoteParticipants = store.getCurrentValue(store.remoteParticipants$);
 
-    if (!remoteParticipants.length) {
+    if (!remoteParticipants.length && !leavingActiveCall) {
       await this.client.sendEvent({
         callCid,
         eventType: UserEventType.CANCELLED_CALL,
@@ -379,6 +411,8 @@ export class StreamVideoClient {
           this.writeableStateStore,
           this.userBatcher,
         );
+
+        await call.join();
 
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.activeCallSubject,

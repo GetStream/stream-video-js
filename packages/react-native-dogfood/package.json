@@ -23,7 +23,7 @@
     "nanoid": "^4.0.0",
     "react": "18.2.0",
     "react-native": "0.70.6",
-    "react-native-callkeep": "^4.3.3",
+    "react-native-callkeep": "^4.3.4",
     "react-native-get-random-values": "^1.8.0",
     "react-native-incall-manager": "^4.0.0",
     "react-native-polyfill-globals": "^3.1.0",

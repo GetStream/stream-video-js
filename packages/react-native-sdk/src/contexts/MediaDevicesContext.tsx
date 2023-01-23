@@ -3,6 +3,7 @@ import {
   PropsWithChildren,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -40,6 +41,7 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   const [currentVideoDevice, setCurrentVideoDevice] = useState<
     MediaDeviceInfo | undefined
   >();
+  const initialVideoDeviceSet = useRef(false);
 
   useEffect(() => {
     const subscription = getAudioDevices().subscribe(setAudioDevices);
@@ -52,12 +54,13 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   }, []);
 
   useEffect(() => {
-    if (videoDevices.length > 0) {
+    if (videoDevices.length > 0 && !initialVideoDeviceSet.current) {
       const frontFacingVideoDevice = videoDevices.find(
         (videoDevice) =>
           videoDevice.kind === 'videoinput' && videoDevice.facing === 'front',
       );
       setCurrentVideoDevice(frontFacingVideoDevice);
+      initialVideoDeviceSet.current = true;
     }
   }, [videoDevices]);
 

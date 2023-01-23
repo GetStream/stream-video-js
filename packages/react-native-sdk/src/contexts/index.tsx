@@ -3,7 +3,6 @@ import {
   StreamVideoProps,
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren } from 'react';
-import { CallKeepOptions } from '../types';
 import {
   useStoreValue,
   useStoreSetState,
@@ -11,14 +10,7 @@ import {
 } from './StreamVideoContext';
 import { MediaDevicesProvider } from './MediaDevicesContext';
 
-export const StreamVideo = (
-  props: PropsWithChildren<
-    StreamVideoProps & {
-      callKeepOptions?: CallKeepOptions;
-    }
-  >,
-) => {
-  // FIXME: callKeepOptions is not used
+export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
   const { client, children } = props;
   return (
     <StreamVideoProvider client={client}>
