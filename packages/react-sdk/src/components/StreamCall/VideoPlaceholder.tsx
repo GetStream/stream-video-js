@@ -1,11 +1,14 @@
 import { useState } from 'react';
+import { clsx } from 'clsx';
 
 export const VideoPlaceholder = ({
   imageSrc,
   userId,
+  isSpeaking,
 }: {
   imageSrc?: string;
   userId: string;
+  isSpeaking: boolean;
 }) => {
   const [error, setError] = useState(false);
 
@@ -18,20 +21,14 @@ export const VideoPlaceholder = ({
           </div>
         )}
         {imageSrc && !error && (
-          <>
-            <img
-              onError={() => setError(true)}
-              alt="participant-placeholder"
-              className="str-video__participant-placeholder--avatar"
-              src={imageSrc}
-            />
-            <div className="str-video__participant-placeholder--backdrop" />
-            <img
-              alt="participant-placeholder-background"
-              className="str-video__participant-placeholder--avatar-background"
-              src={imageSrc}
-            />
-          </>
+          <img
+            onError={() => setError(true)}
+            alt="participant-placeholder"
+            className={clsx('str-video__participant-placeholder--avatar', {
+              'str-video__participant-placeholder--avatar-speaking': isSpeaking,
+            })}
+            src={imageSrc}
+          />
         )}
       </div>
     </>
