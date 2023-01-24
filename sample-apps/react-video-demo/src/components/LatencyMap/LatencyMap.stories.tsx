@@ -5,7 +5,7 @@ import * as data from './LatencyMap.data';
 export default {
   component: LatencyMap,
   subcomponents: {},
-  title: 'LatencyMap',
+  title: 'Map/LatencyMap',
 };
 
 export const KichinSink = (props: any) => <LatencyMap {...props}></LatencyMap>;
