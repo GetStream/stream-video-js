@@ -17,11 +17,20 @@
   </stream-channel>
 </div>
 
-<ng-template #channelActions>
-  <button mat-icon-button aria-label="Add member">
-    <mat-icon fontIcon="person_add"></mat-icon>
-  </button>
-  <button mat-icon-button aria-label="Start a call">
-    <mat-icon fontIcon="call"></mat-icon>
+<ng-template #channelActions let-channel="channel">
+  <button
+    class="start-call"
+    (click)="startCallInChannel(channel)"
+    [disabled]="inCall"
+    mat-icon-button
+    aria-label="Start a call"
+  >
+    <mat-icon *ngIf="!isCallCreationInProgress" fontIcon="call"></mat-icon>
+    <mat-progress-spinner
+      *ngIf="isCallCreationInProgress"
+      color="primary"
+      diameter="15"
+      mode="indeterminate"
+    ></mat-progress-spinner>
   </button>
 </ng-template>

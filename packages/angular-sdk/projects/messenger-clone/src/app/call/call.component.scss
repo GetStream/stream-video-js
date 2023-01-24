@@ -11,6 +11,11 @@
   max-height: 100%;
   min-height: 0;
   display: flex;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: #424242;
+  box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.2);
+  cursor: move;
 
   .call {
     flex: 1;

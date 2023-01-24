@@ -1,31 +1,44 @@
 import {
   AfterViewInit,
   Component,
+  OnDestroy,
   OnInit,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { ChannelFilters } from 'stream-chat';
+import { StreamVideoService } from '@stream-io/video-angular-sdk';
+import { MemberInput } from '@stream-io/video-client';
+import { Channel, ChannelFilters } from 'stream-chat';
 import {
   ChannelActionsContext,
   ChannelService,
   CustomTemplatesService,
 } from 'stream-chat-angular';
 import { UserService } from '../user.service';
+import { v4 as uuidv4 } from 'uuid';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialogRef } from '@angular/material/dialog';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
 })
-export class ChatComponent implements OnInit, AfterViewInit {
+export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
+  isCallCreationInProgress = false;
+  inCall = false;
   @ViewChild('channelActions')
   private channelActionsTemplate!: TemplateRef<ChannelActionsContext>;
+  private subscripitions: Subscription[] = [];
+  private dialogRef?: MatDialogRef<any>;
 
   constructor(
     private channelService: ChannelService,
     private userService: UserService,
     private customTemplateService: CustomTemplatesService,
+    private videoService: StreamVideoService,
+    private snackBar: MatSnackBar,
   ) {
     const userId = this.userService.selectedUserId!;
 
@@ -33,6 +46,10 @@ export class ChatComponent implements OnInit, AfterViewInit {
       members: { $in: [userId] },
       type: 'messaging',
     });
+
+    this.subscripitions.push(
+      this.videoService.activeCall$.subscribe((c) => (this.inCall = !!c)),
+    );
   }
 
   userSelected(selectedUserId?: string) {
@@ -55,4 +72,49 @@ export class ChatComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {}
+
+  ngOnDestroy(): void {
+    this.subscripitions.forEach((s) => s.unsubscribe());
+    this.dialogRef?.close();
+  }
+
+  async startCallInChannel(channel: Channel) {
+    this.isCallCreationInProgress = true;
+    const userId = this.userService.selectedUserId!;
+
+    const members = Object.keys(channel.state?.members)
+      ?.map((userId) =>
+        this.userService.users.find((u) => u.user.id === userId),
+      )
+      .filter((m) => !!m);
+    const memberInput: MemberInput[] = (members || []).map((m) => ({
+      userId: m!.user.id,
+      role: m!.user.role,
+      customJson: m!.user?.customJson,
+      userInput: m!.user,
+    }));
+    try {
+      const call = await this.videoService.videoClient?.getOrCreateCall({
+        type: 'default',
+        id: uuidv4(),
+        input: {
+          members: memberInput,
+          createdBy: { oneofKind: 'userId', userId },
+          ring: true,
+        },
+      });
+      if (call) {
+        await this.videoService.videoClient?.joinCall({
+          id: call.call!.id,
+          type: 'default',
+          datacenterId: '',
+        });
+      }
+      this.isCallCreationInProgress = false;
+    } catch (error) {
+      console.error(error);
+      this.snackBar.open(`Call couldn't be started`);
+      this.isCallCreationInProgress = false;
+    }
+  }
 }

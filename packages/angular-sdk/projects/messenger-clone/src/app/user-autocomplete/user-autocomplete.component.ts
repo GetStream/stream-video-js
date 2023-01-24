@@ -20,10 +20,7 @@ export class UserAutocompleteComponent implements OnInit {
   filteredOptions: Observable<string[]>;
   @Output() userSelect = new EventEmitter<string | undefined>();
 
-  constructor(
-    private userService: UserService,
-    private changeDetectorRef: ChangeDetectorRef,
-  ) {
+  constructor(private userService: UserService) {
     this.filteredOptions = this.userSearchControl.valueChanges.pipe(
       throttleTime(500),
       map((value) =>
@@ -31,7 +28,7 @@ export class UserAutocompleteComponent implements OnInit {
           ? this.userService.users.filter((u) =>
               u.user.name.toLowerCase().includes(value.toLowerCase()),
             )
-          : this.userService.users
+          : []
         ).map((u) => u.user.name),
       ),
     );

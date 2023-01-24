@@ -27,6 +27,8 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { UserAutocompleteComponent } from './user-autocomplete/user-autocomplete.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { IncomingCallComponent } from './incoming-call/incoming-call.component';
 
 @NgModule({
   declarations: [
@@ -37,6 +39,7 @@ import { UserAutocompleteComponent } from './user-autocomplete/user-autocomplete
     CallComponent,
     ChatComponent,
     UserAutocompleteComponent,
+    IncomingCallComponent,
   ],
   imports: [
     BrowserModule,
@@ -57,6 +60,7 @@ import { UserAutocompleteComponent } from './user-autocomplete/user-autocomplete
     MatAutocompleteModule,
     ReactiveFormsModule,
     MatInputModule,
+    MatDialogModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

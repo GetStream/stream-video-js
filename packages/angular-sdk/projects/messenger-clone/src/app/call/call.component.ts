@@ -1,4 +1,4 @@
-import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import {
@@ -13,7 +13,6 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { combineLatest, map, Observable, Subscription } from 'rxjs';
-import { ChannelService } from 'stream-chat-angular';
 
 @Component({
   selector: 'app-call',
@@ -29,7 +28,6 @@ export class CallComponent implements OnInit, OnDestroy {
   TrackType = SfuModels.TrackType;
   isLocalParticipantCallOwner = false;
   isCallRecordingInProgress = false;
-  isChatOpen = false;
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -38,16 +36,13 @@ export class CallComponent implements OnInit, OnDestroy {
     private inCallDeviceManager: InCallDeviceManagerService,
     private snackBar: MatSnackBar,
     private deviceManager: DeviceManagerService,
-    private channelService: ChannelService,
-    private ngZone: NgZone,
   ) {
+    this.inCallDeviceManager.start();
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe((c) => {
         if (c) {
           this.call = c;
-          this.inCallDeviceManager.start();
         } else {
-          this.inCallDeviceManager.stop();
           this.call = undefined;
         }
       }),
@@ -96,15 +91,6 @@ export class CallComponent implements OnInit, OnDestroy {
         (inProgress) => (this.isCallRecordingInProgress = inProgress),
       ),
     );
-    this.subscriptions.push(
-      this.channelService.activeChannel$.subscribe((activeChannel) => {
-        if (activeChannel) {
-          activeChannel.on('message.new', () => {
-            this.ngZone.run(() => (this.isChatOpen = true));
-          });
-        }
-      }),
-    );
   }
 
   endCall() {
@@ -128,6 +114,7 @@ export class CallComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
+    this.inCallDeviceManager.stop();
   }
 
   trackBySessionId(_: number, item: StreamVideoParticipant) {

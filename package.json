@@ -49,6 +49,7 @@
   },
   "devDependencies": {
     "@types/eslint": "^8.4.8",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
     "@typescript-eslint/typescript-estree": "^5.47.0",
@@ -63,5 +64,8 @@
   },
   "resolutions": {
     "react-native-pure-jwt@^3.0.1": "patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch"
+  },
+  "dependencies": {
+    "uuid": "^9.0.0"
   }
 }

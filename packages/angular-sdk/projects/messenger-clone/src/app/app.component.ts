@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import {
   StreamVideoService,
@@ -8,6 +8,7 @@ import {
 import { Call, UserInput } from '@stream-io/video-client';
 import { Observable, take } from 'rxjs';
 import { StreamI18nService, ThemeService } from 'stream-chat-angular';
+import { IncomingCallsService } from './incoming-calls.service';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +17,7 @@ import { StreamI18nService, ThemeService } from 'stream-chat-angular';
 })
 export class AppComponent {
   connectedUser$: Observable<UserInput | undefined>;
+  activeCall$: Observable<Call | undefined>;
 
   constructor(
     private streamVideoService: StreamVideoService,
@@ -24,6 +26,7 @@ export class AppComponent {
     private deviceManagerService: DeviceManagerService,
     private streamI18nService: StreamI18nService,
     private themeService: ThemeService,
+    private incomingCallsService: IncomingCallsService,
   ) {
     this.connectedUser$ = this.streamVideoService.user$;
     this.deviceManagerService.audioErrorMessage$.subscribe((e) => {
@@ -38,6 +41,8 @@ export class AppComponent {
     });
     this.streamI18nService.setTranslation();
     this.themeService.theme$.next('dark');
+    this.incomingCallsService.startWatchingForIncomingCalls();
+    this.activeCall$ = this.streamVideoService.activeCall$;
   }
 
   disconnect() {
@@ -48,6 +53,7 @@ export class AppComponent {
     if (activeCall) {
       activeCall.leave();
     }
+    this.incomingCallsService.dismissIncomingCallDialog();
     this.router.navigateByUrl('user-selector');
   }
 }

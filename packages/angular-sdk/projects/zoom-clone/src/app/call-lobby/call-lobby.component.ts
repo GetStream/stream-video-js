@@ -142,7 +142,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   }
 
   private async joinCall(callId: string) {
-    const call = await this.ngZone.runOutsideAngular(() => {
+    await this.ngZone.runOutsideAngular(() => {
       return this.streamVideoService.videoClient?.joinCall({
         id: callId,
         type: 'default',

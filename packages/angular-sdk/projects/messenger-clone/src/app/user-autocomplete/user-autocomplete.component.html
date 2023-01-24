@@ -1,10 +1,9 @@
 <form>
   <mat-form-field appearance="outline">
-    <mat-label>Search</mat-label>
     <input
       type="text"
-      placeholder="Search for a user"
-      aria-label="User"
+      placeholder="Search"
+      aria-label="Search for a user"
       matInput
       [formControl]="userSearchControl"
       [matAutocomplete]="auto"
@@ -22,6 +21,7 @@
       </mat-option>
     </mat-autocomplete>
     <mat-button
+      class="clear-search"
       (click)="searchCleared()"
       mat-icon-button
       aria-label="Clear search"

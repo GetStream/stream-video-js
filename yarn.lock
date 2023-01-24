@@ -5181,6 +5181,7 @@ __metadata:
   resolution: "@stream-io/video-js-root@workspace:."
   dependencies:
     "@types/eslint": ^8.4.8
+    "@types/uuid": ^8.3.4
     "@typescript-eslint/eslint-plugin": ^5.47.0
     "@typescript-eslint/parser": ^5.47.0
     "@typescript-eslint/typescript-estree": ^5.47.0
@@ -5191,6 +5192,7 @@ __metadata:
     eslint-plugin-prettier: ^4.2.1
     prettier: ^2.8.1
     typescript: ^4.9.4
+    uuid: ^9.0.0
     vercel: ^28.11.0
   languageName: unknown
   linkType: soft
