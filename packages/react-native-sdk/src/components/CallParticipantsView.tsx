@@ -61,21 +61,15 @@ const localVideoVisibleModes = [Modes.full, Modes.half];
 const putRemoteParticipantsInView = (
   remoteParticipants: StreamVideoParticipant[],
 ) => {
-  const dominantSpeakers = remoteParticipants.filter(
-    (participant) => participant.isDominantSpeaker,
+  const speakingParticipantOutsideView = remoteParticipants.filter(
+    (participant) => participant.isDominantSpeaker || participant.isSpeaking,
   );
-  const speakingParticipants = remoteParticipants.filter(
-    (participant) => participant.isSpeaking && !participant.isDominantSpeaker,
-  );
+
   const notSpeakingParticipants = remoteParticipants.filter(
     (participant) => !participant.isSpeaking && !participant.isDominantSpeaker,
   );
 
-  return [
-    ...dominantSpeakers,
-    ...speakingParticipants,
-    ...notSpeakingParticipants,
-  ];
+  return [...speakingParticipantOutsideView, ...notSpeakingParticipants];
 };
 
 /**
@@ -89,7 +83,7 @@ export const CallParticipantsView = () => {
     () => putRemoteParticipantsInView(remoteParticipants),
     [remoteParticipants],
   );
-  let allParticipants = remoteParticipants;
+  let allParticipants = remoteParticipantsInView;
   if (localParticipant) {
     allParticipants = [localParticipant, ...allParticipants];
   }

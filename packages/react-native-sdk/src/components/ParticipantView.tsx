@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import {
+  SfuModels,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
@@ -9,7 +10,7 @@ import { useActiveCall } from '@stream-io/video-react-bindings';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
 import { useStreamVideoStoreValue } from '../contexts';
-import { Mic, MicOff } from '../icons';
+import { Mic, MicOff, Video, VideoSlash } from '../icons';
 
 type SizeType = 'small' | 'medium' | 'large' | 'xl';
 
@@ -49,7 +50,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       return;
     }
     const { height, width } = event.nativeEvent.layout;
-    call.updateSubscriptionsPartial(props.kind, {
+    call.updateSubscriptionsPartial(kind, {
       [participant.sessionId]: {
         dimension: {
           width: Math.trunc(width),
@@ -59,21 +60,28 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     });
   };
 
-  const { isSpeaking, isLoggedInUser } = participant;
+  const { isSpeaking, isLoggedInUser, publishedTracks } = participant;
 
   // NOTE: We have to cast to MediaStream type from webrtc
   // as JS client sends the web navigators' mediastream type instead
   const videoStream = (
-    props.kind === 'video'
-      ? participant.videoStream
-      : participant.screenShareStream
+    kind === 'video' ? participant.videoStream : participant.screenShareStream
   ) as MediaStream | undefined;
 
   const audioStream = participant.audioStream as MediaStream | undefined;
-
+  const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
+  const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
   const mirror = isLoggedInUser && !cameraBackFacingMode;
-  const MicIcon = !audioStream ? MicOff : Mic;
-
+  const MicIcon = isAudioMuted ? MicOff : Mic;
+  const VideoIcon = isVideoMuted ? VideoSlash : Video;
+  const iaAudioAvailable = useMemo(
+    () => kind === 'video' && !!audioStream && !isAudioMuted,
+    [kind, audioStream, isAudioMuted],
+  );
+  const iaVideoAvailable = useMemo(
+    () => !!videoStream && !isVideoMuted,
+    [videoStream, isVideoMuted],
+  );
   return (
     <View
       style={[
@@ -84,28 +92,31 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       ]}
       onLayout={onLayout}
     >
-      {!!videoStream ? (
+      {iaVideoAvailable ? (
         <VideoRenderer
           mirror={mirror}
-          mediaStream={videoStream}
+          mediaStream={videoStream as MediaStream}
           objectFit={kind === 'screen' ? 'contain' : 'cover'}
           style={styles.videoRenderer}
         />
       ) : (
         <Avatar participant={participant} />
       )}
-      {props.kind === 'video' && !!audioStream && (
-        <RTCView streamURL={audioStream.toURL()} />
+      {iaAudioAvailable && (
+        <RTCView streamURL={(audioStream as MediaStream).toURL()} />
       )}
-      {props.kind === 'video' && (
+      {kind === 'video' && (
         <View style={styles.status}>
           <Text style={styles.userNameLabel}>{participant.userId}</Text>
           <View style={styles.svgWrapper}>
-            <MicIcon color="#FF003BFF" />
+            <MicIcon color="#FFF" />
+          </View>
+          <View style={styles.svgWrapper}>
+            <VideoIcon color="#FFF" />
           </View>
         </View>
       )}
-      {props.kind === 'screen' && (
+      {kind === 'screen' && (
         <View style={styles.screenViewStatus}>
           <Text style={styles.userNameLabel}>
             {participant.userId} is presenting
