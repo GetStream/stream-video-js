@@ -21,7 +21,17 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(
     null,
   );
-  const { styles, attributes } = usePopper(referenceElement, popperElement);
+  const { styles, attributes } = usePopper(referenceElement, popperElement, {
+    placement: 'bottom-end',
+    modifiers: [
+      {
+        name: 'offset',
+        options: {
+          offset: [0, 10],
+        },
+      },
+    ],
+  });
   const [isPopperOpen, setIsPopperOpen] = useState(false);
 
   const localParticipant = useLocalParticipant();
