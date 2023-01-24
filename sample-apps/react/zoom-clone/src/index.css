@@ -10,5 +10,25 @@ body,
 }
 
 .str-chat__channel {
-  width: 100%;
+  @apply w-full;
+}
+
+.str-video__call__header {
+  @apply p-4 !important;
+}
+
+.str-video__stage {
+  @apply px-4;
+}
+
+.str-video__call-participants-screen-view__participants {
+  @apply justify-start !important;
+}
+
+.str-video__device-settings select {
+  @apply text-zinc-900;
+}
+
+.str-video__device-settings {
+  @apply drop-shadow-sm bg-zinc-600;
 }

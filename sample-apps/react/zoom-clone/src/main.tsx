@@ -7,21 +7,31 @@ import {
 } from 'react-router-dom';
 import { BehaviorSubject } from 'rxjs';
 
-import { CallLobby, Root, UserList } from './Root';
+import { Root } from './Root';
+import { UserList } from './components/UserList';
+import { CallLobby } from './components/CallLobby';
+
+import { SESSION_STORAGE_KEY } from './utils';
+
+import 'stream-chat-react/dist/css/v2/index.css';
+import '@stream-io/video-styling/dist/css/styles.css';
 import './index.css';
+
 import users from '../data/users.json';
 
-type User = typeof users[number];
+export type User = typeof users[number];
 
+// TODO: move to "store"
 export const selectedUserSubject = new BehaviorSubject<User | null>(
-  users.find((u) => u.id === sessionStorage.getItem('zc:uid')) ?? null,
+  users.find((u) => u.id === sessionStorage.getItem(SESSION_STORAGE_KEY)) ??
+    null,
 );
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <Root />,
-    errorElement: <div>404</div>, // TODO: make it nicer
+    errorElement: <div>404</div>, // TODO: make 404 nicer
     loader: ({ request }) => {
       const user = selectedUserSubject.getValue();
       console.log(user);
@@ -44,7 +54,6 @@ const router = createBrowserRouter([
 
           // TODO: add who the invitation came from to filter it out of the list (?next=/call-lobby/<id>&createdBy=mark)
 
-          console.log(callId);
           if (!user)
             return redirect(
               `/user-selection${
