@@ -1,16 +1,14 @@
-import {
-  FC,
-  useMemo,
-  useRef,
-  useState,
-  useEffect,
-  SetStateAction,
-  Dispatch,
-} from 'react';
-import mapboxgl, { GeoJSONSource, GeoJSONSourceRaw, Popup } from 'mapbox-gl';
-import { FeatureCollection, Geometry, AnySourceImpl } from 'geojson';
+import { FC, useRef, useState, useEffect } from 'react';
+import { createRoot } from 'react-dom/client';
+import mapboxgl from 'mapbox-gl';
+import { FeatureCollection, Geometry } from 'geojson';
 
-import styles from './LatencyMap.module.scss';
+import resolveConfig from 'tailwindcss/resolveConfig';
+
+// import tailwindConfig from '../../../tailwind.config.js';
+// const fullConfig = resolveConfig(tailwindConfig);
+
+import LatencyMapPopup from '../LatencyMapPopup';
 
 export type Props = {
   sourceData: FeatureCollection<Geometry>;
@@ -20,11 +18,10 @@ export type Props = {
 export const LatencyMap: FC<Props> = ({ sourceData, zoomLevel = 1 }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [source, setSource] = useState(sourceData);
-  const [properties, setProperties] = useState();
-  const [popup, setPopup]: [
-    Popup | undefined,
-    Dispatch<SetStateAction<Popup | undefined>>,
-  ] = useState();
+
+  const popUpRef = useRef(
+    new mapboxgl.Popup({ offset: 15, closeButton: false, closeOnClick: false }),
+  );
 
   const mapContainer = useRef<any>(undefined);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -33,60 +30,81 @@ export const LatencyMap: FC<Props> = ({ sourceData, zoomLevel = 1 }) => {
   const [lat, setLat] = useState(34);
   const [zoom, setZoom] = useState(zoomLevel);
 
+  const [hoverId, setHoverId] = useState(undefined);
+
   useEffect(() => {
     setSource(sourceData);
   }, [sourceData]);
 
   useEffect(() => {
     if (map.current && !loading) {
-      const popup = new mapboxgl.Popup({
-        closeButton: false,
-        closeOnClick: false,
-      });
-      setPopup(popup);
-    }
-  }, [loading, map]);
-
-  useEffect(() => {
-    if (map.current && !loading) {
       map.current.on('mouseenter', 'servers-visualise', (e: any) => {
         if (map.current) {
-          if (e.features) {
+          if (e.features && e.features.length > 0) {
             const [point] = e.features;
-            const properties: any = point.properties;
-            setProperties(properties);
-            console.log(point);
 
-            if (popup) {
+            map.current.getCanvas().style.cursor = 'pointer';
+
+            if (hoverId === undefined) {
+              map.current.setFeatureState(
+                {
+                  source: 'servers',
+                  id: point.id,
+                },
+                { hover: true },
+              );
+
+              setHoverId(point.id);
+            }
+
+            if (popUpRef && popUpRef.current) {
               const coordinates = point.geometry.coordinates.slice();
-              const name = point.properties.name;
 
-              console.log(coordinates);
+              const popupNode = document.createElement('div');
 
-              popup
+              const root = createRoot(popupNode!);
+              root.render(
+                <LatencyMapPopup
+                  city={point.properties.city}
+                  countryCode={point.properties.countryCode}
+                  abbriviation={point.properties.abbriviation}
+                />,
+              );
+              popUpRef.current
                 .setLngLat(coordinates)
-                .setHTML(name)
-                .on('open', (e) => {
-                  console.log('It is open');
-                })
+                .setDOMContent(popupNode)
                 .addTo(map.current);
-              console.log(popup);
             }
           }
         }
       });
     }
-  }, [loading, map, popup]);
+  }, [loading, map, popUpRef, hoverId]);
 
   useEffect(() => {
     if (map.current && !loading) {
       map.current.on('mouseleave', 'servers-visualise', (e: any) => {
-        if (map.current && popup) {
-          // popup.remove();
+        if (map.current) {
+          map.current.getCanvas().style.cursor = '';
+
+          if (hoverId) {
+            map.current.setFeatureState(
+              {
+                source: 'servers',
+                id: hoverId,
+              },
+              { hover: false },
+            );
+            setHoverId(undefined);
+          }
+
+          if (popUpRef && popUpRef.current) {
+            // popUpRef.current.remove();
+          }
         }
       });
     }
-  }, [loading, map, popup]);
+  }, [loading, map, hoverId, popUpRef]);
 
   useEffect(() => {
     let appendMarkerTimer: ReturnType<typeof setTimeout>;
@@ -132,10 +150,25 @@ export const LatencyMap: FC<Props> = ({ sourceData, zoomLevel = 1 }) => {
         type: 'circle',
         source: 'servers',
         paint: {
-          'circle-color': '#11b4da',
+          'circle-color': [
+            'case',
+            ['boolean', ['feature-state', 'hover'], false],
+            '#20E070',
+            '#2F7DEB',
+          ],
           'circle-radius': 4,
-          'circle-stroke-width': 1,
-          'circle-stroke-color': '#fff',
+          'circle-stroke-width': [
+            'case',
+            ['boolean', ['feature-state', 'hover'], false],
+            8,
+            0,
+          ],
+          'circle-stroke-color': [
+            'case',
+            ['boolean', ['feature-state', 'hover'], false],
+            'rgba(30, 177, 20, 0.2)',
+            'transparent',
+          ],
         },
       });
     }
@@ -154,7 +187,7 @@ export const LatencyMap: FC<Props> = ({ sourceData, zoomLevel = 1 }) => {
         name: 'mercator',
       },
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
+      style: 'mapbox://styles/mapbox/dark-v11',
       center: [lng, lat],
       zoom: zoom,
     });
@@ -166,7 +199,7 @@ export const LatencyMap: FC<Props> = ({ sourceData, zoomLevel = 1 }) => {
 
   return (
     <div>
-      <div ref={mapContainer} className={styles.container} />
+      <div ref={mapContainer} className="h-screen w-screen" />
     </div>
   );
 };
