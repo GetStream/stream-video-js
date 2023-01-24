@@ -7,13 +7,22 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "storybook": "concurrently \"yarn:watch:*\"",
+    "build-storybook": "concurrently \"yarn:build:*\"",
+    "build:css": "npx tailwindcss -i ./src/tailwind.css -o ./public/tailwind.css",
+    "build:storybook": "build-storybook",
+    "watch:css": "npx tailwindcss -i ./src/tailwind.css -o ./public/tailwind.css --watch",
+    "watch:storybook": "start-storybook dev -p 6006"
   },
   "dependencies": {
+    "autoprefixer": "^10.4.13",
     "mapbox-gl": "^2.12.0",
+    "postcss": "^8.4.21",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "tailwindcss": "^3.2.4",
+    "tailwindcss-plugins": "^0.3.0",
+    "vite-tsconfig-paths": "^4.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.12",
@@ -32,6 +41,7 @@
     "@types/react-dom": "^18.0.9",
     "@vitejs/plugin-react": "^3.0.0",
     "babel-loader": "^8.3.0",
+    "concurrently": "^7.6.0",
     "sass": "^1.57.1",
     "typescript": "^4.9.3",
     "vite": "^4.0.0"
