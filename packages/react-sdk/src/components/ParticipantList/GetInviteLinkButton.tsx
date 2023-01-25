@@ -3,6 +3,7 @@ import { MouseEventHandler, useCallback, useState } from 'react';
 import { Tooltip } from '../Tooltip';
 
 export type GetInviteLinkButtonProps = React.ComponentProps<'button'> & {
+  /** Custom function to override the logic of generating the call invitation link */
   generateLink?: () => string;
 };
 

@@ -2,7 +2,9 @@ import { StreamVideoParticipant } from '@stream-io/video-client';
 import React from 'react';
 
 export type ParticipantListHeaderProps = {
+  /** Click event listener function to be invoked in order to dismiss / hide the ParticipantList from the UI */
   onClose: () => void;
+  /** Array of call participant objects */
   participants: StreamVideoParticipant[];
 };
 

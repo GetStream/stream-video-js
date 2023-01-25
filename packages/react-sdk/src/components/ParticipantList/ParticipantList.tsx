@@ -17,11 +17,17 @@ import { useSearch, UseSearchParams } from '../Search/hooks';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 
 type ParticipantListProps = {
+  /** Click event listener function to be invoked in order to dismiss / hide the ParticipantList from the UI */
   onClose: () => void;
+  /** Custom component to replace a button for generating invitation link to the call */
   GetInviteLinkButton?: React.ComponentType;
+  /** Custom function to override the logic for retrieving searched for participants */
   participantSearchFn?: UseSearchParams<StreamVideoParticipant>['searchFn'];
+  /** Custom component to be rendered when search result is empty */
   EmptyParticipantSearchResultComponent?: React.ComponentType;
+  /** Custom ParticipantList Header component */
   Header?: React.ComponentType<ParticipantListHeaderProps>;
+  /** Custom component to render the list of participants. Used render participant search results as well. */
   ParticipantListing?: React.ComponentType<ParticipantListingProps>;
 };
 export const ParticipantList = ({

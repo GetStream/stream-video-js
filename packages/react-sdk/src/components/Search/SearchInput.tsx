@@ -2,7 +2,14 @@ import { ComponentProps, useEffect, useState } from 'react';
 import clsx from 'clsx';
 
 type SearchInputProps = ComponentProps<'input'> & {
+  /**
+   * Resets the search to its initial state.
+   * The function is called when Esc key or inputs clear button are pressed
+   */
   exitSearch: () => void;
+  /**
+   * Flag to signal, whether search input elements should be rendered as active
+   */
   isActive: boolean;
 };
 export const SearchInput = ({

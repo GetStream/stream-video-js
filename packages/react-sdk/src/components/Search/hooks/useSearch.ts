@@ -2,11 +2,17 @@ import throttle from 'lodash.throttle';
 import { ChangeEventHandler, useCallback, useRef, useState } from 'react';
 
 export type SearchController<T> = {
+  /** Clears / resets the search input value */
   clearInput: () => void;
+  /** Resets the search state to inactive */
   exitSearch: () => void;
+  /** Search input's change event handler */
   handleInputChange: ChangeEventHandler;
+  /** Flag signals that the search request is flight await the response */
   searchQueryInProgress: boolean;
+  /** Search input value */
   searchQuery: string;
+  /** Array of items returned by the search query */
   searchResults: T[];
 };
 

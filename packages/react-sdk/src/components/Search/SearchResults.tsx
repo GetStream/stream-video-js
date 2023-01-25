@@ -1,15 +1,20 @@
 import * as React from 'react';
 import { LoadingIndicator as DefaultLoadingIndicator } from '../LoadingIndicator';
+import { SearchController } from './hooks';
 
 export type SearchResultListProps<T> = {
   data: T[];
 };
 
-export type SearchResultsProps<T> = {
+export type SearchResultsProps<T> = Pick<
+  SearchController<T>,
+  'searchResults' | 'searchQueryInProgress'
+> & {
+  /** Component to be displayed, when empty array of search results is provided */
   EmptySearchResultComponent: React.ComponentType;
-  searchQueryInProgress: boolean;
-  searchResults: T[];
+  /** Component will be used to render non-empty array of search results  */
   SearchResultList: React.ComponentType<SearchResultListProps<T>>;
+  /** Component to be displayed while the search query request is in progress */
   LoadingIndicator?: React.ComponentType;
 };
 

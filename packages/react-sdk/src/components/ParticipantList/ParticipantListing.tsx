@@ -6,6 +6,7 @@ import { useEnterLeaveHandlers } from '../Tooltip/hooks';
 import { Tooltip } from '../Tooltip';
 
 type DisplayNameProps = {
+  /** Participant object that provides the data from which display name can be generated */
   participant: StreamVideoParticipant;
 };
 
@@ -49,7 +50,9 @@ const DefaultDisplayName = ({ participant }: DisplayNameProps) => {
 };
 
 type ParticipantListingItemProps = {
+  /** Participant object be rendered */
   participant: StreamVideoParticipant;
+  /** Custom component used to display participant's name */
   DisplayName?: React.ComponentType<{ participant: StreamVideoParticipant }>;
 };
 export const ParticipantListingItem = ({
@@ -89,6 +92,7 @@ export const ParticipantListingItem = ({
 };
 
 export type ParticipantListingProps = {
+  /** Array of participant objects to be rendered */
   data: StreamVideoParticipant[];
 };
 export const ParticipantListing = ({ data }: ParticipantListingProps) => {
