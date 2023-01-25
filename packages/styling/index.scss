@@ -1,6 +1,10 @@
 // main entry point for component styles
 
-@use 'src/_Variables';
+@use 'src/base';
+@use 'src/global-layout-variables';
+@use 'src/global-theme-variables';
+@use 'src/utils';
+@use 'src/variables';
 
 @import 'src/CallControls';
 @import 'src/CallParticipantView';
@@ -8,8 +12,12 @@
 @import 'src/CallParticipantsView';
 @import 'src/CallStats';
 @import 'src/DeviceSettings';
+@import 'src/LoadingIndicator';
 @import 'src/Notification';
+@import 'src/ParticipantList';
+@import "src/Search";
 @import 'src/StreamCall';
+@import "src/Tooltip";
 @import 'src/VideoPlaceholder';
 
 @import './src/Debug';
