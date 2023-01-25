@@ -1,6 +1,6 @@
 @use '../utils';
 
-.str-video__loading-indicator.spinner {
+.str-video__loading-indicator__icon.spinner {
   @include utils.apply-mask-image(
       var(--str-video__icon--loading),
       var(--str-video__text-color2),
