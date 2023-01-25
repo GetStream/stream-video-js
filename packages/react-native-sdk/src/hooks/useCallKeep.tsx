@@ -1,7 +1,6 @@
 import { useActiveCall } from '@stream-io/video-react-bindings';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { Platform } from 'react-native';
-import { useStreamVideoStoreValue } from '../contexts';
 import { generateCallTitle } from '../utils';
 
 type RNCallKeepType = typeof import('react-native-callkeep').default;
