@@ -74,11 +74,11 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const mirror = isLoggedInUser && !cameraBackFacingMode;
   const MicIcon = isAudioMuted ? MicOff : Mic;
   const VideoIcon = isVideoMuted ? VideoSlash : Video;
-  const iaAudioAvailable = useMemo(
+  const isAudioAvailable = useMemo(
     () => kind === 'video' && !!audioStream && !isAudioMuted,
     [kind, audioStream, isAudioMuted],
   );
-  const iaVideoAvailable = useMemo(
+  const isVideoAvailable = useMemo(
     () => !!videoStream && !isVideoMuted,
     [videoStream, isVideoMuted],
   );
@@ -92,7 +92,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       ]}
       onLayout={onLayout}
     >
-      {iaVideoAvailable ? (
+      {isVideoAvailable ? (
         <VideoRenderer
           mirror={mirror}
           mediaStream={videoStream as MediaStream}
@@ -102,7 +102,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       ) : (
         <Avatar participant={participant} />
       )}
-      {iaAudioAvailable && (
+      {isAudioAvailable && (
         <RTCView streamURL={(audioStream as MediaStream).toURL()} />
       )}
       {kind === 'video' && (

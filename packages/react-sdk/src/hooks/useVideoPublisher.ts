@@ -38,7 +38,7 @@ export const useVideoPublisher = ({
   useEffect(() => {
     let interrupted = false;
 
-    if (initialVideoMuted || isPublishingVideo === false) return;
+    if (initialVideoMuted || !isPublishingVideo) return;
 
     getVideoStream(videoDeviceId).then((stream) => {
       if (interrupted && stream.active)
@@ -51,7 +51,13 @@ export const useVideoPublisher = ({
       interrupted = true;
       call.stopPublish(SfuModels.TrackType.VIDEO);
     };
-  }, [videoDeviceId, call, preferredCodec]);
+  }, [
+    videoDeviceId,
+    call,
+    preferredCodec,
+    initialVideoMuted,
+    isPublishingVideo,
+  ]);
 
   useEffect(() => {
     const subscription = watchForDisconnectedVideoDevice(

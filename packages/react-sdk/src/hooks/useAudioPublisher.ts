@@ -5,7 +5,6 @@ import {
   getAudioStream,
   SfuModels,
   watchForDisconnectedAudioDevice,
-  watchForDisconnectedAudioOutputDevice, // TODO: ???
 } from '@stream-io/video-client';
 import { map } from 'rxjs';
 
@@ -33,7 +32,7 @@ export const useAudioPublisher = ({
     // isPublishingAudio/Video can be initially undefined (participant comes later)
     // - which is something we want to have the effect publish initial stream
     // we only strictly check if it's false to see if the user is muted while changing devices
-    if (initialAudioMuted || isPublishingAudio === false) return;
+    if (initialAudioMuted || !isPublishingAudio) return;
 
     getAudioStream(audioDeviceId).then((stream) => {
       if (interrupted && stream.active)
@@ -46,7 +45,7 @@ export const useAudioPublisher = ({
       interrupted = true;
       call.stopPublish(SfuModels.TrackType.AUDIO);
     };
-  }, [call, audioDeviceId]);
+  }, [call, audioDeviceId, initialAudioMuted, isPublishingAudio]);
 
   const publishAudioStream = useCallback(async () => {
     try {
