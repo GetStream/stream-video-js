@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import '../style/app.css';
 import '@stream-io/video-styling/dist/css/styles.css';
+import '../style/app.css';
 import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
