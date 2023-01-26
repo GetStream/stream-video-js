@@ -28,7 +28,10 @@ export const CallControls = (props: CallControlsProps) => {
 
   const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
   return (
-    <div className="str-video__call-controls">
+    <div
+      className="str-video__call-controls"
+      data-testid="str-video__call-controls"
+    >
       <div className="rd-call-controls-group">
         <RecordCallButton call={call} />
         <CallStatsButton />
