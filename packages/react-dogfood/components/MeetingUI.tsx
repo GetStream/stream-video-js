@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { useActiveCall } from '@stream-io/video-react-bindings';
 import {
   DeviceSettings,
+  LoadingIndicator,
   ParticipantList,
   Stage,
 } from '@stream-io/video-react-sdk';
@@ -23,7 +24,14 @@ export const MeetingUI = () => {
 
   const hideParticipantList = useCallback(() => setShowParticipants(false), []);
 
-  if (!activeCall) return <div>loading</div>;
+  if (!activeCall)
+    return (
+      <div className=" str-video str-video__call">
+        <div className="str-video__call__loading-screen">
+          <LoadingIndicator />
+        </div>
+      </div>
+    );
 
   const { type, id } = activeCall.data.call;
   const showSidebar = showParticipants;
