@@ -71,8 +71,7 @@ export const VideoRenderer = (props: VideoRendererProps) => {
   } = props;
   return (
     <RTCView
-      // Since we stream the audio/video on mute/unmute, the `mediaStream` might not be available for a split second hence check for `mediaStream` is added
-      streamURL={mediaStream?.toURL()}
+      streamURL={mediaStream.toURL()}
       mirror={mirror}
       style={style}
       objectFit={objectFit}
