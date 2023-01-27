@@ -40,7 +40,7 @@ export class AppComponent {
       }
     });
     this.streamI18nService.setTranslation();
-    this.themeService.theme$.next('dark');
+    // this.themeService.theme$.next('dark');
     this.incomingCallsService.startWatchingForIncomingCalls();
     this.activeCall$ = this.streamVideoService.activeCall$;
   }

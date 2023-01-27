@@ -25,7 +25,11 @@
     mat-icon-button
     aria-label="Start a call"
   >
-    <mat-icon *ngIf="!isCallCreationInProgress" fontIcon="call"></mat-icon>
+    <mat-icon
+      class="call-icon"
+      *ngIf="!isCallCreationInProgress"
+      fontIcon="call"
+    ></mat-icon>
     <mat-progress-spinner
       *ngIf="isCallCreationInProgress"
       color="primary"
