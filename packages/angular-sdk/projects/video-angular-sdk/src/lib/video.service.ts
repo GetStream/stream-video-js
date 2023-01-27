@@ -1,8 +1,8 @@
 import { Injectable, NgZone } from '@angular/core';
-import { CallConfig } from '@stream-io/video-client';
 import {
   Call,
   CallAccepted,
+  CallConfig,
   CallStatsReport,
   PendingCall,
   StreamVideoClient,

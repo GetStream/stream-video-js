@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import {
   StreamVideoService,
@@ -40,7 +40,6 @@ export class AppComponent {
       }
     });
     this.streamI18nService.setTranslation();
-    // this.themeService.theme$.next('dark');
     this.incomingCallsService.startWatchingForIncomingCalls();
     this.activeCall$ = this.streamVideoService.activeCall$;
   }
