@@ -7,23 +7,30 @@ import {
   GetOrCreateCallResponse,
   JoinCallResponse,
 } from '../gen/coordinator';
+import { sleep } from './connection/utils';
+import { User } from './connection/types';
+
+export type StreamCoordinatorClientOptions = {
+  baseUrl?: string;
+  authToken?: string;
+};
 
 export class StreamCoordinatorClient {
   wsConnection = new StableWSConnection();
   private api: AxiosInstance;
 
-  constructor() {
+  constructor(apiKey: string, options: StreamCoordinatorClientOptions = {}) {
     this.api = axios.create({
-      baseURL: 'http://localhost:3030/video',
+      baseURL: options.baseUrl,
       params: {
-        user_id: 'ol',
-        api_key: '892s22ypvt6m',
+        api_key: apiKey,
       },
       headers: {
-        Authorization: this.wsConnection.token,
+        Authorization: options.authToken,
         'stream-auth-type': 'jwt',
       },
     });
+    this.wsConnection.token = options.authToken!;
   }
 
   connect = async () => {
@@ -33,27 +40,49 @@ export class StreamCoordinatorClient {
     }
   };
 
+  connectUser = async (user: User) => {
+    this.api.defaults.params.user_id = user.id;
+    this.wsConnection.ws?.send(
+      JSON.stringify({
+        token: this.wsConnection.token,
+        user_details: {
+          id: 'user_',
+          name: 'ol',
+          username: 'ol',
+          role: 'admin',
+        },
+      }),
+    );
+  };
+
   getOrCreateCall = async (
     id: string,
     type: string,
     data: GetOrCreateCallRequest,
   ) => {
     // FIXME OL: remove once React waits until client WS is connected
-    await new Promise<void>((resolve) => setTimeout(resolve, 1200));
+    await sleep(1200);
 
-    return this.api.post<
-      GetOrCreateCallRequest,
-      GetOrCreateCallResponse,
-      GetOrCreateCallRequest
-    >(`call/${type}/${id}`, data);
+    const response = await this.api.post<GetOrCreateCallResponse>(
+      `call/${type}/${id}`,
+      data,
+    );
+    return response.data;
   };
 
-  joinCall = async (id: string, type: string, data: GetOrCreateCallRequest) => {
-    return this.api.post<
-      GetOrCreateCallRequest,
-      JoinCallResponse,
-      GetOrCreateCallRequest
-    >(`join_call/${type}/${id}`, data);
+  joinCall = async (
+    id: string,
+    type: string,
+    data?: GetOrCreateCallRequest,
+  ) => {
+    // FIXME OL: remove once React waits until client WS is connected
+
+    await sleep(1200);
+    const response = await this.api.post<JoinCallResponse>(
+      `join_call/${type}/${id}`,
+      data,
+    );
+    return response.data;
   };
 
   getCallEdgeServer = async (
@@ -61,10 +90,10 @@ export class StreamCoordinatorClient {
     type: string,
     data: GetCallEdgeServerRequest,
   ) => {
-    return this.api.post<
-      GetCallEdgeServerRequest,
-      GetCallEdgeServerResponse,
-      GetCallEdgeServerRequest
-    >(`get_call_edge_server/${type}/${id}`, data);
+    const response = await this.api.post<GetCallEdgeServerResponse>(
+      `get_call_edge_server/${type}/${id}`,
+      data,
+    );
+    return response.data;
   };
 }

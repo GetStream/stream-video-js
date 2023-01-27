@@ -65,8 +65,7 @@ export class StableWSConnection {
   ws?: WebSocket;
   wsID: number;
 
-  token =
-    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoib2wiLCJleHAiOjE2NzQ5MzgwNTN9.DH5fhvOT4A0K4sWnRaORMDDoKi9af8PqRagEj53UQLk';
+  token = '';
 
   constructor() {
     /** consecutive failures influence the duration of the timeout */
@@ -204,9 +203,9 @@ export class StableWSConnection {
     //   this.client.key
     // }&authorization=${token}&stream-auth-type=${this.client.getAuthType()}&X-Stream-Client=${this.client.getUserAgent()}`;
     const params = new URLSearchParams();
+    params.append('api_key', '892s22ypvt6m');
     params.append('authorization', this.token);
     params.append('stream-auth-type', 'jwt');
-    params.append('api_key', '892s22ypvt6m');
 
     return `ws://localhost:8800/video/connect?${params.toString()}`;
   };
@@ -474,12 +473,11 @@ export class StableWSConnection {
 
     this.ws?.send(
       JSON.stringify({
-        token:
-          'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoib2wiLCJleHAiOjE2NzQ5MzgwNTN9.DH5fhvOT4A0K4sWnRaORMDDoKi9af8PqRagEj53UQLk',
+        token: this.token,
         user_details: {
-          id: 'ol',
-          name: 'ol',
-          username: 'ol',
+          id: 'oliver.lazoroski@getstream.io',
+          name: 'oliver.lazoroski@getstream.io',
+          username: 'oliver.lazoroski@getstream.io',
           role: 'admin',
         },
       }),

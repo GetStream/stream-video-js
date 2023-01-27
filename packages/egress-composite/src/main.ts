@@ -32,7 +32,6 @@ import './style.css';
 
   const client = new StreamVideoClient(apiKey, {
     token: accessToken,
-    sendJson: true,
     coordinatorRpcUrl,
     coordinatorWsUrl,
   });
@@ -49,11 +48,7 @@ import './style.css';
   });
 
   console.log('Joining call with id:', callId);
-  const call = await client.joinCall({
-    id: callId,
-    type: 'default',
-    datacenterId: '',
-  });
+  const call = await client.joinCall(callId, 'default');
 
   if (!call) {
     throw new Error(`Failed to join a call with id: ${callId}`);

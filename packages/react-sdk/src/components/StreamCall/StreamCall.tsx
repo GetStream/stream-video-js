@@ -17,23 +17,13 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!videoClient || activeCall) return;
 
-    if (outgoingCall?.call && videoClient.callConfig.joinCallInstantly) {
-      videoClient.joinCall({
-        id: outgoingCall.call.id,
-        type: outgoingCall.call.type,
-        // FIXME: OL optional, but it is marked as required in proto
-        datacenterId: '',
-      });
+    if (outgoingCall.call && videoClient.callConfig.joinCallInstantly) {
+      videoClient.joinCall(outgoingCall.call!.id, outgoingCall.call!.type);
     } else if (
       acceptedCall?.call &&
       !videoClient.callConfig.joinCallInstantly
     ) {
-      videoClient.joinCall({
-        id: acceptedCall.call.id,
-        type: acceptedCall.call.type,
-        // FIXME: OL optional, but it is marked as required in proto
-        datacenterId: '',
-      });
+      videoClient.joinCall(outgoingCall.call!.id, outgoingCall.call!.type);
     }
   }, [videoClient, outgoingCall, acceptedCall, activeCall]);
 

@@ -1,5 +1,5 @@
 import { PropsWithChildren, useEffect } from 'react';
-import { CreateCallInput } from '@stream-io/video-client';
+import { CreateCallInput, CoordinatorModels } from '@stream-io/video-client';
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 import { MediaDevicesProvider } from '../../contexts';
 
@@ -22,21 +22,19 @@ export const StreamMeeting = ({
   useEffect(() => {
     if (!client) return;
     const initiateMeeting = async () => {
-      const descriptors = { id: callId, type: callType };
-      const callMetadata = await client.getOrCreateCall({
-        ...descriptors,
-        input,
+      await client.joinCall(callId, callType, {
+        ring: false,
+        data: {
+          members: input?.members.map<CoordinatorModels.CallMemberRequest>(
+            (member) => ({
+              user_id: member.userId,
+              user: {
+                id: member.userId,
+              },
+            }),
+          ),
+        },
       });
-      if (
-        callMetadata?.call?.createdByUserId === currentUser ||
-        client.callConfig.joinCallInstantly
-      ) {
-        await client.joinCall({
-          ...descriptors,
-          // FIXME: OL optional, but it is marked as required in proto
-          datacenterId: '',
-        });
-      }
     };
 
     initiateMeeting().catch((e) => {

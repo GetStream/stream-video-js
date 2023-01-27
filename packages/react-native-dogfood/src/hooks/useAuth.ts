@@ -54,7 +54,6 @@ export const useAuth = () => {
           const _videoClient = new StreamVideoClient(APIParams.apiKey, {
             coordinatorWsUrl: clientParams.coordinatorWsUrl,
             coordinatorRpcUrl: clientParams.coordinatorRpcUrl,
-            sendJson: true,
             token,
           });
           await _videoClient.connect(APIParams.apiKey, token, user);

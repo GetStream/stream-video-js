@@ -26,7 +26,6 @@ export const useCreateStreamVideoClient = ({
         {
           coordinatorWsUrl,
           coordinatorRpcUrl,
-          sendJson: true,
           token,
         },
         callConfig,

@@ -1,5 +1,7 @@
 import 'webrtc-adapter';
 
+export * as CoordinatorModels from './src/gen/coordinator';
+
 export * as SfuEvents from './src/gen/video/sfu/event/events';
 export * as SfuModels from './src/gen/video/sfu/models/models';
 // due to name collision with `/rtc/Call.ts`

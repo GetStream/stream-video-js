@@ -2,11 +2,15 @@ import {
   StreamVideoReadOnlyStateStore,
   StreamVideoWriteableStateStore,
 } from './store';
-import type { Call as CallMeta } from './gen/video/coordinator/call_v1/call';
+import type {
+  DatacenterResponse,
+  GetCallEdgeServerRequest,
+  GetOrCreateCallRequest,
+  ICEServer,
+} from './gen/coordinator';
+
 import type {
   CreateCallRequest,
-  GetOrCreateCallRequest,
-  JoinCallRequest,
   ReportCallStatEventRequest,
   ReportCallStatEventResponse,
   ReportCallStatsRequest,
@@ -14,11 +18,6 @@ import type {
 } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { UserEventType } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
-import type {
-  Edge,
-  ICEServer,
-  Latency,
-} from './gen/video/coordinator/edge_v1/edge';
 import type { User, UserInput } from './gen/video/coordinator/user_v1/user';
 import {
   createCoordinatorClient,
@@ -50,7 +49,6 @@ const defaultOptions: Partial<StreamVideoClientOptions> = {
     'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
   coordinatorWsUrl:
     'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
-  sendJson: false,
   latencyMeasurementRounds: 3,
 };
 
@@ -73,7 +71,7 @@ export class StreamVideoClient {
   private ws: StreamWebSocketClient | undefined;
   private callDropScheduler: CallDropScheduler | undefined;
 
-  private coordinatorClient = new StreamCoordinatorClient();
+  private coordinatorClient;
 
   /**
    * @internal
@@ -102,13 +100,18 @@ export class StreamVideoClient {
     const authToken = typeof token === 'function' ? token() : token;
     this.client = createCoordinatorClient({
       baseUrl: options.coordinatorRpcUrl || '/',
-      sendJson: options.sendJson,
+      sendJson: true,
       interceptors: [
         withHeaders({
           api_key: apiKey,
           Authorization: `Bearer ${authToken}`,
         }),
       ],
+    });
+
+    this.coordinatorClient = new StreamCoordinatorClient('892s22ypvt6m', {
+      baseUrl: options.coordinatorRpcUrl,
+      authToken: authToken,
     });
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
@@ -164,6 +167,12 @@ export class StreamVideoClient {
    */
   connect = async (apiKey: string, token: string, user: UserInput) => {
     await this.coordinatorClient.connect();
+    // await this.coordinatorClient.connectUser({
+    //   id: user.id,
+    //   name: user.name,
+    //   role: user.role,
+    //   username: user.name,
+    // });
     if (this.ws) return;
     this.ws = await createSocketConnection(
       this.options.coordinatorWsUrl!,
@@ -229,48 +238,45 @@ export class StreamVideoClient {
   };
 
   /**
-   * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, this will return an error.
-   * Causes the CallCreated event to be emitted to all the call members.
-   * @param {GetOrCreateCallRequest} data CreateCallRequest payload object
+   * Allows you to create new calls with the given parameters.
+   * If a call with the same combination of type and id already exists, it will be returned.
+   *
+   * Causes the CallCreated event to be emitted to all the call members in case this call didnot exist before.
+   *
+   * @param id the id of the call.
+   * @param type the type of the call.
+   * @param data the data for the call.
    * @returns A call metadata with information about the call.
    */
-  getOrCreateCall = async (data: GetOrCreateCallRequest) => {
-    const callResponse = await this.coordinatorClient.getOrCreateCall(
-      data.id,
-      'default',
-      {
-        ring: data.input?.ring,
-        data: {
-          members: [
-            {
-              user_id: 'ol',
-              user: {
-                id: 'ol',
-              },
-            },
-          ],
-        },
-      },
+  getOrCreateCall = async (
+    id: string,
+    type: string,
+    data: GetOrCreateCallRequest,
+  ) => {
+    const response = await this.coordinatorClient.getOrCreateCall(
+      id,
+      type,
+      data,
     );
-    console.log('callResponse', callResponse);
-
-    const {
-      response: { call },
-    } = await this.client.getOrCreateCall(data);
+    const { call } = response;
+    if (!call) {
+      console.log(`Call with id ${id} and type ${type} could not be created`);
+      return;
+    }
 
     const pendingCalls = this.writeableStateStore.getCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
     );
     const callAlreadyRegistered = pendingCalls.find(
-      (pendingCall) => pendingCall.call?.callCid === call?.call?.callCid,
+      (pendingCall) => pendingCall.call?.callCid === call.cid,
     );
 
-    if (call && !callAlreadyRegistered) {
-      this.writeableStateStore.setCurrentValue(
-        this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => [...pendingCalls, call],
-      );
-      return call;
+    if (!callAlreadyRegistered) {
+      // this.writeableStateStore.setCurrentValue(
+      //   this.writeableStateStore.pendingCallsSubject,
+      //   (pendingCalls) => [...pendingCalls, call],
+      // );
+      return response;
     } else {
       // TODO: handle error?
       return undefined;
@@ -308,7 +314,7 @@ export class StreamVideoClient {
       eventType: UserEventType.ACCEPTED_CALL,
     });
     const [type, id] = callCid.split(':');
-    const callController = await this.joinCall({ id, type, datacenterId: '' });
+    const callController = await this.joinCall(id, type);
     await callController?.join();
     return callController;
   };
@@ -365,48 +371,54 @@ export class StreamVideoClient {
   };
 
   /**
-   * Allows you to create a new call with the given parameters and joins the call immediately. If a call with the same combination of `type` and `id` already exists, it will join the existing call.
-   * @param data
-   * @param sessionId
+   * Allows you to create a new call with the given parameters and joins the call immediately.
+   * If a call with the same combination of `type` and `id` already exists, it will join the existing call.
+   *
+   * @param id the id of the call.
+   * @param type the type of the call.
+   * @param data the data for the call.
    * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
    */
-  joinCall = async (data: JoinCallRequest, sessionId?: string) => {
-    await this.coordinatorClient.joinCall(data.id, 'default', {
-      ring: data.input?.ring,
-      data: {
-        members: [
-          {
-            user_id: 'ol',
-            user: {
-              id: 'ol',
-            },
-          },
-        ],
-      },
-    });
+  joinCall = async (
+    id: string,
+    type: string,
+    data?: GetOrCreateCallRequest,
+  ) => {
+    const joinCallResponse = await this.coordinatorClient.joinCall(
+      id,
+      type,
+      data,
+    );
 
-    const { response } = await this.client.joinCall(data);
-    if (response.call && response.call.call && response.edges) {
-      const callMeta = response.call.call;
-      const edge = await this.getCallEdgeServer(callMeta, response.edges);
-
+    const { call: callMeta, edges } = joinCallResponse;
+    if (callMeta && edges) {
+      const edge = await this.getCallEdgeServer(id, type, edges);
       if (edge.credentials && edge.credentials.server) {
-        const edgeName = edge.credentials.server.edgeName;
-        const { server, iceServers, token } = edge.credentials;
-        const sfuClient = new StreamSfuClient(server.url, token, sessionId);
-
         // TODO OL: compute the initial value from `activeCallSubject`
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.callRecordingInProgressSubject,
-          callMeta.recordingActive,
+          !!callMeta.record_egress, // FIXME OL: this is not correct
         );
 
+        const { server, ice_servers, token } = edge.credentials;
+        const sfuClient = new StreamSfuClient(server.url!, token!);
         const call = new Call(
-          response.call,
+          {
+            // @ts-ignore
+            call: {
+              id,
+              type,
+              callCid: callMeta.cid!,
+              createdByUserId: callMeta.created_by?.id!,
+            },
+            users: {},
+            // @ts-ignore
+            details: {},
+          },
           sfuClient,
           {
-            connectionConfig: this.toRtcConfiguration(iceServers),
-            edgeName,
+            connectionConfig: this.toRtcConfiguration(ice_servers),
+            edgeName: server!.edge_name,
           },
           this.writeableStateStore,
           this.userBatcher,
@@ -489,50 +501,31 @@ export class StreamVideoClient {
     return response.response;
   };
 
-  private getCallEdgeServer = async (call: CallMeta, edges: Edge[]) => {
-    const latencyByEdge: { [e: string]: Latency } = {};
+  private getCallEdgeServer = async (
+    id: string,
+    type: string,
+    edges: DatacenterResponse[],
+  ) => {
+    const latencyByEdge: GetCallEdgeServerRequest['latency_measurements'] = {};
     await Promise.all(
       edges.map(async (edge) => {
-        latencyByEdge[edge.name] = {
-          measurementsSeconds: await measureResourceLoadLatencyTo(
-            edge.latencyUrl,
-            Math.max(this.options.latencyMeasurementRounds || 0, 3),
-          ),
-        };
+        latencyByEdge[edge.name!] = await measureResourceLoadLatencyTo(
+          edge.latency_url!,
+          Math.max(this.options.latencyMeasurementRounds || 0, 3),
+        );
       }),
     );
 
-    const edgeServer = await this.client.getCallEdgeServer({
-      callCid: call.callCid,
-      // TODO: OL: check the double wrapping
-      measurements: {
-        measurements: latencyByEdge,
-      },
+    return await this.coordinatorClient.getCallEdgeServer(id, type, {
+      latency_measurements: latencyByEdge,
     });
-
-    const edgeServer2 = await this.coordinatorClient.getCallEdgeServer(
-      call.id,
-      call.type,
-      {
-        latency_measurements: Object.entries(latencyByEdge).reduce<
-          Record<string, Array<number>>
-        >((acc, [dc, measurements]) => {
-          acc[dc] = measurements.measurementsSeconds;
-          return acc;
-        }, {}),
-      },
-    );
-
-    console.log('edgeServer2', edgeServer2);
-
-    return edgeServer.response;
   };
 
   private toRtcConfiguration = (config?: ICEServer[]) => {
     if (!config || config.length === 0) return undefined;
     const rtcConfig: RTCConfiguration = {
       iceServers: config.map((ice) => ({
-        urls: ice.urls,
+        urls: ice.urls!,
         username: ice.username,
         credential: ice.password,
       })),
