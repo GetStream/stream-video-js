@@ -27,8 +27,8 @@ jobs:
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_REACT_MESSENGER_CLONE }}
       VITE_STREAM_KEY: ${{ vars.STREAM_API_KEY_REACT_MESSENGER_CLONE }}
       VITE_VIDEO_API_KEY: ${{ vars.STREAM_API_KEY_REACT_MESSENGER_CLONE }}
-      VITE_VIDEO_COORDINATOR_WS_URL: "wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect"
-      VITE_VIDEO_COORDINATOR_RPC_ENDPOINT: "https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc"
+      VITE_VIDEO_COORDINATOR_WS_URL: 'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect'
+      VITE_VIDEO_COORDINATOR_RPC_ENDPOINT: 'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc'
 
     steps:
       - uses: actions/checkout@v3
@@ -77,8 +77,7 @@ jobs:
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ANGULAR_ZOOM_CLONE }}
-      STREAM_VIDEO_API_KEY: ${{ vars.STREAM_API_KEY_ANGULAR_ZOOM_CLONE_VIDEO }}
-      STREAM_CHAT_API_KEY: ${{ vars.STREAM_API_KEY_ANGULAR_ZOOM_CLONE_CHAT }}
+      STREAM_API_KEY: ${{ vars.STREAM_API_KEY_ANGULAR_ZOOM_CLONE }}
 
     steps:
       - uses: actions/checkout@v3
