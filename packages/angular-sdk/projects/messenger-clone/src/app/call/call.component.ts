@@ -1,6 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
 import {
   StreamVideoService,
   InCallDeviceManagerService,
@@ -13,6 +12,7 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { combineLatest, map, Observable, Subscription } from 'rxjs';
+import { ChatClientService, getChannelDisplayText } from 'stream-chat-angular';
 
 @Component({
   selector: 'app-call',
@@ -28,20 +28,33 @@ export class CallComponent implements OnInit, OnDestroy {
   TrackType = SfuModels.TrackType;
   isLocalParticipantCallOwner = false;
   isCallRecordingInProgress = false;
+  channelName?: string;
   private subscriptions: Subscription[] = [];
 
   constructor(
     private streamVideoService: StreamVideoService,
-    private router: Router,
     private inCallDeviceManager: InCallDeviceManagerService,
     private snackBar: MatSnackBar,
     private deviceManager: DeviceManagerService,
+    private chatClientService: ChatClientService,
   ) {
     this.inCallDeviceManager.start();
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe((c) => {
         if (c) {
           this.call = c;
+          const channelId = JSON.parse(
+            new TextDecoder().decode(this.call?.data.call?.customJson),
+          ).channelId;
+          this.chatClientService.chatClient
+            .queryChannels({ id: channelId }, undefined, { watch: false })
+            .then((response) => {
+              const channel = response[0];
+              this.channelName = getChannelDisplayText(
+                channel,
+                this.chatClientService.chatClient.user!,
+              );
+            });
         } else {
           this.call = undefined;
         }
@@ -94,20 +107,9 @@ export class CallComponent implements OnInit, OnDestroy {
   }
 
   endCall() {
-    this.call?.leave();
-    this.router.navigateByUrl('/call-lobby');
-  }
-
-  toggleRecording() {
-    this.isCallRecordingInProgress
-      ? this.streamVideoService.videoClient?.stopRecording(
-          this.call!.data.call!.id,
-          this.call!.data.call!.type,
-        )
-      : this.streamVideoService.videoClient?.startRecording(
-          this.call!.data.call!.id,
-          this.call!.data.call!.type,
-        );
+    this.streamVideoService.videoClient?.cancelCall(
+      this.call!.data.call!.callCid,
+    );
   }
 
   ngOnInit(): void {}
@@ -119,17 +121,5 @@ export class CallComponent implements OnInit, OnDestroy {
 
   trackBySessionId(_: number, item: StreamVideoParticipant) {
     return item.sessionId;
-  }
-
-  toggleAudioMuteState(userId: string, isMuted: boolean) {
-    alert('Not yet supported');
-  }
-
-  toggleVideoMuteState(userId: string, isMuted: boolean) {
-    alert('Not yet supported');
-  }
-
-  muteAll() {
-    alert('Not yet supported');
   }
 }

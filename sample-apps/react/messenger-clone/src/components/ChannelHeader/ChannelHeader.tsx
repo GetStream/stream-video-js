@@ -70,6 +70,11 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
           }
           return acc;
         }, []),
+        call: {
+          customJson: new TextEncoder().encode(
+            JSON.stringify({ channelId: channel.id }),
+          ),
+        },
       },
     });
   }, [client.user.id, channel.state.members, videoClient]);

@@ -49,8 +49,6 @@ export class ConnectUserService implements CanActivate {
           const baseWsUrl = environment.wsUrl;
           this.videoService.init(apiKey, token, baseCoordinatorUrl, baseWsUrl, {
             ...CALL_CONFIG.ring,
-            joinCallInstantly: true,
-            autoRejectWhenInCall: true,
           });
           await this.videoService.videoClient?.connect(
             environment.apiKey,

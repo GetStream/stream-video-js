@@ -17,8 +17,9 @@ import {
 import { UserService } from '../user.service';
 import { v4 as uuidv4 } from 'uuid';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
+import { OutgoingCallComponent } from '../outgoing-call/outgoing-call.component';
 
 @Component({
   selector: 'app-chat',
@@ -39,6 +40,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     private customTemplateService: CustomTemplatesService,
     private videoService: StreamVideoService,
     private snackBar: MatSnackBar,
+    private dialog: MatDialog,
   ) {
     const userId = this.userService.selectedUserId!;
 
@@ -96,24 +98,28 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       const call = await this.videoService.videoClient?.getOrCreateCall({
         type: 'default',
-        id: uuidv4(),
+        id: `${uuidv4()}`,
         input: {
           members: memberInput,
           createdBy: { oneofKind: 'userId', userId },
           ring: true,
+          call: {
+            customJson: new TextEncoder().encode(
+              JSON.stringify({ channelId: channel.id }),
+            ),
+          },
         },
       });
       if (call) {
-        await this.videoService.videoClient?.joinCall({
-          id: call.call!.id,
-          type: 'default',
-          datacenterId: '',
+        this.dialog.open(OutgoingCallComponent, {
+          disableClose: true,
+          data: call.call,
         });
       }
       this.isCallCreationInProgress = false;
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      this.snackBar.open(`Call couldn't be started`);
+      this.snackBar.open(`Call couldn't be started, ${error.message}`);
       this.isCallCreationInProgress = false;
     }
   }

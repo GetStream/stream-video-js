@@ -22,8 +22,12 @@ export class IncomingCallsService {
       this.videoService.incomingCalls$,
       this.isDialogOpen$,
     ]).subscribe(([calls, isDialogOpen]) => {
+      console.log(calls, isDialogOpen);
       if (calls.length > 0 && !isDialogOpen) {
-        this.activeDialog = this.dialog.open(IncomingCallComponent);
+        this.activeDialog = this.dialog.open(IncomingCallComponent, {
+          disableClose: true,
+          data: calls[0],
+        });
         this.isDialogOpen$.next(true);
         this.activeDialog.afterClosed().subscribe(() => {
           this.activeDialog = undefined;

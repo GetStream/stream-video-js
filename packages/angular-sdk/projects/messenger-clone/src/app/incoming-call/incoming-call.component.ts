@@ -1,13 +1,13 @@
-import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
-  AudioMediaStreamState,
   DeviceManagerService,
-  MediaStreamState,
   StreamVideoService,
 } from '@stream-io/video-angular-sdk';
-import { CallMeta } from '@stream-io/video-client';
+import { PendingCall } from '@stream-io/video-client';
 import { Subscription } from 'rxjs';
+import { ChatClientService, getChannelDisplayText } from 'stream-chat-angular';
 
 @Component({
   selector: 'app-incoming-call',
@@ -15,53 +15,44 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./incoming-call.component.scss'],
 })
 export class IncomingCallComponent implements OnInit, OnDestroy {
-  videoStream?: MediaStream;
-  videoState?: MediaStreamState;
-  videoErrorMessage?: string;
-  audioStream?: MediaStream;
-  audioState?: AudioMediaStreamState;
-  audioErrorMessage?: string;
-  isSpeaking = false;
-  joinOrCreate: 'join' | 'create' = 'create';
-  callMeta?: CallMeta.Call;
-  isJoinOrCreateInProgress = false;
+  isAcceptInProgress = false;
+  isRejectInProgress = false;
+  channelName?: string;
   private subscripitions: Subscription[] = [];
 
   constructor(
-    private deviceManager: DeviceManagerService,
     private streamVideoService: StreamVideoService,
     private snackBar: MatSnackBar,
     private ngZone: NgZone,
+    @Inject(MAT_DIALOG_DATA) public data: PendingCall,
+    private matDialogRef: MatDialogRef<any>,
+    private deviceManager: DeviceManagerService,
+    private chatClientService: ChatClientService,
   ) {
-    this.deviceManager.initAudioDevices();
-    this.deviceManager.initVideoDevices();
-    this.deviceManager.initAudioOutputDevices();
-    this.deviceManager.startVideo();
-    this.deviceManager.startAudio();
+    const channelId = JSON.parse(
+      new TextDecoder().decode(this.data?.call?.customJson),
+    ).channelId;
+    this.chatClientService.chatClient
+      .queryChannels({ id: channelId }, undefined, { watch: false })
+      .then((response) => {
+        const channel = response[0];
+        this.channelName = getChannelDisplayText(
+          channel,
+          this.chatClientService.chatClient.user!,
+        );
+      });
     this.subscripitions.push(
-      this.deviceManager.videoStream$.subscribe((s) => (this.videoStream = s)),
-    );
-    this.subscripitions.push(
-      this.deviceManager.videoState$.subscribe((s) => (this.videoState = s)),
-    );
-    this.subscripitions.push(
-      this.deviceManager.videoErrorMessage$.subscribe(
-        (s) => (this.videoErrorMessage = s),
-      ),
-    );
-    this.subscripitions.push(
-      this.deviceManager.audioStream$.subscribe((s) => (this.audioStream = s)),
-    );
-    this.subscripitions.push(
-      this.deviceManager.audioState$.subscribe((s) => (this.audioState = s)),
-    );
-    this.subscripitions.push(
-      this.deviceManager.audioErrorMessage$.subscribe(
-        (s) => (this.audioErrorMessage = s),
-      ),
-    );
-    this.subscripitions.push(
-      this.deviceManager.isSpeaking$.subscribe((s) => (this.isSpeaking = s)),
+      this.streamVideoService.incomingCalls$.subscribe((calls) => {
+        // TODO: state store shortcoming: we don't know if incoming call was removed because we accepted it or because it was cancelled
+        if (
+          !calls.find((c) => c.call?.id === this.data.call?.id) &&
+          !this.isAcceptInProgress
+        ) {
+          this.matDialogRef.close();
+          this.deviceManager.stopAudio();
+          this.deviceManager.stopVideo();
+        }
+      }),
     );
   }
 
@@ -71,17 +62,35 @@ export class IncomingCallComponent implements OnInit, OnDestroy {
     this.subscripitions.forEach((s) => s.unsubscribe());
   }
 
-  private async joinCall(callId: string) {
+  async acceptCall() {
+    this.isAcceptInProgress = true;
     try {
-      await this.ngZone.runOutsideAngular(() => {
-        return this.streamVideoService.videoClient?.joinCall({
-          id: callId,
-          type: 'default',
-          datacenterId: '',
-        });
+      await this.ngZone.runOutsideAngular(async () => {
+        await this.streamVideoService.videoClient?.acceptCall(
+          this.data.call!.callCid,
+        );
       });
-    } catch (error) {
-      this.snackBar.open(`Couldn't join call`);
+      this.matDialogRef.close();
+      this.isAcceptInProgress = false;
+    } catch (err: any) {
+      this.snackBar.open(`Can't accept call, ${err.message}`, 'OK');
+      this.isAcceptInProgress = false;
+    }
+  }
+
+  async rejectCall() {
+    this.isRejectInProgress = true;
+    try {
+      await this.streamVideoService.videoClient?.rejectCall(
+        this.data.call!.callCid,
+      );
+      this.matDialogRef.close();
+      this.deviceManager.stopVideo();
+      this.deviceManager.stopAudio();
+      this.isRejectInProgress = false;
+    } catch (err: any) {
+      this.snackBar.open(`Can't reject call, ${err.message}`, 'OK');
+      this.isRejectInProgress = false;
     }
   }
 }

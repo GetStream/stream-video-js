@@ -7211,7 +7211,7 @@ __metadata:
     replace-in-file: ^6.3.5
     rxjs: ~7.5.7
     stream-chat: ^8.2.1
-    stream-chat-angular: ^4.14.0
+    stream-chat-angular: ^4.15.0
     tslib: ^2.4.1
     typedoc: ^0.23.23
     typedoc-plugin-markdown: ^3.13.6
@@ -23328,9 +23328,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-angular@npm:^4.14.0":
-  version: 4.14.0
-  resolution: "stream-chat-angular@npm:4.14.0"
+"stream-chat-angular@npm:^4.15.0":
+  version: 4.15.0
+  resolution: "stream-chat-angular@npm:4.15.0"
   dependencies:
     "@popperjs/core": ^2.11.5
     "@stream-io/transliterate": ^1.5.2
@@ -23346,7 +23346,7 @@ __metadata:
     "@angular/core": ^12.2.0 || ^13.0.0 || ^14.0.0
     "@ngx-translate/core": ^13.0.0 || ^14.0.0
     stream-chat: ^8.0.0
-  checksum: 436a3e7a6d46c18ffc89f985c171e746785352b004062b588319bf2db3ece7734dc251b35f1e88b969811d553d32eff5fa767cdc551c367c1d55ffe6ba55b8c3
+  checksum: 2d2c42285db37c08542aebae31b996b24724861f8729a77fc1bf77e24e1a417baa32b96e0e2bdc68ba03398926dc996ce218129f3b413a8a2fae291e26dd11ac
   languageName: node
   linkType: hard
 

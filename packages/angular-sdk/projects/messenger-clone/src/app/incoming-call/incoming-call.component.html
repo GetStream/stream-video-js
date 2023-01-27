@@ -1,47 +1,44 @@
 <div class="container">
-  <div class="device-settings">
-    <div
-      class="video-container"
-      [class.no-video]="videoState === 'off'"
-      [ngSwitch]="videoState"
+  {{
+    isAcceptInProgress ? 'Connecting...' : 'Incoming call from ' + channelName
+  }}
+  <app-device-check></app-device-check>
+  <div class="call-controls">
+    <button
+      [disabled]="isAcceptInProgress || isRejectInProgress"
+      class="call-control"
+      mat-icon-button
     >
-      <video *ngSwitchCase="'on'" autoplay [srcObject]="videoStream"></video>
-      <div class="error" *ngSwitchCase="'error'">
-        {{ videoErrorMessage }}
-      </div>
-      <div *ngSwitchCase="'loading'" class="loading">
-        <mat-progress-spinner
-          color="primary"
-          diameter="50"
-          mode="indeterminate"
-        ></mat-progress-spinner>
-      </div>
-      <div class="video-off off" *ngSwitchCase="'off'">Camera turned off</div>
-      <ng-container *ngIf="videoState !== 'loading'">
-        <div [ngSwitch]="audioState" class="audio-state">
-          <div *ngSwitchCase="'on'">
-            <mat-icon
-              class="mic"
-              [class.speaking]="isSpeaking"
-              fontIcon="mic"
-            ></mat-icon>
-          </div>
-          <div class="error" *ngSwitchCase="'error'">
-            {{ audioErrorMessage }}
-          </div>
-          <div *ngSwitchCase="'loading'" class="loading">
-            <mat-progress-spinner
-              color="primary"
-              diameter="20"
-              mode="indeterminate"
-            ></mat-progress-spinner>
-          </div>
-          <div class="mic off" *ngSwitchCase="'off'">
-            <mat-icon fontIcon="mic_off"></mat-icon>
-          </div>
-        </div>
-      </ng-container>
-    </div>
-    <app-device-control></app-device-control>
+      <mat-icon
+        *ngIf="!isAcceptInProgress"
+        class="call-icon"
+        (click)="acceptCall()"
+        fontIcon="call"
+      ></mat-icon>
+      <mat-progress-spinner
+        *ngIf="isAcceptInProgress"
+        color="primary"
+        diameter="15"
+        mode="indeterminate"
+      ></mat-progress-spinner>
+    </button>
+    <button
+      [disabled]="isAcceptInProgress || isRejectInProgress"
+      class="call-control"
+      mat-icon-button
+      color="warn"
+    >
+      <mat-icon
+        *ngIf="!isRejectInProgress"
+        (click)="rejectCall()"
+        fontIcon="call_end"
+      ></mat-icon>
+      <mat-progress-spinner
+        *ngIf="isRejectInProgress"
+        color="primary"
+        diameter="15"
+        mode="indeterminate"
+      ></mat-progress-spinner>
+    </button>
   </div>
 </div>

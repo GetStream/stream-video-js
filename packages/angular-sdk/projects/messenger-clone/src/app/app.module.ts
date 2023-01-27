@@ -29,6 +29,8 @@ import { MatInputModule } from '@angular/material/input';
 import { UserAutocompleteComponent } from './user-autocomplete/user-autocomplete.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { IncomingCallComponent } from './incoming-call/incoming-call.component';
+import { DeviceCheckComponent } from './device-check/device-check.component';
+import { OutgoingCallComponent } from './outgoing-call/outgoing-call.component';
 
 @NgModule({
   declarations: [
@@ -40,6 +42,8 @@ import { IncomingCallComponent } from './incoming-call/incoming-call.component';
     ChatComponent,
     UserAutocompleteComponent,
     IncomingCallComponent,
+    DeviceCheckComponent,
+    OutgoingCallComponent,
   ],
   imports: [
     BrowserModule,

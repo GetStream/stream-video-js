@@ -1,21 +1,36 @@
 @use '../../variables';
 
 :host {
-  height: 100%;
+  height: 80%;
+  width: 80%;
   max-height: 100%;
   min-height: 0;
 }
 
+.title {
+  text-align: center;
+}
+
 .container {
-  height: 100%;
+  height: auto;
   max-height: 100%;
   min-height: 0;
   display: flex;
-  padding: 16px;
   border-radius: 8px;
   background-color: #424242;
   box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.2);
   cursor: move;
+  resize: both;
+  overflow: auto;
+
+  .drag-handle {
+    height: auto;
+    width: 100%;
+    max-height: 100%;
+    min-height: 0;
+    display: flex;
+    padding: 16px;
+  }
 
   .call {
     flex: 1;
@@ -40,8 +55,8 @@
 
       .local-participant {
         position: absolute;
-        width: 300px;
-        height: 300px;
+        width: 250px;
+        height: auto;
         top: 0;
         left: 0;
       }
