@@ -1,0 +1,66 @@
+---
+sidebar_position: 2
+title: iOS
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+## Setup
+
+1. Install the following modules for using [CallKit](https://developer.apple.com/documentation/callkit) and [PushKit](https://developer.apple.com/documentation/pushkit).
+
+<Tabs groupId="package-manager">
+  <TabItem value="Yarn" default>
+
+```bash
+  yarn add react-native-callkeep
+  yarn add react-native-voip-push-notification
+  npx pod-install
+```
+
+  </TabItem>
+  <TabItem value="npm">
+
+```bash
+  npm install react-native-callkeep
+  npm install react-native-voip-push-notification
+  npx pod-install
+```
+  </TabItem>
+</Tabs>
+
+2. Enable the following in `Xcode` -> `Signing & Capabilities`:
+
+- `Background Modes` -> `Voice over IP enabled`
+- `Capability` -> `Push Notifications`
+
+3. - Include the `NSMicrophoneUsageDescription` key in the app’s `Info.plist` file.
+   - Include the `NSCameraUsageDescription` key in the app’s `Info.plist` file.
+
+## Add native methods
+
+```c
+// highlight-start
+#import <PushKit/PushKit.h>
+#import "RNVoipPushNotificationManager.h"
+// highlight-end
+
+...
+
+@implementation AppDelegate
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
+
+  // highlight-next-line
+  [RNVoipPushNotificationManager voipRegistration];
+  // ===== (THIS IS OPTIONAL BUT RECOMMENDED) =====
+
+
+
+  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"AppName" initialProperties:nil];
+}
+
+```

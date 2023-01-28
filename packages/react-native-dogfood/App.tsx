@@ -29,10 +29,13 @@ import IncomingCallScreen from './src/screens/Call/IncomingCallScreen';
 import OutgoingCallScreen from './src/screens/Call/OutgoingCallScreen';
 import { StreamMeeting } from '@stream-io/video-react-native-sdk/src/components/StreamMeeting';
 import { CallParticipansInfoScreen } from './src/screens/Meeting/CallParticipantsInfoScreen';
+import { setFirebaseHandler } from './src/modules/push/android';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const MeetingStack = createNativeStackNavigator<MeetingStackParamList>();
 const RingingStack = createNativeStackNavigator<RingingStackParamList>();
+
+setFirebaseHandler();
 
 const Meeting = (props: NativeStackScreenProps<MeetingStackParamList>) => {
   const username = useAppGlobalStoreValue((store) => store.username);
