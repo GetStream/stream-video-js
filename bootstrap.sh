@@ -6,7 +6,7 @@ yarn
 yarn build:all
 
 # install all pods in RN related workspaces
-rn_workspaces=(packages/react-native-dogfood react-native-call-starter-kit)
+rn_workspaces=(packages/react-native-dogfood packages/react-native-call-starter-kit)
 for workspace in "${rn_workspaces[@]}"
 do
   (
