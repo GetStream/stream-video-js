@@ -8,12 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		00E356F31AD99517003FC87E /* StreamReactNativeVideoSDKSampleTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* StreamReactNativeVideoSDKSampleTests.m */; };
-		0C80B921A6F3F58F76C31292 /* libPods-StreamReactNativeVideoSDKSample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-StreamReactNativeVideoSDKSample.a */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		7699B88040F8A987B510C191 /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a */; };
+		780A14B43EC3A4B7DEEC4204 /* libPods-StreamReactNativeVideoSDKSample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E93DAB37174878F2F2D04048 /* libPods-StreamReactNativeVideoSDKSample.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		CC6896FC659F149FB0B03D0A /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1C368F0F9E72BC63DA3CFBB7 /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a */; };
 		DD17437129221798001CBEA0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DD17437029221798001CBEA0 /* GoogleService-Info.plist */; };
 		DD17437229221798001CBEA0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DD17437029221798001CBEA0 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
@@ -32,21 +32,21 @@
 		00E356EE1AD99517003FC87E /* StreamReactNativeVideoSDKSampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StreamReactNativeVideoSDKSampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* StreamReactNativeVideoSDKSampleTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = StreamReactNativeVideoSDKSampleTests.m; sourceTree = "<group>"; };
+		015CCC9B3EA0774C3D424B1A /* Pods-StreamReactNativeVideoSDKSample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample.release.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample.release.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* StreamReactNativeVideoSDKSample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StreamReactNativeVideoSDKSample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = StreamReactNativeVideoSDKSample/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = StreamReactNativeVideoSDKSample/AppDelegate.mm; sourceTree = "<group>"; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = StreamReactNativeVideoSDKSample/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = StreamReactNativeVideoSDKSample/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = StreamReactNativeVideoSDKSample/main.m; sourceTree = "<group>"; };
-		19F6CBCC0A4E27FBF8BF4A61 /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		3B4392A12AC88292D35C810B /* Pods-StreamReactNativeVideoSDKSample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample.debug.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample.debug.xcconfig"; sourceTree = "<group>"; };
-		5709B34CF0A7D63546082F79 /* Pods-StreamReactNativeVideoSDKSample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample.release.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample.release.xcconfig"; sourceTree = "<group>"; };
-		5B7EB9410499542E8C5724F5 /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig"; sourceTree = "<group>"; };
-		5DCACB8F33CDC322A6C60F78 /* libPods-StreamReactNativeVideoSDKSample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StreamReactNativeVideoSDKSample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		18AB332A18B3FB81A2B230E3 /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig"; sourceTree = "<group>"; };
+		1C368F0F9E72BC63DA3CFBB7 /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C066C81DDBB87759CA5DD78 /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = StreamReactNativeVideoSDKSample/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		89C6BE57DB24E9ADA2F236DE /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig"; sourceTree = "<group>"; };
+		DBA95E8CE7AC62040DE6BD64 /* Pods-StreamReactNativeVideoSDKSample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample.debug.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample.debug.xcconfig"; sourceTree = "<group>"; };
 		DD17437029221798001CBEA0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		DD17437329229D96001CBEA0 /* StreamReactNativeVideoSDKSample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = StreamReactNativeVideoSDKSample.entitlements; path = StreamReactNativeVideoSDKSample/StreamReactNativeVideoSDKSample.entitlements; sourceTree = "<group>"; };
+		E93DAB37174878F2F2D04048 /* libPods-StreamReactNativeVideoSDKSample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StreamReactNativeVideoSDKSample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -55,7 +55,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7699B88040F8A987B510C191 /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a in Frameworks */,
+				CC6896FC659F149FB0B03D0A /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -63,7 +63,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0C80B921A6F3F58F76C31292 /* libPods-StreamReactNativeVideoSDKSample.a in Frameworks */,
+				780A14B43EC3A4B7DEEC4204 /* libPods-StreamReactNativeVideoSDKSample.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -106,8 +106,8 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				5DCACB8F33CDC322A6C60F78 /* libPods-StreamReactNativeVideoSDKSample.a */,
-				19F6CBCC0A4E27FBF8BF4A61 /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a */,
+				E93DAB37174878F2F2D04048 /* libPods-StreamReactNativeVideoSDKSample.a */,
+				1C368F0F9E72BC63DA3CFBB7 /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -146,10 +146,10 @@
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				3B4392A12AC88292D35C810B /* Pods-StreamReactNativeVideoSDKSample.debug.xcconfig */,
-				5709B34CF0A7D63546082F79 /* Pods-StreamReactNativeVideoSDKSample.release.xcconfig */,
-				5B7EB9410499542E8C5724F5 /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig */,
-				89C6BE57DB24E9ADA2F236DE /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig */,
+				DBA95E8CE7AC62040DE6BD64 /* Pods-StreamReactNativeVideoSDKSample.debug.xcconfig */,
+				015CCC9B3EA0774C3D424B1A /* Pods-StreamReactNativeVideoSDKSample.release.xcconfig */,
+				18AB332A18B3FB81A2B230E3 /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig */,
+				2C066C81DDBB87759CA5DD78 /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -161,12 +161,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "StreamReactNativeVideoSDKSampleTests" */;
 			buildPhases = (
-				A55EABD7B0C7F3A422A6CC61 /* [CP] Check Pods Manifest.lock */,
+				CCD879618DB36E946A7186D5 /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
 				00E356EB1AD99517003FC87E /* Frameworks */,
 				00E356EC1AD99517003FC87E /* Resources */,
-				C59DA0FBD6956966B86A3779 /* [CP] Embed Pods Frameworks */,
-				F6A41C54EA430FDDC6A6ED99 /* [CP] Copy Pods Resources */,
+				0A7A7032832120986101290A /* [CP] Embed Pods Frameworks */,
+				42D4D7B6D63813D5C3394CFF /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -182,15 +182,15 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "StreamReactNativeVideoSDKSample" */;
 			buildPhases = (
-				C38B50BA6285516D6DCD4F65 /* [CP] Check Pods Manifest.lock */,
+				375A447FD2F7F607BD9B811E /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */,
-				E235C05ADACE081382539298 /* [CP] Copy Pods Resources */,
 				A8EA0170DB6F4DEC996B0384 /* Upload Debug Symbols to Sentry */,
+				556E65AA82CCBD61A41D3875 /* [CP] Embed Pods Frameworks */,
+				C37004A85C2E264B39AE2E23 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -273,62 +273,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\nexport SENTRY_PROPERTIES=sentry.properties\nexport EXTRA_PACKAGER_ARGS=\"--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map\"\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\nSENTRY_CLI_PATH=\"../node_modules/@sentry/cli/bin/sentry-cli\"\n/bin/sh -c \"$WITH_ENVIRONMENT \\\"$SENTRY_CLI_PATH react-native xcode $REACT_NATIVE_XCODE\\\"\"";
+			shellScript = "set -e\nexport SENTRY_PROPERTIES=sentry.properties\nexport EXTRA_PACKAGER_ARGS=\"--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map\"\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\nSENTRY_CLI_PATH=\"../node_modules/@sentry/cli/bin/sentry-cli\"\n/bin/sh -c \"$WITH_ENVIRONMENT \\\"$SENTRY_CLI_PATH react-native xcode $REACT_NATIVE_XCODE\\\"\"\n";
 		};
-		00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */ = {
+		0A7A7032832120986101290A /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		A55EABD7B0C7F3A422A6CC61 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		A8EA0170DB6F4DEC996B0384 /* Upload Debug Symbols to Sentry */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Upload Debug Symbols to Sentry";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "export SENTRY_PROPERTIES=sentry.properties\n../node_modules/@sentry/cli/bin/sentry-cli upload-dsym";
-		};
-		C38B50BA6285516D6DCD4F65 /* [CP] Check Pods Manifest.lock */ = {
+		375A447FD2F7F607BD9B811E /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -350,24 +314,55 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		C59DA0FBD6956966B86A3779 /* [CP] Embed Pods Frameworks */ = {
+		42D4D7B6D63813D5C3394CFF /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			name = "[CP] Embed Pods Frameworks";
+			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		E235C05ADACE081382539298 /* [CP] Copy Pods Resources */ = {
+		556E65AA82CCBD61A41D3875 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		A8EA0170DB6F4DEC996B0384 /* Upload Debug Symbols to Sentry */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Upload Debug Symbols to Sentry";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export SENTRY_PROPERTIES=sentry.properties\n../node_modules/@sentry/cli/bin/sentry-cli upload-dsym";
+		};
+		C37004A85C2E264B39AE2E23 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -384,21 +379,26 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		F6A41C54EA430FDDC6A6ED99 /* [CP] Copy Pods Resources */ = {
+		CCD879618DB36E946A7186D5 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			name = "[CP] Copy Pods Resources";
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests/Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests-resources.sh\"\n";
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		FD10A7F022414F080027D42C /* Start Packager */ = {
@@ -453,7 +453,7 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5B7EB9410499542E8C5724F5 /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig */;
+			baseConfigurationReference = 18AB332A18B3FB81A2B230E3 /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -482,7 +482,7 @@
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 89C6BE57DB24E9ADA2F236DE /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig */;
+			baseConfigurationReference = 2C066C81DDBB87759CA5DD78 /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -508,7 +508,7 @@
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 3B4392A12AC88292D35C810B /* Pods-StreamReactNativeVideoSDKSample.debug.xcconfig */;
+			baseConfigurationReference = DBA95E8CE7AC62040DE6BD64 /* Pods-StreamReactNativeVideoSDKSample.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -539,7 +539,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5709B34CF0A7D63546082F79 /* Pods-StreamReactNativeVideoSDKSample.release.xcconfig */;
+			baseConfigurationReference = 015CCC9B3EA0774C3D424B1A /* Pods-StreamReactNativeVideoSDKSample.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -600,7 +600,7 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -672,7 +672,7 @@
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;

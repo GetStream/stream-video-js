@@ -414,12 +414,12 @@ PODS:
   - RNScreens (3.18.2):
     - React-Core
     - React-RCTImage
-  - RNSentry (5.0.0-alpha.10):
+  - RNSentry (5.0.0-alpha.11):
     - React-Core
-    - Sentry/HybridSDK (= 7.31.2)
+    - Sentry/HybridSDK (= 7.31.5)
   - RNSVG (13.6.0):
     - React-Core
-  - Sentry/HybridSDK (7.31.2)
+  - Sentry/HybridSDK (7.31.5)
   - SocketRocket (0.6.0)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -682,9 +682,9 @@ SPEC CHECKSUMS:
   RNCClipboard: 2834e1c4af68697089cdd455ee4a4cdd198fa7dd
   RNGoogleSignin: 3db2d849581299f425f5b61b90cb482a9e68c7af
   RNScreens: 34cc502acf1b916c582c60003dc3089fa01dc66d
-  RNSentry: 56e67020e45e81cc94231819df968dbc41890364
+  RNSentry: 095297582cdfdff4c2a8114f08e160cf91eea543
   RNSVG: 3a79c0c4992213e4f06c08e62730c5e7b9e4dc17
-  Sentry: b15765d11769852fe78c9add942f7df60ed5dbf5
+  Sentry: 4c9babff9034785067c896fd580b1f7de44da020
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   Yoga: 99caf8d5ab45e9d637ee6e0174ec16fbbb01bcfc
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
