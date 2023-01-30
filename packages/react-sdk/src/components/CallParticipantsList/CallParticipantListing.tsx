@@ -5,6 +5,28 @@ import { useConnectedUser } from '@stream-io/video-react-bindings';
 import { useEnterLeaveHandlers } from '../Tooltip/hooks';
 import { Tooltip } from '../Tooltip';
 
+const MediaIndicator = ({ title, ...props }: React.ComponentProps<'div'>) => {
+  const { handleMouseEnter, handleMouseLeave, tooltipVisible } =
+    useEnterLeaveHandlers<HTMLDivElement>();
+  const [tooltipAnchor, setTooltipAnchor] = useState<HTMLDivElement | null>(
+    null,
+  );
+
+  return (
+    <>
+      <Tooltip referenceElement={tooltipAnchor} visible={tooltipVisible}>
+        {title || ''}
+      </Tooltip>
+      <div
+        ref={setTooltipAnchor}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        {...props}
+      />
+    </>
+  );
+};
+
 type DisplayNameProps = {
   /** Participant object that provides the data from which display name can be generated */
   participant: StreamVideoParticipant;
@@ -14,8 +36,8 @@ type DisplayNameProps = {
 const DefaultDisplayName = ({ participant }: DisplayNameProps) => {
   const connectedUser = useConnectedUser();
   const { handleMouseEnter, handleMouseLeave, tooltipVisible } =
-    useEnterLeaveHandlers<HTMLSpanElement>();
-  const [tooltipAnchor, setTooltipAnchor] = useState<HTMLSpanElement | null>(
+    useEnterLeaveHandlers<HTMLDivElement>();
+  const [tooltipAnchor, setTooltipAnchor] = useState<HTMLDivElement | null>(
     null,
   );
 
@@ -70,7 +92,8 @@ export const CallParticipantListingItem = ({
     <div className="str-video__participant-listing-item">
       <DisplayName participant={participant} />
       <div className="str-video__participant-listing-item__media-indicator-group">
-        <div
+        <MediaIndicator
+          title={isAudioOn ? 'Microphone on' : 'Microphone off'}
           className={clsx(
             'str-video__participant-listing-item__icon',
             `str-video__participant-listing-item__icon-${
@@ -78,7 +101,8 @@ export const CallParticipantListingItem = ({
             }`,
           )}
         />
-        <div
+        <MediaIndicator
+          title={isVideoOn ? 'Camera on' : 'Camera off'}
           className={clsx(
             'str-video__participant-listing-item__icon',
             `str-video__participant-listing-item__icon-${
