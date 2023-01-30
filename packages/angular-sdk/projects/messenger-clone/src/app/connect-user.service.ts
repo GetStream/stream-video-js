@@ -56,7 +56,7 @@ export class ConnectUserService implements CanActivate {
             user.user,
           );
           await this.chatClientService.init(
-            environment.chatApiKey,
+            environment.apiKey,
             `${user.user.id}`,
             user.token,
           );
