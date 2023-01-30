@@ -1,5 +1,11 @@
 import throttle from 'lodash.throttle';
-import { ChangeEventHandler, useCallback, useRef, useState } from 'react';
+import {
+  ChangeEventHandler,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 export type SearchController<T> = {
   /** Clears / resets the search input value */
@@ -20,11 +26,11 @@ export type UseSearchParams<T> = {
   /** Search function performing the search request */
   searchFn: (searchQuery: string) => Promise<T[]>;
   /** Debounce interval applied to the search function */
-  debounceInterval?: number;
+  throttleInterval: number;
 };
 
-export const useSearch = <T extends unknown>({
-  debounceInterval,
+export const useSearch = <T>({
+  throttleInterval,
   searchFn,
 }: UseSearchParams<T>): SearchController<T> => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,10 +38,10 @@ export const useSearch = <T extends unknown>({
   const [searchQueryInProgress, setSearchQueryInProgress] = useState(false);
   const queryAborted = useRef(false);
 
-  const doSearch = useCallback(throttle(searchFn, debounceInterval || 200), [
-    debounceInterval,
-    searchFn,
-  ]);
+  const doSearch = useMemo(
+    () => throttle(searchFn, throttleInterval),
+    [throttleInterval, searchFn],
+  );
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
     async (event) => {
