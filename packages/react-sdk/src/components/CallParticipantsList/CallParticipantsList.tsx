@@ -41,10 +41,11 @@ export const CallParticipantsList = ({
   const participants = useParticipants();
   const searchFn = useCallback(
     (queryString: string) => {
+      const queryRegExp = new RegExp(queryString);
       return Promise.resolve(
-        participants.filter((participant) =>
-          participant.user?.name.match(new RegExp(queryString)),
-        ),
+        participants.filter((participant) => {
+          return participant.user?.name.match(queryRegExp);
+        }),
       );
     },
     [participants],
