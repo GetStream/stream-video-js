@@ -5195,6 +5195,7 @@ __metadata:
   resolution: "@stream-io/video-js-root@workspace:."
   dependencies:
     "@types/eslint": ^8.4.8
+    "@types/uuid": ^8.3.4
     "@typescript-eslint/eslint-plugin": ^5.47.0
     "@typescript-eslint/parser": ^5.47.0
     "@typescript-eslint/typescript-estree": ^5.47.0
@@ -5205,6 +5206,7 @@ __metadata:
     eslint-plugin-prettier: ^4.2.1
     prettier: ^2.8.1
     typescript: ^4.9.4
+    uuid: ^9.0.0
     vercel: ^28.11.0
   languageName: unknown
   linkType: soft
@@ -7223,7 +7225,7 @@ __metadata:
     replace-in-file: ^6.3.5
     rxjs: ~7.5.7
     stream-chat: ^8.2.1
-    stream-chat-angular: ^4.12.1
+    stream-chat-angular: ^4.15.0
     tslib: ^2.4.1
     typedoc: ^0.23.23
     typedoc-plugin-markdown: ^3.13.6
@@ -23340,9 +23342,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-angular@npm:^4.12.1":
-  version: 4.12.1
-  resolution: "stream-chat-angular@npm:4.12.1"
+"stream-chat-angular@npm:^4.15.0":
+  version: 4.15.0
+  resolution: "stream-chat-angular@npm:4.15.0"
   dependencies:
     "@popperjs/core": ^2.11.5
     "@stream-io/transliterate": ^1.5.2
@@ -23358,7 +23360,7 @@ __metadata:
     "@angular/core": ^12.2.0 || ^13.0.0 || ^14.0.0
     "@ngx-translate/core": ^13.0.0 || ^14.0.0
     stream-chat: ^8.0.0
-  checksum: 62fc2ad4338731ef12a7532d2ca3a9a362857a057fd37168183fac0bbab15f89a3abbde4f5cd9ba1d6d2e9632de65719ecce68e274f8aa77e73cce5b32cc9fd2
+  checksum: 2d2c42285db37c08542aebae31b996b24724861f8729a77fc1bf77e24e1a417baa32b96e0e2bdc68ba03398926dc996ce218129f3b413a8a2fae291e26dd11ac
   languageName: node
   linkType: hard
 

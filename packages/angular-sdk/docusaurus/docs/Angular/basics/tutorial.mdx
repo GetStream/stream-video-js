@@ -193,7 +193,7 @@ export class AppComponent {
 
 ## Joining a call
 
-To join a call, pass the call ID to the [`joinCall`](../../core/StreamVideoClient/#joincall) method of the `StreamVideoClient` instance. This method will return a [`Call`](../../core/Call) instance that represents the active call the user is part of. We have to call the [`join`](../../core/Call/#join) method of this instance.
+To join a call, pass the call ID to the [`joinCall`](../../core/StreamVideoClient/#joincall) method of the `StreamVideoClient` instance. This method will return a [`Call`](../../core/Call) instance that represents the active call the user is part of.
 
 For performance reasons, it's advised to join the call outside of the Angular change detection zone. This practice will prevent unnecessary change detection runs due to irrelevant WebSocket events.
 
@@ -253,7 +253,6 @@ export class AppComponent {
         datacenterId: '',
       });
     });
-    await call?.join();
   }
 }
 ```
@@ -350,7 +349,6 @@ export class AppComponent {
         datacenterId: '',
       });
     });
-    await call?.join();
   }
 }
 ```

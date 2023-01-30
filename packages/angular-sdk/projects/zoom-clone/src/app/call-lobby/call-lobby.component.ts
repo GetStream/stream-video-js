@@ -142,7 +142,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   }
 
   private async joinCall(callId: string) {
-    const call = await this.ngZone.runOutsideAngular(() => {
+    await this.ngZone.runOutsideAngular(() => {
       return this.streamVideoService.videoClient?.joinCall({
         id: callId,
         type: 'default',
@@ -159,6 +159,5 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
       await channel.create();
     }
     await this.channelService.init({ id: { $eq: callId } });
-    await call?.join();
   }
 }

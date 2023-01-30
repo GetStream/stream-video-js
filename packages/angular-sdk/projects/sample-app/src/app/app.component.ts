@@ -68,13 +68,12 @@ export class AppComponent implements OnInit {
     if (!callId) {
       return;
     }
-    const call = await this.ngZone.runOutsideAngular(() => {
+    await this.ngZone.runOutsideAngular(() => {
       return this.streamVideoService.videoClient?.joinCall({
         id: callId,
         type: 'default',
         datacenterId: '',
       });
     });
-    await call?.join();
   }
 }

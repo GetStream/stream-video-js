@@ -41,16 +41,16 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
           this.deviceManager.videoState$.pipe(take(1)).subscribe((s) => {
             if (s === 'initial') {
               this.deviceManager.initVideoDevices();
-              this.deviceManager.startVideo();
             }
           });
+          this.deviceManager.startVideo();
           this.deviceManager.audioState$.pipe(take(1)).subscribe((s) => {
             if (s === 'initial') {
               this.deviceManager.initAudioDevices();
               this.deviceManager.initAudioOutputDevices();
-              this.deviceManager.startAudio();
             }
           });
+          this.deviceManager.startAudio();
         }
       }),
     );
