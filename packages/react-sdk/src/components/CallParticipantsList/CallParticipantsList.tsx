@@ -19,24 +19,27 @@ import type { StreamVideoParticipant } from '@stream-io/video-client';
 type CallParticipantListProps = {
   /** Click event listener function to be invoked in order to dismiss / hide the CallParticipantsList from the UI */
   onClose: () => void;
-  /** Custom component to replace a button for generating invitation link to the call */
-  GetInviteLinkButton?: React.ComponentType;
-  /** Custom function to override the logic for retrieving searched for participants */
-  participantSearchFn?: UseSearchParams<StreamVideoParticipant>['searchFn'];
-  /** Custom component to be rendered when search result is empty */
-  EmptyParticipantSearchResultComponent?: React.ComponentType;
-  /** Custom CallParticipantsList Header component */
-  Header?: React.ComponentType<CallParticipantListHeaderProps>;
   /** Custom component to render the list of participants. Used render participant search results as well. */
   CallParticipantListing?: React.ComponentType<CallParticipantListingProps>;
+  /** Custom component to be rendered when search result is empty */
+  EmptyParticipantSearchResultComponent?: React.ComponentType;
+  /** Custom component to replace a button for generating invitation link to the call */
+  GetInviteLinkButton?: React.ComponentType;
+  /** Custom CallParticipantsList Header component */
+  Header?: React.ComponentType<CallParticipantListHeaderProps>;
+  /** Custom function to override the logic for retrieving searched for participants */
+  participantSearchFn?: UseSearchParams<StreamVideoParticipant>['searchFn'];
+  /** Interval in ms, during which the participant search calls will be throttled. The default value is 200ms. */
+  throttleSearchInterval?: number;
 };
 export const CallParticipantsList = ({
-  EmptyParticipantSearchResultComponent = DefaultEmptyParticipantList,
-  Header = CallParticipantListHeader,
-  GetInviteLinkButton = DefaultInviteLinkButton,
-  onClose,
   CallParticipantListing = DefaultParticipantListing,
+  EmptyParticipantSearchResultComponent = DefaultEmptyParticipantList,
+  GetInviteLinkButton = DefaultInviteLinkButton,
+  Header = CallParticipantListHeader,
+  onClose,
   participantSearchFn,
+  throttleSearchInterval = 200,
 }: CallParticipantListProps) => {
   const participants = useParticipants();
   const searchFn = useCallback(
@@ -59,6 +62,7 @@ export const CallParticipantsList = ({
     searchResults,
   } = useSearch<StreamVideoParticipant>({
     searchFn: participantSearchFn || searchFn,
+    throttleInterval: throttleSearchInterval,
   });
 
   return (
