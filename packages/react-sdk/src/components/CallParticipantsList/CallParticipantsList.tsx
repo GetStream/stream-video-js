@@ -4,20 +4,20 @@ import { EmptyParticipantSearchList as DefaultEmptyParticipantList } from './Emp
 import { GetInviteLinkButton as DefaultInviteLinkButton } from './GetInviteLinkButton';
 import { LoadingIndicator } from '../LoadingIndicator';
 import {
-  ParticipantListHeader,
-  ParticipantListHeaderProps,
-} from './ParticipantListHeader';
+  CallParticipantListHeader,
+  CallParticipantListHeaderProps,
+} from './CallParticipantListHeader';
 import {
-  ParticipantListing as DefaultParticipantListing,
-  ParticipantListingProps,
-} from './ParticipantListing';
+  CallParticipantListing as DefaultParticipantListing,
+  CallParticipantListingProps,
+} from './CallParticipantListing';
 import { SearchInput, SearchResults } from '../Search';
 import { useSearch, UseSearchParams } from '../Search/hooks';
 
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 
-type ParticipantListProps = {
-  /** Click event listener function to be invoked in order to dismiss / hide the ParticipantList from the UI */
+type CallParticipantListProps = {
+  /** Click event listener function to be invoked in order to dismiss / hide the CallParticipantsList from the UI */
   onClose: () => void;
   /** Custom component to replace a button for generating invitation link to the call */
   GetInviteLinkButton?: React.ComponentType;
@@ -25,19 +25,19 @@ type ParticipantListProps = {
   participantSearchFn?: UseSearchParams<StreamVideoParticipant>['searchFn'];
   /** Custom component to be rendered when search result is empty */
   EmptyParticipantSearchResultComponent?: React.ComponentType;
-  /** Custom ParticipantList Header component */
-  Header?: React.ComponentType<ParticipantListHeaderProps>;
+  /** Custom CallParticipantsList Header component */
+  Header?: React.ComponentType<CallParticipantListHeaderProps>;
   /** Custom component to render the list of participants. Used render participant search results as well. */
-  ParticipantListing?: React.ComponentType<ParticipantListingProps>;
+  CallParticipantListing?: React.ComponentType<CallParticipantListingProps>;
 };
-export const ParticipantList = ({
+export const CallParticipantsList = ({
   EmptyParticipantSearchResultComponent = DefaultEmptyParticipantList,
-  Header = ParticipantListHeader,
+  Header = CallParticipantListHeader,
   GetInviteLinkButton = DefaultInviteLinkButton,
   onClose,
-  ParticipantListing = DefaultParticipantListing,
+  CallParticipantListing = DefaultParticipantListing,
   participantSearchFn,
-}: ParticipantListProps) => {
+}: CallParticipantListProps) => {
   const participants = useParticipants();
   const searchFn = useCallback(
     (queryString: string) => {
@@ -75,7 +75,7 @@ export const ParticipantList = ({
           LoadingIndicator={LoadingIndicator}
           searchQueryInProgress={searchQueryInProgress}
           searchResults={searchQuery ? searchResults : participants}
-          SearchResultList={ParticipantListing}
+          SearchResultList={CallParticipantListing}
         />
       </div>
       <div className="str-video__participant-list__footer">

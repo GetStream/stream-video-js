@@ -49,16 +49,16 @@ const DefaultDisplayName = ({ participant }: DisplayNameProps) => {
   );
 };
 
-type ParticipantListingItemProps = {
+type CallParticipantListingItemProps = {
   /** Participant object be rendered */
   participant: StreamVideoParticipant;
   /** Custom component used to display participant's name */
   DisplayName?: React.ComponentType<{ participant: StreamVideoParticipant }>;
 };
-export const ParticipantListingItem = ({
+export const CallParticipantListingItem = ({
   participant,
   DisplayName = DefaultDisplayName,
-}: ParticipantListingItemProps) => {
+}: CallParticipantListingItemProps) => {
   const isAudioOn = participant.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
@@ -91,15 +91,17 @@ export const ParticipantListingItem = ({
   );
 };
 
-export type ParticipantListingProps = {
+export type CallParticipantListingProps = {
   /** Array of participant objects to be rendered */
   data: StreamVideoParticipant[];
 };
-export const ParticipantListing = ({ data }: ParticipantListingProps) => {
+export const CallParticipantListing = ({
+  data,
+}: CallParticipantListingProps) => {
   return (
     <div className="str-video__participant-listing">
       {data.map((participant) => (
-        <ParticipantListingItem
+        <CallParticipantListingItem
           key={participant.sessionId}
           participant={participant}
         />

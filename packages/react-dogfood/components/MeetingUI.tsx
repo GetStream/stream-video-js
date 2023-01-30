@@ -4,7 +4,7 @@ import { useActiveCall } from '@stream-io/video-react-bindings';
 import {
   DeviceSettings,
   LoadingIndicator,
-  ParticipantList,
+  CallParticipantsList,
   Stage,
 } from '@stream-io/video-react-sdk';
 import { CallControls } from './CallControls';
@@ -56,7 +56,7 @@ export const MeetingUI = () => {
       {showSidebar && (
         <div className="str-video__sidebar">
           {showParticipants && (
-            <ParticipantList onClose={hideParticipantList} />
+            <CallParticipantsList onClose={hideParticipantList} />
           )}
         </div>
       )}
