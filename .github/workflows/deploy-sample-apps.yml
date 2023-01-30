@@ -99,6 +99,7 @@ jobs:
         run: yarn test:ci:all
 
       - name: Set Vercel project ID for zoom clone
+        run: echo 'Vercel project id set for zoom clone'
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ANGULAR_ZOOM_CLONE }}
 
@@ -125,6 +126,7 @@ jobs:
         run: yarn vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Set Vercel project ID for messenger clone
+        run: echo 'Vercel project id set for messenger clone'
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ANGULAR_ZOOM_CLONE }}
 
