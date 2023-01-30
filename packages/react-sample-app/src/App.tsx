@@ -118,7 +118,7 @@ const App = () => {
                 joinCall={joinCall}
                 onCreateCall={createCall}
               />
-              <Box
+              <Box 
                 component="main"
                 sx={{
                   flexGrow: 1,

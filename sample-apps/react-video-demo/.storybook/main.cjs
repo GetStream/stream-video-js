@@ -14,5 +14,13 @@ module.exports = {
   },
   "features": {
     "storyStoreV7": true
+  },
+  env: (config) => {
+    console.log(config);
+    return {
+    ...config,
+    EXAMPLE_VAR: 'An environment variable configured in Storybook',
+    STORYBOOK_ENV: 'bla',
   }
+},
 }
