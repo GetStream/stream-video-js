@@ -92,8 +92,8 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
               id: callid,
             });
           this.callMeta = response?.call;
-        } catch (error) {
-          this.snackBar.open(`Couldn't establish connection`);
+        } catch (error: any) {
+          this.snackBar.open(`Couldn't establish connection, ${error.message}`);
         }
       }
     });
@@ -135,9 +135,9 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
       }
       this.isJoinOrCreateInProgress = false;
       this.router.navigate(['call'], { queryParams: { callid: callId } });
-    } catch (err) {
+    } catch (err: any) {
       this.isJoinOrCreateInProgress = false;
-      this.snackBar.open(`Call couldn't be started`);
+      this.snackBar.open(`Call couldn't be started, ${err.message}`);
     }
   }
 
@@ -151,10 +151,10 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
     });
     if (this.joinOrCreate === 'create') {
       const channel = this.chatClientService.chatClient.channel(
-        'messaging',
+        'videocall',
         callId,
         // TODO: hacky workaround for permission problems
-        { members: this.userService.users.map((u) => `${u.user.id}_video`) },
+        { members: this.userService.users.map((u) => u.user.id) },
       );
       await channel.create();
     }
