@@ -1,3 +1,5 @@
+@use "./utils";
+
 .str-video__device-settings__button {
   cursor: pointer;
   border: none;
@@ -8,11 +10,11 @@
     width: 1.5rem;
     height: 1.5rem;
 
-    mask-image: var(--str-video__icon--settings);
-    mask-repeat: no-repeat;
-    mask-position: center;
-    mask-size: contain;
-    background-color: var(--str-video__text-color1);
+    @include utils.apply-mask-image(
+        var(--str-video__icon--settings),
+        var(--str-video__text-color1),
+        contain
+    );
   }
 
   &:hover,

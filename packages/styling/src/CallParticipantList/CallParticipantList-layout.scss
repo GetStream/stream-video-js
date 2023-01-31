@@ -59,6 +59,7 @@
       height: $indicator-size;
       width: $indicator-size;
       mask-size: $indicator-size;
+      -webkit-mask-size: $indicator-size;
     }
   }
 
