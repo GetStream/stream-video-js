@@ -90,7 +90,7 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   const incomingCalls = useIncomingCalls();
   const memberUserIds =
     (incomingCalls.length &&
-      incomingCalls[incomingCalls.length - 1].callDetails?.memberUserIds) ||
+      incomingCalls[incomingCalls.length - 1].details?.memberUserIds) ||
     [];
 
   if (memberUserIds.length)

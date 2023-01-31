@@ -1,5 +1,8 @@
 import React, { useEffect } from 'react';
-import { useActiveCall } from '@stream-io/video-react-bindings';
+import {
+  useActiveCall,
+  useHasOngoingScreenShare,
+} from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
@@ -10,6 +13,7 @@ import {
   useStreamVideoStoreValue,
 } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
+import { CallParticipantsScreenView } from './CallParticipantsScreenView';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -31,12 +35,15 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const { onHangupCall, onOpenCallParticipantsInfoView } = props;
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const setState = useStreamVideoStoreSetState();
+  const hasScreenShare = useHasOngoingScreenShare();
 
   useEffect(() => {
     if (audioDevice) {
-      getAudioStream(audioDevice.deviceId).then((stream) =>
-        activeCall?.publishAudioStream(stream),
-      );
+      getAudioStream(audioDevice.deviceId)
+        .then((stream) => activeCall?.publishAudioStream(stream))
+        .catch((error) => {
+          console.log(error);
+        });
     }
   }, [activeCall, audioDevice]);
 
@@ -46,17 +53,23 @@ export const ActiveCall = (props: ActiveCallProps) => {
         .then((stream) => {
           activeCall?.publishVideoStream(stream);
         })
-        .catch((error) => console.log(error));
+        .catch((error) => {
+          console.log(error);
+        });
     }
   }, [activeCall, currentVideoDevice, isVideoMuted, setState]);
 
   return (
-    <View style={StyleSheet.absoluteFill}>
+    <View style={styles.container}>
       <CallParticipantsBadge
         onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
       />
       <View style={styles.callParticipantsWrapper}>
-        <CallParticipantsView />
+        {hasScreenShare ? (
+          <CallParticipantsScreenView />
+        ) : (
+          <CallParticipantsView />
+        )}
       </View>
       <CallControlsView onHangupCall={onHangupCall} />
     </View>
@@ -64,5 +77,9 @@ export const ActiveCall = (props: ActiveCallProps) => {
 };
 
 const styles = StyleSheet.create({
-  callParticipantsWrapper: { flex: 1, marginBottom: -20 },
+  container: {
+    flex: 1,
+    backgroundColor: 'black',
+  },
+  callParticipantsWrapper: { flex: 1 },
 });

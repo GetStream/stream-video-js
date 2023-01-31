@@ -71,25 +71,8 @@ $stream-chat-theme-version: '2';
     }
 
     @media screen and (min-width: 768px) {
-      //.str-chat-channel-list.thread-open {
-      //  &.menu-open {
-      //    width: 30%;
-      //    height: 100%;
-      //    position: fixed;
-      //    z-index: 1;
-      //  }
-      //
-      //  &.menu-close {
-      //    width: 0;
-      //  }
-      //
-      //  & + .channel .menu-button {
-      //    display: block;
-      //  }
-      //}
-
       .str-chat-channel-list {
-        width: 30%;
+        width: 100%;
         max-width: 420px;
         position: initial;
         z-index: 0;
@@ -106,45 +89,13 @@ $stream-chat-theme-version: '2';
     }
 
     @media screen and (min-width: 1024px) {
-      //.str-chat-channel-list {
-      //  max-width: 420px;
-      //  position: initial;
-      //  z-index: 0;
-      //}
-
       .str-chat__thread {
         width: 45%;
-        //position: initial;
-        //z-index: 0;
       }
 
       .str-chat__channel-header .str-chat__header-hamburger {
         display: none;
       }
-    }
-  }
-} @else {
-  .menu-button {
-    display: none;
-  }
-  .str-chat-channel-list {
-    max-height: 100vh;
-    overflow-y: auto;
-
-    .str-chat__channel-list-messenger {
-      flex: 1;
-    }
-  }
-
-  .str-chat__thread {
-    min-width: 100%;
-    max-width: 100%;
-  }
-
-  @media only screen and (min-device-width: 768px) {
-    .str-chat__thread {
-      min-width: 35%;
-      max-width: 35%;
     }
   }
 }

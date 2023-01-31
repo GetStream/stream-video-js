@@ -68,7 +68,15 @@ const useSetupLocalMediaStream = ({
     });
 
     return cleanup;
-  }, [localStream, pendingCalls, selectedDeviceId, call]);
+  }, [
+    localStream,
+    pendingCalls,
+    selectedDeviceId,
+    call,
+    setLocalStream,
+    type,
+    switchDevice,
+  ]);
 };
 
 /**

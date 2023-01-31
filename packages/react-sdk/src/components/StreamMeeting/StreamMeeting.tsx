@@ -7,7 +7,6 @@ export type StreamMeetingProps = {
   callId: string;
   callType: string;
   currentUser: string;
-  autoJoin?: boolean;
   input?: CreateCallInput;
 };
 
@@ -16,7 +15,6 @@ export const StreamMeeting = ({
   callId,
   callType,
   currentUser,
-  autoJoin,
   input,
 }: PropsWithChildren<StreamMeetingProps>) => {
   const client = useStreamVideoClient();
@@ -29,20 +27,22 @@ export const StreamMeeting = ({
         ...descriptors,
         input,
       });
-      if (callMetadata?.call?.createdByUserId === currentUser || autoJoin) {
-        const call = await client.joinCall({
+      if (
+        callMetadata?.call?.createdByUserId === currentUser ||
+        client.callConfig.joinCallInstantly
+      ) {
+        await client.joinCall({
           ...descriptors,
           // FIXME: OL optional, but it is marked as required in proto
           datacenterId: '',
         });
-        await call?.join();
       }
     };
 
     initiateMeeting().catch((e) => {
       console.error(`Failed to getOrCreateCall`, callId, callType, e);
     });
-  }, [callId, client, callType, currentUser, autoJoin, input]);
+  }, [callId, client, callType, currentUser, input]);
 
   return <MediaDevicesProvider>{children}</MediaDevicesProvider>;
 };

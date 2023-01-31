@@ -49,6 +49,7 @@
   },
   "devDependencies": {
     "@types/eslint": "^8.4.8",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
     "@typescript-eslint/typescript-estree": "^5.47.0",
@@ -62,8 +63,9 @@
     "vercel": "^28.11.0"
   },
   "resolutions": {
-    "react-native-pure-jwt@^3.0.1": "patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch",
-    "react-native-callkeep@^4.3.3": "patch:react-native-callkeep@npm%3A4.3.3#./.yarn/patches/react-native-callkeep-npm-4.3.3-71db80f4ef.patch",
-    "react-native-webrtc@106.0.1": "patch:react-native-webrtc@npm%3A106.0.1#./.yarn/patches/react-native-webrtc+106.0.1.patch"
+    "react-native-pure-jwt@^3.0.1": "patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch"
+  },
+  "dependencies": {
+    "uuid": "^9.0.0"
   }
 }

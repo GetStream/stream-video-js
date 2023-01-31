@@ -1,37 +1,36 @@
-import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { Call } from '@stream-io/video-client';
+import { Component, NgZone, OnInit } from '@angular/core';
 import { StreamVideoService } from '@stream-io/video-angular-sdk';
-import { Observable, Subscription } from 'rxjs';
 import { environment } from '../environments/environment';
+import { distinctUntilKeyChanged } from 'rxjs';
 
 @Component({
   selector: 'app-root',
-  template: `<div class="container">
-    <div>Connected as {{ (user$ | async)?.name }}</div>
-    <stream-call *ngIf="activeCall; else noCall"></stream-call>
-
-    <ng-template #noCall> Currently not in a call </ng-template>
-  </div>`,
+  template: `
+    <div class="container">
+      <div>
+        <input #input /><button (click)="createOrJoinCall(input.value)">
+          Create or join call
+        </button>
+      </div>
+      <div>Call ID: {{ callId }}</div>
+      <stream-call></stream-call>
+    </div>
+  `,
 })
-export class AppComponent implements OnInit, OnDestroy {
-  ownMediaStream?: MediaStream;
-  user$: Observable<any>;
-  activeCall: Call | undefined;
-  private subscriptions: Subscription[] = [];
+export class AppComponent implements OnInit {
+  callId?: string;
 
   constructor(
-    private activatedRoute: ActivatedRoute,
-    private videoService: StreamVideoService,
+    private streamVideoService: StreamVideoService,
     private ngZone: NgZone,
   ) {
-    this.user$ = this.videoService.user$;
-
-    this.subscriptions.push(
-      this.videoService.activeCall$.subscribe((c: Call | undefined) => {
-        return (this.activeCall = c);
-      }),
-    );
+    this.streamVideoService.participants$
+      .pipe(distinctUntilKeyChanged('length'))
+      .subscribe((participants) =>
+        console.log(
+          `There are ${participants?.length || 0} participant(s) in the call`,
+        ),
+      );
   }
 
   async ngOnInit() {
@@ -40,36 +39,41 @@ export class AppComponent implements OnInit, OnDestroy {
     const user = environment.user;
     const baseCoordinatorUrl = environment.coordinatorUrl;
     const baseWsUrl = environment.wsUrl;
-    const client = this.videoService.init(
+    const client = this.streamVideoService.init(
       apiKey,
       token,
       baseCoordinatorUrl,
       baseWsUrl,
     );
     await client.connect(apiKey, token, user);
-    this.subscriptions.push(
-      this.activatedRoute.queryParams.subscribe(async (params) => {
-        if (params['callid']) {
-          const callId = params['callid'];
-          await this.joinCall(callId);
-        }
-      }),
-    );
   }
 
-  ngOnDestroy(): void {
-    this.activeCall?.leave();
-    this.subscriptions.forEach((s) => s.unsubscribe());
+  async createOrJoinCall(callId?: string) {
+    if (!callId) {
+      callId = await this.createCall();
+    }
+    this.callId = callId;
+    this.joinCall(callId);
   }
 
-  private async joinCall(id: string, type = 'default') {
-    const call = await this.ngZone.runOutsideAngular(() => {
-      return this.videoService.videoClient?.joinCall({
-        id,
-        type,
+  private async createCall() {
+    const response = await this.streamVideoService.videoClient?.createCall({
+      type: 'default',
+    });
+    const callId = response?.call?.id;
+    return callId;
+  }
+
+  private async joinCall(callId?: string) {
+    if (!callId) {
+      return;
+    }
+    await this.ngZone.runOutsideAngular(() => {
+      return this.streamVideoService.videoClient?.joinCall({
+        id: callId,
+        type: 'default',
         datacenterId: '',
       });
     });
-    await call?.join();
   }
 }

@@ -1,16 +1,18 @@
-import { StreamVideoClient } from '@stream-io/video-client';
+import { StreamVideoClient, CallConfig } from '@stream-io/video-client';
 import { UserInput } from '@stream-io/video-client/src/gen/video/coordinator/user_v1/user';
 import { useEffect, useRef, useState } from 'react';
 
 export type StreamVideoClientInit = {
   apiKey: string;
   token: string;
+  callConfig?: CallConfig;
   coordinatorRpcUrl?: string;
   coordinatorWsUrl?: string;
   user: UserInput;
 };
 
 export const useCreateStreamVideoClient = ({
+  callConfig,
   coordinatorRpcUrl,
   coordinatorWsUrl,
   apiKey,
@@ -19,12 +21,16 @@ export const useCreateStreamVideoClient = ({
 }: StreamVideoClientInit) => {
   const [client] = useState<StreamVideoClient>(
     () =>
-      new StreamVideoClient(apiKey, {
-        coordinatorWsUrl,
-        coordinatorRpcUrl,
-        sendJson: true,
-        token,
-      }),
+      new StreamVideoClient(
+        apiKey,
+        {
+          coordinatorWsUrl,
+          coordinatorRpcUrl,
+          sendJson: true,
+          token,
+        },
+        callConfig,
+      ),
   );
   const disconnectRef = useRef<Promise<void>>(Promise.resolve());
 
