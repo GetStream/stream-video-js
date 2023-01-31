@@ -5246,6 +5246,7 @@ __metadata:
     "@stream-io/video-styling": "workspace:^"
     "@types/jsonwebtoken": ^8.5.9
     "@types/yargs": ^17.0.17
+    clsx: ^1.2.1
     jsonwebtoken: ^8.5.1
     nanoid: ^4.0.0
     next: ^12.3.4
@@ -5373,9 +5374,11 @@ __metadata:
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
+    "@types/lodash.throttle": ^4
     "@types/rimraf": ^3.0.2
     "@types/uuid": ^8.3.4
     clsx: ^1.2.1
+    lodash.throttle: ^4.1.1
     react: ^18.2.0
     react-dom: ^18.2.0
     react-popper: ^2.3.0
@@ -5971,6 +5974,22 @@ __metadata:
   dependencies:
     "@types/react": "*"
   checksum: 8381e7b9590b4f59fd1d690c827a34f212d1e55e3463b4750ab6ff16f6bf29e2b66d552f2eb95a3f353a1cbf2740be59fbdebb1efb53b8392795728c2e9e6a50
+  languageName: node
+  linkType: hard
+
+"@types/lodash.throttle@npm:^4":
+  version: 4.1.7
+  resolution: "@types/lodash.throttle@npm:4.1.7"
+  dependencies:
+    "@types/lodash": "*"
+  checksum: 6e1b3836488fecbdc537b6ad9b3fe4855c7336b0fa388773cd57d486619f565a48cabc04b28677fd3819be3f2d13d2bb8f9d4428aa5632885c86cb99729bfd69
+  languageName: node
+  linkType: hard
+
+"@types/lodash@npm:*":
+  version: 4.14.191
+  resolution: "@types/lodash@npm:4.14.191"
+  checksum: ba0d5434e10690869f32d5ea49095250157cae502f10d57de0a723fd72229ce6c6a4979576f0f13e0aa9fbe3ce2457bfb9fa7d4ec3d6daba56730a51906d1491
   languageName: node
   linkType: hard
 

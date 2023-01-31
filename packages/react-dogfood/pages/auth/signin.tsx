@@ -34,6 +34,7 @@ export default function SignIn({ providers }: { providers: Providers }) {
           {Object.values(providers).map((provider) => (
             <div key={provider.name}>
               <Button
+                data-testid="sign-in-button"
                 variant="contained"
                 fullWidth
                 onClick={() => signIn(provider.id)}

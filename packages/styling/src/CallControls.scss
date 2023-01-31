@@ -77,6 +77,10 @@
       &-stats {
         mask-image: var(--str-video__icon--info-icon);
       }
+
+      &-participants {
+        mask-image: var(--str-video__icon--participants);
+      }
     }
   }
 }
