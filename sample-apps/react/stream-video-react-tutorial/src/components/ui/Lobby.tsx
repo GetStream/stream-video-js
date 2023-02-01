@@ -42,7 +42,7 @@ const CALL_TYPE = 'default';
 const StartNewCallButton = () => {
   const videoClient = useStreamVideoClient();
   const startMeeting = useCallback(() => {
-    return videoClient?.getOrCreateCall({
+    return videoClient?.createCall({
       type: CALL_TYPE,
       id: meetingId(),
     });
@@ -62,12 +62,11 @@ const JoinExistingCallForm = () => {
   const joinMeeting: FormEventHandler = useCallback(
     async (event) => {
       event.preventDefault();
-      const callDescriptors = {
+      await videoClient.joinCall({
         type: CALL_TYPE,
         id: joinCallId,
-      };
-      await videoClient?.getOrCreateCall(callDescriptors);
-      await videoClient.joinCall({ ...callDescriptors, datacenterId: '' });
+        datacenterId: '',
+      });
     },
     [joinCallId, videoClient],
   );
