@@ -375,7 +375,6 @@ export class DeviceManagerService {
     this.audioStream.getTracks().forEach((t) => t.stop());
     this.disposeSoundDetector?.();
     this.audioStreamSubject.next(undefined);
-    console.log('emitting off');
     this.audioStateSubject.next('off');
   }
 

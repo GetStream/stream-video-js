@@ -45,7 +45,6 @@ export class InCallDeviceManagerService {
           );
           this.subscriptions.push(
             this.deviceManager.audioState$.subscribe((s) => {
-              console.log(s);
               if (s === 'on') {
                 this.deviceManager.audioStream$
                   .pipe(take(1))
