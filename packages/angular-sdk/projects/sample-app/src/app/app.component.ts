@@ -51,9 +51,10 @@ export class AppComponent implements OnInit {
   async createOrJoinCall(callId?: string) {
     if (!callId) {
       callId = await this.createCall();
+    } else {
+      this.joinCall(callId);
     }
     this.callId = callId;
-    this.joinCall(callId);
   }
 
   private async createCall() {

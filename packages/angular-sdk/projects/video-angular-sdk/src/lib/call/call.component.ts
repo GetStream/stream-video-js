@@ -2,6 +2,7 @@ import {
   AfterViewChecked,
   Component,
   HostBinding,
+  NgZone,
   OnDestroy,
   OnInit,
 } from '@angular/core';
@@ -13,6 +14,8 @@ import { StreamVideoService } from '../video.service';
 
 /**
  * The `CallComponent` displays video/audio/screen share streams of participants and call and device controls (start/stop recording, hangup, select camera, mute audio etc.).
+ *
+ * Based on the `joinCallInstantly` setting of the [call configuration](../core/StreamVideoClient.md#constructor) the component will call the [`joinCall`](../core/StreamVideoClient.md#joincall) method of the `StreamVideoClient` either when an outgoing call is started or when the first callee accepts the call.
  *
  * Selector: `stream-call`
  */
@@ -31,9 +34,47 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
     private streamVideoService: StreamVideoService,
     private inCallDeviceManager: InCallDeviceManagerService,
     private deviceManager: DeviceManagerService,
+    private ngZone: NgZone,
   ) {
     this.localParticipant$ = this.streamVideoService.localParticipant$;
     this.inCallDeviceManager.start();
+    this.subscriptions.push(
+      this.streamVideoService.outgoingCalls$.subscribe((calls) => {
+        console.log(
+          calls,
+          this.streamVideoService.videoClient?.callConfig.joinCallInstantly,
+        );
+        if (
+          calls.length > 0 &&
+          this.streamVideoService.videoClient?.callConfig.joinCallInstantly
+        ) {
+          const outgoingCall = calls[0];
+          this.ngZone.runOutsideAngular(() =>
+            this.streamVideoService.videoClient?.joinCall({
+              id: outgoingCall.call!.id,
+              type: outgoingCall.call!.type,
+              datacenterId: '',
+            }),
+          );
+        }
+      }),
+    );
+    this.subscriptions.push(
+      this.streamVideoService.acceptedCall$.subscribe((call) => {
+        if (
+          call &&
+          !this.streamVideoService.videoClient?.callConfig.joinCallInstantly
+        ) {
+          this.ngZone.runOutsideAngular(() =>
+            this.streamVideoService.videoClient?.joinCall({
+              id: call.call!.id,
+              type: call.call!.type,
+              datacenterId: '',
+            }),
+          );
+        }
+      }),
+    );
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe(async (c) => {
         this.call = c;
