@@ -738,7 +738,7 @@ The custom stylesheets are stored in `src/style` folder and imported into `App.t
 
 **TODO: rework overrides.css file to override variables instead of selectors (once variables are implemented for all the components)**
 
-One thing we will just here is that we import the stylesheet provided by Stream's SDK into `src/style/index.css` as a separate CSS layer and will remove its import from `src/App.tsx`:
+The only thing we will do here is that we import the stylesheet provided by Stream's SDK into `src/style/index.css` as a separate CSS layer and will remove its import from `src/App.tsx`:
 
 ```css title="src/style/index.css"
 @import '@stream-io/video-styling/dist/css/styles.css' layer(default-video-sdk);
@@ -770,6 +770,7 @@ function App() {
 export default App;
 ```
 
+Please find all the custom stylesheets [in the reference application source](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial/src/style).
 
 ## Where to go next
 
