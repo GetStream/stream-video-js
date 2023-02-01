@@ -14,7 +14,6 @@ import {
   getAudioOutputDevices,
   checkIfAudioOutputChangeSupported,
 } from '@stream-io/video-client';
-import { useActiveCall } from '@stream-io/video-react-bindings';
 
 export type MediaDevicesContextAPI = {
   audioDevices: MediaDeviceInfo[];
@@ -30,7 +29,14 @@ export type MediaDevicesContextAPI = {
 
 const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
 
-export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
+export type MediaDevicesProviderProps = PropsWithChildren<{
+  enumerate?: boolean;
+}>;
+
+export const MediaDevicesProvider = ({
+  children,
+  enumerate = true,
+}: MediaDevicesProviderProps) => {
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedAudioDeviceId, selectAudioDeviceId] =
@@ -43,8 +49,6 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   const [isAudioOutputChangeSupported] = useState<boolean>(() =>
     checkIfAudioOutputChangeSupported(),
   );
-
-  const activeCall = useActiveCall();
 
   const switchDevice = useCallback(
     async (kind: 'videoinput' | 'audioinput', deviceId?: string) => {
@@ -59,25 +63,27 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   );
 
   useEffect(() => {
-    if (!activeCall) return;
+    if (!enumerate) return;
 
     const subscription = getAudioDevices().subscribe(setAudioDevices);
     return () => subscription.unsubscribe();
-  }, [activeCall]);
+  }, [enumerate]);
 
   useEffect(() => {
-    if (!activeCall) return;
+    if (!enumerate) return;
+
     const subscription = getVideoDevices().subscribe(setVideoDevices);
     return () => subscription.unsubscribe();
-  }, [activeCall]);
+  }, [enumerate]);
 
   useEffect(() => {
-    if (!activeCall) return;
+    if (!enumerate) return;
+
     const subscription = getAudioOutputDevices().subscribe(
       setAudioOutputDevices,
     );
     return () => subscription.unsubscribe();
-  }, [activeCall]);
+  }, [enumerate]);
 
   const contextValue = {
     audioDevices,
@@ -93,7 +99,7 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
 
   return (
     <MediaDevicesContext.Provider value={contextValue}>
-      {props.children}
+      {children}
     </MediaDevicesContext.Provider>
   );
 };
