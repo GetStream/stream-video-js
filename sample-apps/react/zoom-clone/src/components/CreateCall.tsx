@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useChatContext } from 'stream-chat-react';
 
+import { Preview } from './Preview';
+
 import { callId as getCallId } from '../utils';
 
 import users from '../../data/users.json';
@@ -23,15 +25,16 @@ export const CreateCall = () => {
   };
 
   return (
-    <div className="w-full h-full flex gap-4 flex-col justify-center items-center">
-      {/* <Preview /> */}
+    <div className="w-full h-full flex flex-col gap-2 justify-center items-center">
       <h1>TODO: Preview component</h1>
-      <button
-        onClick={clickHandler}
-        className="p-4 bg-cyan-600 text-lg text-white rounded-full"
-      >
-        CREATE CALL
-      </button>
+      <Preview>
+        <button
+          onClick={clickHandler}
+          className="p-4 bg-cyan-600 text-lg text-white rounded-full"
+        >
+          CREATE AND JOIN CALL
+        </button>
+      </Preview>
     </div>
   );
 };
