@@ -42,6 +42,7 @@ import TabItem from '@theme/TabItem';
 
 ```c
 // highlight-start
+#import "RNCallKeep.h"
 #import <PushKit/PushKit.h>
 #import "RNVoipPushNotificationManager.h"
 // highlight-end
@@ -56,11 +57,62 @@ import TabItem from '@theme/TabItem';
 
   // highlight-next-line
   [RNVoipPushNotificationManager voipRegistration];
-  // ===== (THIS IS OPTIONAL BUT RECOMMENDED) =====
-
-
 
   RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"AppName" initialProperties:nil];
+}
+
+- (BOOL)application:(UIApplication *)application
+ continueUserActivity:(nonnull NSUserActivity *)userActivity
+   restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
+{
+  return [RNCallKeep application:application
+                    continueUserActivity:userActivity
+                      restorationHandler:restorationHandler];
+}
+
+// --- Handle updated push credentials
+- (void)pushRegistry:(PKPushRegistry *)registry didUpdatePushCredentials:(PKPushCredentials *)credentials forType:(PKPushType)type {
+  // Register VoIP push token (a property of PKPushCredentials) with server
+  // Fire 'register' event to JS
+  [RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];
+}
+
+// --- Handle incoming pushes
+- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
+
+  // --- Process the received push // fire 'notification' event to JS
+  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
+  
+  // --- Retrieve information from your voip push payload
+  NSString *uuid = payload.dictionaryPayload[@"uuid"];
+  NSString *callerName = [NSString stringWithFormat:@"%@ (Connecting...)", payload.dictionaryPayload[@"callerName"]];
+  NSString *handle = payload.dictionaryPayload[@"handle"];
+
+  // Retrieve information like handle and callerName here
+  // NSString *uuid = /* fetch for payload or ... */ [[[NSUUID UUID] UUIDString] lowercaseString];
+  // NSString *callerName = @"caller name here";
+  // NSString *handle = @"caller number here";
+  // NSDictionary *extra = [payload.dictionaryPayload valueForKeyPath:@"custom.path.to.data"]; /* use this to pass any special data (ie. from your notification) down to RN. Can also be `nil` */
+
+  // report to callkeep
+  [RNCallKeep reportNewIncomingCall: uuid
+                             handle: handle
+                         handleType: @"generic"
+                           hasVideo: NO
+                localizedCallerName: callerName
+                    supportsHolding: YES
+                       supportsDTMF: YES
+                   supportsGrouping: YES
+                 supportsUngrouping: YES
+                        fromPushKit: YES
+                            payload: extra
+              withCompletionHandler: completion];
+
+//  // --- this is optional, only required if you want to call `completion()` on the js side
+//  [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
+//
+//  // --- You don't need to call it if you stored `completion()` and will call it on the js side.
+//  completion();
 }
 
 ```

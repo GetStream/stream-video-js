@@ -30,12 +30,17 @@ import OutgoingCallScreen from './src/screens/Call/OutgoingCallScreen';
 import { StreamMeeting } from '@stream-io/video-react-native-sdk/src/components/StreamMeeting';
 import { CallParticipansInfoScreen } from './src/screens/Meeting/CallParticipantsInfoScreen';
 import { setFirebaseHandler } from './src/modules/push/android';
+import { useIosPushEffect } from './src/hooks/useIosPushEffect';
+import { Platform } from 'react-native';
+import { useCallKeepEffect } from './src/hooks/useCallkeepEffect';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const MeetingStack = createNativeStackNavigator<MeetingStackParamList>();
 const RingingStack = createNativeStackNavigator<RingingStackParamList>();
 
-setFirebaseHandler();
+if (Platform.OS === 'android') {
+  setFirebaseHandler();
+}
 
 const Meeting = (props: NativeStackScreenProps<MeetingStackParamList>) => {
   const username = useAppGlobalStoreValue((store) => store.username);
@@ -114,6 +119,9 @@ const StackNavigator = () => {
   useProntoLinkEffect();
   const { authenticationInProgress, videoClient } = useAuth();
   const appMode = useAppGlobalStoreValue((store) => store.appMode);
+
+  useIosPushEffect();
+  useCallKeepEffect();
 
   if (authenticationInProgress) {
     return <AuthenticatingProgressScreen />;
