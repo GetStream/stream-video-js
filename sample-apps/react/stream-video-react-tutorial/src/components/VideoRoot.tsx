@@ -1,0 +1,42 @@
+import * as React from 'react';
+import {
+  StreamCall,
+  StreamVideo,
+  useCreateStreamVideoClient,
+} from '@stream-io/video-react-sdk';
+
+import { CALL_CONFIG } from '@stream-io/video-client';
+import { UI } from './ui/UI';
+import { useUserData } from '../context/UserContext';
+import { useTheme } from '../hooks/useTheme';
+
+export const VideoRoot = () => {
+  const { selectedUserId, users } = useUserData();
+  const { theme, toggleTheme } = useTheme();
+  const client = useCreateStreamVideoClient({
+    callConfig: CALL_CONFIG.meeting,
+    coordinatorRpcUrl: import.meta.env.VITE_VIDEO_COORDINATOR_RPC_ENDPOINT,
+    coordinatorWsUrl: import.meta.env.VITE_VIDEO_COORDINATOR_WS_URL,
+    apiKey: import.meta.env.VITE_VIDEO_API_KEY,
+    token: import.meta.env[
+      `VITE_VIDEO_USER_${selectedUserId.toUpperCase()}_TOKEN`
+    ],
+    user: users[selectedUserId],
+  });
+
+  return (
+    <StreamVideo client={client}>
+      <StreamCall>
+        <div className={`str-video str-video-tutorial ${theme}`}>
+          <button
+            onClick={toggleTheme}
+            className={`str-video-tutorial__theme-btn ${theme}`}
+          >
+            {theme === 'dark' ? 'Go Light' : 'Go Dark'}
+          </button>
+          <UI />
+        </div>
+      </StreamCall>
+    </StreamVideo>
+  );
+};
