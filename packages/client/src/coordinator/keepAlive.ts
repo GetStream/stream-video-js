@@ -1,5 +1,8 @@
 import { StreamWebSocketClient } from './StreamWebSocketClient';
 
+/**
+ * @deprecated remove once the Coordinator API transition is ready.
+ */
 export const keepAlive = (
   client: StreamWebSocketClient,
   timeThreshold: number,

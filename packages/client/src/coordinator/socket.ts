@@ -11,6 +11,9 @@ export type SocketOpts = {
   onMessage: (message: WebsocketEvent) => void;
 };
 
+/**
+ * @deprecated remove once the Coordinator API transition is ready.
+ */
 export const createCoordinatorWebSocket = (
   endpoint: string,
   authRequest: WebsocketAuthRequest,

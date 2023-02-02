@@ -12,6 +12,9 @@ import { createCoordinatorWebSocket } from './socket';
 
 const WS_STATE_OPEN = 1;
 
+/**
+ * @deprecated remove once the Coordinator API transition is ready.
+ */
 export class StreamWebSocketClient {
   private readonly endpoint: string;
   private readonly apiKey: string;

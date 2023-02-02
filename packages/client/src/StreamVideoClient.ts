@@ -25,13 +25,13 @@ import {
   StreamVideoClientOptions,
   withHeaders,
 } from './rpc';
-import { createSocketConnection, StreamEventListener } from './ws';
+import { createSocketConnection, StreamEventListener } from './coordinator';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
 
 // import { reportStats } from './stats/coordinator-stats-reporter';
 import { Timestamp } from './gen/google/protobuf/timestamp';
-import { StreamWebSocketClient } from './ws/StreamWebSocketClient';
+import { StreamWebSocketClient } from './coordinator/StreamWebSocketClient';
 import { Batcher } from './Batcher';
 import {
   watchCallAccepted,
@@ -42,7 +42,7 @@ import {
 import { CALL_CONFIG } from './config/defaultConfigs';
 import { CallConfig } from './config/types';
 import { CallDropScheduler } from './CallDropScheduler';
-import { StreamCoordinatorClient } from './ws/StreamCoordinatorClient';
+import { StreamCoordinatorClient } from './coordinator/StreamCoordinatorClient';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   coordinatorRpcUrl:

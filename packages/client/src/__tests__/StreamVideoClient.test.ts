@@ -1,6 +1,6 @@
 import { describe, it, vi, beforeEach, expect } from 'vitest';
 import { StreamVideoClient } from '../StreamVideoClient';
-import { createSocketConnection } from '../ws';
+import { createSocketConnection } from '../coordinator';
 import { StreamVideoParticipant } from '../rtc/types';
 import { mock } from 'vitest-mock-extended';
 

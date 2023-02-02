@@ -5,7 +5,7 @@ import {
   CallRejected,
 } from '../gen/video/coordinator/event_v1/event';
 import { StreamVideoWriteableStateStore } from '../store';
-import { StreamEventListener } from '../ws';
+import { StreamEventListener } from '../coordinator';
 
 /**
  * Event handler that watches the delivery of CallCreated Websocket event

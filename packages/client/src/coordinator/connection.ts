@@ -1,6 +1,9 @@
 import { UserInput } from '../gen/video/coordinator/user_v1/user';
 import { StreamWebSocketClient } from './StreamWebSocketClient';
 
+/**
+ * @deprecated remove once the Coordinator API transition is ready.
+ */
 export const createSocketConnection = async (
   endpoint: string,
   apiKey: string,
