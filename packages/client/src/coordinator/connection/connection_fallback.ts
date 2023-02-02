@@ -94,8 +94,6 @@ export class WSConnectionFallback {
         {
           config: { ...config, cancelToken: this.cancelToken?.token },
           params,
-          // @ts-ignore
-          headers: {},
         },
       );
 
@@ -125,8 +123,6 @@ export class WSConnectionFallback {
           {},
           {
             timeout: 30000,
-            // @ts-ignore
-            headers: {},
           },
           true,
         ); // 30s => API responds in 20s if there is no event
@@ -194,8 +190,6 @@ export class WSConnectionFallback {
         { json: this.client._buildWSPayload() },
         {
           timeout: 8000, // 8s
-          // @ts-ignore
-          headers: {},
         },
         reconnect,
       );
@@ -234,8 +228,6 @@ export class WSConnectionFallback {
         { close: true, connection_id },
         {
           timeout,
-          // @ts-ignore
-          headers: {},
         },
         false,
       );

@@ -120,8 +120,6 @@ export class StreamClient {
       timeout: 3000,
       withCredentials: false, // making sure cookies are not sent
       warmUp: false,
-      // @ts-ignore
-      headers: {},
       ...inputOptions,
     };
 
@@ -512,10 +510,7 @@ export class StreamClient {
     data?: unknown,
     options: AxiosRequestConfig & {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
-    } = {
-      // @ts-ignore
-      headers: {},
-    },
+    } = {},
   ): Promise<T> => {
     await this.tokenManager.tokenReady();
     const requestConfig = this._enrichAxiosOptions(options);
@@ -574,8 +569,6 @@ export class StreamClient {
   get<T>(url: string, params?: AxiosRequestConfig['params']) {
     return this.doAxiosRequest<T>('get', url, null, {
       params,
-      // @ts-ignore
-      headers: {},
     });
   }
 
@@ -594,8 +587,6 @@ export class StreamClient {
   delete<T>(url: string, params?: AxiosRequestConfig['params']) {
     return this.doAxiosRequest<T>('delete', url, null, {
       params,
-      // @ts-ignore
-      headers: {},
     });
   }
 
@@ -929,7 +920,6 @@ export class StreamClient {
         api_key: this.key,
         ...options.params,
       },
-      // @ts-ignore
       headers: {
         ...authorization,
         'stream-auth-type': this.getAuthType(),
