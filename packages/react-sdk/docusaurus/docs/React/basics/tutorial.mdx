@@ -68,24 +68,24 @@ Make sure to [create video application](**TODO: link to article on how to set up
 In order to be able to communicate with Stream's back-end video service, you will need to gather the following values and store them in a `.env` file in the root of the project:
 
 ```bash
-VITE_VIDEO_API_KEY=<your_api_key>
-VITE_VIDEO_USER_ALICE_TOKEN=<manually_generated_token_first_user>
-VITE_VIDEO_USER_MARK_TOKEN=<manually_generated_token_second_user>
+VITE_STREAM_API_KEY=<your_api_key>
+VITE_STREAM_USER_ALICE_TOKEN=<manually_generated_token_first_user>
+VITE_STREAM_USER_MARK_TOKEN=<manually_generated_token_second_user>
 ```
 
-- `VITE_VIDEO_API_KEY` - you can find it in [Stream dashboard](**TODO: link to the dashboard**)
-- `VITE_VIDEO_USER_ALICE_TOKEN` - JWT to authenticate the user with id `'alice'`
-- `VITE_VIDEO_USER_MARK_TOKEN` - JWT to authenticate the user with id `'mark'`
+- `VITE_STREAM_API_KEY` - you can find it in [Stream dashboard](**TODO: link to the dashboard**)
+- `VITE_STREAM_USER_ALICE_TOKEN` - JWT to authenticate the user with id `'alice'`
+- `VITE_STREAM_USER_MARK_TOKEN` - JWT to authenticate the user with id `'mark'`
 
 In order to be able to establish the call, we will need to authenticate ourselves against the Stream's video infrastructure. The authentication is performed by using JSON Web Tokens (JWT). You can generate JWT for your application by using [Stream's JWT generator](https://getstream.io/chat/docs/react/token_generator/)(**TODO: verify whether this link can be used**). In the real-life scenario, your client application will need to request short-lived JWT in the runtime from a dedicated back-end service. Such back-end service will be using the Stream app secret (again to be found in the Stream's dashboard) to generate short-lived JWTs.
 
-1. To generate the JWT for `VITE_VIDEO_USER_ALICE_TOKEN` use id `alice`.
-2. To generate the JWT for `VITE_VIDEO_USER_MARK_TOKEN` use id `mark`.
+1. To generate the JWT for `VITE_STREAM_USER_ALICE_TOKEN` use id `alice`.
+2. To generate the JWT for `VITE_STREAM_USER_MARK_TOKEN` use id `mark`.
 
 **TODO: will these have to be specified in `.env` (I would say no)**
 ```bash
-VITE_VIDEO_COORDINATOR_WS_URL=<coordinator_ws_url>
-VITE_VIDEO_COORDINATOR_RPC_ENDPOINT=<coordinator_rpc_endpoint>
+VITE_STREAM_COORDINATOR_WS_URL=<coordinator_ws_url>
+VITE_STREAM_COORDINATOR_RPC_ENDPOINT=<coordinator_rpc_endpoint>
 ```
 
 ### User data
@@ -364,11 +364,11 @@ export const VideoRoot = () => {
   const { selectedUserId, users } = useUserData();
   const client = useCreateStreamVideoClient({
     callConfig: CALL_CONFIG.meeting,
-    coordinatorRpcUrl: import.meta.env.VITE_VIDEO_COORDINATOR_RPC_ENDPOINT,
-    coordinatorWsUrl: import.meta.env.VITE_VIDEO_COORDINATOR_WS_URL,
-    apiKey: import.meta.env.VITE_VIDEO_API_KEY,
+    coordinatorRpcUrl: import.meta.env.VITE_STREAM_COORDINATOR_RPC_ENDPOINT,
+    coordinatorWsUrl: import.meta.env.VITE_STREAM_COORDINATOR_WS_URL,
+    apiKey: import.meta.env.VITE_STREAM_API_KEY,
     token: import.meta.env[
-      `VITE_VIDEO_USER_${selectedUserId.toUpperCase()}_TOKEN`
+      `VITE_STREAM_USER_${selectedUserId.toUpperCase()}_TOKEN`
     ],
     user: users[selectedUserId],
   });
@@ -704,11 +704,11 @@ export const VideoRoot = () => {
   const { theme, toggleTheme } = useTheme();
   const client = useCreateStreamVideoClient({
     callConfig: CALL_CONFIG.meeting,
-    coordinatorRpcUrl: import.meta.env.VITE_VIDEO_COORDINATOR_RPC_ENDPOINT,
-    coordinatorWsUrl: import.meta.env.VITE_VIDEO_COORDINATOR_WS_URL,
-    apiKey: import.meta.env.VITE_VIDEO_API_KEY,
+    coordinatorRpcUrl: import.meta.env.VITE_STREAM_COORDINATOR_RPC_ENDPOINT,
+    coordinatorWsUrl: import.meta.env.VITE_STREAM_COORDINATOR_WS_URL,
+    apiKey: import.meta.env.VITE_STREAM_API_KEY,
     token: import.meta.env[
-      `VITE_VIDEO_USER_${selectedUserId.toUpperCase()}_TOKEN`
+      `VITE_STREAM_USER_${selectedUserId.toUpperCase()}_TOKEN`
     ],
     user: users[selectedUserId],
   });
