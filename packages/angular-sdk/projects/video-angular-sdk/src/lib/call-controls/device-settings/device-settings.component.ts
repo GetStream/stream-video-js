@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { NgxPopperjsTriggers } from 'ngx-popperjs';
-import { DeviceManagerService } from '../device-manager.service';
+import { DeviceManagerService } from '../../device-manager.service';
 
 /**
  * The `DeviceSettingsComponent` can be used to select video, audio and audio output (if the current browser supports it) device.

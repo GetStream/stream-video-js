@@ -24,7 +24,8 @@ import { StreamVideoService } from '../video.service';
  * - `[call-controls]` which you can use to display the call control buttons
  *
  * If you wish to use the built-in components use this code:
- * ```
+ *
+ * ```html
  * <stream-call>
  *  <stream-device-settings call-header-end></stream-device-settings>
  *  <stream-stage call-stage></stream-stage>
