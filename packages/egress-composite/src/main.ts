@@ -59,7 +59,7 @@ import './style.css';
     throw new Error(`Failed to join a call with id: ${callId}`);
   }
 
-  await call.join();
+  // await call.join();
   console.log('Connection is established.');
 
   store$.dominantSpeaker$.subscribe((dominantSpeaker) => {
