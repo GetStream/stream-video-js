@@ -16,10 +16,6 @@ import { StreamVideoService } from '../video.service';
 /**
  * The `CallComponent` displays the frame for the call layout, it contains multiple content projection slots where you can inject built-in SDK components or your own custom components to create the call layout.
  *
- * Based on the `joinCallInstantly` setting of the [call configuration](../core/StreamVideoClient.md#constructor) the component will call the [`joinCall`](../core/StreamVideoClient.md#joincall) method of the `StreamVideoClient` either when an outgoing call is started (`joinCallInstantly` is `true`) or when the first callee accepts the call (`joinCallInstantly` is `false`).
- *
- *
- *
  * The component contains the following [content projection](https://angular.io/guide/content-projection#content-projection) slots:
  * - `[call-header-start]` which you can use to inject your own content to the beginning of the call header
  * - `[call-header-end]` which you can use to inject your own content to the end of the call header
@@ -35,6 +31,10 @@ import { StreamVideoService } from '../video.service';
  *  <stream-call-controls call-controls></stream-call-controls>
  * </stream-call>
  * ```
+ *
+ * Based on the `joinCallInstantly` setting of the [call configuration](../core/StreamVideoClient.md#constructor) the component will call the [`joinCall`](../core/StreamVideoClient.md#joincall) method of the `StreamVideoClient` either when an outgoing call is started (`joinCallInstantly` is `true`) or when the first callee accepts the call (`joinCallInstantly` is `false`).
+ *
+ * The component will start a video and audio stream once a participant joins a call.
  *
  * Selector: `stream-call`
  */
@@ -94,18 +94,9 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
       this.streamVideoService.activeCall$.subscribe(async (c) => {
         this.call = c;
         if (c) {
-          this.deviceManager.videoState$.pipe(take(1)).subscribe((s) => {
-            if (s === 'initial') {
-              this.deviceManager.initVideoDevices();
-            }
-          });
+          this.deviceManager.initVideoDevices();
           this.deviceManager.startVideo();
-          this.deviceManager.audioState$.pipe(take(1)).subscribe((s) => {
-            if (s === 'initial') {
-              this.deviceManager.initAudioDevices();
-              this.deviceManager.initAudioOutputDevices();
-            }
-          });
+          this.deviceManager.initAudioDevices();
           this.deviceManager.startAudio();
         }
       }),

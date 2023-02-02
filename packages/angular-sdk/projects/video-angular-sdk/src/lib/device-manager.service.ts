@@ -48,7 +48,7 @@ export class DeviceManagerService {
   /**
    * The list of available `audiooutput` devices, if devices are added/removed - the list is updated.
    *
-   * Listing the devices requires permission from the user. The list is not initialized by default, you have to call [`initAudioOutputDevices`](#initaudiooutputdevices) to have full control over when the permission window will be displayed.
+   * Listing the devices requires permission from the user. The list is not initialized by default, you have to call [`initAudioDevices`](#initaudiodevices) to have full control over when the permission window will be displayed.
    */
   audioOutputDevices$: Observable<MediaDeviceInfo[]>;
   /**
@@ -193,31 +193,18 @@ export class DeviceManagerService {
   }
 
   /**
-   * Requests permission to use audio devices and initializes the [`audioDevices$`](#audiodevices) list
+   * Requests permission to use audio devices and initializes the [`audioDevices$`](#audiodevices) and [`audioOutputDevices$`](#audiooutputdevices) lists
    */
   initAudioDevices() {
+    if (this.audioState !== 'initial') {
+      return;
+    }
     getAudioDevices().subscribe(this.audioDevicesSubject);
 
     watchForDisconnectedAudioDevice(this.audioDevice$).subscribe(() => {
       this.audioStateSubject.next('disconnected');
     });
-  }
 
-  /**
-   * Requests permission to use video devices and initializes the [`videoDevices$`](#videodevices) list
-   */
-  initVideoDevices() {
-    getVideoDevices().subscribe(this.videoDevicesSubject);
-
-    watchForDisconnectedVideoDevice(this.videoDevice$).subscribe(() => {
-      this.videoStateSubject.next('disconnected');
-    });
-  }
-
-  /**
-   * Requests permission to use audio devices and initializes the [`audioOutputDevices$`](#audiooutputdevices) list
-   */
-  initAudioOutputDevices() {
     getAudioOutputDevices().subscribe(this.audioOutputDevicesSubject);
 
     watchForDisconnectedAudioOutputDevice(this.audioOutputDevice$).subscribe(
@@ -225,6 +212,20 @@ export class DeviceManagerService {
         this.audioOutputDeviceSubject.next(undefined);
       },
     );
+  }
+
+  /**
+   * Requests permission to use video devices and initializes the [`videoDevices$`](#videodevices) list
+   */
+  initVideoDevices() {
+    if (this.videoState !== 'initial') {
+      return;
+    }
+    getVideoDevices().subscribe(this.videoDevicesSubject);
+
+    watchForDisconnectedVideoDevice(this.videoDevice$).subscribe(() => {
+      this.videoStateSubject.next('disconnected');
+    });
   }
 
   /**
