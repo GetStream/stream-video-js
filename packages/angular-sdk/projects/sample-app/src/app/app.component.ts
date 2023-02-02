@@ -12,8 +12,11 @@ import { distinctUntilKeyChanged } from 'rxjs';
           Create or join call
         </button>
       </div>
-      <div>Call ID: {{ callId }}</div>
-      <stream-call></stream-call>
+      <stream-call>
+        <stream-device-settings call-header-end></stream-device-settings>
+        <stream-stage call-stage></stream-stage>
+        <stream-call-controls call-controls></stream-call-controls>
+      </stream-call>
     </div>
   `,
 })

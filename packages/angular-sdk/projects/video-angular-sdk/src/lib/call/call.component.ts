@@ -1,6 +1,7 @@
 import {
   AfterViewChecked,
   Component,
+  ContentChild,
   HostBinding,
   NgZone,
   OnDestroy,
@@ -13,9 +14,27 @@ import { InCallDeviceManagerService } from '../in-call-device-manager.service';
 import { StreamVideoService } from '../video.service';
 
 /**
- * The `CallComponent` displays video/audio/screen share streams of participants and call and device controls (start/stop recording, hangup, select camera, mute audio etc.).
+ * The `CallComponent` displays the frame for the call layout, it contains multiple content projection slots where you can inject built-in SDK components or your own custom components to create the call layout.
  *
- * Based on the `joinCallInstantly` setting of the [call configuration](../core/StreamVideoClient.md#constructor) the component will call the [`joinCall`](../core/StreamVideoClient.md#joincall) method of the `StreamVideoClient` either when an outgoing call is started or when the first callee accepts the call.
+ * Based on the `joinCallInstantly` setting of the [call configuration](../core/StreamVideoClient.md#constructor) the component will call the [`joinCall`](../core/StreamVideoClient.md#joincall) method of the `StreamVideoClient` either when an outgoing call is started (`joinCallInstantly` is `true`) or when the first callee accepts the call (`joinCallInstantly` is `false`).
+ *
+ *
+ *
+ * The component contains the following [content projection](https://angular.io/guide/content-projection#content-projection) slots:
+ * - `[call-header-start]` which you can use to inject your own content to the beginning of the call header
+ * - `[call-header-end]` which you can use to inject your own content to the end of the call header
+ * - `[call-header]` which you can use to replace the default call header
+ * - `[call-stage]` which you can use to replave the default participant layout
+ * - `[call-controls]` which you can use to display the call control buttons
+ *
+ * If you wish to use the built-in components use this code:
+ * ```
+ * <stream-call>
+ *  <stream-device-settings call-header-end></stream-device-settings>
+ *  <stream-stage call-stage></stream-stage>
+ *  <stream-call-controls call-controls></stream-call-controls>
+ * </stream-call>
+ * ```
  *
  * Selector: `stream-call`
  */
@@ -40,10 +59,6 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.inCallDeviceManager.start();
     this.subscriptions.push(
       this.streamVideoService.outgoingCalls$.subscribe((calls) => {
-        console.log(
-          calls,
-          this.streamVideoService.videoClient?.callConfig.joinCallInstantly,
-        );
         if (
           calls.length > 0 &&
           this.streamVideoService.videoClient?.callConfig.joinCallInstantly
