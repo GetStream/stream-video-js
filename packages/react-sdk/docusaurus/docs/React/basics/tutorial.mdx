@@ -411,7 +411,7 @@ export const UI = () => {
 };
 ```
 
-Here we are using two hooks imported from `@stream-io/video-react-sdk`. These hooks access the client's state store. Under the hood, the client uses (`rxjs` library)[https://rxjs.dev/guide/overview] observables to conveniently push any updates applied to the state store into our UI. In this case the updates are related to:
+Here we are using two hooks imported from `@stream-io/video-react-sdk`. These hooks access the client's state store. Updates are pushed from the state store into our UI. In this case the updates are related to:
 
 1. **active call** (`useActiveCall`) - once the call connection is established, `Call` object instance is made available. The `Call` instance serves as a call controller exposing the API to control various aspects of call connection (publishing media streams, leaving the call, etc.)
 2. **notifications about call invitation** (`usePendingCalls`) - a list of objects that serve as notifications from the back-end service. Each object is describing a new call our user was invited to as a member. This includes calls created by our user.
