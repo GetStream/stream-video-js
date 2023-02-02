@@ -10,5 +10,4 @@ function App() {
     </UserDataProvider>
   );
 }
-
 export default App;

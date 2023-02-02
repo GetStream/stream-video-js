@@ -5,7 +5,6 @@ import {
   useState,
 } from 'react';
 import { useStreamVideoClient } from '@stream-io/video-react-sdk';
-import { meetingId } from '../../utils';
 import { useUserData } from '../../context/UserContext';
 
 const UserSelector = () => {
@@ -44,7 +43,6 @@ const StartNewCallButton = () => {
   const startMeeting = useCallback(() => {
     return videoClient?.createCall({
       type: CALL_TYPE,
-      id: meetingId(),
     });
   }, [videoClient]);
 
