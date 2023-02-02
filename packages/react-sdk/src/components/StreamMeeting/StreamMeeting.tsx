@@ -25,14 +25,18 @@ export const StreamMeeting = ({
       await client.joinCall(callId, callType, {
         ring: false,
         data: {
-          members: input?.members.map<CoordinatorModels.CallMemberRequest>(
-            (member) => ({
-              user_id: member.userId,
-              user: {
-                id: member.userId,
-              },
-            }),
-          ),
+          team: 'team',
+          created_by_id: currentUser,
+          members:
+            input?.members.map<CoordinatorModels.CallMemberRequest>(
+              (member) => ({
+                user_id: member.userId,
+                role: member.role,
+                user: {
+                  id: member.userId,
+                },
+              }),
+            ) ?? [],
         },
       });
     };

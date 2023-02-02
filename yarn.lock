@@ -5195,7 +5195,7 @@ __metadata:
     "@types/react-native-dotenv": ^0.2.0
     "@types/react-native-incall-manager": ^3.2.1
     "@types/react-test-renderer": ^18.0.0
-    "@types/uuid": ^8.3.4
+    "@types/uuid": ^9.0.0
     babel-jest: ^26.6.3
     eslint: ^8.28.0
     jest: ^26.6.3
@@ -5252,12 +5252,15 @@ __metadata:
     "@protobuf-ts/runtime": ^2.8.2
     "@protobuf-ts/runtime-rpc": ^2.8.2
     "@protobuf-ts/twirp-transport": ^2.8.2
+    "@types/jsonwebtoken": ^9.0.1
     "@types/rimraf": ^3.0.2
-    "@types/uuid": ^8.3.4
+    "@types/uuid": ^9.0.0
     "@types/ws": ^8.5.4
     "@vitest/coverage-c8": ^0.25.3
-    axios: ^1.2.3
+    axios: ^1.3.1
+    base64-js: ^1.5.1
     isomorphic-ws: ^5.0.0
+    jsonwebtoken: ^9.0.0
     prettier: ^2.8.3
     replace-in-file: ^6.3.5
     rimraf: ^3.0.2
@@ -5326,9 +5329,9 @@ __metadata:
     "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
-    "@types/jsonwebtoken": ^8.5.9
+    "@types/jsonwebtoken": ^9.0.1
     "@types/yargs": ^17.0.17
-    jsonwebtoken: ^8.5.1
+    jsonwebtoken: ^9.0.0
     nanoid: ^4.0.0
     next: ^12.3.4
     next-auth: ^4.17.0
@@ -5361,7 +5364,7 @@ __metadata:
     "@types/react-native": ^0.70.4
     "@types/react-native-incall-manager": ^3.2.1
     "@types/react-test-renderer": ^18.0.0
-    "@types/uuid": ^8.3.4
+    "@types/uuid": ^9.0.0
     babel-jest: ^26.6.3
     eslint: ^8.28.0
     jest: ^26.6.3
@@ -5456,7 +5459,7 @@ __metadata:
     "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
     "@types/rimraf": ^3.0.2
-    "@types/uuid": ^8.3.4
+    "@types/uuid": ^9.0.0
     clsx: ^1.2.1
     react: ^18.2.0
     react-dom: ^18.2.0
@@ -6020,7 +6023,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jsonwebtoken@npm:^8.5.6, @types/jsonwebtoken@npm:^8.5.9":
+"@types/jsonwebtoken@npm:^8.5.6":
   version: 8.5.9
   resolution: "@types/jsonwebtoken@npm:8.5.9"
   dependencies:
@@ -6029,12 +6032,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jsonwebtoken@npm:~9.0.0":
-  version: 9.0.0
-  resolution: "@types/jsonwebtoken@npm:9.0.0"
+"@types/jsonwebtoken@npm:^9.0.1, @types/jsonwebtoken@npm:~9.0.0":
+  version: 9.0.1
+  resolution: "@types/jsonwebtoken@npm:9.0.1"
   dependencies:
     "@types/node": "*"
-  checksum: c7791354ba895759524c18ba609ea04efdc576e2b660bd6f80d5b917db8dc4b01acd4d1bc115a62d35406a82e627067973d475c4b36035dabaa27862b141ae49
+  checksum: a7f0925e9a42ad3ae970364c63c5986d40da5c83d51d3f4e624eb0f064a380376f9e3fb3f2f837390a9ab80143f5d75fd51866da30e110f6b486a3379e1c768f
   languageName: node
   linkType: hard
 
@@ -6317,10 +6320,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/uuid@npm:8.3.4, @types/uuid@npm:^8.3.4":
+"@types/uuid@npm:8.3.4":
   version: 8.3.4
   resolution: "@types/uuid@npm:8.3.4"
   checksum: 6f11f3ff70f30210edaa8071422d405e9c1d4e53abbe50fdce365150d3c698fe7bbff65c1e71ae080cbfb8fded860dbb5e174da96fdbbdfcaa3fb3daa474d20f
+  languageName: node
+  linkType: hard
+
+"@types/uuid@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "@types/uuid@npm:9.0.0"
+  checksum: 59ae56d9547c8758588659da2a2b4c97cce79c2aae1798c892bb29452ef08e87859dea2ec3a66bfa88d0d2153147520be2b1893be920f9f0bc9c53a3207ea6aa
   languageName: node
   linkType: hard
 
@@ -7807,14 +7817,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.2.3":
-  version: 1.2.3
-  resolution: "axios@npm:1.2.3"
+"axios@npm:^1.3.1":
+  version: 1.3.1
+  resolution: "axios@npm:1.3.1"
   dependencies:
     follow-redirects: ^1.15.0
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
-  checksum: 52802a1e317e8a6fd2c014aa06a6978ea8381142c98e91f2be5e9e213b77b541451e588e17a3d6db2d6e76faea82911239ca4981d7af959d67fb66018dab3ac9
+  checksum: 2c83346b81ff6dd182c5272765319c6cb464d4602fc7fb6e5e7d67a7ec17a219524db38176f408ef2189993c7fa0d6a1f4198dc9e312a9e3aa8352df9ddfd832
   languageName: node
   linkType: hard
 
@@ -16234,7 +16244,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonwebtoken@npm:~9.0.0":
+"jsonwebtoken@npm:^9.0.0, jsonwebtoken@npm:~9.0.0":
   version: 9.0.0
   resolution: "jsonwebtoken@npm:9.0.0"
   dependencies:
@@ -23734,8 +23744,8 @@ __metadata:
   linkType: hard
 
 "stream-chat@npm:^8.1.3, stream-chat@npm:^8.2.1":
-  version: 8.2.1
-  resolution: "stream-chat@npm:8.2.1"
+  version: 8.3.0
+  resolution: "stream-chat@npm:8.3.0"
   dependencies:
     "@babel/runtime": ^7.16.3
     "@types/jsonwebtoken": ~9.0.0
@@ -23746,7 +23756,7 @@ __metadata:
     isomorphic-ws: ^4.0.1
     jsonwebtoken: ~9.0.0
     ws: ^7.4.4
-  checksum: 507c28abb97d71fa9411ad7b805729c6f1bdd5a4eb559dae857c00ed84beadd3cedaf597abeadc272b1dccd67bcee277905c60d1af918f33c310a437a344ab3c
+  checksum: e0ce53fe3227f5bcb1f939dede9e431e896992285e53d7029f8ba06f717b6289a926372882564e11a7681db2ff969186f6bde94fcc0f4378d843b2826308f8bf
   languageName: node
   linkType: hard
 

@@ -1,3 +1,7 @@
+import { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { EVENT_MAP } from './events';
+import { StableWSConnection } from './connection';
+
 export type UR = Record<string, unknown>;
 
 export type User = {
@@ -14,22 +18,14 @@ export type UserResponse = User & {
   created_at?: string;
   deactivated_at?: string;
   deleted_at?: string;
-  // language?: TranslationLanguages | '';
   last_active?: string;
   online?: boolean;
-  // push_notifications?: PushNotificationSettings;
   revoke_tokens_issued_before?: string;
   shadow_banned?: boolean;
   updated_at?: string;
 };
 
 export type OwnUserBase = {
-  // channel_mutes: ChannelMute<StreamChatGenerics>[];
-  // devices: Device<StreamChatGenerics>[];
-  // mutes: Mute<StreamChatGenerics>[];
-  total_unread_count: number;
-  unread_channels: number;
-  unread_count: number;
   invisible?: boolean;
   roles?: string[];
 };
@@ -47,3 +43,73 @@ export type ConnectionOpen = {
 export type ConnectAPIResponse = Promise<void | ConnectionOpen>;
 
 export type LogLevel = 'info' | 'error' | 'warn';
+
+type ErrorResponseDetails = {
+  code: number;
+  messages: string[];
+};
+
+export type APIErrorResponse = {
+  code: number;
+  duration: string;
+  message: string;
+  more_info: string;
+  StatusCode: number;
+  details?: ErrorResponseDetails;
+};
+
+export class ErrorFromResponse<T> extends Error {
+  code?: number;
+  response?: AxiosResponse<T>;
+  status?: number;
+}
+export type EventTypes = 'all' | keyof typeof EVENT_MAP;
+export type Event = {
+  type: EventTypes;
+
+  received_at?: string | Date;
+  online?: boolean;
+  mode?: string;
+  // TODO OL: add more properties
+};
+
+export type EventHandler = (event: Event) => void;
+export type Logger = (
+  logLevel: LogLevel,
+  message: string,
+  extraData?: Record<string, unknown>,
+) => void;
+
+export type StreamClientOptions = Partial<AxiosRequestConfig> & {
+  /**
+   * Used to disable warnings that are triggered by using connectUser or connectAnonymousUser server-side.
+   */
+  allowServerSideConnect?: boolean;
+  axiosRequestConfig?: AxiosRequestConfig;
+  /**
+   * Base url to use for API
+   * such as https://chat-proxy-dublin.stream-io-api.com
+   */
+  baseURL?: string;
+  browser?: boolean;
+  // device?: BaseDeviceFields;
+  enableInsights?: boolean;
+  /** experimental feature, please contact support if you want this feature enabled for you */
+  enableWSFallback?: boolean;
+  logger?: Logger;
+  /**
+   * When true, user will be persisted on client. Otherwise if `connectUser` call fails, then you need to
+   * call `connectUser` again to retry.
+   * This is mainly useful for chat application working in offline mode, where you will need client.user to
+   * persist even if connectUser call fails.
+   */
+  persistUserOnConnectionFailure?: boolean;
+
+  warmUp?: boolean;
+  // Set the instance of StableWSConnection on chat client. Its purely for testing purpose and should
+  // not be used in production apps.
+  wsConnection?: StableWSConnection;
+};
+
+export type TokenProvider = () => Promise<string>;
+export type TokenOrProvider = null | string | TokenProvider | undefined;

@@ -1,14 +1,20 @@
 import WebSocket from 'isomorphic-ws';
+import { StreamClient } from './client';
+import {
+  buildWsFatalInsight,
+  buildWsSuccessAfterFailureInsight,
+  postInsights,
+} from './insights';
 import {
   addConnectionEventListeners,
   chatCodes,
+  convertErrorToJson,
   randomId,
   removeConnectionEventListeners,
   retryInterval,
   sleep,
 } from './utils';
-
-import { ConnectAPIResponse, ConnectionOpen, LogLevel, UR } from './types';
+import type { ConnectAPIResponse, ConnectionOpen, LogLevel, UR } from './types';
 
 // Type guards to check WebSocket error type
 const isCloseEvent = (
@@ -67,7 +73,10 @@ export class StableWSConnection {
 
   token = '';
 
-  constructor() {
+  client: StreamClient;
+
+  constructor(client: StreamClient) {
+    this.client = client;
     /** consecutive failures influence the duration of the timeout */
     this.consecutiveFailures = 0;
     /** keep track of the total number of failures */
@@ -93,11 +102,15 @@ export class StableWSConnection {
 
   _log(msg: string, extra: UR = {}, level: LogLevel = 'info') {
     console.log(msg, extra);
-    // this.client.logger(level, 'connection:' + msg, {
-    //   tags: ['connection'],
-    //   ...extra,
-    // });
+    this.client.logger(level, 'connection:' + msg, {
+      tags: ['connection'],
+      ...extra,
+    });
   }
+
+  setClient = (client: StreamClient) => {
+    this.client = client;
+  };
 
   /**
    * connect - Connect to the WS URL
@@ -124,25 +137,33 @@ export class StableWSConnection {
       this.isHealthy = false;
       this.consecutiveFailures += 1;
 
-      // if (
-      //   error.code === chatCodes.TOKEN_EXPIRED &&
-      //   !this.client.tokenManager.isStatic()
-      // ) {
-      //   this._log(
-      //     'connect() - WS failure due to expired token, so going to try to reload token and reconnect',
-      //   );
-      this._reconnect({ refreshToken: true });
-      // } else if (!error.isWSFailure) {
-      //   // API rejected the connection and we should not retry
-      //   throw new Error(
-      //     JSON.stringify({
-      //       code: error.code,
-      //       StatusCode: error.StatusCode,
-      //       message: error.message,
-      //       isWSFailure: error.isWSFailure,
-      //     }),
-      //   );
-      // }
+      if (
+        // @ts-ignore
+        error.code === chatCodes.TOKEN_EXPIRED &&
+        !this.client.tokenManager.isStatic()
+      ) {
+        this._log(
+          'connect() - WS failure due to expired token, so going to try to reload token and reconnect',
+        );
+        this._reconnect({ refreshToken: true });
+      } else {
+        // @ts-ignore
+        if (!error.isWSFailure) {
+          // API rejected the connection and we should not retry
+          throw new Error(
+            JSON.stringify({
+              // @ts-ignore
+              code: error.code,
+              // @ts-ignore
+              StatusCode: error.StatusCode,
+              // @ts-ignore
+              message: error.message,
+              // @ts-ignore
+              isWSFailure: error.isWSFailure,
+            }),
+          );
+        }
+      }
     }
 
     return await this._waitForHealthy(timeout);
@@ -196,18 +217,15 @@ export class StableWSConnection {
    * @returns url string
    */
   _buildUrl = () => {
-    // const qs = encodeURIComponent(this.client._buildWSPayload(this.requestID));
-    // const token = this.client.tokenManager.getToken();
-    //
-    // return `${this.client.wsBaseURL}/connect?json=${qs}&api_key=${
-    //   this.client.key
-    // }&authorization=${token}&stream-auth-type=${this.client.getAuthType()}&X-Stream-Client=${this.client.getUserAgent()}`;
     const params = new URLSearchParams();
-    params.append('api_key', '892s22ypvt6m');
-    params.append('authorization', this.token);
-    params.append('stream-auth-type', 'jwt');
+    // const qs = encodeURIComponent(this.client._buildWSPayload(this.requestID));
+    // params.set('json', qs);
+    params.set('api_key', this.client.key);
+    params.set('stream-auth-type', this.client.getAuthType());
+    params.set('X-Stream-Client', this.client.getUserAgent());
+    // params.append('authorization', this.client._getToken()!);
 
-    return `ws://localhost:8800/video/connect?${params.toString()}`;
+    return `${this.client.wsBaseURL}/connect?${params.toString()}`;
   };
 
   /**
@@ -289,30 +307,29 @@ export class StableWSConnection {
    * @return {ConnectAPIResponse<ChannelType, CommandType, UserType>} Promise that completes once the first health check message is received
    */
   async _connect() {
-    // if (
-    //   this.isConnecting ||
-    //   (this.isDisconnected && this.client.options.enableWSFallback)
-    // )
-    //   return; // simply ignore _connect if it's currently trying to connect
+    if (
+      this.isConnecting ||
+      (this.isDisconnected && this.client.options.enableWSFallback)
+    )
+      return; // simply ignore _connect if it's currently trying to connect
     this.isConnecting = true;
     this.requestID = randomId();
-    // this.client.insightMetrics.connectionStartTimestamp = new Date().getTime();
-    // let isTokenReady = false;
-    // try {
-    //   this._log(`_connect() - waiting for token`);
-    //   await this.client.tokenManager.tokenReady();
-    //   isTokenReady = true;
-    // } catch (e) {
-    //   // token provider has failed before, so try again
-    // }
-    const isTokenReady = true;
+    this.client.insightMetrics.connectionStartTimestamp = new Date().getTime();
+    let isTokenReady = false;
+    try {
+      this._log(`_connect() - waiting for token`);
+      await this.client.tokenManager.tokenReady();
+      isTokenReady = true;
+    } catch (e) {
+      // token provider has failed before, so try again
+    }
 
     try {
       if (!isTokenReady) {
         this._log(
           `_connect() - tokenProvider failed before, so going to retry`,
         );
-        // await this.client.tokenManager.loadToken();
+        await this.client.tokenManager.loadToken();
       }
 
       this._setupConnectionPromise();
@@ -331,34 +348,34 @@ export class StableWSConnection {
 
       if (response) {
         this.connectionID = response.connection_id;
-        // if (
-        //   this.client.insightMetrics.wsConsecutiveFailures > 0 &&
-        //   this.client.options.enableInsights
-        // ) {
-        //   postInsights(
-        //     'ws_success_after_failure',
-        //     buildWsSuccessAfterFailureInsight(
-        //       this as unknown as StableWSConnection,
-        //     ),
-        //   );
-        //   this.client.insightMetrics.wsConsecutiveFailures = 0;
-        // }
+        if (
+          this.client.insightMetrics.wsConsecutiveFailures > 0 &&
+          this.client.options.enableInsights
+        ) {
+          postInsights(
+            'ws_success_after_failure',
+            buildWsSuccessAfterFailureInsight(
+              this as unknown as StableWSConnection,
+            ),
+          );
+          this.client.insightMetrics.wsConsecutiveFailures = 0;
+        }
         return response;
       }
     } catch (err) {
       this.isConnecting = false;
       // @ts-ignore
       this._log(`_connect() - Error - `, err);
-      // if (this.client.options.enableInsights) {
-      //   this.client.insightMetrics.wsConsecutiveFailures++;
-      //   this.client.insightMetrics.wsTotalFailures++;
-      //
-      //   const insights = buildWsFatalInsight(
-      //     this as unknown as StableWSConnection,
-      //     convertErrorToJson(err as Error),
-      //   );
-      //   postInsights?.('ws_fatal', insights);
-      // }
+      if (this.client.options.enableInsights) {
+        this.client.insightMetrics.wsConsecutiveFailures++;
+        this.client.insightMetrics.wsTotalFailures++;
+
+        const insights = buildWsFatalInsight(
+          this as unknown as StableWSConnection,
+          convertErrorToJson(err as Error),
+        );
+        postInsights?.('ws_fatal', insights);
+      }
       throw err;
     }
   }
@@ -408,9 +425,9 @@ export class StableWSConnection {
     // cleanup the old connection
     this._destroyCurrentWSConnection();
 
-    // if (options.refreshToken) {
-    //   await this.client.tokenManager.loadToken();
-    // }
+    if (options.refreshToken) {
+      await this.client.tokenManager.loadToken();
+    }
 
     try {
       await this._connect();
@@ -422,16 +439,16 @@ export class StableWSConnection {
     } catch (error: any) {
       this.isHealthy = false;
       this.consecutiveFailures += 1;
-      // if (
-      //   error.code === chatCodes.TOKEN_EXPIRED &&
-      //   !this.client.tokenManager.isStatic()
-      // ) {
-      //   this._log(
-      //     '_reconnect() - WS failure due to expired token, so going to try to reload token and reconnect',
-      //   );
-      //
-      //   return this._reconnect({ refreshToken: true });
-      // }
+      if (
+        error.code === chatCodes.TOKEN_EXPIRED &&
+        !this.client.tokenManager.isStatic()
+      ) {
+        this._log(
+          '_reconnect() - WS failure due to expired token, so going to try to reload token and reconnect',
+        );
+
+        return this._reconnect({ refreshToken: true });
+      }
 
       // reconnect on WS failures, don't reconnect if there is a code bug
       if (error.isWSFailure) {
@@ -471,14 +488,20 @@ export class StableWSConnection {
   onopen = (wsID: number) => {
     if (this.wsID !== wsID) return;
 
+    const user = this.client.user;
+    if (!user) {
+      console.error(`User not set, can't connect to WS`);
+      return;
+    }
+
     this.ws?.send(
       JSON.stringify({
-        token: this.token,
+        token: this.client._getToken(),
         user_details: {
-          id: 'oliver.lazoroski@getstream.io',
-          name: 'oliver.lazoroski@getstream.io',
-          username: 'oliver.lazoroski@getstream.io',
-          role: 'admin',
+          id: user.id,
+          name: user.name,
+          username: user.username,
+          role: user.role,
         },
       }),
     );
@@ -583,20 +606,20 @@ export class StableWSConnection {
     this.isHealthy = healthy;
 
     if (this.isHealthy) {
-      // this.client.dispatchEvent({
-      //   type: 'connection.changed',
-      //   online: this.isHealthy,
-      // });
+      this.client.dispatchEvent({
+        type: 'connection.changed',
+        online: this.isHealthy,
+      });
       return;
     }
 
     // we're offline, wait few seconds and fire and event if still offline
     setTimeout(() => {
       if (this.isHealthy) return;
-      // this.client.dispatchEvent({
-      //   type: 'connection.changed',
-      //   online: this.isHealthy,
-      // });
+      this.client.dispatchEvent({
+        type: 'connection.changed',
+        online: this.isHealthy,
+      });
     }, 5000);
   };
 
@@ -686,10 +709,8 @@ export class StableWSConnection {
 
     // 30 seconds is the recommended interval (messenger uses this)
     this.healthCheckTimeoutRef = setTimeout(() => {
-      // send the healthcheck.., server replies with a health check event
-      // const data = [{ type: 'health.check', client_id: this.client.clientID }];
-      // FIXME OL: set the client_id
-      const data = [{ type: 'health.check', client_id: '123456' }];
+      // send the healthcheck..., server replies with a health check event
+      const data = [{ type: 'health.check', client_id: this.client.clientID }];
       // try to send on the connection
       try {
         this.ws?.send(JSON.stringify(data));

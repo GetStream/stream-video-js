@@ -171,6 +171,31 @@ export interface CallCreated {
 /**
  *
  * @export
+ * @interface CallEnded
+ */
+export interface CallEnded {
+  /**
+   *
+   * @type {string}
+   * @memberof CallEnded
+   */
+  call_cid?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallEnded
+   */
+  created_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallEnded
+   */
+  type: string;
+}
+/**
+ *
+ * @export
  * @interface CallMemberRequest
  */
 export interface CallMemberRequest {
@@ -185,7 +210,7 @@ export interface CallMemberRequest {
    * @type {string}
    * @memberof CallMemberRequest
    */
-  role?: string;
+  role: string;
   /**
    *
    * @type {UserObjectRequest}
@@ -197,7 +222,7 @@ export interface CallMemberRequest {
    * @type {string}
    * @memberof CallMemberRequest
    */
-  user_id?: string;
+  user_id: string;
 }
 /**
  *
@@ -210,7 +235,7 @@ export interface CallMemberResponse {
    * @type {string}
    * @memberof CallMemberResponse
    */
-  created_at?: string;
+  created_at: string;
   /**
    * Date/time of deletion
    * @type {string}
@@ -234,13 +259,13 @@ export interface CallMemberResponse {
    * @type {string}
    * @memberof CallMemberResponse
    */
-  updated_at?: string;
+  updated_at: string;
   /**
    *
    * @type {UserResponse}
    * @memberof CallMemberResponse
    */
-  user?: UserResponse;
+  user: UserResponse;
   /**
    *
    * @type {string}
@@ -339,13 +364,13 @@ export interface CallResponse {
    * @type {string}
    * @memberof CallResponse
    */
-  created_at?: string;
+  created_at: string;
   /**
    *
    * @type {UserResponse}
    * @memberof CallResponse
    */
-  created_by?: UserResponse;
+  created_by: UserResponse;
   /**
    *
    * @type {{ [key: string]: any; }}
@@ -381,7 +406,7 @@ export interface CallResponse {
    * @type {CallSettingsResponse}
    * @memberof CallResponse
    */
-  settings?: CallSettingsResponse;
+  settings: CallSettingsResponse;
   /**
    *
    * @type {string}
@@ -399,7 +424,7 @@ export interface CallResponse {
    * @type {string}
    * @memberof CallResponse
    */
-  updated_at?: string;
+  updated_at: string;
 }
 /**
  *
@@ -443,31 +468,31 @@ export interface CallSettingsResponse {
    * @type {BroadcastSettings}
    * @memberof CallSettingsResponse
    */
-  broadcasting?: BroadcastSettings;
+  broadcasting: BroadcastSettings;
   /**
    *
    * @type {GeofenceSettings}
    * @memberof CallSettingsResponse
    */
-  geofencing?: GeofenceSettings;
+  geofencing: GeofenceSettings;
   /**
    *
    * @type {RecordSettings}
    * @memberof CallSettingsResponse
    */
-  recording?: RecordSettings;
+  recording: RecordSettings;
   /**
    *
    * @type {ScreensharingSettings}
    * @memberof CallSettingsResponse
    */
-  screensharing?: ScreensharingSettings;
+  screensharing: ScreensharingSettings;
   /**
    *
    * @type {VideoSettings}
    * @memberof CallSettingsResponse
    */
-  video?: VideoSettings;
+  video: VideoSettings;
 }
 /**
  *
@@ -574,7 +599,7 @@ export interface DatacenterResponse {
    * @type {Coordinates}
    * @memberof DatacenterResponse
    */
-  coordinates?: Coordinates;
+  coordinates: Coordinates;
   /**
    *
    * @type {string}
@@ -629,6 +654,19 @@ export type DeviceFieldsPushProviderEnum =
 /**
  *
  * @export
+ * @interface EndCallResponse
+ */
+export interface EndCallResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof EndCallResponse
+   */
+  duration?: string;
+}
+/**
+ *
+ * @export
  * @interface GeofenceSettings
  */
 export interface GeofenceSettings {
@@ -663,7 +701,7 @@ export interface GetCallEdgeServerRequest {
    * @type {{ [key: string]: Array<number>; }}
    * @memberof GetCallEdgeServerRequest
    */
-  latency_measurements?: { [key: string]: Array<number> };
+  latency_measurements: { [key: string]: Array<number> };
 }
 /**
  *
@@ -676,13 +714,13 @@ export interface GetCallEdgeServerResponse {
    * @type {CallResponse}
    * @memberof GetCallEdgeServerResponse
    */
-  call?: CallResponse;
+  call: CallResponse;
   /**
    *
    * @type {Credentials}
    * @memberof GetCallEdgeServerResponse
    */
-  credentials?: Credentials;
+  credentials: Credentials;
   /**
    * Duration of the request in human-readable format
    * @type {string}
@@ -738,7 +776,7 @@ export interface GetOrCreateCallResponse {
    * @type {CallResponse}
    * @memberof GetOrCreateCallResponse
    */
-  call?: CallResponse;
+  call: CallResponse;
   /**
    *
    * @type {boolean}
@@ -800,7 +838,7 @@ export interface JoinCallResponse {
    * @type {CallResponse}
    * @memberof JoinCallResponse
    */
-  call?: CallResponse;
+  call: CallResponse;
   /**
    *
    * @type {boolean}
@@ -1001,7 +1039,7 @@ export interface SendEventRequest {
    * @type {string}
    * @memberof SendEventRequest
    */
-  event_type?: string;
+  event_type: string;
 }
 /**
  *
@@ -1193,7 +1231,7 @@ export interface UserRequest {
    * @type {string}
    * @memberof UserRequest
    */
-  id?: string;
+  id: string;
   /**
    *
    * @type {string}
@@ -1211,7 +1249,7 @@ export interface UserRequest {
    * @type {string}
    * @memberof UserRequest
    */
-  role?: string;
+  role: string;
   /**
    *
    * @type {Array<string>}
@@ -1230,7 +1268,7 @@ export interface UserResponse {
    * @type {string}
    * @memberof UserResponse
    */
-  created_at?: string;
+  created_at: string;
   /**
    *
    * @type {{ [key: string]: any; }}
@@ -1278,7 +1316,7 @@ export interface UserResponse {
    * @type {string}
    * @memberof UserResponse
    */
-  updated_at?: string;
+  updated_at: string;
 }
 /**
  *

@@ -29,7 +29,7 @@ import { createSocketConnection, StreamEventListener } from './ws';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
 
-import { reportStats } from './stats/coordinator-stats-reporter';
+// import { reportStats } from './stats/coordinator-stats-reporter';
 import { Timestamp } from './gen/google/protobuf/timestamp';
 import { StreamWebSocketClient } from './ws/StreamWebSocketClient';
 import { Batcher } from './Batcher';
@@ -70,13 +70,12 @@ export class StreamVideoClient {
   private options: StreamVideoClientOptions;
   private ws: StreamWebSocketClient | undefined;
   private callDropScheduler: CallDropScheduler | undefined;
-
-  private coordinatorClient;
-
+  private coordinatorClient: StreamCoordinatorClient;
   /**
    * @internal
    */
   public readonly userBatcher: Batcher<string>;
+
   /**
    * You should create only one instance of `StreamVideoClient`.
    * @angular If you're using our Angular SDK, you shouldn't be calling the `constructor` directly, instead you should be using [`StreamVideoService`](./StreamVideoService.md/#init).
@@ -109,23 +108,24 @@ export class StreamVideoClient {
       ],
     });
 
-    this.coordinatorClient = new StreamCoordinatorClient('892s22ypvt6m', {
-      baseUrl: options.coordinatorRpcUrl,
-      authToken: authToken,
-    });
+    this.coordinatorClient = new StreamCoordinatorClient(apiKey);
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
       this.writeableStateStore,
     );
 
-    this.userBatcher = new Batcher<string>(3000, this.handleUserBatch);
-
-    reportStats(
-      this.readOnlyStateStore,
-      (e) => this.reportCallStats(e),
-      (e) => this.reportCallStatEvent(e),
+    this.userBatcher = new Batcher<string>(
+      3000,
+      // this.handleUserBatch,
+      () => {},
     );
+
+    // reportStats(
+    //   this.readOnlyStateStore,
+    //   (e) => this.reportCallStats(e),
+    //   (e) => this.reportCallStatEvent(e),
+    // );
   }
 
   private handleUserBatch = (idList: string[]) => {
@@ -166,13 +166,16 @@ export class StreamVideoClient {
    * @returns
    */
   connect = async (apiKey: string, token: string, user: UserInput) => {
-    await this.coordinatorClient.connect();
-    // await this.coordinatorClient.connectUser({
-    //   id: user.id,
-    //   name: user.name,
-    //   role: user.role,
-    //   username: user.name,
-    // });
+    await this.coordinatorClient.connectUser(
+      {
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        username: user.name,
+      },
+      token,
+    );
+
     if (this.ws) return;
     this.ws = await createSocketConnection(
       this.options.coordinatorWsUrl!,
