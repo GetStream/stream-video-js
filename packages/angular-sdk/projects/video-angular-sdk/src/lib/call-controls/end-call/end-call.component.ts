@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { Call } from '@stream-io/video-client';
 import { Subscription } from 'rxjs';
 import { StreamVideoService } from '../../video.service';
@@ -19,6 +19,11 @@ export class EndCallComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe((c) => (this.call = c)),
     );
+  }
+
+  @HostBinding('style')
+  get style() {
+    return this.call ? {} : { display: 'none' };
   }
 
   ngOnInit(): void {}

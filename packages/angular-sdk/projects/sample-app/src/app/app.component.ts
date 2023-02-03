@@ -15,7 +15,7 @@ import { distinctUntilKeyChanged } from 'rxjs';
       <stream-call>
         <stream-device-settings call-header-end></stream-device-settings>
         <stream-stage call-stage></stream-stage>
-        <stream-call-controls call-controls></stream-call-controls>
+        <stream-call-controls call-controls> </stream-call-controls>
       </stream-call>
     </div>
   `,

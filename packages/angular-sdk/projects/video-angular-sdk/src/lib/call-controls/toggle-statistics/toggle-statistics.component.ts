@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { Call } from '@stream-io/video-client';
 import { NgxPopperjsTriggers } from 'ngx-popperjs';
-import { Observable } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { StreamVideoService } from '../../video.service';
 
 /**
@@ -12,13 +12,25 @@ import { StreamVideoService } from '../../video.service';
   templateUrl: './toggle-statistics.component.html',
   styles: [],
 })
-export class ToggleStatisticsComponent implements OnInit {
+export class ToggleStatisticsComponent implements OnInit, OnDestroy {
+  call?: Call;
   popperTrigger = NgxPopperjsTriggers.click;
-  call$: Observable<Call | undefined>;
+  private subscriptions: Subscription[] = [];
 
   constructor(private streamVideoService: StreamVideoService) {
-    this.call$ = this.streamVideoService.activeCall$;
+    this.subscriptions.push(
+      this.streamVideoService.activeCall$.subscribe((c) => this.call === c),
+    );
+  }
+
+  @HostBinding('style')
+  get style() {
+    return this.call ? {} : { display: 'none' };
   }
 
   ngOnInit(): void {}
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((s) => s.unsubscribe());
+  }
 }
