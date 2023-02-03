@@ -1,5 +1,5 @@
 import { PropsWithChildren, useEffect } from 'react';
-import { CreateCallInput, CoordinatorModels } from '@stream-io/video-client';
+import { CreateCallInput } from '@stream-io/video-client';
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 import { MediaDevicesProvider } from '../../contexts';
 
