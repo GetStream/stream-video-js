@@ -1,5 +1,4 @@
 import clsx from 'clsx';
-import { useEffect, useRef } from 'react';
 import {
   Call,
   SfuModels,
@@ -8,6 +7,7 @@ import {
 import { useIsDebugMode } from '../Debug/useIsDebugMode';
 import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../Debug/DebugStatsView';
+import { Audio } from './Audio';
 import { Video } from './Video';
 import { Notification } from '../Notification';
 
@@ -18,10 +18,9 @@ export const ParticipantBox = (props: {
   sinkId?: string;
 }) => {
   const { participant, isMuted = false, call, sinkId } = props;
-  const audioRef = useRef<HTMLAudioElement>(null);
+
   const {
     videoStream,
-    audioStream,
     isLoggedInUser: isLocalParticipant,
     isDominantSpeaker,
     isSpeaking,
@@ -31,21 +30,6 @@ export const ParticipantBox = (props: {
 
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
-
-  useEffect(() => {
-    const $el = audioRef.current;
-    console.log(`Attaching audio stream`, $el, audioStream);
-    if (!$el) return;
-    if (audioStream) {
-      $el.srcObject = audioStream;
-      if (($el as any).setSinkId) {
-        ($el as any).setSinkId(sinkId || '');
-      }
-    }
-    return () => {
-      $el.srcObject = null;
-    };
-  }, [audioStream, sinkId]);
 
   const connectionQualityAsString = String(
     SfuModels.ConnectionQuality[connectionQuality],
@@ -59,7 +43,7 @@ export const ParticipantBox = (props: {
         isSpeaking && 'str-video__participant--speaking',
       )}
     >
-      <audio autoPlay ref={audioRef} muted={isMuted} />
+      <Audio muted={isMuted} sinkId={sinkId} />
       <div className="str-video__video-container">
         <Video
           call={call}
