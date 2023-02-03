@@ -1,11 +1,11 @@
 import * as React from 'react';
 import {
-  StreamCall,
+  MediaDevicesProvider,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-
 import { CALL_CONFIG } from '@stream-io/video-client';
+
 import { UI } from './ui/UI';
 import { useUserData } from '../context/UserContext';
 import { useTheme } from '../hooks/useTheme';
@@ -26,7 +26,7 @@ export const VideoRoot = () => {
 
   return (
     <StreamVideo client={client}>
-      <StreamCall>
+      <MediaDevicesProvider>
         <div className={`str-video str-video-tutorial ${theme}`}>
           <button
             onClick={toggleTheme}
@@ -36,7 +36,7 @@ export const VideoRoot = () => {
           </button>
           <UI />
         </div>
-      </StreamCall>
+      </MediaDevicesProvider>
     </StreamVideo>
   );
 };

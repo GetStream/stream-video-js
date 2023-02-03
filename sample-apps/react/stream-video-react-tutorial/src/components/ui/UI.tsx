@@ -1,18 +1,15 @@
-import {
-  LoadingIndicator,
-  useActiveCall,
-  usePendingCalls,
-} from '@stream-io/video-react-sdk';
+import { LoadingIndicator, useActiveCall } from '@stream-io/video-react-sdk';
 import { Lobby } from './Lobby';
 import { ActiveCall } from './ActiveCall';
+import { useLoadingState } from '../../context/LoadingStateContext';
 
 export const UI = () => {
   const activeCall = useActiveCall();
-  const pendingCalls = usePendingCalls();
+  const { loading } = useLoadingState();
 
   if (activeCall) {
     return <ActiveCall />;
-  } else if (pendingCalls.length) {
+  } else if (loading) {
     return <LoadingIndicator text="Connecting ..." />;
   }
   return <Lobby />;

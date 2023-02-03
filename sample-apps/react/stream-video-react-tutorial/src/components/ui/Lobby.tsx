@@ -6,6 +6,7 @@ import {
 } from 'react';
 import { useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { useUserData } from '../../context/UserContext';
+import { useLoadingState } from '../../context/LoadingStateContext';
 
 const UserSelector = () => {
   const { users, selectedUserId, setSelectedUserId } = useUserData();
@@ -40,17 +41,30 @@ const CALL_TYPE = 'default';
 
 const StartNewCallButton = () => {
   const videoClient = useStreamVideoClient();
-  const startMeeting = useCallback(() => {
-    return videoClient?.createCall({
+  const { setLoading } = useLoadingState();
+
+  const startMeeting = useCallback(async () => {
+    setLoading(true);
+
+    const response = await videoClient?.createCall({
       type: CALL_TYPE,
     });
-  }, [videoClient]);
+
+    await videoClient.joinCall({
+      type: CALL_TYPE,
+      id: response.call.id,
+      datacenterId: '',
+    });
+
+    setLoading(false);
+  }, [setLoading, videoClient]);
 
   return <button onClick={startMeeting}>Start a call</button>;
 };
 
 const JoinExistingCallForm = () => {
   const videoClient = useStreamVideoClient();
+  const { setLoading } = useLoadingState();
   const [joinCallId, setJoinCallId] = useState<string>('');
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = (event) => {
@@ -60,13 +74,15 @@ const JoinExistingCallForm = () => {
   const joinMeeting: FormEventHandler = useCallback(
     async (event) => {
       event.preventDefault();
+      setLoading(true);
       await videoClient.joinCall({
         type: CALL_TYPE,
         id: joinCallId,
         datacenterId: '',
       });
+      setLoading(false);
     },
-    [joinCallId, videoClient],
+    [setLoading, joinCallId, videoClient],
   );
 
   return (
