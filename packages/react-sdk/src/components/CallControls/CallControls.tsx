@@ -24,22 +24,26 @@ export const CallControls = (props: CallControlsProps) => {
 
   return (
     <div className="str-video__call-controls">
-      <RecordCallButton call={call} />
-      <CallStatsButton />
-      <ScreenShareButton call={call} />
-      <SpeakingWhileMutedNotification>
-        <ToggleAudioButton
+      <div className="str-video__call-controls-section">
+        <RecordCallButton call={call} />
+        <CallStatsButton />
+        <ScreenShareButton call={call} />
+      </div>
+      <div className="str-video__call-controls-section">
+        <SpeakingWhileMutedNotification>
+          <ToggleAudioButton
+            call={call}
+            audioDeviceId={selectedAudioDeviceId}
+            initialAudioMuted={initialAudioMuted}
+          />
+        </SpeakingWhileMutedNotification>
+        <ToggleCameraButton
           call={call}
-          audioDeviceId={selectedAudioDeviceId}
-          initialAudioMuted={initialAudioMuted}
+          initialVideoMuted={initialVideoMuted}
+          videoDeviceId={selectedVideoDeviceId}
         />
-      </SpeakingWhileMutedNotification>
-      <ToggleCameraButton
-        call={call}
-        initialVideoMuted={initialVideoMuted}
-        videoDeviceId={selectedVideoDeviceId}
-      />
-      <CancelCallButton call={call} onLeave={onLeave} />
+        <CancelCallButton call={call} onLeave={onLeave} />
+      </div>
     </div>
   );
 };
