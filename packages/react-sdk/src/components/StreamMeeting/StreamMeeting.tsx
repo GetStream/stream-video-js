@@ -22,7 +22,9 @@ export const StreamMeeting = ({
   useEffect(() => {
     if (!client) return;
     const initiateMeeting = async () => {
-      await client.joinCall(callId, callType);
+      await client.joinCall(callId, callType, {
+        ring: false,
+      });
     };
 
     initiateMeeting().catch((e) => {
