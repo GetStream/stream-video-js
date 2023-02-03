@@ -8,9 +8,8 @@ describe('ToggleAudioComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ToggleAudioComponent ]
-    })
-    .compileComponents();
+      declarations: [ToggleAudioComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ToggleAudioComponent);
     component = fixture.componentInstance;

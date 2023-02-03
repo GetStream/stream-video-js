@@ -1,14 +1,13 @@
 import {
   AfterViewChecked,
   Component,
-  ContentChild,
   HostBinding,
   NgZone,
   OnDestroy,
   OnInit,
 } from '@angular/core';
 import { Call, StreamVideoLocalParticipant } from '@stream-io/video-client';
-import { Observable, Subscription, take } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { DeviceManagerService } from '../device-manager.service';
 import { InCallDeviceManagerService } from '../in-call-device-manager.service';
 import { StreamVideoService } from '../video.service';

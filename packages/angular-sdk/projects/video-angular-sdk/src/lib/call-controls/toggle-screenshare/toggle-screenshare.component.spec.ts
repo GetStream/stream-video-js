@@ -8,9 +8,8 @@ describe('ToggleScreenshareComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ToggleScreenshareComponent ]
-    })
-    .compileComponents();
+      declarations: [ToggleScreenshareComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ToggleScreenshareComponent);
     component = fixture.componentInstance;

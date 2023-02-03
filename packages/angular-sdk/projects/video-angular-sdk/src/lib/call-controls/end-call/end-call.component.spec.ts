@@ -8,9 +8,8 @@ describe('EndCallComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ EndCallComponent ]
-    })
-    .compileComponents();
+      declarations: [EndCallComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(EndCallComponent);
     component = fixture.componentInstance;

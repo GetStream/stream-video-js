@@ -8,9 +8,8 @@ describe('ToggleVideoComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ToggleVideoComponent ]
-    })
-    .compileComponents();
+      declarations: [ToggleVideoComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ToggleVideoComponent);
     component = fixture.componentInstance;

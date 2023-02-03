@@ -8,9 +8,8 @@ describe('ToggleRecordingComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ToggleRecordingComponent ]
-    })
-    .compileComponents();
+      declarations: [ToggleRecordingComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ToggleRecordingComponent);
     component = fixture.componentInstance;
