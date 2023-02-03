@@ -47,11 +47,7 @@ export const MeetingUI = () => {
           <DeviceSettings activeCall={activeCall} />
         </div>
         <Stage call={activeCall} />
-        <CallControls
-          call={activeCall}
-          onLeave={onLeave}
-          toggleShowParticipantList={toggleParticipantList}
-        >
+        <CallControls call={activeCall} onLeave={onLeave}>
           <ToggleParticipantListButton
             enabled={showParticipants}
             onClick={toggleParticipantList}
