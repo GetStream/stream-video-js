@@ -1,6 +1,6 @@
 import { StreamClient } from './connection/client';
 import { sleep } from './connection/utils';
-import { StreamClientOptions, User } from './connection/types';
+import { EventHandler, StreamClientOptions, User } from './connection/types';
 import {
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
@@ -14,14 +14,33 @@ export class StreamCoordinatorClient {
 
   constructor(apiKey: string, options: StreamClientOptions = {}) {
     this.client = new StreamClient(apiKey, {
-      baseURL: 'http://localhost:3030/video',
+      // baseURL: 'http://localhost:3030/video',
+      baseURL: 'https://video-edge-oregon-ce3.stream-io-api.com/video',
       persistUserOnConnectionFailure: true,
       ...options,
     });
   }
 
+  on = (
+    callbackOrEventName: EventHandler | string,
+    callbackOrNothing?: EventHandler,
+  ) => {
+    return this.client.on(callbackOrEventName, callbackOrNothing);
+  };
+
+  off = (
+    callbackOrEventName: EventHandler | string,
+    callbackOrNothing?: EventHandler,
+  ) => {
+    return this.client.off(callbackOrEventName, callbackOrNothing);
+  };
+
   connectUser = async (user: User, token: string) => {
     return this.client.connectUser(user, token);
+  };
+
+  disconnectUser = async (timeout?: number) => {
+    return this.client.disconnectUser(timeout);
   };
 
   getOrCreateCall = async (

@@ -25,13 +25,11 @@ import {
   StreamVideoClientOptions,
   withHeaders,
 } from './rpc';
-import { createSocketConnection, StreamEventListener } from './coordinator';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
 
 // import { reportStats } from './stats/coordinator-stats-reporter';
 import { Timestamp } from './gen/google/protobuf/timestamp';
-import { StreamWebSocketClient } from './coordinator/StreamWebSocketClient';
 import { Batcher } from './Batcher';
 import {
   watchCallAccepted,
@@ -43,6 +41,7 @@ import { CALL_CONFIG } from './config/defaultConfigs';
 import { CallConfig } from './config/types';
 import { CallDropScheduler } from './CallDropScheduler';
 import { StreamCoordinatorClient } from './coordinator/StreamCoordinatorClient';
+import { EventHandler } from './coordinator/connection/types';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   coordinatorRpcUrl:
@@ -66,9 +65,11 @@ export class StreamVideoClient {
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
+  /**
+   * @deprecated use coordinatorClient instead.
+   */
   private client: ClientRPCClient;
   private options: StreamVideoClientOptions;
-  private ws: StreamWebSocketClient | undefined;
   private callDropScheduler: CallDropScheduler | undefined;
   private coordinatorClient: StreamCoordinatorClient;
   /**
@@ -176,26 +177,18 @@ export class StreamVideoClient {
       token,
     );
 
-    if (this.ws) return;
-    this.ws = await createSocketConnection(
-      this.options.coordinatorWsUrl!,
-      apiKey,
-      token,
-      user,
+    this.callDropScheduler = new CallDropScheduler(
+      this.writeableStateStore,
+      this.callConfig,
+      this.rejectCall,
+      this.cancelCall,
     );
-    if (this.ws) {
-      this.callDropScheduler = new CallDropScheduler(
-        this.writeableStateStore,
-        this.callConfig,
-        this.rejectCall,
-        this.cancelCall,
-      );
 
-      watchCallCreated(this.on, this.writeableStateStore);
-      watchCallAccepted(this.on, this.writeableStateStore);
-      watchCallRejected(this.on, this.writeableStateStore);
-      watchCallCancelled(this.on, this.writeableStateStore);
-    }
+    this.on('call.created', watchCallCreated(this.writeableStateStore));
+    this.on('call.accepted', watchCallAccepted(this.writeableStateStore));
+    this.on('call.rejected', watchCallRejected(this.writeableStateStore));
+    this.on('call.cancelled', watchCallCancelled(this.writeableStateStore));
+
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
       user,
@@ -209,10 +202,8 @@ export class StreamVideoClient {
    * @returns
    */
   disconnect = async () => {
-    if (!this.ws) return;
+    await this.coordinatorClient.disconnectUser();
     this.callDropScheduler?.cleanUp();
-    this.ws.disconnect();
-    this.ws = undefined;
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
       undefined,
@@ -220,24 +211,26 @@ export class StreamVideoClient {
   };
 
   /**
-   * You can subscribe to WebSocket events provided by the API. To remove a subscription, call the `off` method.
+   * You can subscribe to WebSocket events provided by the API.
+   * To remove a subscription, call the `off` method or, execute the returned unsubscribe function.
    * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the reactive [state store](#readonlystatestore).
-   * @param event
-   * @param fn
-   * @returns
+   *
+   * @param eventName the event name.
+   * @param callback the callback which will be called when the event is emitted.
+   * @returns an unsubscribe function.
    */
-  on = <T>(event: string, fn: StreamEventListener<T>) => {
-    return this.ws?.on(event, fn);
+  on = (eventName: string, callback: EventHandler) => {
+    return this.coordinatorClient.on(eventName, callback);
   };
 
   /**
    * Remove subscription for WebSocket events that were created by the `on` method.
-   * @param event
-   * @param fn
-   * @returns
+   *
+   * @param event the event name.
+   * @param callback the callback which was passed to the `on` method.
    */
-  off = <T>(event: string, fn: StreamEventListener<T>) => {
-    return this.ws?.off(event, fn);
+  off = (event: string, callback: EventHandler) => {
+    return this.coordinatorClient.off(event, callback);
   };
 
   /**

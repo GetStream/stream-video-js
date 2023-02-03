@@ -408,21 +408,19 @@ export class StreamClient {
    * or
    * client.on(event => {console.log(event.type)})
    *
-   * @param {EventHandler | string} callbackOrString  The event type to listen for (optional)
+   * @param {EventHandler | string} callbackOrEventName  The event type to listen for (optional)
    * @param {EventHandler} [callbackOrNothing] The callback to call
    *
-   * @return {{ unsubscribe: () => void }} Description
+   * @return {Function} Returns a function which, when called, unsubscribes the event handler.
    */
-  on(callback: EventHandler): { unsubscribe: () => void };
-  on(eventType: string, callback: EventHandler): { unsubscribe: () => void };
   on(
-    callbackOrString: EventHandler | string,
+    callbackOrEventName: EventHandler | string,
     callbackOrNothing?: EventHandler,
-  ): { unsubscribe: () => void } {
-    const key = callbackOrNothing ? (callbackOrString as string) : 'all';
+  ) {
+    const key = callbackOrNothing ? (callbackOrEventName as string) : 'all';
     const callback = callbackOrNothing
       ? callbackOrNothing
-      : (callbackOrString as EventHandler);
+      : (callbackOrEventName as EventHandler);
     if (!(key in this.listeners)) {
       this.listeners[key] = [];
     }
@@ -430,15 +428,9 @@ export class StreamClient {
       tags: ['event', 'client'],
     });
     this.listeners[key].push(callback);
-    return {
-      unsubscribe: () => {
-        this.logger('info', `Removing listener for ${key} event`, {
-          tags: ['event', 'client'],
-        });
-        this.listeners[key] = this.listeners[key].filter(
-          (el) => el !== callback,
-        );
-      },
+
+    return () => {
+      this.off(key, callback);
     };
   }
 
@@ -446,16 +438,14 @@ export class StreamClient {
    * off - Remove the event handler
    *
    */
-  off(callback: EventHandler): void;
-  off(eventType: string, callback: EventHandler): void;
   off(
-    callbackOrString: EventHandler | string,
+    callbackOrEventName: EventHandler | string,
     callbackOrNothing?: EventHandler,
   ) {
-    const key = callbackOrNothing ? (callbackOrString as string) : 'all';
+    const key = callbackOrNothing ? (callbackOrEventName as string) : 'all';
     const callback = callbackOrNothing
       ? callbackOrNothing
-      : (callbackOrString as EventHandler);
+      : (callbackOrEventName as EventHandler);
     if (!(key in this.listeners)) {
       this.listeners[key] = [];
     }
@@ -628,142 +618,6 @@ export class StreamClient {
     const event = JSON.parse(jsonString) as Event;
     this.dispatchEvent(event);
   };
-
-  /**
-   * @private
-   *
-   * Handle following user related events:
-   * - user.presence.changed
-   * - user.updated
-   * - user.deleted
-   *
-   * @param {Event} event
-   */
-  // _handleUserEvent = (event: Event) => {
-  //   if (!event.user) {
-  //     return;
-  //   }
-  //
-  //   /** update the client.state with any changes to users */
-  //   if (
-  //     event.type === 'user.presence.changed' ||
-  //     event.type === 'user.updated'
-  //   ) {
-  //     if (event.user.id === this.userID) {
-  //       const user = { ...(this.user || {}) };
-  //       const _user = { ...(this._user || {}) };
-  //
-  //       // Remove deleted properties from user objects.
-  //       for (const key in this.user) {
-  //         if (key in event.user || isOwnUserBaseProperty(key)) {
-  //           continue;
-  //         }
-  //
-  //         delete user[key];
-  //         delete _user[key];
-  //       }
-  //
-  //       /** Updating only available properties in _user object. */
-  //       for (const key in event.user) {
-  //         if (_user && key in _user) {
-  //           _user[key] = event.user[key];
-  //         }
-  //       }
-  //
-  //       // @ts-expect-error
-  //       this._user = { ..._user };
-  //       this.user = { ...user, ...event.user };
-  //     }
-  //   }
-  // };
-
-  // _handleClientEvent(event: Event) {
-  //   const client = this;
-  //   const postListenerCallbacks = [];
-  //   this.logger(
-  //     'info',
-  //     `client:_handleClientEvent - Received event of type { ${event.type} }`,
-  //     {
-  //       tags: ['event', 'client'],
-  //       event,
-  //     },
-  //   );
-  //
-  //   if (
-  //     event.type === 'user.presence.changed' ||
-  //     event.type === 'user.updated' ||
-  //     event.type === 'user.deleted'
-  //   ) {
-  //     this._handleUserEvent(event);
-  //   }
-  //
-  //   if (event.type === 'health.check' && event.me) {
-  //     client.user = event.me;
-  //     client.state.updateUser(event.me);
-  //     client.mutedChannels = event.me.channel_mutes;
-  //     client.mutedUsers = event.me.mutes;
-  //   }
-  //
-  //   if (event.channel && event.type === 'notification.message_new') {
-  //     this._addChannelConfig(event.channel);
-  //   }
-  //
-  //   if (
-  //     event.type === 'notification.channel_mutes_updated' &&
-  //     event.me?.channel_mutes
-  //   ) {
-  //     const currentMutedChannelIds: string[] = [];
-  //     const nextMutedChannelIds: string[] = [];
-  //
-  //     this.mutedChannels.forEach(
-  //       (mute) => mute.channel && currentMutedChannelIds.push(mute.channel.cid),
-  //     );
-  //     event.me.channel_mutes.forEach(
-  //       (mute) => mute.channel && nextMutedChannelIds.push(mute.channel.cid),
-  //     );
-  //
-  //     /** Set the unread count of un-muted channels to 0, which is the behaviour of backend */
-  //     currentMutedChannelIds.forEach((cid) => {
-  //       if (!nextMutedChannelIds.includes(cid) && this.activeChannels[cid]) {
-  //         this.activeChannels[cid].state.unreadCount = 0;
-  //       }
-  //     });
-  //
-  //     this.mutedChannels = event.me.channel_mutes;
-  //   }
-  //
-  //   if (event.type === 'notification.mutes_updated' && event.me?.mutes) {
-  //     this.mutedUsers = event.me.mutes;
-  //   }
-  //
-  //   if (
-  //     event.type === 'notification.mark_read' &&
-  //     event.unread_channels === 0
-  //   ) {
-  //     const activeChannelKeys = Object.keys(this.activeChannels);
-  //     activeChannelKeys.forEach(
-  //       (activeChannelKey) =>
-  //         (this.activeChannels[activeChannelKey].state.unreadCount = 0),
-  //     );
-  //   }
-  //
-  //   if (
-  //     (event.type === 'channel.deleted' ||
-  //       event.type === 'notification.channel_deleted') &&
-  //     event.cid
-  //   ) {
-  //     client.state.deleteAllChannelReference(event.cid);
-  //     this.activeChannels[event.cid]?._disconnect();
-  //
-  //     postListenerCallbacks.push(() => {
-  //       if (!event.cid) return;
-  //
-  //       delete this.activeChannels[event.cid];
-  //     });
-  //   }
-  //
-  //   return postListenerCallbacks;
-  // }
 
   _callClientListeners = (event: Event) => {
     const client = this;

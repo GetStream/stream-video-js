@@ -537,7 +537,7 @@ export class StableWSConnection {
       this.scheduleNextPing();
     }
 
-    // this.client.handleEvent(event);
+    this.client.handleEvent(event);
     this.scheduleConnectionCheck();
   };
 

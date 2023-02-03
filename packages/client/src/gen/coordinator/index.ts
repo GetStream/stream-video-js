@@ -56,13 +56,13 @@ export interface APIError {
  */
 export interface Any {
   /**
-   *
+   * Date/time of creation
    * @type {string}
    * @memberof Any
    */
   created_at?: string;
   /**
-   *
+   * Event Type
    * @type {string}
    * @memberof Any
    */
@@ -88,7 +88,7 @@ export interface BroadcastSettings {
  */
 export interface CallAccepted {
   /**
-   *
+   * Call CID
    * @type {string}
    * @memberof CallAccepted
    */
@@ -113,7 +113,7 @@ export interface CallAccepted {
  */
 export interface CallCancelled {
   /**
-   *
+   * Call CID
    * @type {string}
    * @memberof CallCancelled
    */
@@ -175,7 +175,7 @@ export interface CallCreated {
  */
 export interface CallEnded {
   /**
-   *
+   * Call CID
    * @type {string}
    * @memberof CallEnded
    */
@@ -267,7 +267,7 @@ export interface CallMemberResponse {
    */
   user: UserResponse;
   /**
-   *
+   * User ID
    * @type {string}
    * @memberof CallMemberResponse
    */
@@ -280,7 +280,7 @@ export interface CallMemberResponse {
  */
 export interface CallRejected {
   /**
-   *
+   * Call CID
    * @type {string}
    * @memberof CallRejected
    */
@@ -378,7 +378,7 @@ export interface CallResponse {
    */
   custom?: { [key: string]: any };
   /**
-   *
+   * Date/time of end
    * @type {string}
    * @memberof CallResponse
    */
@@ -497,25 +497,6 @@ export interface CallSettingsResponse {
 /**
  *
  * @export
- * @interface ConnectRequest
- */
-export interface ConnectRequest {
-  /**
-   *
-   * @type {DeviceFields}
-   * @memberof ConnectRequest
-   */
-  device?: DeviceFields;
-  /**
-   *
-   * @type {UserObject}
-   * @memberof ConnectRequest
-   */
-  user_details: UserObject;
-}
-/**
- *
- * @export
  * @interface Coordinates
  */
 export interface Coordinates {
@@ -564,7 +545,7 @@ export interface Credentials {
  */
 export interface Custom {
   /**
-   *
+   * Call CID
    * @type {string}
    * @memberof Custom
    */
@@ -613,44 +594,6 @@ export interface DatacenterResponse {
    */
   name?: string;
 }
-/**
- *
- * @export
- * @interface DeviceFields
- */
-export interface DeviceFields {
-  /**
-   * Device ID
-   * @type {string}
-   * @memberof DeviceFields
-   */
-  id?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof DeviceFields
-   */
-  push_provider?: DeviceFieldsPushProviderEnum;
-  /**
-   * Name of the push provider configuration
-   * @type {string}
-   * @memberof DeviceFields
-   */
-  push_provider_name?: string;
-}
-
-/**
- * @export
- */
-export const DeviceFieldsPushProviderEnum = {
-  firebase: 'firebase',
-  apn: 'apn',
-  huawei: 'huawei',
-  xiaomi: 'xiaomi',
-} as const;
-export type DeviceFieldsPushProviderEnum =
-  (typeof DeviceFieldsPushProviderEnum)[keyof typeof DeviceFieldsPushProviderEnum];
-
 /**
  *
  * @export
@@ -1325,13 +1268,13 @@ export interface UserResponse {
  */
 export interface UserUpdated {
   /**
-   *
+   * Date/time of creation
    * @type {string}
    * @memberof UserUpdated
    */
   created_at?: string;
   /**
-   *
+   * Event Type
    * @type {string}
    * @memberof UserUpdated
    */
