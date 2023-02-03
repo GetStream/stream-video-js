@@ -22,15 +22,15 @@ export class ToggleRecordingComponent implements OnInit, OnDestroy {
     );
   }
 
-  @HostBinding('style')
-  get style() {
-    return this.call ? {} : { display: 'none' };
-  }
-
   ngOnInit(): void {}
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
+  }
+
+  @HostBinding('style')
+  get style() {
+    return this.call ? {} : { display: 'none' };
   }
 
   toggleRecording() {
