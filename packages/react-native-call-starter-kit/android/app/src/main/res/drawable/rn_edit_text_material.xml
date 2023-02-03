@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2014 The Android Open Source Project
+<!-- Copyright (C) 2014 The AndroidTEMP Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
        android:insetBottom="@dimen/abc_edit_text_inset_bottom_material">
 
     <selector>
-        <!-- 
+        <!--
           This file is a copy of abc_edit_text_material (https://bit.ly/3k8fX7I).
           The item below with state_pressed="false" and state_focused="false" causes a NullPointerException.
           NullPointerException:tempt to invoke virtual method 'android.graphics.drawable.Drawable android.graphics.drawable.Drawable$ConstantState.newDrawable(android.content.res.Resources)'
