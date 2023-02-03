@@ -1,129 +1,22 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import {Mic} from '../icons/Mic';
-import {Video} from '../icons/Video';
-import {MediaStream, RTCView, mediaDevices} from 'react-native-webrtc';
-import {useState} from 'react';
-import {useEffect} from 'react';
-import {useAppContext} from '../context/AppContext';
-import {MicOff} from '../icons/MicOff';
-import {VideoOff} from '../icons/VideoOff';
+import {CallLobby} from '@stream-io/video-react-native-sdk';
 import {meetingId} from '../utils/meetingId';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {NavigationStackParamsList} from '../types';
 
-export const CallLobbyScreen = () => {
-  const [videoStream, setVideoStream] = useState<MediaStream | undefined>(
-    undefined,
-  );
-  const {
-    setAudioMuted,
-    setVideoMuted,
-    setCallId,
-    audioMuted,
-    videoMuted,
-    callID,
-  } = useAppContext();
+type CallLobbyScreenProps = NativeStackScreenProps<
+  NavigationStackParamsList,
+  'CallLobbyScreen'
+>;
 
-  useEffect(() => {
-    const getSteam = async () => {
-      const stream = await mediaDevices.getUserMedia({video: true});
-      setVideoStream(stream);
-    };
+export const CallLobbyScreen = (props: CallLobbyScreenProps) => {
+  const {navigation} = props;
 
-    getSteam();
-  }, []);
+  const meetingCallID = meetingId();
 
-  const joinOrCreateCall = () => {
-    const meetingCallID = meetingId();
-    setCallId(meetingCallID);
+  const onActiveCall = () => {
+    navigation.navigate('ActiveCallScreen');
   };
 
-  const toggleVideoState = () => {
-    setVideoMuted(!videoMuted);
-  };
-
-  const toggleAudioState = () => {
-    setAudioMuted(!audioMuted);
-  };
-
-  return (
-    <View style={styles.container}>
-      {videoStream && (
-        <RTCView streamURL={videoStream?.toURL()} style={styles.stream} />
-      )}
-      <View style={styles.buttons}>
-        <Pressable style={styles.button} onPress={toggleAudioState}>
-          {audioMuted ? (
-            <MicOff color="white" style={styles.icons} />
-          ) : (
-            <Mic color="white" style={styles.icons} />
-          )}
-        </Pressable>
-        <Pressable style={styles.button} onPress={toggleVideoState}>
-          {videoMuted ? (
-            <VideoOff color="white" style={styles.icons} />
-          ) : (
-            <Video color="white" style={styles.icons} />
-          )}
-        </Pressable>
-      </View>
-      <Pressable style={styles.joinButton} onPress={joinOrCreateCall}>
-        {callID ? (
-          <ActivityIndicator color={'white'} size={'small'} />
-        ) : (
-          <Text style={styles.joinButtonText}>Join Call</Text>
-        )}
-      </Pressable>
-    </View>
-  );
+  return <CallLobby callID={meetingCallID} onActiveCall={onActiveCall} />;
 };
-
-const styles = StyleSheet.create({
-  container: {},
-  stream: {
-    height: 300,
-    width: '90%',
-    borderRadius: 20,
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    marginVertical: 20,
-  },
-  buttons: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-  },
-  button: {
-    backgroundColor: 'purple',
-    height: 50,
-    width: 100,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  icons: {
-    height: 30,
-    width: 30,
-  },
-  joinButton: {
-    width: '70%',
-    height: 50,
-    backgroundColor: 'purple',
-    borderRadius: 30,
-    marginVertical: 20,
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    justifyContent: 'center',
-  },
-  joinButtonText: {
-    textAlign: 'center',
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-});
