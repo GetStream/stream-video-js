@@ -9,16 +9,19 @@ import {
   ToggleCameraButton,
 } from './index';
 import { SpeakingWhileMutedNotification } from '../Notification';
+import { ReactNode } from 'react';
 
 export type CallControlsProps = {
   call: Call;
   initialAudioMuted?: boolean;
   initialVideoMuted?: boolean;
   onLeave?: () => void;
+  children?: ReactNode;
 };
 
 export const CallControls = (props: CallControlsProps) => {
-  const { call, initialAudioMuted, initialVideoMuted, onLeave } = props;
+  const { call, initialAudioMuted, initialVideoMuted, onLeave, children } =
+    props;
 
   const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
 
@@ -44,6 +47,7 @@ export const CallControls = (props: CallControlsProps) => {
         />
         <CancelCallButton call={call} onLeave={onLeave} />
       </div>
+      {children}
     </div>
   );
 };
