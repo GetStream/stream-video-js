@@ -29,10 +29,12 @@ export const useAudioPublisher = ({
   useEffect(() => {
     let interrupted = false;
 
-    // isPublishingAudio/Video can be initially undefined (participant comes later)
-    // - which is something we want to have the effect publish initial stream
+    // isPublishingAudio can be initially undefined which
+    // is an important information to have on initial effect run
+    // as mute state is derived from the participant.publishedTracks array (no audio track means muted)
     // we only strictly check if it's false to see if the user is muted while changing devices
-    if (initialAudioMuted || !isPublishingAudio) return;
+    // no other effect trigger is necessary, you only want effect to run when audioDeviceId or call changes
+    if (initialAudioMuted || isPublishingAudio === false) return;
 
     getAudioStream(audioDeviceId).then((stream) => {
       if (interrupted && stream.active)
@@ -45,7 +47,8 @@ export const useAudioPublisher = ({
       interrupted = true;
       call.stopPublish(SfuModels.TrackType.AUDIO);
     };
-  }, [call, audioDeviceId, initialAudioMuted, isPublishingAudio]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [call, audioDeviceId]);
 
   const publishAudioStream = useCallback(async () => {
     try {
