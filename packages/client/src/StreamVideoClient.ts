@@ -18,7 +18,6 @@ import type {
 } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { UserEventType } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
-import type { User, UserInput } from './gen/video/coordinator/user_v1/user';
 import {
   createCoordinatorClient,
   measureResourceLoadLatencyTo,
@@ -41,13 +40,16 @@ import { CALL_CONFIG } from './config/defaultConfigs';
 import { CallConfig } from './config/types';
 import { CallDropScheduler } from './CallDropScheduler';
 import { StreamCoordinatorClient } from './coordinator/StreamCoordinatorClient';
-import { EventHandler } from './coordinator/connection/types';
+import {
+  EventHandler,
+  TokenOrProvider,
+  User,
+} from './coordinator/connection/types';
 
 const defaultOptions: Partial<StreamVideoClientOptions> = {
   coordinatorRpcUrl:
     'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
-  coordinatorWsUrl:
-    'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+
   latencyMeasurementRounds: 3,
 };
 
@@ -129,53 +131,44 @@ export class StreamVideoClient {
     // );
   }
 
-  private handleUserBatch = (idList: string[]) => {
-    this.client
-      .queryUsers({
-        mqJson: new TextEncoder().encode(
-          JSON.stringify({ id: { $in: idList } }),
-        ),
-        sorts: [],
-      })
-      .then(({ response: { users } }) => {
-        const mappedUsers = users.reduce<Record<string, User>>(
-          (userMap, user) => {
-            userMap[user.id] ??= user;
-            return userMap;
-          },
-          {},
-        );
-
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.participantsSubject,
-          (participants) =>
-            participants.map((participant) => {
-              const user = mappedUsers[participant.userId];
-              return user ? { ...participant, user } : participant;
-            }),
-        );
-      });
-  };
+  // private handleUserBatch = (idList: string[]) => {
+  //   this.client
+  //     .queryUsers({
+  //       mqJson: new TextEncoder().encode(
+  //         JSON.stringify({ id: { $in: idList } }),
+  //       ),
+  //       sorts: [],
+  //     })
+  //     .then(({ response: { users } }) => {
+  //       const mappedUsers = users.reduce<Record<string, User>>(
+  //         (userMap, user) => {
+  //           userMap[user.id] ??= user;
+  //           return userMap;
+  //         },
+  //         {},
+  //       );
+  //
+  //       this.writeableStateStore.setCurrentValue(
+  //         this.writeableStateStore.participantsSubject,
+  //         (participants) =>
+  //           participants.map((participant) => {
+  //             const user = mappedUsers[participant.userId];
+  //             return user ? { ...participant, user } : participant;
+  //           }),
+  //       );
+  //     });
+  // };
 
   /**
    * Connects the given user to the client.
-   * Only one user can connect at a time, if you want to change users, call `disconnect` before connecting a new user.
+   * Only one user can connect at a time, if you want to change users, call `disconnectUser` before connecting a new user.
    * If the connection is successful, the connected user [state variable](#readonlystatestore) will be updated accordingly.
-   * @param apiKey
-   * @param token
-   * @param user
-   * @returns
+   *
+   * @param user the user to connect.
+   * @param tokenOrProvider a token or a function that returns a token.
    */
-  connect = async (apiKey: string, token: string, user: UserInput) => {
-    await this.coordinatorClient.connectUser(
-      {
-        id: user.id,
-        name: user.name,
-        role: user.role,
-        username: user.name,
-      },
-      token,
-    );
+  connectUser = async (user: User, tokenOrProvider: TokenOrProvider) => {
+    await this.coordinatorClient.connectUser(user, tokenOrProvider);
 
     this.callDropScheduler = new CallDropScheduler(
       this.writeableStateStore,
@@ -191,7 +184,15 @@ export class StreamVideoClient {
 
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
-      user,
+      // FIXME OL: fix the types
+      {
+        id: user.id,
+        name: user.name!,
+        teams: user.teams!,
+        customJson: new Uint8Array(),
+        imageUrl: '/profile.png',
+        role: user.role!,
+      },
     );
   };
 
@@ -199,9 +200,8 @@ export class StreamVideoClient {
    * Disconnects the currently connected user from the client.
    *
    * If the connection is successfully disconnected, the connected user [state variable](#readonlystatestore) will be updated accordingly
-   * @returns
    */
-  disconnect = async () => {
+  disconnectUser = async () => {
     await this.coordinatorClient.disconnectUser();
     this.callDropScheduler?.cleanUp();
     this.writeableStateStore.setCurrentValue(

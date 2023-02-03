@@ -14,7 +14,6 @@ const createCallSlackHookAPI = async (
 ) => {
   const client = new StreamVideoClient(apiKey, {
     coordinatorRpcUrl: coordinatorApiUrl,
-    sendJson: true,
     token: createToken('admin@getstream.io', secretKey),
   });
 
@@ -26,9 +25,8 @@ const createCallSlackHookAPI = async (
   ).toString();
 
   try {
-    const response = await client.getOrCreateCall({
-      id: meetingId(),
-      type: 'default',
+    const response = await client.getOrCreateCall(meetingId(), 'default', {
+      ring: false,
     });
     if (response.call) {
       const call = response.call;

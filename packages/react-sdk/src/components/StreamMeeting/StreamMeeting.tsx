@@ -22,23 +22,7 @@ export const StreamMeeting = ({
   useEffect(() => {
     if (!client) return;
     const initiateMeeting = async () => {
-      await client.joinCall(callId, callType, {
-        ring: false,
-        data: {
-          team: 'team',
-          created_by_id: currentUser,
-          members:
-            input?.members.map<CoordinatorModels.CallMemberRequest>(
-              (member) => ({
-                user_id: member.userId,
-                role: member.role,
-                user: {
-                  id: member.userId,
-                },
-              }),
-            ) ?? [],
-        },
-      });
+      await client.joinCall(callId, callType);
     };
 
     initiateMeeting().catch((e) => {

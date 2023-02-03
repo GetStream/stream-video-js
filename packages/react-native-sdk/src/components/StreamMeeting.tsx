@@ -30,17 +30,12 @@ export const StreamMeeting = ({
   useEffect(() => {
     if (!client) return;
     const initiateMeeting = async () => {
-      const descriptors = { id: callId, type: callType };
-      const callMetadata = await client.getOrCreateCall({
-        ...descriptors,
-        input,
+      const callMetadata = await client.getOrCreateCall(callId, callType, {
+        ring: input?.ring,
+        // FIXME: OL check whether the remaining of the data needs to be provided
       });
-      if (callMetadata?.call?.createdByUserId === currentUser || autoJoin) {
-        await client.joinCall({
-          ...descriptors,
-          // FIXME: OL optional, but it is marked as required in proto
-          datacenterId: '',
-        });
+      if (callMetadata?.call?.created_by.id === currentUser || autoJoin) {
+        await client.joinCall(callId, callType);
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
       }

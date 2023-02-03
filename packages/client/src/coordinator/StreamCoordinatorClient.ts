@@ -1,6 +1,11 @@
 import { StreamClient } from './connection/client';
 import { sleep } from './connection/utils';
-import { EventHandler, StreamClientOptions, User } from './connection/types';
+import {
+  EventHandler,
+  StreamClientOptions,
+  TokenOrProvider,
+  User,
+} from './connection/types';
 import {
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
@@ -35,7 +40,7 @@ export class StreamCoordinatorClient {
     return this.client.off(callbackOrEventName, callbackOrNothing);
   };
 
-  connectUser = async (user: User, token: string) => {
+  connectUser = async (user: User, token: TokenOrProvider) => {
     return this.client.connectUser(user, token);
   };
 

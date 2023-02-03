@@ -25,27 +25,23 @@ import './style.css';
     urlParams.get('coordinator_rpc_url') || localDev
       ? 'http://localhost:26991/rpc/'
       : 'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc';
-  const coordinatorWsUrl =
-    urlParams.get('coordinator_ws_url') || localDev
-      ? 'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect'
-      : 'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect';
 
   const client = new StreamVideoClient(apiKey, {
     token: accessToken,
     coordinatorRpcUrl,
-    coordinatorWsUrl,
   });
 
   const store$ = client.readOnlyStateStore;
 
-  await client.connect(apiKey, accessToken, {
-    id: 'egress',
-    name: 'egress',
-    role: 'spectator',
-    teams: ['stream-io'],
-    imageUrl: '/profile.png',
-    customJson: new Uint8Array(),
-  });
+  await client.connectUser(
+    {
+      id: 'egress',
+      name: 'egress',
+      role: 'spectator',
+      teams: ['stream-io'],
+    },
+    accessToken,
+  );
 
   console.log('Joining call with id:', callId);
   const call = await client.joinCall(callId, 'default');

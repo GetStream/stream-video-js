@@ -36,20 +36,18 @@ export const StreamCall = ({
       }
       try {
         if (outgoingCall?.call && videoClient.callConfig.joinCallInstantly) {
-          await videoClient.joinCall({
-            id: outgoingCall.call.id,
-            type: outgoingCall.call.type,
-            datacenterId: '',
-          });
+          await videoClient.joinCall(
+            outgoingCall.call.id,
+            outgoingCall.call.type,
+          );
         } else if (
           acceptedCall?.call &&
           !videoClient.callConfig.joinCallInstantly
         ) {
-          await videoClient.joinCall({
-            id: acceptedCall.call.id,
-            type: acceptedCall.call.type,
-            datacenterId: '',
-          });
+          await videoClient.joinCall(
+            acceptedCall.call.id,
+            acceptedCall.call.type,
+          );
         }
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);

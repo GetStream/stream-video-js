@@ -5,7 +5,7 @@ import {
   CssBaseline,
   ThemeProvider,
 } from '@mui/material';
-import { CreateCallInput, UserInput } from '@stream-io/video-client';
+import { CreateCallInput, User } from '@stream-io/video-client';
 import {
   StreamMeeting,
   StreamVideo,
@@ -60,24 +60,19 @@ const App = () => {
     }
   }, [currentUser]);
 
-  const user = useMemo<UserInput>(
+  const user = useMemo<User>(
     () => ({
       id: currentUser,
       name: currentUser,
       role: 'admin',
       teams: ['team-1, team-2'],
-      imageUrl: '/profile.png',
-      customJson: new Uint8Array(),
     }),
     [currentUser],
   );
 
   const client = useCreateStreamVideoClient({
-    // proxied to http://localhost:26991
     coordinatorRpcUrl:
       'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
-    coordinatorWsUrl:
-      'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
     apiKey: 'us83cfwuhy8n', // see <video>/data/fixtures/apps.yaml for API key/secret
     token: participants[currentUser],
     user,

@@ -5,19 +5,17 @@ import { GetServerSidePropsContext } from 'next';
 import { createToken } from '../../helpers/jwt';
 import {
   StreamVideo,
+  StreamMeeting,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { UserInput } from '@stream-io/video-client';
-import { useMemo } from 'react';
 import Head from 'next/head';
-import { StreamMeeting } from '@stream-io/video-react-sdk';
+import { User } from '@stream-io/video-client';
 import { MeetingUI } from '../../components/MeetingUI';
 
 type JoinCallProps = {
-  user: UserInput;
+  user: User;
   userToken: string;
   coordinatorRpcUrl: string;
-  coordinatorWsUrl: string;
   apiKey: string;
 };
 
@@ -26,22 +24,12 @@ const JoinCall = (props: JoinCallProps) => {
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
 
-  const { userToken, user, coordinatorRpcUrl, coordinatorWsUrl, apiKey } =
-    props;
-  const loggedInUser = useMemo(
-    () => ({
-      ...user,
-      customJson: new Uint8Array(),
-    }),
-    [user],
-  );
-
+  const { userToken, user, coordinatorRpcUrl, apiKey } = props;
   const client = useCreateStreamVideoClient({
     coordinatorRpcUrl,
-    coordinatorWsUrl,
     apiKey,
     token: userToken,
-    user: loggedInUser,
+    user,
   });
 
   if (!client) {
@@ -55,7 +43,7 @@ const JoinCall = (props: JoinCallProps) => {
       </Head>
       <StreamVideo client={client}>
         <StreamMeeting
-          currentUser={loggedInUser.name}
+          currentUser={user.name}
           callId={callId}
           callType={callType}
         >
@@ -87,7 +75,6 @@ export const getServerSideProps = async (
   }
 
   const coordinatorRpcUrl = process.env.STREAM_COORDINATOR_RPC_URL;
-  const coordinatorWsUrl = process.env.STREAM_COORDINATOR_WS_URL;
   const apiKey = process.env.STREAM_API_KEY as string;
   const secretKey = process.env.STREAM_SECRET_KEY as string;
 
@@ -97,7 +84,6 @@ export const getServerSideProps = async (
   return {
     props: {
       coordinatorRpcUrl,
-      coordinatorWsUrl,
       apiKey,
       userToken: createToken(userName, secretKey),
       user: {
@@ -106,7 +92,6 @@ export const getServerSideProps = async (
         role: 'admin',
         teams: ['stream-io'],
         imageUrl: session.user.image,
-        // customJson: new Uint8Array() // can't be serialized to JSON
       },
     } as JoinCallProps,
   };

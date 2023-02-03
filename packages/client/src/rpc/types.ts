@@ -5,11 +5,6 @@ export type StreamVideoClientOptions = {
   coordinatorRpcUrl?: string;
 
   /**
-   * The baseURL for the Coordinator WS endpoint.
-   */
-  coordinatorWsUrl?: string;
-
-  /**
    * The total number of latency measurements to be performed to a
    * certain edge node before joining a call.
    */
