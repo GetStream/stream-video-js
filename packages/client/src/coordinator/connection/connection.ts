@@ -15,6 +15,7 @@ import {
   sleep,
 } from './utils';
 import type { ConnectAPIResponse, ConnectionOpen, LogLevel, UR } from './types';
+import type { VideoWSAuthMessageRequest } from '../../gen/coordinator';
 
 // Type guards to check WebSocket error type
 const isCloseEvent = (
@@ -494,17 +495,23 @@ export class StableWSConnection {
       return;
     }
 
-    this.ws?.send(
-      JSON.stringify({
-        token: this.client._getToken(),
-        user_details: {
-          id: user.id,
-          name: user.name,
-          username: user.username,
-          role: user.role,
-        },
-      }),
-    );
+    const token = this.client._getToken();
+    if (!token) {
+      console.error(`Token not set, can't connect authenticate`);
+      return;
+    }
+
+    const authMessage: VideoWSAuthMessageRequest = {
+      token,
+      user_details: {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        role: user.role,
+      },
+    };
+
+    this.ws?.send(JSON.stringify(authMessage));
     this._log('onopen() - onopen callback', { wsID });
   };
 

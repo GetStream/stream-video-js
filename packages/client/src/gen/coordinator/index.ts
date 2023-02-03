@@ -151,10 +151,10 @@ export interface CallCreated {
   created_at?: string;
   /**
    *
-   * @type {Array<CallMemberResponse>}
+   * @type {Array<MemberResponse>}
    * @memberof CallCreated
    */
-  members?: Array<CallMemberResponse>;
+  members?: Array<MemberResponse>;
   /**
    *
    * @type {boolean}
@@ -192,86 +192,6 @@ export interface CallEnded {
    * @memberof CallEnded
    */
   type: string;
-}
-/**
- *
- * @export
- * @interface CallMemberRequest
- */
-export interface CallMemberRequest {
-  /**
-   *
-   * @type {{ [key: string]: any; }}
-   * @memberof CallMemberRequest
-   */
-  custom?: { [key: string]: any };
-  /**
-   *
-   * @type {string}
-   * @memberof CallMemberRequest
-   */
-  role: string;
-  /**
-   *
-   * @type {UserObjectRequest}
-   * @memberof CallMemberRequest
-   */
-  user?: UserObjectRequest;
-  /**
-   *
-   * @type {string}
-   * @memberof CallMemberRequest
-   */
-  user_id: string;
-}
-/**
- *
- * @export
- * @interface CallMemberResponse
- */
-export interface CallMemberResponse {
-  /**
-   * Date/time of creation
-   * @type {string}
-   * @memberof CallMemberResponse
-   */
-  created_at: string;
-  /**
-   * Date/time of deletion
-   * @type {string}
-   * @memberof CallMemberResponse
-   */
-  deleted_at?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallMemberResponse
-   */
-  duration?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallMemberResponse
-   */
-  role?: string;
-  /**
-   * Date/time of the last update
-   * @type {string}
-   * @memberof CallMemberResponse
-   */
-  updated_at: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof CallMemberResponse
-   */
-  user: UserResponse;
-  /**
-   * User ID
-   * @type {string}
-   * @memberof CallMemberResponse
-   */
-  user_id?: string;
 }
 /**
  *
@@ -324,10 +244,10 @@ export interface CallRequest {
   custom?: { [key: string]: any };
   /**
    *
-   * @type {Array<CallMemberRequest>}
+   * @type {Array<MemberRequest>}
    * @memberof CallRequest
    */
-  members?: Array<CallMemberRequest>;
+  members: Array<MemberRequest>;
   /**
    *
    * @type {CallSettingsRequest}
@@ -597,6 +517,44 @@ export interface DatacenterResponse {
 /**
  *
  * @export
+ * @interface DeviceFieldsRequest
+ */
+export interface DeviceFieldsRequest {
+  /**
+   * Device ID
+   * @type {string}
+   * @memberof DeviceFieldsRequest
+   */
+  id?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof DeviceFieldsRequest
+   */
+  push_provider?: DeviceFieldsRequestPushProviderEnum;
+  /**
+   * Name of the push provider configuration
+   * @type {string}
+   * @memberof DeviceFieldsRequest
+   */
+  push_provider_name?: string;
+}
+
+/**
+ * @export
+ */
+export const DeviceFieldsRequestPushProviderEnum = {
+  firebase: 'firebase',
+  apn: 'apn',
+  huawei: 'huawei',
+  xiaomi: 'xiaomi',
+} as const;
+export type DeviceFieldsRequestPushProviderEnum =
+  (typeof DeviceFieldsRequestPushProviderEnum)[keyof typeof DeviceFieldsRequestPushProviderEnum];
+
+/**
+ *
+ * @export
  * @interface EndCallResponse
  */
 export interface EndCallResponse {
@@ -672,16 +630,16 @@ export interface GetCallEdgeServerResponse {
   duration?: string;
   /**
    *
-   * @type {Array<CallMemberResponse>}
+   * @type {Array<MemberResponse>}
    * @memberof GetCallEdgeServerResponse
    */
-  members?: Array<CallMemberResponse>;
+  members?: Array<MemberResponse>;
   /**
    *
-   * @type {CallMemberResponse}
+   * @type {MemberResponse}
    * @memberof GetCallEdgeServerResponse
    */
-  membership?: CallMemberResponse;
+  membership?: MemberResponse;
 }
 /**
  *
@@ -734,16 +692,16 @@ export interface GetOrCreateCallResponse {
   duration?: string;
   /**
    *
-   * @type {Array<CallMemberResponse>}
+   * @type {Array<MemberResponse>}
    * @memberof GetOrCreateCallResponse
    */
-  members?: Array<CallMemberResponse>;
+  members?: Array<MemberResponse>;
   /**
    *
-   * @type {CallMemberResponse}
+   * @type {MemberResponse}
    * @memberof GetOrCreateCallResponse
    */
-  membership?: CallMemberResponse;
+  membership?: MemberResponse;
 }
 /**
  *
@@ -802,16 +760,102 @@ export interface JoinCallResponse {
   edges?: Array<DatacenterResponse>;
   /**
    *
-   * @type {Array<CallMemberResponse>}
+   * @type {Array<MemberResponse>}
    * @memberof JoinCallResponse
    */
-  members?: Array<CallMemberResponse>;
+  members?: Array<MemberResponse>;
   /**
    *
-   * @type {CallMemberResponse}
+   * @type {MemberResponse}
    * @memberof JoinCallResponse
    */
-  membership?: CallMemberResponse;
+  membership?: MemberResponse;
+}
+/**
+ *
+ * @export
+ * @interface MemberRequest
+ */
+export interface MemberRequest {
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof MemberRequest
+   */
+  custom?: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof MemberRequest
+   */
+  role: string;
+  /**
+   *
+   * @type {UserObjectRequest}
+   * @memberof MemberRequest
+   */
+  user?: UserObjectRequest;
+  /**
+   *
+   * @type {string}
+   * @memberof MemberRequest
+   */
+  user_id: string;
+}
+/**
+ *
+ * @export
+ * @interface MemberResponse
+ */
+export interface MemberResponse {
+  /**
+   * Date/time of creation
+   * @type {string}
+   * @memberof MemberResponse
+   */
+  created_at: string;
+  /**
+   * Custom member response data
+   * @type {{ [key: string]: any; }}
+   * @memberof MemberResponse
+   */
+  custom?: { [key: string]: any };
+  /**
+   * Date/time of deletion
+   * @type {string}
+   * @memberof MemberResponse
+   */
+  deleted_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof MemberResponse
+   */
+  duration?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof MemberResponse
+   */
+  role?: string;
+  /**
+   * Date/time of the last update
+   * @type {string}
+   * @memberof MemberResponse
+   */
+  updated_at: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof MemberResponse
+   */
+  user: UserResponse;
+  /**
+   * User ID
+   * @type {string}
+   * @memberof MemberResponse
+   */
+  user_id?: string;
 }
 /**
  *
@@ -1311,4 +1355,29 @@ export interface VideoSettingsRequest {
    * @memberof VideoSettingsRequest
    */
   enabled?: boolean;
+}
+/**
+ *
+ * @export
+ * @interface VideoWSAuthMessageRequest
+ */
+export interface VideoWSAuthMessageRequest {
+  /**
+   *
+   * @type {DeviceFieldsRequest}
+   * @memberof VideoWSAuthMessageRequest
+   */
+  device?: DeviceFieldsRequest;
+  /**
+   * Token string
+   * @type {string}
+   * @memberof VideoWSAuthMessageRequest
+   */
+  token: string;
+  /**
+   *
+   * @type {UserObjectRequest}
+   * @memberof VideoWSAuthMessageRequest
+   */
+  user_details: UserObjectRequest;
 }
