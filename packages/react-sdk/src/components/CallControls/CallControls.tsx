@@ -9,14 +9,13 @@ import {
   ToggleCameraButton,
 } from './index';
 import { SpeakingWhileMutedNotification } from '../Notification';
-import { ReactNode } from 'react';
+import { PropsWithChildren } from 'react';
 
-export type CallControlsProps = {
+export type CallControlsProps = PropsWithChildren & {
   call: Call;
   initialAudioMuted?: boolean;
   initialVideoMuted?: boolean;
   onLeave?: () => void;
-  children?: ReactNode;
 };
 
 export const CallControls = (props: CallControlsProps) => {
