@@ -38,14 +38,12 @@ export class AppComponent implements OnInit {
     const token = environment.token;
     const user = environment.user;
     const baseCoordinatorUrl = environment.coordinatorUrl;
-    const baseWsUrl = environment.wsUrl;
     const client = this.streamVideoService.init(
       apiKey,
       token,
       baseCoordinatorUrl,
-      baseWsUrl,
     );
-    await client.connect(apiKey, token, user);
+    await client.connectUser(user, token);
   }
 
   async createOrJoinCall(callId?: string) {
@@ -69,11 +67,7 @@ export class AppComponent implements OnInit {
       return;
     }
     const call = await this.ngZone.runOutsideAngular(() => {
-      return this.streamVideoService.videoClient?.joinCall({
-        id: callId,
-        type: 'default',
-        datacenterId: '',
-      });
+      return this.streamVideoService.videoClient?.joinCall(callId, 'default');
     });
     await call?.join();
   }

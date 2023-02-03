@@ -7,7 +7,7 @@ import {
   StreamVideoClient,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
-  UserInput,
+  User,
 } from '@stream-io/video-client';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 
@@ -23,7 +23,7 @@ export class StreamVideoService {
   /**
    * The currently connected user.
    */
-  user$: Observable<UserInput | undefined>;
+  user$: Observable<User | undefined>;
   /**
    * The call controller instance representing the call the user attends.
    * The controller instance exposes call metadata as well.
@@ -77,9 +77,7 @@ export class StreamVideoService {
    */
   hasOngoingScreenShare$: Observable<boolean>;
 
-  private userSubject: ReplaySubject<UserInput | undefined> = new ReplaySubject(
-    1,
-  );
+  private userSubject: ReplaySubject<User | undefined> = new ReplaySubject(1);
   private activeCallSubject: ReplaySubject<Call | undefined> =
     new ReplaySubject(1);
 
@@ -120,24 +118,19 @@ export class StreamVideoService {
       this.hasOngoingScreenShareSubject.asObservable();
   }
 
-  init(
-    apiKey: string,
-    token: string,
-    baseCoordinatorUrl: string,
-    baseWsUrl: string,
-  ) {
+  init(apiKey: string, token: string, baseCoordinatorUrl: string) {
     if (this.videoClient) {
       console.warn(
         `Multiple init calls detected, this is usually unnecessary, make sure you know what you're doing`,
       );
-      this.videoClient.disconnect();
+      this.videoClient.disconnectUser().catch((e) => {
+        console.error(`Failed to disconnect user`, e);
+      });
       this.subscriptions.forEach((s) => s.unsubscribe());
     }
 
     this.videoClient = new StreamVideoClient(apiKey, {
       coordinatorRpcUrl: baseCoordinatorUrl,
-      coordinatorWsUrl: baseWsUrl,
-      sendJson: true,
       token,
     });
 
