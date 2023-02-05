@@ -16,7 +16,7 @@ export const VideoPlaceholder = ({
     <>
       <div className="str-video__participant-placeholder">
         {(!imageSrc || error) && (
-          <div className="str-video__placeholder--initials-fallback">
+          <div className="str-video__participant-placeholder--initials-fallback">
             <h2>{userId.at(0)}</h2>
           </div>
         )}
