@@ -14,9 +14,9 @@ export const ChatSidebar = () => {
   const { client, setActiveChannel } = useChatContext();
 
   useEffect(() => {
-    const c = client.channel('team', callId);
+    const channel = client.channel('team', callId);
 
-    setActiveChannel(c);
+    setActiveChannel(channel);
   }, [callId]);
 
   return (

@@ -1,4 +1,3 @@
-import { PropsWithChildren } from 'react';
 import {
   useCreateStreamVideoClient,
   StreamVideo,
@@ -9,15 +8,15 @@ import { useChatClient } from '../hooks';
 
 import type { User } from '../main';
 
+import { Preview } from './Preview';
+import { Outlet, useLoaderData } from 'react-router-dom';
+
 const apiKey = import.meta.env.VITE_STREAM_KEY as string;
 const coordinatorRpcUrl = import.meta.env.VITE_VIDEO_COORDINATOR_RPC_ENDPOINT;
 const coordinatorWsUrl = import.meta.env.VITE_VIDEO_COORDINATOR_WS_URL;
 
-export const ChatVideoWrapper = ({
-  children,
-  user,
-}: PropsWithChildren<{ user: User }>) => {
-  const { token, ...userData } = user;
+export const ChatVideoWrapper = () => {
+  const { token, ...userData } = useLoaderData() as User;
 
   const chatClient = useChatClient({
     apiKey,
@@ -44,7 +43,11 @@ export const ChatVideoWrapper = ({
 
   return (
     <Chat theme="str-chat__theme-dark" client={chatClient}>
-      <StreamVideo client={videoClient}>{children}</StreamVideo>
+      <StreamVideo client={videoClient}>
+        <Preview.Provider>
+          <Outlet />
+        </Preview.Provider>
+      </StreamVideo>
     </Chat>
   );
 };

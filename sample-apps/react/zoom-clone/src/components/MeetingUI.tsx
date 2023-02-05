@@ -6,13 +6,12 @@ import {
 
 import { useActiveCall } from '@stream-io/video-react-bindings';
 import { useNavigate } from 'react-router-dom';
+import { usePreviewContext } from './Preview';
 
 export const MeetingUI = () => {
   const activeCall = useActiveCall();
   const navigate = useNavigate();
-
-  // const localParticipant = useLocalParticipant();
-  // const remoteParticipants = useRemoteParticipants();
+  const { initialAudioMuted, initialVideoMuted } = usePreviewContext();
 
   if (!activeCall)
     return (
@@ -32,7 +31,12 @@ export const MeetingUI = () => {
         <DeviceSettings activeCall={activeCall} />
       </div>
       <Stage call={activeCall} />
-      <CallControls call={activeCall} onLeave={() => navigate('/call-lobby')} />
+      <CallControls
+        initialAudioMuted={initialAudioMuted}
+        initialVideoMuted={initialVideoMuted}
+        call={activeCall}
+        onLeave={() => navigate('/call/lobby')}
+      />
     </div>
 
     // <div className={`str-video__call-participants-view ${grid}`}>

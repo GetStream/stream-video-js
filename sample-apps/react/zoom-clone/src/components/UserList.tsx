@@ -24,7 +24,7 @@ export const UserList = () => {
                 onClick={() => {
                   selectedUserSubject.next(u);
                   sessionStorage.setItem(SESSION_STORAGE_KEY, u.id);
-                  navigate(next.length ? next : '/call-lobby');
+                  navigate(next.length ? next : '/call/lobby');
                 }}
               >
                 <div className="flex items-center gap-2">

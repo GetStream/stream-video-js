@@ -9,20 +9,21 @@ export const Header = () => {
   const user = useObservableValue(selectedUserSubject);
   const navigate = useNavigate();
   return (
-    <div className="w-full p-4 bg-zinc-600 text-zinc-50 flex justify-between">
+    <div className="w-full p-4 bg-zinc-600 text-zinc-50 flex justify-between items-center">
       <span>Stream Zoom clone</span>
 
       {user && (
-        <div className="flex gap-1">
+        <div className="flex gap-2 items-center">
           <span>Signed in as: {user?.name}</span>
           <button
+            className="bg-zinc-800 rounded-full flex justify-center items-center text-white px-2 py-1"
             onClick={() => {
               selectedUserSubject.next(null);
               sessionStorage.removeItem(SESSION_STORAGE_KEY);
               navigate('/user-selection');
             }}
           >
-            (leave)
+            Sign out
           </button>
         </div>
       )}

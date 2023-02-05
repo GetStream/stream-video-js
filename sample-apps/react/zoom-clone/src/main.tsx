@@ -9,6 +9,8 @@ import { BehaviorSubject } from 'rxjs';
 
 import { Root } from './Root';
 import { UserList } from './components/UserList';
+import { Call } from './components/Call';
+import { ChatVideoWrapper } from './components/ChatVideoWrapper';
 import { CallLobby } from './components/CallLobby';
 
 import { SESSION_STORAGE_KEY } from './utils';
@@ -27,28 +29,30 @@ export const selectedUserSubject = new BehaviorSubject<User | null>(
     null,
 );
 
+const Error = () => {
+  return <div>Oops, couldn't find what you're looking for</div>;
+};
+
 const router = createBrowserRouter([
   {
     path: '/',
     element: <Root />,
-    errorElement: <div>404</div>, // TODO: make 404 nicer
     loader: ({ request }) => {
       const user = selectedUserSubject.getValue();
-      console.log(user);
 
       if (
         request.url.includes('user-selection') ||
-        request.url.includes('call-lobby')
+        request.url.includes('call')
       )
         return null;
 
       if (!user) return redirect('/user-selection');
-      return redirect('/call-lobby');
+      return redirect('/call/lobby');
     },
     children: [
       {
-        path: 'call-lobby/:callId?',
-        element: <CallLobby />,
+        path: 'call',
+        element: <ChatVideoWrapper />,
         loader: ({ params: { callId } }) => {
           const user = selectedUserSubject.getValue();
 
@@ -59,11 +63,26 @@ const router = createBrowserRouter([
               `/user-selection${
                 !callId
                   ? ''
-                  : '?next=' + encodeURIComponent('/call-lobby/' + callId)
+                  : '?next=' + encodeURIComponent('/call/lobby/' + callId)
               }`,
             );
-          return null;
+
+          return user;
         },
+        children: [
+          {
+            path: 'room/:callId?',
+            element: <Call />,
+            loader: ({ params: { callId } }) => {
+              if (!callId) return redirect('/call/lobby');
+              return null;
+            },
+          },
+          {
+            path: 'lobby/:callId?',
+            element: <CallLobby />,
+          },
+        ],
       },
       {
         path: 'user-selection',
