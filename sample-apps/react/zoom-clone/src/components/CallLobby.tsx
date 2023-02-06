@@ -17,7 +17,7 @@ export const CallLobby = () => {
 
     if (!callId) {
       const channel = client.channel(
-        'team',
+        'videocall',
         newCallId,
         // TODO: hacky workaround for permission problems
         { members: users.map((u) => u.id) },
