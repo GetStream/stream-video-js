@@ -32,3 +32,9 @@ body,
 .str-video__device-settings {
   @apply drop-shadow-sm bg-zinc-600;
 }
+
+.str-video__device-settings__button,
+.str-video__device-settings__button:hover,
+.str-video__device-settings__button:focus {
+  @apply flex items-center justify-center bg-zinc-600 rounded-full p-1;
+}

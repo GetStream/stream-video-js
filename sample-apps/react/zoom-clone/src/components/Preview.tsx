@@ -15,8 +15,13 @@ import {
   useMediaDevices,
   MediaDevicesProvider,
   useActiveCall,
+  DeviceSettings,
 } from '@stream-io/video-react-sdk';
-import { getAudioStream, getVideoStream } from '@stream-io/video-client';
+import {
+  getAudioStream,
+  getVideoStream,
+  createSoundDetector,
+} from '@stream-io/video-client';
 
 const disposeOfMediaStream = (ms: MediaStream) => {
   return ms.getTracks().forEach((track) => track.stop());
@@ -93,25 +98,35 @@ export const Preview = {
       </PreviewContext.Provider>
     );
   },
-  // MediaDevicesProviderWrapper: () => {
 
-  //   return
-  // },
   SpeechIndicator: () => {
-    const { setAudioState } = usePreviewContext();
+    const { setAudioState, initialAudioMuted } = usePreviewContext();
     const { selectedAudioDeviceId } = useMediaDevices();
+    const [percentage, setPercentage] = useState<number>(0);
 
     useLayoutEffect(() => {
       let mediaStream: MediaStream | undefined;
       let interrupted = false;
+      let disposeOfSoundDetector:
+        | undefined
+        | ReturnType<typeof createSoundDetector>;
+
+      if (initialAudioMuted) return;
 
       getAudioStream(selectedAudioDeviceId)
         .then((ms) => {
           if (interrupted) return disposeOfMediaStream(ms);
 
           mediaStream = ms;
-          // if (videoElementRef.current) videoElementRef.current.srcObject = ms;
-          // isTalkingElement (microphone testing)
+
+          disposeOfSoundDetector = createSoundDetector(
+            ms,
+            (_, p) => {
+              setPercentage(p);
+            },
+            { detectionFrequencyInMs: 50 },
+          );
+
           setAudioState!({ type: 'finished' });
         })
         .catch((error) => {
@@ -120,11 +135,21 @@ export const Preview = {
 
       return () => {
         interrupted = true;
+        disposeOfSoundDetector?.();
         if (mediaStream) disposeOfMediaStream(mediaStream);
+        setPercentage(0);
       };
-    }, [selectedAudioDeviceId]);
+    }, [selectedAudioDeviceId, initialAudioMuted]);
 
-    return <div />;
+    return (
+      <div className="w-8 h-8 bg-zinc-600 rounded-full flex justify-center items-center">
+        <div
+          className="rounded-full bg-zinc-100 to-transparent w-full h-full
+          "
+          style={{ transform: `scale(${percentage / 100})` }}
+        />
+      </div>
+    );
   },
   Video: ({ className }: ComponentProps<'video'>) => {
     const videoElementRef = useRef<HTMLVideoElement | null>(null);
@@ -168,27 +193,36 @@ export const Preview = {
 
     return (
       <>
-        {(videoState.type === 'error' ||
-          videoState.type === 'starting' ||
-          initialVideoMuted) && (
-          <div className="lg:w-3/5 xl:w-1/4 w-full h-96 bg-zinc-700 rounded-lg text-2xl text-zinc-50 flex-col flex justify-center items-center">
-            {videoState.type === 'error' && videoState.message}
-            {videoState.type === 'starting' && 'Video is starting...'}
-            {initialVideoMuted && 'Video is disabled'}
-            <span className="text-sm">
-              {videoState.type === 'error' &&
-                '(reset permissions and reload the page)'}
-            </span>
+        <div className="relative lg:w-3/5 xl:w-1/4 w-full flex justify-center">
+          <div className="absolute top-2 right-2 z-10">
+            <DeviceSettings />
           </div>
-        )}
 
-        <Preview.Video
-          className={clsx(
-            'lg:w-3/5 xl:w-1/4 w-full rounded-lg h-96 object-cover',
-            (videoState.type !== 'finished' || initialVideoMuted) && 'hidden',
+          <div className="absolute bottom-2 left-2">
+            <Preview.SpeechIndicator />
+          </div>
+
+          {(videoState.type === 'error' ||
+            videoState.type === 'starting' ||
+            initialVideoMuted) && (
+            <div className=" w-full h-96 bg-zinc-700 rounded-lg text-2xl text-zinc-50 flex-col flex justify-center items-center">
+              {videoState.type === 'error' && videoState.message}
+              {videoState.type === 'starting' && 'Video is starting...'}
+              {initialVideoMuted && 'Video is disabled'}
+              <span className="text-sm">
+                {videoState.type === 'error' &&
+                  '(reset permissions and reload the page)'}
+              </span>
+            </div>
           )}
-        />
-        <Preview.SpeechIndicator />
+
+          <Preview.Video
+            className={clsx(
+              'w-full rounded-lg h-96 object-cover',
+              (videoState.type !== 'finished' || initialVideoMuted) && 'hidden',
+            )}
+          />
+        </div>
 
         <div className="flex justify-between items-center lg:w-3/5 xl:w-1/4 w-full">
           <div className="str-video__call-controls bg-zinc-700 rounded-full px-6">
