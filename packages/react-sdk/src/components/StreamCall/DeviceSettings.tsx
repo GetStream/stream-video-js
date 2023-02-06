@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { usePopper } from 'react-popper';
 import { useMediaDevices } from '../../contexts/MediaDevicesContext';
 
-export const DeviceSettings = (props: { activeCall: Call }) => {
+export const DeviceSettings = (props: { activeCall?: Call }) => {
   const { activeCall } = props;
   const {
     audioDevices,
@@ -75,7 +75,7 @@ export const DeviceSettings = (props: { activeCall: Call }) => {
               switchDevice('audioinput', deviceId);
             }}
           />
-          {isAudioOutputChangeSupported && (
+          {isAudioOutputChangeSupported && activeCall && (
             <DeviceSelector
               devices={audioOutputDevices}
               label="Select audio output"
