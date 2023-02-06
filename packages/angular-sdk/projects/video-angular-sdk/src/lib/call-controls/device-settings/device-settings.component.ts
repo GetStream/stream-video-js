@@ -1,10 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { NgxPopperjsTriggers } from 'ngx-popperjs';
-import { DeviceManagerService } from '../device-manager.service';
+import { DeviceManagerService } from '../../device-manager.service';
 
 /**
  * The `DeviceSettingsComponent` can be used to select video, audio and audio output (if the current browser supports it) device.
+ *
+ * The component will load the available list of video and audio devices and prompt the user to grant the necessary permissions.
  *
  * Selector: `stream-device-settings`
  */
@@ -29,6 +31,8 @@ export class DeviceSettingsComponent implements OnInit, OnDestroy {
     this.audioDevices$ = this.deviceManager.audioDevices$;
     this.videoDevices$ = this.deviceManager.videoDevices$;
     this.audioOutputDevices$ = this.deviceManager.audioOutputDevices$;
+    this.deviceManager.initAudioDevices();
+    this.deviceManager.initVideoDevices();
     this.subscriptions.push(
       this.deviceManager.audioDevice$.subscribe(
         (d) => (this.currentlyUsedAudioDeviceId = d),

@@ -1,19 +1,23 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Call, SfuModels } from '@stream-io/video-client';
-import { NgxPopperjsTriggers } from 'ngx-popperjs';
+import { SfuModels } from '@stream-io/video-client';
 import { combineLatest, Subscription } from 'rxjs';
 import { DeviceManagerService } from '../device-manager.service';
-import {
-  AudioMediaStreamState,
-  MediaStreamState,
-  ScreenShareState,
-} from '../types';
-import { StreamVideoService } from '../video.service';
 
 /**
  * The `CallControlsComponent` displays call and device management (start/stop recording, hangup, mute audio etc.) related actions.
  *
  * The component can be used if the user is in a call or even if not in a call (however some actions aren't visible in that case).
+ *
+ * Each call control button is available as a separate UI component which make it easy to create your own call controls component using the individual call control button built-in components.
+ *
+ * The component contains the following [content projection](https://angular.io/guide/content-projection#content-projection) slots:
+ * - `[call-controls-start]` which you can use to inject your own content before the first call controls section
+ * - `[call-controls-start-start]` which you can use to inject your own content to the beginning of the first section
+ * - `[call-controls-start-end]` which you can use to inject your own content to the end of the first section
+ * - `[call-controls-middle-start]` which you can use to inject your own content to the beginning of the middle section
+ * - `[call-controls-middle-end]` which you can use to inject your own content to the end of the middle section
+ * - `[call-controls-end]` which you can use to inject you own content after the last call controls section
+ * - `[speaking-while-muted-notification]` which you can use to inject your own notification content to be displayed when someone is speaking while muted
  *
  * Selector: `stream-call-controls`
  */
@@ -23,40 +27,12 @@ import { StreamVideoService } from '../video.service';
   styles: [],
 })
 export class CallControlsComponent implements OnInit, OnDestroy {
-  videoState?: MediaStreamState;
-  audioState?: AudioMediaStreamState;
-  screenShareState?: ScreenShareState;
-  call?: Call;
-  isCallRecordingInProgress: boolean = false;
   isSpeakingWhileMuted = false;
-  popperTrigger = NgxPopperjsTriggers.click;
   private subscriptions: Subscription[] = [];
 
   TrackType = SfuModels.TrackType;
 
-  constructor(
-    private streamVideoService: StreamVideoService,
-    private deviceManager: DeviceManagerService,
-  ) {
-    this.subscriptions.push(
-      this.streamVideoService.callRecordingInProgress$.subscribe(
-        (inProgress) => (this.isCallRecordingInProgress = inProgress),
-      ),
-    );
-    this.subscriptions.push(
-      this.streamVideoService.activeCall$.subscribe((c) => (this.call = c)),
-    );
-    this.subscriptions.push(
-      this.deviceManager.videoState$.subscribe((s) => (this.videoState = s)),
-    );
-    this.subscriptions.push(
-      this.deviceManager.audioState$.subscribe((s) => (this.audioState = s)),
-    );
-    this.subscriptions.push(
-      this.deviceManager.screenShareState$.subscribe(
-        (s) => (this.screenShareState = s),
-      ),
-    );
+  constructor(private deviceManager: DeviceManagerService) {
     this.subscriptions.push(
       combineLatest([
         this.deviceManager.audioState$,
@@ -72,33 +48,5 @@ export class CallControlsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
-  }
-
-  toggleAudio() {
-    this.deviceManager.toggleAudio();
-  }
-
-  toggleVideo() {
-    this.deviceManager.toggleVideo();
-  }
-
-  toggleScreenShare() {
-    this.deviceManager.toggleScreenShare();
-  }
-
-  toggleRecording() {
-    this.isCallRecordingInProgress
-      ? this.streamVideoService.videoClient?.stopRecording(
-          this.call!.data.call!.id,
-          this.call!.data.call!.type,
-        )
-      : this.streamVideoService.videoClient?.startRecording(
-          this.call!.data.call!.id,
-          this.call!.data.call!.type,
-        );
-  }
-
-  endCall() {
-    this.call?.leave();
   }
 }

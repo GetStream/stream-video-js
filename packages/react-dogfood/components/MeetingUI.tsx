@@ -6,8 +6,9 @@ import {
   LoadingIndicator,
   CallParticipantsList,
   Stage,
+  CallControls,
+  ToggleParticipantListButton,
 } from '@stream-io/video-react-sdk';
-import { CallControls } from './CallControls';
 
 export const MeetingUI = () => {
   const router = useRouter();
@@ -46,12 +47,12 @@ export const MeetingUI = () => {
           <DeviceSettings activeCall={activeCall} />
         </div>
         <Stage call={activeCall} />
-        <CallControls
-          call={activeCall}
-          onLeave={onLeave}
-          participantListEnabled={showParticipants}
-          toggleShowParticipantList={toggleParticipantList}
-        />
+        <CallControls call={activeCall} onLeave={onLeave}>
+          <ToggleParticipantListButton
+            enabled={showParticipants}
+            onClick={toggleParticipantList}
+          />
+        </CallControls>
       </div>
       {showSidebar && (
         <div className="str-video__sidebar">
