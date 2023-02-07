@@ -24,6 +24,7 @@ export class StreamCoordinatorClient {
       // baseURL: 'http://localhost:3030/video',
       // baseURL: 'https://video-edge-oregon-ce3.stream-io-api.com/video',
       baseURL: 'https://video-edge-frankfurt-ce1.stream-io-api.com/video',
+      browser: true,
       persistUserOnConnectionFailure: true,
       ...options,
     });

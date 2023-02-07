@@ -373,7 +373,15 @@ export class StreamVideoClient {
         );
 
         const { server, ice_servers, token } = edge.credentials;
-        const sfuClient = new StreamSfuClient(server.url!, token!);
+
+        let sfuUrl = server.url;
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search);
+          const sfuUrlParam = params.get('sfuUrl');
+          sfuUrl = sfuUrlParam || server.url;
+        }
+
+        const sfuClient = new StreamSfuClient(sfuUrl!, token!);
         const call = new Call(
           {
             // @ts-ignore
