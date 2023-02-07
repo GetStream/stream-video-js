@@ -86,8 +86,14 @@ export class StreamVideoClient {
 
     // reportStats(
     //   this.readOnlyStateStore,
-    //   (e) => this.reportCallStats(e),
-    //   (e) => this.reportCallStatEvent(e),
+    //   (e) =>
+    //     this.reportCallStats(e).catch((err) => {
+    //       console.error('Failed to report stats', err);
+    //     }),
+    //   (e) =>
+    //     this.reportCallStatEvent(e).catch((err) => {
+    //       console.error('Failed to report stats', err);
+    //     }),
     // );
   }
 
@@ -278,7 +284,6 @@ export class StreamVideoClient {
       event_type: 'call.accepted',
     });
     const callController = await this.joinCall(id, type);
-    await callController?.join();
     return callController;
   };
 
@@ -306,6 +311,8 @@ export class StreamVideoClient {
   /**
    * Signals other users that I have cancelled my call to them before they accepted it.
    * Causes the CallCancelled event to be emitted to all the call members.
+   *
+   * Cancelling a call is only possible before the local participant joined the call.
    * @param callCid config ID of the cancelled call
    * @returns
    */

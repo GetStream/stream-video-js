@@ -12,8 +12,11 @@ import { distinctUntilKeyChanged } from 'rxjs';
           Create or join call
         </button>
       </div>
-      <div>Call ID: {{ callId }}</div>
-      <stream-call></stream-call>
+      <stream-call>
+        <stream-device-settings call-header-end></stream-device-settings>
+        <stream-stage call-stage></stream-stage>
+        <stream-call-controls call-controls> </stream-call-controls>
+      </stream-call>
     </div>
   `,
 })
@@ -44,9 +47,10 @@ export class AppComponent implements OnInit {
   async createOrJoinCall(callId?: string) {
     if (!callId) {
       callId = await this.createCall();
+    } else {
+      this.joinCall(callId);
     }
     this.callId = callId;
-    this.joinCall(callId);
   }
 
   private async createCall() {
@@ -63,9 +67,8 @@ export class AppComponent implements OnInit {
     if (!callId) {
       return;
     }
-    const call = await this.ngZone.runOutsideAngular(() => {
+    await this.ngZone.runOutsideAngular(() => {
       return this.streamVideoService.videoClient?.joinCall(callId, 'default');
     });
-    await call?.join();
   }
 }

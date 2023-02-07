@@ -1,8 +1,17 @@
 .str-video__call-controls {
   display: flex;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1rem 0;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  padding: 1rem;
+
+  .str-video__call-controls-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+  }
 
   .str-video__call-controls__button {
     border-radius: var(--str-video__border-radius1);
@@ -76,6 +85,10 @@
 
       &-stats {
         mask-image: var(--str-video__icon--info-icon);
+      }
+
+      &-participants {
+        mask-image: var(--str-video__icon--participants);
       }
     }
   }

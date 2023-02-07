@@ -58,7 +58,11 @@ export default function Home() {
         <Grid container alignItems="center" rowSpacing={3} columnSpacing={3}>
           <Grid xs={12} md={5}>
             <Link href={`/join/${meetingId()}`}>
-              <Button variant="contained" fullWidth>
+              <Button
+                data-testid="create-and-join-meeting-button"
+                variant="contained"
+                fullWidth
+              >
                 <PhotoCameraFrontIcon sx={{ mr: 1 }} />
                 New meeting
               </Button>
@@ -87,6 +91,7 @@ const JoinCall = () => {
               Or join a call with code
             </InputLabel>
             <OutlinedInput
+              data-testid="join-call-input"
               inputRef={ref}
               onChange={(e) =>
                 setDisabled(() => {
@@ -110,7 +115,12 @@ const JoinCall = () => {
         </Box>
       </Grid>
       <Grid xs={3} md={2}>
-        <Button variant="text" onClick={onJoin} disabled={disabled}>
+        <Button
+          data-testid="join-call-button"
+          variant="text"
+          onClick={onJoin}
+          disabled={disabled}
+        >
           Join
         </Button>
       </Grid>

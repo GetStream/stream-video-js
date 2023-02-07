@@ -41,13 +41,12 @@ export class CallComponent implements OnInit, OnDestroy {
     private channelService: ChannelService,
     private ngZone: NgZone,
   ) {
+    this.inCallDeviceManager.start();
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe((c) => {
         if (c) {
           this.call = c;
-          this.inCallDeviceManager.start();
         } else {
-          this.inCallDeviceManager.stop();
           this.call = undefined;
         }
       }),
@@ -128,6 +127,7 @@ export class CallComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
+    this.inCallDeviceManager.stop();
   }
 
   trackBySessionId(_: number, item: StreamVideoParticipant) {

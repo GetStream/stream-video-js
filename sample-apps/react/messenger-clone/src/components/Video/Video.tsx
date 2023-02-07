@@ -8,7 +8,7 @@ import {
 
 import { StreamChatType } from '../../types/chat';
 import { CallPanel } from './CallPanel/CallPanel';
-import { CALL_CONFIG } from '@stream-io/video-client/dist/src/config/defaultConfigs';
+import { CALL_CONFIG } from '@stream-io/video-client';
 
 type VideoProps = {
   user: StreamChatType['userType'];

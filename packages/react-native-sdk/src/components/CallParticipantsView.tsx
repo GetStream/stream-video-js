@@ -6,6 +6,7 @@ import {
   useLocalParticipant,
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 
 type SizeType = React.ComponentProps<typeof ParticipantView>['size'];
 
@@ -57,14 +58,32 @@ const modeToSize: { [key in Modes]: SizeType | undefined } = {
 
 const localVideoVisibleModes = [Modes.full, Modes.half];
 
+const putRemoteParticipantsInView = (
+  remoteParticipants: StreamVideoParticipant[],
+) => {
+  const speakingParticipants = remoteParticipants.filter(
+    (participant) => participant.isDominantSpeaker || participant.isSpeaking,
+  );
+
+  const notSpeakingParticipants = remoteParticipants.filter(
+    (participant) => !participant.isSpeaking && !participant.isDominantSpeaker,
+  );
+
+  return [...speakingParticipants, ...notSpeakingParticipants];
+};
+
 /**
  * CallParticipantsView is a component that displays the participants in a call.
  * This component supports the rendering of up to 5 participants.
  */
 export const CallParticipantsView = () => {
   const localParticipant = useLocalParticipant();
-  const remoteParticipants = useRemoteParticipants();
-  let allParticipants = remoteParticipants;
+  let remoteParticipants = useRemoteParticipants();
+  const remoteParticipantsInView = useMemo(
+    () => putRemoteParticipantsInView(remoteParticipants),
+    [remoteParticipants],
+  );
+  let allParticipants = remoteParticipantsInView;
   if (localParticipant) {
     allParticipants = [localParticipant, ...allParticipants];
   }
@@ -81,7 +100,7 @@ export const CallParticipantsView = () => {
   const showUserInParticipantView = !isLocalVideoVisible;
   const filteredParticipants = showUserInParticipantView
     ? allParticipants
-    : remoteParticipants;
+    : remoteParticipantsInView;
 
   if (allParticipants.length === 0) {
     return null;

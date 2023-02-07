@@ -15,6 +15,7 @@ export * from './src/gen/video/coordinator/event_v1/event';
 export * from './src/gen/video/coordinator/stat_v1/stat';
 
 export * from './src/config/types';
+export * from './src/config/defaultConfigs';
 export * from './src/rtc/types';
 export * from './src/stats/types';
 

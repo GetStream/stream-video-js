@@ -16,11 +16,6 @@
 
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
-
-  * {
-    box-sizing: border-box;
-  }
 
   .str-video__stage {
     flex: 1;
@@ -50,7 +45,7 @@ stream-call {
   .ngxp__container {
     opacity: 1;
     z-index: 1;
-    padding: 0px;
+    padding: 0;
     border: none;
   }
 

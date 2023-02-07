@@ -133,7 +133,7 @@ export class Call {
   };
 
   /**
-   * Will initiate a call session with the server and return the call state.
+   * Will initiate a call session with the server and return the call state. Don't call this method directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method that takes care of this operation.
    *
    * If the join was successful the [`activeCall$` state variable](./StreamVideClient/#readonlystatestore) will be set
    *

@@ -6,8 +6,8 @@ export const environment = {
   production: false,
   apiKey: 'us83cfwuhy8n',
   user: {
-    id: 'angular-sdk',
-    name: 'angular-sdk',
+    id: 'marcelo',
+    name: 'marcelo',
     role: 'admin',
     teams: ['team-1, team-2'],
     imageUrl:

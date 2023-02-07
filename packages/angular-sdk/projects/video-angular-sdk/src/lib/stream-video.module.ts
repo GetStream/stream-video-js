@@ -4,14 +4,18 @@ import { CallComponent } from './call/call.component';
 import { ParticipantComponent } from './participant/participant.component';
 import { CallControlsComponent } from './call-controls/call-controls.component';
 import { StageComponent } from './stage/stage.component';
-import { DeviceSettingsComponent } from './device-settings/device-settings.component';
 import { NgxPopperjsModule } from 'ngx-popperjs';
 import { CallStatisticsComponent } from './call-statistics/call-statistics.component';
 import { NgChartsModule } from 'ng2-charts';
-import {
-  CallParticipantsComponent,
-  CallParticipantsScreenshareComponent,
-} from '../public-api';
+import { ToggleRecordingComponent } from './call-controls/toggle-recording/toggle-recording.component';
+import { ToggleAudioComponent } from './call-controls/toggle-audio/toggle-audio.component';
+import { ToggleVideoComponent } from './call-controls/toggle-video/toggle-video.component';
+import { ToggleScreenshareComponent } from './call-controls/toggle-screenshare/toggle-screenshare.component';
+import { EndCallComponent } from './call-controls/end-call/end-call.component';
+import { ToggleStatisticsComponent } from './call-controls/toggle-statistics/toggle-statistics.component';
+import { DeviceSettingsComponent } from './call-controls/device-settings/device-settings.component';
+import { CallParticipantsComponent } from './call-participants/call-participants.component';
+import { CallParticipantsScreenshareComponent } from './call-participants-screenshare/call-participants-screenshare.component';
 
 /**
  * This Angular Module is the entry point of the SDK, import this Angular module in your application, all services and UI components defined by the SDK belong to this module.
@@ -26,6 +30,12 @@ import {
     CallStatisticsComponent,
     CallParticipantsComponent,
     CallParticipantsScreenshareComponent,
+    ToggleRecordingComponent,
+    ToggleAudioComponent,
+    ToggleVideoComponent,
+    ToggleScreenshareComponent,
+    EndCallComponent,
+    ToggleStatisticsComponent,
   ],
   imports: [CommonModule, NgxPopperjsModule, NgChartsModule],
   exports: [
