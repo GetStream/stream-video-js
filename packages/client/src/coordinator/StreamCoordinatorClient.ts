@@ -4,6 +4,7 @@ import {
   EventHandler,
   StreamClientOptions,
   TokenOrProvider,
+  UR,
   User,
 } from './connection/types';
 import {
@@ -12,6 +13,7 @@ import {
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
   JoinCallResponse,
+  SendEventRequest,
 } from '../gen/coordinator';
 
 export class StreamCoordinatorClient {
@@ -20,7 +22,8 @@ export class StreamCoordinatorClient {
   constructor(apiKey: string, options: StreamClientOptions = {}) {
     this.client = new StreamClient(apiKey, {
       // baseURL: 'http://localhost:3030/video',
-      baseURL: 'https://video-edge-oregon-ce3.stream-io-api.com/video',
+      // baseURL: 'https://video-edge-oregon-ce3.stream-io-api.com/video',
+      baseURL: 'https://video-edge-frankfurt-ce1.stream-io-api.com/video',
       persistUserOnConnectionFailure: true,
       ...options,
     });
@@ -53,7 +56,8 @@ export class StreamCoordinatorClient {
     type: string,
     data: GetOrCreateCallRequest,
   ) => {
-    return await this.client.post<GetOrCreateCallResponse>(
+    await sleep(1000);
+    return this.client.post<GetOrCreateCallResponse>(
       `/call/${type}/${id}`,
       data,
     );
@@ -65,10 +69,7 @@ export class StreamCoordinatorClient {
     data?: GetOrCreateCallRequest,
   ) => {
     await sleep(1000);
-    return await this.client.post<JoinCallResponse>(
-      `/join_call/${type}/${id}`,
-      data,
-    );
+    return this.client.post<JoinCallResponse>(`/join_call/${type}/${id}`, data);
   };
 
   getCallEdgeServer = async (
@@ -76,9 +77,33 @@ export class StreamCoordinatorClient {
     type: string,
     data: GetCallEdgeServerRequest,
   ) => {
-    return await this.client.post<GetCallEdgeServerResponse>(
+    return this.client.post<GetCallEdgeServerResponse>(
       `/get_call_edge_server/${type}/${id}`,
       data,
     );
+  };
+
+  queryUsers = async () => {
+    console.log('Querying users is not implemented yet.');
+  };
+
+  sendEvent = async (id: string, type: string, data: SendEventRequest) => {
+    return this.client.post(`/call/${type}/${id}/event`, data);
+  };
+
+  startRecording = async (id: string, type: string) => {
+    console.log('Start recording is not implemented yet.');
+  };
+
+  stopRecording = async (id: string, type: string) => {
+    console.log('Stop recording is not implemented yet.');
+  };
+
+  reportCallStats = async (id: string, type: string, data: UR) => {
+    console.log('Report call stats is not implemented yet.');
+  };
+
+  reportCallStatEvent = async (id: string, type: string, data: UR) => {
+    console.log('Report call stat event is not implemented yet.');
   };
 }
