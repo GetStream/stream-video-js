@@ -65,11 +65,10 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
         ) {
           const outgoingCall = calls[0];
           this.ngZone.runOutsideAngular(() =>
-            this.streamVideoService.videoClient?.joinCall({
-              id: outgoingCall.call!.id,
-              type: outgoingCall.call!.type,
-              datacenterId: '',
-            }),
+            this.streamVideoService.videoClient?.joinCall(
+              outgoingCall.call?.id!,
+              outgoingCall.call?.type!,
+            ),
           );
         }
       }),
@@ -81,11 +80,10 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
           !this.streamVideoService.videoClient?.callConfig.joinCallInstantly
         ) {
           this.ngZone.runOutsideAngular(() =>
-            this.streamVideoService.videoClient?.joinCall({
-              id: call.call!.id,
-              type: call.call!.type,
-              datacenterId: '',
-            }),
+            this.streamVideoService.videoClient?.joinCall(
+              call.call!.id,
+              call.call!.type,
+            ),
           );
         }
       }),
