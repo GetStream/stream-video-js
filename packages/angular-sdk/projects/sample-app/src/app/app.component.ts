@@ -37,12 +37,7 @@ export class AppComponent implements OnInit {
     const apiKey = environment.apiKey;
     const token = environment.token;
     const user = environment.user;
-    const baseCoordinatorUrl = environment.coordinatorUrl;
-    const client = this.streamVideoService.init(
-      apiKey,
-      token,
-      baseCoordinatorUrl,
-    );
+    const client = this.streamVideoService.init(apiKey);
     await client.connectUser(user, token);
   }
 
@@ -55,9 +50,11 @@ export class AppComponent implements OnInit {
   }
 
   private async createCall() {
-    const response = await this.streamVideoService.videoClient?.createCall({
-      type: 'default',
-    });
+    const response = await this.streamVideoService.videoClient?.getOrCreateCall(
+      String(Math.round(Math.random() * 100000000)),
+      'default',
+      { ring: false },
+    );
     const callId = response?.call?.id;
     return callId;
   }

@@ -118,7 +118,7 @@ export class StreamVideoService {
       this.hasOngoingScreenShareSubject.asObservable();
   }
 
-  init(apiKey: string, token: string, baseCoordinatorUrl: string) {
+  init(apiKey: string) {
     if (this.videoClient) {
       console.warn(
         `Multiple init calls detected, this is usually unnecessary, make sure you know what you're doing`,
@@ -129,10 +129,7 @@ export class StreamVideoService {
       this.subscriptions.forEach((s) => s.unsubscribe());
     }
 
-    this.videoClient = new StreamVideoClient(apiKey, {
-      coordinatorRpcUrl: baseCoordinatorUrl,
-      token,
-    });
+    this.videoClient = new StreamVideoClient(apiKey);
 
     this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.connectedUser$.subscribe({

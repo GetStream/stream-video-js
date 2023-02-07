@@ -71,8 +71,6 @@ const App = () => {
   );
 
   const client = useCreateStreamVideoClient({
-    coordinatorRpcUrl:
-      'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
     apiKey: 'us83cfwuhy8n', // see <video>/data/fixtures/apps.yaml for API key/secret
     token: participants[currentUser],
     user,

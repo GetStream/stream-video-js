@@ -20,14 +20,16 @@ export const PendingCallPanel = ({
       <div className="rmc__secondary-participant-wrapper">
         <ParticipantPlaceholder
           className="rmc__secondary-participant-placeholder"
-          imageSrc={localUser.imageUrl}
+          // FIXME OL: imageURL doesn't exist on User anymore
+          imageSrc={localUser['imageUrl']}
         />
       </div>
 
       <div className="rmc__primary-participant-wrapper">
         <ParticipantPlaceholder
           className="rmc__primary-participant-placeholder"
-          imageSrc={remoteUser.imageUrl}
+          // FIXME OL: imageURL doesn't exist on User anymore
+          imageSrc={remoteUser['imageUrl']}
         />
       </div>
 

@@ -13,26 +13,13 @@ import './style.css';
   const callId = urlParams.get('call_id') || 'egress-test';
 
   // Access and operation mode config
-  const localDev = Boolean(urlParams.get('local') || false);
   const mode = urlParams.get('mode') || 'speaker';
   const apiKey = urlParams.get('api_key') || 'key10';
   const accessToken =
     urlParams.get('token') ||
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdHJlYW0tdmlkZW8tanNAdjAuMC4wIiwic3ViIjoidXNlci9lZ3Jlc3NAZ2V0c3RyZWFtLmlvIiwiaWF0IjoxNjY3NDAwMTgsInVzZXJfaWQiOiJlZ3Jlc3NAZ2V0c3RyZWFtLmlvIn0.bzrr3W2PPjhoN7gee7i-i26DjtcKHfAB9buiKH1LtEc';
 
-  // Environment config
-  const coordinatorRpcUrl =
-    urlParams.get('coordinator_rpc_url') || localDev
-      ? 'http://localhost:26991/rpc/'
-      : 'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc';
-
-  const client = new StreamVideoClient(apiKey, {
-    token: accessToken,
-    coordinatorRpcUrl,
-  });
-
-  const store$ = client.readOnlyStateStore;
-
+  const client = new StreamVideoClient(apiKey);
   await client.connectUser(
     {
       id: 'egress',
@@ -53,6 +40,7 @@ import './style.css';
   await call.join();
   console.log('Connection is established.');
 
+  const store$ = client.readOnlyStateStore;
   store$.dominantSpeaker$.subscribe((dominantSpeaker) => {
     if (dominantSpeaker) {
       call.updateSubscriptionsPartial('video', {

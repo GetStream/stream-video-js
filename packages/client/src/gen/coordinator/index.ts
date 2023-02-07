@@ -105,6 +105,12 @@ export interface CallAccepted {
    * @memberof CallAccepted
    */
   type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallAccepted
+   */
+  user?: UserResponse;
 }
 /**
  *
@@ -130,6 +136,12 @@ export interface CallCancelled {
    * @memberof CallCancelled
    */
   type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallCancelled
+   */
+  user?: UserResponse;
 }
 /**
  *
@@ -192,6 +204,80 @@ export interface CallEnded {
    * @memberof CallEnded
    */
   type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallEnded
+   */
+  user?: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface CallPermissionRequest
+ */
+export interface CallPermissionRequest {
+  /**
+   * Call CID
+   * @type {string}
+   * @memberof CallPermissionRequest
+   */
+  call_cid?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallPermissionRequest
+   */
+  created_at?: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof CallPermissionRequest
+   */
+  permissions?: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof CallPermissionRequest
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallPermissionRequest
+   */
+  user?: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface CallPermissionsUpdated
+ */
+export interface CallPermissionsUpdated {
+  /**
+   * Call CID
+   * @type {string}
+   * @memberof CallPermissionsUpdated
+   */
+  call_cid?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallPermissionsUpdated
+   */
+  created_at?: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof CallPermissionsUpdated
+   */
+  own_capabilities?: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof CallPermissionsUpdated
+   */
+  type: string;
 }
 /**
  *
@@ -217,6 +303,12 @@ export interface CallRejected {
    * @memberof CallRejected
    */
   type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallRejected
+   */
+  user?: UserResponse;
 }
 /**
  *
@@ -417,6 +509,37 @@ export interface CallSettingsResponse {
 /**
  *
  * @export
+ * @interface CallUpdated
+ */
+export interface CallUpdated {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallUpdated
+   */
+  call?: CallResponse;
+  /**
+   *
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof CallUpdated
+   */
+  capabilities_by_role?: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {string}
+   * @memberof CallUpdated
+   */
+  created_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUpdated
+   */
+  type: string;
+}
+/**
+ *
+ * @export
  * @interface Coordinates
  */
 export interface Coordinates {
@@ -488,6 +611,12 @@ export interface Custom {
    * @memberof Custom
    */
   type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof Custom
+   */
+  user?: UserResponse;
 }
 /**
  *
@@ -967,6 +1096,44 @@ export interface RecordSettingsRequest {
 /**
  *
  * @export
+ * @interface RequestPermissionRequest
+ */
+export interface RequestPermissionRequest {
+  /**
+   *
+   * @type {Array}
+   * @memberof RequestPermissionRequest
+   */
+  permissions: RequestPermissionRequestPermissionsEnum;
+}
+
+/**
+ * @export
+ */
+export const RequestPermissionRequestPermissionsEnum = {
+  screenshare: 'screenshare',
+  send_audio: 'send-audio',
+  send_video: 'send-video',
+} as const;
+export type RequestPermissionRequestPermissionsEnum =
+  (typeof RequestPermissionRequestPermissionsEnum)[keyof typeof RequestPermissionRequestPermissionsEnum];
+
+/**
+ *
+ * @export
+ * @interface RequestPermissionResponse
+ */
+export interface RequestPermissionResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof RequestPermissionResponse
+   */
+  duration?: string;
+}
+/**
+ *
+ * @export
  * @interface SFUResponse
  */
 export interface SFUResponse {
@@ -994,6 +1161,12 @@ export interface ScreensharingSettings {
    * @type {boolean}
    * @memberof ScreensharingSettings
    */
+  access_request_enabled?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ScreensharingSettings
+   */
   enabled?: boolean;
 }
 /**
@@ -1002,6 +1175,12 @@ export interface ScreensharingSettings {
  * @interface ScreensharingSettingsRequest
  */
 export interface ScreensharingSettingsRequest {
+  /**
+   *
+   * @type {boolean}
+   * @memberof ScreensharingSettingsRequest
+   */
+  access_request_enabled?: boolean;
   /**
    *
    * @type {boolean}
@@ -1038,6 +1217,97 @@ export interface SendEventResponse {
    *
    * @type {string}
    * @memberof SendEventResponse
+   */
+  duration?: string;
+}
+/**
+ *
+ * @export
+ * @interface UpdateCallRequest
+ */
+export interface UpdateCallRequest {
+  /**
+   * call custom data
+   * @type {{ [key: string]: any; }}
+   * @memberof UpdateCallRequest
+   */
+  custom?: { [key: string]: any };
+  /**
+   *
+   * @type {CallSettingsRequest}
+   * @memberof UpdateCallRequest
+   */
+  settings_override?: CallSettingsRequest;
+}
+/**
+ * Represents a call
+ * @export
+ * @interface UpdateCallResponse
+ */
+export interface UpdateCallResponse {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof UpdateCallResponse
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateCallResponse
+   */
+  duration?: string;
+}
+/**
+ *
+ * @export
+ * @interface UpdateUserPermissionsRequest
+ */
+export interface UpdateUserPermissionsRequest {
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof UpdateUserPermissionsRequest
+   */
+  grant_permissions?: UpdateUserPermissionsRequestGrantPermissionsEnum;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof UpdateUserPermissionsRequest
+   */
+  revoke_permissions?: UpdateUserPermissionsRequestRevokePermissionsEnum;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateUserPermissionsRequest
+   */
+  user_id: string;
+}
+
+/**
+ * @export
+ */
+export const UpdateUserPermissionsRequestGrantPermissionsEnum = {} as const;
+export type UpdateUserPermissionsRequestGrantPermissionsEnum =
+  (typeof UpdateUserPermissionsRequestGrantPermissionsEnum)[keyof typeof UpdateUserPermissionsRequestGrantPermissionsEnum];
+
+/**
+ * @export
+ */
+export const UpdateUserPermissionsRequestRevokePermissionsEnum = {} as const;
+export type UpdateUserPermissionsRequestRevokePermissionsEnum =
+  (typeof UpdateUserPermissionsRequestRevokePermissionsEnum)[keyof typeof UpdateUserPermissionsRequestRevokePermissionsEnum];
+
+/**
+ *
+ * @export
+ * @interface UpdateUserPermissionsResponse
+ */
+export interface UpdateUserPermissionsResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof UpdateUserPermissionsResponse
    */
   duration?: string;
 }

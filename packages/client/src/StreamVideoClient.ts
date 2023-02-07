@@ -12,18 +12,8 @@ import type {
 import type {
   CreateCallRequest,
   ReportCallStatEventRequest,
-  ReportCallStatEventResponse,
-  ReportCallStatsRequest,
-  ReportCallStatsResponse,
 } from './gen/video/coordinator/client_v1_rpc/client_rpc';
-import { UserEventType } from './gen/video/coordinator/client_v1_rpc/client_rpc';
-import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
-import {
-  createCoordinatorClient,
-  measureResourceLoadLatencyTo,
-  StreamVideoClientOptions,
-  withHeaders,
-} from './rpc';
+import { measureResourceLoadLatencyTo } from './rpc';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
 
@@ -42,16 +32,10 @@ import { CallDropScheduler } from './CallDropScheduler';
 import { StreamCoordinatorClient } from './coordinator/StreamCoordinatorClient';
 import {
   EventHandler,
+  StreamClientOptions,
   TokenOrProvider,
   User,
 } from './coordinator/connection/types';
-
-const defaultOptions: Partial<StreamVideoClientOptions> = {
-  coordinatorRpcUrl:
-    'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
-
-  latencyMeasurementRounds: 3,
-};
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -67,11 +51,6 @@ export class StreamVideoClient {
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
-  /**
-   * @deprecated use coordinatorClient instead.
-   */
-  private client: ClientRPCClient;
-  private options: StreamVideoClientOptions;
   private callDropScheduler: CallDropScheduler | undefined;
   private coordinatorClient: StreamCoordinatorClient;
   /**
@@ -83,35 +62,16 @@ export class StreamVideoClient {
    * You should create only one instance of `StreamVideoClient`.
    * @angular If you're using our Angular SDK, you shouldn't be calling the `constructor` directly, instead you should be using [`StreamVideoService`](./StreamVideoService.md/#init).
    * @param apiKey your Stream API key
-   * @param opts
+   * @param opts the options for the client.
    * @param {CallConfig} [callConfig=CALL_CONFIG.meeting] custom call configuration
    */
   constructor(
     apiKey: string,
-    opts: StreamVideoClientOptions,
+    opts?: StreamClientOptions,
     callConfig: CallConfig = CALL_CONFIG.meeting,
   ) {
     this.callConfig = callConfig;
-
-    const options = {
-      ...defaultOptions,
-      ...opts,
-    };
-    this.options = options;
-    const { token } = options;
-    const authToken = typeof token === 'function' ? token() : token;
-    this.client = createCoordinatorClient({
-      baseUrl: options.coordinatorRpcUrl || '/',
-      sendJson: true,
-      interceptors: [
-        withHeaders({
-          api_key: apiKey,
-          Authorization: `Bearer ${authToken}`,
-        }),
-      ],
-    });
-
-    this.coordinatorClient = new StreamCoordinatorClient(apiKey);
+    this.coordinatorClient = new StreamCoordinatorClient(apiKey, opts);
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
@@ -285,17 +245,24 @@ export class StreamVideoClient {
    * @returns A call metadata with information about the call.
    */
   createCall = async (data: CreateCallRequest) => {
-    const createdCall = await this.client.createCall(data);
-    const { call } = createdCall.response;
-
-    if (call) {
-      this.writeableStateStore.setCurrentValue(
-        this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => [...pendingCalls, call],
-      );
-    }
-
-    return call;
+    // FIXME OL: fix the types
+    // const createdCall = await this.coordinatorClient.getOrCreateCall(
+    //   data.id!,
+    //   data.type,
+    //   {
+    //     ring: data.input?.ring,
+    //   },
+    // );
+    // const { call } = createdCall.response;
+    //
+    // if (call) {
+    //   this.writeableStateStore.setCurrentValue(
+    //     this.writeableStateStore.pendingCallsSubject,
+    //     (pendingCalls) => [...pendingCalls, call],
+    //   );
+    // }
+    //
+    // return call;
   };
 
   /**
@@ -305,11 +272,11 @@ export class StreamVideoClient {
    * @returns
    */
   acceptCall = async (callCid: string) => {
-    await this.client.sendEvent({
-      callCid,
-      eventType: UserEventType.ACCEPTED_CALL,
-    });
+    // FIXME OL: change the method's signature to accept callId and callType
     const [type, id] = callCid.split(':');
+    await this.coordinatorClient.sendEvent(id, type, {
+      event_type: 'call.accepted',
+    });
     const callController = await this.joinCall(id, type);
     await callController?.join();
     return callController;
@@ -322,6 +289,7 @@ export class StreamVideoClient {
    * @returns
    */
   rejectCall = async (callCid: string) => {
+    // FIXME OL: change the method's signature to accept callId and callType
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
       (pendingCalls) =>
@@ -329,9 +297,9 @@ export class StreamVideoClient {
           (incomingCall) => incomingCall.call?.callCid !== callCid,
         ),
     );
-    await this.client.sendEvent({
-      callCid,
-      eventType: UserEventType.REJECTED_CALL,
+    const [type, id] = callCid.split(':');
+    await this.coordinatorClient.sendEvent(id, type, {
+      event_type: 'call.rejected',
     });
   };
 
@@ -342,6 +310,7 @@ export class StreamVideoClient {
    * @returns
    */
   cancelCall = async (callCid: string) => {
+    // FIXME OL: change the method's signature to accept callId and callType
     const store = this.writeableStateStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     const leavingActiveCall = activeCall?.data.call?.callCid === callCid;
@@ -359,9 +328,9 @@ export class StreamVideoClient {
     const remoteParticipants = store.getCurrentValue(store.remoteParticipants$);
 
     if (!remoteParticipants.length && !leavingActiveCall) {
-      await this.client.sendEvent({
-        callCid,
-        eventType: UserEventType.CANCELLED_CALL,
+      const [type, id] = callCid.split(':');
+      await this.coordinatorClient.sendEvent(id, type, {
+        event_type: 'call.cancelled',
       });
     }
   };
@@ -444,11 +413,7 @@ export class StreamVideoClient {
    * @param callType can be extracted from a [`Call` instance](./Call.md/#data)
    */
   startRecording = async (callId: string, callType: string) => {
-    await this.client.startRecording({
-      callId,
-      callType,
-    });
-
+    await this.coordinatorClient.startRecording(callId, callType);
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.callRecordingInProgressSubject,
       true,
@@ -461,11 +426,7 @@ export class StreamVideoClient {
    * @param callType can be extracted from a [`Call` instance](./Call.md/#data)
    */
   stopRecording = async (callId: string, callType: string) => {
-    await this.client.stopRecording({
-      callId,
-      callType,
-    });
-
+    await this.coordinatorClient.stopRecording(callId, callType);
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.callRecordingInProgressSubject,
       false,
@@ -477,9 +438,7 @@ export class StreamVideoClient {
    * @param stats
    * @returns
    */
-  private reportCallStats = async (
-    stats: Object,
-  ): Promise<ReportCallStatsResponse | void> => {
+  private reportCallStats = async (stats: Object) => {
     const callCid = this.writeableStateStore.getCurrentValue(
       this.writeableStateStore.activeCallSubject,
     )?.data.call?.callCid;
@@ -489,12 +448,13 @@ export class StreamVideoClient {
       return;
     }
 
-    const request: ReportCallStatsRequest = {
+    const request = {
       callCid,
       statsJson: new TextEncoder().encode(JSON.stringify(stats)),
     };
-    const response = await this.client.reportCallStats(request);
-    return response.response;
+    // FIXME OL: don't derive this from the call CID
+    const [type, id] = callCid.split(':');
+    await this.coordinatorClient.reportCallStats(id, type, request);
   };
 
   private getCallEdgeServer = async (
@@ -507,7 +467,6 @@ export class StreamVideoClient {
       edges.map(async (edge) => {
         latencyByEdge[edge.name!] = await measureResourceLoadLatencyTo(
           edge.latency_url!,
-          Math.max(this.options.latencyMeasurementRounds || 0, 3),
         );
       }),
     );
@@ -536,7 +495,7 @@ export class StreamVideoClient {
    */
   private reportCallStatEvent = async (
     statEvent: ReportCallStatEventRequest['event'],
-  ): Promise<ReportCallStatEventResponse | void> => {
+  ) => {
     const callCid = this.writeableStateStore.getCurrentValue(
       this.writeableStateStore.activeCallSubject,
     )?.data.call?.callCid;
@@ -545,13 +504,14 @@ export class StreamVideoClient {
       console.log("There isn't an active call");
       return;
     }
-    const request: ReportCallStatEventRequest = {
+    const request = {
       callCid,
       timestamp: Timestamp.fromDate(new Date()),
       event: statEvent,
     };
-    const response = await this.client.reportCallStatEvent(request);
-    return response.response;
+    // FIXME OL: don't derive this from the call CID
+    const [type, id] = callCid.split(':');
+    await this.coordinatorClient.reportCallStatEvent(id, type, request);
   };
 
   /**

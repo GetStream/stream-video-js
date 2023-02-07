@@ -23,9 +23,7 @@ describe('StreamVideoClient', () => {
       };
     });
     vi.mock('../stats/coordinator-stats-reporter');
-    client = new StreamVideoClient('123', {
-      token: 'abc',
-    });
+    client = new StreamVideoClient('123');
   });
 
   // it('should connect', async () => {

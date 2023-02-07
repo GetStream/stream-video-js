@@ -1,31 +1,26 @@
-import { StreamVideoClient, CallConfig, User } from '@stream-io/video-client';
+import {
+  StreamVideoClient,
+  CallConfig,
+  User,
+  TokenOrProvider,
+} from '@stream-io/video-client';
 import { useEffect, useRef, useState } from 'react';
 
 export type StreamVideoClientInit = {
   apiKey: string;
-  token: string;
+  token: TokenOrProvider;
   callConfig?: CallConfig;
-  coordinatorRpcUrl?: string;
   user: User;
 };
 
 export const useCreateStreamVideoClient = ({
   callConfig,
-  coordinatorRpcUrl,
   apiKey,
   token,
   user,
 }: StreamVideoClientInit) => {
   const [client] = useState<StreamVideoClient>(
-    () =>
-      new StreamVideoClient(
-        apiKey,
-        {
-          coordinatorRpcUrl,
-          token,
-        },
-        callConfig,
-      ),
+    () => new StreamVideoClient(apiKey, {}, callConfig),
   );
   const disconnectRef = useRef<Promise<void>>(Promise.resolve());
 
@@ -45,7 +40,7 @@ export const useCreateStreamVideoClient = ({
         });
       });
     };
-  }, [apiKey, coordinatorRpcUrl, token, client, user.id]);
+  }, [apiKey, token, client, user.id]);
 
   return client;
 };

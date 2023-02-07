@@ -505,8 +505,6 @@ export class StableWSConnection {
       token,
       user_details: {
         id: user.id,
-        name: user.name,
-        username: user.username,
         role: user.role,
       },
     };
