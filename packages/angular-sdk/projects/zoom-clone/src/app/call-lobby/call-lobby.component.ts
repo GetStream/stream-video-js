@@ -86,11 +86,12 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
       if (this.joinOrCreate === 'join') {
         try {
           const response =
-            await this.streamVideoService.videoClient?.getOrCreateCall({
-              type: 'default',
-              id: callid,
-            });
-          this.callMeta = response?.call;
+            await this.streamVideoService.videoClient?.getOrCreateCall(
+              callid,
+              'default',
+            );
+          // FIXME OL: adjust to new API
+          // this.callMeta = response?.call;
         } catch (error: any) {
           this.snackBar.open(`Couldn't establish connection, ${error.message}`);
         }
@@ -121,7 +122,8 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
         const response = await this.streamVideoService.videoClient?.createCall({
           type: 'default',
         });
-        this.callMeta = response?.call;
+        // FIXME OL: adjust to new API
+        // this.callMeta = response?.call;
         callId = this.callMeta!.id;
       } else {
         callId = this.callMeta!.id;
@@ -142,11 +144,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
 
   private async joinCall(callId: string) {
     await this.ngZone.runOutsideAngular(() => {
-      return this.streamVideoService.videoClient?.joinCall({
-        id: callId,
-        type: 'default',
-        datacenterId: '',
-      });
+      return this.streamVideoService.videoClient?.joinCall(callId, 'default');
     });
     if (this.joinOrCreate === 'create') {
       const channel = this.chatClientService.chatClient.channel(

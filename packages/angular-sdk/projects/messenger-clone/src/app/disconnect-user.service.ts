@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CanActivate } from '@angular/router';
 import { StreamVideoService } from '@stream-io/video-angular-sdk';
-import { UserInput } from '@stream-io/video-client';
+import { User } from '@stream-io/video-client';
 import { take } from 'rxjs';
 import { ChannelService, ChatClientService } from 'stream-chat-angular';
 
@@ -18,11 +18,11 @@ export class DisconnectUserService implements CanActivate {
   ) {}
 
   async canActivate() {
-    let user: UserInput | undefined;
+    let user: User | undefined;
     this.videoService.user$.pipe(take(1)).subscribe((u) => (user = u));
     if (user) {
       try {
-        await this.videoService.videoClient?.disconnect();
+        await this.videoService.videoClient?.disconnectUser();
         this.channelService.reset();
         await this.chatClientService.disconnectUser();
         return true;

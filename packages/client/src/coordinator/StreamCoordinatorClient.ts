@@ -54,7 +54,7 @@ export class StreamCoordinatorClient {
   getOrCreateCall = async (
     id: string,
     type: string,
-    data: GetOrCreateCallRequest,
+    data?: GetOrCreateCallRequest,
   ) => {
     await sleep(1000);
     return this.client.post<GetOrCreateCallResponse>(

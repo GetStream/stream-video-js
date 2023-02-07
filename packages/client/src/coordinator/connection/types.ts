@@ -105,6 +105,11 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    */
   persistUserOnConnectionFailure?: boolean;
 
+  /**
+   * The secret key for the API key. This is only needed for server side authentication.
+   */
+  secret?: string;
+
   warmUp?: boolean;
   // Set the instance of StableWSConnection on chat client. Its purely for testing purpose and should
   // not be used in production apps.

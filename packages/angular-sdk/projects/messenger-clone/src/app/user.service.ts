@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { UserInput } from '@stream-io/video-client';
+import { User } from '@stream-io/video-client';
 
 export type UserSelectionItem = {
-  user: UserInput;
+  user: User;
   token: string;
 };
 
@@ -17,8 +17,8 @@ export class UserService {
         name: 'Alice',
         role: 'user',
         teams: [],
-        imageUrl: 'https://randomuser.me/api/portraits/women/47.jpg',
-        customJson: new Uint8Array(),
+        // imageUrl: 'https://randomuser.me/api/portraits/women/47.jpg',
+        // customJson: new Uint8Array(),
       },
       token:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWxpY2UifQ.CH6hztnxZXun4Qh0wnQQtnBW0sbbGNHnZJ6Z9s8JfQY',
@@ -29,8 +29,8 @@ export class UserService {
         name: 'Mark',
         role: 'user',
         teams: [],
-        imageUrl: 'https://randomuser.me/api/portraits/men/38.jpg',
-        customJson: new Uint8Array(),
+        // imageUrl: 'https://randomuser.me/api/portraits/men/38.jpg',
+        // customJson: new Uint8Array(),
       },
       token:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoibWFyayJ9.DQaMyVHfhzy8P6rbdCBzX7PVFsxKlMjQhwT7Du98ikQ',
@@ -41,8 +41,8 @@ export class UserService {
         name: 'Bob',
         role: 'user',
         teams: [],
-        imageUrl: 'https://randomuser.me/api/portraits/men/42.jpg',
-        customJson: new Uint8Array(),
+        // imageUrl: 'https://randomuser.me/api/portraits/men/42.jpg',
+        // customJson: new Uint8Array(),
       },
       token:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYm9iIn0.A1YC1qSR7Fb_fNHQK2QMpdOHbsk_jaRrIu22fNe0ITE',
@@ -53,8 +53,8 @@ export class UserService {
         name: 'Jane',
         role: 'user',
         teams: [],
-        imageUrl: 'https://randomuser.me/api/portraits/women/60.jpg',
-        customJson: new Uint8Array(),
+        // imageUrl: 'https://randomuser.me/api/portraits/women/60.jpg',
+        // customJson: new Uint8Array(),
       },
       token:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiamFuZSJ9.YFE47Q-63Go_fiiZTfJTvQ7q62r-Ek-YdbM4mP9Ybuc',
@@ -65,8 +65,8 @@ export class UserService {
         name: 'Tamara',
         role: 'user',
         teams: [],
-        imageUrl: 'https://randomuser.me/api/portraits/women/40.jpg',
-        customJson: new Uint8Array(),
+        // imageUrl: 'https://randomuser.me/api/portraits/women/40.jpg',
+        // customJson: new Uint8Array(),
       },
       token:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidGFtYXJhIn0.txlUfrbc3-WMZiIoJNWu1RfHQTHhBYD3iB6MnJUbMqg',
@@ -77,8 +77,8 @@ export class UserService {
         name: 'John',
         role: 'user',
         teams: [],
-        imageUrl: 'https://randomuser.me/api/portraits/men/54.jpg',
-        customJson: new Uint8Array(),
+        // imageUrl: 'https://randomuser.me/api/portraits/men/54.jpg',
+        // customJson: new Uint8Array(),
       },
       token:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiam9obiJ9._NBPlzNDacWYmC2hElxcExZEOkGpfP4VhD3WujaTSC4',

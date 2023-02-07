@@ -9,7 +9,6 @@ import {
 import { MemberInput } from '@stream-io/video-client';
 import { LocalPhone, PhoneDisabled } from '@mui/icons-material';
 
-import { Struct } from '@stream-io/video-client/dist/src/gen/google/protobuf/struct';
 import { MenuIcon } from './icons';
 import type { StreamChatType } from '../../types/chat';
 import {
@@ -57,13 +56,13 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
             acc.push({
               userId: member.user.id,
               role: member.user.role,
-              customJson: Struct.toBinary(Struct.fromJson({})),
+              customJson: new Uint8Array(),
               userInput: {
                 id: member.user_id,
                 name: member.user.name,
                 imageUrl: member.user.image,
                 role: member.user.role,
-                customJson: Struct.toBinary(Struct.fromJson({})),
+                customJson: new Uint8Array(),
                 teams: [],
               },
             } as MemberInput);

@@ -7,7 +7,6 @@ import {
   ViewChild,
 } from '@angular/core';
 import { StreamVideoService } from '@stream-io/video-angular-sdk';
-import { MemberInput } from '@stream-io/video-client';
 import { Channel, ChannelFilters } from 'stream-chat';
 import {
   ChannelActionsContext,
@@ -20,6 +19,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 import { OutgoingCallComponent } from '../outgoing-call/outgoing-call.component';
+import { CoordinatorModels } from '@stream-io/video-client';
 
 @Component({
   selector: 'app-chat',
@@ -82,34 +82,32 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async startCallInChannel(channel: Channel) {
     this.isCallCreationInProgress = true;
-    const userId = this.userService.selectedUserId!;
 
     const members = Object.keys(channel.state?.members)
       ?.map((userId) =>
         this.userService.users.find((u) => u.user.id === userId),
       )
       .filter((m) => !!m);
-    const memberInput: MemberInput[] = (members || []).map((m) => ({
-      userId: m!.user.id,
-      role: m!.user.role,
-      customJson: m!.user?.customJson,
-      userInput: m!.user,
-    }));
+    const memberInput: CoordinatorModels.MemberRequest[] = (members || []).map(
+      (m) => ({
+        user_id: m!.user.id,
+        role: m!.user.role!,
+      }),
+    );
     try {
-      const call = await this.videoService.videoClient?.getOrCreateCall({
-        type: 'default',
-        id: `${uuidv4()}`,
-        input: {
-          members: memberInput,
-          createdBy: { oneofKind: 'userId', userId },
+      const call = await this.videoService.videoClient?.getOrCreateCall(
+        uuidv4(),
+        'default',
+        {
           ring: true,
-          call: {
-            customJson: new TextEncoder().encode(
-              JSON.stringify({ channelId: channel.id }),
-            ),
+          data: {
+            members: memberInput,
+            custom: {
+              channelId: channel.id,
+            },
           },
         },
-      });
+      );
       if (call) {
         this.dialog.open(OutgoingCallComponent, {
           disableClose: true,

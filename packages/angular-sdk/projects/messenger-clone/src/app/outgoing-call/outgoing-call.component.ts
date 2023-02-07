@@ -79,11 +79,10 @@ export class OutgoingCallComponent implements OnInit {
     this.isJoinInProgress = true;
     try {
       await this.ngZone.runOutsideAngular(async () => {
-        await this.streamVideoService.videoClient?.joinCall({
-          id: this.data.id,
-          type: 'default',
-          datacenterId: '',
-        });
+        await this.streamVideoService.videoClient?.joinCall(
+          this.data.id,
+          'default',
+        );
       });
       this.isJoinInProgress = false;
       this.matDialogRef.close();

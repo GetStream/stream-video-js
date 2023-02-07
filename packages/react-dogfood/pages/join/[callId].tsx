@@ -15,7 +15,6 @@ import { MeetingUI } from '../../components/MeetingUI';
 type JoinCallProps = {
   user: User;
   userToken: string;
-  coordinatorRpcUrl: string;
   apiKey: string;
 };
 
@@ -24,9 +23,8 @@ const JoinCall = (props: JoinCallProps) => {
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
 
-  const { userToken, user, coordinatorRpcUrl, apiKey } = props;
+  const { userToken, user, apiKey } = props;
   const client = useCreateStreamVideoClient({
-    coordinatorRpcUrl,
     apiKey,
     token: userToken,
     user,
@@ -74,7 +72,6 @@ export const getServerSideProps = async (
     };
   }
 
-  const coordinatorRpcUrl = process.env.STREAM_COORDINATOR_RPC_URL;
   const apiKey = process.env.STREAM_API_KEY as string;
   const secretKey = process.env.STREAM_SECRET_KEY as string;
 
@@ -83,7 +80,6 @@ export const getServerSideProps = async (
   ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
   return {
     props: {
-      coordinatorRpcUrl,
       apiKey,
       userToken: createToken(userName, secretKey),
       user: {

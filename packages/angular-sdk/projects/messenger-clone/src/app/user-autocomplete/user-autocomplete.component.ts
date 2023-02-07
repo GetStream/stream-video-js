@@ -20,10 +20,11 @@ export class UserAutocompleteComponent implements OnInit {
       map((value) =>
         (value
           ? this.userService.users.filter((u) =>
-              u.user.name.toLowerCase().includes(value.toLowerCase()),
+              // FIXME OL: this used to be user.name
+              u.user.id.toLowerCase().includes(value.toLowerCase()),
             )
           : []
-        ).map((u) => u.user.name),
+        ).map((u) => u.user.id),
       ),
     );
   }

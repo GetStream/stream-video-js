@@ -138,7 +138,7 @@ export class StreamVideoService {
     this.pendingCalls$ = this.pendingCallsSubject.asObservable();
   }
 
-  init(apiKey: string, callConfig?: CallConfig,) {
+  init(apiKey: string, callConfig?: CallConfig) {
     if (this.videoClient) {
       console.warn(
         `Multiple init calls detected, this is usually unnecessary, make sure you know what you're doing`,

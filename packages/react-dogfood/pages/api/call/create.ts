@@ -1,10 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { StreamVideoClient } from '@stream-io/video-client';
 import yargs from 'yargs';
-import { createToken } from '../../../helpers/jwt';
 import { meetingId } from '../../../lib/meetingId';
 
-const coordinatorApiUrl = process.env.STREAM_COORDINATOR_RPC_URL as string;
 const apiKey = process.env.STREAM_API_KEY as string;
 const secretKey = process.env.STREAM_SECRET_KEY as string;
 
@@ -12,9 +10,10 @@ const createCallSlackHookAPI = async (
   req: NextApiRequest,
   res: NextApiResponse,
 ) => {
+  // const token = createToken('pronto-hook@getstream.io', secretKey);
   const client = new StreamVideoClient(apiKey, {
-    coordinatorRpcUrl: coordinatorApiUrl,
-    token: createToken('admin@getstream.io', secretKey),
+    browser: false,
+    secret: secretKey,
   });
 
   console.log(`Received input`, req.body);

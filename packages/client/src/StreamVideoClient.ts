@@ -213,7 +213,7 @@ export class StreamVideoClient {
   getOrCreateCall = async (
     id: string,
     type: string,
-    data: GetOrCreateCallRequest,
+    data?: GetOrCreateCallRequest,
   ) => {
     const response = await this.coordinatorClient.getOrCreateCall(
       id,
