@@ -20,6 +20,14 @@ export interface AvatarProps {
 
 const DEFAULT_AVATAR_RADIUS = 100;
 
+/**
+ * Shows either user's image or initials based on the user state and existence of
+ * their image.
+ *
+ * | User Image | Users Initials |
+ * | :--- | :----: |
+ * |![avatar-1](https://user-images.githubusercontent.com/25864161/217354290-7975fed6-4282-4362-83e0-58a8bebfabe2.png) | ![avatar-2](https://user-images.githubusercontent.com/25864161/217354284-3427ce68-427f-4fcb-8181-a5d9763549c7.png)|
+ */
 export const Avatar = (props: AvatarProps) => {
   const {
     participant: { userId, user },

@@ -14,13 +14,17 @@ import {
 } from '../contexts';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
 
+/**
+ * A helper hook which exposes audio, video mute and camera facing mode and
+ * their respective functions to toggle state
+ */
 export const useCallControls = () => {
   const localParticipant = useLocalParticipant();
   const call = useActiveCall();
   const setState = useStreamVideoStoreSetState();
 
-  const cameraBackFacingMode = useStreamVideoStoreValue(
-    (store) => store.cameraBackFacingMode,
+  const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
+    (store) => store.isCameraOnFrontFacingMode,
   );
   const {
     audioDevice,
@@ -38,7 +42,8 @@ export const useCallControls = () => {
 
   const publishAudioStream = useCallback(async () => {
     try {
-      // Client picks up the default audio stream. For mobile devices there will always be one audio input
+      // Client picks up the default audio stream.
+      // For mobile devices there will always be one audio input
       if (audioDevice) {
         const audioStream = await getAudioStream(audioDevice.deviceId);
         if (call) await call.publishAudioStream(audioStream);
@@ -59,8 +64,7 @@ export const useCallControls = () => {
     }
   }, [call, currentVideoDevice]);
 
-  // Handler to toggle the video mute state
-  const toggleVideoState = useCallback(async () => {
+  const toggleVideoMuted = useCallback(async () => {
     if (isVideoMuted) {
       publishVideoStream();
     } else {
@@ -68,8 +72,7 @@ export const useCallControls = () => {
     }
   }, [call, isVideoMuted, publishVideoStream]);
 
-  // Handler to toggle the audio mute state
-  const toggleAudioState = useCallback(async () => {
+  const toggleAudioMuted = useCallback(async () => {
     if (isAudioMuted) {
       publishAudioStream();
     } else {
@@ -77,31 +80,31 @@ export const useCallControls = () => {
     }
   }, [call, isAudioMuted, publishAudioStream]);
 
-  // Handler to toggle the camera front and back facing mode
-  const toggleCamera = useCallback(() => {
+  const toggleCameraFacingMode = useCallback(() => {
     const videoDevice = videoDevices.find(
       (videoDevice) =>
         videoDevice.kind === 'videoinput' &&
-        (cameraBackFacingMode
-          ? videoDevice.facing === 'front'
-          : videoDevice.facing === 'environment'),
+        (isCameraOnFrontFacingMode
+          ? videoDevice.facing === 'environment'
+          : videoDevice.facing === 'front'),
     );
     setCurrentVideoDevice(videoDevice);
     setState((prevState) => ({
-      cameraBackFacingMode: !prevState.cameraBackFacingMode,
+      isCameraOnFrontFacingMode: !prevState.isCameraOnFrontFacingMode,
     }));
-  }, [cameraBackFacingMode, setCurrentVideoDevice, videoDevices, setState]);
-
-  // Handler to open/close the Chat window
-  const toggleChat = () => {};
+  }, [
+    isCameraOnFrontFacingMode,
+    setCurrentVideoDevice,
+    videoDevices,
+    setState,
+  ]);
 
   return {
     isAudioMuted,
     isVideoMuted,
-    cameraBackFacingMode,
-    toggleAudioState,
-    toggleVideoState,
-    toggleCamera,
-    toggleChat,
+    isCameraOnFrontFacingMode,
+    toggleAudioMuted,
+    toggleVideoMuted,
+    toggleCameraFacingMode,
   };
 };

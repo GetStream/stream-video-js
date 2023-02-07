@@ -6,6 +6,9 @@ import {
 import { useCallback } from 'react';
 import InCallManager from 'react-native-incall-manager';
 
+/**
+ * A helper hook which exposes functions to answerCall, rejectCall, cancelCall
+ */
 export const useRingCall = () => {
   const client = useStreamVideoClient();
   const activeCall = useActiveCall();

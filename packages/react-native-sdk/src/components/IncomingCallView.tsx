@@ -24,6 +24,10 @@ interface IncomingCallViewProps {
   onRejectCall: () => void;
 }
 
+/**
+ * View for the incoming call, after a call is received by a callee in ringing mode and the app is in foreground
+ * //Todo: SG: add photo's with all states
+ */
 export const IncomingCallView = (props: IncomingCallViewProps) => {
   const { onAnswerCall, onRejectCall } = props;
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);

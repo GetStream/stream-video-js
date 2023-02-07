@@ -75,6 +75,11 @@ const putRemoteParticipantsInView = (
 /**
  * CallParticipantsView is a component that displays the participants in a call.
  * This component supports the rendering of up to 5 participants.
+ *
+ *
+ * | 1:1 | 2 Participants |
+ * | :--- | :----: |
+ * |![call-participants-view-1](https://user-images.githubusercontent.com/25864161/217351453-6547b0a3-4ecc-435f-b2d9-7d511d5d0328.png) | ![call-participants-view-2](https://user-images.githubusercontent.com/25864161/217351458-6cb4b0df-6071-45f5-89b6-fe650d950502.png)|
  */
 export const CallParticipantsView = () => {
   const localParticipant = useLocalParticipant();

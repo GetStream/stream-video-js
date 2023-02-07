@@ -21,23 +21,24 @@ export interface LocalVideoViewProps {
    *     position: 'absolute',
    *     height: 140,
    *     width: 80,
-   *     right: 16,
-   *     top: 60,
-   *     `borderRadius`: 10,
-   *     `zIndex`: 1,
+   *     right: 20,
+   *     top: 100,
+   *     borderRadius: 10,
+   *     zIndex: 1,
    *   }`
    */
   style?: StyleProp<ViewStyle>;
 }
 
 /**
- * This component renders the local participant's video.
+ * Shows a floating participant UI that can be dragged within certain bounds.
+ * //Todo: SG: add photo's with all states
  */
 export const LocalVideoView = (props: LocalVideoViewProps) => {
   const { isVisible, style = styles.container } = props;
   const localParticipant = useLocalParticipant();
-  const cameraBackFacingMode = useStreamVideoStoreValue(
-    (store) => store.cameraBackFacingMode,
+  const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
+    (store) => store.isCameraOnFrontFacingMode,
   );
 
   if (!isVisible || !localParticipant) {
@@ -58,7 +59,7 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
 
   return (
     <VideoRenderer
-      mirror={!cameraBackFacingMode}
+      mirror={isCameraOnFrontFacingMode}
       mediaStream={localParticipant.videoStream}
       style={style}
       zOrder={1}

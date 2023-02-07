@@ -14,6 +14,9 @@ import { Mic, MicOff, Video, VideoSlash } from '../icons';
 
 type SizeType = 'small' | 'medium' | 'large' | 'xl';
 
+/**
+ * Props to be passed for the ParticipantView component.
+ */
 interface ParticipantViewProps {
   /**
    * The size of the participant that correlates to a specific layout
@@ -35,14 +38,16 @@ interface ParticipantViewProps {
 
 /**
  * Renders either the participants' video track or screenShare track
- * and additional info, by an absence of a video track only an avatar and audio track will be rendered.
+ * and additional info, by an absence of a video track only an
+ * avatar and audio track will be rendered.
+ * //Todo: SG: add photo's with all states
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
   const { size, participant, kind } = props;
   const call = useActiveCall();
 
-  const cameraBackFacingMode = useStreamVideoStoreValue(
-    (store) => store.cameraBackFacingMode,
+  const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
+    (store) => store.isCameraOnFrontFacingMode,
   );
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
@@ -71,7 +76,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const audioStream = participant.audioStream as MediaStream | undefined;
   const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
-  const mirror = isLoggedInUser && !cameraBackFacingMode;
+  const mirror = isLoggedInUser && isCameraOnFrontFacingMode;
   const MicIcon = isAudioMuted ? MicOff : Mic;
   const VideoIcon = isVideoMuted ? VideoSlash : Video;
   const isAudioAvailable = useMemo(

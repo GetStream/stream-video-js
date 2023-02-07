@@ -2,6 +2,9 @@ import React from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 
+/**
+ * Props to be passed for the VideoRenderer component.
+ */
 export interface VideoRendererProps {
   /**
    * The stream that should be rendered.
@@ -60,6 +63,7 @@ export interface VideoRendererProps {
 
 /**
  * Lower level component, that represents only the video part (wrapper around the WebRTC)
+ * //Todo: SG: add photo's with all states
  */
 export const VideoRenderer = (props: VideoRendererProps) => {
   const {
