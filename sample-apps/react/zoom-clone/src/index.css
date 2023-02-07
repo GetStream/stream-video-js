@@ -38,3 +38,11 @@ body,
 .str-video__device-settings__button:focus {
   @apply flex items-center justify-center bg-zinc-600 rounded-full p-1;
 }
+
+.str-video__call-controls-section {
+  @apply flex justify-between items-center gap-3;
+}
+
+.str-video__call-controls {
+  @apply gap-3;
+}
