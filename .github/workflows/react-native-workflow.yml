@@ -75,7 +75,7 @@ jobs:
           ./scripts/create-sentry-properties.sh;
           bundle exec fastlane build_ios deploy:${{ github.ref == 'refs/heads/main' }};
   deploy_android:
-    name: Deploy AndroidTEMP and Deploy-${{ github.ref == 'refs/heads/main' }}
+    name: Deploy Android and Deploy-${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
