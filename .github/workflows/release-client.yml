@@ -37,8 +37,8 @@ jobs:
         run: yarn test:ci:client
 
       - name: Version package
-        uses: reedyuk/npm-version@1.1.1
-        with:
-          version: 'prerelease'
-          package: 'packages/client/'
-          git-tag-version: 'true'
+        working-directory: ./packages/client
+        run: npm version prerelease --preid alpha
+
+      - name: Push version
+        run: git push && git push --tags
