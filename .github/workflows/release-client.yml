@@ -41,6 +41,8 @@ jobs:
         run: |
           # workaround for this: https://github.com/npm/npm/issues/9111
           mkdir .git
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
           npm version prerelease --preid alpha --no-workspaces --message 'Create %s for client package' --force
           rmdir .git
-          git push && git push --tags
+          git log --name-status
