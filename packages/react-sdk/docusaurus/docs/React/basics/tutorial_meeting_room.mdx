@@ -12,7 +12,7 @@ import LoadingDark from "../assets/stream-video-react-tutorial__loading-dark.png
 import ActiveCallLight from "../assets/stream-video-react-tutorial__active-call-light.png"
 import ActiveCallDark from "../assets/stream-video-react-tutorial__active-call-dark.png"
 
-In this tutorial, we are building a video call application using the Stream Video React SDK. We will be implementing a "Meeting Room" scenario, where users can join and leave the call independently, without causing the call to be interrupted. The topics we are covering:
+In this tutorial, we are building a video call application using the Stream Video React SDK. We will be implementing a "Meeting Room" scenario, where users can join and leave the call independently, without causing the call to be terminated. The topics we are covering in this tutorial are:
 
 - Setting up the project
 - Creating the call UI using built-in components
@@ -47,7 +47,7 @@ yarn add @stream-io/video-client @stream-io/video-react-sdk
 
 **TODO: bundle the stylesheets with @stream-io/video-react-sdk**
 
-We provide CSS styles for React SDK components. We encourage you to install that one as well:
+We provide CSS styles for React SDK components bundled into a package called ` @stream-io/video-styling`. We encourage you to install this one as well:
 
 ```bash
 yarn add @stream-io/video-styling
@@ -57,7 +57,7 @@ yarn add @stream-io/video-styling
 
 [Start a free trial with Stream](TODO: provide link to the Start Free Trial page) if you don't have an account already. Once logged in, you will be introduced to our dashboard. There you can manage your "apps". The "app" represents Stream's dedicated infrastructure that will handle you app's video calls.
 
-Make sure to [create video application](**TODO: link to article on how to set up an application**) in your [Stream dashboard](**TODO: link to the dashboard**). The API key and secret will be generated automatically. Those are the credentials we will need for authentication.
+Make sure to [create video application](**TODO: link to article on how to set up an application**) in your [Stream dashboard](**TODO: link to the dashboard**). The API key and secret will be generated automatically upon the app's creation. Those are the credentials we will need for authentication.
 
 **TODO: Provide dashboard screenshot**
 
@@ -75,7 +75,7 @@ VITE_STREAM_USER_MARK_TOKEN=<manually_generated_token_second_user>
 - `VITE_STREAM_USER_ALICE_TOKEN` - JWT to authenticate the user with id `'alice'`
 - `VITE_STREAM_USER_MARK_TOKEN` - JWT to authenticate the user with id `'mark'`
 
-In order to be able to establish the call, we will need to authenticate ourselves against the Stream's video infrastructure. The authentication is performed by using JSON Web Tokens (JWT). You can generate JWT for your application by using [Stream's JWT generator](https://getstream.io/chat/docs/react/token_generator/)(**TODO: verify whether this link can be used**). In the real-life scenario, your client application will need to request short-lived JWT in the runtime from a dedicated back-end service. Such back-end service will be using the Stream app secret (again to be found in the Stream's dashboard) to generate short-lived JWTs.
+To establish the call, we will need to authenticate ourselves against the Stream's video infrastructure. The authentication is based on JSON Web Tokens (JWT). You can generate JWT for your application by using [Stream's JWT generator](https://getstream.io/chat/docs/react/token_generator/)(**TODO: verify whether this link can be used**). In the real-life scenario, your client application will need to request short-lived JWT in the runtime from a dedicated back-end service. Such back-end service will be using the Stream app's secret (again to be found in the Stream's dashboard) to generate short-lived JWTs.
 
 1. To generate the JWT for `VITE_STREAM_USER_ALICE_TOKEN` use id `alice`.
 2. To generate the JWT for `VITE_STREAM_USER_MARK_TOKEN` use id `mark`.
@@ -90,7 +90,7 @@ VITE_STREAM_COORDINATOR_RPC_ENDPOINT=<coordinator_rpc_endpoint>
 
 We will use predefined static user data stored in `data/users.ts`:
 
-**TODO: why is `customJson` a mandatory param?**
+**TODO: get rid of `customJson` as a mandatory param?**
 
 ```ts
 import { UserInput } from '@stream-io/video-client';
@@ -115,7 +115,7 @@ export default {
 } as Record<string, UserInput>;
 ```
 
-The user images `alice.jpg` and `mark.jpg` are to be stored in `public/` folder.
+The user images `alice.jpg` and `mark.jpg` are to be stored in `public/` folder. You can use yours, or copy ours, from the [projects `public/` directory](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial/public).
 
 We have added the `data` folder and `.env` file to the project root:
 
@@ -134,10 +134,6 @@ In order to see our app running, we need to perform the following steps:
 1. Initiate the video API client instance
 2. Build our own app layout
 3. Fit the prebuilt components provided by the React SDK into the general layout
-
-### Implemented scenario
-
-This tutorial demonstrates a "meeting room" scenario where users can join and leave the call asynchronously. That allows us to re-use the same user token to join the call from multiple browser tabs.
 
 ### The tutorial app UI
 
@@ -164,7 +160,7 @@ Here we can select a user that will initiate a new call or join an existing call
 
 2. **The loading screen**
 
-Transition screen meanwhile the connection setup is under way:
+Transition screen meanwhile the call connection is being established:
 
 <ImageShowcase
     items={[
@@ -275,7 +271,7 @@ src/
 
 **TODO: we have to support theming as with chat in order the below is true**
 
-We will also write our own CSS and store it inside `src/style` folder. Part of the styling is theming. We provide CSS theme variables for easier override. To demonstrate this, we add theme switching, which will be managed by a `useTheme` hook:
+We will also write our own CSS and store it inside `src/style` folder. Part of the styling is theming. The stylesheets provided by Stream's SDK provide CSS theme variables for easier override. Style related files were added to this project, but we will not be covering them in this tutorial. Feel free to copy and paste the [stylesheets](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial/src/style) and [`useTheme`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial/src/hooks/useTheme.ts) hook from the demo app source.
 
 ```bash
 src/
@@ -405,9 +401,9 @@ export default App;
 
 Now we can focus on instantiating the `StreamVideoClient` object that takes care of interacting with the Stream's infrastructure. We provide a hook `useCreateStreamVideoClient` that takes care of the instantiation as well as of establishing the WebSocket connection. We create `VideoRoot` component for this purpose:
 
-**TODO: remove `coordinatorRpcUrl` and `coordinatorWsUrl`**
+**TODO: remove `coordinatorRpcUrl` and `coordinatorWsUrl` once new coordinator client is available**
 
-**TODO: fix the bug and to not initiate the client instance with token in `useCreateStreamVideoClient`**
+**TODO: fix the bug to not initiate the client instance with token in `useCreateStreamVideoClient`**
 
 ```tsx title="src/components/VideoRoot.tsx"
 import * as React from 'react';
@@ -420,9 +416,11 @@ import { CALL_CONFIG } from '@stream-io/video-client';
 
 import { UI } from './ui/UI';
 import { useUserData } from '../context/UserContext';
+import { useTheme } from '../hooks/useTheme';
 
 export const VideoRoot = () => {
   const { selectedUserId, users } = useUserData();
+  const { theme, toggleTheme } = useTheme();
   const client = useCreateStreamVideoClient({
     callConfig: CALL_CONFIG.meeting,
     coordinatorRpcUrl: import.meta.env.VITE_STREAM_COORDINATOR_RPC_ENDPOINT,
@@ -437,7 +435,15 @@ export const VideoRoot = () => {
   return (
     <StreamVideo client={client}>
       <MediaDevicesProvider>
-        <UI />
+        <div className={`str-video str-video-tutorial ${theme}`}>
+          <button
+            onClick={toggleTheme}
+            className={`str-video-tutorial__theme-btn ${theme}`}
+          >
+            {theme === 'dark' ? 'Go Light' : 'Go Dark'}
+          </button>
+          <UI />
+        </div>
       </MediaDevicesProvider>
     </StreamVideo>
   );
@@ -446,7 +452,9 @@ export const VideoRoot = () => {
 
 The client should now be provided to all the components in our app. We do that by passing the `client` instance to `StreamVideo` context provider.
 
-On another important context provider is `MediaDevicesProvider`. It takes care of registering media peripherals that would be later used in the call.
+Another important context provider is `MediaDevicesProvider`. It takes care of registering media peripherals that would be later used in the call.
+
+The `VideoRoot` component handles also theming switching, which is out of the scope for this tutorial.
 
 #### Implementing the UI
 
@@ -538,6 +546,8 @@ const StartNewCallButton = () => {
 **TODO: remove `createCall` and keep `joinCall` once the client rewrite for coordinator is done**
 
 Here we simply register an `onclick` event handler, which creates a call of a given `type`. We are toggling the loading state to change the view from `Lobby` to `LoadingIndicator`.
+
+**TODO: document the logic behind the `type` parameter for a call.Currently it seems as an arbitrary string only.**
 
 2. **JoinExistingCallForm**
 
@@ -702,112 +712,6 @@ export const ActiveCall = () => {
   );
 };
 ```
-
-#### Theme switching
-
-To highlight the styling capabilities, we have included a simple theme switching in this tutorial. We implement a simple theme controller hook `useTheme`:
-
-```tsx title="src/hooks/useTheme.ts"
-import { useCallback, useState } from 'react';
-
-const TOGGLE: Record<Theme, Theme> = {
-  light: 'dark',
-  dark: 'light',
-};
-
-type Theme = 'dark' | 'light';
-
-export const useTheme = () => {
-  const [theme, setTheme] = useState<Theme>(
-    () =>
-      (localStorage.getItem('theme') as Theme) ||
-      (window?.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light'),
-  );
-
-  const toggleTheme = useCallback(() => {
-    setTheme(TOGGLE[theme]);
-    localStorage.setItem('theme', TOGGLE[theme]);
-  }, [theme]);
-
-  return {
-    theme,
-    toggleTheme,
-  };
-};
-```
-
-The theme toggle button will be positioned with `position: fixed` on every screen:
-
-```tsx title="src/components/ui/VideoRoot.tsx"
-import * as React from 'react';
-import {
-  StreamCall,
-  StreamVideo,
-  useCreateStreamVideoClient,
-} from '@stream-io/video-react-sdk';
-
-import { CALL_CONFIG } from '@stream-io/video-client';
-import { UI } from './ui/UI';
-import { useUserData } from '../context/UserContext';
-import { useTheme } from '../hooks/useTheme';
-
-export const VideoRoot = () => {
-  const { selectedUserId, users } = useUserData();
-  //highlight-next-line
-  const { theme, toggleTheme } = useTheme();
-  const client = useCreateStreamVideoClient({
-    callConfig: CALL_CONFIG.meeting,
-    coordinatorRpcUrl: import.meta.env.VITE_STREAM_COORDINATOR_RPC_ENDPOINT,
-    coordinatorWsUrl: import.meta.env.VITE_STREAM_COORDINATOR_WS_URL,
-    apiKey: import.meta.env.VITE_STREAM_API_KEY,
-    token: import.meta.env[
-      `VITE_STREAM_USER_${selectedUserId.toUpperCase()}_TOKEN`
-    ],
-    user: users[selectedUserId],
-  });
-
-  return (
-    <StreamVideo client={client}>
-      <StreamCall>
-        {/*highlight-start*/}
-        <div className={`str-video str-video-tutorial ${theme}`}>
-          <button
-            onClick={toggleTheme}
-            className={`str-video-tutorial__theme-btn ${theme}`}
-          >
-            {theme === 'dark' ? 'Go Light' : 'Go Dark'}
-          </button>
-          {/*highlight-end*/}
-          <UI />
-        </div>
-      </StreamCall>
-    </StreamVideo>
-  );
-};
-```
-
-#### Custom stylesheets
-
-The custom stylesheets are stored in `src/style` folder and imported into `App.tsx`. Besides introducing new styles, we are overriding styles for pre-defined components. See our [Theming and CSS guide](../../ui-components/theming-and-css/#usage) for more information on the topic.
-
-**TODO: rework overrides.css file to override variables instead of selectors (once variables are implemented for all the components)**
-
-The `src/style/index.css` file lists all the CSS used in the project:
-
-```css title="src/style/index.css"
-@import '@stream-io/video-styling/dist/css/styles.css' layer(default-video-sdk);
-
-@import "base.css";
-@import "overrides.css";
-@import "variables.css";
-
-@import "Lobby.css";
-@import "VideoRoot.css";
-```
-
-Please find all the custom stylesheets [in the reference application source](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial/src/style). Feel free to copy and paste the styles into your local copy of the project.
 
 ### Where to go next
 
