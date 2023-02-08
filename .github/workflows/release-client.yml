@@ -34,8 +34,12 @@ jobs:
       - name: Lint package
         run: yarn test:ci:client
 
-      - name: Test packages
+      - name: Test package
         run: yarn test:ci:client
 
-      - name: Version
-        run:
+      - name: Version package
+        uses: reedyuk/npm-version@1.1.1
+        with:
+          version: 'prerelease'
+          package: 'packages/client/'
+          git-tag-version: 'true'
