@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - video-coordinator
-      - client-intial-release
+      - client-initial-release
     paths:
       - '.github/workflows/release-client.yml'
       - 'packages/client/**'
@@ -12,7 +12,6 @@ on:
 jobs:
   release-client:
     runs-on: ubuntu-latest
-    env:
 
     steps:
       - uses: actions/checkout@v3
