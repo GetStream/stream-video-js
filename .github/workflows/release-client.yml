@@ -37,8 +37,8 @@ jobs:
         run: yarn test:ci:client
 
       - name: Version package
-        working-directory: ./packages/client
-        run: npm version prerelease --preid alpha
+        working-directory: packages/client
+        run: npm version prerelease --preid alpha --no-workspaces
 
       - name: Push version
         run: git push && git push --tags
