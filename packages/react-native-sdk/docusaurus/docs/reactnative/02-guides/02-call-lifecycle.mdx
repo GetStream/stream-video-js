@@ -11,7 +11,8 @@ Based on your app, you should initialize these at the latest possible time, when
 
 As a high-level overview, you can see the timeline of these three lifecycle scopes in the following diagram.
 
-![Call lifecycle](https://user-images.githubusercontent.com/17215808/200342422-e67c78bf-2c37-48eb-9124-8df798c2c823.png)
+[//]: # (TODO: add relevant arch. chart diagram)
+
 
 > **Note**: While the diagram shows the lifecycle of only one StreamVideo client and CallClient, you can create many instances during a user session, if the user logs in and out multiple times, and joins and leaves multiple calls.
 
@@ -36,55 +37,4 @@ Since the instance contains all the operations to access existing calls, as well
 
 Additionally, the instance creates a Web Socket connection that listens to events like `CallCreated`, which you can use to show incoming call UI to your users or trigger custom business logic.
 
-If your app relies on such events at its core, we recommend to initialize it **as soon as your user is authenticated**. Once you do that, make sure to **keep it in a high level component**, like the `Application` class, so you can share the instance.
-
-#### Disposing of StreamVideo
-
-Because the `StreamVideo` relies on user credentials, if your user logs out, you should clear its state and clear the instance. You can do so like this:
-
-```kotlin
-fun logOut() { // create this and trigger appropriately
-    streamVideo.clearCallState()
-    streamVideo = null
-}
-```
-
-In the snippet above, we take an imaginary function called `logOut()`, which will represent a point in time in your application, when the user chooses to clear their data and log out of the application.
-
-Within it, you first call `StreamVideo.clearCallState()`, which will drop all the state for any calls that are active (if any).
-
-After that, you set your persisted instance to `null`, which will make sure it's fully cleaned up and detached from memory.
-
-### CallClient
-
-The `CallClient` has a much more narrow lifecycle scope. You **initialize it when you want to join a call** and when that call ends, you should clear its state and destroy the instance.
-
-To create the client, simple call `StreamVideo.createCallClient()`, with the corresponding parameters, like so:
-
-```kotlin
-val callClient = streamVideo.createCallClient(
-    signalUrl,
-    userToken,
-    iceServers,
-    credentialsProvider
-)
-
-// alternatively fetch the active instance
-val activeClient: CallClient? = streamVideo.getActiveCallClient()
-```
-
-`createCallClient()` both returns the client instance to you, so you can immediately use it and it caches the `CallClient` instance within the `StreamVideo` client. You can attempt to fetch the cached instance using `StreamVideo.getActiveCallClient()`, in case it exists. Otherwise it returns `null`.
-
-That way, you can **reuse the client** across multiple screens, in the background with your call still being active, or when switching into a different way of handling your UI, like picture in picture mode.
-
-### Disposing of CallClient
-
-As soon as the call ends, you should dispose of the `CallClient`. If you're using our pre-baked screen UI components, this should be automatic.
-
-If you want to dispose of the instance yourself, however, you can simply call `StreamVideo.clearCallState()`, as described previously:
-
-```kotlin
-streamVideo.clearCallState()
-```
-
-This will clear its state and set the internal `StreamVideo`'s instance of the `CallClient` to `null`.
+If your app relies on such events at its core, we recommend to initialize it **as soon as your user is authenticated**. Once you do that, make sure to **keep it in a high level component**, like the an application context, or any other state management lib. of your choice.
