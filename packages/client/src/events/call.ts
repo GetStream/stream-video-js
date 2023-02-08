@@ -5,6 +5,7 @@ import {
   CallCreated,
   CallRejected,
 } from '../gen/coordinator';
+import { CallMetadata } from '../rtc/CallMetadata';
 
 /**
  * Event handler that watches the delivery of CallCreated Websocket event
@@ -13,24 +14,22 @@ import {
  */
 export const watchCallCreated = (store: StreamVideoWriteableStateStore) => {
   return function onCallCreated(event: CallCreated) {
-    const { call } = event;
+    const { call, members } = event;
     if (!call) {
       console.warn("Can't find call in CallCreated event");
       return;
     }
 
     const currentUser = store.getCurrentValue(store.connectedUserSubject);
-
     if (currentUser?.id === call.created_by.id) {
       console.warn('Received CallCreated event sent by the current user');
       return;
     }
 
-    // FIXME OL: update store values
-    // store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) => [
-    //   ...pendingCalls,
-    //   { call: event.call, details: event.callDetails, users: envelopes.users },
-    // ]);
+    store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) => [
+      ...pendingCalls,
+      new CallMetadata(call, members),
+    ]);
   };
 };
 
@@ -43,13 +42,13 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
   return function onCallAccepted(event: CallAccepted) {
     const { call_cid } = event;
     if (!call_cid) {
-      console.warn("Can't find call in CallAccepted event");
+      console.warn("Can't find call_cid in CallAccepted event");
       return;
     }
 
     const acceptedIncomingCall = store
       .getCurrentValue(store.incomingCalls$)
-      .find((incomingCall) => incomingCall.call?.callCid === call_cid);
+      .find((incomingCall) => incomingCall.call.cid === call_cid);
 
     if (acceptedIncomingCall) {
       console.warn('Received CallAccepted event for an incoming call');
@@ -58,11 +57,13 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
 
     const acceptedOutgoingCall = store
       .getCurrentValue(store.outgoingCalls$)
-      .find((outgoingCall) => outgoingCall.call?.callCid === call_cid);
+      .find((outgoingCall) => outgoingCall.call.cid === call_cid);
     const activeCall = store.getCurrentValue(store.activeCallSubject);
+
+    // FIXME OL: we should revisit this logic, it is hard to follow
     const acceptedActiveCall =
-      activeCall?.data.call?.callCid !== undefined &&
-      activeCall.data.call.callCid === call_cid
+      activeCall?.data.call.cid !== undefined &&
+      activeCall.data.call.cid === call_cid
         ? activeCall
         : undefined;
 
@@ -74,12 +75,11 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
     }
 
     // once in active call, it is unnecessary to keep track of accepted call events
-    if (call_cid === acceptedActiveCall?.data.call?.callCid) {
+    if (call_cid === acceptedActiveCall?.data.call.cid) {
       return;
     }
 
-    // FIXME OL: update store values
-    // store.setCurrentValue(store.acceptedCallSubject, event);
+    store.setCurrentValue(store.acceptedCallSubject, event);
   };
 };
 
@@ -92,13 +92,13 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
   return function onCallRejected(event: CallRejected) {
     const { call_cid } = event;
     if (!call_cid) {
-      console.warn("Can't find call in CallRejected event");
+      console.warn("Can't find call_cid in CallRejected event");
       return;
     }
 
     const rejectedIncomingCall = store
       .getCurrentValue(store.incomingCalls$)
-      .find((incomingCall) => incomingCall.call?.callCid === call_cid);
+      .find((incomingCall) => incomingCall.call.cid === call_cid);
 
     if (rejectedIncomingCall) {
       console.warn('Received CallRejected event for an incoming call');
@@ -107,11 +107,11 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
 
     const rejectedOutgoingCall = store
       .getCurrentValue(store.outgoingCalls$)
-      .find((outgoingCall) => outgoingCall.call?.callCid === call_cid);
+      .find((outgoingCall) => outgoingCall.call.cid === call_cid);
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     const rejectedActiveCall =
-      activeCall?.data.call?.callCid !== undefined &&
-      activeCall.data.call.callCid === call_cid
+      activeCall?.data.call.cid !== undefined &&
+      activeCall.data.call.cid === call_cid
         ? activeCall
         : undefined;
 
@@ -122,19 +122,9 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
-    // FIXME OL: update store values
-    // currently not supporting automatic call drop for 1:M calls
-    // const wasLeftAlone =
-    //   event.callDetails?.memberUserIds.length === 1 &&
-    //   event.senderUserId === event.callDetails.memberUserIds[0];
-    //
-    // if (wasLeftAlone) {
-    //   store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
-    //     pendingCalls.filter(
-    //       (pendingCalls) => pendingCalls.call?.callCid !== event.call?.callCid,
-    //     ),
-    //   );
-    // }
+    store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+      pendingCalls.filter((pendingCall) => pendingCall.call.cid !== call_cid),
+    );
   };
 };
 
@@ -153,12 +143,12 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
 
     const cancelledIncomingCall = store
       .getCurrentValue(store.incomingCalls$)
-      .find((incomingCall) => incomingCall.call?.callCid === call_cid);
+      .find((incomingCall) => incomingCall.call.cid === call_cid);
 
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     const cancelledActiveCall =
-      activeCall?.data.call?.callCid !== undefined &&
-      activeCall.data.call.callCid === call_cid
+      activeCall?.data.call.cid !== undefined &&
+      activeCall.data.call.cid === call_cid
         ? activeCall
         : undefined;
 
@@ -170,9 +160,7 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
     }
 
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
-      pendingCalls.filter(
-        (pendingCalls) => pendingCalls.call?.callCid !== call_cid,
-      ),
+      pendingCalls.filter((pendingCall) => pendingCall.call.cid !== call_cid),
     );
   };
 };

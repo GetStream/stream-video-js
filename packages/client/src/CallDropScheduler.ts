@@ -1,7 +1,9 @@
-import { CallCID, PendingCall, StreamVideoWriteableStateStore } from './store';
+import { StreamVideoWriteableStateStore } from './store';
 import { CallConfig } from './config/types';
 import { Observable, pairwise, startWith, Subscription } from 'rxjs';
+import { CallMetadata } from './rtc/CallMetadata';
 
+type CallCID = string;
 type DropFunction = (callCid: CallCID) => Promise<void>;
 
 export class CallDropScheduler {
@@ -10,9 +12,9 @@ export class CallDropScheduler {
     cancelDropOnPendingCallRemoval?: Subscription;
     cancelDropOnCallAccepted?: Subscription;
   };
-  private pairwisePendingCalls$: Observable<PendingCall[][]>;
-  private pairwiseIncomingCalls$: Observable<PendingCall[][]>;
-  private pairwiseOutgoingCalls$: Observable<PendingCall[][]>;
+  private pairwisePendingCalls$: Observable<CallMetadata[][]>;
+  private pairwiseIncomingCalls$: Observable<CallMetadata[][]>;
+  private pairwiseOutgoingCalls$: Observable<CallMetadata[][]>;
   constructor(
     private store: StreamVideoWriteableStateStore,
     private callConfig: CallConfig,
@@ -42,8 +44,8 @@ export class CallDropScheduler {
   }
 
   private static getLatestCall = (
-    from: PendingCall[],
-    compareTo: PendingCall[],
+    from: CallMetadata[],
+    compareTo: CallMetadata[],
   ) => {
     return from > compareTo ? from.slice(-1)[0] : undefined;
   };
@@ -64,8 +66,8 @@ export class CallDropScheduler {
             this.store.activeCallSubject,
           );
 
-          if (activeCall && newIncomingCall?.call?.callCid) {
-            await this.reject(newIncomingCall.call?.callCid);
+          if (activeCall && newIncomingCall?.call.cid) {
+            await this.reject(newIncomingCall.call.cid);
           }
         },
       );
@@ -82,17 +84,16 @@ export class CallDropScheduler {
           currentCalls,
           prevCalls,
         );
+        if (!newIncomingCall?.call.cid) return;
 
         const activeCall = this.store.getCurrentValue(
           this.store.activeCallSubject,
         );
         const incomingCallRejectedImmediately =
           activeCall && this.callConfig.autoRejectWhenInCall;
-
-        if (!newIncomingCall?.call?.callCid) return;
         if (incomingCallRejectedImmediately) return;
 
-        this.scheduleReject(newIncomingCall.call.callCid);
+        this.scheduleReject(newIncomingCall.call.cid);
       });
   };
 
@@ -108,8 +109,8 @@ export class CallDropScheduler {
           prevCalls,
         );
 
-        if (!newOutgoingCall?.call?.callCid) return;
-        this.scheduleCancel(newOutgoingCall.call.callCid);
+        if (!newOutgoingCall?.call.cid) return;
+        this.scheduleCancel(newOutgoingCall.call.cid);
       });
   };
 
@@ -121,15 +122,16 @@ export class CallDropScheduler {
           currentCalls,
         );
 
-        if (removedCall?.call?.callCid) {
-          this.cancelDrop(removedCall?.call?.callCid);
+        if (removedCall?.call.cid) {
+          this.cancelDrop(removedCall?.call.cid);
         }
       });
 
     this.storeSubscriptions.cancelDropOnCallAccepted =
       this.store.acceptedCallSubject.subscribe((acceptedCall) => {
-        if (acceptedCall?.call?.callCid)
-          this.cancelDrop(acceptedCall.call.callCid);
+        if (acceptedCall?.call_cid) {
+          this.cancelDrop(acceptedCall.call_cid);
+        }
       });
   };
 

@@ -9,13 +9,11 @@ import type {
   ICEServer,
 } from './gen/coordinator';
 
-import type {
-  CreateCallRequest,
-  ReportCallStatEventRequest,
-} from './gen/video/coordinator/client_v1_rpc/client_rpc';
+import type { ReportCallStatEventRequest } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { measureResourceLoadLatencyTo } from './rpc';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
+import { CallMetadata } from './rtc/CallMetadata';
 
 // import { reportStats } from './stats/coordinator-stats-reporter';
 import { Timestamp } from './gen/google/protobuf/timestamp';
@@ -150,15 +148,7 @@ export class StreamVideoClient {
 
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
-      // FIXME OL: fix the types
-      {
-        id: user.id,
-        name: user.name!,
-        teams: user.teams!,
-        customJson: new Uint8Array(),
-        imageUrl: '/profile.png',
-        role: user.role!,
-      },
+      user,
     );
   };
 
@@ -226,49 +216,23 @@ export class StreamVideoClient {
       return;
     }
 
-    const pendingCalls = this.writeableStateStore.getCurrentValue(
+    const currentPendingCalls = this.writeableStateStore.getCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
     );
-    const callAlreadyRegistered = pendingCalls.find(
-      (pendingCall) => pendingCall.call?.callCid === call.cid,
+    const callAlreadyRegistered = currentPendingCalls.find(
+      (pendingCall) => pendingCall.call.id === call.id,
     );
 
     if (!callAlreadyRegistered) {
-      // this.writeableStateStore.setCurrentValue(
-      //   this.writeableStateStore.pendingCallsSubject,
-      //   (pendingCalls) => [...pendingCalls, call],
-      // );
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.pendingCallsSubject,
+        (pendingCalls) => [...pendingCalls, new CallMetadata(call)],
+      );
       return response;
     } else {
       // TODO: handle error?
       return undefined;
     }
-  };
-
-  /**
-   * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, this will return an error.
-   * @param {CreateCallRequest} data
-   * @returns A call metadata with information about the call.
-   */
-  createCall = async (data: CreateCallRequest) => {
-    // FIXME OL: fix the types
-    // const createdCall = await this.coordinatorClient.getOrCreateCall(
-    //   data.id!,
-    //   data.type,
-    //   {
-    //     ring: data.input?.ring,
-    //   },
-    // );
-    // const { call } = createdCall.response;
-    //
-    // if (call) {
-    //   this.writeableStateStore.setCurrentValue(
-    //     this.writeableStateStore.pendingCallsSubject,
-    //     (pendingCalls) => [...pendingCalls, call],
-    //   );
-    // }
-    //
-    // return call;
   };
 
   /**
@@ -283,8 +247,7 @@ export class StreamVideoClient {
     await this.coordinatorClient.sendEvent(id, type, {
       event_type: 'call.accepted',
     });
-    const callController = await this.joinCall(id, type);
-    return callController;
+    return await this.joinCall(id, type);
   };
 
   /**
@@ -295,14 +258,14 @@ export class StreamVideoClient {
    */
   rejectCall = async (callCid: string) => {
     // FIXME OL: change the method's signature to accept callId and callType
+    const [type, id] = callCid.split(':');
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
       (pendingCalls) =>
         pendingCalls.filter(
-          (incomingCall) => incomingCall.call?.callCid !== callCid,
+          (incomingCall) => incomingCall.call.cid !== callCid,
         ),
     );
-    const [type, id] = callCid.split(':');
     await this.coordinatorClient.sendEvent(id, type, {
       event_type: 'call.rejected',
     });
@@ -318,24 +281,20 @@ export class StreamVideoClient {
    */
   cancelCall = async (callCid: string) => {
     // FIXME OL: change the method's signature to accept callId and callType
+    const [type, id] = callCid.split(':');
     const store = this.writeableStateStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
-    const leavingActiveCall = activeCall?.data.call?.callCid === callCid;
-
+    const leavingActiveCall = activeCall?.data.call.cid === callCid;
     if (leavingActiveCall) {
       activeCall.leave();
     } else {
       store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
-        pendingCalls.filter(
-          (pendingCall) => pendingCall.call?.callCid !== callCid,
-        ),
+        pendingCalls.filter((pendingCall) => pendingCall.call.cid !== callCid),
       );
     }
 
     const remoteParticipants = store.getCurrentValue(store.remoteParticipants$);
-
     if (!remoteParticipants.length && !leavingActiveCall) {
-      const [type, id] = callCid.split(':');
       await this.coordinatorClient.sendEvent(id, type, {
         event_type: 'call.cancelled',
       });
@@ -362,7 +321,7 @@ export class StreamVideoClient {
       data,
     );
 
-    const { call: callMeta, edges } = joinCallResponse;
+    const { call: callMeta, edges, members } = joinCallResponse;
     if (callMeta && edges) {
       const edge = await this.getCallEdgeServer(id, type, edges);
       if (edge.credentials && edge.credentials.server) {
@@ -374,28 +333,18 @@ export class StreamVideoClient {
 
         const { server, ice_servers, token } = edge.credentials;
         const sfuClient = new StreamSfuClient(server.url!, token!);
+        const metadata = new CallMetadata(callMeta, members);
+        const callOptions = {
+          connectionConfig: this.toRtcConfiguration(ice_servers),
+          edgeName: server!.edge_name,
+        };
         const call = new Call(
-          {
-            // @ts-ignore
-            call: {
-              id,
-              type,
-              callCid: callMeta.cid!,
-              createdByUserId: callMeta.created_by?.id!,
-            },
-            users: {},
-            // @ts-ignore
-            details: {},
-          },
+          metadata,
           sfuClient,
-          {
-            connectionConfig: this.toRtcConfiguration(ice_servers),
-            edgeName: server!.edge_name,
-          },
+          callOptions,
           this.writeableStateStore,
           this.userBatcher,
         );
-
         await call.join();
 
         this.writeableStateStore.setCurrentValue(
@@ -446,22 +395,23 @@ export class StreamVideoClient {
    * @returns
    */
   private reportCallStats = async (stats: Object) => {
-    const callCid = this.writeableStateStore.getCurrentValue(
+    const callMetadata = this.writeableStateStore.getCurrentValue(
       this.writeableStateStore.activeCallSubject,
-    )?.data.call?.callCid;
+    )?.data;
 
-    if (!callCid) {
+    if (!callMetadata) {
       console.log("There isn't an active call");
       return;
     }
-
     const request = {
-      callCid,
+      callCid: callMetadata.call.cid,
       statsJson: new TextEncoder().encode(JSON.stringify(stats)),
     };
-    // FIXME OL: don't derive this from the call CID
-    const [type, id] = callCid.split(':');
-    await this.coordinatorClient.reportCallStats(id, type, request);
+    await this.coordinatorClient.reportCallStats(
+      callMetadata.call.id!,
+      callMetadata.call.type!,
+      request,
+    );
   };
 
   private getCallEdgeServer = async (
@@ -503,22 +453,24 @@ export class StreamVideoClient {
   private reportCallStatEvent = async (
     statEvent: ReportCallStatEventRequest['event'],
   ) => {
-    const callCid = this.writeableStateStore.getCurrentValue(
+    const callMetadata = this.writeableStateStore.getCurrentValue(
       this.writeableStateStore.activeCallSubject,
-    )?.data.call?.callCid;
-
-    if (!callCid) {
+    )?.data;
+    if (!callMetadata) {
       console.log("There isn't an active call");
       return;
     }
+
     const request = {
-      callCid,
+      callCid: callMetadata.call.cid,
       timestamp: Timestamp.fromDate(new Date()),
       event: statEvent,
     };
-    // FIXME OL: don't derive this from the call CID
-    const [type, id] = callCid.split(':');
-    await this.coordinatorClient.reportCallStatEvent(id, type, request);
+    await this.coordinatorClient.reportCallStatEvent(
+      callMetadata.call.id!,
+      callMetadata.call.type!,
+      request,
+    );
   };
 
   /**

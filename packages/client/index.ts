@@ -20,6 +20,7 @@ export * from './src/rtc/types';
 export * from './src/stats/types';
 
 export * from './src/rtc/Call';
+export * from './src/rtc/CallMetadata';
 export * from './src/StreamVideoClient';
 export * from './src/StreamSfuClient';
 export * from './src/devices';

@@ -18,12 +18,17 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
     if (!videoClient || activeCall) return;
 
     if (outgoingCall.call && videoClient.callConfig.joinCallInstantly) {
-      videoClient.joinCall(outgoingCall.call!.id, outgoingCall.call!.type);
-    } else if (
-      acceptedCall?.call &&
-      !videoClient.callConfig.joinCallInstantly
-    ) {
-      videoClient.joinCall(outgoingCall.call!.id, outgoingCall.call!.type);
+      videoClient
+        .joinCall(outgoingCall.call.id!, outgoingCall.call.type!)
+        .catch((e) => {
+          console.error('Error joining call', e);
+        });
+    } else if (acceptedCall && !videoClient.callConfig.joinCallInstantly) {
+      videoClient
+        .joinCall(outgoingCall.call.id!, outgoingCall.call.type!)
+        .catch((e) => {
+          console.error('Error joining call', e);
+        });
     }
   }, [videoClient, outgoingCall, acceptedCall, activeCall]);
 

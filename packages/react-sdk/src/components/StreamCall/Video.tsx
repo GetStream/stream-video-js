@@ -99,7 +99,7 @@ export const Video = (
   if (!isPublishingTrack)
     return (
       <VideoPlaceholder
-        imageSrc={participant.user?.imageUrl}
+        imageSrc={participant.user?.image}
         userId={participant.userId}
       />
     );
