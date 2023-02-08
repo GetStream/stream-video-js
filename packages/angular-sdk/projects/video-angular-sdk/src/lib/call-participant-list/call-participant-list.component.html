@@ -1,0 +1,53 @@
+<div class="str-video__participant-list">
+  <div class="str-video__participant-list-header">
+    <div class="str-video__participant-list-header__title">
+      Participants&nbsp;
+      <span> ({{ (participants$ | async)?.length || 0 }}) </span>
+    </div>
+    <button
+      (close)="listClosed()"
+      class="str-video__participant-list-header__close-button"
+    >
+      <span
+        class="str-video__participant-list-header__close-button--icon"
+      ></span>
+    </button>
+  </div>
+  <div class="str-video__search-input__container" [class.active]="input.value">
+    <input placeholder="Search" #input (input)="searchChanged(input.value)" />
+    <button
+      *ngIf="input.value"
+      class="str-video__search-input__clear-btn"
+      (click)="searchCleared()"
+    >
+      <span class="str-video__search-input__icon--active"></span>
+    </button>
+    <span *ngIf="!input.value" class="str-video__search-input__icon"></span>
+  </div>
+  <div class="str-video__participant-list__content">
+    <div
+      class="str-video__participant-list--empty"
+      *ngIf="!(participants$ | async)?.length"
+    >
+      No participants found
+    </div>
+    <div
+      [popper]="fullName"
+      *ngFor="let participant of participants$ | async"
+      class="str-video__participant-listing-item__display-name"
+    >
+      <popper-content #fullName>
+        {{ participant?.user?.name }}
+        {{ participant?.isLoggedInUser ? '(Me)' : '' }}
+      </popper-content>
+      {{ participant?.user?.name }}
+      {{ participant?.isLoggedInUser ? '(Me)' : '' }}
+    </div>
+  </div>
+  <div class="str-video__participant-list__footer">
+    <button class="str-video__invite-link-button">
+      <div class="str-video__invite-participant-icon"></div>
+      <div class="str-video__invite-link-button__text">Invite Link</div>
+    </button>
+  </div>
+</div>

@@ -6,17 +6,26 @@ import { distinctUntilKeyChanged } from 'rxjs';
 @Component({
   selector: 'app-root',
   template: `
-    <div class="container">
+    <div class="container str-video">
       <div>
         <input #input /><button (click)="createOrJoinCall(input.value)">
           Create or join call
         </button>
       </div>
-      <stream-call>
-        <stream-device-settings call-header-end></stream-device-settings>
-        <stream-stage call-stage></stream-stage>
-        <stream-call-controls call-controls> </stream-call-controls>
-      </stream-call>
+      <div class="call-layout">
+        <stream-call class="call">
+          <stream-device-settings call-header-end></stream-device-settings>
+          <stream-stage call-stage></stream-stage>
+          <stream-call-controls call-controls>
+            <stream-toggle-participant-list
+              call-controls-end
+            ></stream-toggle-participant-list>
+          </stream-call-controls>
+        </stream-call>
+        <stream-call-participant-list
+          class="participant-list"
+        ></stream-call-participant-list>
+      </div>
     </div>
   `,
 })
