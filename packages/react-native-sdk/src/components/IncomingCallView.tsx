@@ -26,7 +26,10 @@ interface IncomingCallViewProps {
 
 /**
  * View for the incoming call, after a call is received by a callee in ringing mode and the app is in foreground
- * //Todo: SG: add photo's with all states
+ *
+ * | Voice Incoming Call | Group Incoming Call | Video Incoming Call |
+ * |:----|:----|:----:|
+ * |![incoming-call-view-1](https://user-images.githubusercontent.com/25864161/217496690-b7ff223b-4a10-4fad-91f8-54ca30666c7a.png)|![incoming-call-view-2](https://user-images.githubusercontent.com/25864161/217496698-50ced011-7516-4f8f-932e-e50565932bb9.png)|![incoming-call-view-3](https://user-images.githubusercontent.com/25864161/217496704-9d407218-3780-44ed-930a-19f0d9278a46.png)|
  */
 export const IncomingCallView = (props: IncomingCallViewProps) => {
   const { onAnswerCall, onRejectCall } = props;

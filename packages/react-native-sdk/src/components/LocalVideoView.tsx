@@ -31,8 +31,11 @@ export interface LocalVideoViewProps {
 }
 
 /**
- * Shows a floating participant UI that can be dragged within certain bounds.
- * //Todo: SG: add photo's with all states
+ * Shows a floating participant UI that can be dragged (to be implemented) within certain bounds.
+ *
+ * | Local Video | Local Video in relation to active call screen |
+ * | :---- | :----: |
+ * |![local-video-view-1](https://user-images.githubusercontent.com/25864161/217491433-60848d95-1a14-422e-b4e1-7540f3ba30b4.png)|![local-video-view-2](https://user-images.githubusercontent.com/25864161/217491438-75bad10c-8850-49f5-b3bd-af22995e11c2.png)|
  */
 export const LocalVideoView = (props: LocalVideoViewProps) => {
   const { isVisible, style = styles.container } = props;

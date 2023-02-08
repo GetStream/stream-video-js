@@ -21,7 +21,10 @@ export interface OutgoingCallViewProps {
 
 /**
  * View for an outgoing call, after a call is initiated by a caller in ringing mode
- * //Todo: SG: add photo's with all states
+ *
+ * | Outgoing Call |
+ * | :---: |
+ * |![outgoing-calo-view-1](https://user-images.githubusercontent.com/25864161/217487315-c32ee3dc-10d7-4726-ae62-de8e8106af86.png)|
  */
 export const OutgoingCallView = (props: OutgoingCallViewProps) => {
   const { onHangupCall } = props;
