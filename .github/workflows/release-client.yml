@@ -45,4 +45,4 @@ jobs:
           git config user.email "<>"
           npm version prerelease --preid alpha --no-workspaces --message 'Create %s for client package' --force
           rmdir .git
-          git log --name-status
+          git push && git push --tags
