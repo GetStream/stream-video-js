@@ -15,8 +15,6 @@ export const VideoRoot = () => {
   const { theme, toggleTheme } = useTheme();
   const client = useCreateStreamVideoClient({
     callConfig: CALL_CONFIG.meeting,
-    coordinatorRpcUrl: import.meta.env.VITE_STREAM_COORDINATOR_RPC_ENDPOINT,
-    coordinatorWsUrl: import.meta.env.VITE_STREAM_COORDINATOR_WS_URL,
     apiKey: import.meta.env.VITE_STREAM_API_KEY,
     token: import.meta.env[
       `VITE_STREAM_USER_${selectedUserId.toUpperCase()}_TOKEN`

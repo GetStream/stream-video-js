@@ -6,15 +6,11 @@ export type StreamVideoClientInit = {
   apiKey: string;
   token: string;
   callConfig?: CallConfig;
-  coordinatorRpcUrl?: string;
-  coordinatorWsUrl?: string;
   user: UserInput;
 };
 
 export const useCreateStreamVideoClient = ({
   callConfig,
-  coordinatorRpcUrl,
-  coordinatorWsUrl,
   apiKey,
   token,
   user,
@@ -24,8 +20,6 @@ export const useCreateStreamVideoClient = ({
       new StreamVideoClient(
         apiKey,
         {
-          coordinatorWsUrl,
-          coordinatorRpcUrl,
           sendJson: true,
           token,
         },
@@ -52,14 +46,7 @@ export const useCreateStreamVideoClient = ({
       };
     },
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-    [
-      apiKey,
-      coordinatorRpcUrl,
-      coordinatorWsUrl,
-      token,
-      user.name,
-      disconnectRef,
-    ],
+    [apiKey, token, user.name, disconnectRef],
   );
 
   return client;

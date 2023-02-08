@@ -80,12 +80,6 @@ To establish the call, we will need to authenticate ourselves against the Stream
 1. To generate the JWT for `VITE_STREAM_USER_ALICE_TOKEN` use id `alice`.
 2. To generate the JWT for `VITE_STREAM_USER_MARK_TOKEN` use id `mark`.
 
-**TODO: will these have to be specified in `.env` (I would say no)**
-```bash
-VITE_STREAM_COORDINATOR_WS_URL=<coordinator_ws_url>
-VITE_STREAM_COORDINATOR_RPC_ENDPOINT=<coordinator_rpc_endpoint>
-```
-
 ### User data
 
 We will use predefined static user data stored in `data/users.ts`:
@@ -423,8 +417,6 @@ export const VideoRoot = () => {
   const { theme, toggleTheme } = useTheme();
   const client = useCreateStreamVideoClient({
     callConfig: CALL_CONFIG.meeting,
-    coordinatorRpcUrl: import.meta.env.VITE_STREAM_COORDINATOR_RPC_ENDPOINT,
-    coordinatorWsUrl: import.meta.env.VITE_STREAM_COORDINATOR_WS_URL,
     apiKey: import.meta.env.VITE_STREAM_API_KEY,
     token: import.meta.env[
       `VITE_STREAM_USER_${selectedUserId.toUpperCase()}_TOKEN`
