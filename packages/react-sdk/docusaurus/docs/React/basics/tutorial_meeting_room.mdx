@@ -514,18 +514,21 @@ const StartNewCallButton = () => {
 
   const startMeeting = useCallback(async () => {
     setLoading(true);
+    try {
+      const response = await videoClient?.createCall({
+        type: CALL_TYPE,
+      });
 
-    const response = await videoClient?.createCall({
-      type: CALL_TYPE,
-    });
-
-    await videoClient.joinCall({
-      type: CALL_TYPE,
-      id: response.call.id,
-      datacenterId: '',
-    });
-
-    setLoading(false);
+      await videoClient.joinCall({
+        type: CALL_TYPE,
+        id: response.call.id,
+        datacenterId: '',
+      });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   }, [setLoading, videoClient]);
 
   return <button onClick={startMeeting}>Start a call</button>;
@@ -571,12 +574,17 @@ const JoinExistingCallForm = () => {
     async (event) => {
       event.preventDefault();
       setLoading(true);
-      await videoClient.joinCall({
-        type: CALL_TYPE,
-        id: joinCallId,
-        datacenterId: '',
-      });
-      setLoading(false);
+      try {
+        await videoClient.joinCall({
+          type: CALL_TYPE,
+          id: joinCallId,
+          datacenterId: '',
+        });
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
     },
     [setLoading, joinCallId, videoClient],
   );
