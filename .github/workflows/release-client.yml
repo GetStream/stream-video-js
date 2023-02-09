@@ -49,6 +49,7 @@ jobs:
       - name: Release package
         working-directory: packages/client
         run: |
+          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }} --no-workspaces
           npm whoami
           npm publish --access public --no-workspaces
         env:
