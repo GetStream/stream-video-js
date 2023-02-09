@@ -43,12 +43,12 @@ jobs:
           mkdir .git
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
-          npm version prerelease --preid alpha --no-workspaces --message 'Create %s for client package' --force
+          npm version prerelease --preid alpha --no-workspaces --message 'Create %s for client package'
           rmdir .git
           git push && git push --tags
 
-      - name: Version package
-        working-directory: packages/client
-        run: npm publish --access public --dry-run
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # - name: Release package
+      #   working-directory: packages/client
+      #   run: npm publish --access public --dry-run
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
