@@ -50,6 +50,7 @@ jobs:
         working-directory: packages/client
         run: |
           npm whoami
-          npm publish --access public
+          npm publish --access public --no-workspaces
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
