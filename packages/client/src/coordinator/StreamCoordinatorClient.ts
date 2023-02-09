@@ -78,6 +78,7 @@ export class StreamCoordinatorClient {
     type: string,
     data: GetCallEdgeServerRequest,
   ) => {
+    // update
     return this.client.post<GetCallEdgeServerResponse>(
       `/call/{type}/{id}/get_edge_server`,
       data,
