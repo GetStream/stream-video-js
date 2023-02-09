@@ -8,7 +8,7 @@ clone them and follow their appropriate READMEs found in their root.
 
 - [GetStream/video](https://github.com/GetStream/video) - Coordinator API
 - [GetStream/video-sfu](https://github.com/GetStream/video-sfu) - SFU API
-- [GetStream/video-proto](https://github.com/GetStream/video) - Proto files and client generation scripts
+- [GetStream/video-proto](https://github.com/GetStream/video-proto) - Proto files and client generation scripts
 
 ## Setup
 
