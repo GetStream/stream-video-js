@@ -23,7 +23,10 @@ export const ActiveCallPanel = ({
   remoteParticipant,
   localParticipant,
 }: ActiveCallPanelProps) => {
-  const { imageUrl } = useConnectedUser();
+  const {
+    // @ts-expect-error
+    imageUrl,
+  } = useConnectedUser();
 
   const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
 
@@ -36,7 +39,7 @@ export const ActiveCallPanel = ({
   const remoteParticipantImage = remoteParticipant
     ? Object.values(activeCall.data.users).find(
         (user) => user.id === remoteParticipant.userId,
-      ).imageUrl
+      ).image
     : undefined;
 
   return (

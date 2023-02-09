@@ -1,6 +1,7 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { EVENT_MAP } from './events';
 import { StableWSConnection } from './connection';
+import { CallResponse, UserResponse } from '../../gen/coordinator';
 
 export type UR = Record<string, unknown>;
 
@@ -13,24 +14,12 @@ export type User = {
   username?: string;
 };
 
-export type UserResponse = User & {
-  banned?: boolean;
-  created_at?: string;
-  deactivated_at?: string;
-  deleted_at?: string;
-  last_active?: string;
-  online?: boolean;
-  revoke_tokens_issued_before?: string;
-  shadow_banned?: boolean;
-  updated_at?: string;
-};
-
 export type OwnUserBase = {
   invisible?: boolean;
   roles?: string[];
 };
 
-export type OwnUserResponse = UserResponse & OwnUserBase;
+export type OwnUserResponse = User & UserResponse & OwnUserBase;
 
 export type ConnectionOpen = {
   connection_id: string;
@@ -66,6 +55,8 @@ export class ErrorFromResponse<T> extends Error {
 export type EventTypes = 'all' | keyof typeof EVENT_MAP;
 export type Event = {
   type: EventTypes;
+
+  call?: CallResponse;
 
   received_at?: string | Date;
   online?: boolean;

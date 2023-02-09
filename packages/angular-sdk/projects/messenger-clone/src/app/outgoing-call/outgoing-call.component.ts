@@ -44,7 +44,7 @@ export class OutgoingCallComponent implements OnInit {
       });
     this.subscripitions.push(
       this.streamVideoService.acceptedCall$.subscribe((call) => {
-        if (call?.call?.id === this.data.id) {
+        if (call?.call_cid === this.data.id) {
           this.joinCall();
         }
       }),

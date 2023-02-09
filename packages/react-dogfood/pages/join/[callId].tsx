@@ -40,11 +40,7 @@ const JoinCall = (props: JoinCallProps) => {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <StreamVideo client={client}>
-        <StreamMeeting
-          currentUser={user.name}
-          callId={callId}
-          callType={callType}
-        >
+        <StreamMeeting callId={callId} callType={callType}>
           <MeetingUI />
         </StreamMeeting>
       </StreamVideo>

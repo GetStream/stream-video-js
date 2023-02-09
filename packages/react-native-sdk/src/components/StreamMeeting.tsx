@@ -1,17 +1,17 @@
-import { CreateCallInput } from '@stream-io/video-client';
 import {
   useActiveCall,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { PropsWithChildren, useEffect } from 'react';
 import InCallManager from 'react-native-incall-manager';
+import { GetOrCreateCallRequest } from '@stream-io/video-client';
 
 export type StreamMeetingProps = {
   callId: string;
   callType: string;
   currentUser: string;
   autoJoin?: boolean;
-  input?: CreateCallInput;
+  input?: Omit<GetOrCreateCallRequest, 'members'>;
   onActiveCall?: () => void;
 };
 
@@ -30,10 +30,11 @@ export const StreamMeeting = ({
   useEffect(() => {
     if (!client) return;
     const initiateMeeting = async () => {
-      const callMetadata = await client.getOrCreateCall(callId, callType, {
-        ring: input?.ring,
-        // FIXME: OL check whether the remaining of the data needs to be provided
-      });
+      const callMetadata = await client.getOrCreateCall(
+        callId,
+        callType,
+        input,
+      );
       if (callMetadata?.call?.created_by.id === currentUser || autoJoin) {
         await client.joinCall(callId, callType);
         InCallManager.start({ media: 'video' });

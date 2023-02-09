@@ -1,7 +1,7 @@
 import { Secret } from 'jsonwebtoken';
 import { UserFromToken, JWTServerToken, JWTUserToken } from './signing';
 import { isFunction } from './utils';
-import { TokenOrProvider, UserResponse } from './types';
+import { OwnUserResponse, TokenOrProvider } from './types';
 
 /**
  * TokenManager
@@ -14,7 +14,7 @@ export class TokenManager {
   secret?: Secret;
   token?: string;
   tokenProvider?: TokenOrProvider;
-  user?: UserResponse;
+  user?: OwnUserResponse;
   /**
    * Constructor
    *
@@ -42,7 +42,7 @@ export class TokenManager {
    */
   setTokenOrProvider = async (
     tokenOrProvider: TokenOrProvider,
-    user: UserResponse,
+    user: OwnUserResponse,
   ) => {
     this.validateToken(tokenOrProvider, user);
     this.user = user;
@@ -76,7 +76,7 @@ export class TokenManager {
   };
 
   // Validates the user token.
-  validateToken = (tokenOrProvider: TokenOrProvider, user: UserResponse) => {
+  validateToken = (tokenOrProvider: TokenOrProvider, user: OwnUserResponse) => {
     // allow empty token for anon user
     if (user && user.anon && !tokenOrProvider) return;
 

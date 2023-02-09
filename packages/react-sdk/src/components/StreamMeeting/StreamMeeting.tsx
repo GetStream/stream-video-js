@@ -1,5 +1,5 @@
 import { PropsWithChildren, useEffect } from 'react';
-import { CreateCallInput } from '@stream-io/video-client';
+import { GetOrCreateCallRequest } from '@stream-io/video-client';
 import {
   useActiveCall,
   useStreamVideoClient,
@@ -9,15 +9,13 @@ import { MediaDevicesProvider } from '../../contexts';
 export type StreamMeetingProps = {
   callId: string;
   callType: string;
-  currentUser: string;
-  input?: CreateCallInput;
+  input?: Omit<GetOrCreateCallRequest, 'members'>;
 };
 
 export const StreamMeeting = ({
   children,
   callId,
   callType,
-  currentUser,
   input,
 }: PropsWithChildren<StreamMeetingProps>) => {
   const client = useStreamVideoClient();
@@ -26,15 +24,13 @@ export const StreamMeeting = ({
   useEffect(() => {
     if (!client) return;
     const initiateMeeting = async () => {
-      await client.joinCall(callId, callType, {
-        ring: false,
-      });
+      await client.joinCall(callId, callType, input);
     };
 
     initiateMeeting().catch((e) => {
       console.error(`Failed to getOrCreateCall`, callId, callType, e);
     });
-  }, [callId, client, callType, currentUser, input]);
+  }, [callId, client, callType, input]);
 
   return (
     <MediaDevicesProvider enumerate={!!activeCall}>

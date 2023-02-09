@@ -119,12 +119,15 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
     try {
       let callId: string;
       if (this.joinOrCreate === 'create') {
-        const response = await this.streamVideoService.videoClient?.createCall({
-          type: 'default',
-        });
-        // FIXME OL: adjust to new API
-        // this.callMeta = response?.call;
-        callId = this.callMeta!.id;
+        const response =
+          await this.streamVideoService.videoClient?.getOrCreateCall(
+            String(Math.round(Math.random() * 100000)),
+            'default',
+            {
+              ring: false,
+            },
+          );
+        callId = response!.call.id!;
       } else {
         callId = this.callMeta!.id;
       }

@@ -31,7 +31,6 @@ import {
   OwnUserResponse,
   StreamClientOptions,
   TokenOrProvider,
-  UserResponse,
 } from './types';
 import { InsightMetrics, postInsights } from './insights';
 
@@ -40,7 +39,7 @@ function isString(x: unknown): x is string {
 }
 
 export class StreamClient {
-  _user?: OwnUserResponse | UserResponse;
+  _user?: OwnUserResponse;
   anonymous: boolean;
   persistUserOnConnectionFailure?: boolean;
   axiosInstance: AxiosInstance;
@@ -57,7 +56,7 @@ export class StreamClient {
   secret?: string;
   setUserPromise: ConnectAPIResponse | null;
   tokenManager: TokenManager;
-  user?: OwnUserResponse | UserResponse;
+  user?: OwnUserResponse;
   userAgent?: string;
   userID?: string;
   wsBaseURL?: string;
@@ -189,13 +188,13 @@ export class StreamClient {
   /**
    * connectUser - Set the current user and open a WebSocket connection
    *
-   * @param {OwnUserResponse | UserResponse} user Data about this user. IE {name: "john"}
+   * @param {OwnUserResponse} user Data about this user. IE {name: "john"}
    * @param {TokenOrProvider} userTokenOrProvider Token or provider
    *
    * @return {ConnectAPIResponse} Returns a promise that resolves when the connection is setup
    */
   connectUser = async (
-    user: OwnUserResponse | UserResponse,
+    user: OwnUserResponse,
     userTokenOrProvider: TokenOrProvider,
   ) => {
     if (!user.id) {
@@ -254,10 +253,10 @@ export class StreamClient {
     }
   };
 
-  _setToken = (user: UserResponse, userTokenOrProvider: TokenOrProvider) =>
+  _setToken = (user: OwnUserResponse, userTokenOrProvider: TokenOrProvider) =>
     this.tokenManager.setTokenOrProvider(userTokenOrProvider, user);
 
-  _setUser(user: OwnUserResponse | UserResponse) {
+  _setUser(user: OwnUserResponse) {
     /**
      * This one is used by the frontend. This is a copy of the current user object stored on backend.
      * It contains reserved properties and own user properties which are not present in `this._user`.
@@ -393,7 +392,7 @@ export class StreamClient {
     const anonymousUser = {
       id: this.userID,
       anon: true,
-    } as UserResponse;
+    } as unknown as OwnUserResponse;
 
     this._setToken(anonymousUser, '');
     this._setUser(anonymousUser);
@@ -622,7 +621,7 @@ export class StreamClient {
   _callClientListeners = (event: Event) => {
     const client = this;
     // gather and call the listeners
-    const listeners: Array<(event: Event) => void> = [];
+    const listeners: Array<(e: Event) => void> = [];
     if (client.listeners.all) {
       listeners.push(...client.listeners.all);
     }

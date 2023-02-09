@@ -92,7 +92,7 @@ export interface CallAccepted {
    * @type {string}
    * @memberof CallAccepted
    */
-  call_cid?: string;
+  call_cid: string;
   /**
    *
    * @type {string}
@@ -123,7 +123,7 @@ export interface CallCancelled {
    * @type {string}
    * @memberof CallCancelled
    */
-  call_cid?: string;
+  call_cid: string;
   /**
    *
    * @type {string}
@@ -154,7 +154,7 @@ export interface CallCreated {
    * @type {CallResponse}
    * @memberof CallCreated
    */
-  call?: CallResponse;
+  call: CallResponse;
   /**
    *
    * @type {string}
@@ -191,7 +191,7 @@ export interface CallEnded {
    * @type {string}
    * @memberof CallEnded
    */
-  call_cid?: string;
+  call_cid: string;
   /**
    *
    * @type {string}
@@ -222,7 +222,7 @@ export interface CallPermissionRequest {
    * @type {string}
    * @memberof CallPermissionRequest
    */
-  call_cid?: string;
+  call_cid: string;
   /**
    *
    * @type {string}
@@ -290,7 +290,7 @@ export interface CallRejected {
    * @type {string}
    * @memberof CallRejected
    */
-  call_cid?: string;
+  call_cid: string;
   /**
    *
    * @type {string}
@@ -509,6 +509,31 @@ export interface CallSettingsResponse {
 /**
  *
  * @export
+ * @interface CallStateResponseFields
+ */
+export interface CallStateResponseFields {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallStateResponseFields
+   */
+  call: CallResponse;
+  /**
+   * List of call members
+   * @type {Array<MemberResponse>}
+   * @memberof CallStateResponseFields
+   */
+  members?: Array<MemberResponse>;
+  /**
+   *
+   * @type {MemberResponse}
+   * @memberof CallStateResponseFields
+   */
+  membership?: MemberResponse;
+}
+/**
+ *
+ * @export
  * @interface CallUpdated
  */
 export interface CallUpdated {
@@ -517,7 +542,7 @@ export interface CallUpdated {
    * @type {CallResponse}
    * @memberof CallUpdated
    */
-  call?: CallResponse;
+  call: CallResponse;
   /**
    *
    * @type {{ [key: string]: Array<string>; }}
@@ -592,7 +617,7 @@ export interface Custom {
    * @type {string}
    * @memberof Custom
    */
-  call_cid?: string;
+  call_cid: string;
   /**
    *
    * @type {string}
@@ -860,6 +885,43 @@ export interface ICEServer {
 /**
  *
  * @export
+ * @interface JoinCallRequest
+ */
+export interface JoinCallRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof JoinCallRequest
+   */
+  connection_id?: string;
+  /**
+   *
+   * @type {CallRequest}
+   * @memberof JoinCallRequest
+   */
+  data?: CallRequest;
+  /**
+   *
+   * @type {string}
+   * @memberof JoinCallRequest
+   */
+  datacenter_hinted_id?: string;
+  /**
+   *
+   * @type {PaginationParamsRequest}
+   * @memberof JoinCallRequest
+   */
+  members?: PaginationParamsRequest;
+  /**
+   *
+   * @type {boolean}
+   * @memberof JoinCallRequest
+   */
+  ring?: boolean;
+}
+/**
+ *
+ * @export
  * @interface JoinCallResponse
  */
 export interface JoinCallResponse {
@@ -1070,6 +1132,232 @@ export interface PushNotificationSettingsRequest {
 /**
  *
  * @export
+ * @interface QueryCallRequest
+ */
+export interface QueryCallRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallRequest
+   */
+  client_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallRequest
+   */
+  connection_id: string;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof QueryCallRequest
+   */
+  custom?: { [key: string]: any };
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof QueryCallRequest
+   */
+  filter_conditions?: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallRequest
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallRequest
+   */
+  image?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof QueryCallRequest
+   */
+  limit?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof QueryCallRequest
+   */
+  member_limit?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof QueryCallRequest
+   */
+  message_limit?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallRequest
+   */
+  name?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallRequest
+   */
+  next?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallRequest
+   */
+  prev?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallRequest
+   */
+  role: string;
+  /**
+   *
+   * @type {Array<SortParamRequest>}
+   * @memberof QueryCallRequest
+   */
+  sort: Array<SortParamRequest>;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof QueryCallRequest
+   */
+  teams?: Array<string>;
+  /**
+   *
+   * @type {boolean}
+   * @memberof QueryCallRequest
+   */
+  watch?: boolean;
+}
+/**
+ *
+ * @export
+ * @interface QueryCallsResponse
+ */
+export interface QueryCallsResponse {
+  /**
+   *
+   * @type {Array<CallStateResponseFields>}
+   * @memberof QueryCallsResponse
+   */
+  calls?: Array<CallStateResponseFields>;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallsResponse
+   */
+  duration?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallsResponse
+   */
+  next?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallsResponse
+   */
+  prev?: string;
+}
+/**
+ *
+ * @export
+ * @interface QueryMembersRequest
+ */
+export interface QueryMembersRequest {
+  /**
+   * Websocket connection ID to interact with. You can pass it as body or URL parameter
+   * @type {string}
+   * @memberof QueryMembersRequest
+   */
+  connection_id: string;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof QueryMembersRequest
+   */
+  filter_conditions: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof QueryMembersRequest
+   */
+  id?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof QueryMembersRequest
+   */
+  limit?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryMembersRequest
+   */
+  next?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryMembersRequest
+   */
+  prev?: string;
+  /**
+   *
+   * @type {Array<SortParamRequest>}
+   * @memberof QueryMembersRequest
+   */
+  sort?: Array<SortParamRequest>;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryMembersRequest
+   */
+  type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryMembersRequest
+   */
+  user_id?: string;
+}
+/**
+ *
+ * @export
+ * @interface QueryMembersResponse
+ */
+export interface QueryMembersResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof QueryMembersResponse
+   */
+  duration?: string;
+  /**
+   *
+   * @type {Array<MemberResponse>}
+   * @memberof QueryMembersResponse
+   */
+  members?: Array<MemberResponse>;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryMembersResponse
+   */
+  next?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryMembersResponse
+   */
+  prev?: string;
+}
+/**
+ *
+ * @export
  * @interface RecordSettings
  */
 export interface RecordSettings {
@@ -1101,7 +1389,7 @@ export interface RecordSettingsRequest {
 export interface RequestPermissionRequest {
   /**
    *
-   * @type {Array}
+   * @type {Array<string>}
    * @memberof RequestPermissionRequest
    */
   permissions: RequestPermissionRequestPermissionsEnum;
@@ -1110,11 +1398,7 @@ export interface RequestPermissionRequest {
 /**
  * @export
  */
-export const RequestPermissionRequestPermissionsEnum = {
-  screenshare: 'screenshare',
-  send_audio: 'send-audio',
-  send_video: 'send-video',
-} as const;
+export const RequestPermissionRequestPermissionsEnum = {} as const;
 export type RequestPermissionRequestPermissionsEnum =
   (typeof RequestPermissionRequestPermissionsEnum)[keyof typeof RequestPermissionRequestPermissionsEnum];
 
@@ -1219,6 +1503,25 @@ export interface SendEventResponse {
    * @memberof SendEventResponse
    */
   duration?: string;
+}
+/**
+ *
+ * @export
+ * @interface SortParamRequest
+ */
+export interface SortParamRequest {
+  /**
+   *
+   * @type {number}
+   * @memberof SortParamRequest
+   */
+  direction?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof SortParamRequest
+   */
+  field?: string;
 }
 /**
  *

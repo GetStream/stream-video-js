@@ -5,7 +5,7 @@ import {
   CssBaseline,
   ThemeProvider,
 } from '@mui/material';
-import { CreateCallInput, User } from '@stream-io/video-client';
+import { GetOrCreateCallRequest, User } from '@stream-io/video-client';
 import {
   StreamMeeting,
   StreamVideo,
@@ -46,9 +46,9 @@ const App = () => {
   });
   const [callId, setCallId] = useState<string | undefined>(undefined);
   const [callType, setCallType] = useState<string>('default');
-  const [callInput, setCallInput] = useState<CreateCallInput | undefined>(
-    undefined,
-  );
+  const [callInput, setCallInput] = useState<
+    Omit<GetOrCreateCallRequest, 'members'> | undefined
+  >(undefined);
   const [errorMessage] = useState('');
 
   useEffect(() => {
@@ -76,16 +76,16 @@ const App = () => {
     user,
   });
 
-  const createCall = async (id: string, participants: string[]) => {
+  const createCall = async (id: string, invitees: string[]) => {
     setCallId(id);
     setCallType('default');
     setCallInput({
-      createdBy: { oneofKind: 'userId', userId: currentUser },
-      members: participants.map((userId) => ({
-        userId,
-        role: 'admin',
-        customJson: new TextEncoder().encode(JSON.stringify({})),
-      })),
+      data: {
+        members: invitees.map((userId) => ({
+          user_id: userId,
+          role: 'admin',
+        })),
+      },
     });
   };
 
@@ -124,7 +124,6 @@ const App = () => {
                     callId={callId}
                     callType={callType}
                     input={callInput}
-                    currentUser={currentUser}
                   >
                     <MeetingUI />
                   </StreamMeeting>

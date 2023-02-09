@@ -43,9 +43,7 @@ export class CallComponent implements OnInit, OnDestroy {
       this.streamVideoService.activeCall$.subscribe((c) => {
         if (c) {
           this.call = c;
-          const channelId = JSON.parse(
-            new TextDecoder().decode(this.call?.data.call?.customJson),
-          ).channelId;
+          const channelId = this.call?.data.call.custom?.['channelId'];
           this.chatClientService.chatClient
             .queryChannels({ id: channelId }, undefined, { watch: false })
             .then((response) => {
@@ -70,7 +68,7 @@ export class CallComponent implements OnInit, OnDestroy {
         this.isLocalParticipantCallOwner = !!(
           user &&
           activeCall &&
-          user?.id === activeCall.data.call!.createdByUserId
+          user?.id === activeCall.data.call.created_by.id
         );
       }),
     );
@@ -107,9 +105,7 @@ export class CallComponent implements OnInit, OnDestroy {
   }
 
   endCall() {
-    this.streamVideoService.videoClient?.cancelCall(
-      this.call!.data.call!.callCid,
-    );
+    this.streamVideoService.videoClient?.cancelCall(this.call!.data.call.cid!);
   }
 
   ngOnInit(): void {}

@@ -46,7 +46,11 @@ export class StreamCoordinatorClient {
   };
 
   connectUser = async (user: User, token: TokenOrProvider) => {
-    return this.client.connectUser(user, token);
+    return this.client.connectUser(
+      // @ts-expect-error
+      user,
+      token,
+    );
   };
 
   disconnectUser = async (timeout?: number) => {
@@ -80,7 +84,7 @@ export class StreamCoordinatorClient {
     data: GetCallEdgeServerRequest,
   ) => {
     return this.client.post<GetCallEdgeServerResponse>(
-      `/get_call_edge_server/${type}/${id}`,
+      `/call/${type}/${id}/get_edge_server`,
       data,
     );
   };

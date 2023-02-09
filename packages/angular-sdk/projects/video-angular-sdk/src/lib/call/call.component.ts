@@ -79,17 +79,15 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
           call &&
           !this.streamVideoService.videoClient?.callConfig.joinCallInstantly
         ) {
-          this.ngZone.runOutsideAngular(() =>
-            this.streamVideoService.videoClient?.joinCall(
-              call.call!.id,
-              call.call!.type,
-            ),
-          );
+          this.ngZone.runOutsideAngular(() => {
+            const [type, id] = call.call_cid.split(':');
+            return this.streamVideoService.videoClient?.joinCall(id, type);
+          });
         }
       }),
     );
     this.subscriptions.push(
-      this.streamVideoService.activeCall$.subscribe(async (c) => {
+      this.streamVideoService.activeCall$.subscribe((c) => {
         this.call = c;
         if (c) {
           this.deviceManager.initVideoDevices();

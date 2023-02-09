@@ -1,14 +1,14 @@
 import { Injectable, NgZone } from '@angular/core';
 import {
   Call,
-  CallAccepted,
   CallConfig,
   CallStatsReport,
-  PendingCall,
+  CallMetadata,
   StreamVideoClient,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
   User,
+  CallAccepted,
 } from '@stream-io/video-client';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 
@@ -34,15 +34,15 @@ export class StreamVideoService {
   /**
    * A list of objects describing all created calls that have not been yet accepted, rejected nor cancelled.
    */
-  pendingCalls$: Observable<PendingCall[]>;
+  pendingCalls$: Observable<CallMetadata[]>;
   /**
    * A list of objects describing calls initiated by the current user (connectedUser).
    */
-  outgoingCalls$: Observable<PendingCall[]>;
+  outgoingCalls$: Observable<CallMetadata[]>;
   /**
    * A list of objects describing incoming calls.
    */
-  incomingCalls$: Observable<PendingCall[]>;
+  incomingCalls$: Observable<CallMetadata[]>;
   /**
    * The call data describing an incoming call accepted by a participant.
    * Serves as a flag decide, whether an incoming call should be joined.
@@ -109,12 +109,11 @@ export class StreamVideoService {
     new ReplaySubject(1);
   private hasOngoingScreenShareSubject: ReplaySubject<boolean> =
     new ReplaySubject(1);
-  private pendingCallsSubject: ReplaySubject<PendingCall[]> = new ReplaySubject(
-    1,
-  );
-  private outgoingCallsSubject: ReplaySubject<PendingCall[]> =
+  private pendingCallsSubject: ReplaySubject<CallMetadata[]> =
     new ReplaySubject(1);
-  private incomingCallsSubject: ReplaySubject<PendingCall[]> =
+  private outgoingCallsSubject: ReplaySubject<CallMetadata[]> =
+    new ReplaySubject(1);
+  private incomingCallsSubject: ReplaySubject<CallMetadata[]> =
     new ReplaySubject(1);
   private subscriptions: Subscription[] = [];
 

@@ -1,10 +1,10 @@
 import { ParticipantPlaceholder } from './ParticipantPlaceholder';
 import { IncomingCallControls, OutgoingCallControls } from './CallControls';
-import { PendingCall, User } from '@stream-io/video-client';
+import { CallMetadata, User } from '@stream-io/video-client';
 
 type OutgoingCallPanelProps = {
-  incomingCall?: PendingCall;
-  outgoingCall?: PendingCall;
+  incomingCall?: CallMetadata;
+  outgoingCall?: CallMetadata;
   localUser?: User;
   remoteUser?: User;
 };
@@ -34,10 +34,10 @@ export const PendingCallPanel = ({
       </div>
 
       {outgoingCall && !incomingCall && (
-        <OutgoingCallControls callCid={outgoingCall.call.callCid} />
+        <OutgoingCallControls callCid={outgoingCall.call.cid} />
       )}
       {incomingCall && !outgoingCall && (
-        <IncomingCallControls callCid={incomingCall.call.callCid} />
+        <IncomingCallControls callCid={incomingCall.call.cid} />
       )}
     </div>
   </div>

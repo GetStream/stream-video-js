@@ -19,7 +19,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 import { OutgoingCallComponent } from '../outgoing-call/outgoing-call.component';
-import { CoordinatorModels } from '@stream-io/video-client';
+import { MemberRequest } from '@stream-io/video-client';
 
 @Component({
   selector: 'app-chat',
@@ -88,12 +88,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         this.userService.users.find((u) => u.user.id === userId),
       )
       .filter((m) => !!m);
-    const memberInput: CoordinatorModels.MemberRequest[] = (members || []).map(
-      (m) => ({
-        user_id: m!.user.id,
-        role: m!.user.role!,
-      }),
-    );
+    const memberInput: MemberRequest[] = (members || []).map((m) => ({
+      user_id: m!.user.id,
+      role: m!.user.role!,
+    }));
     try {
       const call = await this.videoService.videoClient?.getOrCreateCall(
         uuidv4(),

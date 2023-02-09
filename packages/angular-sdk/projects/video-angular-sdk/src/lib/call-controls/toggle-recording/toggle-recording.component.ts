@@ -36,12 +36,12 @@ export class ToggleRecordingComponent implements OnInit, OnDestroy {
   toggleRecording() {
     this.isCallRecordingInProgress
       ? this.streamVideoService.videoClient?.stopRecording(
-          this.call!.data.call!.id,
-          this.call!.data.call!.type,
+          this.call!.data.call.id!,
+          this.call!.data.call.type!,
         )
       : this.streamVideoService.videoClient?.startRecording(
-          this.call!.data.call!.id,
-          this.call!.data.call!.type,
+          this.call!.data.call.id!,
+          this.call!.data.call.type!,
         );
   }
 }

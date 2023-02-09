@@ -1,6 +1,6 @@
 import {
   Call,
-  PendingCall,
+  CallMetadata,
   SfuModels,
   StreamVideoLocalParticipant,
 } from '@stream-io/video-client';
@@ -109,7 +109,7 @@ export const ActiveCallControls = ({
       </button>
       <button
         className="rmc__button rmc__button--red"
-        onClick={() => videoClient.cancelCall(activeCall.data.call.callCid)}
+        onClick={() => videoClient.cancelCall(activeCall.data.call.cid)}
       >
         <PhoneDisabled />
       </button>
@@ -119,8 +119,8 @@ export const ActiveCallControls = ({
 
 type ButtonControlsProps = {
   activeCall?: Call;
-  outgoingCall?: PendingCall;
-  incomingCall?: PendingCall;
+  outgoingCall?: CallMetadata;
+  incomingCall?: CallMetadata;
   localParticipant?: StreamVideoLocalParticipant;
   publishAudioStream?: () => Promise<void>;
   publishVideoStream?: () => Promise<void>;
@@ -150,13 +150,13 @@ export const CallControls = ({
         <>
           <button
             className="rmc__button rmc__button--green"
-            onClick={() => videoClient.acceptCall(incomingCall.call.callCid)}
+            onClick={() => videoClient.acceptCall(incomingCall.call.cid)}
           >
             <LocalPhone />
           </button>
           <button
             className="rmc__button rmc__button--red"
-            onClick={() => videoClient.rejectCall(incomingCall.call.callCid)}
+            onClick={() => videoClient.rejectCall(incomingCall.call.cid)}
           >
             <PhoneDisabled />
           </button>

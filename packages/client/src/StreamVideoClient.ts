@@ -141,10 +141,26 @@ export class StreamVideoClient {
       this.cancelCall,
     );
 
-    this.on('call.created', watchCallCreated(this.writeableStateStore));
-    this.on('call.accepted', watchCallAccepted(this.writeableStateStore));
-    this.on('call.rejected', watchCallRejected(this.writeableStateStore));
-    this.on('call.cancelled', watchCallCancelled(this.writeableStateStore));
+    this.on(
+      'call.created',
+      // @ts-expect-error
+      watchCallCreated(this.writeableStateStore),
+    );
+    this.on(
+      'call.accepted',
+      // @ts-expect-error
+      watchCallAccepted(this.writeableStateStore),
+    );
+    this.on(
+      'call.rejected',
+      // @ts-expect-error
+      watchCallRejected(this.writeableStateStore),
+    );
+    this.on(
+      'call.cancelled',
+      // @ts-expect-error
+      watchCallCancelled(this.writeableStateStore),
+    );
 
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
