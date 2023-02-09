@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - video-coordinator
-      - client-initial-release
     paths:
       - '.github/workflows/release-client.yml'
       - 'packages/client/**'
@@ -49,6 +48,6 @@ jobs:
 
       - name: Release package
         working-directory: packages/client
-        run: npm publish --access public --dry-run
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
