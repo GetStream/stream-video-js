@@ -48,6 +48,8 @@ jobs:
 
       - name: Release package
         working-directory: packages/client
-        run: npm publish --access public
+        run: |
+          npm whoami
+          npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
