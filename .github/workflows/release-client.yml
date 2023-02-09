@@ -1,4 +1,4 @@
-name: Release client
+name: Release and version client
 
 on:
   push:
