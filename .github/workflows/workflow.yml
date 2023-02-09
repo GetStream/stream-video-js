@@ -9,9 +9,9 @@ env:
 on:
   # Trigger flow when pushing in main or pull requests, and when creating
   # a pull request.
-  push:
-    branches:
-      - main
+  # push:
+  #  branches:
+  #    - main
   pull_request:
     types: [ opened, synchronize, reopened ]
 
