@@ -47,8 +47,8 @@ jobs:
           rmdir .git
           git push && git push --tags
 
-      # - name: Release package
-      #   working-directory: packages/client
-      #   run: npm publish --access public --dry-run
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Release package
+        working-directory: packages/client
+        run: npm publish --access public --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
