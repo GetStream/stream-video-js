@@ -4,6 +4,7 @@
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "license": "See license in LICENSE",
   "scripts": {
     "clean": "rimraf dist",
     "start": "rollup -w -c",
@@ -48,5 +49,6 @@
     "vite": "^3.2.5",
     "vitest": "^0.25.4",
     "vitest-mock-extended": "^1.0.7"
-  }
+  },
+  "version": "0.0.1-alpha.2"
 }
