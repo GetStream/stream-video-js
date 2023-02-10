@@ -11,6 +11,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
+import { MemberRequest } from '@stream-io/video-client';
 
 const styles = StyleSheet.create({
   container: {
@@ -94,17 +95,13 @@ const JoinCallScreen = () => {
 
     if (client) {
       try {
-        await client.createCall({
-          id: callID,
-          type: 'default',
-          input: {
-            createdBy: { oneofKind: 'userId', userId: username },
-            ring: true,
-            members: ringingUserIds.map((ringingUserId) => {
+        await client.joinCall(callID, 'default', {
+          ring: true,
+          data: {
+            members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
               return {
-                userId: ringingUserId,
+                user_id: ringingUserId,
                 role: 'member',
-                customJson: new Uint8Array(),
               };
             }),
           },
@@ -113,7 +110,7 @@ const JoinCallScreen = () => {
         console.log('Failed to createCall', callID, 'default', error);
       }
     }
-  }, [ringingUsers, ringingUserIdsText, client, username]);
+  }, [ringingUsers, ringingUserIdsText, client]);
 
   const isRingingUserSelected = (userId: string) =>
     ringingUsers.find((ringingUser) => ringingUser === userId);
