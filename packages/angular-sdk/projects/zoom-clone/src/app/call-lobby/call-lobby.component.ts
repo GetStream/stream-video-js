@@ -15,9 +15,9 @@ import {
 import { Subscription } from 'rxjs';
 import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CallMeta } from '@stream-io/video-client';
 import { ChannelService, ChatClientService } from 'stream-chat-angular';
 import { UserService } from '../user.service';
+import { CallMetadata } from '@stream-io/video-client';
 
 @Component({
   selector: 'app-call-lobby',
@@ -33,7 +33,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   audioErrorMessage?: string;
   isSpeaking = false;
   joinOrCreate: 'join' | 'create' = 'create';
-  callMeta?: CallMeta.Call;
+  callMeta?: CallMetadata;
   isJoinOrCreateInProgress = false;
   private subscripitions: Subscription[] = [];
   @ViewChild('invite') private inviteRef!: TemplateRef<any>;
@@ -106,7 +106,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   }
 
   get inviteLink() {
-    return `${window.location.host}/call?callid=${this.callMeta?.id}`;
+    return `${window.location.host}/call?callid=${this.callMeta?.call.id}`;
   }
 
   copyLink() {
@@ -129,7 +129,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
           );
         callId = response!.call.id!;
       } else {
-        callId = this.callMeta!.id;
+        callId = this.callMeta!.call.id;
       }
       await this.joinCall(callId);
       if (this.joinOrCreate === 'create') {

@@ -1,5 +1,4 @@
 import { StreamClient } from './connection/client';
-import { sleep } from './connection/utils';
 import {
   EventHandler,
   StreamClientOptions,

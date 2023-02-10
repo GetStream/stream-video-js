@@ -5,9 +5,9 @@ import {
   DeviceManagerService,
   StreamVideoService,
 } from '@stream-io/video-angular-sdk';
-import { CallMeta } from '@stream-io/video-client';
 import { Subscription } from 'rxjs';
 import { ChatClientService, getChannelDisplayText } from 'stream-chat-angular';
+import { CallMetadata } from '@stream-io/video-client';
 
 @Component({
   selector: 'app-outgoing-call',
@@ -25,14 +25,12 @@ export class OutgoingCallComponent implements OnInit {
     private streamVideoService: StreamVideoService,
     private snackBar: MatSnackBar,
     private ngZone: NgZone,
-    @Inject(MAT_DIALOG_DATA) public data: CallMeta.Call,
+    @Inject(MAT_DIALOG_DATA) public data: CallMetadata,
     private matDialogRef: MatDialogRef<any>,
     private deviceManager: DeviceManagerService,
     private chatClientService: ChatClientService,
   ) {
-    const channelId = JSON.parse(
-      new TextDecoder().decode(this.data?.customJson),
-    ).channelId;
+    const channelId = this.data.call.custom['channelId'];
     this.chatClientService.chatClient
       .queryChannels({ id: channelId }, undefined, { watch: false })
       .then((response) => {
@@ -44,7 +42,7 @@ export class OutgoingCallComponent implements OnInit {
       });
     this.subscripitions.push(
       this.streamVideoService.acceptedCall$.subscribe((call) => {
-        if (call?.call_cid === this.data.id) {
+        if (call?.call_cid === this.data.call.id) {
           this.joinCall();
         }
       }),
@@ -62,7 +60,7 @@ export class OutgoingCallComponent implements OnInit {
     try {
       await this.ngZone.runOutsideAngular(async () => {
         await this.streamVideoService.videoClient?.cancelCall(
-          this.data.callCid,
+          this.data.call.cid,
         );
       });
       this.matDialogRef.close();
@@ -80,7 +78,7 @@ export class OutgoingCallComponent implements OnInit {
     try {
       await this.ngZone.runOutsideAngular(async () => {
         await this.streamVideoService.videoClient?.joinCall(
-          this.data.id,
+          this.data.call.id,
           'default',
         );
       });
