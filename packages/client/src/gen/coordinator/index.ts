@@ -56,30 +56,17 @@ export interface APIError {
  */
 export interface Any {
   /**
-   *
+   * Date/time of creation
    * @type {string}
    * @memberof Any
    */
   created_at: string;
   /**
-   *
+   * Event Type
    * @type {string}
    * @memberof Any
    */
   type: string;
-}
-/**
- *
- * @export
- * @interface AudioSettings
- */
-export interface AudioSettings {
-  /**
-   *
-   * @type {boolean}
-   * @memberof AudioSettings
-   */
-  access_request_enabled: boolean;
 }
 /**
  *
@@ -352,7 +339,7 @@ export interface CallRequest {
    * @type {Array<MemberRequest>}
    * @memberof CallRequest
    */
-  members?: Array<MemberRequest>;
+  members: Array<MemberRequest>;
   /**
    *
    * @type {CallSettingsRequest}
@@ -488,12 +475,6 @@ export interface CallSettingsRequest {
  * @interface CallSettingsResponse
  */
 export interface CallSettingsResponse {
-  /**
-   *
-   * @type {AudioSettings}
-   * @memberof CallSettingsResponse
-   */
-  audio: AudioSettings;
   /**
    *
    * @type {BroadcastSettings}
@@ -690,6 +671,44 @@ export interface DatacenterResponse {
 /**
  *
  * @export
+ * @interface DeviceFieldsRequest
+ */
+export interface DeviceFieldsRequest {
+  /**
+   * Device ID
+   * @type {string}
+   * @memberof DeviceFieldsRequest
+   */
+  id?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof DeviceFieldsRequest
+   */
+  push_provider?: DeviceFieldsRequestPushProviderEnum;
+  /**
+   * Name of the push provider configuration
+   * @type {string}
+   * @memberof DeviceFieldsRequest
+   */
+  push_provider_name?: string;
+}
+
+/**
+ * @export
+ */
+export const DeviceFieldsRequestPushProviderEnum = {
+  firebase: 'firebase',
+  apn: 'apn',
+  huawei: 'huawei',
+  xiaomi: 'xiaomi',
+} as const;
+export type DeviceFieldsRequestPushProviderEnum =
+  (typeof DeviceFieldsRequestPushProviderEnum)[keyof typeof DeviceFieldsRequestPushProviderEnum];
+
+/**
+ *
+ * @export
  * @interface EndCallResponse
  */
 export interface EndCallResponse {
@@ -737,7 +756,7 @@ export interface GetCallEdgeServerRequest {
    * @type {{ [key: string]: Array<number>; }}
    * @memberof GetCallEdgeServerRequest
    */
-  latency_measurements?: { [key: string]: Array<number> };
+  latency_measurements: { [key: string]: Array<number> };
 }
 /**
  *
@@ -866,6 +885,43 @@ export interface ICEServer {
 /**
  *
  * @export
+ * @interface JoinCallRequest
+ */
+export interface JoinCallRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof JoinCallRequest
+   */
+  connection_id?: string;
+  /**
+   *
+   * @type {CallRequest}
+   * @memberof JoinCallRequest
+   */
+  data?: CallRequest;
+  /**
+   *
+   * @type {string}
+   * @memberof JoinCallRequest
+   */
+  datacenter_hinted_id?: string;
+  /**
+   *
+   * @type {PaginationParamsRequest}
+   * @memberof JoinCallRequest
+   */
+  members?: PaginationParamsRequest;
+  /**
+   *
+   * @type {boolean}
+   * @memberof JoinCallRequest
+   */
+  ring?: boolean;
+}
+/**
+ *
+ * @export
  * @interface JoinCallResponse
  */
 export interface JoinCallResponse {
@@ -923,7 +979,7 @@ export interface MemberRequest {
    * @type {string}
    * @memberof MemberRequest
    */
-  role?: string;
+  role: string;
   /**
    *
    * @type {UserObjectRequest}
@@ -935,7 +991,7 @@ export interface MemberRequest {
    * @type {string}
    * @memberof MemberRequest
    */
-  user_id?: string;
+  user_id: string;
 }
 /**
  *
@@ -986,7 +1042,7 @@ export interface MemberResponse {
    */
   user: UserResponse;
   /**
-   *
+   * User ID
    * @type {string}
    * @memberof MemberResponse
    */
@@ -1088,6 +1144,25 @@ export interface PaginationParamsRequest {
 /**
  *
  * @export
+ * @interface PushNotificationSettings
+ */
+export interface PushNotificationSettings {
+  /**
+   *
+   * @type {boolean}
+   * @memberof PushNotificationSettings
+   */
+  disabled?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof PushNotificationSettings
+   */
+  disabled_until?: string;
+}
+/**
+ *
+ * @export
  * @interface PushNotificationSettingsRequest
  */
 export interface PushNotificationSettingsRequest {
@@ -1115,13 +1190,13 @@ export interface QueryCallRequest {
    * @type {string}
    * @memberof QueryCallRequest
    */
-  client_id?: string;
+  client_id: string;
   /**
    *
    * @type {string}
    * @memberof QueryCallRequest
    */
-  connection_id?: string;
+  connection_id: string;
   /**
    *
    * @type {{ [key: string]: any; }}
@@ -1187,7 +1262,7 @@ export interface QueryCallRequest {
    * @type {string}
    * @memberof QueryCallRequest
    */
-  role?: string;
+  role: string;
   /**
    *
    * @type {Array<SortParamRequest>}
@@ -1220,7 +1295,7 @@ export interface QueryCallsResponse {
    */
   calls: Array<CallStateResponseFields>;
   /**
-   * Duration of the request in human-readable format
+   *
    * @type {string}
    * @memberof QueryCallsResponse
    */
@@ -1245,23 +1320,11 @@ export interface QueryCallsResponse {
  */
 export interface QueryMembersRequest {
   /**
-   *
+   * Websocket connection ID to interact with. You can pass it as body or URL parameter
    * @type {string}
    * @memberof QueryMembersRequest
    */
-  client_id?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof QueryMembersRequest
-   */
-  connection_id?: string;
-  /**
-   *
-   * @type {{ [key: string]: any; }}
-   * @memberof QueryMembersRequest
-   */
-  custom?: { [key: string]: any };
+  connection_id: string;
   /**
    *
    * @type {{ [key: string]: any; }}
@@ -1276,22 +1339,10 @@ export interface QueryMembersRequest {
   id?: string;
   /**
    *
-   * @type {string}
-   * @memberof QueryMembersRequest
-   */
-  image?: string;
-  /**
-   *
    * @type {number}
    * @memberof QueryMembersRequest
    */
   limit?: number;
-  /**
-   *
-   * @type {string}
-   * @memberof QueryMembersRequest
-   */
-  name?: string;
   /**
    *
    * @type {string}
@@ -1306,28 +1357,22 @@ export interface QueryMembersRequest {
   prev?: string;
   /**
    *
-   * @type {string}
-   * @memberof QueryMembersRequest
-   */
-  role?: string;
-  /**
-   *
    * @type {Array<SortParamRequest>}
    * @memberof QueryMembersRequest
    */
   sort?: Array<SortParamRequest>;
   /**
    *
-   * @type {Array<string>}
+   * @type {string}
    * @memberof QueryMembersRequest
    */
-  teams?: Array<string>;
+  type: string;
   /**
    *
    * @type {string}
    * @memberof QueryMembersRequest
    */
-  type: string;
+  user_id?: string;
 }
 /**
  *
@@ -1599,6 +1644,104 @@ export interface UpdateUserPermissionsResponse {
 /**
  * Represents chat user
  * @export
+ * @interface UserObject
+ */
+export interface UserObject {
+  [key: string]: any | any;
+  /**
+   * Expiration date of the ban
+   * @type {string}
+   * @memberof UserObject
+   */
+  ban_expires?: string;
+  /**
+   * Whether a user is banned or not
+   * @type {boolean}
+   * @memberof UserObject
+   */
+  banned: boolean;
+  /**
+   * Date/time of creation
+   * @type {string}
+   * @memberof UserObject
+   */
+  readonly created_at?: string;
+  /**
+   * Date of deactivation
+   * @type {string}
+   * @memberof UserObject
+   */
+  readonly deactivated_at?: string;
+  /**
+   * Date/time of deletion
+   * @type {string}
+   * @memberof UserObject
+   */
+  readonly deleted_at?: string;
+  /**
+   * Unique user identifier
+   * @type {string}
+   * @memberof UserObject
+   */
+  id: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof UserObject
+   */
+  invisible?: boolean;
+  /**
+   * Preferred language of a user
+   * @type {string}
+   * @memberof UserObject
+   */
+  language?: string;
+  /**
+   * Date of last activity
+   * @type {string}
+   * @memberof UserObject
+   */
+  readonly last_active?: string;
+  /**
+   * Whether a user online or not
+   * @type {boolean}
+   * @memberof UserObject
+   */
+  readonly online: boolean;
+  /**
+   *
+   * @type {PushNotificationSettings}
+   * @memberof UserObject
+   */
+  push_notifications?: PushNotificationSettings;
+  /**
+   * Revocation date for tokens
+   * @type {string}
+   * @memberof UserObject
+   */
+  revoke_tokens_issued_before?: string;
+  /**
+   * Determines the set of user permissions
+   * @type {string}
+   * @memberof UserObject
+   */
+  role: string;
+  /**
+   * List of teams user is a part of
+   * @type {Array<string>}
+   * @memberof UserObject
+   */
+  teams?: Array<string>;
+  /**
+   * Date/time of the last update
+   * @type {string}
+   * @memberof UserObject
+   */
+  readonly updated_at?: string;
+}
+/**
+ * Represents chat user
+ * @export
  * @interface UserObjectRequest
  */
 export interface UserObjectRequest {
@@ -1693,7 +1836,7 @@ export interface UserRequest {
    * @type {string}
    * @memberof UserRequest
    */
-  role?: string;
+  role: string;
   /**
    *
    * @type {Array<string>}
@@ -1765,6 +1908,31 @@ export interface UserResponse {
 /**
  *
  * @export
+ * @interface UserUpdated
+ */
+export interface UserUpdated {
+  /**
+   * Date/time of creation
+   * @type {string}
+   * @memberof UserUpdated
+   */
+  created_at: string;
+  /**
+   * Event Type
+   * @type {string}
+   * @memberof UserUpdated
+   */
+  type: string;
+  /**
+   *
+   * @type {UserObject}
+   * @memberof UserUpdated
+   */
+  user?: UserObject;
+}
+/**
+ *
+ * @export
  * @interface VideoSettings
  */
 export interface VideoSettings {
@@ -1799,4 +1967,29 @@ export interface VideoSettingsRequest {
    * @memberof VideoSettingsRequest
    */
   enabled?: boolean;
+}
+/**
+ *
+ * @export
+ * @interface VideoWSAuthMessageRequest
+ */
+export interface VideoWSAuthMessageRequest {
+  /**
+   *
+   * @type {DeviceFieldsRequest}
+   * @memberof VideoWSAuthMessageRequest
+   */
+  device?: DeviceFieldsRequest;
+  /**
+   * Token string
+   * @type {string}
+   * @memberof VideoWSAuthMessageRequest
+   */
+  token: string;
+  /**
+   *
+   * @type {UserObjectRequest}
+   * @memberof VideoWSAuthMessageRequest
+   */
+  user_details: UserObjectRequest;
 }

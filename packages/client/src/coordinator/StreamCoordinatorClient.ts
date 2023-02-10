@@ -62,7 +62,6 @@ export class StreamCoordinatorClient {
     type: string,
     data?: GetOrCreateCallRequest,
   ) => {
-    await sleep(1000);
     return this.client.post<GetOrCreateCallResponse>(
       `/call/${type}/${id}`,
       data,
@@ -74,7 +73,6 @@ export class StreamCoordinatorClient {
     type: string,
     data?: GetOrCreateCallRequest,
   ) => {
-    await sleep(1000);
     return this.client.post<JoinCallResponse>(`/join_call/${type}/${id}`, data);
   };
 
@@ -98,11 +96,11 @@ export class StreamCoordinatorClient {
   };
 
   startRecording = async (id: string, type: string) => {
-    console.log('Start recording is not implemented yet.');
+    return this.client.post(`/call/${type}/${id}/start_recording`, {});
   };
 
   stopRecording = async (id: string, type: string) => {
-    console.log('Stop recording is not implemented yet.');
+    return this.client.post(`/call/${type}/${id}/stop_recording`, {});
   };
 
   reportCallStats = async (id: string, type: string, data: UR) => {

@@ -34,6 +34,7 @@ import {
   TokenOrProvider,
   User,
 } from './coordinator/connection/types';
+import { sleep } from './coordinator/connection/utils';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -221,6 +222,8 @@ export class StreamVideoClient {
     type: string,
     data?: GetOrCreateCallRequest,
   ) => {
+    // FIXME OL: remove this hack
+    await sleep(1200);
     const response = await this.coordinatorClient.getOrCreateCall(
       id,
       type,
@@ -331,6 +334,8 @@ export class StreamVideoClient {
     type: string,
     data?: GetOrCreateCallRequest,
   ) => {
+    // FIXME OL: remove this hack
+    await sleep(1200);
     const joinCallResponse = await this.coordinatorClient.joinCall(
       id,
       type,
@@ -385,11 +390,15 @@ export class StreamVideoClient {
    * @param callType can be extracted from a [`Call` instance](./Call.md/#data)
    */
   startRecording = async (callId: string, callType: string) => {
-    await this.coordinatorClient.startRecording(callId, callType);
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.callRecordingInProgressSubject,
-      true,
-    );
+    try {
+      await this.coordinatorClient.startRecording(callId, callType);
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.callRecordingInProgressSubject,
+        true,
+      );
+    } catch (error) {
+      console.log(`Failed to start recording`, error);
+    }
   };
 
   /**
@@ -398,11 +407,15 @@ export class StreamVideoClient {
    * @param callType can be extracted from a [`Call` instance](./Call.md/#data)
    */
   stopRecording = async (callId: string, callType: string) => {
-    await this.coordinatorClient.stopRecording(callId, callType);
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.callRecordingInProgressSubject,
-      false,
-    );
+    try {
+      await this.coordinatorClient.stopRecording(callId, callType);
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.callRecordingInProgressSubject,
+        false,
+      );
+    } catch (error) {
+      console.log(`Failed to stop recording`, error);
+    }
   };
 
   /**
