@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 import { useParams } from 'react-router-dom';
 
@@ -8,6 +8,7 @@ import { ChatSidebar } from './ChatSidebar';
 export const Call = () => {
   const client = useStreamVideoClient();
   const { callId } = useParams();
+  const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
     const joining = client?.joinCall({
@@ -23,9 +24,16 @@ export const Call = () => {
 
   return (
     <div className="flex w-full h-full">
-      <MeetingUI />
+      <MeetingUI>
+        <button
+          onClick={() => setChatOpen((pv) => !pv)}
+          className="absolute right-4 bg-zinc-600 rounded-full flex justify-center items-center text-white px-2 py-1"
+        >
+          {chatOpen ? 'Close' : 'Open'} chat
+        </button>
+      </MeetingUI>
 
-      <ChatSidebar />
+      {chatOpen && <ChatSidebar />}
     </div>
   );
 };
