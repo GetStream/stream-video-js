@@ -84,7 +84,7 @@ jobs:
       #   run: yarn vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Test2
-        if: ${{ github.ref_name == 'main' || github.ref_name == '*2-deploy*' }}
+        if: ${{ github.ref_name == 'main' || github.ref_name == '*2-deploy' }}
         run: echo 'Production branch'
 
       - name: Test3
