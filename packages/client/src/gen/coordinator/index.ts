@@ -11,25 +11,25 @@ export interface APIError {
    * @type {number}
    * @memberof APIError
    */
-  StatusCode?: number;
+  StatusCode: number;
   /**
    * API error code
    * @type {number}
    * @memberof APIError
    */
-  code?: number;
+  code: number;
   /**
    * Additional error-specific information
    * @type {Array<number>}
    * @memberof APIError
    */
-  details?: Array<number>;
+  details: Array<number>;
   /**
    * Request duration
    * @type {string}
    * @memberof APIError
    */
-  duration?: string;
+  duration: string;
   /**
    * Additional error info
    * @type {{ [key: string]: string; }}
@@ -41,13 +41,13 @@ export interface APIError {
    * @type {string}
    * @memberof APIError
    */
-  message?: string;
+  message: string;
   /**
    * URL with additional information
    * @type {string}
    * @memberof APIError
    */
-  more_info?: string;
+  more_info: string;
 }
 /**
  *
@@ -56,17 +56,30 @@ export interface APIError {
  */
 export interface Any {
   /**
-   * Date/time of creation
+   *
    * @type {string}
    * @memberof Any
    */
-  created_at?: string;
+  created_at: string;
   /**
-   * Event Type
+   *
    * @type {string}
    * @memberof Any
    */
   type: string;
+}
+/**
+ *
+ * @export
+ * @interface AudioSettings
+ */
+export interface AudioSettings {
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettings
+   */
+  access_request_enabled: boolean;
 }
 /**
  *
@@ -79,7 +92,7 @@ export interface BroadcastSettings {
    * @type {boolean}
    * @memberof BroadcastSettings
    */
-  enabled?: boolean;
+  enabled: boolean;
 }
 /**
  *
@@ -88,7 +101,7 @@ export interface BroadcastSettings {
  */
 export interface CallAccepted {
   /**
-   * Call CID
+   *
    * @type {string}
    * @memberof CallAccepted
    */
@@ -98,7 +111,7 @@ export interface CallAccepted {
    * @type {string}
    * @memberof CallAccepted
    */
-  created_at?: string;
+  created_at: string;
   /**
    *
    * @type {string}
@@ -110,7 +123,7 @@ export interface CallAccepted {
    * @type {UserResponse}
    * @memberof CallAccepted
    */
-  user?: UserResponse;
+  user: UserResponse;
 }
 /**
  *
@@ -119,7 +132,7 @@ export interface CallAccepted {
  */
 export interface CallCancelled {
   /**
-   * Call CID
+   *
    * @type {string}
    * @memberof CallCancelled
    */
@@ -129,7 +142,7 @@ export interface CallCancelled {
    * @type {string}
    * @memberof CallCancelled
    */
-  created_at?: string;
+  created_at: string;
   /**
    *
    * @type {string}
@@ -141,7 +154,7 @@ export interface CallCancelled {
    * @type {UserResponse}
    * @memberof CallCancelled
    */
-  user?: UserResponse;
+  user: UserResponse;
 }
 /**
  *
@@ -160,19 +173,19 @@ export interface CallCreated {
    * @type {string}
    * @memberof CallCreated
    */
-  created_at?: string;
+  created_at: string;
   /**
    *
    * @type {Array<MemberResponse>}
    * @memberof CallCreated
    */
-  members?: Array<MemberResponse>;
+  members: Array<MemberResponse>;
   /**
    *
    * @type {boolean}
    * @memberof CallCreated
    */
-  ringing?: boolean;
+  ringing: boolean;
   /**
    *
    * @type {string}
@@ -187,7 +200,7 @@ export interface CallCreated {
  */
 export interface CallEnded {
   /**
-   * Call CID
+   *
    * @type {string}
    * @memberof CallEnded
    */
@@ -197,7 +210,7 @@ export interface CallEnded {
    * @type {string}
    * @memberof CallEnded
    */
-  created_at?: string;
+  created_at: string;
   /**
    *
    * @type {string}
@@ -209,7 +222,7 @@ export interface CallEnded {
    * @type {UserResponse}
    * @memberof CallEnded
    */
-  user?: UserResponse;
+  user: UserResponse;
 }
 /**
  *
@@ -218,7 +231,7 @@ export interface CallEnded {
  */
 export interface CallPermissionRequest {
   /**
-   * Call CID
+   *
    * @type {string}
    * @memberof CallPermissionRequest
    */
@@ -228,13 +241,13 @@ export interface CallPermissionRequest {
    * @type {string}
    * @memberof CallPermissionRequest
    */
-  created_at?: string;
+  created_at: string;
   /**
    *
    * @type {Array<string>}
    * @memberof CallPermissionRequest
    */
-  permissions?: Array<string>;
+  permissions: Array<string>;
   /**
    *
    * @type {string}
@@ -246,7 +259,7 @@ export interface CallPermissionRequest {
    * @type {UserResponse}
    * @memberof CallPermissionRequest
    */
-  user?: UserResponse;
+  user: UserResponse;
 }
 /**
  *
@@ -255,23 +268,23 @@ export interface CallPermissionRequest {
  */
 export interface CallPermissionsUpdated {
   /**
-   * Call CID
+   *
    * @type {string}
    * @memberof CallPermissionsUpdated
    */
-  call_cid?: string;
+  call_cid: string;
   /**
    *
    * @type {string}
    * @memberof CallPermissionsUpdated
    */
-  created_at?: string;
+  created_at: string;
   /**
    *
    * @type {Array<string>}
    * @memberof CallPermissionsUpdated
    */
-  own_capabilities?: Array<string>;
+  own_capabilities: Array<string>;
   /**
    *
    * @type {string}
@@ -286,7 +299,7 @@ export interface CallPermissionsUpdated {
  */
 export interface CallRejected {
   /**
-   * Call CID
+   *
    * @type {string}
    * @memberof CallRejected
    */
@@ -296,7 +309,7 @@ export interface CallRejected {
    * @type {string}
    * @memberof CallRejected
    */
-  created_at?: string;
+  created_at: string;
   /**
    *
    * @type {string}
@@ -308,7 +321,7 @@ export interface CallRejected {
    * @type {UserResponse}
    * @memberof CallRejected
    */
-  user?: UserResponse;
+  user: UserResponse;
 }
 /**
  *
@@ -339,7 +352,7 @@ export interface CallRequest {
    * @type {Array<MemberRequest>}
    * @memberof CallRequest
    */
-  members: Array<MemberRequest>;
+  members?: Array<MemberRequest>;
   /**
    *
    * @type {CallSettingsRequest}
@@ -364,13 +377,13 @@ export interface CallResponse {
    * @type {string}
    * @memberof CallResponse
    */
-  broadcast_egress?: string;
+  broadcast_egress: string;
   /**
    * The unique identifier for a call (<type>:<id>)
    * @type {string}
    * @memberof CallResponse
    */
-  cid?: string;
+  cid: string;
   /**
    * Date/time of creation
    * @type {string}
@@ -384,13 +397,13 @@ export interface CallResponse {
    */
   created_by: UserResponse;
   /**
-   *
+   * Custom data for this object
    * @type {{ [key: string]: any; }}
    * @memberof CallResponse
    */
-  custom?: { [key: string]: any };
+  custom: { [key: string]: any };
   /**
-   * Date/time of end
+   *
    * @type {string}
    * @memberof CallResponse
    */
@@ -400,19 +413,19 @@ export interface CallResponse {
    * @type {string}
    * @memberof CallResponse
    */
-  id?: string;
+  id: string;
   /**
-   *
+   * The capabilities of the current user
    * @type {Array<string>}
    * @memberof CallResponse
    */
-  own_capabilities?: Array<string>;
+  own_capabilities: Array<string>;
   /**
    *
    * @type {string}
    * @memberof CallResponse
    */
-  record_egress?: string;
+  record_egress: string;
   /**
    *
    * @type {CallSettingsResponse}
@@ -424,13 +437,13 @@ export interface CallResponse {
    * @type {string}
    * @memberof CallResponse
    */
-  team?: string;
+  team: string;
   /**
    * The type of call
    * @type {string}
    * @memberof CallResponse
    */
-  type?: string;
+  type: string;
   /**
    * Date/time of the last update
    * @type {string}
@@ -475,6 +488,12 @@ export interface CallSettingsRequest {
  * @interface CallSettingsResponse
  */
 export interface CallSettingsResponse {
+  /**
+   *
+   * @type {AudioSettings}
+   * @memberof CallSettingsResponse
+   */
+  audio: AudioSettings;
   /**
    *
    * @type {BroadcastSettings}
@@ -523,7 +542,7 @@ export interface CallStateResponseFields {
    * @type {Array<MemberResponse>}
    * @memberof CallStateResponseFields
    */
-  members?: Array<MemberResponse>;
+  members: Array<MemberResponse>;
   /**
    *
    * @type {MemberResponse}
@@ -548,13 +567,13 @@ export interface CallUpdated {
    * @type {{ [key: string]: Array<string>; }}
    * @memberof CallUpdated
    */
-  capabilities_by_role?: { [key: string]: Array<string> };
+  capabilities_by_role: { [key: string]: Array<string> };
   /**
    *
    * @type {string}
    * @memberof CallUpdated
    */
-  created_at?: string;
+  created_at: string;
   /**
    *
    * @type {string}
@@ -573,13 +592,13 @@ export interface Coordinates {
    * @type {number}
    * @memberof Coordinates
    */
-  latitude?: number;
+  latitude: number;
   /**
    *
    * @type {number}
    * @memberof Coordinates
    */
-  longitude?: number;
+  longitude: number;
 }
 /**
  *
@@ -592,19 +611,19 @@ export interface Credentials {
    * @type {Array<ICEServer>}
    * @memberof Credentials
    */
-  ice_servers?: Array<ICEServer>;
+  ice_servers: Array<ICEServer>;
   /**
    *
    * @type {SFUResponse}
    * @memberof Credentials
    */
-  server?: SFUResponse;
+  server: SFUResponse;
   /**
    *
    * @type {string}
    * @memberof Credentials
    */
-  token?: string;
+  token: string;
 }
 /**
  *
@@ -613,7 +632,7 @@ export interface Credentials {
  */
 export interface Custom {
   /**
-   * Call CID
+   *
    * @type {string}
    * @memberof Custom
    */
@@ -623,13 +642,13 @@ export interface Custom {
    * @type {string}
    * @memberof Custom
    */
-  created_at?: string;
+  created_at: string;
   /**
    *
    * @type {{ [key: string]: any; }}
    * @memberof Custom
    */
-  custom?: { [key: string]: any };
+  custom: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -641,7 +660,7 @@ export interface Custom {
    * @type {UserResponse}
    * @memberof Custom
    */
-  user?: UserResponse;
+  user: UserResponse;
 }
 /**
  *
@@ -660,52 +679,14 @@ export interface DatacenterResponse {
    * @type {string}
    * @memberof DatacenterResponse
    */
-  latency_url?: string;
+  latency_url: string;
   /**
    *
    * @type {string}
    * @memberof DatacenterResponse
    */
-  name?: string;
+  name: string;
 }
-/**
- *
- * @export
- * @interface DeviceFieldsRequest
- */
-export interface DeviceFieldsRequest {
-  /**
-   * Device ID
-   * @type {string}
-   * @memberof DeviceFieldsRequest
-   */
-  id?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof DeviceFieldsRequest
-   */
-  push_provider?: DeviceFieldsRequestPushProviderEnum;
-  /**
-   * Name of the push provider configuration
-   * @type {string}
-   * @memberof DeviceFieldsRequest
-   */
-  push_provider_name?: string;
-}
-
-/**
- * @export
- */
-export const DeviceFieldsRequestPushProviderEnum = {
-  firebase: 'firebase',
-  apn: 'apn',
-  huawei: 'huawei',
-  xiaomi: 'xiaomi',
-} as const;
-export type DeviceFieldsRequestPushProviderEnum =
-  (typeof DeviceFieldsRequestPushProviderEnum)[keyof typeof DeviceFieldsRequestPushProviderEnum];
-
 /**
  *
  * @export
@@ -717,7 +698,7 @@ export interface EndCallResponse {
    * @type {string}
    * @memberof EndCallResponse
    */
-  duration?: string;
+  duration: string;
 }
 /**
  *
@@ -730,7 +711,7 @@ export interface GeofenceSettings {
    * @type {Array<string>}
    * @memberof GeofenceSettings
    */
-  names?: Array<string>;
+  names: Array<string>;
 }
 /**
  *
@@ -756,7 +737,7 @@ export interface GetCallEdgeServerRequest {
    * @type {{ [key: string]: Array<number>; }}
    * @memberof GetCallEdgeServerRequest
    */
-  latency_measurements: { [key: string]: Array<number> };
+  latency_measurements?: { [key: string]: Array<number> };
 }
 /**
  *
@@ -781,13 +762,13 @@ export interface GetCallEdgeServerResponse {
    * @type {string}
    * @memberof GetCallEdgeServerResponse
    */
-  duration?: string;
+  duration: string;
   /**
    *
    * @type {Array<MemberResponse>}
    * @memberof GetCallEdgeServerResponse
    */
-  members?: Array<MemberResponse>;
+  members: Array<MemberResponse>;
   /**
    *
    * @type {MemberResponse}
@@ -837,19 +818,19 @@ export interface GetOrCreateCallResponse {
    * @type {boolean}
    * @memberof GetOrCreateCallResponse
    */
-  created?: boolean;
+  created: boolean;
   /**
    *
    * @type {string}
    * @memberof GetOrCreateCallResponse
    */
-  duration?: string;
+  duration: string;
   /**
    *
    * @type {Array<MemberResponse>}
    * @memberof GetOrCreateCallResponse
    */
-  members?: Array<MemberResponse>;
+  members: Array<MemberResponse>;
   /**
    *
    * @type {MemberResponse}
@@ -868,56 +849,19 @@ export interface ICEServer {
    * @type {string}
    * @memberof ICEServer
    */
-  password?: string;
+  password: string;
   /**
    *
    * @type {Array<string>}
    * @memberof ICEServer
    */
-  urls?: Array<string>;
+  urls: Array<string>;
   /**
    *
    * @type {string}
    * @memberof ICEServer
    */
-  username?: string;
-}
-/**
- *
- * @export
- * @interface JoinCallRequest
- */
-export interface JoinCallRequest {
-  /**
-   *
-   * @type {string}
-   * @memberof JoinCallRequest
-   */
-  connection_id?: string;
-  /**
-   *
-   * @type {CallRequest}
-   * @memberof JoinCallRequest
-   */
-  data?: CallRequest;
-  /**
-   *
-   * @type {string}
-   * @memberof JoinCallRequest
-   */
-  datacenter_hinted_id?: string;
-  /**
-   *
-   * @type {PaginationParamsRequest}
-   * @memberof JoinCallRequest
-   */
-  members?: PaginationParamsRequest;
-  /**
-   *
-   * @type {boolean}
-   * @memberof JoinCallRequest
-   */
-  ring?: boolean;
+  username: string;
 }
 /**
  *
@@ -936,25 +880,25 @@ export interface JoinCallResponse {
    * @type {boolean}
    * @memberof JoinCallResponse
    */
-  created?: boolean;
+  created: boolean;
   /**
    *
    * @type {string}
    * @memberof JoinCallResponse
    */
-  duration?: string;
+  duration: string;
   /**
    *
    * @type {Array<DatacenterResponse>}
    * @memberof JoinCallResponse
    */
-  edges?: Array<DatacenterResponse>;
+  edges: Array<DatacenterResponse>;
   /**
    *
    * @type {Array<MemberResponse>}
    * @memberof JoinCallResponse
    */
-  members?: Array<MemberResponse>;
+  members: Array<MemberResponse>;
   /**
    *
    * @type {MemberResponse}
@@ -979,7 +923,7 @@ export interface MemberRequest {
    * @type {string}
    * @memberof MemberRequest
    */
-  role: string;
+  role?: string;
   /**
    *
    * @type {UserObjectRequest}
@@ -991,7 +935,7 @@ export interface MemberRequest {
    * @type {string}
    * @memberof MemberRequest
    */
-  user_id: string;
+  user_id?: string;
 }
 /**
  *
@@ -1010,7 +954,7 @@ export interface MemberResponse {
    * @type {{ [key: string]: any; }}
    * @memberof MemberResponse
    */
-  custom?: { [key: string]: any };
+  custom: { [key: string]: any };
   /**
    * Date/time of deletion
    * @type {string}
@@ -1022,13 +966,13 @@ export interface MemberResponse {
    * @type {string}
    * @memberof MemberResponse
    */
-  duration?: string;
+  duration: string;
   /**
    *
    * @type {string}
    * @memberof MemberResponse
    */
-  role?: string;
+  role: string;
   /**
    * Date/time of the last update
    * @type {string}
@@ -1042,11 +986,61 @@ export interface MemberResponse {
    */
   user: UserResponse;
   /**
-   * User ID
+   *
    * @type {string}
    * @memberof MemberResponse
    */
-  user_id?: string;
+  user_id: string;
+}
+/**
+ *
+ * @export
+ * @interface MuteUsersRequest
+ */
+export interface MuteUsersRequest {
+  /**
+   *
+   * @type {boolean}
+   * @memberof MuteUsersRequest
+   */
+  audio?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof MuteUsersRequest
+   */
+  mute_all_users?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof MuteUsersRequest
+   */
+  screenshare?: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof MuteUsersRequest
+   */
+  user_ids?: Array<string>;
+  /**
+   *
+   * @type {boolean}
+   * @memberof MuteUsersRequest
+   */
+  video?: boolean;
+}
+/**
+ *
+ * @export
+ * @interface MuteUsersResponse
+ */
+export interface MuteUsersResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof MuteUsersResponse
+   */
+  duration: string;
 }
 /**
  *
@@ -1094,25 +1088,6 @@ export interface PaginationParamsRequest {
 /**
  *
  * @export
- * @interface PushNotificationSettings
- */
-export interface PushNotificationSettings {
-  /**
-   *
-   * @type {boolean}
-   * @memberof PushNotificationSettings
-   */
-  disabled?: boolean;
-  /**
-   *
-   * @type {string}
-   * @memberof PushNotificationSettings
-   */
-  disabled_until?: string;
-}
-/**
- *
- * @export
  * @interface PushNotificationSettingsRequest
  */
 export interface PushNotificationSettingsRequest {
@@ -1140,13 +1115,13 @@ export interface QueryCallRequest {
    * @type {string}
    * @memberof QueryCallRequest
    */
-  client_id: string;
+  client_id?: string;
   /**
    *
    * @type {string}
    * @memberof QueryCallRequest
    */
-  connection_id: string;
+  connection_id?: string;
   /**
    *
    * @type {{ [key: string]: any; }}
@@ -1164,7 +1139,7 @@ export interface QueryCallRequest {
    * @type {string}
    * @memberof QueryCallRequest
    */
-  id: string;
+  id?: string;
   /**
    *
    * @type {string}
@@ -1212,7 +1187,7 @@ export interface QueryCallRequest {
    * @type {string}
    * @memberof QueryCallRequest
    */
-  role: string;
+  role?: string;
   /**
    *
    * @type {Array<SortParamRequest>}
@@ -1243,13 +1218,13 @@ export interface QueryCallsResponse {
    * @type {Array<CallStateResponseFields>}
    * @memberof QueryCallsResponse
    */
-  calls?: Array<CallStateResponseFields>;
+  calls: Array<CallStateResponseFields>;
   /**
-   *
+   * Duration of the request in human-readable format
    * @type {string}
    * @memberof QueryCallsResponse
    */
-  duration?: string;
+  duration: string;
   /**
    *
    * @type {string}
@@ -1270,11 +1245,23 @@ export interface QueryCallsResponse {
  */
 export interface QueryMembersRequest {
   /**
-   * Websocket connection ID to interact with. You can pass it as body or URL parameter
+   *
    * @type {string}
    * @memberof QueryMembersRequest
    */
-  connection_id: string;
+  client_id?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryMembersRequest
+   */
+  connection_id?: string;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof QueryMembersRequest
+   */
+  custom?: { [key: string]: any };
   /**
    *
    * @type {{ [key: string]: any; }}
@@ -1289,10 +1276,22 @@ export interface QueryMembersRequest {
   id?: string;
   /**
    *
+   * @type {string}
+   * @memberof QueryMembersRequest
+   */
+  image?: string;
+  /**
+   *
    * @type {number}
    * @memberof QueryMembersRequest
    */
   limit?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryMembersRequest
+   */
+  name?: string;
   /**
    *
    * @type {string}
@@ -1307,22 +1306,28 @@ export interface QueryMembersRequest {
   prev?: string;
   /**
    *
+   * @type {string}
+   * @memberof QueryMembersRequest
+   */
+  role?: string;
+  /**
+   *
    * @type {Array<SortParamRequest>}
    * @memberof QueryMembersRequest
    */
   sort?: Array<SortParamRequest>;
   /**
    *
-   * @type {string}
+   * @type {Array<string>}
    * @memberof QueryMembersRequest
    */
-  type: string;
+  teams?: Array<string>;
   /**
    *
    * @type {string}
    * @memberof QueryMembersRequest
    */
-  user_id?: string;
+  type: string;
 }
 /**
  *
@@ -1335,13 +1340,13 @@ export interface QueryMembersResponse {
    * @type {string}
    * @memberof QueryMembersResponse
    */
-  duration?: string;
+  duration: string;
   /**
    *
    * @type {Array<MemberResponse>}
    * @memberof QueryMembersResponse
    */
-  members?: Array<MemberResponse>;
+  members: Array<MemberResponse>;
   /**
    *
    * @type {string}
@@ -1366,7 +1371,7 @@ export interface RecordSettings {
    * @type {boolean}
    * @memberof RecordSettings
    */
-  enabled?: boolean;
+  enabled: boolean;
 }
 /**
  *
@@ -1392,16 +1397,8 @@ export interface RequestPermissionRequest {
    * @type {Array<string>}
    * @memberof RequestPermissionRequest
    */
-  permissions: RequestPermissionRequestPermissionsEnum;
+  permissions: Array<string>;
 }
-
-/**
- * @export
- */
-export const RequestPermissionRequestPermissionsEnum = {} as const;
-export type RequestPermissionRequestPermissionsEnum =
-  (typeof RequestPermissionRequestPermissionsEnum)[keyof typeof RequestPermissionRequestPermissionsEnum];
-
 /**
  *
  * @export
@@ -1413,7 +1410,7 @@ export interface RequestPermissionResponse {
    * @type {string}
    * @memberof RequestPermissionResponse
    */
-  duration?: string;
+  duration: string;
 }
 /**
  *
@@ -1426,13 +1423,13 @@ export interface SFUResponse {
    * @type {string}
    * @memberof SFUResponse
    */
-  edge_name?: string;
+  edge_name: string;
   /**
    *
    * @type {string}
    * @memberof SFUResponse
    */
-  url?: string;
+  url: string;
 }
 /**
  *
@@ -1445,13 +1442,13 @@ export interface ScreensharingSettings {
    * @type {boolean}
    * @memberof ScreensharingSettings
    */
-  access_request_enabled?: boolean;
+  access_request_enabled: boolean;
   /**
    *
    * @type {boolean}
    * @memberof ScreensharingSettings
    */
-  enabled?: boolean;
+  enabled: boolean;
 }
 /**
  *
@@ -1502,7 +1499,7 @@ export interface SendEventResponse {
    * @type {string}
    * @memberof SendEventResponse
    */
-  duration?: string;
+  duration: string;
 }
 /**
  *
@@ -1559,7 +1556,7 @@ export interface UpdateCallResponse {
    * @type {string}
    * @memberof UpdateCallResponse
    */
-  duration?: string;
+  duration: string;
 }
 /**
  *
@@ -1572,13 +1569,13 @@ export interface UpdateUserPermissionsRequest {
    * @type {Array<string>}
    * @memberof UpdateUserPermissionsRequest
    */
-  grant_permissions?: UpdateUserPermissionsRequestGrantPermissionsEnum;
+  grant_permissions?: Array<string>;
   /**
    *
    * @type {Array<string>}
    * @memberof UpdateUserPermissionsRequest
    */
-  revoke_permissions?: UpdateUserPermissionsRequestRevokePermissionsEnum;
+  revoke_permissions?: Array<string>;
   /**
    *
    * @type {string}
@@ -1586,21 +1583,6 @@ export interface UpdateUserPermissionsRequest {
    */
   user_id: string;
 }
-
-/**
- * @export
- */
-export const UpdateUserPermissionsRequestGrantPermissionsEnum = {} as const;
-export type UpdateUserPermissionsRequestGrantPermissionsEnum =
-  (typeof UpdateUserPermissionsRequestGrantPermissionsEnum)[keyof typeof UpdateUserPermissionsRequestGrantPermissionsEnum];
-
-/**
- * @export
- */
-export const UpdateUserPermissionsRequestRevokePermissionsEnum = {} as const;
-export type UpdateUserPermissionsRequestRevokePermissionsEnum =
-  (typeof UpdateUserPermissionsRequestRevokePermissionsEnum)[keyof typeof UpdateUserPermissionsRequestRevokePermissionsEnum];
-
 /**
  *
  * @export
@@ -1612,105 +1594,7 @@ export interface UpdateUserPermissionsResponse {
    * @type {string}
    * @memberof UpdateUserPermissionsResponse
    */
-  duration?: string;
-}
-/**
- * Represents chat user
- * @export
- * @interface UserObject
- */
-export interface UserObject {
-  [key: string]: any | any;
-  /**
-   * Expiration date of the ban
-   * @type {string}
-   * @memberof UserObject
-   */
-  ban_expires?: string;
-  /**
-   * Whether a user is banned or not
-   * @type {boolean}
-   * @memberof UserObject
-   */
-  banned?: boolean;
-  /**
-   * Date/time of creation
-   * @type {string}
-   * @memberof UserObject
-   */
-  readonly created_at?: string;
-  /**
-   * Date of deactivation
-   * @type {string}
-   * @memberof UserObject
-   */
-  readonly deactivated_at?: string;
-  /**
-   * Date/time of deletion
-   * @type {string}
-   * @memberof UserObject
-   */
-  readonly deleted_at?: string;
-  /**
-   * Unique user identifier
-   * @type {string}
-   * @memberof UserObject
-   */
-  id: string;
-  /**
-   *
-   * @type {boolean}
-   * @memberof UserObject
-   */
-  invisible?: boolean;
-  /**
-   * Preferred language of a user
-   * @type {string}
-   * @memberof UserObject
-   */
-  language?: string;
-  /**
-   * Date of last activity
-   * @type {string}
-   * @memberof UserObject
-   */
-  readonly last_active?: string;
-  /**
-   * Whether a user online or not
-   * @type {boolean}
-   * @memberof UserObject
-   */
-  readonly online?: boolean;
-  /**
-   *
-   * @type {PushNotificationSettings}
-   * @memberof UserObject
-   */
-  push_notifications?: PushNotificationSettings;
-  /**
-   * Revocation date for tokens
-   * @type {string}
-   * @memberof UserObject
-   */
-  revoke_tokens_issued_before?: string;
-  /**
-   * Determines the set of user permissions
-   * @type {string}
-   * @memberof UserObject
-   */
-  role?: string;
-  /**
-   * List of teams user is a part of
-   * @type {Array<string>}
-   * @memberof UserObject
-   */
-  teams?: Array<string>;
-  /**
-   * Date/time of the last update
-   * @type {string}
-   * @memberof UserObject
-   */
-  readonly updated_at?: string;
+  duration: string;
 }
 /**
  * Represents chat user
@@ -1791,7 +1675,7 @@ export interface UserRequest {
    * @type {string}
    * @memberof UserRequest
    */
-  id: string;
+  id?: string;
   /**
    *
    * @type {string}
@@ -1809,7 +1693,7 @@ export interface UserRequest {
    * @type {string}
    * @memberof UserRequest
    */
-  role: string;
+  role?: string;
   /**
    *
    * @type {Array<string>}
@@ -1834,7 +1718,7 @@ export interface UserResponse {
    * @type {{ [key: string]: any; }}
    * @memberof UserResponse
    */
-  custom?: { [key: string]: any };
+  custom: { [key: string]: any };
   /**
    * Date/time of deletion
    * @type {string}
@@ -1846,7 +1730,7 @@ export interface UserResponse {
    * @type {string}
    * @memberof UserResponse
    */
-  id?: string;
+  id: string;
   /**
    *
    * @type {string}
@@ -1864,7 +1748,7 @@ export interface UserResponse {
    * @type {string}
    * @memberof UserResponse
    */
-  role?: string;
+  role: string;
   /**
    *
    * @type {Array<string>}
@@ -1881,31 +1765,6 @@ export interface UserResponse {
 /**
  *
  * @export
- * @interface UserUpdated
- */
-export interface UserUpdated {
-  /**
-   * Date/time of creation
-   * @type {string}
-   * @memberof UserUpdated
-   */
-  created_at?: string;
-  /**
-   * Event Type
-   * @type {string}
-   * @memberof UserUpdated
-   */
-  type: string;
-  /**
-   *
-   * @type {UserObject}
-   * @memberof UserUpdated
-   */
-  user?: UserObject;
-}
-/**
- *
- * @export
  * @interface VideoSettings
  */
 export interface VideoSettings {
@@ -1914,7 +1773,13 @@ export interface VideoSettings {
    * @type {boolean}
    * @memberof VideoSettings
    */
-  enabled?: boolean;
+  access_request_enabled: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof VideoSettings
+   */
+  enabled: boolean;
 }
 /**
  *
@@ -1927,30 +1792,11 @@ export interface VideoSettingsRequest {
    * @type {boolean}
    * @memberof VideoSettingsRequest
    */
+  access_request_enabled?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof VideoSettingsRequest
+   */
   enabled?: boolean;
-}
-/**
- *
- * @export
- * @interface VideoWSAuthMessageRequest
- */
-export interface VideoWSAuthMessageRequest {
-  /**
-   *
-   * @type {DeviceFieldsRequest}
-   * @memberof VideoWSAuthMessageRequest
-   */
-  device?: DeviceFieldsRequest;
-  /**
-   * Token string
-   * @type {string}
-   * @memberof VideoWSAuthMessageRequest
-   */
-  token: string;
-  /**
-   *
-   * @type {UserObjectRequest}
-   * @memberof VideoWSAuthMessageRequest
-   */
-  user_details: UserObjectRequest;
 }

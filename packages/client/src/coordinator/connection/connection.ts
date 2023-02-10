@@ -15,7 +15,6 @@ import {
   sleep,
 } from './utils';
 import type { ConnectAPIResponse, ConnectionOpen, LogLevel, UR } from './types';
-import type { VideoWSAuthMessageRequest } from '../../gen/coordinator';
 
 // Type guards to check WebSocket error type
 const isCloseEvent = (
@@ -501,10 +500,12 @@ export class StableWSConnection {
       return;
     }
 
-    const authMessage: VideoWSAuthMessageRequest = {
+    const authMessage = {
       token,
       user_details: {
         id: user.id,
+        name: user.name,
+        username: user.username,
         role: user.role,
       },
     };
