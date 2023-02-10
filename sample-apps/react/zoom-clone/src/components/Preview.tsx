@@ -206,11 +206,14 @@ export const Preview = {
             videoState.type === 'starting' ||
             initialVideoMuted) && (
             <div className=" w-full h-96 bg-zinc-700 rounded-lg text-2xl text-zinc-50 flex-col flex justify-center items-center">
-              {videoState.type === 'error' && videoState.message}
+              {videoState.type === 'error' &&
+                !initialVideoMuted &&
+                videoState.message}
               {videoState.type === 'starting' && 'Video is starting...'}
               {initialVideoMuted && 'Video is disabled'}
               <span className="text-sm">
                 {videoState.type === 'error' &&
+                  !initialVideoMuted &&
                   '(reset permissions and reload the page)'}
               </span>
             </div>

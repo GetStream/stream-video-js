@@ -10,7 +10,7 @@ export const Header = () => {
   const navigate = useNavigate();
   return (
     <div className="w-full p-4 bg-zinc-600 text-zinc-50 flex justify-between items-center">
-      <span>Stream Zoom clone</span>
+      <span className="py-1">Stream Zoom clone</span>
 
       {user && (
         <div className="flex gap-2 items-center">

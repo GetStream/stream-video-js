@@ -44,5 +44,14 @@ body,
 }
 
 .str-video__call-controls {
-  @apply gap-3;
+  @apply gap-3 py-2;
+  width: unset;
+}
+
+.str-chat__channel-header .str-chat__channel-header-end {
+  row-gap: unset;
+}
+
+.str-chat__channel-header {
+  @apply p-3;
 }
