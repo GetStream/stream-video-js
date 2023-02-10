@@ -22,7 +22,7 @@
   "ignorePatterns": ["node_modules"],
   "rules": {
     "prettier/prettier": "error",
-    "no-shadow": "error",
+    "@typescript-eslint/no-shadow": "error",
     "import/no-extraneous-dependencies": "error"
   }
 }
