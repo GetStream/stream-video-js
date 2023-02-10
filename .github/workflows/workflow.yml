@@ -89,3 +89,6 @@ jobs:
 
       - name: Test3
         run: echo ${{ github.ref_name == 'dogfood2-deploy' && 'dogfood2' || 'dogfood' }}
+
+      - name: Test4
+        run: echo ${{ github.ref_name }}
