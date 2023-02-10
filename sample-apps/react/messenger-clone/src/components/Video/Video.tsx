@@ -5,10 +5,11 @@ import {
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
+import { CALL_CONFIG } from '@stream-io/video-client';
+
+import { CallPanel } from './CallPanel/CallPanel';
 
 import { StreamChatType } from '../../types/chat';
-import { CallPanel } from './CallPanel/CallPanel';
-import { CALL_CONFIG } from '@stream-io/video-client';
 
 type VideoProps = {
   user: StreamChatType['userType'];

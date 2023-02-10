@@ -41,12 +41,14 @@
     "test:ci:all": "yarn workspaces foreach -vt run test:ci",
     "lint:ci:client": "eslint --cache 'packages/client/**/*.{ts,tsx}'",
     "test:ci:client": "yarn workspace @stream-io/video-client run test-ci",
-    "dev:messenger:react": "yarn workspace @stream-io/messenger-clone-react run dev",
+    "sample:react:messenger": "yarn workspace @stream-io/messenger-clone-react run dev",
+    "sample:react:tutorial": "yarn workspace stream-video-react-tutorial run dev",
     "generate-docs:client": "yarn workspace @stream-io/video-client run generate-docs",
     "generate-docs:react:bindings": "yarn workspace @stream-io/video-react-bindings run generate-docs",
     "generate-docs:react:sdk": "yarn workspace @stream-io/video-react-sdk run generate-docs",
     "generate-docs:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run generate-docs",
     "generate-docs:angular": "yarn generate-docs:client && yarn workspace angular-sdk run generate-docs && yarn workspace angular-sdk run copy-docs",
+    "start:docs:react": "yarn workspace @stream-io/video-react-sdk run start:docs ",
     "bootstrap": "./bootstrap.sh"
   },
   "devDependencies": {

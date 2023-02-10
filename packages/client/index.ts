@@ -27,5 +27,7 @@ export * from './src/StreamSfuClient';
 export * from './src/devices';
 export * from './src/store';
 
+export * from './src/config/defaultConfigs';
+
 export * from './src/helpers/sound-detector';
 export * as Browsers from './src/helpers/browsers';
