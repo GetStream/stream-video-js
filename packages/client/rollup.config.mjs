@@ -28,10 +28,10 @@ const browserIgnorePlugin = {
 /**
  * @type {import('rollup').RollupOptions}
  */
-const rollupConfig = {
+const browserConfig = {
   input: 'index.ts',
   output: {
-    dir: 'dist',
+    file: 'dist/index.browser.es.js',
     format: 'es',
     sourcemap: true,
   },
@@ -45,4 +45,27 @@ const rollupConfig = {
   ],
 };
 
-export default rollupConfig;
+const nodeConfig = {
+  input: 'index.ts',
+  output: [
+    {
+      file: 'dist/index.cjs.js',
+      format: 'cjs',
+      sourcemap: true,
+    },
+    {
+      file: 'dist/index.es.js',
+      format: 'es',
+      sourcemap: true,
+    },
+  ],
+  plugins: [
+    replace({
+      preventAssignment: true,
+      'process.env.PKG_VERSION': JSON.stringify(pkg.version),
+    }),
+    typescript(),
+  ],
+};
+
+export default [browserConfig, nodeConfig];
