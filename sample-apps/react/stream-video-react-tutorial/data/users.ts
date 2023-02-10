@@ -1,4 +1,4 @@
-import { UserInput } from '@stream-io/video-client';
+import { User } from '@stream-io/video-client';
 
 export default {
   alice: {
@@ -7,7 +7,6 @@ export default {
     imageUrl: '/alice.jpg',
     role: 'user',
     teams: [],
-    customJson: new Uint8Array(),
   },
   mark: {
     id: 'mark',
@@ -15,6 +14,5 @@ export default {
     imageUrl: '/mark.jpg',
     role: 'user',
     teams: [],
-    customJson: new Uint8Array(),
   },
-} as Record<string, UserInput>;
+} as Record<string, User>;
