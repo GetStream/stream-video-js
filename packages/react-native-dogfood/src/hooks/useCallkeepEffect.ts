@@ -1,8 +1,13 @@
 import { useEffect } from 'react';
 import { PermissionsAndroid } from 'react-native';
 import RNCallKeep from 'react-native-callkeep';
+import { BehaviorSubject } from 'rxjs';
+import {
+  RunStaticNavigation,
+  StaticNavigationService,
+} from '../utils/staticNavigationUtils';
 
-const options = {
+const options: Parameters<typeof RNCallKeep.setup>[0] = {
   ios: {
     appName: 'ReactNativeStreamDogFood',
     // imageName: 'sim_icon',
@@ -18,6 +23,13 @@ const options = {
     okButton: 'ok',
     imageName: 'sim_icon',
     additionalPermissions: [PermissionsAndroid.PERMISSIONS.READ_CONTACTS],
+    // Required to get audio in background when using Android 11
+    foregroundService: {
+      channelId: 'com.company.my',
+      channelName: 'Foreground service for my app',
+      notificationTitle: 'My app is running on background',
+      notificationIcon: 'Path to the resource icon of the notification',
+    },
   },
 };
 
@@ -27,6 +39,10 @@ try {
 } catch (err) {
   console.error('initializeCallKeep error:', err);
 }
+
+export const callkeepCallId$ = new BehaviorSubject<string | undefined>(
+  undefined,
+);
 
 export const useCallKeepEffect = () => {
   useEffect(() => {
@@ -38,8 +54,32 @@ export const useCallKeepEffect = () => {
     );
     RNCallKeep.addEventListener('answerCall', ({ callUUID }) => {
       console.log('answerCall', { callUUID });
+      // RNCallKeep.startCall(callUUID, '1234567890', 'Generic');
+      RNCallKeep.backToForeground();
+      // close the dialer screen so that the app can be seen (only android needs this)
+      RNCallKeep.endCall(callUUID);
+
+      RunStaticNavigation(() => {
+        console.log("ran navigate('CallScreen', {})");
+        callkeepCallId$.next(callUUID);
+        StaticNavigationService.staticNavigate('CallScreen', {});
+      });
+
+      // // On Android display the app when answering a call
+      // if (Platform.OS === 'android') {
+      //   // RNCallKeep.backToForeground();
+      //   // close the dialer screen so that the app can be seen (only android needs this)
+      //   // RNCallKeep.endCall(callUUID);
+      //   setTimeout(() => {
+      //     console.log('ran the timeout!!');
+      //     RNCallKeep.setCurrentCallActive(callUUID);
+      //   }, 1000);
+      // }
     });
     RNCallKeep.addEventListener('endCall', ({ callUUID }) => {
+      if (callUUID) {
+        RNCallKeep.endCall(callUUID);
+      }
       console.log('endCall', { callUUID });
     });
     RNCallKeep.addEventListener(
@@ -85,6 +125,12 @@ export const useCallKeepEffect = () => {
     RNCallKeep.addEventListener('didActivateAudioSession', () => {
       console.log('didActivateAudioSession');
     });
+    RNCallKeep.addEventListener('checkReachability', () => {
+      /*
+       * On Android when the application is in background, after a certain delay the OS will close every connection with informing about it. So we have to check if the application is reachable before making a call from the native phone application.
+       */
+      RNCallKeep.setReachable();
+    });
 
     return () => {
       RNCallKeep.removeEventListener('didReceiveStartCallAction');
@@ -95,6 +141,7 @@ export const useCallKeepEffect = () => {
       RNCallKeep.removeEventListener('didToggleHoldCallAction');
       RNCallKeep.removeEventListener('didPerformDTMFAction');
       RNCallKeep.removeEventListener('didActivateAudioSession');
+      RNCallKeep.removeEventListener('checkReachability');
     };
   }, []);
 };

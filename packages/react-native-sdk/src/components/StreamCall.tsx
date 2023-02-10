@@ -65,7 +65,7 @@ export const StreamCall = ({
     if (outgoingCall && onOutgoingCall) {
       onOutgoingCall();
     } else if (incomingCall && onIncomingCall) {
-      onIncomingCall();
+      // onIncomingCall();
     } else if (activeCall && onAcceptCall) {
       onAcceptCall();
     }
