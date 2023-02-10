@@ -84,8 +84,8 @@ jobs:
       #   run: yarn vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Test2
-        if: ${{ github.ref_name == 'main' || github.ref_name == 'video-coordinator' }}
+        if: ${{ github.ref_name == 'main' || github.ref_name == '*2-deploy*' }}
         run: echo 'Production branch'
 
       - name: Test3
-        run: echo ${{ github.ref_name == '*video-coordinator*' && 'dogfood2' || 'dogfood' }}
+        run: echo ${{ github.ref_name == '*dogfood2-deploy*' && 'dogfood2' || 'dogfood' }}
