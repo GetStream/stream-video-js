@@ -14,15 +14,20 @@ import './style.css';
 
   // Access and operation mode config
   const mode = urlParams.get('mode') || 'speaker';
+  const baseURL =
+    urlParams.get('baseURL') ||
+    'https://video-edge-oregon-ce3.stream-io-api.com/video';
   const apiKey = urlParams.get('api_key') || 'key10';
   const accessToken =
     urlParams.get('token') ||
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdHJlYW0tdmlkZW8tanNAdjAuMC4wIiwic3ViIjoidXNlci9lZ3Jlc3NAZ2V0c3RyZWFtLmlvIiwiaWF0IjoxNjY3NDAwMTgsInVzZXJfaWQiOiJlZ3Jlc3NAZ2V0c3RyZWFtLmlvIn0.bzrr3W2PPjhoN7gee7i-i26DjtcKHfAB9buiKH1LtEc';
 
-  const client = new StreamVideoClient(apiKey);
+  const client = new StreamVideoClient(apiKey, {
+    baseURL,
+  });
   await client.connectUser(
     {
-      id: 'egress',
+      id: 'egress@getstream.io',
       name: 'egress',
       role: 'spectator',
       teams: ['stream-io'],
