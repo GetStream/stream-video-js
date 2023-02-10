@@ -33,6 +33,12 @@ import { setFirebaseHandler } from './src/modules/push/android';
 import { useIosPushEffect } from './src/hooks/useIosPushEffect';
 import { Platform } from 'react-native';
 import { useCallKeepEffect } from './src/hooks/useCallkeepEffect';
+import { navigationRef } from './src/utils/staticNavigationUtils';
+
+import Logger from 'react-native-webrtc/src/Logger';
+
+// @ts-expect-error
+Logger.enable(false);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const MeetingStack = createNativeStackNavigator<MeetingStackParamList>();
@@ -160,7 +166,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AppGlobalContextProvider>
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
           <StackNavigator />
         </NavigationContainer>
       </AppGlobalContextProvider>
