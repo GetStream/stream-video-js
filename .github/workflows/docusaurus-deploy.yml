@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [16.x]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -56,7 +56,6 @@ jobs:
           source-directory: 'packages/angular-sdk/docusaurus'
         env:
           DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
-          NODE_OPTIONS: '--openssl-legacy-provider' # need for node 18 + docusaurus cli support
 
       - name: Generate React Native SDK documentation
         run: yarn generate-docs:react-native:sdk;
@@ -68,7 +67,6 @@ jobs:
           source-directory: 'packages/react-native-sdk/docusaurus'
         env:
           DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
-          NODE_OPTIONS: '--openssl-legacy-provider' # need for node 18 + docusaurus cli support
 
       - name: Generate React SDK documentation
         run: yarn generate-docs:react:sdk
@@ -80,4 +78,3 @@ jobs:
           source-directory: 'packages/react-sdk/docusaurus'
         env:
           DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
-          NODE_OPTIONS: '--openssl-legacy-provider' # need for node 18 + docusaurus cli support
