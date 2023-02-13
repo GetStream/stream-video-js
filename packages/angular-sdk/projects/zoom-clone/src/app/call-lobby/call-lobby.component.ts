@@ -17,7 +17,6 @@ import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChannelService, ChatClientService } from 'stream-chat-angular';
 import { UserService } from '../user.service';
-import { CallMetadata } from '@stream-io/video-client';
 
 @Component({
   selector: 'app-call-lobby',
