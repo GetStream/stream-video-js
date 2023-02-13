@@ -1,0 +1,65 @@
+.root {
+  @apply bg-demo-grey-darker rounded-container text-white border-transparent border-2;
+  max-width: 300px;
+}
+
+.root.focused {
+  @apply border-stream;
+  box-shadow: 0px 0px 30px rgba(0, 95, 255, 0.5);
+}
+
+.header {
+  border: 1px solid #272a30;
+}
+
+.heading {
+  @apply p-4 text-base;
+}
+
+.content {
+  @apply p-4;
+}
+
+.copy {
+  @apply bg-demo-grey-lighter p-2 flex items-center relative text-white/50;
+  border: 1px solid #272a30;
+  border-radius: 6px;
+}
+
+.copy:hover {
+  @apply text-white;
+}
+
+.input {
+  @apply bg-transparent relative border-none z-10 cursor-pointer w-full h-full;
+}
+.input:focus,
+.input:hover {
+  @apply bg-transparent relative border-none cursor-pointer;
+}
+
+.copied {
+  @apply flex items-center justify-around text-white;
+}
+
+.copiedIcon {
+  @apply mr-1;
+}
+
+.copyIcon {
+  @apply absolute z-0;
+  right: 4px;
+  top: 8px;
+}
+
+.description {
+  @apply mt-4 mb-4 text-sm;
+}
+
+.qr {
+  @apply bg-demo-black-light rounded-container p-4 flex justify-center;
+}
+
+.code {
+  @apply bg-demo-white rounded-container p-4;
+}
