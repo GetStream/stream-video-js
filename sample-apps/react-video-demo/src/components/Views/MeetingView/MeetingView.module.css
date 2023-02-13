@@ -1,0 +1,24 @@
+video {
+  height: 300px;
+}
+
+.sidebar {
+  @apply grid  gap-y-3;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    'invitePanel'
+    'participantsPanel'
+    'chatPanel';
+}
+
+.invitePanel {
+  grid-area: invitePanel;
+}
+
+.particpantsPanel {
+  grid-area: particpantsPanel;
+}
+
+.chatPanel {
+  grid-area: chatPanel;
+}
