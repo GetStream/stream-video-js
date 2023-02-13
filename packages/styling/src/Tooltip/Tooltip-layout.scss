@@ -1,0 +1,10 @@
+.str-video__tooltip {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  z-index: 1;
+  max-width: 250px;
+  width: max-content;
+  white-space: initial;
+  overflow-wrap: break-word;
+}

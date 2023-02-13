@@ -16,7 +16,6 @@
     "build:react:dogfood": "yarn workspace @stream-io/video-react-dogfood run build",
     "start:react:dogfood": "yarn workspace @stream-io/video-react-dogfood run dev",
     "start:react:app": "yarn workspace @stream-io/video-react-sample-app run start",
-    "start:angular": "yarn workspace angular-sdk run start",
     "start:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run start",
     "build:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run build",
     "start:react-native:ios:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run ios",
@@ -39,12 +38,13 @@
     "lint:all": "eslint --cache --fix 'packages/**/*.{ts,tsx}'",
     "lint:ci:all": "eslint --cache 'packages/**/*.{ts,tsx}'",
     "test:ci:all": "yarn workspaces foreach -vt run test:ci",
-    "dev:messenger:react": "yarn workspace @stream-io/messenger-clone-react run dev",
+    "sample:react:messenger": "yarn workspace @stream-io/messenger-clone-react run dev",
+    "sample:react:tutorial": "yarn workspace stream-video-react-tutorial run dev",
     "generate-docs:client": "yarn workspace @stream-io/video-client run generate-docs",
     "generate-docs:react:bindings": "yarn workspace @stream-io/video-react-bindings run generate-docs",
     "generate-docs:react:sdk": "yarn workspace @stream-io/video-react-sdk run generate-docs",
     "generate-docs:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run generate-docs",
-    "generate-docs:angular": "yarn generate-docs:client && yarn workspace angular-sdk run generate-docs && yarn workspace angular-sdk run copy-docs",
+    "start:docs:react": "yarn workspace @stream-io/video-react-sdk run start:docs ",
     "bootstrap": "./bootstrap.sh"
   },
   "devDependencies": {
