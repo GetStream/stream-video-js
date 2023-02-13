@@ -100,9 +100,7 @@ const JoinCallScreen = () => {
           data: {
             members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
               return {
-                user: {
-                  id: ringingUserId,
-                },
+                user_id: ringingUserId,
               };
             }),
           },

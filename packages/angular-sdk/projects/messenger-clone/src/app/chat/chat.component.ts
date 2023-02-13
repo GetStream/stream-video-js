@@ -90,9 +90,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       .filter((m) => !!m);
     const memberInput: MemberRequest[] = (members || []).map<MemberRequest>(
       (m) => ({
-        user: {
-          id: m!.user.id,
-        },
+        user_id: m!.user.id,
       }),
     );
     try {
