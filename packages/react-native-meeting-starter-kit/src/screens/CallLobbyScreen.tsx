@@ -1,5 +1,5 @@
 import React from 'react';
-import {CallLobby} from '@stream-io/video-react-native-sdk';
+import {LobbyView} from '@stream-io/video-react-native-sdk';
 import {meetingId} from '../utils/meetingId';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {NavigationStackParamsList} from '../types';
@@ -18,5 +18,5 @@ export const CallLobbyScreen = (props: CallLobbyScreenProps) => {
     navigation.navigate('ActiveCallScreen');
   };
 
-  return <CallLobby callID={meetingCallID} onActiveCall={onActiveCall} />;
+  return <LobbyView callID={meetingCallID} onActiveCall={onActiveCall} />;
 };
