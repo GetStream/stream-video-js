@@ -55,8 +55,6 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
           (acc, member) => {
             if (member.user_id !== client.user?.id) {
               acc.push({
-                user_id: member.user_id!,
-                role: member.user?.role!,
                 user: {
                   id: member.user_id!,
                 },

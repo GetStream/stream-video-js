@@ -22,12 +22,12 @@ import '@stream-io/video-styling/dist/css/styles.css';
 export type Participants = { [name: string]: string };
 const participants: Participants = {
   marcelo:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoibWFyY2VsbyJ9.Nhth6nZUqQ6mSz05VAnGGJNRQewpQfqK9reYMYq67NM',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoibWFyY2VsbyJ9.7eaqTfDEt7X_GfIyjakvAjpXpntEk4KDAtEFkB6ZcQc',
   anatoly:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYW5hdG9seSJ9.wR_ZBBq4izCxlBTgE9eXlNSMEgC0nLqoEIMH-95l4G8',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYW5hdG9seSJ9.AIOplja2psB6Wrn8T15v5KeaYD-ZpPVxb1hW8bkfWcQ',
   tommaso:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidG9tbWFzbyJ9.p9f9Lp4znTHK73hyFI0JNlxMwUnDU1wJhxjs-UpDg4M',
-  sam: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoic2FtIn0.uX5xmuSRvVwuxjtxcVXxGYLZIVSfwc4yg8etCqrFVYU',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidG9tbWFzbyJ9.7siVclPhJmDVZ5SUbRXdNbgYWnO_AvtHbiKRPzvhObA',
+  sam: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoic2FtIn0.epub2VrgPG3Wm8HIhtQuXozTuQ3Rr8RBQk4O9oTRhoI',
 };
 
 const theme = createTheme({
@@ -47,7 +47,7 @@ const App = () => {
   const [callId, setCallId] = useState<string | undefined>(undefined);
   const [callType, setCallType] = useState<string>('default');
   const [callInput, setCallInput] = useState<
-    Omit<GetOrCreateCallRequest, 'members'> | undefined
+    GetOrCreateCallRequest | undefined
   >(undefined);
   const [errorMessage] = useState('');
 
@@ -71,7 +71,7 @@ const App = () => {
   );
 
   const client = useCreateStreamVideoClient({
-    apiKey: 'us83cfwuhy8n', // see <video>/data/fixtures/apps.yaml for API key/secret
+    apiKey: 'w6yaq5388uym', // see <video>/data/fixtures/apps.yaml for API key/secret
     token: participants[currentUser],
     user,
   });
@@ -82,8 +82,9 @@ const App = () => {
     setCallInput({
       data: {
         members: invitees.map((userId) => ({
-          user_id: userId,
-          role: 'admin',
+          user: {
+            id: userId,
+          },
         })),
       },
     });

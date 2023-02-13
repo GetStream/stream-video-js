@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiKey: 'us83cfwuhy8n',
+  apiKey: 'w6yaq5388uym',
   user: {
     id: 'marcelo',
     name: 'marcelo',
@@ -15,7 +15,7 @@ export const environment = {
     customJson: new Uint8Array(),
   },
   token:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoibWFyY2VsbyJ9.Nhth6nZUqQ6mSz05VAnGGJNRQewpQfqK9reYMYq67NM',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoibWFyY2VsbyJ9.7eaqTfDEt7X_GfIyjakvAjpXpntEk4KDAtEFkB6ZcQc',
   // token: 'generate-staging-token
 };
 

@@ -17,7 +17,6 @@ import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChannelService, ChatClientService } from 'stream-chat-angular';
 import { UserService } from '../user.service';
-import { CallMetadata } from '@stream-io/video-client';
 
 @Component({
   selector: 'app-call-lobby',
@@ -33,7 +32,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   audioErrorMessage?: string;
   isSpeaking = false;
   joinOrCreate: 'join' | 'create' = 'create';
-  callMeta?: CallMetadata;
+  callId?: string;
   isJoinOrCreateInProgress = false;
   private subscripitions: Subscription[] = [];
   @ViewChild('invite') private inviteRef!: TemplateRef<any>;
@@ -90,8 +89,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
               callid,
               'default',
             );
-          // FIXME OL: adjust to new API
-          // this.callMeta = response?.call;
+          this.callId = response?.call.id;
         } catch (error: any) {
           this.snackBar.open(`Couldn't establish connection, ${error.message}`);
         }
@@ -106,7 +104,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
   }
 
   get inviteLink() {
-    return `${window.location.host}/call?callid=${this.callMeta?.call.id}`;
+    return `${window.location.host}/call?callid=${this.callId}`;
   }
 
   copyLink() {
@@ -129,7 +127,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
           );
         callId = response!.call.id!;
       } else {
-        callId = this.callMeta!.call.id;
+        callId = this.callId!;
       }
       await this.joinCall(callId);
       if (this.joinOrCreate === 'create') {
@@ -151,7 +149,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
     });
     if (this.joinOrCreate === 'create') {
       const channel = this.chatClientService.chatClient.channel(
-        'videocall',
+        'messaging',
         callId,
         // TODO: hacky workaround for permission problems
         { members: this.userService.users.map((u) => u.user.id) },
