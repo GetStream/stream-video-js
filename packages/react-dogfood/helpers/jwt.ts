@@ -9,7 +9,7 @@ export const createToken = (
     exp, // expiration, in seconds from now
     ...rest
   } = params;
-  const payload = {
+  const payload: Record<string, unknown> = {
     iss: 'stream-video-js@v0.0.0',
     sub: `user/${userId}`,
     // subtract 3 seconds, sometimes the coordinator fails with

@@ -27,7 +27,7 @@ const createCallSlackHookAPI = async (
     const response = await client.getOrCreateCall(meetingId(), 'default', {
       ring: false,
     });
-    if (response.call) {
+    if (response?.call) {
       const call = response.call;
       const protocol = req.headers['x-forwarded-proto']
         ? 'https://'
@@ -68,11 +68,12 @@ const createCallSlackHookAPI = async (
     return res.status(200).json(notifyError('Failed to getOrCreateCall'));
   } catch (e) {
     console.error(e);
+    // @ts-ignore
     return res.status(200).json(notifyError(e.message));
   }
 };
 
-const notifyError = (message) => {
+const notifyError = (message: string) => {
   return {
     response_type: 'ephemeral', // notify just the initiator
     blocks: [

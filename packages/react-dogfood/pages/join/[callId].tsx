@@ -72,7 +72,7 @@ export const getServerSideProps = async (
   const secretKey = process.env.STREAM_SECRET_KEY as string;
 
   const userName = (
-    (context.query[`user_id`] as string) || session.user.email
+    (context.query[`user_id`] as string) || session.user!.email!
   ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
   return {
     props: {
@@ -83,7 +83,6 @@ export const getServerSideProps = async (
         name: userName,
         role: 'admin',
         teams: ['stream-io'],
-        imageUrl: session.user.image,
       },
     } as JoinCallProps,
   };
