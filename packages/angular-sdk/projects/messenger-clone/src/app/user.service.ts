@@ -20,7 +20,7 @@ export class UserService {
         // image: 'https://randomuser.me/api/portraits/women/47.jpg',
       },
       token:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWxpY2UifQ.CH6hztnxZXun4Qh0wnQQtnBW0sbbGNHnZJ6Z9s8JfQY',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWxpY2UifQ.kLKyVZ26PtAU7SQ0CSL7f1eIAlZtp8Yqo41QKkRCp9U',
     },
     {
       user: {

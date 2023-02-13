@@ -7,7 +7,7 @@ import {
 } from '@stream-io/video-angular-sdk';
 import { Subscription } from 'rxjs';
 import { ChatClientService, getChannelDisplayText } from 'stream-chat-angular';
-import { CallMetadata } from '@stream-io/video-client';
+import { CallMetadata, GetOrCreateCallResponse } from '@stream-io/video-client';
 
 @Component({
   selector: 'app-outgoing-call',
@@ -25,7 +25,7 @@ export class OutgoingCallComponent implements OnInit {
     private streamVideoService: StreamVideoService,
     private snackBar: MatSnackBar,
     private ngZone: NgZone,
-    @Inject(MAT_DIALOG_DATA) public data: CallMetadata,
+    @Inject(MAT_DIALOG_DATA) public data: GetOrCreateCallResponse,
     private matDialogRef: MatDialogRef<any>,
     private deviceManager: DeviceManagerService,
     private chatClientService: ChatClientService,

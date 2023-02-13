@@ -112,7 +112,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       if (call) {
         this.dialog.open(OutgoingCallComponent, {
           disableClose: true,
-          data: call.call,
+          data: call,
         });
       }
       this.isCallCreationInProgress = false;
