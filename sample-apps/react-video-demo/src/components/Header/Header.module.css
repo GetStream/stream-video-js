@@ -1,0 +1,7 @@
+.callIdentification {
+  @apply flex items-center text-white;
+}
+
+.logo {
+  @apply mr-2;
+}
