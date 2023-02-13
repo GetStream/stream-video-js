@@ -13,7 +13,7 @@ import { StreamVideoService } from './video.service';
 /**
  * The `ParticipantListService` contains all the necessary logic for the [`CallParticipantListComponent`](../ui-components/CallParticipantListComponent.md). If you want to create your own custom participant list UI you can connect your component with this service that will provide the API.
  *
- * You can override the participant search logic using the [`setParticipantsSubject` method](./#setparticipantsaubject).
+ * You can override the participant search logic using the [`setParticipantsSubject` method](./#setparticipantssubject).
  */
 @Injectable({
   providedIn: 'root',
@@ -28,7 +28,7 @@ export class ParticipantListService {
    */
   readonly searchTermSubject = new BehaviorSubject('');
   /**
-   * A `Subject` containing the current state of the participant list, it can be opened or closed, you set a new value by calling `participantListStateSubject.next(<open or close>)`
+   * A `Subject` containing the current state of the participant list, it can be opened or closed, you set a new value by calling `participantListStateSubject.next(<open or close>)`. You can use this `Subject` to show or hide the participant list in your application.
    */
   readonly participantListStateSubject = new BehaviorSubject<'open' | 'close'>(
     'close',

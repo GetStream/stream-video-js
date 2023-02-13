@@ -35,7 +35,7 @@ export const SearchInput = ({
   return (
     <div
       className={clsx('str-video__search-input__container', {
-        ['str-video__search-input__container--active']: isActive,
+        'str-video__search-input__container--active': isActive,
       })}
     >
       <input placeholder="Search" {...rest} ref={setInputElement} />

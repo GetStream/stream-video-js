@@ -24,3 +24,4 @@ export * from './lib/call-statistics/call-statistics.component';
 export * from './lib/types';
 export * from './lib/participant-list.service';
 export * from './lib/call-participant-list/call-participant-list.component';
+export * from './lib/invite-link-button/invite-link-button.component';

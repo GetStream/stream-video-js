@@ -1,12 +1,15 @@
 import { Component, NgZone, OnInit } from '@angular/core';
-import { StreamVideoService } from '@stream-io/video-angular-sdk';
+import {
+  ParticipantListService,
+  StreamVideoService,
+} from '@stream-io/video-angular-sdk';
 import { environment } from '../environments/environment';
 import { distinctUntilKeyChanged } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   template: `
-    <div class="container str-video">
+    <div class="container">
       <div>
         <input #input /><button (click)="createOrJoinCall(input.value)">
           Create or join call
@@ -23,18 +26,25 @@ import { distinctUntilKeyChanged } from 'rxjs';
           </stream-call-controls>
         </stream-call>
         <stream-call-participant-list
+          *ngIf="isParticipantListVisible"
           class="participant-list"
-        ></stream-call-participant-list>
+        >
+          <stream-invite-link-button
+            participant-list-footer
+          ></stream-invite-link-button>
+        </stream-call-participant-list>
       </div>
     </div>
   `,
 })
 export class AppComponent implements OnInit {
   callId?: string;
+  isParticipantListVisible = false;
 
   constructor(
     private streamVideoService: StreamVideoService,
     private ngZone: NgZone,
+    private participantListService: ParticipantListService,
   ) {
     this.streamVideoService.participants$
       .pipe(distinctUntilKeyChanged('length'))
@@ -43,6 +53,9 @@ export class AppComponent implements OnInit {
           `There are ${participants?.length || 0} participant(s) in the call`,
         ),
       );
+    this.participantListService.participantListStateSubject.subscribe((s) => {
+      this.isParticipantListVisible = s === 'open';
+    });
   }
 
   async ngOnInit() {

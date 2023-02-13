@@ -42,18 +42,6 @@ body {
 }
 
 .str-video__call-controls {
- justify-content: space-between;
+  justify-content: space-between;
   padding-inline: 16px;
-
 }
-
-.rd-call-controls-group {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.str-video__call-controls .str-video__call-controls__button--enabled {
-  background-color: #72767E;
-}
-
-

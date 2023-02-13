@@ -8,9 +8,8 @@ describe('ToggleParticipantListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ToggleParticipantListComponent ]
-    })
-    .compileComponents();
+      declarations: [ToggleParticipantListComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ToggleParticipantListComponent);
     component = fixture.componentInstance;

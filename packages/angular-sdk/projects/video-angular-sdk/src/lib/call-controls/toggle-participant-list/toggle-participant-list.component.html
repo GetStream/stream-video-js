@@ -1,6 +1,7 @@
 <button
   *ngIf="call"
   class="str-video__call-controls__button"
+  [class.str-video__call-controls__button--enabled]="currentState === 'open'"
   (click)="toggleParticipantList()"
 >
   <span

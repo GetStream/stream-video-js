@@ -4,6 +4,11 @@ import { Subscription } from 'rxjs';
 import { ParticipantListService } from '../../participant-list.service';
 import { StreamVideoService } from '../../video.service';
 
+/**
+ * The `ToggleParticipantListComponent` displays a button that can be used to toggle the state of the [`participantListStateSubject`](../core/ParticipantListService.md/#participantliststatesubject).
+ *
+ * If there is no active call the component displays nothing.
+ */
 @Component({
   selector: 'stream-toggle-participant-list',
   templateUrl: './toggle-participant-list.component.html',
@@ -11,6 +16,7 @@ import { StreamVideoService } from '../../video.service';
 })
 export class ToggleParticipantListComponent implements OnInit, OnDestroy {
   call?: Call;
+  currentState: 'open' | 'close' = 'close';
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -19,6 +25,11 @@ export class ToggleParticipantListComponent implements OnInit, OnDestroy {
   ) {
     this.subscriptions.push(
       this.streamVideoService.activeCall$.subscribe((c) => (this.call = c)),
+    );
+    this.subscriptions.push(
+      this.participantListService.participantListStateSubject.subscribe(
+        (s) => (this.currentState = s),
+      ),
     );
   }
 
@@ -29,10 +40,8 @@ export class ToggleParticipantListComponent implements OnInit, OnDestroy {
   }
 
   toggleParticipantList() {
-    const currentState =
-      this.participantListService.participantListStateSubject.getValue();
     this.participantListService.participantListStateSubject.next(
-      currentState === 'open' ? 'close' : 'open',
+      this.currentState === 'open' ? 'close' : 'open',
     );
   }
 
