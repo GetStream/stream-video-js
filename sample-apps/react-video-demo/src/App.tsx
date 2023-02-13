@@ -1,34 +1,130 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import { FC, useState, useMemo } from 'react';
+import {
+  StreamMeeting,
+  StreamVideo,
+  useCreateStreamVideoClient,
+} from '@stream-io/video-react-sdk';
 
-function App() {
-  const [count, setCount] = useState(0)
+import { v4 as uuidv4 } from 'uuid';
+
+import { UserType } from './types/chat';
+
+import LobbyView from './components/Views/LobbyView';
+import MeetingView from './components/Views/MeetingView';
+
+import './App.css';
+
+export type Props = {
+  callId: string;
+  logo: string;
+  user: UserType;
+  token: string;
+  apiKey: string;
+  coordinatorRpcUrl: string;
+  coordinatorWsUrl: string;
+};
+
+const config = {
+  apiKey: 'us83cfwuhy8n',
+  user: {
+    id: 'marcelo',
+    name: 'Niels',
+    role: 'admin',
+    teams: ['team-1', 'team-2'],
+    imageUrl: 'https://randomuser.me/api/portraits/men/57.jpg',
+    customJson: new Uint8Array(),
+  },
+  token:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoibWFyY2VsbyJ9.Nhth6nZUqQ6mSz05VAnGGJNRQewpQfqK9reYMYq67NM',
+  coordinatorWsUrl:
+    'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+
+  coordinatorRpcUrl:
+    'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
+};
+
+const Init: FC<Props> = ({
+  callId,
+  logo,
+  user,
+  token,
+  coordinatorRpcUrl,
+  coordinatorWsUrl,
+  apiKey,
+}) => {
+  const [isCallActive, setIsCallActive] = useState(false);
+  const call: {
+    callId: string;
+    currentUser: any;
+    callType: string;
+    input: { members: any; createdBy: any };
+    autoJoin: boolean;
+  } = useMemo(() => {
+    return {
+      callId: callId,
+      callType: 'default',
+      input: {
+        members: [
+          {
+            userId: user.id,
+            role: user.role,
+            customJson: user.customJson,
+          },
+        ],
+        createdBy: user.id,
+      },
+
+      currentUser: user,
+      autoJoin: true,
+    };
+  }, [user, callId]);
+
+  const videoStream = useCreateStreamVideoClient({
+    coordinatorRpcUrl,
+    coordinatorWsUrl,
+    apiKey,
+    token,
+    user,
+  });
 
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  )
-}
+    <StreamVideo client={videoStream}>
+      <StreamMeeting
+        callId={call.callId}
+        callType={call.callType}
+        input={call.input}
+        currentUser={call.currentUser}
+      >
+        {isCallActive ? (
+          <MeetingView
+            logo={logo}
+            callId={callId}
+            isCallActive={isCallActive}
+          />
+        ) : (
+          <LobbyView
+            logo={logo}
+            avatar={user.imageUrl}
+            isCallActive={isCallActive}
+            callId={callId}
+            joinCall={() => {
+              setIsCallActive(true);
+            }}
+          />
+        )}
+      </StreamMeeting>
+    </StreamVideo>
+  );
+};
 
-export default App
+const App: FC<any> = () => {
+  const logo = '/images/icons/stream-logo.svg';
+
+  const location = window?.document?.location;
+
+  const callId = new URL(location.href).searchParams.get('id') || uuidv4();
+
+  return <Init {...config} logo={logo} callId={callId} />;
+};
+
+export default App;
