@@ -17,7 +17,7 @@ import { CallControlsButton } from './CallControlsButton';
 /**
  * Props to be passed for the ActiveCall component.
  */
-export interface CallLobbyProps {
+export interface LobbyViewProps {
   /**
    * Call ID of the call that is to be joined.
    */
@@ -49,7 +49,7 @@ const ParticipantStatus = () => {
   );
 };
 
-export const CallLobby = (props: CallLobbyProps) => {
+export const LobbyView = (props: LobbyViewProps) => {
   const [videoStream, setVideoStream] = useState<MediaStream | undefined>(
     undefined,
   );
@@ -73,15 +73,11 @@ export const CallLobby = (props: CallLobbyProps) => {
   );
 
   useEffect(() => {
-    if (currentVideoDevice) {
-      getVideoStream(currentVideoDevice.deviceId)
-        .then((stream) => {
-          setVideoStream(stream);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    }
+    const loadVideoStream = async () => {
+      const videoStream = await getVideoStream(currentVideoDevice?.deviceId);
+      setVideoStream(videoStream);
+    };
+    loadVideoStream();
   }, [currentVideoDevice]);
 
   const toggleAudioState = () => setState({ isAudioMuted: !isAudioMuted });
