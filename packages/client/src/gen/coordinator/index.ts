@@ -71,6 +71,19 @@ export interface Any {
 /**
  *
  * @export
+ * @interface AudioSettings
+ */
+export interface AudioSettings {
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettings
+   */
+  access_request_enabled: boolean;
+}
+/**
+ *
+ * @export
  * @interface BroadcastSettings
  */
 export interface BroadcastSettings {
@@ -475,6 +488,12 @@ export interface CallSettingsRequest {
  * @interface CallSettingsResponse
  */
 export interface CallSettingsResponse {
+  /**
+   *
+   * @type {AudioSettings}
+   * @memberof CallSettingsResponse
+   */
+  audio: AudioSettings;
   /**
    *
    * @type {BroadcastSettings}
