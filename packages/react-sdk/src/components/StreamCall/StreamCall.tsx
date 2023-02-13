@@ -17,7 +17,7 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!videoClient || activeCall) return;
 
-    if (outgoingCall.call && videoClient.callConfig.joinCallInstantly) {
+    if (outgoingCall?.call && videoClient.callConfig.joinCallInstantly) {
       videoClient
         .joinCall(outgoingCall.call.id!, outgoingCall.call.type!)
         .catch((e) => {

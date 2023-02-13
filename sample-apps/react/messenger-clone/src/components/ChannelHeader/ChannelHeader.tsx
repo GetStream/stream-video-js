@@ -45,7 +45,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
   const { member_count, subtitle } = channel?.data || {};
 
   const onCreateCall = useCallback(() => {
-    videoClient?.getOrCreateCall(meetingId(), 'default', {
+    videoClient?.joinCall(meetingId(), 'default', {
       ring: true,
       data: {
         custom: {
@@ -53,10 +53,13 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
         },
         members: Object.values(channel.state.members).reduce<MemberRequest[]>(
           (acc, member) => {
-            if (member.user_id !== client.user.id) {
+            if (member.user_id !== client.user?.id) {
               acc.push({
-                user_id: member.user.id,
-                role: member.user.role,
+                user_id: member.user_id!,
+                role: member.user?.role!,
+                user: {
+                  id: member.user_id!,
+                },
               });
             }
             return acc;
@@ -65,7 +68,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
         ),
       },
     });
-  }, [videoClient, channel.id, channel.state.members, client.user.id]);
+  }, [videoClient, channel.id, channel.state.members, client.user?.id]);
 
   const disableCreateCall = !videoClient || !!activeCall;
 
@@ -124,7 +127,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
         <button
           className="rmc__button rmc__button--red"
           onClick={() => {
-            videoClient.cancelCall(activeCall.data.call.cid);
+            videoClient?.cancelCall(activeCall.data.call.cid);
           }}
         >
           <PhoneDisabled />

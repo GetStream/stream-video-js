@@ -1,6 +1,5 @@
 import {
   Call,
-  CallMetadata,
   SfuModels,
   StreamVideoLocalParticipant,
 } from '@stream-io/video-client';
@@ -27,7 +26,7 @@ export const OutgoingCallControls = ({
     <div className="rmc__button-controls">
       <button
         className="rmc__button rmc__button--red"
-        onClick={() => videoClient.cancelCall(callCid)}
+        onClick={() => videoClient?.cancelCall(callCid)}
       >
         <PhoneDisabled />
       </button>
@@ -47,13 +46,13 @@ export const IncomingCallControls = ({
     <div className="rmc__button-controls">
       <button
         className="rmc__button rmc__button--green"
-        onClick={() => videoClient.acceptCall(callCid)}
+        onClick={() => videoClient?.acceptCall(callCid)}
       >
         <LocalPhone />
       </button>
       <button
         className="rmc__button rmc__button--red"
-        onClick={() => videoClient.rejectCall(callCid)}
+        onClick={() => videoClient?.rejectCall(callCid)}
       >
         <PhoneDisabled />
       </button>
@@ -64,8 +63,8 @@ export const IncomingCallControls = ({
 type ActiveCallControlsProps = {
   activeCall?: Call;
   localParticipant?: StreamVideoLocalParticipant;
-  publishAudioStream?: () => Promise<void>;
-  publishVideoStream?: () => Promise<void>;
+  publishAudioStream: () => Promise<void>;
+  publishVideoStream: () => Promise<void>;
 };
 export const ActiveCallControls = ({
   activeCall,
@@ -109,93 +108,14 @@ export const ActiveCallControls = ({
       </button>
       <button
         className="rmc__button rmc__button--red"
-        onClick={() => videoClient.cancelCall(activeCall.data.call.cid)}
+        onClick={() => {
+          if (activeCall) {
+            videoClient?.cancelCall(activeCall.data.call.cid);
+          }
+        }}
       >
         <PhoneDisabled />
       </button>
-    </div>
-  );
-};
-
-type ButtonControlsProps = {
-  activeCall?: Call;
-  outgoingCall?: CallMetadata;
-  incomingCall?: CallMetadata;
-  localParticipant?: StreamVideoLocalParticipant;
-  publishAudioStream?: () => Promise<void>;
-  publishVideoStream?: () => Promise<void>;
-};
-
-/** @deprecated */
-export const CallControls = ({
-  activeCall,
-  incomingCall,
-  outgoingCall,
-  localParticipant,
-  publishAudioStream,
-  publishVideoStream,
-}: ButtonControlsProps) => {
-  const videoClient = useStreamVideoClient();
-
-  const isAudioMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
-  const isVideoMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.VIDEO,
-  );
-
-  return (
-    <div className="rmc__button-controls">
-      {incomingCall && !activeCall && (
-        <>
-          <button
-            className="rmc__button rmc__button--green"
-            onClick={() => videoClient.acceptCall(incomingCall.call.cid)}
-          >
-            <LocalPhone />
-          </button>
-          <button
-            className="rmc__button rmc__button--red"
-            onClick={() => videoClient.rejectCall(incomingCall.call.cid)}
-          >
-            <PhoneDisabled />
-          </button>
-        </>
-      )}
-      {activeCall && (
-        <>
-          <button
-            className="rmc__button rmc__button--transparent"
-            onClick={() => {
-              if (isAudioMute) {
-                void publishAudioStream();
-              } else {
-                void activeCall?.stopPublish(SfuModels.TrackType.AUDIO);
-              }
-            }}
-          >
-            {isAudioMute ? <MicOff /> : <Mic />}
-          </button>
-          <button
-            className="rmc__button rmc__button--transparent"
-            onClick={() => {
-              if (isVideoMute) {
-                void publishVideoStream();
-              } else {
-                void activeCall?.stopPublish(SfuModels.TrackType.VIDEO);
-              }
-            }}
-          >
-            {isVideoMute ? <VideocamOff /> : <Videocam />}
-          </button>
-          <button
-            className="rmc__button rmc__button--red"
-            onClick={activeCall.leave}
-          >
-            <PhoneDisabled />
-          </button>
-        </>
-      )}
     </div>
   );
 };

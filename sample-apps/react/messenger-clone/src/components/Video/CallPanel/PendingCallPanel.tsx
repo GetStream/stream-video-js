@@ -20,16 +20,18 @@ export const PendingCallPanel = ({
       <div className="rmc__secondary-participant-wrapper">
         <ParticipantPlaceholder
           className="rmc__secondary-participant-placeholder"
+          // @ts-expect-error
           // FIXME OL: imageURL doesn't exist on User anymore
-          imageSrc={localUser['imageUrl']}
+          imageSrc={localUser && localUser['imageUrl']}
         />
       </div>
 
       <div className="rmc__primary-participant-wrapper">
         <ParticipantPlaceholder
           className="rmc__primary-participant-placeholder"
+          // @ts-expect-error
           // FIXME OL: imageURL doesn't exist on User anymore
-          imageSrc={remoteUser['imageUrl']}
+          imageSrc={remoteUser && remoteUser['imageUrl']}
         />
       </div>
 
