@@ -151,7 +151,7 @@ export class CallLobbyComponent implements OnInit, OnDestroy {
     });
     if (this.joinOrCreate === 'create') {
       const channel = this.chatClientService.chatClient.channel(
-        'videocall',
+        'messaging',
         callId,
         // TODO: hacky workaround for permission problems
         { members: this.userService.users.map((u) => u.user.id) },
