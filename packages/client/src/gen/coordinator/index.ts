@@ -56,13 +56,13 @@ export interface APIError {
  */
 export interface Any {
   /**
-   * Date/time of creation
+   *
    * @type {string}
    * @memberof Any
    */
   created_at: string;
   /**
-   * Event Type
+   *
    * @type {string}
    * @memberof Any
    */
@@ -243,7 +243,7 @@ export interface CallPermissionRequest {
    */
   created_at: string;
   /**
-   *
+   * The list of permissions requested by the user
    * @type {Array<string>}
    * @memberof CallPermissionRequest
    */
@@ -280,7 +280,7 @@ export interface CallPermissionsUpdated {
    */
   created_at: string;
   /**
-   *
+   * The updated list of capabilities the user has in the call
    * @type {Array<string>}
    * @memberof CallPermissionsUpdated
    */
@@ -291,6 +291,12 @@ export interface CallPermissionsUpdated {
    * @memberof CallPermissionsUpdated
    */
   type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallPermissionsUpdated
+   */
+  user: UserResponse;
 }
 /**
  *
@@ -352,7 +358,7 @@ export interface CallRequest {
    * @type {Array<MemberRequest>}
    * @memberof CallRequest
    */
-  members: Array<MemberRequest>;
+  members?: Array<MemberRequest>;
   /**
    *
    * @type {CallSettingsRequest}
@@ -644,7 +650,7 @@ export interface Custom {
    */
   created_at: string;
   /**
-   *
+   * Custom data for this object
    * @type {{ [key: string]: any; }}
    * @memberof Custom
    */
@@ -687,44 +693,6 @@ export interface DatacenterResponse {
    */
   name: string;
 }
-/**
- *
- * @export
- * @interface DeviceFieldsRequest
- */
-export interface DeviceFieldsRequest {
-  /**
-   * Device ID
-   * @type {string}
-   * @memberof DeviceFieldsRequest
-   */
-  id?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof DeviceFieldsRequest
-   */
-  push_provider?: DeviceFieldsRequestPushProviderEnum;
-  /**
-   * Name of the push provider configuration
-   * @type {string}
-   * @memberof DeviceFieldsRequest
-   */
-  push_provider_name?: string;
-}
-
-/**
- * @export
- */
-export const DeviceFieldsRequestPushProviderEnum = {
-  firebase: 'firebase',
-  apn: 'apn',
-  huawei: 'huawei',
-  xiaomi: 'xiaomi',
-} as const;
-export type DeviceFieldsRequestPushProviderEnum =
-  (typeof DeviceFieldsRequestPushProviderEnum)[keyof typeof DeviceFieldsRequestPushProviderEnum];
-
 /**
  *
  * @export
@@ -988,7 +956,7 @@ export interface JoinCallResponse {
  */
 export interface MemberRequest {
   /**
-   *
+   * Custom data for this object
    * @type {{ [key: string]: any; }}
    * @memberof MemberRequest
    */
@@ -998,19 +966,13 @@ export interface MemberRequest {
    * @type {string}
    * @memberof MemberRequest
    */
-  role: string;
+  role?: string;
   /**
    *
-   * @type {UserObjectRequest}
+   * @type {UserRequest}
    * @memberof MemberRequest
    */
-  user?: UserObjectRequest;
-  /**
-   *
-   * @type {string}
-   * @memberof MemberRequest
-   */
-  user_id: string;
+  user?: UserRequest;
 }
 /**
  *
@@ -1061,7 +1023,7 @@ export interface MemberResponse {
    */
   user: UserResponse;
   /**
-   * User ID
+   *
    * @type {string}
    * @memberof MemberResponse
    */
@@ -1163,83 +1125,15 @@ export interface PaginationParamsRequest {
 /**
  *
  * @export
- * @interface PushNotificationSettings
- */
-export interface PushNotificationSettings {
-  /**
-   *
-   * @type {boolean}
-   * @memberof PushNotificationSettings
-   */
-  disabled?: boolean;
-  /**
-   *
-   * @type {string}
-   * @memberof PushNotificationSettings
-   */
-  disabled_until?: string;
-}
-/**
- *
- * @export
- * @interface PushNotificationSettingsRequest
- */
-export interface PushNotificationSettingsRequest {
-  /**
-   *
-   * @type {boolean}
-   * @memberof PushNotificationSettingsRequest
-   */
-  disabled?: boolean;
-  /**
-   *
-   * @type {string}
-   * @memberof PushNotificationSettingsRequest
-   */
-  disabled_until?: string;
-}
-/**
- *
- * @export
  * @interface QueryCallRequest
  */
 export interface QueryCallRequest {
-  /**
-   *
-   * @type {string}
-   * @memberof QueryCallRequest
-   */
-  client_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof QueryCallRequest
-   */
-  connection_id: string;
-  /**
-   *
-   * @type {{ [key: string]: any; }}
-   * @memberof QueryCallRequest
-   */
-  custom?: { [key: string]: any };
   /**
    *
    * @type {{ [key: string]: any; }}
    * @memberof QueryCallRequest
    */
   filter_conditions?: { [key: string]: any };
-  /**
-   *
-   * @type {string}
-   * @memberof QueryCallRequest
-   */
-  id?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof QueryCallRequest
-   */
-  image?: string;
   /**
    *
    * @type {number}
@@ -1263,12 +1157,6 @@ export interface QueryCallRequest {
    * @type {string}
    * @memberof QueryCallRequest
    */
-  name?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof QueryCallRequest
-   */
   next?: string;
   /**
    *
@@ -1278,22 +1166,10 @@ export interface QueryCallRequest {
   prev?: string;
   /**
    *
-   * @type {string}
-   * @memberof QueryCallRequest
-   */
-  role: string;
-  /**
-   *
    * @type {Array<SortParamRequest>}
    * @memberof QueryCallRequest
    */
   sort: Array<SortParamRequest>;
-  /**
-   *
-   * @type {Array<string>}
-   * @memberof QueryCallRequest
-   */
-  teams?: Array<string>;
   /**
    *
    * @type {boolean}
@@ -1339,12 +1215,6 @@ export interface QueryCallsResponse {
  */
 export interface QueryMembersRequest {
   /**
-   * Websocket connection ID to interact with. You can pass it as body or URL parameter
-   * @type {string}
-   * @memberof QueryMembersRequest
-   */
-  connection_id: string;
-  /**
    *
    * @type {{ [key: string]: any; }}
    * @memberof QueryMembersRequest
@@ -1386,12 +1256,6 @@ export interface QueryMembersRequest {
    * @memberof QueryMembersRequest
    */
   type: string;
-  /**
-   *
-   * @type {string}
-   * @memberof QueryMembersRequest
-   */
-  user_id?: string;
 }
 /**
  *
@@ -1661,166 +1525,6 @@ export interface UpdateUserPermissionsResponse {
   duration: string;
 }
 /**
- * Represents chat user
- * @export
- * @interface UserObject
- */
-export interface UserObject {
-  [key: string]: any | any;
-  /**
-   * Expiration date of the ban
-   * @type {string}
-   * @memberof UserObject
-   */
-  ban_expires?: string;
-  /**
-   * Whether a user is banned or not
-   * @type {boolean}
-   * @memberof UserObject
-   */
-  banned: boolean;
-  /**
-   * Date/time of creation
-   * @type {string}
-   * @memberof UserObject
-   */
-  readonly created_at?: string;
-  /**
-   * Date of deactivation
-   * @type {string}
-   * @memberof UserObject
-   */
-  readonly deactivated_at?: string;
-  /**
-   * Date/time of deletion
-   * @type {string}
-   * @memberof UserObject
-   */
-  readonly deleted_at?: string;
-  /**
-   * Unique user identifier
-   * @type {string}
-   * @memberof UserObject
-   */
-  id: string;
-  /**
-   *
-   * @type {boolean}
-   * @memberof UserObject
-   */
-  invisible?: boolean;
-  /**
-   * Preferred language of a user
-   * @type {string}
-   * @memberof UserObject
-   */
-  language?: string;
-  /**
-   * Date of last activity
-   * @type {string}
-   * @memberof UserObject
-   */
-  readonly last_active?: string;
-  /**
-   * Whether a user online or not
-   * @type {boolean}
-   * @memberof UserObject
-   */
-  readonly online: boolean;
-  /**
-   *
-   * @type {PushNotificationSettings}
-   * @memberof UserObject
-   */
-  push_notifications?: PushNotificationSettings;
-  /**
-   * Revocation date for tokens
-   * @type {string}
-   * @memberof UserObject
-   */
-  revoke_tokens_issued_before?: string;
-  /**
-   * Determines the set of user permissions
-   * @type {string}
-   * @memberof UserObject
-   */
-  role: string;
-  /**
-   * List of teams user is a part of
-   * @type {Array<string>}
-   * @memberof UserObject
-   */
-  teams?: Array<string>;
-  /**
-   * Date/time of the last update
-   * @type {string}
-   * @memberof UserObject
-   */
-  readonly updated_at?: string;
-}
-/**
- * Represents chat user
- * @export
- * @interface UserObjectRequest
- */
-export interface UserObjectRequest {
-  [key: string]: any | any;
-  /**
-   * Expiration date of the ban
-   * @type {string}
-   * @memberof UserObjectRequest
-   */
-  ban_expires?: string;
-  /**
-   * Whether a user is banned or not
-   * @type {boolean}
-   * @memberof UserObjectRequest
-   */
-  banned?: boolean;
-  /**
-   * Unique user identifier
-   * @type {string}
-   * @memberof UserObjectRequest
-   */
-  id: string;
-  /**
-   *
-   * @type {boolean}
-   * @memberof UserObjectRequest
-   */
-  invisible?: boolean;
-  /**
-   * Preferred language of a user
-   * @type {string}
-   * @memberof UserObjectRequest
-   */
-  language?: string;
-  /**
-   *
-   * @type {PushNotificationSettingsRequest}
-   * @memberof UserObjectRequest
-   */
-  push_notifications?: PushNotificationSettingsRequest;
-  /**
-   * Revocation date for tokens
-   * @type {string}
-   * @memberof UserObjectRequest
-   */
-  revoke_tokens_issued_before?: string;
-  /**
-   * Determines the set of user permissions
-   * @type {string}
-   * @memberof UserObjectRequest
-   */
-  role?: string;
-  /**
-   * List of teams user is a part of
-   * @type {Array<string>}
-   * @memberof UserObjectRequest
-   */
-  teams?: Array<string>;
-}
-/**
  *
  * @export
  * @interface UserRequest
@@ -1837,7 +1541,7 @@ export interface UserRequest {
    * @type {string}
    * @memberof UserRequest
    */
-  id?: string;
+  id: string;
   /**
    *
    * @type {string}
@@ -1855,7 +1559,7 @@ export interface UserRequest {
    * @type {string}
    * @memberof UserRequest
    */
-  role: string;
+  role?: string;
   /**
    *
    * @type {Array<string>}
@@ -1927,31 +1631,6 @@ export interface UserResponse {
 /**
  *
  * @export
- * @interface UserUpdated
- */
-export interface UserUpdated {
-  /**
-   * Date/time of creation
-   * @type {string}
-   * @memberof UserUpdated
-   */
-  created_at: string;
-  /**
-   * Event Type
-   * @type {string}
-   * @memberof UserUpdated
-   */
-  type: string;
-  /**
-   *
-   * @type {UserObject}
-   * @memberof UserUpdated
-   */
-  user?: UserObject;
-}
-/**
- *
- * @export
  * @interface VideoSettings
  */
 export interface VideoSettings {
@@ -1986,29 +1665,4 @@ export interface VideoSettingsRequest {
    * @memberof VideoSettingsRequest
    */
   enabled?: boolean;
-}
-/**
- *
- * @export
- * @interface VideoWSAuthMessageRequest
- */
-export interface VideoWSAuthMessageRequest {
-  /**
-   *
-   * @type {DeviceFieldsRequest}
-   * @memberof VideoWSAuthMessageRequest
-   */
-  device?: DeviceFieldsRequest;
-  /**
-   * Token string
-   * @type {string}
-   * @memberof VideoWSAuthMessageRequest
-   */
-  token: string;
-  /**
-   *
-   * @type {UserObjectRequest}
-   * @memberof VideoWSAuthMessageRequest
-   */
-  user_details: UserObjectRequest;
 }

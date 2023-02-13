@@ -88,10 +88,13 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         this.userService.users.find((u) => u.user.id === userId),
       )
       .filter((m) => !!m);
-    const memberInput: MemberRequest[] = (members || []).map((m) => ({
-      user_id: m!.user.id,
-      role: m!.user.role!,
-    }));
+    const memberInput: MemberRequest[] = (members || []).map<MemberRequest>(
+      (m) => ({
+        user: {
+          id: m!.user.id,
+        },
+      }),
+    );
     try {
       const call = await this.videoService.videoClient?.getOrCreateCall(
         uuidv4(),
