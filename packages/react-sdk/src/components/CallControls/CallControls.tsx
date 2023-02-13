@@ -9,8 +9,9 @@ import {
   ToggleCameraButton,
 } from './index';
 import { SpeakingWhileMutedNotification } from '../Notification';
+import { PropsWithChildren } from 'react';
 
-export type CallControlsProps = {
+export type CallControlsProps = PropsWithChildren & {
   call: Call;
   initialAudioMuted?: boolean;
   initialVideoMuted?: boolean;
@@ -18,28 +19,34 @@ export type CallControlsProps = {
 };
 
 export const CallControls = (props: CallControlsProps) => {
-  const { call, initialAudioMuted, initialVideoMuted, onLeave } = props;
+  const { call, initialAudioMuted, initialVideoMuted, onLeave, children } =
+    props;
 
   const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
 
   return (
     <div className="str-video__call-controls">
-      <RecordCallButton call={call} />
-      <CallStatsButton />
-      <ScreenShareButton call={call} />
-      <SpeakingWhileMutedNotification>
-        <ToggleAudioButton
+      <div className="str-video__call-controls-section">
+        <RecordCallButton call={call} />
+        <CallStatsButton />
+        <ScreenShareButton call={call} />
+      </div>
+      <div className="str-video__call-controls-section">
+        <SpeakingWhileMutedNotification>
+          <ToggleAudioButton
+            call={call}
+            audioDeviceId={selectedAudioDeviceId}
+            initialAudioMuted={initialAudioMuted}
+          />
+        </SpeakingWhileMutedNotification>
+        <ToggleCameraButton
           call={call}
-          audioDeviceId={selectedAudioDeviceId}
-          initialAudioMuted={initialAudioMuted}
+          initialVideoMuted={initialVideoMuted}
+          videoDeviceId={selectedVideoDeviceId}
         />
-      </SpeakingWhileMutedNotification>
-      <ToggleCameraButton
-        call={call}
-        initialVideoMuted={initialVideoMuted}
-        videoDeviceId={selectedVideoDeviceId}
-      />
-      <CancelCallButton call={call} onLeave={onLeave} />
+        <CancelCallButton call={call} onLeave={onLeave} />
+      </div>
+      {children}
     </div>
   );
 };

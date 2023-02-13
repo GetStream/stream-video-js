@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import '../style/app.css';
 import '@stream-io/video-styling/dist/css/styles.css';
+import '../style/app.css';
 import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -47,7 +47,7 @@ export default function App({
         <Stack height="100vh">
           <Stack direction="row" spacing={2}>
             <Box flexGrow={1} padding={1}>
-              <Link href="/">
+              <Link href="/" data-testid="home-button">
                 <a>
                   <Image
                     src="/stream-logo.png"
@@ -79,8 +79,13 @@ const UserInfo = () => {
         divider={<Divider orientation="vertical" />}
         sx={{ alignItems: 'center' }}
       >
-        <Box>{theSession.user.email}</Box>
-        <Button size="small" variant="text" onClick={() => signOut()}>
+        <Box data-testid="username">{theSession.user.email}</Box>
+        <Button
+          data-testid="sign-out-button"
+          size="small"
+          variant="text"
+          onClick={() => signOut()}
+        >
           Sign out
         </Button>
       </Stack>

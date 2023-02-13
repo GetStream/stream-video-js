@@ -8,6 +8,7 @@
 
   .str-video__notification__icon {
     mask-image: var(--str-video__icon--info-icon);
+    -webkit-mask-image: var(--str-video__icon--info-icon);
     background-color: var(--str-video__text-color1);
     display: inline-block;
     width: 1.5rem;

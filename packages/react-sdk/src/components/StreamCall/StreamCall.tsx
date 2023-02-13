@@ -39,5 +39,9 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
 
   if (!videoClient) return null;
 
-  return <MediaDevicesProvider>{children}</MediaDevicesProvider>;
+  return (
+    <MediaDevicesProvider enumerate={!!activeCall}>
+      {children}
+    </MediaDevicesProvider>
+  );
 };

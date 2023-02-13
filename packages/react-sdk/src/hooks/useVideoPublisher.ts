@@ -38,7 +38,12 @@ export const useVideoPublisher = ({
   useEffect(() => {
     let interrupted = false;
 
-    if (initialVideoMuted || !isPublishingVideo) return;
+    // isPublishingVideo can be initially undefined which
+    // is an important information to have on initial effect run
+    // as mute state is derived from the participant.publishedTracks array (no video track means muted)
+    // we only strictly check if it's false to see if the user is muted while changing devices
+    // no other effect trigger is necessary, you only want effect to run when videoDeviceId, preferredCodec or call changes
+    if (initialVideoMuted || isPublishingVideo === false) return;
 
     getVideoStream(videoDeviceId).then((stream) => {
       if (interrupted && stream.active)
@@ -51,13 +56,8 @@ export const useVideoPublisher = ({
       interrupted = true;
       call.stopPublish(SfuModels.TrackType.VIDEO);
     };
-  }, [
-    videoDeviceId,
-    call,
-    preferredCodec,
-    initialVideoMuted,
-    isPublishingVideo,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoDeviceId, call, preferredCodec]);
 
   useEffect(() => {
     const subscription = watchForDisconnectedVideoDevice(

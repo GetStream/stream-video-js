@@ -6,3 +6,54 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+* {
+  box-sizing: border-box;
+}
+
+.str-video__call__loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+.str-video__call__loading-screen .str-video__loading-indicator__icon.spinner {
+  height: 4rem;
+  width: 4rem;
+  mask-size: 4rem;
+}
+
+.str-video__call {
+  display: flex;
+  flex-direction: row;
+}
+
+.str-video__call__main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.str-video__sidebar {
+  padding: 1.25rem;
+  width: 300px;
+}
+
+.str-video__call-controls {
+ justify-content: space-between;
+  padding-inline: 16px;
+
+}
+
+.rd-call-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.str-video__call-controls .str-video__call-controls__button--enabled {
+  background-color: #72767E;
+}
+
+
