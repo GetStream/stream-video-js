@@ -28,6 +28,10 @@ export const Video = ({
     user,
   });
 
+  if (!client) {
+    return null;
+  }
+
   return (
     <StreamVideo client={client}>
       {children}
