@@ -196,12 +196,14 @@ export class WSConnectionFallback {
 
       this._setState(ConnectionState.Connected);
       this.connectionID = event.connection_id;
+      this.client.resolveConnectionId();
       // @ts-expect-error
       this.client.dispatchEvent(event);
       this._poll();
       return event;
     } catch (err) {
       this._setState(ConnectionState.Closed);
+      this.client.rejectConnectionId();
       throw err;
     }
   };
