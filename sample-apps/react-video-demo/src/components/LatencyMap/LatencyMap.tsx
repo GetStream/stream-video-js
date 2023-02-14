@@ -43,7 +43,7 @@ export const LatencyMap: FC<Props> = ({
     if (map.current && !loading) {
       map.current.on('mouseenter', 'servers-visualise', (e: any) => {
         if (map.current) {
-          if (e.features && e.features.length > 0) {
+          if (e.features?.length > 0) {
             const [point] = e.features;
 
             map.current.getCanvas().style.cursor = 'pointer';
