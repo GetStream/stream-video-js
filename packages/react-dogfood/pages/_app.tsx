@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import '@stream-io/video-styling/dist/css/styles.css';
+import 'stream-chat-react/dist/css/v2/index.css';
 import '../style/app.css';
 import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
