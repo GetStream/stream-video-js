@@ -13,47 +13,30 @@ import './style.css';
   const callId = urlParams.get('call_id') || 'egress-test';
 
   // Access and operation mode config
-  const localDev = Boolean(urlParams.get('local') || false);
   const mode = urlParams.get('mode') || 'speaker';
+  const baseURL =
+    urlParams.get('baseURL') ||
+    'https://video-edge-oregon-ce3.stream-io-api.com/video';
   const apiKey = urlParams.get('api_key') || 'key10';
   const accessToken =
     urlParams.get('token') ||
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdHJlYW0tdmlkZW8tanNAdjAuMC4wIiwic3ViIjoidXNlci9lZ3Jlc3NAZ2V0c3RyZWFtLmlvIiwiaWF0IjoxNjY3NDAwMTgsInVzZXJfaWQiOiJlZ3Jlc3NAZ2V0c3RyZWFtLmlvIn0.bzrr3W2PPjhoN7gee7i-i26DjtcKHfAB9buiKH1LtEc';
 
-  // Environment config
-  const coordinatorRpcUrl =
-    urlParams.get('coordinator_rpc_url') || localDev
-      ? 'http://localhost:26991/rpc/'
-      : 'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc';
-  const coordinatorWsUrl =
-    urlParams.get('coordinator_ws_url') || localDev
-      ? 'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect'
-      : 'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect';
-
   const client = new StreamVideoClient(apiKey, {
-    token: accessToken,
-    sendJson: true,
-    coordinatorRpcUrl,
-    coordinatorWsUrl,
+    baseURL,
   });
-
-  const store$ = client.readOnlyStateStore;
-
-  await client.connect(apiKey, accessToken, {
-    id: 'egress',
-    name: 'egress',
-    role: 'spectator',
-    teams: ['stream-io'],
-    imageUrl: '/profile.png',
-    customJson: new Uint8Array(),
-  });
+  await client.connectUser(
+    {
+      id: 'egress@getstream.io',
+      name: 'egress',
+      role: 'spectator',
+      teams: ['stream-io'],
+    },
+    accessToken,
+  );
 
   console.log('Joining call with id:', callId);
-  const call = await client.joinCall({
-    id: callId,
-    type: 'default',
-    datacenterId: '',
-  });
+  const call = await client.joinCall(callId, 'default');
 
   if (!call) {
     throw new Error(`Failed to join a call with id: ${callId}`);
@@ -62,6 +45,7 @@ import './style.css';
   // await call.join();
   console.log('Connection is established.');
 
+  const store$ = client.readOnlyStateStore;
   store$.dominantSpeaker$.subscribe((dominantSpeaker) => {
     if (dominantSpeaker) {
       call.updateSubscriptionsPartial('video', {

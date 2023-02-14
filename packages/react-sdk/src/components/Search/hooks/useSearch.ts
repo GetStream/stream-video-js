@@ -45,11 +45,11 @@ export const useSearch = <T>({
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
     async (event) => {
-      const searchQuery = event.target.value;
-      setSearchQuery(searchQuery);
-      if (searchQuery) {
+      const query = event.target.value;
+      setSearchQuery(query);
+      if (query) {
         setSearchQueryInProgress(true);
-        const results = await doSearch(searchQuery);
+        const results = await doSearch(query);
         if (queryAborted.current) {
           queryAborted.current = false;
         } else {

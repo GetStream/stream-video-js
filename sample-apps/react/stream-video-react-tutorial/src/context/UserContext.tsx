@@ -1,10 +1,10 @@
 import { createContext, ReactNode, useContext, useState } from 'react';
-import { UserInput } from '@stream-io/video-client';
+import { User } from '@stream-io/video-client';
 import users from '../../data/users';
 
 type UserDataContextValue = {
   setSelectedUserId: (userId: string) => void;
-  users: Record<string, UserInput>;
+  users: Record<string, User>;
   selectedUserId?: string;
 };
 

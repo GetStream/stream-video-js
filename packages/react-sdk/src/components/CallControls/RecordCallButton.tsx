@@ -21,9 +21,9 @@ export const RecordCallButton = ({ call }: RecordCallButtonProps) => {
       onClick={() => {
         if (!callMeta) return;
         if (isCallRecordingInProgress) {
-          client?.stopRecording(callMeta.id, callMeta.type);
+          client?.stopRecording(callMeta.id!, callMeta.type!);
         } else {
-          client?.startRecording(callMeta.id, callMeta.type);
+          client?.startRecording(callMeta.id!, callMeta.type!);
         }
       }}
     />

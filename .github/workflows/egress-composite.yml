@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - egress-composite
+      - video-coordinator
     paths:
       - .github/workflows/egress-composite.yml
       - packages/egress-composite/**

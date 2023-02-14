@@ -1,20 +1,14 @@
-import { UserInput } from '@stream-io/video-client';
+import { User } from '@stream-io/video-client';
 
 export default {
   alice: {
     id: 'alice',
     name: 'Alice',
-    imageUrl: '/alice.jpg',
-    role: 'user',
-    teams: [],
-    customJson: new Uint8Array(),
+    image: 'https://randomuser.me/api/portraits/women/47.jpg',
   },
   mark: {
     id: 'mark',
     name: 'Mark',
-    imageUrl: '/mark.jpg',
-    role: 'user',
-    teams: [],
-    customJson: new Uint8Array(),
+    image: 'https://randomuser.me/api/portraits/men/38.jpg',
   },
-} as Record<string, UserInput>;
+} as Record<string, User>;

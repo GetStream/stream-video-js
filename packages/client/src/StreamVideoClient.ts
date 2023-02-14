@@ -2,37 +2,21 @@ import {
   StreamVideoReadOnlyStateStore,
   StreamVideoWriteableStateStore,
 } from './store';
-import type { Call as CallMeta } from './gen/video/coordinator/call_v1/call';
 import type {
-  CreateCallRequest,
+  DatacenterResponse,
+  GetCallEdgeServerRequest,
   GetOrCreateCallRequest,
-  JoinCallRequest,
-  ReportCallStatEventRequest,
-  ReportCallStatEventResponse,
-  ReportCallStatsRequest,
-  ReportCallStatsResponse,
-} from './gen/video/coordinator/client_v1_rpc/client_rpc';
-import { UserEventType } from './gen/video/coordinator/client_v1_rpc/client_rpc';
-import { ClientRPCClient } from './gen/video/coordinator/client_v1_rpc/client_rpc.client';
-import type {
-  Edge,
   ICEServer,
-  Latency,
-} from './gen/video/coordinator/edge_v1/edge';
-import type { User, UserInput } from './gen/video/coordinator/user_v1/user';
-import {
-  createCoordinatorClient,
-  measureResourceLoadLatencyTo,
-  StreamVideoClientOptions,
-  withHeaders,
-} from './rpc';
-import { createSocketConnection, StreamEventListener } from './ws';
+} from './gen/coordinator';
+
+import type { ReportCallStatEventRequest } from './gen/video/coordinator/client_v1_rpc/client_rpc';
+import { measureResourceLoadLatencyTo } from './rpc';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
+import { CallMetadata } from './rtc/CallMetadata';
 
-import { reportStats } from './stats/coordinator-stats-reporter';
+// import { reportStats } from './stats/coordinator-stats-reporter';
 import { Timestamp } from './gen/google/protobuf/timestamp';
-import { StreamWebSocketClient } from './ws/StreamWebSocketClient';
 import { Batcher } from './Batcher';
 import {
   watchCallAccepted,
@@ -43,15 +27,13 @@ import {
 import { CALL_CONFIG } from './config/defaultConfigs';
 import { CallConfig } from './config/types';
 import { CallDropScheduler } from './CallDropScheduler';
-
-const defaultOptions: Partial<StreamVideoClientOptions> = {
-  coordinatorRpcUrl:
-    'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
-  coordinatorWsUrl:
-    'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
-  sendJson: false,
-  latencyMeasurementRounds: 3,
-};
+import { StreamCoordinatorClient } from './coordinator/StreamCoordinatorClient';
+import {
+  EventHandler,
+  StreamClientOptions,
+  TokenOrProvider,
+  User,
+} from './coordinator/connection/types';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -67,124 +49,119 @@ export class StreamVideoClient {
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
-  private client: ClientRPCClient;
-  private options: StreamVideoClientOptions;
-  private ws: StreamWebSocketClient | undefined;
   private callDropScheduler: CallDropScheduler | undefined;
+  private coordinatorClient: StreamCoordinatorClient;
   /**
    * @internal
    */
   public readonly userBatcher: Batcher<string>;
+
   /**
    * You should create only one instance of `StreamVideoClient`.
    * @angular If you're using our Angular SDK, you shouldn't be calling the `constructor` directly, instead you should be using [`StreamVideoService`](./StreamVideoService.md/#init).
    * @param apiKey your Stream API key
-   * @param opts
+   * @param opts the options for the client.
    * @param {CallConfig} [callConfig=CALL_CONFIG.meeting] custom call configuration
    */
   constructor(
     apiKey: string,
-    opts: StreamVideoClientOptions,
+    opts?: StreamClientOptions,
     callConfig: CallConfig = CALL_CONFIG.meeting,
   ) {
     this.callConfig = callConfig;
-
-    const options = {
-      ...defaultOptions,
-      ...opts,
-    };
-    this.options = options;
-    const { token } = options;
-    const authToken = typeof token === 'function' ? token() : token;
-    this.client = createCoordinatorClient({
-      baseUrl: options.coordinatorRpcUrl || '/',
-      sendJson: options.sendJson,
-      interceptors: [
-        withHeaders({
-          api_key: apiKey,
-          Authorization: `Bearer ${authToken}`,
-        }),
-      ],
-    });
+    this.coordinatorClient = new StreamCoordinatorClient(apiKey, opts);
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
       this.writeableStateStore,
     );
 
-    this.userBatcher = new Batcher<string>(3000, this.handleUserBatch);
-
-    reportStats(
-      this.readOnlyStateStore,
-      (e) =>
-        this.reportCallStats(e).catch((err) => {
-          console.error('Failed to report stats', err);
-        }),
-      (e) =>
-        this.reportCallStatEvent(e).catch((err) => {
-          console.error('Failed to report stats', err);
-        }),
+    this.userBatcher = new Batcher<string>(
+      3000,
+      // this.handleUserBatch,
+      () => {},
     );
+
+    // reportStats(
+    //   this.readOnlyStateStore,
+    //   (e) =>
+    //     this.reportCallStats(e).catch((err) => {
+    //       console.error('Failed to report stats', err);
+    //     }),
+    //   (e) =>
+    //     this.reportCallStatEvent(e).catch((err) => {
+    //       console.error('Failed to report stats', err);
+    //     }),
+    // );
   }
 
-  private handleUserBatch = (idList: string[]) => {
-    this.client
-      .queryUsers({
-        mqJson: new TextEncoder().encode(
-          JSON.stringify({ id: { $in: idList } }),
-        ),
-        sorts: [],
-      })
-      .then(({ response: { users } }) => {
-        const mappedUsers = users.reduce<Record<string, User>>(
-          (userMap, user) => {
-            userMap[user.id] ??= user;
-            return userMap;
-          },
-          {},
-        );
-
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.participantsSubject,
-          (participants) =>
-            participants.map((participant) => {
-              const user = mappedUsers[participant.userId];
-              return user ? { ...participant, user } : participant;
-            }),
-        );
-      });
-  };
+  // private handleUserBatch = (idList: string[]) => {
+  //   this.client
+  //     .queryUsers({
+  //       mqJson: new TextEncoder().encode(
+  //         JSON.stringify({ id: { $in: idList } }),
+  //       ),
+  //       sorts: [],
+  //     })
+  //     .then(({ response: { users } }) => {
+  //       const mappedUsers = users.reduce<Record<string, User>>(
+  //         (userMap, user) => {
+  //           userMap[user.id] ??= user;
+  //           return userMap;
+  //         },
+  //         {},
+  //       );
+  //
+  //       this.writeableStateStore.setCurrentValue(
+  //         this.writeableStateStore.participantsSubject,
+  //         (participants) =>
+  //           participants.map((participant) => {
+  //             const user = mappedUsers[participant.userId];
+  //             return user ? { ...participant, user } : participant;
+  //           }),
+  //       );
+  //     });
+  // };
 
   /**
    * Connects the given user to the client.
-   * Only one user can connect at a time, if you want to change users, call `disconnect` before connecting a new user.
+   * Only one user can connect at a time, if you want to change users, call `disconnectUser` before connecting a new user.
    * If the connection is successful, the connected user [state variable](#readonlystatestore) will be updated accordingly.
-   * @param apiKey
-   * @param token
-   * @param user
-   * @returns
+   *
+   * @param user the user to connect.
+   * @param tokenOrProvider a token or a function that returns a token.
    */
-  connect = async (apiKey: string, token: string, user: UserInput) => {
-    if (this.ws) return;
-    this.ws = await createSocketConnection(
-      this.options.coordinatorWsUrl!,
-      apiKey,
-      token,
-      user,
-    );
-    if (this.ws) {
-      this.callDropScheduler = new CallDropScheduler(
-        this.writeableStateStore,
-        this.callConfig,
-        this.rejectCall,
-        this.cancelCall,
-      );
+  connectUser = async (user: User, tokenOrProvider: TokenOrProvider) => {
+    await this.coordinatorClient.connectUser(user, tokenOrProvider);
 
-      watchCallCreated(this.on, this.writeableStateStore);
-      watchCallAccepted(this.on, this.writeableStateStore);
-      watchCallRejected(this.on, this.writeableStateStore);
-      watchCallCancelled(this.on, this.writeableStateStore);
-    }
+    this.callDropScheduler = new CallDropScheduler(
+      this.writeableStateStore,
+      this.callConfig,
+      this.rejectCall,
+      this.cancelCall,
+    );
+
+    this.on(
+      'call.created',
+      // @ts-expect-error
+      watchCallCreated(this.writeableStateStore),
+    );
+    this.on(
+      'call.accepted',
+      // @ts-expect-error
+      watchCallAccepted(this.writeableStateStore),
+    );
+    this.on(
+      'call.rejected',
+      // @ts-expect-error
+      watchCallRejected(this.writeableStateStore),
+    );
+    this.on(
+      'call.cancelled',
+      // @ts-expect-error
+      watchCallCancelled(this.writeableStateStore),
+    );
+
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
       user,
@@ -195,13 +172,10 @@ export class StreamVideoClient {
    * Disconnects the currently connected user from the client.
    *
    * If the connection is successfully disconnected, the connected user [state variable](#readonlystatestore) will be updated accordingly
-   * @returns
    */
-  disconnect = async () => {
-    if (!this.ws) return;
+  disconnectUser = async () => {
+    await this.coordinatorClient.disconnectUser();
     this.callDropScheduler?.cleanUp();
-    this.ws.disconnect();
-    this.ws = undefined;
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
       undefined,
@@ -209,73 +183,72 @@ export class StreamVideoClient {
   };
 
   /**
-   * You can subscribe to WebSocket events provided by the API. To remove a subscription, call the `off` method.
+   * You can subscribe to WebSocket events provided by the API.
+   * To remove a subscription, call the `off` method or, execute the returned unsubscribe function.
    * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the reactive [state store](#readonlystatestore).
-   * @param event
-   * @param fn
-   * @returns
+   *
+   * @param eventName the event name.
+   * @param callback the callback which will be called when the event is emitted.
+   * @returns an unsubscribe function.
    */
-  on = <T>(event: string, fn: StreamEventListener<T>) => {
-    return this.ws?.on(event, fn);
+  on = (eventName: string, callback: EventHandler) => {
+    return this.coordinatorClient.on(eventName, callback);
   };
 
   /**
    * Remove subscription for WebSocket events that were created by the `on` method.
-   * @param event
-   * @param fn
-   * @returns
+   *
+   * @param event the event name.
+   * @param callback the callback which was passed to the `on` method.
    */
-  off = <T>(event: string, fn: StreamEventListener<T>) => {
-    return this.ws?.off(event, fn);
+  off = (event: string, callback: EventHandler) => {
+    return this.coordinatorClient.off(event, callback);
   };
 
   /**
-   * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, this will return an error.
-   * Causes the CallCreated event to be emitted to all the call members.
-   * @param {GetOrCreateCallRequest} data CreateCallRequest payload object
+   * Allows you to create new calls with the given parameters.
+   * If a call with the same combination of type and id already exists, it will be returned.
+   *
+   * Causes the CallCreated event to be emitted to all the call members in case this call didnot exist before.
+   *
+   * @param id the id of the call.
+   * @param type the type of the call.
+   * @param data the data for the call.
    * @returns A call metadata with information about the call.
    */
-  getOrCreateCall = async (data: GetOrCreateCallRequest) => {
-    const {
-      response: { call },
-    } = await this.client.getOrCreateCall(data);
+  getOrCreateCall = async (
+    id: string,
+    type: string,
+    data?: GetOrCreateCallRequest,
+  ) => {
+    const response = await this.coordinatorClient.getOrCreateCall(
+      id,
+      type,
+      data,
+    );
+    const { call } = response;
+    if (!call) {
+      console.log(`Call with id ${id} and type ${type} could not be created`);
+      return;
+    }
 
-    const pendingCalls = this.writeableStateStore.getCurrentValue(
+    const currentPendingCalls = this.writeableStateStore.getCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
     );
-    const callAlreadyRegistered = pendingCalls.find(
-      (pendingCall) => pendingCall.call?.callCid === call?.call?.callCid,
+    const callAlreadyRegistered = currentPendingCalls.find(
+      (pendingCall) => pendingCall.call.id === call.id,
     );
 
-    if (call && !callAlreadyRegistered) {
+    if (!callAlreadyRegistered) {
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => [...pendingCalls, call],
+        (pendingCalls) => [...pendingCalls, new CallMetadata(call)],
       );
-      return call;
+      return response;
     } else {
       // TODO: handle error?
       return undefined;
     }
-  };
-
-  /**
-   * Allows you to create new calls with the given parameters. If a call with the same combination of type and id already exists, this will return an error.
-   * @param {CreateCallRequest} data
-   * @returns A call metadata with information about the call.
-   */
-  createCall = async (data: CreateCallRequest) => {
-    const createdCall = await this.client.createCall(data);
-    const { call } = createdCall.response;
-
-    if (call) {
-      this.writeableStateStore.setCurrentValue(
-        this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => [...pendingCalls, call],
-      );
-    }
-
-    return call;
   };
 
   /**
@@ -285,13 +258,12 @@ export class StreamVideoClient {
    * @returns
    */
   acceptCall = async (callCid: string) => {
-    await this.client.sendEvent({
-      callCid,
-      eventType: UserEventType.ACCEPTED_CALL,
-    });
+    // FIXME OL: change the method's signature to accept callId and callType
     const [type, id] = callCid.split(':');
-    const callController = await this.joinCall({ id, type, datacenterId: '' });
-    return callController;
+    await this.coordinatorClient.sendEvent(id, type, {
+      event_type: 'call.accepted',
+    });
+    return await this.joinCall(id, type);
   };
 
   /**
@@ -301,16 +273,17 @@ export class StreamVideoClient {
    * @returns
    */
   rejectCall = async (callCid: string) => {
+    // FIXME OL: change the method's signature to accept callId and callType
+    const [type, id] = callCid.split(':');
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
       (pendingCalls) =>
         pendingCalls.filter(
-          (incomingCall) => incomingCall.call?.callCid !== callCid,
+          (incomingCall) => incomingCall.call.cid !== callCid,
         ),
     );
-    await this.client.sendEvent({
-      callCid,
-      eventType: UserEventType.REJECTED_CALL,
+    await this.coordinatorClient.sendEvent(id, type, {
+      event_type: 'call.rejected',
     });
   };
 
@@ -323,64 +296,71 @@ export class StreamVideoClient {
    * @returns
    */
   cancelCall = async (callCid: string) => {
+    // FIXME OL: change the method's signature to accept callId and callType
+    const [type, id] = callCid.split(':');
     const store = this.writeableStateStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
-    const leavingActiveCall = activeCall?.data.call?.callCid === callCid;
-
+    const leavingActiveCall = activeCall?.data.call.cid === callCid;
     if (leavingActiveCall) {
       activeCall.leave();
     } else {
       store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
-        pendingCalls.filter(
-          (pendingCall) => pendingCall.call?.callCid !== callCid,
-        ),
+        pendingCalls.filter((pendingCall) => pendingCall.call.cid !== callCid),
       );
     }
 
     const remoteParticipants = store.getCurrentValue(store.remoteParticipants$);
-
     if (!remoteParticipants.length && !leavingActiveCall) {
-      await this.client.sendEvent({
-        callCid,
-        eventType: UserEventType.CANCELLED_CALL,
+      await this.coordinatorClient.sendEvent(id, type, {
+        event_type: 'call.cancelled',
       });
     }
   };
 
   /**
-   * Allows you to create a new call with the given parameters and joins the call immediately. If a call with the same combination of `type` and `id` already exists, it will join the existing call.
-   * @param data
-   * @param sessionId
+   * Allows you to create a new call with the given parameters and joins the call immediately.
+   * If a call with the same combination of `type` and `id` already exists, it will join the existing call.
+   *
+   * @param id the id of the call.
+   * @param type the type of the call.
+   * @param data the data for the call.
    * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
    */
-  joinCall = async (data: JoinCallRequest, sessionId?: string) => {
-    const { response } = await this.client.joinCall(data);
-    if (response.call && response.call.call && response.edges) {
-      const callMeta = response.call.call;
-      const edge = await this.getCallEdgeServer(callMeta, response.edges);
+  joinCall = async (
+    id: string,
+    type: string,
+    data?: GetOrCreateCallRequest,
+  ) => {
+    const joinCallResponse = await this.coordinatorClient.joinCall(
+      id,
+      type,
+      data,
+    );
 
+    const { call: callMeta, edges, members } = joinCallResponse;
+    if (callMeta && edges) {
+      const edge = await this.getCallEdgeServer(id, type, edges);
       if (edge.credentials && edge.credentials.server) {
-        const edgeName = edge.credentials.server.edgeName;
-        const { server, iceServers, token } = edge.credentials;
-        const sfuClient = new StreamSfuClient(server.url, token, sessionId);
-
         // TODO OL: compute the initial value from `activeCallSubject`
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.callRecordingInProgressSubject,
-          callMeta.recordingActive,
+          !!callMeta.record_egress, // FIXME OL: this is not correct
         );
 
+        const { server, ice_servers, token } = edge.credentials;
+        const sfuClient = new StreamSfuClient(server.url!, token!);
+        const metadata = new CallMetadata(callMeta, members);
+        const callOptions = {
+          connectionConfig: this.toRtcConfiguration(ice_servers),
+          edgeName: server!.edge_name,
+        };
         const call = new Call(
-          response.call,
+          metadata,
           sfuClient,
-          {
-            connectionConfig: this.toRtcConfiguration(iceServers),
-            edgeName,
-          },
+          callOptions,
           this.writeableStateStore,
           this.userBatcher,
         );
-
         await call.join();
 
         this.writeableStateStore.setCurrentValue(
@@ -405,15 +385,15 @@ export class StreamVideoClient {
    * @param callType can be extracted from a [`Call` instance](./Call.md/#data)
    */
   startRecording = async (callId: string, callType: string) => {
-    await this.client.startRecording({
-      callId,
-      callType,
-    });
-
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.callRecordingInProgressSubject,
-      true,
-    );
+    try {
+      await this.coordinatorClient.startRecording(callId, callType);
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.callRecordingInProgressSubject,
+        true,
+      );
+    } catch (error) {
+      console.log(`Failed to start recording`, error);
+    }
   };
 
   /**
@@ -422,15 +402,15 @@ export class StreamVideoClient {
    * @param callType can be extracted from a [`Call` instance](./Call.md/#data)
    */
   stopRecording = async (callId: string, callType: string) => {
-    await this.client.stopRecording({
-      callId,
-      callType,
-    });
-
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.callRecordingInProgressSubject,
-      false,
-    );
+    try {
+      await this.coordinatorClient.stopRecording(callId, callType);
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.callRecordingInProgressSubject,
+        false,
+      );
+    } catch (error) {
+      console.log(`Failed to stop recording`, error);
+    }
   };
 
   /**
@@ -438,55 +418,50 @@ export class StreamVideoClient {
    * @param stats
    * @returns
    */
-  private reportCallStats = async (
-    stats: Object,
-  ): Promise<ReportCallStatsResponse | void> => {
-    const callCid = this.writeableStateStore.getCurrentValue(
+  private reportCallStats = async (stats: Object) => {
+    const callMetadata = this.writeableStateStore.getCurrentValue(
       this.writeableStateStore.activeCallSubject,
-    )?.data.call?.callCid;
+    )?.data;
 
-    if (!callCid) {
+    if (!callMetadata) {
       console.log("There isn't an active call");
       return;
     }
-
-    const request: ReportCallStatsRequest = {
-      callCid,
+    const request = {
+      callCid: callMetadata.call.cid,
       statsJson: new TextEncoder().encode(JSON.stringify(stats)),
     };
-    const response = await this.client.reportCallStats(request);
-    return response.response;
+    await this.coordinatorClient.reportCallStats(
+      callMetadata.call.id!,
+      callMetadata.call.type!,
+      request,
+    );
   };
 
-  private getCallEdgeServer = async (call: CallMeta, edges: Edge[]) => {
-    const latencyByEdge: { [e: string]: Latency } = {};
+  private getCallEdgeServer = async (
+    id: string,
+    type: string,
+    edges: DatacenterResponse[],
+  ) => {
+    const latencyByEdge: GetCallEdgeServerRequest['latency_measurements'] = {};
     await Promise.all(
       edges.map(async (edge) => {
-        latencyByEdge[edge.name] = {
-          measurementsSeconds: await measureResourceLoadLatencyTo(
-            edge.latencyUrl,
-            Math.max(this.options.latencyMeasurementRounds || 0, 3),
-          ),
-        };
+        latencyByEdge[edge.name!] = await measureResourceLoadLatencyTo(
+          edge.latency_url!,
+        );
       }),
     );
 
-    const edgeServer = await this.client.getCallEdgeServer({
-      callCid: call.callCid,
-      // TODO: OL: check the double wrapping
-      measurements: {
-        measurements: latencyByEdge,
-      },
+    return await this.coordinatorClient.getCallEdgeServer(id, type, {
+      latency_measurements: latencyByEdge,
     });
-
-    return edgeServer.response;
   };
 
   private toRtcConfiguration = (config?: ICEServer[]) => {
     if (!config || config.length === 0) return undefined;
     const rtcConfig: RTCConfiguration = {
       iceServers: config.map((ice) => ({
-        urls: ice.urls,
+        urls: ice.urls!,
         username: ice.username,
         credential: ice.password,
       })),
@@ -501,22 +476,25 @@ export class StreamVideoClient {
    */
   private reportCallStatEvent = async (
     statEvent: ReportCallStatEventRequest['event'],
-  ): Promise<ReportCallStatEventResponse | void> => {
-    const callCid = this.writeableStateStore.getCurrentValue(
+  ) => {
+    const callMetadata = this.writeableStateStore.getCurrentValue(
       this.writeableStateStore.activeCallSubject,
-    )?.data.call?.callCid;
-
-    if (!callCid) {
+    )?.data;
+    if (!callMetadata) {
       console.log("There isn't an active call");
       return;
     }
-    const request: ReportCallStatEventRequest = {
-      callCid,
+
+    const request = {
+      callCid: callMetadata.call.cid,
       timestamp: Timestamp.fromDate(new Date()),
       event: statEvent,
     };
-    const response = await this.client.reportCallStatEvent(request);
-    return response.response;
+    await this.coordinatorClient.reportCallStatEvent(
+      callMetadata.call.id!,
+      callMetadata.call.type!,
+      request,
+    );
   };
 
   /**

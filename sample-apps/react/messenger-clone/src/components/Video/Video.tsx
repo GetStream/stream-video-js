@@ -28,6 +28,10 @@ export const Video = ({
     user,
   });
 
+  if (!client) {
+    return null;
+  }
+
   return (
     <StreamVideo client={client}>
       {children}
@@ -43,18 +47,16 @@ const VideoAdapter = ({ children }: { children: ReactNode }) => {
 
   const user = useMemo<VideoProps['user']>(
     () => ({
-      id: client.user.id,
-      name: client.user.name,
-      role: client.user.role,
-      imageUrl: client.user.image as string,
+      id: client.user!.id,
+      name: client.user!.name,
+      role: client.user!.role,
       teams: [],
-      customJson: new Uint8Array(),
     }),
     [client.user],
   );
 
   return (
-    <Video user={user} token={client._getToken()}>
+    <Video user={user} token={client._getToken()!}>
       {children}
     </Video>
   );

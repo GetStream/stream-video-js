@@ -62,15 +62,8 @@ export class AppComponent implements OnInit {
     const apiKey = environment.apiKey;
     const token = environment.token;
     const user = environment.user;
-    const baseCoordinatorUrl = environment.coordinatorUrl;
-    const baseWsUrl = environment.wsUrl;
-    const client = this.streamVideoService.init(
-      apiKey,
-      token,
-      baseCoordinatorUrl,
-      baseWsUrl,
-    );
-    await client.connect(apiKey, token, user);
+    const client = this.streamVideoService.init(apiKey);
+    await client.connectUser(user, token);
   }
 
   async createOrJoinCall(callId?: string) {
@@ -83,9 +76,11 @@ export class AppComponent implements OnInit {
   }
 
   private async createCall() {
-    const response = await this.streamVideoService.videoClient?.createCall({
-      type: 'default',
-    });
+    const response = await this.streamVideoService.videoClient?.getOrCreateCall(
+      String(Math.round(Math.random() * 100000000)),
+      'default',
+      { ring: false },
+    );
     const callId = response?.call?.id;
     return callId;
   }
@@ -95,11 +90,7 @@ export class AppComponent implements OnInit {
       return;
     }
     await this.ngZone.runOutsideAngular(() => {
-      return this.streamVideoService.videoClient?.joinCall({
-        id: callId,
-        type: 'default',
-        datacenterId: '',
-      });
+      return this.streamVideoService.videoClient?.joinCall(callId, 'default');
     });
   }
 }

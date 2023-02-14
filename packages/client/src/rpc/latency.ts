@@ -10,7 +10,7 @@ const toSeconds = (ms: number) => ms / 1000;
  */
 export const measureResourceLoadLatencyTo = async (
   endpoint: string,
-  rounds: number,
+  rounds: number = 3,
   timeoutAfterMs: number = 1500,
 ) => {
   const measurements: number[] = [];
