@@ -9,12 +9,14 @@ import {
 } from 'stream-chat-react';
 import { useParams } from 'react-router-dom';
 
+const channelType = import.meta.env.VITE_CHANNEL_TYPE as string;
+
 export const ChatSidebar = () => {
   const { callId } = useParams();
   const { client, setActiveChannel } = useChatContext();
 
   useEffect(() => {
-    const channel = client.channel('videocall', callId);
+    const channel = client.channel(channelType, callId);
 
     setActiveChannel(channel);
   }, [callId]);
