@@ -6,6 +6,8 @@ import { callId as getCallId } from '../utils';
 import users from '../../data/users.json';
 import { Preview } from './Preview';
 
+const channelType = import.meta.env.VITE_CHANNEL_TYPE as string;
+
 // cam preview - initial<audio/video> muted...
 export const CallLobby = () => {
   const { callId } = useParams();
@@ -17,7 +19,7 @@ export const CallLobby = () => {
 
     if (!callId) {
       const channel = client.channel(
-        'videocall',
+        channelType,
         newCallId,
         // TODO: hacky workaround for permission problems
         { members: users.map((u) => u.id) },

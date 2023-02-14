@@ -11,11 +11,7 @@ export const Call = () => {
   const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
-    const joining = client?.joinCall({
-      id: callId as string,
-      datacenterId: '',
-      type: 'default',
-    });
+    const joining = client?.joinCall(callId as string, 'default');
 
     return () => {
       joining?.then((call) => call?.leave());

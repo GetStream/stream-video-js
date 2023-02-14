@@ -27,11 +27,11 @@ export const ChatVideoWrapper = () => {
     token,
     user: {
       id: userData.id,
-      imageUrl: userData.image,
+      // FIXME: find a way to store user profile picture
+      // imageUrl: userData.image,
       name: userData.name,
-      role: '',
+      role: 'user',
       teams: [],
-      customJson: new Uint8Array(),
     },
   });
 
