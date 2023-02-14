@@ -43,7 +43,7 @@ export const LatencyIndicator: FC<{ className?: string }> = ({ className }) => {
   );
 };
 
-export const Elapsed: FC<{ className?: string; elapsed?: string }> = ({
+export const Elapsed: FC<Pick<Props, "className" | "elapsed">> = ({
   className,
   elapsed,
 }) => {
