@@ -13,7 +13,7 @@ import { SignalServerClient } from '../gen/video/sfu/signal_rpc/signal.client';
 
 const defaultOptions: TwirpOptions = {
   baseUrl: '',
-  sendJson: false,
+  sendJson: true,
   jsonOptions: {
     ignoreUnknownFields: true,
   },
