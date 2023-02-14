@@ -52,10 +52,7 @@ export const Elapsed: FC<Pick<Props, "className" | "elapsed">> = ({
   return <div className={rootClassName}>{elapsed}</div>;
 };
 
-export const Participants: FC<{
-  className?: string;
-  participants: any;
-}> = ({ className, participants }) => {
+export const Participants: FC<Pick<Props, "className" | "participants">> = ({ className, participants }) => {
   const rootClassName = classnames(styles.participants, className);
   const names = participants.map((participant: any) => participant?.user?.name);
   const last = names.pop();
