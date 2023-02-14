@@ -67,6 +67,9 @@ export class StreamClient {
   insightMetrics: InsightMetrics;
   defaultWSTimeoutWithFallback: number;
   defaultWSTimeout: number;
+  resolveConnectionId!: Function;
+  rejectConnectionId!: Function;
+  connectionIdPromise: Promise<void>;
   private nextRequestAbortController: AbortController | null = null;
 
   /**
@@ -128,6 +131,11 @@ export class StreamClient {
         keepAliveMsecs: 3000,
       });
     }
+
+    this.connectionIdPromise = new Promise((resolve, reject) => {
+      this.resolveConnectionId = resolve;
+      this.rejectConnectionId = reject;
+    });
 
     this.axiosInstance = axios.create(this.options);
 
