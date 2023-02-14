@@ -33,7 +33,7 @@ export const LatencyIndicator: FC<Pick<Props, "className" | "latency">> = ({
   return <div className={rootClassName}>{latency}</div>;
 };
 
-export const Elapsed: FC<{ className?: string; elapsed?: string }> = ({
+export const Elapsed: FC<Pick<Props, "className" | "elapsed">> = ({
   className,
   elapsed,
 }) => {
