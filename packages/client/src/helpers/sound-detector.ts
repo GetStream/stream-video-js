@@ -41,7 +41,14 @@ const FFT_SIZE = 128;
  */
 export const createSoundDetector = (
   audioStream: MediaStream,
-  onSoundDetectedStateChanged: (isSoundDetected: boolean) => void,
+  onSoundDetectedStateChanged: (
+    isSoundDetected: boolean,
+    /**
+     * Represented as percentage (0-100) where 100% is defined by `audioLevelThreshold` property.
+     * Decrease time between samples (to 50-100ms) with `detectionFrequencyInMs` property.
+     */
+    audioLevel: number,
+  ) => void,
   options: SoundDetectorOptions = {},
 ) => {
   const {
@@ -63,7 +70,15 @@ export const createSoundDetector = (
     analyser.getByteFrequencyData(data);
 
     const isSoundDetected = data.some((value) => value >= audioLevelThreshold);
-    onSoundDetectedStateChanged(isSoundDetected);
+
+    const averagedDataValue = data.reduce((pv, cv) => pv + cv, 0) / data.length;
+
+    const percentage =
+      averagedDataValue > audioLevelThreshold
+        ? 100
+        : Math.round((averagedDataValue / audioLevelThreshold) * 100);
+
+    onSoundDetectedStateChanged(isSoundDetected, percentage);
   }, detectionFrequencyInMs);
 
   return async function stop() {
