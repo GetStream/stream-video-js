@@ -24,7 +24,7 @@ export const CallIdentification: FC<Pick<Props, "className" | "classId" | "logo"
   );
 };
 
-export const LatencyIndicator: FC<{ className?: string; latency?: number }> = ({
+export const LatencyIndicator: FC<Pick<Props, "className" | "latency">> = ({
   className,
   latency,
 }) => {
