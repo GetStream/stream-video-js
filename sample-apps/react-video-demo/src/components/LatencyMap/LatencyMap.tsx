@@ -95,7 +95,7 @@ export const LatencyMap: FC<Props> = ({ sourceData, zoomLevel = 1 }) => {
             setHoverId(undefined);
           }
 
-          if (popUpRef && popUpRef.current) {
+          if (popUpRef?.current) {
             // popUpRef.current.remove();
           }
         }
