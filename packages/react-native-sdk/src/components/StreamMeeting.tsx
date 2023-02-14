@@ -9,8 +9,6 @@ import { GetOrCreateCallRequest } from '@stream-io/video-client';
 export type StreamMeetingProps = {
   callId: string;
   callType: string;
-  currentUser: string;
-  autoJoin?: boolean;
   input?: Omit<GetOrCreateCallRequest, 'members'>;
   onActiveCall?: () => void;
 };
@@ -19,8 +17,6 @@ export const StreamMeeting = ({
   children,
   callId,
   callType,
-  currentUser,
-  autoJoin,
   input,
   onActiveCall,
 }: PropsWithChildren<StreamMeetingProps>) => {
@@ -30,16 +26,9 @@ export const StreamMeeting = ({
   useEffect(() => {
     if (!client) return;
     const initiateMeeting = async () => {
-      const callMetadata = await client.getOrCreateCall(
-        callId,
-        callType,
-        input,
-      );
-      if (callMetadata?.call?.created_by.id === currentUser || autoJoin) {
-        await client.joinCall(callId, callType);
-        InCallManager.start({ media: 'video' });
-        InCallManager.setForceSpeakerphoneOn(true);
-      }
+      await client.joinCall(callId, callType, input);
+      InCallManager.start({ media: 'video' });
+      InCallManager.setForceSpeakerphoneOn(true);
     };
 
     if (callId) {
@@ -52,7 +41,7 @@ export const StreamMeeting = ({
         );
       });
     }
-  }, [callId, client, callType, currentUser, autoJoin, input]);
+  }, [callId, client, callType, input]);
 
   useEffect(() => {
     if (activeCall && onActiveCall) {
