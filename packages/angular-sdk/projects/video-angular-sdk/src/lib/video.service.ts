@@ -274,4 +274,17 @@ export class StreamVideoService {
 
     return this.videoClient;
   }
+
+  /** Generates the invite link for the given call ID and wrties it to the clipboard. */
+  copyInviteLink(callId: string) {
+    return navigator?.clipboard.writeText(this.getInviteLink(callId));
+  }
+
+  /**
+   * Returns the invite link for the given call metadata, you can redefine this method if your application needs a different link format.
+   * @param callId
+   */
+  getInviteLink = (callId: string) => {
+    return `${window.location.host}?callid=${callId}`;
+  };
 }
