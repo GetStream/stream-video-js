@@ -5,9 +5,6 @@ import { FeatureCollection, Geometry } from 'geojson';
 
 import resolveConfig from 'tailwindcss/resolveConfig';
 
-// import tailwindConfig from '../../../tailwind.config.js';
-// const fullConfig = resolveConfig(tailwindConfig);
-
 import LatencyMapPopup from '../LatencyMapPopup';
 
 export type Props = {
