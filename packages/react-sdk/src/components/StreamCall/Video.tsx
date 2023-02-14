@@ -101,6 +101,7 @@ export const Video = (
       <VideoPlaceholder
         imageSrc={participant.user?.imageUrl}
         userId={participant.userId}
+        isSpeaking={participant.isSpeaking}
       />
     );
 

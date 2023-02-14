@@ -935,13 +935,13 @@ __metadata:
   linkType: hard
 
 "@babel/helpers@npm:^7.20.7":
-  version: 7.20.13
-  resolution: "@babel/helpers@npm:7.20.13"
+  version: 7.20.7
+  resolution: "@babel/helpers@npm:7.20.7"
   dependencies:
     "@babel/template": ^7.20.7
-    "@babel/traverse": ^7.20.13
+    "@babel/traverse": ^7.20.7
     "@babel/types": ^7.20.7
-  checksum: d62076fa834f342798f8c3fd7aec0870cc1725d273d99e540cbaa8d6c3ed10258228dd14601c8e66bfeabbb9424c3b31090ecc467fe855f7bd72c4734df7fb09
+  checksum: 3fb10df3510ba7116a180d5fd983d0f558f7a65c3d599385dba991bff66b74174c88881bc12c2b3cf7284294fcac5b301ded49a8b0098bdf2ef61d0cad8010db
   languageName: node
   linkType: hard
 
@@ -965,12 +965,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/parser@npm:^7.20.13, @babel/parser@npm:^7.20.7":
-  version: 7.20.13
-  resolution: "@babel/parser@npm:7.20.13"
+"@babel/parser@npm:^7.20.7":
+  version: 7.20.7
+  resolution: "@babel/parser@npm:7.20.7"
   bin:
     parser: ./bin/babel-parser.js
-  checksum: 7eb2e3d9d9ad5e24b087c88d137f5701d94f049e28b9dce9f3f5c6d4d9b06a0d7c43b9106f1c02df8a204226200e0517de4bc81a339768a4ebd4c59107ea93a4
+  checksum: 25b5266e3bd4be837092685f6b7ef886f1308ff72659a24342eb646ae5014f61ed1771ce8fc20636c890fcae19304fc72c069564ca6075207b7fbf3f75367275
   languageName: node
   linkType: hard
 
@@ -2308,9 +2308,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/traverse@npm:^7.20.10, @babel/traverse@npm:^7.20.12, @babel/traverse@npm:^7.20.13":
-  version: 7.20.13
-  resolution: "@babel/traverse@npm:7.20.13"
+"@babel/traverse@npm:^7.20.10, @babel/traverse@npm:^7.20.12, @babel/traverse@npm:^7.20.7":
+  version: 7.20.12
+  resolution: "@babel/traverse@npm:7.20.12"
   dependencies:
     "@babel/code-frame": ^7.18.6
     "@babel/generator": ^7.20.7
@@ -2318,11 +2318,11 @@ __metadata:
     "@babel/helper-function-name": ^7.19.0
     "@babel/helper-hoist-variables": ^7.18.6
     "@babel/helper-split-export-declaration": ^7.18.6
-    "@babel/parser": ^7.20.13
+    "@babel/parser": ^7.20.7
     "@babel/types": ^7.20.7
     debug: ^4.1.0
     globals: ^11.1.0
-  checksum: 30ca6e0bd18233fda48fa09315efd14dfc61dcf5b8fa3712b343bfc61b32bc63b5e85ea1773cc9576c9b293b96f46b4589aaeb0a52e1f3eeac4edc076d049fc7
+  checksum: d758b355ab4f1e87984524b67785fa23d74e8a45d2ceb8bcf4d5b2b0cd15ee160db5e68c7078808542805774ca3802e2eafb1b9638afa4cd7f9ecabd0ca7fd56
   languageName: node
   linkType: hard
 
@@ -4728,6 +4728,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@remix-run/router@npm:1.3.0":
+  version: 1.3.0
+  resolution: "@remix-run/router@npm:1.3.0"
+  checksum: 5141e9703d29cd29334ccb9e5f22ee6973bf121574e06509489b7623a12549bd188cfc322eac1263f913353087f132a641579280e94558f346adc2b0b65080d0
+  languageName: node
+  linkType: hard
+
 "@rgrove/parse-xml@npm:^3.0.0":
   version: 3.0.0
   resolution: "@rgrove/parse-xml@npm:3.0.0"
@@ -5442,6 +5449,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stream-io/stream-chat-css@npm:^3.7.2":
+  version: 3.7.2
+  resolution: "@stream-io/stream-chat-css@npm:3.7.2"
+  checksum: 1015fc6f6ed0288c4f45d389bbd7b42b7d3440d16347898ee30c20a78e39cc368d51c443fbaccbe01bd91ecc8b807457c4e59eb02561cba7df74bde9def20535
+  languageName: node
+  linkType: hard
+
 "@stream-io/transliterate@npm:^1.5.2, @stream-io/transliterate@npm:^1.5.5":
   version: 1.5.5
   resolution: "@stream-io/transliterate@npm:1.5.5"
@@ -5687,6 +5701,33 @@ __metadata:
     "@types/rimraf": ^3.0.2
     rimraf: ^3.0.2
     sass: ^1.56.1
+  languageName: unknown
+  linkType: soft
+
+"@stream-io/zoom-clone-react@workspace:sample-apps/react/zoom-clone":
+  version: 0.0.0-use.local
+  resolution: "@stream-io/zoom-clone-react@workspace:sample-apps/react/zoom-clone"
+  dependencies:
+    "@stream-io/video-client": "workspace:^"
+    "@stream-io/video-react-bindings": "workspace:^"
+    "@stream-io/video-react-sdk": "workspace:^"
+    "@stream-io/video-styling": "workspace:^"
+    "@types/react": ^18.0.26
+    "@types/react-dom": ^18.0.9
+    "@vitejs/plugin-react": ^3.0.0
+    autoprefixer: ^10.4.13
+    clsx: ^1.2.1
+    nanoid: ^4.0.0
+    postcss: ^8.4.21
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    react-router-dom: ^6.7.0
+    rxjs: ^7.8.0
+    stream-chat: ^8.2.1
+    stream-chat-react: ^10.5.0
+    tailwindcss: ^3.2.4
+    typescript: ^4.9.3
+    vite: ^4.0.0
   languageName: unknown
   linkType: soft
 
@@ -16783,6 +16824,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"linkifyjs@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "linkifyjs@npm:4.1.0"
+  checksum: 290931a320052a26bd3b28ccb7794c8b6b607d639a3c987e63b28cf2885e67bc748a87c390316c4786dc6e3e0acf59385345df1b03fb6206dcaff18c04382fa8
+  languageName: node
+  linkType: hard
+
 "load-script@npm:^1.0.0":
   version: 1.0.0
   resolution: "load-script@npm:1.0.0"
@@ -20991,7 +21039,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.20":
+"postcss@npm:^8.4.20, postcss@npm:^8.4.21":
   version: 8.4.21
   resolution: "postcss@npm:8.4.21"
   dependencies:
@@ -21959,6 +22007,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-router-dom@npm:^6.7.0":
+  version: 6.7.0
+  resolution: "react-router-dom@npm:6.7.0"
+  dependencies:
+    "@remix-run/router": 1.3.0
+    react-router: 6.7.0
+  peerDependencies:
+    react: ">=16.8"
+    react-dom: ">=16.8"
+  checksum: b5175b0c0560a45ee5b1f924af038b48bb29711839cbe65e2859a299f74740598bd90db438e205517b9568e7c5e6e6cb22fe1554f9763d60f6e347a8883940f9
+  languageName: node
+  linkType: hard
+
+"react-router@npm:6.7.0":
+  version: 6.7.0
+  resolution: "react-router@npm:6.7.0"
+  dependencies:
+    "@remix-run/router": 1.3.0
+  peerDependencies:
+    react: ">=16.8"
+  checksum: 6dda5f084e04355c8deacb631fcd8472f3590dbd54d19175401aa1ed6bc6a2a244cd4d70cdb4fc81d2d800d75923461189e9e6a853c1838af78eff3021e4efbe
+  languageName: node
+  linkType: hard
+
 "react-scripts@npm:5.0.1":
   version: 5.0.1
   resolution: "react-scripts@npm:5.0.1"
@@ -22783,8 +22855,8 @@ __metadata:
   linkType: hard
 
 "rollup@npm:^3.7.0":
-  version: 3.11.0
-  resolution: "rollup@npm:3.11.0"
+  version: 3.10.0
+  resolution: "rollup@npm:3.10.0"
   dependencies:
     fsevents: ~2.3.2
   dependenciesMeta:
@@ -22792,7 +22864,7 @@ __metadata:
       optional: true
   bin:
     rollup: dist/bin/rollup
-  checksum: ba9fe9ec8926195c6d4c91c08888fd1be01651dd79db4cff1c3fe8514f3e65be06beb8c6b087ea4145edb2542743fff20e99b4e919f4e2fa45438ee09498ad21
+  checksum: 31a882689c58d084ac36362aeaf2422dc4b80d671bd88c856693c37d63a26ddac9b9819dfba7f79c2d50d5207868b0e3d75f728fe551bbc347cf5dedf8ece18e
   languageName: node
   linkType: hard
 
@@ -22834,6 +22906,15 @@ __metadata:
   dependencies:
     tslib: ^2.1.0
   checksum: b3abbbfe1ddfd06fca9314b83cbd13bcddc3320429218136f75c79a4802ac430dd13873364aac1ded54fd457f8c77df332d205a92d8a1c61656565bb718c50af
+  languageName: node
+  linkType: hard
+
+"rxjs@npm:^7.8.0":
+  version: 7.8.0
+  resolution: "rxjs@npm:7.8.0"
+  dependencies:
+    tslib: ^2.1.0
+  checksum: 61b4d4fd323c1043d8d6ceb91f24183b28bcf5def4f01ca111511d5c6b66755bc5578587fe714ef5d67cf4c9f2e26f4490d4e1d8cabf9bd5967687835e9866a2
   languageName: node
   linkType: hard
 
@@ -23910,6 +23991,56 @@ __metadata:
   languageName: node
   linkType: hard
 
+"stream-chat-react@npm:^10.5.0":
+  version: 10.5.0
+  resolution: "stream-chat-react@npm:10.5.0"
+  dependencies:
+    "@braintree/sanitize-url": 6.0.0
+    "@popperjs/core": ^2.11.5
+    "@stream-io/stream-chat-css": ^3.7.2
+    "@stream-io/transliterate": ^1.5.5
+    clsx: ^1.1.1
+    dayjs: ^1.10.4
+    emoji-mart: 3.0.1
+    emoji-regex: ^9.2.0
+    hast-util-find-and-replace: ^4.1.2
+    i18next: ^21.6.14
+    isomorphic-ws: ^4.0.1
+    linkifyjs: ^4.1.0
+    lodash.debounce: ^4.0.8
+    lodash.throttle: ^4.1.1
+    lodash.uniqby: ^4.7.0
+    mml-react: ^0.4.7
+    nanoid: ^3.3.4
+    pretty-bytes: ^5.4.1
+    prop-types: ^15.7.2
+    react-dropzone: ^14.2.2
+    react-fast-compare: ^3.2.0
+    react-file-utils: ^1.2.0
+    react-image-gallery: ^1.2.7
+    react-is: ^18.1.0
+    react-markdown: ^8.0.3
+    react-player: ^2.10.1
+    react-popper: ^2.3.0
+    react-textarea-autosize: ^8.3.0
+    react-virtuoso: ^2.16.5
+    remark-gfm: ^3.0.1
+    textarea-caret: ^3.1.0
+    unist-builder: ^3.0.0
+    unist-util-visit: ^4.1.1
+  peerDependencies:
+    react: ^18.0.0 || ^17.0.0 || ^16.8.0
+    react-dom: ^18.0.0 || ^17.0.0 || ^16.8.0
+    stream-chat: ^8.0.0
+  dependenciesMeta:
+    "@stream-io/transliterate":
+      optional: true
+    mml-react:
+      optional: true
+  checksum: 4688af920118d5c7e55c3d285ab71271ab7bd65363a2032bca869baa8715a45bb0bd5e12b60b26e736a5300afd600ae18ccb59eae11c6aa1757813f96f33397a
+  languageName: node
+  linkType: hard
+
 "stream-chat@npm:8.1.2":
   version: 8.1.2
   resolution: "stream-chat@npm:8.1.2"
@@ -24416,7 +24547,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwindcss@npm:^3.0.2":
+"tailwindcss@npm:^3.0.2, tailwindcss@npm:^3.2.4":
   version: 3.2.4
   resolution: "tailwindcss@npm:3.2.4"
   dependencies:
