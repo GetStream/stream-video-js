@@ -106,4 +106,8 @@
       }
     }
   }
+
+  .str-video__call-controls__button--enabled {
+    background-color: var(--str-video__text-color3);
+  }
 }

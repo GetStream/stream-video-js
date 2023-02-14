@@ -91,9 +91,9 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
         this.call = c;
         if (c) {
           this.deviceManager.initVideoDevices();
-          this.deviceManager.startVideo();
+          // this.deviceManager.startVideo();
           this.deviceManager.initAudioDevices();
-          this.deviceManager.startAudio();
+          // this.deviceManager.startAudio();
         }
       }),
     );
