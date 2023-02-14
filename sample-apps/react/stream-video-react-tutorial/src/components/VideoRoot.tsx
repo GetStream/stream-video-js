@@ -22,6 +22,10 @@ export const VideoRoot = () => {
     user: users[selectedUserId],
   });
 
+  if (!client) {
+    return null;
+  }
+
   return (
     <StreamVideo client={client}>
       <MediaDevicesProvider>

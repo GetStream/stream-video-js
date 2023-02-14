@@ -34,7 +34,6 @@ import {
   TokenOrProvider,
   User,
 } from './coordinator/connection/types';
-import { sleep } from './coordinator/connection/utils';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -222,8 +221,6 @@ export class StreamVideoClient {
     type: string,
     data?: GetOrCreateCallRequest,
   ) => {
-    // FIXME OL: remove this hack
-    await sleep(1200);
     const response = await this.coordinatorClient.getOrCreateCall(
       id,
       type,
@@ -334,8 +331,6 @@ export class StreamVideoClient {
     type: string,
     data?: GetOrCreateCallRequest,
   ) => {
-    // FIXME OL: remove this hack
-    await sleep(1200);
     const joinCallResponse = await this.coordinatorClient.joinCall(
       id,
       type,

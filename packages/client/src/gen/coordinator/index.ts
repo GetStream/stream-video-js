@@ -969,10 +969,10 @@ export interface MemberRequest {
   role?: string;
   /**
    *
-   * @type {UserRequest}
+   * @type {string}
    * @memberof MemberRequest
    */
-  user?: UserRequest;
+  user_id: string;
 }
 /**
  *

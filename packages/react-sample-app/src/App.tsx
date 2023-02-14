@@ -82,9 +82,7 @@ const App = () => {
     setCallInput({
       data: {
         members: invitees.map((userId) => ({
-          user: {
-            id: userId,
-          },
+          user_id: userId,
         })),
       },
     });
