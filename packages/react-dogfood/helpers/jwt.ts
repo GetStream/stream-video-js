@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import { JWTUserToken } from 'stream-chat';
 
 export const createToken = (
   userId: string,
@@ -9,6 +9,7 @@ export const createToken = (
     exp, // expiration, in seconds from now
     ...rest
   } = params;
+
   const payload: Record<string, unknown> = {
     iss: 'stream-video-js@v0.0.0',
     sub: `user/${userId}`,
@@ -24,5 +25,5 @@ export const createToken = (
     payload['exp'] = Math.round(expiration);
   }
 
-  return jwt.sign(payload, jwtSecret);
+  return JWTUserToken(jwtSecret, userId, payload);
 };
