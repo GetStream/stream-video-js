@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
@@ -54,7 +54,6 @@ export const LobbyView = (props: LobbyViewProps) => {
     undefined,
   );
   const { currentVideoDevice } = useMediaDevices();
-  const connectedUser = useConnectedUser();
   const videoClient = useStreamVideoClient();
   const isAudioMuted = useStoreValue((store) => store.isAudioMuted);
   const isVideoMuted = useStoreValue((store) => store.isVideoMuted);
@@ -74,8 +73,8 @@ export const LobbyView = (props: LobbyViewProps) => {
 
   useEffect(() => {
     const loadVideoStream = async () => {
-      const videoStream = await getVideoStream(currentVideoDevice?.deviceId);
-      setVideoStream(videoStream);
+      const stream = await getVideoStream(currentVideoDevice?.deviceId);
+      setVideoStream(stream);
     };
     loadVideoStream();
   }, [currentVideoDevice]);
@@ -85,7 +84,7 @@ export const LobbyView = (props: LobbyViewProps) => {
 
   const joinCallHandler = () => {
     videoClient
-      ?.joinCall({ id: callID, type: 'default', datacenterId: '' })
+      ?.joinCall(callID, 'default')
       .then(() => {
         if (onActiveCall) {
           onActiveCall();
@@ -111,10 +110,11 @@ export const LobbyView = (props: LobbyViewProps) => {
         </View>
       ) : (
         <View style={styles.videoView}>
-          <Image
+          {/* FIXME: KA To add avatar once image url is available */}
+          {/* <Image
             source={{ uri: connectedUser?.imageUrl }}
             style={styles.avatar}
-          />
+          /> */}
           <ParticipantStatus />
         </View>
       )}
