@@ -65,11 +65,10 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
         ) {
           const outgoingCall = calls[0];
           this.ngZone.runOutsideAngular(() =>
-            this.streamVideoService.videoClient?.joinCall({
-              id: outgoingCall.call!.id,
-              type: outgoingCall.call!.type,
-              datacenterId: '',
-            }),
+            this.streamVideoService.videoClient?.joinCall(
+              outgoingCall.call?.id!,
+              outgoingCall.call?.type!,
+            ),
           );
         }
       }),
@@ -80,24 +79,21 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
           call &&
           !this.streamVideoService.videoClient?.callConfig.joinCallInstantly
         ) {
-          this.ngZone.runOutsideAngular(() =>
-            this.streamVideoService.videoClient?.joinCall({
-              id: call.call!.id,
-              type: call.call!.type,
-              datacenterId: '',
-            }),
-          );
+          this.ngZone.runOutsideAngular(() => {
+            const [type, id] = call.call_cid.split(':');
+            return this.streamVideoService.videoClient?.joinCall(id, type);
+          });
         }
       }),
     );
     this.subscriptions.push(
-      this.streamVideoService.activeCall$.subscribe(async (c) => {
+      this.streamVideoService.activeCall$.subscribe((c) => {
         this.call = c;
         if (c) {
           this.deviceManager.initVideoDevices();
-          this.deviceManager.startVideo();
+          // this.deviceManager.startVideo();
           this.deviceManager.initAudioDevices();
-          this.deviceManager.startAudio();
+          // this.deviceManager.startAudio();
         }
       }),
     );

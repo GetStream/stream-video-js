@@ -80,7 +80,7 @@ const JoinCall = () => {
   const router = useRouter();
   const [disabled, setDisabled] = useState(true);
   const onJoin = useCallback(() => {
-    router.push(`join/${ref.current.value}`);
+    router.push(`join/${ref.current!.value}`);
   }, [ref, router]);
   return (
     <>

@@ -17,7 +17,7 @@ export const useRingCall = () => {
       return;
     }
     client
-      .acceptCall(incomingCall.call.callCid)
+      .acceptCall(incomingCall.call.cid!)
       .then(() => {
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
@@ -29,14 +29,14 @@ export const useRingCall = () => {
     if (!client || !incomingCall.call) {
       return;
     }
-    await client.rejectCall(incomingCall.call.callCid);
+    await client.rejectCall(incomingCall.call.cid!);
   }, [client, incomingCall]);
 
   const cancelCall = useCallback(async () => {
     if (!client || !activeCallMeta) {
       return;
     }
-    await client.cancelCall(activeCallMeta.callCid);
+    await client.cancelCall(activeCallMeta.cid!);
   }, [activeCallMeta, client]);
 
   return { answerCall, rejectCall, cancelCall };

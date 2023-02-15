@@ -5,7 +5,7 @@ import {
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
 import { useLocalParticipant, useStore } from '@stream-io/video-react-bindings';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { map } from 'rxjs';
 import { useDebugPreferredVideoCodec } from '../components/Debug/useIsDebugMode';
 
@@ -14,12 +14,15 @@ export type VideoPublisherInit = {
   initialVideoMuted?: boolean;
   videoDeviceId?: string;
 };
+
 export const useVideoPublisher = ({
   call,
   initialVideoMuted,
   videoDeviceId,
 }: VideoPublisherInit) => {
   const { localParticipant$ } = useStore();
+  // helper reference to determine initial publishing of the media stream
+  const initPubRef = useRef<boolean>(true);
   const participant = useLocalParticipant();
   const preferredCodec = useDebugPreferredVideoCodec();
   const isPublishingVideo = participant?.publishedTracks.includes(
@@ -38,17 +41,14 @@ export const useVideoPublisher = ({
   useEffect(() => {
     let interrupted = false;
 
-    // isPublishingVideo can be initially undefined which
-    // is an important information to have on initial effect run
-    // as mute state is derived from the participant.publishedTracks array (no video track means muted)
-    // we only strictly check if it's false to see if the user is muted while changing devices
-    // no other effect trigger is necessary, you only want effect to run when videoDeviceId, preferredCodec or call changes
-    if (initialVideoMuted || isPublishingVideo === false) return;
+    if (initialVideoMuted || (!isPublishingVideo && !initPubRef.current))
+      return;
 
     getVideoStream(videoDeviceId).then((stream) => {
       if (interrupted && stream.active)
         return stream.getTracks().forEach((t) => t.stop());
 
+      initPubRef.current = false;
       return call.publishVideoStream(stream, { preferredCodec });
     });
 

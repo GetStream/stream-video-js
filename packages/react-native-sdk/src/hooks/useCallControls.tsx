@@ -80,11 +80,11 @@ export const useCallControls = () => {
   // Handler to toggle the camera front and back facing mode
   const toggleCamera = useCallback(() => {
     const videoDevice = videoDevices.find(
-      (videoDevice) =>
-        videoDevice.kind === 'videoinput' &&
+      (device) =>
+        device.kind === 'videoinput' &&
         (cameraBackFacingMode
-          ? videoDevice.facing === 'front'
-          : videoDevice.facing === 'environment'),
+          ? device.facing === 'front'
+          : device.facing === 'environment'),
     );
     setCurrentVideoDevice(videoDevice);
     setState((prevState) => ({

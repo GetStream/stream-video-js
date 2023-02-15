@@ -15,8 +15,8 @@ export const CancelCallButton = ({ call, onLeave }: CancelCallButtonProps) => {
       icon="call-end"
       variant="danger"
       onClick={async () => {
-        if (client && call.data.call?.callCid) {
-          await client?.cancelCall(call.data.call?.callCid);
+        if (client && call.data.call.cid) {
+          await client?.cancelCall(call.data.call.cid);
           onLeave?.();
         }
       }}

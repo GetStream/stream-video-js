@@ -30,12 +30,12 @@
   "devDependencies": {
     "@types/lodash.throttle": "^4",
     "@types/rimraf": "^3.0.2",
-    "@types/uuid": "^8.3.4",
+    "@types/uuid": "^9.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "replace-in-file": "^6.3.5",
     "rimraf": "^3.0.2",
     "typedoc": "^0.23.24",
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.5"
   }
 }

@@ -13,32 +13,29 @@ try {
 
 export const useCallKeep = () => {
   const activeCall = useActiveCall();
-  const activeCallMeta = activeCall?.data.call;
-  const activeCallDetails = activeCall?.data.details;
+  const activeCallMeta = activeCall?.data;
   if (!RNCallKeep) {
     throw Error(
       "react-native-callkeep library is not installed. Please install it using 'yarn add react-native-callkeep' or 'npm install react-native-callkeep'",
     );
   }
 
-  const callTitle = generateCallTitle(
-    activeCall?.data.details?.memberUserIds || [],
-  );
+  const callTitle = generateCallTitle(Object.keys(activeCallMeta?.users ?? {}));
 
   const startCall = useCallback(async () => {
-    if (Platform.OS === 'ios' && activeCallMeta && activeCallDetails) {
+    if (Platform.OS === 'ios' && activeCallMeta) {
       await RNCallKeep?.startCall(
-        activeCallMeta.id,
+        activeCallMeta.call.id!,
         callTitle,
-        activeCallDetails.memberUserIds.join(','),
+        Object.keys(activeCallMeta.users).join(','),
         'generic',
       );
     }
-  }, [activeCallMeta, activeCallDetails, callTitle]);
+  }, [activeCallMeta, callTitle]);
 
   const endCall = useCallback(async () => {
     if (Platform.OS === 'ios' && activeCallMeta) {
-      await RNCallKeep?.endCall(activeCallMeta.id);
+      await RNCallKeep?.endCall(activeCallMeta.call.id!);
     }
   }, [activeCallMeta]);
 
