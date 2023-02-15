@@ -8,21 +8,18 @@ import { RootStackParamList } from '../../types';
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 export const StaticNavigationService = {
-  staticNavigate<
-    RouteName extends keyof RootStackParamList,
-    Params extends RootStackParamList[RouteName],
-  >(name: RouteName, params: Params) {
+  navigate(name: string, params: Object | undefined = undefined) {
     if (navigationRef.isReady()) {
       const currentRoute = navigationRef.getCurrentRoute();
       if (currentRoute?.name === name) {
         navigationRef.dispatch(StackActions.replace(name, params));
       } else {
-        // @ts-ignore can't figure out how to type this
+        // @ts-ignore
         navigationRef.navigate(name, params);
       }
     }
   },
-  staticGoBack() {
+  goBack() {
     if (navigationRef.isReady()) {
       navigationRef.goBack();
     }

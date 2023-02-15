@@ -10,10 +10,7 @@ import {
 const options: Parameters<typeof RNCallKeep.setup>[0] = {
   ios: {
     appName: 'ReactNativeStreamDogFood',
-    // imageName: 'sim_icon',
     supportsVideo: true,
-    // maximumCallGroups: '1',
-    // maximumCallsPerCallGroup: '1',
   },
   android: {
     alertTitle: 'Permissions Required',
@@ -54,27 +51,14 @@ export const useCallKeepEffect = () => {
     );
     RNCallKeep.addEventListener('answerCall', ({ callUUID }) => {
       console.log('answerCall', { callUUID });
-      // RNCallKeep.startCall(callUUID, '1234567890', 'Generic');
       RNCallKeep.backToForeground();
       // close the dialer screen so that the app can be seen (only android needs this)
       RNCallKeep.endCall(callUUID);
 
       RunStaticNavigation(() => {
-        console.log("ran navigate('CallScreen', {})");
         callkeepCallId$.next(callUUID);
-        StaticNavigationService.staticNavigate('CallScreen', {});
+        StaticNavigationService.navigate('CallScreen');
       });
-
-      // // On Android display the app when answering a call
-      // if (Platform.OS === 'android') {
-      //   // RNCallKeep.backToForeground();
-      //   // close the dialer screen so that the app can be seen (only android needs this)
-      //   // RNCallKeep.endCall(callUUID);
-      //   setTimeout(() => {
-      //     console.log('ran the timeout!!');
-      //     RNCallKeep.setCurrentCallActive(callUUID);
-      //   }, 1000);
-      // }
     });
     RNCallKeep.addEventListener('endCall', ({ callUUID }) => {
       if (callUUID) {
