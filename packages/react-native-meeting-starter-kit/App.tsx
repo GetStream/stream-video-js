@@ -45,8 +45,6 @@ const Navigator = () => {
     <StreamVideo client={videoClient}>
       <StreamMeeting
         callId={callID!!}
-        currentUser={user?.name}
-        autoJoin={true}
         callType="default"
         onActiveCall={() => navigation.navigate('ActiveCallScreen')}>
         <Stack.Navigator>

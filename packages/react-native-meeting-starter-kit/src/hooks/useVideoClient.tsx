@@ -20,16 +20,8 @@ export const useVideoClient = ({user, token}: VideoProps) => {
 
       try {
         if (user && token) {
-          const _videoClient = new StreamVideoClient(APIParams.apiKey, {
-            sendJson: true,
-            token,
-          });
-          await _videoClient.connect(APIParams.apiKey, token, {
-            ...user,
-            role: 'admin',
-            teams: [],
-            customJson: new Uint8Array(),
-          });
+          const _videoClient = new StreamVideoClient(APIParams.apiKey);
+          await _videoClient.connectUser(user, token);
           setVideoClient(_videoClient);
         }
       } catch (err) {

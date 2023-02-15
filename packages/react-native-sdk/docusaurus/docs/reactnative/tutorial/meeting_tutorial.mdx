@@ -1,0 +1,221 @@
+---
+id: meeting-tutorial
+sidebar_position: 1
+title: Meeting Tutorial
+---
+
+This document explains how to integrate Stream Video to support Meetings in your Application.
+
+To get started with the guide, ensure you have set up your [development environment for React Native](https://reactnative.dev/docs/environment-setup). Stream Chat supports creating applications using Expo and React Native CLI. But Stream Video currently only supports React Native CLI, so we will only focus on React Native CLI in this documentation.
+
+Create a new RN project with TypeScript
+
+```
+npx react-native init StreamMeetingTutorial --template react-native-template-typescript
+```
+
+Install Stream's Video SDK and it's peer dependencies
+
+```
+yarn add stream-video-react-native stream-video-react-bindings stream-video react-native-webrtc
+react-native-incall-manager react-native-svg text-encoding-polyfill
+```
+
+Some dependencies require us to make changes to our application for all
+functionalities to be available. Please apply the following steps:
+
+- `react-native-webrtc` installation on [Android](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/AndroidInstallation.md) and [iOS](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/iOSInstallation.md)
+- `react-native-svg` be aware of [compatibility](https://github.com/software-mansion/react-native-svg#supported-react-native-versions) with RN versions and [troubleshooting](https://github.com/software-mansion/react-native-svg#troubleshooting) steps
+- `react-native-incall-manager` installation on [Android](https://github.com/react-native-webrtc/react-native-incall-manager#android) and [iOS](https://github.com/react-native-webrtc/react-native-incall-manager#ios).
+
+- Add the following imports at the top of your `index.js` file
+
+```ts
+/** URL polyfill */
+import 'text-encoding-polyfill';
+/** Text decoder polyfill */
+import 'react-native-url-polyfill/auto';
+/** crypto.getRandomValues polyfill for uuid */
+import 'react-native-get-random-values';
+
+import { AppRegistry, Platform } from 'react-native';
+import App from './App';
+import { name as appName } from './app.json';
+import { registerGlobals } from 'react-native-webrtc';
+
+if (Platform.OS !== 'web') {
+  registerGlobals();
+}
+
+AppRegistry.registerComponent(appName, () => App);
+```
+
+# Step 1: Simple Video Meeting
+
+We will start by creating a simple video meeting with Stream's Video SDK.
+
+### Create a StreamVideoClient
+
+First things first we will create a `StreamVideoClient` that will be used to communicate to Stream's Video backend.
+We will also create a `StreamVideoView` that will be used to render the video stream.
+
+```tsx
+import React from 'react';
+import { StreamVideoClient } from '@stream-io/video-client';
+
+const user = {
+  id: 'stevey',
+  name: 'Stevey',
+  imageUrl: 'https://randomuser.me/api/portraits/men/47.jpg',
+  role: 'user',
+  teams: [],
+  customJson: new Uint8Array(),
+};
+const USER_TOKEN = 'YOUR_TOKEN';
+const API_KEY = 'YOUR_TOKEN';
+const videoClient = new StreamVideoClient(API_KEY, {
+  sendJson: true,
+  token: USER_TOKEN,
+});
+```
+
+### Connecting and disconnecting from the video client
+
+We will connect to the Stream's client instance we've created right after the component has mounted.
+When the component unmounts we will disconnect from the client.
+
+```tsx
+import React, {useEffect, useState} from 'react';
+import {ActivityIndicator, SafeAreaView, StyleSheet} from 'react-native';
+
+...
+const App = () => {
+  const [connected, setConnected] = useState(false);
+  const [error, setError] = useState(undefined);
+
+  useEffect(() => {
+    const run = async () => {
+      try {
+        await videoClient.connect(API_KEY, USER_TOKEN, user);
+        setConnected(true);
+      } catch (err) {
+        console.error('Failed to establish connection', err);
+      }
+    };
+    run();
+
+    return () => {
+      videoClient.disconnect();
+    };
+  }, []);
+
+  if (!connected) {
+    return (
+      <SafeAreaView style={{flex: 1}}>
+        <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
+      </SafeAreaView>
+    );
+  }
+
+  return !error ? (
+    <SafeAreaView style={{flex: 1}}>
+      <Text>We're connected now and ready to go 🚀</Text>
+    </SafeAreaView>
+  ) : (
+    <Text>{error}</Text>
+  );
+};
+```
+
+### Provide the video client and meeting logics to the rest of the app
+
+Our `StreamVideo` component will provide our recently created video client to the rest of the underlying components.
+
+The `client` created above can be used as follows and needs to be provided to the `client` prop of the `StreamVideo` component.
+
+_Note: Make sure to wrap your entire application in `StreamVideo`._
+
+To enable meeting in the application, you must wrap the `StreamMeeting` component on top of the navigator flows. The `StreamMeeting` component expects a handler on what should happen when a call is active.
+
+The `StreamMeeting` component will take care of joining the meeting once it has a call id.
+
+```tsx
+import React from 'react';
+import {StreamMeeting, StreamVideo, } from '@stream-io/video-react-native-sdk';
+
+...
+
+const App = () => {
+  ...
+
+  return (
+    <StreamVideo client={videoClient}>
+      <StreamMeeting
+        callId={'best-meeting-ever'}
+        callType={'default'}
+        onActiveCall={() => console.log('onActiveCall')}>
+        {children}
+      </StreamMeeting>
+    </StreamVideo>
+  );
+};
+```
+
+_Note: In our example, we navigate to particular screen where we render the `ActiveCall` component. This is done using the package [react-navigation](http://reactnavigation.org/)._
+
+### Rendering the Active call view
+
+To render the active call view, you can import `ActiveCall` component from the Video SDK and use it in the Screen/View where you want to render it. This component expects two handlers to deal with the case of what should happen when the call is hanged up(`onHangupCall`) or when user clicks on the Participants View icon(`onOpenCallParticipantsInfoView`).
+
+```tsx
+import React from 'react';
+import { ActiveCall, useActiveCall } from '@stream-io/video-react-native-sdk';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+
+export const ActiveCallScreen = ({ navigation }: Props) => {
+  const activeCall = useActiveCall();
+
+  // Handler executed when the call is hung up.
+  const onHangupCall = () => {
+    console.log('Call Hanged up');
+  };
+
+  // Handler executed when the call participants icon is clicked. This is used to render CallParticipantsInfoView.
+  const onOpenCallParticipantsInfoViewHandler = () => {
+    conole.log('Call Participants Info View');
+  };
+
+  // Since the call takes time to join we show an activityindicator until then.
+  if (!activeCall) {
+    return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
+  }
+
+  return (
+    <ActiveCall
+      onHangupCall={onHangupCall}
+      onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
+    />
+  );
+};
+```
+
+### Render the Lobby View component
+
+To render the call lobby component, you can import `LobbyView` component from the Video SDK and use it in the Screen/View. This also expects meeting id that will be used to join the call. This component expects a handler to deal with the case of what should happen when the call is active(`onActiveCall`).
+
+```tsx
+import React from 'react';
+import { LobbyView } from '@stream-io/video-react-native-sdk';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NavigationStackParamsList } from '../types';
+
+export const CallLobbyScreen = (props) => {
+  const { navigation } = props;
+
+  const onActiveCall = () => {
+    navigation.navigate('ActiveCallScreen');
+  };
+
+  return <LobbyView callID={meetingCallID} onActiveCall={onActiveCall} />;
+};
+```
