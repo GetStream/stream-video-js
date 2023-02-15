@@ -26,7 +26,7 @@ export const Avatar = (props: AvatarProps) => {
     radius = DEFAULT_AVATAR_RADIUS,
   } = props;
   const label = useMemo(() => userId || '?', [userId]);
-  const imageUrl = user?.imageUrl;
+  const imageUrl = user?.image;
   return (
     <View
       style={{

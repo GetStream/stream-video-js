@@ -1,6 +1,7 @@
 # Stream Video JS SDK
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=GetStream_stream-video-js&metric=alert_status&token=fdc1439303911957da9c7ff2ce505f94c3c14d36)](https://sonarcloud.io/summary/new_code?id=GetStream_stream-video-js)
+
 ## Dependencies
 
 Before you can run this project locally, the backend services has to be set up. In order to do so,
@@ -32,17 +33,15 @@ Run the application `yarn start:react:app` (make sure the server is already runn
 
 If you want to connect to the SFU and the coordinator running locally, you have to change the URL in
 [App.tsx](packages/react-sample-app/src/App.tsx). It should look something like this
+
 ```ts
-  const client = useCreateStreamVideoClient({
-    // proxied to http://localhost:26991
-    coordinatorRpcUrl: 'http://localhost:26991/rpc',
-    coordinatorWsUrl:
-      'ws://localhost:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
-    apiKey: 'us83cfwuhy8n', // see <video>/data/fixtures/apps.yaml for API key/secret
-    token: participants[currentUser],
-    user,
-  });
+const client = useCreateStreamVideoClient({
+  apiKey: 'us83cfwuhy8n', // see <video>/data/fixtures/apps.yaml for API key/secret
+  token: participants[currentUser],
+  user,
+});
 ```
+
 Then recompile the app - step (3) in [Setup](#setup) section here and then `yarn start:react:app`.
 
 ### Angular

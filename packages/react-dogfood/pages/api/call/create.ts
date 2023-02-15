@@ -1,10 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { StreamVideoClient } from '@stream-io/video-client';
 import yargs from 'yargs';
-import { createToken } from '../../../helpers/jwt';
 import { meetingId } from '../../../lib/meetingId';
+import { createToken } from '../../../helpers/jwt';
 
-const coordinatorApiUrl = process.env.STREAM_COORDINATOR_RPC_URL as string;
 const apiKey = process.env.STREAM_API_KEY as string;
 const secretKey = process.env.STREAM_SECRET_KEY as string;
 
@@ -12,26 +11,35 @@ const createCallSlackHookAPI = async (
   req: NextApiRequest,
   res: NextApiResponse,
 ) => {
+  const token = createToken('pronto-hook', secretKey);
   const client = new StreamVideoClient(apiKey, {
-    coordinatorRpcUrl: coordinatorApiUrl,
-    sendJson: true,
-    token: createToken('admin@getstream.io', secretKey),
+    browser: false,
+    secret: secretKey,
+    allowServerSideConnect: true,
   });
+  await client.connectUser(
+    {
+      id: 'pronto-hook',
+      name: 'Pronto Slack Hook',
+      role: 'bot',
+      teams: ['@stream-io/pronto'],
+    },
+    token,
+  );
 
   console.log(`Received input`, req.body);
-  const initiator = req.body.user_name || 'Stream';
+  const initiator = req.body.user_name || 'Stream Pronto Bot';
   const { _, $0, ...args } = await yargs().parse(req.body.text || '');
   const queryParams = new URLSearchParams(
     args as Record<string, string>,
   ).toString();
 
   try {
-    const response = await client.getOrCreateCall({
-      id: meetingId(),
-      type: 'default',
+    const response = await client.getOrCreateCall(meetingId(), 'default', {
+      ring: false,
     });
-    if (response.call) {
-      const call = response.call;
+    if (response?.call) {
+      const { call } = response;
       const protocol = req.headers['x-forwarded-proto']
         ? 'https://'
         : 'http://';
@@ -52,7 +60,7 @@ const createCallSlackHookAPI = async (
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: `${initiator} has invited for a new Stream Call \n ${joinUrl}`,
+              text: `${initiator} has invited you for a new Stream Call \n ${joinUrl}`,
             },
             accessory: {
               type: 'button',
@@ -71,11 +79,14 @@ const createCallSlackHookAPI = async (
     return res.status(200).json(notifyError('Failed to getOrCreateCall'));
   } catch (e) {
     console.error(e);
+    // @ts-ignore
     return res.status(200).json(notifyError(e.message));
+  } finally {
+    await client.disconnectUser();
   }
 };
 
-const notifyError = (message) => {
+const notifyError = (message: string) => {
   return {
     response_type: 'ephemeral', // notify just the initiator
     blocks: [

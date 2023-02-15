@@ -15,10 +15,10 @@ export const watchParticipantJoined = (
     const { participant } = e.eventPayload.participantJoined;
     if (!participant) return;
 
-    const call = store.getCurrentValue(store.activeCallSubject);
+    const activeCall = store.getCurrentValue(store.activeCallSubject);
 
     // FIXME: this part is being repeated in call.join event as well
-    const { users } = call!.data;
+    const { users } = activeCall!.data;
     const userData = users[participant.userId];
     if (!userData) userBatcher.addToBatch(participant.userId);
 
@@ -45,7 +45,7 @@ export const watchParticipantLeft = (
     if (!participant) return;
 
     const activeCall = store.getCurrentValue(store.activeCallSubject);
-    if (callCid !== activeCall?.data.call?.callCid) {
+    if (callCid !== activeCall?.data.call.cid) {
       console.warn('Received participantLeft notification for a unknown call');
       return;
     }

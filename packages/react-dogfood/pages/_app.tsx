@@ -14,6 +14,7 @@ import {
   ThemeProvider,
 } from '@mui/material';
 import Head from 'next/head';
+import { Session } from 'next-auth';
 
 const theme = createTheme({
   palette: {
@@ -31,10 +32,18 @@ const theme = createTheme({
     },
   },
 });
+
+type AppProps = {
+  Component: React.ComponentType;
+  pageProps: {
+    session: Session;
+  };
+};
+
 export default function App({
   Component,
   pageProps: { session, ...pageProps },
-}) {
+}: AppProps) {
   return (
     <SessionProvider session={session}>
       <Head>
@@ -69,26 +78,25 @@ export default function App({
 
 const UserInfo = () => {
   const { data: theSession } = useSession();
-
+  if (!theSession || !theSession.user) {
+    return null;
+  }
   return (
-    theSession &&
-    theSession.user && (
-      <Stack
-        direction="row"
-        spacing={2}
-        divider={<Divider orientation="vertical" />}
-        sx={{ alignItems: 'center' }}
+    <Stack
+      direction="row"
+      spacing={2}
+      divider={<Divider orientation="vertical" />}
+      sx={{ alignItems: 'center' }}
+    >
+      <Box data-testid="username">{theSession.user.email}</Box>
+      <Button
+        data-testid="sign-out-button"
+        size="small"
+        variant="text"
+        onClick={() => signOut()}
       >
-        <Box data-testid="username">{theSession.user.email}</Box>
-        <Button
-          data-testid="sign-out-button"
-          size="small"
-          variant="text"
-          onClick={() => signOut()}
-        >
-          Sign out
-        </Button>
-      </Stack>
-    )
+        Sign out
+      </Button>
+    </Stack>
   );
 };

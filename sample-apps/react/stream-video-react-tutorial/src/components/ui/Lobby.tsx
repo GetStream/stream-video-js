@@ -27,7 +27,10 @@ const UserSelector = () => {
             }
           >
             <div className="str-video-tutorial__avatar">
-              <img src={user.imageUrl} alt={name} />
+              <img
+                src={`https://getstream.io/random_svg/?id=${name}&name=${name}`}
+                alt={name}
+              />
             </div>
             <div className="str-video-tutorial__avatar-name">{user.name}</div>
           </div>
@@ -37,8 +40,6 @@ const UserSelector = () => {
   );
 };
 
-const CALL_TYPE = 'default';
-
 const StartNewCallButton = () => {
   const videoClient = useStreamVideoClient();
   const { setLoading } = useLoadingState();
@@ -46,15 +47,10 @@ const StartNewCallButton = () => {
   const startMeeting = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await videoClient?.createCall({
-        type: CALL_TYPE,
-      });
-
-      await videoClient.joinCall({
-        type: CALL_TYPE,
-        id: response.call.id,
-        datacenterId: '',
-      });
+      await videoClient.joinCall(
+        String(Math.round(Math.random() * 100000000)),
+        'default',
+      );
     } catch (e) {
       console.error(e);
     } finally {
@@ -79,11 +75,7 @@ const JoinExistingCallForm = () => {
       event.preventDefault();
       setLoading(true);
       try {
-        await videoClient.joinCall({
-          type: CALL_TYPE,
-          id: joinCallId,
-          datacenterId: '',
-        });
+        await videoClient.joinCall(joinCallId, 'default');
       } catch (e) {
         console.error(e);
       } finally {

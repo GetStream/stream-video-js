@@ -5,16 +5,15 @@ import { GetServerSidePropsContext } from 'next';
 import { createToken } from '../../helpers/jwt';
 import {
   StreamVideo,
+  StreamMeeting,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { UserInput } from '@stream-io/video-client';
-import { useMemo } from 'react';
 import Head from 'next/head';
-import { StreamMeeting } from '@stream-io/video-react-sdk';
+import { User } from '@stream-io/video-client';
 import { MeetingUI } from '../../components/MeetingUI';
 
 type JoinCallProps = {
-  user: UserInput;
+  user: User;
   userToken: string;
   apiKey: string;
 };
@@ -25,18 +24,10 @@ const JoinCall = (props: JoinCallProps) => {
   const callType = (router.query['type'] as string) || 'default';
 
   const { userToken, user, apiKey } = props;
-  const loggedInUser = useMemo(
-    () => ({
-      ...user,
-      customJson: new Uint8Array(),
-    }),
-    [user],
-  );
-
   const client = useCreateStreamVideoClient({
     apiKey,
     token: userToken,
-    user: loggedInUser,
+    user,
   });
 
   if (!client) {
@@ -49,11 +40,7 @@ const JoinCall = (props: JoinCallProps) => {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <StreamVideo client={client}>
-        <StreamMeeting
-          currentUser={loggedInUser.name}
-          callId={callId}
-          callType={callType}
-        >
+        <StreamMeeting callId={callId} callType={callType}>
           <MeetingUI />
         </StreamMeeting>
       </StreamVideo>
@@ -85,7 +72,7 @@ export const getServerSideProps = async (
   const secretKey = process.env.STREAM_SECRET_KEY as string;
 
   const userName = (
-    (context.query[`user_id`] as string) || session.user.email
+    (context.query[`user_id`] as string) || session.user!.email!
   ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
   return {
     props: {
@@ -96,8 +83,6 @@ export const getServerSideProps = async (
         name: userName,
         role: 'admin',
         teams: ['stream-io'],
-        imageUrl: session.user.image,
-        // customJson: new Uint8Array() // can't be serialized to JSON
       },
     } as JoinCallProps,
   };
