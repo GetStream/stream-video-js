@@ -2,11 +2,15 @@ import { PropsWithChildren } from 'react';
 import { StreamChat } from 'stream-chat';
 import { Chat } from 'stream-chat-react';
 
-export const ChatSidebar = ({
+export const ChatWrapper = ({
   client,
   children,
-}: PropsWithChildren<{ client?: StreamChat }>) => {
+}: PropsWithChildren<{ client?: StreamChat | null }>) => {
   if (!client) return <div>Loading Chat...</div>;
 
-  return <Chat client={client}>{children}</Chat>;
+  return (
+    <Chat theme="str-chat__theme-dark" client={client}>
+      {children}
+    </Chat>
+  );
 };
