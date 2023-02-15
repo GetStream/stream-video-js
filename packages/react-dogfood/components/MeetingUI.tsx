@@ -58,6 +58,7 @@ export const MeetingUI = ({
             />
             <CallControlsButton
               enabled={showChat}
+              disabled={!chatClient}
               onClick={() => setShowChat((prev) => !prev)}
               icon="chat"
             />

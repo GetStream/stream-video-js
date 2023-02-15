@@ -56,7 +56,7 @@ export const ChatUI = ({
           )}
         </div>
         <MessageList />
-        <MessageInput focus />
+        <MessageInput grow focus />
       </Window>
     </Channel>
   );
