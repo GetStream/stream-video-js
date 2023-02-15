@@ -1,0 +1,85 @@
+.str-chat__channel {
+  border-radius: 8px;
+}
+
+.str-chat__message-input {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.str-chat__channel-header {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.str-chat__custom-channel-header {
+  font-size: 1rem;
+  line-height: 1.25rem;
+  color: var(--str-video__text-color1);
+  padding: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.str-chat__custom-channel-header__close-button {
+  width: 1.75rem;
+  height: 1.75rem;
+  background: var(
+    --str-video__participant-list-header__close-button--background-color
+  );
+  border-radius: var(
+    --str-video__participant-list-header__close-button--border-radius
+  );
+}
+
+.str-chat__custom-channel-header__close-button--icon {
+  display: block;
+  height: 1rem;
+  width: 1rem;
+  mask-image: var(--str-video__icon--close);
+  -webkit-mask-image: var(--str-video__icon--close);
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+  mask-size: 0.75rem 0.75rem;
+  -webkit-mask-size: 0.75rem 0.75rem;
+  background-color: var(
+    --str-video__participant-list-header__close-button-icon--background-color
+  );
+}
+
+.str-chat__message-reaction-count {
+  color: var(--str-chat__text-color);
+}
+
+.str-chat__custom-channel-header__warning {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  padding: 2px 0.75rem;
+  gap: 10px;
+}
+
+.str-chat__custom-channel-header__warning-button {
+  all: unset;
+  padding: 5px;
+  border-radius: var(
+    --str-video__participant-list-header__close-button--border-radius
+  );
+  background: var(
+    --str-video__participant-list-header__close-button--background-color
+  );
+}
+
+.str-chat {
+  --str-chat__primary-color: var(--str-video__primary-color);
+  --str-chat__active-primary-color: var(--str-video__secondary-color);
+  --str-chat__background-color: var(--str-video__background-color1);
+  --str-chat__primary-surface-color: var(--str-video__background-color2);
+  --str-chat__primary-surface-color-low-emphasis: var(
+    --str-video__background-color2
+  );
+  --str-chat__secondary-background-color: var(--str-video__background-color4);
+}
