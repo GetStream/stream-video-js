@@ -57,7 +57,7 @@
   <div class="str-video__participant-placeholder">
     <div
       *ngIf="
-        !participant?.user?.imageUrl || isProfileImageError;
+        !participant?.user?.image || isProfileImageError;
         else profileImage
       "
       class="str-video__placeholder--initials-fallback"
@@ -69,13 +69,13 @@
         (error)="isProfileImageError = true"
         alt="participant-placeholder"
         class="str-video__participant-placeholder--avatar"
-        [src]="participant?.user?.imageUrl"
+        [src]="participant?.user?.image"
       />
       <div class="str-video__participant-placeholder--backdrop"></div>
       <img
         alt="participant-placeholder-background"
         class="str-video__participant-placeholder--avatar-background"
-        [src]="participant?.user?.imageUrl"
+        [src]="participant?.user?.image"
       />
     </ng-template>
   </div>

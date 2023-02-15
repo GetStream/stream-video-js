@@ -5,7 +5,7 @@ import { getGenericSdp } from './codecs';
 import { CallState, TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuEventListener } from './Dispatcher';
-import { ActiveCallData, StreamVideoWriteableStateStore } from '../store';
+import { StreamVideoWriteableStateStore } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import type {
   CallOptions,
@@ -27,6 +27,7 @@ import {
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
 import { Batcher } from '../Batcher';
+import { CallMetadata } from './CallMetadata';
 
 /**
  * A `Call` object represents the active call the user is part of. It's not enough to have a `Call` instance, you will also need to call the [`join`](#join) method.
@@ -35,7 +36,7 @@ export class Call {
   /**
    * Contains metadata about the call, for example who created the call. You can also extract the call ID from this object, which you'll need for certain API calls (for example to start a recording).
    */
-  data: ActiveCallData;
+  data: CallMetadata;
   private readonly subscriber: RTCPeerConnection;
   private readonly publisher: Publisher;
   private readonly trackSubscriptionsSubject = new Subject<
@@ -54,7 +55,7 @@ export class Call {
    * @param userBatcher
    */
   constructor(
-    data: ActiveCallData,
+    data: CallMetadata,
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
     private readonly stateStore: StreamVideoWriteableStateStore,
@@ -140,7 +141,7 @@ export class Call {
    * @returns a promise which resolves once the call join-flow has finished.
    */
   join = async () => {
-    if (this.joined$.getValue() === true) {
+    if (this.joined$.getValue()) {
       throw new Error(`Illegal State: Already joined.`);
     }
 

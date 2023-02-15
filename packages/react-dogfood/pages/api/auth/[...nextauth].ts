@@ -11,9 +11,10 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
+  // @ts-ignore
   callbacks: {
     async signIn({ account, profile }) {
-      if (account.provider === 'google') {
+      if (account?.provider === 'google') {
         return (profile?.email_verified &&
           profile?.email?.endsWith('@getstream.io')) as boolean;
       }

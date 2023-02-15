@@ -18,26 +18,25 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
     if (!videoClient || activeCall) return;
 
     if (outgoingCall?.call && videoClient.callConfig.joinCallInstantly) {
-      videoClient.joinCall({
-        id: outgoingCall.call.id,
-        type: outgoingCall.call.type,
-        // FIXME: OL optional, but it is marked as required in proto
-        datacenterId: '',
-      });
-    } else if (
-      acceptedCall?.call &&
-      !videoClient.callConfig.joinCallInstantly
-    ) {
-      videoClient.joinCall({
-        id: acceptedCall.call.id,
-        type: acceptedCall.call.type,
-        // FIXME: OL optional, but it is marked as required in proto
-        datacenterId: '',
-      });
+      videoClient
+        .joinCall(outgoingCall.call.id!, outgoingCall.call.type!)
+        .catch((e) => {
+          console.error('Error joining call', e);
+        });
+    } else if (acceptedCall && !videoClient.callConfig.joinCallInstantly) {
+      videoClient
+        .joinCall(outgoingCall.call.id!, outgoingCall.call.type!)
+        .catch((e) => {
+          console.error('Error joining call', e);
+        });
     }
   }, [videoClient, outgoingCall, acceptedCall, activeCall]);
 
   if (!videoClient) return null;
 
-  return <MediaDevicesProvider>{children}</MediaDevicesProvider>;
+  return (
+    <MediaDevicesProvider enumerate={!!activeCall}>
+      {children}
+    </MediaDevicesProvider>
+  );
 };

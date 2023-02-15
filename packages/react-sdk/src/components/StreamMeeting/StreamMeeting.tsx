@@ -1,48 +1,40 @@
 import { PropsWithChildren, useEffect } from 'react';
-import { CreateCallInput } from '@stream-io/video-client';
-import { useStreamVideoClient } from '@stream-io/video-react-bindings';
+import { GetOrCreateCallRequest } from '@stream-io/video-client';
+import {
+  useActiveCall,
+  useStreamVideoClient,
+} from '@stream-io/video-react-bindings';
 import { MediaDevicesProvider } from '../../contexts';
 
 export type StreamMeetingProps = {
   callId: string;
   callType: string;
-  currentUser: string;
-  input?: CreateCallInput;
+  input?: Omit<GetOrCreateCallRequest, 'members'>;
 };
 
 export const StreamMeeting = ({
   children,
   callId,
   callType,
-  currentUser,
   input,
 }: PropsWithChildren<StreamMeetingProps>) => {
   const client = useStreamVideoClient();
+  const activeCall = useActiveCall();
 
   useEffect(() => {
     if (!client) return;
     const initiateMeeting = async () => {
-      const descriptors = { id: callId, type: callType };
-      const callMetadata = await client.getOrCreateCall({
-        ...descriptors,
-        input,
-      });
-      if (
-        callMetadata?.call?.createdByUserId === currentUser ||
-        client.callConfig.joinCallInstantly
-      ) {
-        await client.joinCall({
-          ...descriptors,
-          // FIXME: OL optional, but it is marked as required in proto
-          datacenterId: '',
-        });
-      }
+      await client.joinCall(callId, callType, input);
     };
 
     initiateMeeting().catch((e) => {
       console.error(`Failed to getOrCreateCall`, callId, callType, e);
     });
-  }, [callId, client, callType, currentUser, input]);
+  }, [callId, client, callType, input]);
 
-  return <MediaDevicesProvider>{children}</MediaDevicesProvider>;
+  return (
+    <MediaDevicesProvider enumerate={!!activeCall}>
+      {children}
+    </MediaDevicesProvider>
+  );
 };

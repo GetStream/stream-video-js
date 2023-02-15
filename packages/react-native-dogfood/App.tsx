@@ -36,16 +36,13 @@ const MeetingStack = createNativeStackNavigator<MeetingStackParamList>();
 const RingingStack = createNativeStackNavigator<RingingStackParamList>();
 
 const Meeting = (props: NativeStackScreenProps<MeetingStackParamList>) => {
-  const username = useAppGlobalStoreValue((store) => store.username);
   const meetingCallID = useAppGlobalStoreValue((store) => store.meetingCallID);
   const { navigation } = props;
 
   return (
     <StreamMeeting
-      currentUser={username}
       callId={meetingCallID}
       callType={'default'}
-      autoJoin={true}
       onActiveCall={() => navigation.navigate('MeetingScreen')}
     >
       <MeetingStack.Navigator>

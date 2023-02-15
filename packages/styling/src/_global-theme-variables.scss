@@ -1,0 +1,175 @@
+.str-video {
+  /* Border radius used for slightly rounded elements */
+  --str-video__border-radius-xxxs: 2px;
+  /* Border radius used for slightly rounded elements */
+  --str-video__border-radius-xs: 8px;
+
+  /* Border radius used for slightly rounded elements */
+  --str-video__border-radius-sm: 14px;
+
+  /* Border radius used for rounded elements */
+  --str-video__border-radius-md: 18px;
+
+  /* Border radius used for rounded elements */
+  --str-video__border-radius-lg: 20px;
+
+  /* Border radius used for rounded elements */
+  --str-video__border-radius-xl: 30px;
+
+  /* Border radius used for circular elements */
+  --str-video__border-radius-circle: 999px;
+
+  /* The font used in the video, by default, we use [preinstalled OS fonts](https://systemfontstack.com/) */
+  --str-video__font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen-Sans, Ubuntu,
+    Cantarell, Helvetica Neue, sans-serif;
+
+  /* The font used for caption texts */
+  --str-video__caption-text: 0.75rem/1rem var(--str-video__font-family);
+
+  /* The font used for caption texts with emphasize */
+  --str-video__caption-medium-text: 500 0.75rem/1rem var(--str-video__font-family);
+
+  /* The font used for body texts */
+  --str-video__body-text: 0.875rem/1rem var(--str-video__font-family);
+
+  /* The font used for body texts with emphasize */
+  --str-video__body-medium-text: 500 0.875rem/1rem var(--str-video__font-family);
+
+  /* The font used for body texts */
+  --str-video__body2-text: 0.9375rem/1rem var(--str-video__font-family);
+
+  /* The font used for body texts with emphasize */
+  --str-video__body2-medium-text: 500 0.9375rem/1rem var(--str-video__font-family);
+
+  /* The font used for subtitle texts */
+  --str-video__subtitle-text: 1rem/1.25rem var(--str-video__font-family);
+
+  /* The font used for subtitle texts with emphasize */
+  --str-video__subtitle-medium-text: 500 1rem/1.25rem var(--str-video__font-family);
+
+  /* The font used for subtitle texts */
+  --str-video__subtitle2-text: 1.25rem/1.5rem var(--str-video__font-family);
+
+  /* The font used for subtitle texts with emphasize */
+  --str-video__subtitle2-medium-text: 500 1.25rem/1.5rem var(--str-video__font-family);
+
+  /* The font used for headline texts */
+  --str-video__headline-text: 1.5rem/1.5rem var(--str-video__font-family);
+
+  /* The font used for headline texts */
+  --str-video__headline2-text: 1.8rem/1.8rem var(--str-video__font-family);
+}
+
+.str-video,
+.str-video__theme-light {
+  /* Used for emphasis, brands can inject their main color using this variable */
+  --str-video__primary-color: var(--str-video__blue500);
+
+  /* Used for emphasised overlays - color of --str-video__primary-color with alpha channel */
+  --str-video__primary-overlay-color: rgba(0, 95, 255, 0.6);
+
+  /* Used for emphasis, brands can inject their main color using this variable, it has less emphasis than primary color */
+  --str-video__primary-color-low-emphasis: var(--str-video__blue300);
+
+  /* Used to indicate that a UI element with primary color is in an active state */
+  --str-video__active-primary-color: var(--str-video__blue600);
+
+  /* If the primary color is used as a background, text/icons are displayed in this color */
+  --str-video__on-primary-color: var(--str-video__grey50);
+
+  /* Used as a background color for the main video UI components */
+  --str-video__background-color: var(--str-video__grey50);
+
+  /* Used as a background color for the main video UI components */
+  --str-video__secondary-background-color: var(--str-video__grey50);
+
+  /* Used as a background color to give emphasis, but less vibrant than the primary color */
+  --str-video__primary-surface-color: var(--str-video__blue100);
+
+  /* Used as a background color to give emphasis, but less vibrant than the primary surface color */
+  --str-video__primary-surface-color-low-emphasis: var(--str-video__blue50);
+
+  /* A neutral color used to give emphasis to different surfaces */
+  --str-video__surface-color: var(--str-video__grey300);
+
+  /* A neutral color used to give emphasis to different surfaces */
+  --str-video__secondary-surface-color: var(--str-video__grey200);
+
+  /* A neutral color used to give emphasis to different surfaces */
+  --str-video__tertiary-surface-color: var(--str-video__grey100);
+
+  /* The main color used for texts/icons */
+  --str-video__text-color: var(--str-video__grey950);
+
+  /* Used for texts/icons that need less emphasis */
+  --str-video__text-low-emphasis-color: var(--str-video__grey500);
+
+  /* Used for displaying disabled UI elements (typically buttons) */
+  --str-video__disabled-color: var(--str-video__grey400);
+
+  /* Used for text/icon colors if disabled color is used as a background color */
+  --str-video__on-disabled-color: var(--str-video__grey50);
+
+  /* Used for error messages, and destructive actions */
+  --str-video__danger-color: var(--str-video__red400);
+
+  /* The background color used to highlight a message when jumping to a message. Only available in React SDK. */
+  --str-video__message-highlight-color: var(--str-video__yellow100);
+
+  /* Used for displaying the unread badge */
+  --str-video__unread-badge-color: var(--str-video__red400);
+
+  /* Used for text/icon colors if unread badge color is used as a background color */
+  --str-video__on-unread-badge-color: var(--str-video__grey50);
+
+  /* The background color used for overlays */
+  --str-video__overlay-color: rgba(252, 252, 252, 0.9);
+
+  /* The background color used for subtle overlays */
+  --str-video__secondary-overlay-color: rgba(0, 0, 0, 0.2);
+
+  /* The text/icon color used on subtle overlays */
+  --str-video__secondary-overlay-text-color: var(--str-video__grey50);
+
+  /* The background color used for opaque surfaces */
+  --str-video__opaque-surface-background-color: rgba(0, 0, 0, 0.8);
+
+  /* The text color used on opaque surfaces */
+  --str-video__opaque-surface-text-color: var(--str-video__grey50);
+
+  /* If a component has a box shadow applied to it, this will be the color used for the shadow */
+  --str-video__box-shadow-color: rgba(0, 0, 0, 0.18);
+
+  /* Used for online indicator and success messages */
+  --str-video__info-color: var(--str-video__green500);
+}
+
+.str-video__theme-dark {
+  --str-video__primary-color: var(--str-video__blue400);
+  --str-video__primary-overlay-color: rgba(51, 126, 255, 0.6);
+  --str-video__primary-color-low-emphasis: var(--str-video__blue700);
+  --str-video__active-primary-color: var(--str-video__blue600);
+  --str-video__on-primary-color: var(--str-video__grey50);
+  --str-video__background-color: var(--str-video__grey950);
+  --str-video__secondary-background-color: var(--str-video__grey900);
+  --str-video__primary-surface-color: var(--str-video__blue900);
+  --str-video__primary-surface-color-low-emphasis: var(--str-video__blue950);
+  --str-video__surface-color: var(--str-video__grey700);
+  --str-video__secondary-surface-color: var(--str-video__grey800);
+  --str-video__tertiary-surface-color: var(--str-video__grey900);
+  --str-video__text-color: var(--str-video__grey50);
+  --str-video__text-low-emphasis-color: var(--str-video__grey500);
+  --str-video__disabled-color: var(--str-video__grey600);
+  --str-video__on-disabled-color: var(--str-video__grey50);
+  --str-video__danger-color: var(--str-video__red600);
+  --str-video__message-highlight-color: var(--str-video__yellow900);
+  --str-video__unread-badge-color: var(--str-video__red400);
+  --str-video__on-unread-badge-color: var(--str-video__grey50);
+  --str-video__overlay-color: rgba(0, 0, 0, 0.7);
+  --str-video__secondary-overlay-color: rgba(0, 0, 0, 0.4);
+  --str-video__secondary-overlay-text-color: var(--str-video__grey50);
+  --str-video__opaque-surface-background-color: rgba(250, 250, 250, 0.85);
+  --str-video__opaque-surface-text-color: var(--str-video__grey900);
+  --str-video__box-shadow-color: rgba(0, 0, 0, 0.8);
+  --str-video__info-color: var(--str-video__green500);
+}

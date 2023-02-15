@@ -2,17 +2,14 @@ import * as React from 'react';
 import { ForwardedRef, forwardRef } from 'react';
 import clsx from 'clsx';
 
+export type CallControlsButtonProps = {
+  icon: string;
+  enabled?: boolean;
+  variant?: string;
+} & React.ComponentProps<'button'>;
+
 export const CallControlsButton = forwardRef(
-  (
-    props: {
-      icon: string;
-      enabled?: boolean;
-      variant?: string;
-      onClick?: () => void;
-      [anyProp: string]: any;
-    },
-    ref: ForwardedRef<HTMLButtonElement>,
-  ) => {
+  (props: CallControlsButtonProps, ref: ForwardedRef<HTMLButtonElement>) => {
     const { icon, enabled, variant, onClick, ...rest } = props;
     return (
       <button
@@ -22,7 +19,7 @@ export const CallControlsButton = forwardRef(
         })}
         onClick={(e) => {
           e.preventDefault();
-          onClick?.();
+          onClick?.(e);
         }}
         ref={ref}
         {...rest}

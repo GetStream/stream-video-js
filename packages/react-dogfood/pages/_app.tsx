@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import '../style/app.css';
 import '@stream-io/video-styling/dist/css/styles.css';
+import '../style/app.css';
 import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -14,6 +14,7 @@ import {
   ThemeProvider,
 } from '@mui/material';
 import Head from 'next/head';
+import { Session } from 'next-auth';
 
 const theme = createTheme({
   palette: {
@@ -31,10 +32,18 @@ const theme = createTheme({
     },
   },
 });
+
+type AppProps = {
+  Component: React.ComponentType;
+  pageProps: {
+    session: Session;
+  };
+};
+
 export default function App({
   Component,
   pageProps: { session, ...pageProps },
-}) {
+}: AppProps) {
   return (
     <SessionProvider session={session}>
       <Head>
@@ -47,7 +56,7 @@ export default function App({
         <Stack height="100vh">
           <Stack direction="row" spacing={2}>
             <Box flexGrow={1} padding={1}>
-              <Link href="/">
+              <Link href="/" data-testid="home-button">
                 <a>
                   <Image
                     src="/stream-logo.png"
@@ -69,21 +78,25 @@ export default function App({
 
 const UserInfo = () => {
   const { data: theSession } = useSession();
-
+  if (!theSession || !theSession.user) {
+    return null;
+  }
   return (
-    theSession &&
-    theSession.user && (
-      <Stack
-        direction="row"
-        spacing={2}
-        divider={<Divider orientation="vertical" />}
-        sx={{ alignItems: 'center' }}
+    <Stack
+      direction="row"
+      spacing={2}
+      divider={<Divider orientation="vertical" />}
+      sx={{ alignItems: 'center' }}
+    >
+      <Box data-testid="username">{theSession.user.email}</Box>
+      <Button
+        data-testid="sign-out-button"
+        size="small"
+        variant="text"
+        onClick={() => signOut()}
       >
-        <Box>{theSession.user.email}</Box>
-        <Button size="small" variant="text" onClick={() => signOut()}>
-          Sign out
-        </Button>
-      </Stack>
-    )
+        Sign out
+      </Button>
+    </Stack>
   );
 };

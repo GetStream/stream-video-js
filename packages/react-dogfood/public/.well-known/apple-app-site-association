@@ -5,7 +5,8 @@
       {
         "appIDs": [
           "EHV7XZLAHA.io.getstream.iOS.stream-calls-dogfood",
-          "EHV7XZLAHA.io.getstream.rnvideosample"
+          "EHV7XZLAHA.io.getstream.rnvideosample",
+          "EHV7XZLAHA.io.getstream.video.flutter.dogfooding"
         ],
         "paths": [
           "*"

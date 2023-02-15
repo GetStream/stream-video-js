@@ -32,10 +32,10 @@ const useGetUsers = () => {
             // FIXME: find proper solution for filtering online users
             { online: true },
           ],
-          id: { $nin: [client.user.id] },
+          id: { $nin: [client.user!.id] },
         })
         .then(({ users }) =>
-          users.reduce((userMap, user) => {
+          users.reduce<Record<string, UserResponse>>((userMap, user) => {
             userMap[user.id] = user;
             return userMap;
           }, {}),
@@ -60,18 +60,20 @@ export const QuickDial = <SCG extends ExtendableGenerics = DefaultGenerics>({
 
   useEffect(() => {
     const updateUsers = (event: Event) => {
-      if (!Object.hasOwn(users, event.user.id)) {
+      const { user } = event;
+      if (!user) return;
+      if (!Object.hasOwn(users, user.id)) {
         return setUsers(
           produce((draft) => {
-            draft[event.user.id] = event.user;
+            draft[user.id] = user;
           }),
         );
       }
 
       setUsers(
         produce((draft) => {
-          draft[event.user.id].online = event.user.online ?? false;
-          draft[event.user.id].last_active = event.user.last_active;
+          draft[user.id].online = user.online ?? false;
+          draft[user.id].last_active = user.last_active;
         }),
       );
     };
@@ -106,7 +108,7 @@ const QuickDialButton = <SCG extends ExtendableGenerics = DefaultGenerics>({
 }: QuickDialButtonProps<SCG>) => {
   return (
     <button
-      onClick={(event) => onUserClick(user, event)}
+      onClick={(event) => onUserClick?.(user, event)}
       className={clsx('quick-dial-button', {
         online: user.online,
         away: !user.online,

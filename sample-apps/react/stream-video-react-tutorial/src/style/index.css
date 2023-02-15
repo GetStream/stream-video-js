@@ -1,0 +1,8 @@
+@import '@stream-io/video-styling/dist/css/styles.css' layer(default-video-sdk);
+
+@import "base.css";
+@import "overrides.css";
+@import "variables.css";
+
+@import "Lobby.css";
+@import "VideoRoot.css";
