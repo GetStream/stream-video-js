@@ -134,7 +134,7 @@ export const ControlMenu: FC<Props> = ({
             </Portal>
           }
           label="Video"
-        ></ControlButton>
+        />
         <ControlButton
           className={styles.audioButton}
           onClick={toggleAudio}
