@@ -12,7 +12,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import { StreamChat } from 'stream-chat';
 
-import { ChatWrapper, ChatUI } from './';
+import { ChatWrapper, ChatUI, UnreadCountBadge } from '.';
 
 export const MeetingUI = ({
   chatClient,
@@ -56,12 +56,15 @@ export const MeetingUI = ({
               enabled={showParticipants}
               onClick={() => setShowParticipants((prev) => !prev)}
             />
-            <CallControlsButton
-              enabled={showChat}
-              disabled={!chatClient}
-              onClick={() => setShowChat((prev) => !prev)}
-              icon="chat"
-            />
+            <div className="str-chat__chat-button__wrapper">
+              <CallControlsButton
+                enabled={showChat}
+                disabled={!chatClient}
+                onClick={() => setShowChat((prev) => !prev)}
+                icon="chat"
+              />
+              <UnreadCountBadge chatClient={chatClient} channelId={callId} />
+            </div>
           </div>
         </CallControls>
       </div>
@@ -71,10 +74,10 @@ export const MeetingUI = ({
             <CallParticipantsList onClose={() => setShowParticipants(false)} />
           )}
 
-          <ChatWrapper client={chatClient}>
+          <ChatWrapper chatClient={chatClient}>
             {showChat && (
               <div className="str-video__chat">
-                <ChatUI onClose={() => setShowChat(false)} callId={callId} />
+                <ChatUI onClose={() => setShowChat(false)} channelId={callId} />
               </div>
             )}
           </ChatWrapper>

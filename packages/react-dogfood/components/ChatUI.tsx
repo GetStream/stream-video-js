@@ -1,27 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  useChatContext,
   Channel,
   Window,
   MessageList,
   MessageInput,
+  useChatContext,
 } from 'stream-chat-react';
 
+import { CHANNEL_TYPE } from '.';
+
 export const ChatUI = ({
-  callId,
   onClose,
+  channelId,
 }: {
-  callId: string;
   onClose: () => void;
+  channelId: string;
 }) => {
   const { client, setActiveChannel } = useChatContext();
   const [noted, setNoted] = useState(!!sessionStorage.getItem('noted'));
 
   useEffect(() => {
-    const channel = client.channel('videocall', callId);
+    const channel = client.channel(CHANNEL_TYPE, channelId);
 
     setActiveChannel(channel);
-  }, [callId, client, setActiveChannel]);
+  }, [channelId, client, setActiveChannel]);
 
   return (
     <Channel>

@@ -3,9 +3,9 @@ import { StreamChat } from 'stream-chat';
 import { Chat } from 'stream-chat-react';
 
 export const ChatWrapper = ({
-  client,
+  chatClient: client,
   children,
-}: PropsWithChildren<{ client?: StreamChat | null }>) => {
+}: PropsWithChildren<{ chatClient?: StreamChat | null }>) => {
   if (!client) return <div>Loading Chat...</div>;
 
   return (

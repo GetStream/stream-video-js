@@ -73,6 +73,28 @@
   );
 }
 
+.str-chat__chat-button__wrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.str-chat__chat-button__unread-count-bubble {
+  font-size: 10px;
+  background-color: var(--str-video__danger-color2);
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: -10px;
+  right: -10px;
+  font-weight: bold;
+}
+
 .str-chat {
   --str-chat__primary-color: var(--str-video__primary-color);
   --str-chat__active-primary-color: var(--str-video__secondary-color);
