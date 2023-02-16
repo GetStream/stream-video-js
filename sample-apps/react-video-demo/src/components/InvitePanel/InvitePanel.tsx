@@ -19,7 +19,6 @@ export const InvitePanel: FC<Props> = ({ className, isFocused, callId }) => {
 
   const copyUrl = useCallback(
     (value: string) => {
-      console.log(value);
       try {
         navigator.clipboard.writeText(value).then(
           function () {
