@@ -9,7 +9,7 @@ import {
 import { SfuModels } from '@stream-io/video-client';
 
 import ControlButton from '../ControlButton';
-import SettingsMenu from '../SettingsMenu';
+import ControlMenuPanel from '../ControlMenuPanel';
 import Portal from '../Portal';
 
 import { Mic, MicMuted, Video, VideoOff, Settings } from '../Icons';
@@ -38,65 +38,6 @@ export type Props = {
   localParticipant?: any;
   videoMuted?: boolean;
   audioMuted?: boolean;
-};
-
-export type PanelProps = {
-  className?: string;
-  selectedDeviceId?: string;
-  devices: {
-    deviceId: string;
-    groupId: string;
-    kind: MediaDeviceKind;
-    label: string;
-  }[];
-  title: string;
-  label: string;
-
-  selectDevice: (kind: Partial<MediaDeviceKind>, deviceId: string) => void;
-};
-
-export const Panel: FC<PanelProps> = ({
-  devices,
-  title,
-  label,
-  className,
-  selectedDeviceId,
-  selectDevice,
-}) => {
-  return (
-    <SettingsMenu className={className} title={title}>
-      <ul className={styles.deviceList}>
-        {devices.map(({ kind, label, deviceId }) => {
-          const deviceClassName = classnames(styles.device, {
-            [styles.selectedDevice]: selectedDeviceId === deviceId,
-          });
-
-          return (
-            <li
-              className={deviceClassName}
-              onClick={() => selectDevice(kind, deviceId)}
-            >
-              <label className={styles.label} htmlFor={deviceId}>
-                <input
-                  id={kind}
-                  className={styles.radioButton}
-                  name={deviceId}
-                  type="radio"
-                  checked={selectedDeviceId === deviceId}
-                  value={deviceId}
-                />
-                {label}
-              </label>
-            </li>
-          );
-        })}
-      </ul>
-      <div className={styles.footer}>
-        <Settings />
-        <p>{label}</p>
-      </div>
-    </SettingsMenu>
-  );
 };
 
 export const ControlMenu: FC<Props> = ({
@@ -183,7 +124,7 @@ export const ControlMenu: FC<Props> = ({
           prefix={isVideoMuted ? <VideoOff /> : <Video />}
           panel={
             <Portal selector="#portal">
-              <Panel
+              <ControlMenuPanel
                 className={styles.panel}
                 selectedDeviceId={selectedVideoDeviceId}
                 selectDevice={(kind: any, deviceId) =>
@@ -204,7 +145,7 @@ export const ControlMenu: FC<Props> = ({
           prefix={isAudioMuted ? <MicMuted /> : <Mic />}
           panel={
             <Portal selector="#portal">
-              <Panel
+              <ControlMenuPanel
                 className={styles.panel}
                 selectedDeviceId={selectedAudioDeviceId}
                 selectDevice={(kind: any, deviceId) =>
