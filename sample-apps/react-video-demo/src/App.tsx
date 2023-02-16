@@ -29,22 +29,18 @@ export type Props = {
 };
 
 const config = {
-  apiKey: 'us83cfwuhy8n',
+  apiKey: import.meta.env.VITE_VEDEIO_API_KEY,
   user: {
-    id: 'marcelo',
+    id: import.meta.env.VITE_VIDEO_USER_ID,
     name: 'Niels',
     role: 'admin',
     teams: ['team-1', 'team-2'],
     imageUrl: 'https://randomuser.me/api/portraits/men/57.jpg',
     customJson: new Uint8Array(),
   },
-  token:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoibWFyY2VsbyJ9.Nhth6nZUqQ6mSz05VAnGGJNRQewpQfqK9reYMYq67NM',
-  coordinatorWsUrl:
-    'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
-
-  coordinatorRpcUrl:
-    'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
+  token: import.meta.env.VITE_VIDEO_USER_TOKEN,
+  coordinatorWsUrl: import.meta.env.VITE_VIDEO_COORDINATOR_WS_URL,
+  coordinatorRpcUrl: import.meta.env.VITE_VIDEO_COORDINATOR_RPC_ENDPOINT,
 };
 
 const Init: FC<Props> = ({
