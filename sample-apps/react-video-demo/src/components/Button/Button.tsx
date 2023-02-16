@@ -13,9 +13,7 @@ export type Props = {
     | 'transparent'
     | 'danger'
     | 'active';
-  size?: 'small' | 'medium' | 'large';
   shape?: 'rectangle' | 'square' | 'oval';
-  icon?: 'left' | 'right';
   onClick(): void;
   children?: ReactNode | undefined;
   label?: string;
@@ -26,25 +24,12 @@ export const Button: FC<Props> = ({
   children,
   onClick,
   color,
-  size = 'primary',
   shape = 'rectangle',
-  icon,
   label,
 }) => {
   const states = {
-    [styles.primary]: color === 'primary',
-    [styles.secondary]: color === 'secondary',
-    [styles.danger]: color === 'danger',
-    [styles.transparent]: color === 'transparent',
-    [styles.active]: color === 'active',
-    [styles.small]: size === 'small',
-    [styles.medium]: size === 'medium',
-    [styles.large]: size === 'large',
-    [styles.rectangle]: shape === 'rectangle',
-    [styles.square]: shape === 'square',
-    [styles.oval]: shape === 'oval',
-    [styles.iconLeft]: icon === 'left',
-    [styles.iconRight]: icon === 'right',
+    [styles?.[color]]: color,
+    [styles?.[shape]]: shape,
   };
   const rootClassName = classnames(styles.root, states, className);
 
