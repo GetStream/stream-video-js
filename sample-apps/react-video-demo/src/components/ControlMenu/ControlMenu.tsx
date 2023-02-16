@@ -74,9 +74,7 @@ export const ControlMenu: FC<Props> = ({
     }
   }, [call]);
 
-  useEffect(() => {
-    console.log('IS THE FFIN MUTED?', isVideoMuted);
-  }, [isVideoMuted]);
+  useEffect(() => {}, [isVideoMuted]);
 
   const publishVideoStream = useVideoPublisher({
     call: call,
@@ -91,7 +89,6 @@ export const ControlMenu: FC<Props> = ({
   });
 
   const toggleVideo = useCallback(() => {
-    console.log('TOGGLE THE SHIT?', isVideoMuted, SfuModels);
     if (isVideoMuted) {
       publishVideoStream();
       setVideoMuted(false);
