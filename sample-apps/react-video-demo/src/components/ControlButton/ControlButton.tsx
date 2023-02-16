@@ -35,9 +35,7 @@ export const ControlButton: FC<Props> = ({
   const [active, setActive] = useState(false);
 
   const handleOnClick = useCallback(() => {
-    if (onClick) {
-      onClick();
-    }
+    onClick?.();
   }, [active]);
 
   const togglePanel = useCallback(() => {
