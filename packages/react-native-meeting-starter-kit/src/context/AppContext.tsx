@@ -4,8 +4,6 @@ import {useState} from 'react';
 
 type AppContextType = {
   user: UserType | undefined;
-  callID: string | undefined;
-  setCallId: React.Dispatch<React.SetStateAction<string | undefined>>;
   audioMuted: boolean;
   setAudioMuted: React.Dispatch<React.SetStateAction<boolean>>;
   videoMuted: boolean;
@@ -19,7 +17,6 @@ export const AppContext = React.createContext({} as AppContextType);
 export const AppProvider = ({children}: PropsWithChildren<{}>) => {
   const [audioMuted, setAudioMuted] = useState<boolean>(false);
   const [videoMuted, setVideoMuted] = useState<boolean>(false);
-  const [callID, setCallId] = useState<string | undefined>(undefined);
   const [user, setUser] = useState<UserType | undefined>(undefined);
 
   const loginHandler = (userData: UserType) => {
@@ -33,8 +30,6 @@ export const AppProvider = ({children}: PropsWithChildren<{}>) => {
   return (
     <AppContext.Provider
       value={{
-        callID,
-        setCallId,
         audioMuted,
         setAudioMuted,
         setVideoMuted,

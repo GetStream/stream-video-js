@@ -1,6 +1,6 @@
 import React from 'react';
 import {CallParticipantsInfoView} from '@stream-io/video-react-native-sdk';
 
-export function CallParticipansInfoScreen() {
+export const CallParticipansInfoScreen = () => {
   return <CallParticipantsInfoView />;
-}
+};

@@ -159,12 +159,12 @@ const App = () => {
   ...
   return (
     <StreamVideo client={client}>
-      <StreamMeeting
+      <StreamCall
         onAcceptCall={() => navigation.navigate('ActiveCallScreen')}
         onOutgoingCall={() => navigation.navigate('OutgoingCallScreen')}
         onIncomingCall={() => navigation.navigate('IncomingCallScreen')}>
         {children}
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   );
 };

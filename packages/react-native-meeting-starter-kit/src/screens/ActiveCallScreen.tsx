@@ -3,21 +3,18 @@ import {ActiveCall, useActiveCall} from '@stream-io/video-react-native-sdk';
 import {ActivityIndicator, StyleSheet} from 'react-native';
 import {NavigationStackParamsList} from '../types';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {useAppContext} from '../context/AppContext';
 
-type Props = NativeStackScreenProps<
+type ActiveCallScreenProps = NativeStackScreenProps<
   NavigationStackParamsList,
   'ActiveCallScreen'
 >;
 
-export function ActiveCallScreen({navigation}: Props) {
+export function ActiveCallScreen({navigation}: ActiveCallScreenProps) {
   const activeCall = useActiveCall();
-  const {setCallId} = useAppContext();
 
   const onHangupCall = useCallback(() => {
-    navigation.navigate('CallLobbyScreen');
-    setCallId(undefined);
-  }, [navigation, setCallId]);
+    navigation.navigate('JoinMeetingScreen');
+  }, [navigation]);
 
   const onOpenCallParticipantsInfoViewHandler = useCallback(() => {
     navigation.navigate('CallParticipantsInfoScreen');

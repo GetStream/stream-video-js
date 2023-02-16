@@ -1,5 +1,3 @@
-import {UserInput} from '@stream-io/video-client';
-
 export type UserType = {
   id: string;
   name: string;
@@ -8,12 +6,11 @@ export type UserType = {
 };
 
 export type NavigationStackParamsList = {
-  CallLobbyScreen: undefined;
+  CallLobbyScreen: {callId: string};
   ActiveCallScreen: undefined;
   CallParticipantsInfoScreen: undefined;
+  JoinMeetingScreen: undefined;
 };
-
-export type LocalUserType = UserInput;
 
 export type VideoProps = {
   user?: UserType;
