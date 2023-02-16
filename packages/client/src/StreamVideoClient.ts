@@ -5,8 +5,10 @@ import {
 import type {
   DatacenterResponse,
   GetCallEdgeServerRequest,
+  GetOrCreateCallResponse,
   GetOrCreateCallRequest,
   ICEServer,
+  JoinCallResponse,
 } from './gen/coordinator';
 
 import type { ReportCallStatEventRequest } from './gen/video/coordinator/client_v1_rpc/client_rpc';
@@ -221,11 +223,13 @@ export class StreamVideoClient {
     type: string,
     data?: GetOrCreateCallRequest,
   ) => {
-    const response = await this.coordinatorClient.getOrCreateCall(
-      id,
-      type,
-      data,
-    );
+    // FIXME ZS: method name is misleading, also the client shouldn't care if a call is ringing or not
+    let response!: GetOrCreateCallResponse | JoinCallResponse;
+    if (data?.ring) {
+      response = await this.coordinatorClient.joinCall(id, type, data);
+    } else {
+      response = await this.coordinatorClient.getOrCreateCall(id, type, data);
+    }
     const { call } = response;
     if (!call) {
       console.log(`Call with id ${id} and type ${type} could not be created`);
