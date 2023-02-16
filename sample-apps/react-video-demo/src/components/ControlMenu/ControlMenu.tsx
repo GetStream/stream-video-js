@@ -155,7 +155,7 @@ export const ControlMenu: FC<Props> = ({
             </Portal>
           }
           label="Mic"
-        ></ControlButton>
+        />
       </div>
     </>
   );
