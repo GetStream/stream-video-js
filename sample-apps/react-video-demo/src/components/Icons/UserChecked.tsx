@@ -1,11 +1,9 @@
 import { FC } from 'react';
 import classnames from 'classnames';
 
-import styles from './Icons.module.css';
+import { Props } from './types';
 
-export type Props = {
-  className?: string;
-};
+import styles from './Icons.module.css';
 
 export const UserChecked: FC<Props> = ({ className }) => {
   const rootClassName = classnames(styles.root, className);
