@@ -65,7 +65,8 @@ export class IncomingCallComponent implements OnInit, OnDestroy {
     try {
       await this.ngZone.runOutsideAngular(async () => {
         await this.streamVideoService.videoClient?.acceptCall(
-          this.data.call.cid!,
+          this.data.call.id,
+          this.data.call.type,
         );
       });
       this.matDialogRef.close();
@@ -80,7 +81,8 @@ export class IncomingCallComponent implements OnInit, OnDestroy {
     this.isRejectInProgress = true;
     try {
       await this.streamVideoService.videoClient?.rejectCall(
-        this.data.call.cid!,
+        this.data.call.id,
+        this.data.call.type,
       );
       this.matDialogRef.close();
       this.deviceManager.stopVideo();

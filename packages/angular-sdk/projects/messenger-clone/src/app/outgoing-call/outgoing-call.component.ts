@@ -60,7 +60,8 @@ export class OutgoingCallComponent implements OnInit {
     try {
       await this.ngZone.runOutsideAngular(async () => {
         await this.streamVideoService.videoClient?.cancelCall(
-          this.data.call.cid,
+          this.data.call.id,
+          this.data.call.type,
         );
       });
       this.matDialogRef.close();
