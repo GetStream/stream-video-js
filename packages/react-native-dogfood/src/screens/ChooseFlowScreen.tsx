@@ -14,10 +14,6 @@ export const ChooseFlowScreen = (props: Props) => {
   useEffect(() => {
     const subscription = prontoCallId$.subscribe((prontoCallId) => {
       if (prontoCallId) {
-        setState({
-          meetingCallID: prontoCallId,
-        });
-        prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
         setState({ appMode: 'Meeting' });
       }
     });
