@@ -9,7 +9,9 @@ import {
 } from 'stream-chat-react';
 import { useParams } from 'react-router-dom';
 
-const channelType = import.meta.env.VITE_CHANNEL_TYPE as string;
+import { DEFAULT_CHANNEL_TYPE } from '../main';
+
+const channelType = import.meta.env.VITE_CHANNEL_TYPE ?? DEFAULT_CHANNEL_TYPE;
 
 export const ChatSidebar = () => {
   const { callId } = useParams();

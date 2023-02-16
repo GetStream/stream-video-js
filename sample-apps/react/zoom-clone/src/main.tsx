@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {
   createBrowserRouter,
@@ -21,7 +20,9 @@ import './index.css';
 
 import users from '../data/users.json';
 
-export type User = typeof users[number];
+export type User = (typeof users)[number];
+
+export const DEFAULT_CHANNEL_TYPE = 'videocall';
 
 // TODO: move to "store"
 export const selectedUserSubject = new BehaviorSubject<User | null>(
