@@ -117,7 +117,7 @@ const Init: FC<Props> = ({
   );
 };
 
-const App: FC<any> = () => {
+const App: FC = () => {
   const logo = '/images/icons/stream-logo.svg';
 
   const location = window?.document?.location;
