@@ -50,8 +50,6 @@ export const Meeting: FC<Props & Meeting> = ({
     setShowParticpants(!showParticipants);
   }, [showParticipants]);
 
-  console.log(localParticipants);
-
   return (
     <MeetingLayout
       header={
