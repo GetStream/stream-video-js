@@ -6050,9 +6050,9 @@ __metadata:
   linkType: soft
 
 "@stream-io/stream-chat-css@npm:^3.7.2":
-  version: 3.7.2
-  resolution: "@stream-io/stream-chat-css@npm:3.7.2"
-  checksum: 1015fc6f6ed0288c4f45d389bbd7b42b7d3440d16347898ee30c20a78e39cc368d51c443fbaccbe01bd91ecc8b807457c4e59eb02561cba7df74bde9def20535
+  version: 3.9.0
+  resolution: "@stream-io/stream-chat-css@npm:3.9.0"
+  checksum: 1c83ef6ad2d61504c0650d95c14274c50f83f3cfc71adb3062ad917e2c897a67868aaf51defa158394064c833910953ff121602d49394f2625b462d94f39cc17
   languageName: node
   linkType: hard
 
@@ -6156,15 +6156,15 @@ __metadata:
     "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
-    "@types/jsonwebtoken": ^9.0.1
     "@types/yargs": ^17.0.17
     clsx: ^1.2.1
-    jsonwebtoken: ^9.0.0
     nanoid: ^4.0.1
     next: ^12.3.4
     next-auth: ^4.17.0
     react: ^18.2.0
     react-dom: ^18.2.0
+    stream-chat: ^8.3.0
+    stream-chat-react: ^10.5.0
     yargs: ^17.6.2
   languageName: unknown
   linkType: soft
@@ -23737,55 +23737,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native@npm:0.71.1":
-  version: 0.71.1
-  resolution: "react-native@npm:0.71.1"
-  dependencies:
-    "@jest/create-cache-key-function": ^29.2.1
-    "@react-native-community/cli": 10.1.3
-    "@react-native-community/cli-platform-android": 10.1.3
-    "@react-native-community/cli-platform-ios": 10.1.1
-    "@react-native/assets": 1.0.0
-    "@react-native/normalize-color": 2.1.0
-    "@react-native/polyfills": 2.0.0
-    abort-controller: ^3.0.0
-    anser: ^1.4.9
-    base64-js: ^1.1.2
-    deprecated-react-native-prop-types: ^3.0.1
-    event-target-shim: ^5.0.1
-    invariant: ^2.2.4
-    jest-environment-node: ^29.2.1
-    jsc-android: ^250230.2.1
-    memoize-one: ^5.0.0
-    metro-react-native-babel-transformer: 0.73.7
-    metro-runtime: 0.73.7
-    metro-source-map: 0.73.7
-    mkdirp: ^0.5.1
-    nullthrows: ^1.1.1
-    pretty-format: ^26.5.2
-    promise: ^8.3.0
-    react-devtools-core: ^4.26.1
-    react-native-codegen: ^0.71.3
-    react-native-gradle-plugin: ^0.71.13
-    react-refresh: ^0.4.0
-    react-shallow-renderer: ^16.15.0
-    regenerator-runtime: ^0.13.2
-    scheduler: ^0.23.0
-    stacktrace-parser: ^0.1.3
-    use-sync-external-store: ^1.0.0
-    whatwg-fetch: ^3.0.0
-    ws: ^6.2.2
-  peerDependencies:
-    react: 18.2.0
-  bin:
-    react-native: cli.js
-  checksum: c4d4d643d410066af9ddf1c1868904817c50546e96a1887f06461327e1c666eb5b7db81ab1ae50cd866b0a1b3505ee1cbfa2ae8f93f13e26c2e47dd715828035
-  languageName: node
-  linkType: hard
-
-"react-player@npm:^2.10.1":
-  version: 2.11.0
-  resolution: "react-player@npm:2.11.0"
+"react-player@npm:2.10.1":
+  version: 2.10.1
+  resolution: "react-player@npm:2.10.1"
   dependencies:
     deepmerge: ^4.0.0
     load-script: ^1.0.0
@@ -23794,7 +23748,7 @@ __metadata:
     react-fast-compare: ^3.0.1
   peerDependencies:
     react: ">=16.6.0"
-  checksum: 2ee0271b3a80a6caf96912c689f67c55ea7de940511d1da83c8c323e6f6a9556988004fe7f093d801e8778760aede0c64137d6b0a0b77882a0dd17f77f38dec1
+  checksum: 43d78c6cb6093962ebdee6fd0b95cac435de9541b8a2cf2fec3e91bc4b40b35c06e6bee87294f58e5b342cba5561d09164230f45b5c2b31477eb94e122e5370b
   languageName: node
   linkType: hard
 
@@ -25791,7 +25745,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react@npm:^10.4.2, stream-chat-react@npm:^10.5.0":
+"stream-chat-react@npm:^10.4.2":
   version: 10.5.0
   resolution: "stream-chat-react@npm:10.5.0"
   dependencies:
@@ -25820,7 +25774,7 @@ __metadata:
     react-image-gallery: ^1.2.7
     react-is: ^18.1.0
     react-markdown: ^8.0.3
-    react-player: ^2.10.1
+    react-player: 2.10.1
     react-popper: ^2.3.0
     react-textarea-autosize: ^8.3.0
     react-virtuoso: ^2.16.5
@@ -25841,6 +25795,56 @@ __metadata:
   languageName: node
   linkType: hard
 
+"stream-chat-react@npm:^10.5.0":
+  version: 10.6.0
+  resolution: "stream-chat-react@npm:10.6.0"
+  dependencies:
+    "@braintree/sanitize-url": 6.0.0
+    "@popperjs/core": ^2.11.5
+    "@stream-io/stream-chat-css": ^3.7.2
+    "@stream-io/transliterate": ^1.5.5
+    clsx: ^1.1.1
+    dayjs: ^1.10.4
+    emoji-mart: 3.0.1
+    emoji-regex: ^9.2.0
+    hast-util-find-and-replace: ^4.1.2
+    i18next: ^21.6.14
+    isomorphic-ws: ^4.0.1
+    linkifyjs: ^4.1.0
+    lodash.debounce: ^4.0.8
+    lodash.throttle: ^4.1.1
+    lodash.uniqby: ^4.7.0
+    mml-react: ^0.4.7
+    nanoid: ^3.3.4
+    pretty-bytes: ^5.4.1
+    prop-types: ^15.7.2
+    react-dropzone: ^14.2.2
+    react-fast-compare: ^3.2.0
+    react-file-utils: ^1.2.0
+    react-image-gallery: ^1.2.7
+    react-is: ^18.1.0
+    react-markdown: ^8.0.3
+    react-player: 2.10.1
+    react-popper: ^2.3.0
+    react-textarea-autosize: ^8.3.0
+    react-virtuoso: ^2.16.5
+    remark-gfm: ^3.0.1
+    textarea-caret: ^3.1.0
+    unist-builder: ^3.0.0
+    unist-util-visit: ^4.1.1
+  peerDependencies:
+    react: ^18.0.0 || ^17.0.0 || ^16.8.0
+    react-dom: ^18.0.0 || ^17.0.0 || ^16.8.0
+    stream-chat: ^8.0.0
+  dependenciesMeta:
+    "@stream-io/transliterate":
+      optional: true
+    mml-react:
+      optional: true
+  checksum: be7d2cb378ae0b4bc4057fd9f3633e02331f363e026418a46206332125a12d92bab0b2ac87f38d9fc5e3c42873e9ae3dcaeb8cdd9d762448a25853376d7694c3
+  languageName: node
+  linkType: hard
+
 "stream-chat@npm:8.1.2":
   version: 8.1.2
   resolution: "stream-chat@npm:8.1.2"
@@ -25858,7 +25862,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat@npm:^8.1.3, stream-chat@npm:^8.2.1":
+"stream-chat@npm:^8.1.3, stream-chat@npm:^8.2.1, stream-chat@npm:^8.3.0":
   version: 8.3.0
   resolution: "stream-chat@npm:8.3.0"
   dependencies:

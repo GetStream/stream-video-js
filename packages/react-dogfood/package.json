@@ -18,16 +18,16 @@
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
     "clsx": "^1.2.1",
-    "jsonwebtoken": "^9.0.0",
     "nanoid": "^4.0.1",
     "next": "^12.3.4",
     "next-auth": "^4.17.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "stream-chat": "^8.3.0",
+    "stream-chat-react": "^10.5.0",
     "yargs": "^17.6.2"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.1",
     "@types/yargs": "^17.0.17"
   }
 }

@@ -139,7 +139,7 @@ export const Preview = {
         if (mediaStream) disposeOfMediaStream(mediaStream);
         setPercentage(0);
       };
-    }, [selectedAudioDeviceId, initialAudioMuted]);
+    }, [selectedAudioDeviceId, initialAudioMuted, setAudioState]);
 
     return (
       <div className="w-8 h-8 bg-zinc-600 rounded-full flex justify-center items-center">
@@ -178,7 +178,7 @@ export const Preview = {
         interrupted = true;
         if (mediaStream) disposeOfMediaStream(mediaStream);
       };
-    }, [selectedVideoDeviceId, initialVideoMuted]);
+    }, [selectedVideoDeviceId, initialVideoMuted, setVideoState]);
 
     return <video className={className} autoPlay muted ref={videoElementRef} />;
   },
