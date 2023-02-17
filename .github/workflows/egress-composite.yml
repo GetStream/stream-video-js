@@ -26,7 +26,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Build packages
-        run: yarn build:react:deps && yarn build:egress
+        run: NODE_ENV=production yarn build:react:deps && NODE_ENV=production yarn build:egress
 
       - name: Upload egress-composite GH Pages Artifact
         uses: actions/upload-pages-artifact@v1
