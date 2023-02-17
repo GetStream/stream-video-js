@@ -4,7 +4,6 @@ on:
     branches:
       - main
       - egress-composite
-      - video-coordinator
     paths:
       - .github/workflows/egress-composite.yml
       - packages/egress-composite/**
@@ -27,7 +26,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Build packages
-        run: yarn build:client && yarn build:egress
+        run: yarn build:react:deps && yarn build:egress
 
       - name: Upload egress-composite GH Pages Artifact
         uses: actions/upload-pages-artifact@v1
