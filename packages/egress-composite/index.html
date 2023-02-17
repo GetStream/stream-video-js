@@ -6,35 +6,7 @@
     <title>Egress Composite - Stream Video</title>
   </head>
   <body>
-    <div id="app">
-      <div class="video-container">
-        <video
-          id="speaker-a"
-          class="speaker primary"
-          width="100%"
-          height="100%"
-          autoplay="autoplay"
-        ></video>
-        <video
-          id="speaker-b"
-          class="speaker secondary hidden"
-          width="100%"
-          height="100%"
-          autoplay="autoplay"
-        ></video>
-        <span id="current-user-name"></span>
-      </div>
-      <div class="screen-share-container">
-        <video
-          id="screen-share"
-          class="screen-share hidden"
-          width="100%"
-          height="100%"
-          autoplay="autoplay"
-        ></video>
-        <span id="screen-sharer-name"></span>
-      </div>
-    </div>
-    <script type="module" src="/src/main.ts"></script>
+    <div id="root" class="str-video"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

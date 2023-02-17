@@ -542,7 +542,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core@npm:^7.1.0, @babel/core@npm:^7.11.1, @babel/core@npm:^7.12.3, @babel/core@npm:^7.12.9, @babel/core@npm:^7.13.16, @babel/core@npm:^7.14.0, @babel/core@npm:^7.16.0, @babel/core@npm:^7.17.2, @babel/core@npm:^7.19.6, @babel/core@npm:^7.20.7, @babel/core@npm:^7.7.2, @babel/core@npm:^7.7.5, @babel/core@npm:^7.8.0":
+"@babel/core@npm:^7.1.0, @babel/core@npm:^7.11.1, @babel/core@npm:^7.12.3, @babel/core@npm:^7.12.9, @babel/core@npm:^7.13.16, @babel/core@npm:^7.14.0, @babel/core@npm:^7.16.0, @babel/core@npm:^7.17.2, @babel/core@npm:^7.19.6, @babel/core@npm:^7.20.12, @babel/core@npm:^7.7.2, @babel/core@npm:^7.7.5, @babel/core@npm:^7.8.0":
   version: 7.20.12
   resolution: "@babel/core@npm:7.20.12"
   dependencies:
@@ -5356,9 +5356,17 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/egress-composite@workspace:packages/egress-composite"
   dependencies:
-    "@stream-io/video-client": "workspace:^"
+    "@stream-io/video-react-sdk": "workspace:^"
+    "@stream-io/video-styling": "workspace:^"
+    "@types/react": ^18.0.28
+    "@types/react-dom": ^18.0.11
+    "@vitejs/plugin-react": ^3.1.0
+    js-base64: ^3.7.5
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    rollup-plugin-visualizer: ^5.9.0
     typescript: ^4.9.5
-    vite: ^3.2.5
+    vite: ^4.1.1
   languageName: unknown
   linkType: soft
 
@@ -6440,12 +6448,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.0.9":
-  version: 18.0.9
-  resolution: "@types/react-dom@npm:18.0.9"
+"@types/react-dom@npm:^18.0.11, @types/react-dom@npm:^18.0.9":
+  version: 18.0.11
+  resolution: "@types/react-dom@npm:18.0.11"
   dependencies:
     "@types/react": "*"
-  checksum: e744e3feba25fc43733289d4df4d9c0e59fcca7f34e8c89d75f81a339accb2bd70236d69382d47d2c0ad06a1529b2e56aa6171fe175854d60e07156ddceedfcb
+  checksum: 579691e4d5ec09688087568037c35edf8cfb1ab3e07f6c60029280733ee7b5c06d66df6fcc90786702c93ac8cb13bc7ff16c79ddfc75d082938fbaa36e1cdbf4
   languageName: node
   linkType: hard
 
@@ -6499,7 +6507,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:18.0.26, @types/react@npm:>=16.0.0, @types/react@npm:^18.0.26":
+"@types/react@npm:*, @types/react@npm:>=16.0.0, @types/react@npm:^18.0.26, @types/react@npm:^18.0.28":
+  version: 18.0.28
+  resolution: "@types/react@npm:18.0.28"
+  dependencies:
+    "@types/prop-types": "*"
+    "@types/scheduler": "*"
+    csstype: ^3.0.2
+  checksum: e752df961105e5127652460504785897ca6e77259e0da8f233f694f9e8f451cde7fa0709d4456ade0ff600c8ce909cfe29f9b08b9c247fa9b734e126ec53edd7
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:18.0.26":
   version: 18.0.26
   resolution: "@types/react@npm:18.0.26"
   dependencies:
@@ -7121,18 +7140,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitejs/plugin-react@npm:^3.0.0":
-  version: 3.0.1
-  resolution: "@vitejs/plugin-react@npm:3.0.1"
+"@vitejs/plugin-react@npm:^3.0.0, @vitejs/plugin-react@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@vitejs/plugin-react@npm:3.1.0"
   dependencies:
-    "@babel/core": ^7.20.7
+    "@babel/core": ^7.20.12
     "@babel/plugin-transform-react-jsx-self": ^7.18.6
     "@babel/plugin-transform-react-jsx-source": ^7.19.6
     magic-string: ^0.27.0
     react-refresh: ^0.14.0
   peerDependencies:
-    vite: ^4.0.0
-  checksum: fde9dd4d3a3387d3a93ea164f58b71a40786842d66b072e75b10ef3c1c1f30cbe545367c4adb980d15f310a70c3ca24f8bf36ea5e896d0fcae0adc926172ca58
+    vite: ^4.1.0-beta.0
+  checksum: 450fac79e67cba9e1581c860f78e687b44108ab4117663ef20db279316e03cd8e87f94fef376e27cc5e200bd52813dcc09b70ea570c7c7cc291fcd47eb260fbc
   languageName: node
   linkType: hard
 
@@ -11940,7 +11959,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:^0.16.3":
+"esbuild@npm:^0.16.14":
   version: 0.16.17
   resolution: "esbuild@npm:0.16.17"
   dependencies:
@@ -16326,6 +16345,13 @@ __metadata:
   version: 4.11.1
   resolution: "jose@npm:4.11.1"
   checksum: cd15cba258d0fd20f6168631ce2e94fda8442df80e43c1033c523915cecdf390a1cc8efe0eab0c2d65935ca973d791c668aea80724d2aa9c2879d4e70f3081d7
+  languageName: node
+  linkType: hard
+
+"js-base64@npm:^3.7.5":
+  version: 3.7.5
+  resolution: "js-base64@npm:3.7.5"
+  checksum: 67a78c8b1c47b73f1c6fba1957e9fe6fd9dc78ac93ac46cc2e43472dcb9cf150d126fb0e593192e88e0497354fa634d17d255add7cc6ee3c7b4d29870faa8e18
   languageName: node
   linkType: hard
 
@@ -21210,7 +21236,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.2.14, postcss@npm:^8.3.5, postcss@npm:^8.3.7, postcss@npm:^8.4.18, postcss@npm:^8.4.20, postcss@npm:^8.4.21, postcss@npm:^8.4.4, postcss@npm:^8.4.7, postcss@npm:^8.4.8":
+"postcss@npm:^8.2.14, postcss@npm:^8.3.5, postcss@npm:^8.3.7, postcss@npm:^8.4.18, postcss@npm:^8.4.21, postcss@npm:^8.4.4, postcss@npm:^8.4.7, postcss@npm:^8.4.8":
   version: 8.4.21
   resolution: "postcss@npm:8.4.21"
   dependencies:
@@ -22997,6 +23023,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rollup-plugin-visualizer@npm:^5.9.0":
+  version: 5.9.0
+  resolution: "rollup-plugin-visualizer@npm:5.9.0"
+  dependencies:
+    open: ^8.4.0
+    picomatch: ^2.3.1
+    source-map: ^0.7.4
+    yargs: ^17.5.1
+  peerDependencies:
+    rollup: 2.x || 3.x
+  peerDependenciesMeta:
+    rollup:
+      optional: true
+  bin:
+    rollup-plugin-visualizer: dist/bin/cli.js
+  checksum: 362d4fac0295c14bd205dbc85c20c31f4b6c47604868da21d9565ed47e0333759f08b9fe0acb82f78221f5173ea01e4eb70d47351eb6012216afe71b5492ed5f
+  languageName: node
+  linkType: hard
+
 "rollup@npm:2.78.0":
   version: 2.78.0
   resolution: "rollup@npm:2.78.0"
@@ -23025,7 +23070,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^3.15.0, rollup@npm:^3.7.0":
+"rollup@npm:^3.10.0, rollup@npm:^3.15.0":
   version: 3.15.0
   resolution: "rollup@npm:3.15.0"
   dependencies:
@@ -23857,7 +23902,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"source-map@npm:0.7.4, source-map@npm:^0.7.3":
+"source-map@npm:0.7.4, source-map@npm:^0.7.3, source-map@npm:^0.7.4":
   version: 0.7.4
   resolution: "source-map@npm:0.7.4"
   checksum: 01cc5a74b1f0e1d626a58d36ad6898ea820567e87f18dfc9d24a9843a351aaa2ec09b87422589906d6ff1deed29693e176194dc88bcae7c9a852dc74b311dbf5
@@ -26217,15 +26262,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^4.0.0":
-  version: 4.0.4
-  resolution: "vite@npm:4.0.4"
+"vite@npm:^4.0.0, vite@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "vite@npm:4.1.1"
   dependencies:
-    esbuild: ^0.16.3
+    esbuild: ^0.16.14
     fsevents: ~2.3.2
-    postcss: ^8.4.20
+    postcss: ^8.4.21
     resolve: ^1.22.1
-    rollup: ^3.7.0
+    rollup: ^3.10.0
   peerDependencies:
     "@types/node": ">= 14"
     less: "*"
@@ -26251,7 +26296,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: eb86c8cdfe8dcb6644005486b31cb60bc596f2aa683cb194abb5c0afca7c2a5dfdb02bbc7f83f419ad170227ac9c3b898f4406a6d1433105fb61d79d78e47d52
+  checksum: aad14b660b69068f6596ab7e760dd71642862996328e404a4d265e090ae0d06c7064cf8415ffb135cd8b79d5157dc1dcb48b56386caaa96a474fb53bdd8cac3d
   languageName: node
   linkType: hard
 
@@ -27333,6 +27378,21 @@ __metadata:
     y18n: ^5.0.5
     yargs-parser: ^21.1.1
   checksum: 47da1b0d854fa16d45a3ded57b716b013b2179022352a5f7467409da5a04a1eef5b3b3d97a2dfc13e8bbe5f2ffc0afe3bc6a4a72f8254e60f5a4bd7947138643
+  languageName: node
+  linkType: hard
+
+"yargs@npm:^17.5.1":
+  version: 17.7.0
+  resolution: "yargs@npm:17.7.0"
+  dependencies:
+    cliui: ^8.0.1
+    escalade: ^3.1.1
+    get-caller-file: ^2.0.5
+    require-directory: ^2.1.1
+    string-width: ^4.2.3
+    y18n: ^5.0.5
+    yargs-parser: ^21.1.1
+  checksum: e7d5f5b60e63b04ded7c27c3d4b194565565cac3ea19fffcdbb183bed973a83106822a04dda28ebba4811ce92949a9d9858d3935186ff8f343548bf98aab2120
   languageName: node
   linkType: hard
 

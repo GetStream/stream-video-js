@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
   VideoHTMLAttributes,
 } from 'react';
 import {
@@ -11,19 +12,22 @@ import {
   SfuModels,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
+import clsx from 'clsx';
 import { VideoPlaceholder } from './VideoPlaceholder';
 
-export const Video = (
-  props: DetailedHTMLProps<
-    VideoHTMLAttributes<HTMLVideoElement>,
-    HTMLVideoElement
-  > & {
-    call: Call;
-    kind: 'video' | 'screen';
-    participant: StreamVideoParticipant;
-  },
-) => {
-  const { call, kind, participant, ...rest } = props;
+export type VideoProps = DetailedHTMLProps<
+  VideoHTMLAttributes<HTMLVideoElement>,
+  HTMLVideoElement
+> & {
+  call: Call;
+  kind: 'video' | 'screen';
+  participant: StreamVideoParticipant;
+  setVideoElementRef?: (element: HTMLVideoElement | null) => void;
+};
+
+export const Video = (props: VideoProps) => {
+  const { call, kind, participant, className, setVideoElementRef, ...rest } =
+    props;
   const { sessionId, videoStream, screenShareStream, publishedTracks } =
     participant;
 
@@ -34,7 +38,7 @@ export const Video = (
       : SfuModels.TrackType.SCREEN_SHARE,
   );
 
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>();
   useEffect(() => {
     const $el = videoRef.current;
     if (!$el) return;
@@ -96,6 +100,23 @@ export const Video = (
     };
   }, [updateSubscription]);
 
+  const [isWideMode, setIsWideMode] = useState(true);
+  useEffect(() => {
+    if (!stream) return;
+    const calculateVideoRatio = () => {
+      const [track] = stream.getVideoTracks();
+      if (!track) return;
+
+      const { width = 0, height = 0 } = track.getSettings();
+      setIsWideMode(width > height);
+    };
+    const $videoEl = videoRef.current;
+    $videoEl?.addEventListener('play', calculateVideoRatio);
+    return () => {
+      $videoEl?.removeEventListener('play', calculateVideoRatio);
+    };
+  }, [stream]);
+
   if (!isPublishingTrack)
     return (
       <VideoPlaceholder
@@ -110,9 +131,16 @@ export const Video = (
       autoPlay
       playsInline
       {...rest}
+      className={clsx(className, {
+        'str_video__video--wide': isWideMode,
+        'str_video__video--tall': !isWideMode,
+      })}
       data-user-id={participant.userId}
       data-session-id={sessionId}
-      ref={videoRef}
+      ref={(ref) => {
+        videoRef.current = ref;
+        setVideoElementRef?.(ref);
+      }}
     />
   );
 };
