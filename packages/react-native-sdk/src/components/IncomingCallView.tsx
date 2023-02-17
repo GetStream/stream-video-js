@@ -10,22 +10,7 @@ import {
 import { useRingCall } from '../hooks';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 
-/**
- * Props to be passed for the IncomingCallView component.
- */
-interface IncomingCallViewProps {
-  /**
-   * Handler called when the call is answered. Mostly used for navigation and related actions.
-   */
-  onAnswerCall: () => void;
-  /**
-   * Handler called when the call is rejected. Mostly used for navigation and related actions.
-   */
-  onRejectCall: () => void;
-}
-
-export const IncomingCallView = (props: IncomingCallViewProps) => {
-  const { onAnswerCall, onRejectCall } = props;
+export const IncomingCallView = () => {
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const setState = useStreamVideoStoreSetState();
   const { answerCall, rejectCall } = useRingCall();
@@ -38,12 +23,10 @@ export const IncomingCallView = (props: IncomingCallViewProps) => {
 
   const answerCallHandler = async () => {
     await answerCall();
-    onAnswerCall();
   };
 
   const rejectCallHandler = async () => {
     await rejectCall();
-    onRejectCall();
   };
 
   return (

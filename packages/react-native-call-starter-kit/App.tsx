@@ -5,11 +5,10 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {useStreamChatTheme} from './useStreamChatTheme';
 import {
   NativeStackHeaderProps,
-  NativeStackNavigationProp,
   createNativeStackNavigator,
 } from '@react-navigation/native-stack';
 import {ChannelListScreen} from './src/screens/ChannelListScreen';
-import {NavigationContainer, useNavigation} from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
 import {ChannelScreen} from './src/screens/ChannelScreen';
 import {ThreadScreen} from './src/screens/ThreadScreen';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -22,6 +21,10 @@ import {ActiveCallScreen} from './src/screens/ActiveCallScreen';
 import OutgoingCallScreen from './src/screens/OutgoingCallScreen';
 import {CallParticipansInfoScreen} from './src/screens/CallParticipantsInfoScreen';
 import {AppProvider, useAppContext} from './src/context/AppContext';
+import {
+  useIncomingCalls,
+  useOutgoingCalls,
+} from '@stream-io/video-react-native-sdk';
 
 const Stack = createNativeStackNavigator<NavigationStackParamsList>();
 
@@ -29,10 +32,46 @@ function ChannelHeaderComponent(props: NativeStackHeaderProps) {
   return <ChannelHeader {...props} />;
 }
 
+const StackNavigator = () => {
+  const [incomingCall] = useIncomingCalls();
+  const [outgoingCall] = useOutgoingCalls();
+
+  if (outgoingCall) {
+    return <OutgoingCallScreen />;
+  } else if (incomingCall) {
+    return <IncomingCallScreen />;
+  }
+
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="ChannelListScreen"
+        component={ChannelListScreen}
+        options={{header: NavigationHeader}}
+      />
+      <Stack.Screen
+        name="ChannelScreen"
+        component={ChannelScreen}
+        options={{
+          header: ChannelHeaderComponent,
+        }}
+      />
+      <Stack.Screen name="ThreadScreen" component={ThreadScreen} />
+      <Stack.Screen
+        name="ActiveCallScreen"
+        component={ActiveCallScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="CallParticipantsInfoScreen"
+        component={CallParticipansInfoScreen}
+      />
+    </Stack.Navigator>
+  );
+};
+
 const Messenger = () => {
   const {userId, userToken} = useAppContext();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();
 
   if (!(userId && userToken)) {
     return (
@@ -43,41 +82,8 @@ const Messenger = () => {
   }
 
   return (
-    <MessengerWrapper navigation={navigation}>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="ChannelListScreen"
-          component={ChannelListScreen}
-          options={{header: NavigationHeader}}
-        />
-        <Stack.Screen
-          name="ChannelScreen"
-          component={ChannelScreen}
-          options={{
-            header: ChannelHeaderComponent,
-          }}
-        />
-        <Stack.Screen name="ThreadScreen" component={ThreadScreen} />
-        <Stack.Screen
-          name="IncomingCallScreen"
-          component={IncomingCallScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="ActiveCallScreen"
-          component={ActiveCallScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="OutgoingCallScreen"
-          component={OutgoingCallScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="CallParticipantsInfoScreen"
-          component={CallParticipansInfoScreen}
-        />
-      </Stack.Navigator>
+    <MessengerWrapper>
+      <StackNavigator />
     </MessengerWrapper>
   );
 };

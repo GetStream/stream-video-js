@@ -1,4 +1,4 @@
-import {StreamVideoClient} from '@stream-io/video-client';
+import {CALL_CONFIG, StreamVideoClient} from '@stream-io/video-client';
 import {useEffect, useState} from 'react';
 import {VideoProps} from '../types';
 import {STREAM_API_KEY, STREAM_API_SECRET} from 'react-native-dotenv';
@@ -19,11 +19,12 @@ export const useVideoClient = ({user, token}: VideoProps) => {
       setAuthenticationInProgress(true);
 
       try {
-        const _videoClient = new StreamVideoClient(APIParams.apiKey, {
-          sendJson: true,
-          token,
-        });
-        await _videoClient.connect(APIParams.apiKey, token, user);
+        const _videoClient = new StreamVideoClient(
+          APIParams.apiKey,
+          {},
+          CALL_CONFIG.ring,
+        );
+        await _videoClient.connectUser(user, token);
         setVideoClient(_videoClient);
       } catch (err) {
         console.error('Failed to establish connection', err);

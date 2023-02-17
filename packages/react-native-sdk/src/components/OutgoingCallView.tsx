@@ -9,25 +9,13 @@ import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
 import { useCallControls, useRingCall } from '../hooks';
 
-/**
- * Props to be passed for the OutgoingCallView component.
- */
-export interface OutgoingCallViewProps {
-  /**
-   * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
-   */
-  onHangupCall: () => void;
-}
-
-export const OutgoingCallView = (props: OutgoingCallViewProps) => {
-  const { onHangupCall } = props;
+export const OutgoingCallView = () => {
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useCallControls();
   const { cancelCall } = useRingCall();
 
   const hangupCallHandler = useCallback(async () => {
     await cancelCall();
-    onHangupCall();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cancelCall]);
 
