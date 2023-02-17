@@ -24,7 +24,9 @@ export const useWatchChannel = ({
     const watchingPromise = channel.watch();
 
     return () => {
-      watchingPromise.then(() => channel.stopWatching());
+      watchingPromise.then(() => {
+        // channel.stopWatching();
+      });
     };
   }, [client, channelId, channelType]);
 
