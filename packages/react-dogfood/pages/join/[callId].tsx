@@ -55,7 +55,7 @@ const JoinCall = (props: JoinCallProps) => {
       </Head>
       <StreamVideo client={client}>
         <StreamMeeting callId={callId} callType={callType}>
-          <MeetingUI chatClient={chatClient} />
+          <MeetingUI callId={callId} chatClient={chatClient} />
         </StreamMeeting>
       </StreamVideo>
     </div>
