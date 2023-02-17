@@ -42,14 +42,14 @@ const DefaultDisplayName = ({ participant }: DisplayNameProps) => {
   );
 
   const meFlag = participant.user?.id === connectedUser?.id ? 'Me' : '';
-
+  const nameOrId = participant.user?.name || participant.userId || 'Unknown';
   let displayName;
   if (!participant.user?.name) {
-    displayName = meFlag || 'Unknown';
+    displayName = meFlag || nameOrId || 'Unknown';
   } else if (meFlag) {
-    displayName = `${participant.user.name} (${meFlag})`;
+    displayName = `${nameOrId} (${meFlag})`;
   } else {
-    displayName = participant.user.name;
+    displayName = nameOrId;
   }
 
   return (
