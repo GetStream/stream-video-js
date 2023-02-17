@@ -36,12 +36,25 @@ body {
   flex: 1;
 }
 
-.str-video__sidebar {
-  padding: 1.25rem;
-  width: 300px;
-}
-
 .str-video__call-controls {
   justify-content: space-between;
   padding-inline: 16px;
+}
+
+.str-video__sidebar {
+  padding: 1rem;
+  width: 360px;
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+}
+
+.str-video__participant-list {
+  height: 0px;
+  flex-grow: 1;
+}
+
+.str-video__chat {
+  height: 0px;
+  flex-grow: 1.5;
 }

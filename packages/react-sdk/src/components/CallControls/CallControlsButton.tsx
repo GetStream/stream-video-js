@@ -3,7 +3,20 @@ import { ForwardedRef, forwardRef } from 'react';
 import clsx from 'clsx';
 
 export type CallControlsButtonProps = {
-  icon: string;
+  icon:
+    | 'recording-on'
+    | 'recording-off'
+    | 'screen-share-on'
+    | 'screen-share-off'
+    | 'mic'
+    | 'mic-off'
+    | 'camera'
+    | 'camera-off'
+    | 'call-end'
+    | 'stats'
+    | 'participants'
+    | 'chat';
+
   enabled?: boolean;
   variant?: string;
 } & React.ComponentProps<'button'>;

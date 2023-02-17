@@ -8,22 +8,25 @@ import {
   Stage,
   CallControls,
   ToggleParticipantListButton,
+  CallControlsButton,
 } from '@stream-io/video-react-sdk';
+import { StreamChat } from 'stream-chat';
 
-export const MeetingUI = () => {
+import { ChatWrapper, ChatUI, UnreadCountBadge } from '.';
+
+export const MeetingUI = ({
+  chatClient,
+}: {
+  chatClient: StreamChat | null;
+}) => {
   const router = useRouter();
   const activeCall = useActiveCall();
   const [showParticipants, setShowParticipants] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+
   const onLeave = useCallback(() => {
     router.push('/');
   }, [router]);
-
-  const toggleParticipantList = useCallback(
-    () => setShowParticipants((prev) => !prev),
-    [],
-  );
-
-  const hideParticipantList = useCallback(() => setShowParticipants(false), []);
 
   if (!activeCall)
     return (
@@ -34,31 +37,50 @@ export const MeetingUI = () => {
       </div>
     );
 
-  const { type, id } = activeCall.data.call;
-  const showSidebar = showParticipants;
+  const { type, id: callId } = activeCall.data.call;
+  const showSidebar = showParticipants || showChat;
 
   return (
-    <div className=" str-video str-video__call">
+    <div className="str-video str-video__call">
       <div className="str-video__call__main">
         <div className="str-video__call__header">
           <h4 className="str-video__call__header-title">
-            {type}:{id}
+            {type}:{callId}
           </h4>
           <DeviceSettings activeCall={activeCall} />
         </div>
         <Stage call={activeCall} />
         <CallControls call={activeCall} onLeave={onLeave}>
-          <ToggleParticipantListButton
-            enabled={showParticipants}
-            onClick={toggleParticipantList}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <ToggleParticipantListButton
+              enabled={showParticipants}
+              onClick={() => setShowParticipants((prev) => !prev)}
+            />
+            <div className="str-chat__chat-button__wrapper">
+              <CallControlsButton
+                enabled={showChat}
+                disabled={!chatClient}
+                onClick={() => setShowChat((prev) => !prev)}
+                icon="chat"
+              />
+              <UnreadCountBadge chatClient={chatClient} channelId={callId} />
+            </div>
+          </div>
         </CallControls>
       </div>
       {showSidebar && (
         <div className="str-video__sidebar">
           {showParticipants && (
-            <CallParticipantsList onClose={hideParticipantList} />
+            <CallParticipantsList onClose={() => setShowParticipants(false)} />
           )}
+
+          <ChatWrapper chatClient={chatClient}>
+            {showChat && (
+              <div className="str-video__chat">
+                <ChatUI onClose={() => setShowChat(false)} channelId={callId} />
+              </div>
+            )}
+          </ChatWrapper>
         </div>
       )}
     </div>
