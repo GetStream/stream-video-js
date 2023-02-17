@@ -51,17 +51,12 @@ import 'text-encoding-polyfill';
 import 'react-native-url-polyfill/auto';
 /** crypto.getRandomValues polyfill for uuid */
 import 'react-native-get-random-values';
-
-import { AppRegistry, Platform } from 'react-native';
-import App from './App';
-import { name as appName } from './app.json';
 import { registerGlobals } from 'react-native-webrtc';
+...
 
 if (Platform.OS !== 'web') {
   registerGlobals();
 }
-
-AppRegistry.registerComponent(appName, () => App);
 ```
 
 ## Creating and providing the Video Client
@@ -90,7 +85,7 @@ const videoClient = new StreamVideoClient(API_KEY);
 ### Connecting and disconnecting from the video client
 
 We will connect to the Stream's client instance we've created right after the component has mounted.
-When the component unmounts we will disconnect from the client.
+When the component is unmounted we will disconnect from the client.
 
 ```tsx
 import React, {useEffect, useState} from 'react';
