@@ -5,7 +5,7 @@ import {
   useCreateStreamVideoClient,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-sdk';
-import Layouts, { LayoutId } from './layouts';
+import Layouts, { DEFAULT_LAYOUT_ID, LayoutId } from './layouts';
 import { useAppConfig } from './hooks/useAppConfig';
 import { useNotifyEgress } from './hooks/useNotifyEgress';
 import './CompositeApp.scss';
@@ -35,7 +35,7 @@ export const CompositeApp = () => {
     };
   }, [client, config.callId, config.callType]);
 
-  const { setVideoElementRef, ComponentToRender } = useNotifyEgress();
+  const { setVideoElementRef, NotificationBridgeElement } = useNotifyEgress();
 
   if (!client) {
     return <h2>Connecting...</h2>;
@@ -47,7 +47,7 @@ export const CompositeApp = () => {
         layout={config.layout}
         setVideoElementRef={setVideoElementRef}
       />
-      {ComponentToRender}
+      {NotificationBridgeElement}
     </StreamVideo>
   );
 };
@@ -57,8 +57,7 @@ const UiDispatcher = (props: {
   setVideoElementRef: (element: HTMLVideoElement | null) => void;
 }) => {
   const { layout, setVideoElementRef } = props;
-  const { ScreenShareView, SpeakerView } =
-    Layouts[layout || 'dominant-speaker'];
+  const { ScreenShareView, SpeakerView } = Layouts[layout || DEFAULT_LAYOUT_ID];
 
   const hasScreenShare = useHasOngoingScreenShare();
   if (hasScreenShare) {

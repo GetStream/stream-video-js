@@ -1,6 +1,8 @@
 import { ComponentType } from 'react';
 import DominantSpeakerLayout from './dominant-speaker';
 
+export const DEFAULT_LAYOUT_ID: LayoutId = 'dominant-speaker';
+
 export type SpotlightMode = 'dominant-speaker' | 'shuffle';
 export type LayoutId = 'dominant-speaker';
 
@@ -16,7 +18,7 @@ export interface Layout {
 }
 
 const layouts: Record<LayoutId, Layout> = {
-  'dominant-speaker': DominantSpeakerLayout,
+  [DEFAULT_LAYOUT_ID]: DominantSpeakerLayout,
 };
 
 export default layouts;

@@ -25,6 +25,6 @@ export const useNotifyEgress = () => {
 
   return {
     setVideoElementRef,
-    ComponentToRender: <NotificationElement isReady={isReady} />,
+    NotificationBridgeElement: <NotificationElement isReady={isReady} />,
   };
 };

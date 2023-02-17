@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { decode } from 'js-base64';
-import { LayoutId, SpotlightMode } from '../layouts';
+import { DEFAULT_LAYOUT_ID, LayoutId, SpotlightMode } from '../layouts';
 
 export type AppConfig = {
   baseURL?: string;
@@ -23,8 +23,8 @@ export const useAppConfig = () => {
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NzYyMzkwMjIsImV4cCI6MTY4NjIzOTAyMiwidXNlcl9pZCI6ImVncmVzcyJ9.s4qy-welN1gJp13EKOyIO5wFo-ZNg2JfWMLnNpzwlwY';
     const payload = JSON.parse(decode(token.split('.')[1]));
     const spotlightMode =
-      (urlParams.get('spotlight_mode') as SpotlightMode) || 'dominant-speaker';
-    const layout = (urlParams.get('layout') as LayoutId) || 'dominant-speaker';
+      (urlParams.get('spotlight_mode') as SpotlightMode) || DEFAULT_LAYOUT_ID;
+    const layout = (urlParams.get('layout') as LayoutId) || DEFAULT_LAYOUT_ID;
 
     return {
       apiKey: apiKey,
