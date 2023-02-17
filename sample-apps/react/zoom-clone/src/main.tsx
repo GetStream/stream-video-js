@@ -22,17 +22,11 @@ import users from '../data/users.json';
 
 export type User = (typeof users)[number];
 
-export const DEFAULT_CHANNEL_TYPE = 'videocall';
-
 // TODO: move to "store"
 export const selectedUserSubject = new BehaviorSubject<User | null>(
   users.find((u) => u.id === sessionStorage.getItem(SESSION_STORAGE_KEY)) ??
     null,
 );
-
-const Error = () => {
-  return <div>Oops, couldn't find what you're looking for</div>;
-};
 
 const router = createBrowserRouter([
   {

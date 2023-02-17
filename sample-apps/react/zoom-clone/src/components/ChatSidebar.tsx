@@ -9,7 +9,7 @@ import {
 } from 'stream-chat-react';
 import { useParams } from 'react-router-dom';
 
-import { DEFAULT_CHANNEL_TYPE } from '../main';
+import { DEFAULT_CHANNEL_TYPE } from '../utils/constants';
 
 const channelType = import.meta.env.VITE_CHANNEL_TYPE ?? DEFAULT_CHANNEL_TYPE;
 
@@ -21,7 +21,7 @@ export const ChatSidebar = () => {
     const channel = client.channel(channelType, callId);
 
     setActiveChannel(channel);
-  }, [callId]);
+  }, [callId, client, setActiveChannel]);
 
   return (
     <div className="flex w-4/12">

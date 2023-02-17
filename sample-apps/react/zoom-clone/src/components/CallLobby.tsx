@@ -5,7 +5,7 @@ import { callId as getCallId } from '../utils';
 
 import users from '../../data/users.json';
 import { Preview } from './Preview';
-import { DEFAULT_CHANNEL_TYPE } from '../main';
+import { DEFAULT_CHANNEL_TYPE } from '../utils/constants';
 
 const channelType = import.meta.env.VITE_CHANNEL_TYPE ?? DEFAULT_CHANNEL_TYPE;
 
