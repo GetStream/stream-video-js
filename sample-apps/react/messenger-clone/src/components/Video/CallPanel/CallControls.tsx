@@ -14,11 +14,13 @@ import {
 } from '@mui/icons-material';
 
 type OutgoingCallControlsProps = {
-  callCid: string;
+  callId: string;
+  callType: string;
 };
 
 export const OutgoingCallControls = ({
-  callCid,
+  callId,
+  callType,
 }: OutgoingCallControlsProps) => {
   const videoClient = useStreamVideoClient();
 
@@ -26,7 +28,7 @@ export const OutgoingCallControls = ({
     <div className="rmc__button-controls">
       <button
         className="rmc__button rmc__button--red"
-        onClick={() => videoClient?.cancelCall(callCid)}
+        onClick={() => videoClient?.cancelCall(callId, callType)}
       >
         <PhoneDisabled />
       </button>
@@ -35,10 +37,12 @@ export const OutgoingCallControls = ({
 };
 
 type IncomingCallControlsProps = {
-  callCid: string;
+  callId: string;
+  callType: string;
 };
 export const IncomingCallControls = ({
-  callCid,
+  callId,
+  callType,
 }: IncomingCallControlsProps) => {
   const videoClient = useStreamVideoClient();
 
@@ -46,13 +50,13 @@ export const IncomingCallControls = ({
     <div className="rmc__button-controls">
       <button
         className="rmc__button rmc__button--green"
-        onClick={() => videoClient?.acceptCall(callCid)}
+        onClick={() => videoClient?.acceptCall(callId, callType)}
       >
         <LocalPhone />
       </button>
       <button
         className="rmc__button rmc__button--red"
-        onClick={() => videoClient?.rejectCall(callCid)}
+        onClick={() => videoClient?.rejectCall(callId, callType)}
       >
         <PhoneDisabled />
       </button>
@@ -110,7 +114,10 @@ export const ActiveCallControls = ({
         className="rmc__button rmc__button--red"
         onClick={() => {
           if (activeCall) {
-            videoClient?.cancelCall(activeCall.data.call.cid);
+            videoClient?.cancelCall(
+              activeCall.data.call.id,
+              activeCall.data.call.type,
+            );
           }
         }}
       >
