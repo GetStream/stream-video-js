@@ -3,7 +3,7 @@ import { DominantSpeakerScreenShare } from './DominantSpeakerScreenShare';
 import { Layout } from '../index';
 
 const DominantSpeakerLayout: Layout = {
-  SpeakerView: DominantSpeaker,
+  ParticipantsView: DominantSpeaker,
   ScreenShareView: DominantSpeakerScreenShare,
 };
 

@@ -57,12 +57,13 @@ const UiDispatcher = (props: {
   setVideoElementRef: (element: HTMLVideoElement | null) => void;
 }) => {
   const { layout, setVideoElementRef } = props;
-  const { ScreenShareView, SpeakerView } = Layouts[layout || DEFAULT_LAYOUT_ID];
+  const { ParticipantsView, ScreenShareView } =
+    Layouts[layout || DEFAULT_LAYOUT_ID];
 
   const hasScreenShare = useHasOngoingScreenShare();
   if (hasScreenShare) {
     return <ScreenShareView setVideoElementRef={setVideoElementRef} />;
   }
 
-  return <SpeakerView setVideoElementRef={setVideoElementRef} />;
+  return <ParticipantsView setVideoElementRef={setVideoElementRef} />;
 };

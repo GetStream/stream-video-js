@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { MutableRefObject, RefObject, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   Call,
   SfuModels,
@@ -8,7 +8,7 @@ import {
 import { useIsDebugMode } from '../Debug/useIsDebugMode';
 import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../Debug/DebugStatsView';
-import { Video, VideoProps } from './Video';
+import { Video } from './Video';
 import { Notification } from '../Notification';
 
 export interface ParticipantBoxProps {
@@ -18,6 +18,7 @@ export interface ParticipantBoxProps {
   sinkId?: string;
   indicatorsVisible?: boolean;
   setVideoElementRef?: (element: HTMLVideoElement | null) => void;
+  className?: string;
 }
 
 export const ParticipantBox = (props: ParticipantBoxProps) => {
@@ -28,6 +29,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
     call,
     sinkId,
     setVideoElementRef,
+    className,
   } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
   const {
@@ -68,6 +70,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
       className={clsx(
         'str-video__participant',
         isSpeaking && 'str-video__participant--speaking',
+        className,
       )}
     >
       <audio autoPlay ref={audioRef} muted={isMuted} />
