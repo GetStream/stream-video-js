@@ -1,29 +1,48 @@
+<<<<<<< HEAD
 import { FC, useState, useEffect, useCallback } from 'react';
 import classnames from 'classnames';
 
 import Panel from '../Panel';
 import { MicMuted, Mic, Search } from '../Icons';
+=======
+import { FC } from 'react';
+import classnames from 'classnames';
+
+import Panel from '../Panel';
+>>>>>>> 23e45e0 (feat: participants panel)
 
 import styles from './ParticipantsPanel.module.css';
 
 export type Props = {
   className?: string;
+<<<<<<< HEAD
   participants?: any;
+=======
+  participants: any[];
+>>>>>>> 23e45e0 (feat: participants panel)
   isFocused?: boolean;
 };
 
 export const ParticipantsPanel: FC<Props> = ({
+<<<<<<< HEAD
   isFocused,
   className,
   participants,
 }) => {
   const [value, setValue]: any = useState(undefined);
 
+=======
+  participants,
+  isFocused,
+  className,
+}) => {
+>>>>>>> 23e45e0 (feat: participants panel)
   const rootClassname = classnames(styles.root, className);
 
   return (
     <Panel
       className={rootClassname}
+<<<<<<< HEAD
       title={
         <>
           Participants{' '}
@@ -66,6 +85,13 @@ export const ParticipantsPanel: FC<Props> = ({
           return null;
         })}
       </ul>
+=======
+      title="Participants"
+      isFocused={isFocused}
+      canCollapse={true}
+    >
+      <></>
+>>>>>>> 23e45e0 (feat: participants panel)
     </Panel>
   );
 };
