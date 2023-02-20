@@ -82,13 +82,15 @@ export const getServerSideProps = async (
   const secretKey = process.env.STREAM_SECRET_KEY as string;
 
   const userId = (
-    (context.query[`user_id`] as string) || session.user!.email!
+    (context.query['user_id'] as string) ||
+    session.user?.email ||
+    'unknown-user'
   ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
 
   // Chat does not allow for Id's to include special characters
   // a-z, 0-9, @, _ and - are allowed
   const streamUserId = userId.replace(/[^_\-0-9a-zA-Z@]/g, '_');
-  const userName = session.user!.name || userId;
+  const userName = session.user?.name || userId;
   return {
     props: {
       apiKey,
