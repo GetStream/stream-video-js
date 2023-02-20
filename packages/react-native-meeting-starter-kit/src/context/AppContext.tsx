@@ -1,6 +1,5 @@
-import React, {PropsWithChildren} from 'react';
+import React, {PropsWithChildren, useState} from 'react';
 import {UserType} from '../types';
-import {useState} from 'react';
 
 type AppContextType = {
   user: UserType | undefined;
