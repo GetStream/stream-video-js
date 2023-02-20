@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {
   createBrowserRouter,
@@ -21,17 +20,13 @@ import './index.css';
 
 import users from '../data/users.json';
 
-export type User = typeof users[number];
+export type User = (typeof users)[number];
 
 // TODO: move to "store"
 export const selectedUserSubject = new BehaviorSubject<User | null>(
   users.find((u) => u.id === sessionStorage.getItem(SESSION_STORAGE_KEY)) ??
     null,
 );
-
-const Error = () => {
-  return <div>Oops, couldn't find what you're looking for</div>;
-};
 
 const router = createBrowserRouter([
   {
