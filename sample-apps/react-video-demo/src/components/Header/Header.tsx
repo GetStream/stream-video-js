@@ -16,10 +16,11 @@ export type Props = {
   logo: string;
   elapsed?: string;
   isCallActive: boolean;
+  particpants?: any;
 };
 
 export const CallIdentification: FC<
-  Pick<Props, 'className' | 'classId' | 'logo'>
+  Pick<Props, 'className' | 'callId' | 'logo'>
 > = ({ className, callId, logo }) => {
   const rootClassName = classnames(styles.callIdentification, className);
 
@@ -43,7 +44,7 @@ export const LatencyIndicator: FC<{ className?: string }> = ({ className }) => {
   );
 };
 
-export const Elapsed: FC<Pick<Props, "className" | "elapsed">> = ({
+export const Elapsed: FC<Pick<Props, 'className' | 'elapsed'>> = ({
   className,
   elapsed,
 }) => {
@@ -52,7 +53,10 @@ export const Elapsed: FC<Pick<Props, "className" | "elapsed">> = ({
   return <div className={rootClassName}>{elapsed}</div>;
 };
 
-export const Participants: FC<Pick<Props, "className" | "participants">> = ({ className, participants }) => {
+export const Participants: FC<Pick<Props, 'className' | 'participants'>> = ({
+  className,
+  participants,
+}) => {
   const rootClassName = classnames(styles.participants, className);
   const names = participants.map((participant: any) => participant?.user?.name);
   const last = names.pop();
