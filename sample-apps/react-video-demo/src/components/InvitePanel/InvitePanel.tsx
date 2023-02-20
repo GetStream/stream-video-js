@@ -6,7 +6,6 @@ import { Copy, UserChecked } from '../Icons';
 import Panel from '../Panel';
 
 import styles from './InvitePanel.module.css';
-import { root } from 'postcss';
 
 export type Props = {
   className?: string;
