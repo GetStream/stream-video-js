@@ -1,0 +1,78 @@
+.search {
+  @apply hidden sm:flex bg-video-grey-500 flex items-center relative text-video-white/50 mt-4;
+  border: 1px solid #272a30;
+  border-radius: 44px;
+  height: 25px;
+}
+
+.amount {
+  @apply text-video-grey-400;
+}
+
+.input {
+  @apply bg-video-transparent p-2 relative border-none z-10 cursor-pointer w-full h-full;
+  font-size: 10px;
+}
+
+.input:focus,
+.input:hover {
+  @apply bg-video-transparent relative border-none cursor-pointer;
+}
+
+.searchIcon {
+  @apply absolute z-0;
+  height: 15px;
+  right: 4px;
+  top: 4px;
+}
+
+.participants {
+  @apply pb-4;
+  border-bottom: 1px solid #272a30;
+  max-height: 200px;
+  overflow: hidden;
+  overflow-y: scroll;
+}
+
+.participant {
+  @apply flex items-center justify-between mt-2 text-sm;
+}
+
+.media {
+  @apply flex;
+}
+
+.video,
+.mic,
+.options {
+  @apply flex text-video-white;
+  width: 15px;
+  height: 15px;
+}
+
+.mic,
+.micMuted {
+  @apply mr-2;
+}
+
+.videoOff,
+.micMuted {
+  @apply flex text-video-red-400;
+  width: 15px;
+  height: 15px;
+}
+
+.video:hover,
+.mic:hover,
+.videoOff:hover,
+.micMuted:hover .options:hover {
+  @apply cursor-pointer;
+}
+
+.options {
+  @apply ml-3;
+}
+
+.invite {
+  @apply flex flex-col sm:hidden;
+}

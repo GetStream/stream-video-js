@@ -1,0 +1,104 @@
+.root {
+  @apply flex p-4;
+}
+
+.localView {
+  @apply grid p-4  gap-x-3 h-full;
+  grid-template-rows: 1fr;
+  grid-template-areas: 'localContainer';
+}
+
+.localView.hasRemoteParticipants {
+  @apply grid p-4  gap-y-3;
+  grid-template-rows: 1fr 0.5fr;
+  grid-template-areas:
+    'localContainer'
+    'remoteParticipants';
+}
+
+.localContainer {
+  @apply grid  gap-y-3 h-full;
+  grid-area: localContainer;
+  grid-template-rows: 0.25fr 1fr;
+  grid-template-areas: 'localNotification' 'localParticipant';
+}
+
+@media screen(md) {
+  .localContainer {
+    @apply grid  gap-x-3;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: none;
+    grid-template-areas: 'localNotification localParticipant';
+  }
+}
+
+.localNotification {
+  @apply p-2 lg:p-0 flex flex-row lg:flex-col justify-between lg:justify-center items-center text-video-white sm:border-2 sm:border-video-stream-500 rounded-container;
+  grid-area: localNotification;
+}
+
+.localNotificationHeading {
+  @apply flex lg:flex-col items-center;
+}
+
+.screenShareIcon {
+  @apply mr-2 lg:mr-0 lg:h-20  lg:w-20 lg:mb-3;
+}
+
+.heading {
+  @apply text-sm lg:text-xl lg:mb-2;
+}
+
+.button {
+  @apply p-0 m-0 font-medium flex items-center md:pl-2 md:pr-2 lg:mt-2 h-auto;
+}
+
+.button > span {
+  @apply hidden lg:flex;
+}
+
+.closeIcon {
+  @apply h-5 w-5 sm:h-7 sm:w-7 lg:mr-2;
+}
+
+.localParticipant {
+  grid-area: localParticipant;
+}
+
+.remoteParticipants {
+  @apply flex w-full;
+  grid-area: remoteParticipants;
+}
+
+.remoteView {
+  @apply grid p-4  gap-x-3 w-full;
+  height: calc(100vh - 150px);
+  grid-template-rows: 1fr 0.25fr;
+  grid-template-areas:
+    'screenShareContainer'
+    'remoteParticipants';
+}
+
+@media screen(md) {
+  .remoteView {
+    height: calc(100vh - 180px);
+    grid-template-columns: 1fr 0.25fr;
+    grid-template-areas: 'screenShareContainer remoteParticipants';
+  }
+}
+
+.screenShareContainer {
+  @apply flex  gap-x-3;
+
+  grid-area: screenShareContainer;
+}
+
+@media screen(md) {
+  .screenShareContainer {
+    height: calc(100vh - 215px);
+  }
+}
+
+.screenShareContainer video {
+  object-fit: contain;
+}
