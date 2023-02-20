@@ -9,9 +9,15 @@ export type Props = {
   className?: string;
   joinCall(): void;
   logo: string;
+  isJoiningCall?: boolean;
 };
 
-export const JoinContainer: FC<Props> = ({ className, joinCall, logo }) => {
+export const JoinContainer: FC<Props> = ({
+  className,
+  joinCall,
+  logo,
+  isJoiningCall,
+}) => {
   const rootClassName = classnames(styles.root, className);
   return (
     <div className={rootClassName}>
@@ -26,7 +32,7 @@ export const JoinContainer: FC<Props> = ({ className, joinCall, logo }) => {
         color="primary"
         shape="rectangle"
       >
-        Start Call
+        {isJoiningCall ? 'Join call' : 'Start Call'}
       </Button>
     </div>
   );

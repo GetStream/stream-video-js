@@ -9,7 +9,7 @@ import LatencyMapPopup from '../LatencyMapPopup';
 import styles from './LatencyMap.module.css';
 
 export type Props = {
-  sourceData: FeatureCollection<Geometry>;
+  sourceData?: FeatureCollection<Geometry>;
   zoomLevel?: number;
   className?: string;
 };
@@ -17,7 +17,7 @@ export type Props = {
 export const LatencyMap: FC<Props> = ({
   className,
   sourceData,
-  zoomLevel = 1,
+  zoomLevel = 2,
 }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [source, setSource] = useState(sourceData);
@@ -29,9 +29,9 @@ export const LatencyMap: FC<Props> = ({
   const mapContainer = useRef<any>(undefined);
   const map = useRef<mapboxgl.Map | null>(null);
 
-  const [lng, setLng] = useState(39);
-  const [lat, setLat] = useState(34);
-  const [zoom, setZoom] = useState(zoomLevel);
+  const [lng] = useState(39);
+  const [lat] = useState(34);
+  const [zoom] = useState(zoomLevel);
 
   const [hoverId, setHoverId] = useState(undefined);
 
@@ -68,7 +68,7 @@ export const LatencyMap: FC<Props> = ({
               const root = createRoot(popupNode!);
               root.render(
                 <LatencyMapPopup
-                  city={point.properties.city}
+                  city={point.properties.continent}
                   countryCode={point.properties.countryCode}
                   abbriviation={point.properties.abbriviation}
                 />,
@@ -112,32 +112,33 @@ export const LatencyMap: FC<Props> = ({
   useEffect(() => {
     let appendMarkerTimer: ReturnType<typeof setTimeout>;
 
-    if (map.current && !loading) {
-      const [firstFeature, ...lazyloadFeatures] = source.features.sort(
-        () => Math.random() - 0.5,
-      );
-
+    if (map.current && !loading && source) {
       map.current.addSource('servers', {
         type: 'geojson',
         data: {
           ...source,
-          features: [firstFeature],
+          features: [],
         },
       });
 
-      if (map.current.getSource('servers')) {
-        const source: any = map.current.getSource('servers');
+      let lazyloadFeatures = source.features.sort(() => Math.random() - 0.5);
 
-        lazyloadFeatures.forEach((feature, index) => {
-          appendMarkerTimer = setTimeout(() => {
-            if (map.current) {
-              source.setData({
-                type: 'FeatureCollection',
-                features: [...lazyloadFeatures.slice(0, index + 1), feature],
-              });
-            }
-          }, index * (Math.random() * (2500 - 1000) + 1000));
-        });
+      if (map.current.getSource('servers')) {
+        const mapSource: any = map.current.getSource('servers');
+
+        function appendMarker() {
+          if (lazyloadFeatures.length > 0) {
+            const [feature, ...rest] = lazyloadFeatures;
+            lazyloadFeatures = rest;
+            mapSource.setData({
+              type: 'FeatureCollection',
+              features: [...mapSource._data.features, feature],
+            });
+            appendMarkerTimer = setTimeout(appendMarker, Math.random() * 1500);
+          }
+        }
+
+        appendMarker();
       }
     }
 
@@ -147,7 +148,7 @@ export const LatencyMap: FC<Props> = ({
   }, [map, loading, source]);
 
   useEffect(() => {
-    if (map.current && !loading) {
+    if (map.current && !loading && source) {
       map.current.addLayer({
         id: 'servers-visualise',
         type: 'circle',
@@ -175,7 +176,7 @@ export const LatencyMap: FC<Props> = ({
         },
       });
     }
-  }, [map, loading]);
+  }, [map, loading, source]);
 
   useEffect(() => {
     if (map.current) return;
@@ -183,6 +184,7 @@ export const LatencyMap: FC<Props> = ({
     setLoading(true);
 
     mapboxgl.accessToken =
+      import.meta.env.MAPBOX_GL_TOKEN ||
       'pk.eyJ1IjoiendhYXJkamUiLCJhIjoiY2thMTVmZXp1MGl3djNmbjZrZWFkemxrNiJ9.dk3iMrfG8ZXwKK8m4WyvfA';
 
     map.current = new mapboxgl.Map({
