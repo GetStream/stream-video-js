@@ -1,6 +1,7 @@
 import {
   useAcceptedCall,
   useActiveCall,
+  useIncomingCalls,
   useOutgoingCalls,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
@@ -8,14 +9,22 @@ import { PropsWithChildren, useEffect } from 'react';
 import InCallManager from 'react-native-incall-manager';
 
 export type StreamCallProps = {
-  automaticHungupTime?: number;
+  onActiveCall?: () => void;
+  onIncomingCall?: () => void;
+  onHangupCall?: () => void;
+  onOutgoingCall?: () => void;
 };
 
 export const StreamCall = ({
   children,
+  onActiveCall,
+  onIncomingCall,
+  onOutgoingCall,
+  onHangupCall,
 }: PropsWithChildren<StreamCallProps>) => {
   const videoClient = useStreamVideoClient();
   const [outgoingCall] = useOutgoingCalls();
+  const [incomingCall] = useIncomingCalls();
   const acceptedCall = useAcceptedCall();
   const activeCall = useActiveCall();
 
@@ -39,6 +48,16 @@ export const StreamCall = ({
     };
     startOutgoingCall();
   }, [videoClient, outgoingCall, activeCall, acceptedCall]);
+
+  useEffect(() => {
+    if (incomingCall && onIncomingCall) onIncomingCall();
+    else if (outgoingCall && onOutgoingCall) onOutgoingCall();
+    else if (activeCall && onActiveCall) onActiveCall();
+    else {
+      if (onHangupCall) onHangupCall();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCall, incomingCall, outgoingCall]);
 
   if (!videoClient) return null;
 

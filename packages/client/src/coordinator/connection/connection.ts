@@ -517,10 +517,10 @@ export class StableWSConnection {
   onmessage = (wsID: number, event: WebSocket.MessageEvent) => {
     if (this.wsID !== wsID) return;
 
-    this._log('onmessage() - onmessage callback', { event, wsID });
+    // this._log('onmessage() - onmessage callback', { event, wsID });
     const data = typeof event.data === 'string' ? JSON.parse(event.data) : null;
 
-    console.log('Received data', data);
+    // console.log('Received data', data);
 
     // we wait till the first message before we consider the connection open..
     // the reason for this is that auth errors and similar errors trigger a ws.onopen and immediately
