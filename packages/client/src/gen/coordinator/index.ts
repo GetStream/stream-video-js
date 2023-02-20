@@ -1469,7 +1469,7 @@ export interface SendEventRequest {
    * @type {string}
    * @memberof SendEventRequest
    */
-  event_type: string;
+  type: string;
 }
 /**
  *

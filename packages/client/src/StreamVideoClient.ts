@@ -52,7 +52,7 @@ export class StreamVideoClient {
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
   private callDropScheduler: CallDropScheduler | undefined;
-  private coordinatorClient: StreamCoordinatorClient;
+  public coordinatorClient: StreamCoordinatorClient;
   /**
    * @internal
    */
@@ -264,7 +264,7 @@ export class StreamVideoClient {
    */
   acceptCall = async (callId: string, callType: string) => {
     await this.coordinatorClient.sendEvent(callId, callType, {
-      event_type: 'call.accepted',
+      type: 'call.accepted',
     });
     return await this.joinCall(callId, callType);
   };
@@ -283,7 +283,7 @@ export class StreamVideoClient {
         pendingCalls.filter((incomingCall) => incomingCall.call.id !== callId),
     );
     await this.coordinatorClient.sendEvent(callId, callType, {
-      event_type: 'call.rejected',
+      type: 'call.rejected',
     });
   };
 
@@ -311,7 +311,7 @@ export class StreamVideoClient {
     const remoteParticipants = store.getCurrentValue(store.remoteParticipants$);
     if (!remoteParticipants.length && !leavingActiveCall) {
       await this.coordinatorClient.sendEvent(callId, callType, {
-        event_type: 'call.cancelled',
+        type: 'call.cancelled',
       });
     }
   };
