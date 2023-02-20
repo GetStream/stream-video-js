@@ -36,10 +36,16 @@ export const PendingCallPanel = ({
       </div>
 
       {outgoingCall && !incomingCall && (
-        <OutgoingCallControls callCid={outgoingCall.call.cid} />
+        <OutgoingCallControls
+          callId={outgoingCall.call.id}
+          callType={outgoingCall.call.type}
+        />
       )}
       {incomingCall && !outgoingCall && (
-        <IncomingCallControls callCid={incomingCall.call.cid} />
+        <IncomingCallControls
+          callId={incomingCall.call.id}
+          callType={incomingCall.call.type}
+        />
       )}
     </div>
   </div>

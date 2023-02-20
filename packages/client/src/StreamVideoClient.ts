@@ -5,8 +5,10 @@ import {
 import type {
   DatacenterResponse,
   GetCallEdgeServerRequest,
+  GetOrCreateCallResponse,
   GetOrCreateCallRequest,
   ICEServer,
+  JoinCallResponse,
 } from './gen/coordinator';
 
 import type { ReportCallStatEventRequest } from './gen/video/coordinator/client_v1_rpc/client_rpc';
@@ -50,7 +52,7 @@ export class StreamVideoClient {
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
   private callDropScheduler: CallDropScheduler | undefined;
-  private coordinatorClient: StreamCoordinatorClient;
+  public coordinatorClient: StreamCoordinatorClient;
   /**
    * @internal
    */
@@ -221,11 +223,13 @@ export class StreamVideoClient {
     type: string,
     data?: GetOrCreateCallRequest,
   ) => {
-    const response = await this.coordinatorClient.getOrCreateCall(
-      id,
-      type,
-      data,
-    );
+    // FIXME ZS: method name is misleading, also the client shouldn't care if a call is ringing or not
+    let response!: GetOrCreateCallResponse | JoinCallResponse;
+    if (data?.ring) {
+      response = await this.coordinatorClient.joinCall(id, type, data);
+    } else {
+      response = await this.coordinatorClient.getOrCreateCall(id, type, data);
+    }
     const { call } = response;
     if (!call) {
       console.log(`Call with id ${id} and type ${type} could not be created`);
@@ -254,36 +258,32 @@ export class StreamVideoClient {
   /**
    * Signals other users that I have accepted the incoming call.
    * Causes the `CallAccepted` event to be emitted to all the call members.
-   * @param callCid config ID of the rejected call
+   * @param callId
+   * @param callType
    * @returns
    */
-  acceptCall = async (callCid: string) => {
-    // FIXME OL: change the method's signature to accept callId and callType
-    const [type, id] = callCid.split(':');
-    await this.coordinatorClient.sendEvent(id, type, {
-      event_type: 'call.accepted',
+  acceptCall = async (callId: string, callType: string) => {
+    await this.coordinatorClient.sendEvent(callId, callType, {
+      type: 'call.accepted',
     });
-    return await this.joinCall(id, type);
+    return await this.joinCall(callId, callType);
   };
 
   /**
    * Signals other users that I have rejected the incoming call.
    * Causes the `CallRejected` event to be emitted to all the call members.
-   * @param callCid config ID of the rejected call
+   * @param callId
+   * @param callType
    * @returns
    */
-  rejectCall = async (callCid: string) => {
-    // FIXME OL: change the method's signature to accept callId and callType
-    const [type, id] = callCid.split(':');
+  rejectCall = async (callId: string, callType: string) => {
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
       (pendingCalls) =>
-        pendingCalls.filter(
-          (incomingCall) => incomingCall.call.cid !== callCid,
-        ),
+        pendingCalls.filter((incomingCall) => incomingCall.call.id !== callId),
     );
-    await this.coordinatorClient.sendEvent(id, type, {
-      event_type: 'call.rejected',
+    await this.coordinatorClient.sendEvent(callId, callType, {
+      type: 'call.rejected',
     });
   };
 
@@ -292,27 +292,26 @@ export class StreamVideoClient {
    * Causes the CallCancelled event to be emitted to all the call members.
    *
    * Cancelling a call is only possible before the local participant joined the call.
-   * @param callCid config ID of the cancelled call
+   * @param callId
+   * @param callType
    * @returns
    */
-  cancelCall = async (callCid: string) => {
-    // FIXME OL: change the method's signature to accept callId and callType
-    const [type, id] = callCid.split(':');
+  cancelCall = async (callId: string, callType: string) => {
     const store = this.writeableStateStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
-    const leavingActiveCall = activeCall?.data.call.cid === callCid;
+    const leavingActiveCall = activeCall?.data.call.id === callId;
     if (leavingActiveCall) {
       activeCall.leave();
     } else {
       store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
-        pendingCalls.filter((pendingCall) => pendingCall.call.cid !== callCid),
+        pendingCalls.filter((pendingCall) => pendingCall.call.id !== callId),
       );
     }
 
     const remoteParticipants = store.getCurrentValue(store.remoteParticipants$);
     if (!remoteParticipants.length && !leavingActiveCall) {
-      await this.coordinatorClient.sendEvent(id, type, {
-        event_type: 'call.cancelled',
+      await this.coordinatorClient.sendEvent(callId, callType, {
+        type: 'call.cancelled',
       });
     }
   };
