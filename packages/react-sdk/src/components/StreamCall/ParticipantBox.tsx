@@ -74,7 +74,7 @@ export const ParticipantBox = (props: {
         />
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
-            {participant.user?.name || participant.userId}
+            {participant.name || participant.userId}
             {isDominantSpeaker && (
               <span
                 className="str-video__participant_name--dominant_speaker"
