@@ -6,9 +6,9 @@ import Panel from '../SettingsMenu';
 export const KichinSink: Props = {
   label: 'mic',
   onClick: () => console.log('clicked'),
-  prefix: () => <Mic />,
-  panel: () => (
-    <Panel title="Settings" icon={() => <Mic />}>
+  prefix: <Mic />,
+  panel: (
+    <Panel title="Settings" icon={<Mic />}>
       Child
     </Panel>
   ),
@@ -16,11 +16,10 @@ export const KichinSink: Props = {
 
 export const Disabled: Props = {
   label: 'mic',
-  state: 'disabled',
   onClick: () => console.log('clicked'),
-  prefix: () => <Mic />,
-  panel: () => (
-    <Panel title="Settings" icon={() => <Mic />}>
+  prefix: <Mic />,
+  panel: (
+    <Panel title="Settings" icon={<Mic />}>
       Child
     </Panel>
   ),

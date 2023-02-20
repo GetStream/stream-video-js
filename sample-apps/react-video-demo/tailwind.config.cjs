@@ -31,10 +31,6 @@ module.exports = {
       10: '10px',
       12: '12px',
     },
-    divideWidth: {
-      default: '1px',
-      DEFAULT: '1px',
-    },
     fontFamily: {
       display: ['Inter Display Var', ...baseFallbackFonts],
       displayItalic: ['Inter Display Var Italic', ...baseFallbackFonts],
@@ -46,112 +42,18 @@ module.exports = {
       realtimeSerif: ['Realtime', ...baseFallbackFonts],
     },
     fontSize: {
-      '3xs': '.5rem',
-      '2xs': '.6rem',
       xs: '.75rem',
-      tiny: '.8125rem',
       sm: '.875rem',
-      // @TODO: Rename nav to something else and double-check its usage. Should nav be base?
-      nav: '.9375rem',
       base: '1rem',
       lg: '1.125rem',
       xl: '1.25rem',
-      '2xl': '1.375rem', // h4
-      '3xl': '1.875rem', // h3
-      '4xl': '2.5rem', // h2
+      '2xl': '1.375rem',
+      '3xl': '1.875rem',
+      '4xl': '2.5rem',
       '5xl': '3rem',
       '6xl': '4rem',
-      tag: '10.4px',
     },
     colors: {
-      white: '#fff',
-      black: '#000',
-      blue: {
-        light: '#5DE0FF',
-        lighter: '#304FFE',
-        default: '#008AFF',
-        DEFAULT: '#008AFF',
-        dark: '#005EAD',
-        darker: '#00225C',
-      },
-      error: '#ff5452',
-      cyan: {
-        light: '#00FFE1',
-        normal: '#00DFFF',
-        default: '#50E3C2',
-        DEFAULT: '#50E3C2',
-      },
-      stream: {
-        light: '#006CFF',
-        default: '#005FFF',
-        DEFAULT: '#005FFF',
-        dark: '#0055e5',
-        darker: '#004CCC',
-      },
-      lightblue: {
-        light: '#E9F2FF',
-        dark: 'rgba(0,108,255,0.19)',
-        default: 'rgba(0,108,255,0.04)',
-        DEFAULT: 'rgba(0,108,255,0.04)',
-      },
-      background: {
-        default: '#FCFCFC',
-        DEFAULT: '#FCFCFC',
-        darker: '#FAFAFA',
-      },
-      grey: {
-        lightest: '#F2F2F2',
-        light: '#D9D9D9',
-        default: '#BFBFBF',
-        DEFAULT: '#BFBFBF',
-        dark: '#7F7F7F',
-        darker: '#212326',
-        darkest: '#1B1C1F',
-      },
-      red: {
-        lightest: '#f9f2f4',
-        default: '#c7254e',
-        DEFAULT: '#c7254e',
-      },
-      green: {
-        light: 'rgba(80, 227, 194, 0.19)',
-        default: '#10C29A',
-        DEFAULT: '#10C29A',
-      },
-      transparent: 'transparent',
-      code: {
-        bg: '#141414',
-        green: '#80EEB1',
-        blue: '#81B0FF',
-        purple: '#C586C0',
-        lightblue: '#CAFFFF',
-        pink: '#E987A5',
-        text: '#FFFFFF',
-        grey: '#D4D4D4'
-      },
-      demo: {
-        grey: {
-          lighter: '#1C1E22',
-          light: '#72767E',
-          default: '#979797',
-          DEFAULT: '#979797',
-          darker: '#212326',
-        },
-        black: {
-          light: '#272A30',
-          dark: '#121416'
-        },
-        white: {
-          default: '#ffffff',
-          DEFAULT: '#ffffff',
-        },
-        red: {
-          light: '#FF1A24',
-        },
-        background: {
-          black: 'rgba(28, 28, 30, 0.9)',
-        }
-      },
       map: {
         marker: {
           highlight: 'rgba(30, 177, 20, 0.2)',
@@ -161,8 +63,6 @@ module.exports = {
         popup: {
           description: '#72767E'
         }
-
-
       }
     },
     gradients: {
@@ -190,86 +90,76 @@ module.exports = {
       cardActive: '0px 0px 20px 0px rgba(0,0,0,0.06)',
     },
 
-    maxHeight: {
-      0: '0',
-      '1/4': '25%',
-      '1/2': '50%',
-      '3/4': '75%',
-      full: '100%',
-    },
 
     extend: {
-      screens: {
-        xs: '320px',
-        full: '1310px',
-        container: '1200px',
-      },
-      height: {
-        11: '2.75rem',
-        13: '3.125rem',
-        7: '1.875rem',
-      },
-      maxWidth: {
-        container: '1170px',
-        fuller: '1330px',
-        wrapper: '1600px',
-      },
-      minWidth: {
-        'button-s': '4rem',
-        'button-m': '6rem',
-        'button-l': '8rem',
-      },
-      padding: {
-        'button-s': '15px 30px',
-        'button-icon': '20px',
-        navbar: '80px',
-      },
       borderRadius: {
-        tag: '2.4px',
-        container: '8px',
+        panel: '13px', // rounded-container // rounded-demo-container
         button: '8px',
-        input: '6px',
-        '4xl': '1.875rem',
-        demo: {
-          container: '13px'
-        }
-      },
-      gridTemplateRows: {
-        demos: '90px 1fr 90px',
-        'demos-mobile': '60px calc(100vh - 60px)',
-        'demos-no-header': '1fr 45px',
-      },
-      lineHeight: {
-        11: '3.375rem',
-      },
-      backgroundPosition: {
-        'center-left': 'center left',
-      },
-      spacing: {
-        7: '1.875rem',
-        13: '3.25rem',
-        14: '3.5rem',
-        15: '3.75rem',
-      },
-      opacity: {
-        15: '15%',
-        20: '20%',
+        container: '13px',
+        input: '6px'
       },
       colors: {
-        green: colors.emerald,
-        yellow: colors.amber,
-        purple: colors.violet,
-      },
-      letterSpacing: {
-        stream: '1.86px',
-      },
-      inset: {
-        navbar: 'var(--stream-navbar)',
-        'navbar-1': 'calc(1rem + var(--stream-navbar))',
-        'navbar-7': 'calc(1.875rem + var(--stream-navbar))',
-      },
+        video: {
+          white: '#fff',
+          black: '#000',
+          transparent: 'transparent',
+          stream: {
+            200: '#2F7DEB',
+            400: '#006CFF',
+            500: '#005FFF',
+            600: '#0055e5',
+            700: '#004CCC',
+          },
+          grey: {
+            100: '#B4B7BB',
+            200: '#979797',
+            300: '#4C525C',
+            400: '#72767E',
+            450: '#272A30',
+            500: '#1C1E22',
+            600: '#212326',
+            700: '#272A30',
+            800: '#121416'
+          },
+          green: {
+            500: '#20E070',
+          },
+          red: {
+            300: '#ED2833',
+            400: '#FF3742',
+            500: '#FF482F',
+            600: '#FF1A24',
+          },
+          yellow: {
+            500: '#FFB700',
+          },
+        }
+      }
     },
   },
+  plugins: [tailwindGradients,
+    //   function ({
+    //   addBase,
+    //   theme
+    // }) {
+    //   function extractColorVars(colorObj, colorGroup = '') {
+    //     return Object.keys(colorObj).reduce((vars, colorKey) => {
+    //       const value = colorObj[colorKey];
+    //       const newVars =
+    //         typeof value === 'string' ? {
+    //           [`--color-video-${colorGroup}-${colorKey}`]: value
+    //         } :
+    //         extractColorVars(value, `-${colorKey}`);
+    //       return {
+    //         ...vars,
+    //         ...newVars
+    //       };
+    //     }, {});
+    //   }
 
-  plugins: [tailwindGradients],
+    //   addBase({
+    //     ':root': extractColorVars(theme('colors')),
+    //   });
+    // },
+  ],
 };

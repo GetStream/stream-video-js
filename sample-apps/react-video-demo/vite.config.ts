@@ -1,11 +1,22 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-// import tsconfigPaths from 'vite-tsconfig-paths';
+import mkcert from 'vite-plugin-mkcert';
 
 export default defineConfig({
   root: '.',
-  plugins: [react()],
+  server: {
+    https: true,
+  },
+  plugins: [react(), mkcert()],
   resolve: {
     preserveSymlinks: true,
+  },
+  optimizeDeps: {
+    include: ['stream-video-js'],
+  },
+  build: {
+    commonjsOptions: {
+      include: ['tailwind-config.cjs', /stream-video-js/],
+    },
   },
 });

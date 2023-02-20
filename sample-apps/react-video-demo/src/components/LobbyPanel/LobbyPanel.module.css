@@ -1,22 +1,79 @@
 .root {
-  @apply md:w-4/12 flex flex-col items-center;
+  @apply p-2 sm:p-0 md:w-4/12 flex flex-col items-center;
   pointer-events: visible;
 }
 
 .heading {
-  @apply text-white text-3xl text-center;
+  @apply text-video-white text-2xl lg:text-3xl text-center;
 }
 
 .description {
-  @apply text-demo-grey text-base text-center;
+  @apply text-video-grey-200   text-center;
 }
 
 .callContainer {
-  @apply mt-10 mb-10 rounded-container;
+  @apply border-4 border-video-stream-500 relative mt-5 mb-5 rounded-container w-full;
+}
+
+.disabledPreview {
+  @apply flex items-center justify-center text-video-white text-sm bg-video-grey-700 w-full;
+  border-radius: 10px;
+}
+
+.fallbackAvatar {
+  @apply flex items-center justify-center uppercase text-2xl font-bold bg-video-stream-500 text-video-white h-20 w-20 rounded-full;
+}
+
+.callContainer > div:not(.videoOverlay) {
+  @apply flex w-auto md:w-full;
+  height: auto;
 }
 
 .callContainer video {
-  @apply w-full rounded-container border-4  border-stream;
+  @apply w-full h-auto max-h-[30vh];
+  border-radius: 10px;
+}
+
+.videoOverlay {
+  @apply absolute top-0 left-0 w-full h-full flex items-center justify-center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.name {
+  @apply flex items-center absolute bottom-0 left-0 mb-4 ml-4 text-xs bg-video-grey-800 p-2 pt-1 pb-1 text-video-white;
+  border-radius: 4px;
+}
+
+.server {
+  @apply absolute top-0 left-0 ml-4 mt-4 text-xs bg-video-grey-800 p-2 pt-1 pb-1 text-video-white;
+  border-radius: 4px;
+}
+
+.latency {
+  @apply absolute flex items-center top-0 right-0 mt-4 mr-4 text-xs bg-video-grey-800 p-2 pt-1 pb-1 text-video-white;
+  border-radius: 4px;
+}
+
+.latencyIndicator {
+  @apply h-1 w-1 rounded-full mr-2 ml-1  bg-video-green-500;
+}
+
+.signal {
+  @apply absolute bottom-0 right-0 mb-4 mr-4 text-xs bg-video-grey-800 p-2 pt-1 pb-1 text-video-white;
+  border-radius: 4px;
+}
+
+.micMuted {
+  @apply ml-1 h-4 w-4 text-video-red-600;
+}
+
+.signalIcon {
+  @apply h-4 w-4;
+}
+
+.controls {
+  @apply mb-2;
 }
 
 .avatar {
@@ -24,5 +81,5 @@
 }
 
 .lobbyContainer {
-  @apply ml-10 mr-10;
+  @apply sm:ml-10 sm:mr-10;
 }

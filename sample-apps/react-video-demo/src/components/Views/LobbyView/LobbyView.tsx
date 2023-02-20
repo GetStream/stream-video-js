@@ -1,23 +1,31 @@
-import { FC } from 'react';
-
-import {
-  useActiveCall,
-  useLocalParticipant,
-} from '@stream-io/video-react-bindings';
+import { FC, useEffect, useState } from 'react';
+import { FeatureCollection, Geometry } from 'geojson';
 
 import LobbyPanel from '../../LobbyPanel';
 import Header from '../../Header';
+import Panel from '../../Panel';
+import { Loading } from '../../Icons';
 
 import LobbyLayout from '../../Layout/LobbyLayout';
 
 import styles from './LobbyView.module.css';
 
+const loadingSentences = [
+  'Joining call ...',
+  'Looking for the fastest route ...',
+  'Loading call ...',
+  'Connecting ...',
+  'Starting call ...',
+];
+
 export type Props = {
   logo: string;
-  avatar: string;
+  avatar?: string;
   joinCall(): void;
   callId: string;
-  isCallActive: boolean;
+  edges?: FeatureCollection<Geometry>;
+  fastestEdge: any;
+  isjoiningCall: boolean;
 };
 
 export type Lobby = {
@@ -25,39 +33,48 @@ export type Lobby = {
   loading?: boolean;
 };
 
-export const Lobby: FC<Props & Lobby> = ({
+export const LobbyView: FC<Props & Lobby> = ({
   logo,
-  avatar,
   joinCall,
   call,
   callId,
-  isCallActive,
+  edges,
+  fastestEdge,
+  isjoiningCall,
 }) => {
-  const localParticipant: any = useLocalParticipant();
+  // pick the next sentence after 1 second and display it in the panel as the title prop
+  const [loadingSentence, setLoadingSentence] = useState(loadingSentences[0]);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const nextSentence =
+        loadingSentences[
+          (loadingSentences.indexOf(loadingSentence) + 1) %
+            loadingSentences.length
+        ];
+      setLoadingSentence(nextSentence);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [loadingSentence]);
 
   return (
     <LobbyLayout
-      header={
-        <Header logo={logo} callId={callId} isCallActive={isCallActive} />
-      }
+      edges={edges}
+      header={<Header logo={logo} callId={callId} isCallActive={false} />}
     >
-      <LobbyPanel
-        className={styles.lobbyPanel}
-        joinCall={joinCall}
-        logo={logo}
-        avatar={avatar}
-        call={call}
-        localParticipant={localParticipant}
-      />
+      {isjoiningCall ? (
+        <Panel className={styles.loadingPanel} title={loadingSentence}>
+          <Loading className={styles.loading} />
+        </Panel>
+      ) : (
+        <LobbyPanel
+          className={styles.lobbyPanel}
+          joinCall={joinCall}
+          logo={logo}
+          call={call}
+          fastestEdge={fastestEdge}
+          isJoiningCall={Boolean(callId)}
+        />
+      )}
     </LobbyLayout>
   );
-};
-
-export const LobbyView: FC<Props> = (props) => {
-  const activeCall: any = useActiveCall();
-
-  if (!activeCall || !activeCall?.data.call?.callCid)
-    return <Lobby {...props} loading={true} />;
-
-  return <Lobby call={activeCall} loading={false} {...props} />;
 };

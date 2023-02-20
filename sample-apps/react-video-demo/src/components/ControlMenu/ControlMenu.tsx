@@ -1,5 +1,6 @@
-import { FC, useCallback, useState, useEffect } from 'react';
+import { FC, useCallback } from 'react';
 import classnames from 'classnames';
+import { useLocalParticipant } from '@stream-io/video-react-bindings';
 
 import {
   useVideoPublisher,
@@ -12,151 +13,161 @@ import ControlButton from '../ControlButton';
 import ControlMenuPanel from '../ControlMenuPanel';
 import Portal from '../Portal';
 
-import { Mic, MicMuted, Video, VideoOff, Settings } from '../Icons';
+import { Mic, MicMuted, Video, VideoOff, Speaker } from '../Icons';
 
 import styles from './ControlMenu.module.css';
-
-// useEffect(() => {
-//   const muted = !localParticipant?.publishedTracks.includes(
-//     SfuModels.TrackType.VIDEO,
-//   );
-
-//   setVideoMuted(muted);
-// }, [localParticipant]);
-
-// useEffect(() => {
-//   const muted = !localParticipant?.publishedTracks.includes(
-//     SfuModels.TrackType.AUDIO,
-//   );
-
-//   setAudioMuted(muted);
-// }, [localParticipant]);
 
 export type Props = {
   className?: string;
   call?: any;
-  localParticipant?: any;
-  videoMuted?: boolean;
-  audioMuted?: boolean;
+  initialAudioMuted?: boolean;
+  initialVideoMuted?: boolean;
+  preview?: boolean;
 };
 
 export const ControlMenu: FC<Props> = ({
   className,
   call,
-  localParticipant,
-  videoMuted,
-  audioMuted,
+  initialAudioMuted,
+  initialVideoMuted,
+  preview,
 }) => {
   const {
-    selectedAudioDeviceId,
+    selectedAudioInputDeviceId,
     selectedVideoDeviceId,
-    audioDevices,
+    selectedAudioOutputDeviceId,
+    audioInputDevices,
+    audioOutputDevices,
     videoDevices,
     switchDevice,
+    toggleAudioMuteState,
+    toggleVideoMuteState,
+    initialVideoState,
+    initialAudioEnabled,
+    isAudioOutputChangeSupported,
   } = useMediaDevices();
 
-  const [isLoading, setIsLoading] = useState(true);
+  const localParticipant = useLocalParticipant();
 
-  const [isVideoMuted, setVideoMuted] = useState(true);
-  const [isAudioMuted, setAudioMuted] = useState(true);
+  const isVideoMuted = preview
+    ? !initialVideoState.enabled
+    : !localParticipant?.publishedTracks.includes(SfuModels.TrackType.VIDEO);
 
-  useEffect(() => {
-    if (call) {
-      const muted = !localParticipant?.publishedTracks.includes(
-        SfuModels.TrackType.VIDEO,
-      );
-
-      if (muted) {
-        toggleVideo();
-      }
-
-      setIsLoading(false);
-    }
-  }, [call]);
-
-  useEffect(() => {}, [isVideoMuted]);
+  const isAudioMuted = preview
+    ? !initialAudioEnabled
+    : !localParticipant?.publishedTracks.includes(SfuModels.TrackType.AUDIO);
 
   const publishVideoStream = useVideoPublisher({
     call: call,
-    initialVideoMuted: isVideoMuted,
+    initialVideoMuted,
     videoDeviceId: selectedVideoDeviceId,
   });
 
   const publishAudioStream = useAudioPublisher({
     call: call,
-    initialAudioMuted: isAudioMuted,
-    audioDeviceId: selectedAudioDeviceId,
+    initialAudioMuted,
+    audioDeviceId: selectedAudioInputDeviceId,
   });
 
-  const toggleVideo = useCallback(() => {
-    if (isVideoMuted) {
-      publishVideoStream();
-      setVideoMuted(false);
-    } else {
-      call.stopPublish(SfuModels.TrackType.VIDEO);
-      setVideoMuted(true);
-    }
-  }, [publishVideoStream, call, isVideoMuted]);
+  const disableVideo = useCallback(() => {
+    call.stopPublish(SfuModels.TrackType.VIDEO);
+  }, [call]);
 
-  const toggleAudio = useCallback(() => {
-    if (isAudioMuted) {
-      publishAudioStream();
-      setAudioMuted(false);
+  const enableVideo = useCallback(() => {
+    publishVideoStream();
+  }, [publishVideoStream]);
+
+  const disableAudio = useCallback(() => {
+    call.stopPublish(SfuModels.TrackType.AUDIO);
+  }, [call]);
+
+  const enableAudio = useCallback(() => {
+    publishAudioStream();
+  }, [publishAudioStream]);
+
+  const video = useCallback(() => {
+    if (preview) {
+      toggleVideoMuteState();
     } else {
-      call.stopPublish(SfuModels.TrackType.VIDEO);
-      setAudioMuted(true);
+      isVideoMuted ? enableVideo() : disableVideo();
     }
-  }, [publishAudioStream, call, isAudioMuted]);
+  }, [localParticipant, isVideoMuted, preview]);
+
+  const audio = useCallback(() => {
+    if (preview) {
+      toggleAudioMuteState();
+    } else {
+      isAudioMuted ? enableAudio() : disableAudio();
+    }
+  }, [localParticipant, isAudioMuted, preview]);
 
   const rootClassName = classnames(styles.root, className);
 
   return (
-    <>
-      <div id="portal" className={styles.portal}></div>
-      <div className={rootClassName}>
+    <div className={rootClassName}>
+      {isAudioOutputChangeSupported ? (
         <ControlButton
-          className={styles.videoButton}
-          onClick={toggleVideo}
-          state={isLoading ? 'disabled' : undefined}
-          prefix={isVideoMuted ? <VideoOff /> : <Video />}
+          className={styles.speakerButton}
+          prefix={<Speaker />}
+          portalId="audio-output-settings"
+          label="Audio"
           panel={
-            <Portal selector="#portal">
+            <Portal
+              className={styles.audioSettings}
+              selector="audio-output-settings"
+            >
               <ControlMenuPanel
                 className={styles.panel}
-                selectedDeviceId={selectedVideoDeviceId}
-                selectDevice={(kind: any, deviceId) =>
-                  switchDevice(kind, deviceId)
-                }
-                devices={videoDevices}
-                title="Select a Camera"
-                label="Camera Settings"
-              />
-            </Portal>
-          }
-          label="Video"
-        />
-        <ControlButton
-          className={styles.audioButton}
-          onClick={toggleAudio}
-          state={isLoading ? 'disabled' : undefined}
-          prefix={isAudioMuted ? <MicMuted /> : <Mic />}
-          panel={
-            <Portal selector="#portal">
-              <ControlMenuPanel
-                className={styles.panel}
-                selectedDeviceId={selectedAudioDeviceId}
-                selectDevice={(kind: any, deviceId) =>
-                  switchDevice(kind, deviceId)
-                }
-                devices={audioDevices}
+                selectedDeviceId={selectedAudioOutputDeviceId}
+                selectDevice={switchDevice}
+                devices={audioOutputDevices}
                 title="Select an Audio Output"
-                label="Audio Settings"
+                label="Audio output settings"
               />
             </Portal>
           }
-          label="Mic"
         />
-      </div>
-    </>
+      ) : null}
+
+      <ControlButton
+        className={styles.audioButton}
+        onClick={audio}
+        prefix={isAudioMuted ? <MicMuted /> : <Mic />}
+        portalId="audio-settings"
+        label="Mic"
+        panel={
+          <Portal className={styles.audioSettings} selector="audio-settings">
+            <ControlMenuPanel
+              className={styles.panel}
+              selectedDeviceId={selectedAudioInputDeviceId}
+              selectDevice={switchDevice}
+              devices={audioInputDevices}
+              title="Select an Audio Input"
+              label="Audio input settings"
+            />
+          </Portal>
+        }
+      />
+
+      <ControlButton
+        className={styles.videoButton}
+        onClick={video}
+        prefix={isVideoMuted ? <VideoOff /> : <Video />}
+        portalId="camera-settings"
+        label="Video"
+        panel={
+          <Portal className={styles.cameraSettings} selector="camera-settings">
+            <ControlMenuPanel
+              className={styles.panel}
+              selectedDeviceId={selectedVideoDeviceId}
+              selectDevice={switchDevice}
+              devices={videoDevices}
+              title="Select a Camera"
+              label="Camera Settings"
+            />
+          </Portal>
+        }
+      />
+    </div>
   );
 };

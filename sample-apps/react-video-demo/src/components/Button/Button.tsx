@@ -6,6 +6,7 @@ import styles from './Button.module.css';
 export type Props = {
   className?: string;
   rounded?: boolean;
+  type?: any;
   color:
     | 'primary'
     | 'secondary'
@@ -14,15 +15,20 @@ export type Props = {
     | 'danger'
     | 'active';
   shape?: 'rectangle' | 'square' | 'oval';
-  onClick(): void;
+  onClick?(): void;
+  onMouseEnter?(): void;
+  onMouseLeave?(): void;
   children?: ReactNode | undefined;
   label?: string;
 };
 
 export const Button: FC<Props> = ({
   className,
+  type = 'button',
   children,
   onClick,
+  onMouseEnter,
+  onMouseLeave,
   color,
   shape = 'rectangle',
   label,
@@ -39,7 +45,12 @@ export const Button: FC<Props> = ({
 
     return (
       <div className={containerClassName}>
-        <button className={buttonClassName} onClick={onClick}>
+        <button
+          className={buttonClassName}
+          onClick={onClick}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+        >
           {children}
         </button>
         {label ? <span className={styles.label}>{label}</span> : null}
@@ -47,7 +58,12 @@ export const Button: FC<Props> = ({
     );
   }
   return (
-    <button className={rootClassName} onClick={onClick}>
+    <button
+      className={rootClassName}
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       {children}
     </button>
   );
