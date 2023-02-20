@@ -3,7 +3,12 @@ import { FC, useCallback, useState } from 'react';
 import { Stage } from '@stream-io/video-react-sdk';
 import {
   useActiveCall,
+<<<<<<< HEAD
   useParticipants,
+=======
+  useRemoteParticipants,
+  useLocalParticipant,
+>>>>>>> e39dead (feat: views)
 } from '@stream-io/video-react-bindings';
 
 import Header from '../../Header';
