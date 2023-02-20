@@ -18,7 +18,6 @@ type JoinCallProps = {
   user: User;
   userToken: string;
   apiKey: string;
-  userImageUrl: string | null;
 };
 
 const JoinCall = (props: JoinCallProps) => {
@@ -26,7 +25,7 @@ const JoinCall = (props: JoinCallProps) => {
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
 
-  const { userToken, user, apiKey, userImageUrl } = props;
+  const { userToken, user, apiKey } = props;
 
   const client = useCreateStreamVideoClient({
     apiKey,
@@ -37,10 +36,7 @@ const JoinCall = (props: JoinCallProps) => {
   const chatClient = useCreateStreamChatClient({
     apiKey,
     tokenOrProvider: userToken,
-    userData: {
-      ...user,
-      image: userImageUrl,
-    },
+    userData: user,
   });
 
   if (!client) {
@@ -85,14 +81,14 @@ export const getServerSideProps = async (
   const apiKey = process.env.STREAM_API_KEY as string;
   const secretKey = process.env.STREAM_SECRET_KEY as string;
 
-  const userName = (
+  const userId = (
     (context.query[`user_id`] as string) || session.user!.email!
   ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
 
   // Chat does not allow for Id's to include special characters
   // a-z, 0-9, @, _ and - are allowed
-  const streamUserId = userName.replace(/[^_\-0-9a-zA-Z@]/g, '_');
-
+  const streamUserId = userId.replace(/[^_\-0-9a-zA-Z@]/g, '_');
+  const userName = session.user!.name || userId;
   return {
     props: {
       apiKey,
@@ -100,11 +96,8 @@ export const getServerSideProps = async (
       user: {
         id: streamUserId,
         name: userName,
-        role: 'admin',
-        teams: ['stream-io'],
+        image: session.user?.image,
       },
-      // moved it here as this is no longer part of the user
-      userImageUrl: session.user?.image,
     } as JoinCallProps,
   };
 };
