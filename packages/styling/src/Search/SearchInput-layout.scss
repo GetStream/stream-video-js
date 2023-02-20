@@ -1,0 +1,29 @@
+.str-video__search-input__container {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-inline: -0.25rem;
+
+  input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .str-video__search-input__clear-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .str-video__search-input__icon {
+    padding: 0.25rem;
+  }
+
+  .str-video__search-input__icon--active,
+  .str-video__search-input__icon {
+    display: inline-block;
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}

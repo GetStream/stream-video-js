@@ -1,5 +1,7 @@
 # AngularSdk
 
+❗️ **WARNING** This repository is temporarily hibernated. It might not be compatible with the other packages inside the monorepo. ❗️
+
 Angular workspace for the `@stream-io/video-angular-sdk` package and for the sample app to test the package with.
 
 ## Running

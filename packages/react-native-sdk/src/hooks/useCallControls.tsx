@@ -82,11 +82,11 @@ export const useCallControls = () => {
 
   const toggleCameraFacingMode = useCallback(() => {
     const videoDevice = videoDevices.find(
-      (videoDevice) =>
-        videoDevice.kind === 'videoinput' &&
-        (isCameraOnFrontFacingMode
-          ? videoDevice.facing === 'environment'
-          : videoDevice.facing === 'front'),
+      (device) =>
+        device.kind === 'videoinput' &&
+        (cameraBackFacingMode
+          ? device.facing === 'front'
+          : device.facing === 'environment'),
     );
     setCurrentVideoDevice(videoDevice);
     setState((prevState) => ({

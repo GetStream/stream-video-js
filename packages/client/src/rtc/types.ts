@@ -1,4 +1,4 @@
-import { User } from '../gen/video/coordinator/user_v1/user';
+import type { UserResponse } from '../gen/coordinator';
 import type {
   Participant,
   VideoDimension,
@@ -48,7 +48,7 @@ export interface StreamVideoParticipant extends Participant {
   /**
    * User metadata (profile picture, name...)
    */
-  user?: User;
+  user?: UserResponse;
 }
 
 export interface StreamVideoLocalParticipant extends StreamVideoParticipant {

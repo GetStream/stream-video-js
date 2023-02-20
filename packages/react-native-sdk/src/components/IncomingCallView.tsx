@@ -95,10 +95,10 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const incomingCalls = useIncomingCalls();
-  const memberUserIds =
-    (incomingCalls.length &&
-      incomingCalls[incomingCalls.length - 1].details?.memberUserIds) ||
-    [];
+  // FIXME OL: this needs to be reworked
+  const lastIncomingCall =
+    (incomingCalls.length && incomingCalls[incomingCalls.length - 1]) || null;
+  const memberUserIds = Object.keys(lastIncomingCall?.users || {});
 
   if (memberUserIds.length)
     return (

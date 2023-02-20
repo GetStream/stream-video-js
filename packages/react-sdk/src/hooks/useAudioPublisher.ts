@@ -1,5 +1,5 @@
 import { useLocalParticipant, useStore } from '@stream-io/video-react-bindings';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   Call,
   getAudioStream,
@@ -13,13 +13,15 @@ export type AudioPublisherInit = {
   initialAudioMuted?: boolean;
   audioDeviceId?: string;
 };
+
 export const useAudioPublisher = ({
   call,
   initialAudioMuted,
   audioDeviceId,
 }: AudioPublisherInit) => {
   const { localParticipant$ } = useStore();
-
+  // helper reference to determine initial publishing of the media stream
+  const initPubRef = useRef<boolean>(true);
   const participant = useLocalParticipant();
 
   const isPublishingAudio = participant?.publishedTracks.includes(
@@ -29,15 +31,14 @@ export const useAudioPublisher = ({
   useEffect(() => {
     let interrupted = false;
 
-    // isPublishingAudio/Video can be initially undefined (participant comes later)
-    // - which is something we want to have the effect publish initial stream
-    // we only strictly check if it's false to see if the user is muted while changing devices
-    if (initialAudioMuted || !isPublishingAudio) return;
+    if (initialAudioMuted || (!isPublishingAudio && !initPubRef.current))
+      return;
 
     getAudioStream(audioDeviceId).then((stream) => {
       if (interrupted && stream.active)
         return stream.getTracks().forEach((t) => t.stop());
 
+      initPubRef.current = false;
       return call.publishAudioStream(stream);
     });
 
@@ -45,7 +46,8 @@ export const useAudioPublisher = ({
       interrupted = true;
       call.stopPublish(SfuModels.TrackType.AUDIO);
     };
-  }, [call, audioDeviceId, initialAudioMuted, isPublishingAudio]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [call, audioDeviceId]);
 
   const publishAudioStream = useCallback(async () => {
     try {

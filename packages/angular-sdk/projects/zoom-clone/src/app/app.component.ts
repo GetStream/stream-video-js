@@ -5,7 +5,7 @@ import {
   StreamVideoService,
   DeviceManagerService,
 } from '@stream-io/video-angular-sdk';
-import { Call, UserInput } from '@stream-io/video-client';
+import { Call, User } from '@stream-io/video-client';
 import { Observable, take } from 'rxjs';
 import { StreamI18nService, ThemeService } from 'stream-chat-angular';
 
@@ -15,7 +15,7 @@ import { StreamI18nService, ThemeService } from 'stream-chat-angular';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  connectedUser$: Observable<UserInput | undefined>;
+  connectedUser$: Observable<User | undefined>;
 
   constructor(
     private streamVideoService: StreamVideoService,

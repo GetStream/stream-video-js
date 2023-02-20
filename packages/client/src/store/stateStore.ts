@@ -1,40 +1,41 @@
 import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import { combineLatestWith, distinctUntilChanged, map } from 'rxjs/operators';
 import * as RxUtils from './rxUtils';
-import { UserInput } from '../gen/video/coordinator/user_v1/user';
-import { CallAccepted } from '../gen/video/coordinator/event_v1/event';
-import {
+import { Call as CallController } from '../rtc/Call';
+import { CallMetadata } from '../rtc/CallMetadata';
+import { TrackType } from '../gen/video/sfu/models/models';
+import type {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatch,
   StreamVideoParticipantPatches,
 } from '../rtc/types';
-import { CallStatsReport } from '../stats/types';
-import { Call as CallController } from '../rtc/Call';
-import { TrackType } from '../gen/video/sfu/models/models';
-import { PendingCall } from './types';
+import type { CallStatsReport } from '../stats/types';
+import type { User } from '../coordinator/connection/types';
+import type { CallAccepted } from '../gen/coordinator';
 
 export class StreamVideoWriteableStateStore {
   /**
    * A store keeping data of a successfully connected user over WS to the coordinator server.
    */
-  connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
+  connectedUserSubject = new BehaviorSubject<User | undefined>(undefined);
   /**
    * A store that keeps track of all created calls that have not been yet accepted, rejected nor cancelled.
    */
-  pendingCallsSubject = new BehaviorSubject<PendingCall[]>([]);
+  pendingCallsSubject = new BehaviorSubject<CallMetadata[]>([]);
   /**
    * A list of objects describing incoming calls.
    */
-  incomingCalls$: Observable<PendingCall[]>;
+  incomingCalls$: Observable<CallMetadata[]>;
   /**
    * A list of objects describing calls initiated by the current user (connectedUser).
    */
-  outgoingCalls$: Observable<PendingCall[]>;
+  outgoingCalls$: Observable<CallMetadata[]>;
   /**
    * A store that keeps track of all the notifications describing accepted call.
    */
   // todo: Currently not updating this Subject
+  // FIXME OL: what is the difference (from customer perspective) between "activeCall" and "acceptedCall"?
   acceptedCallSubject = new BehaviorSubject<CallAccepted | undefined>(
     undefined,
   );
@@ -96,7 +97,7 @@ export class StreamVideoWriteableStateStore {
       combineLatestWith(this.connectedUserSubject),
       map(([pendingCalls, connectedUser]) =>
         pendingCalls.filter(
-          (call) => call.call?.createdByUserId !== connectedUser?.id,
+          (call) => call.call.created_by.id !== connectedUser?.id,
         ),
       ),
     );
@@ -105,7 +106,7 @@ export class StreamVideoWriteableStateStore {
       combineLatestWith(this.connectedUserSubject),
       map(([pendingCalls, connectedUser]) =>
         pendingCalls.filter(
-          (call) => call.call?.createdByUserId === connectedUser?.id,
+          (call) => call.call.created_by.id === connectedUser?.id,
         ),
       ),
     );
@@ -115,7 +116,7 @@ export class StreamVideoWriteableStateStore {
         this.setCurrentValue(
           this.pendingCallsSubject,
           this.getCurrentValue(this.pendingCallsSubject).filter(
-            (call) => call.call?.callCid !== callController.data.call?.callCid,
+            (call) => call.call.cid !== callController.data.call.cid,
           ),
         );
         this.setCurrentValue(this.acceptedCallSubject, undefined);
@@ -236,19 +237,19 @@ export class StreamVideoReadOnlyStateStore {
   /**
    * Data describing a user successfully connected over WS to coordinator server.
    */
-  connectedUser$: Observable<UserInput | undefined>;
+  connectedUser$: Observable<User | undefined>;
   /**
    * A list of objects describing all created calls that have not been yet accepted, rejected nor cancelled.
    */
-  pendingCalls$: Observable<PendingCall[]>;
+  pendingCalls$: Observable<CallMetadata[]>;
   /**
    * A list of objects describing calls initiated by the current user (connectedUser).
    */
-  outgoingCalls$: Observable<PendingCall[]>;
+  outgoingCalls$: Observable<CallMetadata[]>;
   /**
    * A list of objects describing incoming calls.
    */
-  incomingCalls$: Observable<PendingCall[]>;
+  incomingCalls$: Observable<CallMetadata[]>;
   /**
    * The call data describing an incoming call accepted by a participant.
    * Serves as a flag decide, whether an incoming call should be joined.

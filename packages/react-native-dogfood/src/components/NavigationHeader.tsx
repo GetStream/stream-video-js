@@ -46,7 +46,7 @@ export const NavigationHeader = () => {
           try {
             await Promise.all([
               GoogleSignin.signOut(),
-              videoClient?.disconnect(),
+              videoClient?.disconnectUser(),
             ]);
 
             appStoreSetState({

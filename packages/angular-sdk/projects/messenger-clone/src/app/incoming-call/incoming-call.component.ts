@@ -5,9 +5,9 @@ import {
   DeviceManagerService,
   StreamVideoService,
 } from '@stream-io/video-angular-sdk';
-import { PendingCall } from '@stream-io/video-client';
 import { Subscription } from 'rxjs';
 import { ChatClientService, getChannelDisplayText } from 'stream-chat-angular';
+import { CallMetadata } from '@stream-io/video-client';
 
 @Component({
   selector: 'app-incoming-call',
@@ -24,14 +24,12 @@ export class IncomingCallComponent implements OnInit, OnDestroy {
     private streamVideoService: StreamVideoService,
     private snackBar: MatSnackBar,
     private ngZone: NgZone,
-    @Inject(MAT_DIALOG_DATA) public data: PendingCall,
+    @Inject(MAT_DIALOG_DATA) public data: CallMetadata,
     private matDialogRef: MatDialogRef<any>,
     private deviceManager: DeviceManagerService,
     private chatClientService: ChatClientService,
   ) {
-    const channelId = JSON.parse(
-      new TextDecoder().decode(this.data?.call?.customJson),
-    ).channelId;
+    const channelId = this.data.call.custom?.['channelId'];
     this.chatClientService.chatClient
       .queryChannels({ id: channelId }, undefined, { watch: false })
       .then((response) => {
@@ -67,7 +65,8 @@ export class IncomingCallComponent implements OnInit, OnDestroy {
     try {
       await this.ngZone.runOutsideAngular(async () => {
         await this.streamVideoService.videoClient?.acceptCall(
-          this.data.call!.callCid,
+          this.data.call.id,
+          this.data.call.type,
         );
       });
       this.matDialogRef.close();
@@ -82,7 +81,8 @@ export class IncomingCallComponent implements OnInit, OnDestroy {
     this.isRejectInProgress = true;
     try {
       await this.streamVideoService.videoClient?.rejectCall(
-        this.data.call!.callCid,
+        this.data.call.id,
+        this.data.call.type,
       );
       this.matDialogRef.close();
       this.deviceManager.stopVideo();

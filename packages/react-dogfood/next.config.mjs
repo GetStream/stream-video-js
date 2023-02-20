@@ -25,6 +25,10 @@ const nextConfig = {
         source: '/rpc/:path*',
         destination: `${coordinatorApiUrl}:path*`,
       },
+      // {
+      //   source: '/backend/:path*',
+      //   destination: `http://localhost:8800/:path*`,
+      // },
     ];
   },
 

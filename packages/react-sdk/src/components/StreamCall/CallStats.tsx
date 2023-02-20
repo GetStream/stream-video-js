@@ -55,8 +55,8 @@ export const CallStats = (props: {
       );
     });
 
-    setLatencyBuffer((latencyBuffer) => {
-      const newLatencyBuffer = latencyBuffer.slice(-19);
+    setLatencyBuffer((latencyBuf) => {
+      const newLatencyBuffer = latencyBuf.slice(-19);
       newLatencyBuffer.push({
         x: callStatsReport.timestamp,
         y: callStatsReport.publisherStats.averageRoundTripTimeInMs,

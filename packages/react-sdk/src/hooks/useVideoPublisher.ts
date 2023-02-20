@@ -5,7 +5,7 @@ import {
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
 import { useLocalParticipant, useStore } from '@stream-io/video-react-bindings';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { map } from 'rxjs';
 import { useDebugPreferredVideoCodec } from '../components/Debug/useIsDebugMode';
 
@@ -14,12 +14,15 @@ export type VideoPublisherInit = {
   initialVideoMuted?: boolean;
   videoDeviceId?: string;
 };
+
 export const useVideoPublisher = ({
   call,
   initialVideoMuted,
   videoDeviceId,
 }: VideoPublisherInit) => {
   const { localParticipant$ } = useStore();
+  // helper reference to determine initial publishing of the media stream
+  const initPubRef = useRef<boolean>(true);
   const participant = useLocalParticipant();
   const preferredCodec = useDebugPreferredVideoCodec();
   const isPublishingVideo = participant?.publishedTracks.includes(
@@ -38,12 +41,14 @@ export const useVideoPublisher = ({
   useEffect(() => {
     let interrupted = false;
 
-    if (initialVideoMuted || !isPublishingVideo) return;
+    if (initialVideoMuted || (!isPublishingVideo && !initPubRef.current))
+      return;
 
     getVideoStream(videoDeviceId).then((stream) => {
       if (interrupted && stream.active)
         return stream.getTracks().forEach((t) => t.stop());
 
+      initPubRef.current = false;
       return call.publishVideoStream(stream, { preferredCodec });
     });
 
@@ -51,13 +56,8 @@ export const useVideoPublisher = ({
       interrupted = true;
       call.stopPublish(SfuModels.TrackType.VIDEO);
     };
-  }, [
-    videoDeviceId,
-    call,
-    preferredCodec,
-    initialVideoMuted,
-    isPublishingVideo,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoDeviceId, call, preferredCodec]);
 
   useEffect(() => {
     const subscription = watchForDisconnectedVideoDevice(
