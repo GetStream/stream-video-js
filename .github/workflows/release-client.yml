@@ -3,7 +3,7 @@ name: Release and version client
 on:
   push:
     branches:
-      - video-coordinator
+      - main
     paths:
       - '.github/workflows/release-client.yml'
       - 'packages/client/**'
