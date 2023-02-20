@@ -1,0 +1,48 @@
+.str-video__participant .str-video__video-container .str-video__remote-video {
+  aspect-ratio: auto;
+}
+
+.str-video__call-participants-screen-view
+  .str-video__call-participants-screen-view__screen__presenter {
+  @apply flex bg-video-grey-800/70 text-video-white text-sm text-video-white items-center p-1 pl-2 pr-2;
+  border-radius: 8px;
+  max-width: 350px;
+}
+
+.str-video__call-participants-screen-view
+  .str-video__call-participants-screen-view__screen__presenter:before {
+  @apply mr-2;
+  content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30' fill='none' %3E%3Cpath d='M25 21.7969C26.375 21.7969 27.4875 20.707 27.4875 19.375L27.5 7.26562C27.5 5.92148 26.375 4.84375 25 4.84375H5C3.6125 4.84375 2.5 5.92148 2.5 7.26562V19.375C2.5 20.707 3.6125 21.7969 5 21.7969H0V24.2188H30V21.7969H25ZM5 19.375V7.26562H25V19.3871L5 19.375ZM16.25 11.0559C11.3875 11.7098 9.45 14.9309 8.75 18.1641C10.4875 15.8996 12.775 14.8703 16.25 14.8703V17.5223L21.25 12.9934L16.25 8.47656V11.0559Z' fill='white' /%3E%3C/svg%3E");
+  margin-top: 5px;
+}
+
+.str-video__call-participants-screen-view .str-video__screen-share {
+  @apply border-4 rounded-container border-video-stream-500 bg-video-grey-800/70;
+}
+
+.str-video__call-participants-screen-view
+  .str-video__call-participants-screen-view__participants {
+  @apply relative;
+}
+
+.str-video__call-participants-screen-view__participants {
+}
+
+.str-video__call-participants-screen-view
+  .str-video__call-participants-screen-view__participants
+  .str-video__participant {
+  min-height: 150px;
+}
+
+.str-video__call-participants-screen-view
+  .str-video__call-participants-screen-view__participants
+  .str-video__participant
+  .str-video__participant__connection-quality,
+.str-video__participant-angular-host
+  .str-video__participant__connection-quality {
+  position: absolute;
+  right: 0;
+  top: 0;
+  @apply mr-4;
+  margin-top: -85px;
+}

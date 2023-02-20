@@ -1,0 +1,14 @@
+.root {
+  @apply uppercase tracking-wider;
+  border-radius: 3px;
+}
+
+.good {
+  @apply flex items-center justify-center bg-video-green-500/20 text-video-green-500 p-2;
+  font-size: 7px;
+}
+
+.bad {
+  @apply flex items-center justify-center bg-video-red-500/20 text-video-red-500 p-2;
+  font-size: 7px;
+}
