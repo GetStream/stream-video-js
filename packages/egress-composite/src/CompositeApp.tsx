@@ -7,7 +7,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import Layouts, { DEFAULT_LAYOUT_ID, LayoutId } from './layouts';
 import { useAppConfig } from './hooks/useAppConfig';
-import { useNotifyEgress } from './hooks/useNotifyEgress';
+import { EgressReadyNotificationProvider } from './hooks/useNotifyEgress';
 import './CompositeApp.scss';
 
 export const CompositeApp = () => {
@@ -35,35 +35,28 @@ export const CompositeApp = () => {
     };
   }, [client, config.callId, config.callType]);
 
-  const { setVideoElementRef, NotificationBridgeElement } = useNotifyEgress();
-
   if (!client) {
     return <h2>Connecting...</h2>;
   }
 
   return (
     <StreamVideo client={client}>
-      <UiDispatcher
-        layout={config.layout}
-        setVideoElementRef={setVideoElementRef}
-      />
-      {NotificationBridgeElement}
+      <EgressReadyNotificationProvider>
+        <UiDispatcher layout={config.layout} />
+      </EgressReadyNotificationProvider>
     </StreamVideo>
   );
 };
 
-const UiDispatcher = (props: {
-  layout: LayoutId;
-  setVideoElementRef: (element: HTMLVideoElement | null) => void;
-}) => {
-  const { layout, setVideoElementRef } = props;
+const UiDispatcher = (props: { layout: LayoutId }) => {
+  const { layout } = props;
   const { ParticipantsView, ScreenShareView } =
     Layouts[layout || DEFAULT_LAYOUT_ID];
 
   const hasScreenShare = useHasOngoingScreenShare();
   if (hasScreenShare) {
-    return <ScreenShareView setVideoElementRef={setVideoElementRef} />;
+    return <ScreenShareView />;
   }
 
-  return <ParticipantsView setVideoElementRef={setVideoElementRef} />;
+  return <ParticipantsView />;
 };

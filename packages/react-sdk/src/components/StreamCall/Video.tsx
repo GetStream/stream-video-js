@@ -22,7 +22,7 @@ export type VideoProps = DetailedHTMLProps<
   call: Call;
   kind: 'video' | 'screen';
   participant: StreamVideoParticipant;
-  setVideoElementRef?: (element: HTMLVideoElement | null) => void;
+  setVideoElementRef?: (element: HTMLElement | null) => void;
 };
 
 export const Video = (props: VideoProps) => {
@@ -123,6 +123,7 @@ export const Video = (props: VideoProps) => {
         imageSrc={participant.user?.image}
         userId={participant.userId}
         isSpeaking={participant.isSpeaking}
+        ref={setVideoElementRef}
       />
     );
 

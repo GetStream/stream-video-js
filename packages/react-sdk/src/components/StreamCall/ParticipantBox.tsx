@@ -17,7 +17,7 @@ export interface ParticipantBoxProps {
   call: Call;
   sinkId?: string;
   indicatorsVisible?: boolean;
-  setVideoElementRef?: (element: HTMLVideoElement | null) => void;
+  setVideoElementRef?: (element: HTMLElement | null) => void;
   className?: string;
 }
 

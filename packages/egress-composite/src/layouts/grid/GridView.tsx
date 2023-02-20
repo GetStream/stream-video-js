@@ -1,17 +1,18 @@
-import { LayoutComponent } from '../index';
 import {
   ParticipantBox,
   useActiveCall,
   useRemoteParticipants,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
+import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
 import './GridView.scss';
 
-export const GridView: LayoutComponent = () => {
+export const GridView = () => {
   const activeCall = useActiveCall();
   const participants = useRemoteParticipants();
-  const totalParticipants = participants.length;
+  const setParticipantVideoRef = useEgressReadyWhenAnyParticipantMounts();
 
+  const totalParticipants = participants.length;
   const widthClassName = clsx(
     totalParticipants <= 1 && 'width--full',
     totalParticipants === 2 && 'width--half',
@@ -24,13 +25,14 @@ export const GridView: LayoutComponent = () => {
 
   return (
     <div className="grid-view">
-      {participants.map((participant) => (
+      {participants.map((participant, index) => (
         <ParticipantBox
           key={participant.sessionId}
           className={widthClassName}
           participant={participant}
           call={activeCall!}
           indicatorsVisible={false}
+          setVideoElementRef={index === 0 ? setParticipantVideoRef : undefined}
         />
       ))}
     </div>

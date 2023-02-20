@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   ParticipantBox,
   SfuModels,
@@ -5,16 +6,21 @@ import {
   useRemoteParticipants,
   Video,
 } from '@stream-io/video-react-sdk';
-import { LayoutComponent } from '../index';
+import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
 import './ScreenShare.scss';
 
-export const DominantSpeakerScreenShare: LayoutComponent = (props) => {
-  const { setVideoElementRef } = props;
+export const DominantSpeakerScreenShare = () => {
   const call = useActiveCall();
   const participants = useRemoteParticipants();
   const screenSharingParticipant = participants.find((p) =>
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
   );
+
+  const setParticipantVideoRef = useEgressReadyWhenAnyParticipantMounts(
+    screenSharingParticipant!,
+    SfuModels.TrackType.SCREEN_SHARE,
+  );
+
   if (!screenSharingParticipant) return <h2>No active screen share</h2>;
 
   return (
@@ -26,7 +32,7 @@ export const DominantSpeakerScreenShare: LayoutComponent = (props) => {
         kind="screen"
         autoPlay
         muted
-        setVideoElementRef={setVideoElementRef}
+        setVideoElementRef={setParticipantVideoRef}
       />
       <span>
         Presenter:{' '}

@@ -7,15 +7,9 @@ export const DEFAULT_LAYOUT_ID: LayoutId = 'dominant-speaker';
 export type SpotlightMode = 'dominant-speaker' | 'shuffle';
 export type LayoutId = 'dominant-speaker' | 'grid';
 
-export interface RequiredProps {
-  setVideoElementRef: (ref: HTMLVideoElement | null) => void;
-}
-
-export type LayoutComponent<P = {}> = ComponentType<RequiredProps & P>;
-
 export interface Layout {
-  ParticipantsView: LayoutComponent;
-  ScreenShareView: LayoutComponent;
+  ParticipantsView: ComponentType;
+  ScreenShareView: ComponentType;
 }
 
 const layouts: Record<LayoutId, Layout> = {

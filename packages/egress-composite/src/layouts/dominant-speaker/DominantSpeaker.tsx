@@ -1,12 +1,20 @@
-import { ParticipantBox, useActiveCall } from '@stream-io/video-react-sdk';
+import { useEffect, useState } from 'react';
+import {
+  ParticipantBox,
+  useActiveCall,
+  SfuModels,
+} from '@stream-io/video-react-sdk';
 import { useSpotlightParticipant } from './useSpotlightParticipant';
-import { LayoutComponent } from '../index';
+import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
 import './Spotlight.scss';
 
-export const DominantSpeaker: LayoutComponent = (props) => {
-  const { setVideoElementRef } = props;
+export const DominantSpeaker = () => {
   const activeCall = useActiveCall();
   const speakerInSpotlight = useSpotlightParticipant();
+  const setParticipantVideoRef = useEgressReadyWhenAnyParticipantMounts(
+    speakerInSpotlight!,
+    SfuModels.TrackType.VIDEO,
+  );
 
   if (!activeCall) return <h2>No active call</h2>;
   return (
@@ -16,7 +24,7 @@ export const DominantSpeaker: LayoutComponent = (props) => {
           participant={speakerInSpotlight}
           call={activeCall}
           indicatorsVisible={false}
-          setVideoElementRef={setVideoElementRef}
+          setVideoElementRef={setParticipantVideoRef}
         />
       )}
     </div>
