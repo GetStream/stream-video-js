@@ -9,6 +9,7 @@ import type {
   GetOrCreateCallRequest,
   ICEServer,
   JoinCallResponse,
+  JoinCallRequest,
 } from './gen/coordinator';
 
 import type { ReportCallStatEventRequest } from './gen/video/coordinator/client_v1_rpc/client_rpc';
@@ -325,11 +326,7 @@ export class StreamVideoClient {
    * @param data the data for the call.
    * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
    */
-  joinCall = async (
-    id: string,
-    type: string,
-    data?: GetOrCreateCallRequest,
-  ) => {
+  joinCall = async (id: string, type: string, data?: JoinCallRequest) => {
     const joinCallResponse = await this.coordinatorClient.joinCall(
       id,
       type,
