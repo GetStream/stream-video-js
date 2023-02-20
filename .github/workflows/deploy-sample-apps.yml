@@ -6,13 +6,13 @@ on:
       - main
       - demo-apps
     paths:
-      - '.github/workflows/deploy-sample-apps.yml'
-      - 'sample-apps/react/**'
-      - 'packages/client/**'
-      - 'packages/angular-sdk/**'
-      - 'packages/react-sdk/**'
-      - 'packages/react-bindings/**'
-      - 'packages/styling/**'
+      - ".github/workflows/deploy-sample-apps.yml"
+      - "sample-apps/react/**"
+      - "packages/client/**"
+      - "packages/angular-sdk/**"
+      - "packages/react-sdk/**"
+      - "packages/react-bindings/**"
+      - "packages/styling/**"
   pull_request:
     types:
       - opened
@@ -20,15 +20,21 @@ on:
       - reopened
 
 jobs:
-  build-and-deploy-react-messenger-clone:
+  build-and-deploy-sample-apps:
+    name: Deploying ${{ matrix.application.name }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        application:
+          - name: react-messenger-clone
+            project-id: prj_FNUiw2FtWJEDVHP5XttyLQmGw39n
+          - name: react-zoom-clone
+            project-id: prj_y2GjsUXNvW7MdQ0EpJVG0FBNNovL
+
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_REACT_MESSENGER_CLONE }}
+      VERCEL_PROJECT_ID: ${{ matrix.application.project-id }}
       VITE_STREAM_KEY: ${{ vars.STREAM_API_KEY_SAMPLE_APPS }}
-      VITE_VIDEO_API_KEY: ${{ vars.STREAM_API_KEY_SAMPLE_APPS }}
-      VITE_VIDEO_COORDINATOR_WS_URL: 'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect'
-      VITE_VIDEO_COORDINATOR_RPC_ENDPOINT: 'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc'
 
     steps:
       - uses: actions/checkout@v3
@@ -39,7 +45,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
-          cache: 'yarn'
+          cache: "yarn"
 
       - name: Install Dependencies
         run: yarn install --immutable
