@@ -3,7 +3,10 @@ import {
   StreamMeeting,
   StreamVideo,
   useCreateStreamVideoClient,
+<<<<<<< HEAD
   MediaDevicesProvider,
+=======
+>>>>>>> d4aaab4 (feat: app index)
 } from '@stream-io/video-react-sdk';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -53,7 +56,11 @@ const Init: FC<Props> = ({
   coordinatorWsUrl,
   apiKey,
 }) => {
+<<<<<<< HEAD
   const [isCallActive, setIsCallActive] = useState(true);
+=======
+  const [isCallActive, setIsCallActive] = useState(false);
+>>>>>>> d4aaab4 (feat: app index)
   const call: {
     callId: string;
     currentUser: any;
@@ -129,7 +136,11 @@ const App: FC<any> = () => {
 
   const location = window?.document?.location;
 
+<<<<<<< HEAD
   const callId = '123-abc'; //new URL(location.href).searchParams.get('id') || uuidv4();
+=======
+  const callId = new URL(location.href).searchParams.get('id') || uuidv4();
+>>>>>>> d4aaab4 (feat: app index)
 
   return <Init {...config} logo={logo} callId={callId} />;
 };
