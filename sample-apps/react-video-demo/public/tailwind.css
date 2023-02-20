@@ -565,10 +565,13 @@ video {
   }
 }
 
+<<<<<<< HEAD
 .visible {
   visibility: visible;
 }
 
+=======
+>>>>>>> b554416 (chore: tailwind)
 .absolute {
   position: absolute;
 }
@@ -577,6 +580,7 @@ video {
   position: relative;
 }
 
+<<<<<<< HEAD
 .z-10 {
   z-index: 10;
 }
@@ -593,10 +597,13 @@ video {
   margin: 2rem;
 }
 
+=======
+>>>>>>> b554416 (chore: tailwind)
 .ml-2 {
   margin-left: 0.5rem;
 }
 
+<<<<<<< HEAD
 .mt-4 {
   margin-top: 1rem;
 }
@@ -605,10 +612,13 @@ video {
   margin-bottom: 1rem;
 }
 
+=======
+>>>>>>> b554416 (chore: tailwind)
 .mr-2 {
   margin-right: 0.5rem;
 }
 
+<<<<<<< HEAD
 .mt-10 {
   margin-top: 2.5rem;
 }
@@ -621,6 +631,8 @@ video {
   margin-left: 2.5rem;
 }
 
+=======
+>>>>>>> b554416 (chore: tailwind)
 .block {
   display: block;
 }
@@ -633,6 +645,7 @@ video {
   display: flex;
 }
 
+<<<<<<< HEAD
 .inline-flex {
   display: inline-flex;
 }
@@ -653,18 +666,24 @@ video {
   height: 3rem;
 }
 
+=======
+>>>>>>> b554416 (chore: tailwind)
 .h-screen {
   height: 100vh;
 }
 
+<<<<<<< HEAD
 .h-2 {
   height: 0.5rem;
 }
 
+=======
+>>>>>>> b554416 (chore: tailwind)
 .h-3 {
   height: 0.75rem;
 }
 
+<<<<<<< HEAD
 .h-full {
   height: 100%;
 }
@@ -679,18 +698,35 @@ video {
 
 .w-2 {
   width: 0.5rem;
+=======
+.h-2 {
+  height: 0.5rem;
+}
+
+.w-screen {
+  width: 100vw;
+}
+
+.w-3 {
+  width: 0.75rem;
+>>>>>>> b554416 (chore: tailwind)
 }
 
 .w-8 {
   width: 2rem;
 }
 
+<<<<<<< HEAD
 .w-3 {
   width: 0.75rem;
 }
 
 .w-screen {
   width: 100vw;
+=======
+.w-2 {
+  width: 0.5rem;
+>>>>>>> b554416 (chore: tailwind)
 }
 
 .origin-top-left {
@@ -706,6 +742,7 @@ video {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+<<<<<<< HEAD
 .cursor-pointer {
   cursor: pointer;
 }
@@ -714,10 +751,13 @@ video {
   flex-direction: column;
 }
 
+=======
+>>>>>>> b554416 (chore: tailwind)
 .items-center {
   align-items: center;
 }
 
+<<<<<<< HEAD
 .justify-start {
   justify-content: flex-start;
 }
@@ -734,6 +774,8 @@ video {
   justify-content: space-around;
 }
 
+=======
+>>>>>>> b554416 (chore: tailwind)
 .overflow-hidden {
   overflow: hidden;
 }
@@ -742,6 +784,7 @@ video {
   border-radius: 0.25rem;
 }
 
+<<<<<<< HEAD
 .rounded-button {
   border-radius: 8px;
 }
@@ -754,10 +797,13 @@ video {
   border-radius: 8px;
 }
 
+=======
+>>>>>>> b554416 (chore: tailwind)
 .rounded-full {
   border-radius: 9999px;
 }
 
+<<<<<<< HEAD
 .border-2 {
   border-width: 2px;
 }
@@ -826,6 +872,8 @@ video {
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
 }
 
+=======
+>>>>>>> b554416 (chore: tailwind)
 .bg-white {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
@@ -836,6 +884,7 @@ video {
   background-color: rgb(16 194 154 / var(--tw-bg-opacity));
 }
 
+<<<<<<< HEAD
 .object-cover {
   -o-object-fit: cover;
      object-fit: cover;
@@ -853,10 +902,13 @@ video {
   padding: 1rem;
 }
 
+=======
+>>>>>>> b554416 (chore: tailwind)
 .p-3 {
   padding: 0.75rem;
 }
 
+<<<<<<< HEAD
 .pl-1 {
   padding-left: 0.25rem;
 }
@@ -877,10 +929,13 @@ video {
   font-size: .75rem;
 }
 
+=======
+>>>>>>> b554416 (chore: tailwind)
 .text-sm {
   font-size: .875rem;
 }
 
+<<<<<<< HEAD
 .text-3xl {
   font-size: 1.875rem;
 }
@@ -889,10 +944,13 @@ video {
   font-size: 1rem;
 }
 
+=======
+>>>>>>> b554416 (chore: tailwind)
 .font-bold {
   font-weight: 700;
 }
 
+<<<<<<< HEAD
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
@@ -918,4 +976,9 @@ video {
   .md\:w-4\/12 {
     width: 33.333333%;
   }
+=======
+.text-map-popup-description {
+  --tw-text-opacity: 1;
+  color: rgb(114 118 126 / var(--tw-text-opacity));
+>>>>>>> b554416 (chore: tailwind)
 }
