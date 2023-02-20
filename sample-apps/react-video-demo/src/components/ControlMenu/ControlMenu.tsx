@@ -12,7 +12,7 @@ import ControlButton from '../ControlButton';
 import ControlMenuPanel from '../ControlMenuPanel';
 import Portal from '../Portal';
 
-import { Mic, MicMuted, Video, VideoOff, Settings } from '../Icons';
+import { Mic, MicMuted, Video, VideoOff } from '../Icons';
 
 import styles from './ControlMenu.module.css';
 
@@ -60,22 +60,6 @@ export const ControlMenu: FC<Props> = ({
   const [isVideoMuted, setVideoMuted] = useState(true);
   const [isAudioMuted, setAudioMuted] = useState(true);
 
-  useEffect(() => {
-    if (call) {
-      const muted = !localParticipant?.publishedTracks.includes(
-        SfuModels.TrackType.VIDEO,
-      );
-
-      if (muted) {
-        toggleVideo();
-      }
-
-      setIsLoading(false);
-    }
-  }, [call]);
-
-  useEffect(() => {}, [isVideoMuted]);
-
   const publishVideoStream = useVideoPublisher({
     call: call,
     initialVideoMuted: isVideoMuted,
@@ -107,6 +91,20 @@ export const ControlMenu: FC<Props> = ({
       setAudioMuted(true);
     }
   }, [publishAudioStream, call, isAudioMuted]);
+
+  useEffect(() => {
+    if (call) {
+      const muted = !localParticipant?.publishedTracks.includes(
+        SfuModels.TrackType.VIDEO,
+      );
+
+      if (muted) {
+        toggleVideo();
+      }
+
+      setIsLoading(false);
+    }
+  }, [call, localParticipant, toggleVideo]);
 
   const rootClassName = classnames(styles.root, className);
 

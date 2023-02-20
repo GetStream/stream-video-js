@@ -22,7 +22,7 @@ export type Props = {
   selectDevice: (kind: Partial<MediaDeviceKind>, deviceId: string) => void;
 };
 
-export const Panel: FC<Props> = ({
+export const ControlMenuPanel: FC<Props> = ({
   devices,
   title,
   label,

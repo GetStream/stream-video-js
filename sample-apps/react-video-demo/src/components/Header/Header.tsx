@@ -1,9 +1,6 @@
 import { FC } from 'react';
 import classnames from 'classnames';
-import {
-  useParticipants,
-  useCurrentCallStatsReport,
-} from '@stream-io/video-react-sdk';
+import { useCurrentCallStatsReport } from '@stream-io/video-react-sdk';
 
 import { Security } from '../Icons';
 import ControlButton from '../ControlButton';
@@ -15,8 +12,10 @@ export type Props = {
   callId: string;
   logo: string;
   elapsed?: string;
+  participants?: any;
   isCallActive: boolean;
   particpants?: any;
+  latency?: boolean;
 };
 
 export const CallIdentification: FC<
@@ -32,14 +31,15 @@ export const CallIdentification: FC<
   );
 };
 
-export const LatencyIndicator: FC<{ className?: string }> = ({ className }) => {
-  const stats = useCurrentCallStatsReport();
-
+export const LatencyIndicator: FC<Pick<Props, 'className' | 'latency'>> = ({
+  className,
+  latency,
+}) => {
   const rootClassName = classnames(styles.latency, className);
 
   return (
     <ControlButton className={rootClassName} panel={<div></div>}>
-      {stats?.publisherStats?.averageRoundTripTimeInMs} ms
+      {latency} ms
     </ControlButton>
   );
 };
@@ -83,6 +83,7 @@ export const Header: FC<Props> = ({
   logo,
   elapsed,
   isCallActive = true,
+  participants,
 }) => {
   const rootClassName = classnames(
     styles.header,
@@ -92,12 +93,10 @@ export const Header: FC<Props> = ({
     className,
   );
 
-  const participants = useParticipants();
-
   if (isCallActive) {
     return (
       <div className={rootClassName}>
-        {participants && participants.length > 1 ? (
+        {participants?.length > 1 ? (
           <Participants participants={participants} />
         ) : (
           <CallIdentification callId={callId} logo={logo} />

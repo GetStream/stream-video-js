@@ -1,6 +1,6 @@
 import { FC, useCallback, useState } from 'react';
 
-import { Stage } from '@stream-io/video-react-sdk';
+import { Stage, useCurrentCallStatsReport } from '@stream-io/video-react-sdk';
 import {
   useActiveCall,
 <<<<<<< HEAD
@@ -44,6 +44,7 @@ export const Meeting: FC<Props & Meeting> = ({
   const [showParticipants, setShowParticpants] = useState(false);
 
   const participants = useParticipants();
+  const statsReport = useCurrentCallStatsReport();
 
   console.log(participants);
 
@@ -58,7 +59,12 @@ export const Meeting: FC<Props & Meeting> = ({
   return (
     <MeetingLayout
       header={
-        <Header logo={logo} callId={callId} isCallActive={isCallActive} />
+        <Header
+          logo={logo}
+          callId={callId}
+          isCallActive={isCallActive}
+          participants={participants}
+        />
       }
       sidebar={
         <div className={styles.sidebar}>
