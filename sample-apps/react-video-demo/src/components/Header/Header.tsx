@@ -18,7 +18,9 @@ export type Props = {
   isCallActive: boolean;
 };
 
-export const CallIdentification: FC<Pick<Props, "className" | "classId" | "logo">> = ({ className, callId, logo }) => {
+export const CallIdentification: FC<
+  Pick<Props, 'className' | 'classId' | 'logo'>
+> = ({ className, callId, logo }) => {
   const rootClassName = classnames(styles.callIdentification, className);
 
   return (
