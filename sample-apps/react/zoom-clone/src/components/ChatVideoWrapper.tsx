@@ -24,7 +24,7 @@ export const ChatVideoWrapper = () => {
 
   const videoClient = useCreateStreamVideoClient({
     apiKey,
-    token,
+    tokenOrProvider: token,
     user: {
       id: userData.id,
       image: userData.image,
