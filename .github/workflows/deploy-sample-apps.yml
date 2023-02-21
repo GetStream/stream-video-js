@@ -10,7 +10,6 @@ on:
       - ".github/workflows/deploy-sample-apps.yml"
       - "sample-apps/react/**"
       - "packages/client/**"
-      - "packages/egress-composite/**"
       - "packages/react-sdk/**"
       - "packages/react-bindings/**"
       - "packages/styling/**"

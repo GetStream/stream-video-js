@@ -5663,9 +5663,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/egress-composite@workspace:packages/egress-composite":
+"@stream-io/egress-composite@workspace:sample-apps/react/egress-composite":
   version: 0.0.0-use.local
-  resolution: "@stream-io/egress-composite@workspace:packages/egress-composite"
+  resolution: "@stream-io/egress-composite@workspace:sample-apps/react/egress-composite"
   dependencies:
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
