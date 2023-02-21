@@ -12,17 +12,32 @@ import {
 } from '@stream-io/video-react-sdk';
 import { StreamChat } from 'stream-chat';
 
-import { ChatWrapper, ChatUI, UnreadCountBadge } from '.';
+import {
+  ChatWrapper,
+  ChatUI,
+  UnreadCountBadge,
+  NewMessageNotification,
+} from '.';
+
+import { useWatchChannel } from '../hooks';
 
 export const MeetingUI = ({
   chatClient,
+  callId,
 }: {
   chatClient: StreamChat | null;
+  callId: string;
 }) => {
   const router = useRouter();
   const activeCall = useActiveCall();
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(false);
+
+  const showSidebar = showParticipants || showChat;
+
+  // FIXME: could be replaced with "notification.message_new" but users would have to be at least members
+  // possible fix with "allow to join" permissions in place (expensive?)
+  const channelWatched = useWatchChannel({ chatClient, channelId: callId });
 
   const onLeave = useCallback(() => {
     router.push('/');
@@ -37,8 +52,7 @@ export const MeetingUI = ({
       </div>
     );
 
-  const { type, id: callId } = activeCall.data.call;
-  const showSidebar = showParticipants || showChat;
+  const { type } = activeCall.data.call;
 
   return (
     <div className="str-video str-video__call">
@@ -56,15 +70,27 @@ export const MeetingUI = ({
               enabled={showParticipants}
               onClick={() => setShowParticipants((prev) => !prev)}
             />
-            <div className="str-chat__chat-button__wrapper">
-              <CallControlsButton
-                enabled={showChat}
-                disabled={!chatClient}
-                onClick={() => setShowChat((prev) => !prev)}
-                icon="chat"
-              />
-              <UnreadCountBadge chatClient={chatClient} channelId={callId} />
-            </div>
+            <NewMessageNotification
+              chatClient={chatClient}
+              channelWatched={channelWatched}
+              disableOnChatOpen={showChat}
+            >
+              <div className="str-chat__chat-button__wrapper">
+                <CallControlsButton
+                  enabled={showChat}
+                  disabled={!chatClient}
+                  onClick={() => setShowChat((prev) => !prev)}
+                  icon="chat"
+                />
+                {!showChat && (
+                  <UnreadCountBadge
+                    channelWatched={channelWatched}
+                    chatClient={chatClient}
+                    channelId={callId}
+                  />
+                )}
+              </div>
+            </NewMessageNotification>
           </div>
         </CallControls>
       </div>
