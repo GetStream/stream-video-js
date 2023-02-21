@@ -38,7 +38,7 @@ export const ActiveCallVideo = (
       : SfuModels.TrackType.SCREEN_SHARE,
   );
 
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const lastDimensionRef = useRef<SfuModels.VideoDimension | undefined>();
   const updateSubscription = useCallback(() => {
     let nextDimension;
@@ -101,7 +101,7 @@ export const ActiveCallVideo = (
     return (
       <VideoPlaceholder
         imageSrc={participant.image}
-        userId={participant.name || participant.userId}
+        name={participant.name || participant.userId}
         isSpeaking={participant.isSpeaking}
         ref={setVideoElementRef}
       />

@@ -31,7 +31,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
     setVideoElementRef,
     className,
   } = props;
-  const audioRef = useRef<HTMLAudioElement>(null);
+
   const {
     videoStream,
     isLoggedInUser: isLocalParticipant,
