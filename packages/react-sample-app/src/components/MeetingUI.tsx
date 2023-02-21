@@ -12,11 +12,11 @@ export const MeetingUI = () => {
 
   return (
     <div className="str-video__call">
-      <div className="str-video__call__header">
-        <h4 className="str-video__call__header-title">
+      <div className="str-video__call-header">
+        <h4 className="str-video__call-header-title">
           {activeCall.data.call.callCid}
         </h4>
-        <DeviceSettings activeCall={activeCall} />
+        <DeviceSettings />
       </div>
       <Stage call={activeCall} />
       <CallControls call={activeCall} />
