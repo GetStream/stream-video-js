@@ -3,11 +3,11 @@ import { CallConfig } from './config/types';
 import { Observable, pairwise, startWith, Subscription } from 'rxjs';
 import { CallMetadata } from './rtc/CallMetadata';
 
-type CallCID = string;
-type DropFunction = (callCid: CallCID) => Promise<void>;
+type CallId = string;
+type DropFunction = (callId: CallId, callType: string) => Promise<void>;
 
 export class CallDropScheduler {
-  private autoCallDropSchedule: Record<CallCID, ReturnType<typeof setTimeout>>;
+  private autoCallDropSchedule: Record<CallId, ReturnType<typeof setTimeout>>;
   private storeSubscriptions: { [key in keyof CallConfig]?: Subscription } & {
     cancelDropOnPendingCallRemoval?: Subscription;
     cancelDropOnCallAccepted?: Subscription;
@@ -66,8 +66,11 @@ export class CallDropScheduler {
             this.store.activeCallSubject,
           );
 
-          if (activeCall && newIncomingCall?.call.cid) {
-            await this.reject(newIncomingCall.call.cid);
+          if (activeCall) {
+            await this.reject(
+              newIncomingCall.call.id,
+              newIncomingCall.call.type,
+            );
           }
         },
       );
@@ -84,7 +87,7 @@ export class CallDropScheduler {
           currentCalls,
           prevCalls,
         );
-        if (!newIncomingCall?.call.cid) return;
+        if (!newIncomingCall?.call) return;
 
         const activeCall = this.store.getCurrentValue(
           this.store.activeCallSubject,
@@ -93,7 +96,7 @@ export class CallDropScheduler {
           activeCall && this.callConfig.autoRejectWhenInCall;
         if (incomingCallRejectedImmediately) return;
 
-        this.scheduleReject(newIncomingCall.call.cid);
+        this.scheduleReject(newIncomingCall.call.id, newIncomingCall.call.type);
       });
   };
 
@@ -109,8 +112,8 @@ export class CallDropScheduler {
           prevCalls,
         );
 
-        if (!newOutgoingCall?.call.cid) return;
-        this.scheduleCancel(newOutgoingCall.call.cid);
+        if (!newOutgoingCall?.call) return;
+        this.scheduleCancel(newOutgoingCall.call.id, newOutgoingCall.call.type);
       });
   };
 
@@ -122,15 +125,16 @@ export class CallDropScheduler {
           currentCalls,
         );
 
-        if (removedCall?.call.cid) {
-          this.cancelDrop(removedCall?.call.cid);
+        if (removedCall) {
+          this.cancelDrop(removedCall?.call.id);
         }
       });
 
     this.storeSubscriptions.cancelDropOnCallAccepted =
       this.store.acceptedCallSubject.subscribe((acceptedCall) => {
-        if (acceptedCall?.call_cid) {
-          this.cancelDrop(acceptedCall.call_cid);
+        if (acceptedCall) {
+          const id = acceptedCall.call_cid.split(':')[1];
+          this.cancelDrop(id);
         }
       });
   };
@@ -139,27 +143,29 @@ export class CallDropScheduler {
    * Schedules automatic call cancellation.
    * The cancellation is intended for the scenarios, when the call has been rejected
    * or not accepted by all the call members.
-   * @param {string} callCid
+   * @param {string} callId
+   * @param {string} callType
    */
-  private scheduleCancel = (callCid: string) => {
+  private scheduleCancel = (callId: string, callType: string) => {
     const timeout = this.callConfig.autoCancelTimeoutInMs;
     if (!timeout) return;
-    this.autoCallDropSchedule[callCid] = setTimeout(() => {
+    this.autoCallDropSchedule[callId] = setTimeout(() => {
       console.log('Automatic call cancellation after timeout', timeout);
-      this.cancel(callCid);
+      this.cancel(callId, callType);
     }, timeout);
   };
 
   /**
    * Schedules automatic call rejection.
-   * @param {string} callCid
+   * @param {string} callId
+   * @param {string} callType
    */
-  private scheduleReject = (callCid: string) => {
+  private scheduleReject = (callId: string, callType: string) => {
     const timeout = this.callConfig.autoRejectTimeoutInMs;
     if (!timeout) return;
-    this.autoCallDropSchedule[callCid] = setTimeout(() => {
+    this.autoCallDropSchedule[callId] = setTimeout(() => {
       console.log('Automatic call rejection after timeout', timeout);
-      this.reject(callCid);
+      this.reject(callId, callType);
     }, timeout);
   };
 
@@ -171,10 +177,10 @@ export class CallDropScheduler {
    * - an outgoing call has been rejected / left by all the members resp. participants
    * - a call has been cancelled / rejected / accepted manually before the cancellation timeout expires.
    */
-  private cancelDrop = (callCid: string) => {
-    const { [callCid]: timeoutRef, ...rest } = this.autoCallDropSchedule;
+  private cancelDrop = (callId: string) => {
+    const { [callId]: timeoutRef, ...rest } = this.autoCallDropSchedule;
     if (timeoutRef !== undefined) {
-      console.log(`Cancelling automatic call drop, [callCID: ${callCid}]`);
+      console.log(`Cancelling automatic call drop, [callID: ${callId}]`);
       clearTimeout(timeoutRef);
       this.autoCallDropSchedule = rest;
     }

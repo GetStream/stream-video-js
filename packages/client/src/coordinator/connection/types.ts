@@ -12,6 +12,7 @@ export type User = {
   role?: string;
   teams?: string[];
   username?: string;
+  image?: string;
 };
 
 export type OwnUserBase = {

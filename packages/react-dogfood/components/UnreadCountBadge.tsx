@@ -6,39 +6,15 @@ import { CHANNEL_TYPE } from '.';
 export const UnreadCountBadge = ({
   chatClient: client,
   channelId,
+  channelWatched,
 }: {
   chatClient?: StreamChat | null;
   channelId: string;
+  channelWatched: boolean;
 }) => {
   const [unread, setUnread] = useState(0);
-  const [channelWatched, setChannelWatched] = useState(false);
 
   const cid = `${CHANNEL_TYPE}:${channelId}`;
-
-  useEffect(() => {
-    if (!client) return;
-
-    const channel = client.channel(CHANNEL_TYPE, channelId);
-    // initiate watching now so we can receive message events
-    const watchingPromise = channel.watch();
-
-    return () => {
-      watchingPromise.then(() => channel.stopWatching());
-    };
-  }, [client, channelId]);
-
-  useEffect(() => {
-    if (!client) return;
-
-    const handleEvent = (event: Event) => {
-      if (event?.cid === cid) setChannelWatched(true);
-    };
-
-    client.on('user.watching.start', handleEvent);
-    return () => {
-      client.off('user.watching.start', handleEvent);
-    };
-  }, [client, cid]);
 
   useEffect(() => {
     if (!client) return;
