@@ -264,3 +264,10 @@ export const watchForDisconnectedAudioOutputDevice = (
 ) => {
   return watchForDisconnectedDevice('audiooutput', deviceId$);
 };
+
+export const disposeMediaStream = (stream: MediaStream) => {
+  stream.getTracks().forEach((t) => {
+    t.stop();
+    stream.removeTrack(t);
+  });
+};
