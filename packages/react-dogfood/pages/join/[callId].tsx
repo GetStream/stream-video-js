@@ -29,7 +29,7 @@ const JoinCall = (props: JoinCallProps) => {
 
   const client = useCreateStreamVideoClient({
     apiKey,
-    token: userToken,
+    tokenOrProvider: userToken,
     user,
   });
 
