@@ -6,7 +6,6 @@ import {
   Text,
   Switch,
   Button,
-  ActivityIndicator,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
@@ -16,44 +15,46 @@ import {
 import { meetingId } from '../../modules/helpers/meetingId';
 
 import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { MeetingStackParamList } from '../../../types';
 
-const JoinMeetingScreen = () => {
-  const meetingCallID = useAppGlobalStoreValue((store) => store.meetingCallID);
+type JoinMeetingScreenProps = NativeStackScreenProps<
+  MeetingStackParamList,
+  'JoinMeetingScreen'
+>;
+
+const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
   const [callID, setCallId] = useState('');
+  const { navigation } = props;
 
   const setState = useAppGlobalStoreSetState();
 
   const joinCallHandler = useCallback(() => {
-    setState({ meetingCallID: callID });
-  }, [setState, callID]);
+    navigation.navigate('LobbyViewScreen', { callID: callID });
+  }, [navigation, callID]);
 
   useEffect(() => {
     const subscription = prontoCallId$.subscribe((prontoCallId) => {
       if (prontoCallId) {
-        setState({
-          meetingCallID: prontoCallId,
-        });
+        setCallId(prontoCallId);
         prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
         joinCallHandler();
       }
     });
     return () => subscription.unsubscribe();
-  }, [joinCallHandler, setState]);
+  }, [joinCallHandler]);
 
   const handleCopyInviteLink = useCallback(
     () =>
       Clipboard.setString(
-        `https://stream-calls-dogfood.vercel.app/join/${meetingCallID}/`,
+        `https://stream-calls-dogfood.vercel.app/join/${callID}/`,
       ),
-    [meetingCallID],
+    [callID],
   );
 
-  if (meetingCallID) {
-    return <ActivityIndicator style={[StyleSheet.absoluteFill]} />;
-  }
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
