@@ -5,11 +5,11 @@ on:
     branches:
       - main
       - demo-apps
+      - egress-composite
     paths:
       - ".github/workflows/deploy-sample-apps.yml"
       - "sample-apps/react/**"
       - "packages/client/**"
-      - "packages/angular-sdk/**"
       - "packages/react-sdk/**"
       - "packages/react-bindings/**"
       - "packages/styling/**"
@@ -30,6 +30,8 @@ jobs:
             project-id: prj_FNUiw2FtWJEDVHP5XttyLQmGw39n
           - name: react-zoom-clone
             project-id: prj_y2GjsUXNvW7MdQ0EpJVG0FBNNovL
+          - name: egress-composite
+            project-id: prj_y9JDolEfVxWC50c4h71UxIL7XNXz
 
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}

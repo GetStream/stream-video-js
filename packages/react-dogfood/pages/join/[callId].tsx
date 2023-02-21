@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import Gleap from 'gleap';
 import { useRouter } from 'next/router';
 import { authOptions } from '../api/auth/[...nextauth]';
 import { unstable_getServerSession } from 'next-auth';
@@ -18,17 +20,18 @@ type CallRoomProps = {
   user: User;
   userToken: string;
   apiKey: string;
+  gleapApiKey?: string;
 };
 
 const CallRoom = (props: CallRoomProps) => {
   const router = useRouter();
   const callId = router.query['callId'] as string;
 
-  const { userToken, user, apiKey } = props;
+  const { userToken, user, apiKey, gleapApiKey } = props;
 
   const client = useCreateStreamVideoClient({
     apiKey,
-    token: userToken,
+    tokenOrProvider: userToken,
     user,
   });
 
@@ -37,6 +40,12 @@ const CallRoom = (props: CallRoomProps) => {
     tokenOrProvider: userToken,
     userData: user,
   });
+
+  useEffect(() => {
+    if (gleapApiKey) {
+      Gleap.initialize(gleapApiKey);
+    }
+  }, [gleapApiKey]);
 
   if (!client) {
     return <LoadingScreen />;
@@ -79,6 +88,7 @@ export const getServerSideProps = async (
 
   const apiKey = process.env.STREAM_API_KEY as string;
   const secretKey = process.env.STREAM_SECRET_KEY as string;
+  const gleapApiKey = process.env.GLEAP_API_KEY as string | undefined;
 
   const userId = (
     (context.query['user_id'] as string) ||
@@ -99,6 +109,7 @@ export const getServerSideProps = async (
         name: userName,
         image: session.user?.image,
       },
+      gleapApiKey,
     } as CallRoomProps,
   };
 };

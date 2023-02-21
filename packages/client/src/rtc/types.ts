@@ -44,11 +44,6 @@ export interface StreamVideoParticipant extends Participant {
    * True when the participant is pinned
    */
   isPinned?: boolean;
-
-  /**
-   * User metadata (profile picture, name...)
-   */
-  user?: UserResponse;
 }
 
 export interface StreamVideoLocalParticipant extends StreamVideoParticipant {

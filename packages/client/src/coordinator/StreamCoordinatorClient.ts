@@ -69,6 +69,7 @@ export class StreamCoordinatorClient {
   };
 
   joinCall = async (id: string, type: string, data?: JoinCallRequest) => {
+    await this.client.connectionIdPromise;
     return this.client.post<JoinCallResponse>(`/join_call/${type}/${id}`, data);
   };
 

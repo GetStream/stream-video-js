@@ -1,4 +1,3 @@
-import { Batcher } from '../Batcher';
 import { Dispatcher } from '../rtc/Dispatcher';
 import { StreamVideoWriteableStateStore } from '../store';
 
@@ -8,26 +7,16 @@ import { StreamVideoWriteableStateStore } from '../store';
 export const watchParticipantJoined = (
   dispatcher: Dispatcher,
   store: StreamVideoWriteableStateStore,
-  userBatcher: Batcher<string>,
 ) => {
   return dispatcher.on('participantJoined', (e) => {
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
     const { participant } = e.eventPayload.participantJoined;
+
     if (!participant) return;
-
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
-
-    // FIXME: this part is being repeated in call.join event as well
-    const { users } = activeCall!.data;
-    const userData = users[participant.userId];
-    if (!userData) userBatcher.addToBatch(participant.userId);
 
     store.setCurrentValue(store.participantsSubject, (currentParticipants) => [
       ...currentParticipants,
-      {
-        ...participant,
-        user: userData,
-      },
+      participant,
     ]);
   });
 };

@@ -2,11 +2,11 @@
 import '@stream-io/video-styling/dist/css/styles.css';
 import 'stream-chat-react/dist/css/v2/index.css';
 import '../style/index.scss';
+import { ComponentType } from 'react';
 import Head from 'next/head';
 import { Session } from 'next-auth';
 import { SessionProvider } from 'next-auth/react';
 import { createTheme, CssBaseline, Stack, ThemeProvider } from '@mui/material';
-import { ComponentType } from 'react';
 
 const theme = createTheme({
   palette: {

@@ -26,7 +26,6 @@ import {
   createStatsReporter,
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
-import { Batcher } from '../Batcher';
 import { CallMetadata } from './CallMetadata';
 
 /**
@@ -52,14 +51,12 @@ export class Call {
    * @param data
    * @param options
    * @param stateStore
-   * @param userBatcher
    */
   constructor(
     data: CallMetadata,
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
     private readonly stateStore: StreamVideoWriteableStateStore,
-    private readonly userBatcher: Batcher<string>,
   ) {
     this.data = data;
     this.subscriber = createSubscriber({
@@ -81,7 +78,7 @@ export class Call {
     });
 
     const { dispatcher } = this.client;
-    registerEventHandlers(this, this.stateStore, dispatcher, this.userBatcher);
+    registerEventHandlers(this, this.stateStore, dispatcher);
 
     this.trackSubscriptionsSubject
       .pipe(debounceTime(1200))
@@ -122,7 +119,6 @@ export class Call {
 
     this.statsReporter.stop();
     this.subscriber.close();
-    this.userBatcher.clearBatch();
 
     this.publisher.stopPublishing();
     this.client.close();
@@ -153,21 +149,11 @@ export class Call {
           const { callState } = event.eventPayload.joinResponse;
           const currentParticipants = callState?.participants || [];
 
-          // get user data from the call envelope (invited participants)
-          const { users } = this.data;
-
-          // request user data for uninvited users
-          currentParticipants.forEach((participant) => {
-            const userData = users[participant.userId];
-            if (!userData) this.userBatcher.addToBatch(participant.userId);
-          });
-
           this.stateStore.setCurrentValue(
             this.stateStore.participantsSubject,
             currentParticipants.map<StreamVideoParticipant>((participant) => ({
               ...participant,
               isLoggedInUser: participant.sessionId === this.client.sessionId,
-              user: users[participant.userId],
             })),
           );
 

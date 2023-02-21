@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
   VideoHTMLAttributes,
 } from 'react';
 import {
@@ -10,6 +11,7 @@ import {
   SfuModels,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
+import clsx from 'clsx';
 import { VideoPlaceholder } from './VideoPlaceholder';
 import { Video } from './Video';
 
@@ -21,9 +23,11 @@ export const ActiveCallVideo = (
     call: Call;
     kind: 'video' | 'screen';
     participant: StreamVideoParticipant;
+    setVideoElementRef?: (element: HTMLElement | null) => void;
   },
 ) => {
-  const { call, kind, participant, ...rest } = props;
+  const { call, kind, participant, className, setVideoElementRef, ...rest } =
+    props;
   const { sessionId, videoStream, screenShareStream, publishedTracks } =
     participant;
 
@@ -76,12 +80,30 @@ export const ActiveCallVideo = (
     };
   }, [updateSubscription]);
 
+  const [isWideMode, setIsWideMode] = useState(true);
+  useEffect(() => {
+    if (!stream) return;
+    const calculateVideoRatio = () => {
+      const [track] = stream.getVideoTracks();
+      if (!track) return;
+
+      const { width = 0, height = 0 } = track.getSettings();
+      setIsWideMode(width > height);
+    };
+    const $videoEl = videoRef.current;
+    $videoEl?.addEventListener('play', calculateVideoRatio);
+    return () => {
+      $videoEl?.removeEventListener('play', calculateVideoRatio);
+    };
+  }, [stream]);
+
   if (!isPublishingTrack)
     return (
       <VideoPlaceholder
-        imageSrc={participant.user?.image}
-        name={participant.userId}
+        imageSrc={participant.image}
+        userId={participant.name || participant.userId}
         isSpeaking={participant.isSpeaking}
+        ref={setVideoElementRef}
       />
     );
 
@@ -89,9 +111,16 @@ export const ActiveCallVideo = (
     <Video
       {...rest}
       stream={stream}
+      className={clsx(className, {
+        'str_video__video--wide': isWideMode,
+        'str_video__video--tall': !isWideMode,
+      })}
       data-user-id={participant.userId}
       data-session-id={sessionId}
-      ref={videoRef}
+      ref={(ref) => {
+        videoRef.current = ref;
+        setVideoElementRef?.(ref);
+      }}
     />
   );
 };
