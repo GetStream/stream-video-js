@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^8.5.9",
-    "@types/yargs": "^17.0.17"
+    "@types/yargs": "^17.0.17",
+    "sass": "^1.58.3"
   }
 }
