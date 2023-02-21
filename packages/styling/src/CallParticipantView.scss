@@ -3,8 +3,7 @@
   width: 100%;
   max-width: 1280px;
   min-height: 0;
-  //max-height: 100%;
-   height: 100%;
+  max-height: 100%;
 
   @mixin video-border {
     border: 2px solid var(--str-video__primary-color);
@@ -51,8 +50,8 @@
 
   .str-video__participant_details {
     position: absolute;
-    left: 0.625rem;
-    bottom: 1.25rem;
+    left: 0.875rem;
+    bottom: 0.875rem;
     display: flex;
     align-items: center;
     gap: 0.3125rem;
