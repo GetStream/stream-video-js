@@ -93,6 +93,12 @@ export interface BroadcastSettings {
    * @memberof BroadcastSettings
    */
   enabled: boolean;
+  /**
+   *
+   * @type {HLSSettings}
+   * @memberof BroadcastSettings
+   */
+  hls: HLSSettings;
 }
 /**
  *
@@ -847,6 +853,31 @@ export interface GetOrCreateCallResponse {
 /**
  *
  * @export
+ * @interface HLSSettings
+ */
+export interface HLSSettings {
+  /**
+   *
+   * @type {boolean}
+   * @memberof HLSSettings
+   */
+  auto_on: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof HLSSettings
+   */
+  enabled: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof HLSSettings
+   */
+  quality_tracks: Array<string>;
+}
+/**
+ *
+ * @export
  * @interface ICEServer
  */
 export interface ICEServer {
@@ -1299,7 +1330,19 @@ export interface RecordSettings {
    * @type {boolean}
    * @memberof RecordSettings
    */
-  enabled: boolean;
+  audio_only: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof RecordSettings
+   */
+  mode: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RecordSettings
+   */
+  quality: string;
 }
 /**
  *
@@ -1312,7 +1355,19 @@ export interface RecordSettingsRequest {
    * @type {boolean}
    * @memberof RecordSettingsRequest
    */
-  enabled?: boolean;
+  audio_only?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof RecordSettingsRequest
+   */
+  mode?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RecordSettingsRequest
+   */
+  quality?: string;
 }
 /**
  *
@@ -1414,7 +1469,7 @@ export interface SendEventRequest {
    * @type {string}
    * @memberof SendEventRequest
    */
-  event_type: string;
+  type: string;
 }
 /**
  *

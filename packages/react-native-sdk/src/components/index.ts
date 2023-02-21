@@ -10,3 +10,4 @@ export * from './CallControlsView';
 export * from './StreamMeeting';
 export * from './StreamCall';
 export * from './CallParticipantsInfoView';
+export * from './LobbyView';

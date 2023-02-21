@@ -507,8 +507,7 @@ export class StableWSConnection {
       user_details: {
         id: user.id,
         name: user.name,
-        username: user.username,
-        role: user.role,
+        image: user.image,
       },
     };
 

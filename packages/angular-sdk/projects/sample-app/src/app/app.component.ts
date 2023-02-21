@@ -1,5 +1,8 @@
 import { Component, NgZone, OnInit } from '@angular/core';
-import { StreamVideoService } from '@stream-io/video-angular-sdk';
+import {
+  ParticipantListService,
+  StreamVideoService,
+} from '@stream-io/video-angular-sdk';
 import { environment } from '../environments/environment';
 import { distinctUntilKeyChanged } from 'rxjs';
 
@@ -12,20 +15,36 @@ import { distinctUntilKeyChanged } from 'rxjs';
           Create or join call
         </button>
       </div>
-      <stream-call>
-        <stream-device-settings call-header-end></stream-device-settings>
-        <stream-stage call-stage></stream-stage>
-        <stream-call-controls call-controls> </stream-call-controls>
-      </stream-call>
+      <div class="call-layout">
+        <stream-call class="call">
+          <stream-device-settings call-header-end></stream-device-settings>
+          <stream-stage call-stage></stream-stage>
+          <stream-call-controls call-controls>
+            <stream-toggle-participant-list
+              call-controls-end
+            ></stream-toggle-participant-list>
+          </stream-call-controls>
+        </stream-call>
+        <stream-call-participant-list
+          *ngIf="isParticipantListVisible"
+          class="participant-list"
+        >
+          <stream-invite-link-button
+            participant-list-footer
+          ></stream-invite-link-button>
+        </stream-call-participant-list>
+      </div>
     </div>
   `,
 })
 export class AppComponent implements OnInit {
   callId?: string;
+  isParticipantListVisible = false;
 
   constructor(
     private streamVideoService: StreamVideoService,
     private ngZone: NgZone,
+    private participantListService: ParticipantListService,
   ) {
     this.streamVideoService.participants$
       .pipe(distinctUntilKeyChanged('length'))
@@ -34,6 +53,9 @@ export class AppComponent implements OnInit {
           `There are ${participants?.length || 0} participant(s) in the call`,
         ),
       );
+    this.participantListService.participantListStateSubject.subscribe((s) => {
+      this.isParticipantListVisible = s === 'open';
+    });
   }
 
   async ngOnInit() {

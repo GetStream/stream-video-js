@@ -104,6 +104,15 @@
         mask-image: var(--str-video__icon--participants);
         -webkit-mask-image: var(--str-video__icon--participants);
       }
+
+      &-chat {
+        mask-image: var(--str-video__icon--chat);
+        -webkit-mask-image: var(--str-video__icon--chat);
+      }
     }
+  }
+
+  .str-video__call-controls__button--enabled {
+    background-color: var(--str-video__text-color3);
   }
 }

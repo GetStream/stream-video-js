@@ -590,14 +590,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/generator@npm:^7.14.0, @babel/generator@npm:^7.18.10, @babel/generator@npm:^7.20.7, @babel/generator@npm:^7.7.2":
-  version: 7.20.7
-  resolution: "@babel/generator@npm:7.20.7"
+"@babel/generator@npm:^7.14.0, @babel/generator@npm:^7.18.10, @babel/generator@npm:^7.20.7, @babel/generator@npm:^7.21.0, @babel/generator@npm:^7.7.2":
+  version: 7.21.1
+  resolution: "@babel/generator@npm:7.21.1"
   dependencies:
-    "@babel/types": ^7.20.7
+    "@babel/types": ^7.21.0
     "@jridgewell/gen-mapping": ^0.3.2
+    "@jridgewell/trace-mapping": ^0.3.17
     jsesc: ^2.5.1
-  checksum: 84b6983ffdb50c80c1c2e3f3c32617a7133d8effd1065f3e0f9bba188a7d54ab42a4dd5e42b61b843c65f9dd1aa870036ff0f848ebd42707aaa8a2b6d31d04f5
+  checksum: 69085a211ff91a7a608ee3f86e6fcb9cf5e724b756d792a713b0c328a671cd3e423e1ef1b12533f366baba0616caffe0a7ba9d328727eab484de5961badbef00
   languageName: node
   linkType: hard
 
@@ -696,13 +697,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/helper-function-name@npm:^7.18.9, @babel/helper-function-name@npm:^7.19.0":
-  version: 7.19.0
-  resolution: "@babel/helper-function-name@npm:7.19.0"
+"@babel/helper-function-name@npm:^7.18.9, @babel/helper-function-name@npm:^7.19.0, @babel/helper-function-name@npm:^7.21.0":
+  version: 7.21.0
+  resolution: "@babel/helper-function-name@npm:7.21.0"
   dependencies:
-    "@babel/template": ^7.18.10
-    "@babel/types": ^7.19.0
-  checksum: eac1f5db428ba546270c2b8d750c24eb528b8fcfe50c81de2e0bdebf0e20f24bec688d4331533b782e4a907fad435244621ca2193cfcf80a86731299840e0f6e
+    "@babel/template": ^7.20.7
+    "@babel/types": ^7.21.0
+  checksum: d63e63c3e0e3e8b3138fa47b0cd321148a300ef12b8ee951196994dcd2a492cc708aeda94c2c53759a5c9177fffaac0fd8778791286746f72a000976968daf4e
   languageName: node
   linkType: hard
 
@@ -857,7 +858,7 @@ __metadata:
   resolution: "@babel/helpers@npm:7.20.13"
   dependencies:
     "@babel/template": ^7.20.7
-    "@babel/traverse": ^7.20.13
+    "@babel/traverse": ^7.20.7
     "@babel/types": ^7.20.7
   checksum: d62076fa834f342798f8c3fd7aec0870cc1725d273d99e540cbaa8d6c3ed10258228dd14601c8e66bfeabbb9424c3b31090ecc467fe855f7bd72c4734df7fb09
   languageName: node
@@ -874,12 +875,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/parser@npm:^7.1.0, @babel/parser@npm:^7.13.16, @babel/parser@npm:^7.14.0, @babel/parser@npm:^7.14.7, @babel/parser@npm:^7.18.10, @babel/parser@npm:^7.20.13, @babel/parser@npm:^7.20.7":
-  version: 7.20.13
-  resolution: "@babel/parser@npm:7.20.13"
+"@babel/parser@npm:^7.1.0, @babel/parser@npm:^7.13.16, @babel/parser@npm:^7.14.0, @babel/parser@npm:^7.14.7, @babel/parser@npm:^7.18.10, @babel/parser@npm:^7.20.7, @babel/parser@npm:^7.21.0":
+  version: 7.21.1
+  resolution: "@babel/parser@npm:7.21.1"
   bin:
     parser: ./bin/babel-parser.js
-  checksum: 7eb2e3d9d9ad5e24b087c88d137f5701d94f049e28b9dce9f3f5c6d4d9b06a0d7c43b9106f1c02df8a204226200e0517de4bc81a339768a4ebd4c59107ea93a4
+  checksum: a564cff6dec4201a611d1f2ae5af8d7436ce80550e75a77ee72dca6b094df6188b5a4ccfae6a98c85991b56a51e6c48159e466cc5a374c7a37af706fcb5a6bc2
   languageName: node
   linkType: hard
 
@@ -2199,32 +2200,32 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/traverse@npm:^7.1.0, @babel/traverse@npm:^7.14.0, @babel/traverse@npm:^7.16.0, @babel/traverse@npm:^7.18.10, @babel/traverse@npm:^7.19.1, @babel/traverse@npm:^7.20.10, @babel/traverse@npm:^7.20.12, @babel/traverse@npm:^7.20.13, @babel/traverse@npm:^7.20.5, @babel/traverse@npm:^7.7.2, @babel/traverse@npm:^7.7.4":
-  version: 7.20.13
-  resolution: "@babel/traverse@npm:7.20.13"
+"@babel/traverse@npm:^7.1.0, @babel/traverse@npm:^7.14.0, @babel/traverse@npm:^7.16.0, @babel/traverse@npm:^7.18.10, @babel/traverse@npm:^7.19.1, @babel/traverse@npm:^7.20.10, @babel/traverse@npm:^7.20.12, @babel/traverse@npm:^7.20.5, @babel/traverse@npm:^7.20.7, @babel/traverse@npm:^7.7.2, @babel/traverse@npm:^7.7.4":
+  version: 7.21.0
+  resolution: "@babel/traverse@npm:7.21.0"
   dependencies:
     "@babel/code-frame": ^7.18.6
-    "@babel/generator": ^7.20.7
+    "@babel/generator": ^7.21.0
     "@babel/helper-environment-visitor": ^7.18.9
-    "@babel/helper-function-name": ^7.19.0
+    "@babel/helper-function-name": ^7.21.0
     "@babel/helper-hoist-variables": ^7.18.6
     "@babel/helper-split-export-declaration": ^7.18.6
-    "@babel/parser": ^7.20.13
-    "@babel/types": ^7.20.7
+    "@babel/parser": ^7.21.0
+    "@babel/types": ^7.21.0
     debug: ^4.1.0
     globals: ^11.1.0
-  checksum: 30ca6e0bd18233fda48fa09315efd14dfc61dcf5b8fa3712b343bfc61b32bc63b5e85ea1773cc9576c9b293b96f46b4589aaeb0a52e1f3eeac4edc076d049fc7
+  checksum: 99241b22db509d2f01a9af51bfab1d68e73cd3b66bbc2560f0f65e49880f68a05ead913e72a4e464152430a027f0c7822f126d6f1bcc3bc3e01ef8b8558a6dc6
   languageName: node
   linkType: hard
 
-"@babel/types@npm:^7.0.0, @babel/types@npm:^7.12.6, @babel/types@npm:^7.18.10, @babel/types@npm:^7.18.6, @babel/types@npm:^7.18.9, @babel/types@npm:^7.19.0, @babel/types@npm:^7.20.0, @babel/types@npm:^7.20.2, @babel/types@npm:^7.20.5, @babel/types@npm:^7.20.7, @babel/types@npm:^7.3.0, @babel/types@npm:^7.3.3, @babel/types@npm:^7.4.4, @babel/types@npm:^7.8.3":
-  version: 7.20.7
-  resolution: "@babel/types@npm:7.20.7"
+"@babel/types@npm:^7.0.0, @babel/types@npm:^7.12.6, @babel/types@npm:^7.18.10, @babel/types@npm:^7.18.6, @babel/types@npm:^7.18.9, @babel/types@npm:^7.19.0, @babel/types@npm:^7.20.0, @babel/types@npm:^7.20.2, @babel/types@npm:^7.20.5, @babel/types@npm:^7.20.7, @babel/types@npm:^7.21.0, @babel/types@npm:^7.3.0, @babel/types@npm:^7.3.3, @babel/types@npm:^7.4.4, @babel/types@npm:^7.8.3":
+  version: 7.21.0
+  resolution: "@babel/types@npm:7.21.0"
   dependencies:
     "@babel/helper-string-parser": ^7.19.4
     "@babel/helper-validator-identifier": ^7.19.1
     to-fast-properties: ^2.0.0
-  checksum: b39af241f0b72bba67fd6d0d23914f6faec8c0eba8015c181cbd5ea92e59fc91a52a1ab490d3520c7dbd19ddb9ebb76c476308f6388764f16d8201e37fae6811
+  checksum: dbcdda202b3a2bfd59e4de880ce38652f1f8957893a9751be069ac86e47ad751222070fe6cd92220214d77973f1474e4e1111c16dc48199dfca1489c0ee8c0c5
   languageName: node
   linkType: hard
 
@@ -3480,7 +3481,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jridgewell/trace-mapping@npm:^0.3.12, @jridgewell/trace-mapping@npm:^0.3.14, @jridgewell/trace-mapping@npm:^0.3.9":
+"@jridgewell/trace-mapping@npm:^0.3.12, @jridgewell/trace-mapping@npm:^0.3.14, @jridgewell/trace-mapping@npm:^0.3.17, @jridgewell/trace-mapping@npm:^0.3.9":
   version: 0.3.17
   resolution: "@jridgewell/trace-mapping@npm:0.3.17"
   dependencies:
@@ -4700,6 +4701,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@remix-run/router@npm:1.3.0":
+  version: 1.3.0
+  resolution: "@remix-run/router@npm:1.3.0"
+  checksum: 5141e9703d29cd29334ccb9e5f22ee6973bf121574e06509489b7623a12549bd188cfc322eac1263f913353087f132a641579280e94558f346adc2b0b65080d0
+  languageName: node
+  linkType: hard
+
 "@rgrove/parse-xml@npm:^3.0.0":
   version: 3.0.0
   resolution: "@rgrove/parse-xml@npm:3.0.0"
@@ -5457,10 +5465,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/stream-chat-css@npm:^3.7.1":
-  version: 3.7.1
-  resolution: "@stream-io/stream-chat-css@npm:3.7.1"
-  checksum: 75b68ad371454adb80296642c51eb71c14549c5fe9db23814cca7b8efb5b64b148d37e362cbf4752d0e7238a5e2f56db7eaff8b97462e15eab1b291110367dad
+"@stream-io/stream-chat-css@npm:^3.7.2":
+  version: 3.9.0
+  resolution: "@stream-io/stream-chat-css@npm:3.9.0"
+  checksum: 1c83ef6ad2d61504c0650d95c14274c50f83f3cfc71adb3062ad917e2c897a67868aaf51defa158394064c833910953ff121602d49394f2625b462d94f39cc17
   languageName: node
   linkType: hard
 
@@ -5564,15 +5572,15 @@ __metadata:
     "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
-    "@types/jsonwebtoken": ^9.0.1
     "@types/yargs": ^17.0.17
     clsx: ^1.2.1
-    jsonwebtoken: ^9.0.0
     nanoid: ^4.0.1
     next: ^12.3.4
     next-auth: ^4.17.0
     react: ^18.2.0
     react-dom: ^18.2.0
+    stream-chat: ^8.3.0
+    stream-chat-react: ^10.5.0
     yargs: ^17.6.2
   languageName: unknown
   linkType: soft
@@ -5721,6 +5729,33 @@ __metadata:
     "@types/rimraf": ^3.0.2
     rimraf: ^3.0.2
     sass: ^1.56.1
+  languageName: unknown
+  linkType: soft
+
+"@stream-io/zoom-clone-react@workspace:sample-apps/react/zoom-clone":
+  version: 0.0.0-use.local
+  resolution: "@stream-io/zoom-clone-react@workspace:sample-apps/react/zoom-clone"
+  dependencies:
+    "@stream-io/video-client": "workspace:^"
+    "@stream-io/video-react-bindings": "workspace:^"
+    "@stream-io/video-react-sdk": "workspace:^"
+    "@stream-io/video-styling": "workspace:^"
+    "@types/react": ^18.0.26
+    "@types/react-dom": ^18.0.9
+    "@vitejs/plugin-react": ^3.0.0
+    autoprefixer: ^10.4.13
+    clsx: ^1.2.1
+    nanoid: ^4.0.0
+    postcss: ^8.4.21
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    react-router-dom: ^6.7.0
+    rxjs: ^7.8.0
+    stream-chat: ^8.2.1
+    stream-chat-react: ^10.5.0
+    tailwindcss: ^3.2.4
+    typescript: ^4.9.3
+    vite: ^4.0.0
   languageName: unknown
   linkType: soft
 
@@ -16951,6 +16986,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"linkifyjs@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "linkifyjs@npm:4.1.0"
+  checksum: 290931a320052a26bd3b28ccb7794c8b6b607d639a3c987e63b28cf2885e67bc748a87c390316c4786dc6e3e0acf59385345df1b03fb6206dcaff18c04382fa8
+  languageName: node
+  linkType: hard
+
 "load-script@npm:^1.0.0":
   version: 1.0.0
   resolution: "load-script@npm:1.0.0"
@@ -18731,7 +18773,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:^4.0.1":
+"nanoid@npm:^4.0.0, nanoid@npm:^4.0.1":
   version: 4.0.1
   resolution: "nanoid@npm:4.0.1"
   bin:
@@ -21169,7 +21211,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.2.14, postcss@npm:^8.3.5, postcss@npm:^8.3.7, postcss@npm:^8.4.18, postcss@npm:^8.4.20, postcss@npm:^8.4.4, postcss@npm:^8.4.7, postcss@npm:^8.4.8":
+"postcss@npm:^8.2.14, postcss@npm:^8.3.5, postcss@npm:^8.3.7, postcss@npm:^8.4.18, postcss@npm:^8.4.20, postcss@npm:^8.4.21, postcss@npm:^8.4.4, postcss@npm:^8.4.7, postcss@npm:^8.4.8":
   version: 8.4.21
   resolution: "postcss@npm:8.4.21"
   dependencies:
@@ -22087,9 +22129,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-player@npm:^2.10.1":
-  version: 2.11.0
-  resolution: "react-player@npm:2.11.0"
+"react-player@npm:2.10.1":
+  version: 2.10.1
+  resolution: "react-player@npm:2.10.1"
   dependencies:
     deepmerge: ^4.0.0
     load-script: ^1.0.0
@@ -22098,7 +22140,7 @@ __metadata:
     react-fast-compare: ^3.0.1
   peerDependencies:
     react: ">=16.6.0"
-  checksum: 2ee0271b3a80a6caf96912c689f67c55ea7de940511d1da83c8c323e6f6a9556988004fe7f093d801e8778760aede0c64137d6b0a0b77882a0dd17f77f38dec1
+  checksum: 43d78c6cb6093962ebdee6fd0b95cac435de9541b8a2cf2fec3e91bc4b40b35c06e6bee87294f58e5b342cba5561d09164230f45b5c2b31477eb94e122e5370b
   languageName: node
   linkType: hard
 
@@ -22134,6 +22176,30 @@ __metadata:
   version: 0.4.3
   resolution: "react-refresh@npm:0.4.3"
   checksum: 58d3b899ede4c890b1d06a2d02254a77d1c0dea400be139940e47b1c451ff1c4cbb3ca5d0a9d6ee9574e570075ab6c1bef15e77b7270d4a6f571847d2b26f4fc
+  languageName: node
+  linkType: hard
+
+"react-router-dom@npm:^6.7.0":
+  version: 6.7.0
+  resolution: "react-router-dom@npm:6.7.0"
+  dependencies:
+    "@remix-run/router": 1.3.0
+    react-router: 6.7.0
+  peerDependencies:
+    react: ">=16.8"
+    react-dom: ">=16.8"
+  checksum: b5175b0c0560a45ee5b1f924af038b48bb29711839cbe65e2859a299f74740598bd90db438e205517b9568e7c5e6e6cb22fe1554f9763d60f6e347a8883940f9
+  languageName: node
+  linkType: hard
+
+"react-router@npm:6.7.0":
+  version: 6.7.0
+  resolution: "react-router@npm:6.7.0"
+  dependencies:
+    "@remix-run/router": 1.3.0
+  peerDependencies:
+    react: ">=16.8"
+  checksum: 6dda5f084e04355c8deacb631fcd8472f3590dbd54d19175401aa1ed6bc6a2a244cd4d70cdb4fc81d2d800d75923461189e9e6a853c1838af78eff3021e4efbe
   languageName: node
   linkType: hard
 
@@ -23015,12 +23081,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:^7.5.4, rxjs@npm:^7.5.5":
-  version: 7.6.0
-  resolution: "rxjs@npm:7.6.0"
+"rxjs@npm:^7.5.4, rxjs@npm:^7.5.5, rxjs@npm:^7.8.0":
+  version: 7.8.0
+  resolution: "rxjs@npm:7.8.0"
   dependencies:
     tslib: ^2.1.0
-  checksum: b3abbbfe1ddfd06fca9314b83cbd13bcddc3320429218136f75c79a4802ac430dd13873364aac1ded54fd457f8c77df332d205a92d8a1c61656565bb718c50af
+  checksum: 61b4d4fd323c1043d8d6ceb91f24183b28bcf5def4f01ca111511d5c6b66755bc5578587fe714ef5d67cf4c9f2e26f4490d4e1d8cabf9bd5967687835e9866a2
   languageName: node
   linkType: hard
 
@@ -24054,13 +24120,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react@npm:^10.4.2":
-  version: 10.4.2
-  resolution: "stream-chat-react@npm:10.4.2"
+"stream-chat-react@npm:^10.4.2, stream-chat-react@npm:^10.5.0":
+  version: 10.6.0
+  resolution: "stream-chat-react@npm:10.6.0"
   dependencies:
     "@braintree/sanitize-url": 6.0.0
     "@popperjs/core": ^2.11.5
-    "@stream-io/stream-chat-css": ^3.7.1
+    "@stream-io/stream-chat-css": ^3.7.2
     "@stream-io/transliterate": ^1.5.5
     clsx: ^1.1.1
     dayjs: ^1.10.4
@@ -24069,7 +24135,7 @@ __metadata:
     hast-util-find-and-replace: ^4.1.2
     i18next: ^21.6.14
     isomorphic-ws: ^4.0.1
-    linkifyjs: ^2.1.9
+    linkifyjs: ^4.1.0
     lodash.debounce: ^4.0.8
     lodash.throttle: ^4.1.1
     lodash.uniqby: ^4.7.0
@@ -24083,7 +24149,7 @@ __metadata:
     react-image-gallery: ^1.2.7
     react-is: ^18.1.0
     react-markdown: ^8.0.3
-    react-player: ^2.10.1
+    react-player: 2.10.1
     react-popper: ^2.3.0
     react-textarea-autosize: ^8.3.0
     react-virtuoso: ^2.16.5
@@ -24094,13 +24160,13 @@ __metadata:
   peerDependencies:
     react: ^18.0.0 || ^17.0.0 || ^16.8.0
     react-dom: ^18.0.0 || ^17.0.0 || ^16.8.0
-    stream-chat: ^8.0.0 || ^7.1.0
+    stream-chat: ^8.0.0
   dependenciesMeta:
     "@stream-io/transliterate":
       optional: true
     mml-react:
       optional: true
-  checksum: e1e6fbb208d72421ddf11ad6e3b7c917f5402d96b81d7a48719841e89a4df8aa27eca73e24793846e4629f71ba7ae58cf1ab3ed4b5606d3fe8947a148533c54d
+  checksum: be7d2cb378ae0b4bc4057fd9f3633e02331f363e026418a46206332125a12d92bab0b2ac87f38d9fc5e3c42873e9ae3dcaeb8cdd9d762448a25853376d7694c3
   languageName: node
   linkType: hard
 
@@ -24121,7 +24187,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat@npm:^8.1.3, stream-chat@npm:^8.2.1":
+"stream-chat@npm:^8.1.3, stream-chat@npm:^8.2.1, stream-chat@npm:^8.3.0":
   version: 8.3.0
   resolution: "stream-chat@npm:8.3.0"
   dependencies:
@@ -24610,7 +24676,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwindcss@npm:^3.0.2":
+"tailwindcss@npm:^3.0.2, tailwindcss@npm:^3.2.4":
   version: 3.2.4
   resolution: "tailwindcss@npm:3.2.4"
   dependencies:
@@ -25347,7 +25413,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.9.5":
+"typescript@npm:^4.9.3, typescript@npm:^4.9.5":
   version: 4.9.5
   resolution: "typescript@npm:4.9.5"
   bin:
@@ -25377,7 +25443,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
+"typescript@patch:typescript@^4.9.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
   version: 4.9.5
   resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
   bin:

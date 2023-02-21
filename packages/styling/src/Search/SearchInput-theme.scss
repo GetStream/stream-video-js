@@ -2,11 +2,17 @@
 
 .str-video {
   --str-video__search-input__container--color: var(--str-video__text-color1);
-  --str-video__search-input__container--background-color: var(--str-video__background-color0);
-  --str-video__search-input__container--border-radius: var(--str-video__border-radius-circle);
-  --str-video__search-input__container--border-block-start: 1px solid transparent;
+  --str-video__search-input__container--background-color: var(
+    --str-video__background-color0
+  );
+  --str-video__search-input__container--border-radius: var(
+    --str-video__border-radius-circle
+  );
+  --str-video__search-input__container--border-block-start: 1px solid
+    transparent;
   --str-video__search-input__container--border-block-end: 1px solid transparent;
-  --str-video__search-input__container--border-inline-start: 1px solid transparent;
+  --str-video__search-input__container--border-inline-start: 1px solid
+    transparent;
   --str-video__search-input__container--border-inline-end: 1px solid transparent;
 
   --str-video__search-input__placeholder-color: var(--str-video__text-color2);
@@ -14,7 +20,7 @@
   --str-video__search-input__icon--color: var(--str-video__text-color1);
 }
 
-.str-video__search-input__container.active {
+.str-video__search-input__container.str-video__search-input__container--active {
   border-color: var(--str-video__primary-color);
 }
 .str-video__search-input__container {
@@ -34,21 +40,20 @@
 
   .str-video__search-input__icon {
     @include utils.apply-mask-image(
-        var(--str-video__icon--magnifier-glass),
-        var(--str-video__search-input__icon--color),
-        0.75rem 0.75rem
-    )
+      var(--str-video__icon--magnifier-glass),
+      var(--str-video__search-input__icon--color),
+      0.75rem 0.75rem
+    );
   }
   .str-video__search-input__clear-btn {
     background-color: transparent;
 
     .str-video__search-input__icon--active {
       @include utils.apply-mask-image(
-          var(--str-video__icon--close),
-          var(--str-video__search-input__icon--color),
-          0.75rem 0.75rem
-      )
+        var(--str-video__icon--close),
+        var(--str-video__search-input__icon--color),
+        0.75rem 0.75rem
+      );
     }
   }
-
 }

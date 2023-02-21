@@ -16,6 +16,9 @@ import { ToggleStatisticsComponent } from './call-controls/toggle-statistics/tog
 import { DeviceSettingsComponent } from './call-controls/device-settings/device-settings.component';
 import { CallParticipantsComponent } from './call-participants/call-participants.component';
 import { CallParticipantsScreenshareComponent } from './call-participants-screenshare/call-participants-screenshare.component';
+import { CallParticipantListComponent } from './call-participant-list/call-participant-list.component';
+import { ToggleParticipantListComponent } from './call-controls/toggle-participant-list/toggle-participant-list.component';
+import { InviteLinkButtonComponent } from './invite-link-button/invite-link-button.component';
 
 /**
  * This Angular Module is the entry point of the SDK, import this Angular module in your application, all services and UI components defined by the SDK belong to this module.
@@ -36,6 +39,9 @@ import { CallParticipantsScreenshareComponent } from './call-participants-screen
     ToggleScreenshareComponent,
     EndCallComponent,
     ToggleStatisticsComponent,
+    CallParticipantListComponent,
+    ToggleParticipantListComponent,
+    InviteLinkButtonComponent,
   ],
   imports: [CommonModule, NgxPopperjsModule, NgChartsModule],
   exports: [
@@ -44,6 +50,18 @@ import { CallParticipantsScreenshareComponent } from './call-participants-screen
     CallControlsComponent,
     StageComponent,
     DeviceSettingsComponent,
+    CallStatisticsComponent,
+    CallParticipantsComponent,
+    CallParticipantsScreenshareComponent,
+    ToggleRecordingComponent,
+    ToggleAudioComponent,
+    ToggleVideoComponent,
+    ToggleScreenshareComponent,
+    EndCallComponent,
+    ToggleStatisticsComponent,
+    CallParticipantListComponent,
+    ToggleParticipantListComponent,
+    InviteLinkButtonComponent,
   ],
 })
 export class StreamVideoModule {}
