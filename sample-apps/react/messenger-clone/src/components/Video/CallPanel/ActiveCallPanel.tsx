@@ -1,8 +1,4 @@
-import {
-  ParticipantBox,
-  useMediaDevices,
-  useMediaPublisher,
-} from '@stream-io/video-react-sdk';
+import { ParticipantBox, useMediaDevices } from '@stream-io/video-react-sdk';
 import {
   Call,
   StreamVideoLocalParticipant,
@@ -25,13 +21,7 @@ export const ActiveCallPanel = ({
 }: ActiveCallPanelProps) => {
   const { imageUrl } = useConnectedUser();
 
-  const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
-
-  const { publishAudioStream, publishVideoStream } = useMediaPublisher({
-    call: activeCall,
-    audioDeviceId: selectedAudioDeviceId,
-    videoDeviceId: selectedVideoDeviceId,
-  });
+  const { publishAudioStream, publishVideoStream } = useMediaDevices();
 
   const remoteParticipantImage = remoteParticipant
     ? Object.values(activeCall.data.users).find(
