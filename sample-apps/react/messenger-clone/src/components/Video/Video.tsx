@@ -24,7 +24,7 @@ export const Video = ({
   const client = useCreateStreamVideoClient({
     callConfig: CALL_CONFIG.ring,
     apiKey: import.meta.env.VITE_VIDEO_API_KEY,
-    token: import.meta.env.VITE_VIDEO_USER_TOKEN ?? token,
+    tokenOrProvider: import.meta.env.VITE_VIDEO_USER_TOKEN ?? token,
     user,
   });
 

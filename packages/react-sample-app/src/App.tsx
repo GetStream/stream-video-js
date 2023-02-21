@@ -72,7 +72,7 @@ const App = () => {
 
   const client = useCreateStreamVideoClient({
     apiKey: 'w6yaq5388uym', // see <video>/data/fixtures/apps.yaml for API key/secret
-    token: participants[currentUser],
+    tokenOrProvider: participants[currentUser],
     user,
   });
 
