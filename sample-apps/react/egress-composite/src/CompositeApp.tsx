@@ -18,7 +18,7 @@ export const CompositeApp = () => {
   }
   const client = useCreateStreamVideoClient({
     apiKey: config.apiKey,
-    token: config.token,
+    tokenOrProvider: config.token,
     options,
     user: {
       id: config.userId,

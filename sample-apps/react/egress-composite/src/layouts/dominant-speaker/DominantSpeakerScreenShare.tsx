@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import {
   ParticipantBox,
   SfuModels,
@@ -36,7 +35,7 @@ export const DominantSpeakerScreenShare = () => {
       />
       <span>
         Presenter:{' '}
-        {screenSharingParticipant.user?.name || screenSharingParticipant.userId}
+        {screenSharingParticipant.name || screenSharingParticipant.userId}
       </span>
       <div className="current-speaker">
         <ParticipantBox
