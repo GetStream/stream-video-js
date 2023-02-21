@@ -23,7 +23,7 @@ export const CallHeaderTitle = ({ title }: CallTitleProps) => {
       'Call with: ' +
       remoteParticipants
         .slice(0, 3)
-        .map((p) => p.user?.name)
+        .map((p) => p.user?.name || p.userId)
         .join(', ')
     );
   }, [connectedUser, remoteParticipants]);

@@ -1,5 +1,12 @@
 import { signIn, useSession } from 'next-auth/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ChangeEventHandler,
+  KeyboardEventHandler,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useRouter } from 'next/router';
 
 import PhotoCameraFrontIcon from '@mui/icons-material/PhotoCameraFront';
@@ -45,14 +52,14 @@ export default function Home() {
 }
 
 const JoinCall = () => {
-  const ref = useRef<HTMLInputElement>();
+  const ref = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
   const [disabled, setDisabled] = useState(true);
   const onJoin = useCallback(() => {
     router.push(`join/${ref.current!.value}`);
   }, [ref, router]);
 
-  const handleChange = useCallback(
+  const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback(
     (e) =>
       setDisabled(() => {
         return e.target.value.length < 3;
@@ -60,7 +67,7 @@ const JoinCall = () => {
     [],
   );
 
-  const handleKeyUp = useCallback(
+  const handleKeyUp: KeyboardEventHandler = useCallback(
     (e) => {
       if (disabled) return;
       if (e.key === 'Enter') {

@@ -2,13 +2,11 @@
 import '@stream-io/video-styling/dist/css/styles.css';
 import 'stream-chat-react/dist/css/v2/index.css';
 import '../style/index.scss';
-import '../style/chat.css';
 import Head from 'next/head';
 import { Session } from 'next-auth';
-import Image from 'next/image';
-import Link from 'next/link';
 import { SessionProvider } from 'next-auth/react';
 import { createTheme, CssBaseline, Stack, ThemeProvider } from '@mui/material';
+import { ComponentType } from 'react';
 
 const theme = createTheme({
   palette: {
@@ -28,7 +26,7 @@ const theme = createTheme({
 });
 
 type AppProps = {
-  Component: React.ComponentType;
+  Component: ComponentType;
   pageProps: {
     session: Session;
   };
@@ -56,30 +54,3 @@ export default function App({
     </SessionProvider>
   );
 }
-
-// X todo: move UserInfo
-
-// const UserInfo = () => {
-//   const { data: theSession } = useSession();
-//   if (!theSession || !theSession.user) {
-//     return null;
-//   }
-//   return (
-//     <Stack
-//       direction="row"
-//       spacing={2}
-//       divider={<Divider orientation="vertical" />}
-//       sx={{ alignItems: 'center' }}
-//     >
-//       <Box data-testid="username">{theSession.user.email}</Box>
-//       <Button
-//         data-testid="sign-out-button"
-//         size="small"
-//         variant="text"
-//         onClick={() => signOut()}
-//       >
-//         Sign out
-//       </Button>
-//     </Stack>
-//   );
-// };

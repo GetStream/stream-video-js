@@ -6,11 +6,20 @@ import {
 } from '@stream-io/video-react-bindings';
 import {
   CallParticipantsList,
+  CallStatsButton,
+  CancelCallButton,
+  CompositeButton,
   DeviceSettings,
+  IconButton,
   LoadingIndicator,
+  RecordCallButton,
+  ScreenShareButton,
+  SpeakingWhileMutedNotification,
   Stage,
+  ToggleAudioPublishingButton,
+  ToggleCameraPublishingButton,
+  ToggleParticipantListButton,
 } from '@stream-io/video-react-sdk';
-import { CallControls } from './CallControls';
 import { IconInviteLinkButton, InviteLinkButton } from './InviteLinkButton';
 import { GetInviteLinkButton } from '@stream-io/video-react-sdk/dist/src/components/CallParticipantsList/GetInviteLinkButton';
 import { CallHeaderTitle } from './CallHeaderTitle';
@@ -19,23 +28,21 @@ import { Button, Stack, Typography } from '@mui/material';
 import { StreamChat } from 'stream-chat';
 
 import {
-  ChatWrapper,
   ChatUI,
-  UnreadCountBadge,
+  ChatWrapper,
   NewMessageNotification,
+  UnreadCountBadge,
 } from '.';
+import { useWatchChannel } from '../hooks';
 
 const contents = {
   'error-join': {
     heading: 'Failed to join the call',
-    buttonText: 'Return home',
   },
   'error-leave': {
     heading: 'Error when disconnecting',
-    buttonText: '< Continue home',
   },
 };
-
 
 export const MeetingUI = ({
   chatClient,
@@ -67,14 +74,10 @@ export const MeetingUI = ({
   const hideParticipantList = useCallback(() => setShowParticipants(false), []);
 
   const onJoin = useCallback(async () => {
+    if (!client) return;
     setShow('loading');
     try {
-      await client.joinCall({
-        id: callId,
-        type: callType,
-        // FIXME: OL optional, but it is marked as required in proto
-        datacenterId: '',
-      });
+      await client.joinCall(callId, callType);
       setShow('active-call');
     } catch (e) {
       console.error(e);
@@ -83,9 +86,10 @@ export const MeetingUI = ({
   }, [callId, callType, client]);
 
   const onLeave = useCallback(async () => {
+    if (!client) return;
     setShow('loading');
     try {
-      await client.cancelCall(`${callType}:${callId}`);
+      await client.cancelCall(callId, callType);
       setShow('lobby');
     } catch (e) {
       console.error(e);
@@ -93,48 +97,26 @@ export const MeetingUI = ({
     }
   }, [client, callType, callId]);
 
-  if (show.match('error')) {
+  if (show === 'error-join' || show === 'error-leave') {
     return (
-      <Stack height={1} justifyContent="center" alignItems="center" gap={5}>
-        <div>
-          <Typography variant="h2" textAlign="center">
-            {contents[show].heading}
-          </Typography>
-          <Typography variant="subtitle1" textAlign="center">
-            (see the console for more info)
-          </Typography>
-        </div>
-        <Stack direction="row" gap={3}>
-          <Button
-            style={{ width: '200px' }}
-            data-testid="return-home-button"
-            variant="contained"
-            onClick={() => router.push(`/`)}
-          >
-            {contents[show].buttonText}
-          </Button>
-
-          <Button
-            style={{ width: '200px' }}
-            data-testid="return-home-button"
-            variant="contained"
-            onClick={() => setShow('lobby')}
-          >
-            {'Back to lobby >'}
-          </Button>
-        </Stack>
-      </Stack>
+      <ErrorPage
+        heading={contents[show].heading}
+        onClickHome={() => router.push(`/`)}
+        onClickLobby={() => setShow('lobby')}
+      />
     );
   }
   if (show === 'lobby') return <Lobby onJoin={onJoin} />;
 
-  if (show === 'loading')
+  if (show === 'loading') return <LoadingScreen />;
+
+  if (!activeCall)
     return (
-      <div className=" str-video str-video__call">
-        <div className="str-video__call__loading-screen">
-          <LoadingIndicator />
-        </div>
-      </div>
+      <ErrorPage
+        heading={'Lost active call connection'}
+        onClickHome={() => router.push(`/`)}
+        onClickLobby={() => setShow('lobby')}
+      />
     );
 
   return (
@@ -148,12 +130,52 @@ export const MeetingUI = ({
           </div>
         </div>
         <Stage call={activeCall} />
-        <CallControls
-          call={activeCall}
-          onLeave={onLeave}
-          participantListEnabled={showParticipants}
-          toggleShowParticipantList={toggleParticipantList}
-        />
+        <div
+          className="str-video__call-controls"
+          data-testid="str-video__call-controls"
+        >
+          <div className="rd-call-controls-group">
+            <RecordCallButton call={activeCall} />
+            <CallStatsButton />
+            <ScreenShareButton call={activeCall} />
+          </div>
+          <div className="rd-call-controls-group">
+            <SpeakingWhileMutedNotification>
+              <ToggleAudioPublishingButton />
+            </SpeakingWhileMutedNotification>
+            <ToggleCameraPublishingButton />
+            <CancelCallButton call={activeCall} onClick={onLeave} />
+          </div>
+          <div className="rd-call-controls-group">
+            <ToggleParticipantListButton
+              enabled={showParticipants}
+              onClick={toggleParticipantList}
+            />
+            <NewMessageNotification
+              chatClient={chatClient}
+              channelWatched={channelWatched}
+              disableOnChatOpen={showChat}
+            >
+              <div className="str-chat__chat-button__wrapper">
+                <CompositeButton caption="Chat" enabled={showChat}>
+                  <IconButton
+                    enabled={showChat}
+                    disabled={!chatClient}
+                    onClick={() => setShowChat((prev) => !prev)}
+                    icon="chat"
+                  />
+                </CompositeButton>
+                {!showChat && (
+                  <UnreadCountBadge
+                    channelWatched={channelWatched}
+                    chatClient={chatClient}
+                    channelId={callId}
+                  />
+                )}
+              </div>
+            </NewMessageNotification>
+          </div>
+        </div>
       </div>
       {showSidebar && (
         <div className="str-video__sidebar">
@@ -177,34 +199,48 @@ export const MeetingUI = ({
   );
 };
 
-// X todo: reconcile call controls
+type ErrorPageProps = {
+  heading: string;
+  onClickHome: () => void;
+  onClickLobby: () => void;
+};
 
-// <CallControls call={activeCall} onLeave={onLeave}>
-//   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-//     <ToggleParticipantListButton
-//       enabled={showParticipants}
-//       onClick={() => setShowParticipants((prev) => !prev)}
-//     />
-//     <NewMessageNotification
-//       chatClient={chatClient}
-//       channelWatched={channelWatched}
-//       disableOnChatOpen={showChat}
-//     >
-//       <div className="str-chat__chat-button__wrapper">
-//         <CallControlsButton
-//           enabled={showChat}
-//           disabled={!chatClient}
-//           onClick={() => setShowChat((prev) => !prev)}
-//           icon="chat"
-//         />
-//         {!showChat && (
-//           <UnreadCountBadge
-//             channelWatched={channelWatched}
-//             chatClient={chatClient}
-//             channelId={callId}
-//           />
-//         )}
-//       </div>
-//     </NewMessageNotification>
-//   </div>
-// </CallControls>
+const ErrorPage = ({ heading, onClickHome, onClickLobby }: ErrorPageProps) => (
+  <Stack height={1} justifyContent="center" alignItems="center" gap={5}>
+    <div>
+      <Typography variant="h2" textAlign="center">
+        {heading}
+      </Typography>
+      <Typography variant="subtitle1" textAlign="center">
+        (see the console for more info)
+      </Typography>
+    </div>
+    <Stack direction="row" gap={3}>
+      <Button
+        style={{ width: '200px' }}
+        data-testid="return-home-button"
+        variant="contained"
+        onClick={onClickHome}
+      >
+        {'< Return home'}
+      </Button>
+
+      <Button
+        style={{ width: '200px' }}
+        data-testid="return-home-button"
+        variant="contained"
+        onClick={onClickLobby}
+      >
+        {'Back to lobby >'}
+      </Button>
+    </Stack>
+  </Stack>
+);
+
+export const LoadingScreen = () => (
+  <div className=" str-video str-video__call">
+    <div className="str-video__call__loading-screen">
+      <LoadingIndicator />
+    </div>
+  </div>
+);

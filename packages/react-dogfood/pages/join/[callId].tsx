@@ -12,15 +12,15 @@ import Head from 'next/head';
 import { User } from '@stream-io/video-client';
 
 import { useCreateStreamChatClient } from '../../hooks';
-import { MeetingUI } from '../../components';
+import { LoadingScreen, MeetingUI } from '../../components';
 
-type JoinCallProps = {
+type CallRoomProps = {
   user: User;
   userToken: string;
   apiKey: string;
 };
 
-const CallRoom = (props: JoinCallProps) => {
+const CallRoom = (props: CallRoomProps) => {
   const router = useRouter();
   const callId = router.query['callId'] as string;
 
@@ -39,7 +39,7 @@ const CallRoom = (props: JoinCallProps) => {
   });
 
   if (!client) {
-    return <h2>Connecting...</h2>;
+    return <LoadingScreen />;
   }
 
   return (
@@ -99,6 +99,6 @@ export const getServerSideProps = async (
         name: userName,
         image: session.user?.image,
       },
-    } as JoinCallProps,
+    } as CallRoomProps,
   };
 };
