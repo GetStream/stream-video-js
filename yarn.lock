@@ -5893,6 +5893,7 @@ __metadata:
     "@stream-io/video-styling": "workspace:^"
     "@types/yargs": ^17.0.17
     clsx: ^1.2.1
+    gleap: ^9.0.0
     nanoid: ^4.0.1
     next: ^12.3.4
     next-auth: ^4.17.0
@@ -14377,6 +14378,13 @@ __metadata:
   version: 1.0.3
   resolution: "git-hooks-list@npm:1.0.3"
   checksum: a1dd03d39c1d727ba08a35dbdbdcc6e96de8c4170c942dc95bf787ca6e34998d39fb5295a00242b58a3d265de0b69a0686d0cf583baa6b7830f268542c4576b9
+  languageName: node
+  linkType: hard
+
+"gleap@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "gleap@npm:9.0.0"
+  checksum: a594aa6373a38354d7b28d23c276d59d987ac6990837eb7c0ee6344cef0affaf9b98a17eefba9fc2c70a4ae9a184711b0230585eefc3a0281b3b4e833083b582
   languageName: node
   linkType: hard
 
