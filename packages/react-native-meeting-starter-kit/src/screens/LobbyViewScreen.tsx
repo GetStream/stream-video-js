@@ -1,4 +1,5 @@
 import React from 'react';
+import {ScrollView} from 'react-native';
 import {LobbyView} from '@stream-io/video-react-native-sdk';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {NavigationStackParamsList} from '../types';
@@ -18,5 +19,9 @@ export const LobbyViewScreen = (props: CallLobbyScreenProps) => {
     navigation.navigate('ActiveCallScreen');
   };
 
-  return <LobbyView callID={callId} onActiveCall={onActiveCall} />;
+  return (
+    <ScrollView>
+      <LobbyView callID={callId} onActiveCall={onActiveCall} />
+    </ScrollView>
+  );
 };
