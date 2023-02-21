@@ -4,13 +4,13 @@ import { unstable_getServerSession } from 'next-auth';
 import { GetServerSidePropsContext } from 'next';
 import { createToken } from '../../helpers/jwt';
 import {
+  MediaDevicesProvider,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { UserInput } from '@stream-io/video-client';
 import { useMemo } from 'react';
 import Head from 'next/head';
-import { StreamMeeting } from '@stream-io/video-react-sdk';
 import { MeetingUI } from '../../components/MeetingUI';
 
 type JoinCallProps = {
@@ -21,10 +21,9 @@ type JoinCallProps = {
   apiKey: string;
 };
 
-const JoinCall = (props: JoinCallProps) => {
+const CallRoom = (props: JoinCallProps) => {
   const router = useRouter();
   const callId = router.query['callId'] as string;
-  const callType = (router.query['type'] as string) || 'default';
 
   const { userToken, user, coordinatorRpcUrl, coordinatorWsUrl, apiKey } =
     props;
@@ -54,19 +53,15 @@ const JoinCall = (props: JoinCallProps) => {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <StreamVideo client={client}>
-        <StreamMeeting
-          currentUser={loggedInUser.name}
-          callId={callId}
-          callType={callType}
-        >
+        <MediaDevicesProvider enumerate>
           <MeetingUI />
-        </StreamMeeting>
+        </MediaDevicesProvider>
       </StreamVideo>
     </div>
   );
 };
 
-export default JoinCall;
+export default CallRoom;
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,

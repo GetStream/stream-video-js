@@ -1,0 +1,40 @@
+@import "input";
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.str-video {
+  background-color: #272A30;
+  color: var(--str-video__text-color1);
+}
+
+.str-video__call {
+  display: flex;
+  flex-direction: row;
+}
+
+.str-video__call__main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.str-video__sidebar {
+  padding: 1.25rem;
+  width: 300px;
+}
+
+.css-bfuc2n-MuiButtonBase-root-MuiButton-root.Mui-disabled {
+  background-color: var(--str-video__primary-color-low-emphasis);
+  color: var(--str-video__text-color4);
+}

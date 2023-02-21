@@ -5,10 +5,9 @@ import {
   RecordCallButton,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
-  ToggleAudioButton,
-  ToggleCameraButton,
+  ToggleAudioPublishingButton,
+  ToggleCameraPublishingButton,
   ToggleParticipantListButton,
-  useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
 type CallControlsProps = DefaultCallControlsProps & {
@@ -17,16 +16,9 @@ type CallControlsProps = DefaultCallControlsProps & {
 };
 
 export const CallControls = (props: CallControlsProps) => {
-  const {
-    call,
-    initialAudioMuted,
-    initialVideoMuted,
-    onLeave,
-    participantListEnabled,
-    toggleShowParticipantList,
-  } = props;
+  const { call, onLeave, participantListEnabled, toggleShowParticipantList } =
+    props;
 
-  const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
   return (
     <div
       className="str-video__call-controls"
@@ -39,17 +31,9 @@ export const CallControls = (props: CallControlsProps) => {
       </div>
       <div className="rd-call-controls-group">
         <SpeakingWhileMutedNotification>
-          <ToggleAudioButton
-            call={call}
-            audioDeviceId={selectedAudioDeviceId}
-            initialAudioMuted={initialAudioMuted}
-          />
+          <ToggleAudioPublishingButton />
         </SpeakingWhileMutedNotification>
-        <ToggleCameraButton
-          call={call}
-          initialVideoMuted={initialVideoMuted}
-          videoDeviceId={selectedVideoDeviceId}
-        />
+        <ToggleCameraPublishingButton />
         <CancelCallButton call={call} onLeave={onLeave} />
       </div>
       <div className="rd-call-controls-group">
