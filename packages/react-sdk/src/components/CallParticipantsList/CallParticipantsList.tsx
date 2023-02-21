@@ -1,4 +1,9 @@
-import React, { useCallback } from 'react';
+import {
+  ComponentPropsWithRef,
+  ComponentType,
+  ForwardedRef,
+  useCallback,
+} from 'react';
 import { useParticipants } from '@stream-io/video-react-bindings';
 import { EmptyParticipantSearchList as DefaultEmptyParticipantList } from './EmptyParticipantSearchList';
 import { GetInviteLinkButton } from './GetInviteLinkButton';
@@ -26,7 +31,9 @@ type CallParticipantListProps = {
   /** Custom CallParticipantsList Header component */
   Header?: React.ComponentType<CallParticipantListHeaderProps>;
   /** Custom component to replace a button for generating invitation link to the call */
-  InviteLinkButton?: React.ComponentType;
+  InviteLinkButton?: ComponentType<
+    ComponentPropsWithRef<'button'> & { ref: ForwardedRef<HTMLButtonElement> }
+  >;
   /** Custom function to override the logic for retrieving searched for participants */
   participantSearchFn?: UseSearchParams<StreamVideoParticipant>['searchFn'];
   /** Interval in ms, during which the participant search calls will be throttled. The default value is 200ms. */

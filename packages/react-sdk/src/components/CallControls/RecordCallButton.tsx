@@ -1,11 +1,10 @@
-import * as React from 'react';
+import { useCallback } from 'react';
 import { Call } from '@stream-io/video-client';
 import {
   useIsCallRecordingInProgress,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { CompositeButton, IconButton } from '../Button/';
-import { useCallback } from 'react';
 
 export type RecordCallButtonProps = {
   call: Call;

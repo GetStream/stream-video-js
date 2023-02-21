@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { IconButton, ButtonWithIconProps, CompositeButton } from '../Button/';
 
 export type ToggleParticipantListButtonProps = { caption?: string } & Omit<

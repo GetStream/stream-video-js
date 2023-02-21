@@ -1,6 +1,6 @@
 import clsx from 'clsx';
-import * as React from 'react';
 import {
+  ComponentProps,
   ComponentPropsWithRef,
   ComponentType,
   ForwardedRef,
@@ -10,7 +10,7 @@ import {
 } from 'react';
 import { Tooltip } from '../Tooltip';
 
-export type GetInviteLinkButtonProps = React.ComponentProps<'button'> & {
+export type GetInviteLinkButtonProps = ComponentProps<'button'> & {
   Button: ComponentType<
     ComponentPropsWithRef<'button'> & { ref: ForwardedRef<HTMLButtonElement> }
   >;

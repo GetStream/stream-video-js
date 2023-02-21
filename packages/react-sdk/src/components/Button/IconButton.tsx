@@ -1,12 +1,11 @@
-import * as React from 'react';
-import { ForwardedRef, forwardRef } from 'react';
+import { ComponentProps, ForwardedRef, forwardRef } from 'react';
 import clsx from 'clsx';
 
 export type ButtonWithIconProps = {
   icon: string;
   enabled?: boolean;
   variant?: string;
-} & React.ComponentProps<'button'>;
+} & ComponentProps<'button'>;
 
 export const IconButton = forwardRef(
   (props: ButtonWithIconProps, ref: ForwardedRef<HTMLButtonElement>) => {

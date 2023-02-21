@@ -1,12 +1,11 @@
-import * as React from 'react';
 import clsx from 'clsx';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
-import { forwardRef, PropsWithChildren } from 'react';
+import { ComponentType, forwardRef, PropsWithChildren } from 'react';
 import { IconButton } from './IconButton';
 
 export type IconButtonWithMenuProps = PropsWithChildren<{
   enabled?: boolean;
-  Menu?: React.ComponentType;
+  Menu?: ComponentType;
   caption?: string;
 }>;
 

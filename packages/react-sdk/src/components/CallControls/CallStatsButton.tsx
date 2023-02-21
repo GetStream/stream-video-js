@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useRef, useState } from 'react';
 import { CallStats } from '../StreamCall/CallStats';
 import { CompositeButton, IconButton } from '../Button/';

@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { DeviceSelector } from './DeviceSelector';
 import { useMediaDevices } from '../../contexts';
 

@@ -1,10 +1,9 @@
-import * as React from 'react';
-import { useState } from 'react';
+import { CSSProperties, useState } from 'react';
 
 export type AvatarData = {
   imageSrc?: string;
   name?: string;
-  style?: React.CSSProperties & Record<string, string | number>;
+  style?: CSSProperties & Record<string, string | number>;
 };
 
 export type AvatarProps = AvatarData;
@@ -32,7 +31,7 @@ export const Avatar = ({ imageSrc, name, style }: AvatarProps) => {
 
 type AvatarFallbackProps = {
   names: string[];
-  style?: React.CSSProperties & Record<string, string | number>;
+  style?: CSSProperties & Record<string, string | number>;
 };
 export const AvatarFallback = ({ names, style }: AvatarFallbackProps) => {
   return (

@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Call, getScreenShareStream, SfuModels } from '@stream-io/video-client';
 import { CompositeButton, IconButton } from '../Button/';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
