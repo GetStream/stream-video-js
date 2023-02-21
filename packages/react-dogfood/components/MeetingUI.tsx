@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router';
-import * as React from 'react';
 import { useCallback, useState } from 'react';
 import {
   useActiveCall,
@@ -17,6 +16,14 @@ import { GetInviteLinkButton } from '@stream-io/video-react-sdk/dist/src/compone
 import { CallHeaderTitle } from './CallHeaderTitle';
 import { Lobby } from './Lobby';
 import { Button, Stack, Typography } from '@mui/material';
+import { StreamChat } from 'stream-chat';
+
+import {
+  ChatWrapper,
+  ChatUI,
+  UnreadCountBadge,
+  NewMessageNotification,
+} from '.';
 
 const contents = {
   'error-join': {
@@ -29,7 +36,12 @@ const contents = {
   },
 };
 
-export const MeetingUI = () => {
+
+export const MeetingUI = ({
+  chatClient,
+}: {
+  chatClient: StreamChat | null;
+}) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call'
   >('lobby');
@@ -39,6 +51,13 @@ export const MeetingUI = () => {
   const client = useStreamVideoClient();
   const activeCall = useActiveCall();
   const [showParticipants, setShowParticipants] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+
+  const showSidebar = showParticipants || showChat;
+
+  // FIXME: could be replaced with "notification.message_new" but users would have to be at least members
+  // possible fix with "allow to join" permissions in place (expensive?)
+  const channelWatched = useWatchChannel({ chatClient, channelId: callId });
 
   const toggleParticipantList = useCallback(
     () => setShowParticipants((prev) => !prev),
@@ -118,10 +137,8 @@ export const MeetingUI = () => {
       </div>
     );
 
-  const showSidebar = showParticipants;
-
   return (
-    <div className=" str-video str-video__call">
+    <div className="str-video str-video__call">
       <div className="str-video__call__main">
         <div className="str-video__call-header">
           <CallHeaderTitle />
@@ -146,8 +163,48 @@ export const MeetingUI = () => {
               InviteLinkButton={InviteLinkButton}
             />
           )}
+
+          <ChatWrapper chatClient={chatClient}>
+            {showChat && (
+              <div className="str-video__chat">
+                <ChatUI onClose={() => setShowChat(false)} channelId={callId} />
+              </div>
+            )}
+          </ChatWrapper>
         </div>
       )}
     </div>
   );
 };
+
+// X todo: reconcile call controls
+
+// <CallControls call={activeCall} onLeave={onLeave}>
+//   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+//     <ToggleParticipantListButton
+//       enabled={showParticipants}
+//       onClick={() => setShowParticipants((prev) => !prev)}
+//     />
+//     <NewMessageNotification
+//       chatClient={chatClient}
+//       channelWatched={channelWatched}
+//       disableOnChatOpen={showChat}
+//     >
+//       <div className="str-chat__chat-button__wrapper">
+//         <CallControlsButton
+//           enabled={showChat}
+//           disabled={!chatClient}
+//           onClick={() => setShowChat((prev) => !prev)}
+//           icon="chat"
+//         />
+//         {!showChat && (
+//           <UnreadCountBadge
+//             channelWatched={channelWatched}
+//             chatClient={chatClient}
+//             channelId={callId}
+//           />
+//         )}
+//       </div>
+//     </NewMessageNotification>
+//   </div>
+// </CallControls>

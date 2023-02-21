@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import { Call } from '@stream-io/video-client';
 import {
   useIsCallRecordingInProgress,
@@ -17,24 +16,22 @@ export const RecordCallButton = ({
 }: RecordCallButtonProps) => {
   const client = useStreamVideoClient();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
-  const callMeta = call?.data.call;
-
-  const handleClick = useCallback(() => {
-    if (!callMeta) return;
-    if (isCallRecordingInProgress) {
-      client?.stopRecording(callMeta.id, callMeta.type);
-    } else {
-      client?.startRecording(callMeta.id, callMeta.type);
-    }
-  }, [isCallRecordingInProgress, client, callMeta]);
+  const callMeta = call.data.call;
 
   return (
     <CompositeButton enabled={isCallRecordingInProgress} caption={caption}>
-      <IconButton
-        icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
-        title="Record call"
-        onClick={handleClick}
-      />
+    <IconButton
+      icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
+      title="Record call"
+      onClick={() => {
+        if (!callMeta) return;
+        if (isCallRecordingInProgress) {
+          client?.stopRecording(callMeta.id!, callMeta.type!);
+        } else {
+          client?.startRecording(callMeta.id!, callMeta.type!);
+        }
+      }}
+    />
     </CompositeButton>
   );
 };

@@ -1,0 +1,37 @@
+// X todo: reconcile
+
+@use "./utils";
+
+.str-video__device-settings__button {
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+  padding: 0.375rem;
+  display: flex;
+
+  .str-video__device-settings__icon {
+    display: inline-block;
+    width: 1.5rem;
+    height: 1.5rem;
+
+    @include utils.apply-mask-image(
+        var(--str-video__icon--settings),
+        var(--str-video__text-color1),
+        contain
+    );
+  }
+
+  &:hover,
+  &:focus {
+    background-color: var(--str-video__background-color1);
+    border-radius: var(--str-video__border-radius1);
+  }
+}
+
+.str-video__device-settings {
+  background-color: var(--str-video__background-color2);
+  padding: 0.625rem;
+  border-radius: var(--str-video__border-radius1);
+  box-shadow: 0 0 4px 1px var(--str-video__background-color2);
+  z-index: 10;
+}

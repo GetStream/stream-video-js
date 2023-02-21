@@ -1,0 +1,40 @@
+// X todo: reconcile
+
+.str-video__participant-placeholder {
+  height: 200px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--str-video__background-color3);
+  border-radius: var(--str-video__border-radius2);
+
+  &--avatar {
+    border-radius: var(--str-video__border-radius-circle);
+    object-fit: cover;
+    width: 100px;
+    height: 100px;
+
+    &-speaking {
+      outline: 2px solid var(--str-video__text-color1);
+    }
+
+    transition: outline 100ms ease-in;
+  }
+
+  &--initials-fallback {
+    background-color: var(--str-video__background-color2);
+    color: var(--str-video__text-color1);
+    border-radius: var(--str-video__border-radius-circle);
+    height: 100px;
+    width: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 35px;
+
+    & > * {
+      text-transform: capitalize;
+    }
+  }
+}

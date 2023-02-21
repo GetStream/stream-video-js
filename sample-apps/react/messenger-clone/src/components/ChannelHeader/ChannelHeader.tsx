@@ -6,10 +6,9 @@ import {
   useChatContext,
   useTranslationContext,
 } from 'stream-chat-react';
-import { MemberInput } from '@stream-io/video-client';
+import { MemberRequest } from '@stream-io/video-client';
 import { LocalPhone, PhoneDisabled } from '@mui/icons-material';
 
-import { Struct } from '@stream-io/video-client/dist/src/gen/google/protobuf/struct';
 import { MenuIcon } from './icons';
 import type { StreamChatType } from '../../types/chat';
 import {
@@ -46,38 +45,26 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
   const { member_count, subtitle } = channel?.data || {};
 
   const onCreateCall = useCallback(() => {
-    videoClient?.createCall({
-      id: meetingId(),
-      type: 'default',
-      input: {
-        createdBy: { oneofKind: 'userId', userId: client.user.id },
-        ring: true,
-        members: Object.values(channel.state.members).reduce((acc, member) => {
-          if (member.user_id !== client.user.id) {
-            acc.push({
-              userId: member.user.id,
-              role: member.user.role,
-              customJson: Struct.toBinary(Struct.fromJson({})),
-              userInput: {
-                id: member.user_id,
-                name: member.user.name,
-                imageUrl: member.user.image,
-                role: member.user.role,
-                customJson: Struct.toBinary(Struct.fromJson({})),
-                teams: [],
-              },
-            } as MemberInput);
-          }
-          return acc;
-        }, []),
-        call: {
-          customJson: new TextEncoder().encode(
-            JSON.stringify({ channelId: channel.id }),
-          ),
+    videoClient?.getOrCreateCall(meetingId(), 'default', {
+      ring: true,
+      data: {
+        custom: {
+          channelId: channel.id,
         },
+        members: Object.values(channel.state.members).reduce<MemberRequest[]>(
+          (acc, member) => {
+            if (member.user_id !== client.user?.id) {
+              acc.push({
+                user_id: member.user_id!,
+              });
+            }
+            return acc;
+          },
+          [],
+        ),
       },
     });
-  }, [client.user.id, channel.state.members, videoClient]);
+  }, [videoClient, channel.id, channel.state.members, client.user?.id]);
 
   const disableCreateCall = !videoClient || !!activeCall;
 
@@ -136,7 +123,10 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
         <button
           className="rmc__button rmc__button--red"
           onClick={() => {
-            videoClient.cancelCall(activeCall.data.call.callCid);
+            videoClient?.cancelCall(
+              activeCall.data.call.id,
+              activeCall.data.call.type,
+            );
           }}
         >
           <PhoneDisabled />

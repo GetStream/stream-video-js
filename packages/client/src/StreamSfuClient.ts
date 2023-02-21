@@ -41,8 +41,8 @@ export class StreamSfuClient {
   signalReady: Promise<WebSocket>;
   private keepAliveInterval?: NodeJS.Timeout;
 
-  constructor(url: string, token: string, sessionId?: string) {
-    this.sessionId = sessionId || uuidv4();
+  constructor(url: string, token: string) {
+    this.sessionId = uuidv4();
     this.token = token;
     this.rpc = createSignalClient({
       baseUrl: url,

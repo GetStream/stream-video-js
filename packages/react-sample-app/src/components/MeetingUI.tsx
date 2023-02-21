@@ -8,7 +8,7 @@ import {
 export const MeetingUI = () => {
   const activeCall = useActiveCall();
 
-  if (!activeCall || !activeCall?.data.call?.callCid) return null;
+  if (!activeCall || !activeCall.data.call.cid) return null;
 
   return (
     <div className="str-video__call">

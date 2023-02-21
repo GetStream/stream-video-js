@@ -27,3 +27,4 @@ coverage
 /**/generated-docs
 /**/temp-docs
 /**/docusaurus/docs/*/reference/**/*.md
+/**/docusaurus/shared

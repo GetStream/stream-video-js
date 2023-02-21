@@ -5,7 +5,7 @@ import {
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
 import { useLocalParticipant, useStore } from '@stream-io/video-react-bindings';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { map } from 'rxjs';
 import { useDebugPreferredVideoCodec } from '../components/Debug/useIsDebugMode';
 
@@ -14,12 +14,15 @@ export type VideoPublisherInit = {
   initialVideoMuted?: boolean;
   videoDeviceId?: string;
 };
+
 export const useVideoPublisher = ({
   call,
   initialVideoMuted,
   videoDeviceId,
 }: VideoPublisherInit) => {
   const { localParticipant$ } = useStore();
+  // helper reference to determine initial publishing of the media stream
+  const initialPublishExecuted = useRef<boolean>(false);
   const participant = useLocalParticipant();
   const preferredCodec = useDebugPreferredVideoCodec();
   const isPublishingVideo = participant?.publishedTracks.includes(
@@ -39,25 +42,29 @@ export const useVideoPublisher = ({
   useEffect(() => {
     let interrupted = false;
 
-    if (!call || initialVideoMuted || isPublishingVideo) return;
+    if (!call && initialPublishExecuted.current) {
+      initialPublishExecuted.current = false;
+    }
+
+    if (!call || initialVideoMuted || (!isPublishingVideo && initialPublishExecuted.current))
+      return;
 
     getVideoStream(videoDeviceId).then((stream) => {
       if (interrupted && stream.active)
         return stream.getTracks().forEach((t) => t.stop());
 
+      initialPublishExecuted.current = true;
       return call.publishVideoStream(stream, { preferredCodec });
     });
 
     return () => {
       interrupted = true;
+      call.stopPublish(SfuModels.TrackType.VIDEO);
     };
-  }, [
-    videoDeviceId,
-    call,
-    preferredCodec,
-    initialVideoMuted,
-    isPublishingVideo,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoDeviceId, call, preferredCodec]);
+
+  // X todo: verify initialVideoMuted if needed deps
 
   useEffect(() => {
     const subscription = watchForDisconnectedVideoDevice(

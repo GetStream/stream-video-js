@@ -12,24 +12,6 @@ import {
 } from '../icons';
 import { CallControlsButton } from './CallControlsButton';
 
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    paddingVertical: 25,
-    paddingHorizontal: 16,
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-    backgroundColor: '#121416',
-    bottom: 0,
-    zIndex: 2,
-  },
-  chatSvgStyle: {
-    paddingTop: 4,
-  },
-});
-
 /**
  * Props to be passed for the CallControlsView component.
  */
@@ -96,3 +78,21 @@ export const CallControlsView = (props: CallControlsViewProps) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    paddingVertical: 25,
+    paddingHorizontal: 16,
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    backgroundColor: '#121416',
+    bottom: 0,
+    zIndex: 2,
+  },
+  chatSvgStyle: {
+    paddingTop: 4,
+  },
+});

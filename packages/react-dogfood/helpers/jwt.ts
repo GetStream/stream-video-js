@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import { JWTUserToken } from 'stream-chat';
 
 export const createToken = (
   userId: string,
@@ -9,18 +9,21 @@ export const createToken = (
     exp, // expiration, in seconds from now
     ...rest
   } = params;
-  const expiration = exp ? Date.now() / 1000 + parseInt(exp, 10) : undefined;
-  return jwt.sign(
-    {
-      iss: 'stream-video-js@v0.0.0',
-      sub: `user/${userId}`,
-      // subtract 3 seconds, sometimes the coordinator fails with
-      // "token used before issued at (iat)" error
-      iat: Math.round(Date.now() / 1000) - 3000,
-      exp: Math.round(expiration),
-      user_id: userId,
-      ...rest,
-    },
-    jwtSecret,
-  );
+
+  const payload: Record<string, unknown> = {
+    iss: 'stream-video-js@v0.0.0',
+    sub: `user/${userId}`,
+    // subtract 3 seconds, sometimes the coordinator fails with
+    // "token used before issued at (iat)" error
+    iat: Math.round(Date.now() / 1000) - 3000,
+    user_id: userId,
+    ...rest,
+  };
+
+  if (exp) {
+    const expiration = Date.now() / 1000 + parseInt(exp, 10);
+    payload['exp'] = Math.round(expiration);
+  }
+
+  return JWTUserToken(jwtSecret, userId, payload);
 };

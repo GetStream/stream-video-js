@@ -1,14 +1,14 @@
 import { Injectable, NgZone } from '@angular/core';
 import {
   Call,
-  CallAccepted,
   CallConfig,
   CallStatsReport,
-  PendingCall,
+  CallMetadata,
   StreamVideoClient,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
-  UserInput,
+  User,
+  CallAccepted,
 } from '@stream-io/video-client';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 
@@ -24,7 +24,7 @@ export class StreamVideoService {
   /**
    * The currently connected user.
    */
-  user$: Observable<UserInput | undefined>;
+  user$: Observable<User | undefined>;
   /**
    * The call controller instance representing the call the user attends.
    * The controller instance exposes call metadata as well.
@@ -34,15 +34,15 @@ export class StreamVideoService {
   /**
    * A list of objects describing all created calls that have not been yet accepted, rejected nor cancelled.
    */
-  pendingCalls$: Observable<PendingCall[]>;
+  pendingCalls$: Observable<CallMetadata[]>;
   /**
    * A list of objects describing calls initiated by the current user (connectedUser).
    */
-  outgoingCalls$: Observable<PendingCall[]>;
+  outgoingCalls$: Observable<CallMetadata[]>;
   /**
    * A list of objects describing incoming calls.
    */
-  incomingCalls$: Observable<PendingCall[]>;
+  incomingCalls$: Observable<CallMetadata[]>;
   /**
    * The call data describing an incoming call accepted by a participant.
    * Serves as a flag decide, whether an incoming call should be joined.
@@ -90,9 +90,7 @@ export class StreamVideoService {
    */
   hasOngoingScreenShare$: Observable<boolean>;
 
-  private userSubject: ReplaySubject<UserInput | undefined> = new ReplaySubject(
-    1,
-  );
+  private userSubject: ReplaySubject<User | undefined> = new ReplaySubject(1);
   private activeCallSubject: ReplaySubject<Call | undefined> =
     new ReplaySubject(1);
 
@@ -111,12 +109,11 @@ export class StreamVideoService {
     new ReplaySubject(1);
   private hasOngoingScreenShareSubject: ReplaySubject<boolean> =
     new ReplaySubject(1);
-  private pendingCallsSubject: ReplaySubject<PendingCall[]> = new ReplaySubject(
-    1,
-  );
-  private outgoingCallsSubject: ReplaySubject<PendingCall[]> =
+  private pendingCallsSubject: ReplaySubject<CallMetadata[]> =
     new ReplaySubject(1);
-  private incomingCallsSubject: ReplaySubject<PendingCall[]> =
+  private outgoingCallsSubject: ReplaySubject<CallMetadata[]> =
+    new ReplaySubject(1);
+  private incomingCallsSubject: ReplaySubject<CallMetadata[]> =
     new ReplaySubject(1);
   private subscriptions: Subscription[] = [];
 
@@ -140,31 +137,18 @@ export class StreamVideoService {
     this.pendingCalls$ = this.pendingCallsSubject.asObservable();
   }
 
-  init(
-    apiKey: string,
-    token: string,
-    baseCoordinatorUrl: string,
-    baseWsUrl: string,
-    callConfig?: CallConfig,
-  ) {
+  init(apiKey: string, callConfig?: CallConfig) {
     if (this.videoClient) {
       console.warn(
         `Multiple init calls detected, this is usually unnecessary, make sure you know what you're doing`,
       );
-      this.videoClient.disconnect();
+      this.videoClient.disconnectUser().catch((e) => {
+        console.error(`Failed to disconnect user`, e);
+      });
       this.subscriptions.forEach((s) => s.unsubscribe());
     }
 
-    this.videoClient = new StreamVideoClient(
-      apiKey,
-      {
-        coordinatorRpcUrl: baseCoordinatorUrl,
-        coordinatorWsUrl: baseWsUrl,
-        sendJson: true,
-        token,
-      },
-      callConfig,
-    );
+    this.videoClient = new StreamVideoClient(apiKey, {}, callConfig);
 
     this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.connectedUser$.subscribe({
@@ -274,4 +258,17 @@ export class StreamVideoService {
 
     return this.videoClient;
   }
+
+  /** Generates the invite link for the given call ID and wrties it to the clipboard. */
+  copyInviteLink(callId: string) {
+    return navigator?.clipboard.writeText(this.getInviteLink(callId));
+  }
+
+  /**
+   * Returns the invite link for the given call metadata, you can redefine this method if your application needs a different link format.
+   * @param callId
+   */
+  getInviteLink = (callId: string) => {
+    return `${window.location.host}?callid=${callId}`;
+  };
 }

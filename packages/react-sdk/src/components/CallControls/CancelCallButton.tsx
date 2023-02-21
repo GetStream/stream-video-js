@@ -20,7 +20,7 @@ export const CancelCallButton = ({
       if (onClick) {
         onClick(e);
       } else if (client && call.data.call?.callCid) {
-        await client?.cancelCall(call.data.call?.callCid);
+        await client.cancelCall(call.data.call.callCid);
         onLeave?.();
       }
     },

@@ -31,7 +31,7 @@ export default function SignIn({ providers }: { providers: Providers }) {
         <Stack spacing={2}>
           <Typography variant="h2">Stream Meetings</Typography>
           <Divider />
-          {Object.values(providers).map((provider) => (
+          {Object.values(providers!).map((provider) => (
             <div key={provider.name}>
               <Button
                 data-testid="sign-in-button"

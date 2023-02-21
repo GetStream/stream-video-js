@@ -1,0 +1,19 @@
+/* X todo: move to app.scss */
+
+.str-video__sidebar {
+  padding: 1rem;
+  width: 360px;
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+}
+
+.str-video__participant-list {
+  height: 0px;
+  flex-grow: 1;
+}
+
+.str-video__chat {
+  height: 0px;
+  flex-grow: 1.5;
+}

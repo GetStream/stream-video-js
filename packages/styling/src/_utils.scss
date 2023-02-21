@@ -9,9 +9,13 @@
 
 @mixin apply-mask-image($imageDataUrl, $fill, $size: 1rem) {
   mask-image: $imageDataUrl;
+  -webkit-mask-image: $imageDataUrl;
   mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
   mask-position: center;
+  -webkit-mask-position: center;
   mask-size: $size;
+  -webkit-mask-size: $size;
   background-color: $fill;
 }
 

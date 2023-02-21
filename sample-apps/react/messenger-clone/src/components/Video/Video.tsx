@@ -5,10 +5,11 @@ import {
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
+import { CALL_CONFIG } from '@stream-io/video-client';
+
+import { CallPanel } from './CallPanel/CallPanel';
 
 import { StreamChatType } from '../../types/chat';
-import { CallPanel } from './CallPanel/CallPanel';
-import { CALL_CONFIG } from '@stream-io/video-client';
 
 type VideoProps = {
   user: StreamChatType['userType'];
@@ -22,12 +23,14 @@ export const Video = ({
 }: PropsWithChildren<VideoProps>) => {
   const client = useCreateStreamVideoClient({
     callConfig: CALL_CONFIG.ring,
-    coordinatorRpcUrl: import.meta.env.VITE_VIDEO_COORDINATOR_RPC_ENDPOINT,
-    coordinatorWsUrl: import.meta.env.VITE_VIDEO_COORDINATOR_WS_URL,
     apiKey: import.meta.env.VITE_VIDEO_API_KEY,
     token: import.meta.env.VITE_VIDEO_USER_TOKEN ?? token,
     user,
   });
+
+  if (!client) {
+    return null;
+  }
 
   return (
     <StreamVideo client={client}>
@@ -44,18 +47,16 @@ const VideoAdapter = ({ children }: { children: ReactNode }) => {
 
   const user = useMemo<VideoProps['user']>(
     () => ({
-      id: client.user.id,
-      name: client.user.name,
-      role: client.user.role,
-      imageUrl: client.user.image as string,
+      id: client.user!.id,
+      name: client.user!.name,
+      role: client.user!.role,
       teams: [],
-      customJson: new Uint8Array(),
     }),
     [client.user],
   );
 
   return (
-    <Video user={user} token={client._getToken()}>
+    <Video user={user} token={client._getToken()!}>
       {children}
     </Video>
   );

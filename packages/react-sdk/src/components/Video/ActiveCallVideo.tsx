@@ -26,6 +26,7 @@ export const ActiveCallVideo = (
   const { call, kind, participant, ...rest } = props;
   const { sessionId, videoStream, screenShareStream, publishedTracks } =
     participant;
+
   const stream = kind === 'video' ? videoStream : screenShareStream;
   const isPublishingTrack = publishedTracks.includes(
     kind === 'video'
@@ -78,8 +79,9 @@ export const ActiveCallVideo = (
   if (!isPublishingTrack)
     return (
       <VideoPlaceholder
-        imageSrc={participant.user?.imageUrl}
-        name={participant.userId}
+        imageSrc={participant.user?.image}
+        userId={participant.userId}
+        isSpeaking={participant.isSpeaking}
       />
     );
 

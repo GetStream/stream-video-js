@@ -8,16 +8,15 @@ import {
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { UserInput } from '@stream-io/video-client';
-import { useMemo } from 'react';
 import Head from 'next/head';
-import { MeetingUI } from '../../components/MeetingUI';
+import { User } from '@stream-io/video-client';
+
+import { useCreateStreamChatClient } from '../../hooks';
+import { MeetingUI } from '../../components';
 
 type JoinCallProps = {
-  user: UserInput;
+  user: User;
   userToken: string;
-  coordinatorRpcUrl: string;
-  coordinatorWsUrl: string;
   apiKey: string;
 };
 
@@ -25,27 +24,24 @@ const CallRoom = (props: JoinCallProps) => {
   const router = useRouter();
   const callId = router.query['callId'] as string;
 
-  const { userToken, user, coordinatorRpcUrl, coordinatorWsUrl, apiKey } =
-    props;
-  const loggedInUser = useMemo(
-    () => ({
-      ...user,
-      customJson: new Uint8Array(),
-    }),
-    [user],
-  );
+  const { userToken, user, apiKey } = props;
 
   const client = useCreateStreamVideoClient({
-    coordinatorRpcUrl,
-    coordinatorWsUrl,
     apiKey,
     token: userToken,
-    user: loggedInUser,
+    user,
+  });
+
+  const chatClient = useCreateStreamChatClient({
+    apiKey,
+    tokenOrProvider: userToken,
+    userData: user,
   });
 
   if (!client) {
     return <h2>Connecting...</h2>;
   }
+
   return (
     <div style={{ flexGrow: 1, minHeight: 0 }}>
       <Head>
@@ -54,7 +50,7 @@ const CallRoom = (props: JoinCallProps) => {
       </Head>
       <StreamVideo client={client}>
         <MediaDevicesProvider enumerate>
-          <MeetingUI />
+          <MeetingUI chatClient={chatClient} />
         </MediaDevicesProvider>
       </StreamVideo>
     </div>
@@ -81,27 +77,27 @@ export const getServerSideProps = async (
     };
   }
 
-  const coordinatorRpcUrl = process.env.STREAM_COORDINATOR_RPC_URL;
-  const coordinatorWsUrl = process.env.STREAM_COORDINATOR_WS_URL;
   const apiKey = process.env.STREAM_API_KEY as string;
   const secretKey = process.env.STREAM_SECRET_KEY as string;
 
-  const userName = (
-    (context.query[`user_id`] as string) || session.user.email
+  const userId = (
+    (context.query['user_id'] as string) ||
+    session.user?.email ||
+    'unknown-user'
   ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
+
+  // Chat does not allow for Id's to include special characters
+  // a-z, 0-9, @, _ and - are allowed
+  const streamUserId = userId.replace(/[^_\-0-9a-zA-Z@]/g, '_');
+  const userName = session.user?.name || userId;
   return {
     props: {
-      coordinatorRpcUrl,
-      coordinatorWsUrl,
       apiKey,
-      userToken: createToken(userName, secretKey),
+      userToken: createToken(streamUserId, secretKey),
       user: {
-        id: userName,
+        id: streamUserId,
         name: userName,
-        role: 'admin',
-        teams: ['stream-io'],
-        imageUrl: session.user.image,
-        // customJson: new Uint8Array() // can't be serialized to JSON
+        image: session.user?.image,
       },
     } as JoinCallProps,
   };

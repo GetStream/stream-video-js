@@ -24,7 +24,6 @@ export class DeviceCheckComponent implements OnInit, OnDestroy {
   constructor(private deviceManager: DeviceManagerService) {
     this.deviceManager.initAudioDevices();
     this.deviceManager.initVideoDevices();
-    this.deviceManager.initAudioOutputDevices();
     this.deviceManager.startVideo();
     this.deviceManager.startAudio();
     this.subscripitions.push(

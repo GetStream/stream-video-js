@@ -61,7 +61,7 @@ export class CallComponent implements OnInit, OnDestroy {
         this.isLocalParticipantCallOwner = !!(
           user &&
           activeCall &&
-          user?.id === activeCall.data.call!.createdByUserId
+          user?.id === activeCall.data.call!.created_by.id
         );
       }),
     );
@@ -114,12 +114,12 @@ export class CallComponent implements OnInit, OnDestroy {
   toggleRecording() {
     this.isCallRecordingInProgress
       ? this.streamVideoService.videoClient?.stopRecording(
-          this.call!.data.call!.id,
-          this.call!.data.call!.type,
+          this.call!.data.call.id!,
+          this.call!.data.call.type!,
         )
       : this.streamVideoService.videoClient?.startRecording(
-          this.call!.data.call!.id,
-          this.call!.data.call!.type,
+          this.call!.data.call.id!,
+          this.call!.data.call.type!,
         );
   }
 

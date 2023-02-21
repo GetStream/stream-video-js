@@ -29,22 +29,20 @@ import IncomingCallScreen from './src/screens/Call/IncomingCallScreen';
 import OutgoingCallScreen from './src/screens/Call/OutgoingCallScreen';
 import { StreamMeeting } from '@stream-io/video-react-native-sdk/src/components/StreamMeeting';
 import { CallParticipansInfoScreen } from './src/screens/Meeting/CallParticipantsInfoScreen';
+import { LobbyViewScreen } from './src/screens/Meeting/LobbyViewScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const MeetingStack = createNativeStackNavigator<MeetingStackParamList>();
 const RingingStack = createNativeStackNavigator<RingingStackParamList>();
 
 const Meeting = (props: NativeStackScreenProps<MeetingStackParamList>) => {
-  const username = useAppGlobalStoreValue((store) => store.username);
   const meetingCallID = useAppGlobalStoreValue((store) => store.meetingCallID);
   const { navigation } = props;
 
   return (
     <StreamMeeting
-      currentUser={username}
       callId={meetingCallID}
       callType={'default'}
-      autoJoin={true}
       onActiveCall={() => navigation.navigate('MeetingScreen')}
     >
       <MeetingStack.Navigator>
@@ -52,6 +50,11 @@ const Meeting = (props: NativeStackScreenProps<MeetingStackParamList>) => {
           name="JoinMeetingScreen"
           component={JoinMeetingScreen}
           options={{ header: NavigationHeader }}
+        />
+        <MeetingStack.Screen
+          name="LobbyViewScreen"
+          component={LobbyViewScreen}
+          options={{ headerShown: false }}
         />
         <MeetingStack.Screen
           name="MeetingScreen"

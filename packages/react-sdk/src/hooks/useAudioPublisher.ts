@@ -1,5 +1,5 @@
 import { useLocalParticipant, useStore } from '@stream-io/video-react-bindings';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   Call,
   getAudioStream,
@@ -13,13 +13,15 @@ export type AudioPublisherInit = {
   initialAudioMuted?: boolean;
   audioDeviceId?: string;
 };
+
 export const useAudioPublisher = ({
   call,
   initialAudioMuted,
   audioDeviceId,
 }: AudioPublisherInit) => {
   const { localParticipant$ } = useStore();
-
+  // helper reference to determine initial publishing of the media stream
+  const initialPublishExecuted = useRef<boolean>(false);
   const participant = useLocalParticipant();
 
   const isPublishingAudio = participant?.publishedTracks.includes(
@@ -39,19 +41,28 @@ export const useAudioPublisher = ({
   useEffect(() => {
     let interrupted = false;
 
-    if (!call || initialAudioMuted || isPublishingAudio) return;
+    if (!call && initialPublishExecuted.current) {
+      initialPublishExecuted.current = false;
+    }
+
+    if (!call || initialAudioMuted || (!isPublishingAudio && initialPublishExecuted.current))
+      return;
 
     getAudioStream(audioDeviceId).then((stream) => {
       if (interrupted && stream.active)
         return stream.getTracks().forEach((t) => t.stop());
 
+      initialPublishExecuted.current = true;
       return call.publishAudioStream(stream);
     });
 
     return () => {
       interrupted = true;
+      call.stopPublish(SfuModels.TrackType.AUDIO);
     };
-  }, [call, audioDeviceId, initialAudioMuted, isPublishingAudio]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [call, audioDeviceId]);
+  // X todo: is initialAudioMuted muted as dep?
 
   useEffect(() => {
     const subscription = watchForDisconnectedAudioDevice(
