@@ -120,8 +120,8 @@ export const Video = (props: VideoProps) => {
   if (!isPublishingTrack)
     return (
       <VideoPlaceholder
-        imageSrc={participant.user?.image}
-        userId={participant.userId}
+        imageSrc={participant.image}
+        userId={participant.name || participant.userId}
         isSpeaking={participant.isSpeaking}
         ref={setVideoElementRef}
       />

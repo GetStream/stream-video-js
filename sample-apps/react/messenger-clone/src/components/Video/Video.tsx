@@ -50,7 +50,7 @@ const VideoAdapter = ({ children }: { children: ReactNode }) => {
       id: client.user!.id,
       name: client.user!.name,
       role: client.user!.role,
-      teams: [],
+      image: client.user!.image,
     }),
     [client.user],
   );

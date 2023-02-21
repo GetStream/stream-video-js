@@ -22,11 +22,11 @@ const DEFAULT_AVATAR_RADIUS = 100;
 
 export const Avatar = (props: AvatarProps) => {
   const {
-    participant: { userId, user },
+    participant: { userId, image, name },
     radius = DEFAULT_AVATAR_RADIUS,
   } = props;
-  const label = useMemo(() => userId || '?', [userId]);
-  const imageUrl = user?.image;
+  const label = useMemo(() => name || userId || '?', [name, userId]);
+  const imageUrl = image;
   return (
     <View
       style={{

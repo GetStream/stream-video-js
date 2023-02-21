@@ -36,7 +36,7 @@ export const ActiveCallPanel = ({
     videoDeviceId: selectedVideoDeviceId,
   });
 
-  const remoteParticipantImage = remoteParticipant?.user?.image;
+  const remoteParticipantImage = remoteParticipant?.image;
 
   return (
     <div className="rmc__call-panel-backdrop">
