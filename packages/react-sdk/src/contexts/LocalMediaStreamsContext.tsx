@@ -87,14 +87,15 @@ export const LocalMediaStreamsContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
+  const { selectedAudioInputDeviceId, selectedVideoDeviceId } =
+    useMediaDevices();
   const [localAudioStream, setLocalAudioStream] = useState<MediaStream>();
   const [localVideoStream, setLocalVideoStream] = useState<MediaStream>();
 
   useSetupLocalMediaStream({
     localStream: localAudioStream,
     setLocalStream: setLocalAudioStream,
-    selectedDeviceId: selectedAudioDeviceId,
+    selectedDeviceId: selectedAudioInputDeviceId,
     type: 'audioinput',
   });
 

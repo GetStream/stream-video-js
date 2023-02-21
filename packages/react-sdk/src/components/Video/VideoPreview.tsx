@@ -1,0 +1,114 @@
+import {
+  ComponentType,
+  ReactEventHandler,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
+import clsx from 'clsx';
+import { Video } from './Video';
+import { DEVICE_STATE, useMediaDevices } from '../../contexts';
+import { LoadingIndicator } from '../LoadingIndicator';
+
+const DefaultDisabledVideoPreview = () => {
+  return <div>Video is disabled</div>;
+};
+
+const DefaultNoCameraPreview = () => {
+  return <div>No camera found</div>;
+};
+
+type VideoErrorPreviewProps = {
+  message?: string;
+};
+const DefaultVideoErrorPreview = ({ message }: VideoErrorPreviewProps) => {
+  return (
+    <>
+      <div>Error:</div>
+      <p>{message || 'Unexpected error happened'}</p>
+    </>
+  );
+};
+
+export type VideoPreviewProps = {
+  mirror?: boolean;
+  DisabledVideoPreview?: ComponentType;
+  NoCameraPreview?: ComponentType;
+  StartingCameraPreview?: ComponentType;
+  VideoErrorPreview?: ComponentType<VideoErrorPreviewProps>;
+};
+
+export const VideoPreview = ({
+  mirror = true,
+  DisabledVideoPreview = DefaultDisabledVideoPreview,
+  NoCameraPreview = DefaultNoCameraPreview,
+  StartingCameraPreview = LoadingIndicator,
+  VideoErrorPreview = DefaultVideoErrorPreview,
+}: VideoPreviewProps) => {
+  const [stream, setStream] = useState<MediaStream>();
+
+  const {
+    videoDevices,
+    selectedVideoDeviceId,
+    getVideoStream,
+    initialVideoState,
+    setInitialVideoState,
+  } = useMediaDevices();
+
+  useEffect(() => {
+    if (stream || !initialVideoState.enabled || videoDevices.length === 0)
+      return;
+
+    getVideoStream(selectedVideoDeviceId)
+      .then(setStream)
+      .catch((e) =>
+        setInitialVideoState({
+          ...DEVICE_STATE.error,
+          message: (e as Error).message,
+        }),
+      );
+  }, [
+    stream,
+    initialVideoState,
+    getVideoStream,
+    selectedVideoDeviceId,
+    setInitialVideoState,
+    videoDevices.length,
+  ]);
+
+  useEffect(() => {
+    if (initialVideoState.type === 'stopped') {
+      setStream(undefined);
+    }
+  }, [initialVideoState]);
+
+  const handleOnPlay: ReactEventHandler<HTMLVideoElement> = useCallback(() => {
+    setInitialVideoState(DEVICE_STATE.playing);
+  }, [setInitialVideoState]);
+
+  const loading = initialVideoState.type === 'starting';
+  return (
+    <div className={clsx('str-video__video-preview-container')}>
+      {initialVideoState.type === 'error' && <VideoErrorPreview />}
+      {initialVideoState.type === 'stopped' && !videoDevices.length ? (
+        <NoCameraPreview />
+      ) : initialVideoState.enabled ? (
+        <>
+          {stream && (
+            <Video
+              stream={stream}
+              className={clsx('str-video__video-preview', {
+                'str-video__video-preview--mirror': mirror,
+                'str-video__video-preview--loading': loading,
+              })}
+              onPlay={handleOnPlay}
+            />
+          )}
+          {loading && <StartingCameraPreview />}
+        </>
+      ) : (
+        <DisabledVideoPreview />
+      )}
+    </div>
+  );
+};

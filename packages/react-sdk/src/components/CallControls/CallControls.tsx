@@ -1,12 +1,11 @@
 import { Call } from '@stream-io/video-client';
-import { useMediaDevices } from '../../contexts';
 import {
   CallStatsButton,
   CancelCallButton,
   RecordCallButton,
   ScreenShareButton,
-  ToggleAudioButton,
-  ToggleCameraButton,
+  ToggleAudioPublishingButton,
+  ToggleCameraPublishingButton,
 } from './index';
 import { SpeakingWhileMutedNotification } from '../Notification';
 
@@ -18,9 +17,7 @@ export type CallControlsProps = {
 };
 
 export const CallControls = (props: CallControlsProps) => {
-  const { call, initialAudioMuted, initialVideoMuted, onLeave } = props;
-
-  const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
+  const { call, onLeave } = props;
 
   return (
     <div className="str-video__call-controls">
@@ -28,17 +25,9 @@ export const CallControls = (props: CallControlsProps) => {
       <CallStatsButton />
       <ScreenShareButton call={call} />
       <SpeakingWhileMutedNotification>
-        <ToggleAudioButton
-          call={call}
-          audioDeviceId={selectedAudioDeviceId}
-          initialAudioMuted={initialAudioMuted}
-        />
+        <ToggleAudioPublishingButton />
       </SpeakingWhileMutedNotification>
-      <ToggleCameraButton
-        call={call}
-        initialVideoMuted={initialVideoMuted}
-        videoDeviceId={selectedVideoDeviceId}
-      />
+      <ToggleCameraPublishingButton />
       <CancelCallButton call={call} onLeave={onLeave} />
     </div>
   );

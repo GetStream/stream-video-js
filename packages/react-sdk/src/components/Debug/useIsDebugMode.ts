@@ -1,7 +1,13 @@
 import { useMemo } from 'react';
 
 const useQueryParams = () => {
-  return useMemo(() => new URLSearchParams(window.location.search), []);
+  return useMemo(
+    () =>
+      typeof window === 'undefined'
+        ? null
+        : new URLSearchParams(window.location.search),
+    [],
+  );
 };
 
 /**
@@ -9,10 +15,10 @@ const useQueryParams = () => {
  */
 export const useIsDebugMode = () => {
   const params = useQueryParams();
-  return !!params.get('debug');
+  return !!params?.get('debug');
 };
 
 export const useDebugPreferredVideoCodec = () => {
   const params = useQueryParams();
-  return params.get('video_codec');
+  return params?.get('video_codec');
 };

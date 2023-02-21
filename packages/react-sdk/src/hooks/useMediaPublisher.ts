@@ -1,5 +1,13 @@
 import { useVideoPublisher, VideoPublisherInit } from './useVideoPublisher';
 import { useAudioPublisher, AudioPublisherInit } from './useAudioPublisher';
+import {
+  AudioUpdateParams,
+  useAudioOutputUpdate,
+} from './useAudioOutputUpdate';
+
+type MediaPublisherParams = AudioUpdateParams &
+  VideoPublisherInit &
+  AudioPublisherInit;
 
 export const useMediaPublisher = ({
   call,
@@ -7,7 +15,9 @@ export const useMediaPublisher = ({
   initialVideoMuted,
   videoDeviceId,
   audioDeviceId,
-}: VideoPublisherInit & AudioPublisherInit) => {
+  audioOutputDeviceId,
+}: MediaPublisherParams) => {
+  useAudioOutputUpdate({ audioOutputDeviceId });
   const publishVideoStream = useVideoPublisher({
     call,
     initialVideoMuted,
@@ -18,6 +28,5 @@ export const useMediaPublisher = ({
     initialAudioMuted,
     audioDeviceId,
   });
-
   return { publishAudioStream, publishVideoStream };
 };

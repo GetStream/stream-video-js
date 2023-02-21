@@ -3,9 +3,12 @@
 @use 'src/base';
 @use 'src/global-layout-variables';
 @use 'src/global-theme-variables';
+@use 'src/palette-variables';
 @use 'src/utils';
 @use 'src/variables';
 
+@import 'src/Avatar';
+@import 'src/Button';
 @import 'src/CallControls';
 @import 'src/CallParticipantView';
 @import 'src/CallParticipantsScreenView';
@@ -14,10 +17,11 @@
 @import 'src/CallStats';
 @import 'src/DeviceSettings';
 @import 'src/LoadingIndicator';
+@import 'src/Menu';
 @import 'src/Notification';
 @import "src/Search";
 @import 'src/StreamCall';
 @import "src/Tooltip";
-@import 'src/VideoPlaceholder';
+@import 'src/Video';
 
 @import './src/Debug';

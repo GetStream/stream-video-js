@@ -10,7 +10,7 @@ import { map } from 'rxjs';
 import { useDebugPreferredVideoCodec } from '../components/Debug/useIsDebugMode';
 
 export type VideoPublisherInit = {
-  call: Call;
+  call?: Call;
   initialVideoMuted?: boolean;
   videoDeviceId?: string;
 };
@@ -27,6 +27,7 @@ export const useVideoPublisher = ({
   );
 
   const publishVideoStream = useCallback(async () => {
+    if (!call) return;
     try {
       const videoStream = await getVideoStream(videoDeviceId);
       await call.publishVideoStream(videoStream, { preferredCodec });
@@ -38,7 +39,7 @@ export const useVideoPublisher = ({
   useEffect(() => {
     let interrupted = false;
 
-    if (initialVideoMuted || !isPublishingVideo) return;
+    if (!call || initialVideoMuted || isPublishingVideo) return;
 
     getVideoStream(videoDeviceId).then((stream) => {
       if (interrupted && stream.active)
@@ -49,7 +50,6 @@ export const useVideoPublisher = ({
 
     return () => {
       interrupted = true;
-      call.stopPublish(SfuModels.TrackType.VIDEO);
     };
   }, [
     videoDeviceId,
@@ -63,6 +63,7 @@ export const useVideoPublisher = ({
     const subscription = watchForDisconnectedVideoDevice(
       localParticipant$.pipe(map((p) => p?.videoDeviceId)),
     ).subscribe(async () => {
+      if (!call) return;
       call.setVideoDevice(undefined);
       await call.stopPublish(SfuModels.TrackType.VIDEO);
     });

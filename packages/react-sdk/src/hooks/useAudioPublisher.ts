@@ -9,7 +9,7 @@ import {
 import { map } from 'rxjs';
 
 export type AudioPublisherInit = {
-  call: Call;
+  call?: Call;
   initialAudioMuted?: boolean;
   audioDeviceId?: string;
 };
@@ -26,13 +26,20 @@ export const useAudioPublisher = ({
     SfuModels.TrackType.AUDIO,
   );
 
+  const publishAudioStream = useCallback(async () => {
+    if (!call) return;
+    try {
+      const audioStream = await getAudioStream(audioDeviceId);
+      await call.publishAudioStream(audioStream);
+    } catch (e) {
+      console.log('Failed to publish audio stream', e);
+    }
+  }, [audioDeviceId, call]);
+
   useEffect(() => {
     let interrupted = false;
 
-    // isPublishingAudio/Video can be initially undefined (participant comes later)
-    // - which is something we want to have the effect publish initial stream
-    // we only strictly check if it's false to see if the user is muted while changing devices
-    if (initialAudioMuted || !isPublishingAudio) return;
+    if (!call || initialAudioMuted || isPublishingAudio) return;
 
     getAudioStream(audioDeviceId).then((stream) => {
       if (interrupted && stream.active)
@@ -43,23 +50,14 @@ export const useAudioPublisher = ({
 
     return () => {
       interrupted = true;
-      call.stopPublish(SfuModels.TrackType.AUDIO);
     };
   }, [call, audioDeviceId, initialAudioMuted, isPublishingAudio]);
-
-  const publishAudioStream = useCallback(async () => {
-    try {
-      const audioStream = await getAudioStream(audioDeviceId);
-      await call.publishAudioStream(audioStream);
-    } catch (e) {
-      console.log('Failed to publish audio stream', e);
-    }
-  }, [audioDeviceId, call]);
 
   useEffect(() => {
     const subscription = watchForDisconnectedAudioDevice(
       localParticipant$.pipe(map((p) => p?.audioDeviceId)),
     ).subscribe(async () => {
+      if (!call) return;
       call.setAudioDevice(undefined);
       await call.stopPublish(SfuModels.TrackType.AUDIO);
     });

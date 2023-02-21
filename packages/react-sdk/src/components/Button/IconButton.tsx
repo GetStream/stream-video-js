@@ -2,18 +2,18 @@ import * as React from 'react';
 import { ForwardedRef, forwardRef } from 'react';
 import clsx from 'clsx';
 
-export type CallControlsButtonProps = {
+export type ButtonWithIconProps = {
   icon: string;
   enabled?: boolean;
   variant?: string;
 } & React.ComponentProps<'button'>;
 
-export const CallControlsButton = forwardRef(
-  (props: CallControlsButtonProps, ref: ForwardedRef<HTMLButtonElement>) => {
-    const { icon, enabled, variant, onClick, ...rest } = props;
+export const IconButton = forwardRef(
+  (props: ButtonWithIconProps, ref: ForwardedRef<HTMLButtonElement>) => {
+    const { icon, enabled, variant, onClick, className, ...rest } = props;
     return (
       <button
-        className={clsx('str-video__call-controls__button', {
+        className={clsx('str-video__call-controls__button', className, {
           [`str-video__call-controls__button--variant-${variant}`]: variant,
           'str-video__call-controls__button--enabled': enabled,
         })}

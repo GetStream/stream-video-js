@@ -1,4 +1,3 @@
-export * from './CallControlsButton';
 export * from './CallControls';
 export * from './CallStatsButton';
 export * from './CancelCallButton';

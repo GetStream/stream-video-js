@@ -8,7 +8,7 @@ import { useIsDebugMode } from '../Debug/useIsDebugMode';
 import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../Debug/DebugStatsView';
 import { Audio } from './Audio';
-import { Video } from './Video';
+import { ActiveCallVideo } from '../Video';
 import { Notification } from '../Notification';
 
 export const ParticipantBox = (props: {
@@ -45,14 +45,13 @@ export const ParticipantBox = (props: {
     >
       <Audio muted={isMuted} sinkId={sinkId} />
       <div className="str-video__video-container">
-        <Video
+        <ActiveCallVideo
           call={call}
           participant={participant}
           kind="video"
-          className={clsx(
-            'str-video__remote-video',
-            isLocalParticipant && 'mirror',
-          )}
+          className={clsx('str-video__remote-video', {
+            'str-video__remote-video--mirror': isLocalParticipant,
+          })}
           muted={isMuted}
           autoPlay
         />

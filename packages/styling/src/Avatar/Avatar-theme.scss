@@ -1,0 +1,24 @@
+@use "../utils";
+
+.str-video {
+  /* The font color applied inside the component */
+  --str-video__avatar--color: var(--str-video__text-color1);
+
+  /* The background color of the component */
+  --str-video__avatar--background-color: var(--str-video__background-color1);
+
+  /* The border radius used for the borders of the component */
+  --str-video__avatar--border-radius: var(--str-video__border-radius-circle);
+
+}
+.str-video__avatar {
+  @include utils.component-layer-overrides('avatar');
+}
+
+.str-video__avatar--initials-fallback {
+  background-color: var(--str-video__primary-color);
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--str-video__border-radius-circle);
+  text-transform: uppercase;
+}

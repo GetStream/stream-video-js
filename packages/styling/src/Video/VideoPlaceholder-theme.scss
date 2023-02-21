@@ -1,0 +1,23 @@
+.str-video__participant-placeholder {
+  background: var(--str-video__background-color5);
+  border-radius: var(--str-video__border-radius-sm);
+  border: 2px solid transparent;
+  overflow: hidden;
+
+  .str-video__participant-placeholder--backdrop {
+    backdrop-filter: blur(15px);
+    border-radius: var(--str-video__border-radius2);
+  }
+
+  .str-video__participant-placeholder--avatar {
+    border-radius: var(--str-video__border-radius-circle);
+  }
+
+  .str-video__participant-placeholder--initials-fallback {
+    background-color: var(--str-video__primary-color);
+    font-size: 32px;
+    font-weight: 600;
+    border-radius: var(--str-video__border-radius-circle);
+    text-transform: uppercase;
+  }
+}

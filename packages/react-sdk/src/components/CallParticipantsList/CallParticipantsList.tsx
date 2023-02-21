@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { useParticipants } from '@stream-io/video-react-bindings';
 import { EmptyParticipantSearchList as DefaultEmptyParticipantList } from './EmptyParticipantSearchList';
-import { GetInviteLinkButton as DefaultInviteLinkButton } from './GetInviteLinkButton';
+import { GetInviteLinkButton } from './GetInviteLinkButton';
 import { LoadingIndicator } from '../LoadingIndicator';
 import {
   CallParticipantListHeader,
@@ -23,10 +23,10 @@ type CallParticipantListProps = {
   CallParticipantListing?: React.ComponentType<CallParticipantListingProps>;
   /** Custom component to be rendered when search result is empty */
   EmptyParticipantSearchResultComponent?: React.ComponentType;
-  /** Custom component to replace a button for generating invitation link to the call */
-  GetInviteLinkButton?: React.ComponentType;
   /** Custom CallParticipantsList Header component */
   Header?: React.ComponentType<CallParticipantListHeaderProps>;
+  /** Custom component to replace a button for generating invitation link to the call */
+  InviteLinkButton?: React.ComponentType;
   /** Custom function to override the logic for retrieving searched for participants */
   participantSearchFn?: UseSearchParams<StreamVideoParticipant>['searchFn'];
   /** Interval in ms, during which the participant search calls will be throttled. The default value is 200ms. */
@@ -35,7 +35,7 @@ type CallParticipantListProps = {
 export const CallParticipantsList = ({
   CallParticipantListing = DefaultParticipantListing,
   EmptyParticipantSearchResultComponent = DefaultEmptyParticipantList,
-  GetInviteLinkButton = DefaultInviteLinkButton,
+  InviteLinkButton,
   Header = CallParticipantListHeader,
   onClose,
   participantSearchFn,
@@ -84,7 +84,7 @@ export const CallParticipantsList = ({
         />
       </div>
       <div className="str-video__participant-list__footer">
-        <GetInviteLinkButton />
+        {InviteLinkButton && <GetInviteLinkButton Button={InviteLinkButton} />}
       </div>
     </div>
   );

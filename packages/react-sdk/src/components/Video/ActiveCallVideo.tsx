@@ -6,14 +6,14 @@ import {
   VideoHTMLAttributes,
 } from 'react';
 import {
-  Browsers,
   Call,
   SfuModels,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { VideoPlaceholder } from './VideoPlaceholder';
+import { Video } from './Video';
 
-export const Video = (
+export const ActiveCallVideo = (
   props: DetailedHTMLProps<
     VideoHTMLAttributes<HTMLVideoElement>,
     HTMLVideoElement
@@ -26,7 +26,6 @@ export const Video = (
   const { call, kind, participant, ...rest } = props;
   const { sessionId, videoStream, screenShareStream, publishedTracks } =
     participant;
-
   const stream = kind === 'video' ? videoStream : screenShareStream;
   const isPublishingTrack = publishedTracks.includes(
     kind === 'video'
@@ -35,26 +34,6 @@ export const Video = (
   );
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    const $el = videoRef.current;
-    if (!$el) return;
-    if (stream && stream !== $el.srcObject && isPublishingTrack) {
-      $el.srcObject = stream;
-      if (Browsers.isSafari() || Browsers.isFirefox()) {
-        // Firefox and Safari have some timing issue
-        setTimeout(() => {
-          $el.srcObject = stream;
-          $el.play().catch((e) => {
-            console.error(`Failed to play stream`, e);
-          });
-        }, 0);
-      }
-    }
-    return () => {
-      $el.srcObject = null;
-    };
-  }, [stream, isPublishingTrack]);
-
   const lastDimensionRef = useRef<SfuModels.VideoDimension | undefined>();
   const updateSubscription = useCallback(() => {
     let nextDimension;
@@ -100,15 +79,14 @@ export const Video = (
     return (
       <VideoPlaceholder
         imageSrc={participant.user?.imageUrl}
-        userId={participant.userId}
+        name={participant.userId}
       />
     );
 
   return (
-    <video
-      autoPlay
-      playsInline
+    <Video
       {...rest}
+      stream={stream}
       data-user-id={participant.userId}
       data-session-id={sessionId}
       ref={videoRef}

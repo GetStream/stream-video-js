@@ -1,58 +1,70 @@
+import clsx from 'clsx';
 import * as React from 'react';
-import { MouseEventHandler, useCallback, useState } from 'react';
+import {
+  ComponentPropsWithRef,
+  ComponentType,
+  ForwardedRef,
+  MouseEventHandler,
+  useCallback,
+  useState,
+} from 'react';
 import { Tooltip } from '../Tooltip';
 
 export type GetInviteLinkButtonProps = React.ComponentProps<'button'> & {
+  Button: ComponentType<
+    ComponentPropsWithRef<'button'> & { ref: ForwardedRef<HTMLButtonElement> }
+  >;
+  dismissAfterMs?: number;
   /** Custom function to override the logic of generating the call invitation link */
   generateLink?: () => string;
 };
 
 export const GetInviteLinkButton = ({
+  Button,
+  dismissAfterMs = 1500,
   generateLink,
   onClick,
   ...restProps
 }: GetInviteLinkButtonProps) => {
   const [tooltipText, setTooltipText] = useState('');
-  const [tooltipAnchor, setTooltipAnchor] = useState<HTMLSpanElement | null>(
+  const [tooltipAnchor, setTooltipAnchor] = useState<HTMLButtonElement | null>(
     null,
   );
 
-  const copyLinkToClipBoard = useCallback(async () => {
-    let link = generateLink?.();
-    if (!link) {
-      link = window?.location.href || 'Could not generate invitation link.';
-    }
-    await navigator?.clipboard.writeText(link);
-    return link;
-  }, [generateLink]);
-
   const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(
     async (e) => {
-      const link = await copyLinkToClipBoard();
-      const text = link
-        ? 'Invite link copied to clipboard.'
-        : 'Invite link copy failed';
+      const link = generateLink?.() || window?.location.href;
+      let text;
+      try {
+        await navigator?.clipboard.writeText(link);
+        text = 'Invite link copied to clipboard.';
+      } catch {
+        text = 'Invite link copy failed';
+      }
 
       setTooltipText(text);
-      setTimeout(() => setTooltipText(''), 1500);
+      setTimeout(() => setTooltipText(''), dismissAfterMs);
 
       if (onClick) onClick(e);
     },
-    [copyLinkToClipBoard, onClick, setTooltipText],
+    [dismissAfterMs, generateLink, onClick],
   );
 
   return (
-    <button
-      ref={setTooltipAnchor}
-      className="str-video__invite-link-button"
-      onClick={handleClick}
-      {...restProps}
-    >
-      <Tooltip referenceElement={tooltipAnchor} visible={!!tooltipText}>
+    <>
+      <Tooltip
+        className="str-video__invite-link-button__tooltip"
+        referenceElement={tooltipAnchor}
+        visible={!!tooltipText}
+      >
         {tooltipText}
       </Tooltip>
-      <div className="str-video__invite-participant-icon" />
-      <div className="str-video__invite-link-button__text">Invite Link</div>
-    </button>
+      <Button
+        {...restProps}
+        ref={setTooltipAnchor}
+        className={clsx('str-video__invite-link-button', restProps.className)}
+        onClick={handleClick}
+      />
+    </>
   );
 };

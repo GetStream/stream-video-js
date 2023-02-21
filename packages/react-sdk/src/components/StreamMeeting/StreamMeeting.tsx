@@ -1,10 +1,6 @@
 import { PropsWithChildren, useEffect } from 'react';
 import { CreateCallInput } from '@stream-io/video-client';
-import {
-  useActiveCall,
-  useStreamVideoClient,
-} from '@stream-io/video-react-bindings';
-import { MediaDevicesProvider } from '../../contexts';
+import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 
 export type StreamMeetingProps = {
   callId: string;
@@ -21,7 +17,6 @@ export const StreamMeeting = ({
   input,
 }: PropsWithChildren<StreamMeetingProps>) => {
   const client = useStreamVideoClient();
-  const activeCall = useActiveCall();
 
   useEffect(() => {
     if (!client) return;
@@ -48,9 +43,5 @@ export const StreamMeeting = ({
     });
   }, [callId, client, callType, currentUser, input]);
 
-  return (
-    <MediaDevicesProvider enumerate={!!activeCall}>
-      {children}
-    </MediaDevicesProvider>
-  );
+  return <>{children}</>;
 };
