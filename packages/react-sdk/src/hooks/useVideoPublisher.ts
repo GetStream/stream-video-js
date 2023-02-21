@@ -46,7 +46,11 @@ export const useVideoPublisher = ({
       initialPublishExecuted.current = false;
     }
 
-    if (!call || initialVideoMuted || (!isPublishingVideo && initialPublishExecuted.current))
+    if (
+      !call ||
+      initialVideoMuted ||
+      (!isPublishingVideo && initialPublishExecuted.current)
+    )
       return;
 
     getVideoStream(videoDeviceId).then((stream) => {
@@ -63,8 +67,6 @@ export const useVideoPublisher = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoDeviceId, call, preferredCodec]);
-
-  // X todo: verify initialVideoMuted if needed deps
 
   useEffect(() => {
     const subscription = watchForDisconnectedVideoDevice(

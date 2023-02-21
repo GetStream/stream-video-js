@@ -11,7 +11,6 @@ export const ToggleParticipantListButton = (
   const { enabled, caption = 'Participants' } = props;
   return (
     <CompositeButton enabled={enabled} caption={caption}>
-      {' '}
       <IconButton icon="participants" {...props} />
     </CompositeButton>
   );

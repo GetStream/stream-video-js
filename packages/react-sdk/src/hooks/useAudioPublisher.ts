@@ -45,7 +45,11 @@ export const useAudioPublisher = ({
       initialPublishExecuted.current = false;
     }
 
-    if (!call || initialAudioMuted || (!isPublishingAudio && initialPublishExecuted.current))
+    if (
+      !call ||
+      initialAudioMuted ||
+      (!isPublishingAudio && initialPublishExecuted.current)
+    )
       return;
 
     getAudioStream(audioDeviceId).then((stream) => {
@@ -62,7 +66,6 @@ export const useAudioPublisher = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [call, audioDeviceId]);
-  // X todo: is initialAudioMuted muted as dep?
 
   useEffect(() => {
     const subscription = watchForDisconnectedAudioDevice(

@@ -80,7 +80,7 @@ export const ActiveCallVideo = (
     return (
       <VideoPlaceholder
         imageSrc={participant.user?.image}
-        userId={participant.userId}
+        name={participant.userId}
         isSpeaking={participant.isSpeaking}
       />
     );

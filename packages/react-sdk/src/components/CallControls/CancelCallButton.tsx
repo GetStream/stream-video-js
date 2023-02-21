@@ -19,8 +19,8 @@ export const CancelCallButton = ({
     async (e) => {
       if (onClick) {
         onClick(e);
-      } else if (client && call.data.call?.callCid) {
-        await client.cancelCall(call.data.call.callCid);
+      } else if (client && call) {
+        await client?.cancelCall(call.data.call.id, call.data.call.type);
         onLeave?.();
       }
     },

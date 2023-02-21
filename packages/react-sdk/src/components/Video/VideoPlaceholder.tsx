@@ -1,11 +1,17 @@
 import { useState } from 'react';
+import { clsx } from 'clsx';
 
 export type VideoPlaceholderProps = {
   imageSrc?: string;
-  name?: string;
+  isSpeaking?: boolean;
+  name?: string | null;
 };
 
-export const VideoPlaceholder = ({ imageSrc, name }: VideoPlaceholderProps) => {
+export const VideoPlaceholder = ({
+  imageSrc,
+  isSpeaking,
+  name,
+}: VideoPlaceholderProps) => {
   const [error, setError] = useState(false);
 
   return (
@@ -24,17 +30,12 @@ export const VideoPlaceholder = ({ imageSrc, name }: VideoPlaceholderProps) => {
             <img
               onError={() => setError(true)}
               alt="participant-placeholder"
-              className="str-video__participant-placeholder--avatar"
+              className={clsx('str-video__participant-placeholder--avatar', {
+                'str-video__participant-placeholder--avatar-speaking':
+                  isSpeaking,
+              })}
               src={imageSrc}
             />
-            {/* the backdrop image makes everything so heavy */}
-            {/* TODO: rethink the backdrop */}
-            {/*<div className="str-video__participant-placeholder--backdrop" />*/}
-            {/*<img*/}
-            {/*  alt="participant-placeholder-background"*/}
-            {/*  className="str-video__participant-placeholder--avatar-background"*/}
-            {/*  src={imageSrc}*/}
-            {/*/>*/}
           </>
         )}
       </div>
