@@ -11,7 +11,7 @@ import {
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
-import { User } from '@stream-io/video-client';
+import { Call, User } from '@stream-io/video-client';
 
 import { useCreateStreamChatClient } from '../../hooks';
 import { MeetingUI } from '../../components';
@@ -45,8 +45,40 @@ const JoinCall = (props: JoinCallProps) => {
   useEffect(() => {
     if (gleapApiKey) {
       Gleap.initialize(gleapApiKey);
+      Gleap.identify(user.name || user.id, {
+        name: user.name,
+      });
     }
-  }, [gleapApiKey]);
+  }, [gleapApiKey, user.name, user.id]);
+
+  useEffect(() => {
+    if (!gleapApiKey) return;
+
+    Gleap.on('flow-started', () => {
+      try {
+        const { getCurrentValue, ...state } = client.readOnlyStateStore;
+        const data = Object.entries(state).reduce<Record<string, any>>(
+          (acc, [key, observable]) => {
+            if (!!observable && typeof observable.subscribe === 'function') {
+              const value = getCurrentValue<unknown>(observable);
+              if (key === 'activeCall$' && value) {
+                // special handling, the Call instance isn't serializable
+                acc[key] = (value as Call).data;
+              } else {
+                acc[key] = value;
+              }
+            }
+            return acc;
+          },
+          {},
+        );
+        console.log('!!State Store', data);
+        Gleap.attachCustomData(data);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+  }, [client.readOnlyStateStore, gleapApiKey]);
 
   if (!client) {
     return <h2>Connecting...</h2>;
