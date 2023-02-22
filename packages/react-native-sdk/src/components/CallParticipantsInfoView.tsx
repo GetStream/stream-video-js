@@ -34,12 +34,15 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
         style={[styles.avatar]}
         // FIXME: use real avatar from coordinator this is temporary
         source={{
-          uri: `https://getstream.io/random_png/?id=${participant.userId}&name=${participant.userId}`,
+          uri:
+            participant.image ||
+            `https://getstream.io/random_png/?id=${participant.userId}&name=${participant.userId}`,
         }}
       />
       <Text style={styles.name}>
-        {generateParticipantTitle(participant.userId) +
-          (participant.isLoggedInUser ? ' (You)' : '')}
+        {participant.name ||
+          generateParticipantTitle(participant.userId) +
+            (participant.isLoggedInUser ? ' (You)' : '')}
       </Text>
       <View style={styles.icons}>
         {isScreenSharing && (

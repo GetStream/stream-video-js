@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import Gleap from 'gleap';
 import { useRouter } from 'next/router';
 import { authOptions } from '../api/auth/[...nextauth]';
 import { unstable_getServerSession } from 'next-auth';
@@ -18,6 +20,7 @@ type JoinCallProps = {
   user: User;
   userToken: string;
   apiKey: string;
+  gleapApiKey?: string;
 };
 
 const JoinCall = (props: JoinCallProps) => {
@@ -25,11 +28,11 @@ const JoinCall = (props: JoinCallProps) => {
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
 
-  const { userToken, user, apiKey } = props;
+  const { userToken, user, apiKey, gleapApiKey } = props;
 
   const client = useCreateStreamVideoClient({
     apiKey,
-    token: userToken,
+    tokenOrProvider: userToken,
     user,
   });
 
@@ -38,6 +41,12 @@ const JoinCall = (props: JoinCallProps) => {
     tokenOrProvider: userToken,
     userData: user,
   });
+
+  useEffect(() => {
+    if (gleapApiKey) {
+      Gleap.initialize(gleapApiKey);
+    }
+  }, [gleapApiKey]);
 
   if (!client) {
     return <h2>Connecting...</h2>;
@@ -80,6 +89,7 @@ export const getServerSideProps = async (
 
   const apiKey = process.env.STREAM_API_KEY as string;
   const secretKey = process.env.STREAM_SECRET_KEY as string;
+  const gleapApiKey = process.env.GLEAP_API_KEY as string | undefined;
 
   const userId = (
     (context.query['user_id'] as string) ||
@@ -100,6 +110,7 @@ export const getServerSideProps = async (
         name: userName,
         image: session.user?.image,
       },
+      gleapApiKey,
     } as JoinCallProps,
   };
 };
