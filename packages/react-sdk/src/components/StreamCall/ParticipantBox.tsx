@@ -11,13 +11,26 @@ import { DebugStatsView } from '../Debug/DebugStatsView';
 import { Video } from './Video';
 import { Notification } from '../Notification';
 
-export const ParticipantBox = (props: {
+export interface ParticipantBoxProps {
   participant: StreamVideoParticipant;
   isMuted?: boolean;
   call: Call;
   sinkId?: string;
-}) => {
-  const { participant, isMuted = false, call, sinkId } = props;
+  indicatorsVisible?: boolean;
+  setVideoElementRef?: (element: HTMLElement | null) => void;
+  className?: string;
+}
+
+export const ParticipantBox = (props: ParticipantBoxProps) => {
+  const {
+    participant,
+    isMuted = false,
+    indicatorsVisible = true,
+    call,
+    sinkId,
+    setVideoElementRef,
+    className,
+  } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
   const {
     videoStream,
@@ -57,6 +70,7 @@ export const ParticipantBox = (props: {
       className={clsx(
         'str-video__participant',
         isSpeaking && 'str-video__participant--speaking',
+        className,
       )}
     >
       <audio autoPlay ref={audioRef} muted={isMuted} />
@@ -65,41 +79,44 @@ export const ParticipantBox = (props: {
           call={call}
           participant={participant}
           kind="video"
+          setVideoElementRef={setVideoElementRef}
           className={clsx(
             'str-video__remote-video',
             isLocalParticipant && 'mirror',
           )}
-          muted={isMuted}
+          muted
           autoPlay
         />
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
-            {participant.user?.name || participant.userId}
-            {isDominantSpeaker && (
+            {participant.name || participant.userId}
+            {indicatorsVisible && isDominantSpeaker && (
               <span
                 className="str-video__participant_name--dominant_speaker"
                 title="Dominant speaker"
               />
             )}
-            <Notification
-              isVisible={
-                isLocalParticipant &&
-                connectionQuality === SfuModels.ConnectionQuality.POOR
-              }
-              message="Poor connection quality. Please check your internet connection."
-            >
-              <span
-                className={clsx(
-                  'str-video__participant__connection-quality',
-                  `str-video__participant__connection-quality--${connectionQualityAsString}`,
-                )}
-                title={connectionQualityAsString}
-              />
-            </Notification>
-            {!hasAudio && (
+            {indicatorsVisible && (
+              <Notification
+                isVisible={
+                  isLocalParticipant &&
+                  connectionQuality === SfuModels.ConnectionQuality.POOR
+                }
+                message="Poor connection quality. Please check your internet connection."
+              >
+                <span
+                  className={clsx(
+                    'str-video__participant__connection-quality',
+                    `str-video__participant__connection-quality--${connectionQualityAsString}`,
+                  )}
+                  title={connectionQualityAsString}
+                />
+              </Notification>
+            )}
+            {indicatorsVisible && !hasAudio && (
               <span className="str-video__participant_name--audio-muted"></span>
             )}
-            {!hasVideo && (
+            {indicatorsVisible && !hasVideo && (
               <span className="str-video__participant_name--video-muted"></span>
             )}
           </span>
