@@ -9,13 +9,15 @@ import React from 'react';
 import {UserList} from './src/components/UserList';
 import {NavigationStackParamsList} from './src/types';
 import {ActiveCallScreen} from './src/screens/ActiveCallScreen';
-import {CallParticipansInfoScreen} from './src/screens/CallParticipantsInfoScreen';
 import {LobbyViewScreen} from './src/screens/LobbyViewScreen';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer} from '@react-navigation/native';
 import {AppProvider, useAppContext} from './src/context/AppContext';
 import {useVideoClient} from './src/hooks/useVideoClient';
-import {StreamVideo} from '@stream-io/video-react-native-sdk';
+import {
+  CallParticipantsInfoView,
+  StreamVideo,
+} from '@stream-io/video-react-native-sdk';
 import {AuthProgressLoader} from './src/components/AuthProgressLoader';
 import {NavigationHeader} from './src/components/NavigationHeader';
 import {JoinMeetingScreen} from './src/screens/JoinMeetingScreen';
@@ -57,7 +59,7 @@ const Navigator = () => {
         />
         <Stack.Screen
           name="CallParticipantsInfoScreen"
-          component={CallParticipansInfoScreen}
+          component={CallParticipantsInfoView}
         />
       </Stack.Navigator>
     </StreamVideo>

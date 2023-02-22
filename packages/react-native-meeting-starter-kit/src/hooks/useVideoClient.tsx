@@ -18,9 +18,9 @@ export const useVideoClient = ({user, token}: VideoProps) => {
 
       try {
         if (user && token) {
-          const _videoClient = new StreamVideoClient(APIParams.apiKey);
-          await _videoClient.connectUser(user, token);
-          setVideoClient(_videoClient);
+          const client = new StreamVideoClient(APIParams.apiKey);
+          await client.connectUser(user, token);
+          setVideoClient(client);
         }
       } catch (err) {
         console.error('Failed to establish connection', err);

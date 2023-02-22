@@ -4,11 +4,9 @@ The application is made as a starter kit to the meeting flow of the new Stream V
 
 ### Configuring the Environment Variables
 
-For testing, use the following environment variables:
+Configure the environment variables by adding the following environment variables to a `.env` file on the root of the project:
 
-```
-STREAM_API_KEY=w6yaq5388uym
-```
+- `STREAM_API_KEY`
 
 ### Installation steps
 
