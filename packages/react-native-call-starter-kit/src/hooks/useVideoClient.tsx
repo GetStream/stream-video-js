@@ -22,7 +22,7 @@ export const useVideoClient = ({user, token}: VideoProps) => {
         const _videoClient = new StreamVideoClient(
           APIParams.apiKey,
           {},
-          CALL_CONFIG.ring,
+          {...CALL_CONFIG.ring, autoCancelTimeoutInMs: 30 * 1000},
         );
         await _videoClient.connectUser(user, token);
         setVideoClient(_videoClient);
