@@ -46,11 +46,11 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
   }, [navigation]);
 
   const onIncomingCall = useCallback(() => {
-    navigation.navigate('OutgoingCallScreen');
+    navigation.navigate('IncomingCallScreen');
   }, [navigation]);
 
   const onOutgoingCall = useCallback(() => {
-    navigation.navigate('IncomingCallScreen');
+    navigation.navigate('OutgoingCallScreen');
   }, [navigation]);
 
   const onHangupCall = useCallback(() => {
