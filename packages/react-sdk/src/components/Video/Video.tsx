@@ -1,55 +1,126 @@
 import {
   DetailedHTMLProps,
-  ForwardedRef,
-  forwardRef,
+  useCallback,
   useEffect,
   useRef,
+  useState,
   VideoHTMLAttributes,
 } from 'react';
-import { Browsers } from '@stream-io/video-client';
-import { useMediaDevices } from '../../contexts';
+import {
+  Call,
+  SfuModels,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
+import clsx from 'clsx';
+import { VideoPlaceholder } from './VideoPlaceholder';
+import { BaseVideo } from './BaseVideo';
 
-export type VideoProps = DetailedHTMLProps<
-  VideoHTMLAttributes<HTMLVideoElement>,
-  HTMLVideoElement
-> & {
-  stream?: MediaStream;
-};
-
-export const Video = forwardRef<HTMLVideoElement, VideoProps>(
-  ({ stream, ...rest }, ref) => {
-    const { disposeMediaStream } = useMediaDevices();
-    const videoRef = useRef<HTMLVideoElement | null>(null);
-    const setRef: ForwardedRef<HTMLVideoElement> = (instance) => {
-      videoRef.current = instance;
-      if (typeof ref === 'function') {
-        (ref as (instance: HTMLVideoElement | null) => void)(instance);
-      } else if (ref) {
-        ref.current = instance;
-      }
-    };
-
-    useEffect(() => {
-      const $el = videoRef.current;
-      if (!$el) return;
-      if (stream && stream !== $el.srcObject) {
-        $el.srcObject = stream;
-        if (Browsers.isSafari() || Browsers.isFirefox()) {
-          // Firefox and Safari have some timing issue
-          setTimeout(() => {
-            $el.srcObject = stream;
-            $el.play().catch((e) => {
-              console.error(`Failed to play stream`, e);
-            });
-          }, 0);
-        }
-      }
-      return () => {
-        $el.pause();
-        $el.srcObject = null;
-        stream && disposeMediaStream(stream);
-      };
-    }, [disposeMediaStream, stream]);
-    return <video autoPlay playsInline {...rest} ref={setRef} />;
+export const Video = (
+  props: DetailedHTMLProps<
+    VideoHTMLAttributes<HTMLVideoElement>,
+    HTMLVideoElement
+  > & {
+    call: Call;
+    kind: 'video' | 'screen';
+    participant: StreamVideoParticipant;
+    setVideoElementRef?: (element: HTMLElement | null) => void;
   },
-);
+) => {
+  const { call, kind, participant, className, setVideoElementRef, ...rest } =
+    props;
+  const { sessionId, videoStream, screenShareStream, publishedTracks } =
+    participant;
+
+  const stream = kind === 'video' ? videoStream : screenShareStream;
+  const isPublishingTrack = publishedTracks.includes(
+    kind === 'video'
+      ? SfuModels.TrackType.VIDEO
+      : SfuModels.TrackType.SCREEN_SHARE,
+  );
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const lastDimensionRef = useRef<SfuModels.VideoDimension | undefined>();
+  const updateSubscription = useCallback(() => {
+    let nextDimension;
+    const $el = videoRef.current;
+    if ($el && isPublishingTrack) {
+      nextDimension = {
+        width: $el.clientWidth,
+        height: $el.clientHeight,
+      };
+    }
+
+    const lastDimension = lastDimensionRef.current;
+    if (
+      nextDimension?.width !== lastDimension?.width ||
+      nextDimension?.height !== lastDimension?.height
+    ) {
+      call.updateSubscriptionsPartial(kind, {
+        [sessionId]: {
+          dimension: nextDimension,
+        },
+      });
+      lastDimensionRef.current = nextDimension;
+    }
+  }, [call, isPublishingTrack, kind, sessionId]);
+
+  useEffect(() => {
+    updateSubscription();
+  }, [updateSubscription]);
+
+  useEffect(() => {
+    const $videoEl = videoRef.current;
+    if (!$videoEl) return;
+    const resizeObserver = new ResizeObserver(() => {
+      updateSubscription();
+    });
+    resizeObserver.observe($videoEl);
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [updateSubscription]);
+
+  const [isWideMode, setIsWideMode] = useState(true);
+  useEffect(() => {
+    if (!stream) return;
+    const calculateVideoRatio = () => {
+      const [track] = stream.getVideoTracks();
+      if (!track) return;
+
+      const { width = 0, height = 0 } = track.getSettings();
+      setIsWideMode(width > height);
+    };
+    const $videoEl = videoRef.current;
+    $videoEl?.addEventListener('play', calculateVideoRatio);
+    return () => {
+      $videoEl?.removeEventListener('play', calculateVideoRatio);
+    };
+  }, [stream]);
+
+  if (!isPublishingTrack)
+    return (
+      <VideoPlaceholder
+        imageSrc={participant.image}
+        name={participant.name || participant.userId}
+        isSpeaking={participant.isSpeaking}
+        ref={setVideoElementRef}
+      />
+    );
+
+  return (
+    <BaseVideo
+      {...rest}
+      stream={stream}
+      className={clsx(className, {
+        'str_video__video--wide': isWideMode,
+        'str_video__video--tall': !isWideMode,
+      })}
+      data-user-id={participant.userId}
+      data-session-id={sessionId}
+      ref={(ref) => {
+        videoRef.current = ref;
+        setVideoElementRef?.(ref);
+      }}
+    />
+  );
+};

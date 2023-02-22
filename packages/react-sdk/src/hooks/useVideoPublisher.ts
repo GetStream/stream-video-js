@@ -46,12 +46,13 @@ export const useVideoPublisher = ({
       initialPublishExecuted.current = false;
     }
 
-    if (
-      !call ||
-      initialVideoMuted ||
-      (!isPublishingVideo && initialPublishExecuted.current)
-    )
+    // avoid publishing when moving from lobby to active call with muted audio
+    if (call && initialVideoMuted && !initialPublishExecuted.current) {
+      initialPublishExecuted.current = true;
       return;
+    }
+
+    if (!call || (!isPublishingVideo && initialPublishExecuted.current)) return;
 
     getVideoStream(videoDeviceId).then((stream) => {
       if (interrupted && stream.active)
@@ -66,7 +67,7 @@ export const useVideoPublisher = ({
       call.stopPublish(SfuModels.TrackType.VIDEO);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoDeviceId, call, preferredCodec]);
+  }, [videoDeviceId, call, preferredCodec, initialVideoMuted]);
 
   useEffect(() => {
     const subscription = watchForDisconnectedVideoDevice(

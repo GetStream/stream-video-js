@@ -1,5 +1,5 @@
 import {
-  ActiveCallVideo,
+  Video,
   ParticipantBox,
   SfuModels,
   useActiveCall,
@@ -24,7 +24,7 @@ export const DominantSpeakerScreenShare = () => {
 
   return (
     <div className="screen-share-container">
-      <ActiveCallVideo
+      <Video
         className="screen-share-player"
         participant={screenSharingParticipant}
         call={call!}

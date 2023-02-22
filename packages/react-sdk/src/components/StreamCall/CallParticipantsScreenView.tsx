@@ -5,7 +5,7 @@ import {
   useParticipants,
 } from '@stream-io/video-react-bindings';
 import { ParticipantBox } from './ParticipantBox';
-import { ActiveCallVideo } from '../Video';
+import { Video } from '../Video';
 
 export const CallParticipantsScreenView = (props: { call: Call }) => {
   const { call } = props;
@@ -29,7 +29,7 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
               {firstScreenSharingParticipant.userId} is presenting their screen.
             </span>
             <div className="str-video__call-participants-screen-view__wrapper">
-              <ActiveCallVideo
+              <Video
                 className="str-video__screen-share"
                 participant={firstScreenSharingParticipant}
                 call={call}

@@ -19,13 +19,12 @@ export const Audio = ({ audioStream, sinkId, ...rest }: AudioProps) => {
 
   useEffect(() => {
     const $el = audioRef.current;
+    if (!($el && audioStream)) return;
+
     console.log(`Attaching audio stream`, $el, audioStream);
-    if (!$el) return;
-    if (audioStream) {
-      $el.srcObject = audioStream;
-      if (($el as any).setSinkId) {
-        ($el as any).setSinkId(sinkId || '');
-      }
+    $el.srcObject = audioStream;
+    if (($el as any).setSinkId) {
+      ($el as any).setSinkId(sinkId || '');
     }
     return () => {
       $el.srcObject = null;

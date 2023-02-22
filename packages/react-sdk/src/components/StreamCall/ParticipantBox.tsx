@@ -8,7 +8,7 @@ import { useIsDebugMode } from '../Debug/useIsDebugMode';
 import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../Debug/DebugStatsView';
 import { Audio } from './Audio';
-import { ActiveCallVideo } from '../Video';
+import { Video } from '../Video';
 import { Notification } from '../Notification';
 
 export interface ParticipantBoxProps {
@@ -57,9 +57,13 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
         className,
       )}
     >
-      <Audio muted={isMuted} sinkId={sinkId} />
+      <Audio
+        muted={isMuted}
+        sinkId={sinkId}
+        audioStream={participant.audioStream}
+      />
       <div className="str-video__video-container">
-        <ActiveCallVideo
+        <Video
           call={call}
           participant={participant}
           kind="video"

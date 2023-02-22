@@ -45,12 +45,13 @@ export const useAudioPublisher = ({
       initialPublishExecuted.current = false;
     }
 
-    if (
-      !call ||
-      initialAudioMuted ||
-      (!isPublishingAudio && initialPublishExecuted.current)
-    )
+    // avoid publishing when moving from lobby to active call with muted audio
+    if (call && initialAudioMuted && !initialPublishExecuted.current) {
+      initialPublishExecuted.current = true;
       return;
+    }
+
+    if (!call || (!isPublishingAudio && initialPublishExecuted.current)) return;
 
     getAudioStream(audioDeviceId).then((stream) => {
       if (interrupted && stream.active)
@@ -65,7 +66,7 @@ export const useAudioPublisher = ({
       call.stopPublish(SfuModels.TrackType.AUDIO);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [call, audioDeviceId]);
+  }, [call, audioDeviceId, initialAudioMuted]);
 
   useEffect(() => {
     const subscription = watchForDisconnectedAudioDevice(

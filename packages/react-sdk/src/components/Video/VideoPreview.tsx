@@ -6,7 +6,7 @@ import {
   useState,
 } from 'react';
 import clsx from 'clsx';
-import { Video } from './Video';
+import { BaseVideo } from './BaseVideo';
 import { DEVICE_STATE, useMediaDevices } from '../../contexts';
 import { LoadingIndicator } from '../LoadingIndicator';
 
@@ -96,7 +96,7 @@ export const VideoPreview = ({
     contents = (
       <>
         {stream && (
-          <Video
+          <BaseVideo
             stream={stream}
             className={clsx('str-video__video-preview', {
               'str-video__video-preview--mirror': mirror,
