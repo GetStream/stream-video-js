@@ -1,9 +1,9 @@
 import {
+  ActiveCallVideo,
   ParticipantBox,
   SfuModels,
   useActiveCall,
   useRemoteParticipants,
-  Video,
 } from '@stream-io/video-react-sdk';
 import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
 import './ScreenShare.scss';
@@ -24,7 +24,7 @@ export const DominantSpeakerScreenShare = () => {
 
   return (
     <div className="screen-share-container">
-      <Video
+      <ActiveCallVideo
         className="screen-share-player"
         participant={screenSharingParticipant}
         call={call!}

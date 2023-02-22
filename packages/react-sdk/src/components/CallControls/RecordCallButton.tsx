@@ -20,18 +20,18 @@ export const RecordCallButton = ({
 
   return (
     <CompositeButton enabled={isCallRecordingInProgress} caption={caption}>
-    <IconButton
-      icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
-      title="Record call"
-      onClick={() => {
-        if (!callMeta) return;
-        if (isCallRecordingInProgress) {
-          client?.stopRecording(callMeta.id!, callMeta.type!);
-        } else {
-          client?.startRecording(callMeta.id!, callMeta.type!);
-        }
-      }}
-    />
+      <IconButton
+        icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
+        title="Record call"
+        onClick={() => {
+          if (!callMeta) return;
+          if (isCallRecordingInProgress) {
+            client?.stopRecording(callMeta.id!, callMeta.type!);
+          } else {
+            client?.startRecording(callMeta.id!, callMeta.type!);
+          }
+        }}
+      />
     </CompositeButton>
   );
 };

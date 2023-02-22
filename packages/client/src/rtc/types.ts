@@ -1,4 +1,3 @@
-import type { UserResponse } from '../gen/coordinator';
 import type {
   Participant,
   VideoDimension,

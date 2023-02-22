@@ -7,7 +7,7 @@ import {
 } from '@stream-io/video-angular-sdk';
 import { Subscription } from 'rxjs';
 import { ChatClientService, getChannelDisplayText } from 'stream-chat-angular';
-import { CallMetadata, GetOrCreateCallResponse } from '@stream-io/video-client';
+import { GetOrCreateCallResponse } from '@stream-io/video-client';
 
 @Component({
   selector: 'app-outgoing-call',
