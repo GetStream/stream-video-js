@@ -7,12 +7,12 @@ on:
       - demo-apps
       - egress-composite
     paths:
-      - ".github/workflows/deploy-sample-apps.yml"
-      - "sample-apps/react/**"
-      - "packages/client/**"
-      - "packages/react-sdk/**"
-      - "packages/react-bindings/**"
-      - "packages/styling/**"
+      - '.github/workflows/deploy-sample-apps.yml'
+      - 'sample-apps/react/**'
+      - 'packages/client/**'
+      - 'packages/react-sdk/**'
+      - 'packages/react-bindings/**'
+      - 'packages/styling/**'
   pull_request:
     types:
       - opened
@@ -37,6 +37,12 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ matrix.application.project-id }}
       VITE_STREAM_KEY: ${{ vars.STREAM_API_KEY_SAMPLE_APPS }}
+      VITE_STREAM_TOKEN_ALICE: ${{ secrets.STREAM_TOKEN_ALICE }}
+      VITE_STREAM_TOKEN_MARK: ${{ secrets.STREAM_TOKEN_MARK }}
+      VITE_STREAM_TOKEN_BOB: ${{ secrets.STREAM_TOKEN_BOB }}
+      VITE_STREAM_TOKEN_JANE: ${{ secrets.STREAM_TOKEN_JANE }}
+      VITE_STREAM_TOKEN_TAMARA: ${{ secrets.STREAM_TOKEN_TAMARA }}
+      VITE_STREAM_TOKEN_JOHN: ${{ secrets.STREAM_TOKEN_JOHN }}
 
     steps:
       - uses: actions/checkout@v3
@@ -47,7 +53,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
-          cache: "yarn"
+          cache: 'yarn'
 
       - name: Install Dependencies
         run: yarn install --immutable

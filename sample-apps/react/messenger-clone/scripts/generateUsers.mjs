@@ -1,9 +1,8 @@
 import { StreamChat } from 'stream-chat';
 import dotenv from 'dotenv';
+import { users } from '../data/users.js';
 
-import usersJSON from '../data/users.json' assert { type: 'json' };
-
-const users = usersJSON.map(({ token: _, ...rest }) => rest);
+const usersWithoutToken = users.map(({ token: _, ...rest }) => rest);
 
 dotenv.config();
 
@@ -13,11 +12,11 @@ const secret = process.env.VITE_STREAM_SECRET;
 const client = StreamChat.getInstance(apiKey, secret);
 
 console.log('Creating users...');
-await client.upsertUsers(users);
+await client.upsertUsers(usersWithoutToken);
 
-const channels = users
+const channels = usersWithoutToken
   .flatMap((user, index) =>
-    users.map((nestedUser, nestedIndex) => {
+  usersWithoutToken.map((nestedUser, nestedIndex) => {
       if (index >= nestedIndex) return null;
       return [user, nestedUser];
     }),
