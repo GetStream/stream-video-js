@@ -24,7 +24,7 @@ export const Video = ({
   const client = useCreateStreamVideoClient({
     callConfig: CALL_CONFIG.ring,
     apiKey: import.meta.env.VITE_VIDEO_API_KEY,
-    token: import.meta.env.VITE_VIDEO_USER_TOKEN ?? token,
+    tokenOrProvider: import.meta.env.VITE_VIDEO_USER_TOKEN ?? token,
     user,
   });
 
@@ -50,7 +50,7 @@ const VideoAdapter = ({ children }: { children: ReactNode }) => {
       id: client.user!.id,
       name: client.user!.name,
       role: client.user!.role,
-      teams: [],
+      image: client.user!.image,
     }),
     [client.user],
   );

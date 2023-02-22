@@ -35,6 +35,7 @@ export const useAuth = () => {
           name: username,
           role: 'admin',
           teams: ['team-1, team-2'],
+          image: userImageUrl,
         };
 
         const token = await createToken(username, APIParams.apiSecret);

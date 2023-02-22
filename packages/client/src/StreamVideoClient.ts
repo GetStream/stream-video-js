@@ -20,7 +20,6 @@ import { CallMetadata } from './rtc/CallMetadata';
 
 // import { reportStats } from './stats/coordinator-stats-reporter';
 import { Timestamp } from './gen/google/protobuf/timestamp';
-import { Batcher } from './Batcher';
 import {
   watchCallAccepted,
   watchCallCancelled,
@@ -54,10 +53,6 @@ export class StreamVideoClient {
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
   private callDropScheduler: CallDropScheduler | undefined;
   public coordinatorClient: StreamCoordinatorClient;
-  /**
-   * @internal
-   */
-  public readonly userBatcher: Batcher<string>;
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -79,12 +74,6 @@ export class StreamVideoClient {
       this.writeableStateStore,
     );
 
-    this.userBatcher = new Batcher<string>(
-      3000,
-      // this.handleUserBatch,
-      () => {},
-    );
-
     // reportStats(
     //   this.readOnlyStateStore,
     //   (e) =>
@@ -97,34 +86,6 @@ export class StreamVideoClient {
     //     }),
     // );
   }
-
-  // private handleUserBatch = (idList: string[]) => {
-  //   this.client
-  //     .queryUsers({
-  //       mqJson: new TextEncoder().encode(
-  //         JSON.stringify({ id: { $in: idList } }),
-  //       ),
-  //       sorts: [],
-  //     })
-  //     .then(({ response: { users } }) => {
-  //       const mappedUsers = users.reduce<Record<string, User>>(
-  //         (userMap, user) => {
-  //           userMap[user.id] ??= user;
-  //           return userMap;
-  //         },
-  //         {},
-  //       );
-  //
-  //       this.writeableStateStore.setCurrentValue(
-  //         this.writeableStateStore.participantsSubject,
-  //         (participants) =>
-  //           participants.map((participant) => {
-  //             const user = mappedUsers[participant.userId];
-  //             return user ? { ...participant, user } : participant;
-  //           }),
-  //       );
-  //     });
-  // };
 
   /**
    * Connects the given user to the client.
@@ -355,7 +316,6 @@ export class StreamVideoClient {
           sfuClient,
           callOptions,
           this.writeableStateStore,
-          this.userBatcher,
         );
         await call.join();
 

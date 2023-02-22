@@ -24,11 +24,10 @@ export const ChatVideoWrapper = () => {
 
   const videoClient = useCreateStreamVideoClient({
     apiKey,
-    token,
+    tokenOrProvider: token,
     user: {
       id: userData.id,
-      // FIXME: find a way to store user profile picture
-      // imageUrl: userData.image,
+      image: userData.image,
       name: userData.name,
       role: 'user',
       teams: [],
