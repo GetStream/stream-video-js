@@ -19,6 +19,10 @@ body {
 .str-video__call {
   display: flex;
   flex-direction: row;
+  
+  .str-video__stage {
+    padding-inline: 1rem;
+  }
 }
 
 .str-video__call__main {
@@ -27,8 +31,10 @@ body {
   flex: 1;
 }
 
+
+
 .str-video__sidebar {
-  padding: 1rem;
+  padding: 1rem 1rem 1rem 0;
   width: 360px;
   display: flex;
   gap: 1rem;
