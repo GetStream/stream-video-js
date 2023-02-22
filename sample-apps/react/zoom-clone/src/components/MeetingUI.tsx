@@ -29,7 +29,7 @@ export const MeetingUI = ({ children }: PropsWithChildren) => {
         <h4 className="str-video__call__header-title">
           {type}:{id}
         </h4>
-        <DeviceSettings activeCall={activeCall} />
+        <DeviceSettings />
       </div>
       <Stage call={activeCall} />
       <div className="relative flex justify-center items-center">

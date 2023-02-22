@@ -14,7 +14,7 @@ export const MeetingUI = () => {
     <div className="str-video__call">
       <div className="str-video__call-header">
         <h4 className="str-video__call-header-title">
-          {activeCall.data.call.callCid}
+          {activeCall.data.call.cid}
         </h4>
         <DeviceSettings />
       </div>
