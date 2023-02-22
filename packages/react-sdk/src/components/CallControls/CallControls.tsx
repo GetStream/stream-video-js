@@ -11,8 +11,6 @@ import { SpeakingWhileMutedNotification } from '../Notification';
 
 export type CallControlsProps = {
   call: Call;
-  initialAudioMuted?: boolean;
-  initialVideoMuted?: boolean;
   onLeave?: () => void;
 };
 

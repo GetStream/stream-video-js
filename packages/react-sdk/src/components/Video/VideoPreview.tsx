@@ -86,29 +86,33 @@ export const VideoPreview = ({
     setInitialVideoState(DEVICE_STATE.playing);
   }, [setInitialVideoState]);
 
-  const loading = initialVideoState.type === 'starting';
+  let contents;
+  if (initialVideoState.type === 'error') {
+    contents = <VideoErrorPreview />;
+  } else if (initialVideoState.type === 'stopped' && !videoDevices.length) {
+    contents = <NoCameraPreview />;
+  } else if (initialVideoState.enabled) {
+    const loading = initialVideoState.type === 'starting';
+    contents = (
+      <>
+        {stream && (
+          <Video
+            stream={stream}
+            className={clsx('str-video__video-preview', {
+              'str-video__video-preview--mirror': mirror,
+              'str-video__video-preview--loading': loading,
+            })}
+            onPlay={handleOnPlay}
+          />
+        )}
+        {loading && <StartingCameraPreview />}
+      </>
+    );
+  } else {
+    contents = <DisabledVideoPreview />;
+  }
+
   return (
-    <div className={clsx('str-video__video-preview-container')}>
-      {initialVideoState.type === 'error' && <VideoErrorPreview />}
-      {initialVideoState.type === 'stopped' && !videoDevices.length ? (
-        <NoCameraPreview />
-      ) : initialVideoState.enabled ? (
-        <>
-          {stream && (
-            <Video
-              stream={stream}
-              className={clsx('str-video__video-preview', {
-                'str-video__video-preview--mirror': mirror,
-                'str-video__video-preview--loading': loading,
-              })}
-              onPlay={handleOnPlay}
-            />
-          )}
-          {loading && <StartingCameraPreview />}
-        </>
-      ) : (
-        <DisabledVideoPreview />
-      )}
-    </div>
+    <div className={clsx('str-video__video-preview-container')}>{contents}</div>
   );
 };

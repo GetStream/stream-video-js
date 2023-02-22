@@ -2,7 +2,6 @@ import {
   DetailedHTMLProps,
   ForwardedRef,
   forwardRef,
-  MutableRefObject,
   useEffect,
   useRef,
   VideoHTMLAttributes,
@@ -26,7 +25,7 @@ export const Video = forwardRef<HTMLVideoElement, VideoProps>(
       if (typeof ref === 'function') {
         (ref as (instance: HTMLVideoElement | null) => void)(instance);
       } else if (ref) {
-        (ref as MutableRefObject<HTMLVideoElement | null>).current = instance;
+        ref.current = instance;
       }
     };
 
