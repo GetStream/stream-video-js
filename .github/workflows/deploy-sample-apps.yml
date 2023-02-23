@@ -45,6 +45,12 @@ jobs:
       VITE_STREAM_TOKEN_JANE: ${{ secrets.STREAM_TOKEN_JANE }}
       VITE_STREAM_TOKEN_TAMARA: ${{ secrets.STREAM_TOKEN_TAMARA }}
       VITE_STREAM_TOKEN_JOHN: ${{ secrets.STREAM_TOKEN_JOHN }}
+      VITE_STREAM_TOKEN_SARA: ${{ secrets.STREAM_TOKEN_SARA }}
+      VITE_STREAM_TOKEN_MICHAEL: ${{ secrets.STREAM_TOKEN_MICHAEL }}
+      VITE_STREAM_TOKEN_BRIAN: ${{ secrets.STREAM_TOKEN_BRIAN }}
+      VITE_STREAM_TOKEN_EVELYN: ${{ secrets.STREAM_TOKEN_EVELYN }}
+      VITE_STREAM_TOKEN_TINA: ${{ secrets.STREAM_TOKEN_TINA }}
+      VITE_STREAM_TOKEN_JACK: ${{ secrets.STREAM_TOKEN_JACK }}
 
     steps:
       - uses: actions/checkout@v3
