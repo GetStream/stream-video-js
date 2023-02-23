@@ -9,14 +9,14 @@ rxjs
 RxJS
 monorepo
 repo
-todo
+(?i)todo
 dialogs
 APIs
 SDKs
 grayscale
 registery
 GH
-livestream
+(?i)livestream
 performant
 follow
 tokenization
