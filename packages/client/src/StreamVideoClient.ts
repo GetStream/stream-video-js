@@ -334,7 +334,7 @@ export class StreamVideoClient {
         );
 
         const { server, ice_servers, token } = edge.credentials;
-        const sfuClient = new StreamSfuClient(server.url, token!);
+        const sfuClient = new StreamSfuClient(server.url, token);
         const metadata = new CallMetadata(callMeta, members);
         const callOptions = {
           connectionConfig: this.toRtcConfiguration(ice_servers),
