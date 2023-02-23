@@ -3,6 +3,7 @@ import '@stream-io/video-styling/dist/css/styles.css';
 import 'stream-chat-react/dist/css/v2/index.css';
 import '../style/app.css';
 import '../style/chat.css';
+import { ComponentType } from 'react';
 import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -36,7 +37,7 @@ const theme = createTheme({
 });
 
 type AppProps = {
-  Component: React.ComponentType;
+  Component: ComponentType;
   pageProps: {
     session: Session;
   };

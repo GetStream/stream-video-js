@@ -9,6 +9,9 @@ import type {
   GetOrCreateCallRequest,
   ICEServer,
   JoinCallResponse,
+  JoinCallRequest,
+  RequestPermissionRequest,
+  UpdateUserPermissionsRequest,
 } from './gen/coordinator';
 
 import type { ReportCallStatEventRequest } from './gen/video/coordinator/client_v1_rpc/client_rpc';
@@ -19,7 +22,6 @@ import { CallMetadata } from './rtc/CallMetadata';
 
 // import { reportStats } from './stats/coordinator-stats-reporter';
 import { Timestamp } from './gen/google/protobuf/timestamp';
-import { Batcher } from './Batcher';
 import {
   watchCallAccepted,
   watchCallCancelled,
@@ -36,6 +38,10 @@ import {
   TokenOrProvider,
   User,
 } from './coordinator/connection/types';
+import {
+  watchCallPermissionRequest,
+  watchCallPermissionsUpdated,
+} from './events/call-permissions';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -53,10 +59,6 @@ export class StreamVideoClient {
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
   private callDropScheduler: CallDropScheduler | undefined;
   public coordinatorClient: StreamCoordinatorClient;
-  /**
-   * @internal
-   */
-  public readonly userBatcher: Batcher<string>;
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -78,12 +80,6 @@ export class StreamVideoClient {
       this.writeableStateStore,
     );
 
-    this.userBatcher = new Batcher<string>(
-      3000,
-      // this.handleUserBatch,
-      () => {},
-    );
-
     // reportStats(
     //   this.readOnlyStateStore,
     //   (e) =>
@@ -96,34 +92,6 @@ export class StreamVideoClient {
     //     }),
     // );
   }
-
-  // private handleUserBatch = (idList: string[]) => {
-  //   this.client
-  //     .queryUsers({
-  //       mqJson: new TextEncoder().encode(
-  //         JSON.stringify({ id: { $in: idList } }),
-  //       ),
-  //       sorts: [],
-  //     })
-  //     .then(({ response: { users } }) => {
-  //       const mappedUsers = users.reduce<Record<string, User>>(
-  //         (userMap, user) => {
-  //           userMap[user.id] ??= user;
-  //           return userMap;
-  //         },
-  //         {},
-  //       );
-  //
-  //       this.writeableStateStore.setCurrentValue(
-  //         this.writeableStateStore.participantsSubject,
-  //         (participants) =>
-  //           participants.map((participant) => {
-  //             const user = mappedUsers[participant.userId];
-  //             return user ? { ...participant, user } : participant;
-  //           }),
-  //       );
-  //     });
-  // };
 
   /**
    * Connects the given user to the client.
@@ -162,6 +130,17 @@ export class StreamVideoClient {
       'call.cancelled',
       // @ts-expect-error
       watchCallCancelled(this.writeableStateStore),
+    );
+    this.on(
+      'call.permission_request',
+      // @ts-expect-error
+      watchCallPermissionRequest(this.writeableStateStore),
+    );
+
+    this.on(
+      'call.permissions_updated',
+      // @ts-expect-error
+      watchCallPermissionsUpdated(this.writeableStateStore),
     );
 
     this.writeableStateStore.setCurrentValue(
@@ -325,11 +304,7 @@ export class StreamVideoClient {
    * @param data the data for the call.
    * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
    */
-  joinCall = async (
-    id: string,
-    type: string,
-    data?: GetOrCreateCallRequest,
-  ) => {
+  joinCall = async (id: string, type: string, data?: JoinCallRequest) => {
     const joinCallResponse = await this.coordinatorClient.joinCall(
       id,
       type,
@@ -358,7 +333,6 @@ export class StreamVideoClient {
           sfuClient,
           callOptions,
           this.writeableStateStore,
-          this.userBatcher,
         );
         await call.join();
 
@@ -410,6 +384,47 @@ export class StreamVideoClient {
     } catch (error) {
       console.log(`Failed to stop recording`, error);
     }
+  };
+
+  /**
+   * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
+   * @param callId
+   * @param callType
+   * @param data
+   * @returns
+   */
+  requestCallPermissions = async (
+    callId: string,
+    callType: string,
+    data: RequestPermissionRequest,
+  ) => {
+    return this.coordinatorClient.requestCallPermissions(
+      callId,
+      callType,
+      data,
+    );
+  };
+
+  /**
+   * Allows you to grant or revoke a specific permission to a user in a call. The permissions are specific to the call experience and do not survive the call itself.
+   *
+   * When revoking a permission, this endpoint will also mute the relevant track from the user. This is similar to muting a user with the difference that the user will not be able to unmute afterwards.
+   *
+   * Supported permissions that can be granted or revoked: `send-audio`, `send-video` and `screenshare`.
+   *
+   * `call.permissions_updated` event is sent to all members of the call.
+   *
+   * @param callId
+   * @param callType
+   * @param data
+   * @returns
+   */
+  updateUserPermissions = async (
+    callId: string,
+    callType: string,
+    data: UpdateUserPermissionsRequest,
+  ) => {
+    return this.coordinatorClient.updateUserPermissions(callId, callType, data);
   };
 
   /**

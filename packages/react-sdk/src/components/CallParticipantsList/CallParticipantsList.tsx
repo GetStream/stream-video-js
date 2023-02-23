@@ -47,7 +47,7 @@ export const CallParticipantsList = ({
       const queryRegExp = new RegExp(queryString);
       return Promise.resolve(
         participants.filter((participant) => {
-          return participant.user?.name?.match(queryRegExp);
+          return participant.name.match(queryRegExp);
         }),
       );
     },

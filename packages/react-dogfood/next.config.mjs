@@ -18,20 +18,6 @@ const nextConfig = {
     ];
   },
 
-  async rewrites() {
-    const coordinatorApiUrl = process.env.STREAM_COORDINATOR_RPC_URL || '/';
-    return [
-      {
-        source: '/rpc/:path*',
-        destination: `${coordinatorApiUrl}:path*`,
-      },
-      // {
-      //   source: '/backend/:path*',
-      //   destination: `http://localhost:8800/:path*`,
-      // },
-    ];
-  },
-
   sentry: {
     // Use `hidden-source-map` rather than `source-map` as the Webpack `devtool`
     // for client-side builds. (This will be the default starting in

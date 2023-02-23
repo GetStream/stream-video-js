@@ -84,7 +84,7 @@ export const useCallControls = () => {
     const videoDevice = videoDevices.find(
       (device) =>
         device.kind === 'videoinput' &&
-        (cameraBackFacingMode
+        (!isCameraOnFrontFacingMode
           ? device.facing === 'front'
           : device.facing === 'environment'),
     );

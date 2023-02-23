@@ -189,12 +189,12 @@ const App = () => {
   ...
   return (
     <StreamVideo client={client}>
-      <StreamMeeting
+      <StreamCall
         onAcceptCall={() => navigation.navigate('ActiveCallScreen')}
         onOutgoingCall={() => navigation.navigate('OutgoingCallScreen')}
         onIncomingCall={() => navigation.navigate('IncomingCallScreen')}>
         {children}
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   );
 };
@@ -344,5 +344,15 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
 export default OutgoingCallScreen;
 ```
 
-[//]: # (todo: add recap)
+### Rendering the CallParticipantsInfoView component
 
+To render the call participants info view, you can import `CallParticipantsInfoView` from the Video SDK and use it in the Screen/View where you want to render it.
+
+```tsx
+import React from 'react';
+import { CallParticipantsInfoView } from '@stream-io/video-react-native-sdk';
+
+export function CallParticipansInfoScreen() {
+  return <CallParticipantsInfoView />;
+}
+```

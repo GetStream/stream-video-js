@@ -27,40 +27,36 @@ import JoinCallScreen from './src/screens/Call/JoinCallScreen';
 import { ChooseFlowScreen } from './src/screens/ChooseFlowScreen';
 import IncomingCallScreen from './src/screens/Call/IncomingCallScreen';
 import OutgoingCallScreen from './src/screens/Call/OutgoingCallScreen';
-import { StreamMeeting } from '@stream-io/video-react-native-sdk/src/components/StreamMeeting';
 import { CallParticipansInfoScreen } from './src/screens/Meeting/CallParticipantsInfoScreen';
+import { LobbyViewScreen } from './src/screens/Meeting/LobbyViewScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const MeetingStack = createNativeStackNavigator<MeetingStackParamList>();
 const RingingStack = createNativeStackNavigator<RingingStackParamList>();
 
-const Meeting = (props: NativeStackScreenProps<MeetingStackParamList>) => {
-  const meetingCallID = useAppGlobalStoreValue((store) => store.meetingCallID);
-  const { navigation } = props;
-
+const Meeting = () => {
   return (
-    <StreamMeeting
-      callId={meetingCallID}
-      callType={'default'}
-      onActiveCall={() => navigation.navigate('MeetingScreen')}
-    >
-      <MeetingStack.Navigator>
-        <MeetingStack.Screen
-          name="JoinMeetingScreen"
-          component={JoinMeetingScreen}
-          options={{ header: NavigationHeader }}
-        />
-        <MeetingStack.Screen
-          name="MeetingScreen"
-          component={MeetingScreen}
-          options={{ headerShown: false }}
-        />
-        <MeetingStack.Screen
-          name="CallParticipantsInfoScreen"
-          component={CallParticipansInfoScreen}
-        />
-      </MeetingStack.Navigator>
-    </StreamMeeting>
+    <MeetingStack.Navigator>
+      <MeetingStack.Screen
+        name="JoinMeetingScreen"
+        component={JoinMeetingScreen}
+        options={{ header: NavigationHeader }}
+      />
+      <MeetingStack.Screen
+        name="LobbyViewScreen"
+        component={LobbyViewScreen}
+        options={{ headerShown: false }}
+      />
+      <MeetingStack.Screen
+        name="MeetingScreen"
+        component={MeetingScreen}
+        options={{ headerShown: false }}
+      />
+      <MeetingStack.Screen
+        name="CallParticipantsInfoScreen"
+        component={CallParticipansInfoScreen}
+      />
+    </MeetingStack.Navigator>
   );
 };
 

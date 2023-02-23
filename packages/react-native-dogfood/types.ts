@@ -119,6 +119,7 @@ export type MeetingStackParamList = {
   JoinMeetingScreen: undefined;
   MeetingScreen: undefined;
   CallParticipantsInfoScreen: undefined;
+  LobbyViewScreen: { callID: string };
 };
 
 export type RingingStackParamList = {

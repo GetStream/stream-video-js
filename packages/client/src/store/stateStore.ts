@@ -10,9 +10,10 @@ import type {
   StreamVideoParticipantPatch,
   StreamVideoParticipantPatches,
 } from '../rtc/types';
+import { isStreamVideoLocalParticipant } from '../rtc/types';
 import type { CallStatsReport } from '../stats/types';
 import type { User } from '../coordinator/connection/types';
-import type { CallAccepted } from '../gen/coordinator';
+import type { CallAccepted, CallPermissionRequest } from '../gen/coordinator';
 
 export class StreamVideoWriteableStateStore {
   /**
@@ -75,10 +76,13 @@ export class StreamVideoWriteableStateStore {
   );
   callRecordingInProgressSubject = new ReplaySubject<boolean>(1);
   hasOngoingScreenShare$: Observable<boolean>;
+  callPermissionRequestSubject = new BehaviorSubject<
+    CallPermissionRequest | undefined
+  >(undefined);
 
   constructor() {
     this.localParticipant$ = this.participantsSubject.pipe(
-      map((participants) => participants.find((p) => p.isLoggedInUser)),
+      map((participants) => participants.find(isStreamVideoLocalParticipant)),
     );
 
     this.remoteParticipants$ = this.participantsSubject.pipe(
@@ -120,9 +124,11 @@ export class StreamVideoWriteableStateStore {
           ),
         );
         this.setCurrentValue(this.acceptedCallSubject, undefined);
+        this.setCurrentValue(this.callPermissionRequestSubject, undefined);
       } else {
         this.setCurrentValue(this.callRecordingInProgressSubject, false);
         this.setCurrentValue(this.participantsSubject, []);
+        this.setCurrentValue(this.callPermissionRequestSubject, undefined);
       }
     });
 
@@ -308,6 +314,10 @@ export class StreamVideoReadOnlyStateStore {
   callRecordingInProgress$: Observable<boolean>;
 
   /**
+   * Emits the latest call permission request sent by any participant of the active call. Or `undefined` if there is no active call or if the current user doesn't have the necessary permission to handle these events.
+   */
+  callPermissionRequest$: Observable<CallPermissionRequest | undefined>;
+  /**
    * This method allows you the get the current value of a state variable.
    *
    * @param observable the observable to get the current value of.
@@ -325,6 +335,8 @@ export class StreamVideoReadOnlyStateStore {
     this.callStatsReport$ = store.callStatsReportSubject.asObservable();
     this.callRecordingInProgress$ =
       store.callRecordingInProgressSubject.asObservable();
+    this.callPermissionRequest$ =
+      store.callPermissionRequestSubject.asObservable();
 
     // re-expose observables
     this.localParticipant$ = store.localParticipant$;
