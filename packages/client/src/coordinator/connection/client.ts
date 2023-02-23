@@ -558,6 +558,7 @@ export class StreamClient {
         }
         return this.handleResponse(e.response);
       } else {
+        // eslint-disable-next-line no-throw-literal
         throw e as AxiosError<APIErrorResponse>;
       }
     }

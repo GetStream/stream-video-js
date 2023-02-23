@@ -6,11 +6,20 @@
   min-width: 0;
   padding: 1rem;
 
+  --str-video__control-button-size: 2.25rem;
+
   .str-video__call-controls-section {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 1rem;
+
+    .str-video__loading-indicator__icon {
+      height: var(--str-video__control-button-size);
+      width: var(--str-video__control-button-size);
+      -webkit-mask-size: 1.25rem;
+      mask-size: 1.25rem;
+    }
   }
 
   .str-video__call-controls__button {
@@ -20,8 +29,8 @@
     border: none;
     background-color: transparent;
     cursor: pointer;
-    height: 2.25rem;
-    width: 2.25rem;
+    height: var(--str-video__control-button-size);
+    width: var(--str-video__control-button-size);
 
     &:hover {
       background-color: var(--str-video__background-color1);
