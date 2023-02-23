@@ -27,9 +27,13 @@ import {
   watchCallCancelled,
   watchCallCreated,
   watchCallRejected,
-} from './events/call';
-import { CALL_CONFIG } from './config/defaultConfigs';
-import { CallConfig } from './config/types';
+  watchCallPermissionRequest,
+  watchCallPermissionsUpdated,
+  watchCallRecordingStarted,
+  watchCallRecordingStopped,
+} from './events';
+
+import { CALL_CONFIG, CallConfig } from './config';
 import { CallDropScheduler } from './CallDropScheduler';
 import { StreamCoordinatorClient } from './coordinator/StreamCoordinatorClient';
 import {
@@ -38,11 +42,6 @@ import {
   TokenOrProvider,
   User,
 } from './coordinator/connection/types';
-import {
-  watchCallPermissionRequest,
-  watchCallPermissionsUpdated,
-} from './events/call-permissions';
-
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
  */
@@ -113,34 +112,46 @@ export class StreamVideoClient {
 
     this.on(
       'call.created',
-      // @ts-expect-error
+      // @ts-expect-error until we sort out the types
       watchCallCreated(this.writeableStateStore),
     );
     this.on(
       'call.accepted',
-      // @ts-expect-error
+      // @ts-expect-error until we sort out the types
       watchCallAccepted(this.writeableStateStore),
     );
     this.on(
       'call.rejected',
-      // @ts-expect-error
+      // @ts-expect-error until we sort out the types
       watchCallRejected(this.writeableStateStore),
     );
     this.on(
       'call.cancelled',
-      // @ts-expect-error
+      // @ts-expect-error until we sort out the types
       watchCallCancelled(this.writeableStateStore),
     );
     this.on(
       'call.permission_request',
-      // @ts-expect-error
+      // @ts-expect-error until we sort out the types
       watchCallPermissionRequest(this.writeableStateStore),
     );
 
     this.on(
       'call.permissions_updated',
-      // @ts-expect-error
+      // @ts-expect-error until we sort out the types
       watchCallPermissionsUpdated(this.writeableStateStore),
+    );
+
+    this.on(
+      'call.recording_started',
+      // @ts-expect-error until we sort out the types
+      watchCallRecordingStarted(this.writeableStateStore),
+    );
+
+    this.on(
+      'call.recording_stopped',
+      // @ts-expect-error until we sort out the types
+      watchCallRecordingStopped(this.writeableStateStore),
     );
 
     this.writeableStateStore.setCurrentValue(
@@ -155,6 +166,7 @@ export class StreamVideoClient {
    * If the connection is successfully disconnected, the connected user [state variable](#readonlystatestore) will be updated accordingly
    */
   disconnectUser = async () => {
+    // FIXME OL: we should clean-up the event listeners as well
     await this.coordinatorClient.disconnectUser();
     this.callDropScheduler?.cleanUp();
     this.writeableStateStore.setCurrentValue(
@@ -322,11 +334,11 @@ export class StreamVideoClient {
         );
 
         const { server, ice_servers, token } = edge.credentials;
-        const sfuClient = new StreamSfuClient(server.url!, token!);
+        const sfuClient = new StreamSfuClient(server.url, token);
         const metadata = new CallMetadata(callMeta, members);
         const callOptions = {
           connectionConfig: this.toRtcConfiguration(ice_servers),
-          edgeName: server!.edge_name,
+          edgeName: server.edge_name,
         };
         const call = new Call(
           metadata,
@@ -359,11 +371,7 @@ export class StreamVideoClient {
    */
   startRecording = async (callId: string, callType: string) => {
     try {
-      await this.coordinatorClient.startRecording(callId, callType);
-      this.writeableStateStore.setCurrentValue(
-        this.writeableStateStore.callRecordingInProgressSubject,
-        true,
-      );
+      return await this.coordinatorClient.startRecording(callId, callType);
     } catch (error) {
       console.log(`Failed to start recording`, error);
     }
@@ -376,11 +384,7 @@ export class StreamVideoClient {
    */
   stopRecording = async (callId: string, callType: string) => {
     try {
-      await this.coordinatorClient.stopRecording(callId, callType);
-      this.writeableStateStore.setCurrentValue(
-        this.writeableStateStore.callRecordingInProgressSubject,
-        false,
-      );
+      return await this.coordinatorClient.stopRecording(callId, callType);
     } catch (error) {
       console.log(`Failed to stop recording`, error);
     }
@@ -446,8 +450,8 @@ export class StreamVideoClient {
       statsJson: new TextEncoder().encode(JSON.stringify(stats)),
     };
     await this.coordinatorClient.reportCallStats(
-      callMetadata.call.id!,
-      callMetadata.call.type!,
+      callMetadata.call.id,
+      callMetadata.call.type,
       request,
     );
   };
@@ -460,8 +464,8 @@ export class StreamVideoClient {
     const latencyByEdge: GetCallEdgeServerRequest['latency_measurements'] = {};
     await Promise.all(
       edges.map(async (edge) => {
-        latencyByEdge[edge.name!] = await measureResourceLoadLatencyTo(
-          edge.latency_url!,
+        latencyByEdge[edge.name] = await measureResourceLoadLatencyTo(
+          edge.latency_url,
         );
       }),
     );
@@ -475,7 +479,7 @@ export class StreamVideoClient {
     if (!config || config.length === 0) return undefined;
     const rtcConfig: RTCConfiguration = {
       iceServers: config.map((ice) => ({
-        urls: ice.urls!,
+        urls: ice.urls,
         username: ice.username,
         credential: ice.password,
       })),
@@ -505,8 +509,8 @@ export class StreamVideoClient {
       event: statEvent,
     };
     await this.coordinatorClient.reportCallStatEvent(
-      callMetadata.call.id!,
-      callMetadata.call.type!,
+      callMetadata.call.id,
+      callMetadata.call.type,
       request,
     );
   };
