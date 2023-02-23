@@ -2,6 +2,7 @@ import React from 'react';
 import { LobbyView } from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
+import { ScrollView } from 'react-native';
 
 type LobbyViewScreenProps = NativeStackScreenProps<
   MeetingStackParamList,
@@ -15,5 +16,9 @@ export const LobbyViewScreen = (props: LobbyViewScreenProps) => {
     navigation.navigate('MeetingScreen');
   };
 
-  return <LobbyView callID={route.params.callID} onActiveCall={onActiveCall} />;
+  return (
+    <ScrollView>
+      <LobbyView callID={route.params.callID} onActiveCall={onActiveCall} />
+    </ScrollView>
+  );
 };

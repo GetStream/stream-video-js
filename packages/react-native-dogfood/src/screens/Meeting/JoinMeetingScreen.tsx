@@ -41,7 +41,6 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
       if (prontoCallId) {
         setCallId(prontoCallId);
         prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
-        joinCallHandler();
       }
     });
     return () => subscription.unsubscribe();
