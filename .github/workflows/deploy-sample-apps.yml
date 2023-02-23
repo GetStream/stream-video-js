@@ -36,6 +36,8 @@ jobs:
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ matrix.application.project-id }}
+      VITE_STREAM_API_KEY: ${{ vars.EGRESS_STREAM_API_KEY }}
+      VITE_STREAM_TOKEN: ${{ secrets.EGRESS_USER_TOKEN }}
       VITE_STREAM_KEY: ${{ vars.STREAM_API_KEY_SAMPLE_APPS }}
       VITE_STREAM_TOKEN_ALICE: ${{ secrets.STREAM_TOKEN_ALICE }}
       VITE_STREAM_TOKEN_MARK: ${{ secrets.STREAM_TOKEN_MARK }}
