@@ -10,6 +10,8 @@ import type {
   ICEServer,
   JoinCallResponse,
   JoinCallRequest,
+  RequestPermissionRequest,
+  UpdateUserPermissionsRequest,
 } from './gen/coordinator';
 
 import type { ReportCallStatEventRequest } from './gen/video/coordinator/client_v1_rpc/client_rpc';
@@ -36,6 +38,10 @@ import {
   TokenOrProvider,
   User,
 } from './coordinator/connection/types';
+import {
+  watchCallPermissionRequest,
+  watchCallPermissionsUpdated,
+} from './events/call-permissions';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -124,6 +130,17 @@ export class StreamVideoClient {
       'call.cancelled',
       // @ts-expect-error
       watchCallCancelled(this.writeableStateStore),
+    );
+    this.on(
+      'call.permission_request',
+      // @ts-expect-error
+      watchCallPermissionRequest(this.writeableStateStore),
+    );
+
+    this.on(
+      'call.permissions_updated',
+      // @ts-expect-error
+      watchCallPermissionsUpdated(this.writeableStateStore),
     );
 
     this.writeableStateStore.setCurrentValue(
@@ -367,6 +384,47 @@ export class StreamVideoClient {
     } catch (error) {
       console.log(`Failed to stop recording`, error);
     }
+  };
+
+  /**
+   * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
+   * @param callId
+   * @param callType
+   * @param data
+   * @returns
+   */
+  requestCallPermissions = async (
+    callId: string,
+    callType: string,
+    data: RequestPermissionRequest,
+  ) => {
+    return this.coordinatorClient.requestCallPermissions(
+      callId,
+      callType,
+      data,
+    );
+  };
+
+  /**
+   * Allows you to grant or revoke a specific permission to a user in a call. The permissions are specific to the call experience and do not survive the call itself.
+   *
+   * When revoking a permission, this endpoint will also mute the relevant track from the user. This is similar to muting a user with the difference that the user will not be able to unmute afterwards.
+   *
+   * Supported permissions that can be granted or revoked: `send-audio`, `send-video` and `screenshare`.
+   *
+   * `call.permissions_updated` event is sent to all members of the call.
+   *
+   * @param callId
+   * @param callType
+   * @param data
+   * @returns
+   */
+  updateUserPermissions = async (
+    callId: string,
+    callType: string,
+    data: UpdateUserPermissionsRequest,
+  ) => {
+    return this.coordinatorClient.updateUserPermissions(callId, callType, data);
   };
 
   /**
