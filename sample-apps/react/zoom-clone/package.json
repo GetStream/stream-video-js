@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
@@ -19,8 +20,8 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.7.0",
     "rxjs": "^7.8.0",
-    "stream-chat": "^8.2.1",
-    "stream-chat-react": "^10.5.0"
+    "stream-chat": "^8.4.0",
+    "stream-chat-react": "^10.6.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.26",
@@ -29,7 +30,7 @@
     "autoprefixer": "^10.4.13",
     "postcss": "^8.4.21",
     "tailwindcss": "^3.2.4",
-    "typescript": "^4.9.3",
-    "vite": "^4.0.0"
+    "typescript": "^4.9.5",
+    "vite": "^4.1.2"
   }
 }

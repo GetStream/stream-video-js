@@ -16,7 +16,7 @@ export const VideoRoot = () => {
   const client = useCreateStreamVideoClient({
     callConfig: CALL_CONFIG.meeting,
     apiKey: import.meta.env.VITE_STREAM_API_KEY,
-    token: import.meta.env[
+    tokenOrProvider: import.meta.env[
       `VITE_STREAM_USER_${selectedUserId.toUpperCase()}_TOKEN`
     ],
     user: users[selectedUserId],

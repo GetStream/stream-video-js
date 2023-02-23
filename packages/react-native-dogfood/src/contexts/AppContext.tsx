@@ -1,7 +1,6 @@
 import createStoreContext from './createStoreContext';
 
 interface AppGlobalStore {
-  meetingCallID: string;
   username: string;
   userImageUrl: string;
   loopbackMyVideo: boolean;
@@ -14,7 +13,6 @@ export const {
   useStoreSetState: useAppGlobalStoreSetState,
 } = createStoreContext<AppGlobalStore>(
   {
-    meetingCallID: '',
     username: '',
     userImageUrl: '',
     loopbackMyVideo: false,

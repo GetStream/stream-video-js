@@ -8,10 +8,7 @@ import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
 import { getAudioStream, getVideoStream } from '@stream-io/video-client';
-import {
-  useStreamVideoStoreSetState,
-  useStreamVideoStoreValue,
-} from '../contexts';
+import { useStreamVideoStoreValue } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsScreenView } from './CallParticipantsScreenView';
 
@@ -40,18 +37,18 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const { audioDevice, currentVideoDevice } = useMediaDevices();
   const { onHangupCall, onOpenCallParticipantsInfoView } = props;
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
-  const setState = useStreamVideoStoreSetState();
+  const isAudioMuted = useStreamVideoStoreValue((store) => store.isAudioMuted);
   const hasScreenShare = useHasOngoingScreenShare();
 
   useEffect(() => {
-    if (audioDevice) {
+    if (audioDevice && !isAudioMuted) {
       getAudioStream(audioDevice.deviceId)
         .then((stream) => activeCall?.publishAudioStream(stream))
         .catch((error) => {
           console.log(error);
         });
     }
-  }, [activeCall, audioDevice]);
+  }, [activeCall, audioDevice, isAudioMuted]);
 
   useEffect(() => {
     if (currentVideoDevice && !isVideoMuted) {
@@ -63,7 +60,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
           console.log(error);
         });
     }
-  }, [activeCall, currentVideoDevice, isVideoMuted, setState]);
+  }, [activeCall, currentVideoDevice, isVideoMuted]);
 
   return (
     <View style={styles.container}>

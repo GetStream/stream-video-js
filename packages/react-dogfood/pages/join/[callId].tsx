@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import Gleap from 'gleap';
 import { useRouter } from 'next/router';
 import { authOptions } from '../api/auth/[...nextauth]';
 import { unstable_getServerSession } from 'next-auth';
@@ -9,7 +11,7 @@ import {
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
-import { User } from '@stream-io/video-client';
+import { Call, User } from '@stream-io/video-client';
 
 import { useCreateStreamChatClient } from '../../hooks';
 import { MeetingUI } from '../../components';
@@ -18,6 +20,7 @@ type JoinCallProps = {
   user: User;
   userToken: string;
   apiKey: string;
+  gleapApiKey?: string;
 };
 
 const JoinCall = (props: JoinCallProps) => {
@@ -25,11 +28,11 @@ const JoinCall = (props: JoinCallProps) => {
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
 
-  const { userToken, user, apiKey } = props;
+  const { userToken, user, apiKey, gleapApiKey } = props;
 
   const client = useCreateStreamVideoClient({
     apiKey,
-    token: userToken,
+    tokenOrProvider: userToken,
     user,
   });
 
@@ -38,6 +41,44 @@ const JoinCall = (props: JoinCallProps) => {
     tokenOrProvider: userToken,
     userData: user,
   });
+
+  useEffect(() => {
+    if (gleapApiKey) {
+      Gleap.initialize(gleapApiKey);
+      Gleap.identify(user.name || user.id, {
+        name: user.name,
+      });
+    }
+  }, [gleapApiKey, user.name, user.id]);
+
+  useEffect(() => {
+    if (!gleapApiKey) return;
+
+    Gleap.on('flow-started', () => {
+      try {
+        const { getCurrentValue, ...state } = client.readOnlyStateStore;
+        const data = Object.entries(state).reduce<Record<string, any>>(
+          (acc, [key, observable]) => {
+            if (!!observable && typeof observable.subscribe === 'function') {
+              const value = getCurrentValue<unknown>(observable);
+              if (key === 'activeCall$' && value) {
+                // special handling, the Call instance isn't serializable
+                acc[key] = (value as Call).data;
+              } else {
+                acc[key] = value;
+              }
+            }
+            return acc;
+          },
+          {},
+        );
+        console.log('!!State Store', data);
+        Gleap.attachCustomData(data);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+  }, [client.readOnlyStateStore, gleapApiKey]);
 
   if (!client) {
     return <h2>Connecting...</h2>;
@@ -80,6 +121,7 @@ export const getServerSideProps = async (
 
   const apiKey = process.env.STREAM_API_KEY as string;
   const secretKey = process.env.STREAM_SECRET_KEY as string;
+  const gleapApiKey = (process.env.GLEAP_API_KEY as string) || null;
 
   const userId = (
     (context.query['user_id'] as string) ||
@@ -100,6 +142,7 @@ export const getServerSideProps = async (
         name: userName,
         image: session.user?.image,
       },
+      gleapApiKey,
     } as JoinCallProps,
   };
 };
