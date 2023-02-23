@@ -14,6 +14,10 @@ import {
   JoinCallRequest,
   JoinCallResponse,
   SendEventRequest,
+  RequestPermissionRequest,
+  RequestPermissionResponse,
+  UpdateUserPermissionsRequest,
+  UpdateUserPermissionsResponse,
 } from '../gen/coordinator';
 
 export class StreamCoordinatorClient {
@@ -106,5 +110,27 @@ export class StreamCoordinatorClient {
 
   reportCallStatEvent = async (id: string, type: string, data: UR) => {
     console.log('Report call stat event is not implemented yet.');
+  };
+
+  requestCallPermissions = async (
+    id: string,
+    type: string,
+    data: RequestPermissionRequest,
+  ) => {
+    return this.client.post<RequestPermissionResponse>(
+      `/call/${type}/${id}/request_permission`,
+      data,
+    );
+  };
+
+  updateUserPermissions = async (
+    id: string,
+    type: string,
+    data: UpdateUserPermissionsRequest,
+  ) => {
+    return this.client.post<UpdateUserPermissionsResponse>(
+      `/call/${type}/${id}/user_permissions`,
+      data,
+    );
   };
 }

@@ -84,6 +84,32 @@ export interface AudioSettings {
 /**
  *
  * @export
+ * @interface BlockUserRequest
+ */
+export interface BlockUserRequest {
+  /**
+   * the user to block
+   * @type {string}
+   * @memberof BlockUserRequest
+   */
+  user_id: string;
+}
+/**
+ *
+ * @export
+ * @interface BlockUserResponse
+ */
+export interface BlockUserResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof BlockUserResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
  * @interface BroadcastSettings
  */
 export interface BroadcastSettings {
@@ -130,6 +156,37 @@ export interface CallAccepted {
    * @memberof CallAccepted
    */
   user: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface CallBlockedUser
+ */
+export interface CallBlockedUser {
+  /**
+   *
+   * @type {string}
+   * @memberof CallBlockedUser
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallBlockedUser
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallBlockedUser
+   */
+  type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallBlockedUser
+   */
+  user_id: string;
 }
 /**
  *
@@ -303,6 +360,56 @@ export interface CallPermissionsUpdated {
    * @memberof CallPermissionsUpdated
    */
   user: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface CallRecordingStarted
+ */
+export interface CallRecordingStarted {
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStarted
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStarted
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStarted
+   */
+  type: string;
+}
+/**
+ *
+ * @export
+ * @interface CallRecordingStopped
+ */
+export interface CallRecordingStopped {
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStopped
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStopped
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStopped
+   */
+  type: string;
 }
 /**
  *
@@ -565,6 +672,37 @@ export interface CallStateResponseFields {
 /**
  *
  * @export
+ * @interface CallUnblockedUser
+ */
+export interface CallUnblockedUser {
+  /**
+   *
+   * @type {string}
+   * @memberof CallUnblockedUser
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUnblockedUser
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUnblockedUser
+   */
+  type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUnblockedUser
+   */
+  user_id: string;
+}
+/**
+ *
+ * @export
  * @interface CallUpdated
  */
 export interface CallUpdated {
@@ -698,6 +836,55 @@ export interface DatacenterResponse {
    * @memberof DatacenterResponse
    */
   name: string;
+}
+/**
+ *
+ * @export
+ * @interface Device
+ */
+export interface Device {
+  /**
+   * Date/time of creation
+   * @type {string}
+   * @memberof Device
+   */
+  created_at: string;
+  /**
+   * Whether device is disabled or not
+   * @type {boolean}
+   * @memberof Device
+   */
+  disabled?: boolean;
+  /**
+   * Reason explaining why device had been disabled
+   * @type {string}
+   * @memberof Device
+   */
+  disabled_reason?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Device
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Device
+   */
+  push_provider: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Device
+   */
+  push_provider_name?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Device
+   */
+  user_id: string;
 }
 /**
  *
@@ -874,6 +1061,37 @@ export interface HLSSettings {
    * @memberof HLSSettings
    */
   quality_tracks: Array<string>;
+}
+/**
+ *
+ * @export
+ * @interface HealthCheck
+ */
+export interface HealthCheck {
+  /**
+   * The unique identifier for a call (<type>:<id>)
+   * @type {string}
+   * @memberof HealthCheck
+   */
+  cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof HealthCheck
+   */
+  created_at: string;
+  /**
+   *
+   * @type {OwnUserResponse}
+   * @memberof HealthCheck
+   */
+  me?: OwnUserResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof HealthCheck
+   */
+  type: string;
 }
 /**
  *
@@ -1109,6 +1327,73 @@ export interface MuteUsersResponse {
    * @memberof MuteUsersResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface OwnUserResponse
+ */
+export interface OwnUserResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  created_at: string;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof OwnUserResponse
+   */
+  custom: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  deleted_at?: string;
+  /**
+   *
+   * @type {Array<Device>}
+   * @memberof OwnUserResponse
+   */
+  devices: Array<Device>;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  image?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  name?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  role: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof OwnUserResponse
+   */
+  teams?: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  updated_at: string;
 }
 /**
  *
@@ -1502,6 +1787,32 @@ export interface SortParamRequest {
    * @memberof SortParamRequest
    */
   field?: string;
+}
+/**
+ *
+ * @export
+ * @interface UnblockUserRequest
+ */
+export interface UnblockUserRequest {
+  /**
+   * the user to unblock
+   * @type {string}
+   * @memberof UnblockUserRequest
+   */
+  user_id: string;
+}
+/**
+ *
+ * @export
+ * @interface UnblockUserResponse
+ */
+export interface UnblockUserResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof UnblockUserResponse
+   */
+  duration: string;
 }
 /**
  *
