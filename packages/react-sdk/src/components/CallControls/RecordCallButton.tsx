@@ -43,25 +43,23 @@ export const RecordCallButton = ({
     }
   }, [call.data.call, client, isCallRecordingInProgress]);
 
-  if (isAwaitingResponse) {
-    return (
-      <LoadingIndicator
-        tooltip={
-          isCallRecordingInProgress
-            ? 'Waiting for recording to stop... '
-            : 'Waiting for recording to start...'
-        }
-      />
-    );
-  }
   return (
     <CompositeButton enabled={isCallRecordingInProgress} caption={caption}>
-      <IconButton
-        icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
-        title="Record call"
-        onClick={toggleRecording
-        }
-      />
+      {isAwaitingResponse ? (
+        <LoadingIndicator
+          tooltip={
+            isCallRecordingInProgress
+              ? 'Waiting for recording to stop... '
+              : 'Waiting for recording to start...'
+          }
+        />
+      ) : (
+        <IconButton
+          icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
+          title="Record call"
+          onClick={toggleRecording}
+        />
+      )}
     </CompositeButton>
   );
 };

@@ -1,17 +1,25 @@
-@use "../utils";
+@use '../utils';
 
 .str-video {
   /* The font color applied inside the component */
-  --str-video__composite-button__button-group--color: var(--str-video__text-color1);
+  --str-video__composite-button__button-group--color: var(
+    --str-video__text-color1
+  );
 
   /* The background color of the component */
-  --str-video__composite-button__button-group--background-color: var(--str-video__background-color1);
+  --str-video__composite-button__button-group--background-color: var(
+    --str-video__background-color1
+  );
 
   /* The border radius used for the borders of the component */
-  --str-video__composite-button__button-group--border-radius: var(--str-video__border-radius-xs);
+  --str-video__composite-button__button-group--border-radius: var(
+    --str-video__border-radius-xs
+  );
 
   /* The background color of the component */
-  --str-video__composite-button__button-group-active--background-color: var(--str-video__text-color3);
+  --str-video__composite-button__button-group-active--background-color: var(
+    --str-video__text-color3
+  );
 }
 
 .str-video__composite-button__button-group {
@@ -27,14 +35,16 @@
 }
 
 .str-video__composite-button__caption {
-  font-size: 13px;
+  font-size: 12px;
   line-height: 15px;
   text-align: center;
 }
 
 .str-video__composite-button__button-group:hover,
 .str-video__composite-button__button-group--active {
-  background-color: var(--str-video__composite-button__button-group-active--background-color);
+  background-color: var(
+    --str-video__composite-button__button-group-active--background-color
+  );
 }
 
 .str-video__call-controls__button {
@@ -46,7 +56,9 @@
 
   &:hover {
     text-decoration: none;
-    background-color: var(--str-video__composite-button__button-group-active--background-color);
+    background-color: var(
+      --str-video__composite-button__button-group-active--background-color
+    );
   }
 
   &--variant-danger {
@@ -134,7 +146,6 @@
     &-user-plus {
       mask-image: var(--str-video__icon--user-plus);
       -webkit-mask-image: var(--str-video__icon--user-plus);
-
     }
   }
 }
