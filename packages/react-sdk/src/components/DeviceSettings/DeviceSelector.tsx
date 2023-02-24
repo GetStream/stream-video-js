@@ -25,6 +25,7 @@ const DeviceSelectorOption = ({
         'str-video__device-settings__option--selected': selected,
         'str-video__device-settings__option--disabled': disabled,
       })}
+      htmlFor={id}
     >
       <input
         type="radio"
@@ -45,7 +46,12 @@ export const DeviceSelector = (props: {
   title: string;
   onChange?: (deviceId: string) => void;
 }) => {
-  const { devices, selectedDeviceId, title, onChange } = props;
+  const {
+    devices,
+    selectedDeviceId: selectedDeviceFromProps,
+    title,
+    onChange,
+  } = props;
   const inputGroupName = title.replace(' ', '-').toLowerCase();
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback(
@@ -54,6 +60,20 @@ export const DeviceSelector = (props: {
     },
     [onChange],
   );
+
+  // sometimes the browser (Chrome) will report the system-default device
+  // with an id of 'default'. In case when it doesn't, we'll select the first
+  // available device.
+  let selectedDeviceId: string | undefined;
+  if (
+    selectedDeviceFromProps === 'default' &&
+    devices.length > 0 &&
+    !devices.find((d) => d.deviceId === 'default')
+  ) {
+    selectedDeviceId = devices[0].deviceId;
+  } else {
+    selectedDeviceId = selectedDeviceFromProps;
+  }
 
   return (
     <div className="str-video__device-settings__device-kind">
