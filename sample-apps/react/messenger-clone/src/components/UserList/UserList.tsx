@@ -1,5 +1,5 @@
 import { Avatar } from 'stream-chat-react';
-import users from '../../../data/users.json';
+import { users } from '../../../data/users';
 
 export const UserList = () => {
   return (
