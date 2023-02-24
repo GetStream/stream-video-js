@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import users from '../data/users.json';
+import {users} from '../data/users';
 import {UserType} from '../types';
 import {useAppContext} from '../context/AppContext';
 
