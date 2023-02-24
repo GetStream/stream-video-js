@@ -165,7 +165,7 @@ export const MediaDevicesProvider = ({
   );
 
   const switchDevice = useCallback(
-    async (kind: MediaDeviceKind, deviceId?: string) => {
+    (kind: MediaDeviceKind, deviceId?: string) => {
       if (kind === 'videoinput') {
         selectVideoDeviceId(deviceId);
       }

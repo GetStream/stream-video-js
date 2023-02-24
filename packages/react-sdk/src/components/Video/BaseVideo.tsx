@@ -7,7 +7,6 @@ import {
   VideoHTMLAttributes,
 } from 'react';
 import { Browsers } from '@stream-io/video-client';
-import { useMediaDevices } from '../../contexts';
 
 export type VideoProps = DetailedHTMLProps<
   VideoHTMLAttributes<HTMLVideoElement>,
@@ -18,7 +17,6 @@ export type VideoProps = DetailedHTMLProps<
 
 export const BaseVideo = forwardRef<HTMLVideoElement, VideoProps>(
   ({ stream, ...rest }, ref) => {
-    const { disposeMediaStream } = useMediaDevices();
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const setRef: ForwardedRef<HTMLVideoElement> = (instance) => {
       videoRef.current = instance;
@@ -47,9 +45,8 @@ export const BaseVideo = forwardRef<HTMLVideoElement, VideoProps>(
       return () => {
         $el.pause();
         $el.srcObject = null;
-        stream && disposeMediaStream(stream);
       };
-    }, [disposeMediaStream, stream]);
+    }, [stream]);
     return <video autoPlay playsInline {...rest} ref={setRef} />;
   },
 );
