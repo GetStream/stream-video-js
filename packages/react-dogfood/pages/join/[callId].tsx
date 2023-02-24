@@ -88,7 +88,7 @@ export const getServerSideProps = async (
 
   const apiKey = process.env.STREAM_API_KEY as string;
   const secretKey = process.env.STREAM_SECRET_KEY as string;
-  const gleapApiKey = process.env.GLEAP_API_KEY as string | undefined;
+  const gleapApiKey = (process.env.GLEAP_API_KEY as string | undefined) || null;
 
   const userId = (
     (context.query['user_id'] as string) ||
