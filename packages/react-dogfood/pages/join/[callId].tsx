@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Gleap from 'gleap';
 import { useRouter } from 'next/router';
 import { authOptions } from '../api/auth/[...nextauth]';
