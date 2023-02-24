@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useEffect, useMemo } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import {
+  ToggleAudioOutputButton,
   ToggleAudioPreviewButton,
   ToggleCameraPreviewButton,
   useMediaDevices,
@@ -25,7 +26,7 @@ type LobbyProps = {
 };
 export const Lobby = ({ onJoin }: LobbyProps) => {
   const { data: session, status } = useSession();
-  const { initialVideoState } = useMediaDevices();
+  const { initialVideoState, isAudioOutputChangeSupported } = useMediaDevices();
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -81,6 +82,7 @@ export const Lobby = ({ onJoin }: LobbyProps) => {
             >
               <ToggleAudioPreviewButton />
               <ToggleCameraPreviewButton />
+              {isAudioOutputChangeSupported && <ToggleAudioOutputButton />}
             </div>
           </Box>
           <Button

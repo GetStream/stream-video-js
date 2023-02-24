@@ -147,5 +147,10 @@
       mask-image: var(--str-video__icon--user-plus);
       -webkit-mask-image: var(--str-video__icon--user-plus);
     }
+
+    &-speaker {
+      -webkit-mask-size: var(--str-video__icon--speaker);
+      mask-image: var(--str-video__icon--speaker);
+    }
   }
 }

@@ -95,6 +95,9 @@ export type MediaDevicesProviderProps = PropsWithChildren<{
   enumerate?: boolean;
   initialAudioEnabled?: boolean;
   initialVideoEnabled?: boolean;
+  initialAudioInputDeviceId?: string;
+  initialAudioOutputDeviceId?: string;
+  initialVideoInputDeviceId?: string;
 }>;
 
 export const MediaDevicesProvider = ({
@@ -102,6 +105,9 @@ export const MediaDevicesProvider = ({
   enumerate = true,
   initialAudioEnabled,
   initialVideoEnabled,
+  initialVideoInputDeviceId = 'default',
+  initialAudioOutputDeviceId = 'default',
+  initialAudioInputDeviceId = 'default',
 }: MediaDevicesProviderProps) => {
   const call = useActiveCall();
 
@@ -113,12 +119,16 @@ export const MediaDevicesProvider = ({
     MediaDeviceInfo[]
   >([]);
 
-  const [selectedAudioInputDeviceId, setSelectedAudioInputDeviceId] =
-    useState<MediaDevicesContextAPI['selectedAudioInputDeviceId']>('default');
+  const [selectedAudioInputDeviceId, setSelectedAudioInputDeviceId] = useState<
+    MediaDevicesContextAPI['selectedAudioInputDeviceId']
+  >(initialAudioInputDeviceId);
   const [selectedAudioOutputDeviceId, setSelectedAudioOutputDeviceId] =
-    useState<MediaDevicesContextAPI['selectedAudioOutputDeviceId']>('default');
-  const [selectedVideoDeviceId, selectVideoDeviceId] =
-    useState<MediaDevicesContextAPI['selectedVideoDeviceId']>('default');
+    useState<MediaDevicesContextAPI['selectedAudioOutputDeviceId']>(
+      initialAudioOutputDeviceId,
+    );
+  const [selectedVideoDeviceId, selectVideoDeviceId] = useState<
+    MediaDevicesContextAPI['selectedVideoDeviceId']
+  >(initialVideoInputDeviceId);
 
   const [isAudioOutputChangeSupported] = useState<boolean>(() =>
     checkIfAudioOutputChangeSupported(),

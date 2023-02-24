@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Gleap from 'gleap';
 import { useRouter } from 'next/router';
 import { authOptions } from '../api/auth/[...nextauth]';
@@ -15,6 +15,10 @@ import { Call, User } from '@stream-io/video-client';
 
 import { useCreateStreamChatClient } from '../../hooks';
 import { LoadingScreen, MeetingUI } from '../../components';
+import {
+  getDeviceSettings,
+  LastUsedDeviceCaptor,
+} from '../../components/LastUsedDeviceCaptor';
 
 type CallRoomProps = {
   user: User;
@@ -79,6 +83,8 @@ const CallRoom = (props: CallRoomProps) => {
     });
   }, [client.readOnlyStateStore, gleapApiKey]);
 
+  const deviceSettings = getDeviceSettings();
+
   if (!client) {
     return <LoadingScreen />;
   }
@@ -90,8 +96,16 @@ const CallRoom = (props: CallRoomProps) => {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <StreamVideo client={client}>
-        <MediaDevicesProvider enumerate>
+        <MediaDevicesProvider
+          enumerate
+          initialVideoInputDeviceId={deviceSettings?.selectedVideoDeviceId}
+          initialAudioInputDeviceId={deviceSettings?.selectedAudioInputDeviceId}
+          initialAudioOutputDeviceId={
+            deviceSettings?.selectedAudioOutputDeviceId
+          }
+        >
           <MeetingUI chatClient={chatClient} />
+          <LastUsedDeviceCaptor />
         </MediaDevicesProvider>
       </StreamVideo>
     </div>
@@ -122,8 +136,9 @@ export const getServerSideProps = async (
   const secretKey = process.env.STREAM_SECRET_KEY as string;
   const gleapApiKey = (process.env.GLEAP_API_KEY as string) || null;
 
+  const userIdOverride = context.query['user_id'] as string | undefined;
   const userId = (
-    (context.query['user_id'] as string) ||
+    userIdOverride ||
     session.user?.email ||
     'unknown-user'
   ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
@@ -138,7 +153,7 @@ export const getServerSideProps = async (
       userToken: createToken(streamUserId, secretKey),
       user: {
         id: streamUserId,
-        name: userName,
+        name: userIdOverride || userName,
         image: session.user?.image,
       },
       gleapApiKey,
