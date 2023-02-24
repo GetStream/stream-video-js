@@ -11,7 +11,7 @@ import {
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
-import { User } from '@stream-io/video-client';
+import { Call, User } from '@stream-io/video-client';
 
 import { useCreateStreamChatClient } from '../../hooks';
 import { LoadingScreen, MeetingUI } from '../../components';
@@ -44,8 +44,40 @@ const CallRoom = (props: CallRoomProps) => {
   useEffect(() => {
     if (gleapApiKey) {
       Gleap.initialize(gleapApiKey);
+      Gleap.identify(user.name || user.id, {
+        name: user.name,
+      });
     }
-  }, [gleapApiKey]);
+  }, [gleapApiKey, user.name, user.id]);
+
+  useEffect(() => {
+    if (!gleapApiKey) return;
+
+    Gleap.on('flow-started', () => {
+      try {
+        const { getCurrentValue, ...state } = client.readOnlyStateStore;
+        const data = Object.entries(state).reduce<Record<string, any>>(
+          (acc, [key, observable]) => {
+            if (!!observable && typeof observable.subscribe === 'function') {
+              const value = getCurrentValue<unknown>(observable);
+              if (key === 'activeCall$' && value) {
+                // special handling, the Call instance isn't serializable
+                acc[key] = (value as Call).data;
+              } else {
+                acc[key] = value;
+              }
+            }
+            return acc;
+          },
+          {},
+        );
+        console.log('!!State Store', data);
+        Gleap.attachCustomData(data);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+  }, [client.readOnlyStateStore, gleapApiKey]);
 
   if (!client) {
     return <LoadingScreen />;
@@ -88,7 +120,7 @@ export const getServerSideProps = async (
 
   const apiKey = process.env.STREAM_API_KEY as string;
   const secretKey = process.env.STREAM_SECRET_KEY as string;
-  const gleapApiKey = (process.env.GLEAP_API_KEY as string | undefined) || null;
+  const gleapApiKey = (process.env.GLEAP_API_KEY as string) || null;
 
   const userId = (
     (context.query['user_id'] as string) ||

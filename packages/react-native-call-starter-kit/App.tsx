@@ -5,11 +5,10 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {useStreamChatTheme} from './useStreamChatTheme';
 import {
   NativeStackHeaderProps,
-  NativeStackNavigationProp,
   createNativeStackNavigator,
 } from '@react-navigation/native-stack';
 import {ChannelListScreen} from './src/screens/ChannelListScreen';
-import {NavigationContainer, useNavigation} from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
 import {ChannelScreen} from './src/screens/ChannelScreen';
 import {ThreadScreen} from './src/screens/ThreadScreen';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -31,8 +30,6 @@ function ChannelHeaderComponent(props: NativeStackHeaderProps) {
 
 const Messenger = () => {
   const {userId, userToken} = useAppContext();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();
 
   if (!(userId && userToken)) {
     return (
@@ -43,7 +40,7 @@ const Messenger = () => {
   }
 
   return (
-    <MessengerWrapper navigation={navigation}>
+    <MessengerWrapper>
       <Stack.Navigator>
         <Stack.Screen
           name="ChannelListScreen"

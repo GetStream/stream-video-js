@@ -61,7 +61,18 @@ export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
    * If the value is not defined, the user hasn't selected any device (in these cases the default system audio output could be used)
    */
   audioOutputDeviceId?: string;
+
+  /**
+   * The permissions that participant has in the current call. Permissions can be granted and/or revoked during a call.
+   */
+  ownCapabilities: string[];
 }
+
+export const isStreamVideoLocalParticipant = (
+  p: StreamVideoParticipant | StreamVideoLocalParticipant,
+): p is StreamVideoLocalParticipant => {
+  return !!p.isLoggedInUser;
+};
 
 /**
  * A partial representation of the StreamVideoParticipant.

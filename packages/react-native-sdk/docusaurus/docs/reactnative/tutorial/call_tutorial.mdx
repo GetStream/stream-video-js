@@ -1,4 +1,6 @@
 ---
+id: call-tutorial
+sidebar_position: 2
 title: Calling with Chat Tutorial
 ---
 
@@ -15,7 +17,7 @@ Finally, let's get started with the Stream React Native Video integration. To do
 Install Stream's Video SDK and its peer dependencies by:
 
 ```bash
-yarn add stream-video-react-native react-native-webrtc react-native-incall-manager react-native-svg text-encoding-polyfill
+yarn add stream-video-react-native react-native-webrtc react-native-incall-manager react-native-callkeep react-native-svg text-encoding-polyfill
 ```
 
 Some dependencies require us to make changes to our application for all functionalities to be available. Please apply the following steps:
@@ -157,12 +159,12 @@ const App = () => {
   ...
   return (
     <StreamVideo client={client}>
-      <StreamMeeting
+      <StreamCall
         onAcceptCall={() => navigation.navigate('ActiveCallScreen')}
         onOutgoingCall={() => navigation.navigate('OutgoingCallScreen')}
         onIncomingCall={() => navigation.navigate('IncomingCallScreen')}>
         {children}
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   );
 };
@@ -298,4 +300,17 @@ const OutgoingCallScreen = ({ navigation }: Props) => {
 };
 
 export default OutgoingCallScreen;
+```
+
+### Rendering the CallParticipantsInfoView component
+
+To render the call participants info view, you can import `CallParticipantsInfoView` from the Video SDK and use it in the Screen/View where you want to render it.
+
+```tsx
+import React from 'react';
+import { CallParticipantsInfoView } from '@stream-io/video-react-native-sdk';
+
+export function CallParticipansInfoScreen() {
+  return <CallParticipantsInfoView />;
+}
 ```

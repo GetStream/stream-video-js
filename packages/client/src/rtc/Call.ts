@@ -149,11 +149,19 @@ export class Call {
           const { callState } = event.eventPayload.joinResponse;
           const currentParticipants = callState?.participants || [];
 
+          const ownCapabilities = {
+            ownCapabilities: this.data.call.own_capabilities,
+          };
+
           this.stateStore.setCurrentValue(
             this.stateStore.participantsSubject,
             currentParticipants.map<StreamVideoParticipant>((participant) => ({
               ...participant,
               isLoggedInUser: participant.sessionId === this.client.sessionId,
+              // TODO: save other participants permissions once that's provided by SFU
+              ...(participant.sessionId === this.client.sessionId
+                ? ownCapabilities
+                : {}),
             })),
           );
 
