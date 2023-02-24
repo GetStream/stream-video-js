@@ -26,7 +26,9 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
         {firstScreenSharingParticipant && (
           <>
             <span className="str-video__call-participants-screen-view__screen__presenter">
-              {firstScreenSharingParticipant.userId} is presenting their screen.
+              {firstScreenSharingParticipant.name ||
+                firstScreenSharingParticipant.userId}{' '}
+              is presenting their screen.
             </span>
             <div className="str-video__call-participants-screen-view__wrapper">
               <Video
