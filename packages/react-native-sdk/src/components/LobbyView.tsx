@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import InCallManager from 'react-native-incall-manager';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
@@ -88,6 +89,8 @@ export const LobbyView = (props: LobbyViewProps) => {
       .then(() => {
         if (onActiveCall) {
           onActiveCall();
+          InCallManager.start({ media: 'video' });
+          InCallManager.setForceSpeakerphoneOn(true);
         }
       })
       .catch((err) => {

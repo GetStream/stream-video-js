@@ -5,6 +5,8 @@ export const EVENT_MAP = {
   'call.accepted': true,
   'call.rejected': true,
   'call.cancelled': true,
+  'call.permissions_updated': true,
+  'call.permission_request': true,
 
   // local events
   'connection.changed': true,
