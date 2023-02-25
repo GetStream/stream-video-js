@@ -84,6 +84,45 @@ export interface AudioSettings {
 /**
  *
  * @export
+ * @interface BackstageSettings
+ */
+export interface BackstageSettings {
+  /**
+   *
+   * @type {boolean}
+   * @memberof BackstageSettings
+   */
+  enabled: boolean;
+}
+/**
+ *
+ * @export
+ * @interface BlockUserRequest
+ */
+export interface BlockUserRequest {
+  /**
+   * the user to block
+   * @type {string}
+   * @memberof BlockUserRequest
+   */
+  user_id: string;
+}
+/**
+ *
+ * @export
+ * @interface BlockUserResponse
+ */
+export interface BlockUserResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof BlockUserResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
  * @interface BroadcastSettings
  */
 export interface BroadcastSettings {
@@ -130,6 +169,37 @@ export interface CallAccepted {
    * @memberof CallAccepted
    */
   user: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface CallBlockedUser
+ */
+export interface CallBlockedUser {
+  /**
+   *
+   * @type {string}
+   * @memberof CallBlockedUser
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallBlockedUser
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallBlockedUser
+   */
+  type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallBlockedUser
+   */
+  user_id: string;
 }
 /**
  *
@@ -376,6 +446,12 @@ export interface CallRequest {
    * @type {string}
    * @memberof CallRequest
    */
+  starts_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRequest
+   */
   team?: string;
 }
 /**
@@ -384,6 +460,12 @@ export interface CallRequest {
  * @interface CallResponse
  */
 export interface CallResponse {
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallResponse
+   */
+  backstage: boolean;
   /**
    *
    * @type {string}
@@ -415,7 +497,7 @@ export interface CallResponse {
    */
   custom: { [key: string]: any };
   /**
-   *
+   * Date/time when the call ended
    * @type {string}
    * @memberof CallResponse
    */
@@ -444,6 +526,12 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   settings: CallSettingsResponse;
+  /**
+   * Date/time when the call will start
+   * @type {string}
+   * @memberof CallResponse
+   */
+  starts_at?: string;
   /**
    *
    * @type {string}
@@ -508,6 +596,12 @@ export interface CallSettingsResponse {
   audio: AudioSettings;
   /**
    *
+   * @type {BackstageSettings}
+   * @memberof CallSettingsResponse
+   */
+  backstage: BackstageSettings;
+  /**
+   *
    * @type {BroadcastSettings}
    * @memberof CallSettingsResponse
    */
@@ -561,6 +655,37 @@ export interface CallStateResponseFields {
    * @memberof CallStateResponseFields
    */
   membership?: MemberResponse;
+}
+/**
+ *
+ * @export
+ * @interface CallUnblockedUser
+ */
+export interface CallUnblockedUser {
+  /**
+   *
+   * @type {string}
+   * @memberof CallUnblockedUser
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUnblockedUser
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUnblockedUser
+   */
+  type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUnblockedUser
+   */
+  user_id: string;
 }
 /**
  *
@@ -698,6 +823,55 @@ export interface DatacenterResponse {
    * @memberof DatacenterResponse
    */
   name: string;
+}
+/**
+ *
+ * @export
+ * @interface Device
+ */
+export interface Device {
+  /**
+   * Date/time of creation
+   * @type {string}
+   * @memberof Device
+   */
+  created_at: string;
+  /**
+   * Whether device is disabled or not
+   * @type {boolean}
+   * @memberof Device
+   */
+  disabled?: boolean;
+  /**
+   * Reason explaining why device had been disabled
+   * @type {string}
+   * @memberof Device
+   */
+  disabled_reason?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Device
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Device
+   */
+  push_provider: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Device
+   */
+  push_provider_name?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Device
+   */
+  user_id: string;
 }
 /**
  *
@@ -853,6 +1027,25 @@ export interface GetOrCreateCallResponse {
 /**
  *
  * @export
+ * @interface GoLiveResponse
+ */
+export interface GoLiveResponse {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof GoLiveResponse
+   */
+  call: CallResponse;
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof GoLiveResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
  * @interface HLSSettings
  */
 export interface HLSSettings {
@@ -874,6 +1067,37 @@ export interface HLSSettings {
    * @memberof HLSSettings
    */
   quality_tracks: Array<string>;
+}
+/**
+ *
+ * @export
+ * @interface HealthCheck
+ */
+export interface HealthCheck {
+  /**
+   * The unique identifier for a call (<type>:<id>)
+   * @type {string}
+   * @memberof HealthCheck
+   */
+  cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof HealthCheck
+   */
+  created_at: string;
+  /**
+   *
+   * @type {OwnUserResponse}
+   * @memberof HealthCheck
+   */
+  me?: OwnUserResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof HealthCheck
+   */
+  type: string;
 }
 /**
  *
@@ -1113,6 +1337,73 @@ export interface MuteUsersResponse {
 /**
  *
  * @export
+ * @interface OwnUserResponse
+ */
+export interface OwnUserResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  created_at: string;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof OwnUserResponse
+   */
+  custom: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  deleted_at?: string;
+  /**
+   *
+   * @type {Array<Device>}
+   * @memberof OwnUserResponse
+   */
+  devices: Array<Device>;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  image?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  name?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  role: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof OwnUserResponse
+   */
+  teams?: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof OwnUserResponse
+   */
+  updated_at: string;
+}
+/**
+ *
+ * @export
  * @interface PaginationParamsRequest
  */
 export interface PaginationParamsRequest {
@@ -1156,57 +1447,39 @@ export interface PaginationParamsRequest {
 /**
  *
  * @export
- * @interface QueryCallRequest
+ * @interface QueryCallsRequest
  */
-export interface QueryCallRequest {
+export interface QueryCallsRequest {
   /**
    *
    * @type {{ [key: string]: any; }}
-   * @memberof QueryCallRequest
+   * @memberof QueryCallsRequest
    */
   filter_conditions?: { [key: string]: any };
   /**
    *
    * @type {number}
-   * @memberof QueryCallRequest
+   * @memberof QueryCallsRequest
    */
   limit?: number;
   /**
    *
-   * @type {number}
-   * @memberof QueryCallRequest
-   */
-  member_limit?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof QueryCallRequest
-   */
-  message_limit?: number;
-  /**
-   *
    * @type {string}
-   * @memberof QueryCallRequest
+   * @memberof QueryCallsRequest
    */
   next?: string;
   /**
    *
    * @type {string}
-   * @memberof QueryCallRequest
+   * @memberof QueryCallsRequest
    */
   prev?: string;
   /**
    *
    * @type {Array<SortParamRequest>}
-   * @memberof QueryCallRequest
+   * @memberof QueryCallsRequest
    */
   sort: Array<SortParamRequest>;
-  /**
-   *
-   * @type {boolean}
-   * @memberof QueryCallRequest
-   */
-  watch?: boolean;
 }
 /**
  *
@@ -1502,6 +1775,51 @@ export interface SortParamRequest {
    * @memberof SortParamRequest
    */
   field?: string;
+}
+/**
+ *
+ * @export
+ * @interface StopLiveResponse
+ */
+export interface StopLiveResponse {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof StopLiveResponse
+   */
+  call: CallResponse;
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof StopLiveResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
+ * @interface UnblockUserRequest
+ */
+export interface UnblockUserRequest {
+  /**
+   * the user to unblock
+   * @type {string}
+   * @memberof UnblockUserRequest
+   */
+  user_id: string;
+}
+/**
+ *
+ * @export
+ * @interface UnblockUserResponse
+ */
+export interface UnblockUserResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof UnblockUserResponse
+   */
+  duration: string;
 }
 /**
  *

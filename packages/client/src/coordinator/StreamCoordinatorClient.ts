@@ -7,14 +7,60 @@ import {
   User,
 } from './connection/types';
 import {
+  CallSettingsRequest,
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
+  GoLiveResponse,
   JoinCallRequest,
   JoinCallResponse,
+  QueryCallsRequest,
+  QueryCallsResponse,
   SendEventRequest,
+  SortParamRequest,
+  StopLiveResponse,
+  UpdateCallRequest,
+  UpdateCallResponse,
 } from '../gen/coordinator';
+
+export class StreamCall {
+  client: StreamClient;
+  type: string;
+  id: string;
+  cid: string;
+  basePath: string;
+
+  constructor(client: StreamClient, type: string, id: string) {
+    this.client = client;
+    this.type = type;
+    this.id = id;
+    this.cid = `${type}:${id}`;
+    this.basePath = `/call/${type}/${id}`;
+  }
+
+  goLive = async () => {
+    return this.client.post<GoLiveResponse>(`${this.basePath}/go_live`, {});
+  };
+
+  stopLive = async () => {
+    return this.client.post<StopLiveResponse>(`${this.basePath}/stop_live`, {});
+  };
+
+  update = async (
+    custom: { [key: string]: any },
+    settings?: CallSettingsRequest,
+  ) => {
+    const payload: UpdateCallRequest = {
+      custom: custom,
+      settings_override: settings,
+    };
+    return this.client.post<UpdateCallResponse>(
+      `${this.basePath}/stop_live`,
+      payload,
+    );
+  };
+}
 
 export class StreamCoordinatorClient {
   private client: StreamClient;
@@ -30,6 +76,10 @@ export class StreamCoordinatorClient {
       ...options,
     });
   }
+
+  call = (type: string, id: string) => {
+    return new StreamCall(this.client, type, id);
+  };
 
   on = (
     callbackOrEventName: EventHandler | string,
@@ -82,6 +132,21 @@ export class StreamCoordinatorClient {
       `/call/${type}/${id}/get_edge_server`,
       data,
     );
+  };
+
+  queryCalls = async (
+    filterConditions: { [key: string]: any },
+    sort: Array<SortParamRequest>,
+    limit?: number,
+    next?: string,
+  ) => {
+    const data: QueryCallsRequest = {
+      filter_conditions: filterConditions,
+      sort: sort,
+      limit: limit,
+      next: next,
+    };
+    return this.client.post<QueryCallsResponse>(`/calls`, data);
   };
 
   queryUsers = async () => {

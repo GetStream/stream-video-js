@@ -36,6 +36,7 @@ import {
   TokenOrProvider,
   User,
 } from './coordinator/connection/types';
+import { SortParamRequest } from './gen/coordinator';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -350,6 +351,20 @@ export class StreamVideoClient {
     } catch (error) {
       console.log(`Failed to start recording`, error);
     }
+  };
+
+  queryCalls = async (
+    filterConditions: { [key: string]: any },
+    sort: Array<SortParamRequest>,
+    limit?: number,
+    next?: string,
+  ) => {
+    return await this.coordinatorClient.queryCalls(
+      filterConditions,
+      sort,
+      limit,
+      next,
+    );
   };
 
   /**
