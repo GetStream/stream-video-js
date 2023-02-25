@@ -17,10 +17,9 @@ export const useAppConfig = () => {
   const query = window.location.search;
   return useMemo<AppConfig>(() => {
     const urlParams = new URLSearchParams(query);
-    const apiKey = urlParams.get('api_key') || 'w6yaq5388uym';
-    const token =
-      urlParams.get('token') ||
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NzYyMzkwMjIsImV4cCI6MTY4NjIzOTAyMiwidXNlcl9pZCI6ImVncmVzcyJ9.s4qy-welN1gJp13EKOyIO5wFo-ZNg2JfWMLnNpzwlwY';
+    const apiKey =
+      urlParams.get('api_key') || import.meta.env.VITE_STREAM_API_KEY;
+    const token = urlParams.get('token') || import.meta.env.VITE_STREAM_TOKEN;
     const payload = JSON.parse(decode(token.split('.')[1]));
     const spotlightMode =
       (urlParams.get('spotlight_mode') as SpotlightMode) || DEFAULT_LAYOUT_ID;

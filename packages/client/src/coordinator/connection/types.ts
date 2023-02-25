@@ -1,7 +1,7 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { EVENT_MAP } from './events';
 import { StableWSConnection } from './connection';
-import { CallResponse, UserResponse } from '../../gen/coordinator';
+import { CallResponse, OwnUserResponse } from '../../gen/coordinator';
 
 export type UR = Record<string, unknown>;
 
@@ -15,12 +15,7 @@ export type User = {
   image?: string;
 };
 
-export type OwnUserBase = {
-  invisible?: boolean;
-  roles?: string[];
-};
-
-export type OwnUserResponse = User & UserResponse & OwnUserBase;
+export type { OwnUserResponse } from '../../gen/coordinator';
 
 export type ConnectionOpen = {
   connection_id: string;

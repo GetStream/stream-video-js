@@ -1,7 +1,7 @@
 import { Secret } from 'jsonwebtoken';
 import { UserFromToken, JWTServerToken, JWTUserToken } from './signing';
 import { isFunction } from './utils';
-import { OwnUserResponse, TokenOrProvider } from './types';
+import type { OwnUserResponse, TokenOrProvider } from './types';
 
 /**
  * TokenManager
@@ -78,7 +78,13 @@ export class TokenManager {
   // Validates the user token.
   validateToken = (tokenOrProvider: TokenOrProvider, user: OwnUserResponse) => {
     // allow empty token for anon user
-    if (user && user.anon && !tokenOrProvider) return;
+    if (
+      user &&
+      // @ts-expect-error `anon` doesn't exist on `OwnUserResponse` yet
+      user.anon &&
+      !tokenOrProvider
+    )
+      return;
 
     // Don't allow empty token for non-server side client.
     if (!this.secret && !tokenOrProvider) {
@@ -95,7 +101,12 @@ export class TokenManager {
 
     if (typeof tokenOrProvider === 'string') {
       // Allow empty token for anonymous users
-      if (user.anon && tokenOrProvider === '') return;
+      if (
+        // @ts-expect-error `anon` doesn't exist on `OwnUserResponse` yet
+        user.anon &&
+        tokenOrProvider === ''
+      )
+        return;
 
       const tokenUserId = UserFromToken(tokenOrProvider);
       if (
@@ -143,7 +154,12 @@ export class TokenManager {
       return this.token;
     }
 
-    if (this.user && this.user.anon && !this.token) {
+    if (
+      this.user &&
+      // @ts-expect-error `anon` doesn't exist on `OwnUserResponse` yet
+      this.user.anon &&
+      !this.token
+    ) {
       return this.token;
     }
 

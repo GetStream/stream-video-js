@@ -1,6 +1,6 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import users from '../../data/users.json';
+import { users } from '../../data/users';
 
 import { selectedUserSubject } from '../main';
 
