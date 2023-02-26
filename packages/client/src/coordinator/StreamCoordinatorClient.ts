@@ -43,6 +43,48 @@ export class StreamCall {
     this.basePath = `/call/${type}/${id}`;
   }
 
+  getOrCreate = async (data?: GetOrCreateCallRequest) => {
+    return this.client.post<GetOrCreateCallResponse>(this.basePath, data);
+  };
+
+  join = async (data?: JoinCallRequest) => {
+    await this.client.connectionIdPromise;
+    return this.client.post<JoinCallResponse>(`${this.basePath}/join`, data);
+  };
+
+  getEdgeServer = async (data: GetCallEdgeServerRequest) => {
+    return this.client.post<GetCallEdgeServerResponse>(
+      `${this.basePath}/get_edge_server`,
+      data,
+    );
+  };
+
+  sendEvent = async (event: SendEventRequest) => {
+    return this.client.post(`${this.basePath}/event`, event);
+  };
+
+  startRecording = async () => {
+    return this.client.post(`${this.basePath}/start_recording`, {});
+  };
+
+  stopRecording = async () => {
+    return this.client.post(`${this.basePath}/stop_recording`, {});
+  };
+
+  requestPermissions = async (data: RequestPermissionRequest) => {
+    return this.client.post<RequestPermissionResponse>(
+      `${this.basePath}/request_permission`,
+      data,
+    );
+  };
+
+  updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
+    return this.client.post<UpdateUserPermissionsResponse>(
+      `${this.basePath}/user_permissions`,
+      data,
+    );
+  };
+
   goLive = async () => {
     return this.client.post<GoLiveResponse>(`${this.basePath}/go_live`, {});
   };
@@ -111,31 +153,28 @@ export class StreamCoordinatorClient {
     return this.client.disconnectUser(timeout);
   };
 
+  // DEPRECATED: use call.getOrCreate() instead
   getOrCreateCall = async (
     id: string,
     type: string,
     data?: GetOrCreateCallRequest,
   ) => {
-    return this.client.post<GetOrCreateCallResponse>(
-      `/call/${type}/${id}`,
-      data,
-    );
+    return this.call(type, id).getOrCreate(data);
   };
 
+  // DEPRECATED: use call.join() instead
   joinCall = async (id: string, type: string, data?: JoinCallRequest) => {
     await this.client.connectionIdPromise;
-    return this.client.post<JoinCallResponse>(`/join_call/${type}/${id}`, data);
+    return this.call(type, id).join(data);
   };
 
+  // DEPRECATED: use call.getEdgeServer() instead
   getCallEdgeServer = async (
     id: string,
     type: string,
     data: GetCallEdgeServerRequest,
   ) => {
-    return this.client.post<GetCallEdgeServerResponse>(
-      `/call/${type}/${id}/get_edge_server`,
-      data,
-    );
+    return this.call(type, id).getEdgeServer(data);
   };
 
   queryCalls = async (
@@ -157,45 +196,46 @@ export class StreamCoordinatorClient {
     console.log('Querying users is not implemented yet.');
   };
 
+  /**
+   * @deprecated use call.startRecording() instead
+   */
   sendEvent = async (id: string, type: string, data: SendEventRequest) => {
-    return this.client.post(`/call/${type}/${id}/event`, data);
+    return this.call(type, id).sendEvent(data);
   };
 
+  /**
+   * @deprecated use call.startRecording() instead
+   */
   startRecording = async (id: string, type: string) => {
-    return this.client.post(`/call/${type}/${id}/start_recording`, {});
+    return this.call(type, id).startRecording();
   };
 
+  /**
+   * @deprecated use call.startRecording() instead
+   */
   stopRecording = async (id: string, type: string) => {
-    return this.client.post(`/call/${type}/${id}/stop_recording`, {});
+    return this.call(type, id).stopRecording();
   };
 
-  reportCallStats = async (id: string, type: string, data: UR) => {
-    console.log('Report call stats is not implemented yet.');
-  };
-
-  reportCallStatEvent = async (id: string, type: string, data: UR) => {
-    console.log('Report call stat event is not implemented yet.');
-  };
-
+  /**
+   * @deprecated use call.requestPermissions() instead
+   */
   requestCallPermissions = async (
     id: string,
     type: string,
     data: RequestPermissionRequest,
   ) => {
-    return this.client.post<RequestPermissionResponse>(
-      `/call/${type}/${id}/request_permission`,
-      data,
-    );
+    return this.call(type, id).requestPermissions(data);
   };
 
+  /**
+   * @deprecated use call.updateUserPermissions() instead
+   */
   updateUserPermissions = async (
     id: string,
     type: string,
     data: UpdateUserPermissionsRequest,
   ) => {
-    return this.client.post<UpdateUserPermissionsResponse>(
-      `/call/${type}/${id}/user_permissions`,
-      data,
-    );
+    return this.call(type, id).updateUserPermissions(data);
   };
 }
