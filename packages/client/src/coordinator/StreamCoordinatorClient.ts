@@ -101,8 +101,8 @@ export class StreamCall {
       custom: custom,
       settings_override: settings,
     };
-    return this.client.post<UpdateCallResponse>(
-      `${this.basePath}/stop_live`,
+    return this.client.patch<UpdateCallResponse>(
+      `${this.basePath}`,
       payload,
     );
   };
