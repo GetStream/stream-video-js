@@ -16,9 +16,9 @@ import { Call, User } from '@stream-io/video-client';
 import { useCreateStreamChatClient } from '../../hooks';
 import { LoadingScreen, MeetingUI } from '../../components';
 import {
+  DeviceSettingsCaptor,
   getDeviceSettings,
-  LastUsedDeviceCaptor,
-} from '../../components/LastUsedDeviceCaptor';
+} from '../../components/DeviceSettingsCaptor';
 
 type CallRoomProps = {
   user: User;
@@ -107,7 +107,7 @@ const CallRoom = (props: CallRoomProps) => {
           }
         >
           <MeetingUI chatClient={chatClient} />
-          <LastUsedDeviceCaptor />
+          <DeviceSettingsCaptor />
         </MediaDevicesProvider>
       </StreamVideo>
     </div>

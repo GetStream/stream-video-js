@@ -16,7 +16,7 @@ export type LocalDeviceSettings = Pick<
   isVideoMute: boolean;
 };
 
-const SETTINGS_KEY = '@pronto/preferred-devices';
+const SETTINGS_KEY = '@pronto/device-settings';
 
 export const getDeviceSettings = () => {
   if (typeof window === 'undefined') return;
@@ -30,7 +30,7 @@ export const getDeviceSettings = () => {
   }
 };
 
-export const LastUsedDeviceCaptor = () => {
+export const DeviceSettingsCaptor = () => {
   const {
     selectedAudioOutputDeviceId,
     selectedAudioInputDeviceId,
