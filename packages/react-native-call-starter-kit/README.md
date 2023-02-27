@@ -6,7 +6,16 @@ The application is made as a starter kit to the call flow of the new Stream Vide
 
 Configure the environment variables by adding the following environment variables to a `.env` file on the root of the project:
 
-- `STREAM_API_KEY`
+```
+STREAM_API_KEY="<Stream API key>"
+
+STREAM_TOKEN_ALICE="<User token with user id alice>"
+STREAM_TOKEN_MARK="<User token with user id mark>"
+STREAM_TOKEN_BOB="<User token with user id bob>"
+STREAM_TOKEN_JANE="<User token with user id jane>"
+STREAM_TOKEN_TAMARA="<User token with user id tamara>"
+STREAM_TOKEN_JOHN="<User token with user id john>"
+```
 
 ### Installation steps
 

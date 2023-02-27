@@ -6,7 +6,17 @@ The application is made as a starter kit to the meeting flow of the new Stream V
 
 Configure the environment variables by adding the following environment variables to a `.env` file on the root of the project:
 
-- `STREAM_API_KEY`
+```
+STREAM_API_KEY="<Stream API key"
+
+STREAM_TOKEN_SARA="<User token with user id sara>"
+STREAM_TOKEN_MICHAEL="<User token with user id michael>"
+STREAM_TOKEN_BRIAN="<User token with user id brian>"
+STREAM_TOKEN_EVELYN="<User token with user id evelyn>"
+STREAM_TOKEN_TINA="<User token with user id tina>"
+STREAM_TOKEN_JACK="<User token with user id jack>"
+
+```
 
 ### Installation steps
 
