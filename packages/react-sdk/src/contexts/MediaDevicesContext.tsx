@@ -85,8 +85,8 @@ export type MediaDevicesContextAPI = {
   selectedAudioOutputDeviceId?: string;
   selectedVideoDeviceId?: string;
   switchDevice: (kind: MediaDeviceKind, deviceId?: string) => void;
-  toggleInitialAudio: () => void;
-  toggleInitialVideo: () => void;
+  toggleAudioMuteState: () => void;
+  toggleVideoMuteState: () => void;
 };
 
 const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
@@ -161,11 +161,11 @@ export const MediaDevicesProvider = ({
     call?.stopPublish(SfuModels.TrackType.VIDEO);
   }, [call]);
 
-  const toggleInitialAudio = useCallback(
+  const toggleAudioMuteState = useCallback(
     () => setInitAudioEnabled((prev) => !prev),
     [],
   );
-  const toggleInitialVideo = useCallback(
+  const toggleVideoMuteState = useCallback(
     () =>
       setInitialVideoState((prev) => {
         const newType = DEVICE_STATE_TOGGLE[prev.type];
@@ -243,8 +243,8 @@ export const MediaDevicesProvider = ({
     initialAudioEnabled: initAudioEnabled,
     initialVideoState,
     setInitialVideoState,
-    toggleInitialAudio,
-    toggleInitialVideo,
+    toggleAudioMuteState,
+    toggleVideoMuteState,
     publishAudioStream,
     publishVideoStream,
     stopPublishingAudio,

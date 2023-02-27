@@ -10,7 +10,7 @@ export type ToggleAudioPreviewButtonProps = { caption?: string };
 export const ToggleAudioPreviewButton = ({
   caption = 'Mic',
 }: ToggleAudioPreviewButtonProps) => {
-  const { initialAudioEnabled, toggleInitialAudio } = useMediaDevices();
+  const { initialAudioEnabled, toggleAudioMuteState } = useMediaDevices();
 
   return (
     <CompositeButton
@@ -20,7 +20,7 @@ export const ToggleAudioPreviewButton = ({
     >
       <IconButton
         icon={initialAudioEnabled ? 'mic' : 'mic-off'}
-        onClick={toggleInitialAudio}
+        onClick={toggleAudioMuteState}
       />
     </CompositeButton>
   );
