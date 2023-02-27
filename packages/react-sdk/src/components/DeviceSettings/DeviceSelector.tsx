@@ -5,9 +5,10 @@ type DeviceSelectorOptionProps = {
   id: string;
   label: string;
   name: string;
-  selected: boolean;
+  selected?: boolean;
   value: string;
   disabled?: boolean;
+  defaultChecked?: boolean;
   onChange?: ChangeEventHandler<HTMLInputElement>;
 };
 const DeviceSelectorOption = ({
@@ -17,6 +18,7 @@ const DeviceSelectorOption = ({
   onChange,
   name,
   selected,
+  defaultChecked,
   value,
 }: DeviceSelectorOptionProps) => {
   return (
@@ -34,6 +36,7 @@ const DeviceSelectorOption = ({
         value={value}
         id={id}
         checked={selected}
+        defaultChecked={defaultChecked}
         disabled={disabled}
       />
       {label}
@@ -47,7 +50,7 @@ export const DeviceSelector = (props: {
   onChange?: (deviceId: string) => void;
 }) => {
   const {
-    devices,
+    devices = [],
     selectedDeviceId: selectedDeviceFromProps,
     title,
     onChange,
@@ -64,15 +67,12 @@ export const DeviceSelector = (props: {
   // sometimes the browser (Chrome) will report the system-default device
   // with an id of 'default'. In case when it doesn't, we'll select the first
   // available device.
-  let selectedDeviceId: string | undefined;
+  let selectedDeviceId = selectedDeviceFromProps;
   if (
-    selectedDeviceFromProps === 'default' &&
     devices.length > 0 &&
-    !devices.find((d) => d.deviceId === 'default')
+    !devices.find((d) => d.deviceId === selectedDeviceId)
   ) {
     selectedDeviceId = devices[0].deviceId;
-  } else {
-    selectedDeviceId = selectedDeviceFromProps;
   }
 
   return (
@@ -85,7 +85,7 @@ export const DeviceSelector = (props: {
           id="default"
           label="Default"
           name={inputGroupName}
-          selected
+          defaultChecked
           value="default"
         />
       ) : (
