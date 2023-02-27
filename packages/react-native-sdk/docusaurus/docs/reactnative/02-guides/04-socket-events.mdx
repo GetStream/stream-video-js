@@ -11,7 +11,7 @@ A great part of our React Native Video SDK are real time updates based on socket
 * **Coordinator**: Events for calls being created, started, call invites, etc. Effective **outside** of an active call.
 * **Signaling**: Events for participants joining, leaving, mute states, audio levels, etc. Effective **inside** an active call.
 
-All of these events are processed internally to update the state of our lower-level client and UI Components. If you're using our default UI components, based on the events and the [call engine](03-call-engine.mdx) state, we launch our out of the box `ActiveCall` that handles incoming, outgoing and call starting flows.
+All of these events are processed internally to update the state of our lower-level client and UI Components. If you're using our default UI components, based on the events and the [call engine](./03-call-engine.mdx) state, we launch our out of the box `ActiveCall` that handles incoming, outgoing and call starting flows.
 
 However, you can also add custom socket listeners to WebSocket connections, to build custom behavior. By listening to events, you can build custom UI such as popups, that let your users know there's a new call starting, that someone is calling them, that people joined or left calls and more.
 
