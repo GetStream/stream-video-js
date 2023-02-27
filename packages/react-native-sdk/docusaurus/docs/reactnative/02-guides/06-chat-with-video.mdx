@@ -1,31 +1,62 @@
 ---
-id: call-tutorial
-sidebar_position: 2
-title: Calling with Chat Tutorial
+id: 06-chat-with-video
+title: Chat with Video
 ---
 
-This document explains how to integrate Stream Chat with Stream Video to support Video/Audio Calling in your Chat Application.
+## Building Chat Apps With Video Support
 
-To get started with the guide, ensure you have set up your [development environment for React Native](https://reactnative.dev/docs/environment-setup). Stream Chat supports creating applications using Expo and React Native CLI. But Stream Video currently only supports React Native CLI, so we will only focus on React Native CLI in this documentation.
+One of the most common chat app use cases is having a chat feature in your app that allows users to
+engage in audio and video communication.This direct integration allows for simple transition between
+text and images to more complex media.
 
-After the app setup, follow [React Native Chat Tutorial](https://getstream.io/chat/react-native-chat/tutorial/) first and get a basic chat application ready in your app. You can customise your application according to your needs and business ideas. Follow our [React Native Chat Official Documentation](https://getstream.io/chat/docs/sdk/reactnative/) for this.
+Stream supports this use case, out-of-the-box.
+In this guide, you'll walk through all the steps required to integrate our Chat and Video React Native SDKs into a cohesive whole.
+You'll cover the following:
 
-Finally, let's get started with the Stream React Native Video integration. To do this, we will first install the dependencies.
+* Creating a Chat app.
+* Adding Stream dependencies.
+* Creating Stream clients.
+* Authenticating Chat and Video users.
+* Building custom Call attachments and "Start Call" UI.
 
-### Installation
+By the end of this guide, your app will look like this:
 
-Install Stream's Video SDK and its peer dependencies by:
+[//]: # (todo: add a screenshot)
+
+You'll have the ability to create messaging conversations, in which you can start calls as a custom attachment.
+Anyone in the chat will then be notified accordingly and can join the call.
+
+Let's see how to implement this.
+
+## Prepare your development environment on your machine
+
+To get started with the guide, ensure you have set up your [development environment for React Native](https://reactnative.dev/docs/environment-setup).
+Stream Chat supports creating applications using Expo and React Native CLI. But Stream Video currently only supports React Native CLI, so we will only focus on React Native CLI in this documentation.
+
+## Creating the chat project
+The easiest way to get a chat project up and running can be done by using the [Chat Starter Kit Template](https://github.com/GetStream/react-native-stream-chat-template#react-native-stream-chat-template) or to
+follow [React Native Chat Tutorial](https://getstream.io/chat/react-native-chat/tutorial/) first and get a basic chat screens ready in your app.
+
+## Add Stream's Video SDK and it's peer dependencies
 
 ```bash
-yarn add stream-video-react-native react-native-webrtc react-native-incall-manager react-native-callkeep react-native-svg text-encoding-polyfill
+yarn add stream-video-react-native react-native-webrtc react-native-callkeep react-native-incall-manager react-native-svg text-encoding-polyfill
 ```
 
 Some dependencies require us to make changes to our application for all functionalities to be available. Please apply the following steps:
-
 - `react-native-webrtc` installation on [Android](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/AndroidInstallation.md) and [iOS](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/iOSInstallation.md).
 - `react-native-svg` be aware of [compatibility](https://github.com/software-mansion/react-native-svg#supported-react-native-versions) with RN versions and [troubleshooting](https://github.com/software-mansion/react-native-svg#troubleshooting) steps.
 - `react-native-incall-manager` installation on [Android](https://github.com/react-native-webrtc/react-native-incall-manager#android) and [iOS](https://github.com/react-native-webrtc/react-native-incall-manager#ios).
 - `react-native-callkeep` installation on [Android](https://github.com/react-native-webrtc/react-native-callkeep/blob/master/docs/android-installation.md) and [iOS](https://github.com/react-native-webrtc/react-native-callkeep/blob/master/docs/ios-installation.md).
+
+So what did we install precisely?
+- `stream-video-react-native` (SVRN) is Stream's Video SDK which contains UI components, hooks and util functions that will enable audio/video calls.
+- `react-native-webrtc` is a WebRTC module for React Native, SVRN depends on this dependency, it's components and utilities to render audio/video tracks and intract with the phone's media devices.
+- `react-native-incall-manager` handles media-routes/sensors/events during a audio/video call.
+- `react-native-callkeep` utilises CallKit (iOS) and ConnectionService (Android). SVRN's uses this dependency to render native ringers and handle accepting/declining a call when the app is in background/dead mode.
+- `react-native-svg` provides SVG support to React Native, SVRN's components and it's icons are reliant on this dependency.
+
+## First things first: encoding, polyfills and globals config
 
 Add the following imports and statements to your `index.js` file in the project's root.
 
@@ -39,7 +70,9 @@ import 'react-native-get-random-values';
 import {registerGlobals} from 'react-native-webrtc';
 ...
 
-// Add this
+// We're registering globals, because our video JS client is serving SDKs that use browser based webRTC functions.
+// This will result in creation of 2 global objects: `window` and `navigator`
+// Further [reading](https://github.com/react-native-webrtc/react-native-webrtc/blob/16cff1523da457dbcc27bb0744ee2bad3a987c41/Documentation/BasicUsage.md#registering-globals) about this process
 if (Platform.OS !== 'web') {
   registerGlobals();
 }
@@ -47,13 +80,18 @@ if (Platform.OS !== 'web') {
 
 ### Create `StreamVideoClient`
 
-Firstly we need to authenticate the Video SDK’s Client. You will need a user and token to authenticate a client. You can use the `client` from the Chat SDK to create the user object. To do this, you can import the hook, `useChatContext`, and use the `client` from it, as in the example below.
+Firstly we need to authenticate the Video SDK’s Client.
+You will need a user and token to authenticate a client.
+You can use the `client` from the Chat SDK to create the user object.
+To do this, you can import the hook, `useChatContext`, and use the `client` from it, as in the example below.
 
 ```tsx
 import { useChatContext } from 'stream-chat-react-native';
+import {StreamVideoClient} from '@stream-io/video-client';
+import { useMemo } from 'react';
 
-// Inside the component
-const { client } = useChatContext();
+// Inside your component
+const { client: chatClient } = useChatContext();
 
 const user = useMemo<VideoProps['user']>(
   () => ({
@@ -64,37 +102,32 @@ const user = useMemo<VideoProps['user']>(
     teams: [],
     customJson: new Uint8Array(),
   }),
-  [client.user],
+  [chatClient.user],
 );
-```
 
-To create the token, you can use the same client imported above and use the `_getToken` method to fetch the token:
-
-```tsx
-const token = client._getToken() || `Your Token`;
-```
-
-Once the user object and token are created, we can authenticate the client. In the starter kit, we have created a hook which takes in the user object and the token and returns the `client` from it.
-
-```tsx
-import {StreamVideoClient} from '@stream-io/video-client';
-...
+//fetch the token
+const token = chatClient._getToken() || `Your Token`;
 
 const APIParams = {
   apiKey: `Your Key`
 };
 
+// authenticate and create the video client
 const client = new StreamVideoClient(APIParams.apiKey, {
   sendJson: true,
   token,
 });
 ```
 
+All types used in the example above can be found in the end version of this [project](https://github.com/GetStream/stream-video-js/blob/a42a72fcde67877287f4df292524311723ea4e0f/packages/react-native-call-starter-kit/src/types.ts)
+
+
 ### Connecting and disconnecting from the video client
 
-We will connect to the Stream's client instance we've created right after the component has mounted. When the component un-mounts, we will disconnect from the client.
+We will connect to the Stream's client instance we've created right after the component has mounted.
+When the component un-mounts, we will disconnect from the client.
 
-_Note: We will use API key, user and the token from above._
+_Note: We will use thw API key, user and the token from the previous step._
 
 ```tsx
 import React, {useEffect, useState} from 'react';
@@ -102,6 +135,7 @@ import {ActivityIndicator, SafeAreaView, StyleSheet, Text} from 'react-native';
 ...
 
 const App = () => {
+  ...
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState(undefined);
 
@@ -141,12 +175,13 @@ const App = () => {
 ### Providing the video client and Call logic to the rest of the app
 
 Our `StreamVideo` component will provide our recently created video client to the rest of the underlying components.
-
-The `client` created above can be used as follows and needs to be provided to the `client` prop of the `StreamVideo` component.
+We will use the  `client` created in the previous step and provide to the `client` prop of the `StreamVideo` component.
 
 _Note: Make sure to wrap your entire application in `StreamVideo`._
 
-To enable calling in the application, you must wrap the `StreamCall` component on top of the navigator flows. The `StreamCall` component expects handlers on what should happen when a call is accepted, on starting an outgoing call and on receiving an incoming call.
+To enable calling in the application, you must wrap the `StreamCall` component on top of the navigator flows.
+The `StreamCall` component expects handlers on what should happen when a call is accepted,
+on starting an outgoing call and on receiving an incoming call.
 
 _Note: The `StreamCall` component must be a child of the `StreamVideo` component._
 
@@ -171,11 +206,15 @@ const App = () => {
 
 ```
 
-_Note: In our example, we navigate to particular screens where we render the `IncomingCallView`, `OutgoingCallView` and `ActiveCall` components. This is done using the package [react-navigation](http://reactnavigation.org/)._
+_Note: In our example, we navigate to particular screens where we render the `IncomingCallView`, `OutgoingCallView` and `ActiveCall` components.
+This is done using the package [react-navigation](http://reactnavigation.org/)._
 
 ### Creating the call
 
-To create/start a call, you can use the `createCall` function provided by the video client. This expects `callId`, `type` and `input` for the call. The `input` field expects the `ring` as `true` and the `members` to whom we want to call. An example of the usage is shared below:
+To create/start a call, you can use the `createCall` function provided by the video client.
+This function expects `callId`, `type` and `input` for the call.
+The `input` field expects the `ring` as `true` and the `members` to whom we want to call.
+An example of the usage is shared below:
 
 ```tsx
 import React, {useCallback} from 'react';
@@ -214,7 +253,10 @@ _Note: In our application, we derive the `members` from `channel.state?.members`
 
 ### Rendering the Active call view
 
-To render the active call view, you can import `ActiveCall` component from the Video SDK and use it in the Screen/View where you want to render it. This component expects two handlers to deal with the case of what should happen when the call is hanged up(`onHangupCall`) or when user clicks on the Participants View icon(`onOpenCallParticipantsInfoView`).
+To render the active call view, you can import `ActiveCall` component from the React Native Video SDK.
+Use it in the Screen/View where you want to render it.
+This component expects two handlers to deal with the case of what should happen when the call is hanged up(`onHangupCall`)
+or when user clicks on the Participants View icon(`onOpenCallParticipantsInfoView`).
 
 ```tsx
 import React from 'react';
@@ -231,7 +273,7 @@ export const ActiveCallScreen = ({ navigation }: Props) => {
 
   // Handler executed when the call participants icon is clicked. This is used to render CallParticipantsInfoView.
   const onOpenCallParticipantsInfoViewHandler = () => {
-    conole.log('Call Participants Info View');
+    console.log('Call Participants Info View');
   };
 
   // Since the call takes time to join we show an activityindicator until then.
@@ -250,9 +292,12 @@ export const ActiveCallScreen = ({ navigation }: Props) => {
 
 ### Rendering the Incoming call view
 
-To render the incoming call view, you can import `IncomingCallView` from the Video SDK and use it in the Screen/View where you want to render it. This component expects two handlers to deal with the case of what should happen when the call is accepted(`onAnswerCall`) or rejected(`onRejectCall`).
+To render the incoming call view, you can import `IncomingCallView` from the Reatc Native Video SDK and use it in the
+Screen/View of your choice.
+This component expects two handlers to deal with the case of what should happen when the
+call is accepted(`onAnswerCall`) or rejected(`onRejectCall`).
 
-_Note: In our `react-native-call-starter-kit`, we use the handlers to navigate among screens._
+_Note: In our [react-native-call-starter-kit](https://github.com/GetStream/stream-video-js/blob/a42a72fcde67877287f4df292524311723ea4e0f/packages/react-native-call-starter-kit/), we use the handlers to navigate among screens._
 
 ```tsx
 import React from 'react';
@@ -279,7 +324,9 @@ export default IncomingCallScreen;
 
 ### Rendering the Outgoing call view
 
-To render the outgoing call view, you can import `OutgoingCallView` from the Video SDK and use it in the Screen/View where you want to render it. This component expects a handler to deal with the case of what happens when the call is hung up(`onHangupCall`).
+To render the outgoing call view, you can import `OutgoingCallView` from the React Native Video SDK and use it in
+the Screen/View of your choice.
+This component expects a handler to deal with the case of what happens when the call is hung up(`onHangupCall`).
 
 ```tsx
 import React from 'react';

@@ -22,20 +22,26 @@ export interface CallControlsViewProps {
   onHangupCall: () => void;
 }
 
-export const CallControlsView = (props: CallControlsViewProps) => {
+/**
+ * Shows a list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
+ * the user can trigger within an active call.
+ *
+ * | Call Controls |
+ * | :--- |
+ * | ![call-controls-view](https://user-images.githubusercontent.com/25864161/217349666-af0f3278-393e-449d-b30e-2d1b196abe5e.png) |
+ */
+export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
   const {
     isAudioMuted,
     isVideoMuted,
-    cameraBackFacingMode,
-    toggleAudioState,
-    toggleVideoState,
-    toggleCamera,
-    toggleChat,
+    isCameraOnFrontFacingMode,
+    toggleVideoMuted,
+    toggleAudioMuted,
+    toggleCameraFacingMode,
   } = useCallControls();
   const { hangupCall } = useCall();
-  const { onHangupCall } = props;
 
-  const hangupCallHandler = useCallback(async () => {
+  const handleHangUpCall = useCallback(async () => {
     await hangupCall();
     onHangupCall();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -45,13 +51,13 @@ export const CallControlsView = (props: CallControlsViewProps) => {
     <View style={styles.container}>
       <CallControlsButton
         colorKey="activated"
-        onPress={toggleChat}
+        onPress={() => null}
         svgContainerStyle={styles.chatSvgStyle}
       >
         <Chat color="#080707" />
       </CallControlsButton>
       <CallControlsButton
-        onPress={toggleVideoState}
+        onPress={toggleVideoMuted}
         colorKey={isVideoMuted ? 'deactivated' : 'activated'}
       >
         {isVideoMuted ? (
@@ -61,18 +67,18 @@ export const CallControlsView = (props: CallControlsViewProps) => {
         )}
       </CallControlsButton>
       <CallControlsButton
-        onPress={toggleAudioState}
+        onPress={toggleAudioMuted}
         colorKey={isAudioMuted ? 'deactivated' : 'activated'}
       >
         {isAudioMuted ? <MicOff color="#ffffff" /> : <Mic color="#080707" />}
       </CallControlsButton>
       <CallControlsButton
-        onPress={toggleCamera}
-        colorKey={cameraBackFacingMode ? 'deactivated' : 'activated'}
+        onPress={toggleCameraFacingMode}
+        colorKey={isCameraOnFrontFacingMode ? 'activated' : 'deactivated'}
       >
-        <CameraSwitch color={cameraBackFacingMode ? '#ffffff' : '#080707'} />
+        <CameraSwitch color={isCameraOnFrontFacingMode ? '#080707' : '#FFF'} />
       </CallControlsButton>
-      <CallControlsButton onPress={hangupCallHandler} colorKey="cancel">
+      <CallControlsButton onPress={handleHangUpCall} colorKey="cancel">
         <PhoneDown color="#ffffff" />
       </CallControlsButton>
     </View>
