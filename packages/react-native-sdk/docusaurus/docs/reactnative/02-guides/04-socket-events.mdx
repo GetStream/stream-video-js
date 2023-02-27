@@ -24,11 +24,6 @@ The coordinator set of events are available immediately after you create the `St
 [//]: # (TODO: add relevant code snippet)
 
 
-To add a listener for our coordinator socket events, you have to pass in a `SocketListener` instance. The listener is defined as a simple interface with default implementations of functions, allowing you to only override the handles you need for your use case:
-
-[//]: # (TODO: add relevant code snippet)
-
-
 The main point of entry is `onEvent(event: VideoEvent)`, which lets you handle any number of our coordinator events around calls.
 
 The events you can consume are the following:
@@ -53,14 +48,9 @@ If you want to react to events **inside a call**, you need to use the signal Web
 
 ### Signaling Events
 
-As soon as you create a `VideoClient`, we connect to a signaling WebSocket instance which is responsible for all call-based events - primarily for the call connection flow, codec negotiation and similar, but also about participants and their mute or audio states.
+As soon as you create a `StreamSFUClient`, we connect to a signaling WebSocket instance which is responsible for all call-based events - primarily for the call connection flow, codec negotiation and similar, but also about participants and their mute or audio states.
 
 Similarly to the coordinator WebSocket and its corresponding events, you can attach a listener to the signaling WebSocket, like so:
-
-[//]: # (TODO: add relevant code snippet)
-
-
-The socket accepts a different interface type - `SfuSocketListener`, but its signature is almost the same:
 
 [//]: # (TODO: add relevant code snippet)
 
@@ -90,9 +80,9 @@ The **connection** events you can receive are the following:
 * **ParticipantLeftEvent**: Sent when a participant leaves the call.
 * **DominantSpeakerChangedEvent**: Notifies the call who the current dominant speaker is.
 
-All of these events are processed internally, in the `VideoClient`, but you can listen to them to build custom behavior or UI.
+All of these events are processed internally, in the `StreamVideoClient`, but you can listen to them to build custom behavior or UI.
 
-Once you're ready to stop listening to events, be it when leaving a call or when you disable custom features, you can remove the listener in a similar manner to the coordinator WebSocket:
+Once you're ready to stop listening to events, be it when leaving a call or when you disable custom features, you can video the listener in a similar manner to the coordinator WebSocket:
 
 [//]: # (TODO: add relevant code snippet)
 
