@@ -3,7 +3,6 @@ import {
   EventHandler,
   StreamClientOptions,
   TokenOrProvider,
-  UR,
   User,
 } from './connection/types';
 import {
@@ -17,13 +16,13 @@ import {
   JoinCallResponse,
   QueryCallsRequest,
   QueryCallsResponse,
+  RequestPermissionRequest,
+  RequestPermissionResponse,
   SendEventRequest,
   SortParamRequest,
   StopLiveResponse,
   UpdateCallRequest,
   UpdateCallResponse,
-  RequestPermissionRequest,
-  RequestPermissionResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
 } from '../gen/coordinator';
@@ -101,10 +100,7 @@ export class StreamCall {
       custom: custom,
       settings_override: settings,
     };
-    return this.client.patch<UpdateCallResponse>(
-      `${this.basePath}`,
-      payload,
-    );
+    return this.client.patch<UpdateCallResponse>(`${this.basePath}`, payload);
   };
 }
 
