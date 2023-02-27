@@ -3,7 +3,6 @@ import {
   useConnectedUser,
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
-import * as React from 'react';
 import { useMemo } from 'react';
 import { HomeButton } from './LobbyHeader';
 

@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { ComponentProps, ForwardedRef, forwardRef } from 'react';
 import { IconButton } from '@stream-io/video-react-sdk';
 

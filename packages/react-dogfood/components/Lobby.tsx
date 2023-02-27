@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useEffect, useMemo } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import {

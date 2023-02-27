@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { VideoPlaceholder } from '@stream-io/video-react-sdk';
 import { useSession } from 'next-auth/react';
 
