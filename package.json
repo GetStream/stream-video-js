@@ -4,6 +4,7 @@
   "author": "https://getstream.io",
   "packageManager": "yarn@3.4.1",
   "private": true,
+  "license": "See license in LICENSE",
   "workspaces": [
     "packages/*",
     "sample-apps/**/*"
