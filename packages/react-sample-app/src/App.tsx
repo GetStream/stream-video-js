@@ -21,13 +21,10 @@ import '@stream-io/video-styling/dist/css/styles.css';
 // use different browser tabs
 export type Participants = { [name: string]: string };
 const participants: Participants = {
-  marcelo:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoibWFyY2VsbyJ9.7eaqTfDEt7X_GfIyjakvAjpXpntEk4KDAtEFkB6ZcQc',
-  anatoly:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYW5hdG9seSJ9.AIOplja2psB6Wrn8T15v5KeaYD-ZpPVxb1hW8bkfWcQ',
-  tommaso:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidG9tbWFzbyJ9.7siVclPhJmDVZ5SUbRXdNbgYWnO_AvtHbiKRPzvhObA',
-  sam: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoic2FtIn0.epub2VrgPG3Wm8HIhtQuXozTuQ3Rr8RBQk4O9oTRhoI',
+  marcelo: process.env.REACT_APP_STREAM_TOKEN_MARCELO!,
+  anatoly: process.env.REACT_APP_STREAM_TOKEN_ANATOLY!,
+  tommaso: process.env.REACT_APP_STREAM_TOKEN_TOMMASO!,
+  sam: process.env.REACT_APP_STREAM_TOKEN_SAM!,
 };
 
 const theme = createTheme({
@@ -71,7 +68,7 @@ const App = () => {
   );
 
   const client = useCreateStreamVideoClient({
-    apiKey: 'w6yaq5388uym', // see <video>/data/fixtures/apps.yaml for API key/secret
+    apiKey: process.env.REACT_APP_STREAM_API_KEY!, // see <video>/data/fixtures/apps.yaml for API key/secret
     tokenOrProvider: participants[currentUser],
     user,
   });

@@ -6,10 +6,11 @@ import {
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/jwt';
+import { STREAM_API_KEY, STREAM_API_SECRET } from 'react-native-dotenv';
 
 const APIParams = {
-  apiKey: 'w6yaq5388uym', // see <video>/data/fixtures/apps.yaml for API key/secret
-  apiSecret: 'vavkn7b96xvy6y5frbc8kynkmqfg4feuwchdtkpkb44jywrvevwpeets35aqsmwv',
+  apiKey: STREAM_API_KEY,
+  apiSecret: STREAM_API_SECRET,
 };
 
 export const useAuth = () => {

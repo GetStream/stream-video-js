@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import {
+  NativeStackNavigationProp,
   createNativeStackNavigator,
-  NativeStackScreenProps,
 } from '@react-navigation/native-stack';
 import {
   MeetingStackParamList,
@@ -14,7 +14,7 @@ import { NavigationHeader } from './src/components/NavigationHeader';
 import { useAuth } from './src/hooks/useAuth';
 import AuthenticatingProgressScreen from './src/screens/AuthenticatingProgress';
 import { useProntoLinkEffect } from './src/hooks/useProntoLinkEffect';
-import { StreamCall, StreamVideo } from '@stream-io/video-react-native-sdk';
+import { StreamVideo } from '@stream-io/video-react-native-sdk';
 import {
   AppGlobalContextProvider,
   useAppGlobalStoreValue,
@@ -60,43 +60,34 @@ const Meeting = () => {
   );
 };
 
-const Ringing = (props: NativeStackScreenProps<RingingStackParamList>) => {
-  const { navigation } = props;
-
+const Ringing = () => {
   return (
-    <StreamCall
-      onIncomingCall={() => navigation.navigate('IncomingCallScreen')}
-      onOutgoingCall={() => navigation.navigate('OutgoingCallScreen')}
-      onHangupCall={() => navigation.navigate('JoinCallScreen')}
-      onAcceptCall={() => navigation.navigate('CallScreen')}
-    >
-      <RingingStack.Navigator>
-        <RingingStack.Screen
-          name="JoinCallScreen"
-          component={JoinCallScreen}
-          options={{ header: NavigationHeader }}
-        />
-        <RingingStack.Screen
-          name="CallScreen"
-          component={CallScreen}
-          options={{ headerShown: false }}
-        />
-        <RingingStack.Screen
-          name="IncomingCallScreen"
-          component={IncomingCallScreen}
-          options={{ headerShown: false }}
-        />
-        <RingingStack.Screen
-          name="OutgoingCallScreen"
-          component={OutgoingCallScreen}
-          options={{ headerShown: false }}
-        />
-        <MeetingStack.Screen
-          name="CallParticipantsInfoScreen"
-          component={CallParticipansInfoScreen}
-        />
-      </RingingStack.Navigator>
-    </StreamCall>
+    <RingingStack.Navigator>
+      <RingingStack.Screen
+        name="JoinCallScreen"
+        component={JoinCallScreen}
+        options={{ header: NavigationHeader }}
+      />
+      <RingingStack.Screen
+        name="CallScreen"
+        component={CallScreen}
+        options={{ headerShown: false }}
+      />
+      <RingingStack.Screen
+        name="IncomingCallScreen"
+        component={IncomingCallScreen}
+        options={{ headerShown: false }}
+      />
+      <RingingStack.Screen
+        name="OutgoingCallScreen"
+        component={OutgoingCallScreen}
+        options={{ headerShown: false }}
+      />
+      <MeetingStack.Screen
+        name="CallParticipantsInfoScreen"
+        component={CallParticipansInfoScreen}
+      />
+    </RingingStack.Navigator>
   );
 };
 
@@ -104,6 +95,8 @@ const StackNavigator = () => {
   useProntoLinkEffect();
   const { authenticationInProgress, videoClient } = useAuth();
   const appMode = useAppGlobalStoreValue((store) => store.appMode);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RingingStackParamList>>();
 
   if (authenticationInProgress) {
     return <AuthenticatingProgressScreen />;
@@ -112,7 +105,15 @@ const StackNavigator = () => {
     return <LoginScreen />;
   }
   return (
-    <StreamVideo client={videoClient}>
+    <StreamVideo
+      client={videoClient}
+      callCycleHandlers={{
+        onActiveCall: () => navigation.navigate('CallScreen'),
+        onIncomingCall: () => navigation.navigate('IncomingCallScreen'),
+        onOutgoingCall: () => navigation.navigate('OutgoingCallScreen'),
+        onHangupCall: () => navigation.navigate('JoinCallScreen'),
+      }}
+    >
       <Stack.Navigator>
         {appMode === 'None' ? (
           <Stack.Screen
