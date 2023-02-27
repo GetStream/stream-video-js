@@ -298,7 +298,7 @@ export interface CallEnded {
    * @type {UserResponse}
    * @memberof CallEnded
    */
-  user: UserResponse;
+  user?: UserResponse;
 }
 /**
  *
@@ -373,6 +373,56 @@ export interface CallPermissionsUpdated {
    * @memberof CallPermissionsUpdated
    */
   user: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface CallRecordingStarted
+ */
+export interface CallRecordingStarted {
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStarted
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStarted
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStarted
+   */
+  type: string;
+}
+/**
+ *
+ * @export
+ * @interface CallRecordingStopped
+ */
+export interface CallRecordingStopped {
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStopped
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStopped
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStopped
+   */
+  type: string;
 }
 /**
  *
