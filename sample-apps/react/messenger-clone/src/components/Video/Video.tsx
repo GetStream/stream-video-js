@@ -23,8 +23,8 @@ export const Video = ({
 }: PropsWithChildren<VideoProps>) => {
   const client = useCreateStreamVideoClient({
     callConfig: CALL_CONFIG.ring,
-    apiKey: import.meta.env.VITE_VIDEO_API_KEY,
-    tokenOrProvider: import.meta.env.VITE_VIDEO_USER_TOKEN ?? token,
+    apiKey: import.meta.env.VITE_STREAM_KEY,
+    tokenOrProvider: token,
     user,
   });
 
