@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import {
   MediaDevicesContextAPI,
+  SfuModels,
+  useLocalParticipant,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
@@ -9,7 +11,10 @@ export type LocalDeviceSettings = Pick<
   | 'selectedVideoDeviceId'
   | 'selectedAudioInputDeviceId'
   | 'selectedAudioOutputDeviceId'
->;
+> & {
+  isAudioMute: boolean;
+  isVideoMute: boolean;
+};
 
 const SETTINGS_KEY = '@pronto/preferred-devices';
 
@@ -30,18 +35,35 @@ export const LastUsedDeviceCaptor = () => {
     selectedAudioOutputDeviceId,
     selectedAudioInputDeviceId,
     selectedVideoDeviceId,
+    initialAudioEnabled,
+    initialVideoState,
   } = useMediaDevices();
+
+  let isAudioMute = !initialAudioEnabled;
+  let isVideoMute = !initialVideoState.enabled;
+
+  const localParticipant = useLocalParticipant();
+  if (localParticipant) {
+    const publishedTracks = localParticipant.publishedTracks || [];
+    isAudioMute = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
+    isVideoMute = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  }
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(
       SETTINGS_KEY,
       JSON.stringify({
+        isAudioMute,
+        isVideoMute,
         selectedAudioOutputDeviceId,
         selectedAudioInputDeviceId,
         selectedVideoDeviceId,
       }),
     );
   }, [
+    isAudioMute,
+    isVideoMute,
     selectedAudioInputDeviceId,
     selectedAudioOutputDeviceId,
     selectedVideoDeviceId,

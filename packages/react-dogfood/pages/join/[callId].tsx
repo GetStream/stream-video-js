@@ -98,6 +98,8 @@ const CallRoom = (props: CallRoomProps) => {
       <StreamVideo client={client}>
         <MediaDevicesProvider
           enumerate
+          initialAudioEnabled={!deviceSettings?.isAudioMute}
+          initialVideoEnabled={!deviceSettings?.isVideoMute}
           initialVideoInputDeviceId={deviceSettings?.selectedVideoDeviceId}
           initialAudioInputDeviceId={deviceSettings?.selectedAudioInputDeviceId}
           initialAudioOutputDeviceId={
