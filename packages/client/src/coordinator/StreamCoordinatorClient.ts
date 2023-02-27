@@ -48,7 +48,18 @@ export class StreamCall {
 
   join = async (data?: JoinCallRequest) => {
     await this.client.connectionIdPromise;
-    return this.client.post<JoinCallResponse>(`${this.basePath}/join`, data);
+    try {
+      return await this.client.post<JoinCallResponse>(
+        `${this.basePath}/join`,
+        data,
+      );
+    } catch (e) {
+      // fallback scenario, until we get a new Coordinator deployed
+      return await this.client.post<JoinCallResponse>(
+        `/join_call/${this.type}/${this.id}`,
+        data,
+      );
+    }
   };
 
   getEdgeServer = async (data: GetCallEdgeServerRequest) => {
