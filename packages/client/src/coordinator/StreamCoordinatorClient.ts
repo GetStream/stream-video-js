@@ -6,6 +6,7 @@ import {
   User,
 } from './connection/types';
 import {
+  BlockUserResponse,
   CallSettingsRequest,
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
@@ -21,6 +22,7 @@ import {
   SendEventRequest,
   SortParamRequest,
   StopLiveResponse,
+  UnblockUserResponse,
   UpdateCallRequest,
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
@@ -41,6 +43,18 @@ export class StreamCall {
     this.cid = `${type}:${id}`;
     this.basePath = `/call/${type}/${id}`;
   }
+
+  blockUser = async (userId: string) => {
+    return this.client.post<BlockUserResponse>(`${this.basePath}/block`, {
+      user_id: userId,
+    });
+  };
+
+  unblockUser = async (userId: string) => {
+    return this.client.post<UnblockUserResponse>(`${this.basePath}/unblock`, {
+      user_id: userId,
+    });
+  };
 
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
     return this.client.post<GetOrCreateCallResponse>(this.basePath, data);

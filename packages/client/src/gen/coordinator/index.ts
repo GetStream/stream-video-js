@@ -518,6 +518,12 @@ export interface CallResponse {
   backstage: boolean;
   /**
    *
+   * @type {Array<string>}
+   * @memberof CallResponse
+   */
+  blocked_user_ids: Array<string>;
+  /**
+   *
    * @type {string}
    * @memberof CallResponse
    */
@@ -687,6 +693,12 @@ export interface CallSettingsResponse {
  * @interface CallStateResponseFields
  */
 export interface CallStateResponseFields {
+  /**
+   *
+   * @type {Array<UserResponse>}
+   * @memberof CallStateResponseFields
+   */
+  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -983,6 +995,12 @@ export interface GetCallEdgeServerRequest {
 export interface GetCallEdgeServerResponse {
   /**
    *
+   * @type {Array<UserResponse>}
+   * @memberof GetCallEdgeServerResponse
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
    * @type {CallResponse}
    * @memberof GetCallEdgeServerResponse
    */
@@ -1043,6 +1061,12 @@ export interface GetOrCreateCallRequest {
  * @interface GetOrCreateCallResponse
  */
 export interface GetOrCreateCallResponse {
+  /**
+   *
+   * @type {Array<UserResponse>}
+   * @memberof GetOrCreateCallResponse
+   */
+  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -1217,6 +1241,12 @@ export interface JoinCallRequest {
  * @interface JoinCallResponse
  */
 export interface JoinCallResponse {
+  /**
+   *
+   * @type {Array<UserResponse>}
+   * @memberof JoinCallResponse
+   */
+  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
