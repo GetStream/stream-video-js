@@ -216,13 +216,11 @@ export class StreamVideoClient {
     type: string,
     data?: GetOrCreateCallRequest,
   ) => {
-    // FIXME ZS: method name is misleading, also the client shouldn't care if a call is ringing or not
-    let response!: GetOrCreateCallResponse | JoinCallResponse;
-    if (data?.ring) {
-      response = await this.coordinatorClient.joinCall(id, type, data);
-    } else {
-      response = await this.coordinatorClient.getOrCreateCall(id, type, data);
-    }
+    const response = await this.coordinatorClient.getOrCreateCall(
+      id,
+      type,
+      data,
+    );
     const { call } = response;
     if (!call) {
       console.log(`Call with id ${id} and type ${type} could not be created`);
