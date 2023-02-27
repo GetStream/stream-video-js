@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {Image, Pressable, StyleSheet, Text, View} from 'react-native';
-import users from '../data/users.json';
+import {users} from '../data/users';
 import {useAppContext} from '../context/AppContext';
 
 type UserType = {

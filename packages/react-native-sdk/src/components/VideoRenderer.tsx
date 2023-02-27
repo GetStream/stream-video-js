@@ -2,6 +2,9 @@ import React from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 
+/**
+ * Props to be passed for the VideoRenderer component.
+ */
 export interface VideoRendererProps {
   /**
    * The stream that should be rendered.
@@ -30,7 +33,7 @@ export interface VideoRendererProps {
    * thought of as giving a hint rather than as imposing a requirement. For
    * example, video renderers such as `RTCView` are commonly implemented using
    * OpenGL and OpenGL views may have different numbers of layers in their
-   * stacking space. Android has three: a layer bellow the window (aka
+   * stacking space. android has three: a layer bellow the window (aka
    * default), a layer bellow the window again but above the previous layer
    * (aka media overlay), and above the window. Consequently, it is advisable
    * to limit the number of utilized layers in the stacking space to the
@@ -60,6 +63,7 @@ export interface VideoRendererProps {
 
 /**
  * Lower level component, that represents only the video part (wrapper around the WebRTC)
+ * //Todo: SG: add photo's with all states
  */
 export const VideoRenderer = (props: VideoRendererProps) => {
   const {
