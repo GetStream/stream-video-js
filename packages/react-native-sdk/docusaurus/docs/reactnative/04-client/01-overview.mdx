@@ -1,14 +1,17 @@
-## Overview
+---
+id: 01-client-overview
+title: Client Overview
+---
 
 The Low-Level Client consists of these main constructs that let you easily query and join calls:
 
-+ **StreamVideo**: The main client that you initialize with a user presence. It lets you create, look up and join calls, as well as create the `CallClient`.
-+ **CallClient**: Call-specific client that you initialize when joining a call. It exposes various handles for audio and video devices, muting and un-muting, listening to call specific events and observing the call state.
++ **StreamVideo**: The main client that you initialize with a user presence. It lets you create, look up and join calls, as well as create the `VideoClient`.
++ **VideoClient**: Call-specific client that you initialize when joining a call. It exposes various handles for audio and video devices, muting and un-muting, listening to call specific events and observing the call state.
 
 Using each of these lets you access different functionality that helps you build video calling features. Check out each of the respective pages to learn more details about each component:
 
 * [StreamVideo](02-stream-video.mdx)
-* [CallClient](03-call-client.mdx)
+* [VideoClient](03-video-client.mdx)
 
 These components have different scopes of life, so if you want to learn more about creating and disposing of such constructs, read more in our [call lifecycle](../02-guides/01-call-lifecycle.mdx) guide.
 

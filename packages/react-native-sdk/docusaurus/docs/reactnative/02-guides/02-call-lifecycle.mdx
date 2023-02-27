@@ -8,7 +8,7 @@ When building your app with **Stream Video**, it's important to understand how t
 There are two main components that you need to initialize at various points in your app lifecycle:
 
 * **StreamVideo** - The main client which lets you perform CRUD operations with calls.
-* **CallClient** - The client which handles just one specific call when the user joins as a participant.
+* **VideoClient** - The client which handles just one specific call when the user joins as a participant.
 
 Based on your app, you should initialize these at the latest possible time, when the users really need them, since they might not have to use any of the clients unless they want to engage in video calls.
 
@@ -17,7 +17,7 @@ As a high-level overview, you can see the timeline of these three lifecycle scop
 [//]: # (TODO: add relevant arch. chart diagram)
 
 
-> **Note**: While the diagram shows the lifecycle of only one StreamVideo client and CallClient, you can create many instances during a user session, if the user logs in and out multiple times, and joins and leaves multiple calls.
+> **Note**: While the diagram shows the lifecycle of only one StreamVideo client and VideoClient, you can create many instances during a user session, if the user logs in and out multiple times, and joins and leaves multiple calls.
 
 Let's see when it's best to initialize and dispose of these clients.
 
