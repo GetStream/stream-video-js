@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
+import Gleap from 'gleap';
 import {
   useActiveCall,
   useStreamVideoClient,
@@ -10,6 +11,7 @@ import {
   CancelCallButton,
   CompositeButton,
   DeviceSettings,
+  GetInviteLinkButton,
   IconButton,
   LoadingIndicator,
   RecordCallButton,
@@ -21,7 +23,6 @@ import {
   ToggleParticipantListButton,
 } from '@stream-io/video-react-sdk';
 import { IconInviteLinkButton, InviteLinkButton } from './InviteLinkButton';
-import { GetInviteLinkButton } from '@stream-io/video-react-sdk/dist/src/components/CallParticipantsList/GetInviteLinkButton';
 import { CallHeaderTitle } from './CallHeaderTitle';
 import { Lobby } from './Lobby';
 import { Button, Stack, Typography } from '@mui/material';
@@ -215,23 +216,32 @@ const ErrorPage = ({ heading, onClickHome, onClickLobby }: ErrorPageProps) => (
         (see the console for more info)
       </Typography>
     </div>
-    <Stack direction="row" gap={3}>
+    <Stack direction="row" gap={2}>
       <Button
-        style={{ width: '200px' }}
         data-testid="return-home-button"
         variant="contained"
         onClick={onClickHome}
       >
-        {'< Return home'}
+        Return home
       </Button>
 
       <Button
-        style={{ width: '200px' }}
         data-testid="return-home-button"
         variant="contained"
         onClick={onClickLobby}
       >
-        {'Back to lobby >'}
+        Back to lobby
+      </Button>
+
+      <Button
+        data-testid="report-issue-button"
+        variant="contained"
+        color="error"
+        onClick={() => {
+          Gleap.startFeedbackFlow('bugreporting');
+        }}
+      >
+        Report an issue
       </Button>
     </Stack>
   </Stack>
