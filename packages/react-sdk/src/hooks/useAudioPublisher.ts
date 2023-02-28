@@ -49,8 +49,9 @@ export const useAudioPublisher = ({
       !call ||
       initialAudioMuted ||
       (!isPublishingAudio && initialPublishExecuted.current)
-    )
+    ) {
       return;
+    }
 
     getAudioStream(audioDeviceId).then((stream) => {
       if (interrupted && stream.active)
