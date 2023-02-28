@@ -20,6 +20,8 @@ import {
   RequestPermissionRequest,
   RequestPermissionResponse,
   SendEventRequest,
+  SendReactionRequest,
+  SendReactionResponse,
   SortParamRequest,
   StopLiveResponse,
   UnblockUserResponse,
@@ -43,6 +45,13 @@ export class StreamCall {
     this.cid = `${type}:${id}`;
     this.basePath = `/call/${type}/${id}`;
   }
+
+  sendReaction = async (reaction: SendReactionRequest) => {
+    return this.client.post<SendReactionResponse>(
+      `${this.basePath}/reaction`,
+      reaction,
+    );
+  };
 
   blockUser = async (userId: string) => {
     return this.client.post<BlockUserResponse>(`${this.basePath}/block`, {
