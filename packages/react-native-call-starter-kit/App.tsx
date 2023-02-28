@@ -17,10 +17,12 @@ import {NavigationHeader} from './src/components/NavigationHeader';
 import {MessengerWrapper} from './src/components/MessengerWrapper';
 import {ChannelHeader} from './src/components/ChannelHeader';
 import {ActiveCallScreen} from './src/screens/ActiveCallScreen';
-import {CallParticipansInfoScreen} from './src/screens/CallParticipantsInfoScreen';
 import {AppProvider, useAppContext} from './src/context/AppContext';
-import IncomingCallScreen from './src/screens/IncomingCallScreen';
-import OutgoingCallScreen from './src/screens/OutgoingCallScreen';
+import {
+  CallParticipantsInfoView,
+  IncomingCallView,
+  OutgoingCallView,
+} from '@stream-io/video-react-native-sdk';
 
 const Stack = createNativeStackNavigator<NavigationStackParamsList>();
 
@@ -57,7 +59,7 @@ const Messenger = () => {
         <Stack.Screen name="ThreadScreen" component={ThreadScreen} />
         <Stack.Screen
           name="IncomingCallScreen"
-          component={IncomingCallScreen}
+          component={IncomingCallView}
           options={{headerShown: false}}
         />
         <Stack.Screen
@@ -67,12 +69,12 @@ const Messenger = () => {
         />
         <Stack.Screen
           name="OutgoingCallScreen"
-          component={OutgoingCallScreen}
+          component={OutgoingCallView}
           options={{headerShown: false}}
         />
         <Stack.Screen
           name="CallParticipantsInfoScreen"
-          component={CallParticipansInfoScreen}
+          component={CallParticipantsInfoView}
         />
       </Stack.Navigator>
     </MessengerWrapper>

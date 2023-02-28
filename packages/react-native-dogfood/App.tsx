@@ -14,7 +14,11 @@ import { NavigationHeader } from './src/components/NavigationHeader';
 import { useAuth } from './src/hooks/useAuth';
 import AuthenticatingProgressScreen from './src/screens/AuthenticatingProgress';
 import { useProntoLinkEffect } from './src/hooks/useProntoLinkEffect';
-import { StreamVideo } from '@stream-io/video-react-native-sdk';
+import {
+  IncomingCallView,
+  OutgoingCallView,
+  StreamVideo,
+} from '@stream-io/video-react-native-sdk';
 import {
   AppGlobalContextProvider,
   useAppGlobalStoreValue,
@@ -25,8 +29,6 @@ import { CallScreen } from './src/screens/Call/CallScreen';
 import JoinMeetingScreen from './src/screens/Meeting/JoinMeetingScreen';
 import JoinCallScreen from './src/screens/Call/JoinCallScreen';
 import { ChooseFlowScreen } from './src/screens/ChooseFlowScreen';
-import IncomingCallScreen from './src/screens/Call/IncomingCallScreen';
-import OutgoingCallScreen from './src/screens/Call/OutgoingCallScreen';
 import { CallParticipansInfoScreen } from './src/screens/Meeting/CallParticipantsInfoScreen';
 import { LobbyViewScreen } from './src/screens/Meeting/LobbyViewScreen';
 
@@ -75,12 +77,12 @@ const Ringing = () => {
       />
       <RingingStack.Screen
         name="IncomingCallScreen"
-        component={IncomingCallScreen}
+        component={IncomingCallView}
         options={{ headerShown: false }}
       />
       <RingingStack.Screen
         name="OutgoingCallScreen"
-        component={OutgoingCallScreen}
+        component={OutgoingCallView}
         options={{ headerShown: false }}
       />
       <MeetingStack.Screen
@@ -95,8 +97,10 @@ const StackNavigator = () => {
   useProntoLinkEffect();
   const { authenticationInProgress, videoClient } = useAuth();
   const appMode = useAppGlobalStoreValue((store) => store.appMode);
-  const navigation =
+  const callNavigation =
     useNavigation<NativeStackNavigationProp<RingingStackParamList>>();
+  const meetingNavigation =
+    useNavigation<NativeStackNavigationProp<MeetingStackParamList>>();
 
   if (authenticationInProgress) {
     return <AuthenticatingProgressScreen />;
@@ -108,10 +112,17 @@ const StackNavigator = () => {
     <StreamVideo
       client={videoClient}
       callCycleHandlers={{
-        onActiveCall: () => navigation.navigate('CallScreen'),
-        onIncomingCall: () => navigation.navigate('IncomingCallScreen'),
-        onOutgoingCall: () => navigation.navigate('OutgoingCallScreen'),
-        onHangupCall: () => navigation.navigate('JoinCallScreen'),
+        onActiveCall: () =>
+          appMode === 'Meeting'
+            ? meetingNavigation.navigate('MeetingScreen')
+            : callNavigation.navigate('CallScreen'),
+        onIncomingCall: () => callNavigation.navigate('IncomingCallScreen'),
+        onOutgoingCall: () => callNavigation.navigate('OutgoingCallScreen'),
+        onHangupCall: () =>
+          appMode === 'Meeting'
+            ? meetingNavigation.navigate('JoinMeetingScreen')
+            : callNavigation.navigate('JoinCallScreen'),
+        onRejectCall: () => callNavigation.navigate('JoinCallScreen'),
       }}
     >
       <Stack.Navigator>

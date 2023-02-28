@@ -22,6 +22,7 @@ import {useAppContext} from '../context/AppContext';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 console.log('STREAM_API_KEY', STREAM_API_KEY);
+
 export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
   const {client} = useChatContext<StreamChatGenerics>();
   const {channel} = useAppContext();
@@ -61,6 +62,14 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
     }
   }, [channel, navigation]);
 
+  const onRejectCall = useCallback(() => {
+    if (!channel) {
+      navigation.navigate('ChannelListScreen');
+    } else {
+      navigation.navigate('ChannelScreen');
+    }
+  }, [navigation, channel]);
+
   if (!videoClient) {
     return <AuthProgressLoader />;
   }
@@ -73,6 +82,7 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
         onIncomingCall,
         onOutgoingCall,
         onHangupCall,
+        onRejectCall,
       }}>
       {children}
     </StreamVideo>

@@ -4,26 +4,19 @@ import { CallControlsButton } from './CallControlsButton';
 import { useIncomingCalls } from '@stream-io/video-react-bindings';
 import { UserInfoView } from './UserInfoView';
 import {
+  useCallCycleContext,
   useStreamVideoStoreSetState,
   useStreamVideoStoreValue,
 } from '../contexts';
-import { useRingCall } from '../hooks';
+import { useRingCall } from '../hooks/useRingCall';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 
-/**
- * Props to be passed for the IncomingCallView component.
- */
-interface IncomingCallViewProps {
-  /**
-   * Handler called when the call is rejected. Mostly used for navigation and related actions.
-   */
-  onRejectCall: () => void;
-}
-
-export const IncomingCallView = ({ onRejectCall }: IncomingCallViewProps) => {
+export const IncomingCallView = () => {
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const setState = useStreamVideoStoreSetState();
   const { answerCall, rejectCall } = useRingCall();
+  const { callCycleHandlers } = useCallCycleContext();
+  const { onRejectCall } = callCycleHandlers;
 
   const videoToggle = async () => {
     setState((prevState) => ({
@@ -37,7 +30,7 @@ export const IncomingCallView = ({ onRejectCall }: IncomingCallViewProps) => {
 
   const rejectCallHandler = async () => {
     await rejectCall();
-    onRejectCall();
+    if (onRejectCall) onRejectCall();
   };
 
   return (
