@@ -46,17 +46,17 @@ export const useVideoPublisher = ({
       initialPublishExecuted.current = false;
     }
 
-    // avoid publishing when moving from lobby to active call with muted audio
-    if (call && initialVideoMuted && !initialPublishExecuted.current) {
-      initialPublishExecuted.current = true;
+    if (
+      !call ||
+      initialVideoMuted ||
+      (!isPublishingVideo && initialPublishExecuted.current)
+    )
       return;
-    }
-
-    if (!call || (!isPublishingVideo && initialPublishExecuted.current)) return;
 
     getVideoStream(videoDeviceId).then((stream) => {
-      if (interrupted && stream.active)
+      if (interrupted && stream.active) {
         return stream.getTracks().forEach((t) => t.stop());
+      }
 
       initialPublishExecuted.current = true;
       return call.publishVideoStream(stream, { preferredCodec });

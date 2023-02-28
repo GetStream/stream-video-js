@@ -45,13 +45,12 @@ export const useAudioPublisher = ({
       initialPublishExecuted.current = false;
     }
 
-    // avoid publishing when moving from lobby to active call with muted audio
-    if (call && initialAudioMuted && !initialPublishExecuted.current) {
-      initialPublishExecuted.current = true;
+    if (
+      !call ||
+      initialAudioMuted ||
+      (!isPublishingAudio && initialPublishExecuted.current)
+    )
       return;
-    }
-
-    if (!call || (!isPublishingAudio && initialPublishExecuted.current)) return;
 
     getAudioStream(audioDeviceId).then((stream) => {
       if (interrupted && stream.active)
