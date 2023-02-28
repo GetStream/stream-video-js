@@ -4,7 +4,7 @@ import { DeviceSelectorAudioOutput } from '../DeviceSettings';
 export type ToggleAudioOutputButtonProps = { caption?: string };
 
 export const ToggleAudioOutputButton = ({
-  caption = 'Audio Output',
+  caption = 'Speakers',
 }: ToggleAudioOutputButtonProps) => {
   return (
     <CompositeButton Menu={DeviceSelectorAudioOutput} enabled caption={caption}>

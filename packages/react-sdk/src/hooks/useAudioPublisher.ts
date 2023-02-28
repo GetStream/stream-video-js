@@ -66,7 +66,7 @@ export const useAudioPublisher = ({
       call.stopPublish(SfuModels.TrackType.AUDIO);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [call, audioDeviceId, initialAudioMuted]);
+  }, [call, audioDeviceId]);
 
   useEffect(() => {
     const subscription = watchForDisconnectedAudioDevice(

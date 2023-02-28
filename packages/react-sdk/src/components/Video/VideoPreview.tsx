@@ -74,6 +74,9 @@ export const VideoPreview = ({
           message: (e as Error).message,
         }),
       );
+    return () => {
+      setStream(undefined);
+    };
   }, [
     initialVideoState,
     getVideoStream,

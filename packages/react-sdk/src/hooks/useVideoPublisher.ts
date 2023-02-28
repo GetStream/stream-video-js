@@ -67,7 +67,7 @@ export const useVideoPublisher = ({
       call.stopPublish(SfuModels.TrackType.VIDEO);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoDeviceId, call, preferredCodec, initialVideoMuted]);
+  }, [videoDeviceId, call, preferredCodec]);
 
   useEffect(() => {
     const subscription = watchForDisconnectedVideoDevice(
