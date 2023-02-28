@@ -1,10 +1,30 @@
 ---
-id: meeting-tutorial
-sidebar_position: 1
-title: Meeting Tutorial
+id: 01-tutorial
+title: Tutorial
 ---
 
-This document explains how to integrate Stream Video to support Meetings in your Application.
+## Introduction
+
+Hi there and welcome to our Stream Video React Native tutorial.
+
+`StreamVideo` is an SDK that facilitates adding calling (audio and video) support to your apps. It's a performant and highly customizable, allowing you to build various types of calling applications and streaming use cases, such as:
+
+* **Messenger-style applications**: These applications implement Chat as a primary source of communication, with Video secondary.
+* **Meeting-style applications**: Such apps focus primarily on Video, with Chat as a way to communicate while in a call. Eg: Zoom, Google Meet, etc.
+* **Audio Rooms**: Our SDK allows you to build audio-only rooms that allow live communication, such as Twitter Spaces.
+* **Livestreaming**: We support one of the most popular modern use cases - streaming audio and video to audiences. You can replicate apps like Twitch or YouTube Live.
+
+This makes the Stream Video SDK the best-in-class choice when integrating Audio and Video communication in your apps. With all that in mind, let's dive into the tutorial.
+
+## Tutorial Contents
+
+:::info
+In the following tutorial we will focus on building a Meeting-style application, such as Zoom, Google Meet, etc.
+
+If your app resembles a Ring-style application, such as Messenger, then please, follow the guide [Chat With Video](../../guides/06-chat-with-video/).
+:::
+
+We will explain how to integrate Stream Video to support Meetings in your Application.
 
 In this tutorial, we are building a video call application using the Stream Video React SDK. We will be implementing a "Meeting Room" scenario, where users can join and leave the call independently, without causing the call to be terminated. The topics we are covering in this tutorial are:
 
@@ -13,8 +33,6 @@ In this tutorial, we are building a video call application using the Stream Vide
 - Creating/Joining a new call.
 - Leaving an existing call.
 - View Participants info.
-
-If you are looking to build a "Ring Call" scenario, where the call is dropped, once the number of participants is reduced to 1, then please, follow the guide [Tutorial (Call)](./call_tutorial).
 
 To get started with the guide, ensure you have set up your [development environment for React Native](https://reactnative.dev/docs/environment-setup). Stream Chat supports creating applications using Expo and React Native CLI. But Stream Video currently only supports React Native CLI, so we will only focus on React Native CLI in this documentation.
 
@@ -400,3 +418,20 @@ export const CallParticipansInfoScreen = () => {
   return <CallParticipantsInfoView />;
 };
 ```
+
+## Further Integration
+
+Congratulations on completing the Stream Video React Native SDK tutorial. You've learned how to build two very popular use cases - Meeting and Ringing Calls. However, our SDK supports multiple other use cases and more advanced features. If you're looking to integrate more of our supported functionality, we recommend checking out the following guides:
+
+[//]: # (* [guide]&#40;05-advanced/02-push-notification/01-overview.mdx&#41;)
+(../02-guides/04-socket-events.mdx)
+* [Call Lifecycle](../02-guides/02-call-lifecycle.mdx): It's important to understand the lifecycle of our SDK and Calls to properly build complex use cases for your users.
+* [Call Engine](../02-guides/03-call-engine.mdx): If you're looking to utilize our state machine to the fullest, explore what our internal CallEngine does and how to listen to state.
+* [Deep linking](../05-advanced/01-deeplinking.mdx): Deep linking is very useful for Meeting apps where you can simply send a link for the Call that lets people join.
+* [Push Notifications](../05-advanced/02-push-notifications.mdx): Apps where Ring people and invite them to Calls heavily rely on push notifications. Learn how to integrate them with our SDK.
+
+Alternatively, if you're modeling your app based on popular apps, like Messenger, Telegram, Zoom, Google Meet, Twitter Spaces or Twitch, we have several guides and template projects prepared for you:
+
+* [Chat + Video](../02-guides/06-chat-with-video.mdx): Messenger and Telegram like applications feature Chat as a primary source of communication, with Video being secondary. To build a similar app, follow our Chat + Video guide that provides you with a template project to kick start your app, with all the UI and setup pre-baked.
+* [Audio Rooms](../02-guides/07-audio-rooms.mdx): Some apps feature live audio rooms where people gather to discuss ideas and fun topics. Apps like Twitter Spaces are popular and you can build them using our Audio Rooms guide. It also prepares a template project for you that cuts the time you need to start working on your app.
+* [Livestream](../02-guides/08-livestream.mdx): Last, but not least, our Livestream guide teaches you how to build an app where one person streams their tracks to a group of people in real time. By the end of the guide, you'll have a project that prepares most of the setup for you.

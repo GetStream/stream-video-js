@@ -1,6 +1,7 @@
 {
   "name": "@stream-io/video-angular-sdk",
   "version": "0.0.1",
+  "license": "See license in LICENSE",
   "peerDependencies": {
     "@angular/common": "^14.1.0",
     "@angular/core": "^14.1.0"

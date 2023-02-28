@@ -12,7 +12,7 @@ import { useRingCall } from '../hooks/useRingCall';
 import { useCallCycleContext } from '../contexts';
 
 export const OutgoingCallView = () => {
-  const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
+  const { isAudioMuted, isVideoMuted, toggleAudioMuted, toggleVideoMuted } =
     useCallControls();
   const { cancelCall } = useRingCall();
   const { callCycleHandlers } = useCallCycleContext();
@@ -32,7 +32,7 @@ export const OutgoingCallView = () => {
         <View style={styles.buttons}>
           <View style={styles.deviceControlButtons}>
             <CallControlsButton
-              onPress={toggleAudioState}
+              onPress={toggleAudioMuted}
               colorKey={!isAudioMuted ? 'activated' : 'deactivated'}
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}
@@ -40,7 +40,7 @@ export const OutgoingCallView = () => {
               {isAudioMuted ? <MicOff color="#fff" /> : <Mic color="#000" />}
             </CallControlsButton>
             <CallControlsButton
-              onPress={toggleVideoState}
+              onPress={toggleVideoMuted}
               colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}

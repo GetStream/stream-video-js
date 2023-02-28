@@ -14,6 +14,9 @@ import { Mic, MicOff, Video, VideoSlash } from '../icons';
 
 type SizeType = 'small' | 'medium' | 'large' | 'xl';
 
+/**
+ * Props to be passed for the ParticipantView component.
+ */
 interface ParticipantViewProps {
   /**
    * The size of the participant that correlates to a specific layout
@@ -35,14 +38,19 @@ interface ParticipantViewProps {
 
 /**
  * Renders either the participants' video track or screenShare track
- * and additional info, by an absence of a video track only an avatar and audio track will be rendered.
+ * and additional info, by an absence of a video track only an
+ * avatar and audio track will be rendered.
+ *
+ * | When Video is Enabled | When Video is Disabled |
+ * | :--- | :----: |
+ * |![participant-view-1](https://user-images.githubusercontent.com/25864161/217489213-d4532ca1-49ee-4ef5-940c-af2e55bc0a5f.png)|![participant-view-2](https://user-images.githubusercontent.com/25864161/217489207-fb20c124-8bce-4c2b-87f9-4fe67bc50438.png)|
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
   const { size, participant, kind } = props;
   const call = useActiveCall();
 
-  const cameraBackFacingMode = useStreamVideoStoreValue(
-    (store) => store.cameraBackFacingMode,
+  const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
+    (store) => store.isCameraOnFrontFacingMode,
   );
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
@@ -71,7 +79,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const audioStream = participant.audioStream as MediaStream | undefined;
   const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
-  const mirror = isLoggedInUser && !cameraBackFacingMode;
+  const mirror = isLoggedInUser && isCameraOnFrontFacingMode;
   const MicIcon = isAudioMuted ? MicOff : Mic;
   const VideoIcon = isVideoMuted ? VideoSlash : Video;
   const isAudioAvailable = useMemo(
