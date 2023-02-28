@@ -71,12 +71,6 @@ export class StreamCall {
 
   join = async (data?: JoinCallRequest) => {
     await this.client.connectionIdPromise;
-
-    data = data || {};
-    if (data.connection_id == null) {
-      data.connection_id = this.client.wsConnection?.connectionID;
-    }
-
     try {
       return await this.client.post<JoinCallResponse>(
         `${this.basePath}/join`,
