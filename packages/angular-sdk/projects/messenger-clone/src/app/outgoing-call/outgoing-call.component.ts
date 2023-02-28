@@ -1,5 +1,5 @@
 import { Component, Inject, NgZone, OnInit } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   DeviceManagerService,
@@ -7,7 +7,7 @@ import {
 } from '@stream-io/video-angular-sdk';
 import { Subscription } from 'rxjs';
 import { ChatClientService, getChannelDisplayText } from 'stream-chat-angular';
-import { CallMetadata, GetOrCreateCallResponse } from '@stream-io/video-client';
+import { GetOrCreateCallResponse } from '@stream-io/video-client';
 
 @Component({
   selector: 'app-outgoing-call',

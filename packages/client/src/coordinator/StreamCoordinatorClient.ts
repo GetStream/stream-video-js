@@ -3,22 +3,131 @@ import {
   EventHandler,
   StreamClientOptions,
   TokenOrProvider,
-  UR,
   User,
 } from './connection/types';
 import {
+  BlockUserResponse,
+  CallSettingsRequest,
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
+  GoLiveResponse,
   JoinCallRequest,
   JoinCallResponse,
-  SendEventRequest,
+  QueryCallsRequest,
+  QueryCallsResponse,
   RequestPermissionRequest,
   RequestPermissionResponse,
+  SendEventRequest,
+  SortParamRequest,
+  StopLiveResponse,
+  UnblockUserResponse,
+  UpdateCallRequest,
+  UpdateCallResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
 } from '../gen/coordinator';
+
+export class StreamCall {
+  client: StreamClient;
+  type: string;
+  id: string;
+  cid: string;
+  basePath: string;
+
+  constructor(client: StreamClient, type: string, id: string) {
+    this.client = client;
+    this.type = type;
+    this.id = id;
+    this.cid = `${type}:${id}`;
+    this.basePath = `/call/${type}/${id}`;
+  }
+
+  blockUser = async (userId: string) => {
+    return this.client.post<BlockUserResponse>(`${this.basePath}/block`, {
+      user_id: userId,
+    });
+  };
+
+  unblockUser = async (userId: string) => {
+    return this.client.post<UnblockUserResponse>(`${this.basePath}/unblock`, {
+      user_id: userId,
+    });
+  };
+
+  getOrCreate = async (data?: GetOrCreateCallRequest) => {
+    return this.client.post<GetOrCreateCallResponse>(this.basePath, data);
+  };
+
+  join = async (data?: JoinCallRequest) => {
+    await this.client.connectionIdPromise;
+    try {
+      return await this.client.post<JoinCallResponse>(
+        `${this.basePath}/join`,
+        data,
+      );
+    } catch (e) {
+      // fallback scenario, until we get a new Coordinator deployed
+      return await this.client.post<JoinCallResponse>(
+        `/join_call/${this.type}/${this.id}`,
+        data,
+      );
+    }
+  };
+
+  getEdgeServer = async (data: GetCallEdgeServerRequest) => {
+    return this.client.post<GetCallEdgeServerResponse>(
+      `${this.basePath}/get_edge_server`,
+      data,
+    );
+  };
+
+  sendEvent = async (event: SendEventRequest) => {
+    return this.client.post(`${this.basePath}/event`, event);
+  };
+
+  startRecording = async () => {
+    return this.client.post(`${this.basePath}/start_recording`, {});
+  };
+
+  stopRecording = async () => {
+    return this.client.post(`${this.basePath}/stop_recording`, {});
+  };
+
+  requestPermissions = async (data: RequestPermissionRequest) => {
+    return this.client.post<RequestPermissionResponse>(
+      `${this.basePath}/request_permission`,
+      data,
+    );
+  };
+
+  updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
+    return this.client.post<UpdateUserPermissionsResponse>(
+      `${this.basePath}/user_permissions`,
+      data,
+    );
+  };
+
+  goLive = async () => {
+    return this.client.post<GoLiveResponse>(`${this.basePath}/go_live`, {});
+  };
+
+  stopLive = async () => {
+    return this.client.post<StopLiveResponse>(`${this.basePath}/stop_live`, {});
+  };
+
+  update = async (
+    custom: { [key: string]: any },
+    settings?: CallSettingsRequest,
+  ) => {
+    const payload: UpdateCallRequest = {
+      custom: custom,
+      settings_override: settings,
+    };
+    return this.client.patch<UpdateCallResponse>(`${this.basePath}`, payload);
+  };
+}
 
 export class StreamCoordinatorClient {
   private client: StreamClient;
@@ -34,6 +143,10 @@ export class StreamCoordinatorClient {
       ...options,
     });
   }
+
+  call = (type: string, id: string) => {
+    return new StreamCall(this.client, type, id);
+  };
 
   on = (
     callbackOrEventName: EventHandler | string,
@@ -61,76 +174,89 @@ export class StreamCoordinatorClient {
     return this.client.disconnectUser(timeout);
   };
 
+  // DEPRECATED: use call.getOrCreate() instead
   getOrCreateCall = async (
     id: string,
     type: string,
     data?: GetOrCreateCallRequest,
   ) => {
-    return this.client.post<GetOrCreateCallResponse>(
-      `/call/${type}/${id}`,
-      data,
-    );
+    return this.call(type, id).getOrCreate(data);
   };
 
+  // DEPRECATED: use call.join() instead
   joinCall = async (id: string, type: string, data?: JoinCallRequest) => {
     await this.client.connectionIdPromise;
-    return this.client.post<JoinCallResponse>(`/join_call/${type}/${id}`, data);
+    return this.call(type, id).join(data);
   };
 
+  // DEPRECATED: use call.getEdgeServer() instead
   getCallEdgeServer = async (
     id: string,
     type: string,
     data: GetCallEdgeServerRequest,
   ) => {
-    return this.client.post<GetCallEdgeServerResponse>(
-      `/call/${type}/${id}/get_edge_server`,
-      data,
-    );
+    return this.call(type, id).getEdgeServer(data);
+  };
+
+  queryCalls = async (
+    filterConditions: { [key: string]: any },
+    sort: Array<SortParamRequest>,
+    limit?: number,
+    next?: string,
+  ) => {
+    const data: QueryCallsRequest = {
+      filter_conditions: filterConditions,
+      sort: sort,
+      limit: limit,
+      next: next,
+    };
+    return this.client.post<QueryCallsResponse>(`/calls`, data);
   };
 
   queryUsers = async () => {
     console.log('Querying users is not implemented yet.');
   };
 
+  /**
+   * @deprecated use call.startRecording() instead
+   */
   sendEvent = async (id: string, type: string, data: SendEventRequest) => {
-    return this.client.post(`/call/${type}/${id}/event`, data);
+    return this.call(type, id).sendEvent(data);
   };
 
+  /**
+   * @deprecated use call.startRecording() instead
+   */
   startRecording = async (id: string, type: string) => {
-    return this.client.post(`/call/${type}/${id}/start_recording`, {});
+    return this.call(type, id).startRecording();
   };
 
+  /**
+   * @deprecated use call.startRecording() instead
+   */
   stopRecording = async (id: string, type: string) => {
-    return this.client.post(`/call/${type}/${id}/stop_recording`, {});
+    return this.call(type, id).stopRecording();
   };
 
-  reportCallStats = async (id: string, type: string, data: UR) => {
-    console.log('Report call stats is not implemented yet.');
-  };
-
-  reportCallStatEvent = async (id: string, type: string, data: UR) => {
-    console.log('Report call stat event is not implemented yet.');
-  };
-
+  /**
+   * @deprecated use call.requestPermissions() instead
+   */
   requestCallPermissions = async (
     id: string,
     type: string,
     data: RequestPermissionRequest,
   ) => {
-    return this.client.post<RequestPermissionResponse>(
-      `/call/${type}/${id}/request_permission`,
-      data,
-    );
+    return this.call(type, id).requestPermissions(data);
   };
 
+  /**
+   * @deprecated use call.updateUserPermissions() instead
+   */
   updateUserPermissions = async (
     id: string,
     type: string,
     data: UpdateUserPermissionsRequest,
   ) => {
-    return this.client.post<UpdateUserPermissionsResponse>(
-      `/call/${type}/${id}/user_permissions`,
-      data,
-    );
+    return this.call(type, id).updateUserPermissions(data);
   };
 }
