@@ -84,6 +84,19 @@ export interface AudioSettings {
 /**
  *
  * @export
+ * @interface BackstageSettings
+ */
+export interface BackstageSettings {
+  /**
+   *
+   * @type {boolean}
+   * @memberof BackstageSettings
+   */
+  enabled: boolean;
+}
+/**
+ *
+ * @export
  * @interface BlockUserRequest
  */
 export interface BlockUserRequest {
@@ -285,7 +298,7 @@ export interface CallEnded {
    * @type {UserResponse}
    * @memberof CallEnded
    */
-  user: UserResponse;
+  user?: UserResponse;
 }
 /**
  *
@@ -483,6 +496,12 @@ export interface CallRequest {
    * @type {string}
    * @memberof CallRequest
    */
+  starts_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRequest
+   */
   team?: string;
 }
 /**
@@ -491,6 +510,18 @@ export interface CallRequest {
  * @interface CallResponse
  */
 export interface CallResponse {
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallResponse
+   */
+  backstage: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof CallResponse
+   */
+  blocked_user_ids: Array<string>;
   /**
    *
    * @type {string}
@@ -522,7 +553,7 @@ export interface CallResponse {
    */
   custom: { [key: string]: any };
   /**
-   *
+   * Date/time when the call ended
    * @type {string}
    * @memberof CallResponse
    */
@@ -551,6 +582,12 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   settings: CallSettingsResponse;
+  /**
+   * Date/time when the call will start
+   * @type {string}
+   * @memberof CallResponse
+   */
+  starts_at?: string;
   /**
    *
    * @type {string}
@@ -615,6 +652,12 @@ export interface CallSettingsResponse {
   audio: AudioSettings;
   /**
    *
+   * @type {BackstageSettings}
+   * @memberof CallSettingsResponse
+   */
+  backstage: BackstageSettings;
+  /**
+   *
    * @type {BroadcastSettings}
    * @memberof CallSettingsResponse
    */
@@ -650,6 +693,12 @@ export interface CallSettingsResponse {
  * @interface CallStateResponseFields
  */
 export interface CallStateResponseFields {
+  /**
+   *
+   * @type {Array<UserResponse>}
+   * @memberof CallStateResponseFields
+   */
+  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -946,6 +995,12 @@ export interface GetCallEdgeServerRequest {
 export interface GetCallEdgeServerResponse {
   /**
    *
+   * @type {Array<UserResponse>}
+   * @memberof GetCallEdgeServerResponse
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
    * @type {CallResponse}
    * @memberof GetCallEdgeServerResponse
    */
@@ -1008,6 +1063,12 @@ export interface GetOrCreateCallRequest {
 export interface GetOrCreateCallResponse {
   /**
    *
+   * @type {Array<UserResponse>}
+   * @memberof GetOrCreateCallResponse
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
    * @type {CallResponse}
    * @memberof GetOrCreateCallResponse
    */
@@ -1036,6 +1097,25 @@ export interface GetOrCreateCallResponse {
    * @memberof GetOrCreateCallResponse
    */
   membership?: MemberResponse;
+}
+/**
+ *
+ * @export
+ * @interface GoLiveResponse
+ */
+export interface GoLiveResponse {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof GoLiveResponse
+   */
+  call: CallResponse;
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof GoLiveResponse
+   */
+  duration: string;
 }
 /**
  *
@@ -1161,6 +1241,12 @@ export interface JoinCallRequest {
  * @interface JoinCallResponse
  */
 export interface JoinCallResponse {
+  /**
+   *
+   * @type {Array<UserResponse>}
+   * @memberof JoinCallResponse
+   */
+  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -1441,57 +1527,39 @@ export interface PaginationParamsRequest {
 /**
  *
  * @export
- * @interface QueryCallRequest
+ * @interface QueryCallsRequest
  */
-export interface QueryCallRequest {
+export interface QueryCallsRequest {
   /**
    *
    * @type {{ [key: string]: any; }}
-   * @memberof QueryCallRequest
+   * @memberof QueryCallsRequest
    */
   filter_conditions?: { [key: string]: any };
   /**
    *
    * @type {number}
-   * @memberof QueryCallRequest
+   * @memberof QueryCallsRequest
    */
   limit?: number;
   /**
    *
-   * @type {number}
-   * @memberof QueryCallRequest
-   */
-  member_limit?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof QueryCallRequest
-   */
-  message_limit?: number;
-  /**
-   *
    * @type {string}
-   * @memberof QueryCallRequest
+   * @memberof QueryCallsRequest
    */
   next?: string;
   /**
    *
    * @type {string}
-   * @memberof QueryCallRequest
+   * @memberof QueryCallsRequest
    */
   prev?: string;
   /**
    *
    * @type {Array<SortParamRequest>}
-   * @memberof QueryCallRequest
+   * @memberof QueryCallsRequest
    */
   sort: Array<SortParamRequest>;
-  /**
-   *
-   * @type {boolean}
-   * @memberof QueryCallRequest
-   */
-  watch?: boolean;
 }
 /**
  *
@@ -1787,6 +1855,25 @@ export interface SortParamRequest {
    * @memberof SortParamRequest
    */
   field?: string;
+}
+/**
+ *
+ * @export
+ * @interface StopLiveResponse
+ */
+export interface StopLiveResponse {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof StopLiveResponse
+   */
+  call: CallResponse;
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof StopLiveResponse
+   */
+  duration: string;
 }
 /**
  *
