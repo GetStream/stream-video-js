@@ -25,7 +25,8 @@ export const MenuToggle = ({
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
   const [popover, setPopover] = useState<HTMLDivElement | null>(null);
   const { styles, attributes } = usePopper(anchor, popover, {
-    placement: 'auto-end',
+    // FIXME OL: provide a prop for this setting
+    placement: 'top-start',
     modifiers: [
       {
         name: 'offset',

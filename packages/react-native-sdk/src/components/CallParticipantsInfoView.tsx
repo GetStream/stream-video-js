@@ -68,6 +68,15 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   );
 };
 
+/**
+ * Shows information about the call, it's participants in the call and
+ * their mute states, handler to trigger options (TBD, permissions not impl)
+ * and options to invite more people to the call.
+ *
+ * | Participants List | Options Modal is Open |
+ * | :--- | :----: |
+ * |![call-participants-info-view-1](https://user-images.githubusercontent.com/25864161/217341952-1e875bc3-e31f-42eb-918b-307eace116b1.png) | ![call-participants-info-view-2](https://user-images.githubusercontent.com/25864161/217341960-5016b678-d1a5-4ecf-bb4b-e463987b9cae.png)|
+ **/
 export const CallParticipantsInfoView = () => {
   const participants = useParticipants();
   const [selectedParticipant, setSelectedParticipant] = useState<

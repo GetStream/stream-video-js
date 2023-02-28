@@ -28,7 +28,7 @@ export type DeviceSelectorAudioOutputProps = {
 };
 
 export const DeviceSelectorAudioOutput = ({
-  title = 'Select audio output device',
+  title = 'Select speakers',
 }: DeviceSelectorAudioOutputProps) => {
   const {
     audioOutputDevices,
@@ -50,10 +50,3 @@ export const DeviceSelectorAudioOutput = ({
     />
   );
 };
-
-export const DeviceSelectorAudio = () => (
-  <>
-    <DeviceSelectorAudioInput />
-    <DeviceSelectorAudioOutput />
-  </>
-);

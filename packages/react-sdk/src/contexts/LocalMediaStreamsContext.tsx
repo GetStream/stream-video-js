@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import {
+  createContext,
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import {
   useActiveCall,
   usePendingCalls,
@@ -35,7 +42,7 @@ const useSetupLocalMediaStream = ({
   type,
 }: {
   localStream?: MediaStream;
-  setLocalStream: React.Dispatch<React.SetStateAction<MediaStream | undefined>>;
+  setLocalStream: Dispatch<SetStateAction<MediaStream | undefined>>;
   selectedDeviceId?: string;
   type: 'audioinput' | 'videoinput'; // FIXME: typing
 }) => {

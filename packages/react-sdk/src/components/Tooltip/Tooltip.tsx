@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { PropsWithChildren, useState } from 'react';
 import { PopperProps, usePopper } from 'react-popper';
 import clsx from 'clsx';
 
-export type TooltipProps<T extends HTMLElement> = React.PropsWithChildren<{
+export type TooltipProps<T extends HTMLElement> = PropsWithChildren<{
   /** Reference element to which the tooltip should attach to */
   referenceElement: T | null;
   /** Additional class applied to the tooltip root element */

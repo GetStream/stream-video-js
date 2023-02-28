@@ -5,9 +5,10 @@ type DeviceSelectorOptionProps = {
   id: string;
   label: string;
   name: string;
-  selected: boolean;
+  selected?: boolean;
   value: string;
   disabled?: boolean;
+  defaultChecked?: boolean;
   onChange?: ChangeEventHandler<HTMLInputElement>;
 };
 const DeviceSelectorOption = ({
@@ -17,6 +18,7 @@ const DeviceSelectorOption = ({
   onChange,
   name,
   selected,
+  defaultChecked,
   value,
 }: DeviceSelectorOptionProps) => {
   return (
@@ -25,6 +27,7 @@ const DeviceSelectorOption = ({
         'str-video__device-settings__option--selected': selected,
         'str-video__device-settings__option--disabled': disabled,
       })}
+      htmlFor={id}
     >
       <input
         type="radio"
@@ -33,6 +36,7 @@ const DeviceSelectorOption = ({
         value={value}
         id={id}
         checked={selected}
+        defaultChecked={defaultChecked}
         disabled={disabled}
       />
       {label}
@@ -45,7 +49,12 @@ export const DeviceSelector = (props: {
   title: string;
   onChange?: (deviceId: string) => void;
 }) => {
-  const { devices, selectedDeviceId, title, onChange } = props;
+  const {
+    devices = [],
+    selectedDeviceId: selectedDeviceFromProps,
+    title,
+    onChange,
+  } = props;
   const inputGroupName = title.replace(' ', '-').toLowerCase();
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback(
@@ -54,6 +63,17 @@ export const DeviceSelector = (props: {
     },
     [onChange],
   );
+
+  // sometimes the browser (Chrome) will report the system-default device
+  // with an id of 'default'. In case when it doesn't, we'll select the first
+  // available device.
+  let selectedDeviceId = selectedDeviceFromProps;
+  if (
+    devices.length > 0 &&
+    !devices.find((d) => d.deviceId === selectedDeviceId)
+  ) {
+    selectedDeviceId = devices[0].deviceId;
+  }
 
   return (
     <div className="str-video__device-settings__device-kind">
@@ -65,7 +85,7 @@ export const DeviceSelector = (props: {
           id="default"
           label="Default"
           name={inputGroupName}
-          selected
+          defaultChecked
           value="default"
         />
       ) : (

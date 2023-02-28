@@ -11,10 +11,14 @@ import {
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
-import { User } from '@stream-io/video-client';
+import { Call, User } from '@stream-io/video-client';
 
 import { useCreateStreamChatClient } from '../../hooks';
 import { LoadingScreen, MeetingUI } from '../../components';
+import {
+  DeviceSettingsCaptor,
+  getDeviceSettings,
+} from '../../components/DeviceSettingsCaptor';
 
 type CallRoomProps = {
   user: User;
@@ -44,8 +48,42 @@ const CallRoom = (props: CallRoomProps) => {
   useEffect(() => {
     if (gleapApiKey) {
       Gleap.initialize(gleapApiKey);
+      Gleap.identify(user.name || user.id, {
+        name: user.name,
+      });
     }
-  }, [gleapApiKey]);
+  }, [gleapApiKey, user.name, user.id]);
+
+  useEffect(() => {
+    if (!gleapApiKey) return;
+
+    Gleap.on('flow-started', () => {
+      try {
+        const { getCurrentValue, ...state } = client.readOnlyStateStore;
+        const data = Object.entries(state).reduce<Record<string, any>>(
+          (acc, [key, observable]) => {
+            if (!!observable && typeof observable.subscribe === 'function') {
+              const value = getCurrentValue<unknown>(observable);
+              if (key === 'activeCall$' && value) {
+                // special handling, the Call instance isn't serializable
+                acc[key] = (value as Call).data;
+              } else {
+                acc[key] = value;
+              }
+            }
+            return acc;
+          },
+          {},
+        );
+        console.log('!!State Store', data);
+        Gleap.attachCustomData(data);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+  }, [client.readOnlyStateStore, gleapApiKey]);
+
+  const deviceSettings = getDeviceSettings();
 
   if (!client) {
     return <LoadingScreen />;
@@ -58,8 +96,18 @@ const CallRoom = (props: CallRoomProps) => {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <StreamVideo client={client}>
-        <MediaDevicesProvider enumerate>
+        <MediaDevicesProvider
+          enumerate
+          initialAudioEnabled={!deviceSettings?.isAudioMute}
+          initialVideoEnabled={!deviceSettings?.isVideoMute}
+          initialVideoInputDeviceId={deviceSettings?.selectedVideoDeviceId}
+          initialAudioInputDeviceId={deviceSettings?.selectedAudioInputDeviceId}
+          initialAudioOutputDeviceId={
+            deviceSettings?.selectedAudioOutputDeviceId
+          }
+        >
           <MeetingUI chatClient={chatClient} />
+          <DeviceSettingsCaptor />
         </MediaDevicesProvider>
       </StreamVideo>
     </div>
@@ -88,10 +136,11 @@ export const getServerSideProps = async (
 
   const apiKey = process.env.STREAM_API_KEY as string;
   const secretKey = process.env.STREAM_SECRET_KEY as string;
-  const gleapApiKey = process.env.GLEAP_API_KEY as string | undefined;
+  const gleapApiKey = (process.env.GLEAP_API_KEY as string) || null;
 
+  const userIdOverride = context.query['user_id'] as string | undefined;
   const userId = (
-    (context.query['user_id'] as string) ||
+    userIdOverride ||
     session.user?.email ||
     'unknown-user'
   ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
@@ -106,7 +155,7 @@ export const getServerSideProps = async (
       userToken: createToken(streamUserId, secretKey),
       user: {
         id: streamUserId,
-        name: userName,
+        name: userIdOverride || userName,
         image: session.user?.image,
       },
       gleapApiKey,

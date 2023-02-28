@@ -85,8 +85,8 @@ export type MediaDevicesContextAPI = {
   selectedAudioOutputDeviceId?: string;
   selectedVideoDeviceId?: string;
   switchDevice: (kind: MediaDeviceKind, deviceId?: string) => void;
-  toggleInitialAudio: () => void;
-  toggleInitialVideo: () => void;
+  toggleAudioMuteState: () => void;
+  toggleVideoMuteState: () => void;
 };
 
 const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
@@ -95,6 +95,9 @@ export type MediaDevicesProviderProps = PropsWithChildren<{
   enumerate?: boolean;
   initialAudioEnabled?: boolean;
   initialVideoEnabled?: boolean;
+  initialAudioInputDeviceId?: string;
+  initialAudioOutputDeviceId?: string;
+  initialVideoInputDeviceId?: string;
 }>;
 
 export const MediaDevicesProvider = ({
@@ -102,6 +105,9 @@ export const MediaDevicesProvider = ({
   enumerate = true,
   initialAudioEnabled,
   initialVideoEnabled,
+  initialVideoInputDeviceId = 'default',
+  initialAudioOutputDeviceId = 'default',
+  initialAudioInputDeviceId = 'default',
 }: MediaDevicesProviderProps) => {
   const call = useActiveCall();
 
@@ -113,12 +119,16 @@ export const MediaDevicesProvider = ({
     MediaDeviceInfo[]
   >([]);
 
-  const [selectedAudioInputDeviceId, setSelectedAudioInputDeviceId] =
-    useState<MediaDevicesContextAPI['selectedAudioInputDeviceId']>('default');
+  const [selectedAudioInputDeviceId, setSelectedAudioInputDeviceId] = useState<
+    MediaDevicesContextAPI['selectedAudioInputDeviceId']
+  >(initialAudioInputDeviceId);
   const [selectedAudioOutputDeviceId, setSelectedAudioOutputDeviceId] =
-    useState<MediaDevicesContextAPI['selectedAudioOutputDeviceId']>('default');
-  const [selectedVideoDeviceId, selectVideoDeviceId] =
-    useState<MediaDevicesContextAPI['selectedVideoDeviceId']>('default');
+    useState<MediaDevicesContextAPI['selectedAudioOutputDeviceId']>(
+      initialAudioOutputDeviceId,
+    );
+  const [selectedVideoDeviceId, selectVideoDeviceId] = useState<
+    MediaDevicesContextAPI['selectedVideoDeviceId']
+  >(initialVideoInputDeviceId);
 
   const [isAudioOutputChangeSupported] = useState<boolean>(() =>
     checkIfAudioOutputChangeSupported(),
@@ -151,11 +161,11 @@ export const MediaDevicesProvider = ({
     call?.stopPublish(SfuModels.TrackType.VIDEO);
   }, [call]);
 
-  const toggleInitialAudio = useCallback(
+  const toggleAudioMuteState = useCallback(
     () => setInitAudioEnabled((prev) => !prev),
     [],
   );
-  const toggleInitialVideo = useCallback(
+  const toggleVideoMuteState = useCallback(
     () =>
       setInitialVideoState((prev) => {
         const newType = DEVICE_STATE_TOGGLE[prev.type];
@@ -165,7 +175,7 @@ export const MediaDevicesProvider = ({
   );
 
   const switchDevice = useCallback(
-    async (kind: MediaDeviceKind, deviceId?: string) => {
+    (kind: MediaDeviceKind, deviceId?: string) => {
       if (kind === 'videoinput') {
         selectVideoDeviceId(deviceId);
       }
@@ -233,8 +243,8 @@ export const MediaDevicesProvider = ({
     initialAudioEnabled: initAudioEnabled,
     initialVideoState,
     setInitialVideoState,
-    toggleInitialAudio,
-    toggleInitialVideo,
+    toggleAudioMuteState,
+    toggleVideoMuteState,
     publishAudioStream,
     publishVideoStream,
     stopPublishingAudio,

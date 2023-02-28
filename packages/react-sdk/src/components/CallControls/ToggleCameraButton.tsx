@@ -11,7 +11,7 @@ export type ToggleCameraPreviewButtonProps = { caption?: string };
 export const ToggleCameraPreviewButton = ({
   caption = 'Video',
 }: ToggleCameraPreviewButtonProps) => {
-  const { toggleInitialVideo, initialVideoState } = useMediaDevices();
+  const { toggleVideoMuteState, initialVideoState } = useMediaDevices();
 
   return (
     <CompositeButton
@@ -21,7 +21,7 @@ export const ToggleCameraPreviewButton = ({
     >
       <IconButton
         icon={initialVideoState.enabled ? 'camera' : 'camera-off'}
-        onClick={toggleInitialVideo}
+        onClick={toggleVideoMuteState}
       />
     </CompositeButton>
   );

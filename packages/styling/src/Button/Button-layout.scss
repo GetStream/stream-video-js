@@ -17,9 +17,16 @@
     }
 
     .str-video__call-controls__button.str-video__menu-toggle-button {
-       height: 100%;
-       padding-inline: 2px;
-     }
+      height: 100%;
+      padding-inline: 2px;
+    }
+
+    .str-video__loading-indicator__icon {
+      width: 1.375rem;
+      height: 1.375rem;
+      -webkit-mask-size: 1.25rem;
+      mask-size: 1.25rem;
+    }
   }
 }
 
@@ -49,7 +56,7 @@
 
     &-menu-hidden {
       width: 0.5rem;
-      height: 0.5rem
+      height: 0.5rem;
     }
 
     &-call-end {
@@ -58,10 +65,3 @@
     }
   }
 }
-
-
-
-
-
-
-

@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react';
 import clsx from 'clsx';
+import { disposeMediaStream } from '@stream-io/video-client';
 import { BaseVideo } from './BaseVideo';
 import { DEVICE_STATE, useMediaDevices } from '../../contexts';
 import { LoadingIndicator } from '../LoadingIndicator';
@@ -56,11 +57,17 @@ export const VideoPreview = ({
   } = useMediaDevices();
 
   useEffect(() => {
-    if (stream || !initialVideoState.enabled || videoDevices.length === 0)
-      return;
+    if (!initialVideoState.enabled || videoDevices.length === 0) return;
 
     getVideoStream(selectedVideoDeviceId)
-      .then(setStream)
+      .then((s) => {
+        setStream((previousStream) => {
+          if (previousStream) {
+            disposeMediaStream(previousStream);
+          }
+          return s;
+        });
+      })
       .catch((e) =>
         setInitialVideoState({
           ...DEVICE_STATE.error,
@@ -68,7 +75,6 @@ export const VideoPreview = ({
         }),
       );
   }, [
-    stream,
     initialVideoState,
     getVideoStream,
     selectedVideoDeviceId,

@@ -1,27 +1,26 @@
 import { useCallback } from 'react';
 import { SfuModels } from '@stream-io/video-client';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
-import { IconButton } from '../Button/';
 import { useMediaDevices } from '../../contexts';
-import { DeviceSelectorAudio } from '../DeviceSettings';
-import { CompositeButton } from '../Button';
+import { DeviceSelectorAudioInput } from '../DeviceSettings';
+import { CompositeButton, IconButton } from '../Button';
 
 export type ToggleAudioPreviewButtonProps = { caption?: string };
 
 export const ToggleAudioPreviewButton = ({
   caption = 'Mic',
 }: ToggleAudioPreviewButtonProps) => {
-  const { initialAudioEnabled, toggleInitialAudio } = useMediaDevices();
+  const { initialAudioEnabled, toggleAudioMuteState } = useMediaDevices();
 
   return (
     <CompositeButton
-      Menu={DeviceSelectorAudio}
+      Menu={DeviceSelectorAudioInput}
       enabled={!initialAudioEnabled}
       caption={caption}
     >
       <IconButton
         icon={initialAudioEnabled ? 'mic' : 'mic-off'}
-        onClick={toggleInitialAudio}
+        onClick={toggleAudioMuteState}
       />
     </CompositeButton>
   );
@@ -50,7 +49,7 @@ export const ToggleAudioPublishingButton = ({
 
   return (
     <CompositeButton
-      Menu={DeviceSelectorAudio}
+      Menu={DeviceSelectorAudioInput}
       enabled={isAudioMute}
       caption={caption}
     >
