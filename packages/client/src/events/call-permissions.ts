@@ -1,6 +1,6 @@
 import {
-  CallPermissionRequest,
-  CallPermissionsUpdated,
+  PermissionRequestEvent,
+  UpdatedCallPermissionsEvent,
 } from '../gen/coordinator';
 import { StreamVideoWriteableStateStore } from '../store';
 
@@ -11,7 +11,7 @@ import { StreamVideoWriteableStateStore } from '../store';
 export const watchCallPermissionRequest = (
   store: StreamVideoWriteableStateStore,
 ) => {
-  return function onCallPermissionRequest(event: CallPermissionRequest) {
+  return function onCallPermissionRequest(event: PermissionRequestEvent) {
     const activeCall = store.getCurrentValue(store.activeCallSubject);
 
     if (!activeCall) {
@@ -53,7 +53,7 @@ export const watchCallPermissionRequest = (
 export const watchCallPermissionsUpdated = (
   store: StreamVideoWriteableStateStore,
 ) => {
-  return function onCallPermissionsUpdated(event: CallPermissionsUpdated) {
+  return function onCallPermissionsUpdated(event: UpdatedCallPermissionsEvent) {
     console.warn(event);
     const activeCall = store.getCurrentValue(store.activeCallSubject);
 
