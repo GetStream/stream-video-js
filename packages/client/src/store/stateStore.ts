@@ -13,7 +13,10 @@ import type {
 import { isStreamVideoLocalParticipant } from '../rtc/types';
 import type { CallStatsReport } from '../stats/types';
 import type { User } from '../coordinator/connection/types';
-import type { CallAccepted, CallPermissionRequest } from '../gen/coordinator';
+import type {
+  CallAcceptedEvent,
+  PermissionRequestEvent,
+} from '../gen/coordinator';
 
 export class StreamVideoWriteableStateStore {
   /**
@@ -37,7 +40,7 @@ export class StreamVideoWriteableStateStore {
    */
   // todo: Currently not updating this Subject
   // FIXME OL: what is the difference (from customer perspective) between "activeCall" and "acceptedCall"?
-  acceptedCallSubject = new BehaviorSubject<CallAccepted | undefined>(
+  acceptedCallSubject = new BehaviorSubject<CallAcceptedEvent | undefined>(
     undefined,
   );
   /**
@@ -77,7 +80,7 @@ export class StreamVideoWriteableStateStore {
   callRecordingInProgressSubject = new ReplaySubject<boolean>(1);
   hasOngoingScreenShare$: Observable<boolean>;
   callPermissionRequestSubject = new BehaviorSubject<
-    CallPermissionRequest | undefined
+    PermissionRequestEvent | undefined
   >(undefined);
 
   constructor() {
@@ -260,7 +263,7 @@ export class StreamVideoReadOnlyStateStore {
    * The call data describing an incoming call accepted by a participant.
    * Serves as a flag decide, whether an incoming call should be joined.
    */
-  acceptedCall$: Observable<CallAccepted | undefined>;
+  acceptedCall$: Observable<CallAcceptedEvent | undefined>;
   /**
    * The call controller instance representing the call the user attends.
    * The controller instance exposes call metadata as well.
@@ -316,7 +319,7 @@ export class StreamVideoReadOnlyStateStore {
   /**
    * Emits the latest call permission request sent by any participant of the active call. Or `undefined` if there is no active call or if the current user doesn't have the necessary permission to handle these events.
    */
-  callPermissionRequest$: Observable<CallPermissionRequest | undefined>;
+  callPermissionRequest$: Observable<PermissionRequestEvent | undefined>;
   /**
    * This method allows you the get the current value of a state variable.
    *

@@ -1,9 +1,9 @@
 import { StreamVideoWriteableStateStore } from '../store';
 import {
-  CallAccepted,
-  CallCancelled,
-  CallCreated,
-  CallRejected,
+  CallAcceptedEvent,
+  CallCancelledEvent,
+  CallCreatedEvent,
+  CallRejectedEvent,
 } from '../gen/coordinator';
 import { CallMetadata } from '../rtc/CallMetadata';
 
@@ -13,16 +13,16 @@ import { CallMetadata } from '../rtc/CallMetadata';
  * a new pending call has been initiated.
  */
 export const watchCallCreated = (store: StreamVideoWriteableStateStore) => {
-  return function onCallCreated(event: CallCreated) {
+  return function onCallCreated(event: CallCreatedEvent) {
     const { call, members } = event;
     if (!call) {
-      console.warn("Can't find call in CallCreated event");
+      console.warn("Can't find call in CallCreatedEvent");
       return;
     }
 
     const currentUser = store.getCurrentValue(store.connectedUserSubject);
     if (currentUser?.id === call.created_by.id) {
-      console.warn('Received CallCreated event sent by the current user');
+      console.warn('Received CallCreatedEvent sent by the current user');
       return;
     }
 
@@ -34,15 +34,15 @@ export const watchCallCreated = (store: StreamVideoWriteableStateStore) => {
 };
 
 /**
- * Event handler that watched the delivery of CallAccepted Websocket event
+ * Event handler that watched the delivery of CallAcceptedEvent
  * Updates the state store and notifies its subscribers that
  * the given user will be joining the call.
  */
 export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
-  return function onCallAccepted(event: CallAccepted) {
+  return function onCallAccepted(event: CallAcceptedEvent) {
     const { call_cid } = event;
     if (!call_cid) {
-      console.warn("Can't find call_cid in CallAccepted event");
+      console.warn("Can't find call_cid in CallAcceptedEvent");
       return;
     }
 
@@ -51,7 +51,7 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
       .find((incomingCall) => incomingCall.call.cid === call_cid);
 
     if (acceptedIncomingCall) {
-      console.warn('Received CallAccepted event for an incoming call');
+      console.warn('Received CallAcceptedEvent for an incoming call');
       return;
     }
 
@@ -69,7 +69,7 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
 
     if (!acceptedOutgoingCall && !acceptedActiveCall) {
       console.warn(
-        `CallAccepted event received for a non-existent outgoing call (CID: ${call_cid}`,
+        `CallAcceptedEvent received for a non-existent outgoing call (CID: ${call_cid}`,
       );
       return;
     }
@@ -89,10 +89,10 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
  * the given user will not be joining the call.
  */
 export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
-  return function onCallRejected(event: CallRejected) {
+  return function onCallRejected(event: CallRejectedEvent) {
     const { call_cid } = event;
     if (!call_cid) {
-      console.warn("Can't find call_cid in CallRejected event");
+      console.warn("Can't find call_cid in CallRejectedEvent");
       return;
     }
 
@@ -101,7 +101,7 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
       .find((incomingCall) => incomingCall.call.cid === call_cid);
 
     if (rejectedIncomingCall) {
-      console.warn('Received CallRejected event for an incoming call');
+      console.warn('Received CallRejectedEvent for an incoming call');
       return;
     }
 
@@ -117,7 +117,7 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
 
     if (!rejectedOutgoingCall && !rejectedActiveCall) {
       console.warn(
-        `CallRejected event received for a non-existent outgoing call (CID: ${call_cid}`,
+        `CallRejectedEvent received for a non-existent outgoing call (CID: ${call_cid}`,
       );
       return;
     }
@@ -129,15 +129,15 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
 };
 
 /**
- * Event handler that watches the delivery of CallCancelled Websocket event
+ * Event handler that watches the delivery of CallCancelledEvent
  * Updates the state store and notifies its subscribers that
  * the call is now considered terminated.
  */
 export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
-  return function onCallCancelled(event: CallCancelled) {
+  return function onCallCancelled(event: CallCancelledEvent) {
     const { call_cid } = event;
     if (!call_cid) {
-      console.log("Can't find call in CallCancelled event");
+      console.log("Can't find call in CallCancelledEvent");
       return;
     }
 
@@ -154,7 +154,7 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
 
     if (!cancelledIncomingCall && !cancelledActiveCall) {
       console.warn(
-        `CallCancelled event received for a non-existent incoming call (CID: ${call_cid}`,
+        `CallCancelledEvent received for a non-existent incoming call (CID: ${call_cid}`,
       );
       return;
     }
