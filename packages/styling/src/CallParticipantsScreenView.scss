@@ -20,6 +20,7 @@
     min-height: 0;
     display: flex;
     align-items: center;
+    justify-content: center;
   }
 
   .str-video__call-participants-screen-view__overlay {
@@ -55,17 +56,18 @@
     }
   }
 
-  video {
+  .str-video__screen-share {
     min-height: 0;
+    object-fit: contain;
   }
 
   .str-video__video--wide {
     width: 100%;
-    height: auto;
+    height: 100%;
   }
 
   .str-video__video--tall {
     height: 100%;
-    width: auto;
+    width: 100%;
   }
 }

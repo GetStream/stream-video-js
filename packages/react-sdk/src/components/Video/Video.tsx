@@ -112,8 +112,8 @@ export const Video = (
       {...rest}
       stream={stream}
       className={clsx(className, {
-        'str_video__video--wide': isWideMode,
-        'str_video__video--tall': !isWideMode,
+        'str-video__video--wide': isWideMode,
+        'str-video__video--tall': !isWideMode,
       })}
       data-user-id={participant.userId}
       data-session-id={sessionId}
