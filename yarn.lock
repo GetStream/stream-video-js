@@ -6776,6 +6776,7 @@ __metadata:
     "@vitejs/plugin-react": ^3.0.0
     autoprefixer: ^10.4.13
     clsx: ^1.2.1
+    dotenv: ^16.0.3
     nanoid: ^4.0.0
     postcss: ^8.4.21
     react: ^18.2.0
