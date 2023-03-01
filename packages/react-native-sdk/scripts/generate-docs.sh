@@ -25,9 +25,10 @@ cp -r temp-docs/interfaces generated-docs/Interfaces
 cp temp-docs/modules.md generated-docs/components.md
 rm -rf temp-docs
 
-# copy the docs to react-native docusaurus
-cp -a ../client/generated-docs/. docusaurus/docs/reactnative/06-reference
-cp -a ../react-bindings/generated-docs/. docusaurus/docs/reactnative/06-reference
-cp -a ./generated-docs/. docusaurus/docs/reactnative/06-reference
+# copy shared JS docs to the docs to react-native docusaurus
+cp -a ../client/docusaurus/docs/clientjs docusaurus/docs/reactnative/06-client-js
+cp -a ../client/generated-docs/. docusaurus/docs/reactnative/07-reference
+cp -a ../react-bindings/generated-docs/. docusaurus/docs/reactnative/07-reference
+cp -a ./generated-docs/. docusaurus/docs/reactnative/07-reference
 
 echo "Done!"
