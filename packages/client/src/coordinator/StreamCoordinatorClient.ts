@@ -8,8 +8,10 @@ import {
 import {
   BlockUserResponse,
   CallSettingsRequest,
+  EdgeResponse,
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
+  GetEdgesResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
   GoLiveResponse,
@@ -224,6 +226,10 @@ export class StreamCoordinatorClient {
 
   queryUsers = async () => {
     console.log('Querying users is not implemented yet.');
+  };
+
+  edges = async () => {
+    return this.client.get<GetEdgesResponse>(`/edges`);
   };
 
   /**
