@@ -6,6 +6,7 @@ import {
   useRef,
   VideoHTMLAttributes,
 } from 'react';
+import clsx from 'clsx';
 import { Browsers } from '@stream-io/video-client';
 
 export type VideoProps = DetailedHTMLProps<
@@ -47,6 +48,14 @@ export const BaseVideo = forwardRef<HTMLVideoElement, VideoProps>(
         $el.srcObject = null;
       };
     }, [stream]);
-    return <video autoPlay playsInline {...rest} ref={setRef} />;
+    return (
+      <video
+        autoPlay
+        playsInline
+        {...rest}
+        className={clsx('str-video__base-video', rest.className)}
+        ref={setRef}
+      />
+    );
   },
 );
