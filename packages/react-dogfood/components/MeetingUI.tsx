@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Gleap from 'gleap';
 import {
   useActiveCall,
@@ -91,12 +91,22 @@ export const MeetingUI = ({
     setShow('loading');
     try {
       await client.cancelCall(callId, callType);
-      setShow('lobby');
+      await router.push('/');
     } catch (e) {
       console.error(e);
       setShow('error-leave');
     }
-  }, [client, callType, callId]);
+  }, [client, callType, callId, router]);
+
+  useEffect(() => {
+    const handlePageLeave = async () => {
+      await client?.cancelCall(callId, callType);
+    };
+    router.events.on('routeChangeStart', handlePageLeave);
+    return () => {
+      router.events.off('routeChangeStart', handlePageLeave);
+    };
+  }, [callId, callType, client, router.events]);
 
   if (show === 'error-join' || show === 'error-leave') {
     return (
