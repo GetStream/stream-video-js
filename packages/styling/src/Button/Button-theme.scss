@@ -77,6 +77,11 @@
       -webkit-mask-image: var(--str-video__icon--chat);
     }
 
+    &-reactions {
+      -webkit-mask-image: var(--str-video__icon--reactions);
+      mask-image: var(--str-video__icon--reactions);
+    }
+
     &-recording-on {
       mask-image: var(--str-video__icon--recording-on);
       -webkit-mask-image: var(--str-video__icon--recording-on);

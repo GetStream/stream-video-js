@@ -10,6 +10,7 @@ import { DebugStatsView } from '../Debug/DebugStatsView';
 import { Audio } from './Audio';
 import { Video } from '../Video';
 import { Notification } from '../Notification';
+import { Reaction } from '../Reaction';
 
 export interface ParticipantBoxProps {
   participant: StreamVideoParticipant;
@@ -39,6 +40,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
     isSpeaking,
     publishedTracks,
     connectionQuality,
+    reaction,
   } = participant;
 
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
@@ -74,6 +76,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
           muted={isMuted}
           autoPlay
         />
+        {reaction && <Reaction reaction={reaction} />}
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
             {participant.name || participant.userId}

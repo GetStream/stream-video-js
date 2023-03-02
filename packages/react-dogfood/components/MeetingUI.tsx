@@ -14,6 +14,7 @@ import {
   GetInviteLinkButton,
   IconButton,
   LoadingIndicator,
+  ReactionsButton,
   RecordCallButton,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
@@ -147,8 +148,8 @@ export const MeetingUI = ({
         >
           <div className="rd-call-controls-group">
             <RecordCallButton call={activeCall} />
-            <CallStatsButton />
             <ScreenShareButton call={activeCall} />
+            <ReactionsButton />
           </div>
           <div className="rd-call-controls-group">
             <SpeakingWhileMutedNotification>
@@ -158,6 +159,7 @@ export const MeetingUI = ({
             <CancelCallButton call={activeCall} onClick={onLeave} />
           </div>
           <div className="rd-call-controls-group">
+            <CallStatsButton />
             <ToggleParticipantListButton
               enabled={showParticipants}
               onClick={toggleParticipantList}
