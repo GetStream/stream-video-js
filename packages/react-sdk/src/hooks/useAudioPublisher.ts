@@ -2,6 +2,7 @@ import { useLocalParticipant, useStore } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect, useRef } from 'react';
 import {
   Call,
+  disposeMediaStream,
   getAudioStream,
   SfuModels,
   watchForDisconnectedAudioDevice,
@@ -47,15 +48,18 @@ export const useAudioPublisher = ({
 
     if (
       !call ||
-      initialAudioMuted ||
+      // FIXME: remove "&& !initialPublishExecuted.current" and make
+      // sure initialAudioMuted is not changing during active call
+      (initialAudioMuted && !initialPublishExecuted.current) ||
       (!isPublishingAudio && initialPublishExecuted.current)
     ) {
       return;
     }
 
     getAudioStream(audioDeviceId).then((stream) => {
-      if (interrupted && stream.active)
-        return stream.getTracks().forEach((t) => t.stop());
+      if (interrupted && stream.active) {
+        return disposeMediaStream(stream);
+      }
 
       initialPublishExecuted.current = true;
       return call.publishAudioStream(stream);

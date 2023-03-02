@@ -1,5 +1,6 @@
 import {
   Call,
+  disposeMediaStream,
   getVideoStream,
   SfuModels,
   watchForDisconnectedVideoDevice,
@@ -48,14 +49,17 @@ export const useVideoPublisher = ({
 
     if (
       !call ||
-      initialVideoMuted ||
+      // FIXME: remove "&& !initialPublishExecuted.current" and make
+      // sure initialVideoMuted is not changing during active call
+      (initialVideoMuted && !initialPublishExecuted.current) ||
       (!isPublishingVideo && initialPublishExecuted.current)
-    )
+    ) {
       return;
+    }
 
     getVideoStream(videoDeviceId).then((stream) => {
       if (interrupted && stream.active) {
-        return stream.getTracks().forEach((t) => t.stop());
+        return disposeMediaStream(stream);
       }
 
       initialPublishExecuted.current = true;
