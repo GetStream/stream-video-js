@@ -4,17 +4,20 @@ import {
   SfuModels,
   useLocalParticipant,
   useMediaDevices,
+  Readable,
 } from '@stream-io/video-react-sdk';
 
-export type LocalDeviceSettings = Pick<
-  MediaDevicesContextAPI,
-  | 'selectedVideoDeviceId'
-  | 'selectedAudioInputDeviceId'
-  | 'selectedAudioOutputDeviceId'
-> & {
-  isAudioMute: boolean;
-  isVideoMute: boolean;
-};
+export type LocalDeviceSettings = Readable<
+  Pick<
+    MediaDevicesContextAPI,
+    | 'selectedVideoDeviceId'
+    | 'selectedAudioInputDeviceId'
+    | 'selectedAudioOutputDeviceId'
+  > & {
+    isAudioMute: boolean;
+    isVideoMute: boolean;
+  }
+>;
 
 const SETTINGS_KEY = '@pronto/device-settings';
 
