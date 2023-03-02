@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { ChangeEventHandler, useCallback } from 'react';
+import { ChangeEventHandler } from 'react';
 
 type DeviceSelectorOptionProps = {
   id: string;
@@ -11,6 +11,7 @@ type DeviceSelectorOptionProps = {
   defaultChecked?: boolean;
   onChange?: ChangeEventHandler<HTMLInputElement>;
 };
+
 const DeviceSelectorOption = ({
   disabled,
   id,
@@ -57,13 +58,6 @@ export const DeviceSelector = (props: {
   } = props;
   const inputGroupName = title.replace(' ', '-').toLowerCase();
 
-  const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback(
-    (e) => {
-      onChange?.(e.target.value);
-    },
-    [onChange],
-  );
-
   // sometimes the browser (Chrome) will report the system-default device
   // with an id of 'default'. In case when it doesn't, we'll select the first
   // available device.
@@ -82,7 +76,7 @@ export const DeviceSelector = (props: {
       </div>
       {!devices.length ? (
         <DeviceSelectorOption
-          id="default"
+          id={`${inputGroupName}--default`}
           label="Default"
           name={inputGroupName}
           defaultChecked
@@ -92,11 +86,13 @@ export const DeviceSelector = (props: {
         devices.map((device) => {
           return (
             <DeviceSelectorOption
-              id={device.deviceId}
+              id={`${inputGroupName}--${device.deviceId}`}
               value={device.deviceId}
               label={device.label}
               key={device.deviceId}
-              onChange={handleChange}
+              onChange={(e) => {
+                onChange?.(e.target.value);
+              }}
               name={inputGroupName}
               selected={
                 device.deviceId === selectedDeviceId || devices.length === 1
