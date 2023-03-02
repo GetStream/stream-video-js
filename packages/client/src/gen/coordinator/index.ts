@@ -52,19 +52,19 @@ export interface APIError {
 /**
  *
  * @export
- * @interface Any
+ * @interface AnyEvent
  */
-export interface Any {
+export interface AnyEvent {
   /**
    *
    * @type {string}
-   * @memberof Any
+   * @memberof AnyEvent
    */
   created_at: string;
   /**
    *
    * @type {string}
-   * @memberof Any
+   * @memberof AnyEvent
    */
   type: string;
 }
@@ -123,6 +123,37 @@ export interface BlockUserResponse {
 /**
  *
  * @export
+ * @interface BlockedUserEvent
+ */
+export interface BlockedUserEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof BlockedUserEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof BlockedUserEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof BlockedUserEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof BlockedUserEvent
+   */
+  user_id: string;
+}
+/**
+ *
+ * @export
  * @interface BroadcastSettings
  */
 export interface BroadcastSettings {
@@ -142,316 +173,273 @@ export interface BroadcastSettings {
 /**
  *
  * @export
- * @interface CallAccepted
+ * @interface CallAcceptedEvent
  */
-export interface CallAccepted {
+export interface CallAcceptedEvent {
   /**
    *
    * @type {string}
-   * @memberof CallAccepted
+   * @memberof CallAcceptedEvent
    */
   call_cid: string;
   /**
    *
    * @type {string}
-   * @memberof CallAccepted
+   * @memberof CallAcceptedEvent
    */
   created_at: string;
   /**
    *
    * @type {string}
-   * @memberof CallAccepted
+   * @memberof CallAcceptedEvent
    */
   type: string;
   /**
    *
    * @type {UserResponse}
-   * @memberof CallAccepted
+   * @memberof CallAcceptedEvent
    */
   user: UserResponse;
 }
 /**
  *
  * @export
- * @interface CallBlockedUser
+ * @interface CallCancelledEvent
  */
-export interface CallBlockedUser {
+export interface CallCancelledEvent {
   /**
    *
    * @type {string}
-   * @memberof CallBlockedUser
+   * @memberof CallCancelledEvent
    */
   call_cid: string;
   /**
    *
    * @type {string}
-   * @memberof CallBlockedUser
+   * @memberof CallCancelledEvent
    */
   created_at: string;
   /**
    *
    * @type {string}
-   * @memberof CallBlockedUser
-   */
-  type: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallBlockedUser
-   */
-  user_id: string;
-}
-/**
- *
- * @export
- * @interface CallCancelled
- */
-export interface CallCancelled {
-  /**
-   *
-   * @type {string}
-   * @memberof CallCancelled
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallCancelled
-   */
-  created_at: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallCancelled
+   * @memberof CallCancelledEvent
    */
   type: string;
   /**
    *
    * @type {UserResponse}
-   * @memberof CallCancelled
+   * @memberof CallCancelledEvent
    */
   user: UserResponse;
 }
 /**
  *
  * @export
- * @interface CallCreated
+ * @interface CallCreatedEvent
  */
-export interface CallCreated {
+export interface CallCreatedEvent {
   /**
    *
    * @type {CallResponse}
-   * @memberof CallCreated
+   * @memberof CallCreatedEvent
    */
   call: CallResponse;
   /**
    *
    * @type {string}
-   * @memberof CallCreated
+   * @memberof CallCreatedEvent
    */
   created_at: string;
   /**
    *
    * @type {Array<MemberResponse>}
-   * @memberof CallCreated
+   * @memberof CallCreatedEvent
    */
   members: Array<MemberResponse>;
   /**
    *
    * @type {boolean}
-   * @memberof CallCreated
+   * @memberof CallCreatedEvent
    */
   ringing: boolean;
   /**
    *
    * @type {string}
-   * @memberof CallCreated
+   * @memberof CallCreatedEvent
    */
   type: string;
 }
 /**
  *
  * @export
- * @interface CallEnded
+ * @interface CallEndedEvent
  */
-export interface CallEnded {
+export interface CallEndedEvent {
   /**
    *
    * @type {string}
-   * @memberof CallEnded
+   * @memberof CallEndedEvent
    */
   call_cid: string;
   /**
    *
    * @type {string}
-   * @memberof CallEnded
+   * @memberof CallEndedEvent
    */
   created_at: string;
   /**
    *
    * @type {string}
-   * @memberof CallEnded
+   * @memberof CallEndedEvent
    */
   type: string;
   /**
    *
    * @type {UserResponse}
-   * @memberof CallEnded
+   * @memberof CallEndedEvent
    */
   user?: UserResponse;
 }
 /**
  *
  * @export
- * @interface CallPermissionRequest
+ * @interface CallReactionEvent
  */
-export interface CallPermissionRequest {
+export interface CallReactionEvent {
   /**
    *
    * @type {string}
-   * @memberof CallPermissionRequest
+   * @memberof CallReactionEvent
    */
   call_cid: string;
   /**
    *
    * @type {string}
-   * @memberof CallPermissionRequest
+   * @memberof CallReactionEvent
    */
   created_at: string;
   /**
-   * The list of permissions requested by the user
-   * @type {Array<string>}
-   * @memberof CallPermissionRequest
+   *
+   * @type {ReactionResponse}
+   * @memberof CallReactionEvent
    */
-  permissions: Array<string>;
+  reaction: ReactionResponse;
   /**
    *
    * @type {string}
-   * @memberof CallPermissionRequest
+   * @memberof CallReactionEvent
+   */
+  type: string;
+}
+/**
+ *
+ * @export
+ * @interface CallRecording
+ */
+export interface CallRecording {
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecording
+   */
+  end_time: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecording
+   */
+  filename: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecording
+   */
+  start_time: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecording
+   */
+  url: string;
+}
+/**
+ *
+ * @export
+ * @interface CallRecordingStartedEvent
+ */
+export interface CallRecordingStartedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStartedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStartedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStartedEvent
+   */
+  type: string;
+}
+/**
+ *
+ * @export
+ * @interface CallRecordingStoppedEvent
+ */
+export interface CallRecordingStoppedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStoppedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStoppedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStoppedEvent
+   */
+  type: string;
+}
+/**
+ *
+ * @export
+ * @interface CallRejectedEvent
+ */
+export interface CallRejectedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallRejectedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRejectedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRejectedEvent
    */
   type: string;
   /**
    *
    * @type {UserResponse}
-   * @memberof CallPermissionRequest
-   */
-  user: UserResponse;
-}
-/**
- *
- * @export
- * @interface CallPermissionsUpdated
- */
-export interface CallPermissionsUpdated {
-  /**
-   *
-   * @type {string}
-   * @memberof CallPermissionsUpdated
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallPermissionsUpdated
-   */
-  created_at: string;
-  /**
-   * The updated list of capabilities the user has in the call
-   * @type {Array<string>}
-   * @memberof CallPermissionsUpdated
-   */
-  own_capabilities: Array<string>;
-  /**
-   *
-   * @type {string}
-   * @memberof CallPermissionsUpdated
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof CallPermissionsUpdated
-   */
-  user: UserResponse;
-}
-/**
- *
- * @export
- * @interface CallRecordingStarted
- */
-export interface CallRecordingStarted {
-  /**
-   *
-   * @type {string}
-   * @memberof CallRecordingStarted
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRecordingStarted
-   */
-  created_at: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRecordingStarted
-   */
-  type: string;
-}
-/**
- *
- * @export
- * @interface CallRecordingStopped
- */
-export interface CallRecordingStopped {
-  /**
-   *
-   * @type {string}
-   * @memberof CallRecordingStopped
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRecordingStopped
-   */
-  created_at: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRecordingStopped
-   */
-  type: string;
-}
-/**
- *
- * @export
- * @interface CallRejected
- */
-export interface CallRejected {
-  /**
-   *
-   * @type {string}
-   * @memberof CallRejected
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRejected
-   */
-  created_at: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRejected
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof CallRejected
+   * @memberof CallRejectedEvent
    */
   user: UserResponse;
 }
@@ -516,6 +504,12 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   backstage: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof CallResponse
+   */
+  blocked_user_ids: Array<string>;
   /**
    *
    * @type {string}
@@ -689,6 +683,12 @@ export interface CallSettingsResponse {
 export interface CallStateResponseFields {
   /**
    *
+   * @type {Array<UserResponse>}
+   * @memberof CallStateResponseFields
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
    * @type {CallResponse}
    * @memberof CallStateResponseFields
    */
@@ -709,62 +709,31 @@ export interface CallStateResponseFields {
 /**
  *
  * @export
- * @interface CallUnblockedUser
+ * @interface CallUpdatedEvent
  */
-export interface CallUnblockedUser {
-  /**
-   *
-   * @type {string}
-   * @memberof CallUnblockedUser
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallUnblockedUser
-   */
-  created_at: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallUnblockedUser
-   */
-  type: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallUnblockedUser
-   */
-  user_id: string;
-}
-/**
- *
- * @export
- * @interface CallUpdated
- */
-export interface CallUpdated {
+export interface CallUpdatedEvent {
   /**
    *
    * @type {CallResponse}
-   * @memberof CallUpdated
+   * @memberof CallUpdatedEvent
    */
   call: CallResponse;
   /**
    *
    * @type {{ [key: string]: Array<string>; }}
-   * @memberof CallUpdated
+   * @memberof CallUpdatedEvent
    */
   capabilities_by_role: { [key: string]: Array<string> };
   /**
    *
    * @type {string}
-   * @memberof CallUpdated
+   * @memberof CallUpdatedEvent
    */
   created_at: string;
   /**
    *
    * @type {string}
-   * @memberof CallUpdated
+   * @memberof CallUpdatedEvent
    */
   type: string;
 }
@@ -815,37 +784,37 @@ export interface Credentials {
 /**
  *
  * @export
- * @interface Custom
+ * @interface CustomVideoEvent
  */
-export interface Custom {
+export interface CustomVideoEvent {
   /**
    *
    * @type {string}
-   * @memberof Custom
+   * @memberof CustomVideoEvent
    */
   call_cid: string;
   /**
    *
    * @type {string}
-   * @memberof Custom
+   * @memberof CustomVideoEvent
    */
   created_at: string;
   /**
    * Custom data for this object
    * @type {{ [key: string]: any; }}
-   * @memberof Custom
+   * @memberof CustomVideoEvent
    */
   custom: { [key: string]: any };
   /**
    *
    * @type {string}
-   * @memberof Custom
+   * @memberof CustomVideoEvent
    */
   type: string;
   /**
    *
    * @type {UserResponse}
-   * @memberof Custom
+   * @memberof CustomVideoEvent
    */
   user: UserResponse;
 }
@@ -983,6 +952,12 @@ export interface GetCallEdgeServerRequest {
 export interface GetCallEdgeServerResponse {
   /**
    *
+   * @type {Array<UserResponse>}
+   * @memberof GetCallEdgeServerResponse
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
    * @type {CallResponse}
    * @memberof GetCallEdgeServerResponse
    */
@@ -1043,6 +1018,12 @@ export interface GetOrCreateCallRequest {
  * @interface GetOrCreateCallResponse
  */
 export interface GetOrCreateCallResponse {
+  /**
+   *
+   * @type {Array<UserResponse>}
+   * @memberof GetOrCreateCallResponse
+   */
+  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -1121,31 +1102,37 @@ export interface HLSSettings {
 /**
  *
  * @export
- * @interface HealthCheck
+ * @interface HealthCheckEvent
  */
-export interface HealthCheck {
+export interface HealthCheckEvent {
   /**
    * The unique identifier for a call (<type>:<id>)
    * @type {string}
-   * @memberof HealthCheck
+   * @memberof HealthCheckEvent
    */
   cid: string;
   /**
    *
    * @type {string}
-   * @memberof HealthCheck
+   * @memberof HealthCheckEvent
+   */
+  connection_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof HealthCheckEvent
    */
   created_at: string;
   /**
    *
    * @type {OwnUserResponse}
-   * @memberof HealthCheck
+   * @memberof HealthCheckEvent
    */
   me?: OwnUserResponse;
   /**
    *
    * @type {string}
-   * @memberof HealthCheck
+   * @memberof HealthCheckEvent
    */
   type: string;
 }
@@ -1219,6 +1206,12 @@ export interface JoinCallRequest {
 export interface JoinCallResponse {
   /**
    *
+   * @type {Array<UserResponse>}
+   * @memberof JoinCallResponse
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
    * @type {CallResponse}
    * @memberof JoinCallResponse
    */
@@ -1253,6 +1246,25 @@ export interface JoinCallResponse {
    * @memberof JoinCallResponse
    */
   membership?: MemberResponse;
+}
+/**
+ *
+ * @export
+ * @interface ListRecordingsResponse
+ */
+export interface ListRecordingsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof ListRecordingsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {Array<CallRecording>}
+   * @memberof ListRecordingsResponse
+   */
+  recordings: Array<CallRecording>;
 }
 /**
  *
@@ -1497,6 +1509,43 @@ export interface PaginationParamsRequest {
 /**
  *
  * @export
+ * @interface PermissionRequestEvent
+ */
+export interface PermissionRequestEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof PermissionRequestEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof PermissionRequestEvent
+   */
+  created_at: string;
+  /**
+   * The list of permissions requested by the user
+   * @type {Array<string>}
+   * @memberof PermissionRequestEvent
+   */
+  permissions: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof PermissionRequestEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof PermissionRequestEvent
+   */
+  user: UserResponse;
+}
+/**
+ *
+ * @export
  * @interface QueryCallsRequest
  */
 export interface QueryCallsRequest {
@@ -1641,6 +1690,37 @@ export interface QueryMembersResponse {
    * @memberof QueryMembersResponse
    */
   prev?: string;
+}
+/**
+ *
+ * @export
+ * @interface ReactionResponse
+ */
+export interface ReactionResponse {
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof ReactionResponse
+   */
+  custom: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof ReactionResponse
+   */
+  emoji_code?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ReactionResponse
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof ReactionResponse
+   */
+  user: UserResponse;
 }
 /**
  *
@@ -1810,6 +1890,50 @@ export interface SendEventResponse {
 /**
  *
  * @export
+ * @interface SendReactionRequest
+ */
+export interface SendReactionRequest {
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof SendReactionRequest
+   */
+  custom?: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof SendReactionRequest
+   */
+  emoji_code?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SendReactionRequest
+   */
+  type: string;
+}
+/**
+ *
+ * @export
+ * @interface SendReactionResponse
+ */
+export interface SendReactionResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof SendReactionResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {ReactionResponse}
+   * @memberof SendReactionResponse
+   */
+  reaction: ReactionResponse;
+}
+/**
+ *
+ * @export
  * @interface SortParamRequest
  */
 export interface SortParamRequest {
@@ -1870,6 +1994,37 @@ export interface UnblockUserResponse {
    * @memberof UnblockUserResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface UnblockedUserEvent
+ */
+export interface UnblockedUserEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof UnblockedUserEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UnblockedUserEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UnblockedUserEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UnblockedUserEvent
+   */
+  user_id: string;
 }
 /**
  *
@@ -1946,6 +2101,43 @@ export interface UpdateUserPermissionsResponse {
    * @memberof UpdateUserPermissionsResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface UpdatedCallPermissionsEvent
+ */
+export interface UpdatedCallPermissionsEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof UpdatedCallPermissionsEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdatedCallPermissionsEvent
+   */
+  created_at: string;
+  /**
+   * The updated list of capabilities the user has in the call
+   * @type {Array<string>}
+   * @memberof UpdatedCallPermissionsEvent
+   */
+  own_capabilities: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdatedCallPermissionsEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof UpdatedCallPermissionsEvent
+   */
+  user: UserResponse;
 }
 /**
  *

@@ -2,6 +2,7 @@
   "name": "@stream-io/video-styling",
   "packageManager": "yarn@3.2.4",
   "private": true,
+  "license": "See license in LICENSE",
   "scripts": {
     "clean": "rimraf dist",
     "start": "sass --watch index.scss ./dist/css/styles.css",

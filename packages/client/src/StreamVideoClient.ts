@@ -216,13 +216,11 @@ export class StreamVideoClient {
     type: string,
     data?: GetOrCreateCallRequest,
   ) => {
-    // FIXME ZS: method name is misleading, also the client shouldn't care if a call is ringing or not
-    let response!: GetOrCreateCallResponse | JoinCallResponse;
-    if (data?.ring) {
-      response = await this.coordinatorClient.joinCall(id, type, data);
-    } else {
-      response = await this.coordinatorClient.getOrCreateCall(id, type, data);
-    }
+    const response = await this.coordinatorClient.getOrCreateCall(
+      id,
+      type,
+      data,
+    );
     const { call } = response;
     if (!call) {
       console.log(`Call with id ${id} and type ${type} could not be created`);
@@ -447,31 +445,6 @@ export class StreamVideoClient {
     return this.coordinatorClient.updateUserPermissions(callId, callType, data);
   };
 
-  /**
-   * Reports call WebRTC metrics to coordinator API
-   * @param stats
-   * @returns
-   */
-  private reportCallStats = async (stats: Object) => {
-    const callMetadata = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.activeCallSubject,
-    )?.data;
-
-    if (!callMetadata) {
-      console.log("There isn't an active call");
-      return;
-    }
-    const request = {
-      callCid: callMetadata.call.cid,
-      statsJson: new TextEncoder().encode(JSON.stringify(stats)),
-    };
-    await this.coordinatorClient.reportCallStats(
-      callMetadata.call.id,
-      callMetadata.call.type,
-      request,
-    );
-  };
-
   private getCallEdgeServer = async (
     id: string,
     type: string,
@@ -501,34 +474,6 @@ export class StreamVideoClient {
       })),
     };
     return rtcConfig;
-  };
-
-  /**
-   * Reports call events (for example local participant muted themselves) to the coordinator API
-   * @param statEvent
-   * @returns
-   */
-  private reportCallStatEvent = async (
-    statEvent: ReportCallStatEventRequest['event'],
-  ) => {
-    const callMetadata = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.activeCallSubject,
-    )?.data;
-    if (!callMetadata) {
-      console.log("There isn't an active call");
-      return;
-    }
-
-    const request = {
-      callCid: callMetadata.call.cid,
-      timestamp: Timestamp.fromDate(new Date()),
-      event: statEvent,
-    };
-    await this.coordinatorClient.reportCallStatEvent(
-      callMetadata.call.id,
-      callMetadata.call.type,
-      request,
-    );
   };
 
   /**
