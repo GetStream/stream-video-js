@@ -8,7 +8,7 @@ import {
 } from 'react';
 import {
   checkIfAudioOutputChangeSupported,
-  disposeMediaStream,
+  disposeOfMediaStream,
   getAudioDevices,
   getAudioOutputDevices,
   getAudioStream,
@@ -70,7 +70,7 @@ export type MediaDevicesContextAPI = {
   audioInputDevices: MediaDeviceInfo[];
   audioOutputDevices: MediaDeviceInfo[];
   videoDevices: MediaDeviceInfo[];
-  disposeMediaStream: (stream: MediaStream) => void;
+  disposeOfMediaStream: (stream: MediaStream) => void;
   getAudioStream: (deviceId?: string) => Promise<MediaStream>;
   getVideoStream: (deviceId?: string) => Promise<MediaStream>;
   isAudioOutputChangeSupported: boolean;
@@ -232,7 +232,7 @@ export const MediaDevicesProvider = ({
     audioInputDevices,
     videoDevices,
     audioOutputDevices,
-    disposeMediaStream,
+    disposeOfMediaStream,
     getAudioStream,
     getVideoStream,
     isAudioOutputChangeSupported,

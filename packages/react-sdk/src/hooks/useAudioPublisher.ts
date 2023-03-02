@@ -2,7 +2,7 @@ import { useLocalParticipant, useStore } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect, useRef } from 'react';
 import {
   Call,
-  disposeMediaStream,
+  disposeOfMediaStream,
   getAudioStream,
   SfuModels,
   watchForDisconnectedAudioDevice,
@@ -57,8 +57,8 @@ export const useAudioPublisher = ({
     }
 
     getAudioStream(audioDeviceId).then((stream) => {
-      if (interrupted && stream.active) {
-        return disposeMediaStream(stream);
+      if (interrupted) {
+        return disposeOfMediaStream(stream);
       }
 
       initialPublishExecuted.current = true;

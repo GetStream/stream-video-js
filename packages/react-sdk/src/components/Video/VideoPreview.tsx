@@ -6,7 +6,7 @@ import {
   useState,
 } from 'react';
 import clsx from 'clsx';
-import { disposeMediaStream } from '@stream-io/video-client';
+import { disposeOfMediaStream } from '@stream-io/video-client';
 import { BaseVideo } from './BaseVideo';
 import { DEVICE_STATE, useMediaDevices } from '../../contexts';
 import { LoadingIndicator } from '../LoadingIndicator';
@@ -63,7 +63,7 @@ export const VideoPreview = ({
       .then((s) => {
         setStream((previousStream) => {
           if (previousStream) {
-            disposeMediaStream(previousStream);
+            disposeOfMediaStream(previousStream);
           }
           return s;
         });

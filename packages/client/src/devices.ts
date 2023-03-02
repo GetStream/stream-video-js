@@ -265,9 +265,16 @@ export const watchForDisconnectedAudioOutputDevice = (
   return watchForDisconnectedDevice('audiooutput', deviceId$);
 };
 
-export const disposeMediaStream = (stream: MediaStream) => {
-  stream.getTracks().forEach((t) => {
-    t.stop();
-    stream.removeTrack(t);
+/**
+ * Deactivates MediaStream (stops and removes tracks) to be later garbage collected
+ *
+ * @param stream MediaStream
+ * @returns void
+ */
+export const disposeOfMediaStream = (stream: MediaStream) => {
+  if (!stream.active) return;
+  stream.getTracks().forEach((track) => {
+    track.stop();
+    stream.removeTrack(track);
   });
 };

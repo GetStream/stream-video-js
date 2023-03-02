@@ -1,6 +1,6 @@
 import {
   Call,
-  disposeMediaStream,
+  disposeOfMediaStream,
   getVideoStream,
   SfuModels,
   watchForDisconnectedVideoDevice,
@@ -58,8 +58,8 @@ export const useVideoPublisher = ({
     }
 
     getVideoStream(videoDeviceId).then((stream) => {
-      if (interrupted && stream.active) {
-        return disposeMediaStream(stream);
+      if (interrupted) {
+        return disposeOfMediaStream(stream);
       }
 
       initialPublishExecuted.current = true;
