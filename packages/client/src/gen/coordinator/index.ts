@@ -443,6 +443,16 @@ export interface CallRejectedEvent {
    */
   user: UserResponse;
 }
+
+export  interface UpdateCallMemberRequest {
+  add_members?: Array<MemberRequest>;
+  remove_members?: Array<String>
+}
+
+export interface UpdateCallMemberResponse {
+  members?: Array<String>
+}
+
 /**
  *
  * @export
