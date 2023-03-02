@@ -26,7 +26,7 @@ export const watchNewReactions = (store: StreamVideoWriteableStateStore) => {
         // skip if the reaction is not for this session
         if (custom.sessionId && p.sessionId !== custom.sessionId) return p;
 
-        // push the reaction to the participant's reactions array
+        // update the participant with the new reaction
         return {
           ...p,
           reaction: {
