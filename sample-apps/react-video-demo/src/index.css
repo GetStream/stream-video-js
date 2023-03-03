@@ -1,3 +1,13 @@
+@import '@getstream/ui-library/build/index.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+}
+
 .mapboxgl-popup {
   width: auto;
   height: auto;
@@ -9,5 +19,13 @@
   width: 140px;
   min-width: 140px;
   max-width: 140px;
-  left: 30px;
+  left: 55px;
+}
+
+.str-video__participant_details {
+  display: none;
+}
+
+.mapboxgl-control-container {
+  display: none;
 }

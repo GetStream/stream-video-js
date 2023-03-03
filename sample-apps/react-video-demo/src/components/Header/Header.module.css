@@ -1,0 +1,38 @@
+.header {
+  @apply flex justify-between items-center;
+}
+.callIdentification {
+  @apply flex items-center text-white;
+}
+
+.logo {
+  @apply mr-2;
+}
+
+.participants {
+  @apply flex items-center;
+}
+
+.avatars {
+  @apply flex items-center relative;
+}
+
+.avatar {
+  @apply rounded-full h-10 w-10;
+}
+
+.avatar:not(:first-of-type) {
+  @apply absolute m-4 z-10;
+}
+
+.names {
+  @apply m-8 text-white;
+}
+
+.elapsed {
+  @apply bg-demo-black-dark flex items-center justify-center text-xs text-white p-2 rounded-container;
+}
+
+.latency {
+  @apply text-white text-xs;
+}

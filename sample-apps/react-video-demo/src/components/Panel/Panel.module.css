@@ -1,0 +1,37 @@
+.root {
+  @apply bg-demo-grey-darker rounded-container text-white border-transparent border-2;
+  max-width: 300px;
+}
+
+.root.focused {
+  @apply border-stream;
+  box-shadow: 0px 0px 30px rgba(0, 95, 255, 0.5);
+}
+
+.header {
+  @apply flex justify-start items-center p-4;
+
+  border: 1px solid #272a30;
+}
+
+.header.canCollapse {
+  @apply flex justify-between items-center;
+}
+
+.arrow.open {
+  @apply rotate-90;
+}
+
+.toggle {
+  /* @apply bg-demo-black-dark flex justify-center items-center rounded-container; */
+  width: 28px;
+  height: 28px;
+}
+
+.heading {
+  @apply text-base;
+}
+
+.content {
+  @apply p-4;
+}
