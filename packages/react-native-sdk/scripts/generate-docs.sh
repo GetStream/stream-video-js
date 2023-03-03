@@ -10,6 +10,7 @@ yarn generate-docs:react:bindings > /dev/null
 echo "Generating docs from React Native SDK..."
 # clean up old docs
 rm -rf generated-docs
+rm -rf docusaurus/docs/reactnative/06-call-engine/
 # generate new docs
 npx typedoc --options typedoc.json
 
@@ -21,15 +22,13 @@ sed -i '' -e 's/\.md/\//g' 'temp-docs/modules.md'
 
 # copy from the temp-docs to the structure we want in docusaurus
 mkdir generated-docs
+mkdir docusaurus/docs/reactnative/06-call-engine
 cp -r temp-docs/interfaces generated-docs/Interfaces
 cp temp-docs/modules.md generated-docs/components.md
-
-# clean up
 rm -rf temp-docs
-rm -rf docusaurus/docs/reactnative/06-client-js/*
 
 # copy shared JS docs to the docs to react-native docusaurus
-cp -a ../client/docusaurus/docs/clientjs/. docusaurus/docs/reactnative/06-client-js
+cp -a ../client/docusaurus/docs/client/. docusaurus/docs/reactnative/06-call-engine
 cp -a ../client/generated-docs/. docusaurus/docs/reactnative/07-reference
 cp -a ../react-bindings/generated-docs/. docusaurus/docs/reactnative/07-reference
 cp -a ./generated-docs/. docusaurus/docs/reactnative/07-reference

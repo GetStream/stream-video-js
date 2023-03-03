@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { clsx } from 'clsx';
 import {
-  CallControlsButton,
+  IconButton,
   useMediaDevices,
   MediaDevicesProvider,
   useActiveCall,
@@ -101,7 +101,7 @@ export const Preview = {
 
   SpeechIndicator: () => {
     const { setAudioState, initialAudioMuted } = usePreviewContext();
-    const { selectedAudioDeviceId } = useMediaDevices();
+    const { selectedAudioInputDeviceId } = useMediaDevices();
     const [percentage, setPercentage] = useState<number>(0);
 
     useLayoutEffect(() => {
@@ -113,7 +113,7 @@ export const Preview = {
 
       if (initialAudioMuted) return;
 
-      getAudioStream(selectedAudioDeviceId)
+      getAudioStream(selectedAudioInputDeviceId)
         .then((ms) => {
           if (interrupted) return disposeOfMediaStream(ms);
 
@@ -139,7 +139,7 @@ export const Preview = {
         if (mediaStream) disposeOfMediaStream(mediaStream);
         setPercentage(0);
       };
-    }, [selectedAudioDeviceId, initialAudioMuted, setAudioState]);
+    }, [selectedAudioInputDeviceId, initialAudioMuted, setAudioState]);
 
     return (
       <div className="w-8 h-8 bg-zinc-600 rounded-full flex justify-center items-center">
@@ -229,11 +229,11 @@ export const Preview = {
 
         <div className="flex justify-between items-center lg:w-3/5 xl:w-1/4 w-full">
           <div className="str-video__call-controls bg-zinc-700 rounded-full px-6">
-            <CallControlsButton
+            <IconButton
               icon={initialAudioMuted ? 'mic-off' : 'mic'}
               onClick={() => setInitialAudioMuted!((pv) => !pv)}
             />
-            <CallControlsButton
+            <IconButton
               icon={initialVideoMuted ? 'camera-off' : 'camera'}
               onClick={() => setInitialVideoMuted!((pv) => !pv)}
             />

@@ -10,6 +10,8 @@ yarn generate-docs:react:bindings > /dev/null
 echo "Generating docs from React SDK..."
 # clean up old docs
 rm -rf generated-docs
+rm -rf docusaurus/docs/react/call-engine/
+rm -rf docusaurus/docs/react/reference/
 
 # generate new docs
 yarn typedoc --options typedoc.json
@@ -22,15 +24,14 @@ sed -i '' -e 's/\.md/\//g' 'temp-docs/modules.md'
 
 # copy from the temp-docs to the structure we want in docusaurus
 mkdir generated-docs
+mkdir docusaurus/docs/react/call-engine
+mkdir docusaurus/docs/react/reference
 cp -r temp-docs/interfaces generated-docs/interfaces
 cp temp-docs/modules.md generated-docs/components.md
-
-# clean up
 rm -rf temp-docs
-rm -rf docusaurus/docs/react/client-js/*
 
 # copy the docs to React docusaurus
-cp -a ../client/docusaurus/docs/clientjs/. docusaurus/docs/react/client-js
+cp -a ../client/docusaurus/docs/client/. docusaurus/docs/react/call-engine
 cp -a ../client/generated-docs/. docusaurus/docs/React/reference
 cp -a ../react-bindings/generated-docs/. docusaurus/docs/React/reference
 cp -a ./generated-docs/. docusaurus/docs/React/reference

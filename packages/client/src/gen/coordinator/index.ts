@@ -895,6 +895,55 @@ export interface Device {
 /**
  *
  * @export
+ * @interface EdgeResponse
+ */
+export interface EdgeResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof EdgeResponse
+   */
+  green: number;
+  /**
+   *
+   * @type {string}
+   * @memberof EdgeResponse
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof EdgeResponse
+   */
+  latency_test_url: string;
+  /**
+   *
+   * @type {number}
+   * @memberof EdgeResponse
+   */
+  latitude: number;
+  /**
+   *
+   * @type {number}
+   * @memberof EdgeResponse
+   */
+  longitude: number;
+  /**
+   *
+   * @type {number}
+   * @memberof EdgeResponse
+   */
+  red: number;
+  /**
+   *
+   * @type {number}
+   * @memberof EdgeResponse
+   */
+  yellow: number;
+}
+/**
+ *
+ * @export
  * @interface EndCallResponse
  */
 export interface EndCallResponse {
@@ -986,6 +1035,25 @@ export interface GetCallEdgeServerResponse {
    * @memberof GetCallEdgeServerResponse
    */
   membership?: MemberResponse;
+}
+/**
+ *
+ * @export
+ * @interface GetEdgesResponse
+ */
+export interface GetEdgesResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof GetEdgesResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {Array<EdgeResponse>}
+   * @memberof GetEdgesResponse
+   */
+  edges: Array<EdgeResponse>;
 }
 /**
  *
