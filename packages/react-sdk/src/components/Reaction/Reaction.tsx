@@ -7,7 +7,7 @@ export type ReactionProps = {
   hideAfterTimeoutInMs?: number;
 };
 
-export const defaultEmojiReactions = {
+export const defaultEmojiReactions: Record<string, string> = {
   ':like:': '👍',
   ':raise-hand:': '✋',
   ':fireworks:': '🎉',
@@ -29,6 +29,7 @@ export const Reaction = (props: ReactionProps) => {
     };
   }, [hideAfterTimeoutInMs, reaction]);
 
+  const { emoji_code } = reaction;
   return (
     <div
       className={clsx(
@@ -37,7 +38,7 @@ export const Reaction = (props: ReactionProps) => {
       )}
     >
       <span className="str-video__reaction__emoji">
-        {defaultEmojiReactions[reaction.emoji_code]}
+        {emoji_code && defaultEmojiReactions[emoji_code]}
       </span>
     </div>
   );
