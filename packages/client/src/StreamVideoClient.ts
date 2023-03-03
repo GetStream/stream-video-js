@@ -2,35 +2,32 @@ import {
   StreamVideoReadOnlyStateStore,
   StreamVideoWriteableStateStore,
 } from './store';
-import type {
+import {
   DatacenterResponse,
   GetCallEdgeServerRequest,
-  GetOrCreateCallResponse,
   GetOrCreateCallRequest,
   ICEServer,
-  JoinCallResponse,
   JoinCallRequest,
   RequestPermissionRequest,
+  SortParamRequest,
   UpdateUserPermissionsRequest,
 } from './gen/coordinator';
 
-import type { ReportCallStatEventRequest } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { measureResourceLoadLatencyTo } from './rpc';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
 import { CallMetadata } from './rtc/CallMetadata';
 
-// import { reportStats } from './stats/coordinator-stats-reporter';
-import { Timestamp } from './gen/google/protobuf/timestamp';
 import {
   watchCallAccepted,
   watchCallCancelled,
   watchCallCreated,
-  watchCallRejected,
   watchCallPermissionRequest,
   watchCallPermissionsUpdated,
   watchCallRecordingStarted,
   watchCallRecordingStopped,
+  watchCallRejected,
+  watchNewReactions,
 } from './events';
 
 import { CALL_CONFIG, CallConfig } from './config';
@@ -42,7 +39,6 @@ import {
   TokenOrProvider,
   User,
 } from './coordinator/connection/types';
-import { SortParamRequest } from './gen/coordinator';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -80,18 +76,6 @@ export class StreamVideoClient {
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
       this.writeableStateStore,
     );
-
-    // reportStats(
-    //   this.readOnlyStateStore,
-    //   (e) =>
-    //     this.reportCallStats(e).catch((err) => {
-    //       console.error('Failed to report stats', err);
-    //     }),
-    //   (e) =>
-    //     this.reportCallStatEvent(e).catch((err) => {
-    //       console.error('Failed to report stats', err);
-    //     }),
-    // );
   }
 
   /**
@@ -154,6 +138,12 @@ export class StreamVideoClient {
       'call.recording_stopped',
       // @ts-expect-error until we sort out the types
       watchCallRecordingStopped(this.writeableStateStore),
+    );
+
+    this.on(
+      'call.reaction_new',
+      // @ts-expect-error until we sort out the types
+      watchNewReactions(this.writeableStateStore),
     );
 
     this.writeableStateStore.setCurrentValue(
