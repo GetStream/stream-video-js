@@ -1,6 +1,7 @@
 export * from './CallControls';
 export * from './CallStatsButton';
 export * from './CancelCallButton';
+export * from './ReactionsButton';
 export * from './RecordCallButton';
 export * from './ScreenShareButton';
 export * from './ToggleAudioButton';

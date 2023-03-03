@@ -1,0 +1,15 @@
+.str-video__reaction {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+
+  &.str-video__reaction--visible {
+    opacity: 1;
+  }
+
+  .str-video__reaction__emoji {
+    font-size: 2.5rem;
+  }
+}
