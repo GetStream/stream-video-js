@@ -26,6 +26,16 @@ sed -i '' -e 's/\.md/\//g' 'temp-docs/modules.md'
 mkdir generated-docs
 mkdir docusaurus/docs/react/call-engine
 mkdir docusaurus/docs/react/reference
+touch docusaurus/docs/react/call-engine/_category_.json
+touch docusaurus/docs/react/reference/_category_.json
+echo "{
+  \"label\": \"Call Engine\",
+  \"position\": 1
+}" > docusaurus/docs/react/call-engine/_category_.json
+echo "{
+  \"label\": \"Reference\",
+  \"position\": 2
+}" > docusaurus/docs/react/reference/_category_.json
 cp -r temp-docs/interfaces generated-docs/interfaces
 cp temp-docs/modules.md generated-docs/components.md
 rm -rf temp-docs
