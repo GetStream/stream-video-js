@@ -24,9 +24,13 @@ sed -i '' -e 's/\.md/\//g' 'temp-docs/modules.md'
 mkdir generated-docs
 cp -r temp-docs/interfaces generated-docs/interfaces
 cp temp-docs/modules.md generated-docs/components.md
+
+# clean up
 rm -rf temp-docs
+rm -rf docusaurus/docs/react/client-js/*
 
 # copy the docs to React docusaurus
+cp -a ../client/docusaurus/docs/clientjs/. docusaurus/docs/react/client-js
 cp -a ../client/generated-docs/. docusaurus/docs/React/reference
 cp -a ../react-bindings/generated-docs/. docusaurus/docs/React/reference
 cp -a ./generated-docs/. docusaurus/docs/React/reference
