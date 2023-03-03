@@ -1,0 +1,37 @@
+.root {
+  @apply relative;
+}
+
+.layoutContainer {
+  @apply grid relative z-10;
+  /* pointer-events: none; */
+  grid-template-areas:
+    'header'
+    'body'
+    'footer';
+}
+
+.header {
+  @apply w-screen h-10 p-4 text-base;
+  grid-area: header;
+}
+
+.callIdentification {
+  @apply flex items-center text-white;
+}
+
+.logo {
+  @apply mr-2;
+}
+
+.body {
+  grid-area: body;
+}
+
+.footer {
+  @apply w-screen h-10;
+  grid-area: footer;
+}
+
+.lobbyPanel {
+}

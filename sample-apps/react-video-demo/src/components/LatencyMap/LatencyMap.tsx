@@ -2,20 +2,23 @@ import { FC, useRef, useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 import { FeatureCollection, Geometry } from 'geojson';
-
-import resolveConfig from 'tailwindcss/resolveConfig';
-
-// import tailwindConfig from '../../../tailwind.config.js';
-// const fullConfig = resolveConfig(tailwindConfig);
+import classnames from 'classnames';
 
 import LatencyMapPopup from '../LatencyMapPopup';
+
+import styles from './LatencyMap.module.css';
 
 export type Props = {
   sourceData: FeatureCollection<Geometry>;
   zoomLevel?: number;
+  className?: string;
 };
 
-export const LatencyMap: FC<Props> = ({ sourceData, zoomLevel = 1 }) => {
+export const LatencyMap: FC<Props> = ({
+  className,
+  sourceData,
+  zoomLevel = 1,
+}) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [source, setSource] = useState(sourceData);
 
@@ -99,7 +102,7 @@ export const LatencyMap: FC<Props> = ({ sourceData, zoomLevel = 1 }) => {
           }
 
           if (popUpRef && popUpRef.current) {
-            // popUpRef.current.remove();
+            popUpRef.current.remove();
           }
         }
       });
@@ -197,9 +200,11 @@ export const LatencyMap: FC<Props> = ({ sourceData, zoomLevel = 1 }) => {
     });
   }, []);
 
+  const rootClassName = classnames(styles.root, className);
+
   return (
     <div>
-      <div ref={mapContainer} className="h-screen w-screen" />
+      <div ref={mapContainer} className={rootClassName} />
     </div>
   );
 };

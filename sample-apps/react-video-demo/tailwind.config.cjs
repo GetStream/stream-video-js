@@ -15,7 +15,7 @@ const baseFallbackFonts = [
 ];
 module.exports = {
   content: [
-    "./src/components/**/*.{html, js, ts, tsx}", 
+    "./src/components/**/*.{html, js, ts, tsx}",
     "./src/**/*"
   ],
   theme: {
@@ -129,17 +129,40 @@ module.exports = {
         text: '#FFFFFF',
         grey: '#D4D4D4'
       },
+      demo: {
+        grey: {
+          lighter: '#1C1E22',
+          light: '#72767E',
+          default: '#979797',
+          DEFAULT: '#979797',
+          darker: '#212326',
+        },
+        black: {
+          light: '#272A30',
+          dark: '#121416'
+        },
+        white: {
+          default: '#ffffff',
+          DEFAULT: '#ffffff',
+        },
+        red: {
+          light: '#FF1A24',
+        },
+        background: {
+          black: 'rgba(28, 28, 30, 0.9)',
+        }
+      },
       map: {
         marker: {
           highlight: 'rgba(30, 177, 20, 0.2)',
           green: '#20E070',
           blue: '#2F7DEB',
         },
-        popup:{
+        popup: {
           description: '#72767E'
         }
 
-        
+
       }
     },
     gradients: {
@@ -204,8 +227,12 @@ module.exports = {
       borderRadius: {
         tag: '2.4px',
         container: '8px',
+        button: '8px',
         input: '6px',
         '4xl': '1.875rem',
+        demo: {
+          container: '13px'
+        }
       },
       gridTemplateRows: {
         demos: '90px 1fr 90px',

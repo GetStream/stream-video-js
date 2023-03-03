@@ -1,0 +1,28 @@
+.root {
+  @apply md:w-4/12 flex flex-col items-center;
+  pointer-events: visible;
+}
+
+.heading {
+  @apply text-white text-3xl text-center;
+}
+
+.description {
+  @apply text-demo-grey text-base text-center;
+}
+
+.callContainer {
+  @apply mt-10 mb-10 rounded-container;
+}
+
+.callContainer video {
+  @apply w-full rounded-container border-4  border-stream;
+}
+
+.avatar {
+  @apply rounded-container object-cover w-full -translate-y-10;
+}
+
+.lobbyContainer {
+  @apply ml-10 mr-10;
+}
