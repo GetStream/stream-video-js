@@ -37,12 +37,6 @@ export const DefaultReactionsMenu = () => {
     call?.sendReaction(reaction);
   };
 
-  /**
-   * Reaction(id: "fireworks", sound: "cheer", iconName: "party.popper.fill"),
-   * Reaction(id: "raiseHand", userSpecific: true, iconName: "hand.raised.fill"),
-   * Reaction(id: "like", duration: 5, userSpecific: true, iconName: "hand.thumbsup.fill")
-   */
-
   return (
     <div className="str-video__reactions-menu">
       {Object.entries(defaultEmojiReactions).map(([emojiCode, emoji]) => (
