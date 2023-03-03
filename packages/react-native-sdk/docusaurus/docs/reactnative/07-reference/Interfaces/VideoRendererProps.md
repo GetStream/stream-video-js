@@ -12,7 +12,7 @@ The stream that should be rendered.
 
 #### Defined in
 
-[src/components/VideoRenderer.tsx:12](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/VideoRenderer.tsx#L12)
+[src/components/VideoRenderer.tsx:12](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/VideoRenderer.tsx#L12)
 
 ___
 
@@ -30,7 +30,7 @@ The default is `false`
 
 #### Defined in
 
-[src/components/VideoRenderer.tsx:21](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/VideoRenderer.tsx#L21)
+[src/components/VideoRenderer.tsx:21](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/VideoRenderer.tsx#L21)
 
 ___
 
@@ -49,7 +49,7 @@ The default is `cover`
 
 #### Defined in
 
-[src/components/VideoRenderer.tsx:55](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/VideoRenderer.tsx#L55)
+[src/components/VideoRenderer.tsx:55](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/VideoRenderer.tsx#L55)
 
 ___
 
@@ -65,7 +65,7 @@ The default is `{ flex: 1 }`
 
 #### Defined in
 
-[src/components/VideoRenderer.tsx:61](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/VideoRenderer.tsx#L61)
+[src/components/VideoRenderer.tsx:61](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/VideoRenderer.tsx#L61)
 
 ___
 
@@ -97,4 +97,4 @@ one or more videos which appear above the remote one or more videos.
 
 #### Defined in
 
-[src/components/VideoRenderer.tsx:45](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/VideoRenderer.tsx#L45)
+[src/components/VideoRenderer.tsx:45](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/VideoRenderer.tsx#L45)

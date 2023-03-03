@@ -12,7 +12,7 @@ Indicates whether the local video view is visible or not
 
 #### Defined in
 
-[src/components/LocalVideoView.tsx:16](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/LocalVideoView.tsx#L16)
+[src/components/LocalVideoView.tsx:16](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/LocalVideoView.tsx#L16)
 
 ___
 
@@ -36,4 +36,4 @@ The default is `{
 
 #### Defined in
 
-[src/components/LocalVideoView.tsx:30](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/LocalVideoView.tsx#L30)
+[src/components/LocalVideoView.tsx:30](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/LocalVideoView.tsx#L30)

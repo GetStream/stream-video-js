@@ -20,7 +20,7 @@ Handler called when the call is hanged up by the caller. Mostly used for navigat
 
 #### Defined in
 
-[src/components/ActiveCall.tsx:22](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/ActiveCall.tsx#L22)
+[src/components/ActiveCall.tsx:22](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/ActiveCall.tsx#L22)
 
 ___
 
@@ -40,4 +40,4 @@ Handler called when the participants info button is pressed in the active call s
 
 #### Defined in
 
-[src/components/ActiveCall.tsx:26](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/ActiveCall.tsx#L26)
+[src/components/ActiveCall.tsx:26](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/ActiveCall.tsx#L26)

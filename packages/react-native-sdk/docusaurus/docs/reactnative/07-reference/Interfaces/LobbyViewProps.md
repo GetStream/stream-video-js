@@ -12,7 +12,7 @@ Call ID of the call that is to be joined.
 
 #### Defined in
 
-[src/components/LobbyView.tsx:25](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/LobbyView.tsx#L25)
+[src/components/LobbyView.tsx:25](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/LobbyView.tsx#L25)
 
 ___
 
@@ -32,4 +32,4 @@ Handler called when the call is joined. Mostly used for navigation and related a
 
 #### Defined in
 
-[src/components/LobbyView.tsx:29](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/LobbyView.tsx#L29)
+[src/components/LobbyView.tsx:29](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/LobbyView.tsx#L29)

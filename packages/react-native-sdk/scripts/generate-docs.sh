@@ -23,7 +23,10 @@ sed -i '' -e 's/\.md/\//g' 'temp-docs/modules.md'
 mkdir generated-docs
 cp -r temp-docs/interfaces generated-docs/Interfaces
 cp temp-docs/modules.md generated-docs/components.md
+
+# clean up
 rm -rf temp-docs
+rm -rf docusaurus/docs/reactnative/06-client-js/*
 
 # copy shared JS docs to the docs to react-native docusaurus
 cp -a ../client/docusaurus/docs/clientjs/. docusaurus/docs/reactnative/06-client-js

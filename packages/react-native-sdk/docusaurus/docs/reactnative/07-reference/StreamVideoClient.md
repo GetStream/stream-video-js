@@ -24,7 +24,7 @@ If you're using our Angular SDK, you shouldn't be calling the `constructor` dire
 
 #### Defined in
 
-[src/StreamVideoClient.ts:71](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L71)
+[src/StreamVideoClient.ts:71](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L71)
 
 ## Properties
 
@@ -36,7 +36,7 @@ Configuration parameters for controlling call behavior.
 
 #### Defined in
 
-[src/StreamVideoClient.ts:54](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L54)
+[src/StreamVideoClient.ts:54](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L54)
 
 ___
 
@@ -46,7 +46,7 @@ ___
 
 #### Defined in
 
-[src/StreamVideoClient.ts:62](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L62)
+[src/StreamVideoClient.ts:62](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L62)
 
 ___
 
@@ -62,7 +62,7 @@ If you're using our Angular SDK, you shouldn't be interacting with the state sto
 
 #### Defined in
 
-[src/StreamVideoClient.ts:59](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L59)
+[src/StreamVideoClient.ts:59](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L59)
 
 ## Methods
 
@@ -86,7 +86,7 @@ Causes the `CallAccepted` event to be emitted to all the call members.
 
 #### Defined in
 
-[src/StreamVideoClient.ts:256](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L256)
+[src/StreamVideoClient.ts:256](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L256)
 
 ___
 
@@ -112,7 +112,7 @@ Cancelling a call is only possible before the local participant joined the call.
 
 #### Defined in
 
-[src/StreamVideoClient.ts:290](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L290)
+[src/StreamVideoClient.ts:290](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L290)
 
 ___
 
@@ -137,7 +137,7 @@ If the connection is successful, the connected user [state variable](#readonlyst
 
 #### Defined in
 
-[src/StreamVideoClient.ts:105](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L105)
+[src/StreamVideoClient.ts:105](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L105)
 
 ___
 
@@ -155,7 +155,7 @@ If the connection is successfully disconnected, the connected user [state variab
 
 #### Defined in
 
-[src/StreamVideoClient.ts:170](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L170)
+[src/StreamVideoClient.ts:170](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L170)
 
 ___
 
@@ -184,7 +184,7 @@ A call metadata with information about the call.
 
 #### Defined in
 
-[src/StreamVideoClient.ts:214](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L214)
+[src/StreamVideoClient.ts:214](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L214)
 
 ___
 
@@ -211,7 +211,7 @@ A [`Call`](./Call.md) instance that can be used to interact with the call.
 
 #### Defined in
 
-[src/StreamVideoClient.ts:319](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L319)
+[src/StreamVideoClient.ts:319](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L319)
 
 ___
 
@@ -234,7 +234,7 @@ Remove subscription for WebSocket events that were created by the `on` method.
 
 #### Defined in
 
-[src/StreamVideoClient.ts:199](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L199)
+[src/StreamVideoClient.ts:199](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L199)
 
 ___
 
@@ -267,7 +267,7 @@ an unsubscribe function.
 
 #### Defined in
 
-[src/StreamVideoClient.ts:189](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L189)
+[src/StreamVideoClient.ts:189](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L189)
 
 ___
 
@@ -290,7 +290,7 @@ ___
 
 #### Defined in
 
-[src/StreamVideoClient.ts:380](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L380)
+[src/StreamVideoClient.ts:380](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L380)
 
 ___
 
@@ -314,7 +314,7 @@ Causes the `CallRejected` event to be emitted to all the call members.
 
 #### Defined in
 
-[src/StreamVideoClient.ts:270](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L270)
+[src/StreamVideoClient.ts:270](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L270)
 
 ___
 
@@ -338,7 +338,7 @@ Sends a `call.permission_request` event to all users connected to the call. The 
 
 #### Defined in
 
-[src/StreamVideoClient.ts:414](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L414)
+[src/StreamVideoClient.ts:414](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L414)
 
 ___
 
@@ -361,7 +361,7 @@ Sets the `participant.isPinned` value.
 
 #### Defined in
 
-[src/StreamVideoClient.ts:485](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L485)
+[src/StreamVideoClient.ts:485](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L485)
 
 ___
 
@@ -384,7 +384,7 @@ Starts recording for the call described by the given `callId` and `callType`.
 
 #### Defined in
 
-[src/StreamVideoClient.ts:372](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L372)
+[src/StreamVideoClient.ts:372](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L372)
 
 ___
 
@@ -407,7 +407,7 @@ Stops recording for the call described by the given `callId` and `callType`.
 
 #### Defined in
 
-[src/StreamVideoClient.ts:399](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L399)
+[src/StreamVideoClient.ts:399](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L399)
 
 ___
 
@@ -437,4 +437,4 @@ Supported permissions that can be granted or revoked: `send-audio`, `send-video`
 
 #### Defined in
 
-[src/StreamVideoClient.ts:440](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/StreamVideoClient.ts#L440)
+[src/StreamVideoClient.ts:440](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/StreamVideoClient.ts#L440)

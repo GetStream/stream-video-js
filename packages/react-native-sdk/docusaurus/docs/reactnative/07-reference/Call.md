@@ -21,7 +21,7 @@ Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./St
 
 #### Defined in
 
-[src/rtc/Call.ts:55](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L55)
+[src/rtc/Call.ts:55](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L55)
 
 ## Properties
 
@@ -33,7 +33,7 @@ Contains metadata about the call, for example who created the call. You can also
 
 #### Defined in
 
-[src/rtc/Call.ts:38](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L38)
+[src/rtc/Call.ts:38](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L38)
 
 ## Methods
 
@@ -58,7 +58,7 @@ use the `callStatsReport$` state [store variable](./StreamVideoClient.md/#readon
 
 #### Defined in
 
-[src/rtc/Call.ts:417](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L417)
+[src/rtc/Call.ts:417](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L417)
 
 ___
 
@@ -78,7 +78,7 @@ a promise which resolves once the call join-flow has finished.
 
 #### Defined in
 
-[src/rtc/Call.ts:139](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L139)
+[src/rtc/Call.ts:139](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L139)
 
 ___
 
@@ -94,7 +94,7 @@ Leave the call and stop the media streams that were published by the call.
 
 #### Defined in
 
-[src/rtc/Call.ts:114](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L114)
+[src/rtc/Call.ts:114](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L114)
 
 ___
 
@@ -117,7 +117,7 @@ Remove subscription for WebSocket events that were created by the `on` method.
 
 #### Defined in
 
-[src/rtc/Call.ts:107](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L107)
+[src/rtc/Call.ts:107](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L107)
 
 ___
 
@@ -147,7 +147,7 @@ Please note that subscribing to WebSocket events is an advanced use-case, for mo
 
 #### Defined in
 
-[src/rtc/Call.ts:97](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L97)
+[src/rtc/Call.ts:97](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L97)
 
 ___
 
@@ -177,7 +177,7 @@ It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManager
 
 #### Defined in
 
-[src/rtc/Call.ts:243](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L243)
+[src/rtc/Call.ts:243](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L243)
 
 ___
 
@@ -206,7 +206,7 @@ It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManager
 
 #### Defined in
 
-[src/rtc/Call.ts:279](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L279)
+[src/rtc/Call.ts:279](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L279)
 
 ___
 
@@ -239,7 +239,7 @@ It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManager
 
 #### Defined in
 
-[src/rtc/Call.ts:197](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L197)
+[src/rtc/Call.ts:197](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L197)
 
 ___
 
@@ -267,7 +267,7 @@ It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManager
 
 #### Defined in
 
-[src/rtc/Call.ts:468](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L468)
+[src/rtc/Call.ts:468](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L468)
 
 ___
 
@@ -295,7 +295,7 @@ It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManager
 
 #### Defined in
 
-[src/rtc/Call.ts:453](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L453)
+[src/rtc/Call.ts:453](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L453)
 
 ___
 
@@ -323,7 +323,7 @@ It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManager
 
 #### Defined in
 
-[src/rtc/Call.ts:483](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L483)
+[src/rtc/Call.ts:483](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L483)
 
 ___
 
@@ -346,7 +346,7 @@ This is usually helpful when detailed stats for a specific participant are neede
 
 #### Defined in
 
-[src/rtc/Call.ts:430](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L430)
+[src/rtc/Call.ts:430](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L430)
 
 ___
 
@@ -375,7 +375,7 @@ It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManager
 
 #### Defined in
 
-[src/rtc/Call.ts:322](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L322)
+[src/rtc/Call.ts:322](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L322)
 
 ___
 
@@ -398,7 +398,7 @@ Will turn off stats reporting for a specific participant.
 
 #### Defined in
 
-[src/rtc/Call.ts:440](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L440)
+[src/rtc/Call.ts:440](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L440)
 
 ___
 
@@ -423,4 +423,4 @@ You can only subscribe for tracks after the participant started publishing the g
 
 #### Defined in
 
-[src/rtc/Call.ts:347](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/client/src/rtc/Call.ts#L347)
+[src/rtc/Call.ts:347](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/client/src/rtc/Call.ts#L347)

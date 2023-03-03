@@ -20,4 +20,4 @@ Handler called when the call is hanged up by the caller. Mostly used for navigat
 
 #### Defined in
 
-[src/components/OutgoingCallView.tsx:19](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/OutgoingCallView.tsx#L19)
+[src/components/OutgoingCallView.tsx:19](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/OutgoingCallView.tsx#L19)

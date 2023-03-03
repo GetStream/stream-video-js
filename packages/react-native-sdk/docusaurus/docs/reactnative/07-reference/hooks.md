@@ -12,7 +12,7 @@
 
 #### Defined in
 
-[src/hooks/call.ts:79](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/hooks/call.ts#L79)
+[src/hooks/call.ts:79](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/hooks/call.ts#L79)
 
 ___
 
@@ -29,7 +29,7 @@ Utility hook which provides controller for the currently active call and active 
 
 #### Defined in
 
-[src/hooks/call.ts:48](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/hooks/call.ts#L48)
+[src/hooks/call.ts:48](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/hooks/call.ts#L48)
 
 ___
 
@@ -43,7 +43,7 @@ ___
 
 #### Defined in
 
-[src/hooks/user.ts:4](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/hooks/user.ts#L4)
+[src/hooks/user.ts:4](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/hooks/user.ts#L4)
 
 ___
 
@@ -66,7 +66,7 @@ in case they want to show historical stats data.
 
 #### Defined in
 
-[src/hooks/call.ts:31](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/hooks/call.ts#L31)
+[src/hooks/call.ts:31](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/hooks/call.ts#L31)
 
 ___
 
@@ -82,7 +82,7 @@ Utility hook which provides the dominant speaker of the current call.
 
 #### Defined in
 
-[src/hooks/call.ts:39](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/hooks/call.ts#L39)
+[src/hooks/call.ts:39](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/hooks/call.ts#L39)
 
 ___
 
@@ -99,7 +99,7 @@ a participant in the current call which shares their screen.
 
 #### Defined in
 
-[src/hooks/call.ts:16](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/hooks/call.ts#L16)
+[src/hooks/call.ts:16](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/hooks/call.ts#L16)
 
 ___
 
@@ -115,7 +115,7 @@ Utility hook which provides a list of all incoming ring calls (somebody calls me
 
 #### Defined in
 
-[src/hooks/call.ts:66](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/hooks/call.ts#L66)
+[src/hooks/call.ts:66](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/hooks/call.ts#L66)
 
 ___
 
@@ -131,7 +131,7 @@ Utility hook which provides information whether the current call is being record
 
 #### Defined in
 
-[src/hooks/call.ts:7](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/hooks/call.ts#L7)
+[src/hooks/call.ts:7](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/hooks/call.ts#L7)
 
 ___
 
@@ -148,7 +148,7 @@ It signals that I have joined a call.
 
 #### Defined in
 
-[src/hooks/participants.ts:16](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/hooks/participants.ts#L16)
+[src/hooks/participants.ts:16](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/hooks/participants.ts#L16)
 
 ___
 
@@ -164,7 +164,7 @@ Utility hook which provides a list of all outgoing ring calls (I call somebody).
 
 #### Defined in
 
-[src/hooks/call.ts:74](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/hooks/call.ts#L74)
+[src/hooks/call.ts:74](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/hooks/call.ts#L74)
 
 ___
 
@@ -180,7 +180,7 @@ A hook which provides a list of all participants that have joined an active call
 
 #### Defined in
 
-[src/hooks/participants.ts:7](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/hooks/participants.ts#L7)
+[src/hooks/participants.ts:7](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/hooks/participants.ts#L7)
 
 ___
 
@@ -198,7 +198,7 @@ or incoming (somebody has called me).
 
 #### Defined in
 
-[src/hooks/call.ts:58](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/hooks/call.ts#L58)
+[src/hooks/call.ts:58](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/hooks/call.ts#L58)
 
 ___
 
@@ -214,7 +214,7 @@ A hook which provides a list of all other participants than me that have joined 
 
 #### Defined in
 
-[src/hooks/participants.ts:24](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/hooks/participants.ts#L24)
+[src/hooks/participants.ts:24](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/hooks/participants.ts#L24)
 
 ___
 
@@ -230,7 +230,7 @@ Utility hook which provides access to client's state store.
 
 #### Defined in
 
-[src/hooks/store.ts:6](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/hooks/store.ts#L6)
+[src/hooks/store.ts:6](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/hooks/store.ts#L6)
 
 ___
 
@@ -244,4 +244,4 @@ ___
 
 #### Defined in
 
-[src/contexts/StreamVideoContext.tsx:27](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-bindings/src/contexts/StreamVideoContext.tsx#L27)
+[src/contexts/StreamVideoContext.tsx:27](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-bindings/src/contexts/StreamVideoContext.tsx#L27)

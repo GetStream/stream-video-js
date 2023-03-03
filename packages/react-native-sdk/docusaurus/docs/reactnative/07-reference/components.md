@@ -34,7 +34,7 @@ View for an active call, includes call controls and participant handling.
 
 #### Defined in
 
-[src/components/ActiveCall.tsx:35](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/ActiveCall.tsx#L35)
+[src/components/ActiveCall.tsx:35](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/ActiveCall.tsx#L35)
 
 ___
 
@@ -61,7 +61,7 @@ their image.
 
 #### Defined in
 
-[src/components/Avatar.tsx:31](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/Avatar.tsx#L31)
+[src/components/Avatar.tsx:31](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/Avatar.tsx#L31)
 
 ___
 
@@ -88,7 +88,7 @@ the user can trigger within an active call.
 
 #### Defined in
 
-[src/components/CallControlsView.tsx:33](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/CallControlsView.tsx#L33)
+[src/components/CallControlsView.tsx:33](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/CallControlsView.tsx#L33)
 
 ___
 
@@ -110,7 +110,7 @@ and options to invite more people to the call.
 
 #### Defined in
 
-[src/components/CallParticipantsInfoView.tsx:80](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/CallParticipantsInfoView.tsx#L80)
+[src/components/CallParticipantsInfoView.tsx:80](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/CallParticipantsInfoView.tsx#L80)
 
 ___
 
@@ -131,7 +131,7 @@ This component supports the rendering of up to 5 participants.
 
 #### Defined in
 
-[src/components/CallParticipantsView.tsx:83](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/CallParticipantsView.tsx#L83)
+[src/components/CallParticipantsView.tsx:83](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/CallParticipantsView.tsx#L83)
 
 ___
 
@@ -157,7 +157,7 @@ View for the incoming call, after a call is received by a callee in ringing mode
 
 #### Defined in
 
-[src/components/IncomingCallView.tsx:34](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/IncomingCallView.tsx#L34)
+[src/components/IncomingCallView.tsx:34](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/IncomingCallView.tsx#L34)
 
 ___
 
@@ -177,7 +177,7 @@ ___
 
 #### Defined in
 
-[src/components/LobbyView.tsx:53](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/LobbyView.tsx#L53)
+[src/components/LobbyView.tsx:53](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/LobbyView.tsx#L53)
 
 ___
 
@@ -203,7 +203,7 @@ Shows a floating participant UI that can be dragged (to be implemented) within c
 
 #### Defined in
 
-[src/components/LocalVideoView.tsx:40](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/LocalVideoView.tsx#L40)
+[src/components/LocalVideoView.tsx:40](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/LocalVideoView.tsx#L40)
 
 ___
 
@@ -229,7 +229,7 @@ View for an outgoing call, after a call is initiated by a caller in ringing mode
 
 #### Defined in
 
-[src/components/OutgoingCallView.tsx:29](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/OutgoingCallView.tsx#L29)
+[src/components/OutgoingCallView.tsx:29](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/OutgoingCallView.tsx#L29)
 
 ___
 
@@ -257,7 +257,7 @@ avatar and audio track will be rendered.
 
 #### Defined in
 
-[src/components/ParticipantView.tsx:48](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/ParticipantView.tsx#L48)
+[src/components/ParticipantView.tsx:48](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/ParticipantView.tsx#L48)
 
 ___
 
@@ -277,7 +277,7 @@ ___
 
 #### Defined in
 
-[src/providers/StreamVideo.tsx:13](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/providers/StreamVideo.tsx#L13)
+[src/providers/StreamVideo.tsx:13](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/providers/StreamVideo.tsx#L13)
 
 ___
 
@@ -300,7 +300,7 @@ Lower level component, that represents only the video part (wrapper around the W
 
 #### Defined in
 
-[src/components/VideoRenderer.tsx:68](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/components/VideoRenderer.tsx#L68)
+[src/components/VideoRenderer.tsx:68](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/components/VideoRenderer.tsx#L68)
 
 ___
 
@@ -320,7 +320,7 @@ A hook which provides a list of all participants that have joined an active call
 
 #### Defined in
 
-[src/hooks/useCall.tsx:8](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/hooks/useCall.tsx#L8)
+[src/hooks/useCall.tsx:8](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/hooks/useCall.tsx#L8)
 
 ___
 
@@ -346,7 +346,7 @@ their respective functions to toggle state
 
 #### Defined in
 
-[src/hooks/useCallControls.tsx:21](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/hooks/useCallControls.tsx#L21)
+[src/hooks/useCallControls.tsx:21](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/hooks/useCallControls.tsx#L21)
 
 ___
 
@@ -366,7 +366,7 @@ ___
 
 #### Defined in
 
-[src/hooks/useCallCycleEffect.tsx:9](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/hooks/useCallCycleEffect.tsx#L9)
+[src/hooks/useCallCycleEffect.tsx:9](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/hooks/useCallCycleEffect.tsx#L9)
 
 ___
 
@@ -388,7 +388,7 @@ A helper hook which exposes functions to answerCall, rejectCall, cancelCall
 
 #### Defined in
 
-[src/hooks/useRingCall.tsx:12](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/hooks/useRingCall.tsx#L12)
+[src/hooks/useRingCall.tsx:12](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/hooks/useRingCall.tsx#L12)
 
 ___
 
@@ -402,7 +402,7 @@ ___
 
 #### Defined in
 
-[src/contexts/createStoreContext.tsx:92](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/contexts/createStoreContext.tsx#L92)
+[src/contexts/createStoreContext.tsx:92](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/contexts/createStoreContext.tsx#L92)
 
 ___
 
@@ -428,4 +428,4 @@ ___
 
 #### Defined in
 
-[src/contexts/createStoreContext.tsx:75](https://github.com/GetStream/stream-video-js/blob/eb462309/packages/react-native-sdk/src/contexts/createStoreContext.tsx#L75)
+[src/contexts/createStoreContext.tsx:75](https://github.com/GetStream/stream-video-js/blob/a5ad0d43/packages/react-native-sdk/src/contexts/createStoreContext.tsx#L75)
