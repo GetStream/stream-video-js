@@ -64,7 +64,7 @@ const withSimulcastConstraints = (
   settings: MediaTrackSettings,
   optimalVideoLayers: OptimalVideoLayer[],
 ) => {
-  let layers;
+  let layers: OptimalVideoLayer[];
 
   const size = Math.max(settings.width || 0, settings.height || 0);
   if (size <= 320) {
@@ -79,7 +79,7 @@ const withSimulcastConstraints = (
   }
 
   const ridMapping = ['q', 'h', 'f'];
-  return layers.map((layer, index) => ({
+  return layers.map<OptimalVideoLayer>((layer, index) => ({
     ...layer,
     rid: ridMapping[index], // reassign rid
   }));
