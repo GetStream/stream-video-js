@@ -1,0 +1,156 @@
+@use '../utils';
+
+.str-video {
+  /* The font color applied inside the component */
+  --str-video__composite-button__button-group--color: var(
+    --str-video__text-color1
+  );
+
+  /* The background color of the component */
+  --str-video__composite-button__button-group--background-color: var(
+    --str-video__background-color1
+  );
+
+  /* The border radius used for the borders of the component */
+  --str-video__composite-button__button-group--border-radius: var(
+    --str-video__border-radius-xs
+  );
+
+  /* The background color of the component */
+  --str-video__composite-button__button-group-active--background-color: var(
+    --str-video__text-color3
+  );
+}
+
+.str-video__composite-button__button-group {
+  @include utils.component-layer-overrides('composite-button__button-group');
+
+  .str-video__call-controls__button {
+    background-color: transparent;
+  }
+
+  .str-video__call-controls__button.str-video__menu-toggle-button {
+    background-color: var(--str-video__background-color1);
+  }
+}
+
+.str-video__composite-button__caption {
+  font-size: 12px;
+  line-height: 15px;
+  text-align: center;
+}
+
+.str-video__composite-button__button-group:hover,
+.str-video__composite-button__button-group--active {
+  background-color: var(
+    --str-video__composite-button__button-group-active--background-color
+  );
+}
+
+.str-video__call-controls__button {
+  border-radius: var(--str-video__border-radius-xs);
+  text-decoration: none;
+  box-shadow: none;
+  border: none;
+  background-color: var(--str-video__background-color1);
+
+  &:hover {
+    text-decoration: none;
+    background-color: var(
+      --str-video__composite-button__button-group-active--background-color
+    );
+  }
+
+  &--variant-danger {
+    background-color: var(--str-video__danger-color1);
+
+    &:hover {
+      background-color: var(--str-video__danger-color2);
+    }
+  }
+
+  .str-video__call-controls__button--icon {
+    background-color: var(--str-video__text-color1);
+
+    &-chat {
+      mask-image: var(--str-video__icon--chat);
+      -webkit-mask-image: var(--str-video__icon--chat);
+    }
+
+    &-recording-on {
+      mask-image: var(--str-video__icon--recording-on);
+      -webkit-mask-image: var(--str-video__icon--recording-on);
+      background-color: var(--str-video__danger-color1);
+    }
+
+    &-recording-off {
+      mask-image: var(--str-video__icon--recording-off);
+      -webkit-mask-image: var(--str-video__icon--recording-off);
+    }
+
+    &-screen-share-on {
+      mask-image: var(--str-video__icon--screen-share-on);
+      -webkit-mask-image: var(--str-video__icon--screen-share-on);
+    }
+
+    &-screen-share-off {
+      mask-image: var(--str-video__icon--screen-share-off);
+      -webkit-mask-image: var(--str-video__icon--screen-share-off);
+    }
+
+    &-menu-shown {
+      mask-image: var(--str-video__icon--caret);
+      -webkit-mask-image: var(--str-video__icon--caret);
+    }
+
+    &-menu-hidden {
+      mask-image: var(--str-video__icon--caret);
+      -webkit-mask-image: var(--str-video__icon--caret);
+    }
+
+    &-mic {
+      mask-image: var(--str-video__icon--mic);
+      -webkit-mask-image: var(--str-video__icon--mic);
+    }
+
+    &-mic-off {
+      mask-image: var(--str-video__icon--mic-off);
+      -webkit-mask-image: var(--str-video__icon--mic-off);
+    }
+
+    &-camera {
+      mask-image: var(--str-video__icon--camera);
+      -webkit-mask-image: var(--str-video__icon--camera);
+    }
+
+    &-camera-off {
+      mask-image: var(--str-video__icon--camera-off);
+      -webkit-mask-image: var(--str-video__icon--camera-off);
+    }
+
+    &-call-end {
+      mask-image: var(--str-video__icon--call-end);
+      -webkit-mask-image: var(--str-video__icon--call-end);
+    }
+
+    &-stats {
+      mask-image: var(--str-video__icon--info-icon);
+      -webkit-mask-image: var(--str-video__icon--info-icon);
+    }
+
+    &-participants {
+      mask-image: var(--str-video__icon--participants);
+      -webkit-mask-image: var(--str-video__icon--participants);
+    }
+
+    &-user-plus {
+      mask-image: var(--str-video__icon--user-plus);
+      -webkit-mask-image: var(--str-video__icon--user-plus);
+    }
+
+    &-speaker {
+      -webkit-mask-size: var(--str-video__icon--speaker);
+      mask-image: var(--str-video__icon--speaker);
+    }
+  }
+}
