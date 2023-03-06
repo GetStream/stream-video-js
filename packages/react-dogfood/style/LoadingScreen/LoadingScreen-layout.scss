@@ -1,0 +1,13 @@
+.str-video__call__loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+.str-video__call__loading-screen .str-video__loading-indicator__icon.spinner {
+  height: 4rem;
+  width: 4rem;
+  mask-size: 4rem;
+}

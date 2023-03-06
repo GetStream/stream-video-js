@@ -1,0 +1,27 @@
+@use "../../../styling/src/utils";
+
+.str-video__call-header {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+
+  .str-video__call-header__title-group {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .str-video__call-header-title {
+      @include utils.ellipsis-text;
+      font-size: 24px;
+      font-weight: 400;
+      margin: 0;
+      max-width: 400px;
+    }
+  }
+}
+
+.str-video__call-header__controls-group {
+  display: flex;
+  gap: 0.5rem;
+}

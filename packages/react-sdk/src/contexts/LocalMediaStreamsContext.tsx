@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import {
+  createContext,
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import {
   useActiveCall,
   usePendingCalls,
@@ -35,7 +42,7 @@ const useSetupLocalMediaStream = ({
   type,
 }: {
   localStream?: MediaStream;
-  setLocalStream: React.Dispatch<React.SetStateAction<MediaStream | undefined>>;
+  setLocalStream: Dispatch<SetStateAction<MediaStream | undefined>>;
   selectedDeviceId?: string;
   type: 'audioinput' | 'videoinput'; // FIXME: typing
 }) => {
@@ -87,14 +94,15 @@ export const LocalMediaStreamsContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
+  const { selectedAudioInputDeviceId, selectedVideoDeviceId } =
+    useMediaDevices();
   const [localAudioStream, setLocalAudioStream] = useState<MediaStream>();
   const [localVideoStream, setLocalVideoStream] = useState<MediaStream>();
 
   useSetupLocalMediaStream({
     localStream: localAudioStream,
     setLocalStream: setLocalAudioStream,
-    selectedDeviceId: selectedAudioDeviceId,
+    selectedDeviceId: selectedAudioInputDeviceId,
     type: 'audioinput',
   });
 

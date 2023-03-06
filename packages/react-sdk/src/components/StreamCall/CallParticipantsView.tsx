@@ -15,9 +15,9 @@ export const CallParticipantsView = (props: { call: Call }) => {
       {localParticipant && (
         <ParticipantBox
           participant={localParticipant}
-          isMuted
           call={call}
           sinkId={localParticipant.audioOutputDeviceId}
+          isMuted
         />
       )}
 

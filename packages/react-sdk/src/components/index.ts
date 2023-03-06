@@ -1,4 +1,7 @@
+export * from './Avatar';
+export * from './Button';
 export * from './CallControls';
+export * from './DeviceSettings';
 export * from './LoadingIndicator';
 export * from './Notification';
 export * from './CallParticipantsList';
@@ -6,3 +9,4 @@ export * from './StreamCall';
 export * from './StreamMeeting';
 export * from './Search';
 export * from './Tooltip';
+export * from './Video';

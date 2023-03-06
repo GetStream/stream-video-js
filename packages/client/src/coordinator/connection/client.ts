@@ -617,6 +617,7 @@ export class StreamClient {
   dispatchEvent = (event: Event) => {
     if (!event.received_at) event.received_at = new Date();
 
+    console.log(`Dispatching event: ${event.type}`, event);
     this._callClientListeners(event);
   };
 
