@@ -10,20 +10,22 @@ export const createToken = (
     ...rest
   } = params;
 
-  const payload: Record<string, unknown> = {
-    iss: 'stream-video-js@v0.0.0',
-    sub: `user/${userId}`,
-    // subtract 3 seconds, sometimes the coordinator fails with
-    // "token used before issued at (iat)" error
-    iat: Math.round(Date.now() / 1000) - 3000,
-    user_id: userId,
-    ...rest,
-  };
+  const maxValidityInSeconds = 3 * 60 * 60;
+  const expiryFromNowInSeconds = exp ? parseInt(exp, 10) : maxValidityInSeconds;
+  const expiration = Math.round(
+    Date.now() / 1000 + Math.min(expiryFromNowInSeconds, maxValidityInSeconds),
+  );
 
-  if (exp) {
-    const expiration = Date.now() / 1000 + parseInt(exp, 10);
-    payload['exp'] = Math.round(expiration);
-  }
+  const payload: Record<string, unknown> = {
+    iss: 'pronto',
+    sub: `user/${userId}`,
+    // subtract 5 seconds, sometimes the coordinator fails with
+    // "token used before issued at (iat)" error
+    iat: Math.round(Date.now() / 1000) - 5,
+    ...rest,
+    user_id: userId,
+    exp: expiration,
+  };
 
   return JWTUserToken(jwtSecret, userId, payload);
 };
