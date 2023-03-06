@@ -109,11 +109,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.light.static_grey,
   },
   callingText: {
-    fontSize: 20,
     marginTop: 16,
     textAlign: 'center',
     color: theme.light.static_white,
-    fontWeight: '600',
+    ...theme.fonts.heading6,
   },
   buttons: {
     position: 'absolute',

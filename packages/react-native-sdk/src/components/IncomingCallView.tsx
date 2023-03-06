@@ -105,10 +105,9 @@ const styles = StyleSheet.create({
   },
   incomingCallText: {
     marginTop: 16,
-    fontSize: 20,
     textAlign: 'center',
     color: theme.light.static_white,
-    fontWeight: '600',
+    ...theme.fonts.heading6,
   },
   buttons: {
     flexDirection: 'row',
