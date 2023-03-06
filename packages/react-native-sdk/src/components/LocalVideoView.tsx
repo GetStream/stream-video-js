@@ -4,8 +4,8 @@ import { VideoRenderer } from './VideoRenderer';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
 import { useStreamVideoStoreValue } from '../contexts';
-import { Avatar } from './Avatar';
 import { theme } from '../theme';
+import { VideoSlash } from '../icons';
 /**
  * Props to be passed for the LocalVideoView component.
  */
@@ -55,7 +55,10 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
   if (isVideoMuted) {
     return (
       <View style={{ ...(style as Object), ...styles.avatarWrapper }}>
-        <Avatar participant={localParticipant} radius={50} />
+        {/* <Avatar participant={localParticipant} radius={50} /> */}
+        <View style={styles.icon}>
+          <VideoSlash color={theme.light.static_white} />
+        </View>
       </View>
     );
   }
@@ -86,5 +89,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.light.disabled,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  icon: {
+    height: 25,
+    width: 25,
   },
 });
