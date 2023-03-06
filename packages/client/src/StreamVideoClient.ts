@@ -158,7 +158,6 @@ export class StreamVideoClient {
    * If the connection is successfully disconnected, the connected user [state variable](#readonlystatestore) will be updated accordingly
    */
   disconnectUser = async () => {
-    // FIXME OL: we should clean-up the event listeners as well
     await this.coordinatorClient.disconnectUser();
     this.callDropScheduler?.cleanUp();
     this.writeableStateStore.setCurrentValue(
