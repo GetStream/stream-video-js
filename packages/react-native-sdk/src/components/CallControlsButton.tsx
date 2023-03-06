@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  ColorValue,
   Pressable,
   PressableProps,
   StyleProp,
@@ -8,24 +7,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-
-/**
- * Mapping of the background color of the button to the required button state.
- */
-type ColorKey = 'callToAction' | 'activated' | 'deactivated' | 'cancel';
-
-const colorKeyToBgColor = (colorKey: ColorKey): ColorValue => {
-  switch (colorKey) {
-    case 'callToAction':
-      return '#20E070';
-    case 'activated':
-      return '#FFFFFF';
-    case 'deactivated':
-      return '#00000066';
-    case 'cancel':
-      return '#FF3742';
-  }
-};
+import { theme } from '../theme/colors';
 
 interface CallControlsButtonProps {
   /**
@@ -33,9 +15,9 @@ interface CallControlsButtonProps {
    */
   onPress: PressableProps['onPress'];
   /**
-   * The background color of the button rendered when button is activated, call, cancel or deactivated.
+   * The background color of the button rendered.
    */
-  colorKey: ColorKey;
+  color?: string;
   /**
    * Style to the Pressable button.
    */
@@ -49,12 +31,12 @@ interface CallControlsButtonProps {
 export const CallControlsButton = (
   props: React.PropsWithChildren<CallControlsButtonProps>,
 ) => {
-  const { onPress, children, colorKey, style, svgContainerStyle } = props;
+  const { onPress, children, color, style, svgContainerStyle } = props;
 
   const pressableStyle: PressableProps['style'] = ({ pressed }) => [
     styles.container,
     {
-      backgroundColor: colorKeyToBgColor(colorKey),
+      backgroundColor: color,
       opacity: pressed ? 0.2 : 1,
     },
     style ? style : null,
@@ -76,16 +58,8 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#0000000D',
+    borderColor: theme.light.content_bg,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
-    elevation: 12,
   },
   svgContainerStyle: {
     width: 25,

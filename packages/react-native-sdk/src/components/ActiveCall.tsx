@@ -11,6 +11,7 @@ import { getAudioStream, getVideoStream } from '@stream-io/video-client';
 import { useStreamVideoStoreValue } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsScreenView } from './CallParticipantsScreenView';
+import { theme } from '../theme/colors';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -82,7 +83,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: theme.light.static_grey,
   },
   callParticipantsWrapper: { flex: 1 },
 });

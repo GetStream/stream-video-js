@@ -9,6 +9,7 @@ import {
 } from '../contexts';
 import { useRingCall } from '../hooks';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
+import { theme } from '../theme/colors';
 
 /**
  * Props to be passed for the IncomingCallView component.
@@ -60,7 +61,7 @@ export const IncomingCallView = (props: IncomingCallViewProps) => {
       <View style={styles.buttons}>
         <CallControlsButton
           onPress={rejectCallHandler}
-          colorKey={'cancel'}
+          color={theme.light.error}
           style={styles.buttonStyle}
           svgContainerStyle={styles.svgStyle}
         >
@@ -68,7 +69,9 @@ export const IncomingCallView = (props: IncomingCallViewProps) => {
         </CallControlsButton>
         <CallControlsButton
           onPress={videoToggle}
-          colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
+          color={
+            !isVideoMuted ? theme.light.static_white : theme.light.overlay_dark
+          }
           style={styles.buttonStyle}
           svgContainerStyle={styles.svgStyle}
         >
@@ -80,7 +83,7 @@ export const IncomingCallView = (props: IncomingCallViewProps) => {
         </CallControlsButton>
         <CallControlsButton
           onPress={answerCallHandler}
-          colorKey={'callToAction'}
+          color={theme.light.info}
           style={styles.buttonStyle}
           svgContainerStyle={styles.svgStyle}
         >
@@ -120,7 +123,7 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: '#272A30',
+    backgroundColor: theme.light.static_grey,
   },
   incomingCallText: {
     marginTop: 16,

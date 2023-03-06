@@ -8,6 +8,7 @@ import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
 import { useCallControls, useRingCall } from '../hooks';
+import { theme } from '../theme/colors';
 
 /**
  * Props to be passed for the OutgoingCallView component.
@@ -47,7 +48,11 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
           <View style={styles.deviceControlButtons}>
             <CallControlsButton
               onPress={toggleAudioMuted}
-              colorKey={!isAudioMuted ? 'activated' : 'deactivated'}
+              color={
+                isAudioMuted
+                  ? theme.light.overlay_dark
+                  : theme.light.static_white
+              }
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}
             >
@@ -55,7 +60,11 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
             </CallControlsButton>
             <CallControlsButton
               onPress={toggleVideoMuted}
-              colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
+              color={
+                isVideoMuted
+                  ? theme.light.overlay_dark
+                  : theme.light.static_white
+              }
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}
             >
@@ -69,7 +78,7 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
 
           <CallControlsButton
             onPress={hangupCallHandler}
-            colorKey={'cancel'}
+            color={theme.light.error}
             style={[styles.buttonStyle, styles.hangupButton]}
             svgContainerStyle={styles.svgStyle}
           >
@@ -107,7 +116,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   background: {
-    backgroundColor: '#272A30',
+    backgroundColor: theme.light.static_grey,
   },
   callingText: {
     fontSize: 20,

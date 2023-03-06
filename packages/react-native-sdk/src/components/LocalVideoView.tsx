@@ -5,6 +5,7 @@ import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
 import { useStreamVideoStoreValue } from '../contexts';
 import { Avatar } from './Avatar';
+import { theme } from '../theme/colors';
 
 /**
  * Props to be passed for the LocalVideoView component.
@@ -61,12 +62,13 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
   }
 
   return (
-    <VideoRenderer
-      mirror={isCameraOnFrontFacingMode}
-      mediaStream={localParticipant.videoStream}
-      style={style}
-      zOrder={1}
-    />
+    <View style={style}>
+      <VideoRenderer
+        mirror={isCameraOnFrontFacingMode}
+        mediaStream={localParticipant.videoStream}
+        zOrder={1}
+      />
+    </View>
   );
 };
 
@@ -79,9 +81,10 @@ const styles = StyleSheet.create({
     top: 100,
     borderRadius: 10,
     zIndex: 1,
+    overflow: 'hidden',
   },
   avatarWrapper: {
-    backgroundColor: '#000',
+    backgroundColor: theme.light.disabled,
     justifyContent: 'center',
     alignItems: 'center',
   },

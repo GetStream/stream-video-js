@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Participants } from '../icons';
 import { useParticipants } from '@stream-io/video-react-bindings';
+import { theme } from '../theme/colors';
 
 interface CallParticipantsBadgeProps {
   /**
@@ -23,7 +24,7 @@ export const CallParticipantsBadge = ({
         <Text style={styles.badgeText}>{participants.length}</Text>
       </View>
       <View style={styles.icon}>
-        <Participants color="#fff" />
+        <Participants color={theme.light.static_white} />
       </View>
     </Pressable>
   );
@@ -38,7 +39,7 @@ const styles = StyleSheet.create({
   },
   icon: { height: 24, width: 27 },
   badge: {
-    backgroundColor: '#72767E',
+    backgroundColor: theme.light.text_low_emphasis,
     borderRadius: 30,
     padding: 4,
     position: 'relative',
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
     zIndex: 4,
   },
   badgeText: {
-    color: '#fff',
+    color: theme.light.static_white,
     textAlign: 'center',
     fontSize: 10,
     fontWeight: 'bold',
