@@ -6,8 +6,7 @@ import { useState } from 'react';
 import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
-import { theme } from '../theme/colors';
-
+import { theme } from '../theme';
 type CallParticipantInfoViewType = {
   participant: StreamVideoParticipant;
   setSelectedParticipant: React.Dispatch<

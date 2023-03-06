@@ -1,8 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Participants } from '../icons';
 import { useParticipants } from '@stream-io/video-react-bindings';
-import { theme } from '../theme/colors';
-
+import { theme } from '../theme';
 interface CallParticipantsBadgeProps {
   /**
    * Handler called when the participants info button is pressed in the active call screen.

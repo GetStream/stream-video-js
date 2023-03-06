@@ -10,8 +10,7 @@ import {
 } from '../contexts';
 import { useRingCall } from '../hooks/useRingCall';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
-import { theme } from '../theme/colors';
-
+import { theme } from '../theme';
 export const IncomingCallView = () => {
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const setState = useStreamVideoStoreSetState();
@@ -45,7 +44,7 @@ export const IncomingCallView = () => {
           style={styles.buttonStyle}
           svgContainerStyle={styles.svgStyle}
         >
-          <PhoneDown color="#ffffff" />
+          <PhoneDown color={theme.light.static_white} />
         </CallControlsButton>
         <CallControlsButton
           onPress={videoToggle}
@@ -56,9 +55,9 @@ export const IncomingCallView = () => {
           svgContainerStyle={styles.svgStyle}
         >
           {isVideoMuted ? (
-            <VideoSlash color="#ffffff" />
+            <VideoSlash color={theme.light.static_white} />
           ) : (
-            <Video color="#000000" />
+            <Video color={theme.light.static_black} />
           )}
         </CallControlsButton>
         <CallControlsButton
@@ -67,7 +66,7 @@ export const IncomingCallView = () => {
           style={styles.buttonStyle}
           svgContainerStyle={styles.svgStyle}
         >
-          <Phone color="#ffffff" />
+          <Phone color={theme.light.static_white} />
         </CallControlsButton>
       </View>
     </Background>
@@ -77,11 +76,10 @@ export const IncomingCallView = () => {
 const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const incomingCalls = useIncomingCalls();
   // FIXME OL: this needs to be reworked
-  const lastIncomingCall =
-    (incomingCalls.length && incomingCalls[incomingCalls.length - 1]) || null;
-  const memberUserIds = Object.keys(lastIncomingCall?.users || {});
+  const [incomingCall] = useIncomingCalls();
+
+  const memberUserIds = Object.keys(incomingCall?.users || {});
 
   if (memberUserIds.length)
     return (
@@ -109,9 +107,8 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 20,
     textAlign: 'center',
-    color: '#FFFFFF',
+    color: theme.light.bars,
     fontWeight: '600',
-    opacity: 0.6,
   },
   buttons: {
     flexDirection: 'row',

@@ -10,7 +10,7 @@ import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
 import { useCallControls } from '../hooks/useCallControls';
 import { useRingCall } from '../hooks/useRingCall';
 import { useCallCycleContext } from '../contexts';
-import { theme } from '../theme/colors';
+import { theme } from '../theme';
 
 export const OutgoingCallView = () => {
   const { isAudioMuted, isVideoMuted, toggleAudioMuted, toggleVideoMuted } =
@@ -42,7 +42,11 @@ export const OutgoingCallView = () => {
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}
             >
-              {isAudioMuted ? <MicOff color="#fff" /> : <Mic color="#000" />}
+              {isAudioMuted ? (
+                <MicOff color={theme.light.static_white} />
+              ) : (
+                <Mic color={theme.light.static_black} />
+              )}
             </CallControlsButton>
             <CallControlsButton
               onPress={toggleVideoMuted}
@@ -55,9 +59,9 @@ export const OutgoingCallView = () => {
               svgContainerStyle={styles.svgStyle}
             >
               {isVideoMuted ? (
-                <VideoSlash color="#fff" />
+                <VideoSlash color={theme.light.static_white} />
               ) : (
-                <Video color="#000" />
+                <Video color={theme.light.static_black} />
               )}
             </CallControlsButton>
           </View>
@@ -68,7 +72,7 @@ export const OutgoingCallView = () => {
             style={[styles.buttonStyle, styles.hangupButton]}
             svgContainerStyle={styles.svgStyle}
           >
-            <PhoneDown color="#fff" />
+            <PhoneDown color={theme.light.static_white} />
           </CallControlsButton>
         </View>
       </View>
@@ -108,9 +112,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginTop: 16,
     textAlign: 'center',
-    color: '#FFFFFF',
+    color: theme.light.bars,
     fontWeight: '600',
-    opacity: 0.6,
   },
   buttons: {
     position: 'absolute',

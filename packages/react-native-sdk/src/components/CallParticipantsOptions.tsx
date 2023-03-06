@@ -4,8 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { generateParticipantTitle } from '../utils';
 import { useCallback } from 'react';
 import { Avatar } from './Avatar';
-import { theme } from '../theme/colors';
-
+import { theme } from '../theme';
 type CallParticipantType = {
   title: string;
   icon: JSX.Element;

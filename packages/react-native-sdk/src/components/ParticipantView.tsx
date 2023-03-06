@@ -11,7 +11,7 @@ import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
 import { useStreamVideoStoreValue } from '../contexts';
 import { MicOff, ScreenShare, VideoSlash } from '../icons';
-import { theme } from '../theme/colors';
+import { theme } from '../theme';
 
 type SizeType = 'small' | 'medium' | 'large' | 'xl';
 

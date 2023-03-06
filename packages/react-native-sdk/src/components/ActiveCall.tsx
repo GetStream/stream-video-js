@@ -11,7 +11,7 @@ import { getAudioStream, getVideoStream } from '@stream-io/video-client';
 import { useCallCycleContext, useStreamVideoStoreValue } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsScreenView } from './CallParticipantsScreenView';
-import { theme } from '../theme/colors';
+import { theme } from '../theme';
 
 /**
  * Props to be passed for the ActiveCall component.

@@ -2,6 +2,7 @@ import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { MAX_AVATARS_IN_VIEW } from '../constants';
 import { generateCallTitle } from '../utils';
+import { theme } from '../theme';
 
 enum AvatarModes {
   small = 'small',
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
   name: {
     marginTop: 45,
     fontSize: 30,
-    color: 'white',
+    color: theme.light.static_white,
     fontWeight: '400',
     textAlign: 'center',
   },

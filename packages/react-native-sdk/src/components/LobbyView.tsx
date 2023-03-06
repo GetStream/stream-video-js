@@ -14,7 +14,7 @@ import {
   useStreamVideoStoreValue,
 } from '../contexts/StreamVideoContext';
 import { CallControlsButton } from './CallControlsButton';
-import { theme } from '../theme/colors';
+import { theme } from '../theme';
 import { useCallCycleContext } from '../contexts';
 
 /**

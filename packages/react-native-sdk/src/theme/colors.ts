@@ -6,7 +6,7 @@ const opacityToHex = (opacity: number) => {
     .padStart(2, '0');
 };
 
-const theme = {
+const colors = {
   light: {
     primary: palette.blue500,
     error: palette.red400,
@@ -47,4 +47,4 @@ const theme = {
   },
 };
 
-export { theme };
+export { colors };

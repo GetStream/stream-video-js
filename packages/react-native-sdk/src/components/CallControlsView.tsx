@@ -11,8 +11,7 @@ import {
   VideoSlash,
 } from '../icons';
 import { CallControlsButton } from './CallControlsButton';
-import { theme } from '../theme/colors';
-
+import { theme } from '../theme';
 /**
  * Props to be passed for the CallControlsView component.
  */

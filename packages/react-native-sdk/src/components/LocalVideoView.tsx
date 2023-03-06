@@ -5,8 +5,7 @@ import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
 import { useStreamVideoStoreValue } from '../contexts';
 import { Avatar } from './Avatar';
-import { theme } from '../theme/colors';
-
+import { theme } from '../theme';
 /**
  * Props to be passed for the LocalVideoView component.
  */

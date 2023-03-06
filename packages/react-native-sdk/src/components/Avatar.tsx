@@ -2,7 +2,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import React, { useMemo } from 'react';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { getInitialsOfName } from '../utils';
-import { theme } from '../theme/colors';
+import { theme } from '../theme';
 
 /**
  * Props to be passed for the Avatar component.
