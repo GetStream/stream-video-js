@@ -6600,6 +6600,7 @@ __metadata:
     "@stream-io/video-styling": "workspace:^"
     "@types/yargs": ^17.0.17
     clsx: ^1.2.1
+    dotenv: ^16.0.3
     gleap: ^9.0.0
     nanoid: ^4.0.1
     next: ^12.3.4
