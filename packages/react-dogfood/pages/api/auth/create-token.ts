@@ -6,7 +6,8 @@ const apiKeyAndSecretWhitelist =
 
 const secretKeyLookup = apiKeyAndSecretWhitelist
   .trim()
-  .split(';\n')
+  .replace(/\s+/g, '')
+  .split(';')
   .reduce<Record<string, string>>((acc, item) => {
     const [apiKey, secret] = item.trim().split(':');
     if (apiKey && secret) {
