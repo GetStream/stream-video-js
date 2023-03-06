@@ -1,4 +1,5 @@
 import { palette } from './constants';
+import { ColorType } from './types';
 
 const opacityToHex = (opacity: number) => {
   return Math.round(opacity * 255)
@@ -6,7 +7,7 @@ const opacityToHex = (opacity: number) => {
     .padStart(2, '0');
 };
 
-const colors = {
+const colors: ColorType = {
   light: {
     primary: palette.blue500,
     error: palette.red400,
