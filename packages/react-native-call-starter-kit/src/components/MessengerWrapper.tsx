@@ -70,20 +70,28 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
     }
   }, [navigation, channel]);
 
+  const callCycleHandlers = useMemo(() => {
+    return {
+      onActiveCall,
+      onIncomingCall,
+      onOutgoingCall,
+      onHangupCall,
+      onRejectCall,
+    };
+  }, [
+    onActiveCall,
+    onIncomingCall,
+    onOutgoingCall,
+    onHangupCall,
+    onRejectCall,
+  ]);
+
   if (!videoClient) {
     return <AuthProgressLoader />;
   }
 
   return (
-    <StreamVideo
-      client={videoClient}
-      callCycleHandlers={{
-        onActiveCall,
-        onIncomingCall,
-        onOutgoingCall,
-        onHangupCall,
-        onRejectCall,
-      }}>
+    <StreamVideo client={videoClient} callCycleHandlers={callCycleHandlers}>
       {children}
     </StreamVideo>
   );
