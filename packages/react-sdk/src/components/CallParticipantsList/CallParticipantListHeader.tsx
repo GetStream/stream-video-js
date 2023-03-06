@@ -1,5 +1,4 @@
 import { StreamVideoParticipant } from '@stream-io/video-client';
-import React from 'react';
 
 export type CallParticipantListHeaderProps = {
   /** Click event listener function to be invoked in order to dismiss / hide the CallParticipantsList from the UI */

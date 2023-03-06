@@ -19,7 +19,7 @@ export const ActiveCall = () => {
         <h4 className="str-video__call__header-title">
           {type}:{id}
         </h4>
-        <DeviceSettings activeCall={activeCall} />
+        <DeviceSettings />
       </div>
       <Stage call={activeCall} />
       <CallControls call={activeCall} />

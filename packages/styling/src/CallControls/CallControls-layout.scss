@@ -1,0 +1,19 @@
+.str-video__call-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem 0;
+
+  .str-video__reactions-menu {
+    background-color: var(--str-video__background-color1);
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border-radius: var(--str-video__border-radius1);
+
+    .str-video__reactions-menu__button {
+      font-size: 1.5rem;
+      background-color: var(--str-video__background-color1);
+    }
+  }
+}

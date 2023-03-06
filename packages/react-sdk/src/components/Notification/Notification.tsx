@@ -44,10 +44,7 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
   }, [isVisible, resetIsVisible, visibilityTimeout]);
 
   return (
-    <>
-      <span ref={setAnchor} data-popper-anchor="">
-        {children}
-      </span>
+    <div ref={setAnchor} data-popper-anchor="">
       {isVisible && (
         <div
           className="str-video__notification"
@@ -59,6 +56,7 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
           <span className="str-video__notification__message">{message}</span>
         </div>
       )}
-    </>
+      {children}
+    </div>
   );
 };
