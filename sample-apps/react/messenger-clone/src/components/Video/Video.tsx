@@ -1,11 +1,11 @@
 import { PropsWithChildren, ReactNode, useMemo } from 'react';
 import { useChatContext } from 'stream-chat-react';
 import {
+  CALL_CONFIG,
   StreamCall,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { CALL_CONFIG } from '@stream-io/video-client';
 
 import { CallPanel } from './CallPanel/CallPanel';
 

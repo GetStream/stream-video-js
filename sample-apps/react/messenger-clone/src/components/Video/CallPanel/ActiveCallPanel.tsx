@@ -1,12 +1,13 @@
-import { ParticipantBox, useMediaDevices } from '@stream-io/video-react-sdk';
 import {
   Call,
+  ParticipantBox,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
-} from '@stream-io/video-client';
+  useConnectedUser,
+  useMediaDevices,
+} from '@stream-io/video-react-sdk';
 import { ParticipantPlaceholder } from './ParticipantPlaceholder';
 import { ActiveCallControls } from './CallControls';
-import { useConnectedUser } from '@stream-io/video-react-bindings';
 
 type ActiveCallPanelProps = {
   activeCall: Call;

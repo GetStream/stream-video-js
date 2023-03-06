@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { StreamVideoClient } from '@stream-io/video-client';
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
 import yargs from 'yargs';
 import { meetingId } from '../../../lib/meetingId';
 import { createToken } from '../../../helpers/jwt';

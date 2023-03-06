@@ -1,10 +1,9 @@
 import {
   CallControls,
-  Stage,
   DeviceSettings,
+  Stage,
+  useActiveCall,
 } from '@stream-io/video-react-sdk';
-
-import { useActiveCall } from '@stream-io/video-react-bindings';
 import { useNavigate } from 'react-router-dom';
 import { PropsWithChildren } from 'react';
 
