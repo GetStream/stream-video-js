@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginTop: 16,
     textAlign: 'center',
-    color: theme.light.bars,
+    color: theme.light.static_white,
     fontWeight: '600',
   },
   buttons: {
