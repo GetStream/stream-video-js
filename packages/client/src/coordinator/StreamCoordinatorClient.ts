@@ -8,7 +8,6 @@ import {
 import {
   BlockUserResponse,
   CallSettingsRequest,
-  EdgeResponse,
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
   GetEdgesResponse,
