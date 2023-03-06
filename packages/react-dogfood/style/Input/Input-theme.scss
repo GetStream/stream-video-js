@@ -1,0 +1,11 @@
+.rd__join-call-input {
+  background: transparent;
+  outline: none;
+  border: none;
+  border-bottom: 1px solid #fff;
+  color: #fff;
+}
+
+.rd__join-call-input::placeholder {
+  color: currentColor;
+}

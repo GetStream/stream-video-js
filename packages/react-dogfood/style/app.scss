@@ -11,23 +11,18 @@ body {
   box-sizing: border-box;
 }
 
-.str-video__call__loading-screen {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-}
-
-.str-video__call__loading-screen .str-video__loading-indicator__icon.spinner {
-  height: 4rem;
-  width: 4rem;
-  mask-size: 4rem;
+.str-video {
+  background-color: #272A30;
+  color: var(--str-video__text-color1);
 }
 
 .str-video__call {
   display: flex;
   flex-direction: row;
+  
+  .str-video__stage {
+    padding-inline: 1rem;
+  }
 }
 
 .str-video__call__main {
@@ -36,13 +31,10 @@ body {
   flex: 1;
 }
 
-.str-video__call-controls {
-  justify-content: space-between;
-  padding-inline: 16px;
-}
+
 
 .str-video__sidebar {
-  padding: 1rem;
+  padding: 1rem 1rem 1rem 0;
   width: 360px;
   display: flex;
   gap: 1rem;
@@ -50,11 +42,11 @@ body {
 }
 
 .str-video__participant-list {
-  height: 0px;
+  height: 0;
   flex-grow: 1;
 }
 
 .str-video__chat {
-  height: 0px;
+  height: 0;
   flex-grow: 1.5;
 }

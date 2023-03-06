@@ -34,3 +34,10 @@
     background-color: var(--str-video__tooltip-background-color);
   }
 }
+
+.str-video__invite-link-button__tooltip {
+  color: var(--str-video__text-color1);
+  background-color: var(--str-video__secondary-color);
+  font-size: 12px;
+  box-shadow: none;
+}

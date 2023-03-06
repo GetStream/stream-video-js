@@ -1,0 +1,44 @@
+.str-video__device-settings__button {
+  .str-video__call-controls__button--icon-device-settings {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+.str-video__device-settings {
+  padding: 0.625rem;
+  z-index: 1;
+}
+
+.str-video__device-settings__device-kind {
+  padding: 0.75rem 1rem;
+
+  .str-video__device-settings__device-selector-title {
+    padding-bottom: 0.5rem;
+  }
+
+  .str-video__device-settings__option {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem;
+
+    input[type="radio"] {
+      margin: 0;
+      height: 1rem;
+      width: 1rem;
+      display: grid;
+      place-content: center;
+
+      &::before {
+        content: "";
+        width: 0.5rem;
+        height: 0.5rem;
+        transform: scale(0);
+      }
+      &:checked::before {
+        transform: scale(1);
+      }
+    }
+  }
+}

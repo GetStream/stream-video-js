@@ -7,25 +7,25 @@ import {
   VideoHTMLAttributes,
 } from 'react';
 import {
-  Browsers,
   Call,
   SfuModels,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import clsx from 'clsx';
 import { VideoPlaceholder } from './VideoPlaceholder';
+import { BaseVideo } from './BaseVideo';
 
-export type VideoProps = DetailedHTMLProps<
-  VideoHTMLAttributes<HTMLVideoElement>,
-  HTMLVideoElement
-> & {
-  call: Call;
-  kind: 'video' | 'screen';
-  participant: StreamVideoParticipant;
-  setVideoElementRef?: (element: HTMLElement | null) => void;
-};
-
-export const Video = (props: VideoProps) => {
+export const Video = (
+  props: DetailedHTMLProps<
+    VideoHTMLAttributes<HTMLVideoElement>,
+    HTMLVideoElement
+  > & {
+    call: Call;
+    kind: 'video' | 'screen';
+    participant: StreamVideoParticipant;
+    setVideoElementRef?: (element: HTMLElement | null) => void;
+  },
+) => {
   const { call, kind, participant, className, setVideoElementRef, ...rest } =
     props;
   const { sessionId, videoStream, screenShareStream, publishedTracks } =
@@ -38,27 +38,7 @@ export const Video = (props: VideoProps) => {
       : SfuModels.TrackType.SCREEN_SHARE,
   );
 
-  const videoRef = useRef<HTMLVideoElement | null>();
-  useEffect(() => {
-    const $el = videoRef.current;
-    if (!$el) return;
-    if (stream && stream !== $el.srcObject && isPublishingTrack) {
-      $el.srcObject = stream;
-      if (Browsers.isSafari() || Browsers.isFirefox()) {
-        // Firefox and Safari have some timing issue
-        setTimeout(() => {
-          $el.srcObject = stream;
-          $el.play().catch((e) => {
-            console.error(`Failed to play stream`, e);
-          });
-        }, 0);
-      }
-    }
-    return () => {
-      $el.srcObject = null;
-    };
-  }, [stream, isPublishingTrack]);
-
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const lastDimensionRef = useRef<SfuModels.VideoDimension | undefined>();
   const updateSubscription = useCallback(() => {
     let nextDimension;
@@ -121,20 +101,19 @@ export const Video = (props: VideoProps) => {
     return (
       <VideoPlaceholder
         imageSrc={participant.image}
-        userId={participant.name || participant.userId}
+        name={participant.name || participant.userId}
         isSpeaking={participant.isSpeaking}
         ref={setVideoElementRef}
       />
     );
 
   return (
-    <video
-      autoPlay
-      playsInline
+    <BaseVideo
       {...rest}
+      stream={stream}
       className={clsx(className, {
-        'str_video__video--wide': isWideMode,
-        'str_video__video--tall': !isWideMode,
+        'str-video__video--wide': isWideMode,
+        'str-video__video--tall': !isWideMode,
       })}
       data-user-id={participant.userId}
       data-session-id={sessionId}

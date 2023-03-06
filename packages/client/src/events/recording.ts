@@ -1,5 +1,8 @@
 import { StreamVideoWriteableStateStore } from '../store';
-import { CallRecordingStarted, CallRecordingStopped } from '../gen/coordinator';
+import {
+  CallRecordingStartedEvent,
+  CallRecordingStoppedEvent,
+} from '../gen/coordinator';
 
 /**
  * Watches for `call.recording_started` events.
@@ -7,11 +10,11 @@ import { CallRecordingStarted, CallRecordingStopped } from '../gen/coordinator';
 export const watchCallRecordingStarted = (
   store: StreamVideoWriteableStateStore,
 ) => {
-  return function onCallRecordingStarted(event: CallRecordingStarted) {
+  return function onCallRecordingStarted(event: CallRecordingStartedEvent) {
     const { call_cid } = event;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     if (!activeCall || activeCall.data.call.cid !== call_cid) {
-      console.warn('Received CallRecordingStarted event for a non-active call');
+      console.warn('Received CallRecordingStartedEvent for a non-active call');
       return;
     }
     store.setCurrentValue(store.callRecordingInProgressSubject, true);
@@ -24,11 +27,11 @@ export const watchCallRecordingStarted = (
 export const watchCallRecordingStopped = (
   store: StreamVideoWriteableStateStore,
 ) => {
-  return function onCallRecordingStopped(event: CallRecordingStopped) {
+  return function onCallRecordingStopped(event: CallRecordingStoppedEvent) {
     const { call_cid } = event;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     if (!activeCall || activeCall.data.call.cid !== call_cid) {
-      console.warn('Received CallRecordingStopped event for a non-active call');
+      console.warn('Received CallRecordingStoppedEvent for a non-active call');
       return;
     }
     store.setCurrentValue(store.callRecordingInProgressSubject, false);

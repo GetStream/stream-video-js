@@ -1,9 +1,9 @@
 import {
+  Video,
   ParticipantBox,
   SfuModels,
   useActiveCall,
   useRemoteParticipants,
-  Video,
 } from '@stream-io/video-react-sdk';
 import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
 import './ScreenShare.scss';

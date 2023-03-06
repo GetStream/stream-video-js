@@ -2,6 +2,12 @@ import type {
   Participant,
   VideoDimension,
 } from '../gen/video/sfu/models/models';
+import { ReactionResponse } from '../gen/coordinator';
+
+export type StreamReaction = Pick<
+  ReactionResponse,
+  'type' | 'emoji_code' | 'custom'
+>;
 
 export interface StreamVideoParticipant extends Participant {
   /**
@@ -43,6 +49,12 @@ export interface StreamVideoParticipant extends Participant {
    * True when the participant is pinned
    */
   isPinned?: boolean;
+
+  /**
+   * The last reaction this user has sent to this call.
+   * Integrators can batch/collect past reactions and show them to the UI.
+   */
+  reaction?: StreamReaction;
 }
 
 export interface StreamVideoLocalParticipant extends StreamVideoParticipant {

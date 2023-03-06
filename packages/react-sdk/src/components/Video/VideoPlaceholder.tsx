@@ -3,22 +3,26 @@ import { clsx } from 'clsx';
 
 export type VideoPlaceholderProps = {
   imageSrc?: string;
-  userId: string;
-  isSpeaking: boolean;
+  isSpeaking?: boolean;
+  name?: string | null;
 };
 
 export const VideoPlaceholder = forwardRef<
   HTMLDivElement,
   VideoPlaceholderProps
->(({ imageSrc, userId, isSpeaking }, ref) => {
+>(({ imageSrc, isSpeaking, name }, ref) => {
   const [error, setError] = useState(false);
+
   return (
     <div className="str-video__participant-placeholder" ref={ref}>
-      {(!imageSrc || error) && (
-        <div className="str-video__participant-placeholder--initials-fallback">
-          <h2>{userId.at(0)}</h2>
-        </div>
-      )}
+      {(!imageSrc || error) &&
+        (name ? (
+          <div className="str-video__participant-placeholder--initials-fallback">
+            <div>{name[0]}</div>
+          </div>
+        ) : (
+          <div>Video is disabled</div>
+        ))}
       {imageSrc && !error && (
         <img
           onError={() => setError(true)}

@@ -6,13 +6,11 @@ import {
 
 import { useActiveCall } from '@stream-io/video-react-bindings';
 import { useNavigate } from 'react-router-dom';
-import { usePreviewContext } from './Preview';
 import { PropsWithChildren } from 'react';
 
 export const MeetingUI = ({ children }: PropsWithChildren) => {
   const activeCall = useActiveCall();
   const navigate = useNavigate();
-  const { initialAudioMuted, initialVideoMuted } = usePreviewContext();
 
   if (!activeCall)
     return (
@@ -29,13 +27,11 @@ export const MeetingUI = ({ children }: PropsWithChildren) => {
         <h4 className="str-video__call__header-title">
           {type}:{id}
         </h4>
-        <DeviceSettings activeCall={activeCall} />
+        <DeviceSettings />
       </div>
       <Stage call={activeCall} />
       <div className="relative flex justify-center items-center">
         <CallControls
-          initialAudioMuted={initialAudioMuted}
-          initialVideoMuted={initialVideoMuted}
           call={activeCall}
           onLeave={() => navigate('/call/lobby')}
         />
