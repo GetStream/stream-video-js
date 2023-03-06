@@ -10,11 +10,12 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import {
-  useStoreSetState,
-  useStoreValue,
+  useStreamVideoStoreSetState,
+  useStreamVideoStoreValue,
 } from '../contexts/StreamVideoContext';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme/colors';
+import { useCallCycleContext } from '../contexts';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -24,16 +25,12 @@ export interface LobbyViewProps {
    * Call ID of the call that is to be joined.
    */
   callID: string;
-  /**
-   * Handler called when the call is joined. Mostly used for navigation and related actions.
-   */
-  onActiveCall?: () => void;
 }
 
 const ParticipantStatus = () => {
   const connectedUser = useConnectedUser();
-  const isAudioMuted = useStoreValue((store) => store.isAudioMuted);
-  const isVideoMuted = useStoreValue((store) => store.isVideoMuted);
+  const isAudioMuted = useStreamVideoStoreValue((store) => store.isAudioMuted);
+  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   return (
     <View style={styles.status}>
       <Text style={styles.userNameLabel}>{connectedUser?.id}</Text>
@@ -58,10 +55,12 @@ export const LobbyView = (props: LobbyViewProps) => {
   const { currentVideoDevice } = useMediaDevices();
   const videoClient = useStreamVideoClient();
   const connectedUser = useConnectedUser();
-  const isAudioMuted = useStoreValue((store) => store.isAudioMuted);
-  const isVideoMuted = useStoreValue((store) => store.isVideoMuted);
-  const setState = useStoreSetState();
-  const { callID, onActiveCall } = props;
+  const isAudioMuted = useStreamVideoStoreValue((store) => store.isAudioMuted);
+  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
+  const setState = useStreamVideoStoreSetState();
+  const { callCycleHandlers } = useCallCycleContext();
+  const { onActiveCall } = callCycleHandlers;
+  const { callID } = props;
 
   const MicIcon = isAudioMuted ? (
     <MicOff color={theme.light.static_white} />

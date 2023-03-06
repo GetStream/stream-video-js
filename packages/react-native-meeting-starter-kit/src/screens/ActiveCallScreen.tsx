@@ -12,10 +12,6 @@ type ActiveCallScreenProps = NativeStackScreenProps<
 export function ActiveCallScreen({navigation}: ActiveCallScreenProps) {
   const activeCall = useActiveCall();
 
-  const onHangupCall = useCallback(() => {
-    navigation.navigate('JoinMeetingScreen');
-  }, [navigation]);
-
   const onOpenCallParticipantsInfoViewHandler = useCallback(() => {
     navigation.navigate('CallParticipantsInfoScreen');
   }, [navigation]);
@@ -25,7 +21,6 @@ export function ActiveCallScreen({navigation}: ActiveCallScreenProps) {
   }
   return (
     <ActiveCall
-      onHangupCall={onHangupCall}
       onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
     />
   );

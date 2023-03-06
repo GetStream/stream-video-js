@@ -10,8 +10,11 @@ import {UserList} from './src/components/UserList';
 import {NavigationStackParamsList} from './src/types';
 import {ActiveCallScreen} from './src/screens/ActiveCallScreen';
 import {LobbyViewScreen} from './src/screens/LobbyViewScreen';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {NavigationContainer} from '@react-navigation/native';
+import {
+  NativeStackNavigationProp,
+  createNativeStackNavigator,
+} from '@react-navigation/native-stack';
+import {NavigationContainer, useNavigation} from '@react-navigation/native';
 import {AppProvider, useAppContext} from './src/context/AppContext';
 import {useVideoClient} from './src/hooks/useVideoClient';
 import {
@@ -30,6 +33,8 @@ const Navigator = () => {
     user: user,
     token: user?.token,
   });
+  const navigation =
+    useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();
 
   if (!user) {
     return <UserList />;
@@ -40,7 +45,12 @@ const Navigator = () => {
   }
 
   return (
-    <StreamVideo client={videoClient}>
+    <StreamVideo
+      client={videoClient}
+      callCycleHandlers={{
+        onActiveCall: () => navigation.navigate('ActiveCallScreen'),
+        onHangupCall: () => navigation.navigate('JoinMeetingScreen'),
+      }}>
       <Stack.Navigator>
         <Stack.Screen
           name="JoinMeetingScreen"

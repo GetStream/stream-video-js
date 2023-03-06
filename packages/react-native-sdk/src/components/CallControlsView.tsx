@@ -20,7 +20,7 @@ export interface CallControlsViewProps {
   /**
    * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
    */
-  onHangupCall: () => void;
+  onHangupCall?: () => void;
 }
 
 /**
@@ -44,7 +44,7 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
 
   const handleHangUpCall = useCallback(async () => {
     await hangupCall();
-    onHangupCall();
+    if (onHangupCall) onHangupCall();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hangupCall]);
 

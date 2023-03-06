@@ -7,35 +7,21 @@ import { UserInfoView } from './UserInfoView';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
-import { useCallControls, useRingCall } from '../hooks';
+import { useCallControls } from '../hooks/useCallControls';
+import { useRingCall } from '../hooks/useRingCall';
+import { useCallCycleContext } from '../contexts';
 import { theme } from '../theme/colors';
 
-/**
- * Props to be passed for the OutgoingCallView component.
- */
-export interface OutgoingCallViewProps {
-  /**
-   * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
-   */
-  onHangupCall: () => void;
-}
-
-/**
- * View for an outgoing call, after a call is initiated by a caller in ringing mode
- *
- * | Outgoing Call |
- * | :---: |
- * |![outgoing-calo-view-1](https://user-images.githubusercontent.com/25864161/217487315-c32ee3dc-10d7-4726-ae62-de8e8106af86.png)|
- */
-export const OutgoingCallView = (props: OutgoingCallViewProps) => {
-  const { onHangupCall } = props;
+export const OutgoingCallView = () => {
   const { isAudioMuted, isVideoMuted, toggleAudioMuted, toggleVideoMuted } =
     useCallControls();
   const { cancelCall } = useRingCall();
+  const { callCycleHandlers } = useCallCycleContext();
+  const { onHangupCall } = callCycleHandlers;
 
   const hangupCallHandler = useCallback(async () => {
     await cancelCall();
-    onHangupCall();
+    if (onHangupCall) onHangupCall();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cancelCall]);
 

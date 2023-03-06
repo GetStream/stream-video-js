@@ -9,11 +9,7 @@ type LobbyViewScreenProps = NativeStackScreenProps<
 >;
 
 export const LobbyViewScreen = (props: LobbyViewScreenProps) => {
-  const { navigation, route } = props;
+  const { route } = props;
 
-  const onActiveCall = () => {
-    navigation.navigate('MeetingScreen');
-  };
-
-  return <LobbyView callID={route.params.callID} onActiveCall={onActiveCall} />;
+  return <LobbyView callID={route.params.callID} />;
 };

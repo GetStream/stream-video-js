@@ -8,7 +8,7 @@ import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
 import { getAudioStream, getVideoStream } from '@stream-io/video-client';
-import { useStreamVideoStoreValue } from '../contexts';
+import { useCallCycleContext, useStreamVideoStoreValue } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsScreenView } from './CallParticipantsScreenView';
 import { theme } from '../theme/colors';
@@ -17,10 +17,6 @@ import { theme } from '../theme/colors';
  * Props to be passed for the ActiveCall component.
  */
 export interface ActiveCallProps {
-  /**
-   * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
-   */
-  onHangupCall: () => void;
   /**
    * Handler called when the participants info button is pressed in the active call screen.
    */
@@ -36,10 +32,12 @@ export interface ActiveCallProps {
 export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useActiveCall();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
-  const { onHangupCall, onOpenCallParticipantsInfoView } = props;
+  const { onOpenCallParticipantsInfoView } = props;
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const isAudioMuted = useStreamVideoStoreValue((store) => store.isAudioMuted);
   const hasScreenShare = useHasOngoingScreenShare();
+  const { callCycleHandlers } = useCallCycleContext();
+  const { onHangupCall } = callCycleHandlers;
 
   useEffect(() => {
     if (audioDevice && !isAudioMuted) {
