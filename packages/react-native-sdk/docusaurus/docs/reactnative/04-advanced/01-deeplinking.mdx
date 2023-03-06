@@ -86,24 +86,11 @@ To verify that you own both your app and the website URLs, complete the followin
 https://domain.name/.well-known/assetlinks.json
 ```
 
-:::note
-
-If you have a React project, the `.well-known/assetlinks.json` should go inside your `public` directory of the project.
-
-:::
-
 You can use [this tool](https://developers.google.com/digital-asset-links/tools/generator) to generate the `assetlink.json` for your web project. Enter the Hosting site name, App package name and App package fingerprint(SHA256) to generate it.
 
 - Hosting site name is the url of the website which we will use for deep linking in our app.
 - App package name can be easily found in the first line of your `MainActivity.java` file as a value to `package`.
-- There are two ways to get your App package fingerprint(SHA256).
-
-  1. If you have already uploaded your app to Play store then go to Google Play Console > Release management > App signing.
-  2. If you haven't uploaded your app to Play store, then run the following command in your terminal. You have to replace `<keystore path>`, `<key alias>`, `<store password>`, `<key password>` with your values.
-
-  ```bash
-  keytool -list -v -keystore <keystore path> -alias <key alias> -storepass <store password> -keypass <key password>
-  ```
+- To get your App package fingerprint(SHA256) follow [this](https://developers.google.com/android/guides/client-auth) guide.
 
 </TabItem>
 <TabItem value='ios'>
@@ -124,21 +111,6 @@ For adding the support of deep linking in iOS we will have to follow the below s
    options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
 {
   return [RCTLinkingManager application:application openURL:url options:options];
-}
-```
-
-If you're targeting iOS 8.x or older, you can use the following code instead:
-
-- iOS 8.x or older
-
-```mm
-#import <React/RCTLinkingManager.h>
-
-- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url
-  sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
-{
-  return [RCTLinkingManager application:application openURL:url
-                      sourceApplication:sourceApplication annotation:annotation];
 }
 ```
 
