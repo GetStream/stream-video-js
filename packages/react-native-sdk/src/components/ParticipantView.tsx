@@ -155,8 +155,6 @@ const styles = StyleSheet.create({
   videoRenderer: {
     flex: 1,
     justifyContent: 'center',
-    overflow: 'hidden',
-    borderRadius: 16,
   },
   screenVideoRenderer: {
     flex: 1,
