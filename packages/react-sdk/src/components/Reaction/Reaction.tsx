@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { StreamReaction } from '@stream-io/video-client';
+import { Call, StreamReaction } from '@stream-io/video-client';
 import clsx from 'clsx';
 
 export type ReactionProps = {
   reaction: StreamReaction;
+  sessionId: string;
+  call: Call;
   hideAfterTimeoutInMs?: number;
 };
 
@@ -14,7 +16,7 @@ export const defaultEmojiReactions: Record<string, string> = {
 };
 
 export const Reaction = (props: ReactionProps) => {
-  const { reaction, hideAfterTimeoutInMs = 3500 } = props;
+  const { reaction, sessionId, call, hideAfterTimeoutInMs = 3500 } = props;
   const [isShowing, setIsShowing] = useState(false);
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -22,12 +24,13 @@ export const Reaction = (props: ReactionProps) => {
       setIsShowing(true);
       timeoutId = setTimeout(() => {
         setIsShowing(false);
+        call.resetReaction(sessionId);
       }, hideAfterTimeoutInMs);
     }
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [hideAfterTimeoutInMs, reaction]);
+  }, [call, hideAfterTimeoutInMs, reaction, sessionId]);
 
   const { emoji_code } = reaction;
   return (
