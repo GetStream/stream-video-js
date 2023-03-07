@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   },
   userNameLabel: {
     color: theme.light.static_white,
-    fontSize: 12,
+    ...theme.fonts.caption,
   },
   svgWrapper: {
     height: 16,

@@ -53,7 +53,16 @@ export const UserInfoView = () => {
           );
         })}
       </View>
-      <Text style={styles.name}>{callTitle}</Text>
+      <Text
+        style={[
+          styles.name,
+          memberUserIds.length > 1
+            ? theme.fonts.heading5
+            : theme.fonts.heading4,
+        ]}
+      >
+        {callTitle}
+      </Text>
     </View>
   );
 };
@@ -89,9 +98,7 @@ const styles = StyleSheet.create({
   },
   name: {
     marginTop: 45,
-    fontSize: 30,
     color: theme.light.static_white,
-    fontWeight: '400',
     textAlign: 'center',
   },
 });

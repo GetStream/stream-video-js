@@ -22,7 +22,13 @@ export type ColorScheme = {
 
 export type ColorType = Record<'light' | 'dark', ColorScheme>;
 
-export type FontTypes = 'heading4' | 'heading5' | 'heading6';
+export type FontTypes =
+  | 'heading4'
+  | 'heading5'
+  | 'heading6'
+  | 'subtitle'
+  | 'subtitleBold'
+  | 'caption';
 export type FontStyle = {
   fontSize: TextStyle['fontSize'];
   fontWeight: TextStyle['fontWeight'];

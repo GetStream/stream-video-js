@@ -49,7 +49,6 @@ const styles = StyleSheet.create({
   badgeText: {
     color: theme.light.static_white,
     textAlign: 'center',
-    fontSize: 10,
-    fontWeight: 'bold',
+    ...theme.fonts.caption,
   },
 });

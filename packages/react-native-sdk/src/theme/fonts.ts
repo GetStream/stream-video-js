@@ -15,6 +15,18 @@ export const fonts: Record<FontTypes, FontStyle> = Platform.select({
       fontSize: 20,
       fontWeight: '500',
     },
+    subtitle: {
+      fontSize: 16,
+      fontWeight: '400',
+    },
+    subtitleBold: {
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    caption: {
+      fontSize: 10,
+      fontWeight: '400',
+    },
   },
   default: {
     heading4: {
@@ -28,6 +40,18 @@ export const fonts: Record<FontTypes, FontStyle> = Platform.select({
     heading6: {
       fontSize: 20,
       fontWeight: '500',
+    },
+    subtitle: {
+      fontSize: 16,
+      fontWeight: '400',
+    },
+    subtitleBold: {
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    caption: {
+      fontSize: 10,
+      fontWeight: '400',
     },
   },
 });

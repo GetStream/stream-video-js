@@ -64,9 +64,8 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
 
 const styles = StyleSheet.create({
   name: {
-    fontWeight: 'bold',
-    fontSize: 16,
     marginLeft: 10,
+    ...theme.fonts.subtitleBold,
   },
   avatar: {
     height: 50,
@@ -107,10 +106,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 18,
     marginLeft: 20,
     color: theme.light.text_high_emphasis,
-    fontWeight: '400',
+    ...theme.fonts.subtitle,
   },
   borderBottom: {
     borderBottomColor: theme.light.borders,

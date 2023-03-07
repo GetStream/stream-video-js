@@ -115,10 +115,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   name: {
-    fontWeight: 'bold',
-    fontSize: 15,
     marginLeft: 10,
     color: theme.light.text_high_emphasis,
+    ...theme.fonts.subtitleBold,
   },
   avatar: {
     height: 50,

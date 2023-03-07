@@ -184,9 +184,8 @@ const styles = StyleSheet.create({
   },
   heading: {
     color: theme.light.static_white,
-    fontSize: 40,
-    fontWeight: 'bold',
     textAlign: 'center',
+    ...theme.fonts.heading4,
   },
   stream: {
     height: '100%',
@@ -194,8 +193,8 @@ const styles = StyleSheet.create({
   },
   subHeading: {
     color: theme.light.text_low_emphasis,
-    fontSize: 20,
     textAlign: 'center',
+    ...theme.fonts.subtitle,
   },
   videoView: {
     backgroundColor: theme.light.disabled,
@@ -227,8 +226,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     color: theme.light.static_white,
-    fontSize: 15,
-    fontWeight: '600',
+    ...theme.fonts.subtitleBold,
   },
   joinButton: {
     width: '100%',
@@ -240,9 +238,8 @@ const styles = StyleSheet.create({
   },
   joinButtonText: {
     color: theme.light.static_white,
-    fontSize: 20,
-    fontWeight: 'bold',
     textAlign: 'center',
+    ...theme.fonts.subtitleBold,
   },
   status: {
     flexDirection: 'row',
@@ -263,7 +260,7 @@ const styles = StyleSheet.create({
   },
   userNameLabel: {
     color: theme.light.static_white,
-    fontSize: 12,
+    ...theme.fonts.caption,
   },
   svgWrapper: {
     height: 12,
