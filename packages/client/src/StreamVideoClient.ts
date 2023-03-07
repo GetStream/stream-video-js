@@ -323,7 +323,13 @@ export class StreamVideoClient {
         );
 
         const { server, ice_servers, token } = edge.credentials;
-        const sfuClient = new StreamSfuClient(server.url, token);
+        let sfuUrl = server.url;
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search);
+          const sfuUrlParam = params.get('sfuUrl');
+          sfuUrl = sfuUrlParam || server.url;
+        }
+        const sfuClient = new StreamSfuClient(sfuUrl, token);
         const metadata = new CallMetadata(callMeta, members);
         const callOptions = {
           connectionConfig: this.toRtcConfiguration(ice_servers),
