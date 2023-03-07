@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
 import { MediaStream, RTCView } from 'react-native-webrtc';
@@ -100,7 +107,7 @@ export const LobbyView = (props: LobbyViewProps) => {
   };
 
   return (
-    <View style={[styles.container, StyleSheet.absoluteFill]}>
+    <SafeAreaView style={[styles.container, StyleSheet.absoluteFillObject]}>
       <View style={styles.content}>
         <Text style={styles.heading}>Before Joining</Text>
         <Text style={styles.subHeading}>Setup your audio and video</Text>
@@ -170,7 +177,7 @@ export const LobbyView = (props: LobbyViewProps) => {
           </Pressable>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -179,12 +186,16 @@ const styles = StyleSheet.create({
     backgroundColor: theme.light.static_grey,
   },
   content: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
     position: 'absolute',
-    bottom: 10,
+    bottom: 0,
+    marginVertical: 20,
   },
   heading: {
     color: theme.light.static_white,
-    textAlign: 'center',
     ...theme.fonts.heading4,
   },
   stream: {
@@ -193,36 +204,34 @@ const styles = StyleSheet.create({
   },
   subHeading: {
     color: theme.light.text_low_emphasis,
-    textAlign: 'center',
     ...theme.fonts.subtitle,
+    marginBottom: 10,
   },
   videoView: {
     backgroundColor: theme.light.disabled,
     height: 280,
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    marginVertical: 30,
     borderRadius: 20,
     justifyContent: 'center',
     overflow: 'hidden',
     width: '90%',
+    marginVertical: 15,
   },
   buttons: {
     flexDirection: 'row',
     justifyContent: 'center',
+    marginBottom: 15,
   },
   button: {
-    height: 70,
-    width: 70,
+    height: 60,
+    width: 60,
     borderRadius: 70,
     marginHorizontal: 10,
   },
   info: {
     backgroundColor: theme.light.static_overlay,
     padding: 15,
-    marginHorizontal: '5%',
     borderRadius: 10,
-    marginVertical: 30,
+    width: '90%',
   },
   infoText: {
     color: theme.light.static_white,

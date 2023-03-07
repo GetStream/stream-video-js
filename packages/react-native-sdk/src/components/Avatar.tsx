@@ -58,7 +58,7 @@ export const Avatar = (props: AvatarProps) => {
         />
       ) : (
         <Text
-          style={{ ...styles.text, ...theme.fonts.heading4 }}
+          style={{ ...styles.text, fontSize: radius / 2 }}
           numberOfLines={1}
         >
           {label}
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: theme.light.bars,
+    fontWeight: '600',
     textAlign: 'center',
-    ...theme.fonts.heading4,
   },
 });
