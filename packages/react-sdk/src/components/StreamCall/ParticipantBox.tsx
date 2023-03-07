@@ -34,12 +34,14 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
   } = props;
 
   const {
+    audioStream,
     videoStream,
     isLoggedInUser: isLocalParticipant,
     isDominantSpeaker,
     isSpeaking,
     publishedTracks,
     connectionQuality,
+    sessionId,
     reaction,
   } = participant;
 
@@ -59,12 +61,8 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
         className,
       )}
     >
-      <Audio
-        muted={isMuted}
-        sinkId={sinkId}
-        audioStream={participant.audioStream}
-      />
       <div className="str-video__video-container">
+        <Audio muted={isMuted} sinkId={sinkId} audioStream={audioStream} />
         <Video
           call={call}
           participant={participant}
@@ -76,7 +74,9 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
           muted={isMuted}
           autoPlay
         />
-        {reaction && <Reaction reaction={reaction} />}
+        {reaction && (
+          <Reaction reaction={reaction} sessionId={sessionId} call={call} />
+        )}
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
             {participant.name || participant.userId}
