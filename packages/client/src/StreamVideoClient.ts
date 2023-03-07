@@ -324,7 +324,11 @@ export class StreamVideoClient {
 
         const { server, ice_servers, token } = edge.credentials;
         let sfuUrl = server.url;
-        if (typeof window !== 'undefined') {
+        if (
+          typeof window !== 'undefined' &&
+          window.location &&
+          window.location.search
+        ) {
           const params = new URLSearchParams(window.location.search);
           const sfuUrlParam = params.get('sfuUrl');
           sfuUrl = sfuUrlParam || server.url;
