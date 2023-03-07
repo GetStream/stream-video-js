@@ -26,7 +26,9 @@ import {
   SendReactionResponse,
   SortParamRequest,
   StopLiveResponse,
-  UnblockUserResponse, UpdateCallMemberRequest, UpdateCallMemberResponse,
+  UnblockUserResponse,
+  UpdateCallMemberRequest,
+  UpdateCallMemberResponse,
   UpdateCallRequest,
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
@@ -122,10 +124,10 @@ export class StreamCall {
 
   updateCallMembers = async (data: UpdateCallMemberRequest) => {
     return this.client.post<UpdateCallMemberResponse>(
-      `/join_call/${this.type}/${this.id}/update_member`,
+      `${this.basePath}/update_member`,
       data,
     );
-  }
+  };
 
   goLive = async () => {
     return this.client.post<GoLiveResponse>(`${this.basePath}/go_live`, {});
@@ -293,8 +295,8 @@ export class StreamCoordinatorClient {
   updateCallMembers = async (
     id: string,
     type: string,
-    data: UpdateCallMemberRequest
+    data: UpdateCallMemberRequest,
   ) => {
-    return this.call(type, id).updateCallMembers(data)
-  }
+    return this.call(type, id).updateCallMembers(data);
+  };
 }
