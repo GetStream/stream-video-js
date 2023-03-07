@@ -1,11 +1,5 @@
-import { Platform, TextStyle } from 'react-native';
-
-type FontTypes = 'heading4' | 'heading5' | 'heading6';
-
-type FontStyle = {
-  fontSize: TextStyle['fontSize'];
-  fontWeight: TextStyle['fontWeight'];
-};
+import { Platform } from 'react-native';
+import { FontStyle, FontTypes } from './types';
 
 export const fonts: Record<FontTypes, FontStyle> = Platform.select({
   ios: {
