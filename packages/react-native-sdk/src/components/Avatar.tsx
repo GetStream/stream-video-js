@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: theme.light.bars,
-    fontWeight: '600',
     textAlign: 'center',
+    ...theme.fonts.heading4,
   },
 });

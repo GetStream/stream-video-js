@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Participants } from '../icons';
 import { useParticipants } from '@stream-io/video-react-bindings';
 import { theme } from '../theme';
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   participantIcon: {
     position: 'absolute',
     right: 20,
-    top: 40,
+    top: Platform.OS === 'ios' ? 35 : 10,
     zIndex: 2,
   },
   icon: { height: 24, width: 27 },
