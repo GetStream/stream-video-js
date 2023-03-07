@@ -18,14 +18,15 @@ import 'stream-chat-react/dist/css/v2/index.css';
 import '@stream-io/video-styling/dist/css/styles.css';
 import './index.css';
 
-import { users } from '../data/users';
+import users from '../data/users.json';
 
-export type User = (typeof users)[number];
+export type User = (typeof users)[number] & { token?: string };
 
 // TODO: move to "store"
 export const selectedUserSubject = new BehaviorSubject<User | null>(
-  users.find((u) => u.id === sessionStorage.getItem(SESSION_STORAGE_KEY)) ??
-    null,
+  users.find(
+    (u) => u.id === sessionStorage.getItem(SESSION_STORAGE_KEY) ?? null,
+  ) as User | null,
 );
 
 const router = createBrowserRouter([

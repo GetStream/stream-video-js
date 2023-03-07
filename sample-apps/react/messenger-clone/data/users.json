@@ -1,0 +1,32 @@
+[
+  {
+    "id": "alice",
+    "name": "Alice",
+    "image": "https://randomuser.me/api/portraits/women/47.jpg"
+  },
+  {
+    "id": "mark",
+    "name": "Mark",
+    "image": "https://randomuser.me/api/portraits/men/38.jpg"
+  },
+  {
+    "id": "bob",
+    "name": "Bob",
+    "image": "https://randomuser.me/api/portraits/men/42.jpg"
+  },
+  {
+    "id": "jane",
+    "name": "Jane",
+    "image": "https://randomuser.me/api/portraits/women/60.jpg"
+  },
+  {
+    "id": "tamara",
+    "name": "Tamara",
+    "image": "https://randomuser.me/api/portraits/women/40.jpg"
+  },
+  {
+    "id": "john",
+    "name": "John",
+    "image": "https://randomuser.me/api/portraits/men/54.jpg"
+  }
+]
