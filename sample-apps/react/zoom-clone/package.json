@@ -11,8 +11,6 @@
     "scripts:populate-tokens": "node scripts/populateTokens.js"
   },
   "dependencies": {
-    "@stream-io/video-client": "workspace:^",
-    "@stream-io/video-react-bindings": "workspace:^",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
     "clsx": "^1.2.1",

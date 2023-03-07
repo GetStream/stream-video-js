@@ -1,12 +1,12 @@
-import { User } from '@stream-io/video-client';
 import {
   useActiveCall,
   useConnectedUser,
   useIncomingCalls,
   useLocalParticipant,
   useOutgoingCalls,
+  User,
   useRemoteParticipants,
-} from '@stream-io/video-react-bindings';
+} from '@stream-io/video-react-sdk';
 import { ActiveCallPanel } from './ActiveCallPanel';
 import { PendingCallPanel } from './PendingCallPanel';
 

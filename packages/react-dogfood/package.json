@@ -13,8 +13,6 @@
     "@mui/icons-material": "^5.10.16",
     "@mui/material": "^5.10.16",
     "@sentry/nextjs": "^7.22.0",
-    "@stream-io/video-client": "workspace:^",
-    "@stream-io/video-react-bindings": "workspace:^",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
     "clsx": "^1.2.1",

@@ -6,6 +6,7 @@
   gap: 0.75rem;
   padding-block: 0.5rem;
   width: 100%;
+  cursor: pointer;
 
   .str-video__participant-listing-item__display-name {
     @include utils.ellipsis-text();

@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, useState } from 'react';
-import { User } from '@stream-io/video-client';
+import { User } from '@stream-io/video-react-sdk';
 import users from '../../data/users';
 
 type UserDataContextValue = {

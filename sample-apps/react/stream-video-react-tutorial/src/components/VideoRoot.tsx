@@ -1,10 +1,10 @@
 import * as React from 'react';
 import {
+  CALL_CONFIG,
   MediaDevicesProvider,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { CALL_CONFIG } from '@stream-io/video-client';
 
 import { UI } from './ui/UI';
 import { useUserData } from '../context/UserContext';
