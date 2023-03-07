@@ -183,12 +183,16 @@ export const MediaDevicesProvider = ({
         setSelectedAudioInputDeviceId(deviceId);
       }
       if (kind === 'audiooutput') {
-        call?.setAudioOutputDevice(deviceId);
         setSelectedAudioOutputDeviceId(deviceId);
       }
     },
-    [call],
+    [],
   );
+
+  useEffect(() => {
+    if (!call) return;
+    call.setAudioOutputDevice(selectedAudioOutputDeviceId);
+  }, [call, selectedAudioOutputDeviceId]);
 
   useEffect(() => {
     if (!enumerate) return;
