@@ -67,6 +67,18 @@ export interface Participant {
      * @generated from protobuf field: float audio_level = 9;
      */
     audioLevel: number;
+    /**
+     * @generated from protobuf field: string name = 10;
+     */
+    name: string;
+    /**
+     * @generated from protobuf field: string image = 11;
+     */
+    image: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Struct custom = 12;
+     */
+    custom?: Struct;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.StreamQuality
@@ -424,11 +436,14 @@ class Participant$Type extends MessageType<Participant> {
             { no: 6, name: "connection_quality", kind: "enum", T: () => ["stream.video.sfu.models.ConnectionQuality", ConnectionQuality, "CONNECTION_QUALITY_"] },
             { no: 7, name: "is_speaking", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 8, name: "is_dominant_speaker", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 9, name: "audio_level", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ }
+            { no: 9, name: "audio_level", kind: "scalar", T: 2 /*ScalarType.FLOAT*/ },
+            { no: 10, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 11, name: "image", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 12, name: "custom", kind: "message", T: () => Struct }
         ]);
     }
     create(value?: PartialMessage<Participant>): Participant {
-        const message = { userId: "", sessionId: "", publishedTracks: [], trackLookupPrefix: "", connectionQuality: 0, isSpeaking: false, isDominantSpeaker: false, audioLevel: 0 };
+        const message = { userId: "", sessionId: "", publishedTracks: [], trackLookupPrefix: "", connectionQuality: 0, isSpeaking: false, isDominantSpeaker: false, audioLevel: 0, name: "", image: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Participant>(this, message, value);
@@ -469,6 +484,15 @@ class Participant$Type extends MessageType<Participant> {
                     break;
                 case /* float audio_level */ 9:
                     message.audioLevel = reader.float();
+                    break;
+                case /* string name */ 10:
+                    message.name = reader.string();
+                    break;
+                case /* string image */ 11:
+                    message.image = reader.string();
+                    break;
+                case /* google.protobuf.Struct custom */ 12:
+                    message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -513,6 +537,15 @@ class Participant$Type extends MessageType<Participant> {
         /* float audio_level = 9; */
         if (message.audioLevel !== 0)
             writer.tag(9, WireType.Bit32).float(message.audioLevel);
+        /* string name = 10; */
+        if (message.name !== "")
+            writer.tag(10, WireType.LengthDelimited).string(message.name);
+        /* string image = 11; */
+        if (message.image !== "")
+            writer.tag(11, WireType.LengthDelimited).string(message.image);
+        /* google.protobuf.Struct custom = 12; */
+        if (message.custom)
+            Struct.internalBinaryWrite(message.custom, writer.tag(12, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

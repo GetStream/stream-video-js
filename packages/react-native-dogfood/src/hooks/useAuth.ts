@@ -1,4 +1,4 @@
-import { StreamVideoClient } from '@stream-io/video-client';
+import { StreamVideoClient, User } from '@stream-io/video-client';
 import { useEffect, useState } from 'react';
 import * as Sentry from '@sentry/react-native';
 import {
@@ -6,10 +6,11 @@ import {
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/jwt';
+import { STREAM_API_KEY, STREAM_API_SECRET } from 'react-native-dotenv';
 
 const APIParams = {
-  apiKey: 'us83cfwuhy8n', // see <video>/data/fixtures/apps.yaml for API key/secret
-  apiSecret: '4rvyp4jv4da46f36ep96ck4yshjmrtweme2xujv4cftepprckqn9r3w8sn7aywcx',
+  apiKey: STREAM_API_KEY,
+  apiSecret: STREAM_API_SECRET,
 };
 
 export const useAuth = () => {
@@ -30,34 +31,19 @@ export const useAuth = () => {
       }
       if (username && userImageUrl) {
         setAuthenticationInProgress(true);
-        const user = {
+        const user: User = {
           id: username,
           name: username,
           role: 'admin',
           teams: ['team-1, team-2'],
-          imageUrl: userImageUrl,
-          customJson: new Uint8Array(),
-        };
-        const clientParams = {
-          // coordinatorRpcUrl: 'http://192.168.50.95:26991/rpc',
-          // coordinatorWsUrl:
-          //   'ws://192.168.50.95:8989/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
-          coordinatorRpcUrl:
-            'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
-          coordinatorWsUrl:
-            'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
+          image: userImageUrl,
         };
 
         const token = await createToken(username, APIParams.apiSecret);
         Sentry.setUser({ ...user, token });
         try {
-          const _videoClient = new StreamVideoClient(APIParams.apiKey, {
-            coordinatorWsUrl: clientParams.coordinatorWsUrl,
-            coordinatorRpcUrl: clientParams.coordinatorRpcUrl,
-            sendJson: true,
-            token,
-          });
-          await _videoClient.connect(APIParams.apiKey, token, user);
+          const _videoClient = new StreamVideoClient(APIParams.apiKey);
+          await _videoClient.connectUser(user, token);
           setVideoClient(_videoClient);
         } catch (err) {
           console.error('Failed to establish connection', err);

@@ -2,6 +2,9 @@ import InCallManager from 'react-native-incall-manager';
 import { useCallback } from 'react';
 import { useActiveCall } from '@stream-io/video-react-bindings';
 
+/**
+ * A hook which provides a list of all participants that have joined an active call.
+ */
 export const useCall = () => {
   const activeCall = useActiveCall();
 

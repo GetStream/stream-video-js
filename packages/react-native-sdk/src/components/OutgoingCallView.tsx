@@ -19,9 +19,16 @@ export interface OutgoingCallViewProps {
   onHangupCall: () => void;
 }
 
+/**
+ * View for an outgoing call, after a call is initiated by a caller in ringing mode
+ *
+ * | Outgoing Call |
+ * | :---: |
+ * |![outgoing-calo-view-1](https://user-images.githubusercontent.com/25864161/217487315-c32ee3dc-10d7-4726-ae62-de8e8106af86.png)|
+ */
 export const OutgoingCallView = (props: OutgoingCallViewProps) => {
   const { onHangupCall } = props;
-  const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
+  const { isAudioMuted, isVideoMuted, toggleAudioMuted, toggleVideoMuted } =
     useCallControls();
   const { cancelCall } = useRingCall();
 
@@ -39,7 +46,7 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
         <View style={styles.buttons}>
           <View style={styles.deviceControlButtons}>
             <CallControlsButton
-              onPress={toggleAudioState}
+              onPress={toggleAudioMuted}
               colorKey={!isAudioMuted ? 'activated' : 'deactivated'}
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}
@@ -47,7 +54,7 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
               {isAudioMuted ? <MicOff color="#fff" /> : <Mic color="#000" />}
             </CallControlsButton>
             <CallControlsButton
-              onPress={toggleVideoState}
+              onPress={toggleVideoMuted}
               colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}

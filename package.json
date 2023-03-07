@@ -2,8 +2,9 @@
   "name": "@stream-io/video-js-root",
   "description": "Stream Video JS SDKs",
   "author": "https://getstream.io",
-  "packageManager": "yarn@3.2.4",
+  "packageManager": "yarn@3.4.1",
   "private": true,
+  "license": "See license in LICENSE",
   "workspaces": [
     "packages/*",
     "sample-apps/**/*"
@@ -16,7 +17,6 @@
     "build:react:dogfood": "yarn workspace @stream-io/video-react-dogfood run build",
     "start:react:dogfood": "yarn workspace @stream-io/video-react-dogfood run dev",
     "start:react:app": "yarn workspace @stream-io/video-react-sample-app run start",
-    "start:angular": "yarn workspace angular-sdk run start",
     "start:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run start",
     "build:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run build",
     "start:react-native:ios:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run ios",
@@ -39,16 +39,20 @@
     "lint:all": "eslint --cache --fix 'packages/**/*.{ts,tsx}'",
     "lint:ci:all": "eslint --cache 'packages/**/*.{ts,tsx}'",
     "test:ci:all": "yarn workspaces foreach -vt run test:ci",
-    "dev:messenger:react": "yarn workspace @stream-io/messenger-clone-react run dev",
+    "lint:ci:client": "eslint --cache 'packages/client/**/*.{ts,tsx}'",
+    "test:ci:client": "yarn workspace @stream-io/video-client run test-ci",
+    "sample:react:messenger": "yarn workspace @stream-io/messenger-clone-react run dev",
+    "sample:react:tutorial": "yarn workspace stream-video-react-tutorial run dev",
     "generate-docs:client": "yarn workspace @stream-io/video-client run generate-docs",
     "generate-docs:react:bindings": "yarn workspace @stream-io/video-react-bindings run generate-docs",
     "generate-docs:react:sdk": "yarn workspace @stream-io/video-react-sdk run generate-docs",
     "generate-docs:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run generate-docs",
-    "generate-docs:angular": "yarn generate-docs:client && yarn workspace angular-sdk run generate-docs && yarn workspace angular-sdk run copy-docs",
+    "start:docs:react": "yarn workspace @stream-io/video-react-sdk run start:docs ",
     "bootstrap": "./bootstrap.sh"
   },
   "devDependencies": {
     "@types/eslint": "^8.4.8",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
     "@typescript-eslint/typescript-estree": "^5.47.0",
@@ -57,11 +61,14 @@
     "eslint-import-resolver-typescript": "^3.5.2",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "prettier": "^2.8.1",
-    "typescript": "^4.9.4",
-    "vercel": "^28.11.0"
+    "prettier": "^2.8.4",
+    "typescript": "^4.9.5",
+    "vercel": "^28.16.2"
   },
   "resolutions": {
     "react-native-pure-jwt@^3.0.1": "patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch"
+  },
+  "dependencies": {
+    "uuid": "^9.0.0"
   }
 }

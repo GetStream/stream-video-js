@@ -1,16 +1,28 @@
-import { PropsWithChildren, ReactNode, useState } from 'react';
+import { Placement } from '@popperjs/core';
+import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
 import { usePopper } from 'react-popper';
 
 export type NotificationProps = {
   message?: ReactNode;
   isVisible?: boolean;
+  visibilityTimeout?: number;
+  resetIsVisible?: () => void;
+  placement?: Placement;
 };
+
 export const Notification = (props: PropsWithChildren<NotificationProps>) => {
-  const { isVisible, message, children } = props;
+  const {
+    isVisible,
+    message,
+    children,
+    visibilityTimeout,
+    resetIsVisible,
+    placement = 'top',
+  } = props;
   const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
   const [popover, setPopover] = useState<HTMLDivElement | null>(null);
   const { styles, attributes } = usePopper(anchor, popover, {
-    placement: 'top',
+    placement,
     modifiers: [
       {
         name: 'offset',
@@ -21,11 +33,18 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
     ],
   });
 
+  useEffect(() => {
+    if (!isVisible || !visibilityTimeout || !resetIsVisible) return;
+
+    const timeout = setTimeout(() => {
+      resetIsVisible();
+    }, visibilityTimeout);
+
+    return () => clearTimeout(timeout);
+  }, [isVisible, resetIsVisible, visibilityTimeout]);
+
   return (
-    <>
-      <span ref={setAnchor} data-popper-anchor="">
-        {children}
-      </span>
+    <div ref={setAnchor} data-popper-anchor="">
       {isVisible && (
         <div
           className="str-video__notification"
@@ -37,6 +56,7 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
           <span className="str-video__notification__message">{message}</span>
         </div>
       )}
-    </>
+      {children}
+    </div>
   );
 };

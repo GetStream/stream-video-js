@@ -9,7 +9,6 @@ import {
   TwirpFetchTransport,
   TwirpOptions,
 } from '@protobuf-ts/twirp-transport';
-import { ClientRPCClient } from '../gen/video/coordinator/client_v1_rpc/client_rpc.client';
 import { SignalServerClient } from '../gen/video/sfu/signal_rpc/signal.client';
 
 const defaultOptions: TwirpOptions = {
@@ -34,15 +33,6 @@ export const withHeaders = (
       return next(method, input, options);
     },
   };
-};
-
-export const createCoordinatorClient = (options?: TwirpOptions) => {
-  const transport = new TwirpFetchTransport({
-    ...defaultOptions,
-    ...options,
-  });
-
-  return new ClientRPCClient(transport);
 };
 
 /**

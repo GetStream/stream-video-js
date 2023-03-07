@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { createSoundDetector, SfuModels } from '@stream-io/video-client';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';

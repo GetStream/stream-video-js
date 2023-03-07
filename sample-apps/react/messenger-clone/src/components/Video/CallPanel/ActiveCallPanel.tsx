@@ -1,8 +1,4 @@
-import {
-  ParticipantBox,
-  useMediaDevices,
-  useMediaPublisher,
-} from '@stream-io/video-react-sdk';
+import { ParticipantBox, useMediaDevices } from '@stream-io/video-react-sdk';
 import {
   Call,
   StreamVideoLocalParticipant,
@@ -10,7 +6,7 @@ import {
 } from '@stream-io/video-client';
 import { ParticipantPlaceholder } from './ParticipantPlaceholder';
 import { ActiveCallControls } from './CallControls';
-import { useConnectedUser } from '@stream-io/video-react-bindings/dist/src/hooks/user';
+import { useConnectedUser } from '@stream-io/video-react-bindings';
 
 type ActiveCallPanelProps = {
   activeCall: Call;
@@ -23,21 +19,14 @@ export const ActiveCallPanel = ({
   remoteParticipant,
   localParticipant,
 }: ActiveCallPanelProps) => {
-  const { imageUrl } = useConnectedUser();
+  const {
+    // @ts-expect-error
+    imageUrl,
+  } = useConnectedUser();
 
-  const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
+  const { publishAudioStream, publishVideoStream } = useMediaDevices();
 
-  const { publishAudioStream, publishVideoStream } = useMediaPublisher({
-    call: activeCall,
-    audioDeviceId: selectedAudioDeviceId,
-    videoDeviceId: selectedVideoDeviceId,
-  });
-
-  const remoteParticipantImage = remoteParticipant
-    ? Object.values(activeCall.data.users).find(
-        (user) => user.id === remoteParticipant.userId,
-      ).imageUrl
-    : undefined;
+  const remoteParticipantImage = remoteParticipant?.image;
 
   return (
     <div className="rmc__call-panel-backdrop">

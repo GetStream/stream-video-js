@@ -38,7 +38,7 @@ export class InCallDeviceManagerService {
                 this.deviceManager.videoStream$
                   .pipe(take(1))
                   .subscribe((stream) => call.publishVideoStream(stream!));
-              } else {
+              } else if (s === 'off' || s === 'error' || s === 'disconnected') {
                 call.stopPublish(SfuModels.TrackType.VIDEO);
               }
             }),
@@ -49,9 +49,9 @@ export class InCallDeviceManagerService {
                 this.deviceManager.audioStream$
                   .pipe(take(1))
                   .subscribe((stream) => call.publishAudioStream(stream!));
-              } else {
+              } else if (s === 'off' || s === 'error' || s === 'disconnected') {
                 call.stopPublish(SfuModels.TrackType.AUDIO);
-                if (s === 'off') {
+                if (s !== 'error') {
                   let audioDevice: string | undefined;
                   this.deviceManager.audioDevice$
                     .pipe(take(1))
@@ -69,7 +69,7 @@ export class InCallDeviceManagerService {
                   .subscribe((stream) =>
                     call.publishScreenShareStream(stream!),
                   );
-              } else {
+              } else if (s === 'off') {
                 call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
               }
             }),

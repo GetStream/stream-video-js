@@ -1,13 +1,14 @@
 import { Injectable, NgZone } from '@angular/core';
 import {
   Call,
-  CallAccepted,
+  CallConfig,
   CallStatsReport,
-  PendingCall,
+  CallMetadata,
   StreamVideoClient,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
-  UserInput,
+  User,
+  CallAccepted,
 } from '@stream-io/video-client';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 
@@ -23,7 +24,7 @@ export class StreamVideoService {
   /**
    * The currently connected user.
    */
-  user$: Observable<UserInput | undefined>;
+  user$: Observable<User | undefined>;
   /**
    * The call controller instance representing the call the user attends.
    * The controller instance exposes call metadata as well.
@@ -31,7 +32,20 @@ export class StreamVideoService {
    */
   activeCall$: Observable<Call | undefined>;
   /**
-   * The accepted call metadata.
+   * A list of objects describing all created calls that have not been yet accepted, rejected nor cancelled.
+   */
+  pendingCalls$: Observable<CallMetadata[]>;
+  /**
+   * A list of objects describing calls initiated by the current user (connectedUser).
+   */
+  outgoingCalls$: Observable<CallMetadata[]>;
+  /**
+   * A list of objects describing incoming calls.
+   */
+  incomingCalls$: Observable<CallMetadata[]>;
+  /**
+   * The call data describing an incoming call accepted by a participant.
+   * Serves as a flag decide, whether an incoming call should be joined.
    */
   acceptedCall$: Observable<CallAccepted | undefined>;
   /**
@@ -48,7 +62,6 @@ export class StreamVideoService {
    * The local participant of the current call (the logged-in user).
    */
   localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
-  incomingRingCalls$: Observable<PendingCall[]>;
   /**
    * The `videoClient` lets interact with our API, please refer to the [`StreamVideoClient`](./StreamVideoClient.mdx) for more information.
    */
@@ -77,15 +90,11 @@ export class StreamVideoService {
    */
   hasOngoingScreenShare$: Observable<boolean>;
 
-  private userSubject: ReplaySubject<UserInput | undefined> = new ReplaySubject(
-    1,
-  );
+  private userSubject: ReplaySubject<User | undefined> = new ReplaySubject(1);
   private activeCallSubject: ReplaySubject<Call | undefined> =
     new ReplaySubject(1);
 
   private acceptedCallSubject: ReplaySubject<CallAccepted | undefined> =
-    new ReplaySubject(1);
-  private incomingRingCallsSubject: ReplaySubject<PendingCall[]> =
     new ReplaySubject(1);
   private allParticipantsSubject: ReplaySubject<StreamVideoParticipant[]> =
     new ReplaySubject(1);
@@ -100,6 +109,12 @@ export class StreamVideoService {
     new ReplaySubject(1);
   private hasOngoingScreenShareSubject: ReplaySubject<boolean> =
     new ReplaySubject(1);
+  private pendingCallsSubject: ReplaySubject<CallMetadata[]> =
+    new ReplaySubject(1);
+  private outgoingCallsSubject: ReplaySubject<CallMetadata[]> =
+    new ReplaySubject(1);
+  private incomingCallsSubject: ReplaySubject<CallMetadata[]> =
+    new ReplaySubject(1);
   private subscriptions: Subscription[] = [];
 
   /**
@@ -109,7 +124,6 @@ export class StreamVideoService {
     this.user$ = this.userSubject.asObservable();
     this.activeCall$ = this.activeCallSubject.asObservable();
     this.acceptedCall$ = this.acceptedCallSubject.asObservable();
-    this.incomingRingCalls$ = this.incomingRingCallsSubject.asObservable();
     this.participants$ = this.allParticipantsSubject.asObservable();
     this.remoteParticipants$ = this.remoteParticipantsSubject.asObservable();
     this.localParticipant$ = this.localParticipantSubject.asObservable();
@@ -118,28 +132,23 @@ export class StreamVideoService {
     this.callStatsReport$ = this.callStatsReportSubject.asObservable();
     this.hasOngoingScreenShare$ =
       this.hasOngoingScreenShareSubject.asObservable();
+    this.incomingCalls$ = this.incomingCallsSubject.asObservable();
+    this.outgoingCalls$ = this.outgoingCallsSubject.asObservable();
+    this.pendingCalls$ = this.pendingCallsSubject.asObservable();
   }
 
-  init(
-    apiKey: string,
-    token: string,
-    baseCoordinatorUrl: string,
-    baseWsUrl: string,
-  ) {
+  init(apiKey: string, callConfig?: CallConfig) {
     if (this.videoClient) {
       console.warn(
         `Multiple init calls detected, this is usually unnecessary, make sure you know what you're doing`,
       );
-      this.videoClient.disconnect();
+      this.videoClient.disconnectUser().catch((e) => {
+        console.error(`Failed to disconnect user`, e);
+      });
       this.subscriptions.forEach((s) => s.unsubscribe());
     }
 
-    this.videoClient = new StreamVideoClient(apiKey, {
-      coordinatorRpcUrl: baseCoordinatorUrl,
-      coordinatorWsUrl: baseWsUrl,
-      sendJson: true,
-      token,
-    });
+    this.videoClient = new StreamVideoClient(apiKey, {}, callConfig);
 
     this.subscriptions.push(
       this.videoClient.readOnlyStateStore?.connectedUser$.subscribe({
@@ -162,16 +171,6 @@ export class StreamVideoService {
         error: (e) => this.ngZone.run(() => this.acceptedCallSubject.error(e)),
         complete: () =>
           this.ngZone.run(() => this.acceptedCallSubject.complete()),
-      }),
-    );
-    this.subscriptions.push(
-      this.videoClient.readOnlyStateStore?.incomingCalls$.subscribe({
-        next: (v) =>
-          this.ngZone.run(() => this.incomingRingCallsSubject.next(v)),
-        error: (e) =>
-          this.ngZone.run(() => this.incomingRingCallsSubject.error(e)),
-        complete: () =>
-          this.ngZone.run(() => this.incomingRingCallsSubject.complete()),
       }),
     );
     this.subscriptions.push(
@@ -232,7 +231,44 @@ export class StreamVideoService {
           this.ngZone.run(() => this.hasOngoingScreenShareSubject.complete()),
       }),
     );
+    this.subscriptions.push(
+      this.videoClient.readOnlyStateStore?.incomingCalls$.subscribe({
+        next: (v) => this.ngZone.run(() => this.incomingCallsSubject.next(v)),
+        error: (e) => this.ngZone.run(() => this.incomingCallsSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.incomingCallsSubject.complete()),
+      }),
+    );
+    this.subscriptions.push(
+      this.videoClient.readOnlyStateStore?.outgoingCalls$.subscribe({
+        next: (v) => this.ngZone.run(() => this.outgoingCallsSubject.next(v)),
+        error: (e) => this.ngZone.run(() => this.outgoingCallsSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.outgoingCallsSubject.complete()),
+      }),
+    );
+    this.subscriptions.push(
+      this.videoClient.readOnlyStateStore?.pendingCalls$.subscribe({
+        next: (v) => this.ngZone.run(() => this.pendingCallsSubject.next(v)),
+        error: (e) => this.ngZone.run(() => this.pendingCallsSubject.error(e)),
+        complete: () =>
+          this.ngZone.run(() => this.pendingCallsSubject.complete()),
+      }),
+    );
 
     return this.videoClient;
   }
+
+  /** Generates the invite link for the given call ID and wrties it to the clipboard. */
+  copyInviteLink(callId: string) {
+    return navigator?.clipboard.writeText(this.getInviteLink(callId));
+  }
+
+  /**
+   * Returns the invite link for the given call metadata, you can redefine this method if your application needs a different link format.
+   * @param callId
+   */
+  getInviteLink = (callId: string) => {
+    return `${window.location.host}?callid=${callId}`;
+  };
 }

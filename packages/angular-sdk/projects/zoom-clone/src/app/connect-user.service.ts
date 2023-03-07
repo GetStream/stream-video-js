@@ -43,19 +43,15 @@ export class ConnectUserService implements CanActivate {
       } else {
         try {
           const apiKey = environment.apiKey;
-          const token = user.token;
-          const baseCoordinatorUrl = environment.coordinatorUrl;
-          const baseWsUrl = environment.wsUrl;
-          this.videoService.init(apiKey, token, baseCoordinatorUrl, baseWsUrl);
-          await this.videoService.videoClient?.connect(
-            environment.apiKey,
-            user.token,
+          this.videoService.init(apiKey);
+          await this.videoService.videoClient?.connectUser(
             user.user,
+            user.token,
           );
           await this.chatClientService.init(
-            environment.chatApiKey,
-            `${user.user.id}_video`,
-            user.chatToken,
+            environment.apiKey,
+            user.user.id,
+            user.token,
           );
           this.isConnecting$.next(false);
           return true;

@@ -5,7 +5,7 @@ import {
   CssBaseline,
   ThemeProvider,
 } from '@mui/material';
-import { CreateCallInput, UserInput } from '@stream-io/video-client';
+import { GetOrCreateCallRequest, User } from '@stream-io/video-client';
 import {
   StreamMeeting,
   StreamVideo,
@@ -21,13 +21,10 @@ import '@stream-io/video-styling/dist/css/styles.css';
 // use different browser tabs
 export type Participants = { [name: string]: string };
 const participants: Participants = {
-  marcelo:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoibWFyY2VsbyJ9.Nhth6nZUqQ6mSz05VAnGGJNRQewpQfqK9reYMYq67NM',
-  anatoly:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYW5hdG9seSJ9.wR_ZBBq4izCxlBTgE9eXlNSMEgC0nLqoEIMH-95l4G8',
-  tommaso:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidG9tbWFzbyJ9.p9f9Lp4znTHK73hyFI0JNlxMwUnDU1wJhxjs-UpDg4M',
-  sam: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoic2FtIn0.uX5xmuSRvVwuxjtxcVXxGYLZIVSfwc4yg8etCqrFVYU',
+  marcelo: process.env.REACT_APP_STREAM_TOKEN_MARCELO!,
+  anatoly: process.env.REACT_APP_STREAM_TOKEN_ANATOLY!,
+  tommaso: process.env.REACT_APP_STREAM_TOKEN_TOMMASO!,
+  sam: process.env.REACT_APP_STREAM_TOKEN_SAM!,
 };
 
 const theme = createTheme({
@@ -46,9 +43,9 @@ const App = () => {
   });
   const [callId, setCallId] = useState<string | undefined>(undefined);
   const [callType, setCallType] = useState<string>('default');
-  const [callInput, setCallInput] = useState<CreateCallInput | undefined>(
-    undefined,
-  );
+  const [callInput, setCallInput] = useState<
+    GetOrCreateCallRequest | undefined
+  >(undefined);
   const [errorMessage] = useState('');
 
   useEffect(() => {
@@ -60,39 +57,31 @@ const App = () => {
     }
   }, [currentUser]);
 
-  const user = useMemo<UserInput>(
+  const user = useMemo<User>(
     () => ({
       id: currentUser,
       name: currentUser,
       role: 'admin',
       teams: ['team-1, team-2'],
-      imageUrl: '/profile.png',
-      customJson: new Uint8Array(),
     }),
     [currentUser],
   );
 
   const client = useCreateStreamVideoClient({
-    // proxied to http://localhost:26991
-    coordinatorRpcUrl:
-      'https://rpc-video-coordinator.oregon-v1.stream-io-video.com/rpc',
-    coordinatorWsUrl:
-      'wss://wss-video-coordinator.oregon-v1.stream-io-video.com/rpc/stream.video.coordinator.client_v1_rpc.Websocket/Connect',
-    apiKey: 'us83cfwuhy8n', // see <video>/data/fixtures/apps.yaml for API key/secret
-    token: participants[currentUser],
+    apiKey: process.env.REACT_APP_STREAM_API_KEY!, // see <video>/data/fixtures/apps.yaml for API key/secret
+    tokenOrProvider: participants[currentUser],
     user,
   });
 
-  const createCall = async (id: string, participants: string[]) => {
+  const createCall = async (id: string, invitees: string[]) => {
     setCallId(id);
     setCallType('default');
     setCallInput({
-      createdBy: { oneofKind: 'userId', userId: currentUser },
-      members: participants.map((userId) => ({
-        userId,
-        role: 'admin',
-        customJson: new TextEncoder().encode(JSON.stringify({})),
-      })),
+      data: {
+        members: invitees.map((userId) => ({
+          user_id: userId,
+        })),
+      },
     });
   };
 
@@ -131,7 +120,6 @@ const App = () => {
                     callId={callId}
                     callType={callType}
                     input={callInput}
-                    currentUser={currentUser}
                   >
                     <MeetingUI />
                   </StreamMeeting>

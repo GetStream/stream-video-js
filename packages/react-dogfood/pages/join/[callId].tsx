@@ -1,52 +1,94 @@
+import { useEffect } from 'react';
+import Gleap from 'gleap';
 import { useRouter } from 'next/router';
 import { authOptions } from '../api/auth/[...nextauth]';
 import { unstable_getServerSession } from 'next-auth';
 import { GetServerSidePropsContext } from 'next';
 import { createToken } from '../../helpers/jwt';
 import {
+  MediaDevicesProvider,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { UserInput } from '@stream-io/video-client';
-import { useMemo } from 'react';
 import Head from 'next/head';
-import { StreamMeeting } from '@stream-io/video-react-sdk';
-import { MeetingUI } from '../../components/MeetingUI';
+import { Call, User } from '@stream-io/video-client';
 
-type JoinCallProps = {
-  user: UserInput;
+import { useCreateStreamChatClient } from '../../hooks';
+import { LoadingScreen, MeetingUI } from '../../components';
+import {
+  DeviceSettingsCaptor,
+  getDeviceSettings,
+} from '../../components/DeviceSettingsCaptor';
+
+type CallRoomProps = {
+  user: User;
   userToken: string;
-  coordinatorRpcUrl: string;
-  coordinatorWsUrl: string;
   apiKey: string;
+  gleapApiKey?: string;
 };
 
-const JoinCall = (props: JoinCallProps) => {
+const CallRoom = (props: CallRoomProps) => {
   const router = useRouter();
   const callId = router.query['callId'] as string;
-  const callType = (router.query['type'] as string) || 'default';
 
-  const { userToken, user, coordinatorRpcUrl, coordinatorWsUrl, apiKey } =
-    props;
-  const loggedInUser = useMemo(
-    () => ({
-      ...user,
-      customJson: new Uint8Array(),
-    }),
-    [user],
-  );
+  const { userToken, user, apiKey, gleapApiKey } = props;
 
   const client = useCreateStreamVideoClient({
-    coordinatorRpcUrl,
-    coordinatorWsUrl,
     apiKey,
-    token: userToken,
-    user: loggedInUser,
+    tokenOrProvider: userToken,
+    user,
   });
 
+  const chatClient = useCreateStreamChatClient({
+    apiKey,
+    tokenOrProvider: userToken,
+    userData: user,
+  });
+
+  useEffect(() => {
+    if (gleapApiKey) {
+      Gleap.initialize(gleapApiKey);
+      Gleap.identify(user.name || user.id, {
+        name: user.name,
+      });
+    }
+  }, [gleapApiKey, user.name, user.id]);
+
+  useEffect(() => {
+    if (!gleapApiKey) return;
+
+    Gleap.on('flow-started', () => {
+      try {
+        const { getCurrentValue, ...state } = client.readOnlyStateStore;
+        const data = Object.entries(state).reduce<Record<string, any>>(
+          (acc, [key, observable]) => {
+            if (!!observable && typeof observable.subscribe === 'function') {
+              const value = getCurrentValue<unknown>(observable);
+              if (key === 'activeCall$' && value) {
+                // special handling, the Call instance isn't serializable
+                acc[key] = (value as Call).data;
+              } else {
+                acc[key] = value;
+              }
+            }
+            return acc;
+          },
+          {},
+        );
+        console.log('!!State Store', data);
+        Gleap.attachCustomData(data);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+  }, [client.readOnlyStateStore, gleapApiKey]);
+
+  const deviceSettings = getDeviceSettings();
+
   if (!client) {
-    return <h2>Connecting...</h2>;
+    return <LoadingScreen />;
   }
+
   return (
     <div style={{ flexGrow: 1, minHeight: 0 }}>
       <Head>
@@ -54,19 +96,25 @@ const JoinCall = (props: JoinCallProps) => {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <StreamVideo client={client}>
-        <StreamMeeting
-          currentUser={loggedInUser.name}
-          callId={callId}
-          callType={callType}
+        <MediaDevicesProvider
+          enumerate
+          initialAudioEnabled={!deviceSettings?.isAudioMute}
+          initialVideoEnabled={!deviceSettings?.isVideoMute}
+          initialVideoInputDeviceId={deviceSettings?.selectedVideoDeviceId}
+          initialAudioInputDeviceId={deviceSettings?.selectedAudioInputDeviceId}
+          initialAudioOutputDeviceId={
+            deviceSettings?.selectedAudioOutputDeviceId
+          }
         >
-          <MeetingUI />
-        </StreamMeeting>
+          <MeetingUI chatClient={chatClient} />
+          <DeviceSettingsCaptor />
+        </MediaDevicesProvider>
       </StreamVideo>
     </div>
   );
 };
 
-export default JoinCall;
+export default CallRoom;
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
@@ -86,28 +134,31 @@ export const getServerSideProps = async (
     };
   }
 
-  const coordinatorRpcUrl = process.env.STREAM_COORDINATOR_RPC_URL;
-  const coordinatorWsUrl = process.env.STREAM_COORDINATOR_WS_URL;
   const apiKey = process.env.STREAM_API_KEY as string;
   const secretKey = process.env.STREAM_SECRET_KEY as string;
+  const gleapApiKey = (process.env.GLEAP_API_KEY as string) || null;
 
-  const userName = (
-    (context.query[`user_id`] as string) || session.user.email
+  const userIdOverride = context.query['user_id'] as string | undefined;
+  const userId = (
+    userIdOverride ||
+    session.user?.email ||
+    'unknown-user'
   ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
+
+  // Chat does not allow for Id's to include special characters
+  // a-z, 0-9, @, _ and - are allowed
+  const streamUserId = userId.replace(/[^_\-0-9a-zA-Z@]/g, '_');
+  const userName = session.user?.name || userId;
   return {
     props: {
-      coordinatorRpcUrl,
-      coordinatorWsUrl,
       apiKey,
-      userToken: createToken(userName, secretKey),
+      userToken: createToken(streamUserId, secretKey),
       user: {
-        id: userName,
-        name: userName,
-        role: 'admin',
-        teams: ['stream-io'],
-        imageUrl: session.user.image,
-        // customJson: new Uint8Array() // can't be serialized to JSON
+        id: streamUserId,
+        name: userIdOverride || userName,
+        image: session.user?.image,
       },
-    } as JoinCallProps,
+      gleapApiKey,
+    } as CallRoomProps,
   };
 };

@@ -15,10 +15,17 @@ import { ICETrickle, TrackType } from './gen/video/sfu/models/models';
 
 const hostnameFromUrl = (url: string) => {
   try {
-    return new URL(url).hostname;
+    const u = new URL(url);
+    return {
+      hostname: u.hostname,
+      port: u.port,
+    };
   } catch (e) {
     console.warn(`Invalid URL. Can't extract hostname from it.`, e);
-    return url;
+    return {
+      hostname: url,
+      port: 3031,
+    };
   }
 };
 
@@ -41,8 +48,8 @@ export class StreamSfuClient {
   signalReady: Promise<WebSocket>;
   private keepAliveInterval?: NodeJS.Timeout;
 
-  constructor(url: string, token: string, sessionId?: string) {
-    this.sessionId = sessionId || uuidv4();
+  constructor(url: string, token: string) {
+    this.sessionId = uuidv4();
     this.token = token;
     this.rpc = createSignalClient({
       baseUrl: url,
@@ -54,9 +61,9 @@ export class StreamSfuClient {
     });
 
     // FIXME: OL: this should come from the coordinator API
-    const sfuHost = hostnameFromUrl(url);
-    let wsEndpoint = `ws://${sfuHost}:3031/ws`;
-    if (!['localhost', '127.0.0.1'].includes(sfuHost)) {
+    const { hostname, port } = hostnameFromUrl(url);
+    let wsEndpoint = `ws://${hostname}:${port}/ws`;
+    if (!['localhost', '127.0.0.1'].includes(hostname)) {
       const sfuUrl = toURL(url);
       if (sfuUrl) {
         sfuUrl.protocol = 'wss:';

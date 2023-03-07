@@ -20,13 +20,21 @@ export interface AvatarProps {
 
 const DEFAULT_AVATAR_RADIUS = 100;
 
+/**
+ * Shows either user's image or initials based on the user state and existence of
+ * their image.
+ *
+ * | User's Image | User's Initials |
+ * | :--- | :----: |
+ * |![avatar-1](https://user-images.githubusercontent.com/25864161/217467045-2d4c8b4e-d4ec-48c1-8ede-4468854826af.png) | ![avatar-2](https://user-images.githubusercontent.com/25864161/217467043-e7a7f2a1-70a7-4d83-8d1e-6463391194ae.png)|
+ */
 export const Avatar = (props: AvatarProps) => {
   const {
-    participant: { userId, user },
+    participant: { userId, image, name },
     radius = DEFAULT_AVATAR_RADIUS,
   } = props;
-  const label = useMemo(() => userId || '?', [userId]);
-  const imageUrl = user?.imageUrl;
+  const label = useMemo(() => name || userId || '?', [name, userId]);
+  const imageUrl = image;
   return (
     <View
       style={{

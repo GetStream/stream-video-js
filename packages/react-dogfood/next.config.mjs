@@ -1,9 +1,13 @@
 import { withSentryConfig } from '@sentry/nextjs';
+import dotenv from 'dotenv';
+
+const env = dotenv.config({ path: '.env.local' });
 
 /**
  * @type {import('next').NextConfig}
  */
 const nextConfig = {
+  env: env.parsed,
   async headers() {
     return [
       {
@@ -14,16 +18,6 @@ const nextConfig = {
             value: 'application/json',
           },
         ],
-      },
-    ];
-  },
-
-  async rewrites() {
-    const coordinatorApiUrl = process.env.STREAM_COORDINATOR_RPC_URL || '/';
-    return [
-      {
-        source: '/rpc/:path*',
-        destination: `${coordinatorApiUrl}:path*`,
       },
     ];
   },

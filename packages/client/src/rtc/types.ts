@@ -1,8 +1,13 @@
-import { User } from '../gen/video/coordinator/user_v1/user';
 import type {
   Participant,
   VideoDimension,
 } from '../gen/video/sfu/models/models';
+import { ReactionResponse } from '../gen/coordinator';
+
+export type StreamReaction = Pick<
+  ReactionResponse,
+  'type' | 'emoji_code' | 'custom'
+>;
 
 export interface StreamVideoParticipant extends Participant {
   /**
@@ -46,9 +51,10 @@ export interface StreamVideoParticipant extends Participant {
   isPinned?: boolean;
 
   /**
-   * User metadata (profile picture, name...)
+   * The last reaction this user has sent to this call.
+   * Integrators can batch/collect past reactions and show them to the UI.
    */
-  user?: User;
+  reaction?: StreamReaction;
 }
 
 export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
@@ -67,7 +73,18 @@ export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
    * If the value is not defined, the user hasn't selected any device (in these cases the default system audio output could be used)
    */
   audioOutputDeviceId?: string;
+
+  /**
+   * The permissions that participant has in the current call. Permissions can be granted and/or revoked during a call.
+   */
+  ownCapabilities: string[];
 }
+
+export const isStreamVideoLocalParticipant = (
+  p: StreamVideoParticipant | StreamVideoLocalParticipant,
+): p is StreamVideoLocalParticipant => {
+  return !!p.isLoggedInUser;
+};
 
 /**
  * A partial representation of the StreamVideoParticipant.

@@ -1,19 +1,12 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import '../style/app.css';
 import '@stream-io/video-styling/dist/css/styles.css';
-import { SessionProvider, useSession, signOut } from 'next-auth/react';
-import Image from 'next/image';
-import Link from 'next/link';
-import {
-  CssBaseline,
-  Box,
-  Stack,
-  Button,
-  Divider,
-  createTheme,
-  ThemeProvider,
-} from '@mui/material';
+import 'stream-chat-react/dist/css/v2/index.css';
+import '../style/index.scss';
+import { ComponentType } from 'react';
 import Head from 'next/head';
+import { Session } from 'next-auth';
+import { SessionProvider } from 'next-auth/react';
+import { createTheme, CssBaseline, Stack, ThemeProvider } from '@mui/material';
 
 const theme = createTheme({
   palette: {
@@ -31,10 +24,18 @@ const theme = createTheme({
     },
   },
 });
+
+type AppProps = {
+  Component: ComponentType;
+  pageProps: {
+    session: Session;
+  };
+};
+
 export default function App({
   Component,
   pageProps: { session, ...pageProps },
-}) {
+}: AppProps) {
   return (
     <SessionProvider session={session}>
       <Head>
@@ -44,46 +45,12 @@ export default function App({
 
       <CssBaseline />
       <ThemeProvider theme={theme}>
-        <Stack height="100vh">
-          <Stack direction="row" spacing={2}>
-            <Box flexGrow={1} padding={1}>
-              <Link href="/">
-                <a>
-                  <Image
-                    src="/stream-logo.png"
-                    alt="Stream logo"
-                    width={347 / 5}
-                    height={216 / 5}
-                  />
-                </a>
-              </Link>
-            </Box>
-            <UserInfo />
+        <div className="str-video">
+          <Stack height="100vh">
+            <Component {...pageProps} />
           </Stack>
-          <Component {...pageProps} />
-        </Stack>
+        </div>
       </ThemeProvider>
     </SessionProvider>
   );
 }
-
-const UserInfo = () => {
-  const { data: theSession } = useSession();
-
-  return (
-    theSession &&
-    theSession.user && (
-      <Stack
-        direction="row"
-        spacing={2}
-        divider={<Divider orientation="vertical" />}
-        sx={{ alignItems: 'center' }}
-      >
-        <Box>{theSession.user.email}</Box>
-        <Button size="small" variant="text" onClick={() => signOut()}>
-          Sign out
-        </Button>
-      </Stack>
-    )
-  );
-};

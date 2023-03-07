@@ -1,14 +1,20 @@
 ## React Native Call Starter Kit
 
-The application is made as a start kit to the call flow of the new Stream Video React Native SDK.
+The application is made as a starter kit to the call flow of the new Stream Video React Native SDK.
 
 ### Configuring the Environment Variables
 
-For testing, use the following environment variables:
+Configure the environment variables by adding the following environment variables to a `.env` file on the root of the project:
 
 ```
-STREAM_API_KEY=5mxvmc2t4qys
-STREAM_API_SECRET=u54nds9v328s4b6g56juvsmj5j9nevetdqjszwdt2qr5ubfkswh5rjhmzuw9rvd4
+STREAM_API_KEY="<Stream API key>"
+
+STREAM_TOKEN_ALICE="<User token with user id alice>"
+STREAM_TOKEN_MARK="<User token with user id mark>"
+STREAM_TOKEN_BOB="<User token with user id bob>"
+STREAM_TOKEN_JANE="<User token with user id jane>"
+STREAM_TOKEN_TAMARA="<User token with user id tamara>"
+STREAM_TOKEN_JOHN="<User token with user id john>"
 ```
 
 ### Installation steps

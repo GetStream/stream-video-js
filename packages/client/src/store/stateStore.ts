@@ -1,41 +1,46 @@
 import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import { combineLatestWith, distinctUntilChanged, map } from 'rxjs/operators';
 import * as RxUtils from './rxUtils';
-import { UserInput } from '../gen/video/coordinator/user_v1/user';
-import { CallAccepted } from '../gen/video/coordinator/event_v1/event';
-import {
+import { Call as CallController } from '../rtc/Call';
+import { CallMetadata } from '../rtc/CallMetadata';
+import { TrackType } from '../gen/video/sfu/models/models';
+import type {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatch,
   StreamVideoParticipantPatches,
 } from '../rtc/types';
-import { CallStatsReport } from '../stats/types';
-import { Call as CallController } from '../rtc/Call';
-import { TrackType } from '../gen/video/sfu/models/models';
-import { PendingCall } from './types';
+import { isStreamVideoLocalParticipant } from '../rtc/types';
+import type { CallStatsReport } from '../stats/types';
+import type { User } from '../coordinator/connection/types';
+import type {
+  CallAcceptedEvent,
+  PermissionRequestEvent,
+} from '../gen/coordinator';
 
 export class StreamVideoWriteableStateStore {
   /**
    * A store keeping data of a successfully connected user over WS to the coordinator server.
    */
-  connectedUserSubject = new BehaviorSubject<UserInput | undefined>(undefined);
+  connectedUserSubject = new BehaviorSubject<User | undefined>(undefined);
   /**
    * A store that keeps track of all created calls that have not been yet accepted, rejected nor cancelled.
    */
-  pendingCallsSubject = new BehaviorSubject<PendingCall[]>([]);
+  pendingCallsSubject = new BehaviorSubject<CallMetadata[]>([]);
   /**
    * A list of objects describing incoming calls.
    */
-  incomingCalls$: Observable<PendingCall[]>;
+  incomingCalls$: Observable<CallMetadata[]>;
   /**
    * A list of objects describing calls initiated by the current user (connectedUser).
    */
-  outgoingCalls$: Observable<PendingCall[]>;
+  outgoingCalls$: Observable<CallMetadata[]>;
   /**
    * A store that keeps track of all the notifications describing accepted call.
    */
   // todo: Currently not updating this Subject
-  acceptedCallSubject = new BehaviorSubject<CallAccepted | undefined>(
+  // FIXME OL: what is the difference (from customer perspective) between "activeCall" and "acceptedCall"?
+  acceptedCallSubject = new BehaviorSubject<CallAcceptedEvent | undefined>(
     undefined,
   );
   /**
@@ -74,10 +79,13 @@ export class StreamVideoWriteableStateStore {
   );
   callRecordingInProgressSubject = new ReplaySubject<boolean>(1);
   hasOngoingScreenShare$: Observable<boolean>;
+  callPermissionRequestSubject = new BehaviorSubject<
+    PermissionRequestEvent | undefined
+  >(undefined);
 
   constructor() {
     this.localParticipant$ = this.participantsSubject.pipe(
-      map((participants) => participants.find((p) => p.isLoggedInUser)),
+      map((participants) => participants.find(isStreamVideoLocalParticipant)),
     );
 
     this.remoteParticipants$ = this.participantsSubject.pipe(
@@ -96,7 +104,7 @@ export class StreamVideoWriteableStateStore {
       combineLatestWith(this.connectedUserSubject),
       map(([pendingCalls, connectedUser]) =>
         pendingCalls.filter(
-          (call) => call.call?.createdByUserId !== connectedUser?.id,
+          (call) => call.call.created_by.id !== connectedUser?.id,
         ),
       ),
     );
@@ -105,7 +113,7 @@ export class StreamVideoWriteableStateStore {
       combineLatestWith(this.connectedUserSubject),
       map(([pendingCalls, connectedUser]) =>
         pendingCalls.filter(
-          (call) => call.call?.createdByUserId === connectedUser?.id,
+          (call) => call.call.created_by.id === connectedUser?.id,
         ),
       ),
     );
@@ -115,13 +123,15 @@ export class StreamVideoWriteableStateStore {
         this.setCurrentValue(
           this.pendingCallsSubject,
           this.getCurrentValue(this.pendingCallsSubject).filter(
-            (call) => call.call?.callCid !== callController.data.call?.callCid,
+            (call) => call.call.cid !== callController.data.call.cid,
           ),
         );
         this.setCurrentValue(this.acceptedCallSubject, undefined);
+        this.setCurrentValue(this.callPermissionRequestSubject, undefined);
       } else {
         this.setCurrentValue(this.callRecordingInProgressSubject, false);
         this.setCurrentValue(this.participantsSubject, []);
+        this.setCurrentValue(this.callPermissionRequestSubject, undefined);
       }
     });
 
@@ -236,24 +246,24 @@ export class StreamVideoReadOnlyStateStore {
   /**
    * Data describing a user successfully connected over WS to coordinator server.
    */
-  connectedUser$: Observable<UserInput | undefined>;
+  connectedUser$: Observable<User | undefined>;
   /**
    * A list of objects describing all created calls that have not been yet accepted, rejected nor cancelled.
    */
-  pendingCalls$: Observable<PendingCall[]>;
+  pendingCalls$: Observable<CallMetadata[]>;
   /**
    * A list of objects describing calls initiated by the current user (connectedUser).
    */
-  outgoingCalls$: Observable<PendingCall[]>;
+  outgoingCalls$: Observable<CallMetadata[]>;
   /**
    * A list of objects describing incoming calls.
    */
-  incomingCalls$: Observable<PendingCall[]>;
+  incomingCalls$: Observable<CallMetadata[]>;
   /**
    * The call data describing an incoming call accepted by a participant.
    * Serves as a flag decide, whether an incoming call should be joined.
    */
-  acceptedCall$: Observable<CallAccepted | undefined>;
+  acceptedCall$: Observable<CallAcceptedEvent | undefined>;
   /**
    * The call controller instance representing the call the user attends.
    * The controller instance exposes call metadata as well.
@@ -307,6 +317,10 @@ export class StreamVideoReadOnlyStateStore {
   callRecordingInProgress$: Observable<boolean>;
 
   /**
+   * Emits the latest call permission request sent by any participant of the active call. Or `undefined` if there is no active call or if the current user doesn't have the necessary permission to handle these events.
+   */
+  callPermissionRequest$: Observable<PermissionRequestEvent | undefined>;
+  /**
    * This method allows you the get the current value of a state variable.
    *
    * @param observable the observable to get the current value of.
@@ -324,6 +338,8 @@ export class StreamVideoReadOnlyStateStore {
     this.callStatsReport$ = store.callStatsReportSubject.asObservable();
     this.callRecordingInProgress$ =
       store.callRecordingInProgressSubject.asObservable();
+    this.callPermissionRequest$ =
+      store.callPermissionRequestSubject.asObservable();
 
     // re-expose observables
     this.localParticipant$ = store.localParticipant$;

@@ -5,7 +5,7 @@ import { getGenericSdp } from './codecs';
 import { CallState, TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import { SfuEventListener } from './Dispatcher';
-import { ActiveCallData, StreamVideoWriteableStateStore } from '../store';
+import { StreamVideoWriteableStateStore } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import type {
   CallOptions,
@@ -26,7 +26,7 @@ import {
   createStatsReporter,
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
-import { Batcher } from '../Batcher';
+import { CallMetadata } from './CallMetadata';
 
 /**
  * A `Call` object represents the active call the user is part of. It's not enough to have a `Call` instance, you will also need to call the [`join`](#join) method.
@@ -35,7 +35,7 @@ export class Call {
   /**
    * Contains metadata about the call, for example who created the call. You can also extract the call ID from this object, which you'll need for certain API calls (for example to start a recording).
    */
-  data: ActiveCallData;
+  data: CallMetadata;
   private readonly subscriber: RTCPeerConnection;
   private readonly publisher: Publisher;
   private readonly trackSubscriptionsSubject = new Subject<
@@ -51,14 +51,12 @@ export class Call {
    * @param data
    * @param options
    * @param stateStore
-   * @param userBatcher
    */
   constructor(
-    data: ActiveCallData,
+    data: CallMetadata,
     private readonly client: StreamSfuClient,
     private readonly options: CallOptions,
     private readonly stateStore: StreamVideoWriteableStateStore,
-    private readonly userBatcher: Batcher<string>,
   ) {
     this.data = data;
     this.subscriber = createSubscriber({
@@ -80,7 +78,7 @@ export class Call {
     });
 
     const { dispatcher } = this.client;
-    registerEventHandlers(this, this.stateStore, dispatcher, this.userBatcher);
+    registerEventHandlers(this, this.stateStore, dispatcher);
 
     this.trackSubscriptionsSubject
       .pipe(debounceTime(1200))
@@ -121,7 +119,6 @@ export class Call {
 
     this.statsReporter.stop();
     this.subscriber.close();
-    this.userBatcher.clearBatch();
 
     this.publisher.stopPublishing();
     this.client.close();
@@ -133,14 +130,14 @@ export class Call {
   };
 
   /**
-   * Will initiate a call session with the server and return the call state.
+   * Will initiate a call session with the server and return the call state. Don't call this method directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method that takes care of this operation.
    *
    * If the join was successful the [`activeCall$` state variable](./StreamVideClient/#readonlystatestore) will be set
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
   join = async () => {
-    if (this.joined$.getValue() === true) {
+    if (this.joined$.getValue()) {
       throw new Error(`Illegal State: Already joined.`);
     }
 
@@ -152,21 +149,19 @@ export class Call {
           const { callState } = event.eventPayload.joinResponse;
           const currentParticipants = callState?.participants || [];
 
-          // get user data from the call envelope (invited participants)
-          const { users } = this.data;
-
-          // request user data for uninvited users
-          currentParticipants.forEach((participant) => {
-            const userData = users[participant.userId];
-            if (!userData) this.userBatcher.addToBatch(participant.userId);
-          });
+          const ownCapabilities = {
+            ownCapabilities: this.data.call.own_capabilities,
+          };
 
           this.stateStore.setCurrentValue(
             this.stateStore.participantsSubject,
             currentParticipants.map<StreamVideoParticipant>((participant) => ({
               ...participant,
               isLoggedInUser: participant.sessionId === this.client.sessionId,
-              user: users[participant.userId],
+              // TODO: save other participants permissions once that's provided by SFU
+              ...(participant.sessionId === this.client.sessionId
+                ? ownCapabilities
+                : {}),
             })),
           );
 
