@@ -8,6 +8,7 @@ import {
 import {
   BlockUserResponse,
   CallSettingsRequest,
+  EndCallResponse,
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
   GetEdgesResponse,
@@ -136,6 +137,10 @@ export class StreamCall {
       settings_override: settings,
     };
     return this.client.patch<UpdateCallResponse>(`${this.basePath}`, payload);
+  };
+
+  endCall = async () => {
+    return this.client.post<EndCallResponse>(`${this.basePath}/mark_ended`);
   };
 }
 
@@ -272,5 +277,9 @@ export class StreamCoordinatorClient {
     data: UpdateUserPermissionsRequest,
   ) => {
     return this.call(type, id).updateUserPermissions(data);
+  };
+
+  endCall = async (id: string, type: string) => {
+    return this.call(type, id).endCall();
   };
 }
