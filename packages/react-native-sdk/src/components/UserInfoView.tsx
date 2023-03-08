@@ -5,9 +5,9 @@ import { generateCallTitle } from '../utils';
 import { theme } from '../theme';
 
 enum AvatarModes {
-  small = 'small',
-  medium = 'medium',
-  large = 'large',
+  small = 'sm',
+  medium = 'md',
+  large = 'lg',
 }
 
 export const UserInfoView = () => {
@@ -35,11 +35,15 @@ export const UserInfoView = () => {
 
   const mode = avatarSizeModes[memberUserIds.length] || AvatarModes.small;
 
-  const avatarStyles = styles[`${mode}Avatar`];
+  const avatarStyles = {
+    height: theme.avatar[mode],
+    width: theme.avatar[mode],
+    borderRadius: theme.avatar[mode] / 2,
+  };
 
   return (
     <View style={styles.userInfo}>
-      <View style={styles.avatarView}>
+      <View style={styles.avatarGroup}>
         {supportedAmountOfMemberUserIds.map((member) => {
           return (
             <Image
@@ -69,32 +73,16 @@ export const UserInfoView = () => {
 
 const styles = StyleSheet.create({
   userInfo: {
-    paddingHorizontal: 2 * theme.padding.xl,
+    paddingHorizontal: theme.padding.xl * 2,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
   },
-  avatarView: {
+  avatarGroup: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     flexWrap: 'wrap',
-    width: '100%',
-  },
-  largeAvatar: {
-    height: 200,
-    width: 200,
-    borderRadius: 100,
-  },
-  mediumAvatar: {
-    height: 120,
-    width: 120,
-    borderRadius: 60,
-  },
-  smallAvatar: {
-    height: 100,
-    width: 100,
-    borderRadius: 50,
   },
   name: {
     color: theme.light.static_white,

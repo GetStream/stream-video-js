@@ -115,17 +115,17 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       {kind === 'video' && (
         <View style={styles.status}>
           <Text style={styles.userNameLabel}>{participant.userId}</Text>
-          <View style={styles.svgWrapper}>
+          <View style={styles.svgContainerStyle}>
             {isAudioMuted && <MicOff color={theme.light.error} />}
           </View>
-          <View style={styles.svgWrapper}>
+          <View style={styles.svgContainerStyle}>
             {isVideoMuted && <VideoSlash color={theme.light.error} />}
           </View>
         </View>
       )}
       {kind === 'screen' && (
         <View style={styles.screenViewStatus}>
-          <View style={[styles.svgWrapper, styles.screenShareIcon]}>
+          <View style={[styles.svgContainerStyle, theme.icon.md]}>
             <ScreenShare color={theme.light.static_white} />
           </View>
           <Text style={styles.userNameLabel}>
@@ -184,16 +184,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  screenShareIcon: {
-    marginRight: theme.margin.xs,
-  },
   userNameLabel: {
     color: theme.light.static_white,
     ...theme.fonts.caption,
   },
-  svgWrapper: {
-    height: 16,
-    width: 16,
+  svgContainerStyle: {
     marginLeft: theme.margin.xs,
   },
   isSpeaking: {

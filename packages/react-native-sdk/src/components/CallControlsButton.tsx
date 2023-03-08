@@ -28,12 +28,16 @@ interface CallControlsButtonProps {
   svgContainerStyle?: StyleProp<ViewStyle>;
 }
 
+const DEFAULT_ICON_SIZE = theme.icon.md;
+const DEFAULT_BUTTON_SIZE = theme.button.sm;
+
 export const CallControlsButton = (
   props: React.PropsWithChildren<CallControlsButtonProps>,
 ) => {
   const { onPress, children, color, style, svgContainerStyle } = props;
 
   const pressableStyle: PressableProps['style'] = ({ pressed }) => [
+    DEFAULT_BUTTON_SIZE,
     styles.container,
     {
       backgroundColor: color,
@@ -44,7 +48,13 @@ export const CallControlsButton = (
 
   return (
     <Pressable style={pressableStyle} onPress={onPress}>
-      <View style={[styles.svgContainerStyle, svgContainerStyle ?? null]}>
+      <View
+        style={[
+          styles.svgContainerStyle,
+          DEFAULT_ICON_SIZE,
+          svgContainerStyle ?? null,
+        ]}
+      >
         {children}
       </View>
     </Pressable>
@@ -53,16 +63,11 @@ export const CallControlsButton = (
 
 const styles = StyleSheet.create({
   container: {
-    width: 50,
-    height: 50,
     borderRadius: 25,
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: theme.light.content_bg,
     alignItems: 'center',
   },
-  svgContainerStyle: {
-    width: 25,
-    height: 25,
-  },
+  svgContainerStyle: {},
 });

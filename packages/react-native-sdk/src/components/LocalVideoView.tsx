@@ -56,7 +56,7 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
     return (
       <View style={{ ...(style as Object), ...styles.avatarWrapper }}>
         {/* <Avatar participant={localParticipant} radius={50} /> */}
-        <View style={styles.icon}>
+        <View style={[styles.svgContainerStyle, theme.icon.md]}>
           <VideoSlash color={theme.light.static_white} />
         </View>
       </View>
@@ -90,8 +90,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  icon: {
-    height: 25,
-    width: 25,
-  },
+  svgContainerStyle: {},
 });

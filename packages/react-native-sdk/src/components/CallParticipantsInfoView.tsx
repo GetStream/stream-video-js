@@ -34,7 +34,7 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
 
   return (
     <View style={styles.participant}>
-      <Avatar radius={50} participant={participant} />
+      <Avatar radius={theme.avatar.xs} participant={participant} />
 
       <Text style={styles.name}>
         {participant.name ||
@@ -43,22 +43,22 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
       </Text>
       <View style={styles.icons}>
         {isScreenSharing && (
-          <View style={styles.screenShareIcon}>
+          <View style={[styles.svgContainerStyle, theme.icon.md]}>
             <ScreenShare color={theme.light.info} />
           </View>
         )}
         {isAudioMuted && (
-          <View style={styles.icon}>
+          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
             <MicOff color={theme.light.error} />
           </View>
         )}
         {isVideoMuted && (
-          <View style={styles.icon}>
+          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
             <VideoSlash color={theme.light.error} />
           </View>
         )}
         {/* Disablling it until we support permissions */}
-        {/* <Pressable style={styles.icon} onPress={optionsOpenHandler}>
+        {/* <Pressable style={[styles.svgContainerStyle, theme.icon.sm]} onPress={optionsOpenHandler}>
           <ArrowRight color={theme.light.text_high_emphasis} />
         </Pressable> */}
       </View>
@@ -119,25 +119,13 @@ const styles = StyleSheet.create({
     color: theme.light.text_high_emphasis,
     ...theme.fonts.subtitleBold,
   },
-  avatar: {
-    height: 50,
-    width: 50,
-    borderRadius: 50,
-  },
   icons: {
     position: 'absolute',
     right: 10,
     display: 'flex',
     flexDirection: 'row',
   },
-  icon: {
-    height: 20,
-    width: 20,
-    marginLeft: theme.margin.sm,
-  },
-  screenShareIcon: {
-    height: 24,
-    width: 24,
+  svgContainerStyle: {
     marginLeft: theme.margin.sm,
   },
   modal: {

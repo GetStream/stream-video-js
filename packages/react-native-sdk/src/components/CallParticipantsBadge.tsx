@@ -22,7 +22,7 @@ export const CallParticipantsBadge = ({
       <View style={styles.badge}>
         <Text style={styles.badgeText}>{participants.length}</Text>
       </View>
-      <View style={styles.icon}>
+      <View style={[styles.svgContainerStyle, theme.icon.md]}>
         <Participants color={theme.light.static_white} />
       </View>
     </Pressable>
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     top: Platform.OS === 'ios' ? 35 : 10,
     zIndex: 2,
   },
-  icon: { height: 24, width: 27 },
+  svgContainerStyle: {},
   badge: {
     backgroundColor: theme.light.text_low_emphasis,
     borderRadius: 30,

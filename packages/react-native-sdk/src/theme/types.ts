@@ -1,4 +1,4 @@
-import { TextStyle } from 'react-native';
+import { StyleProp, TextStyle, ViewStyle } from 'react-native';
 
 export type ColorScheme = {
   primary: string;
@@ -42,8 +42,20 @@ export type PaddingScheme = Record<PaddingTypes, number>;
 export type MarginTypes = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type MarginScheme = Record<MarginTypes, number>;
 
+export type IconTypes = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type IconScheme = Record<IconTypes, StyleProp<ViewStyle>>;
+
+export type ButtonTypes = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type ButtonScheme = Record<ButtonTypes, StyleProp<ViewStyle>>;
+
+export type AvatarTypes = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type AvatarScheme = Record<AvatarTypes, number>;
+
 export type Theme = ColorType & {
   fonts: FontsScheme;
   padding: PaddingScheme;
   margin: MarginScheme;
+  icon: IconScheme;
+  button: ButtonScheme;
+  avatar: AvatarScheme;
 };

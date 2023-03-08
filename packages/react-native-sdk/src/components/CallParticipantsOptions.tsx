@@ -30,7 +30,7 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
     <View style={styles.menu}>
       <View style={styles.participantInfo}>
         <View style={styles.userInfo}>
-          <Avatar radius={50} participant={participant} />
+          <Avatar radius={theme.avatar.xs} participant={participant} />
 
           <Text style={styles.name}>
             {generateParticipantTitle(participant.userId) +
@@ -38,7 +38,10 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
           </Text>
         </View>
 
-        <Pressable style={styles.icon} onPress={onCloseParticipantOptions}>
+        <Pressable
+          style={styles.svgContainerStyle}
+          onPress={onCloseParticipantOptions}
+        >
           <Cross color={theme.light.primary} />
         </Pressable>
       </View>
@@ -52,7 +55,9 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
               ]}
               key={option.title}
             >
-              <View style={styles.icon}>{option.icon}</View>
+              <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+                {option.icon}
+              </View>
               <Text style={styles.title}>{option.title}</Text>
             </Pressable>
           );
@@ -67,10 +72,7 @@ const styles = StyleSheet.create({
     marginLeft: theme.margin.sm,
     ...theme.fonts.subtitleBold,
   },
-  icon: {
-    height: 20,
-    width: 20,
-  },
+  svgContainerStyle: {},
   menu: {
     backgroundColor: theme.light.bars,
     width: '80%',

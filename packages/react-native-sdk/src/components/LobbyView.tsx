@@ -42,12 +42,12 @@ const ParticipantStatus = () => {
     <View style={styles.status}>
       <Text style={styles.userNameLabel}>{connectedUser?.id}</Text>
       {isAudioMuted && (
-        <View style={styles.svgWrapper}>
+        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
           <MicOff color={theme.light.error} />
         </View>
       )}
       {isVideoMuted && (
-        <View style={styles.svgWrapper}>
+        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
           {isVideoMuted && <VideoSlash color={theme.light.error} />}
         </View>
       )}
@@ -129,7 +129,7 @@ export const LobbyView = (props: LobbyViewProps) => {
             <ParticipantStatus />
           </View>
         )}
-        <View style={styles.buttons}>
+        <View style={styles.buttonGroup}>
           <CallControlsButton
             onPress={toggleAudioState}
             color={
@@ -139,6 +139,7 @@ export const LobbyView = (props: LobbyViewProps) => {
             }
             style={[
               styles.button,
+              theme.button.md,
               {
                 shadowColor: !isAudioMuted
                   ? theme.light.static_white
@@ -157,6 +158,7 @@ export const LobbyView = (props: LobbyViewProps) => {
             }
             style={[
               styles.button,
+              theme.button.md,
               {
                 shadowColor: !isVideoMuted
                   ? theme.light.static_white
@@ -216,15 +218,12 @@ const styles = StyleSheet.create({
     width: '90%',
     marginVertical: theme.margin.md,
   },
-  buttons: {
+  buttonGroup: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginBottom: theme.margin.md,
   },
   button: {
-    height: 60,
-    width: 60,
-    borderRadius: 70,
     marginHorizontal: theme.margin.sm,
   },
   info: {
@@ -262,18 +261,16 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   avatar: {
-    height: 100,
-    width: 100,
-    borderRadius: 100,
+    height: theme.avatar.sm,
+    width: theme.avatar.sm,
+    borderRadius: theme.avatar.sm / 2,
     alignSelf: 'center',
   },
   userNameLabel: {
     color: theme.light.static_white,
     ...theme.fonts.caption,
   },
-  svgWrapper: {
-    height: 12,
-    width: 12,
+  svgContainerStyle: {
     marginLeft: theme.margin.sm,
   },
 });

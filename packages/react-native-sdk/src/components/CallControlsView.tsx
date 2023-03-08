@@ -52,8 +52,8 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
       <CallControlsButton
         color={theme.light.static_white}
         onPress={() => null}
-        svgContainerStyle={styles.chatSvgStyle}
-        style={styles.buttonStyle}
+        svgContainerStyle={styles.svgContainerStyle}
+        style={styles.button}
       >
         <Chat color={theme.light.static_black} />
       </CallControlsButton>
@@ -62,7 +62,7 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
         color={
           isVideoMuted ? theme.light.overlay_dark : theme.light.static_white
         }
-        style={!isVideoMuted ? styles.buttonStyle : null}
+        style={!isVideoMuted ? styles.button : null}
       >
         {isVideoMuted ? (
           <VideoSlash color={theme.light.static_white} />
@@ -75,7 +75,7 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
         color={
           isAudioMuted ? theme.light.overlay_dark : theme.light.static_white
         }
-        style={!isAudioMuted ? styles.buttonStyle : null}
+        style={!isAudioMuted ? styles.button : null}
       >
         {isAudioMuted ? (
           <MicOff color={theme.light.static_white} />
@@ -90,7 +90,7 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
             ? theme.light.static_white
             : theme.light.overlay_dark
         }
-        style={isCameraOnFrontFacingMode ? styles.buttonStyle : null}
+        style={isCameraOnFrontFacingMode ? styles.button : null}
       >
         <CameraSwitch
           color={
@@ -103,7 +103,7 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
       <CallControlsButton
         onPress={handleHangUpCall}
         color={theme.light.error}
-        style={[styles.buttonStyle, { shadowColor: theme.light.error }]}
+        style={[styles.button, { shadowColor: theme.light.error }]}
       >
         <PhoneDown color={theme.light.static_white} />
       </CallControlsButton>
@@ -123,16 +123,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 2,
   },
-  buttonStyle: {
+  button: {
+    // For iOS
     shadowOffset: {
       width: 0,
       height: 6,
     },
     shadowOpacity: 0.37,
     shadowRadius: 7.49,
+
+    // For android
     elevation: 6,
   },
-  chatSvgStyle: {
+  svgContainerStyle: {
     paddingTop: theme.padding.xs,
   },
 });

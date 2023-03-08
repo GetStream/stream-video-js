@@ -40,12 +40,12 @@ export const IncomingCallView = () => {
         <Text style={styles.incomingCallText}>Incoming Call...</Text>
       </View>
 
-      <View style={styles.buttons}>
+      <View style={styles.buttonGroup}>
         <CallControlsButton
           onPress={rejectCallHandler}
           color={theme.light.error}
-          style={styles.buttonStyle}
-          svgContainerStyle={styles.svgStyle}
+          style={[styles.button, theme.button.lg]}
+          svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
         >
           <PhoneDown color={theme.light.static_white} />
         </CallControlsButton>
@@ -54,8 +54,8 @@ export const IncomingCallView = () => {
           color={
             !isVideoMuted ? theme.light.static_white : theme.light.overlay_dark
           }
-          style={styles.buttonStyle}
-          svgContainerStyle={styles.svgStyle}
+          style={[styles.button, theme.button.lg]}
+          svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
         >
           {isVideoMuted ? (
             <VideoSlash color={theme.light.static_white} />
@@ -66,8 +66,8 @@ export const IncomingCallView = () => {
         <CallControlsButton
           onPress={answerCallHandler}
           color={theme.light.info}
-          style={styles.buttonStyle}
-          svgContainerStyle={styles.svgStyle}
+          style={[styles.button, theme.button.lg]}
+          svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
         >
           <Phone color={theme.light.static_white} />
         </CallControlsButton>
@@ -117,18 +117,11 @@ const styles = StyleSheet.create({
     color: theme.light.static_white,
     ...theme.fonts.heading6,
   },
-  buttons: {
+  buttonGroup: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: theme.padding.xl,
   },
-  buttonStyle: {
-    height: 70,
-    width: 70,
-    borderRadius: 70,
-  },
-  svgStyle: {
-    height: 30,
-    width: 30,
-  },
+  button: {},
+  svgContainerStyle: {},
 });

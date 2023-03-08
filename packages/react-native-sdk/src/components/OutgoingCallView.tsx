@@ -32,7 +32,7 @@ export const OutgoingCallView = () => {
           <UserInfoView />
           <Text style={styles.callingText}>Calling...</Text>
         </View>
-        <View style={styles.buttons}>
+        <View style={styles.buttonGroup}>
           <View style={styles.deviceControlButtons}>
             <CallControlsButton
               onPress={toggleAudioMuted}
@@ -41,8 +41,8 @@ export const OutgoingCallView = () => {
                   ? theme.light.overlay_dark
                   : theme.light.static_white
               }
-              style={styles.buttonStyle}
-              svgContainerStyle={styles.svgStyle}
+              style={[styles.button, theme.button.lg]}
+              svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
             >
               {isAudioMuted ? (
                 <MicOff color={theme.light.static_white} />
@@ -57,8 +57,8 @@ export const OutgoingCallView = () => {
                   ? theme.light.overlay_dark
                   : theme.light.static_white
               }
-              style={styles.buttonStyle}
-              svgContainerStyle={styles.svgStyle}
+              style={[styles.button, theme.button.lg]}
+              svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
             >
               {isVideoMuted ? (
                 <VideoSlash color={theme.light.static_white} />
@@ -71,8 +71,8 @@ export const OutgoingCallView = () => {
           <CallControlsButton
             onPress={hangupCallHandler}
             color={theme.light.error}
-            style={[styles.buttonStyle, styles.hangupButton]}
-            svgContainerStyle={styles.svgStyle}
+            style={[styles.button, styles.hangupButton, theme.button.lg]}
+            svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
           >
             <PhoneDown color={theme.light.static_white} />
           </CallControlsButton>
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     color: theme.light.static_white,
     ...theme.fonts.heading6,
   },
-  buttons: {},
+  buttonGroup: {},
   deviceControlButtons: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -130,15 +130,8 @@ const styles = StyleSheet.create({
   hangupButton: {
     alignSelf: 'center',
   },
-  buttonStyle: {
-    height: 70,
-    width: 70,
-    borderRadius: 70,
-  },
-  svgStyle: {
-    height: 30,
-    width: 30,
-  },
+  button: {},
+  svgContainerStyle: {},
   stream: {
     flex: 1,
   },
