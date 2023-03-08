@@ -27,6 +27,8 @@ import {
   SortParamRequest,
   StopLiveResponse,
   UnblockUserResponse,
+  UpdateCallMemberRequest,
+  UpdateCallMemberResponse,
   UpdateCallRequest,
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
@@ -116,6 +118,13 @@ export class StreamCall {
   updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
     return this.client.post<UpdateUserPermissionsResponse>(
       `${this.basePath}/user_permissions`,
+      data,
+    );
+  };
+
+  updateCallMembers = async (data: UpdateCallMemberRequest) => {
+    return this.client.post<UpdateCallMemberResponse>(
+      `${this.basePath}/update_member`,
       data,
     );
   };
@@ -281,5 +290,13 @@ export class StreamCoordinatorClient {
 
   endCall = async (id: string, type: string) => {
     return this.call(type, id).endCall();
+  };
+
+  updateCallMembers = async (
+    id: string,
+    type: string,
+    data: UpdateCallMemberRequest,
+  ) => {
+    return this.call(type, id).updateCallMembers(data);
   };
 }
