@@ -36,4 +36,14 @@ export type FontStyle = {
 
 export type FontsScheme = Record<FontTypes, FontStyle>;
 
-export type Theme = ColorType & { fonts: FontsScheme };
+export type PaddingTypes = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type PaddingScheme = Record<PaddingTypes, number>;
+
+export type MarginTypes = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type MarginScheme = Record<MarginTypes, number>;
+
+export type Theme = ColorType & {
+  fonts: FontsScheme;
+  padding: PaddingScheme;
+  margin: MarginScheme;
+};

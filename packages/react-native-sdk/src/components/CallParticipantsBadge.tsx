@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   badge: {
     backgroundColor: theme.light.text_low_emphasis,
     borderRadius: 30,
-    padding: 4,
+    padding: theme.padding.xs,
     position: 'relative',
     left: 10,
     top: 5,

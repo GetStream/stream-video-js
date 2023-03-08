@@ -64,13 +64,8 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
 
 const styles = StyleSheet.create({
   name: {
-    marginLeft: 10,
+    marginLeft: theme.margin.sm,
     ...theme.fonts.subtitleBold,
-  },
-  avatar: {
-    height: 50,
-    width: 50,
-    borderRadius: 50,
   },
   icon: {
     height: 20,
@@ -78,10 +73,6 @@ const styles = StyleSheet.create({
   },
   menu: {
     backgroundColor: theme.light.bars,
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    marginTop: 'auto',
-    marginBottom: 'auto',
     width: '80%',
     borderRadius: 15,
   },
@@ -90,7 +81,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 15,
+    padding: theme.padding.md,
   },
   userInfo: {
     display: 'flex',
@@ -99,14 +90,14 @@ const styles = StyleSheet.create({
   },
   options: {},
   option: {
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingHorizontal: theme.padding.md,
+    paddingVertical: theme.padding.sm,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
   },
   title: {
-    marginLeft: 20,
+    marginLeft: theme.margin.md,
     color: theme.light.text_high_emphasis,
     ...theme.fonts.subtitle,
   },

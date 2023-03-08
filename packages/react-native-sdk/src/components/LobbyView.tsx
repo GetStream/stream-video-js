@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'absolute',
     bottom: 0,
-    marginVertical: 20,
+    marginVertical: theme.margin.md,
   },
   heading: {
     color: theme.light.static_white,
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   subHeading: {
     color: theme.light.text_low_emphasis,
     ...theme.fonts.subtitle,
-    marginBottom: 10,
+    marginBottom: theme.margin.sm,
   },
   videoView: {
     backgroundColor: theme.light.disabled,
@@ -214,22 +214,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
     width: '90%',
-    marginVertical: 15,
+    marginVertical: theme.margin.md,
   },
   buttons: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 15,
+    marginBottom: theme.margin.md,
   },
   button: {
     height: 60,
     width: 60,
     borderRadius: 70,
-    marginHorizontal: 10,
+    marginHorizontal: theme.margin.sm,
   },
   info: {
     backgroundColor: theme.light.static_overlay,
-    padding: 15,
+    padding: theme.padding.md,
     borderRadius: 10,
     width: '90%',
   },
@@ -241,9 +241,9 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: theme.light.primary,
     borderRadius: 10,
-    marginTop: 20,
+    marginTop: theme.margin.md,
     justifyContent: 'center',
-    paddingVertical: 10,
+    paddingVertical: theme.padding.sm,
   },
   joinButtonText: {
     color: theme.light.static_white,
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 6,
     bottom: 6,
-    padding: 6,
+    padding: theme.padding.sm,
     borderRadius: 6,
     backgroundColor: theme.light.static_overlay,
     zIndex: 10,
@@ -274,6 +274,6 @@ const styles = StyleSheet.create({
   svgWrapper: {
     height: 12,
     width: 12,
-    marginLeft: 6,
+    marginLeft: theme.margin.sm,
   },
 });

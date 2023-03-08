@@ -2,6 +2,7 @@ import { SfuModels } from '@stream-io/video-client';
 import { useParticipants } from '@stream-io/video-react-bindings';
 import { View, Text, StyleSheet } from 'react-native';
 import { ParticipantView } from './ParticipantView';
+import { theme } from '../theme';
 
 export const CallParticipantsScreenView = () => {
   const allParticipants = useParticipants();
@@ -47,12 +48,12 @@ const styles = StyleSheet.create({
     flex: 3,
   },
   participantVideoContainer: {
-    marginTop: 8,
+    marginTop: theme.margin.sm,
     flex: 1,
     flexDirection: 'row',
   },
   participantVideoBox: {
     borderRadius: 16,
-    marginLeft: 8,
+    marginLeft: theme.margin.sm,
   },
 });

@@ -44,7 +44,7 @@ export const UserInfoView = () => {
           return (
             <Image
               key={member}
-              style={[styles.avatar, avatarStyles]}
+              style={[avatarStyles]}
               // FIXME: use real avatar from coordinator this is temporary
               source={{
                 uri: `https://getstream.io/random_png/?id=${member}&name=${member}`,
@@ -69,10 +69,10 @@ export const UserInfoView = () => {
 
 const styles = StyleSheet.create({
   userInfo: {
-    textAlign: 'center',
-    alignItems: 'center',
-    marginTop: 90,
-    paddingHorizontal: 55,
+    paddingHorizontal: 2 * theme.padding.xl,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
   },
   avatarView: {
     display: 'flex',
@@ -81,24 +81,24 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     width: '100%',
   },
-  avatar: {
-    borderRadius: 100,
-  },
   largeAvatar: {
     height: 200,
     width: 200,
+    borderRadius: 100,
   },
   mediumAvatar: {
     height: 120,
     width: 120,
+    borderRadius: 60,
   },
   smallAvatar: {
     height: 100,
     width: 100,
+    borderRadius: 50,
   },
   name: {
-    marginTop: 45,
     color: theme.light.static_white,
     textAlign: 'center',
+    marginTop: theme.margin.xl,
   },
 });

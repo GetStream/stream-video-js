@@ -35,8 +35,11 @@ export const IncomingCallView = () => {
 
   return (
     <Background>
-      <UserInfoView />
-      <Text style={styles.incomingCallText}>Incoming Call...</Text>
+      <View style={styles.content}>
+        <UserInfoView />
+        <Text style={styles.incomingCallText}>Incoming Call...</Text>
+      </View>
+
       <View style={styles.buttons}>
         <CallControlsButton
           onPress={rejectCallHandler}
@@ -89,7 +92,7 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
           //FIXME: This is a temporary solution to get a random image for the background. Replace with image from coordinator
           uri: `https://getstream.io/random_png/?id=${memberUserIds[0]}&name=${memberUserIds[0]}`,
         }}
-        style={StyleSheet.absoluteFill}
+        style={[StyleSheet.absoluteFill, styles.background]}
       >
         {children}
       </ImageBackground>
@@ -102,9 +105,14 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
 const styles = StyleSheet.create({
   background: {
     backgroundColor: theme.light.static_grey,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    paddingVertical: 2 * theme.margin.xl,
   },
+  content: {},
   incomingCallText: {
-    marginTop: 16,
+    marginTop: theme.margin.md,
     textAlign: 'center',
     color: theme.light.static_white,
     ...theme.fonts.heading6,
@@ -112,12 +120,7 @@ const styles = StyleSheet.create({
   buttons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 40,
-    marginTop: '40%',
-    position: 'absolute',
-    bottom: 90,
-    left: 0,
-    right: 0,
+    paddingHorizontal: theme.padding.xl,
   },
   buttonStyle: {
     height: 70,

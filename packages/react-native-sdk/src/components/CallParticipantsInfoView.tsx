@@ -106,8 +106,8 @@ export const CallParticipantsInfoView = () => {
 
 const styles = StyleSheet.create({
   participant: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: theme.padding.sm,
+    paddingVertical: theme.padding.xs,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   name: {
-    marginLeft: 10,
+    marginLeft: theme.margin.sm,
     color: theme.light.text_high_emphasis,
     ...theme.fonts.subtitleBold,
   },
@@ -133,12 +133,12 @@ const styles = StyleSheet.create({
   icon: {
     height: 20,
     width: 20,
-    marginLeft: 10,
+    marginLeft: theme.margin.sm,
   },
   screenShareIcon: {
     height: 24,
     width: 24,
-    marginLeft: 10,
+    marginLeft: theme.margin.sm,
   },
   modal: {
     alignItems: 'center',

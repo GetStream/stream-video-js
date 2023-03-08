@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     borderRadius: 16,
-    marginLeft: 8,
+    marginLeft: theme.margin.sm,
   },
   status: {
     flexDirection: 'row',
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 6,
     bottom: 6,
-    padding: 6,
+    padding: theme.padding.sm,
     borderRadius: 6,
     backgroundColor: theme.light.static_overlay,
   },
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 8,
     top: 8,
-    padding: 4,
+    padding: theme.padding.sm,
     borderRadius: 6,
     backgroundColor: theme.light.static_overlay,
     display: 'flex',
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   screenShareIcon: {
-    marginRight: 5,
+    marginRight: theme.margin.xs,
   },
   userNameLabel: {
     color: theme.light.static_white,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   svgWrapper: {
     height: 16,
     width: 16,
-    marginLeft: 6,
+    marginLeft: theme.margin.xs,
   },
   isSpeaking: {
     borderColor: theme.light.primary,

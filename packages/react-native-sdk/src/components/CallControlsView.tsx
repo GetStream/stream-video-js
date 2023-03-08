@@ -113,11 +113,10 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    paddingVertical: 25,
-    paddingHorizontal: 16,
+    paddingVertical: theme.padding.lg,
+    paddingHorizontal: theme.padding.md,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     backgroundColor: theme.light.controls_bg,
@@ -134,6 +133,6 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   chatSvgStyle: {
-    paddingTop: 4,
+    paddingTop: theme.padding.xs,
   },
 });

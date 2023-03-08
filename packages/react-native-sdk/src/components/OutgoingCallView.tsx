@@ -28,8 +28,10 @@ export const OutgoingCallView = () => {
   return (
     <>
       <View style={[StyleSheet.absoluteFill, styles.container]}>
-        <UserInfoView />
-        <Text style={styles.callingText}>Calling...</Text>
+        <View style={styles.content}>
+          <UserInfoView />
+          <Text style={styles.callingText}>Calling...</Text>
+        </View>
         <View style={styles.buttons}>
           <View style={styles.deviceControlButtons}>
             <CallControlsButton
@@ -103,26 +105,27 @@ const Background = () => {
 
 const styles = StyleSheet.create({
   container: {
-    zIndex: 2,
+    zIndex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    paddingVertical: 2 * theme.margin.xl,
   },
   background: {
     backgroundColor: theme.light.static_grey,
   },
+  content: {},
   callingText: {
-    marginTop: 16,
+    marginTop: theme.margin.md,
     textAlign: 'center',
     color: theme.light.static_white,
     ...theme.fonts.heading6,
   },
-  buttons: {
-    position: 'absolute',
-    bottom: 90,
-    width: '100%',
-  },
+  buttons: {},
   deviceControlButtons: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 20,
+    marginBottom: theme.margin.md,
   },
   hangupButton: {
     alignSelf: 'center',
