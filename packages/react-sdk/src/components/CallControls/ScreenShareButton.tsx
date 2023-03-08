@@ -20,7 +20,7 @@ export const ScreenShareButton = ({
     SfuModels.TrackType.SCREEN_SHARE,
   );
   return (
-    <CompositeButton enabled={isSomeoneScreenSharing} caption={caption}>
+    <CompositeButton active={isSomeoneScreenSharing} caption={caption}>
       <IconButton
         icon={isScreenSharing ? 'screen-share-on' : 'screen-share-off'}
         title="Share screen"
