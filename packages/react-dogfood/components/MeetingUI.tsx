@@ -168,7 +168,7 @@ export const MeetingUI = ({
               disableOnChatOpen={showChat}
             >
               <div className="str-chat__chat-button__wrapper">
-                <CompositeButton caption="Chat" enabled={showChat}>
+                <CompositeButton caption="Chat" active={showChat}>
                   <IconButton
                     enabled={showChat}
                     disabled={!chatClient}

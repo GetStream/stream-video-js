@@ -9,7 +9,7 @@ import { defaultEmojiReactions } from '../Reaction';
 export const ReactionsButton = () => {
   return (
     <CompositeButton
-      enabled={false}
+      active={false}
       caption="Reactions"
       Menu={DefaultReactionsMenu}
     >
