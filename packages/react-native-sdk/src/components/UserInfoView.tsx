@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Platform, StyleSheet, Text, View } from 'react-native';
 import { MAX_AVATARS_IN_VIEW } from '../constants';
 import { generateCallTitle } from '../utils';
 import { theme } from '../theme';
@@ -73,7 +73,8 @@ export const UserInfoView = () => {
 
 const styles = StyleSheet.create({
   userInfo: {
-    paddingHorizontal: theme.padding.xl * 2,
+    paddingHorizontal:
+      Platform.OS === 'android' ? theme.padding.xl * 4 : theme.padding.xl * 2,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
