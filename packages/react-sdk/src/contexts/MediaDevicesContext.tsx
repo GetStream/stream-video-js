@@ -15,10 +15,11 @@ import {
   getVideoDevices,
   getVideoStream,
   SfuModels,
+  watchForDisconnectedAudioOutputDevice,
 } from '@stream-io/video-client';
-import { pairwise } from 'rxjs';
+import { map, pairwise } from 'rxjs';
 import { useAudioPublisher, useVideoPublisher } from '../hooks';
-import { useActiveCall } from '@stream-io/video-react-bindings';
+import { useActiveCall, useStore } from '@stream-io/video-react-bindings';
 
 type EnabledStateType = 'starting' | 'playing';
 type DisabledStateType = 'uninitialized' | 'stopped';
@@ -110,6 +111,7 @@ export const MediaDevicesProvider = ({
   initialAudioInputDeviceId = 'default',
 }: MediaDevicesProviderProps) => {
   const call = useActiveCall();
+  const { localParticipant$ } = useStore();
 
   const [audioInputDevices, setAudioInputDevices] = useState<MediaDeviceInfo[]>(
     [],
@@ -190,11 +192,6 @@ export const MediaDevicesProvider = ({
   );
 
   useEffect(() => {
-    if (!call) return;
-    call.setAudioOutputDevice(selectedAudioOutputDeviceId);
-  }, [call, selectedAudioOutputDeviceId]);
-
-  useEffect(() => {
     if (!enumerate) return;
 
     const subscription = getAudioDevices().subscribe(setAudioInputDevices);
@@ -231,6 +228,22 @@ export const MediaDevicesProvider = ({
 
     return () => subscription.unsubscribe();
   }, [videoDevices.length]);
+
+  useEffect(() => {
+    if (!call) return;
+    call.setAudioOutputDevice(selectedAudioOutputDeviceId);
+  }, [call, selectedAudioOutputDeviceId]);
+
+  useEffect(() => {
+    const subscription = watchForDisconnectedAudioOutputDevice(
+      localParticipant$.pipe(map((p) => p?.audioOutputDeviceId)),
+    ).subscribe(async () => {
+      setSelectedAudioOutputDeviceId('default');
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [localParticipant$]);
 
   const contextValue: MediaDevicesContextAPI = {
     audioInputDevices,
