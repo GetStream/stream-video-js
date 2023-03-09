@@ -135,6 +135,17 @@ export const MeetingUI = ({
         <div className="str-video__call-header">
           <CallHeaderTitle />
           <div className="str-video__call-header__controls-group">
+            <IconButton
+              icon="info-document"
+              title="Usage guide and known limitations"
+              onClick={() => {
+                if (window) {
+                  const url =
+                    'https://www.notion.so/stream-wiki/Usage-guide-and-known-limitations-603b12af2dff43d69119be4dae462b19';
+                  window.open(url, '_blank');
+                }
+              }}
+            />
             <GetInviteLinkButton Button={IconInviteLinkButton} />
             <DeviceSettings />
           </div>
