@@ -48,7 +48,7 @@
     "generate-docs:react:sdk": "yarn workspace @stream-io/video-react-sdk run generate-docs",
     "generate-docs:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run generate-docs",
     "start:docs:react": "yarn workspace @stream-io/video-react-sdk run start:docs ",
-    "bootstrap": "./bootstrap.sh"
+    "bootstrap": "./scripts/bootstrap.sh"
   },
   "devDependencies": {
     "@types/eslint": "^8.4.8",
