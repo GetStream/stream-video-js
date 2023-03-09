@@ -15,4 +15,12 @@ This script expects the following directory structure to be set up:
 
 ## Documentation
 
-API reference documentation can be generated using the `yarn run generate-docs:client`, the generated documentation will be inside the `generated-docs` folder.
+API reference documentation can be generated using the `yarn run generate-docs:client`, 
+the generated documentation will be inside the `generated-docs` folder.
+
+To view the documentation locally, run the following in the root of the respective SDK React/React Native.
+    
+```bash 
+yarn generate-docs
+`npx stream-chat-docusaurus -s`
+```
