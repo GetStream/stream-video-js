@@ -6369,8 +6369,6 @@ __metadata:
   resolution: "@stream-io/messenger-clone-react@workspace:sample-apps/react/messenger-clone"
   dependencies:
     "@mui/icons-material": ^5.10.16
-    "@stream-io/video-client": "workspace:^"
-    "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
     "@types/react": ^18.0.26
@@ -6594,8 +6592,6 @@ __metadata:
     "@mui/icons-material": ^5.10.16
     "@mui/material": ^5.10.16
     "@sentry/nextjs": ^7.22.0
-    "@stream-io/video-client": "workspace:^"
-    "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
     "@types/yargs": ^17.0.17
@@ -6707,8 +6703,6 @@ __metadata:
     "@emotion/styled": ^11.10.5
     "@mui/icons-material": ^5.10.16
     "@mui/material": ^5.10.16
-    "@stream-io/video-client": "workspace:^"
-    "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
     "@types/node": ^18.11.17
@@ -6767,8 +6761,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/zoom-clone-react@workspace:sample-apps/react/zoom-clone"
   dependencies:
-    "@stream-io/video-client": "workspace:^"
-    "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
     "@types/react": ^18.0.26
@@ -27610,7 +27602,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "stream-video-react-tutorial@workspace:sample-apps/react/stream-video-react-tutorial"
   dependencies:
-    "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
     "@types/react": ^18.0.26

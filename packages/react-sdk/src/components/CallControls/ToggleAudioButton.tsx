@@ -15,7 +15,7 @@ export const ToggleAudioPreviewButton = ({
   return (
     <CompositeButton
       Menu={DeviceSelectorAudioInput}
-      enabled={!initialAudioEnabled}
+      active={!initialAudioEnabled}
       caption={caption}
     >
       <IconButton
@@ -50,7 +50,7 @@ export const ToggleAudioPublishingButton = ({
   return (
     <CompositeButton
       Menu={DeviceSelectorAudioInput}
-      enabled={isAudioMute}
+      active={isAudioMute}
       caption={caption}
     >
       <IconButton

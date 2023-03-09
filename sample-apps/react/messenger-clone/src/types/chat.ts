@@ -1,5 +1,5 @@
-import type { UR, LiteralStringForUnion } from 'stream-chat';
-import { User } from '@stream-io/video-client';
+import type { LiteralStringForUnion, UR } from 'stream-chat';
+import { User } from '@stream-io/video-react-sdk';
 
 export type AttachmentType = UR;
 export type ChannelType = UR & { subtitle?: string };

@@ -25,11 +25,11 @@ type CallParticipantListProps = {
   /** Click event listener function to be invoked in order to dismiss / hide the CallParticipantsList from the UI */
   onClose: () => void;
   /** Custom component to render the list of participants. Used render participant search results as well. */
-  CallParticipantListing?: React.ComponentType<CallParticipantListingProps>;
+  CallParticipantListing?: ComponentType<CallParticipantListingProps>;
   /** Custom component to be rendered when search result is empty */
-  EmptyParticipantSearchResultComponent?: React.ComponentType;
+  EmptyParticipantSearchResultComponent?: ComponentType;
   /** Custom CallParticipantsList Header component */
-  Header?: React.ComponentType<CallParticipantListHeaderProps>;
+  Header?: ComponentType<CallParticipantListHeaderProps>;
   /** Custom component to replace a button for generating invitation link to the call */
   InviteLinkButton?: ComponentType<
     ComponentPropsWithRef<'button'> & { ref: ForwardedRef<HTMLButtonElement> }

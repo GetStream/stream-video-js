@@ -12,7 +12,6 @@ import {userFromToken} from '../utils/userFromToken';
 import {useChatClient} from '../hooks/useChatClient';
 import {useStreamChatTheme} from '../../useStreamChatTheme';
 import {AuthProgressLoader} from './AuthProgressLoader';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import type {
   NavigationStackParamsList,
   StreamChatGenerics,
@@ -21,22 +20,23 @@ import type {
 import {STREAM_API_KEY} from 'react-native-dotenv';
 import {useAppContext} from '../context/AppContext';
 import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 console.log('STREAM_API_KEY', STREAM_API_KEY);
+
 export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
   const {client} = useChatContext<StreamChatGenerics>();
+  const {channel} = useAppContext();
+  const token = client._getToken() || '';
 
   const user = useMemo<VideoProps['user']>(
     () => ({
       id: client.user?.id as string,
       name: client.user?.name as string,
-      role: client.user?.role as string,
       imageUrl: client.user?.image as string,
-      teams: [],
-      customJson: new Uint8Array(),
+      token: token,
     }),
-    [client.user],
+    [client.user, token],
   );
-  const token = client._getToken() || '';
 
   const {videoClient} = useVideoClient({user, token});
   const navigation =
@@ -47,21 +47,51 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
   }, [navigation]);
 
   const onIncomingCall = useCallback(() => {
-    navigation.navigate('OutgoingCallScreen');
+    navigation.navigate('IncomingCallScreen');
   }, [navigation]);
 
   const onOutgoingCall = useCallback(() => {
-    navigation.navigate('IncomingCallScreen');
+    navigation.navigate('OutgoingCallScreen');
   }, [navigation]);
+
+  const onHangupCall = useCallback(() => {
+    if (!channel) {
+      navigation.navigate('ChannelListScreen');
+    } else {
+      navigation.navigate('ChannelScreen');
+    }
+  }, [channel, navigation]);
+
+  const onRejectCall = useCallback(() => {
+    if (!channel) {
+      navigation.navigate('ChannelListScreen');
+    } else {
+      navigation.navigate('ChannelScreen');
+    }
+  }, [navigation, channel]);
+
+  const callCycleHandlers = useMemo(() => {
+    return {
+      onActiveCall,
+      onIncomingCall,
+      onOutgoingCall,
+      onHangupCall,
+      onRejectCall,
+    };
+  }, [
+    onActiveCall,
+    onIncomingCall,
+    onOutgoingCall,
+    onHangupCall,
+    onRejectCall,
+  ]);
 
   if (!videoClient) {
     return <AuthProgressLoader />;
   }
 
   return (
-    <StreamVideo
-      client={videoClient}
-      callCycleHandlers={{onActiveCall, onIncomingCall, onOutgoingCall}}>
+    <StreamVideo client={videoClient} callCycleHandlers={callCycleHandlers}>
       {children}
     </StreamVideo>
   );

@@ -6,9 +6,12 @@ export interface SDKStreamVideoStore {
   isAudioMuted: boolean;
 }
 
-export const { Provider, useStoreValue, useStoreSetState } =
-  createStoreContext<SDKStreamVideoStore>({
-    isCameraOnFrontFacingMode: true,
-    isVideoMuted: false,
-    isAudioMuted: false,
-  });
+export const {
+  Provider,
+  useStoreValue: useStreamVideoStoreValue,
+  useStoreSetState: useStreamVideoStoreSetState,
+} = createStoreContext<SDKStreamVideoStore>({
+  isCameraOnFrontFacingMode: false,
+  isVideoMuted: false,
+  isAudioMuted: false,
+});

@@ -1,4 +1,4 @@
-import { IconButton, ButtonWithIconProps, CompositeButton } from '../Button/';
+import { ButtonWithIconProps, CompositeButton, IconButton } from '../Button/';
 
 export type ToggleParticipantListButtonProps = { caption?: string } & Omit<
   ButtonWithIconProps,
@@ -10,7 +10,7 @@ export const ToggleParticipantListButton = (
 ) => {
   const { enabled, caption = 'Participants' } = props;
   return (
-    <CompositeButton enabled={enabled} caption={caption}>
+    <CompositeButton active={enabled} caption={caption}>
       <IconButton icon="participants" {...props} />
     </CompositeButton>
   );
