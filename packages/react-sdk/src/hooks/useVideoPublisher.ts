@@ -22,6 +22,8 @@ export const useVideoPublisher = ({
   videoDeviceId,
 }: VideoPublisherInit) => {
   const { localParticipant$ } = useStore();
+  const localParticipant = useLocalParticipant();
+
   // helper reference to determine initial publishing of the media stream
   const initialPublishExecuted = useRef<boolean>(false);
   const participant = useLocalParticipant();
@@ -85,6 +87,25 @@ export const useVideoPublisher = ({
       subscription.unsubscribe();
     };
   }, [localParticipant$, call]);
+
+  useEffect(() => {
+    if (!localParticipant?.videoStream || !call || !isPublishingVideo) return;
+
+    const track = localParticipant.videoStream?.getVideoTracks()[0];
+
+    const handleTrackEnded = async () => {
+      const endedTrackDeviceId = track.getSettings().deviceId;
+      if (endedTrackDeviceId === videoDeviceId) {
+        const videoStream = await getVideoStream(videoDeviceId);
+        await call.publishVideoStream(videoStream);
+      }
+    };
+    track.addEventListener('ended', handleTrackEnded);
+
+    return () => {
+      track.removeEventListener('ended', handleTrackEnded);
+    };
+  }, [videoDeviceId, call, localParticipant?.videoStream, isPublishingVideo]);
 
   return publishVideoStream;
 };
