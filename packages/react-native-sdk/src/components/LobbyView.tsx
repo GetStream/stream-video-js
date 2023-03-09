@@ -23,6 +23,7 @@ import {
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
 import { useCallCycleContext } from '../contexts';
+import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -193,7 +194,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 10,
+    bottom: theme.spacing.lg,
     marginVertical: theme.margin.md,
     paddingHorizontal: theme.padding.md,
   },
@@ -211,8 +212,8 @@ const styles = StyleSheet.create({
   },
   videoView: {
     backgroundColor: theme.light.disabled,
-    height: 280,
-    borderRadius: 20,
+    height: LOCAL_VIDEO_VIEW_STYLE.height * 2,
+    borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius * 2,
     justifyContent: 'center',
     overflow: 'hidden',
     marginVertical: theme.margin.md,
@@ -252,8 +253,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     position: 'absolute',
-    left: 6,
-    bottom: 6,
+    left: theme.spacing.sm,
+    bottom: theme.spacing.sm,
     padding: theme.padding.sm,
     borderRadius: 6,
     backgroundColor: theme.light.static_overlay,

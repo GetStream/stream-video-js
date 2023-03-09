@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   },
   icons: {
     position: 'absolute',
-    right: 10,
+    right: theme.spacing.lg,
     display: 'flex',
     flexDirection: 'row',
   },

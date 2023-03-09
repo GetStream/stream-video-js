@@ -6,6 +6,7 @@ import { Theme } from './types';
 import { icon } from './icon';
 import { button } from './button';
 import { avatar } from './avatar';
+import { spacing } from './spacing';
 
 const { light, dark } = colors;
 
@@ -18,4 +19,5 @@ export const theme: Theme = {
   icon,
   button,
   avatar,
+  spacing,
 };

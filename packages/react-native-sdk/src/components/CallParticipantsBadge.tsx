@@ -32,8 +32,8 @@ export const CallParticipantsBadge = ({
 const styles = StyleSheet.create({
   participantIcon: {
     position: 'absolute',
-    right: 20,
-    top: Platform.OS === 'ios' ? 35 : 10,
+    right: 2 * theme.spacing.lg,
+    top: Platform.OS === 'ios' ? 3 * theme.spacing.lg : theme.spacing.lg,
     zIndex: 2,
   },
   svgContainerStyle: {},
@@ -42,8 +42,8 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     padding: theme.padding.xs,
     position: 'relative',
-    left: 10,
-    top: 5,
+    left: theme.spacing.lg,
+    top: theme.spacing.lg,
     zIndex: 4,
   },
   badgeText: {

@@ -36,20 +36,19 @@ export type FontStyle = {
 
 export type FontsScheme = Record<FontTypes, FontStyle>;
 
-export type PaddingTypes = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-export type PaddingScheme = Record<PaddingTypes, number>;
+type SizingTypes = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
-export type MarginTypes = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-export type MarginScheme = Record<MarginTypes, number>;
+export type PaddingScheme = Record<SizingTypes, number>;
 
-export type IconTypes = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-export type IconScheme = Record<IconTypes, StyleProp<ViewStyle>>;
+export type MarginScheme = Record<SizingTypes, number>;
 
-export type ButtonTypes = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-export type ButtonScheme = Record<ButtonTypes, StyleProp<ViewStyle>>;
+export type IconScheme = Record<SizingTypes, StyleProp<ViewStyle>>;
 
-export type AvatarTypes = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-export type AvatarScheme = Record<AvatarTypes, number>;
+export type ButtonScheme = Record<SizingTypes, StyleProp<ViewStyle>>;
+
+export type AvatarScheme = Record<SizingTypes, number>;
+
+export type SpacingScheme = Record<SizingTypes, number>;
 
 export type Theme = ColorType & {
   fonts: FontsScheme;
@@ -58,4 +57,5 @@ export type Theme = ColorType & {
   icon: IconScheme;
   button: ButtonScheme;
   avatar: AvatarScheme;
+  spacing: SpacingScheme;
 };

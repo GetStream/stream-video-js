@@ -120,7 +120,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     backgroundColor: theme.light.controls_bg,
-    bottom: 0,
     zIndex: 2,
   },
   button: {
