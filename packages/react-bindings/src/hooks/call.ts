@@ -1,3 +1,4 @@
+import { Call } from '@stream-io/video-client';
 import { useObservableValue } from './helpers/useObservableValue';
 import { useCallState, useStore } from './store';
 
@@ -101,4 +102,12 @@ export const useOutgoingCalls = () => {
 export const useAcceptedCall = () => {
   const { acceptedCall$ } = useStore();
   return useObservableValue(acceptedCall$);
+};
+
+export const useCallMetadata = (call: Call) => {
+  return useObservableValue(call.callMetadata$);
+};
+
+export const useCallMembers = (call: Call) => {
+  return useObservableValue(call.members$);
 };
