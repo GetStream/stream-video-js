@@ -378,8 +378,10 @@ export class StreamClient {
     // reset token manager
     setTimeout(this.tokenManager.reset); // delay reseting to use token for disconnect calls
 
-    // close the WS connection
-    return closePromise;
+    return closePromise.then(() => {
+      // drop all event listeners on user disconnect
+      this.listeners = {};
+    });
   };
 
   /**
@@ -617,6 +619,7 @@ export class StreamClient {
   dispatchEvent = (event: Event) => {
     if (!event.received_at) event.received_at = new Date();
 
+    console.log(`Dispatching event: ${event.type}`, event);
     this._callClientListeners(event);
   };
 

@@ -71,8 +71,6 @@ export class StableWSConnection {
   ws?: WebSocket;
   wsID: number;
 
-  token = '';
-
   client: StreamClient;
 
   constructor(client: StreamClient) {
@@ -507,6 +505,7 @@ export class StableWSConnection {
         id: user.id,
         name: user.name,
         image: user.image,
+        custom: user.custom,
       },
     };
 

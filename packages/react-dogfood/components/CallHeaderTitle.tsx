@@ -2,13 +2,14 @@ import {
   useActiveCall,
   useConnectedUser,
   useRemoteParticipants,
-} from '@stream-io/video-react-bindings';
+} from '@stream-io/video-react-sdk';
 import { useMemo } from 'react';
 import { HomeButton } from './LobbyHeader';
 
 type CallTitleProps = {
   title?: string;
 };
+
 export const CallHeaderTitle = ({ title }: CallTitleProps) => {
   const activeCall = useActiveCall();
   const connectedUser = useConnectedUser();

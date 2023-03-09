@@ -6,15 +6,15 @@ import {
   useChatContext,
   useTranslationContext,
 } from 'stream-chat-react';
-import { MemberRequest } from '@stream-io/video-client';
 import { LocalPhone, PhoneDisabled } from '@mui/icons-material';
 
 import { MenuIcon } from './icons';
 import type { StreamChatType } from '../../types/chat';
 import {
+  MemberRequest,
   useActiveCall,
   useStreamVideoClient,
-} from '@stream-io/video-react-bindings';
+} from '@stream-io/video-react-sdk';
 import { meetingId } from '../../utils/meetingId';
 
 export type ChannelHeaderProps = {
