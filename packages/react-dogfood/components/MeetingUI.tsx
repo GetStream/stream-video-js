@@ -32,6 +32,7 @@ import {
   ChatWrapper,
   NewMessageNotification,
   UnreadCountBadge,
+  USAGE_GUIDE_LINK,
 } from '.';
 import { useWatchChannel } from '../hooks';
 
@@ -140,9 +141,11 @@ export const MeetingUI = ({
               title="Usage guide and known limitations"
               onClick={() => {
                 if (window) {
-                  const url =
-                    'https://www.notion.so/stream-wiki/Usage-guide-and-known-limitations-603b12af2dff43d69119be4dae462b19';
-                  window.open(url, '_blank', 'noopener,noreferrer');
+                  window.open(
+                    USAGE_GUIDE_LINK,
+                    '_blank',
+                    'noopener,noreferrer',
+                  );
                 }
               }}
             />

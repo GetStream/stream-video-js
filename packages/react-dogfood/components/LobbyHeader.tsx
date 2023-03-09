@@ -1,8 +1,8 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
 import { signOut, useSession } from 'next-auth/react';
 import { Box, Button, Divider, Link as MuiLink, Stack } from '@mui/material';
 import Link from 'next/link';
 import Image from 'next/image';
+import { USAGE_GUIDE_LINK } from './index';
 
 const UserInfo = () => {
   const { data: theSession } = useSession();
@@ -46,7 +46,7 @@ export const LobbyHeader = () => {
       >
         <HomeButton />
         <MuiLink
-          href="https://www.notion.so/stream-wiki/Usage-guide-and-known-limitations-603b12af2dff43d69119be4dae462b19"
+          href={USAGE_GUIDE_LINK}
           target="_blank"
           underline="hover"
           color="primary"
