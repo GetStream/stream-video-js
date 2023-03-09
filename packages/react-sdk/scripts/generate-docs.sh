@@ -10,40 +10,54 @@ yarn generate-docs:react:bindings > /dev/null
 echo "Generating docs from React SDK..."
 # clean up old docs
 rm -rf generated-docs
-rm -rf docusaurus/docs/react/call-engine/
-rm -rf docusaurus/docs/react/reference/
+rm -rf docusaurus/docs/react/04-call-engine/
+rm -rf docusaurus/docs/react/07-reference/
 
 # generate new docs
-yarn typedoc --options typedoc.json
+npx typedoc --options typedoc.json
 
 # preprocess the docs to our specific needs
-yarn replace-in-file '# @stream-io/video-react-sdk' '# Components' 'temp-docs/**' > /dev/null
-yarn replace-in-file '# Interface: ' '# ' 'temp-docs/**' > /dev/null
+npx replace-in-file '# @stream-io/video-react-sdk' '# Components' 'temp-docs/**' > /dev/null
+npx replace-in-file '# Interface: ' '# ' 'temp-docs/**' > /dev/null
 sed -i '' -e 's/interfaces/..\/Interfaces/g' 'temp-docs/modules.md'
 sed -i '' -e 's/\.md/\//g' 'temp-docs/modules.md'
 
 # copy from the temp-docs to the structure we want in docusaurus
 mkdir generated-docs
-mkdir docusaurus/docs/react/call-engine
-mkdir docusaurus/docs/react/reference
-touch docusaurus/docs/react/call-engine/_category_.json
-touch docusaurus/docs/react/reference/_category_.json
+mkdir docusaurus/docs/react/04-call-engine
+mkdir docusaurus/docs/react/07-reference
+touch docusaurus/docs/react/04-call-engine/_category_.json
+touch docusaurus/docs/react/07-reference/_category_.json
 echo "{
   \"label\": \"Call Engine\",
-  \"position\": 1
-}" > docusaurus/docs/react/call-engine/_category_.json
+  \"position\": 4
+}" > docusaurus/docs/react/04-call-engine/_category_.json
 echo "{
   \"label\": \"Reference\",
-  \"position\": 2
-}" > docusaurus/docs/react/reference/_category_.json
-cp -r temp-docs/interfaces generated-docs/interfaces
+  \"position\": 7
+}" > docusaurus/docs/react/07-reference/_category_.json
+cp -r temp-docs/interfaces generated-docs/Interfaces
 cp temp-docs/modules.md generated-docs/components.md
 rm -rf temp-docs
 
-# copy the docs to React docusaurus
-cp -a ../client/docusaurus/docs/client/. docusaurus/docs/react/call-engine
-cp -a ../client/generated-docs/. docusaurus/docs/React/reference
-cp -a ../react-bindings/generated-docs/. docusaurus/docs/React/reference
-cp -a ./generated-docs/. docusaurus/docs/React/reference
+# move client docs to SDK's docs and mark as generated
+cp -a ../client/docusaurus/docs/client/ generated-docs/client
+cd generated-docs/client || exit
+for sub_directories in * ;
+do
+  (
+    cd "$sub_directories" || exit
+    for f in * ; do mv -- "$f" "${f%.*}.gen.${f##*.}" ; done
+  )
+done
+
+cd ../../
+cp -a ./generated-docs/client/ docusaurus/docs/react/
+rm -rf generated-docs/client/
+
+# copy shared JS docs to the docs to react docusaurus
+cp -a ../client/generated-docs/. docusaurus/docs/react/04-call-engine
+cp -a ../react-bindings/generated-docs/. docusaurus/docs/react/07-reference
+cp -a ./generated-docs/. docusaurus/docs/react/07-reference
 
 echo "Done!"

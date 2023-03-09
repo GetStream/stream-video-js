@@ -54,7 +54,7 @@ done
 cd ../../
 cp -a ./generated-docs/client/ docusaurus/docs/reactnative/
 rm -rf generated-docs/client/
-#
+
 # copy shared JS docs to the docs to react-native docusaurus
 cp -a ../client/generated-docs/. docusaurus/docs/reactnative/04-call-engine
 cp -a ../react-bindings/generated-docs/. docusaurus/docs/reactnative/07-reference
