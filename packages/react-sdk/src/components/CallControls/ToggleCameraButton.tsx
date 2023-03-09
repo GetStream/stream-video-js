@@ -16,7 +16,7 @@ export const ToggleCameraPreviewButton = ({
   return (
     <CompositeButton
       Menu={DeviceSelectorVideo}
-      enabled={!initialVideoState.enabled}
+      active={!initialVideoState.enabled}
       caption={caption}
     >
       <IconButton
@@ -51,7 +51,7 @@ export const ToggleCameraPublishingButton = ({
   return (
     <CompositeButton
       Menu={DeviceSelectorVideo}
-      enabled={isVideoMute}
+      active={isVideoMute}
       caption={caption}
     >
       <IconButton

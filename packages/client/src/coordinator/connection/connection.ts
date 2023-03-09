@@ -505,6 +505,7 @@ export class StableWSConnection {
         id: user.id,
         name: user.name,
         image: user.image,
+        custom: user.custom,
       },
     };
 

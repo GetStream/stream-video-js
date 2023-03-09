@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useStreamVideoClient } from '@stream-io/video-react-bindings';
+import { useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { useParams } from 'react-router-dom';
 
 import { MeetingUI } from './MeetingUI';

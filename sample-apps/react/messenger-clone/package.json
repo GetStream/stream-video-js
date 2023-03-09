@@ -2,18 +2,16 @@
   "name": "@stream-io/messenger-clone-react",
   "private": true,
   "version": "1.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "start": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "scripts:init-users": "node scripts/generateUsers.mjs"
+    "scripts:init": "node scripts/init.js",
+    "scripts:populate-tokens": "node scripts/populateTokens.js"
   },
   "dependencies": {
     "@mui/icons-material": "^5.10.16",
-    "@stream-io/video-client": "workspace:^",
-    "@stream-io/video-react-bindings": "workspace:^",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
     "clsx": "^1.2.1",

@@ -1,27 +1,25 @@
 import {
-  useState,
-  useRef,
-  useLayoutEffect,
-  PropsWithChildren,
-  createContext,
-  useContext,
   ComponentProps,
+  createContext,
   Dispatch,
+  PropsWithChildren,
   SetStateAction,
+  useContext,
+  useLayoutEffect,
+  useRef,
+  useState,
 } from 'react';
 import { clsx } from 'clsx';
 import {
-  IconButton,
-  useMediaDevices,
-  MediaDevicesProvider,
-  useActiveCall,
+  createSoundDetector,
   DeviceSettings,
-} from '@stream-io/video-react-sdk';
-import {
   getAudioStream,
   getVideoStream,
-  createSoundDetector,
-} from '@stream-io/video-client';
+  IconButton,
+  MediaDevicesProvider,
+  useActiveCall,
+  useMediaDevices,
+} from '@stream-io/video-react-sdk';
 
 const disposeOfMediaStream = (ms: MediaStream) => {
   return ms.getTracks().forEach((track) => track.stop());

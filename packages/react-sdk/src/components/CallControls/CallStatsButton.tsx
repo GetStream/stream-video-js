@@ -21,7 +21,7 @@ export const CallStatsButton = ({
           }}
         />
       )}
-      <CompositeButton enabled={isStatsOpen} caption={caption}>
+      <CompositeButton active={isStatsOpen} caption={caption}>
         <IconButton
           icon="stats"
           title="Statistics"

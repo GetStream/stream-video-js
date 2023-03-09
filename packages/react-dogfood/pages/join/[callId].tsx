@@ -6,12 +6,13 @@ import { unstable_getServerSession } from 'next-auth';
 import { GetServerSidePropsContext } from 'next';
 import { createToken } from '../../helpers/jwt';
 import {
+  Call,
   MediaDevicesProvider,
   StreamVideo,
   useCreateStreamVideoClient,
+  User,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
-import { Call, User } from '@stream-io/video-client';
 
 import { useCreateStreamChatClient } from '../../hooks';
 import { LoadingScreen, MeetingUI } from '../../components';

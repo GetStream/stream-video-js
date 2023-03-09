@@ -2,8 +2,8 @@ import {
   Call,
   SfuModels,
   StreamVideoLocalParticipant,
-} from '@stream-io/video-client';
-import { useStreamVideoClient } from '@stream-io/video-react-bindings';
+  useStreamVideoClient,
+} from '@stream-io/video-react-sdk';
 import {
   LocalPhone,
   Mic,
