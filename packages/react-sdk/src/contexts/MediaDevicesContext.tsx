@@ -17,7 +17,7 @@ import {
   SfuModels,
   watchForDisconnectedAudioOutputDevice,
 } from '@stream-io/video-client';
-import { map, pairwise } from 'rxjs';
+import { map, pairwise, take } from 'rxjs';
 import { useAudioPublisher, useVideoPublisher } from '../hooks';
 import { useActiveCall, useStore } from '@stream-io/video-react-bindings';
 
@@ -101,6 +101,7 @@ export type MediaDevicesProviderProps = PropsWithChildren<{
   initialVideoInputDeviceId?: string;
 }>;
 
+// todo: republish the stream, when a new default device connected
 export const MediaDevicesProvider = ({
   children,
   enumerate = true,
@@ -194,25 +195,69 @@ export const MediaDevicesProvider = ({
   useEffect(() => {
     if (!enumerate) return;
 
+    const validateInitialInputDeviceId = getAudioDevices()
+      .pipe(take(1))
+      .subscribe((devices) => {
+        const initialDeviceFound = devices.find(
+          (device) => device.deviceId === initialAudioInputDeviceId,
+        );
+        if (!initialDeviceFound) {
+          setSelectedAudioInputDeviceId('default');
+        }
+      });
+
     const subscription = getAudioDevices().subscribe(setAudioInputDevices);
-    return () => subscription.unsubscribe();
-  }, [enumerate]);
+
+    return () => {
+      subscription.unsubscribe();
+      validateInitialInputDeviceId.unsubscribe();
+    };
+  }, [enumerate, initialAudioInputDeviceId]);
 
   useEffect(() => {
     if (!enumerate) return;
+
+    const validateInitialInputDeviceId = getVideoDevices()
+      .pipe(take(1))
+      .subscribe((devices) => {
+        const initialDeviceFound = devices.find(
+          (device) => device.deviceId === initialVideoInputDeviceId,
+        );
+        if (!initialDeviceFound) {
+          selectVideoDeviceId('default');
+        }
+      });
 
     const subscription = getVideoDevices().subscribe(setVideoDevices);
-    return () => subscription.unsubscribe();
-  }, [enumerate]);
+
+    return () => {
+      subscription.unsubscribe();
+      validateInitialInputDeviceId.unsubscribe();
+    };
+  }, [enumerate, initialVideoInputDeviceId]);
 
   useEffect(() => {
     if (!enumerate) return;
+
+    const validateInitialInputDeviceId = getAudioOutputDevices()
+      .pipe(take(1))
+      .subscribe((devices) => {
+        const initialDeviceFound = devices.find(
+          (device) => device.deviceId === initialAudioOutputDeviceId,
+        );
+        if (!initialDeviceFound) {
+          setSelectedAudioOutputDeviceId('default');
+        }
+      });
 
     const subscription = getAudioOutputDevices().subscribe(
       setAudioOutputDevices,
     );
-    return () => subscription.unsubscribe();
-  }, [enumerate]);
+    return () => {
+      subscription.unsubscribe();
+      validateInitialInputDeviceId.unsubscribe();
+    };
+  }, [enumerate, initialAudioOutputDeviceId]);
 
   useEffect(() => {
     const subscription = getVideoDevices()
