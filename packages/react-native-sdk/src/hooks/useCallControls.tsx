@@ -11,7 +11,7 @@ import { useCallback } from 'react';
 import {
   useStreamVideoStoreSetState,
   useStreamVideoStoreValue,
-} from '../contexts';
+} from '../contexts/StreamVideoContext';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
 
 /**
