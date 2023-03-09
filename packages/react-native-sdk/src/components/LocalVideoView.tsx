@@ -55,7 +55,6 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
   if (isVideoMuted) {
     return (
       <View style={{ ...(style as Object), ...styles.avatarWrapper }}>
-        {/* <Avatar participant={localParticipant} radius={50} /> */}
         <View style={styles.icon}>
           <VideoSlash color={theme.light.static_white} />
         </View>
