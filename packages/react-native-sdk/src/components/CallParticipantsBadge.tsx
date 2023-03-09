@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   svgContainerStyle: {},
   badge: {
     backgroundColor: theme.light.text_low_emphasis,
-    borderRadius: 30,
+    borderRadius: theme.rounded.xl,
     padding: theme.padding.xs,
     position: 'relative',
     left: theme.spacing.lg,

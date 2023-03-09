@@ -7,6 +7,7 @@ import { icon } from './icon';
 import { button } from './button';
 import { avatar } from './avatar';
 import { spacing } from './spacing';
+import { rounded } from './rounded';
 
 const { light, dark } = colors;
 
@@ -20,4 +21,5 @@ export const theme: Theme = {
   button,
   avatar,
   spacing,
+  rounded,
 };

@@ -50,6 +50,8 @@ export type AvatarScheme = Record<SizingTypes, number>;
 
 export type SpacingScheme = Record<SizingTypes, number>;
 
+export type RoundedScheme = Record<SizingTypes, number>;
+
 export type Theme = ColorType & {
   fonts: FontsScheme;
   padding: PaddingScheme;
@@ -58,4 +60,5 @@ export type Theme = ColorType & {
   button: ButtonScheme;
   avatar: AvatarScheme;
   spacing: SpacingScheme;
+  rounded: RoundedScheme;
 };

@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   info: {
     backgroundColor: theme.light.static_overlay,
     padding: theme.padding.md,
-    borderRadius: 10,
+    borderRadius: theme.rounded.sm,
     width: '100%',
   },
   infoText: {
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   },
   joinButton: {
     backgroundColor: theme.light.primary,
-    borderRadius: 10,
+    borderRadius: theme.rounded.sm,
     marginTop: theme.margin.md,
     justifyContent: 'center',
     paddingVertical: theme.padding.sm,
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     left: theme.spacing.sm,
     bottom: theme.spacing.sm,
     padding: theme.padding.sm,
-    borderRadius: 6,
+    borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
     zIndex: 10,
   },

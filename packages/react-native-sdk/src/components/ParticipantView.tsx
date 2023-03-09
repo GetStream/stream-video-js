@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   screenVideoRenderer: {
     flex: 1,
     justifyContent: 'center',
-    borderRadius: 16,
+    borderRadius: theme.rounded.md,
     marginLeft: theme.margin.sm,
   },
   status: {
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     left: theme.spacing.sm,
     bottom: theme.spacing.sm,
     padding: theme.padding.sm,
-    borderRadius: 6,
+    borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
   },
   screenViewStatus: {
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     left: theme.spacing.md,
     top: theme.spacing.md,
     padding: theme.padding.sm,
-    borderRadius: 6,
+    borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
     display: 'flex',
     flexDirection: 'row',

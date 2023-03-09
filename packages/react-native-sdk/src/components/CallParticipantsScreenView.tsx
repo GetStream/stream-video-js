@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   participantVideoBox: {
-    borderRadius: 16,
+    borderRadius: theme.rounded.md,
     marginLeft: theme.margin.sm,
   },
 });

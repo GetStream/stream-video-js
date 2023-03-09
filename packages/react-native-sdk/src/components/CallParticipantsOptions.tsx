@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   },
   menu: {
     backgroundColor: theme.light.bars,
-    borderRadius: 15,
+    borderRadius: theme.rounded.md,
   },
   participantInfo: {
     display: 'flex',

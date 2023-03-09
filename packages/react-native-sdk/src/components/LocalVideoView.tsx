@@ -25,7 +25,7 @@ export interface LocalVideoViewProps {
    *     width: 80,
    *     right: 2 * theme.spacing.lg,
    *     top: 100,
-   *     borderRadius: 10,
+   *     borderRadius: theme.rounded.sm,
    *     zIndex: 1,
    *   }`
    */
