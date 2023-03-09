@@ -1,8 +1,8 @@
-import { useActiveCall } from '@stream-io/video-react-bindings';
 import {
   CallControls,
   DeviceSettings,
   Stage,
+  useActiveCall,
 } from '@stream-io/video-react-sdk';
 
 export const MeetingUI = () => {

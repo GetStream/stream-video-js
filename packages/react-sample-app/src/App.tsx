@@ -5,11 +5,12 @@ import {
   CssBaseline,
   ThemeProvider,
 } from '@mui/material';
-import { GetOrCreateCallRequest, User } from '@stream-io/video-client';
 import {
+  GetOrCreateCallRequest,
   StreamMeeting,
   StreamVideo,
   useCreateStreamVideoClient,
+  User,
 } from '@stream-io/video-react-sdk';
 import { useEffect, useMemo, useState } from 'react';
 import { MeetingUI } from './components/MeetingUI';

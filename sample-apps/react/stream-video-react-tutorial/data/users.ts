@@ -1,4 +1,4 @@
-import { User } from '@stream-io/video-client';
+import { User } from '@stream-io/video-react-sdk';
 
 export default {
   alice: {

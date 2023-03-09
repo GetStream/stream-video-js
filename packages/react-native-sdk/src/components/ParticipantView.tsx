@@ -80,6 +80,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const audioStream = participant.audioStream as MediaStream | undefined;
   const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  const isScreenSharing = kind === 'screen';
   const mirror = isLoggedInUser && isCameraOnFrontFacingMode;
   const isAudioAvailable = useMemo(
     () => kind === 'video' && !!audioStream && !isAudioMuted,
@@ -94,7 +95,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       style={[
         styles.containerBase,
         styles[`${size}Container`],
-        isSpeaking ? styles.isSpeaking : {},
+        isSpeaking && !isScreenSharing ? styles.isSpeaking : {},
         props.style,
       ]}
       onLayout={onLayout}

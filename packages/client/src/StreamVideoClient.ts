@@ -158,7 +158,6 @@ export class StreamVideoClient {
    * If the connection is successfully disconnected, the connected user [state variable](#readonlystatestore) will be updated accordingly
    */
   disconnectUser = async () => {
-    // FIXME OL: we should clean-up the event listeners as well
     await this.coordinatorClient.disconnectUser();
     this.callDropScheduler?.cleanUp();
     this.writeableStateStore.setCurrentValue(
@@ -324,7 +323,17 @@ export class StreamVideoClient {
         );
 
         const { server, ice_servers, token } = edge.credentials;
-        const sfuClient = new StreamSfuClient(server.url, token);
+        let sfuUrl = server.url;
+        if (
+          typeof window !== 'undefined' &&
+          window.location &&
+          window.location.search
+        ) {
+          const params = new URLSearchParams(window.location.search);
+          const sfuUrlParam = params.get('sfuUrl');
+          sfuUrl = sfuUrlParam || server.url;
+        }
+        const sfuClient = new StreamSfuClient(sfuUrl, token);
         const metadata = new CallMetadata(callMeta, members);
         const callOptions = {
           connectionConfig: this.toRtcConfiguration(ice_servers),

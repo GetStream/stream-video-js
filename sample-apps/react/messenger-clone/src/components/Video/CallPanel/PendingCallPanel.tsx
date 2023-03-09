@@ -1,6 +1,6 @@
 import { ParticipantPlaceholder } from './ParticipantPlaceholder';
 import { IncomingCallControls, OutgoingCallControls } from './CallControls';
-import { CallMetadata, User } from '@stream-io/video-client';
+import { CallMetadata, User } from '@stream-io/video-react-sdk';
 
 type OutgoingCallPanelProps = {
   incomingCall?: CallMetadata;

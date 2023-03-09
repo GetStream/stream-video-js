@@ -1,9 +1,13 @@
 import { withSentryConfig } from '@sentry/nextjs';
+import dotenv from 'dotenv';
+
+const env = dotenv.config({ path: '.env.local' });
 
 /**
  * @type {import('next').NextConfig}
  */
 const nextConfig = {
+  env: env.parsed,
   async headers() {
     return [
       {

@@ -44,7 +44,7 @@ export const RecordCallButton = ({
   }, [call.data.call, client, isCallRecordingInProgress]);
 
   return (
-    <CompositeButton enabled={isCallRecordingInProgress} caption={caption}>
+    <CompositeButton active={isCallRecordingInProgress} caption={caption}>
       {isAwaitingResponse ? (
         <LoadingIndicator
           tooltip={
