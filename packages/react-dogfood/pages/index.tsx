@@ -86,7 +86,7 @@ const JoinCall = () => {
       }}
     >
       {disabled ? (
-        <Link href={`/join/${meetingId()}`}>
+        <Link href={`/join/${meetingId()}`} legacyBehavior>
           <Button
             data-testid="create-and-join-meeting-button"
             variant="contained"
