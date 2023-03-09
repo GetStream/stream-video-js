@@ -33,12 +33,12 @@ export const getMembersForIncomingCall = (
   incomingCall: CallMetadata,
   connectedUser: User | undefined,
 ) => {
-  let memberUsers: UserResponse[] = [];
+  let members: UserResponse[] = [];
   Object.values(incomingCall.users).forEach((user) => {
-    if (connectedUser?.id !== user.id) memberUsers.push(user);
+    if (connectedUser?.id !== user.id) members.push(user);
   });
   const callCreatedBy = incomingCall.call.created_by;
-  memberUsers.push(callCreatedBy);
+  members.push(callCreatedBy);
 
-  return memberUsers;
+  return members;
 };
