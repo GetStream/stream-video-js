@@ -17,7 +17,8 @@ export const watchNewReactions = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
-    store.setCurrentValue(store.participantsSubject, (participants) => {
+    const state = activeCall.state;
+    state.setCurrentValue(state.participantsSubject, (participants) => {
       const { user, custom, type, emoji_code } = reaction;
       return participants.map((p) => {
         // skip if the reaction is not for this participant

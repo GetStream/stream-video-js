@@ -2,13 +2,14 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { createSubscriber } from './subscriber';
 import { Publisher } from './publisher';
 import { getGenericSdp } from './codecs';
-import { CallState, TrackType } from '../gen/video/sfu/models/models';
+import { TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
-import { SfuEventListener } from './Dispatcher';
-import { StreamVideoWriteableStateStore } from '../store';
+import { Dispatcher, SfuEventListener } from './Dispatcher';
+import { CallState } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
+import { StreamCoordinatorClient } from '../coordinator/StreamCoordinatorClient';
+import { join } from './flows/join';
 import type {
-  CallOptions,
   PublishOptions,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
@@ -36,55 +37,33 @@ export class Call {
    * Contains metadata about the call, for example who created the call. You can also extract the call ID from this object, which you'll need for certain API calls (for example to start a recording).
    */
   data: CallMetadata;
-  private readonly subscriber: RTCPeerConnection;
-  private readonly publisher: Publisher;
-  private readonly trackSubscriptionsSubject = new Subject<
-    TrackSubscriptionDetails[]
-  >();
+  private subscriber?: RTCPeerConnection;
+  private publisher?: Publisher;
+  private trackSubscriptionsSubject = new Subject<TrackSubscriptionDetails[]>();
 
-  private statsReporter: StatsReporter;
+  private statsReporter?: StatsReporter;
   private joined$ = new BehaviorSubject<boolean>(false);
+
+  state: CallState;
+  private dispatcher = new Dispatcher();
+  private httpClient: StreamCoordinatorClient;
+  private sfuClient?: StreamSfuClient;
 
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
-   * @param client
-   * @param data
-   * @param options
-   * @param stateStore
    */
-  constructor(
-    data: CallMetadata,
-    private readonly client: StreamSfuClient,
-    private readonly options: CallOptions,
-    private readonly stateStore: StreamVideoWriteableStateStore,
-  ) {
+  constructor(data: CallMetadata, httpClient: StreamCoordinatorClient) {
     this.data = data;
-    this.subscriber = createSubscriber({
-      rpcClient: this.client,
-      connectionConfig: this.options.connectionConfig,
-      onTrack: this.handleOnTrack,
-    });
+    this.httpClient = httpClient;
+    this.state = new CallState(data.call);
 
-    this.publisher = new Publisher({
-      rpcClient: this.client,
-      connectionConfig: this.options.connectionConfig,
-    });
-
-    this.statsReporter = createStatsReporter({
-      subscriber: this.subscriber,
-      publisher: this.publisher,
-      store: stateStore,
-      edgeName: this.options.edgeName,
-    });
-
-    const { dispatcher } = this.client;
-    registerEventHandlers(this, this.stateStore, dispatcher);
+    registerEventHandlers(this, this.state, this.dispatcher);
 
     this.trackSubscriptionsSubject
       .pipe(debounceTime(1200))
-      .subscribe((subscriptions) =>
-        this.client.updateSubscriptions(subscriptions),
-      );
+      .subscribe((subscriptions) => {
+        this.sfuClient?.updateSubscriptions(subscriptions);
+      });
   }
 
   /**
@@ -95,7 +74,7 @@ export class Call {
    * @returns
    */
   on = (eventName: string, fn: SfuEventListener) => {
-    return this.client.dispatcher.on(eventName, fn);
+    return this.dispatcher.on(eventName, fn);
   };
 
   /**
@@ -105,7 +84,7 @@ export class Call {
    * @returns
    */
   off = (eventName: string, fn: SfuEventListener) => {
-    return this.client.dispatcher.off(eventName, fn);
+    return this.dispatcher.off(eventName, fn);
   };
 
   /**
@@ -117,16 +96,23 @@ export class Call {
     }
     this.joined$.next(false);
 
-    this.statsReporter.stop();
-    this.subscriber.close();
+    this.statsReporter?.stop();
+    this.statsReporter = undefined;
 
-    this.publisher.stopPublishing();
-    this.client.close();
+    this.subscriber?.close();
+    this.subscriber = undefined;
 
-    this.stateStore.setCurrentValue(
-      this.stateStore.activeCallSubject,
-      undefined,
-    );
+    this.publisher?.stopPublishing();
+    this.publisher = undefined;
+
+    this.sfuClient?.close();
+    this.sfuClient = undefined;
+
+    // FIXME OL: sort this out
+    // this.stateStore.setCurrentValue(
+    //   this.stateStore.activeCallSubject,
+    //   undefined,
+    // );
   };
 
   /**
@@ -141,43 +127,87 @@ export class Call {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    const joinResponseReady = new Promise<CallState | undefined>(
-      async (resolve) => {
-        this.client.dispatcher.on('joinResponse', (event) => {
-          if (event.eventPayload.oneofKind !== 'joinResponse') return;
-
-          const { callState } = event.eventPayload.joinResponse;
-          const currentParticipants = callState?.participants || [];
-
-          const ownCapabilities = {
-            ownCapabilities: this.data.call.own_capabilities,
-          };
-
-          this.stateStore.setCurrentValue(
-            this.stateStore.participantsSubject,
-            currentParticipants.map<StreamVideoParticipant>((participant) => ({
-              ...participant,
-              isLoggedInUser: participant.sessionId === this.client.sessionId,
-              // TODO: save other participants permissions once that's provided by SFU
-              ...(participant.sessionId === this.client.sessionId
-                ? ownCapabilities
-                : {}),
-            })),
-          );
-
-          this.client.keepAlive();
-          this.joined$.next(true);
-          resolve(callState); // expose call state
-        });
-
-        const genericSdp = await getGenericSdp('recvonly');
-        await this.client.join({
-          subscriberSdp: genericSdp || '',
-        });
-      },
+    const connection = await join(
+      this.httpClient,
+      this.data.call.type,
+      this.data.call.id,
+      {},
     );
 
-    return joinResponseReady;
+    this.state.setCurrentValue(
+      this.state.callRecordingInProgressSubject,
+      !!connection.call.record_egress, // FIXME OL: this is not correct
+    );
+
+    // FIXME OL: remove once cascading is implemented
+    let sfuUrl = connection.sfuServer.url;
+    if (
+      typeof window !== 'undefined' &&
+      window.location &&
+      window.location.search
+    ) {
+      const params = new URLSearchParams(window.location.search);
+      const sfuUrlParam = params.get('sfuUrl');
+      sfuUrl = sfuUrlParam || connection.sfuServer.url;
+    }
+
+    const sfuClient = (this.sfuClient = new StreamSfuClient(
+      this.dispatcher,
+      sfuUrl,
+      connection.token,
+    ));
+
+    this.subscriber = createSubscriber({
+      rpcClient: sfuClient,
+      connectionConfig: connection.connectionConfig,
+      onTrack: this.handleOnTrack,
+    });
+
+    this.publisher = new Publisher({
+      rpcClient: sfuClient,
+      connectionConfig: connection.connectionConfig,
+    });
+
+    this.statsReporter = createStatsReporter({
+      subscriber: this.subscriber,
+      publisher: this.publisher,
+      store: this.state,
+      edgeName: connection.sfuServer.edge_name,
+    });
+
+    return new Promise<void>(async (resolve) => {
+      this.dispatcher.on('joinResponse', (event) => {
+        if (event.eventPayload.oneofKind !== 'joinResponse') return;
+
+        const { callState } = event.eventPayload.joinResponse;
+        const currentParticipants = callState?.participants || [];
+
+        const ownCapabilities = {
+          ownCapabilities: this.data.call.own_capabilities,
+        };
+
+        this.state.setCurrentValue(
+          this.state.participantsSubject,
+          currentParticipants.map<StreamVideoParticipant>((participant) => ({
+            ...participant,
+            isLoggedInUser: participant.sessionId === sfuClient.sessionId,
+            // TODO: save other participants permissions once that's provided by SFU
+            ...(participant.sessionId === sfuClient.sessionId
+              ? ownCapabilities
+              : {}),
+          })),
+        );
+
+        sfuClient.keepAlive();
+        this.joined$.next(true);
+        resolve();
+      });
+
+      const genericSdp = await getGenericSdp('recvonly');
+      await sfuClient.join({
+        subscriberSdp: genericSdp || '',
+      });
+    });
   };
 
   /**
@@ -201,6 +231,10 @@ export class Call {
     // we should wait until we get a JoinResponse from the SFU,
     // otherwise we risk breaking the ICETrickle flow.
     await this.assertCallJoined();
+    if (!this.publisher) {
+      throw new Error(`Call not joined yet.`);
+    }
+
     const [videoTrack] = videoStream.getVideoTracks();
     if (!videoTrack) {
       return console.error(`There is no video track in the stream.`);
@@ -215,12 +249,12 @@ export class Call {
         trackType,
         opts,
       );
-      await this.client.updateMuteState(trackType, false);
+      await this.sfuClient?.updateMuteState(trackType, false);
     } catch (e) {
       throw e;
     }
 
-    this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
+    this.state.updateParticipant(this.sfuClient!.sessionId, (p) => ({
       videoStream,
       videoDeviceId: videoTrack.getSettings().deviceId,
       publishedTracks: p.publishedTracks.includes(trackType)
@@ -244,6 +278,10 @@ export class Call {
     // we should wait until we get a JoinResponse from the SFU,
     // otherwise we risk breaking the ICETrickle flow.
     await this.assertCallJoined();
+    if (!this.publisher) {
+      throw new Error(`Call not joined yet.`);
+    }
+
     const [audioTrack] = audioStream.getAudioTracks();
     if (!audioTrack) {
       return console.error(`There is no audio track in the stream`);
@@ -252,12 +290,12 @@ export class Call {
     const trackType = TrackType.AUDIO;
     try {
       await this.publisher.publishStream(audioStream, audioTrack, trackType);
-      await this.client.updateMuteState(trackType, false);
+      await this.sfuClient!.updateMuteState(trackType, false);
     } catch (e) {
       throw e;
     }
 
-    this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
+    this.state.updateParticipant(this.sfuClient!.sessionId, (p) => ({
       audioStream,
       audioDeviceId: audioTrack.getSettings().deviceId,
       publishedTracks: p.publishedTracks.includes(trackType)
@@ -280,6 +318,9 @@ export class Call {
     // we should wait until we get a JoinResponse from the SFU,
     // otherwise we risk breaking the ICETrickle flow.
     await this.assertCallJoined();
+    if (!this.publisher) {
+      throw new Error(`Call not joined yet.`);
+    }
     const [screenShareTrack] = screenShareStream.getVideoTracks();
     if (!screenShareTrack) {
       return console.error(`There is no video track in the stream`);
@@ -296,12 +337,12 @@ export class Call {
         screenShareTrack,
         trackType,
       );
-      await this.client.updateMuteState(trackType, false);
+      await this.sfuClient!.updateMuteState(trackType, false);
     } catch (e) {
       throw e;
     }
 
-    this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
+    this.state.updateParticipant(this.sfuClient!.sessionId, (p) => ({
       screenShareStream,
       publishedTracks: p.publishedTracks.includes(trackType)
         ? p.publishedTracks
@@ -320,15 +361,19 @@ export class Call {
    * @param trackType the track type to stop publishing.
    */
   stopPublish = async (trackType: TrackType) => {
+    if (!this.publisher) {
+      throw new Error(`Call not joined yet.`);
+    }
+
     console.log(`stopPublish`, TrackType[trackType]);
     const wasPublishing = this.publisher.unpublishStream(trackType);
     if (wasPublishing) {
-      await this.client.updateMuteState(trackType, true);
+      await this.sfuClient!.updateMuteState(trackType, true);
 
       const audioOrVideoOrScreenShareStream =
         trackTypeToParticipantStreamKey(trackType);
       if (audioOrVideoOrScreenShareStream) {
-        this.stateStore.updateParticipant(this.client.sessionId, (p) => ({
+        this.state.updateParticipant(this.sfuClient!.sessionId, (p) => ({
           publishedTracks: p.publishedTracks.filter((t) => t !== trackType),
           [audioOrVideoOrScreenShareStream]: undefined,
         }));
@@ -348,7 +393,7 @@ export class Call {
     kind: 'video' | 'screen',
     changes: SubscriptionChanges,
   ) => {
-    const participants = this.stateStore.updateParticipants(
+    const participants = this.state.updateParticipants(
       Object.entries(changes).reduce<StreamVideoParticipantPatches>(
         (acc, [sessionId, change]) => {
           const prop: keyof StreamVideoParticipant | undefined =
@@ -418,7 +463,7 @@ export class Call {
     kind: 'subscriber' | 'publisher',
     selector?: MediaStreamTrack,
   ) => {
-    return this.statsReporter.getRawStatsForTrack(kind, selector);
+    return this.statsReporter?.getRawStatsForTrack(kind, selector);
   };
 
   /**
@@ -428,7 +473,7 @@ export class Call {
    * @param sessionId the sessionId to start reporting for.
    */
   startReportingStatsFor = (sessionId: string) => {
-    return this.statsReporter.startReportingStatsFor(sessionId);
+    return this.statsReporter?.startReportingStatsFor(sessionId);
   };
 
   /**
@@ -438,7 +483,7 @@ export class Call {
    * @param sessionId the sessionId to stop reporting for.
    */
   stopReportingStatsFor = (sessionId: string) => {
-    return this.statsReporter.stopReportingStatsFor(sessionId);
+    return this.statsReporter?.stopReportingStatsFor(sessionId);
   };
 
   /**
@@ -451,7 +496,7 @@ export class Call {
    * @param deviceId the selected device, `undefined` means the user wants to use the system's default audio output
    */
   setAudioOutputDevice = (deviceId?: string) => {
-    this.stateStore.updateParticipant(this.client.sessionId, {
+    this.state.updateParticipant(this.sfuClient!.sessionId, {
       audioOutputDeviceId: deviceId,
     });
   };
@@ -466,7 +511,7 @@ export class Call {
    * @param deviceId the selected device, pass `undefined` to clear the device selection
    */
   setAudioDevice = (deviceId?: string) => {
-    this.stateStore.updateParticipant(this.client.sessionId, {
+    this.state.updateParticipant(this.sfuClient!.sessionId, {
       audioDeviceId: deviceId,
     });
   };
@@ -481,7 +526,7 @@ export class Call {
    * @param deviceId the selected device, pass `undefined` to clear the device selection
    */
   setVideoDevice = (deviceId?: string) => {
-    this.stateStore.updateParticipant(this.client.sessionId, {
+    this.state.updateParticipant(this.sfuClient!.sessionId, {
       videoDeviceId: deviceId,
     });
   };
@@ -492,7 +537,7 @@ export class Call {
    * @param sessionId the session id.
    */
   resetReaction = (sessionId: string) => {
-    this.stateStore.updateParticipant(sessionId, {
+    this.state.updateParticipant(sessionId, {
       reaction: undefined,
     });
   };
@@ -503,21 +548,17 @@ export class Call {
    * @returns
    */
   updatePublishQuality = async (enabledRids: string[]) => {
-    return this.publisher.updateVideoPublishQuality(enabledRids);
+    return this.publisher?.updateVideoPublishQuality(enabledRids);
   };
-
-  private get participants() {
-    return this.stateStore.getCurrentValue(this.stateStore.participantsSubject);
-  }
 
   private handleOnTrack = (e: RTCTrackEvent) => {
     const [primaryStream] = e.streams;
     // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
     const [trackId, trackType] = primaryStream.id.split(':');
     console.log(`Got remote ${trackType} track:`, e.track);
-    const participantToUpdate = this.participants.find(
-      (p) => p.trackLookupPrefix === trackId,
-    );
+    const participantToUpdate = this.state
+      .getCurrentValue(this.state.participantsSubject)
+      .find((p) => p.trackLookupPrefix === trackId);
     if (!participantToUpdate) {
       console.error('Received track for unknown participant', trackId, e);
       return;
@@ -570,7 +611,7 @@ export class Call {
         previousStream.removeTrack(t);
       });
     }
-    this.stateStore.updateParticipant(participantToUpdate.sessionId, {
+    this.state.updateParticipant(participantToUpdate.sessionId, {
       [streamKindProp]: primaryStream,
     });
   };

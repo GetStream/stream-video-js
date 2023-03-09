@@ -30,7 +30,8 @@ export const watchCallPermissionRequest = (
       return;
     }
 
-    const localParticipant = store.getCurrentValue(store.localParticipant$);
+    const state = activeCall.state;
+    const localParticipant = state.getCurrentValue(state.localParticipant$);
     if (
       !localParticipant?.ownCapabilities.includes('update-call-permissions')
     ) {
@@ -40,9 +41,7 @@ export const watchCallPermissionRequest = (
       return;
     }
 
-    console.warn(event);
-
-    store.callPermissionRequestSubject.next(event);
+    state.setCurrentValue(state.callPermissionRequestSubject, event);
   };
 };
 
@@ -54,9 +53,7 @@ export const watchCallPermissionsUpdated = (
   store: StreamVideoWriteableStateStore,
 ) => {
   return function onCallPermissionsUpdated(event: UpdatedCallPermissionsEvent) {
-    console.warn(event);
     const activeCall = store.getCurrentValue(store.activeCallSubject);
-
     if (!activeCall) {
       console.warn(
         `Ignoring "call.permission_request" as there is no active call`,
@@ -73,9 +70,10 @@ export const watchCallPermissionsUpdated = (
       return;
     }
 
-    const localParticipant = store.getCurrentValue(store.localParticipant$);
+    const state = activeCall.state;
+    const localParticipant = state.getCurrentValue(state.localParticipant$);
     if (event.user.id === localParticipant?.userId) {
-      store.updateParticipant(localParticipant.sessionId, {
+      state.updateParticipant(localParticipant.sessionId, {
         ownCapabilities: event.own_capabilities,
       });
     }

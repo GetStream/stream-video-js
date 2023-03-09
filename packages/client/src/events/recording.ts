@@ -17,7 +17,8 @@ export const watchCallRecordingStarted = (
       console.warn('Received CallRecordingStartedEvent for a non-active call');
       return;
     }
-    store.setCurrentValue(store.callRecordingInProgressSubject, true);
+    const state = activeCall.state;
+    state.setCurrentValue(state.callRecordingInProgressSubject, true);
   };
 };
 
@@ -34,6 +35,7 @@ export const watchCallRecordingStopped = (
       console.warn('Received CallRecordingStoppedEvent for a non-active call');
       return;
     }
-    store.setCurrentValue(store.callRecordingInProgressSubject, false);
+    const state = activeCall.state;
+    state.setCurrentValue(state.callRecordingInProgressSubject, false);
   };
 };

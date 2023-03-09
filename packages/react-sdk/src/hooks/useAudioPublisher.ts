@@ -1,4 +1,3 @@
-import { useLocalParticipant, useStore } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect, useRef } from 'react';
 import {
   Call,
@@ -20,10 +19,15 @@ export const useAudioPublisher = ({
   initialAudioMuted,
   audioDeviceId,
 }: AudioPublisherInit) => {
-  const { localParticipant$ } = useStore();
+  // FIXME OL: cleanup
+  // const { localParticipant$ } = useStore();
+  const callState = call?.state;
+  const { localParticipant$ } = callState || {};
   // helper reference to determine initial publishing of the media stream
   const initialPublishExecuted = useRef<boolean>(false);
-  const participant = useLocalParticipant();
+  const participant = localParticipant$
+    ? callState?.getCurrentValue(localParticipant$)
+    : undefined;
 
   const isPublishingAudio = participant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
@@ -73,6 +77,7 @@ export const useAudioPublisher = ({
   }, [call, audioDeviceId]);
 
   useEffect(() => {
+    if (!localParticipant$) return;
     const subscription = watchForDisconnectedAudioDevice(
       localParticipant$.pipe(map((p) => p?.audioDeviceId)),
     ).subscribe(async () => {

@@ -3,18 +3,12 @@ import {
   StreamVideoWriteableStateStore,
 } from './store';
 import {
-  DatacenterResponse,
-  GetCallEdgeServerRequest,
   GetOrCreateCallRequest,
-  ICEServer,
   JoinCallRequest,
   RequestPermissionRequest,
   SortParamRequest,
   UpdateUserPermissionsRequest,
 } from './gen/coordinator';
-
-import { measureResourceLoadLatencyTo } from './rpc';
-import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
 import { CallMetadata } from './rtc/CallMetadata';
 
@@ -288,11 +282,16 @@ export class StreamVideoClient {
       );
     }
 
-    const remoteParticipants = store.getCurrentValue(store.remoteParticipants$);
-    if (!remoteParticipants.length && !leavingActiveCall) {
-      await this.coordinatorClient.sendEvent(callId, callType, {
-        type: 'call.cancelled',
-      });
+    if (activeCall) {
+      const state = activeCall.state;
+      const remoteParticipants = state.getCurrentValue(
+        state.remoteParticipants$,
+      );
+      if (!remoteParticipants.length && !leavingActiveCall) {
+        await this.coordinatorClient.sendEvent(callId, callType, {
+          type: 'call.cancelled',
+        });
+      }
     }
   };
 
@@ -306,61 +305,21 @@ export class StreamVideoClient {
    * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
    */
   joinCall = async (id: string, type: string, data?: JoinCallRequest) => {
-    const joinCallResponse = await this.coordinatorClient.joinCall(
-      id,
-      type,
-      data,
+    // FIXME OL: getOrCreateCall shouldn't be used.
+    const theCall = await this.getOrCreateCall(id, type, data);
+    const call = new Call(
+      new CallMetadata(theCall!.call, theCall!.members),
+      this.coordinatorClient,
     );
 
-    const { call: callMeta, edges, members } = joinCallResponse;
-    if (callMeta && edges) {
-      const edge = await this.getCallEdgeServer(id, type, edges);
-      if (edge.credentials && edge.credentials.server) {
-        // TODO OL: compute the initial value from `activeCallSubject`
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.callRecordingInProgressSubject,
-          !!callMeta.record_egress, // FIXME OL: this is not correct
-        );
+    await call.join();
 
-        const { server, ice_servers, token } = edge.credentials;
-        let sfuUrl = server.url;
-        if (
-          typeof window !== 'undefined' &&
-          window.location &&
-          window.location.search
-        ) {
-          const params = new URLSearchParams(window.location.search);
-          const sfuUrlParam = params.get('sfuUrl');
-          sfuUrl = sfuUrlParam || server.url;
-        }
-        const sfuClient = new StreamSfuClient(sfuUrl, token);
-        const metadata = new CallMetadata(callMeta, members);
-        const callOptions = {
-          connectionConfig: this.toRtcConfiguration(ice_servers),
-          edgeName: server.edge_name,
-        };
-        const call = new Call(
-          metadata,
-          sfuClient,
-          callOptions,
-          this.writeableStateStore,
-        );
-        await call.join();
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.activeCallSubject,
+      call,
+    );
 
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.activeCallSubject,
-          call,
-        );
-
-        return call;
-      } else {
-        // TODO: handle error?
-        return undefined;
-      }
-    } else {
-      // TODO: handle error?
-      return undefined;
-    }
+    return call;
   };
 
   /**
@@ -444,37 +403,6 @@ export class StreamVideoClient {
     return this.coordinatorClient.updateUserPermissions(callId, callType, data);
   };
 
-  private getCallEdgeServer = async (
-    id: string,
-    type: string,
-    edges: DatacenterResponse[],
-  ) => {
-    const latencyByEdge: GetCallEdgeServerRequest['latency_measurements'] = {};
-    await Promise.all(
-      edges.map(async (edge) => {
-        latencyByEdge[edge.name] = await measureResourceLoadLatencyTo(
-          edge.latency_url,
-        );
-      }),
-    );
-
-    return await this.coordinatorClient.getCallEdgeServer(id, type, {
-      latency_measurements: latencyByEdge,
-    });
-  };
-
-  private toRtcConfiguration = (config?: ICEServer[]) => {
-    if (!config || config.length === 0) return undefined;
-    const rtcConfig: RTCConfiguration = {
-      iceServers: config.map((ice) => ({
-        urls: ice.urls,
-        username: ice.username,
-        credential: ice.password,
-      })),
-    };
-    return rtcConfig;
-  };
-
   /**
    * Sets the `participant.isPinned` value.
    * @param sessionId the session id of the participant
@@ -482,8 +410,9 @@ export class StreamVideoClient {
    * @returns
    */
   setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
-    this.writeableStateStore.updateParticipant(sessionId, {
-      isPinned,
-    });
+    // FIXME OL: move to Call
+    // this.writeableStateStore.updateParticipant(sessionId, {
+    //   isPinned,
+    // });
   };
 }

@@ -1,24 +1,20 @@
 import { Call } from './Call';
 import { Dispatcher } from './Dispatcher';
-import { StreamVideoWriteableStateStore } from '../store';
+import { CallState } from '../store';
 import {
+  watchAudioLevelChanged,
+  watchChangePublishQuality,
+  watchConnectionQualityChanged,
+  watchDominantSpeakerChanged,
   watchParticipantJoined,
   watchParticipantLeft,
   watchTrackPublished,
   watchTrackUnpublished,
-} from '../events/participant';
-import {
-  watchChangePublishQuality,
-  watchConnectionQualityChanged,
-} from '../events/internal';
-import {
-  watchAudioLevelChanged,
-  watchDominantSpeakerChanged,
-} from '../events/speaker';
+} from '../events';
 
 export const registerEventHandlers = (
   call: Call,
-  store: StreamVideoWriteableStateStore,
+  store: CallState,
   dispatcher: Dispatcher,
 ) => {
   watchChangePublishQuality(dispatcher, call);
