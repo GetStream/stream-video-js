@@ -503,7 +503,7 @@ export class Call {
    * @returns
    */
   updatePublishQuality = async (enabledRids: string[]) => {
-    this.publisher.updateVideoPublishQuality(enabledRids);
+    return this.publisher.updateVideoPublishQuality(enabledRids);
   };
 
   private get participants() {

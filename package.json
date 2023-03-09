@@ -63,7 +63,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.8.4",
     "typescript": "^4.9.5",
-    "vercel": "^28.16.2"
+    "vercel": "^28.16.15"
   },
   "resolutions": {
     "react-native-pure-jwt@^3.0.1": "patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch"
