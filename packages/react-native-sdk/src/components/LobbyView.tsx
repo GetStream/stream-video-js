@@ -193,16 +193,16 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 0,
+    bottom: 10,
     marginVertical: theme.margin.md,
+    paddingHorizontal: theme.padding.md,
   },
   heading: {
     color: theme.light.static_white,
     ...theme.fonts.heading4,
   },
   stream: {
-    height: '100%',
-    width: '100%',
+    flex: 1,
   },
   subHeading: {
     color: theme.light.text_low_emphasis,
@@ -215,8 +215,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     overflow: 'hidden',
-    width: '90%',
     marginVertical: theme.margin.md,
+    width: '100%',
   },
   buttonGroup: {
     flexDirection: 'row',
@@ -230,14 +230,13 @@ const styles = StyleSheet.create({
     backgroundColor: theme.light.static_overlay,
     padding: theme.padding.md,
     borderRadius: 10,
-    width: '90%',
+    width: '100%',
   },
   infoText: {
     color: theme.light.static_white,
     ...theme.fonts.subtitleBold,
   },
   joinButton: {
-    width: '100%',
     backgroundColor: theme.light.primary,
     borderRadius: 10,
     marginTop: theme.margin.md,

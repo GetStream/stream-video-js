@@ -27,55 +27,58 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
   }, [setSelectedParticipant]);
 
   return (
-    <View style={styles.menu}>
-      <View style={styles.participantInfo}>
-        <View style={styles.userInfo}>
-          <Avatar radius={theme.avatar.xs} participant={participant} />
+    <View style={styles.container}>
+      <View style={styles.menu}>
+        <View style={styles.participantInfo}>
+          <View style={styles.userInfo}>
+            <Avatar radius={theme.avatar.xs} participant={participant} />
 
-          <Text style={styles.name}>
-            {generateParticipantTitle(participant.userId) +
-              (participant.isLoggedInUser ? ' (You)' : '')}
-          </Text>
+            <Text style={styles.name}>
+              {generateParticipantTitle(participant.userId) +
+                (participant.isLoggedInUser ? ' (You)' : '')}
+            </Text>
+          </View>
+
+          <Pressable
+            style={[styles.svgContainerStyle, theme.icon.sm]}
+            onPress={onCloseParticipantOptions}
+          >
+            <Cross color={theme.light.primary} />
+          </Pressable>
         </View>
-
-        <Pressable
-          style={styles.svgContainerStyle}
-          onPress={onCloseParticipantOptions}
-        >
-          <Cross color={theme.light.primary} />
-        </Pressable>
-      </View>
-      <View style={styles.options}>
-        {options.map((option, index) => {
-          return (
-            <Pressable
-              style={[
-                index < options.length - 1 ? styles.borderBottom : null,
-                styles.option,
-              ]}
-              key={option.title}
-            >
-              <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-                {option.icon}
-              </View>
-              <Text style={styles.title}>{option.title}</Text>
-            </Pressable>
-          );
-        })}
+        <View style={styles.options}>
+          {options.map((option, index) => {
+            return (
+              <Pressable
+                style={[
+                  index < options.length - 1 ? styles.borderBottom : null,
+                  styles.option,
+                ]}
+                key={option.title}
+              >
+                <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+                  {option.icon}
+                </View>
+                <Text style={styles.title}>{option.title}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  name: {
-    marginLeft: theme.margin.sm,
-    ...theme.fonts.subtitleBold,
+  container: {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    paddingHorizontal: theme.padding.xl,
   },
-  svgContainerStyle: {},
   menu: {
     backgroundColor: theme.light.bars,
-    width: '80%',
     borderRadius: 15,
   },
   participantInfo: {
@@ -90,6 +93,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  name: {
+    marginLeft: theme.margin.sm,
+    ...theme.fonts.subtitleBold,
+  },
+  svgContainerStyle: {},
   options: {},
   option: {
     paddingHorizontal: theme.padding.md,

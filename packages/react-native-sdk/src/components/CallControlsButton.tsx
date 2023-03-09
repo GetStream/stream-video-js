@@ -63,7 +63,6 @@ export const CallControlsButton = (
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 25,
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: theme.light.content_bg,
