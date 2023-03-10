@@ -32,10 +32,6 @@ export const CallScreen = ({ navigation }: Props) => {
     return () => subscription.unsubscribe();
   }, [answerCall, incomingCall?.call]);
 
-  const onHangupCallHandler = () => {
-    navigation.navigate('JoinCallScreen');
-  };
-
   const onOpenCallParticipantsInfoViewHandler = () => {
     navigation.navigate('CallParticipantsInfoScreen');
   };
@@ -45,7 +41,6 @@ export const CallScreen = ({ navigation }: Props) => {
   }
   return (
     <ActiveCall
-      onHangupCall={onHangupCallHandler}
       onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
     />
   );

@@ -4,7 +4,7 @@ import { ComponentType, forwardRef, PropsWithChildren } from 'react';
 import { IconButton } from './IconButton';
 
 export type IconButtonWithMenuProps = PropsWithChildren<{
-  enabled?: boolean;
+  active?: boolean;
   Menu?: ComponentType;
   caption?: string;
 }>;
@@ -12,14 +12,14 @@ export type IconButtonWithMenuProps = PropsWithChildren<{
 export const CompositeButton = ({
   caption,
   children,
-  enabled,
+  active,
   Menu,
 }: IconButtonWithMenuProps) => {
   return (
     <div className="str-video__composite-button">
       <div
         className={clsx('str-video__composite-button__button-group', {
-          'str-video__composite-button__button-group--active': enabled,
+          'str-video__composite-button__button-group--active': active,
         })}
       >
         {children}

@@ -1,6 +1,9 @@
 import { Call, getScreenShareStream, SfuModels } from '@stream-io/video-client';
 import { CompositeButton, IconButton } from '../Button/';
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
+import {
+  useHasOngoingScreenShare,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
 
 export type ScreenShareButtonProps = {
   call: Call;
@@ -12,14 +15,16 @@ export const ScreenShareButton = ({
   caption = 'Screen Share',
 }: ScreenShareButtonProps) => {
   const localParticipant = useLocalParticipant();
+  const isSomeoneScreenSharing = useHasOngoingScreenShare();
   const isScreenSharing = localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
   );
   return (
-    <CompositeButton enabled={isScreenSharing} caption={caption}>
+    <CompositeButton active={isSomeoneScreenSharing} caption={caption}>
       <IconButton
         icon={isScreenSharing ? 'screen-share-on' : 'screen-share-off'}
         title="Share screen"
+        disabled={!isScreenSharing && isSomeoneScreenSharing}
         onClick={async () => {
           if (!isScreenSharing) {
             const stream = await getScreenShareStream().catch((e) => {

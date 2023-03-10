@@ -24,16 +24,12 @@ export const ChannelHeader = (props: ChannelHeaderProps) => {
 
     if (videoClient) {
       try {
-        videoClient?.createCall({
-          id: callID,
-          type: 'default',
-          input: {
-            ring: true,
+        videoClient?.getOrCreateCall(callID, 'default', {
+          ring: true,
+          data: {
             members: members.map(ringingUserId => {
               return {
-                userId: ringingUserId,
-                role: 'member',
-                customJson: new Uint8Array(),
+                user_id: ringingUserId,
               };
             }),
           },

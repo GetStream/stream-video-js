@@ -8,6 +8,7 @@ import {
 import {
   BlockUserResponse,
   CallSettingsRequest,
+  EndCallResponse,
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
   GetEdgesResponse,
@@ -26,6 +27,8 @@ import {
   SortParamRequest,
   StopLiveResponse,
   UnblockUserResponse,
+  UpdateCallMemberRequest,
+  UpdateCallMemberResponse,
   UpdateCallRequest,
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
@@ -119,6 +122,13 @@ export class StreamCall {
     );
   };
 
+  updateCallMembers = async (data: UpdateCallMemberRequest) => {
+    return this.client.post<UpdateCallMemberResponse>(
+      `${this.basePath}/update_member`,
+      data,
+    );
+  };
+
   goLive = async () => {
     return this.client.post<GoLiveResponse>(`${this.basePath}/go_live`, {});
   };
@@ -136,6 +146,10 @@ export class StreamCall {
       settings_override: settings,
     };
     return this.client.patch<UpdateCallResponse>(`${this.basePath}`, payload);
+  };
+
+  endCall = async () => {
+    return this.client.post<EndCallResponse>(`${this.basePath}/mark_ended`);
   };
 }
 
@@ -272,5 +286,17 @@ export class StreamCoordinatorClient {
     data: UpdateUserPermissionsRequest,
   ) => {
     return this.call(type, id).updateUserPermissions(data);
+  };
+
+  endCall = async (id: string, type: string) => {
+    return this.call(type, id).endCall();
+  };
+
+  updateCallMembers = async (
+    id: string,
+    type: string,
+    data: UpdateCallMemberRequest,
+  ) => {
+    return this.call(type, id).updateCallMembers(data);
   };
 }

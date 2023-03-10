@@ -11,9 +11,7 @@
     "scripts:populate-tokens": "node scripts/populateTokens.js"
   },
   "dependencies": {
-    "@mui/icons-material": "^5.10.16",
-    "@stream-io/video-client": "workspace:^",
-    "@stream-io/video-react-bindings": "workspace:^",
+    "@mui/icons-material": "^5.11.11",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
     "clsx": "^1.2.1",
@@ -23,8 +21,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sass": "^1.56.1",
-    "stream-chat": "^8.4.0",
-    "stream-chat-react": "^10.6.0"
+    "stream-chat": "^8.4.1",
+    "stream-chat-react": "^10.7.2"
   },
   "devDependencies": {
     "@types/react": "^18.0.26",
@@ -32,7 +30,7 @@
     "@vitejs/plugin-react": "^2.2.0",
     "dotenv": "^16.0.3",
     "typescript": "^4.9.5",
-    "vercel": "^28.16.2",
+    "vercel": "^28.16.15",
     "vite": "^4.1.2"
   }
 }

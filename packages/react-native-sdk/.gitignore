@@ -64,7 +64,7 @@ buck-out/
 /ios/Pods/
 /vendor/bundle/
 
-# Ignore generated documentation.. it can always be regenerated
-docusaurus/docs/reactnative/reference/**/*.md
-# Shared docs come from cli, so we don't want to commit them here
-docusaurus/shared
+# Ignore generated documentation. It can always be regenerated
+*.gen.mdx
+docusaurus/docs/reactnative/04-call-engine/
+docusaurus/docs/reactnative/07-reference/

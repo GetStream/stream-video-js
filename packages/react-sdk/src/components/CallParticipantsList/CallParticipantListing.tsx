@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { ComponentProps, useState } from 'react';
+import { ComponentProps, ComponentType, useState } from 'react';
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
 import { useConnectedUser } from '@stream-io/video-react-bindings';
 import { useEnterLeaveHandlers } from '../Tooltip/hooks';
@@ -75,7 +75,7 @@ type CallParticipantListingItemProps = {
   /** Participant object be rendered */
   participant: StreamVideoParticipant;
   /** Custom component used to display participant's name */
-  DisplayName?: React.ComponentType<{ participant: StreamVideoParticipant }>;
+  DisplayName?: ComponentType<{ participant: StreamVideoParticipant }>;
 };
 export const CallParticipantListingItem = ({
   participant,

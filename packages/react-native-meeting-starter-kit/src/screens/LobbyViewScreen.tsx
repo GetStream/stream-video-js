@@ -10,18 +10,14 @@ type CallLobbyScreenProps = NativeStackScreenProps<
 >;
 
 export const LobbyViewScreen = (props: CallLobbyScreenProps) => {
-  const {navigation, route} = props;
+  const {route} = props;
   const {
     params: {callId},
   } = route;
 
-  const onActiveCall = () => {
-    navigation.navigate('ActiveCallScreen');
-  };
-
   return (
     <ScrollView>
-      <LobbyView callID={callId} onActiveCall={onActiveCall} />
+      <LobbyView callID={callId} />
     </ScrollView>
   );
 };
