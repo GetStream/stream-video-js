@@ -58,12 +58,12 @@ echo "{
   \"label\": \"Reference\",
   \"position\": 7
 }" > "docusaurus/docs/$SDK_DIR_IN_DOCS/07-reference/_category_.json"
-cp -a temp-docs/interfaces generated-docs/Interfaces
+cp -a temp-docs/interfaces/. generated-docs/Interfaces/
 cp temp-docs/modules.md generated-docs/components.md
 rm -rf temp-docs
 
 # move client docs to SDK's docs and mark as generated
-cp -a ../client/docusaurus/docs/client/ generated-docs/client
+cp -a ../client/docusaurus/docs/client/. generated-docs/client/
 cd generated-docs/client || exit
 for sub_directories in * ;
 do
@@ -77,12 +77,12 @@ cd ../../
 echo "<<<<<<location before copying generated-client-docs>>>>>>>>"
 pwd
 
-cp -a ./generated-docs/client/ "docusaurus/docs/$SDK_DIR_IN_DOCS/"
+cp -a ./generated-docs/client/. "docusaurus/docs/$SDK_DIR_IN_DOCS/"
 rm -rf generated-docs/client/
 
 # copy shared JS docs to the docs to SDK's docusaurus
-cp -a ../client/generated-docs/. "docusaurus/docs/$SDK_DIR_IN_DOCS/04-call-engine"
-cp -a ../react-bindings/generated-docs/. "docusaurus/docs/$SDK_DIR_IN_DOCS/07-reference"
-cp -a ./generated-docs/. "docusaurus/docs/$SDK_DIR_IN_DOCS/07-reference"
+cp -a ../client/generated-docs/. "docusaurus/docs/$SDK_DIR_IN_DOCS/04-call-engine/"
+cp -a ../react-bindings/generated-docs/. "docusaurus/docs/$SDK_DIR_IN_DOCS/07-reference/"
+cp -a ./generated-docs/. "docusaurus/docs/$SDK_DIR_IN_DOCS/07-reference/"
 
 echo "Done!"
