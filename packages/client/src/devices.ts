@@ -152,7 +152,7 @@ const getStream = async (
   // merge the default constraints with the deviceId
   const constraints: MediaStreamConstraints = {
     [type]: {
-      ...(defaultConstraints[type] as {}),
+      ...(defaultConstraints[type] as MediaTrackConstraints),
       deviceId,
     },
   };
