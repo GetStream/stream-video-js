@@ -69,6 +69,10 @@
     }
   }
 
+  &--enabled {
+    background: var(--str-video__text-color3);
+  }
+
   .str-video__call-controls__button--icon {
     background-color: var(--str-video__text-color1);
 
@@ -164,8 +168,13 @@
     }
 
     &-speaker {
-      -webkit-mask-size: var(--str-video__icon--speaker);
       mask-image: var(--str-video__icon--speaker);
+      -webkit-mask-image: var(--str-video__icon--speaker);
+    }
+
+    &-ellipsis {
+      mask-image: var(--str-video__icon--ellipsis);
+      -webkit-mask-image: var(--str-video__icon--ellipsis);
     }
   }
 }
