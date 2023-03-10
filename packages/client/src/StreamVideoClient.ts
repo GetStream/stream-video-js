@@ -319,7 +319,7 @@ export class StreamVideoClient {
         // TODO OL: compute the initial value from `activeCallSubject`
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.callRecordingInProgressSubject,
-          !!callMeta.record_egress, // FIXME OL: this is not correct
+          callMeta.recording,
         );
 
         const { server, ice_servers, token } = edge.credentials;
