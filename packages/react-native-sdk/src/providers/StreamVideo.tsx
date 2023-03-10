@@ -8,7 +8,7 @@ import { MediaDevicesProvider } from '../contexts/MediaDevicesContext';
 import {
   CallCycleProvider,
   CallCycleHandlersType,
-} from '../providers/CallCycle';
+} from '../contexts/CallCycleContext';
 
 export const StreamVideo = (
   props: PropsWithChildren<

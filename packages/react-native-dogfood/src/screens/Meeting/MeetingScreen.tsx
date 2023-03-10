@@ -6,17 +6,12 @@ import { MeetingStackParamList } from '../../../types';
 type Props = NativeStackScreenProps<MeetingStackParamList, 'MeetingScreen'>;
 
 export const MeetingScreen = ({ navigation }: Props) => {
-  const onHangupCallHandler = () => {
-    navigation.navigate('JoinMeetingScreen');
-  };
-
   const onOpenCallParticipantsInfoViewHandler = () => {
     navigation.navigate('CallParticipantsInfoScreen');
   };
 
   return (
     <ActiveCall
-      onHangupCall={onHangupCallHandler}
       onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
     />
   );
