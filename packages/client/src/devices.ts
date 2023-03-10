@@ -50,10 +50,11 @@ export const checkIfAudioOutputChangeSupported = () => {
 /**
  * The default constraints used to request audio devices.
  */
-const audioDeviceConstraints: MediaStreamConstraints = (() => {
+const audioDeviceConstraints = ((): MediaStreamConstraints => {
   if (isChrome()) {
     return {
       audio: {
+        // @ts-expect-error Non-standard shape for Google Chrome
         optional: [
           { autoGainControl: true },
           { noiseSuppression: true },
@@ -176,12 +177,13 @@ const getStream = async (
   const constraints: MediaStreamConstraints = {
     [type]: {
       ...(defaultConstraints[type] as MediaTrackConstraints),
+      // deviceId,
     },
   };
 
-  if (isChrome()) {
+  if (isChrome() && type === 'audio') {
     // @ts-expect-error
-    constraints[type]!.mandatory = {
+    constraints['audio']!.mandatory = {
       sourceId: deviceId,
     };
   } else {
