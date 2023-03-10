@@ -32,17 +32,8 @@ npx typedoc --options typedoc.json
 npx replace-in-file "# $PACKAGE_NAME" '# Components' 'temp-docs/**' > /dev/null
 npx replace-in-file '# Interface: ' '# ' 'temp-docs/**' > /dev/null
 
-echo "<<<<<<debugging in temp-docs>>>>>>>>"
-pwd
-ls
-echo "cding into temp-docs"
-cd temp-docs || exit
-pwd
-ls
-cd ..
-
-#sed -i '' -e 's/interfaces/..\/Interfaces/g' 'temp-docs/modules.md'
-#sed -i '' -e 's/\.md/\//g' 'temp-docs/modules.md'
+sed -i '' -e 's/interfaces/..\/Interfaces/g' 'temp-docs/modules.md'
+sed -i '' -e 's/\.md/\//g' 'temp-docs/modules.md'
 
 #copy from the temp-docs to the structure we want in docusaurus
 mkdir generated-docs
