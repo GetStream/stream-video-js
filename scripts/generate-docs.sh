@@ -65,8 +65,6 @@ do
 done
 
 cd ../../
-echo "<<<<<<location before copying generated-client-docs>>>>>>>>"
-pwd
 
 cp -a ./generated-docs/client/. "docusaurus/docs/$SDK_DIR_IN_DOCS/"
 rm -rf generated-docs/client/
