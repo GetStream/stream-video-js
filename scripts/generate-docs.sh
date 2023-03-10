@@ -58,7 +58,7 @@ echo "{
   \"label\": \"Reference\",
   \"position\": 7
 }" > "docusaurus/docs/$SDK_DIR_IN_DOCS/07-reference/_category_.json"
-cp -r temp-docs/interfaces generated-docs/Interfaces
+cp -a temp-docs/interfaces generated-docs/Interfaces
 cp temp-docs/modules.md generated-docs/components.md
 rm -rf temp-docs
 
@@ -74,6 +74,9 @@ do
 done
 
 cd ../../
+echo "<<<<<<location before copying generated-client-docs>>>>>>>>"
+pwd
+
 cp -a ./generated-docs/client/ "docusaurus/docs/$SDK_DIR_IN_DOCS/"
 rm -rf generated-docs/client/
 
