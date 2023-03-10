@@ -46,9 +46,20 @@ export const checkIfAudioOutputChangeSupported = () => {
   return isFeatureSupported;
 };
 
+/**
+ * The default constraints used to request audio devices.
+ */
 const audioDeviceConstraints: MediaStreamConstraints = {
-  audio: { noiseSuppression: true },
+  audio: {
+    autoGainControl: true,
+    echoCancellation: true,
+    noiseSuppression: true,
+  },
 };
+
+/**
+ * The default constraints used to request video devices.
+ */
 const videoDeviceConstraints: MediaStreamConstraints = {
   video: { width: 960, height: 540 },
 };
