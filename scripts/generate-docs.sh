@@ -24,6 +24,7 @@ echo "Generating docs from $PACKAGE_NAME SDK..."
 rm -rf generated-docs
 rm -rf "docusaurus/docs/$SDK_DIR_IN_DOCS/04-call-engine/"
 rm -rf "docusaurus/docs/$SDK_DIR_IN_DOCS/07-reference/"
+rm -rf temp-docs
 
 # generate new docs
 npx typedoc --options typedoc.json
@@ -31,6 +32,10 @@ npx typedoc --options typedoc.json
 # preprocess the docs to our specific needs
 npx replace-in-file "# $PACKAGE_NAME" '# Components' 'temp-docs/**' > /dev/null
 npx replace-in-file '# Interface: ' '# ' 'temp-docs/**' > /dev/null
+
+echo "<<<<<<debugging>>>>>>>>"
+ls
+
 sed -i '' -e 's/interfaces/..\/Interfaces/g' 'temp-docs/modules.md'
 sed -i '' -e 's/\.md/\//g' 'temp-docs/modules.md'
 

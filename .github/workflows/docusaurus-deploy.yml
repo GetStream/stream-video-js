@@ -8,6 +8,8 @@ on:
     branches:
       - main
       - docs
+      - docs/fundamentals-structure
+
     paths:
       - 'packages/react-bindings/**'
       - 'packages/client/**'
