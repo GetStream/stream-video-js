@@ -35,6 +35,7 @@ import { useCallKeepEffect } from './src/hooks/useCallkeepEffect';
 import { navigationRef } from './src/utils/staticNavigationUtils';
 
 import Logger from 'react-native-webrtc/src/Logger';
+import { LobbyViewScreen } from './src/screens/Meeting/LobbyViewScreen';
 
 // @ts-expect-error
 Logger.enable(false);

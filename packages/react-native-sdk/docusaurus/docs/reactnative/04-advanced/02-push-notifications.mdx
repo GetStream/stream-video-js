@@ -1,6 +1,527 @@
 ---
 id: 02-push-notifications
-title: Push Notification Providers
+title: Push Notifications
 ---
 
-### Stay tuned for more information on this topic!
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import iosCallkitLibrariesLinkImage from '../assets/ios-callkit-libraries-link.png';
+import iosSearchPaths from '../assets/ios-search-paths.png'
+import iosInfoPlist from '../assets/ios-info-plist.png'
+
+The normal user experience in a ringing app when a user receives a call is to show a notification. The user can then interact with the notification to accept or reject the call. In this guide, we explain how to set up your react-native app to get push notifications from Stream for the incoming calls that your user will receive.
+
+## Add push provider credentials to Stream
+
+// TODO - write about adding firebase credentials and APN certificates to Stream
+
+## Install Dependencies
+<Tabs groupId="package-manager">
+  <TabItem value="Yarn" default>
+
+```bash
+  yarn add @react-native-firebase/app
+  yarn add @react-native-firebase/messaging
+  yarn add react-native-callkeep
+  yarn add react-native-voip-push-notification
+  npx pod-install
+```
+
+  </TabItem>
+  <TabItem value="npm">
+
+```bash
+  npm install @react-native-firebase/app
+  npm install @react-native-firebase/messaging
+  npm install react-native-callkeep
+  npm install react-native-voip-push-notification
+  npx pod-install
+```
+  </TabItem>
+</Tabs>
+
+## Platform-specific setup
+
+<Tabs
+  defaultValue='android'
+  values={[
+    { label: 'Android', value: 'android' },
+    { label: 'iOS', value: 'ios' },
+  ]}
+>
+<TabItem value='android'>
+
+### Configure Firebase
+
+Follow [this guide at react-native-firebase documentation](https://rnfirebase.io/#2-android-setup) to generate credentials for your Android app and configure Firebase.
+
+### Add permissions and service
+
+In `android/app/src/main/AndroidManifest.xml` add these permissions:
+
+```xml
+<uses-permission android:name="android.permission.BIND_TELECOM_CONNECTION_SERVICE"/>
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+<uses-permission android:name="android.permission.CALL_PHONE" />
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+<application>
+    <service android:name="io.wazo.callkeep.VoiceConnectionService"
+        android:label="Wazo"
+        android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE"
+        android:foregroundServiceType="camera|microphone"
+    >
+        <intent-filter>
+            <action android:name="android.telecom.ConnectionService" />
+        </intent-filter>
+    </service>
+</application>
+```
+
+### Handle incoming push payload
+
+Add the following callback to the firebase listeners in your codebase to process the incoming push payload from Stream and to show an incoming call view
+
+```ts
+import { Platform } from 'react-native';
+import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import RNCallKeep from 'react-native-callkeep';
+
+function setFirebaseHandler() {
+  const firebaseListener = async (
+    message: FirebaseMessagingTypes.RemoteMessage,
+  ) => {
+    const uuidStr = message.data?.call_cid; // a random id
+    if (!uuidStr) return
+    const localizedCallerName = message.data?.user_names ?? '';
+    const handle = 'handle'; // TODO: Phone number of the caller, what to set?
+    RNCallKeep.displayIncomingCall(
+      uuidStr,
+      handle,
+      localizedCallerName,
+      handleType,
+      hasVideo,
+    );
+  };
+  messaging().setBackgroundMessageHandler(firebaseListener);
+  messaging().onMessage(firebaseListener);
+  messaging()
+    .getToken()
+    .then((token) => {
+      // TODO: send token to stream
+      console.log({ token });
+    });
+}
+
+// call this in the entry point of your app (index.js or equivalent)
+if (Platform.OS === 'android') {
+  setFirebaseHandler();
+}
+```
+
+</TabItem>
+<TabItem value='ios'>
+
+### Configure Firebase
+
+Follow [this guide at react-native-firebase documentation](https://rnfirebase.io/#3-ios-setup) to generate credentials for your iOS app and configure Firebase.
+
+:::note
+
+We don't use Firebase cloud messaging in the iOS app. But `react-native-firebase` library will throw an error if iOS credentials are not added. 
+
+:::
+### Link required libraries for react native callkeep library
+
+1. In Xcode: Click on `Build Phases` tab, then open `Link Binary With Libraries`.
+2. Add `CallKit.framework` and `Intents.framework` (and mark it Optional).
+
+<ImageShowcase
+  items={[
+    {
+      image: iosCallkitLibrariesLinkImage,
+      caption: (
+        <span>
+          Add <code>CallKit.framework</code> and <code>Intents.framework</code> (and mark it Optional).
+        </span>
+      ),
+      alt: 'Example of how to use link libraries required for callkeep library',
+    }
+  ]}
+/>
+
+### Add header search path
+
+1. In Xcode: Click on `Build Settings` tab, then search for `Header Search Paths`.
+
+2. Add `$(SRCROOT)/../node_modules/react-native-callkeep/ios/RNCallKeep`.
+
+<ImageShowcase
+  items={[
+    {
+      image: iosSearchPaths,
+      caption: (
+        <span>
+          Add <code>$(SRCROOT)/../node_modules/react-native-callkeep/ios/RNCallKeep</code>
+        </span>
+      ),
+      alt: 'Example of how to add header search paths that are required for callkeep library',
+    }
+  ]}
+/>
+
+### Allow voip background
+
+1. In Xcode: Open `Info.plist` file and add `voip` in `UIBackgroundModes`. As shown below:
+
+<ImageShowcase
+  items={[
+    {
+      image: iosInfoPlist,
+      alt: 'Example of how to add voip in Info.plist',
+    }
+  ]}
+/>
+
+By editing this file with a text editor, you should see:
+
+```xml
+<key>UIBackgroundModes</key>
+<array>
+  <string>voip</string>
+</array>
+```
+
+### Update AppDelegate
+
+Update `AppDelegate.m` or `AppDelegate.mm` in Xcode with the following parts for iOS support.
+
+#### Add headers
+
+```c
+// highlight-start
+#import <Firebase.h>
+#import "RNCallKeep.h"
+#import <PushKit/PushKit.h>
+#import "RNVoipPushNotificationManager.h"
+// highlight-end
+```
+
+#### Setup at launch
+```c
+
+@implementation AppDelegate
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  // highlight-next-line
+  [FIRApp configure];
+
+  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
+
+  // highlight-next-line
+  [RNVoipPushNotificationManager voipRegistration];
+
+  // the rest
+}
+
+- (BOOL)application:(UIApplication *)application
+ continueUserActivity:(nonnull NSUserActivity *)userActivity
+   restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
+{
+  // highlight-start
+  return [RNCallKeep application:application
+                    continueUserActivity:userActivity
+                      restorationHandler:restorationHandler];
+  // highlight-end
+}
+```
+
+#### Add PushKit delegate methods
+
+Add the following methods to process and display the incoming call notification:
+
+```c
+// Handle updated push credentials
+- (void)pushRegistry:(PKPushRegistry *)registry didUpdatePushCredentials:(PKPushCredentials *)credentials forType:(PKPushType)type {
+  // Fire 'register' event to JS
+  [RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];
+}
+
+// Handle incoming pushes
+- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
+
+   // fire 'notification' event to JS
+   [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
+  
+   // Retrieve information from your stream's push payload
+   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
+   NSString *callCid = stream[@"call_cid"];
+   NSString *userIds = stream[@"user_ids"];
+  
+   // construct a random uuid // TODO: may be call_cid is enough
+   NSUUID* uuid = [NSUUID alloc];
+   NSString* uuidString = [uuid UUIDString];
+
+  // report to callkeep to show native incoming call view
+  [RNCallKeep reportNewIncomingCall: uuidString
+                             handle: @"handle_no"
+                         handleType: @"generic"
+                           hasVideo: YES
+                localizedCallerName: userIds
+                    supportsHolding: YES
+                       supportsDTMF: YES
+                   supportsGrouping: YES
+                 supportsUngrouping: YES
+                        fromPushKit: YES
+                            payload: stream
+              withCompletionHandler: completion];
+}
+```
+
+### Process the push token
+
+We can listen to the event listeners registered above in the AppDelegate to receive the device token. This device token has to be sent to Stream.
+
+
+```ts title="src/hooks/useIosPushEffect.ts"
+import VoipPushNotification from 'react-native-voip-push-notification';
+import { useEffect } from 'react';
+
+export const useIosPushEffect = () => {
+  useEffect(() => {
+    // highlight-start
+    const onTokenReceived = (token: string) => {
+      // TODO: send token to stream
+      console.log({ token });
+    };
+    // highlight-end
+    VoipPushNotification.addEventListener('register', (token) => {
+      onTokenReceived(token);
+    });
+
+    // ===== Step 2: subscribe `notification` event =====
+    // --- this.onVoipPushNotificationReceived
+    VoipPushNotification.addEventListener('notification', (notification) => {
+      // --- when receive remote voip push, register your VoIP client, show local notification ... etc
+      console.log({ notification });
+    });
+
+    // ===== Step 3: subscribe `didLoadWithEvents` event =====
+    VoipPushNotification.addEventListener('didLoadWithEvents', (events) => {
+      // --- this will fire when there are events occured before js bridge initialized
+      // --- use this event to execute your event handler manually by event type
+
+      if (!events || !Array.isArray(events) || events.length < 1) {
+        return;
+      }
+      for (let voipPushEvent of events) {
+        let { name, data } = voipPushEvent;
+        console.log({ voipPushEvent });
+        if (name === 'RNVoipPushRemoteNotificationsRegisteredEvent') {
+          onTokenReceived(data);
+        } else if (name === 'RNVoipPushRemoteNotificationReceivedEvent') {
+          console.log('RNVoipPushRemoteNotificationReceivedEvent', { data });
+          // VoipPushNotification.onVoipNotificationCompleted(data.uuid);
+        }
+      }
+    });
+    return () => {
+      VoipPushNotification.removeEventListener('didLoadWithEvents');
+      VoipPushNotification.removeEventListener('register');
+      VoipPushNotification.removeEventListener('notification');
+    };
+  }, []);
+
+  // Call this hook in the highest level component of your app like the root navigator
+};
+
+```
+</TabItem>
+</Tabs>
+
+## Handle events from react-native-callkeep
+
+### Add the ability to statically navigate to screens in your app
+
+When a user taps on the push notification, if the JS engine is not ready, we should still be able to navigate to the screen that shows the active call. We can do this by the ability to [navigate without the navigation prop in react-navigation library](https://reactnavigation.org/docs/navigating-without-navigation-prop/).
+
+Following is an example implementation of a utility file that has helpers to statically navigate in the app:
+
+```ts title="src/utils/staticNavigation.ts"
+import {
+  StackActions,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
+
+// import types from the appropriate place in your app
+import { RootStackParamList } from '../types';
+
+export const navigationRef = createNavigationContainerRef<RootStackParamList>();
+
+export const StaticNavigationService = {
+  navigate(name: string, params: Object | undefined = undefined) {
+    if (navigationRef.isReady()) {
+      const currentRoute = navigationRef.getCurrentRoute();
+      if (currentRoute?.name === name) {
+        navigationRef.dispatch(StackActions.replace(name, params));
+      } else {
+        // @ts-ignore
+        navigationRef.navigate(name, params);
+      }
+    }
+  },
+  goBack() {
+    if (navigationRef.isReady()) {
+      navigationRef.goBack();
+    }
+  },
+};
+
+// Utility to help to wait to run navigation until app is ready to navigate
+export const RunStaticNavigation = (callback: () => void) => {
+  const intervalId = setInterval(async () => {
+    // add any condition that is relevant to the app here before entering active call screen
+    // example: you can check if your user is authenticated
+    if (navigationRef.isReady()) {
+      clearInterval(intervalId);
+      callback();
+    }
+  }, 300);
+};
+
+```
+
+Also, importantly set the `navigationRef` in your navigation container as shown below:
+
+```ts
+import { navigationRef } from './src/utils/staticNavigationUtils';
+
+// highlight-next-line
+<NavigationContainer ref={navigationRef}>
+    <MyAppNavigator />
+</NavigationContainer>
+```
+
+### Setup the active call screen to process the incoming call from the push notification
+
+Following is an example implementation of the screen that shows the active call. It is set up to accept the incoming call once a call-id for the incoming call is received.
+
+```ts
+import {
+  ActiveCall,
+  useActiveCall,
+  useIncomingCalls,
+  useRingCall,
+} from '@stream-io/video-react-native-sdk';
+
+export const CallScreen = ({ route, navigation }: Props) => {
+  const { callIdFromPushNotif } = route.params;
+  const activeCall = useActiveCall();
+  const [incomingCall] = useIncomingCalls();
+  const { answerCall } = useRingCall();
+
+  useEffect(() => {
+    // effect to answer call when incoming call is received from push notifications
+    if (!incomingCall?.call || !callIdFromPushNotif) {
+      return;
+    }
+    answerCall();
+    // remove the current call id to avoid rejoining when coming back to this screen
+    navigation.setParams({
+        callIdFromPushNotif: undefined,
+    });
+  }, [callIdFromPushNotif, incomingCall?.call]);
+
+  const onHangupCallHandler = () => {
+    navigation.navigate('JoinCallScreen');
+  };
+
+  const onOpenCallParticipantsInfoViewHandler = () => {
+    navigation.navigate('CallParticipantsInfoScreen');
+  };
+
+  if (!activeCall) {
+    return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
+  }
+  return (
+    <ActiveCall
+      onHangupCall={onHangupCallHandler}
+      onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
+    />
+  );
+};
+```
+
+### Listen to callkeep events
+
+// TODO: can we move a lot of this stuff into SDK?
+
+Finally, we can listen to the event of accepting or rejecting a call from the push notification and do the necessary action. When a call has been accepted we can use the static navigation utility that we created above to navigate to the active call screen. 
+
+```ts title="src/hooks/useCallKeepEffect.ts"
+import { useEffect } from 'react';
+import { PermissionsAndroid } from 'react-native';
+import RNCallKeep from 'react-native-callkeep';
+import {
+  RunStaticNavigation,
+  StaticNavigationService,
+} from '../utils/staticNavigationUtils';
+
+const options: Parameters<typeof RNCallKeep.setup>[0] = {
+  ios: {
+    appName: 'YOUR_APP_NAME',
+    supportsVideo: true,
+  },
+  android: {
+    alertTitle: 'Permissions Required',
+    alertDescription:
+      'This application needs to access your phone calling accounts to make calls',
+    cancelButton: 'Cancel',
+    okButton: 'ok',
+    // TODO: Required to get audio in background when using Android 11
+    foregroundService: {
+      channelId: 'com.company.my',
+      channelName: 'Foreground service for my app',
+      notificationTitle: 'My app is running on background',
+      notificationIcon: 'Path to the resource icon of the notification',
+    },
+  },
+};
+
+try {
+  RNCallKeep.setup(options);
+  RNCallKeep.setAvailable(true); // you can also choose to set available only when user is authenticated
+} catch (err) {
+  console.error('initializeCallKeep error:', err);
+}
+
+export const useCallKeepEffect = () => {
+  useEffect(() => {
+    RNCallKeep.addEventListener('answerCall', ({ callUUID }) => {
+      RNCallKeep.backToForeground();
+      // close the dialer screen so that the app can be seen
+      RNCallKeep.endCall(callUUID);
+      // highlight-start
+      RunStaticNavigation(() => {
+        StaticNavigationService.navigate('CallScreen', { callIdFromPushNotif: callUUID });
+      });
+      // highlight-end
+    });
+    RNCallKeep.addEventListener('endCall', ({ callUUID }) => {
+      if (callUUID) {
+        RNCallKeep.endCall(callUUID);
+      }
+    });
+
+    return () => {
+      RNCallKeep.removeEventListener('answerCall');
+      RNCallKeep.removeEventListener('endCall');
+    };
+  }, []);
+};
+
+// Call this hook in the highest level component of your app like the root navigator
+```
