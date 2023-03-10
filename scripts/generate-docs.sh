@@ -31,9 +31,9 @@ npx typedoc --options typedoc.json
 # preprocess the docs to our specific needs
 npx replace-in-file "# $PACKAGE_NAME" '# Components' 'temp-docs/**' > /dev/null
 npx replace-in-file '# Interface: ' '# ' 'temp-docs/**' > /dev/null
-
-sed -i '' -e 's/interfaces/..\/Interfaces/g' 'temp-docs/modules.md'
-sed -i '' -e 's/\.md/\//g' 'temp-docs/modules.md'
+npx replace-in-file '/interfaces/g' '../Interfaces' 'temp-docs/modules.md' --isRegex > /dev/null
+npx replace-in-file '/\.md/g' '/' 'temp-docs/modules.md' --isRegex > /dev/null
+npx replace-in-file '/modules\//g' '' 'temp-docs/modules.md' --isRegex > /dev/null
 
 #copy from the temp-docs to the structure we want in docusaurus
 mkdir generated-docs
@@ -65,8 +65,6 @@ do
 done
 
 cd ../../
-echo "<<<<<<location before copying generated-client-docs>>>>>>>>"
-pwd
 
 cp -a ./generated-docs/client/. "docusaurus/docs/$SDK_DIR_IN_DOCS/"
 rm -rf generated-docs/client/
