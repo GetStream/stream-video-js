@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import Gleap from 'gleap';
 import { useRouter } from 'next/router';
 import { authOptions } from '../api/auth/[...nextauth]';
-import { unstable_getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth';
 import { GetServerSidePropsContext } from 'next';
 import { createToken } from '../../helpers/jwt';
 import {
@@ -120,12 +120,7 @@ export default CallRoom;
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
 ) => {
-  const session = await unstable_getServerSession(
-    context.req,
-    context.res,
-    authOptions,
-  );
-
+  const session = await getServerSession(context.req, context.res, authOptions);
   if (!session) {
     const url = context.req.url;
     return {

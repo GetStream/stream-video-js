@@ -138,9 +138,19 @@
       -webkit-mask-image: var(--str-video__icon--call-end);
     }
 
-    &-stats {
-      mask-image: var(--str-video__icon--info-icon);
+    &-info {
       -webkit-mask-image: var(--str-video__icon--info-icon);
+      mask-image: var(--str-video__icon--info-icon);
+    }
+
+    &-info-document {
+      -webkit-mask-image: var(--str-video__icon--info-document);
+      mask-image: var(--str-video__icon--info-document);
+    }
+
+    &-stats {
+      -webkit-mask-image: var(--str-video__icon--stats);
+      mask-image: var(--str-video__icon--stats);
     }
 
     &-participants {

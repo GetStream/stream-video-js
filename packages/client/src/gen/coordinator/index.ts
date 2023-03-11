@@ -444,14 +444,16 @@ export interface CallRejectedEvent {
   user: UserResponse;
 }
 
-export  interface UpdateCallMemberRequest {
-  add_members?: Array<MemberRequest>
-  remove_members?: Array<String>
-  update_members?: Array<MemberRequest>
+// FIXME OL: this model is manually added, don't remove it until it becomes available in the OpenAPI schema
+export interface UpdateCallMemberRequest {
+  add_members?: Array<MemberRequest>;
+  remove_members?: Array<string>;
+  update_members?: Array<MemberRequest>;
 }
 
+// FIXME OL: this model is manually added, don't remove it until it becomes available in the OpenAPI schema
 export interface UpdateCallMemberResponse {
-  members?: Array<String>
+  members?: Array<string>;
 }
 
 /**
@@ -523,10 +525,10 @@ export interface CallResponse {
   blocked_user_ids: Array<string>;
   /**
    *
-   * @type {string}
+   * @type {boolean}
    * @memberof CallResponse
    */
-  broadcast_egress: string;
+  broadcasting: boolean;
   /**
    * The unique identifier for a call (<type>:<id>)
    * @type {string}
@@ -571,10 +573,10 @@ export interface CallResponse {
   own_capabilities: Array<string>;
   /**
    *
-   * @type {string}
+   * @type {boolean}
    * @memberof CallResponse
    */
-  record_egress: string;
+  recording: boolean;
   /**
    *
    * @type {CallSettingsResponse}
@@ -593,6 +595,12 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   team: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallResponse
+   */
+  transcribing: boolean;
   /**
    * The type of call
    * @type {string}

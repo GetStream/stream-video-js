@@ -32,6 +32,7 @@ import {
   ChatWrapper,
   NewMessageNotification,
   UnreadCountBadge,
+  USAGE_GUIDE_LINK,
 } from '.';
 import { useWatchChannel } from '../hooks';
 
@@ -135,6 +136,19 @@ export const MeetingUI = ({
         <div className="str-video__call-header">
           <CallHeaderTitle />
           <div className="str-video__call-header__controls-group">
+            <IconButton
+              icon="info-document"
+              title="Usage guide and known limitations"
+              onClick={() => {
+                if (window) {
+                  window.open(
+                    USAGE_GUIDE_LINK,
+                    '_blank',
+                    'noopener,noreferrer',
+                  );
+                }
+              }}
+            />
             <GetInviteLinkButton Button={IconInviteLinkButton} />
             <DeviceSettings />
           </div>

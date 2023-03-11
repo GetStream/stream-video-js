@@ -8,6 +8,7 @@ on:
     branches:
       - main
       - docs
+
     paths:
       - 'packages/react-bindings/**'
       - 'packages/client/**'
@@ -26,6 +27,7 @@ on:
 jobs:
   push_docusaurus:
     name: Build and deploy the documentation
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     strategy:
       matrix:

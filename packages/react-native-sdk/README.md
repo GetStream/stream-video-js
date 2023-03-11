@@ -13,7 +13,7 @@ If the CLI tool is not installed, follow the instructions in [stream-chat-docusa
 npx stream-chat-docusaurus -s
 ```
 
-### Generate Docs from source-code
+### Generate Docs from source-code and other packages
 
 Whenever source code is changed. Run `yarn generate-docs` again. 
 `stream-chat-docusaurus-cli` will pick up the changes and reload the site automatically.

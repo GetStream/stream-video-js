@@ -414,7 +414,7 @@ export class StableWSConnection {
       return;
     }
 
-    if (this.isDisconnected /* && this.client.options.enableWSFallback */) {
+    if (this.isDisconnected && this.client.options.enableWSFallback) {
       this._log('_reconnect() - Abort (3) since disconnect() is called');
       return;
     }

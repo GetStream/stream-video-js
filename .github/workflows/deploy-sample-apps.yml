@@ -22,6 +22,7 @@ on:
 jobs:
   build-and-deploy-sample-apps:
     name: Deploy ${{ matrix.application.name }}
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     strategy:
       matrix:
