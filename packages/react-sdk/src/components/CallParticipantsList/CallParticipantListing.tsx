@@ -24,7 +24,7 @@ import {
   GenericMenuButtonItem,
 } from '../Menu';
 import { IconButton, TextButton } from '../Button';
-import { HasAccess } from '../Moderation';
+import { Restricted } from '../Moderation';
 
 const MediaIndicator = ({ title, ...props }: ComponentProps<'div'>) => {
   const { handleMouseEnter, handleMouseLeave, tooltipVisible } =
@@ -134,33 +134,25 @@ export const CallParticipantListingItem = ({
             }`,
           )}
         />
-        <HasAccess
-          participant={localParticipant!}
+        <Restricted
+          availableGrants={localParticipant?.ownCapabilities ?? []}
           // TODO: add 'kick-users' when available
-          requires={['block-users', 'mute-users']}
+          requiredGrants={['block-users', 'mute-users']}
         >
           <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
             <Menu participant={participant} />
           </MenuToggle>
-        </HasAccess>
+        </Restricted>
       </div>
     </div>
   );
 };
 
-export type CallParticipantListingProps = {
-  /** Array of participant objects to be rendered */
-  data: StreamVideoParticipant[];
-};
-export const CallParticipantListing = ({
-  data,
-}: CallParticipantListingProps) => {
+// FIXME: will probably cease to exist with new design
+const CallParticipantListingHeader = () => {
   const client = useStreamVideoClient();
   const activeCall = useActiveCall();
-  const callMetadata = useCallMetadata(activeCall!);
   const localParticipant = useLocalParticipant();
-
-  console.log(localParticipant);
 
   const getCall = () =>
     client?.coordinatorClient.call(
@@ -168,69 +160,51 @@ export const CallParticipantListing = ({
       activeCall!.data.call.id,
     );
 
-  const unblockUserClickHandler = (e: MouseEvent<HTMLButtonElement>) => {
-    const user = e.currentTarget.parentElement?.getAttribute('data-user-id');
-
-    if (user) getCall()?.unblockUser(user);
-  };
-
   const muteAllClickHandler = () => {
     getCall()?.muteAllUsers('audio');
   };
 
-  const blockedUsers = callMetadata.blocked_user_ids;
-
   return (
-    <>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}
+    >
+      <div>Active users</div>
+      <Restricted
+        availableGrants={localParticipant?.ownCapabilities ?? []}
+        requiredGrants={['mute-users']}
       >
-        <Subheader>Active users</Subheader>
-
-        <HasAccess participant={localParticipant!} requires={['mute-users']}>
-          <TextButton onClick={muteAllClickHandler}>Mute all</TextButton>
-        </HasAccess>
-      </div>
-      <div className="str-video__participant-listing">
-        {data.map((participant) => (
-          <CallParticipantListingItem
-            key={participant.sessionId}
-            participant={participant}
-          />
-        ))}
-      </div>
-      {!!blockedUsers.length && (
-        <>
-          <Subheader>Blocked users</Subheader>
-          <div className="str-video__participant-listing">
-            {blockedUsers.map((userId) => (
-              <div
-                data-user-id={userId}
-                className="str-video__participant-listing-item"
-              >
-                <div className="str-video__participant-listing-item__display-name">
-                  {userId}
-                </div>
-                <HasAccess
-                  participant={localParticipant!}
-                  requires={['block-users']}
-                >
-                  <TextButton onClick={unblockUserClickHandler}>
-                    Unblock
-                  </TextButton>
-                </HasAccess>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-    </>
+        <TextButton onClick={muteAllClickHandler}>Mute all</TextButton>
+      </Restricted>
+    </div>
   );
 };
+
+export type CallParticipantListingProps = {
+  /** Array of participant objects to be rendered */
+  data: StreamVideoParticipant[];
+  Header?: ComponentType;
+};
+
+export const CallParticipantListing = ({
+  data,
+  Header = CallParticipantListingHeader,
+}: CallParticipantListingProps) => (
+  <>
+    {Header && <Header />}
+    <div className="str-video__participant-listing">
+      {data.map((participant) => (
+        <CallParticipantListingItem
+          key={participant.sessionId}
+          participant={participant}
+        />
+      ))}
+    </div>
+  </>
+);
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   (props, ref) => {
@@ -262,13 +236,19 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
 
   return (
     <GenericMenu>
-      <HasAccess participant={localParticipant!} requires={['block-users']}>
+      <Restricted
+        availableGrants={localParticipant?.ownCapabilities ?? []}
+        requiredGrants={['block-users']}
+      >
         <GenericMenuButtonItem onClick={blockUserClickHandler}>
           Block
         </GenericMenuButtonItem>
-      </HasAccess>
+      </Restricted>
       <GenericMenuButtonItem disabled>Kick</GenericMenuButtonItem>
-      <HasAccess participant={localParticipant!} requires={['mute-users']}>
+      <Restricted
+        availableGrants={localParticipant?.ownCapabilities ?? []}
+        requiredGrants={['mute-users']}
+      >
         <GenericMenuButtonItem
           disabled={
             !participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)
@@ -287,19 +267,7 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
         >
           Mute audio
         </GenericMenuButtonItem>
-      </HasAccess>
+      </Restricted>
     </GenericMenu>
-  );
-};
-
-const Subheader = ({ children }: PropsWithChildren) => {
-  return (
-    <span
-      style={{
-        fontSize: '0.9rem',
-      }}
-    >
-      {children}
-    </span>
   );
 };

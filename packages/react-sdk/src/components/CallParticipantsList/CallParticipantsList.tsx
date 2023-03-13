@@ -20,6 +20,7 @@ import { SearchInput, SearchResults } from '../Search';
 import { useSearch, UseSearchParams } from '../Search/hooks';
 
 import type { StreamVideoParticipant } from '@stream-io/video-client';
+import { BlockedUserListing } from './BlockedUserListing';
 
 type CallParticipantListProps = {
   /** Click event listener function to be invoked in order to dismiss / hide the CallParticipantsList from the UI */
@@ -51,7 +52,7 @@ export const CallParticipantsList = ({
   const participants = useParticipants();
   const searchFn = useCallback(
     (queryString: string) => {
-      const queryRegExp = new RegExp(queryString);
+      const queryRegExp = new RegExp(queryString, 'i');
       return Promise.resolve(
         participants.filter((participant) => {
           return participant.name.match(queryRegExp);
@@ -89,6 +90,8 @@ export const CallParticipantsList = ({
           searchResults={searchQuery ? searchResults : participants}
           SearchResultList={CallParticipantListing}
         />
+        {/* TODO: implement search once once tabs design is out */}
+        <BlockedUserListing />
       </div>
       <div className="str-video__participant-list__footer">
         {InviteLinkButton && <GetInviteLinkButton Button={InviteLinkButton} />}
