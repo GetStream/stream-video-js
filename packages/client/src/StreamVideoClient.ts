@@ -210,7 +210,7 @@ export class StreamVideoClient {
       type,
       data,
     );
-    const { call } = response;
+    const { call, members } = response;
     if (!call) {
       console.log(`Call with id ${id} and type ${type} could not be created`);
       return;
@@ -226,7 +226,7 @@ export class StreamVideoClient {
     if (!callAlreadyRegistered) {
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => [...pendingCalls, new CallMetadata(call)],
+        (pendingCalls) => [...pendingCalls, new CallMetadata(call, members)],
       );
       return response;
     } else {
@@ -319,7 +319,7 @@ export class StreamVideoClient {
         // TODO OL: compute the initial value from `activeCallSubject`
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.callRecordingInProgressSubject,
-          !!callMeta.record_egress, // FIXME OL: this is not correct
+          callMeta.recording,
         );
 
         const { server, ice_servers, token } = edge.credentials;
