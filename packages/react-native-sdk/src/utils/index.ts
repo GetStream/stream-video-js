@@ -1,3 +1,4 @@
+import { CallMetadata, User, UserResponse } from '@stream-io/video-client';
 import { MAX_AVATARS_IN_VIEW } from '../constants';
 
 // Utility to join strings with commas and 'and'
@@ -20,4 +21,24 @@ export const generateParticipantTitle = (memberUserId: string) => {
   return memberUserId.length > 15
     ? memberUserId.slice(0, 15) + '...'
     : memberUserId;
+};
+
+// Utility to generate array of member user ids from outgoing call meta data
+export const getMembersForOutgoingCall = (outgoingCall: CallMetadata) => {
+  return Object.values(outgoingCall.users);
+};
+
+// Utility to generate array of member user ids from incoming call meta data
+export const getMembersForIncomingCall = (
+  incomingCall: CallMetadata,
+  connectedUser: User | undefined,
+) => {
+  let members: UserResponse[] = [];
+  Object.values(incomingCall.users).forEach((user) => {
+    if (connectedUser?.id !== user.id) members.push(user);
+  });
+  const callCreatedBy = incomingCall.call.created_by;
+  members.push(callCreatedBy);
+
+  return members;
 };
