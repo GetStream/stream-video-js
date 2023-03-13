@@ -7,14 +7,27 @@ import {
   StreamVideoParticipantPatches,
 } from '../rtc/types';
 import { CallStatsReport } from '../stats/types';
-import { CallResponse, PermissionRequestEvent } from '../gen/coordinator';
+import {
+  CallResponse,
+  MemberResponse,
+  PermissionRequestEvent,
+} from '../gen/coordinator';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import * as RxUtils from './rxUtils';
 import { TrackType } from '../gen/video/sfu/models/models';
+import { UserResponseMap } from '../rtc/CallMetadata';
 
 export class CallState {
   // State
-  call = new ReplaySubject<CallResponse>(1);
+  /**
+   * The raw call object, as defined on the backend.
+   */
+  callSubject = new ReplaySubject<CallResponse | undefined>(1);
+
+  /**
+   * The list of members of the current call.
+   */
+  membersSubject = new ReplaySubject<MemberResponse[]>(1);
 
   /**
    * All participants of the current call (including the logged-in user).
@@ -109,9 +122,17 @@ export class CallState {
    */
   callPermissionRequest$: Observable<PermissionRequestEvent | undefined>;
 
-  constructor(call: CallResponse) {
-    this.call.next(call);
+  /**
+   * The raw call object, as defined on the backend.
+   */
+  call$: Observable<CallResponse | undefined>;
 
+  /**
+   * The list of members of the current call.
+   */
+  members$: Observable<UserResponseMap>;
+
+  constructor() {
     this.participants$ = this.participantsSubject.asObservable();
     this.localParticipant$ = this.participantsSubject.pipe(
       map((participants) => participants.find(isStreamVideoLocalParticipant)),
@@ -143,6 +164,18 @@ export class CallState {
       this.callRecordingInProgressSubject.asObservable();
     this.callPermissionRequest$ =
       this.callPermissionRequestSubject.asObservable();
+
+    this.call$ = this.callSubject.asObservable();
+    // FIXME OL: is the shape of this observable ok? Shall we expose the whole MemberResponse instead?
+    this.members$ = this.membersSubject.pipe(
+      map((members) => {
+        return members.reduce<UserResponseMap>((acc, member) => {
+          const user = member.user;
+          acc[user.id] = user;
+          return acc;
+        }, {});
+      }),
+    );
   }
 
   /**

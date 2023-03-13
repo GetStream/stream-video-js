@@ -62,7 +62,7 @@ export class StreamVideoWriteableStateStore {
         this.setCurrentValue(
           this.pendingCallsSubject,
           this.getCurrentValue(this.pendingCallsSubject).filter(
-            (call) => call.call.cid !== callController.data.call.cid,
+            (call) => call.call.cid !== callController.cid,
           ),
         );
         this.setCurrentValue(this.acceptedCallSubject, undefined);
@@ -96,8 +96,9 @@ export class StreamVideoWriteableStateStore {
 }
 
 /**
- * A reactive store that exposes state variables in a reactive manner - you can subscribe to changes of the different state variables. This central store contains all the state variables related to [`StreamVideoClient`](./StreamVideClient.md) and [`Call`](./Call.md).
- *
+ * A reactive store that exposes state variables in a reactive manner.
+ * You can subscribe to changes of the different state variables.
+ * This central store contains all the state variables related to [`StreamVideoClient`](./StreamVideClient.md) and [`Call`](./Call.md).
  */
 export class StreamVideoReadOnlyStateStore {
   /**

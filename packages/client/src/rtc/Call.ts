@@ -8,6 +8,7 @@ import { Dispatcher, SfuEventListener } from './Dispatcher';
 import { CallState } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { StreamCoordinatorClient } from '../coordinator/StreamCoordinatorClient';
+import { JoinCallRequest } from '../gen/coordinator';
 import { join } from './flows/join';
 import type {
   PublishOptions,
@@ -27,16 +28,33 @@ import {
   createStatsReporter,
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
-import { CallMetadata } from './CallMetadata';
+
+export type CallConstructor = {
+  httpClient: StreamCoordinatorClient;
+  id: string;
+  type: string;
+};
 
 /**
- * A `Call` object represents the active call the user is part of. It's not enough to have a `Call` instance, you will also need to call the [`join`](#join) method.
+ * A `Call` object represents the active call the user is part of.
+ * It's not enough to have a `Call` instance, you will also need to call the [`join`](#join) method.
  */
 export class Call {
   /**
-   * Contains metadata about the call, for example who created the call. You can also extract the call ID from this object, which you'll need for certain API calls (for example to start a recording).
+   * The type of the call.
    */
-  data: CallMetadata;
+  readonly type: string;
+
+  /**
+   * The ID of the call.
+   */
+  readonly id: string;
+
+  /**
+   * The call CID.
+   */
+  readonly cid: string;
+
   private subscriber?: RTCPeerConnection;
   private publisher?: Publisher;
   private trackSubscriptionsSubject = new Subject<TrackSubscriptionDetails[]>();
@@ -44,18 +62,19 @@ export class Call {
   private statsReporter?: StatsReporter;
   private joined$ = new BehaviorSubject<boolean>(false);
 
-  state: CallState;
+  state = new CallState();
   private dispatcher = new Dispatcher();
-  private httpClient: StreamCoordinatorClient;
+  private readonly httpClient: StreamCoordinatorClient;
   private sfuClient?: StreamSfuClient;
 
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    */
-  constructor(data: CallMetadata, httpClient: StreamCoordinatorClient) {
-    this.data = data;
+  constructor({ type, id, httpClient }: CallConstructor) {
+    this.type = type;
+    this.id = id;
+    this.cid = `${type}:${id}`;
     this.httpClient = httpClient;
-    this.state = new CallState(data.call);
 
     registerEventHandlers(this, this.state, this.dispatcher);
 
@@ -116,24 +135,20 @@ export class Call {
   };
 
   /**
-   * Will initiate a call session with the server and return the call state. Don't call this method directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method that takes care of this operation.
-   *
-   * If the join was successful the [`activeCall$` state variable](./StreamVideClient/#readonlystatestore) will be set
+   * Will initiate a call session with the server.
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
-  join = async () => {
+  join = async (data?: JoinCallRequest) => {
     if (this.joined$.getValue()) {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    const connection = await join(
-      this.httpClient,
-      this.data.call.type,
-      this.data.call.id,
-      {},
-    );
+    const connection = await join(this.httpClient, this.type, this.id, data);
+    this.state.setCurrentValue(this.state.callSubject, connection.call);
+    this.state.setCurrentValue(this.state.membersSubject, connection.members);
 
+    // FIXME OL: convert to a derived state
     this.state.setCurrentValue(
       this.state.callRecordingInProgressSubject,
       connection.call.recording,
@@ -183,7 +198,7 @@ export class Call {
         const currentParticipants = callState?.participants || [];
 
         const ownCapabilities = {
-          ownCapabilities: this.data.call.own_capabilities,
+          ownCapabilities: connection.call.own_capabilities,
         };
 
         this.state.setCurrentValue(

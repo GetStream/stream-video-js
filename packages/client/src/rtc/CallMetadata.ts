@@ -8,8 +8,18 @@ export type UserResponseMap = {
   [userId: string]: UserResponse;
 };
 
+/**
+ * @deprecated Use `CallState` instead.
+ */
 export class CallMetadata {
+  /**
+   * @deprecated Use `CallState.callSubject` instead.
+   */
   call: CallResponse;
+
+  /**
+   * @deprecated Use `CallState.membersSubject` instead.
+   */
   users: UserResponseMap;
 
   constructor(call: CallResponse, members?: MemberResponse[]) {

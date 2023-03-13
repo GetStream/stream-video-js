@@ -62,8 +62,7 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
 
     // FIXME OL: we should revisit this logic, it is hard to follow
     const acceptedActiveCall =
-      activeCall?.data.call.cid !== undefined &&
-      activeCall.data.call.cid === call_cid
+      activeCall?.cid !== undefined && activeCall.cid === call_cid
         ? activeCall
         : undefined;
 
@@ -75,7 +74,7 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
     }
 
     // once in active call, it is unnecessary to keep track of accepted call events
-    if (call_cid === acceptedActiveCall?.data.call.cid) {
+    if (call_cid === acceptedActiveCall?.cid) {
       return;
     }
 
@@ -110,8 +109,7 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
       .find((outgoingCall) => outgoingCall.call.cid === call_cid);
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     const rejectedActiveCall =
-      activeCall?.data.call.cid !== undefined &&
-      activeCall.data.call.cid === call_cid
+      activeCall?.cid !== undefined && activeCall.cid === call_cid
         ? activeCall
         : undefined;
 
@@ -147,8 +145,7 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
 
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     const cancelledActiveCall =
-      activeCall?.data.call.cid !== undefined &&
-      activeCall.data.call.cid === call_cid
+      activeCall?.cid !== undefined && activeCall.cid === call_cid
         ? activeCall
         : undefined;
 

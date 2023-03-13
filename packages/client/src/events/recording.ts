@@ -13,7 +13,7 @@ export const watchCallRecordingStarted = (
   return function onCallRecordingStarted(event: CallRecordingStartedEvent) {
     const { call_cid } = event;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
-    if (!activeCall || activeCall.data.call.cid !== call_cid) {
+    if (!activeCall || activeCall.cid !== call_cid) {
       console.warn('Received CallRecordingStartedEvent for a non-active call');
       return;
     }
@@ -31,7 +31,7 @@ export const watchCallRecordingStopped = (
   return function onCallRecordingStopped(event: CallRecordingStoppedEvent) {
     const { call_cid } = event;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
-    if (!activeCall || activeCall.data.call.cid !== call_cid) {
+    if (!activeCall || activeCall.cid !== call_cid) {
       console.warn('Received CallRecordingStoppedEvent for a non-active call');
       return;
     }

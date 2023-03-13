@@ -11,7 +11,7 @@ export const join = async (
   httpClient: StreamCoordinatorClient,
   type: string,
   id: string,
-  data: JoinCallRequest,
+  data?: JoinCallRequest,
 ) => {
   const joinCallResponse = await httpClient.joinCall(id, type, data);
   const { call, edges, members } = joinCallResponse;

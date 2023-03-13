@@ -22,7 +22,7 @@ export const watchCallPermissionRequest = (
       return;
     }
 
-    if (activeCall.data.call.cid !== event.call_cid) {
+    if (activeCall.cid !== event.call_cid) {
       console.warn(
         `Ignoring "call.permission_request" as it doesn't belong to the active call`,
         event,
@@ -62,7 +62,7 @@ export const watchCallPermissionsUpdated = (
       return;
     }
 
-    if (activeCall.data.call.cid !== event.call_cid) {
+    if (activeCall.cid !== event.call_cid) {
       console.warn(
         `Ignoring "call.permission_request" as it doesn't belong to the active call`,
         event,

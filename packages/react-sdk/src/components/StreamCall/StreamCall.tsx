@@ -1,6 +1,7 @@
 import { ReactNode, useEffect } from 'react';
 
 import {
+  StreamCallProvider,
   useAcceptedCall,
   useActiveCall,
   useOutgoingCalls,
@@ -32,11 +33,13 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
     }
   }, [videoClient, outgoingCall, acceptedCall, activeCall]);
 
-  if (!videoClient) return null;
+  if (!activeCall) return null;
 
   return (
-    <MediaDevicesProvider enumerate={!!activeCall}>
-      {children}
-    </MediaDevicesProvider>
+    <StreamCallProvider call={activeCall}>
+      <MediaDevicesProvider enumerate={!!activeCall}>
+        {children}
+      </MediaDevicesProvider>
+    </StreamCallProvider>
   );
 };

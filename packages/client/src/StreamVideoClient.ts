@@ -273,7 +273,7 @@ export class StreamVideoClient {
   cancelCall = async (callId: string, callType: string) => {
     const store = this.writeableStateStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
-    const leavingActiveCall = activeCall?.data.call.id === callId;
+    const leavingActiveCall = activeCall?.cid === callId;
     if (leavingActiveCall) {
       activeCall.leave();
     } else {
@@ -305,14 +305,13 @@ export class StreamVideoClient {
    * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
    */
   joinCall = async (id: string, type: string, data?: JoinCallRequest) => {
-    // FIXME OL: getOrCreateCall shouldn't be used.
-    const theCall = await this.getOrCreateCall(id, type, data);
-    const call = new Call(
-      new CallMetadata(theCall!.call, theCall!.members),
-      this.coordinatorClient,
-    );
+    const call = new Call({
+      httpClient: this.coordinatorClient,
+      id,
+      type,
+    });
 
-    await call.join();
+    await call.join(data);
 
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.activeCallSubject,

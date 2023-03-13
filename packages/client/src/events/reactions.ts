@@ -10,7 +10,7 @@ export const watchNewReactions = (store: StreamVideoWriteableStateStore) => {
   return function onNewReactions(event: CallReactionEvent) {
     const { call_cid, reaction } = event;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
-    if (!activeCall || activeCall.data.call.cid !== call_cid) {
+    if (!activeCall || activeCall.cid !== call_cid) {
       console.warn(
         'Received CallReactionEvent for an inactive or unknown call',
       );
