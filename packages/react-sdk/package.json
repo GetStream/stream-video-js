@@ -8,7 +8,7 @@
     "clean": "rimraf dist",
     "start": "tsc --project tsconfig.json --watch",
     "build": "tsc --project tsconfig.production.json",
-    "generate-docs": "./scripts/generate-docs.sh",
+    "generate-docs": "../../scripts/generate-docs.sh React @stream-io/video-react-sdk react-sdk",
     "start:docs": "npx stream-chat-docusaurus -s"
   },
   "dependencies": {

@@ -1,7 +1,17 @@
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { MAX_AVATARS_IN_VIEW } from '../constants';
-import { generateCallTitle } from '../utils';
+import {
+  generateCallTitle,
+  getMembersForIncomingCall,
+  getMembersForOutgoingCall,
+} from '../utils';
+import {
+  useConnectedUser,
+  useIncomingCalls,
+  useOutgoingCalls,
+} from '@stream-io/video-react-bindings';
+import { UserResponse } from '@stream-io/video-client';
 import { theme } from '../theme';
 
 enum AvatarModes {
@@ -11,21 +21,21 @@ enum AvatarModes {
 }
 
 export const UserInfoView = () => {
-  // const activeCall = useActiveCall();
-  // const activeCallDetails = activeCall?.data.details;
-  // const incomingCalls = useIncomingCalls();
-  // const incomingCallDetails =
-  //   incomingCalls.length && incomingCalls[incomingCalls.length - 1].details;
-  // FIXME OL: use real data from coordinator
-  const memberUserIds = ['alice', 'bob', 'charlie'];
-  // (activeCallDetails && activeCallDetails.memberUserIds) ||
-  // (incomingCallDetails && incomingCallDetails?.memberUserIds) ||
-  // [];
+  const [outgoingCall] = useOutgoingCalls();
+  const [incomingCall] = useIncomingCalls();
+  const connectedUser = useConnectedUser();
+
+  let members: UserResponse[] = [];
+  if (outgoingCall) {
+    members = getMembersForOutgoingCall(outgoingCall);
+  } else if (incomingCall) {
+    members = getMembersForIncomingCall(incomingCall, connectedUser);
+  }
+
+  const memberUserIds = members.map((member) => member.name || member.id);
+
   const callTitle = generateCallTitle(memberUserIds);
-  const supportedAmountOfMemberUserIds = memberUserIds.slice(
-    0,
-    MAX_AVATARS_IN_VIEW,
-  );
+  const supportedAmountOfMembers = members.slice(0, MAX_AVATARS_IN_VIEW);
 
   const avatarSizeModes: { [key: number]: AvatarModes } = {
     1: AvatarModes.large,
@@ -40,14 +50,14 @@ export const UserInfoView = () => {
   return (
     <View style={styles.userInfo}>
       <View style={styles.avatarView}>
-        {supportedAmountOfMemberUserIds.map((member) => {
+        {supportedAmountOfMembers.map((member) => {
           return (
             <Image
-              key={member}
+              key={member.id}
               style={[styles.avatar, avatarStyles]}
               // FIXME: use real avatar from coordinator this is temporary
               source={{
-                uri: `https://getstream.io/random_png/?id=${member}&name=${member}`,
+                uri: member.image,
               }}
             />
           );

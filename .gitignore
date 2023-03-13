@@ -24,7 +24,10 @@ dist
 .eslintcache
 coverage
 
+# Ignore generated documentation.. it can always be regenerated
+packages/react-sdk/docusaurus/docs/React/04-call-engine/
+packages/react-sdk/docusaurus/docs/React/07-reference/
 /**/generated-docs
 /**/temp-docs
-/**/docusaurus/docs/*/reference/**/*.md
 /**/docusaurus/shared
+*.gen.mdx

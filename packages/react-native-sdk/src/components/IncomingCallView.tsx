@@ -1,7 +1,10 @@
 import React from 'react';
 import { StyleSheet, Text, View, ImageBackground } from 'react-native';
 import { CallControlsButton } from './CallControlsButton';
-import { useIncomingCalls } from '@stream-io/video-react-bindings';
+import {
+  useConnectedUser,
+  useIncomingCalls,
+} from '@stream-io/video-react-bindings';
 import { UserInfoView } from './UserInfoView';
 import {
   useCallCycleContext,
@@ -11,6 +14,8 @@ import {
 import { useRingCall } from '../hooks/useRingCall';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 import { theme } from '../theme';
+import { getMembersForIncomingCall } from '../utils';
+
 export const IncomingCallView = () => {
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const setState = useStreamVideoStoreSetState();
@@ -76,24 +81,24 @@ export const IncomingCallView = () => {
 const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  // FIXME OL: this needs to be reworked
   const [incomingCall] = useIncomingCalls();
+  const connectedUser = useConnectedUser();
+  // FIXME OL: this needs to be reworked
+  const members = getMembersForIncomingCall(incomingCall, connectedUser);
 
-  const memberUserIds = Object.keys(incomingCall?.users || {});
-
-  if (memberUserIds.length)
+  if (members.length) {
     return (
       <ImageBackground
         blurRadius={10}
         source={{
-          //FIXME: This is a temporary solution to get a random image for the background. Replace with image from coordinator
-          uri: `https://getstream.io/random_png/?id=${memberUserIds[0]}&name=${memberUserIds[0]}`,
+          uri: members[0].image,
         }}
         style={StyleSheet.absoluteFill}
       >
         {children}
       </ImageBackground>
     );
+  }
   return (
     <View style={[StyleSheet.absoluteFill, styles.background]}>{children}</View>
   );
