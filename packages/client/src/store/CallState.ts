@@ -38,6 +38,7 @@ export class CallState {
   /**
    * Emits a boolean indicating whether a call recording is currently in progress.
    */
+  // FIXME OL: might be derived from `this.call.recording`.
   callRecordingInProgressSubject = new ReplaySubject<boolean>(1);
 
   /**

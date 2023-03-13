@@ -136,7 +136,7 @@ export class Call {
 
     this.state.setCurrentValue(
       this.state.callRecordingInProgressSubject,
-      !!connection.call.record_egress, // FIXME OL: this is not correct
+      connection.call.recording,
     );
 
     // FIXME OL: remove once cascading is implemented
