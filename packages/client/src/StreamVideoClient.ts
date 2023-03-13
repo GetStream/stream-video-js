@@ -204,7 +204,7 @@ export class StreamVideoClient {
       type,
       data,
     );
-    const { call } = response;
+    const { call, members } = response;
     if (!call) {
       console.log(`Call with id ${id} and type ${type} could not be created`);
       return;
@@ -220,7 +220,7 @@ export class StreamVideoClient {
     if (!callAlreadyRegistered) {
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => [...pendingCalls, new CallMetadata(call)],
+        (pendingCalls) => [...pendingCalls, new CallMetadata(call, members)],
       );
       return response;
     } else {

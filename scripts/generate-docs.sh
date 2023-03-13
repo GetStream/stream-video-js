@@ -31,8 +31,9 @@ npx typedoc --options typedoc.json
 # preprocess the docs to our specific needs
 npx replace-in-file "# $PACKAGE_NAME" '# Components' 'temp-docs/**' > /dev/null
 npx replace-in-file '# Interface: ' '# ' 'temp-docs/**' > /dev/null
-sed -i '' -e 's/interfaces/..\/Interfaces/g' 'temp-docs/modules.md'
-sed -i '' -e 's/\.md/\//g' 'temp-docs/modules.md'
+npx replace-in-file '/interfaces/g' '../Interfaces' 'temp-docs/modules.md' --isRegex > /dev/null
+npx replace-in-file '/\.md/g' '/' 'temp-docs/modules.md' --isRegex > /dev/null
+npx replace-in-file '/modules\//g' '' 'temp-docs/modules.md' --isRegex > /dev/null
 
 #copy from the temp-docs to the structure we want in docusaurus
 mkdir generated-docs
@@ -48,12 +49,12 @@ echo "{
   \"label\": \"Reference\",
   \"position\": 7
 }" > "docusaurus/docs/$SDK_DIR_IN_DOCS/07-reference/_category_.json"
-cp -r temp-docs/interfaces generated-docs/Interfaces
+cp -a temp-docs/interfaces/. generated-docs/Interfaces/
 cp temp-docs/modules.md generated-docs/components.md
 rm -rf temp-docs
 
 # move client docs to SDK's docs and mark as generated
-cp -a ../client/docusaurus/docs/client/ generated-docs/client
+cp -a ../client/docusaurus/docs/client/. generated-docs/client/
 cd generated-docs/client || exit
 for sub_directories in * ;
 do
@@ -64,12 +65,13 @@ do
 done
 
 cd ../../
-cp -a ./generated-docs/client/ "docusaurus/docs/$SDK_DIR_IN_DOCS/"
+
+cp -a ./generated-docs/client/. "docusaurus/docs/$SDK_DIR_IN_DOCS/"
 rm -rf generated-docs/client/
 
 # copy shared JS docs to the docs to SDK's docusaurus
-cp -a ../client/generated-docs/. "docusaurus/docs/$SDK_DIR_IN_DOCS/04-call-engine"
-cp -a ../react-bindings/generated-docs/. "docusaurus/docs/$SDK_DIR_IN_DOCS/07-reference"
-cp -a ./generated-docs/. "docusaurus/docs/$SDK_DIR_IN_DOCS/07-reference"
+cp -a ../client/generated-docs/. "docusaurus/docs/$SDK_DIR_IN_DOCS/04-call-engine/"
+cp -a ../react-bindings/generated-docs/. "docusaurus/docs/$SDK_DIR_IN_DOCS/07-reference/"
+cp -a ./generated-docs/. "docusaurus/docs/$SDK_DIR_IN_DOCS/07-reference/"
 
 echo "Done!"
