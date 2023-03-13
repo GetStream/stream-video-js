@@ -1,1 +1,1 @@
-export * from './HasAccess';
+export * from './Restricted';
