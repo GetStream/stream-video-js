@@ -34,7 +34,7 @@ export const getMembersForIncomingCall = (
   incomingCall: Call,
   connectedUser: User | undefined,
 ) => {
-  const meta = incomingCall.state.getCurrentValue(incomingCall.state.call$);
+  const meta = incomingCall.state.getCurrentValue(incomingCall.state.metadata$);
   const users = incomingCall.state.getCurrentValue(incomingCall.state.members$);
   let members: UserResponse[] = [];
   Object.values(users).forEach((user) => {

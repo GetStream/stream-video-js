@@ -36,7 +36,7 @@ export const watchCallCreated = (
         httpClient,
         type: call.type,
         id: call.id,
-        call,
+        metadata: call,
         members,
       }),
     ]);

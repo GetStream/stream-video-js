@@ -53,11 +53,11 @@ export type CallConstructor = {
   id: string;
 
   /**
-   * An optional {@link CallResponse} from the backend.
+   * An optional {@link CallResponse} metadata from the backend.
    * If provided, the call will be initialized with the data from this object.
    * This is useful when initializing a new "pending call" from an event.
    */
-  call?: CallResponse;
+  metadata?: CallResponse;
 
   /**
    * An optional list of {@link MemberResponse} from the backend.
@@ -111,13 +111,13 @@ export class Call {
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    */
-  constructor({ type, id, httpClient, call, members }: CallConstructor) {
+  constructor({ type, id, httpClient, metadata, members }: CallConstructor) {
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
     this.httpClient = httpClient;
 
-    this.state.callSubject.next(call);
+    this.state.metadataSubject.next(metadata);
     this.state.membersSubject.next(members || []);
 
     registerEventHandlers(this, this.state, this.dispatcher);
@@ -188,18 +188,18 @@ export class Call {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    const connection = await join(this.httpClient, this.type, this.id, data);
-    this.state.setCurrentValue(this.state.callSubject, connection.call);
-    this.state.setCurrentValue(this.state.membersSubject, connection.members);
+    const call = await join(this.httpClient, this.type, this.id, data);
+    this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
+    this.state.setCurrentValue(this.state.membersSubject, call.members);
 
     // FIXME OL: convert to a derived state
     this.state.setCurrentValue(
       this.state.callRecordingInProgressSubject,
-      connection.call.recording,
+      call.metadata.recording,
     );
 
     // FIXME OL: remove once cascading is implemented
-    let sfuUrl = connection.sfuServer.url;
+    let sfuUrl = call.sfuServer.url;
     if (
       typeof window !== 'undefined' &&
       window.location &&
@@ -207,31 +207,31 @@ export class Call {
     ) {
       const params = new URLSearchParams(window.location.search);
       const sfuUrlParam = params.get('sfuUrl');
-      sfuUrl = sfuUrlParam || connection.sfuServer.url;
+      sfuUrl = sfuUrlParam || call.sfuServer.url;
     }
 
     const sfuClient = (this.sfuClient = new StreamSfuClient(
       this.dispatcher,
       sfuUrl,
-      connection.token,
+      call.token,
     ));
 
     this.subscriber = createSubscriber({
       rpcClient: sfuClient,
-      connectionConfig: connection.connectionConfig,
+      connectionConfig: call.connectionConfig,
       onTrack: this.handleOnTrack,
     });
 
     this.publisher = new Publisher({
       rpcClient: sfuClient,
-      connectionConfig: connection.connectionConfig,
+      connectionConfig: call.connectionConfig,
     });
 
     this.statsReporter = createStatsReporter({
       subscriber: this.subscriber,
       publisher: this.publisher,
       store: this.state,
-      edgeName: connection.sfuServer.edge_name,
+      edgeName: call.sfuServer.edge_name,
     });
 
     return new Promise<void>(async (resolve) => {
@@ -242,7 +242,7 @@ export class Call {
         const currentParticipants = callState?.participants || [];
 
         const ownCapabilities = {
-          ownCapabilities: connection.call.own_capabilities,
+          ownCapabilities: call.metadata.own_capabilities,
         };
 
         this.state.setCurrentValue(

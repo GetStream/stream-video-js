@@ -225,7 +225,7 @@ export class StreamVideoClient {
             httpClient: this.coordinatorClient,
             type: call.type,
             id: call.id,
-            call,
+            metadata: call,
             members,
           }),
         ],

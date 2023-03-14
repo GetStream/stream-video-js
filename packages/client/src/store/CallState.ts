@@ -22,11 +22,10 @@ export type UserResponseMap = {
 };
 
 export class CallState {
-  // State
   /**
-   * The raw call object, as defined on the backend.
+   * The raw call metadata object, as defined on the backend.
    */
-  callSubject = new BehaviorSubject<CallResponse | undefined>(undefined);
+  metadataSubject = new BehaviorSubject<CallResponse | undefined>(undefined);
 
   /**
    * The list of members of the current call.
@@ -127,9 +126,9 @@ export class CallState {
   callPermissionRequest$: Observable<PermissionRequestEvent | undefined>;
 
   /**
-   * The raw call object, as defined on the backend.
+   * The raw call metadata object, as defined on the backend.
    */
-  call$: Observable<CallResponse | undefined>;
+  metadata$: Observable<CallResponse | undefined>;
 
   /**
    * The list of members of the current call.
@@ -169,7 +168,7 @@ export class CallState {
     this.callPermissionRequest$ =
       this.callPermissionRequestSubject.asObservable();
 
-    this.call$ = this.callSubject.asObservable();
+    this.metadata$ = this.metadataSubject.asObservable();
     // FIXME OL: is the shape of this observable ok? Shall we expose the whole MemberResponse instead?
     this.members$ = this.membersSubject.pipe(
       map((members) => {
