@@ -1,4 +1,6 @@
-import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { distinctUntilChanged, map } from 'rxjs/operators';
+import * as RxUtils from './rxUtils';
 import {
   isStreamVideoLocalParticipant,
   StreamVideoLocalParticipant,
@@ -11,30 +13,32 @@ import {
   CallResponse,
   MemberResponse,
   PermissionRequestEvent,
+  UserResponse,
 } from '../gen/coordinator';
-import { distinctUntilChanged, map } from 'rxjs/operators';
-import * as RxUtils from './rxUtils';
 import { TrackType } from '../gen/video/sfu/models/models';
-import { UserResponseMap } from '../rtc/CallMetadata';
+
+export type UserResponseMap = {
+  [userId: string]: UserResponse;
+};
 
 export class CallState {
   // State
   /**
    * The raw call object, as defined on the backend.
    */
-  callSubject = new ReplaySubject<CallResponse | undefined>(1);
+  callSubject = new BehaviorSubject<CallResponse | undefined>(undefined);
 
   /**
    * The list of members of the current call.
    */
-  membersSubject = new ReplaySubject<MemberResponse[]>(1);
+  membersSubject = new BehaviorSubject<MemberResponse[]>([]);
 
   /**
    * All participants of the current call (including the logged-in user).
    */
-  participantsSubject = new ReplaySubject<
+  participantsSubject = new BehaviorSubject<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
-  >(1);
+  >([]);
 
   /**
    * The latest stats report of the current call.
@@ -52,7 +56,7 @@ export class CallState {
    * Emits a boolean indicating whether a call recording is currently in progress.
    */
   // FIXME OL: might be derived from `this.call.recording`.
-  callRecordingInProgressSubject = new ReplaySubject<boolean>(1);
+  callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
 
   /**
    * Emits the latest call permission request sent by any participant of the

@@ -5,14 +5,18 @@ import {
   CallCreatedEvent,
   CallRejectedEvent,
 } from '../gen/coordinator';
-import { CallMetadata } from '../rtc/CallMetadata';
+import { Call } from '../rtc/Call';
+import { StreamCoordinatorClient } from '../coordinator/StreamCoordinatorClient';
 
 /**
  * Event handler that watches the delivery of CallCreated Websocket event
  * Updates the state store and notifies its subscribers that
  * a new pending call has been initiated.
  */
-export const watchCallCreated = (store: StreamVideoWriteableStateStore) => {
+export const watchCallCreated = (
+  store: StreamVideoWriteableStateStore,
+  httpClient: StreamCoordinatorClient,
+) => {
   return function onCallCreated(event: CallCreatedEvent) {
     const { call, members } = event;
     if (!call) {
@@ -28,7 +32,13 @@ export const watchCallCreated = (store: StreamVideoWriteableStateStore) => {
 
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) => [
       ...pendingCalls,
-      new CallMetadata(call, members),
+      new Call({
+        httpClient,
+        type: call.type,
+        id: call.id,
+        call,
+        members,
+      }),
     ]);
   };
 };
@@ -48,7 +58,7 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
 
     const acceptedIncomingCall = store
       .getCurrentValue(store.incomingCalls$)
-      .find((incomingCall) => incomingCall.call.cid === call_cid);
+      .find((incomingCall) => incomingCall.cid === call_cid);
 
     if (acceptedIncomingCall) {
       console.warn('Received CallAcceptedEvent for an incoming call');
@@ -57,7 +67,7 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
 
     const acceptedOutgoingCall = store
       .getCurrentValue(store.outgoingCalls$)
-      .find((outgoingCall) => outgoingCall.call.cid === call_cid);
+      .find((outgoingCall) => outgoingCall.cid === call_cid);
     const activeCall = store.getCurrentValue(store.activeCallSubject);
 
     // FIXME OL: we should revisit this logic, it is hard to follow
@@ -97,7 +107,7 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
 
     const rejectedIncomingCall = store
       .getCurrentValue(store.incomingCalls$)
-      .find((incomingCall) => incomingCall.call.cid === call_cid);
+      .find((incomingCall) => incomingCall.cid === call_cid);
 
     if (rejectedIncomingCall) {
       console.warn('Received CallRejectedEvent for an incoming call');
@@ -106,7 +116,7 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
 
     const rejectedOutgoingCall = store
       .getCurrentValue(store.outgoingCalls$)
-      .find((outgoingCall) => outgoingCall.call.cid === call_cid);
+      .find((outgoingCall) => outgoingCall.cid === call_cid);
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     const rejectedActiveCall =
       activeCall?.cid !== undefined && activeCall.cid === call_cid
@@ -121,7 +131,7 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
     }
 
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
-      pendingCalls.filter((pendingCall) => pendingCall.call.cid !== call_cid),
+      pendingCalls.filter((pendingCall) => pendingCall.cid !== call_cid),
     );
   };
 };
@@ -141,7 +151,7 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
 
     const cancelledIncomingCall = store
       .getCurrentValue(store.incomingCalls$)
-      .find((incomingCall) => incomingCall.call.cid === call_cid);
+      .find((incomingCall) => incomingCall.cid === call_cid);
 
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     const cancelledActiveCall =
@@ -157,7 +167,7 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
     }
 
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
-      pendingCalls.filter((pendingCall) => pendingCall.call.cid !== call_cid),
+      pendingCalls.filter((pendingCall) => pendingCall.cid !== call_cid),
     );
   };
 };

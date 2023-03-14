@@ -2,15 +2,19 @@ import { Call } from './Call';
 import { Dispatcher } from './Dispatcher';
 import { CallState } from '../store';
 import {
-  watchAudioLevelChanged,
   watchChangePublishQuality,
   watchConnectionQualityChanged,
-  watchDominantSpeakerChanged,
+} from '../events/internal';
+import {
   watchParticipantJoined,
   watchParticipantLeft,
   watchTrackPublished,
   watchTrackUnpublished,
-} from '../events';
+} from '../events/participant';
+import {
+  watchAudioLevelChanged,
+  watchDominantSpeakerChanged,
+} from '../events/speaker';
 
 export const registerEventHandlers = (
   call: Call,

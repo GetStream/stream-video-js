@@ -8,7 +8,11 @@ import { Dispatcher, SfuEventListener } from './Dispatcher';
 import { CallState } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { StreamCoordinatorClient } from '../coordinator/StreamCoordinatorClient';
-import { JoinCallRequest } from '../gen/coordinator';
+import {
+  CallResponse,
+  JoinCallRequest,
+  MemberResponse,
+} from '../gen/coordinator';
 import { join } from './flows/join';
 import type {
   PublishOptions,
@@ -29,10 +33,38 @@ import {
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
 
+/**
+ * The options to pass to {@link Call} constructor.
+ */
 export type CallConstructor = {
+  /**
+   * The httpClient instance to use.
+   */
   httpClient: StreamCoordinatorClient;
-  id: string;
+
+  /**
+   * The Call type.
+   */
   type: string;
+
+  /**
+   * The Call ID.
+   */
+  id: string;
+
+  /**
+   * An optional {@link CallResponse} from the backend.
+   * If provided, the call will be initialized with the data from this object.
+   * This is useful when initializing a new "pending call" from an event.
+   */
+  call?: CallResponse;
+
+  /**
+   * An optional list of {@link MemberResponse} from the backend.
+   * If provided, the call will be initialized with the data from this object.
+   * This is useful when initializing a new "pending call" from an event.
+   */
+  members?: MemberResponse[];
 };
 
 /**
@@ -55,6 +87,17 @@ export class Call {
    */
   readonly cid: string;
 
+  /**
+   * The state of this call.
+   */
+  readonly state = new CallState();
+
+  /**
+   * The event dispatcher instance dedicated to this Call instance.
+   * @private
+   */
+  private dispatcher = new Dispatcher();
+
   private subscriber?: RTCPeerConnection;
   private publisher?: Publisher;
   private trackSubscriptionsSubject = new Subject<TrackSubscriptionDetails[]>();
@@ -62,19 +105,20 @@ export class Call {
   private statsReporter?: StatsReporter;
   private joined$ = new BehaviorSubject<boolean>(false);
 
-  state = new CallState();
-  private dispatcher = new Dispatcher();
   private readonly httpClient: StreamCoordinatorClient;
   private sfuClient?: StreamSfuClient;
 
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    */
-  constructor({ type, id, httpClient }: CallConstructor) {
+  constructor({ type, id, httpClient, call, members }: CallConstructor) {
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
     this.httpClient = httpClient;
+
+    this.state.callSubject.next(call);
+    this.state.membersSubject.next(members || []);
 
     registerEventHandlers(this, this.state, this.dispatcher);
 
