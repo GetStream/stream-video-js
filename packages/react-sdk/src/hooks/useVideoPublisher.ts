@@ -91,5 +91,24 @@ export const useVideoPublisher = ({
     };
   }, [localParticipant$, call]);
 
+  useEffect(() => {
+    if (!participant?.videoStream || !call || !isPublishingVideo) return;
+
+    const [track] = participant.videoStream?.getVideoTracks();
+
+    const handleTrackEnded = async () => {
+      const endedTrackDeviceId = track.getSettings().deviceId;
+      if (endedTrackDeviceId === videoDeviceId) {
+        const videoStream = await getVideoStream(videoDeviceId);
+        await call.publishVideoStream(videoStream);
+      }
+    };
+    track.addEventListener('ended', handleTrackEnded);
+
+    return () => {
+      track.removeEventListener('ended', handleTrackEnded);
+    };
+  }, [videoDeviceId, call, participant?.videoStream, isPublishingVideo]);
+
   return publishVideoStream;
 };

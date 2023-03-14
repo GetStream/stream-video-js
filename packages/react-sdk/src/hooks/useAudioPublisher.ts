@@ -90,5 +90,24 @@ export const useAudioPublisher = ({
     };
   }, [localParticipant$, call]);
 
+  useEffect(() => {
+    if (!participant?.audioStream || !call || !isPublishingAudio) return;
+
+    const [track] = participant.audioStream.getAudioTracks();
+
+    const handleTrackEnded = async () => {
+      const endedTrackDeviceId = track.getSettings().deviceId;
+      if (endedTrackDeviceId === audioDeviceId) {
+        const audioStream = await getAudioStream(audioDeviceId);
+        await call.publishAudioStream(audioStream);
+      }
+    };
+    track.addEventListener('ended', handleTrackEnded);
+
+    return () => {
+      track.removeEventListener('ended', handleTrackEnded);
+    };
+  }, [audioDeviceId, call, participant?.audioStream, isPublishingAudio]);
+
   return publishAudioStream;
 };
