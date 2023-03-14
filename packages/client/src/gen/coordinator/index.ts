@@ -80,6 +80,18 @@ export interface AudioSettings {
    * @memberof AudioSettings
    */
   access_request_enabled: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettings
+   */
+  opus_dtx_enabled: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettings
+   */
+  redundant_coding_enabled: boolean;
 }
 /**
  *
@@ -920,6 +932,18 @@ export interface Device {
 export interface EdgeResponse {
   /**
    *
+   * @type {string}
+   * @memberof EdgeResponse
+   */
+  continent_code: string;
+  /**
+   *
+   * @type {string}
+   * @memberof EdgeResponse
+   */
+  country_iso_code: string;
+  /**
+   *
    * @type {number}
    * @memberof EdgeResponse
    */
@@ -954,6 +978,12 @@ export interface EdgeResponse {
    * @memberof EdgeResponse
    */
   red: number;
+  /**
+   *
+   * @type {string}
+   * @memberof EdgeResponse
+   */
+  subdivision_iso_code: string;
   /**
    *
    * @type {number}
