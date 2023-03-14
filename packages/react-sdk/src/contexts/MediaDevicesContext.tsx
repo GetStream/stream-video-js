@@ -19,7 +19,7 @@ import {
 } from '@stream-io/video-client';
 import { map, pairwise, take } from 'rxjs';
 import { useAudioPublisher, useVideoPublisher } from '../hooks';
-import { useActiveCall, useStore } from '@stream-io/video-react-bindings';
+import { useActiveCall } from '@stream-io/video-react-bindings';
 
 type EnabledStateType = 'starting' | 'playing';
 type DisabledStateType = 'uninitialized' | 'stopped';
@@ -112,7 +112,7 @@ export const MediaDevicesProvider = ({
   initialAudioInputDeviceId = 'default',
 }: MediaDevicesProviderProps) => {
   const call = useActiveCall();
-  const { localParticipant$ } = useStore();
+  const { localParticipant$ } = call?.state || {};
 
   const [audioInputDevices, setAudioInputDevices] = useState<MediaDeviceInfo[]>(
     [],
@@ -280,6 +280,7 @@ export const MediaDevicesProvider = ({
   }, [call, selectedAudioOutputDeviceId]);
 
   useEffect(() => {
+    if (!localParticipant$) return;
     const subscription = watchForDisconnectedAudioOutputDevice(
       localParticipant$.pipe(map((p) => p?.audioOutputDeviceId)),
     ).subscribe(async () => {
