@@ -70,10 +70,15 @@ export class StreamCall {
     });
   };
 
-  muteUser = (userId: string, type: 'audio' | 'video' | 'screenshare') => {
+  muteUser = (
+    userId: string,
+    type: 'audio' | 'video' | 'screenshare',
+    sessionId?: string,
+  ) => {
     return this.client.post<MuteUsersResponse>(`${this.basePath}/mute_users`, {
       user_ids: [userId],
       [type]: true,
+      // session_ids: [sessionId],
     });
   };
 

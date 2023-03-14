@@ -227,11 +227,11 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
     getCall()?.blockUser(participant.userId);
   };
 
-  const muteUserClickHandler = (e: MouseEvent) => {
-    getCall()?.muteUser(
-      participant.userId,
-      e.currentTarget.getAttribute('data-type') as 'video' | 'audio',
-    );
+  const muteAudioClickHandler = () => {
+    getCall()?.muteUser(participant.userId, 'audio', participant.sessionId);
+  };
+  const muteVideoClickHandler = () => {
+    getCall()?.muteUser(participant.userId, 'video', participant.sessionId);
   };
 
   return (
@@ -253,8 +253,7 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
           disabled={
             !participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)
           }
-          data-type="video"
-          onClick={muteUserClickHandler}
+          onClick={muteVideoClickHandler}
         >
           Mute video
         </GenericMenuButtonItem>
@@ -262,8 +261,7 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
           disabled={
             !participant.publishedTracks.includes(SfuModels.TrackType.AUDIO)
           }
-          data-type="audio"
-          onClick={muteUserClickHandler}
+          onClick={muteAudioClickHandler}
         >
           Mute audio
         </GenericMenuButtonItem>
