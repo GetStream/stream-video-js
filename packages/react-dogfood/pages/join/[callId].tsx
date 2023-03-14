@@ -65,7 +65,7 @@ const CallRoom = (props: CallRoomProps) => {
               if (key === 'activeCall$' && value) {
                 // special handling, the Call instance isn't serializable
                 const call = value as Call;
-                acc[key] = call.state.getCurrentValue(call.state.call$);
+                acc[key] = call.state.getCurrentValue(call.state.metadata$);
               } else {
                 acc[key] = value;
               }
