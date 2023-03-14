@@ -1,10 +1,10 @@
 import { ParticipantPlaceholder } from './ParticipantPlaceholder';
 import { IncomingCallControls, OutgoingCallControls } from './CallControls';
-import { CallMetadata, User } from '@stream-io/video-react-sdk';
+import { Call, User } from '@stream-io/video-react-sdk';
 
 type OutgoingCallPanelProps = {
-  incomingCall?: CallMetadata;
-  outgoingCall?: CallMetadata;
+  incomingCall?: Call;
+  outgoingCall?: Call;
   localUser?: User;
   remoteUser?: User;
 };
@@ -37,14 +37,14 @@ export const PendingCallPanel = ({
 
       {outgoingCall && !incomingCall && (
         <OutgoingCallControls
-          callId={outgoingCall.call.id}
-          callType={outgoingCall.call.type}
+          callId={outgoingCall.id}
+          callType={outgoingCall.type}
         />
       )}
       {incomingCall && !outgoingCall && (
         <IncomingCallControls
-          callId={incomingCall.call.id}
-          callType={incomingCall.call.type}
+          callId={incomingCall.id}
+          callType={incomingCall.type}
         />
       )}
     </div>

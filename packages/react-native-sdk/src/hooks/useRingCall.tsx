@@ -15,11 +15,11 @@ export const useRingCall = () => {
   const [outgoingCall] = useOutgoingCalls();
 
   const answerCall = useCallback(() => {
-    if (!client || !incomingCall.call) {
+    if (!client || !incomingCall) {
       return;
     }
     client
-      .acceptCall(incomingCall.call.id, incomingCall.call.type)
+      .acceptCall(incomingCall.id, incomingCall.type)
       .then(() => {
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
@@ -31,14 +31,14 @@ export const useRingCall = () => {
     if (!client || !incomingCall) {
       return;
     }
-    await client.rejectCall(incomingCall.call.id, incomingCall.call.type);
+    await client.rejectCall(incomingCall.id, incomingCall.type);
   }, [client, incomingCall]);
 
   const cancelCall = useCallback(async () => {
     if (!client) {
       return;
     }
-    await client.cancelCall(outgoingCall.call.id, outgoingCall.call.type);
+    await client.cancelCall(outgoingCall.id, outgoingCall.type);
   }, [client, outgoingCall]);
 
   return { answerCall, rejectCall, cancelCall };

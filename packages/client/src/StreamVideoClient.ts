@@ -10,7 +10,6 @@ import {
   UpdateUserPermissionsRequest,
 } from './gen/coordinator';
 import { Call } from './rtc/Call';
-import { CallMetadata } from './rtc/CallMetadata';
 
 import {
   watchCallAccepted,
@@ -93,7 +92,7 @@ export class StreamVideoClient {
     this.on(
       'call.created',
       // @ts-expect-error until we sort out the types
-      watchCallCreated(this.writeableStateStore),
+      watchCallCreated(this.writeableStateStore, this.coordinatorClient),
     );
     this.on(
       'call.accepted',
@@ -214,13 +213,22 @@ export class StreamVideoClient {
       this.writeableStateStore.pendingCallsSubject,
     );
     const callAlreadyRegistered = currentPendingCalls.find(
-      (pendingCall) => pendingCall.call.id === call.id,
+      (pendingCall) => pendingCall.id === call.id,
     );
 
     if (!callAlreadyRegistered) {
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => [...pendingCalls, new CallMetadata(call, members)],
+        (pendingCalls) => [
+          ...pendingCalls,
+          new Call({
+            httpClient: this.coordinatorClient,
+            type: call.type,
+            id: call.id,
+            call,
+            members,
+          }),
+        ],
       );
       return response;
     } else {
@@ -237,10 +245,28 @@ export class StreamVideoClient {
    * @returns
    */
   acceptCall = async (callId: string, callType: string) => {
-    await this.coordinatorClient.sendEvent(callId, callType, {
-      type: 'call.accepted',
-    });
-    return await this.joinCall(callId, callType);
+    const callToAccept = this.writeableStateStore
+      .getCurrentValue(this.writeableStateStore.pendingCallsSubject)
+      .find((c) => c.id === callId && c.type === callType);
+
+    if (callToAccept) {
+      await this.coordinatorClient.sendEvent(callId, callType, {
+        type: 'call.accepted',
+      });
+
+      // remove the accepted call from the "pending calls" list.
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.pendingCallsSubject,
+        (pendingCalls) => pendingCalls.filter((c) => c !== callToAccept),
+      );
+
+      await callToAccept.join();
+      // FIXME OL: temporary. Remove this later.
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.activeCallSubject,
+        callToAccept,
+      );
+    }
   };
 
   /**
@@ -254,7 +280,7 @@ export class StreamVideoClient {
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
       (pendingCalls) =>
-        pendingCalls.filter((incomingCall) => incomingCall.call.id !== callId),
+        pendingCalls.filter((incomingCall) => incomingCall.id !== callId),
     );
     await this.coordinatorClient.sendEvent(callId, callType, {
       type: 'call.rejected',
@@ -273,12 +299,13 @@ export class StreamVideoClient {
   cancelCall = async (callId: string, callType: string) => {
     const store = this.writeableStateStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
-    const leavingActiveCall = activeCall?.cid === callId;
+    const leavingActiveCall =
+      activeCall?.id === callId && activeCall.type === callType;
     if (leavingActiveCall) {
       activeCall.leave();
     } else {
       store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
-        pendingCalls.filter((pendingCall) => pendingCall.call.id !== callId),
+        pendingCalls.filter((pendingCall) => pendingCall.id !== callId),
       );
     }
 

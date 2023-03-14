@@ -1,5 +1,9 @@
 import React from 'react';
-import { ActiveCall, useActiveCall } from '@stream-io/video-react-native-sdk';
+import {
+  ActiveCall,
+  StreamCallProvider,
+  useActiveCall,
+} from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RingingStackParamList } from '../../../types';
 import { ActivityIndicator, StyleSheet } from 'react-native';
@@ -17,8 +21,10 @@ export const CallScreen = ({ navigation }: Props) => {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
   return (
-    <ActiveCall
-      onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
-    />
+    <StreamCallProvider call={activeCall}>
+      <ActiveCall
+        onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
+      />
+    </StreamCallProvider>
   );
 };

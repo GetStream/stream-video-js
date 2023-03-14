@@ -1,8 +1,7 @@
 import { BehaviorSubject, Observable } from 'rxjs';
 import { combineLatestWith, map } from 'rxjs/operators';
 import * as RxUtils from './rxUtils';
-import { Call as CallController } from '../rtc/Call';
-import { CallMetadata } from '../rtc/CallMetadata';
+import { Call } from '../rtc/Call';
 import type { User } from '../coordinator/connection/types';
 import type { CallAcceptedEvent } from '../gen/coordinator';
 
@@ -14,15 +13,15 @@ export class StreamVideoWriteableStateStore {
   /**
    * A store that keeps track of all created calls that have not been yet accepted, rejected nor cancelled.
    */
-  pendingCallsSubject = new BehaviorSubject<CallMetadata[]>([]);
+  pendingCallsSubject = new BehaviorSubject<Call[]>([]);
   /**
    * A list of objects describing incoming calls.
    */
-  incomingCalls$: Observable<CallMetadata[]>;
+  incomingCalls$: Observable<Call[]>;
   /**
    * A list of objects describing calls initiated by the current user (connectedUser).
    */
-  outgoingCalls$: Observable<CallMetadata[]>;
+  outgoingCalls$: Observable<Call[]>;
   /**
    * A store that keeps track of all the notifications describing accepted call.
    */
@@ -34,35 +33,35 @@ export class StreamVideoWriteableStateStore {
   /**
    * A store that keeps reference to a call controller instance.
    */
-  activeCallSubject = new BehaviorSubject<CallController | undefined>(
-    undefined,
-  );
+  activeCallSubject = new BehaviorSubject<Call | undefined>(undefined);
 
   constructor() {
     this.incomingCalls$ = this.pendingCallsSubject.pipe(
       combineLatestWith(this.connectedUserSubject),
       map(([pendingCalls, connectedUser]) =>
-        pendingCalls.filter(
-          (call) => call.call.created_by.id !== connectedUser?.id,
-        ),
+        pendingCalls.filter((call) => {
+          const meta = call.state.getCurrentValue(call.state.call$);
+          return meta?.created_by.id !== connectedUser?.id;
+        }),
       ),
     );
 
     this.outgoingCalls$ = this.pendingCallsSubject.pipe(
       combineLatestWith(this.connectedUserSubject),
       map(([pendingCalls, connectedUser]) =>
-        pendingCalls.filter(
-          (call) => call.call.created_by.id === connectedUser?.id,
-        ),
+        pendingCalls.filter((call) => {
+          const meta = call.state.getCurrentValue(call.state.call$);
+          return meta?.created_by.id === connectedUser?.id;
+        }),
       ),
     );
 
-    this.activeCallSubject.subscribe((callController) => {
-      if (callController) {
+    this.activeCallSubject.subscribe((activeCall) => {
+      if (activeCall) {
         this.setCurrentValue(
           this.pendingCallsSubject,
           this.getCurrentValue(this.pendingCallsSubject).filter(
-            (call) => call.call.cid !== callController.cid,
+            (call) => call.cid !== activeCall.cid,
           ),
         );
         this.setCurrentValue(this.acceptedCallSubject, undefined);
@@ -108,15 +107,15 @@ export class StreamVideoReadOnlyStateStore {
   /**
    * A list of objects describing all created calls that have not been yet accepted, rejected nor cancelled.
    */
-  pendingCalls$: Observable<CallMetadata[]>;
+  pendingCalls$: Observable<Call[]>;
   /**
    * A list of objects describing calls initiated by the current user (connectedUser).
    */
-  outgoingCalls$: Observable<CallMetadata[]>;
+  outgoingCalls$: Observable<Call[]>;
   /**
    * A list of objects describing incoming calls.
    */
-  incomingCalls$: Observable<CallMetadata[]>;
+  incomingCalls$: Observable<Call[]>;
   /**
    * The call data describing an incoming call accepted by a participant.
    * Serves as a flag decide, whether an incoming call should be joined.
@@ -127,7 +126,7 @@ export class StreamVideoReadOnlyStateStore {
    * The controller instance exposes call metadata as well.
    * `activeCall$` will be set after calling [`join` on a `Call` instance](./Call.md/#join) and cleared after calling [`leave`](./Call.md/#leave).
    */
-  activeCall$: Observable<CallController | undefined>;
+  activeCall$: Observable<Call | undefined>;
 
   /**
    * This method allows you the get the current value of a state variable.
