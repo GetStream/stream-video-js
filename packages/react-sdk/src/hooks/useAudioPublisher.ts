@@ -94,7 +94,6 @@ export const useAudioPublisher = ({
     if (!participant?.audioStream || !call || !isPublishingAudio) return;
 
     const [track] = participant.audioStream.getAudioTracks();
-
     const handleTrackEnded = async () => {
       const endedTrackDeviceId = track.getSettings().deviceId;
       if (endedTrackDeviceId === audioDeviceId) {
@@ -102,8 +101,8 @@ export const useAudioPublisher = ({
         await call.publishAudioStream(audioStream);
       }
     };
-    track.addEventListener('ended', handleTrackEnded);
 
+    track.addEventListener('ended', handleTrackEnded);
     return () => {
       track.removeEventListener('ended', handleTrackEnded);
     };

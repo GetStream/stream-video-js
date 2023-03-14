@@ -95,7 +95,6 @@ export const useVideoPublisher = ({
     if (!participant?.videoStream || !call || !isPublishingVideo) return;
 
     const [track] = participant.videoStream?.getVideoTracks();
-
     const handleTrackEnded = async () => {
       const endedTrackDeviceId = track.getSettings().deviceId;
       if (endedTrackDeviceId === videoDeviceId) {
@@ -103,8 +102,8 @@ export const useVideoPublisher = ({
         await call.publishVideoStream(videoStream);
       }
     };
-    track.addEventListener('ended', handleTrackEnded);
 
+    track.addEventListener('ended', handleTrackEnded);
     return () => {
       track.removeEventListener('ended', handleTrackEnded);
     };
