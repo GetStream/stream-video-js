@@ -223,6 +223,7 @@ export class Publisher {
   private onNegotiationNeeded = async () => {
     console.log('AAA onNegotiationNeeded');
     const offer = await this.publisher.createOffer();
+    /* eslint-disable-next-line no-restricted-globals */
     const queryParams = new URLSearchParams(location.search);
     const isDtxEnabled = queryParams.get('dtx') === 'false' ? false : true;
     console.log('DTX enabled', isDtxEnabled);
