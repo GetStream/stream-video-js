@@ -90,7 +90,7 @@ export const useAudioPublisher = ({
   useEffect(() => {
     if (!localParticipant?.audioStream || !call || !isPublishingAudio) return;
 
-    const track = localParticipant.audioStream.getAudioTracks()[0];
+    const [track] = localParticipant.audioStream.getAudioTracks();
 
     const handleTrackEnded = async () => {
       const endedTrackDeviceId = track.getSettings().deviceId;

@@ -91,7 +91,7 @@ export const useVideoPublisher = ({
   useEffect(() => {
     if (!localParticipant?.videoStream || !call || !isPublishingVideo) return;
 
-    const track = localParticipant.videoStream?.getVideoTracks()[0];
+    const [track] = localParticipant.videoStream?.getVideoTracks();
 
     const handleTrackEnded = async () => {
       const endedTrackDeviceId = track.getSettings().deviceId;
