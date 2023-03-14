@@ -1,8 +1,7 @@
 import {
   useStreamVideoStoreSetState,
   useStreamVideoStoreValue,
-} from '../contexts';
-
+} from '../contexts/StreamVideoContext';
 /**
  * A helper hook which exposes audio, video mute and camera facing mode and
  * their respective functions to toggle state

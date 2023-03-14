@@ -41,7 +41,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
   );
 };
 
-export const InnerActiveCall = (props: ActiveCallProps) => {
+const InnerActiveCall = (props: ActiveCallProps) => {
   const activeCall = useActiveCall();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
   const { onOpenCallParticipantsInfoView } = props;

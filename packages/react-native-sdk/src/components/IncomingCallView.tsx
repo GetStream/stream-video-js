@@ -10,7 +10,7 @@ import { useCallCycleContext } from '../contexts';
 import { useRingCall } from '../hooks/useRingCall';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 import { getMembersForIncomingCall } from '../utils';
-import { useMutingState } from '../hooks';
+import { useMutingState } from '../hooks/useMutingState';
 
 export const IncomingCallView = () => {
   const { isVideoMuted, toggleVideoState } = useMutingState();

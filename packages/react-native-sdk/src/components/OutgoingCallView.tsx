@@ -1,16 +1,13 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { getVideoStream } from '@stream-io/video-client';
-
-import { MediaStream, RTCView } from 'react-native-webrtc';
 import { UserInfoView } from './UserInfoView';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
 import { useRingCall } from '../hooks/useRingCall';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { useCallCycleContext } from '../contexts/CallCycleContext';
-import { useMediaDevices } from '../contexts/MediaDevicesContext';
-import { useMutingState } from '../hooks';
+import { useLocalVideoStream, useMutingState } from '../hooks';
+import { VideoRenderer } from './VideoRenderer';
 
 export const OutgoingCallView = () => {
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
@@ -71,30 +68,17 @@ export const OutgoingCallView = () => {
 };
 
 const Background = () => {
-  const [videoStream, setVideoStream] = useState<MediaStream | undefined>(
-    undefined,
-  );
-  const { currentVideoDevice } = useMediaDevices();
-
+  const localVideoStream = useLocalVideoStream();
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
 
-  useEffect(() => {
-    const loadVideoStream = async () => {
-      const stream = await getVideoStream(currentVideoDevice?.deviceId);
-      setVideoStream(stream);
-    };
-    loadVideoStream();
-  }, [currentVideoDevice]);
-
-  if (isVideoMuted || !videoStream)
+  if (isVideoMuted || !localVideoStream)
     return <View style={[StyleSheet.absoluteFill, styles.background]} />;
   return (
-    <RTCView
-      streamURL={videoStream?.toURL()}
-      objectFit="cover"
+    <VideoRenderer
+      mediaStream={localVideoStream}
       zOrder={1}
       style={styles.stream}
-      mirror={true}
+      mirror
     />
   );
 };

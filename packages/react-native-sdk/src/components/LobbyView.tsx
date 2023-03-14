@@ -1,10 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
-import { MediaStream, RTCView } from 'react-native-webrtc';
-import { useMediaDevices } from '../contexts/MediaDevicesContext';
-import { getVideoStream } from '@stream-io/video-client';
 import {
   useConnectedUser,
   useStreamVideoClient,
@@ -12,7 +9,9 @@ import {
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { CallControlsButton } from './CallControlsButton';
 import { useCallCycleContext } from '../contexts';
-import { useMutingState } from '../hooks';
+import { useMutingState } from '../hooks/useMutingState';
+import { useLocalVideoStream } from '../hooks';
+import { VideoRenderer } from './VideoRenderer';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -46,14 +45,16 @@ const ParticipantStatus = () => {
 };
 
 export const LobbyView = (props: LobbyViewProps) => {
-  const [videoStream, setVideoStream] = useState<MediaStream | undefined>(
-    undefined,
-  );
-  const { currentVideoDevice } = useMediaDevices();
+  const connectedUser = useConnectedUser();
+  const localVideoStream = useLocalVideoStream();
   const videoClient = useStreamVideoClient();
   const { callCycleHandlers } = useCallCycleContext();
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useMutingState();
+  const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
+    (store) => store.isCameraOnFrontFacingMode,
+  );
+  const isVideoAvailable = !!localVideoStream && !isVideoMuted;
   const { onActiveCall } = callCycleHandlers;
   const { callID } = props;
 
@@ -67,14 +68,6 @@ export const LobbyView = (props: LobbyViewProps) => {
   ) : (
     <Video color="black" />
   );
-
-  useEffect(() => {
-    const loadVideoStream = async () => {
-      const stream = await getVideoStream(currentVideoDevice?.deviceId);
-      setVideoStream(stream);
-    };
-    loadVideoStream();
-  }, [currentVideoDevice]);
 
   const joinCallHandler = () => {
     videoClient
@@ -95,25 +88,20 @@ export const LobbyView = (props: LobbyViewProps) => {
     <View style={styles.container}>
       <Text style={styles.heading}>Before Joining</Text>
       <Text style={styles.subHeading}>Setup your audio and video</Text>
-      {videoStream && !isVideoMuted ? (
-        <View style={styles.videoView}>
-          <RTCView
-            streamURL={videoStream?.toURL()}
+      <View style={styles.videoView}>
+        {isVideoAvailable ? (
+          <VideoRenderer
+            mirror={isCameraOnFrontFacingMode}
+            mediaStream={localVideoStream}
             objectFit="cover"
             style={styles.stream}
           />
-          <ParticipantStatus />
-        </View>
-      ) : (
-        <View style={styles.videoView}>
-          {/* FIXME: KA To add avatar once image url is available */}
-          {/* <Image
-            source={{ uri: connectedUser?.imageUrl }}
-            style={styles.avatar}
-          /> */}
-          <ParticipantStatus />
-        </View>
-      )}
+        ) : (
+          <Image source={{ uri: connectedUser?.image }} style={styles.avatar} />
+        )}
+        <ParticipantStatus />
+      </View>
+
       <View style={styles.buttons}>
         <CallControlsButton
           onPress={toggleAudioState}

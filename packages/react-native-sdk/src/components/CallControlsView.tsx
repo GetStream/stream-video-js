@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useCall, useCallControls } from '../hooks';
+import { useCallControls } from '../hooks/useCallControls';
+import { useCall } from '../hooks/useCall';
 import {
   CameraSwitch,
   Chat,
