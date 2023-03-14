@@ -347,6 +347,7 @@ export class Call {
     }
 
     const trackType = TrackType.AUDIO;
+    /* eslint-disable-next-line no-restricted-globals */
     const queryParams = new URLSearchParams(location.search);
     const preferredCodec = queryParams.get('codec') || 'red';
     try {
