@@ -7,19 +7,14 @@ import { UserInfoView } from './UserInfoView';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
 import { useRingCall } from '../hooks/useRingCall';
-import {
-  useStreamVideoStoreSetState,
-  useStreamVideoStoreValue,
-} from '../contexts/StreamVideoContext';
+import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { useCallCycleContext } from '../contexts/CallCycleContext';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
+import { useMutingState } from '../hooks';
 
 export const OutgoingCallView = () => {
-  const isAudioMuted = useStreamVideoStoreValue((store) => store.isAudioMuted);
-  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
-  const setState = useStreamVideoStoreSetState();
-  const toggleAudioState = () => setState({ isAudioMuted: !isAudioMuted });
-  const toggleVideoState = () => setState({ isVideoMuted: !isVideoMuted });
+  const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
+    useMutingState();
 
   const { cancelCall } = useRingCall();
   const { callCycleHandlers } = useCallCycleContext();

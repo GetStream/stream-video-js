@@ -9,12 +9,10 @@ import {
   useConnectedUser,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import {
-  useStreamVideoStoreSetState,
-  useStreamVideoStoreValue,
-} from '../contexts/StreamVideoContext';
+import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { CallControlsButton } from './CallControlsButton';
 import { useCallCycleContext } from '../contexts';
+import { useMutingState } from '../hooks';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -53,10 +51,9 @@ export const LobbyView = (props: LobbyViewProps) => {
   );
   const { currentVideoDevice } = useMediaDevices();
   const videoClient = useStreamVideoClient();
-  const isAudioMuted = useStreamVideoStoreValue((store) => store.isAudioMuted);
-  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
-  const setState = useStreamVideoStoreSetState();
   const { callCycleHandlers } = useCallCycleContext();
+  const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
+    useMutingState();
   const { onActiveCall } = callCycleHandlers;
   const { callID } = props;
 
@@ -78,9 +75,6 @@ export const LobbyView = (props: LobbyViewProps) => {
     };
     loadVideoStream();
   }, [currentVideoDevice]);
-
-  const toggleAudioState = () => setState({ isAudioMuted: !isAudioMuted });
-  const toggleVideoState = () => setState({ isVideoMuted: !isVideoMuted });
 
   const joinCallHandler = () => {
     videoClient

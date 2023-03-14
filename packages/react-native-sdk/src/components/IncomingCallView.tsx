@@ -1,32 +1,22 @@
 import React from 'react';
-import { StyleSheet, Text, View, ImageBackground } from 'react-native';
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { CallControlsButton } from './CallControlsButton';
 import {
   useConnectedUser,
   useIncomingCalls,
 } from '@stream-io/video-react-bindings';
 import { UserInfoView } from './UserInfoView';
-import {
-  useCallCycleContext,
-  useStreamVideoStoreSetState,
-  useStreamVideoStoreValue,
-} from '../contexts';
+import { useCallCycleContext } from '../contexts';
 import { useRingCall } from '../hooks/useRingCall';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 import { getMembersForIncomingCall } from '../utils';
+import { useMutingState } from '../hooks';
 
 export const IncomingCallView = () => {
-  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
-  const setState = useStreamVideoStoreSetState();
+  const { isVideoMuted, toggleVideoState } = useMutingState();
   const { answerCall, rejectCall } = useRingCall();
   const { callCycleHandlers } = useCallCycleContext();
   const { onRejectCall } = callCycleHandlers;
-
-  const videoToggle = async () => {
-    setState((prevState) => ({
-      isVideoMuted: !prevState.isVideoMuted,
-    }));
-  };
 
   const answerCallHandler = async () => {
     await answerCall();
@@ -51,7 +41,7 @@ export const IncomingCallView = () => {
           <PhoneDown color="#ffffff" />
         </CallControlsButton>
         <CallControlsButton
-          onPress={videoToggle}
+          onPress={toggleVideoState}
           colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
           style={styles.buttonStyle}
           svgContainerStyle={styles.svgStyle}
