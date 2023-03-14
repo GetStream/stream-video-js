@@ -4,7 +4,7 @@ import {
   ICEServer,
   JoinCallRequest,
 } from '../../gen/coordinator';
-import { measureResourceLoadLatencyTo } from '../../rpc';
+import { measureResourceLoadLatencyTo } from './latency';
 import { StreamCoordinatorClient } from '../../coordinator/StreamCoordinatorClient';
 
 export const join = async (
@@ -21,7 +21,7 @@ export const join = async (
     connectionConfig: toRtcConfiguration(credentials.ice_servers),
     sfuServer: credentials.server,
     token: credentials.token,
-    call,
+    metadata: call,
     members,
   };
 };

@@ -40,7 +40,7 @@ export class StreamVideoWriteableStateStore {
       combineLatestWith(this.connectedUserSubject),
       map(([pendingCalls, connectedUser]) =>
         pendingCalls.filter((call) => {
-          const meta = call.state.getCurrentValue(call.state.call$);
+          const meta = call.state.getCurrentValue(call.state.metadata$);
           return meta?.created_by.id !== connectedUser?.id;
         }),
       ),
@@ -50,7 +50,7 @@ export class StreamVideoWriteableStateStore {
       combineLatestWith(this.connectedUserSubject),
       map(([pendingCalls, connectedUser]) =>
         pendingCalls.filter((call) => {
-          const meta = call.state.getCurrentValue(call.state.call$);
+          const meta = call.state.getCurrentValue(call.state.metadata$);
           return meta?.created_by.id === connectedUser?.id;
         }),
       ),
