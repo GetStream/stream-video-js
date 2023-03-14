@@ -15,10 +15,11 @@ import {
   getVideoDevices,
   getVideoStream,
   SfuModels,
+  watchForDisconnectedAudioOutputDevice,
 } from '@stream-io/video-client';
-import { pairwise } from 'rxjs';
+import { map, pairwise, take } from 'rxjs';
 import { useAudioPublisher, useVideoPublisher } from '../hooks';
-import { useActiveCall } from '@stream-io/video-react-bindings';
+import { useActiveCall, useStore } from '@stream-io/video-react-bindings';
 
 type EnabledStateType = 'starting' | 'playing';
 type DisabledStateType = 'uninitialized' | 'stopped';
@@ -100,6 +101,7 @@ export type MediaDevicesProviderProps = PropsWithChildren<{
   initialVideoInputDeviceId?: string;
 }>;
 
+// todo: republish the stream, when a new default device connected
 export const MediaDevicesProvider = ({
   children,
   enumerate = true,
@@ -110,6 +112,7 @@ export const MediaDevicesProvider = ({
   initialAudioInputDeviceId = 'default',
 }: MediaDevicesProviderProps) => {
   const call = useActiveCall();
+  const { localParticipant$ } = useStore();
 
   const [audioInputDevices, setAudioInputDevices] = useState<MediaDeviceInfo[]>(
     [],
@@ -183,35 +186,78 @@ export const MediaDevicesProvider = ({
         setSelectedAudioInputDeviceId(deviceId);
       }
       if (kind === 'audiooutput') {
-        call?.setAudioOutputDevice(deviceId);
         setSelectedAudioOutputDeviceId(deviceId);
       }
     },
-    [call],
+    [],
   );
 
   useEffect(() => {
     if (!enumerate) return;
 
+    const validateInitialInputDeviceId = getAudioDevices()
+      .pipe(take(1))
+      .subscribe((devices) => {
+        const initialDeviceFound = devices.find(
+          (device) => device.deviceId === initialAudioInputDeviceId,
+        );
+        if (!initialDeviceFound) {
+          setSelectedAudioInputDeviceId('default');
+        }
+      });
+
     const subscription = getAudioDevices().subscribe(setAudioInputDevices);
-    return () => subscription.unsubscribe();
-  }, [enumerate]);
+
+    return () => {
+      subscription.unsubscribe();
+      validateInitialInputDeviceId.unsubscribe();
+    };
+  }, [enumerate, initialAudioInputDeviceId]);
 
   useEffect(() => {
     if (!enumerate) return;
+
+    const validateInitialInputDeviceId = getVideoDevices()
+      .pipe(take(1))
+      .subscribe((devices) => {
+        const initialDeviceFound = devices.find(
+          (device) => device.deviceId === initialVideoInputDeviceId,
+        );
+        if (!initialDeviceFound) {
+          selectVideoDeviceId('default');
+        }
+      });
 
     const subscription = getVideoDevices().subscribe(setVideoDevices);
-    return () => subscription.unsubscribe();
-  }, [enumerate]);
+
+    return () => {
+      subscription.unsubscribe();
+      validateInitialInputDeviceId.unsubscribe();
+    };
+  }, [enumerate, initialVideoInputDeviceId]);
 
   useEffect(() => {
     if (!enumerate) return;
+
+    const validateInitialInputDeviceId = getAudioOutputDevices()
+      .pipe(take(1))
+      .subscribe((devices) => {
+        const initialDeviceFound = devices.find(
+          (device) => device.deviceId === initialAudioOutputDeviceId,
+        );
+        if (!initialDeviceFound) {
+          setSelectedAudioOutputDeviceId('default');
+        }
+      });
 
     const subscription = getAudioOutputDevices().subscribe(
       setAudioOutputDevices,
     );
-    return () => subscription.unsubscribe();
-  }, [enumerate]);
+    return () => {
+      subscription.unsubscribe();
+      validateInitialInputDeviceId.unsubscribe();
+    };
+  }, [enumerate, initialAudioOutputDeviceId]);
 
   useEffect(() => {
     const subscription = getVideoDevices()
@@ -227,6 +273,22 @@ export const MediaDevicesProvider = ({
 
     return () => subscription.unsubscribe();
   }, [videoDevices.length]);
+
+  useEffect(() => {
+    if (!call) return;
+    call.setAudioOutputDevice(selectedAudioOutputDeviceId);
+  }, [call, selectedAudioOutputDeviceId]);
+
+  useEffect(() => {
+    const subscription = watchForDisconnectedAudioOutputDevice(
+      localParticipant$.pipe(map((p) => p?.audioOutputDeviceId)),
+    ).subscribe(async () => {
+      setSelectedAudioOutputDeviceId('default');
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [localParticipant$]);
 
   const contextValue: MediaDevicesContextAPI = {
     audioInputDevices,

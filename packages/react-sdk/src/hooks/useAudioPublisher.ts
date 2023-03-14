@@ -21,6 +21,8 @@ export const useAudioPublisher = ({
   audioDeviceId,
 }: AudioPublisherInit) => {
   const { localParticipant$ } = useStore();
+  const localParticipant = useLocalParticipant();
+
   // helper reference to determine initial publishing of the media stream
   const initialPublishExecuted = useRef<boolean>(false);
   const participant = useLocalParticipant();
@@ -84,6 +86,25 @@ export const useAudioPublisher = ({
       subscription.unsubscribe();
     };
   }, [localParticipant$, call]);
+
+  useEffect(() => {
+    if (!localParticipant?.audioStream || !call || !isPublishingAudio) return;
+
+    const [track] = localParticipant.audioStream.getAudioTracks();
+
+    const handleTrackEnded = async () => {
+      const endedTrackDeviceId = track.getSettings().deviceId;
+      if (endedTrackDeviceId === audioDeviceId) {
+        const audioStream = await getAudioStream(audioDeviceId);
+        await call.publishAudioStream(audioStream);
+      }
+    };
+    track.addEventListener('ended', handleTrackEnded);
+
+    return () => {
+      track.removeEventListener('ended', handleTrackEnded);
+    };
+  }, [audioDeviceId, call, localParticipant?.audioStream, isPublishingAudio]);
 
   return publishAudioStream;
 };
