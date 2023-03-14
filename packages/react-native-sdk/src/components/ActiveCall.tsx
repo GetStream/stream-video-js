@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import {
+  StreamCallProvider,
   useActiveCall,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
@@ -28,7 +29,19 @@ export interface ActiveCallProps {
  * | :--- | :--- | :--- | :----: |
  * |![active-call-2](https://user-images.githubusercontent.com/25864161/217351458-6cb4b0df-6071-45f5-89b6-fe650d950502.png) | ![active-call-3](https://user-images.githubusercontent.com/25864161/217351461-908a1887-7cf0-4945-bedd-d6598902be2d.png) | ![active-call-4](https://user-images.githubusercontent.com/25864161/217351465-b2a22178-7593-4639-96dd-6fb692af2dc5.png) | ![active-call-5](https://user-images.githubusercontent.com/25864161/217351453-6547b0a3-4ecc-435f-b2d9-7d511d5d0328.png) |
  */
+
 export const ActiveCall = (props: ActiveCallProps) => {
+  const activeCall = useActiveCall();
+  if (!activeCall) return null;
+
+  return (
+    <StreamCallProvider call={activeCall}>
+      <InnerActiveCall {...props} />
+    </StreamCallProvider>
+  );
+};
+
+export const InnerActiveCall = (props: ActiveCallProps) => {
   const activeCall = useActiveCall();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
   const { onOpenCallParticipantsInfoView } = props;
