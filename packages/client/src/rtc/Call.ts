@@ -222,7 +222,10 @@ export class Call {
       onTrack: this.handleOnTrack,
     });
 
-    let isDtxEnabled = true;
+    let isDtxEnabled =
+      this.data.call.settings.audio.opus_dtx_enabled === undefined
+        ? true
+        : this.data.call.settings.audio.opus_dtx_enabled;
     if (
       typeof window !== 'undefined' &&
       window.location &&
@@ -358,7 +361,12 @@ export class Call {
     }
 
     const trackType = TrackType.AUDIO;
-    let preferredCodec = 'red';
+    let preferredCodec =
+      this.data.call.settings.audio.redundant_coding_enabled === undefined
+        ? 'red'
+        : this.data.call.settings.audio.redundant_coding_enabled
+        ? 'red'
+        : 'opus';
     if (
       typeof window !== 'undefined' &&
       window.location &&
