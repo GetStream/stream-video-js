@@ -64,16 +64,18 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
           </>
         )}
       </div>
-      <div className="str-video__call-participants-screen-view__participants">
-        {allParticipants.map((participant) => (
-          <ParticipantBox
-            key={participant.sessionId}
-            participant={participant}
-            call={call}
-            isMuted={participant.isLoggedInUser}
-            sinkId={localParticipant?.audioOutputDeviceId}
-          />
-        ))}
+      <div className="str-video__call-participants-screen-view__participants-wrapper">
+        <div className="str-video__call-participants-screen-view__participants">
+          {allParticipants.map((participant) => (
+            <ParticipantBox
+              key={participant.sessionId}
+              participant={participant}
+              call={call}
+              isMuted={participant.isLoggedInUser}
+              sinkId={localParticipant?.audioOutputDeviceId}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
