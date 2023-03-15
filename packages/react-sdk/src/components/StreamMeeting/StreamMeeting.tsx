@@ -33,8 +33,6 @@ export const StreamMeeting = ({
     });
   }, [callId, client, callType, input]);
 
-  if (!activeCall) return null;
-
   return (
     <StreamCallProvider call={activeCall}>
       <MediaDevicesProvider enumerate>{children}</MediaDevicesProvider>
