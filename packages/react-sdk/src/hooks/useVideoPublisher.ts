@@ -3,6 +3,7 @@ import {
   disposeOfMediaStream,
   getVideoStream,
   SfuModels,
+  watchForAddedDefaultVideoDevice,
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
 import { useLocalParticipant, useStore } from '@stream-io/video-react-bindings';
@@ -92,10 +93,28 @@ export const useVideoPublisher = ({
     if (!localParticipant?.videoStream || !call || !isPublishingVideo) return;
 
     const [track] = localParticipant.videoStream?.getVideoTracks();
+    const selectedVideoDeviceId = track.getSettings().deviceId;
+
+    const republishDefaultDevice = watchForAddedDefaultVideoDevice().subscribe(
+      async () => {
+        if (
+          !(
+            call &&
+            localParticipant?.videoStream &&
+            selectedVideoDeviceId === 'default'
+          )
+        )
+          return;
+        // We need to stop the original track first in order
+        // we can retrieve the new default device stream
+        track.stop();
+        const videoStream = await getVideoStream('default');
+        await call.publishVideoStream(videoStream);
+      },
+    );
 
     const handleTrackEnded = async () => {
-      const endedTrackDeviceId = track.getSettings().deviceId;
-      if (endedTrackDeviceId === videoDeviceId) {
+      if (selectedVideoDeviceId === videoDeviceId) {
         const videoStream = await getVideoStream(videoDeviceId);
         await call.publishVideoStream(videoStream);
       }
@@ -104,6 +123,7 @@ export const useVideoPublisher = ({
 
     return () => {
       track.removeEventListener('ended', handleTrackEnded);
+      republishDefaultDevice.unsubscribe();
     };
   }, [videoDeviceId, call, localParticipant?.videoStream, isPublishingVideo]);
 

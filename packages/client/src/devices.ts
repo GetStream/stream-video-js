@@ -8,6 +8,7 @@ import {
   map,
   merge,
   Observable,
+  pairwise,
   shareReplay,
 } from 'rxjs';
 
@@ -264,6 +265,61 @@ export const watchForDisconnectedAudioOutputDevice = (
 ) => {
   return watchForDisconnectedDevice('audiooutput', deviceId$);
 };
+
+const watchForAddedDefaultDevice = (kind: MediaDeviceKind) => {
+  let devices$;
+  switch (kind) {
+    case 'audioinput':
+      devices$ = getAudioDevices();
+      break;
+    case 'videoinput':
+      devices$ = getVideoDevices();
+      break;
+    case 'audiooutput':
+      devices$ = getAudioOutputDevices();
+      break;
+    default:
+      throw new Error('Unknown MediaDeviceKind', kind);
+  }
+
+  return devices$.pipe(
+    pairwise(),
+    filter(([prev, current]) => {
+      const prevDefault = prev.find((device) => device.deviceId === 'default');
+      const currentDefault = current.find(
+        (device) => device.deviceId === 'default',
+      );
+      return !!(
+        current.length > prev.length &&
+        prevDefault &&
+        currentDefault &&
+        prevDefault.groupId !== currentDefault.groupId
+      );
+    }),
+    map(() => true),
+  );
+};
+
+/**
+ * Notifies the subscriber about newly added default audio input device.
+ * @returns Observable<boolean>
+ */
+export const watchForAddedDefaultAudioDevice = () =>
+  watchForAddedDefaultDevice('audioinput');
+
+/**
+ * Notifies the subscriber about newly added default audio output device.
+ * @returns Observable<boolean>
+ */
+export const watchForAddedDefaultAudioOutputDevice = () =>
+  watchForAddedDefaultDevice('audiooutput');
+
+/**
+ * Notifies the subscriber about newly added default video input device.
+ * @returns Observable<boolean>
+ */
+export const watchForAddedDefaultVideoDevice = () =>
+  watchForAddedDefaultDevice('videoinput');
 
 /**
  * Deactivates MediaStream (stops and removes tracks) to be later garbage collected
