@@ -13,7 +13,7 @@ require('dotenv').config();
 
   for (const user of users) {
     user.token = JWTUserToken(secret, user.id, {
-      exp: Date.now() / 1000 + 3600 * 24 * 30, // in 30 days
+      exp: Math.round(Date.now() / 1000 + 3600 * 24 * 30), // in 30 days
     });
   }
 

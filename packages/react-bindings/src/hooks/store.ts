@@ -1,4 +1,4 @@
-import { useCurrentCall, useStreamVideoClient } from '../contexts';
+import { useCall, useStreamVideoClient } from '../contexts';
 
 /**
  * Utility hook which provides access to client's state store.
@@ -16,8 +16,8 @@ export const useStore = () => {
 /**
  * Utility hook which provides the current call's state.
  */
-export const useCurrentCallState = () => {
-  const call = useCurrentCall();
+export const useCallState = () => {
+  const call = useCall();
   if (!call) {
     throw new Error(
       `Call isn't initialized or this hook is called outside of <StreamCallProvider> context.`,

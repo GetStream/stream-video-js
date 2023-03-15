@@ -29,8 +29,6 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
     }
   }, [videoClient, outgoingCall, acceptedCall, activeCall]);
 
-  if (!activeCall) return null;
-
   return (
     <StreamCallProvider call={activeCall}>
       <MediaDevicesProvider enumerate={!!activeCall}>

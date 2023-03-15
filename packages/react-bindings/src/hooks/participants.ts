@@ -1,11 +1,11 @@
 import { useObservableValue } from './helpers/useObservableValue';
-import { useCurrentCallState } from './store';
+import { useCallState } from './store';
 
 /**
  * A hook which provides a list of all participants that have joined an active call.
  */
 export const useParticipants = () => {
-  const { participants$ } = useCurrentCallState();
+  const { participants$ } = useCallState();
   return useObservableValue(participants$);
 };
 
@@ -14,7 +14,7 @@ export const useParticipants = () => {
  * It signals that I have joined a call.
  */
 export const useLocalParticipant = () => {
-  const { localParticipant$ } = useCurrentCallState();
+  const { localParticipant$ } = useCallState();
   return useObservableValue(localParticipant$);
 };
 
@@ -22,6 +22,6 @@ export const useLocalParticipant = () => {
  * A hook which provides a list of all other participants than me that have joined an active call.
  */
 export const useRemoteParticipants = () => {
-  const { remoteParticipants$ } = useCurrentCallState();
+  const { remoteParticipants$ } = useCallState();
   return useObservableValue(remoteParticipants$);
 };

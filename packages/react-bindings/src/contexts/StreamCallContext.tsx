@@ -4,10 +4,9 @@ import { Call } from '@stream-io/video-client';
 const StreamCallContext = createContext<Call | undefined>(undefined);
 
 export interface StreamCallProviderProps {
-  call: Call;
+  call?: Call;
 }
 
-// TODO OL: naming
 export const StreamCallProvider = (
   props: PropsWithChildren<StreamCallProviderProps>,
 ) => {
@@ -19,7 +18,6 @@ export const StreamCallProvider = (
   );
 };
 
-// TODO OL: naming
-export const useCurrentCall = () => {
+export const useCall = () => {
   return useContext(StreamCallContext);
 };

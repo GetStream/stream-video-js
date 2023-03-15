@@ -1,11 +1,11 @@
 import { useObservableValue } from './helpers/useObservableValue';
-import { useCurrentCallState, useStore } from './store';
+import { useCallState, useStore } from './store';
 
 /**
  * Utility hook which provides information whether the current call is being recorded.
  */
 export const useIsCallRecordingInProgress = () => {
-  const { callRecordingInProgress$ } = useCurrentCallState();
+  const { callRecordingInProgress$ } = useCallState();
   return useObservableValue(callRecordingInProgress$);
 };
 
@@ -14,7 +14,7 @@ export const useIsCallRecordingInProgress = () => {
  * a participant in the current call which shares their screen.
  */
 export const useHasOngoingScreenShare = () => {
-  const { hasOngoingScreenShare$ } = useCurrentCallState();
+  const { hasOngoingScreenShare$ } = useCallState();
   return useObservableValue(hasOngoingScreenShare$);
 };
 
@@ -29,7 +29,7 @@ export const useHasOngoingScreenShare = () => {
  * in case they want to show historical stats data.
  */
 export const useCurrentCallStatsReport = () => {
-  const { callStatsReport$ } = useCurrentCallState();
+  const { callStatsReport$ } = useCallState();
   return useObservableValue(callStatsReport$);
 };
 
@@ -37,7 +37,7 @@ export const useCurrentCallStatsReport = () => {
  * Utility hook which provides the dominant speaker of the current call.
  */
 export const useDominantSpeaker = () => {
-  const { dominantSpeaker$ } = useCurrentCallState();
+  const { dominantSpeaker$ } = useCallState();
   return useObservableValue(dominantSpeaker$);
 };
 
