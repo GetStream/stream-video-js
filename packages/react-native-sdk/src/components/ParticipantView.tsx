@@ -21,7 +21,7 @@ interface ParticipantViewProps {
   /**
    * The size of the participant that correlates to a specific layout
    */
-  size: SizeType;
+  size?: SizeType;
   /**
    * The participant that will be displayed
    */
@@ -33,7 +33,11 @@ interface ParticipantViewProps {
   /**
    * Any custom style to be merged with the participant view
    */
-  style?: StyleProp<ViewStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Any custom style to be merged with the VideoRenderer
+   */
+  videoRendererStyle?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -91,13 +95,17 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     () => !!videoStream && !isVideoMuted,
     [videoStream, isVideoMuted],
   );
+  const applyDominantSpeakerStyle = isSpeaking && !isScreenSharing;
+  const dominantSpeakerStyle = applyDominantSpeakerStyle
+    ? styles.dominantSpeaker
+    : {};
+
   return (
     <View
       style={[
         styles.containerBase,
-        styles[`${size}Container`],
-        isSpeaking && !isScreenSharing ? styles.dominantSpeaker : {},
-        props.style,
+        size && styles[`${size}Container`],
+        props.containerStyle,
       ]}
       onLayout={onLayout}
     >
@@ -106,7 +114,11 @@ export const ParticipantView = (props: ParticipantViewProps) => {
           mirror={mirror}
           mediaStream={videoStream as MediaStream}
           objectFit={kind === 'screen' ? 'contain' : 'cover'}
-          style={styles.videoRenderer}
+          style={[
+            styles.videoRenderer,
+            props.videoRendererStyle,
+            dominantSpeakerStyle,
+          ]}
         />
       ) : (
         <Avatar participant={participant} />

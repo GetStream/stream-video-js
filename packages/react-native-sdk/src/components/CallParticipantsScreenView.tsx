@@ -1,6 +1,6 @@
 import { SfuModels } from '@stream-io/video-client';
 import { useParticipants } from '@stream-io/video-react-bindings';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { ParticipantView } from './ParticipantView';
 
 export const CallParticipantsScreenView = () => {
@@ -8,9 +8,6 @@ export const CallParticipantsScreenView = () => {
   const firstScreenSharingParticipant = allParticipants.find((p) =>
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
   );
-
-  // TODO: temporaily showing only 2 participants, in future we show all using flatlist
-  const firstTwoParticipants = allParticipants.slice(0, 2);
 
   return (
     <>
@@ -27,17 +24,21 @@ export const CallParticipantsScreenView = () => {
         </View>
       )}
 
-      <View style={styles.participantVideoContainer}>
-        {firstTwoParticipants.map((participant) => (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.participantVideoContainer}
+      >
+        {allParticipants.map((participant) => (
           <ParticipantView
             key={`${participant.userId}/${participant.sessionId}`}
             participant={participant}
-            size={'small'}
             kind="video"
-            style={styles.participantVideoBox}
+            containerStyle={styles.participantVideoBox}
+            videoRendererStyle={{ borderRadius: 8 }}
           />
         ))}
-      </View>
+      </ScrollView>
     </>
   );
 };
@@ -47,12 +48,16 @@ const styles = StyleSheet.create({
     flex: 3,
   },
   participantVideoContainer: {
-    marginTop: 8,
     flex: 1,
-    flexDirection: 'row',
+    backgroundColor: 'pink',
+    paddingHorizontal: 8,
+    paddingTop: 8,
+    paddingBottom: 24,
+    bottom: 24,
   },
   participantVideoBox: {
-    borderRadius: 16,
-    marginLeft: 8,
+    width: 150,
+    height: 150,
+    marginRight: 8,
   },
 });

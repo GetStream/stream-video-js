@@ -82,5 +82,5 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'black',
   },
-  callParticipantsWrapper: { flex: 1 },
+  callParticipantsWrapper: { flex: 1, bottom: -24 },
 });
