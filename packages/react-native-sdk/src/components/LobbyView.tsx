@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
 import {
@@ -12,6 +12,8 @@ import { useCallCycleContext } from '../contexts';
 import { useMutingState } from '../hooks/useMutingState';
 import { useLocalVideoStream } from '../hooks';
 import { VideoRenderer } from './VideoRenderer';
+import { Avatar } from './Avatar';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -83,6 +85,12 @@ export const LobbyView = (props: LobbyViewProps) => {
         console.log('Error joining call', err);
       });
   };
+  const connectedUserAsParticipant = {
+    userId: connectedUser?.id,
+    // @ts-ignore
+    image: connectedUser?.imageUrl,
+    name: connectedUser?.name,
+  } as StreamVideoParticipant;
 
   return (
     <View style={styles.container}>
@@ -97,7 +105,7 @@ export const LobbyView = (props: LobbyViewProps) => {
             style={styles.stream}
           />
         ) : (
-          <Image source={{ uri: connectedUser?.image }} style={styles.avatar} />
+          <Avatar participant={connectedUserAsParticipant} />
         )}
         <ParticipantStatus />
       </View>
@@ -134,7 +142,8 @@ export const LobbyView = (props: LobbyViewProps) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#2C2C2E',
-    height: '100%',
+    justifyContent: 'center',
+    flex: 1,
   },
   heading: {
     color: 'white',
