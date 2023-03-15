@@ -6,8 +6,9 @@ import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
 import { useRingCall } from '../hooks/useRingCall';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { useCallCycleContext } from '../contexts/CallCycleContext';
-import { useLocalVideoStream, useMutingState } from '../hooks';
 import { VideoRenderer } from './VideoRenderer';
+import { useMutingState } from '../hooks/useMutingState';
+import { useLocalVideoStream } from '../hooks/useLocalVideoStream';
 
 export const OutgoingCallView = () => {
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =

@@ -70,7 +70,8 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
 }) => {
   const [incomingCall] = useIncomingCalls();
   const connectedUser = useConnectedUser();
-  // FIXME OL: this needs to be reworked
+  if (!incomingCall) return null;
+
   const members = getMembersForIncomingCall(incomingCall, connectedUser);
 
   if (members.length) {
