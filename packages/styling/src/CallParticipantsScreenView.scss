@@ -42,17 +42,19 @@
     border-radius: var(--str-video__border-radius1);
   }
 
-  .str-video__call-participants-screen-view__participants {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 1rem;
-    overflow: scroll;
+  .str-video__call-participants-screen-view__participants-wrapper {
+    flex: 1 1;
+    overflow-y: auto;
     scrollbar-width: none;
-
     &::-webkit-scrollbar {
       display: none;
+    }
+
+    .str-video__call-participants-screen-view__participants {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1rem;
     }
   }
 
@@ -69,5 +71,6 @@
   .str-video__video--tall {
     height: 100%;
     width: 100%;
+    object-fit: contain;
   }
 }
