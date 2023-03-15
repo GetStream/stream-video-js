@@ -155,8 +155,6 @@ export const ParticipantView = (props: ParticipantViewProps) => {
 const styles = StyleSheet.create({
   containerBase: {
     justifyContent: 'center',
-    flex: 1,
-    width: '100%',
     borderWidth: 2,
   },
   smallContainer: {

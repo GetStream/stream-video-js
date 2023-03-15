@@ -11,10 +11,6 @@ import { Avatar } from './Avatar';
  */
 export interface LocalVideoViewProps {
   /**
-   * Indicates whether the local video view is visible or not
-   */
-  isVisible: boolean;
-  /**
    * An optional style object to be applied to the local video view
    * @defaultValue
    * The default is `{
@@ -38,15 +34,13 @@ export interface LocalVideoViewProps {
  * |![local-video-view-1](https://user-images.githubusercontent.com/25864161/217491433-60848d95-1a14-422e-b4e1-7540f3ba30b4.png)|![local-video-view-2](https://user-images.githubusercontent.com/25864161/217491438-75bad10c-8850-49f5-b3bd-af22995e11c2.png)|
  */
 export const LocalVideoView = (props: LocalVideoViewProps) => {
-  const { isVisible, style = styles.container } = props;
+  const { style = styles.container } = props;
   const localParticipant = useLocalParticipant();
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
 
-  if (!isVisible || !localParticipant) {
-    return null;
-  }
+  if (!localParticipant) return null;
 
   const isVideoMuted = !localParticipant.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
@@ -65,7 +59,7 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
       mirror={isCameraOnFrontFacingMode}
       mediaStream={localParticipant.videoStream}
       style={style}
-      zOrder={1}
+      zOrder={2}
     />
   );
 };

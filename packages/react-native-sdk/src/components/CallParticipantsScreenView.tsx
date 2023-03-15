@@ -18,7 +18,7 @@ export const CallParticipantsScreenView = () => {
           </Text>
           <ParticipantView
             participant={firstScreenSharingParticipant}
-            size={'large'}
+            containerStyle={{ flex: 1 }}
             kind="screen"
           />
         </View>

@@ -1,11 +1,8 @@
-import React, { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
 import { ParticipantView } from './ParticipantView';
 import { LocalVideoView } from './LocalVideoView';
-import {
-  useLocalParticipant,
-  useRemoteParticipants,
-} from '@stream-io/video-react-bindings';
+import { useRemoteParticipants } from '@stream-io/video-react-bindings';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 
 type SizeType = React.ComponentProps<typeof ParticipantView>['size'];
@@ -81,65 +78,40 @@ const putRemoteParticipantsInView = (
  * |![call-participants-view-1](https://user-images.githubusercontent.com/25864161/217495022-b1964df9-fd4a-4ed9-924a-33fc9d2040fd.png) | ![call-participants-view-2](https://user-images.githubusercontent.com/25864161/217495029-e2e44d11-64c0-4eb2-9efa-d86c1875be55.png) | ![call-participants-view-3](https://user-images.githubusercontent.com/25864161/217495037-835c3b9b-3380-4f09-8776-14e2989a76db.png) | ![call-participants-view-4](https://user-images.githubusercontent.com/25864161/217495043-17081d48-c92c-4f4f-937c-c0696172e1d3.png) |
  */
 export const CallParticipantsView = () => {
-  const localParticipant = useLocalParticipant();
   let remoteParticipants = useRemoteParticipants();
-  const remoteParticipantsInView = useMemo(
-    () => putRemoteParticipantsInView(remoteParticipants),
-    [remoteParticipants],
-  );
-  let allParticipants = remoteParticipantsInView;
-  if (localParticipant) {
-    allParticipants = [localParticipant, ...allParticipants];
-  }
-  const mode =
-    activeCallAllParticipantsLengthToMode[allParticipants.length] ||
-    Modes.fifth;
-
-  const isUserIsAloneInCall = allParticipants.length === 1;
-
-  const isLocalVideoVisible = useMemo(
-    () => localVideoVisibleModes.includes(mode) && !isUserIsAloneInCall,
-    [mode, isUserIsAloneInCall],
-  );
-  const showUserInParticipantView = !isLocalVideoVisible;
-  const filteredParticipants = showUserInParticipantView
-    ? allParticipants
-    : remoteParticipantsInView;
-
-  if (allParticipants.length === 0) {
-    return null;
-  }
+  //todo: SG add dominantSpeakerOnlyVisible mode
+  // const remoteParticipantsInView = useMemo(
+  //   () => putRemoteParticipantsInView(remoteParticipants),
+  //   [remoteParticipants],
+  // );
 
   return (
-    <View style={styles.container}>
-      <LocalVideoView isVisible={isLocalVideoVisible} />
-      {filteredParticipants.map((participant, index) => {
+    <ScrollView contentContainerStyle={styles.container}>
+      <LocalVideoView />
+      {remoteParticipants.map((participant) => {
         const { userId } = participant;
-        // The size of the participant video is determined by the mode/amount of participants.
-        // When the mode is `fifth` the size is determined by the index of the participant.
-        // The first 2 participants are shown in `medium` size and the last 3
-        // participants are shown in `small` size.
-        const calculateFiveOrMoreParticipantsSize = (i: number) =>
-          i > 1 ? 'small' : 'medium';
-        const size =
-          modeToSize[mode] || calculateFiveOrMoreParticipantsSize(index);
         return (
           <ParticipantView
             key={`${userId}/${participant.sessionId}`}
             participant={participant}
-            size={size}
+            containerStyle={{
+              flex: 1,
+              height: 200,
+              flexBasis: '50%',
+              flexGrow: 1,
+            }}
             kind="video"
           />
         );
       })}
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#000',
-    flex: 1,
     flexWrap: 'wrap',
+    flexDirection: 'row',
   },
 });
