@@ -21,7 +21,7 @@ interface ParticipantViewProps {
   /**
    * The size of the participant that correlates to a specific layout
    */
-  size: SizeType;
+  size?: SizeType;
   /**
    * The participant that will be displayed
    */
@@ -33,7 +33,11 @@ interface ParticipantViewProps {
   /**
    * Any custom style to be merged with the participant view
    */
-  style?: StyleProp<ViewStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Any custom style to be merged with the VideoRenderer
+   */
+  videoRendererStyle?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -91,22 +95,34 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     () => !!videoStream && !isVideoMuted,
     [videoStream, isVideoMuted],
   );
+  const applyDominantSpeakerStyle = isSpeaking && !isScreenSharing;
+  const dominantSpeakerStyle =
+    applyDominantSpeakerStyle && styles.dominantSpeaker;
+  const videoOnlyStyle = !isScreenSharing && { borderColor: '#1C1E22' };
+
+  const participantLabel =
+    participant.userId.length > 15
+      ? `${participant.userId.slice(0, 15)}...`
+      : participant.userId;
+
   return (
     <View
       style={[
         styles.containerBase,
-        styles[`${size}Container`],
-        isSpeaking && !isScreenSharing ? styles.dominantSpeaker : {},
-        props.style,
+        size && styles[`${size}Container`],
+        dominantSpeakerStyle,
+        videoOnlyStyle,
+        props.containerStyle,
       ]}
       onLayout={onLayout}
     >
       {isVideoAvailable ? (
         <VideoRenderer
+          zOrder={1}
           mirror={mirror}
           mediaStream={videoStream as MediaStream}
           objectFit={kind === 'screen' ? 'contain' : 'cover'}
-          style={styles.videoRenderer}
+          style={[styles.videoRenderer, props.videoRendererStyle]}
         />
       ) : (
         <Avatar participant={participant} />
@@ -116,7 +132,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       )}
       {kind === 'video' && (
         <View style={styles.status}>
-          <Text style={styles.userNameLabel}>{participant.userId}</Text>
+          <Text style={styles.userNameLabel}>{participantLabel}</Text>
           <View style={styles.svgWrapper}>
             <MicIcon color="#FFF" />
           </View>
@@ -141,6 +157,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flex: 1,
     width: '100%',
+    borderWidth: 2,
   },
   smallContainer: {
     flexBasis: '33.33%',
@@ -155,6 +172,7 @@ const styles = StyleSheet.create({
   videoRenderer: {
     flex: 1,
     justifyContent: 'center',
+    borderRadius: 10,
   },
   screenVideoRenderer: {
     flex: 1,
@@ -191,6 +209,5 @@ const styles = StyleSheet.create({
   },
   dominantSpeaker: {
     borderColor: '#005FFF',
-    borderWidth: 2,
   },
 });
