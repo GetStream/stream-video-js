@@ -71,8 +71,6 @@ export class StableWSConnection {
   ws?: WebSocket;
   wsID: number;
 
-  token = '';
-
   client: StreamClient;
 
   constructor(client: StreamClient) {
@@ -101,7 +99,6 @@ export class StableWSConnection {
   }
 
   _log(msg: string, extra: UR = {}, level: LogLevel = 'info') {
-    console.log(msg, extra);
     this.client.logger(level, 'connection:' + msg, {
       tags: ['connection'],
       ...extra,
@@ -417,7 +414,7 @@ export class StableWSConnection {
       return;
     }
 
-    if (this.isDisconnected /* && this.client.options.enableWSFallback */) {
+    if (this.isDisconnected && this.client.options.enableWSFallback) {
       this._log('_reconnect() - Abort (3) since disconnect() is called');
       return;
     }
@@ -508,6 +505,7 @@ export class StableWSConnection {
         id: user.id,
         name: user.name,
         image: user.image,
+        custom: user.custom,
       },
     };
 
@@ -520,8 +518,6 @@ export class StableWSConnection {
 
     this._log('onmessage() - onmessage callback', { event, wsID });
     const data = typeof event.data === 'string' ? JSON.parse(event.data) : null;
-
-    console.log('Received data', data);
 
     // we wait till the first message before we consider the connection open..
     // the reason for this is that auth errors and similar errors trigger a ws.onopen and immediately

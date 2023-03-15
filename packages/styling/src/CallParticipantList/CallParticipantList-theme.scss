@@ -60,28 +60,21 @@
   .str-video__participant-list__footer {
     display: flex;
     justify-content: center;
-    padding: 0 0.75rem 0.75rem;
-  }
-}
+    padding: 0 0.75rem 0.75rem ;
 
-.str-video__invite-link-button {
-  font-size: 13px;
-  color: var(--str-video__text-color4);
-  background-color: var(--str-video__background-color4);
-  border-radius: var(--str-video__border-radius-xl);
+    .str-video__invite-link-button {
+      font-size: 13px;
+      color: var(--str-video__text-color4);
+      background-color: var(--str-video__background-color4);
+      border-radius: var(--str-video__border-radius-xl);
 
-  .str-video__invite-participant-icon {
-    @include utils.apply-mask-image(
-      var(--str-video__icon--user-plus),
-      var(--str-video__text-color4),
-      1rem
-    );
-  }
-
-  .str-video__tooltip {
-    color: var(--str-video__text-color1);
-    background-color: var(--str-video__secondary-color);
-    font-size: 12px;
-    box-shadow: none;
+      .str-video__invite-participant-icon {
+        @include utils.apply-mask-image(
+            var(--str-video__icon--user-plus),
+            var(--str-video__text-color4),
+            1rem
+        );
+      }
+    }
   }
 }

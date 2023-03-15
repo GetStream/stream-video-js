@@ -4,7 +4,7 @@ import {
   useOutgoingCalls,
 } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
-import { CallCycleHandlersType } from '../providers';
+import { CallCycleHandlersType } from '../contexts/CallCycleContext';
 
 export const useCallCycleEffect = (
   callCycleHandlers: CallCycleHandlersType,

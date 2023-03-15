@@ -1,5 +1,4 @@
 import clsx from 'clsx';
-import { useEffect, useRef } from 'react';
 import {
   Call,
   SfuModels,
@@ -8,8 +7,10 @@ import {
 import { useIsDebugMode } from '../Debug/useIsDebugMode';
 import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../Debug/DebugStatsView';
-import { Video } from './Video';
+import { Audio } from './Audio';
+import { Video } from '../Video';
 import { Notification } from '../Notification';
+import { Reaction } from '../Reaction';
 
 export interface ParticipantBoxProps {
   participant: StreamVideoParticipant;
@@ -31,34 +32,21 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
     setVideoElementRef,
     className,
   } = props;
-  const audioRef = useRef<HTMLAudioElement>(null);
+
   const {
-    videoStream,
     audioStream,
+    videoStream,
     isLoggedInUser: isLocalParticipant,
     isDominantSpeaker,
     isSpeaking,
     publishedTracks,
     connectionQuality,
+    sessionId,
+    reaction,
   } = participant;
 
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
-
-  useEffect(() => {
-    const $el = audioRef.current;
-    console.log(`Attaching audio stream`, $el, audioStream);
-    if (!$el) return;
-    if (audioStream) {
-      $el.srcObject = audioStream;
-      if (($el as any).setSinkId) {
-        ($el as any).setSinkId(sinkId || '');
-      }
-    }
-    return () => {
-      $el.srcObject = null;
-    };
-  }, [audioStream, sinkId]);
 
   const connectionQualityAsString = String(
     SfuModels.ConnectionQuality[connectionQuality],
@@ -73,20 +61,22 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
         className,
       )}
     >
-      <audio autoPlay ref={audioRef} muted={isMuted} />
       <div className="str-video__video-container">
+        <Audio muted={isMuted} sinkId={sinkId} audioStream={audioStream} />
         <Video
           call={call}
           participant={participant}
           kind="video"
           setVideoElementRef={setVideoElementRef}
-          className={clsx(
-            'str-video__remote-video',
-            isLocalParticipant && 'mirror',
-          )}
-          muted
+          className={clsx('str-video__remote-video', {
+            'str-video__remote-video--mirror': isLocalParticipant,
+          })}
+          muted={isMuted}
           autoPlay
         />
+        {reaction && (
+          <Reaction reaction={reaction} sessionId={sessionId} call={call} />
+        )}
         <div className="str-video__participant_details">
           <span className="str-video__participant_name">
             {participant.name || participant.userId}

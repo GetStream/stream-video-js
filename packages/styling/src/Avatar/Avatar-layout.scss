@@ -1,0 +1,16 @@
+@mixin default-avatar-dimensions {
+  width: 2rem;
+  height: 2rem;
+}
+
+.str-video__avatar {
+  @include default-avatar-dimensions;
+  object-fit: cover;
+}
+
+.str-video__avatar--initials-fallback {
+  @include default-avatar-dimensions;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

@@ -1,0 +1,22 @@
+.str-video__participant-placeholder {
+  aspect-ratio: 16 / 9;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .str-video__participant-placeholder--avatar {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+  }
+
+  .str-video__participant-placeholder--initials-fallback {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100px;
+    height: 100px;
+  }
+}

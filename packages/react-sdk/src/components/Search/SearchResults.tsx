@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { ComponentType } from 'react';
 import { LoadingIndicator as DefaultLoadingIndicator } from '../LoadingIndicator';
 import { SearchController } from './hooks';
 
@@ -11,11 +11,11 @@ export type SearchResultsProps<T> = Pick<
   'searchResults' | 'searchQueryInProgress'
 > & {
   /** Component to be displayed, when empty array of search results is provided */
-  EmptySearchResultComponent: React.ComponentType;
+  EmptySearchResultComponent: ComponentType;
   /** Component will be used to render non-empty array of search results  */
-  SearchResultList: React.ComponentType<SearchResultListProps<T>>;
+  SearchResultList: ComponentType<SearchResultListProps<T>>;
   /** Component to be displayed while the search query request is in progress */
-  LoadingIndicator?: React.ComponentType;
+  LoadingIndicator?: ComponentType;
 };
 
 export const SearchResults = <T extends unknown>({

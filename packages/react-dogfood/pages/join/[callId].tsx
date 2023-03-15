@@ -2,31 +2,35 @@ import { useEffect } from 'react';
 import Gleap from 'gleap';
 import { useRouter } from 'next/router';
 import { authOptions } from '../api/auth/[...nextauth]';
-import { unstable_getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth';
 import { GetServerSidePropsContext } from 'next';
 import { createToken } from '../../helpers/jwt';
 import {
+  Call,
+  MediaDevicesProvider,
   StreamVideo,
-  StreamMeeting,
   useCreateStreamVideoClient,
+  User,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
-import { Call, User } from '@stream-io/video-client';
 
 import { useCreateStreamChatClient } from '../../hooks';
-import { MeetingUI } from '../../components';
+import { LoadingScreen, MeetingUI } from '../../components';
+import {
+  DeviceSettingsCaptor,
+  getDeviceSettings,
+} from '../../components/DeviceSettingsCaptor';
 
-type JoinCallProps = {
+type CallRoomProps = {
   user: User;
   userToken: string;
   apiKey: string;
   gleapApiKey?: string;
 };
 
-const JoinCall = (props: JoinCallProps) => {
+const CallRoom = (props: CallRoomProps) => {
   const router = useRouter();
   const callId = router.query['callId'] as string;
-  const callType = (router.query['type'] as string) || 'default';
 
   const { userToken, user, apiKey, gleapApiKey } = props;
 
@@ -80,8 +84,10 @@ const JoinCall = (props: JoinCallProps) => {
     });
   }, [client.readOnlyStateStore, gleapApiKey]);
 
+  const deviceSettings = getDeviceSettings();
+
   if (!client) {
-    return <h2>Connecting...</h2>;
+    return <LoadingScreen />;
   }
 
   return (
@@ -91,25 +97,30 @@ const JoinCall = (props: JoinCallProps) => {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <StreamVideo client={client}>
-        <StreamMeeting callId={callId} callType={callType}>
-          <MeetingUI callId={callId} chatClient={chatClient} />
-        </StreamMeeting>
+        <MediaDevicesProvider
+          enumerate
+          initialAudioEnabled={!deviceSettings?.isAudioMute}
+          initialVideoEnabled={!deviceSettings?.isVideoMute}
+          initialVideoInputDeviceId={deviceSettings?.selectedVideoDeviceId}
+          initialAudioInputDeviceId={deviceSettings?.selectedAudioInputDeviceId}
+          initialAudioOutputDeviceId={
+            deviceSettings?.selectedAudioOutputDeviceId
+          }
+        >
+          <MeetingUI chatClient={chatClient} />
+          <DeviceSettingsCaptor />
+        </MediaDevicesProvider>
       </StreamVideo>
     </div>
   );
 };
 
-export default JoinCall;
+export default CallRoom;
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
 ) => {
-  const session = await unstable_getServerSession(
-    context.req,
-    context.res,
-    authOptions,
-  );
-
+  const session = await getServerSession(context.req, context.res, authOptions);
   if (!session) {
     const url = context.req.url;
     return {
@@ -123,8 +134,9 @@ export const getServerSideProps = async (
   const secretKey = process.env.STREAM_SECRET_KEY as string;
   const gleapApiKey = (process.env.GLEAP_API_KEY as string) || null;
 
+  const userIdOverride = context.query['user_id'] as string | undefined;
   const userId = (
-    (context.query['user_id'] as string) ||
+    userIdOverride ||
     session.user?.email ||
     'unknown-user'
   ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
@@ -139,10 +151,10 @@ export const getServerSideProps = async (
       userToken: createToken(streamUserId, secretKey),
       user: {
         id: streamUserId,
-        name: userName,
+        name: userIdOverride || userName,
         image: session.user?.image,
       },
       gleapApiKey,
-    } as JoinCallProps,
+    } as CallRoomProps,
   };
 };

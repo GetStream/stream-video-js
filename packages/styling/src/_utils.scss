@@ -30,3 +30,21 @@
   border-inline-end: var(--str-video__#{$component-name}--border-inline-end) #{$important};
 }
 
+
+@mixin reset-select {
+  // A reset of styles, including removing the default dropdown arrow
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  // Additional resets for further consistency
+  background-color: transparent;
+  border: none;
+  padding: 0 1em 0 0;
+  margin: 0;
+  width: 100%;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: inherit;
+  line-height: inherit;
+  outline: none;
+}

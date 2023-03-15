@@ -1,16 +1,13 @@
 import {
-  ParticipantBox,
-  useMediaDevices,
-  useMediaPublisher,
-} from '@stream-io/video-react-sdk';
-import {
   Call,
+  ParticipantBox,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
-} from '@stream-io/video-client';
+  useConnectedUser,
+  useMediaDevices,
+} from '@stream-io/video-react-sdk';
 import { ParticipantPlaceholder } from './ParticipantPlaceholder';
 import { ActiveCallControls } from './CallControls';
-import { useConnectedUser } from '@stream-io/video-react-bindings';
 
 type ActiveCallPanelProps = {
   activeCall: Call;
@@ -28,13 +25,7 @@ export const ActiveCallPanel = ({
     imageUrl,
   } = useConnectedUser();
 
-  const { selectedAudioDeviceId, selectedVideoDeviceId } = useMediaDevices();
-
-  const { publishAudioStream, publishVideoStream } = useMediaPublisher({
-    call: activeCall,
-    audioDeviceId: selectedAudioDeviceId,
-    videoDeviceId: selectedVideoDeviceId,
-  });
+  const { publishAudioStream, publishVideoStream } = useMediaDevices();
 
   const remoteParticipantImage = remoteParticipant?.image;
 

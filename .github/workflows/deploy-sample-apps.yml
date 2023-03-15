@@ -21,15 +21,18 @@ on:
 
 jobs:
   build-and-deploy-sample-apps:
-    name: Deploying ${{ matrix.application.name }}
+    name: Deploy ${{ matrix.application.name }}
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     strategy:
       matrix:
         application:
-          - name: react-messenger-clone
+          - name: messenger-clone-react
             project-id: prj_FNUiw2FtWJEDVHP5XttyLQmGw39n
-          - name: react-zoom-clone
+            populate-tokens: true
+          - name: zoom-clone-react
             project-id: prj_y2GjsUXNvW7MdQ0EpJVG0FBNNovL
+            populate-tokens: true
           - name: egress-composite
             project-id: prj_y9JDolEfVxWC50c4h71UxIL7XNXz
 
@@ -39,18 +42,7 @@ jobs:
       VITE_STREAM_API_KEY: ${{ vars.EGRESS_STREAM_API_KEY }}
       VITE_STREAM_TOKEN: ${{ secrets.EGRESS_USER_TOKEN }}
       VITE_STREAM_KEY: ${{ vars.STREAM_API_KEY_SAMPLE_APPS }}
-      VITE_STREAM_TOKEN_ALICE: ${{ secrets.STREAM_TOKEN_ALICE }}
-      VITE_STREAM_TOKEN_MARK: ${{ secrets.STREAM_TOKEN_MARK }}
-      VITE_STREAM_TOKEN_BOB: ${{ secrets.STREAM_TOKEN_BOB }}
-      VITE_STREAM_TOKEN_JANE: ${{ secrets.STREAM_TOKEN_JANE }}
-      VITE_STREAM_TOKEN_TAMARA: ${{ secrets.STREAM_TOKEN_TAMARA }}
-      VITE_STREAM_TOKEN_JOHN: ${{ secrets.STREAM_TOKEN_JOHN }}
-      VITE_STREAM_TOKEN_SARA: ${{ secrets.STREAM_TOKEN_SARA }}
-      VITE_STREAM_TOKEN_MICHAEL: ${{ secrets.STREAM_TOKEN_MICHAEL }}
-      VITE_STREAM_TOKEN_BRIAN: ${{ secrets.STREAM_TOKEN_BRIAN }}
-      VITE_STREAM_TOKEN_EVELYN: ${{ secrets.STREAM_TOKEN_EVELYN }}
-      VITE_STREAM_TOKEN_TINA: ${{ secrets.STREAM_TOKEN_TINA }}
-      VITE_STREAM_TOKEN_JACK: ${{ secrets.STREAM_TOKEN_JACK }}
+      VITE_STREAM_SECRET: ${{ secrets.STREAM_SECRET_SAMPLE_APPS }}
 
     steps:
       - uses: actions/checkout@v3
@@ -65,6 +57,10 @@ jobs:
 
       - name: Install Dependencies
         run: yarn install --immutable
+
+      - name: Populate tokens
+        if: ${{ matrix.application.populate-tokens }}
+        run: yarn workspace @stream-io/${{ matrix.application.name }} scripts:populate-tokens
 
       - name: Build packages
         run: NODE_ENV=production yarn build:react:deps

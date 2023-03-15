@@ -4,14 +4,18 @@ import {
   useIsCallRecordingInProgress,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import { CallControlsButton } from './CallControlsButton';
+import { CompositeButton, IconButton } from '../Button/';
 import { LoadingIndicator } from '../LoadingIndicator';
 
 export type RecordCallButtonProps = {
   call: Call;
+  caption?: string;
 };
 
-export const RecordCallButton = ({ call }: RecordCallButtonProps) => {
+export const RecordCallButton = ({
+  call,
+  caption = 'Record',
+}: RecordCallButtonProps) => {
   const client = useStreamVideoClient();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
@@ -39,23 +43,23 @@ export const RecordCallButton = ({ call }: RecordCallButtonProps) => {
     }
   }, [call.data.call, client, isCallRecordingInProgress]);
 
-  if (isAwaitingResponse) {
-    return (
-      <LoadingIndicator
-        tooltip={
-          isCallRecordingInProgress
-            ? 'Waiting for recording to stop... '
-            : 'Waiting for recording to start...'
-        }
-      />
-    );
-  }
-
   return (
-    <CallControlsButton
-      icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
-      title="Record call"
-      onClick={toggleRecording}
-    />
+    <CompositeButton active={isCallRecordingInProgress} caption={caption}>
+      {isAwaitingResponse ? (
+        <LoadingIndicator
+          tooltip={
+            isCallRecordingInProgress
+              ? 'Waiting for recording to stop... '
+              : 'Waiting for recording to start...'
+          }
+        />
+      ) : (
+        <IconButton
+          icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
+          title="Record call"
+          onClick={toggleRecording}
+        />
+      )}
+    </CompositeButton>
   );
 };

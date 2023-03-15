@@ -13,6 +13,7 @@ export type User = {
   teams?: string[];
   username?: string;
   image?: string;
+  custom?: { [key: string]: any };
 };
 
 export type { OwnUserResponse } from '../../gen/coordinator';

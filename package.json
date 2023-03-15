@@ -4,6 +4,7 @@
   "author": "https://getstream.io",
   "packageManager": "yarn@3.4.1",
   "private": true,
+  "license": "See license in LICENSE",
   "workspaces": [
     "packages/*",
     "sample-apps/**/*"
@@ -47,7 +48,7 @@
     "generate-docs:react:sdk": "yarn workspace @stream-io/video-react-sdk run generate-docs",
     "generate-docs:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run generate-docs",
     "start:docs:react": "yarn workspace @stream-io/video-react-sdk run start:docs ",
-    "bootstrap": "./bootstrap.sh"
+    "bootstrap": "./scripts/bootstrap.sh"
   },
   "devDependencies": {
     "@types/eslint": "^8.4.8",
@@ -62,7 +63,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.8.4",
     "typescript": "^4.9.5",
-    "vercel": "^28.16.2"
+    "vercel": "^28.16.15"
   },
   "resolutions": {
     "react-native-pure-jwt@^3.0.1": "patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch"

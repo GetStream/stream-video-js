@@ -1,5 +1,6 @@
 import {
   Call,
+  disposeOfMediaStream,
   getVideoStream,
   SfuModels,
   watchForDisconnectedVideoDevice,
@@ -10,7 +11,7 @@ import { map } from 'rxjs';
 import { useDebugPreferredVideoCodec } from '../components/Debug/useIsDebugMode';
 
 export type VideoPublisherInit = {
-  call: Call;
+  call?: Call;
   initialVideoMuted?: boolean;
   videoDeviceId?: string;
 };
@@ -21,8 +22,10 @@ export const useVideoPublisher = ({
   videoDeviceId,
 }: VideoPublisherInit) => {
   const { localParticipant$ } = useStore();
+  const localParticipant = useLocalParticipant();
+
   // helper reference to determine initial publishing of the media stream
-  const initPubRef = useRef<boolean>(true);
+  const initialPublishExecuted = useRef<boolean>(false);
   const participant = useLocalParticipant();
   const preferredCodec = useDebugPreferredVideoCodec();
   const isPublishingVideo = participant?.publishedTracks.includes(
@@ -30,6 +33,7 @@ export const useVideoPublisher = ({
   );
 
   const publishVideoStream = useCallback(async () => {
+    if (!call) return;
     try {
       const videoStream = await getVideoStream(videoDeviceId);
       await call.publishVideoStream(videoStream, { preferredCodec });
@@ -41,14 +45,26 @@ export const useVideoPublisher = ({
   useEffect(() => {
     let interrupted = false;
 
-    if (initialVideoMuted || (!isPublishingVideo && !initPubRef.current))
+    if (!call && initialPublishExecuted.current) {
+      initialPublishExecuted.current = false;
+    }
+
+    if (
+      !call ||
+      // FIXME: remove "&& !initialPublishExecuted.current" and make
+      // sure initialVideoMuted is not changing during active call
+      (initialVideoMuted && !initialPublishExecuted.current) ||
+      (!isPublishingVideo && initialPublishExecuted.current)
+    ) {
       return;
+    }
 
     getVideoStream(videoDeviceId).then((stream) => {
-      if (interrupted && stream.active)
-        return stream.getTracks().forEach((t) => t.stop());
+      if (interrupted) {
+        return disposeOfMediaStream(stream);
+      }
 
-      initPubRef.current = false;
+      initialPublishExecuted.current = true;
       return call.publishVideoStream(stream, { preferredCodec });
     });
 
@@ -63,6 +79,7 @@ export const useVideoPublisher = ({
     const subscription = watchForDisconnectedVideoDevice(
       localParticipant$.pipe(map((p) => p?.videoDeviceId)),
     ).subscribe(async () => {
+      if (!call) return;
       call.setVideoDevice(undefined);
       await call.stopPublish(SfuModels.TrackType.VIDEO);
     });
@@ -70,6 +87,25 @@ export const useVideoPublisher = ({
       subscription.unsubscribe();
     };
   }, [localParticipant$, call]);
+
+  useEffect(() => {
+    if (!localParticipant?.videoStream || !call || !isPublishingVideo) return;
+
+    const [track] = localParticipant.videoStream?.getVideoTracks();
+
+    const handleTrackEnded = async () => {
+      const endedTrackDeviceId = track.getSettings().deviceId;
+      if (endedTrackDeviceId === videoDeviceId) {
+        const videoStream = await getVideoStream(videoDeviceId);
+        await call.publishVideoStream(videoStream);
+      }
+    };
+    track.addEventListener('ended', handleTrackEnded);
+
+    return () => {
+      track.removeEventListener('ended', handleTrackEnded);
+    };
+  }, [videoDeviceId, call, localParticipant?.videoStream, isPublishingVideo]);
 
   return publishVideoStream;
 };

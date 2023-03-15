@@ -7,27 +7,20 @@ import { UserInfoView } from './UserInfoView';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
-import { useCallControls, useRingCall } from '../hooks';
+import { useCallControls } from '../hooks/useCallControls';
+import { useRingCall } from '../hooks/useRingCall';
+import { useCallCycleContext } from '../contexts';
 
-/**
- * Props to be passed for the OutgoingCallView component.
- */
-export interface OutgoingCallViewProps {
-  /**
-   * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
-   */
-  onHangupCall: () => void;
-}
-
-export const OutgoingCallView = (props: OutgoingCallViewProps) => {
-  const { onHangupCall } = props;
-  const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
+export const OutgoingCallView = () => {
+  const { isAudioMuted, isVideoMuted, toggleAudioMuted, toggleVideoMuted } =
     useCallControls();
   const { cancelCall } = useRingCall();
+  const { callCycleHandlers } = useCallCycleContext();
+  const { onHangupCall } = callCycleHandlers;
 
   const hangupCallHandler = useCallback(async () => {
     await cancelCall();
-    onHangupCall();
+    if (onHangupCall) onHangupCall();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cancelCall]);
 
@@ -39,7 +32,7 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
         <View style={styles.buttons}>
           <View style={styles.deviceControlButtons}>
             <CallControlsButton
-              onPress={toggleAudioState}
+              onPress={toggleAudioMuted}
               colorKey={!isAudioMuted ? 'activated' : 'deactivated'}
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}
@@ -47,7 +40,7 @@ export const OutgoingCallView = (props: OutgoingCallViewProps) => {
               {isAudioMuted ? <MicOff color="#fff" /> : <Mic color="#000" />}
             </CallControlsButton>
             <CallControlsButton
-              onPress={toggleVideoState}
+              onPress={toggleVideoMuted}
               colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}

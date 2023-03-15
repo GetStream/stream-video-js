@@ -487,12 +487,23 @@ export class Call {
   };
 
   /**
+   * Resets the last sent reaction for the user holding the given `sessionId`.
+   *
+   * @param sessionId the session id.
+   */
+  resetReaction = (sessionId: string) => {
+    this.stateStore.updateParticipant(sessionId, {
+      reaction: undefined,
+    });
+  };
+
+  /**
    * @internal
    * @param enabledRids
    * @returns
    */
   updatePublishQuality = async (enabledRids: string[]) => {
-    this.publisher.updateVideoPublishQuality(enabledRids);
+    return this.publisher.updateVideoPublishQuality(enabledRids);
   };
 
   private get participants() {

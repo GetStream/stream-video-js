@@ -1,16 +1,17 @@
-import * as React from 'react';
-import {
-  CallControlsButton,
-  CallControlsButtonProps,
-} from './CallControlsButton';
+import { ButtonWithIconProps, CompositeButton, IconButton } from '../Button/';
 
-export type ToggleParticipantListButtonProps = Omit<
-  CallControlsButtonProps,
+export type ToggleParticipantListButtonProps = { caption?: string } & Omit<
+  ButtonWithIconProps,
   'icon' | 'ref'
 >;
 
 export const ToggleParticipantListButton = (
   props: ToggleParticipantListButtonProps,
 ) => {
-  return <CallControlsButton icon="participants" {...props} />;
+  const { enabled, caption = 'Participants' } = props;
+  return (
+    <CompositeButton active={enabled} caption={caption}>
+      <IconButton icon="participants" {...props} />
+    </CompositeButton>
+  );
 };

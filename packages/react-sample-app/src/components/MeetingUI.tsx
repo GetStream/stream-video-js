@@ -1,8 +1,8 @@
-import { useActiveCall } from '@stream-io/video-react-bindings';
 import {
   CallControls,
   DeviceSettings,
   Stage,
+  useActiveCall,
 } from '@stream-io/video-react-sdk';
 
 export const MeetingUI = () => {
@@ -12,11 +12,11 @@ export const MeetingUI = () => {
 
   return (
     <div className="str-video__call">
-      <div className="str-video__call__header">
-        <h4 className="str-video__call__header-title">
+      <div className="str-video__call-header">
+        <h4 className="str-video__call-header-title">
           {activeCall.data.call.cid}
         </h4>
-        <DeviceSettings activeCall={activeCall} />
+        <DeviceSettings />
       </div>
       <Stage call={activeCall} />
       <CallControls call={activeCall} />

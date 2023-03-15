@@ -1,32 +1,20 @@
-import { useSession, signIn } from 'next-auth/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { signIn, useSession } from 'next-auth/react';
+import {
+  ChangeEventHandler,
+  KeyboardEventHandler,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useRouter } from 'next/router';
 
 import PhotoCameraFrontIcon from '@mui/icons-material/PhotoCameraFront';
-import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
-import {
-  Box,
-  Stack,
-  Typography,
-  Button,
-  Divider,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
-  Unstable_Grid2 as Grid,
-} from '@mui/material';
+import { Box, Button, Stack, Typography } from '@mui/material';
 import Link from 'next/link';
 import { meetingId } from '../lib/meetingId';
 
-const subtitles = [
-  'Because we love seeing each other.',
-  'You look amazing today!',
-  'Everyone appreciates your work!',
-  'Thank you for being with us!',
-  'Your new haircut suits you well!',
-  'Did you tidy up your background?',
-];
+import { LobbyHeader } from '../components/LobbyHeader';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -39,91 +27,93 @@ export default function Home() {
   if (!session) {
     return null;
   }
+
   return (
-    <Stack
-      direction="row"
-      justifyContent="center"
-      alignItems="center"
-      spacing={2}
-      flexGrow={1}
-    >
-      <Stack spacing={2}>
-        <Box padding={2}>
-          <Typography variant="h2">Stream Meetings</Typography>
-          <Typography variant="subtitle1">
-            {subtitles[Math.round(Math.random() * (subtitles.length - 1))]}
-          </Typography>
-        </Box>
-        <Divider />
-        <Grid container alignItems="center" rowSpacing={3} columnSpacing={3}>
-          <Grid xs={12} md={5}>
-            <Link href={`/join/${meetingId()}`}>
-              <Button
-                data-testid="create-and-join-meeting-button"
-                variant="contained"
-                fullWidth
-              >
-                <PhotoCameraFrontIcon sx={{ mr: 1 }} />
-                New meeting
-              </Button>
-            </Link>
-          </Grid>
+    <>
+      <LobbyHeader />
+      <Stack
+        direction="row"
+        justifyContent="center"
+        alignItems="center"
+        spacing={2}
+        flexGrow={1}
+      >
+        <Stack spacing={2} alignItems="center">
+          <Box padding={2}>
+            <Typography variant="h2" textAlign="center">
+              Stream Meetings
+            </Typography>
+          </Box>
           <JoinCall />
-        </Grid>
+        </Stack>
       </Stack>
-    </Stack>
+    </>
   );
 }
 
 const JoinCall = () => {
-  const ref = useRef<HTMLInputElement>();
+  const ref = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
   const [disabled, setDisabled] = useState(true);
   const onJoin = useCallback(() => {
     router.push(`join/${ref.current!.value}`);
   }, [ref, router]);
+
+  const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (e) =>
+      setDisabled(() => {
+        return e.target.value.length < 3;
+      }),
+    [],
+  );
+
+  const handleKeyUp: KeyboardEventHandler = useCallback(
+    (e) => {
+      if (disabled) return;
+      if (e.key === 'Enter') {
+        onJoin();
+      }
+    },
+    [onJoin, disabled],
+  );
   return (
-    <>
-      <Grid xs={9} md={5}>
-        <Box>
-          <FormControl fullWidth>
-            <InputLabel htmlFor="outlined-adornment-amount">
-              Or join a call with code
-            </InputLabel>
-            <OutlinedInput
-              data-testid="join-call-input"
-              inputRef={ref}
-              onChange={(e) =>
-                setDisabled(() => {
-                  return e.target.value.length < 3;
-                })
-              }
-              onKeyUp={(e) => {
-                if (e.key === 'Enter') {
-                  onJoin();
-                }
-              }}
-              size="small"
-              startAdornment={
-                <InputAdornment position="start">
-                  <InsertEmoticonIcon />
-                </InputAdornment>
-              }
-              label="Or join a call with code"
-            />
-          </FormControl>
-        </Box>
-      </Grid>
-      <Grid xs={3} md={2}>
+    <div
+      style={{
+        maxWidth: '300px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+      }}
+    >
+      {disabled ? (
+        <Link href={`/join/${meetingId()}`} legacyBehavior>
+          <Button
+            data-testid="create-and-join-meeting-button"
+            variant="contained"
+            fullWidth
+          >
+            <PhotoCameraFrontIcon sx={{ mr: 1 }} />
+            New meeting
+          </Button>
+        </Link>
+      ) : (
         <Button
           data-testid="join-call-button"
-          variant="text"
+          variant="contained"
           onClick={onJoin}
-          disabled={disabled}
         >
           Join
         </Button>
-      </Grid>
-    </>
+      )}
+      <input
+        className="rd__join-call-input"
+        style={{}}
+        data-testid="join-call-input"
+        ref={ref}
+        onChange={handleChange}
+        onKeyUp={handleKeyUp}
+        placeholder="Or join a call with code"
+      />
+    </div>
   );
 };

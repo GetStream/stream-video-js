@@ -2,35 +2,32 @@ import {
   StreamVideoReadOnlyStateStore,
   StreamVideoWriteableStateStore,
 } from './store';
-import type {
+import {
   DatacenterResponse,
   GetCallEdgeServerRequest,
-  GetOrCreateCallResponse,
   GetOrCreateCallRequest,
   ICEServer,
-  JoinCallResponse,
   JoinCallRequest,
   RequestPermissionRequest,
+  SortParamRequest,
   UpdateUserPermissionsRequest,
 } from './gen/coordinator';
 
-import type { ReportCallStatEventRequest } from './gen/video/coordinator/client_v1_rpc/client_rpc';
 import { measureResourceLoadLatencyTo } from './rpc';
 import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
 import { CallMetadata } from './rtc/CallMetadata';
 
-// import { reportStats } from './stats/coordinator-stats-reporter';
-import { Timestamp } from './gen/google/protobuf/timestamp';
 import {
   watchCallAccepted,
   watchCallCancelled,
   watchCallCreated,
-  watchCallRejected,
   watchCallPermissionRequest,
   watchCallPermissionsUpdated,
   watchCallRecordingStarted,
   watchCallRecordingStopped,
+  watchCallRejected,
+  watchNewReactions,
 } from './events';
 
 import { CALL_CONFIG, CallConfig } from './config';
@@ -42,6 +39,7 @@ import {
   TokenOrProvider,
   User,
 } from './coordinator/connection/types';
+
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
  */
@@ -78,18 +76,6 @@ export class StreamVideoClient {
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
       this.writeableStateStore,
     );
-
-    // reportStats(
-    //   this.readOnlyStateStore,
-    //   (e) =>
-    //     this.reportCallStats(e).catch((err) => {
-    //       console.error('Failed to report stats', err);
-    //     }),
-    //   (e) =>
-    //     this.reportCallStatEvent(e).catch((err) => {
-    //       console.error('Failed to report stats', err);
-    //     }),
-    // );
   }
 
   /**
@@ -154,6 +140,12 @@ export class StreamVideoClient {
       watchCallRecordingStopped(this.writeableStateStore),
     );
 
+    this.on(
+      'call.reaction_new',
+      // @ts-expect-error until we sort out the types
+      watchNewReactions(this.writeableStateStore),
+    );
+
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
       user,
@@ -166,7 +158,6 @@ export class StreamVideoClient {
    * If the connection is successfully disconnected, the connected user [state variable](#readonlystatestore) will be updated accordingly
    */
   disconnectUser = async () => {
-    // FIXME OL: we should clean-up the event listeners as well
     await this.coordinatorClient.disconnectUser();
     this.callDropScheduler?.cleanUp();
     this.writeableStateStore.setCurrentValue(
@@ -214,14 +205,12 @@ export class StreamVideoClient {
     type: string,
     data?: GetOrCreateCallRequest,
   ) => {
-    // FIXME ZS: method name is misleading, also the client shouldn't care if a call is ringing or not
-    let response!: GetOrCreateCallResponse | JoinCallResponse;
-    if (data?.ring) {
-      response = await this.coordinatorClient.joinCall(id, type, data);
-    } else {
-      response = await this.coordinatorClient.getOrCreateCall(id, type, data);
-    }
-    const { call } = response;
+    const response = await this.coordinatorClient.getOrCreateCall(
+      id,
+      type,
+      data,
+    );
+    const { call, members } = response;
     if (!call) {
       console.log(`Call with id ${id} and type ${type} could not be created`);
       return;
@@ -237,7 +226,7 @@ export class StreamVideoClient {
     if (!callAlreadyRegistered) {
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => [...pendingCalls, new CallMetadata(call)],
+        (pendingCalls) => [...pendingCalls, new CallMetadata(call, members)],
       );
       return response;
     } else {
@@ -330,11 +319,21 @@ export class StreamVideoClient {
         // TODO OL: compute the initial value from `activeCallSubject`
         this.writeableStateStore.setCurrentValue(
           this.writeableStateStore.callRecordingInProgressSubject,
-          !!callMeta.record_egress, // FIXME OL: this is not correct
+          callMeta.recording,
         );
 
         const { server, ice_servers, token } = edge.credentials;
-        const sfuClient = new StreamSfuClient(server.url, token);
+        let sfuUrl = server.url;
+        if (
+          typeof window !== 'undefined' &&
+          window.location &&
+          window.location.search
+        ) {
+          const params = new URLSearchParams(window.location.search);
+          const sfuUrlParam = params.get('sfuUrl');
+          sfuUrl = sfuUrlParam || server.url;
+        }
+        const sfuClient = new StreamSfuClient(sfuUrl, token);
         const metadata = new CallMetadata(callMeta, members);
         const callOptions = {
           connectionConfig: this.toRtcConfiguration(ice_servers),
@@ -375,6 +374,20 @@ export class StreamVideoClient {
     } catch (error) {
       console.log(`Failed to start recording`, error);
     }
+  };
+
+  queryCalls = async (
+    filterConditions: { [key: string]: any },
+    sort: Array<SortParamRequest>,
+    limit?: number,
+    next?: string,
+  ) => {
+    return await this.coordinatorClient.queryCalls(
+      filterConditions,
+      sort,
+      limit,
+      next,
+    );
   };
 
   /**
@@ -431,31 +444,6 @@ export class StreamVideoClient {
     return this.coordinatorClient.updateUserPermissions(callId, callType, data);
   };
 
-  /**
-   * Reports call WebRTC metrics to coordinator API
-   * @param stats
-   * @returns
-   */
-  private reportCallStats = async (stats: Object) => {
-    const callMetadata = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.activeCallSubject,
-    )?.data;
-
-    if (!callMetadata) {
-      console.log("There isn't an active call");
-      return;
-    }
-    const request = {
-      callCid: callMetadata.call.cid,
-      statsJson: new TextEncoder().encode(JSON.stringify(stats)),
-    };
-    await this.coordinatorClient.reportCallStats(
-      callMetadata.call.id,
-      callMetadata.call.type,
-      request,
-    );
-  };
-
   private getCallEdgeServer = async (
     id: string,
     type: string,
@@ -485,34 +473,6 @@ export class StreamVideoClient {
       })),
     };
     return rtcConfig;
-  };
-
-  /**
-   * Reports call events (for example local participant muted themselves) to the coordinator API
-   * @param statEvent
-   * @returns
-   */
-  private reportCallStatEvent = async (
-    statEvent: ReportCallStatEventRequest['event'],
-  ) => {
-    const callMetadata = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.activeCallSubject,
-    )?.data;
-    if (!callMetadata) {
-      console.log("There isn't an active call");
-      return;
-    }
-
-    const request = {
-      callCid: callMetadata.call.cid,
-      timestamp: Timestamp.fromDate(new Date()),
-      event: statEvent,
-    };
-    await this.coordinatorClient.reportCallStatEvent(
-      callMetadata.call.id,
-      callMetadata.call.type,
-      request,
-    );
   };
 
   /**

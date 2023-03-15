@@ -3,11 +3,12 @@
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "license": "See license in LICENSE",
   "scripts": {
     "clean": "rimraf dist",
     "start": "tsc --project tsconfig.json --watch",
     "build": "tsc --project tsconfig.json",
-    "generate-docs": "./scripts/generate-docs.sh"
+    "generate-docs": "../../scripts/generate-docs.sh reactnative @stream-io/video-react-native-sdk react-native-sdk"
   },
   "dependencies": {
     "@stream-io/video-client": "workspace:^",
