@@ -7,6 +7,9 @@ import {
 import { ParticipantBox } from './ParticipantBox';
 import { Video } from '../Video';
 
+import { useVerticalScrollPosition } from './hooks';
+import { IconButton } from '../Button';
+
 export const CallParticipantsScreenView = (props: { call: Call }) => {
   const { call } = props;
   const localParticipant = useLocalParticipant();
@@ -14,6 +17,20 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
   const firstScreenSharingParticipant = allParticipants.find((p) =>
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
   );
+
+  const [scrollWrapper, setScrollWrapper] = useState<HTMLDivElement | null>(
+    null,
+  );
+
+  const scrollUpClickHandler = () => {
+    scrollWrapper?.scrollBy({ top: -150, behavior: 'smooth' });
+  };
+
+  const scrollDownClickHandler = () => {
+    scrollWrapper?.scrollBy({ top: 150, behavior: 'smooth' });
+  };
+
+  const scrollPosition = useVerticalScrollPosition(scrollWrapper);
 
   const [overlayVisible, setOverlayVisible] = useState(
     () =>
@@ -64,16 +81,37 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
           </>
         )}
       </div>
-      <div className="str-video__call-participants-screen-view__participants">
-        {allParticipants.map((participant) => (
-          <ParticipantBox
-            key={participant.sessionId}
-            participant={participant}
-            call={call}
-            isMuted={participant.isLoggedInUser}
-            sinkId={localParticipant?.audioOutputDeviceId}
+      <div className="str-video__call-participants-screen-view__buttons-wrapper">
+        {scrollPosition && scrollPosition !== 'top' && (
+          <IconButton
+            onClick={scrollUpClickHandler}
+            icon="menu-hidden"
+            className="str-video__call-participants-screen-view__button-up"
           />
-        ))}
+        )}
+        <div
+          ref={setScrollWrapper}
+          className="str-video__call-participants-screen-view__participants-wrapper"
+        >
+          <div className="str-video__call-participants-screen-view__participants">
+            {allParticipants.map((participant) => (
+              <ParticipantBox
+                key={participant.sessionId}
+                participant={participant}
+                call={call}
+                isMuted={participant.isLoggedInUser}
+                sinkId={localParticipant?.audioOutputDeviceId}
+              />
+            ))}
+          </div>
+        </div>
+        {scrollPosition && scrollPosition !== 'bottom' && (
+          <IconButton
+            onClick={scrollDownClickHandler}
+            icon="menu-shown"
+            className="str-video__call-participants-screen-view__button-down"
+          />
+        )}
       </div>
     </div>
   );

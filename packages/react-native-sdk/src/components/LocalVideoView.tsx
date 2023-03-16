@@ -4,8 +4,8 @@ import { VideoRenderer } from './VideoRenderer';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
 import { useStreamVideoStoreValue } from '../contexts';
-import { Avatar } from './Avatar';
-
+import { theme } from '../theme';
+import { VideoSlash } from '../icons';
 /**
  * Props to be passed for the LocalVideoView component.
  */
@@ -56,11 +56,12 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
     SfuModels.TrackType.VIDEO,
   );
 
-  if (isVideoMuted) {
-    const radius = layout === 'floating' ? 50 : 100;
+  if (isVideoMuted && layout === 'floating') {
     return (
       <View style={style}>
-        <Avatar participant={localParticipant} radius={radius} />
+        <View style={styles.icon}>
+          <VideoSlash color={theme.light.static_white} />
+        </View>
       </View>
     );
   }
@@ -84,11 +85,18 @@ const styles = StyleSheet.create({
     top: 100,
     borderRadius: 10,
     zIndex: 1,
+    overflow: 'hidden',
+    backgroundColor: theme.light.disabled,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   fullScreenContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'red',
+  },
+  icon: {
+    height: 25,
+    width: 25,
   },
 });

@@ -29,7 +29,7 @@ import { CallScreen } from './src/screens/Call/CallScreen';
 import JoinMeetingScreen from './src/screens/Meeting/JoinMeetingScreen';
 import JoinCallScreen from './src/screens/Call/JoinCallScreen';
 import { ChooseFlowScreen } from './src/screens/ChooseFlowScreen';
-import { CallParticipansInfoScreen } from './src/screens/Meeting/CallParticipantsInfoScreen';
+import { CallParticipantsInfoScreen } from './src/screens/Meeting/CallParticipantsInfoScreen';
 import { LobbyViewScreen } from './src/screens/Meeting/LobbyViewScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -56,7 +56,7 @@ const Meeting = () => {
       />
       <MeetingStack.Screen
         name="CallParticipantsInfoScreen"
-        component={CallParticipansInfoScreen}
+        component={CallParticipantsInfoScreen}
       />
     </MeetingStack.Navigator>
   );
@@ -87,7 +87,7 @@ const Ringing = () => {
       />
       <MeetingStack.Screen
         name="CallParticipantsInfoScreen"
-        component={CallParticipansInfoScreen}
+        component={CallParticipantsInfoScreen}
       />
     </RingingStack.Navigator>
   );

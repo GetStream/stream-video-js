@@ -5,10 +5,7 @@ import {
 import React, { PropsWithChildren } from 'react';
 import { Provider } from '../contexts/StreamVideoContext';
 import { MediaDevicesProvider } from '../contexts/MediaDevicesContext';
-import {
-  CallCycleProvider,
-  CallCycleHandlersType,
-} from '../contexts/CallCycleContext';
+import { CallCycleHandlersType, CallCycleProvider } from '../contexts';
 
 export const StreamVideo = (
   props: PropsWithChildren<

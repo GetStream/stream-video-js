@@ -114,10 +114,7 @@ export const ActiveCallControls = ({
         className="rmc__button rmc__button--red"
         onClick={() => {
           if (activeCall) {
-            videoClient?.cancelCall(
-              activeCall.data.call.id,
-              activeCall.data.call.type,
-            );
+            videoClient?.cancelCall(activeCall.id, activeCall.type);
           }
         }}
       >

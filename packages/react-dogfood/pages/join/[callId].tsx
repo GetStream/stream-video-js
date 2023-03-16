@@ -16,10 +16,7 @@ import Head from 'next/head';
 
 import { useCreateStreamChatClient } from '../../hooks';
 import { LoadingScreen, MeetingUI } from '../../components';
-import {
-  DeviceSettingsCaptor,
-  getDeviceSettings,
-} from '../../components/DeviceSettingsCaptor';
+import { getDeviceSettings } from '../../components/DeviceSettingsCaptor';
 
 type CallRoomProps = {
   user: User;
@@ -67,7 +64,8 @@ const CallRoom = (props: CallRoomProps) => {
               const value = getCurrentValue<unknown>(observable);
               if (key === 'activeCall$' && value) {
                 // special handling, the Call instance isn't serializable
-                acc[key] = (value as Call).data;
+                const call = value as Call;
+                acc[key] = call.state.getCurrentValue(call.state.metadata$);
               } else {
                 acc[key] = value;
               }
@@ -108,7 +106,6 @@ const CallRoom = (props: CallRoomProps) => {
           }
         >
           <MeetingUI chatClient={chatClient} />
-          <DeviceSettingsCaptor />
         </MediaDevicesProvider>
       </StreamVideo>
     </div>
