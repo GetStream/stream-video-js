@@ -3,20 +3,13 @@ import {
   StreamVideoWriteableStateStore,
 } from './store';
 import {
-  DatacenterResponse,
-  GetCallEdgeServerRequest,
   GetOrCreateCallRequest,
-  ICEServer,
   JoinCallRequest,
   RequestPermissionRequest,
   SortParamRequest,
   UpdateUserPermissionsRequest,
 } from './gen/coordinator';
-
-import { measureResourceLoadLatencyTo } from './rpc';
-import { StreamSfuClient } from './StreamSfuClient';
 import { Call } from './rtc/Call';
-import { CallMetadata } from './rtc/CallMetadata';
 
 import {
   watchCallAccepted,
@@ -99,7 +92,7 @@ export class StreamVideoClient {
     this.on(
       'call.created',
       // @ts-expect-error until we sort out the types
-      watchCallCreated(this.writeableStateStore),
+      watchCallCreated(this.writeableStateStore, this.coordinatorClient),
     );
     this.on(
       'call.accepted',
@@ -220,13 +213,22 @@ export class StreamVideoClient {
       this.writeableStateStore.pendingCallsSubject,
     );
     const callAlreadyRegistered = currentPendingCalls.find(
-      (pendingCall) => pendingCall.call.id === call.id,
+      (pendingCall) => pendingCall.id === call.id,
     );
 
     if (!callAlreadyRegistered) {
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => [...pendingCalls, new CallMetadata(call, members)],
+        (pendingCalls) => [
+          ...pendingCalls,
+          new Call({
+            httpClient: this.coordinatorClient,
+            type: call.type,
+            id: call.id,
+            metadata: call,
+            members,
+          }),
+        ],
       );
       return response;
     } else {
@@ -243,10 +245,28 @@ export class StreamVideoClient {
    * @returns
    */
   acceptCall = async (callId: string, callType: string) => {
-    await this.coordinatorClient.sendEvent(callId, callType, {
-      type: 'call.accepted',
-    });
-    return await this.joinCall(callId, callType);
+    const callToAccept = this.writeableStateStore
+      .getCurrentValue(this.writeableStateStore.pendingCallsSubject)
+      .find((c) => c.id === callId && c.type === callType);
+
+    if (callToAccept) {
+      await this.coordinatorClient.sendEvent(callId, callType, {
+        type: 'call.accepted',
+      });
+
+      // remove the accepted call from the "pending calls" list.
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.pendingCallsSubject,
+        (pendingCalls) => pendingCalls.filter((c) => c !== callToAccept),
+      );
+
+      await callToAccept.join();
+      // FIXME OL: temporary. Remove this later.
+      this.writeableStateStore.setCurrentValue(
+        this.writeableStateStore.activeCallSubject,
+        callToAccept,
+      );
+    }
   };
 
   /**
@@ -260,7 +280,7 @@ export class StreamVideoClient {
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.pendingCallsSubject,
       (pendingCalls) =>
-        pendingCalls.filter((incomingCall) => incomingCall.call.id !== callId),
+        pendingCalls.filter((incomingCall) => incomingCall.id !== callId),
     );
     await this.coordinatorClient.sendEvent(callId, callType, {
       type: 'call.rejected',
@@ -279,20 +299,26 @@ export class StreamVideoClient {
   cancelCall = async (callId: string, callType: string) => {
     const store = this.writeableStateStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
-    const leavingActiveCall = activeCall?.data.call.id === callId;
+    const leavingActiveCall =
+      activeCall?.id === callId && activeCall.type === callType;
     if (leavingActiveCall) {
       activeCall.leave();
     } else {
       store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
-        pendingCalls.filter((pendingCall) => pendingCall.call.id !== callId),
+        pendingCalls.filter((pendingCall) => pendingCall.id !== callId),
       );
     }
 
-    const remoteParticipants = store.getCurrentValue(store.remoteParticipants$);
-    if (!remoteParticipants.length && !leavingActiveCall) {
-      await this.coordinatorClient.sendEvent(callId, callType, {
-        type: 'call.cancelled',
-      });
+    if (activeCall) {
+      const state = activeCall.state;
+      const remoteParticipants = state.getCurrentValue(
+        state.remoteParticipants$,
+      );
+      if (!remoteParticipants.length && !leavingActiveCall) {
+        await this.coordinatorClient.sendEvent(callId, callType, {
+          type: 'call.cancelled',
+        });
+      }
     }
   };
 
@@ -306,61 +332,20 @@ export class StreamVideoClient {
    * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
    */
   joinCall = async (id: string, type: string, data?: JoinCallRequest) => {
-    const joinCallResponse = await this.coordinatorClient.joinCall(
+    const call = new Call({
+      httpClient: this.coordinatorClient,
       id,
       type,
-      data,
+    });
+
+    await call.join(data);
+
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.activeCallSubject,
+      call,
     );
 
-    const { call: callMeta, edges, members } = joinCallResponse;
-    if (callMeta && edges) {
-      const edge = await this.getCallEdgeServer(id, type, edges);
-      if (edge.credentials && edge.credentials.server) {
-        // TODO OL: compute the initial value from `activeCallSubject`
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.callRecordingInProgressSubject,
-          callMeta.recording,
-        );
-
-        const { server, ice_servers, token } = edge.credentials;
-        let sfuUrl = server.url;
-        if (
-          typeof window !== 'undefined' &&
-          window.location &&
-          window.location.search
-        ) {
-          const params = new URLSearchParams(window.location.search);
-          const sfuUrlParam = params.get('sfuUrl');
-          sfuUrl = sfuUrlParam || server.url;
-        }
-        const sfuClient = new StreamSfuClient(sfuUrl, token);
-        const metadata = new CallMetadata(callMeta, members);
-        const callOptions = {
-          connectionConfig: this.toRtcConfiguration(ice_servers),
-          edgeName: server.edge_name,
-        };
-        const call = new Call(
-          metadata,
-          sfuClient,
-          callOptions,
-          this.writeableStateStore,
-        );
-        await call.join();
-
-        this.writeableStateStore.setCurrentValue(
-          this.writeableStateStore.activeCallSubject,
-          call,
-        );
-
-        return call;
-      } else {
-        // TODO: handle error?
-        return undefined;
-      }
-    } else {
-      // TODO: handle error?
-      return undefined;
-    }
+    return call;
   };
 
   /**
@@ -444,37 +429,6 @@ export class StreamVideoClient {
     return this.coordinatorClient.updateUserPermissions(callId, callType, data);
   };
 
-  private getCallEdgeServer = async (
-    id: string,
-    type: string,
-    edges: DatacenterResponse[],
-  ) => {
-    const latencyByEdge: GetCallEdgeServerRequest['latency_measurements'] = {};
-    await Promise.all(
-      edges.map(async (edge) => {
-        latencyByEdge[edge.name] = await measureResourceLoadLatencyTo(
-          edge.latency_url,
-        );
-      }),
-    );
-
-    return await this.coordinatorClient.getCallEdgeServer(id, type, {
-      latency_measurements: latencyByEdge,
-    });
-  };
-
-  private toRtcConfiguration = (config?: ICEServer[]) => {
-    if (!config || config.length === 0) return undefined;
-    const rtcConfig: RTCConfiguration = {
-      iceServers: config.map((ice) => ({
-        urls: ice.urls,
-        username: ice.username,
-        credential: ice.password,
-      })),
-    };
-    return rtcConfig;
-  };
-
   /**
    * Sets the `participant.isPinned` value.
    * @param sessionId the session id of the participant
@@ -482,8 +436,9 @@ export class StreamVideoClient {
    * @returns
    */
   setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
-    this.writeableStateStore.updateParticipant(sessionId, {
-      isPinned,
-    });
+    // FIXME OL: move to Call
+    // this.writeableStateStore.updateParticipant(sessionId, {
+    //   isPinned,
+    // });
   };
 }

@@ -2,18 +2,14 @@ import {
   useActiveCall,
   useConnectedUser,
   useIncomingCalls,
-  useLocalParticipant,
   useOutgoingCalls,
   User,
-  useRemoteParticipants,
 } from '@stream-io/video-react-sdk';
 import { ActiveCallPanel } from './ActiveCallPanel';
 import { PendingCallPanel } from './PendingCallPanel';
 
 export const CallPanel = () => {
   const activeCall = useActiveCall();
-  const localParticipant = useLocalParticipant();
-  const [remoteParticipant] = useRemoteParticipants();
   const [outgoingCall] = useOutgoingCalls();
   const [incomingCall] = useIncomingCalls();
   const localUser = useConnectedUser();
@@ -21,13 +17,7 @@ export const CallPanel = () => {
   const remoteUser = {} as User;
 
   if (activeCall) {
-    return (
-      <ActiveCallPanel
-        activeCall={activeCall}
-        localParticipant={localParticipant}
-        remoteParticipant={remoteParticipant}
-      />
-    );
+    return <ActiveCallPanel activeCall={activeCall} />;
   } else if (outgoingCall) {
     return (
       <PendingCallPanel

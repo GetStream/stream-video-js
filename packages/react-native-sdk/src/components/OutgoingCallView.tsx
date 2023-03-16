@@ -1,19 +1,19 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { SfuModels } from '@stream-io/video-client';
-
-import { RTCView } from 'react-native-webrtc';
 import { UserInfoView } from './UserInfoView';
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
-import { useCallControls } from '../hooks/useCallControls';
 import { useRingCall } from '../hooks/useRingCall';
-import { useCallCycleContext } from '../contexts';
+import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
+import { useCallCycleContext } from '../contexts/CallCycleContext';
+import { VideoRenderer } from './VideoRenderer';
+import { useMutingState } from '../hooks/useMutingState';
+import { useLocalVideoStream } from '../hooks/useLocalVideoStream';
 
 export const OutgoingCallView = () => {
-  const { isAudioMuted, isVideoMuted, toggleAudioMuted, toggleVideoMuted } =
-    useCallControls();
+  const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
+    useMutingState();
+
   const { cancelCall } = useRingCall();
   const { callCycleHandlers } = useCallCycleContext();
   const { onHangupCall } = callCycleHandlers;
@@ -32,7 +32,7 @@ export const OutgoingCallView = () => {
         <View style={styles.buttons}>
           <View style={styles.deviceControlButtons}>
             <CallControlsButton
-              onPress={toggleAudioMuted}
+              onPress={toggleAudioState}
               colorKey={!isAudioMuted ? 'activated' : 'deactivated'}
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}
@@ -40,7 +40,7 @@ export const OutgoingCallView = () => {
               {isAudioMuted ? <MicOff color="#fff" /> : <Mic color="#000" />}
             </CallControlsButton>
             <CallControlsButton
-              onPress={toggleVideoMuted}
+              onPress={toggleVideoState}
               colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
               style={styles.buttonStyle}
               svgContainerStyle={styles.svgStyle}
@@ -69,21 +69,17 @@ export const OutgoingCallView = () => {
 };
 
 const Background = () => {
-  const localParticipant = useLocalParticipant();
-  const localVideoStream = localParticipant?.videoStream;
-  const isVideoMuted = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.VIDEO,
-  );
+  const localVideoStream = useLocalVideoStream();
+  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
 
-  if (isVideoMuted)
+  if (isVideoMuted || !localVideoStream)
     return <View style={[StyleSheet.absoluteFill, styles.background]} />;
   return (
-    <RTCView
-      streamURL={localVideoStream?.toURL()}
-      objectFit="cover"
+    <VideoRenderer
+      mediaStream={localVideoStream}
       zOrder={1}
       style={styles.stream}
-      mirror={true}
+      mirror
     />
   );
 };

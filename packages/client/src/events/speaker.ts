@@ -1,5 +1,5 @@
 import { Dispatcher } from '../rtc/Dispatcher';
-import { StreamVideoWriteableStateStore } from '../store';
+import { CallState } from '../store';
 import { StreamVideoParticipantPatches } from '../rtc/types';
 
 /**
@@ -7,7 +7,7 @@ import { StreamVideoParticipantPatches } from '../rtc/types';
  */
 export const watchDominantSpeakerChanged = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore,
+  store: CallState,
 ) => {
   return dispatcher.on('dominantSpeakerChanged', (e) => {
     if (e.eventPayload.oneofKind !== 'dominantSpeakerChanged') return;
@@ -43,7 +43,7 @@ export const watchDominantSpeakerChanged = (
  */
 export const watchAudioLevelChanged = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore,
+  store: CallState,
 ) => {
   return dispatcher.on('audioLevelChanged', (e) => {
     if (e.eventPayload.oneofKind !== 'audioLevelChanged') return;

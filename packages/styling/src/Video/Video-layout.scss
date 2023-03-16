@@ -6,6 +6,7 @@
 .str-video__video--tall {
   height: 100%;
   width: auto;
+  object-fit: contain !important;
 }
 
 .str-video__video-preview-container {

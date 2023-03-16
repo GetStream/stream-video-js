@@ -6,7 +6,6 @@ import {
   watchForAddedDefaultVideoDevice,
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
-import { useLocalParticipant, useStore } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect, useRef } from 'react';
 import { map } from 'rxjs';
 import { useDebugPreferredVideoCodec } from '../components/Debug/useIsDebugMode';
@@ -22,12 +21,15 @@ export const useVideoPublisher = ({
   initialVideoMuted,
   videoDeviceId,
 }: VideoPublisherInit) => {
-  const { localParticipant$ } = useStore();
-  const localParticipant = useLocalParticipant();
-
+  // FIXME OL: cleanup
+  // const { localParticipant$ } = useStore();
+  const callState = call?.state;
+  const { localParticipant$ } = callState || {};
   // helper reference to determine initial publishing of the media stream
   const initialPublishExecuted = useRef<boolean>(false);
-  const participant = useLocalParticipant();
+  const participant = localParticipant$
+    ? callState?.getCurrentValue(localParticipant$)
+    : undefined;
   const preferredCodec = useDebugPreferredVideoCodec();
   const isPublishingVideo = participant?.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
@@ -77,6 +79,7 @@ export const useVideoPublisher = ({
   }, [videoDeviceId, call, preferredCodec]);
 
   useEffect(() => {
+    if (!localParticipant$) return;
     const subscription = watchForDisconnectedVideoDevice(
       localParticipant$.pipe(map((p) => p?.videoDeviceId)),
     ).subscribe(async () => {
@@ -90,9 +93,9 @@ export const useVideoPublisher = ({
   }, [localParticipant$, call]);
 
   useEffect(() => {
-    if (!localParticipant?.videoStream || !call || !isPublishingVideo) return;
+    if (!participant?.videoStream || !call || !isPublishingVideo) return;
 
-    const [track] = localParticipant.videoStream?.getVideoTracks();
+    const [track] = participant.videoStream?.getVideoTracks();
     const selectedVideoDeviceId = track.getSettings().deviceId;
 
     const republishDefaultDevice = watchForAddedDefaultVideoDevice().subscribe(
@@ -100,7 +103,7 @@ export const useVideoPublisher = ({
         if (
           !(
             call &&
-            localParticipant?.videoStream &&
+            participant?.videoStream &&
             selectedVideoDeviceId === 'default'
           )
         )
@@ -119,13 +122,13 @@ export const useVideoPublisher = ({
         await call.publishVideoStream(videoStream);
       }
     };
-    track.addEventListener('ended', handleTrackEnded);
 
+    track.addEventListener('ended', handleTrackEnded);
     return () => {
       track.removeEventListener('ended', handleTrackEnded);
       republishDefaultDevice.unsubscribe();
     };
-  }, [videoDeviceId, call, localParticipant?.videoStream, isPublishingVideo]);
+  }, [videoDeviceId, call, participant?.videoStream, isPublishingVideo]);
 
   return publishVideoStream;
 };

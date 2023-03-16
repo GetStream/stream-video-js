@@ -1,4 +1,3 @@
-import { useLocalParticipant, useStore } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect, useRef } from 'react';
 import {
   Call,
@@ -21,12 +20,15 @@ export const useAudioPublisher = ({
   initialAudioMuted,
   audioDeviceId,
 }: AudioPublisherInit) => {
-  const { localParticipant$ } = useStore();
-  const localParticipant = useLocalParticipant();
-
+  // FIXME OL: cleanup
+  // const { localParticipant$ } = useStore();
+  const callState = call?.state;
+  const { localParticipant$ } = callState || {};
   // helper reference to determine initial publishing of the media stream
   const initialPublishExecuted = useRef<boolean>(false);
-  const participant = useLocalParticipant();
+  const participant = localParticipant$
+    ? callState?.getCurrentValue(localParticipant$)
+    : undefined;
 
   const isPublishingAudio = participant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
@@ -76,6 +78,7 @@ export const useAudioPublisher = ({
   }, [call, audioDeviceId]);
 
   useEffect(() => {
+    if (!localParticipant$) return;
     const subscription = watchForDisconnectedAudioDevice(
       localParticipant$.pipe(map((p) => p?.audioDeviceId)),
     ).subscribe(async () => {
@@ -89,9 +92,9 @@ export const useAudioPublisher = ({
   }, [localParticipant$, call]);
 
   useEffect(() => {
-    if (!localParticipant?.audioStream || !call || !isPublishingAudio) return;
+    if (!participant?.audioStream || !call || !isPublishingAudio) return;
 
-    const [track] = localParticipant.audioStream.getAudioTracks();
+    const [track] = participant.audioStream.getAudioTracks();
     const selectedAudioDeviceId = track.getSettings().deviceId;
 
     const republishDefaultDevice = watchForAddedDefaultAudioDevice().subscribe(
@@ -99,7 +102,7 @@ export const useAudioPublisher = ({
         if (
           !(
             call &&
-            localParticipant?.audioStream &&
+            participant?.audioStream &&
             selectedAudioDeviceId === 'default'
           )
         )
@@ -118,13 +121,13 @@ export const useAudioPublisher = ({
         await call.publishAudioStream(audioStream);
       }
     };
-    track.addEventListener('ended', handleTrackEnded);
 
+    track.addEventListener('ended', handleTrackEnded);
     return () => {
       track.removeEventListener('ended', handleTrackEnded);
       republishDefaultDevice.unsubscribe();
     };
-  }, [audioDeviceId, call, localParticipant?.audioStream, isPublishingAudio]);
+  }, [audioDeviceId, call, participant?.audioStream, isPublishingAudio]);
 
   return publishAudioStream;
 };

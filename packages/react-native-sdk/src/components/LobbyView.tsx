@@ -1,20 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
-import { MediaStream, RTCView } from 'react-native-webrtc';
-import { useMediaDevices } from '../contexts/MediaDevicesContext';
-import { getVideoStream } from '@stream-io/video-client';
 import {
   useConnectedUser,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import {
-  useStreamVideoStoreSetState,
-  useStreamVideoStoreValue,
-} from '../contexts/StreamVideoContext';
+import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { CallControlsButton } from './CallControlsButton';
 import { useCallCycleContext } from '../contexts';
+import { useMutingState } from '../hooks/useMutingState';
+import { useLocalVideoStream } from '../hooks';
+import { VideoRenderer } from './VideoRenderer';
+import { Avatar } from './Avatar';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -48,15 +47,16 @@ const ParticipantStatus = () => {
 };
 
 export const LobbyView = (props: LobbyViewProps) => {
-  const [videoStream, setVideoStream] = useState<MediaStream | undefined>(
-    undefined,
-  );
-  const { currentVideoDevice } = useMediaDevices();
+  const connectedUser = useConnectedUser();
+  const localVideoStream = useLocalVideoStream();
   const videoClient = useStreamVideoClient();
-  const isAudioMuted = useStreamVideoStoreValue((store) => store.isAudioMuted);
-  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
-  const setState = useStreamVideoStoreSetState();
   const { callCycleHandlers } = useCallCycleContext();
+  const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
+    useMutingState();
+  const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
+    (store) => store.isCameraOnFrontFacingMode,
+  );
+  const isVideoAvailable = !!localVideoStream && !isVideoMuted;
   const { onActiveCall } = callCycleHandlers;
   const { callID } = props;
 
@@ -70,17 +70,6 @@ export const LobbyView = (props: LobbyViewProps) => {
   ) : (
     <Video color="black" />
   );
-
-  useEffect(() => {
-    const loadVideoStream = async () => {
-      const stream = await getVideoStream(currentVideoDevice?.deviceId);
-      setVideoStream(stream);
-    };
-    loadVideoStream();
-  }, [currentVideoDevice]);
-
-  const toggleAudioState = () => setState({ isAudioMuted: !isAudioMuted });
-  const toggleVideoState = () => setState({ isVideoMuted: !isVideoMuted });
 
   const joinCallHandler = () => {
     videoClient
@@ -96,30 +85,31 @@ export const LobbyView = (props: LobbyViewProps) => {
         console.log('Error joining call', err);
       });
   };
+  const connectedUserAsParticipant = {
+    userId: connectedUser?.id,
+    // @ts-ignore
+    image: connectedUser?.imageUrl,
+    name: connectedUser?.name,
+  } as StreamVideoParticipant;
 
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Before Joining</Text>
       <Text style={styles.subHeading}>Setup your audio and video</Text>
-      {videoStream && !isVideoMuted ? (
-        <View style={styles.videoView}>
-          <RTCView
-            streamURL={videoStream?.toURL()}
+      <View style={styles.videoView}>
+        {isVideoAvailable ? (
+          <VideoRenderer
+            mirror={isCameraOnFrontFacingMode}
+            mediaStream={localVideoStream}
             objectFit="cover"
             style={styles.stream}
           />
-          <ParticipantStatus />
-        </View>
-      ) : (
-        <View style={styles.videoView}>
-          {/* FIXME: KA To add avatar once image url is available */}
-          {/* <Image
-            source={{ uri: connectedUser?.imageUrl }}
-            style={styles.avatar}
-          /> */}
-          <ParticipantStatus />
-        </View>
-      )}
+        ) : (
+          <Avatar participant={connectedUserAsParticipant} />
+        )}
+        <ParticipantStatus />
+      </View>
+
       <View style={styles.buttons}>
         <CallControlsButton
           onPress={toggleAudioState}
@@ -152,7 +142,8 @@ export const LobbyView = (props: LobbyViewProps) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#2C2C2E',
-    height: '100%',
+    justifyContent: 'center',
+    flex: 1,
   },
   heading: {
     color: 'white',

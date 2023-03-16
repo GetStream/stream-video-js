@@ -5,8 +5,8 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import {
-  PropsWithChildren,
   createContext,
+  PropsWithChildren,
   useContext,
   useEffect,
   useState,
@@ -57,10 +57,10 @@ export const CallCycleProvider = (
         return;
       }
       try {
-        if (outgoingCall?.call && client.callConfig.joinCallInstantly) {
-          client.joinCall(outgoingCall.call.id!, outgoingCall.call.type!);
+        if (outgoingCall && client.callConfig.joinCallInstantly) {
+          client.joinCall(outgoingCall.id, outgoingCall.type);
         } else if (acceptedCall && !client.callConfig.joinCallInstantly) {
-          client.joinCall(outgoingCall.call.id!, outgoingCall.call.type!);
+          client.joinCall(outgoingCall.id, outgoingCall.type);
         }
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
