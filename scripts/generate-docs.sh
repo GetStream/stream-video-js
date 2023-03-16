@@ -15,7 +15,9 @@ echo "Generating docs from the client..."
 yarn workspace @stream-io/video-client run clean:docs > /dev/null
 yarn workspace @stream-io/video-client run generate-docs:classes > /dev/null
 
-echo "Generating docs from react-bindings and $PACKAGE_NAME SDK..."
+echo "Generating docs from $PACKAGE_NAME and react-binding..."
+# delete react-bindings dist to have proper source code links for hooks/contexts defined there
+rm -rf ../react-bindings/dist/
 
 # clean up old docs
 rm -rf generated-docs
