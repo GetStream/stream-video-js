@@ -18,7 +18,7 @@ export const MeetingUI = ({ children }: PropsWithChildren) => {
       </div>
     );
 
-  const { type, id } = activeCall.data.call ?? {};
+  const { type, id } = activeCall;
 
   return (
     <div className="str-video__call">

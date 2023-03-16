@@ -13,7 +13,7 @@ export const LobbyViewScreen = (props: LobbyViewScreenProps) => {
   const { route } = props;
 
   return (
-    <ScrollView>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flex: 1 }}>
       <LobbyView callID={route.params.callID} />
     </ScrollView>
   );

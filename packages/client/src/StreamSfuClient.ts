@@ -38,7 +38,7 @@ const toURL = (url: string) => {
 };
 
 export class StreamSfuClient {
-  readonly dispatcher = new Dispatcher();
+  readonly dispatcher: Dispatcher;
   readonly iceTrickleBuffer = new IceTrickleBuffer();
   // we generate uuid session id client side
   readonly sessionId: string;
@@ -48,7 +48,8 @@ export class StreamSfuClient {
   signalReady: Promise<WebSocket>;
   private keepAliveInterval?: NodeJS.Timeout;
 
-  constructor(url: string, token: string) {
+  constructor(dispatcher: Dispatcher, url: string, token: string) {
+    this.dispatcher = dispatcher;
     this.sessionId = uuidv4();
     this.token = token;
     this.rpc = createSignalClient({

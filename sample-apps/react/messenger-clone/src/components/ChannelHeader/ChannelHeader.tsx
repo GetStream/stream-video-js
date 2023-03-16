@@ -123,10 +123,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
         <button
           className="rmc__button rmc__button--red"
           onClick={() => {
-            videoClient?.cancelCall(
-              activeCall.data.call.id,
-              activeCall.data.call.type,
-            );
+            videoClient?.cancelCall(activeCall.id, activeCall.type);
           }}
         >
           <PhoneDisabled />

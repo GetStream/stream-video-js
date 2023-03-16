@@ -1,8 +1,12 @@
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
-import { useParticipants } from '@stream-io/video-react-bindings';
+import {
+  StreamCallProvider,
+  useActiveCall,
+  useParticipants,
+} from '@stream-io/video-react-bindings';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { MicOff, ScreenShare, ThreeDots, VideoSlash } from '../icons';
-import { useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
 
@@ -68,6 +72,16 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   );
 };
 
+export const CallParticipantsInfoView = () => {
+  const activeCall = useActiveCall();
+  if (!activeCall) return null;
+
+  return (
+    <StreamCallProvider call={activeCall}>
+      <InnerCallParticipantsInfoView />
+    </StreamCallProvider>
+  );
+};
 /**
  * Shows information about the call, it's participants in the call and
  * their mute states, handler to trigger options (TBD, permissions not impl)
@@ -77,7 +91,7 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
  * | :--- | :----: |
  * |![call-participants-info-view-1](https://user-images.githubusercontent.com/25864161/217341952-1e875bc3-e31f-42eb-918b-307eace116b1.png) | ![call-participants-info-view-2](https://user-images.githubusercontent.com/25864161/217341960-5016b678-d1a5-4ecf-bb4b-e463987b9cae.png)|
  **/
-export const CallParticipantsInfoView = () => {
+const InnerCallParticipantsInfoView = () => {
   const participants = useParticipants();
   const [selectedParticipant, setSelectedParticipant] = useState<
     StreamVideoParticipant | undefined
