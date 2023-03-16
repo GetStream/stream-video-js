@@ -9,6 +9,7 @@ import { UserInfoView } from './UserInfoView';
 import { useCallCycleContext } from '../contexts';
 import { useRingCall } from '../hooks/useRingCall';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
+import { theme } from '../theme';
 import { getMembersForIncomingCall } from '../utils';
 import { useMutingState } from '../hooks/useMutingState';
 
@@ -34,31 +35,33 @@ export const IncomingCallView = () => {
       <View style={styles.buttons}>
         <CallControlsButton
           onPress={rejectCallHandler}
-          colorKey={'cancel'}
+          color={theme.light.error}
           style={styles.buttonStyle}
           svgContainerStyle={styles.svgStyle}
         >
-          <PhoneDown color="#ffffff" />
+          <PhoneDown color={theme.light.static_white} />
         </CallControlsButton>
         <CallControlsButton
           onPress={toggleVideoState}
-          colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
+          color={
+            !isVideoMuted ? theme.light.static_white : theme.light.overlay_dark
+          }
           style={styles.buttonStyle}
           svgContainerStyle={styles.svgStyle}
         >
           {isVideoMuted ? (
-            <VideoSlash color="#ffffff" />
+            <VideoSlash color={theme.light.static_white} />
           ) : (
-            <Video color="#000000" />
+            <Video color={theme.light.static_black} />
           )}
         </CallControlsButton>
         <CallControlsButton
           onPress={answerCallHandler}
-          colorKey={'callToAction'}
+          color={theme.light.info}
           style={styles.buttonStyle}
           svgContainerStyle={styles.svgStyle}
         >
-          <Phone color="#ffffff" />
+          <Phone color={theme.light.static_white} />
         </CallControlsButton>
       </View>
     </Background>
@@ -94,15 +97,14 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: '#272A30',
+    backgroundColor: theme.light.static_grey,
   },
   incomingCallText: {
     marginTop: 16,
     fontSize: 20,
     textAlign: 'center',
-    color: '#FFFFFF',
+    color: theme.light.static_white,
     fontWeight: '600',
-    opacity: 0.6,
   },
   buttons: {
     flexDirection: 'row',
