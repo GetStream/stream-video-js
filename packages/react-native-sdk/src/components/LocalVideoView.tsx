@@ -24,6 +24,12 @@ export interface LocalVideoViewProps {
    *   }`
    */
   style?: StyleProp<ViewStyle>;
+
+  /**
+   * The layout of the local video view controls weather the local participant's video will be rendered in full screen or floating
+   * @defaultValue 'floating'
+   */
+  layout?: 'floating' | 'fullscreen';
 }
 
 /**
@@ -34,12 +40,16 @@ export interface LocalVideoViewProps {
  * |![local-video-view-1](https://user-images.githubusercontent.com/25864161/217491433-60848d95-1a14-422e-b4e1-7540f3ba30b4.png)|![local-video-view-2](https://user-images.githubusercontent.com/25864161/217491438-75bad10c-8850-49f5-b3bd-af22995e11c2.png)|
  */
 export const LocalVideoView = (props: LocalVideoViewProps) => {
-  const { style = styles.container } = props;
+  const { layout = 'floating' } = props;
+  const containerStyle =
+    layout === 'floating'
+      ? styles.floatingContainer
+      : styles.fullScreenContainer;
+  const { style = containerStyle } = props;
   const localParticipant = useLocalParticipant();
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
-
   if (!localParticipant) return null;
 
   const isVideoMuted = !localParticipant.publishedTracks.includes(
@@ -47,9 +57,10 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
   );
 
   if (isVideoMuted) {
+    const radius = layout === 'floating' ? 50 : 100;
     return (
-      <View style={{ ...(style as Object), ...styles.avatarWrapper }}>
-        <Avatar participant={localParticipant} radius={50} />
+      <View style={style}>
+        <Avatar participant={localParticipant} radius={radius} />
       </View>
     );
   }
@@ -65,7 +76,7 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  floatingContainer: {
     position: 'absolute',
     height: 140,
     width: 80,
@@ -74,9 +85,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     zIndex: 1,
   },
-  avatarWrapper: {
-    backgroundColor: '#000',
+  fullScreenContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'red',
   },
 });

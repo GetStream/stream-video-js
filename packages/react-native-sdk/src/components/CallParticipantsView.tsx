@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 import { ParticipantView } from './ParticipantView';
 import { LocalVideoView } from './LocalVideoView';
 import { useRemoteParticipants } from '@stream-io/video-react-bindings';
@@ -79,6 +79,7 @@ const putRemoteParticipantsInView = (
  */
 export const CallParticipantsView = () => {
   let remoteParticipants = useRemoteParticipants();
+  const isUserAloneInCall = remoteParticipants.length === 0;
   //todo: SG add dominantSpeakerOnlyVisible mode
   // const remoteParticipantsInView = useMemo(
   //   () => putRemoteParticipantsInView(remoteParticipants),
@@ -86,32 +87,41 @@ export const CallParticipantsView = () => {
   // );
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <LocalVideoView />
-      {remoteParticipants.map((participant) => {
+    <FlatList
+      data={remoteParticipants}
+      renderItem={({ item: participant }) => {
         const { userId } = participant;
         return (
-          <ParticipantView
+          <View
             key={`${userId}/${participant.sessionId}`}
-            participant={participant}
-            containerStyle={{
-              flex: 1,
+            style={{
+              width: 200,
               height: 200,
-              flexBasis: '50%',
-              flexGrow: 1,
+              backgroundColor: 'pink',
+              margin: 8,
             }}
-            kind="video"
           />
+          // <ParticipantView
+          //   key={`${userId}/${participant.sessionId}`}
+          //   participant={participant}
+          //   containerStyle={styles.participantView}
+          //   kind="video"
+          // />
         );
-      })}
-    </ScrollView>
+      }}
+      contentContainerStyle={styles.container}
+    />
+    // <LocalVideoView layout={isUserAloneInCall ? 'fullscreen' : 'floating'} />
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#000',
-    flexWrap: 'wrap',
-    flexDirection: 'row',
+    flex: 1,
+    backgroundColor: 'green',
+  },
+  participantView: {
+    width: 200,
+    height: 200,
   },
 });
