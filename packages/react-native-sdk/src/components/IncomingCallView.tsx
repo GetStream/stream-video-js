@@ -1,33 +1,23 @@
 import React from 'react';
-import { StyleSheet, Text, View, ImageBackground } from 'react-native';
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { CallControlsButton } from './CallControlsButton';
 import {
   useConnectedUser,
   useIncomingCalls,
 } from '@stream-io/video-react-bindings';
 import { UserInfoView } from './UserInfoView';
-import {
-  useCallCycleContext,
-  useStreamVideoStoreSetState,
-  useStreamVideoStoreValue,
-} from '../contexts';
+import { useCallCycleContext } from '../contexts';
 import { useRingCall } from '../hooks/useRingCall';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { getMembersForIncomingCall } from '../utils';
+import { useMutingState } from '../hooks/useMutingState';
 
 export const IncomingCallView = () => {
-  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
-  const setState = useStreamVideoStoreSetState();
+  const { isVideoMuted, toggleVideoState } = useMutingState();
   const { answerCall, rejectCall } = useRingCall();
   const { callCycleHandlers } = useCallCycleContext();
   const { onRejectCall } = callCycleHandlers;
-
-  const videoToggle = async () => {
-    setState((prevState) => ({
-      isVideoMuted: !prevState.isVideoMuted,
-    }));
-  };
 
   const answerCallHandler = async () => {
     await answerCall();
@@ -52,7 +42,7 @@ export const IncomingCallView = () => {
           <PhoneDown color={theme.light.static_white} />
         </CallControlsButton>
         <CallControlsButton
-          onPress={videoToggle}
+          onPress={toggleVideoState}
           color={
             !isVideoMuted ? theme.light.static_white : theme.light.overlay_dark
           }
@@ -83,7 +73,8 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
 }) => {
   const [incomingCall] = useIncomingCalls();
   const connectedUser = useConnectedUser();
-  // FIXME OL: this needs to be reworked
+  if (!incomingCall) return null;
+
   const members = getMembersForIncomingCall(incomingCall, connectedUser);
 
   if (members.length) {

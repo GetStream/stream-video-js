@@ -1,10 +1,10 @@
 import { ParticipantPlaceholder } from './ParticipantPlaceholder';
 import { IncomingCallControls, OutgoingCallControls } from './CallControls';
-import { CallMetadata, User } from '@stream-io/video-react-sdk';
+import { Call, User } from '@stream-io/video-react-sdk';
 
 type OutgoingCallPanelProps = {
-  incomingCall?: CallMetadata;
-  outgoingCall?: CallMetadata;
+  incomingCall?: Call;
+  outgoingCall?: Call;
   localUser?: User;
   remoteUser?: User;
 };
@@ -20,31 +20,27 @@ export const PendingCallPanel = ({
       <div className="rmc__secondary-participant-wrapper">
         <ParticipantPlaceholder
           className="rmc__secondary-participant-placeholder"
-          // @ts-expect-error
-          // FIXME OL: imageURL doesn't exist on User anymore
-          imageSrc={localUser && localUser['imageUrl']}
+          imageSrc={localUser?.image}
         />
       </div>
 
       <div className="rmc__primary-participant-wrapper">
         <ParticipantPlaceholder
           className="rmc__primary-participant-placeholder"
-          // @ts-expect-error
-          // FIXME OL: imageURL doesn't exist on User anymore
-          imageSrc={remoteUser && remoteUser['imageUrl']}
+          imageSrc={remoteUser?.image}
         />
       </div>
 
       {outgoingCall && !incomingCall && (
         <OutgoingCallControls
-          callId={outgoingCall.call.id}
-          callType={outgoingCall.call.type}
+          callId={outgoingCall.id}
+          callType={outgoingCall.type}
         />
       )}
       {incomingCall && !outgoingCall && (
         <IncomingCallControls
-          callId={incomingCall.call.id}
-          callType={incomingCall.call.type}
+          callId={incomingCall.id}
+          callType={incomingCall.type}
         />
       )}
     </div>

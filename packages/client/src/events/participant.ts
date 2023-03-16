@@ -1,12 +1,12 @@
 import { Dispatcher } from '../rtc/Dispatcher';
-import { StreamVideoWriteableStateStore } from '../store';
+import { CallState } from '../store';
 
 /**
  * An event responder which handles the `participantJoined` event.
  */
 export const watchParticipantJoined = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore,
+  store: CallState,
 ) => {
   return dispatcher.on('participantJoined', (e) => {
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
@@ -26,18 +26,19 @@ export const watchParticipantJoined = (
  */
 export const watchParticipantLeft = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore,
+  store: CallState,
 ) => {
   return dispatcher.on('participantLeft', (e) => {
     if (e.eventPayload.oneofKind !== 'participantLeft') return;
-    const { participant, callCid } = e.eventPayload.participantLeft;
+    const { participant } = e.eventPayload.participantLeft;
     if (!participant) return;
 
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
-    if (callCid !== activeCall?.data.call.cid) {
-      console.warn('Received participantLeft notification for a unknown call');
-      return;
-    }
+    // FIXME OL: sort out the active call
+    // const activeCall = store.getCurrentValue(store.activeCallSubject);
+    // if (callCid !== activeCall?.data.call.cid) {
+    //   console.warn('Received participantLeft notification for a unknown call');
+    //   return;
+    // }
 
     store.setCurrentValue(store.participantsSubject, (participants) =>
       participants.filter((p) => p.sessionId !== participant.sessionId),
@@ -51,7 +52,7 @@ export const watchParticipantLeft = (
  */
 export const watchTrackPublished = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore,
+  store: CallState,
 ) => {
   return dispatcher.on('trackPublished', (e) => {
     if (e.eventPayload.oneofKind !== 'trackPublished') return;
@@ -70,7 +71,7 @@ export const watchTrackPublished = (
  */
 export const watchTrackUnpublished = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore,
+  store: CallState,
 ) => {
   return dispatcher.on('trackUnpublished', (e) => {
     if (e.eventPayload.oneofKind !== 'trackUnpublished') return;

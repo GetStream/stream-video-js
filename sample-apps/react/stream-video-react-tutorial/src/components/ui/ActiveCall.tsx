@@ -1,28 +1,29 @@
 import {
+  Call,
   CallControls,
   DeviceSettings,
+  MediaDevicesProvider,
   Stage,
-  useActiveCall,
+  StreamCallProvider,
 } from '@stream-io/video-react-sdk';
 
-export const ActiveCall = () => {
-  const activeCall = useActiveCall();
-
-  const { type, id } = activeCall.data.call || {
-    type: 'Unknown Type',
-    id: 'Unknown ID',
-  };
-
+export const ActiveCall = (props: { call: Call }) => {
+  const { call } = props;
+  const { type, id } = call;
   return (
-    <div className="str-video__call">
-      <div className="str-video__call__header">
-        <h4 className="str-video__call__header-title">
-          {type}:{id}
-        </h4>
-        <DeviceSettings />
-      </div>
-      <Stage call={activeCall} />
-      <CallControls call={activeCall} />
-    </div>
+    <StreamCallProvider call={call}>
+      <MediaDevicesProvider>
+        <div className="str-video__call">
+          <div className="str-video__call__header">
+            <h4 className="str-video__call__header-title">
+              {type}:{id}
+            </h4>
+            <DeviceSettings />
+          </div>
+          <Stage call={call} />
+          <CallControls call={call} />
+        </div>
+      </MediaDevicesProvider>
+    </StreamCallProvider>
   );
 };

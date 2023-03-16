@@ -1,7 +1,7 @@
 import { StreamVideoWriteableStateStore } from './store';
-import { CallConfig } from './config/types';
+import { CallConfig } from './config';
 import { Observable, pairwise, startWith, Subscription } from 'rxjs';
-import { CallMetadata } from './rtc/CallMetadata';
+import { Call } from './rtc/Call';
 
 type CallId = string;
 type DropFunction = (callId: CallId, callType: string) => Promise<void>;
@@ -12,9 +12,9 @@ export class CallDropScheduler {
     cancelDropOnPendingCallRemoval?: Subscription;
     cancelDropOnCallAccepted?: Subscription;
   };
-  private pairwisePendingCalls$: Observable<CallMetadata[][]>;
-  private pairwiseIncomingCalls$: Observable<CallMetadata[][]>;
-  private pairwiseOutgoingCalls$: Observable<CallMetadata[][]>;
+  private pairwisePendingCalls$: Observable<Call[][]>;
+  private pairwiseIncomingCalls$: Observable<Call[][]>;
+  private pairwiseOutgoingCalls$: Observable<Call[][]>;
   constructor(
     private store: StreamVideoWriteableStateStore,
     private callConfig: CallConfig,
@@ -43,10 +43,7 @@ export class CallDropScheduler {
     this.startCancellingDrops();
   }
 
-  private static getLatestCall = (
-    from: CallMetadata[],
-    compareTo: CallMetadata[],
-  ) => {
+  private static getLatestCall = (from: Call[], compareTo: Call[]) => {
     return from > compareTo ? from.slice(-1)[0] : undefined;
   };
   private startAutoRejectWhenInCall = () => {
@@ -67,10 +64,7 @@ export class CallDropScheduler {
           );
 
           if (activeCall) {
-            await this.reject(
-              newIncomingCall.call.id,
-              newIncomingCall.call.type,
-            );
+            await this.reject(newIncomingCall.id, newIncomingCall.type);
           }
         },
       );
@@ -87,7 +81,7 @@ export class CallDropScheduler {
           currentCalls,
           prevCalls,
         );
-        if (!newIncomingCall?.call) return;
+        if (!newIncomingCall) return;
 
         const activeCall = this.store.getCurrentValue(
           this.store.activeCallSubject,
@@ -96,7 +90,7 @@ export class CallDropScheduler {
           activeCall && this.callConfig.autoRejectWhenInCall;
         if (incomingCallRejectedImmediately) return;
 
-        this.scheduleReject(newIncomingCall.call.id, newIncomingCall.call.type);
+        this.scheduleReject(newIncomingCall.id, newIncomingCall.type);
       });
   };
 
@@ -112,8 +106,8 @@ export class CallDropScheduler {
           prevCalls,
         );
 
-        if (!newOutgoingCall?.call) return;
-        this.scheduleCancel(newOutgoingCall.call.id, newOutgoingCall.call.type);
+        if (!newOutgoingCall) return;
+        this.scheduleCancel(newOutgoingCall.id, newOutgoingCall.type);
       });
   };
 
@@ -126,7 +120,7 @@ export class CallDropScheduler {
         );
 
         if (removedCall) {
-          this.cancelDrop(removedCall?.call.id);
+          this.cancelDrop(removedCall.id);
         }
       });
 

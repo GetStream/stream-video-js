@@ -1,6 +1,7 @@
 import { ReactNode, useEffect } from 'react';
 
 import {
+  StreamCallProvider,
   useAcceptedCall,
   useActiveCall,
   useOutgoingCalls,
@@ -17,26 +18,22 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!videoClient || activeCall) return;
 
-    if (outgoingCall?.call && videoClient.callConfig.joinCallInstantly) {
-      videoClient
-        .joinCall(outgoingCall.call.id!, outgoingCall.call.type!)
-        .catch((e) => {
-          console.error('Error joining call', e);
-        });
+    if (outgoingCall && videoClient.callConfig.joinCallInstantly) {
+      videoClient.joinCall(outgoingCall.id, outgoingCall.type).catch((e) => {
+        console.error('Error joining call', e);
+      });
     } else if (acceptedCall && !videoClient.callConfig.joinCallInstantly) {
-      videoClient
-        .joinCall(outgoingCall.call.id!, outgoingCall.call.type!)
-        .catch((e) => {
-          console.error('Error joining call', e);
-        });
+      videoClient.joinCall(outgoingCall.id, outgoingCall.type).catch((e) => {
+        console.error('Error joining call', e);
+      });
     }
   }, [videoClient, outgoingCall, acceptedCall, activeCall]);
 
-  if (!videoClient) return null;
-
   return (
-    <MediaDevicesProvider enumerate={!!activeCall}>
-      {children}
-    </MediaDevicesProvider>
+    <StreamCallProvider call={activeCall}>
+      <MediaDevicesProvider enumerate={!!activeCall}>
+        {children}
+      </MediaDevicesProvider>
+    </StreamCallProvider>
   );
 };

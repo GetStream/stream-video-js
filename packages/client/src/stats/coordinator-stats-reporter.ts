@@ -1,14 +1,14 @@
-import { StreamVideoReadOnlyStateStore } from '../store';
+import { CallState } from '../store';
 import {
   ReportCallStatEventRequest,
   ReportCallStatEventResponse,
   ReportCallStatsResponse,
 } from '../gen/video/coordinator/client_v1_rpc/client_rpc';
 import {
+  MediaDirection,
   MediaStateChange,
   MediaStateChangeReason,
   MediaType,
-  MediaDirection,
 } from '../gen/video/coordinator/stat_v1/stat';
 import { pairwise, throttleTime } from 'rxjs';
 import { StreamVideoParticipant } from '../rtc/types';
@@ -21,7 +21,7 @@ import { TrackType } from '../gen/video/sfu/models/models';
  * @param sendStatEvent
  */
 export const reportStats = (
-  readOnlyStateStore: StreamVideoReadOnlyStateStore,
+  readOnlyStateStore: CallState,
   sendStatMetrics: (stats: Object) => Promise<ReportCallStatsResponse | void>,
   sendStatEvent: (
     statEvent: ReportCallStatEventRequest['event'],
@@ -32,7 +32,7 @@ export const reportStats = (
 };
 
 const reportStatMetrics = (
-  readOnlyStateStore: StreamVideoReadOnlyStateStore,
+  readOnlyStateStore: CallState,
   sendStatMetrics: (stats: Object) => Promise<ReportCallStatsResponse | void>,
 ) => {
   readOnlyStateStore.callStatsReport$
@@ -56,7 +56,7 @@ const reportStatMetrics = (
 };
 
 export const reportStatEvents = (
-  store: StreamVideoReadOnlyStateStore,
+  store: CallState,
   sendStatEvent: (
     statEvent: ReportCallStatEventRequest['event'],
   ) => Promise<ReportCallStatEventResponse | void>,

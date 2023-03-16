@@ -8,7 +8,7 @@ export const UI = () => {
   const { loading } = useLoadingState();
 
   if (activeCall) {
-    return <ActiveCall />;
+    return <ActiveCall call={activeCall} />;
   } else if (loading) {
     return <LoadingIndicator text="Connecting ..." />;
   }

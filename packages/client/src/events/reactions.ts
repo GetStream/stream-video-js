@@ -10,14 +10,15 @@ export const watchNewReactions = (store: StreamVideoWriteableStateStore) => {
   return function onNewReactions(event: CallReactionEvent) {
     const { call_cid, reaction } = event;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
-    if (!activeCall || activeCall.data.call.cid !== call_cid) {
+    if (!activeCall || activeCall.cid !== call_cid) {
       console.warn(
         'Received CallReactionEvent for an inactive or unknown call',
       );
       return;
     }
 
-    store.setCurrentValue(store.participantsSubject, (participants) => {
+    const state = activeCall.state;
+    state.setCurrentValue(state.participantsSubject, (participants) => {
       const { user, custom, type, emoji_code } = reaction;
       return participants.map((p) => {
         // skip if the reaction is not for this participant
