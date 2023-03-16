@@ -146,6 +146,8 @@ export const LobbyView = (props: LobbyViewProps) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: theme.light.static_grey,
+    justifyContent: 'center',
+    flex: 1,
   },
   content: {
     position: 'absolute',
