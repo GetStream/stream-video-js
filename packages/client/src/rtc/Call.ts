@@ -12,7 +12,10 @@ import {
 } from './Dispatcher';
 import { CallState } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
-import { StreamCoordinatorClient } from '../coordinator/StreamCoordinatorClient';
+import {
+  StreamCall,
+  StreamCoordinatorClient,
+} from '../coordinator/StreamCoordinatorClient';
 import {
   CallResponse,
   JoinCallRequest,
@@ -701,4 +704,16 @@ export class Call {
         });
     });
   };
+
+  blockUser: StreamCall['blockUser'] = (userId) =>
+    this.httpClient.call(this.type, this.id).blockUser(userId);
+
+  unblockUser: StreamCall['unblockUser'] = (userId) =>
+    this.httpClient.call(this.type, this.id).unblockUser(userId);
+
+  muteUser: StreamCall['muteUser'] = (userId, type, sessionId) =>
+    this.httpClient.call(this.type, this.id).muteUser(userId, type, sessionId);
+
+  muteAllUsers: StreamCall['muteAllUsers'] = (type) =>
+    this.httpClient.call(this.type, this.id).muteAllUsers(type);
 }

@@ -5,7 +5,6 @@ import {
   useActiveCall,
   useConnectedUser,
   useLocalParticipant,
-  useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { useEnterLeaveHandlers } from '../Tooltip/hooks';
 import { Tooltip } from '../Tooltip';
@@ -142,15 +141,11 @@ export const CallParticipantListingItem = ({
 
 // FIXME: will probably cease to exist with new design
 const CallParticipantListingHeader = () => {
-  const client = useStreamVideoClient();
   const activeCall = useActiveCall();
   const localParticipant = useLocalParticipant();
 
-  const getCall = () =>
-    client?.coordinatorClient.call(activeCall!.type, activeCall!.id);
-
   const muteAllClickHandler = () => {
-    getCall()?.muteAllUsers('audio');
+    activeCall?.muteAllUsers('audio');
   };
 
   return (
@@ -202,15 +197,11 @@ const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 );
 
 const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
-  const client = useStreamVideoClient();
   const activeCall = useActiveCall();
   const localParticipant = useLocalParticipant();
 
-  const getCall = () =>
-    client?.coordinatorClient.call(activeCall!.type, activeCall!.id);
-
   const blockUserClickHandler = () => {
-    getCall()?.blockUser(participant.userId);
+    activeCall?.blockUser(participant.userId);
   };
 
   // FIXME: soft kicking does not work this way
@@ -223,10 +214,10 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
   // };
 
   const muteAudioClickHandler = () => {
-    getCall()?.muteUser(participant.userId, 'audio', participant.sessionId);
+    activeCall?.muteUser(participant.userId, 'audio', participant.sessionId);
   };
   const muteVideoClickHandler = () => {
-    getCall()?.muteUser(participant.userId, 'video', participant.sessionId);
+    activeCall?.muteUser(participant.userId, 'video', participant.sessionId);
   };
 
   return (

@@ -1,5 +1,4 @@
 import {
-  useStreamVideoClient,
   useActiveCall,
   useCallMetadata,
   useLocalParticipant,
@@ -29,14 +28,10 @@ export const BlockedUserListing = () => {
 
 const BlockedUserListingItem = ({ userId }: { userId: string }) => {
   const localParticipant = useLocalParticipant();
-  const client = useStreamVideoClient();
   const activeCall = useActiveCall();
 
-  const getCall = () =>
-    client?.coordinatorClient.call(activeCall!.type, activeCall!.id);
-
   const unblockUserClickHandler = () => {
-    if (userId) getCall()?.unblockUser(userId);
+    if (userId) activeCall?.unblockUser(userId);
   };
 
   return (
