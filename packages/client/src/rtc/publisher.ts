@@ -17,6 +17,7 @@ import { PublishOptions } from './types';
 export type PublisherOpts = {
   rpcClient: StreamSfuClient;
   connectionConfig?: RTCConfiguration;
+  isDtxEnabled: boolean;
 };
 
 /**
@@ -44,8 +45,9 @@ export class Publisher {
     [TrackType.SCREEN_SHARE_AUDIO]: undefined,
     [TrackType.UNSPECIFIED]: undefined,
   };
+  private isDtxEnabled: boolean;
 
-  constructor({ connectionConfig, rpcClient }: PublisherOpts) {
+  constructor({ connectionConfig, rpcClient, isDtxEnabled }: PublisherOpts) {
     const pc = new RTCPeerConnection(connectionConfig);
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
@@ -62,6 +64,7 @@ export class Publisher {
 
     this.publisher = pc;
     this.rpcClient = rpcClient;
+    this.isDtxEnabled = isDtxEnabled;
   }
 
   /**
@@ -223,11 +226,7 @@ export class Publisher {
   private onNegotiationNeeded = async () => {
     console.log('AAA onNegotiationNeeded');
     const offer = await this.publisher.createOffer();
-    /* eslint-disable-next-line no-restricted-globals */
-    const queryParams = new URLSearchParams(location.search);
-    const isDtxEnabled = queryParams.get('dtx') === 'false' ? false : true;
-    console.log('DTX enabled', isDtxEnabled);
-    if (isDtxEnabled && offer.sdp) {
+    if (this.isDtxEnabled && offer.sdp) {
       offer.sdp = offer.sdp.replace(
         'useinbandfec=1',
         'useinbandfec=1;usedtx=1',
