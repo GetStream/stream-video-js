@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
-import { MediaStream, RTCView } from 'react-native-webrtc';
-import { useMediaDevices } from '../contexts/MediaDevicesContext';
-import { getVideoStream } from '@stream-io/video-client';
 import {
   useConnectedUser,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import {
-  useStreamVideoStoreSetState,
-  useStreamVideoStoreValue,
-} from '../contexts/StreamVideoContext';
+import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { CallControlsButton } from './CallControlsButton';
+import { theme } from '../theme';
 import { useCallCycleContext } from '../contexts';
+import { useMutingState } from '../hooks/useMutingState';
+import { useLocalVideoStream } from '../hooks';
+import { VideoRenderer } from './VideoRenderer';
+import { Avatar } from './Avatar';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -28,19 +28,18 @@ export interface LobbyViewProps {
 
 const ParticipantStatus = () => {
   const connectedUser = useConnectedUser();
-  const isAudioMuted = useStreamVideoStoreValue((store) => store.isAudioMuted);
-  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
+  const { isAudioMuted, isVideoMuted } = useMutingState();
   return (
     <View style={styles.status}>
       <Text style={styles.userNameLabel}>{connectedUser?.id}</Text>
       {isAudioMuted && (
         <View style={styles.svgWrapper}>
-          <MicOff color="red" />
+          <MicOff color={theme.light.error} />
         </View>
       )}
       {isVideoMuted && (
         <View style={styles.svgWrapper}>
-          {isVideoMuted && <VideoSlash color="red" />}
+          {isVideoMuted && <VideoSlash color={theme.light.error} />}
         </View>
       )}
     </View>
@@ -48,39 +47,29 @@ const ParticipantStatus = () => {
 };
 
 export const LobbyView = (props: LobbyViewProps) => {
-  const [videoStream, setVideoStream] = useState<MediaStream | undefined>(
-    undefined,
-  );
-  const { currentVideoDevice } = useMediaDevices();
+  const localVideoStream = useLocalVideoStream();
   const videoClient = useStreamVideoClient();
-  const isAudioMuted = useStreamVideoStoreValue((store) => store.isAudioMuted);
-  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
-  const setState = useStreamVideoStoreSetState();
+  const connectedUser = useConnectedUser();
   const { callCycleHandlers } = useCallCycleContext();
+  const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
+    useMutingState();
+  const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
+    (store) => store.isCameraOnFrontFacingMode,
+  );
+  const isVideoAvailable = !!localVideoStream && !isVideoMuted;
   const { onActiveCall } = callCycleHandlers;
   const { callID } = props;
 
   const MicIcon = isAudioMuted ? (
-    <MicOff color="white" />
+    <MicOff color={theme.light.static_white} />
   ) : (
-    <Mic color="black" />
+    <Mic color={theme.light.static_black} />
   );
   const VideoIcon = isVideoMuted ? (
-    <VideoSlash color="white" />
+    <VideoSlash color={theme.light.static_white} />
   ) : (
-    <Video color="black" />
+    <Video color={theme.light.static_black} />
   );
-
-  useEffect(() => {
-    const loadVideoStream = async () => {
-      const stream = await getVideoStream(currentVideoDevice?.deviceId);
-      setVideoStream(stream);
-    };
-    loadVideoStream();
-  }, [currentVideoDevice]);
-
-  const toggleAudioState = () => setState({ isAudioMuted: !isAudioMuted });
-  const toggleVideoState = () => setState({ isVideoMuted: !isVideoMuted });
 
   const joinCallHandler = () => {
     videoClient
@@ -96,41 +85,46 @@ export const LobbyView = (props: LobbyViewProps) => {
         console.log('Error joining call', err);
       });
   };
+  const connectedUserAsParticipant = {
+    userId: connectedUser?.id,
+    // @ts-ignore
+    image: connectedUser?.imageUrl,
+    name: connectedUser?.name,
+  } as StreamVideoParticipant;
 
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Before Joining</Text>
       <Text style={styles.subHeading}>Setup your audio and video</Text>
-      {videoStream && !isVideoMuted ? (
-        <View style={styles.videoView}>
-          <RTCView
-            streamURL={videoStream?.toURL()}
+      <View style={styles.videoView}>
+        {isVideoAvailable ? (
+          <VideoRenderer
+            mirror={isCameraOnFrontFacingMode}
+            mediaStream={localVideoStream}
             objectFit="cover"
             style={styles.stream}
           />
-          <ParticipantStatus />
-        </View>
-      ) : (
-        <View style={styles.videoView}>
-          {/* FIXME: KA To add avatar once image url is available */}
-          {/* <Image
-            source={{ uri: connectedUser?.imageUrl }}
-            style={styles.avatar}
-          /> */}
-          <ParticipantStatus />
-        </View>
-      )}
+        ) : (
+          <Avatar participant={connectedUserAsParticipant} />
+        )}
+        <ParticipantStatus />
+      </View>
+
       <View style={styles.buttons}>
         <CallControlsButton
           onPress={toggleAudioState}
-          colorKey={!isAudioMuted ? 'activated' : 'deactivated'}
+          color={
+            !isAudioMuted ? theme.light.static_white : theme.light.static_black
+          }
           style={styles.button}
         >
           {MicIcon}
         </CallControlsButton>
         <CallControlsButton
           onPress={toggleVideoState}
-          colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
+          color={
+            !isVideoMuted ? theme.light.static_white : theme.light.static_black
+          }
           style={styles.button}
         >
           {VideoIcon}
@@ -151,27 +145,31 @@ export const LobbyView = (props: LobbyViewProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#2C2C2E',
-    height: '100%',
+    backgroundColor: theme.light.static_grey,
+    justifyContent: 'center',
+    flex: 1,
+  },
+  content: {
+    position: 'absolute',
+    bottom: 10,
   },
   heading: {
-    color: 'white',
+    color: theme.light.static_white,
     fontSize: 40,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginTop: 30,
   },
   stream: {
     height: '100%',
     width: '100%',
   },
   subHeading: {
-    color: '#979797',
+    color: theme.light.text_low_emphasis,
     fontSize: 20,
     textAlign: 'center',
   },
   videoView: {
-    backgroundColor: '#474D56',
+    backgroundColor: theme.light.disabled,
     height: 280,
     marginLeft: 'auto',
     marginRight: 'auto',
@@ -191,29 +189,28 @@ const styles = StyleSheet.create({
     borderRadius: 70,
     marginHorizontal: 10,
   },
-  mutedColor: { backgroundColor: '#00000066' },
   info: {
-    backgroundColor: '#1C1C1EE5',
+    backgroundColor: theme.light.static_overlay,
     padding: 15,
     marginHorizontal: '5%',
     borderRadius: 10,
     marginVertical: 30,
   },
   infoText: {
-    color: 'white',
+    color: theme.light.static_white,
     fontSize: 15,
     fontWeight: '600',
   },
   joinButton: {
     width: '100%',
-    backgroundColor: '#005FFF',
+    backgroundColor: theme.light.primary,
     borderRadius: 10,
     marginTop: 20,
     justifyContent: 'center',
     paddingVertical: 10,
   },
   joinButtonText: {
-    color: 'white',
+    color: theme.light.static_white,
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -226,7 +223,7 @@ const styles = StyleSheet.create({
     bottom: 6,
     padding: 6,
     borderRadius: 6,
-    backgroundColor: '#1C1E22',
+    backgroundColor: theme.light.static_overlay,
     zIndex: 10,
   },
   avatar: {
@@ -236,7 +233,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   userNameLabel: {
-    color: '#fff',
+    color: theme.light.static_white,
     fontSize: 12,
   },
   svgWrapper: {

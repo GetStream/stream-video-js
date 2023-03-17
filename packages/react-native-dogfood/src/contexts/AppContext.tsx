@@ -2,7 +2,7 @@ import createStoreContext from './createStoreContext';
 
 interface AppGlobalStore {
   username: string;
-  userImageUrl: string;
+  userImageUrl?: string;
   loopbackMyVideo: boolean;
   appMode: 'Meeting' | 'Ringing' | 'None';
 }

@@ -35,10 +35,10 @@
 
     .str-video__remote-video {
       border-radius: var(--str-video__border-radius2);
-      border: 2px solid transparent;
-      background-size: contain;
       width: 100%;
       object-fit: cover;
+      aspect-ratio: 16/9;
+      background: var(--str-video__text-color3);
     }
   }
 

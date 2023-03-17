@@ -33,12 +33,7 @@ export const CallHeaderTitle = ({ title }: CallTitleProps) => {
   return (
     <div className="str-video__call-header__title-group">
       <HomeButton />
-      <h4
-        title={'This is not a good design'}
-        className="str-video__call-header-title"
-      >
-        {title || standInTitle}
-      </h4>
+      <h4 className="str-video__call-header-title">{title || standInTitle}</h4>
     </div>
   );
 };

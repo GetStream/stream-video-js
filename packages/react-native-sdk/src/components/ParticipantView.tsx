@@ -10,7 +10,8 @@ import { useActiveCall } from '@stream-io/video-react-bindings';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
 import { useStreamVideoStoreValue } from '../contexts';
-import { Mic, MicOff, Video, VideoSlash } from '../icons';
+import { MicOff, ScreenShare, VideoSlash } from '../icons';
+import { theme } from '../theme';
 
 type SizeType = 'small' | 'medium' | 'large' | 'xl';
 
@@ -81,8 +82,6 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
   const isScreenSharing = kind === 'screen';
   const mirror = isLoggedInUser && isCameraOnFrontFacingMode;
-  const MicIcon = isAudioMuted ? MicOff : Mic;
-  const VideoIcon = isVideoMuted ? VideoSlash : Video;
   const isAudioAvailable = useMemo(
     () => kind === 'video' && !!audioStream && !isAudioMuted,
     [kind, audioStream, isAudioMuted],
@@ -96,7 +95,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       style={[
         styles.containerBase,
         styles[`${size}Container`],
-        isSpeaking && !isScreenSharing ? styles.dominantSpeaker : {},
+        isSpeaking && !isScreenSharing ? styles.isSpeaking : {},
         props.style,
       ]}
       onLayout={onLayout}
@@ -118,17 +117,20 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         <View style={styles.status}>
           <Text style={styles.userNameLabel}>{participant.userId}</Text>
           <View style={styles.svgWrapper}>
-            <MicIcon color="#FFF" />
+            {isAudioMuted && <MicOff color={theme.light.error} />}
           </View>
           <View style={styles.svgWrapper}>
-            <VideoIcon color="#FFF" />
+            {isVideoMuted && <VideoSlash color={theme.light.error} />}
           </View>
         </View>
       )}
       {kind === 'screen' && (
         <View style={styles.screenViewStatus}>
+          <View style={[styles.svgWrapper, styles.screenShareIcon]}>
+            <ScreenShare color={theme.light.static_white} />
+          </View>
           <Text style={styles.userNameLabel}>
-            {participant.userId} is presenting
+            {participant.userId} is sharing their screen
           </Text>
         </View>
       )}
@@ -170,7 +172,7 @@ const styles = StyleSheet.create({
     bottom: 6,
     padding: 6,
     borderRadius: 6,
-    backgroundColor: '#1C1E22',
+    backgroundColor: theme.light.static_overlay,
   },
   screenViewStatus: {
     position: 'absolute',
@@ -178,19 +180,25 @@ const styles = StyleSheet.create({
     top: 8,
     padding: 4,
     borderRadius: 6,
-    backgroundColor: '#1C1E22',
+    backgroundColor: theme.light.static_overlay,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  screenShareIcon: {
+    marginRight: 5,
   },
   userNameLabel: {
-    color: '#fff',
-    fontSize: 10,
+    color: theme.light.static_white,
+    fontSize: 12,
   },
   svgWrapper: {
     height: 16,
     width: 16,
     marginLeft: 6,
   },
-  dominantSpeaker: {
-    borderColor: '#005FFF',
+  isSpeaking: {
+    borderColor: theme.light.primary,
     borderWidth: 2,
   },
 });

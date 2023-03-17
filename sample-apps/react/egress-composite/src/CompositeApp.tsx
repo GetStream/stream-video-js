@@ -1,5 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
+  Call,
+  StreamCallProvider,
   StreamClientOptions,
   StreamVideo,
   useCreateStreamVideoClient,
@@ -25,12 +27,23 @@ export const CompositeApp = () => {
     },
   });
 
+  const [activeCall, setActiveCall] = useState<Call>();
   useEffect(() => {
     if (!client) return;
-    const currentCall = client.joinCall(config.callId, config.callType);
+    let joinInterrupted = false;
+    const currentCall = client
+      .joinCall(config.callId, config.callType)
+      .then((call) => {
+        if (!joinInterrupted) {
+          setActiveCall(call);
+        }
+        return call;
+      });
     return () => {
+      joinInterrupted = true;
       currentCall.then((call) => {
         call?.leave();
+        setActiveCall(undefined);
       });
     };
   }, [client, config.callId, config.callType]);
@@ -42,7 +55,11 @@ export const CompositeApp = () => {
   return (
     <StreamVideo client={client}>
       <EgressReadyNotificationProvider>
-        <UiDispatcher layout={config.layout} />
+        {activeCall && (
+          <StreamCallProvider call={activeCall}>
+            <UiDispatcher layout={config.layout} />
+          </StreamCallProvider>
+        )}
       </EgressReadyNotificationProvider>
     </StreamVideo>
   );

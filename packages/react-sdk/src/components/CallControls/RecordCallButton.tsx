@@ -30,7 +30,7 @@ export const RecordCallButton = ({
   }, [isCallRecordingInProgress]);
 
   const toggleRecording = useCallback(async () => {
-    const { id, type } = call.data.call;
+    const { id, type } = call;
     try {
       setIsAwaitingResponse(true);
       if (isCallRecordingInProgress) {
@@ -41,7 +41,7 @@ export const RecordCallButton = ({
     } catch (e) {
       console.error(`Failed start recording`, e);
     }
-  }, [call.data.call, client, isCallRecordingInProgress]);
+  }, [call, client, isCallRecordingInProgress]);
 
   return (
     <CompositeButton active={isCallRecordingInProgress} caption={caption}>
