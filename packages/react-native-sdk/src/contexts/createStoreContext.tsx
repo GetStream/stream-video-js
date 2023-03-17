@@ -76,7 +76,7 @@ export default function createStoreContext<PassedStoreType extends object>(
    * @param selector
    * @returns
    *
-   * @category Client state
+   * @category Client State
    */
   function useStoreValue<SelectorOutput extends StoreType[keyof StoreType]>(
     selector: (store: StoreType) => SelectorOutput,
@@ -99,7 +99,7 @@ export default function createStoreContext<PassedStoreType extends object>(
    *
    * @returns
    *
-   * @category Client state
+   * @category Client State
    */
   function useStoreSetState() {
     const store = useContext(StoreContext);

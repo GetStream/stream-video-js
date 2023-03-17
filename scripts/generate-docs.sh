@@ -37,7 +37,12 @@ cp temp-docs/modules.md generated-docs/hooks.md
 npx replace-in-file "# $PACKAGE_NAME" '# Hooks' 'generated-docs/hooks.md' > /dev/null
 
 # Contexts
-npx typedoc --options typedoc.json --exclude '**/*(hooks|components|utils)/**'
+if [ "$PACKAGE_DIR_NAME" == 'react-sdk' ]; then
+  npx typedoc --options typedoc.json --exclude '!**/*contexts/**'
+else
+  # RN needs a special exclude statement because of reexporting StreamVideo
+  npx typedoc --options typedoc.json --exclude '**/*(hooks|components|utils)/**'
+fi
 npx replace-in-file '/\.md/g' '/' 'temp-docs/modules.md' --isRegex > /dev/null
 npx replace-in-file '/modules\//g' '' 'temp-docs/modules.md' --isRegex > /dev/null
 cp temp-docs/modules.md generated-docs/contexts.md
