@@ -12,17 +12,10 @@ import { Avatar } from './Avatar';
 import { useStreamVideoStoreValue } from '../contexts';
 import { MicOff, ScreenShare, VideoSlash } from '../icons';
 import { theme } from '../theme';
-
-type SizeType = 'small' | 'medium' | 'large' | 'xl';
-
 /**
  * Props to be passed for the ParticipantView component.
  */
 interface ParticipantViewProps {
-  /**
-   * The size of the participant that correlates to a specific layout
-   */
-  size?: SizeType;
   /**
    * The participant that will be displayed
    */
@@ -51,7 +44,7 @@ interface ParticipantViewProps {
  * |![participant-view-1](https://user-images.githubusercontent.com/25864161/217489213-d4532ca1-49ee-4ef5-940c-af2e55bc0a5f.png)|![participant-view-2](https://user-images.githubusercontent.com/25864161/217489207-fb20c124-8bce-4c2b-87f9-4fe67bc50438.png)|
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
-  const { size, participant, kind } = props;
+  const { participant, kind } = props;
   const call = useActiveCall();
 
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
@@ -95,8 +88,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     [videoStream, isVideoMuted],
   );
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
-  const speakerStyle =
-    applySpeakerStyle && styles.isSpeaking;
+  const speakerStyle = applySpeakerStyle && styles.isSpeaking;
   const videoOnlyStyle = !isScreenSharing && { borderColor: '#1C1E22' };
 
   const participantLabel =
@@ -108,10 +100,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     <View
       style={[
         styles.containerBase,
-        size && styles[`${size}Container`],
-        speakerStyle,
         videoOnlyStyle,
         props.containerStyle,
+        speakerStyle,
       ]}
       onLayout={onLayout}
     >
@@ -159,20 +150,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
   },
-  smallContainer: {
-    flexBasis: '33.33%',
-    width: '50%',
-  },
-  mediumContainer: {
-    flexBasis: '50%',
-    width: '50%',
-  },
-  largeContainer: {},
-  xlContainer: {},
   videoRenderer: {
     flex: 1,
     justifyContent: 'center',
-    borderRadius: 10,
   },
   screenVideoRenderer: {
     flex: 1,
