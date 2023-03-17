@@ -25,6 +25,10 @@ export const OutgoingCallView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cancelCall]);
 
+  const muteStatusColor = (status: boolean) => {
+    return status ? theme.light.overlay_dark : theme.light.static_white;
+  };
+
   return (
     <>
       <View style={[StyleSheet.absoluteFill, styles.container]}>
@@ -36,11 +40,7 @@ export const OutgoingCallView = () => {
           <View style={styles.deviceControlButtons}>
             <CallControlsButton
               onPress={toggleAudioState}
-              color={
-                isAudioMuted
-                  ? theme.light.overlay_dark
-                  : theme.light.static_white
-              }
+              color={muteStatusColor(isAudioMuted)}
               style={[styles.button, theme.button.lg]}
               svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
             >
@@ -52,11 +52,7 @@ export const OutgoingCallView = () => {
             </CallControlsButton>
             <CallControlsButton
               onPress={toggleVideoState}
-              color={
-                isVideoMuted
-                  ? theme.light.overlay_dark
-                  : theme.light.static_white
-              }
+              color={muteStatusColor(isVideoMuted)}
               style={[styles.button, theme.button.lg]}
               svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
             >

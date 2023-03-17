@@ -93,6 +93,10 @@ export const LobbyView = (props: LobbyViewProps) => {
     name: connectedUser?.name,
   } as StreamVideoParticipant;
 
+  const muteStatusColor = (status: boolean) => {
+    return !status ? theme.light.static_white : theme.light.static_black;
+  };
+
   return (
     <SafeAreaView style={[styles.container, StyleSheet.absoluteFillObject]}>
       <View style={styles.content}>
@@ -114,18 +118,12 @@ export const LobbyView = (props: LobbyViewProps) => {
         <View style={styles.buttonGroup}>
           <CallControlsButton
             onPress={toggleAudioState}
-            color={
-              !isAudioMuted
-                ? theme.light.static_white
-                : theme.light.static_black
-            }
+            color={muteStatusColor(isAudioMuted)}
             style={[
               styles.button,
               theme.button.md,
               {
-                shadowColor: !isAudioMuted
-                  ? theme.light.static_white
-                  : theme.light.static_black,
+                shadowColor: muteStatusColor(isAudioMuted),
               },
             ]}
           >
@@ -133,18 +131,12 @@ export const LobbyView = (props: LobbyViewProps) => {
           </CallControlsButton>
           <CallControlsButton
             onPress={toggleVideoState}
-            color={
-              !isVideoMuted
-                ? theme.light.static_white
-                : theme.light.static_black
-            }
+            color={muteStatusColor(isVideoMuted)}
             style={[
               styles.button,
               theme.button.md,
               {
-                shadowColor: !isVideoMuted
-                  ? theme.light.static_white
-                  : theme.light.static_black,
+                shadowColor: muteStatusColor(isVideoMuted),
               },
             ]}
           >

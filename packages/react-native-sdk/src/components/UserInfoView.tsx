@@ -51,6 +51,9 @@ export const UserInfoView = () => {
     borderRadius: theme.avatar[mode] / 2,
   };
 
+  const fontStyleByMembersCount =
+    memberUserIds.length > 1 ? theme.fonts.heading5 : theme.fonts.heading4;
+
   return (
     <View style={styles.userInfo}>
       <View style={styles.avatarGroup}>
@@ -67,16 +70,7 @@ export const UserInfoView = () => {
           );
         })}
       </View>
-      <Text
-        style={[
-          styles.name,
-          memberUserIds.length > 1
-            ? theme.fonts.heading5
-            : theme.fonts.heading4,
-        ]}
-      >
-        {callTitle}
-      </Text>
+      <Text style={[styles.name, fontStyleByMembersCount]}>{callTitle}</Text>
     </View>
   );
 };

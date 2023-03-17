@@ -48,6 +48,10 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hangupCall]);
 
+  const muteStatusColor = (status: boolean) => {
+    return status ? theme.light.overlay_dark : theme.light.static_white;
+  };
+
   return (
     <View style={styles.container}>
       <CallControlsButton
@@ -60,9 +64,7 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
       </CallControlsButton>
       <CallControlsButton
         onPress={toggleVideoMuted}
-        color={
-          isVideoMuted ? theme.light.overlay_dark : theme.light.static_white
-        }
+        color={muteStatusColor(isVideoMuted)}
         style={!isVideoMuted ? styles.button : null}
       >
         {isVideoMuted ? (
@@ -73,9 +75,7 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
       </CallControlsButton>
       <CallControlsButton
         onPress={toggleAudioMuted}
-        color={
-          isAudioMuted ? theme.light.overlay_dark : theme.light.static_white
-        }
+        color={muteStatusColor(isAudioMuted)}
         style={!isAudioMuted ? styles.button : null}
       >
         {isAudioMuted ? (
@@ -86,11 +86,7 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
       </CallControlsButton>
       <CallControlsButton
         onPress={toggleCameraFacingMode}
-        color={
-          isCameraOnFrontFacingMode
-            ? theme.light.static_white
-            : theme.light.overlay_dark
-        }
+        color={muteStatusColor(!isCameraOnFrontFacingMode)}
         style={isCameraOnFrontFacingMode ? styles.button : null}
       >
         <CameraSwitch

@@ -35,6 +35,7 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   const isScreenSharing = publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
   );
+  const showYouLabel = participant.isLoggedInUser;
 
   return (
     <View style={styles.participant}>
@@ -43,7 +44,7 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
       <Text style={styles.name}>
         {participant.name ||
           generateParticipantTitle(participant.userId) +
-            (participant.isLoggedInUser ? ' (You)' : '')}
+            (showYouLabel ? ' (You)' : '')}
       </Text>
       <View style={styles.icons}>
         {isScreenSharing && (

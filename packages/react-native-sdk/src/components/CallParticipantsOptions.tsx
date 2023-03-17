@@ -26,6 +26,8 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
     setSelectedParticipant(undefined);
   }, [setSelectedParticipant]);
 
+  const showYouLabel = participant.isLoggedInUser;
+
   return (
     <View style={styles.container}>
       <View style={styles.menu}>
@@ -35,7 +37,7 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
 
             <Text style={styles.name}>
               {generateParticipantTitle(participant.userId) +
-                (participant.isLoggedInUser ? ' (You)' : '')}
+                (showYouLabel ? ' (You)' : '')}
             </Text>
           </View>
 
@@ -48,12 +50,11 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
         </View>
         <View style={styles.options}>
           {options.map((option, index) => {
+            const applyBottomPadding =
+              index < options.length - 1 ? styles.borderBottom : null;
             return (
               <Pressable
-                style={[
-                  index < options.length - 1 ? styles.borderBottom : null,
-                  styles.option,
-                ]}
+                style={[applyBottomPadding, styles.option]}
                 key={option.title}
               >
                 <View style={[styles.svgContainerStyle, theme.icon.sm]}>
