@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Call } from '@stream-io/video-client';
 
+/**
+ *
+ * @param call
+ * @param kind
+ * @param mediaStream
+ * @returns
+ *
+ * @category Call State
+ */
 export const useRtcStats = (
   call: Call,
   kind: 'subscriber' | 'publisher',

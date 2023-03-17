@@ -8,12 +8,23 @@ import {
 } from '@stream-io/video-client';
 import { map } from 'rxjs';
 
+/**
+ * Exclude types from documentaiton site, but we should still add doc comments
+ * @internal
+ */
 export type AudioPublisherInit = {
   call?: Call;
   initialAudioMuted?: boolean;
   audioDeviceId?: string;
 };
 
+/**
+ *
+ * @param param0
+ * @returns
+ *
+ * @category Device Management
+ */
 export const useAudioPublisher = ({
   call,
   initialAudioMuted,

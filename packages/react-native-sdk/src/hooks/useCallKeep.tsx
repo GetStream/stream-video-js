@@ -11,6 +11,11 @@ try {
   RNCallKeep = require('react-native-callkeep').default;
 } catch (e) {}
 
+/**
+ *
+ * @returns
+ *
+ */
 export const useCallKeep = () => {
   const activeCall = useActiveCall();
   if (!RNCallKeep) {

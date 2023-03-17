@@ -6,6 +6,11 @@ import {
 import { useEffect } from 'react';
 import { CallCycleHandlersType } from '../contexts/CallCycleContext';
 
+/**
+ *
+ * @param callCycleHandlers
+ *
+ */
 export const useCallCycleEffect = (
   callCycleHandlers: CallCycleHandlersType,
 ) => {
