@@ -47,9 +47,22 @@ export const CallCycleContext = createContext<CallCycleProviderProps>({
   callCycleHandlers: {},
 });
 
+/**
+ *
+ * @returns
+ *
+ * @category Client State
+ */
 export const useCallCycleContext = () =>
   useContext<CallCycleProviderProps>(CallCycleContext);
 
+/**
+ *
+ * @param props
+ * @returns
+ *
+ * @category Client State
+ */
 export const CallCycleProvider = (
   props: PropsWithChildren<CallCycleProviderProps>,
 ) => {

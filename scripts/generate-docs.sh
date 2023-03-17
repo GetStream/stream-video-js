@@ -37,7 +37,7 @@ cp temp-docs/modules.md generated-docs/hooks.md
 npx replace-in-file "# $PACKAGE_NAME" '# Hooks' 'generated-docs/hooks.md' > /dev/null
 
 # Contexts
-npx typedoc --options typedoc.json --exclude '!**/*(contexts|providers)/**'
+npx typedoc --options typedoc.json --exclude '**/*(hooks|components|utils)/**'
 npx replace-in-file '/\.md/g' '/' 'temp-docs/modules.md' --isRegex > /dev/null
 npx replace-in-file '/modules\//g' '' 'temp-docs/modules.md' --isRegex > /dev/null
 cp temp-docs/modules.md generated-docs/contexts.md
