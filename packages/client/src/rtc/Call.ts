@@ -222,9 +222,20 @@ export class Call {
       onTrack: this.handleOnTrack,
     });
 
+    let isDtxEnabled = true;
+    if (
+      typeof window !== 'undefined' &&
+      window.location &&
+      window.location.search
+    ) {
+      const queryParams = new URLSearchParams(window.location.search);
+      isDtxEnabled = queryParams.get('dtx') === 'false' ? false : isDtxEnabled;
+    }
+    console.log('DTX enabled', isDtxEnabled);
     this.publisher = new Publisher({
       rpcClient: sfuClient,
       connectionConfig: call.connectionConfig,
+      isDtxEnabled,
     });
 
     this.statsReporter = createStatsReporter({
@@ -347,9 +358,16 @@ export class Call {
     }
 
     const trackType = TrackType.AUDIO;
-    /* eslint-disable-next-line no-restricted-globals */
-    const queryParams = new URLSearchParams(location.search);
-    const preferredCodec = queryParams.get('codec') || 'red';
+    let preferredCodec = 'red';
+    if (
+      typeof window !== 'undefined' &&
+      window.location &&
+      window.location.search
+    ) {
+      const queryParams = new URLSearchParams(window.location.search);
+      preferredCodec = queryParams.get('codec') || preferredCodec;
+    }
+
     try {
       await this.publisher.publishStream(audioStream, audioTrack, trackType, {
         preferredCodec,
