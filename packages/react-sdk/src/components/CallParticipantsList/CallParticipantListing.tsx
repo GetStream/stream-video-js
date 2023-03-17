@@ -215,12 +215,12 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
 
   // FIXME: soft kicking does not work this way
   // also needs to be session-based
-  const kickUserClickHandler = () => {
-    getCall()?.updateCallMembers({
-      remove_members: [participant.userId],
-      disconnectRemovedMembers: true,
-    });
-  };
+  // const kickUserClickHandler = () => {
+  //   getCall()?.updateCallMembers({
+  //     remove_members: [participant.userId],
+  //     disconnectRemovedMembers: true,
+  //   });
+  // };
 
   const muteAudioClickHandler = () => {
     getCall()?.muteUser(participant.userId, 'audio', participant.sessionId);
@@ -239,9 +239,9 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
           Block
         </GenericMenuButtonItem>
       </Restricted>
-      <GenericMenuButtonItem disabled onClick={kickUserClickHandler}>
+      {/* <GenericMenuButtonItem disabled onClick={kickUserClickHandler}>
         Kick
-      </GenericMenuButtonItem>
+      </GenericMenuButtonItem> */}
       <Restricted
         availableGrants={localParticipant?.ownCapabilities ?? []}
         requiredGrants={['mute-users']}
