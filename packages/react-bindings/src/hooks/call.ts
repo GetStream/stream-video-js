@@ -104,10 +104,7 @@ export const useAcceptedCall = () => {
   return useObservableValue(acceptedCall$);
 };
 
-export const useCallMetadata = (call: Call) => {
-  return useObservableValue(call.callMetadata$);
-};
-
-export const useCallMembers = (call: Call) => {
-  return useObservableValue(call.members$);
+export const useCallMetadata = () => {
+  const { metadata$ } = useCallState();
+  return useObservableValue(metadata$);
 };

@@ -1,16 +1,8 @@
 import clsx from 'clsx';
-import {
-  ComponentProps,
-  ComponentType,
-  forwardRef,
-  MouseEvent,
-  PropsWithChildren,
-  useState,
-} from 'react';
+import { ComponentProps, ComponentType, forwardRef, useState } from 'react';
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
 import {
   useActiveCall,
-  useCallMetadata,
   useConnectedUser,
   useLocalParticipant,
   useStreamVideoClient,
@@ -155,10 +147,7 @@ const CallParticipantListingHeader = () => {
   const localParticipant = useLocalParticipant();
 
   const getCall = () =>
-    client?.coordinatorClient.call(
-      activeCall!.data.call.type,
-      activeCall!.data.call.id,
-    );
+    client?.coordinatorClient.call(activeCall!.type, activeCall!.id);
 
   const muteAllClickHandler = () => {
     getCall()?.muteAllUsers('audio');
@@ -218,13 +207,19 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
   const localParticipant = useLocalParticipant();
 
   const getCall = () =>
-    client?.coordinatorClient.call(
-      activeCall!.data.call.type,
-      activeCall!.data.call.id,
-    );
+    client?.coordinatorClient.call(activeCall!.type, activeCall!.id);
 
   const blockUserClickHandler = () => {
     getCall()?.blockUser(participant.userId);
+  };
+
+  // FIXME: soft kicking does not work this way
+  // also needs to be session-based
+  const kickUserClickHandler = () => {
+    getCall()?.updateCallMembers({
+      remove_members: [participant.userId],
+      disconnectRemovedMembers: true,
+    });
   };
 
   const muteAudioClickHandler = () => {
@@ -244,7 +239,9 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
           Block
         </GenericMenuButtonItem>
       </Restricted>
-      <GenericMenuButtonItem disabled>Kick</GenericMenuButtonItem>
+      <GenericMenuButtonItem disabled onClick={kickUserClickHandler}>
+        Kick
+      </GenericMenuButtonItem>
       <Restricted
         availableGrants={localParticipant?.ownCapabilities ?? []}
         requiredGrants={['mute-users']}

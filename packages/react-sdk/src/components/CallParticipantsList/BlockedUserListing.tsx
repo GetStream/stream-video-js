@@ -9,10 +9,9 @@ import { Restricted } from '../Moderation';
 import { TextButton } from '../Button';
 
 export const BlockedUserListing = () => {
-  const activeCall = useActiveCall();
-  const callMetadata = useCallMetadata(activeCall!);
+  const callMetadata = useCallMetadata();
 
-  const blockedUsers = callMetadata.blocked_user_ids;
+  const blockedUsers = callMetadata!.blocked_user_ids;
 
   if (!blockedUsers.length) return null;
 
@@ -34,10 +33,7 @@ const BlockedUserListingItem = ({ userId }: { userId: string }) => {
   const activeCall = useActiveCall();
 
   const getCall = () =>
-    client?.coordinatorClient.call(
-      activeCall!.data.call.type,
-      activeCall!.data.call.id,
-    );
+    client?.coordinatorClient.call(activeCall!.type, activeCall!.id);
 
   const unblockUserClickHandler = () => {
     if (userId) getCall()?.unblockUser(userId);

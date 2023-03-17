@@ -9,32 +9,26 @@ import { StreamVideoWriteableStateStore } from '../store';
 export const watchBlockedUser =
   (store: StreamVideoWriteableStateStore) => (event: BlockedUserEvent) => {
     const activeCall = store.getCurrentValue(store.activeCallSubject);
-    const localParticipant = store.getCurrentValue(store.localParticipant$);
 
-    if (!activeCall) {
+    if (!activeCall || activeCall.cid !== event.call_cid) {
       console.warn(
-        `Ignoring "call.blocked_user" as there is no active call`,
+        `Received "call.blocked_user" for an inactive or unknown call`,
         event,
       );
       return;
     }
 
-    if (activeCall.data.call.cid !== event.call_cid) {
-      console.warn(
-        `Ignoring "call.blocked_user" as it doesn't belong to the active call`,
-        event,
-      );
-      return;
-    }
+    const state = activeCall.state;
+    const localParticipant = state.getCurrentValue(state.localParticipant$);
 
     // FIXME: end call
     if (localParticipant?.userId === event.user_id) {
       activeCall.leave();
     }
 
-    activeCall.data.updateCallMetadata((metadata) => ({
-      ...metadata,
-      blocked_user_ids: [...metadata.blocked_user_ids, event.user_id],
+    state.setCurrentValue(state.metadataSubject, (metadata) => ({
+      ...metadata!,
+      blocked_user_ids: [...metadata!.blocked_user_ids, event.user_id],
     }));
   };
 
@@ -45,37 +39,25 @@ export const watchBlockedUser =
  */
 export const watchUnblockedUser =
   (store: StreamVideoWriteableStateStore) => (event: UnblockedUserEvent) => {
-    console.warn(event);
     const activeCall = store.getCurrentValue(store.activeCallSubject);
 
-    if (!activeCall) {
+    if (!activeCall || activeCall.cid !== event.call_cid) {
       console.warn(
-        `Ignoring "call.unblocked_user" as there is no active call`,
+        `Received "call.unblocked_user" for an inactive or unknown call`,
         event,
       );
       return;
     }
 
-    if (activeCall.data.call.cid !== event.call_cid) {
-      console.warn(
-        `Ignoring "call.unblocked_user" as it doesn't belong to the active call`,
-        event,
-      );
-      return;
-    }
+    const state = activeCall.state;
 
-    activeCall.data.updateCallMetadata((metadata) => {
-      const blocked_user_ids = metadata.blocked_user_ids.filter(
+    state.setCurrentValue(state.metadataSubject, (metadata) => {
+      const blocked_user_ids = metadata!.blocked_user_ids.filter(
         (userId) => event.user_id !== userId,
       );
 
-      console.log({
-        blocked_user_ids_new: blocked_user_ids,
-        old: metadata.blocked_user_ids,
-      });
-
       return {
-        ...metadata,
+        ...metadata!,
         blocked_user_ids,
       };
     });
