@@ -347,8 +347,12 @@ export class Call {
     }
 
     const trackType = TrackType.AUDIO;
+    const queryParams = new URLSearchParams(location.search);
+    const preferredCodec = queryParams.get('codec') || 'red';
     try {
-      await this.publisher.publishStream(audioStream, audioTrack, trackType);
+      await this.publisher.publishStream(audioStream, audioTrack, trackType, {
+        preferredCodec,
+      });
       await this.sfuClient!.updateMuteState(trackType, false);
     } catch (e) {
       throw e;
