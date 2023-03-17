@@ -160,13 +160,11 @@ export const LobbyView = (props: LobbyViewProps) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: theme.light.static_grey,
+    justifyContent: 'center',
   },
   content: {
     width: '100%',
-    display: 'flex',
-    flexDirection: 'column',
     alignItems: 'center',
-    position: 'absolute',
     bottom: theme.spacing.lg,
     marginVertical: theme.margin.md,
     paddingHorizontal: theme.padding.md,
