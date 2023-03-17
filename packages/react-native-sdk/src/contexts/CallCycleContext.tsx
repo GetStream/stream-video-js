@@ -14,6 +14,10 @@ import {
 import InCallManager from 'react-native-incall-manager';
 import { useCallCycleEffect } from '../hooks';
 
+/**
+ * Exclude types from documentaiton site, but we should still add doc comments
+ * @internal
+ */
 export type CallCycleHandlersType = {
   onActiveCall?: () => void;
   onIncomingCall?: () => void;
@@ -28,10 +32,17 @@ export type CallCycleHandlersType = {
   onRejectCall?: () => void;
 };
 
+/**
+ * Exclude types from documentaiton site, but we should still add doc comments
+ * @internal
+ */
 export type CallCycleProviderProps = {
   callCycleHandlers: CallCycleHandlersType;
 };
 
+/**
+ * @internal
+ */
 export const CallCycleContext = createContext<CallCycleProviderProps>({
   callCycleHandlers: {},
 });

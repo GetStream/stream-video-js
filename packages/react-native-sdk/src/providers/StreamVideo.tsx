@@ -7,6 +7,13 @@ import { Provider } from '../contexts/StreamVideoContext';
 import { MediaDevicesProvider } from '../contexts/MediaDevicesContext';
 import { CallCycleHandlersType, CallCycleProvider } from '../contexts';
 
+/**
+ *
+ * @param props
+ * @returns
+ *
+ * @category Client State
+ */
 export const StreamVideo = (
   props: PropsWithChildren<
     StreamVideoProps & { callCycleHandlers?: CallCycleHandlersType }

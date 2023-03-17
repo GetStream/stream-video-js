@@ -41,6 +41,12 @@ export type MediaDevicesContextAPI = {
 
 const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
 
+/**
+ *
+ * @returns
+ *
+ * @category Device Management
+ */
 export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);

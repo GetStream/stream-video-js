@@ -15,10 +15,7 @@ echo "Generating docs from the client..."
 yarn workspace @stream-io/video-client run clean:docs > /dev/null
 yarn workspace @stream-io/video-client run generate-docs:classes > /dev/null
 
-echo "Generating docs from react-bindings..."
-yarn generate-docs:react:bindings > /dev/null
-
-echo "Generating docs from $PACKAGE_NAME SDK..."
+echo "Generating docs from react-bindings and $PACKAGE_NAME SDK..."
 
 # clean up old docs
 rm -rf generated-docs
@@ -38,7 +35,7 @@ cp temp-docs/modules.md generated-docs/hooks.md
 npx replace-in-file "# $PACKAGE_NAME" '# Hooks' 'generated-docs/hooks.md' > /dev/null
 
 # Contexts
-npx typedoc --options typedoc.json --exclude '!**/*contexts/**'
+npx typedoc --options typedoc.json --exclude '!**/*(contexts|providers)/**'
 npx replace-in-file '/\.md/g' '/' 'temp-docs/modules.md' --isRegex > /dev/null
 npx replace-in-file '/modules\//g' '' 'temp-docs/modules.md' --isRegex > /dev/null
 cp temp-docs/modules.md generated-docs/contexts.md

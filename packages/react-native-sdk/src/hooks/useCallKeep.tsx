@@ -15,6 +15,8 @@ try {
  *
  * @returns
  *
+ * @category Call Operations
+ *
  */
 export const useCallKeep = () => {
   const activeCall = useActiveCall();

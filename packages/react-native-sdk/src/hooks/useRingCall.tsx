@@ -9,7 +9,7 @@ import InCallManager from 'react-native-incall-manager';
 /**
  * A helper hook which exposes functions to answerCall, rejectCall, cancelCall
  *
- * @category Client
+ * @category Client Operations
  */
 export const useRingCall = () => {
   const client = useStreamVideoClient();

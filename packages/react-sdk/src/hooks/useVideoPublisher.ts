@@ -11,8 +11,7 @@ import { useDebugPreferredVideoCodec } from '../components/Debug/useIsDebugMode'
 
 /**
  * Exclude types from documentaiton site, but we should still add doc comments
- * @internal
- */
+ *  */
 export type VideoPublisherInit = {
   call?: Call;
   initialVideoMuted?: boolean;
