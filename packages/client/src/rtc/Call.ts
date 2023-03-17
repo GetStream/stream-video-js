@@ -242,10 +242,13 @@ export class Call {
       onTrack: this.handleOnTrack,
     });
 
+    const audioSettings = this.state.getCurrentValue(this.state.metadata$)
+      ?.settings.audio;
     let isDtxEnabled =
-      this.data.call.settings.audio.opus_dtx_enabled === undefined
-        ? true
-        : this.data.call.settings.audio.opus_dtx_enabled;
+      audioSettings?.opus_dtx_enabled === undefined
+        ? false
+        : audioSettings?.opus_dtx_enabled;
+    // TODO: SZ: Remove once SFU team don't need this
     if (
       typeof window !== 'undefined' &&
       window.location &&
@@ -378,10 +381,13 @@ export class Call {
     }
 
     const trackType = TrackType.AUDIO;
+
+    const audioSettings = this.state.getCurrentValue(this.state.metadata$)
+      ?.settings.audio;
     let preferredCodec =
-      this.data.call.settings.audio.redundant_coding_enabled === undefined
-        ? 'red'
-        : this.data.call.settings.audio.redundant_coding_enabled
+      audioSettings?.redundant_coding_enabled === undefined
+        ? 'opus'
+        : audioSettings.redundant_coding_enabled
         ? 'red'
         : 'opus';
     if (
