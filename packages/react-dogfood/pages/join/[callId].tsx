@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import Gleap from 'gleap';
 import { useRouter } from 'next/router';
 import { authOptions } from '../api/auth/[...nextauth]';
-import { unstable_getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth';
 import { GetServerSidePropsContext } from 'next';
 import { createToken } from '../../helpers/jwt';
 import {
@@ -16,10 +16,7 @@ import Head from 'next/head';
 
 import { useCreateStreamChatClient } from '../../hooks';
 import { LoadingScreen, MeetingUI } from '../../components';
-import {
-  DeviceSettingsCaptor,
-  getDeviceSettings,
-} from '../../components/DeviceSettingsCaptor';
+import { getDeviceSettings } from '../../components/DeviceSettingsCaptor';
 
 type CallRoomProps = {
   user: User;
@@ -67,7 +64,8 @@ const CallRoom = (props: CallRoomProps) => {
               const value = getCurrentValue<unknown>(observable);
               if (key === 'activeCall$' && value) {
                 // special handling, the Call instance isn't serializable
-                acc[key] = (value as Call).data;
+                const call = value as Call;
+                acc[key] = call.state.getCurrentValue(call.state.metadata$);
               } else {
                 acc[key] = value;
               }
@@ -108,7 +106,6 @@ const CallRoom = (props: CallRoomProps) => {
           }
         >
           <MeetingUI chatClient={chatClient} />
-          <DeviceSettingsCaptor />
         </MediaDevicesProvider>
       </StreamVideo>
     </div>
@@ -120,12 +117,7 @@ export default CallRoom;
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
 ) => {
-  const session = await unstable_getServerSession(
-    context.req,
-    context.res,
-    authOptions,
-  );
-
+  const session = await getServerSession(context.req, context.res, authOptions);
   if (!session) {
     const url = context.req.url;
     return {

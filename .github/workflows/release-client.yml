@@ -30,7 +30,7 @@ jobs:
         run: yarn build:client
 
       - name: Lint package
-        run: yarn test:ci:client
+        run: yarn lint:ci:client
 
       - name: Test package
         run: yarn test:ci:client

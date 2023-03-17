@@ -15,6 +15,7 @@ import {
   ScreenShareButton,
   SpeakingWhileMutedNotification,
   Stage,
+  StreamCallProvider,
   ToggleAudioPublishingButton,
   ToggleCameraPublishingButton,
   ToggleParticipantListButton,
@@ -32,8 +33,10 @@ import {
   ChatWrapper,
   NewMessageNotification,
   UnreadCountBadge,
+  USAGE_GUIDE_LINK,
 } from '.';
 import { useWatchChannel } from '../hooks';
+import { DeviceSettingsCaptor } from './DeviceSettingsCaptor';
 
 const contents = {
   'error-join': {
@@ -130,83 +133,102 @@ export const MeetingUI = ({
     );
 
   return (
-    <div className="str-video str-video__call">
-      <div className="str-video__call__main">
-        <div className="str-video__call-header">
-          <CallHeaderTitle />
-          <div className="str-video__call-header__controls-group">
-            <GetInviteLinkButton Button={IconInviteLinkButton} />
-            <DeviceSettings />
+    <StreamCallProvider call={activeCall}>
+      <div className="str-video str-video__call">
+        <div className="str-video__call__main">
+          <div className="str-video__call-header">
+            <CallHeaderTitle />
+            <div className="str-video__call-header__controls-group">
+              <IconButton
+                icon="info-document"
+                title="Usage guide and known limitations"
+                onClick={() => {
+                  if (window) {
+                    window.open(
+                      USAGE_GUIDE_LINK,
+                      '_blank',
+                      'noopener,noreferrer',
+                    );
+                  }
+                }}
+              />
+              <GetInviteLinkButton Button={IconInviteLinkButton} />
+              <DeviceSettings />
+            </div>
+          </div>
+          <Stage call={activeCall} />
+          <div
+            className="str-video__call-controls"
+            data-testid="str-video__call-controls"
+          >
+            <div className="rd-call-controls-group">
+              <RecordCallButton call={activeCall} />
+              <ScreenShareButton call={activeCall} />
+              <ReactionsButton />
+            </div>
+            <div className="rd-call-controls-group">
+              <SpeakingWhileMutedNotification>
+                <ToggleAudioPublishingButton />
+              </SpeakingWhileMutedNotification>
+              <ToggleCameraPublishingButton />
+              <CancelCallButton call={activeCall} onClick={onLeave} />
+            </div>
+            <div className="rd-call-controls-group">
+              <CallStatsButton />
+              <ToggleParticipantListButton
+                enabled={showParticipants}
+                onClick={toggleParticipantList}
+              />
+              <NewMessageNotification
+                chatClient={chatClient}
+                channelWatched={channelWatched}
+                disableOnChatOpen={showChat}
+              >
+                <div className="str-chat__chat-button__wrapper">
+                  <CompositeButton caption="Chat" active={showChat}>
+                    <IconButton
+                      enabled={showChat}
+                      disabled={!chatClient}
+                      onClick={() => setShowChat((prev) => !prev)}
+                      icon="chat"
+                    />
+                  </CompositeButton>
+                  {!showChat && (
+                    <UnreadCountBadge
+                      channelWatched={channelWatched}
+                      chatClient={chatClient}
+                      channelId={callId}
+                    />
+                  )}
+                </div>
+              </NewMessageNotification>
+            </div>
           </div>
         </div>
-        <Stage call={activeCall} />
-        <div
-          className="str-video__call-controls"
-          data-testid="str-video__call-controls"
-        >
-          <div className="rd-call-controls-group">
-            <RecordCallButton call={activeCall} />
-            <ScreenShareButton call={activeCall} />
-            <ReactionsButton />
-          </div>
-          <div className="rd-call-controls-group">
-            <SpeakingWhileMutedNotification>
-              <ToggleAudioPublishingButton />
-            </SpeakingWhileMutedNotification>
-            <ToggleCameraPublishingButton />
-            <CancelCallButton call={activeCall} onClick={onLeave} />
-          </div>
-          <div className="rd-call-controls-group">
-            <CallStatsButton />
-            <ToggleParticipantListButton
-              enabled={showParticipants}
-              onClick={toggleParticipantList}
-            />
-            <NewMessageNotification
-              chatClient={chatClient}
-              channelWatched={channelWatched}
-              disableOnChatOpen={showChat}
-            >
-              <div className="str-chat__chat-button__wrapper">
-                <CompositeButton caption="Chat" active={showChat}>
-                  <IconButton
-                    enabled={showChat}
-                    disabled={!chatClient}
-                    onClick={() => setShowChat((prev) => !prev)}
-                    icon="chat"
-                  />
-                </CompositeButton>
-                {!showChat && (
-                  <UnreadCountBadge
-                    channelWatched={channelWatched}
-                    chatClient={chatClient}
+        {showSidebar && (
+          <div className="str-video__sidebar">
+            {showParticipants && (
+              <CallParticipantsList
+                onClose={hideParticipantList}
+                InviteLinkButton={InviteLinkButton}
+              />
+            )}
+
+            <ChatWrapper chatClient={chatClient}>
+              {showChat && (
+                <div className="str-video__chat">
+                  <ChatUI
+                    onClose={() => setShowChat(false)}
                     channelId={callId}
                   />
-                )}
-              </div>
-            </NewMessageNotification>
+                </div>
+              )}
+            </ChatWrapper>
           </div>
-        </div>
+        )}
       </div>
-      {showSidebar && (
-        <div className="str-video__sidebar">
-          {showParticipants && (
-            <CallParticipantsList
-              onClose={hideParticipantList}
-              InviteLinkButton={InviteLinkButton}
-            />
-          )}
-
-          <ChatWrapper chatClient={chatClient}>
-            {showChat && (
-              <div className="str-video__chat">
-                <ChatUI onClose={() => setShowChat(false)} channelId={callId} />
-              </div>
-            )}
-          </ChatWrapper>
-        </div>
-      )}
-    </div>
+      <DeviceSettingsCaptor />
+    </StreamCallProvider>
   );
 };
 

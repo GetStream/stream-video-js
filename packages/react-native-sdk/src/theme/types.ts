@@ -8,7 +8,6 @@ export type ColorScheme = {
   static_white: string;
   static_overlay: string;
   static_grey: string;
-  link_bg: string;
   disabled: string;
   text_low_emphasis: string;
   text_high_emphasis: string;

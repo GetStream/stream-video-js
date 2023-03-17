@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useCall, useCallControls } from '../hooks';
+import { useCallControls } from '../hooks/useCallControls';
+import { useHangupCall } from '../hooks/useHangupCall';
 import {
   CameraSwitch,
   Chat,
@@ -39,7 +40,7 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
     toggleAudioMuted,
     toggleCameraFacingMode,
   } = useCallControls();
-  const { hangupCall } = useCall();
+  const { hangupCall } = useHangupCall();
 
   const handleHangUpCall = useCallback(async () => {
     await hangupCall();

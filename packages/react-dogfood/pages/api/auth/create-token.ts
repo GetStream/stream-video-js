@@ -20,7 +20,6 @@ const createJwtToken = async (req: NextApiRequest, res: NextApiResponse) => {
   const {
     user_id: userId,
     api_key: apiKey,
-    exp,
     ...params
   } = req.query as Record<string, string>;
 
@@ -37,7 +36,7 @@ const createJwtToken = async (req: NextApiRequest, res: NextApiResponse) => {
     return error(res, `'user_id' is a mandatory query parameter.`);
   }
 
-  if (!exp) {
+  if (!params.exp) {
     const expiration = 3 * 60 * 60;
     params.exp = String(expiration);
   }

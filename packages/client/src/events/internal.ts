@@ -1,6 +1,6 @@
 import { Dispatcher } from '../rtc/Dispatcher';
 import { Call } from '../rtc/Call';
-import { StreamVideoWriteableStateStore } from '../store';
+import { CallState } from '../store';
 import { StreamVideoParticipantPatches } from '../rtc/types';
 
 /**
@@ -24,7 +24,7 @@ export const watchChangePublishQuality = (
 
 export const watchConnectionQualityChanged = (
   dispatcher: Dispatcher,
-  store: StreamVideoWriteableStateStore,
+  store: CallState,
 ) => {
   return dispatcher.on('connectionQualityChanged', (e) => {
     if (e.eventPayload.oneofKind !== 'connectionQualityChanged') return;

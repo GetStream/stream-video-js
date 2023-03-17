@@ -29,7 +29,7 @@ import { CallScreen } from './src/screens/Call/CallScreen';
 import JoinMeetingScreen from './src/screens/Meeting/JoinMeetingScreen';
 import JoinCallScreen from './src/screens/Call/JoinCallScreen';
 import { ChooseFlowScreen } from './src/screens/ChooseFlowScreen';
-import { CallParticipansInfoScreen } from './src/screens/Meeting/CallParticipantsInfoScreen';
+import { CallParticipantsInfoScreen } from './src/screens/Meeting/CallParticipantsInfoScreen';
 import { LobbyViewScreen } from './src/screens/Meeting/LobbyViewScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -56,7 +56,7 @@ const Meeting = () => {
       />
       <MeetingStack.Screen
         name="CallParticipantsInfoScreen"
-        component={CallParticipansInfoScreen}
+        component={CallParticipantsInfoScreen}
       />
     </MeetingStack.Navigator>
   );
@@ -87,7 +87,7 @@ const Ringing = () => {
       />
       <MeetingStack.Screen
         name="CallParticipantsInfoScreen"
-        component={CallParticipansInfoScreen}
+        component={CallParticipantsInfoScreen}
       />
     </RingingStack.Navigator>
   );
@@ -102,6 +102,50 @@ const StackNavigator = () => {
   const meetingNavigation =
     useNavigation<NativeStackNavigationProp<MeetingStackParamList>>();
 
+  const onActiveCall = React.useCallback(() => {
+    if (appMode === 'Meeting') {
+      meetingNavigation.navigate('MeetingScreen');
+    } else {
+      callNavigation.navigate('CallScreen');
+    }
+  }, [appMode, callNavigation, meetingNavigation]);
+
+  const onIncomingCall = React.useCallback(() => {
+    callNavigation.navigate('IncomingCallScreen');
+  }, [callNavigation]);
+
+  const onOutgoingCall = React.useCallback(() => {
+    callNavigation.navigate('OutgoingCallScreen');
+  }, [callNavigation]);
+
+  const onHangupCall = React.useCallback(() => {
+    if (appMode === 'Meeting') {
+      meetingNavigation.navigate('JoinMeetingScreen');
+    } else {
+      callNavigation.navigate('JoinCallScreen');
+    }
+  }, [appMode, callNavigation, meetingNavigation]);
+
+  const onRejectCall = React.useCallback(() => {
+    callNavigation.navigate('JoinCallScreen');
+  }, [callNavigation]);
+
+  const callCycleHandlers = React.useMemo(() => {
+    return {
+      onActiveCall,
+      onIncomingCall,
+      onOutgoingCall,
+      onHangupCall,
+      onRejectCall,
+    };
+  }, [
+    onActiveCall,
+    onIncomingCall,
+    onOutgoingCall,
+    onHangupCall,
+    onRejectCall,
+  ]);
+
   if (authenticationInProgress) {
     return <AuthenticatingProgressScreen />;
   }
@@ -109,22 +153,7 @@ const StackNavigator = () => {
     return <LoginScreen />;
   }
   return (
-    <StreamVideo
-      client={videoClient}
-      callCycleHandlers={{
-        onActiveCall: () =>
-          appMode === 'Meeting'
-            ? meetingNavigation.navigate('MeetingScreen')
-            : callNavigation.navigate('CallScreen'),
-        onIncomingCall: () => callNavigation.navigate('IncomingCallScreen'),
-        onOutgoingCall: () => callNavigation.navigate('OutgoingCallScreen'),
-        onHangupCall: () =>
-          appMode === 'Meeting'
-            ? meetingNavigation.navigate('JoinMeetingScreen')
-            : callNavigation.navigate('JoinCallScreen'),
-        onRejectCall: () => callNavigation.navigate('JoinCallScreen'),
-      }}
-    >
+    <StreamVideo client={videoClient} callCycleHandlers={callCycleHandlers}>
       <Stack.Navigator>
         {appMode === 'None' ? (
           <Stack.Screen

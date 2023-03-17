@@ -22,7 +22,6 @@ export const useCallControls = () => {
   const localParticipant = useLocalParticipant();
   const call = useActiveCall();
   const setState = useStreamVideoStoreSetState();
-
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
