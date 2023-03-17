@@ -26,9 +26,6 @@ rm -rf "docusaurus/docs/$SDK_DIR_IN_DOCS/03-ui/*.md/"
 rm -rf "docusaurus/docs/$SDK_DIR_IN_DOCS/03-ui/Interfaces/"
 
 mkdir generated-docs
-mkdir generated-docs/Interfaces
-mkdir temp-docs
-mkdir temp-docs/Interfaces
 
 # generate and process new docs
 
@@ -59,7 +56,7 @@ npx replace-in-file '/interfaces/g' '../Interfaces' 'temp-docs/modules.md' --isR
 npx replace-in-file '/\.md/g' '/' 'temp-docs/modules.md' --isRegex > /dev/null
 npx replace-in-file '/modules\//g' '' 'temp-docs/modules.md' --isRegex > /dev/null
 cp temp-docs/modules.md generated-docs/components.md
-cp -a temp-docs/Interfaces/. generated-docs/Interfaces/
+cp -a temp-docs/interfaces/. generated-docs/Interfaces/
 
 #copy from the temp-docs to the structure we want in docusaurus
 mkdir "docusaurus/docs/$SDK_DIR_IN_DOCS/04-call-engine"
