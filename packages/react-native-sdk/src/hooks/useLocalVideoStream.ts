@@ -5,6 +5,8 @@ import { useMediaDevices } from '../contexts/MediaDevicesContext';
 
 /**
  * A hook which provides the device's local video stream.
+ *
+ * @category Device Management
  */
 export const useLocalVideoStream = () => {
   const [videoStream, setVideoStream] = useState<MediaStream | undefined>(

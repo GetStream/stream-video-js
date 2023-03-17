@@ -7,6 +7,10 @@ import {
 } from '@stream-io/video-client';
 import { useEffect, useRef, useState } from 'react';
 
+/**
+ * Exclude types from documentaiton site, but we should still add doc comments
+ * @internal
+ */
 export type StreamVideoClientInit = {
   apiKey: string;
   tokenOrProvider: TokenOrProvider;
@@ -15,6 +19,13 @@ export type StreamVideoClientInit = {
   user: User;
 };
 
+/**
+ *
+ * @param param0
+ * @returns
+ *
+ * @category Client State
+ */
 export const useCreateStreamVideoClient = ({
   apiKey,
   tokenOrProvider,

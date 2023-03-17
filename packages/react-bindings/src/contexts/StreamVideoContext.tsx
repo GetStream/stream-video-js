@@ -6,6 +6,7 @@ const StreamVideoContext = createContext<StreamVideoClient | undefined>(
 );
 
 /**
+ * Exclude types from documentaiton site, but we should still add doc comments
  * @internal
  */
 export interface StreamVideoProps {
@@ -13,7 +14,8 @@ export interface StreamVideoProps {
 }
 
 /**
- * @internal
+ *
+ * @category Client State
  */
 export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
   const { children, client } = props;
@@ -24,6 +26,12 @@ export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
   );
 };
 
+/**
+ *
+ * @returns
+ *
+ * @category Client State
+ */
 export const useStreamVideoClient = () => {
   return useContext(StreamVideoContext);
 };
