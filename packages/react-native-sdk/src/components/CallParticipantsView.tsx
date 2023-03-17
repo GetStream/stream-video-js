@@ -1,59 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 import { ParticipantView } from './ParticipantView';
 import { LocalVideoView } from './LocalVideoView';
 import { useRemoteParticipants } from '@stream-io/video-react-bindings';
 import { StreamVideoParticipant } from '@stream-io/video-client';
-
-type SizeType = React.ComponentProps<typeof ParticipantView>['size'];
-
-enum Modes {
-  /**
-   * The modes represent the different layouts that can be used to display the participant videos.
-   * The modes are:
-   * - `full`: Full screen mode. Only one participant is shown at a time.
-   * - `half`: Half screen mode. Two participants are shown at a time.
-   * - `quarter`: Quarter screen mode. Four participants ""
-   * - `fifth`: Fifth screen mode. Five participants ""
-   */
-  full = 'full',
-  half = 'half',
-  quarter = 'quarter',
-  fifth = 'fifth',
-}
-
-const activeCallAllParticipantsLengthToMode: { [key: number]: Modes } = {
-  /**
-   * A lookup table that maps the number of all participants (inc. user)
-   * in a call to the mode that should be used to display the participants.
-   */
-  1: Modes.full,
-  2: Modes.full,
-  3: Modes.half,
-  4: Modes.quarter,
-  5: Modes.fifth,
-};
-
-const modeToSize: { [key in Modes]: SizeType | undefined } = {
-  /**
-   * A look-up table to map the mode to the size of the participant video.
-   * The size is used to determine the size of the participant video.
-   * The sizes are:
-   *  - `xl`: Full screen size.
-   *  - `large`: Half screen size.
-   *  - `medium`: Quarter screen size.
-   *  - `small`: Sixth screen size.
-   *
-   *  **Note:** The size small is only used in the `fifth` mode.
-   *  In the other modes the size is determined by the mode/number of participants.
-   */
-  [Modes.full]: 'xl',
-  [Modes.half]: 'large',
-  [Modes.quarter]: 'medium',
-  [Modes.fifth]: undefined,
-};
-
-const localVideoVisibleModes = [Modes.full, Modes.half];
 
 const putRemoteParticipantsInView = (
   remoteParticipants: StreamVideoParticipant[],
@@ -80,48 +30,79 @@ const putRemoteParticipantsInView = (
 export const CallParticipantsView = () => {
   let remoteParticipants = useRemoteParticipants();
   const isUserAloneInCall = remoteParticipants.length === 0;
-  //todo: SG add dominantSpeakerOnlyVisible mode
-  // const remoteParticipantsInView = useMemo(
-  //   () => putRemoteParticipantsInView(remoteParticipants),
-  //   [remoteParticipants],
-  // );
+
+  const participantsToDisplay = useMemo(
+    () =>
+      remoteParticipants.reduce(
+        (result: StreamVideoParticipant[][], value, i, arr) => {
+          if (i % 2 === 0) result.push(arr.slice(i, i + 2));
+          return result;
+        },
+        [],
+      ),
+    [remoteParticipants],
+  );
+  if (isUserAloneInCall) return <LocalVideoView layout={'fullscreen'} />;
 
   return (
-    <FlatList
-      data={remoteParticipants}
-      renderItem={({ item: participant }) => {
-        const { userId } = participant;
-        return (
-          <View
-            key={`${userId}/${participant.sessionId}`}
-            style={{
-              width: 200,
-              height: 200,
-              backgroundColor: 'pink',
-              margin: 8,
-            }}
-          />
-          // <ParticipantView
-          //   key={`${userId}/${participant.sessionId}`}
-          //   participant={participant}
-          //   containerStyle={styles.participantView}
-          //   kind="video"
-          // />
-        );
-      }}
-      contentContainerStyle={styles.container}
-    />
-    // <LocalVideoView layout={isUserAloneInCall ? 'fullscreen' : 'floating'} />
+    <View style={{ flex: 1, backgroundColor: 'blue' }}>
+      <LocalVideoView layout={'floating'} />
+      <FlatList
+        data={participantsToDisplay}
+        renderItem={({
+          item: [firstParticipantInRow, secondParticipantInRow],
+          index,
+        }) => {
+          return (
+            <View
+              style={{
+                flexDirection: 'row',
+                flex: 1,
+              }}
+              key={`${firstParticipantInRow.userId}/${firstParticipantInRow.sessionId}`}
+            >
+              <View
+                style={{
+                  height: 200,
+                  flex: 1,
+                  margin: 8,
+                }}
+              >
+                {firstParticipantInRow && (
+                  <ParticipantView
+                    participant={firstParticipantInRow}
+                    containerStyle={styles.participantView}
+                    kind="video"
+                  />
+                )}
+              </View>
+              <View
+                style={{
+                  height: 200,
+                  flex: 1,
+                  margin: 8,
+                }}
+              >
+                {secondParticipantInRow && (
+                  <ParticipantView
+                    participant={secondParticipantInRow}
+                    containerStyle={styles.participantView}
+                    kind="video"
+                  />
+                )}
+              </View>
+            </View>
+          );
+        }}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'green',
-  },
   participantView: {
-    width: 200,
-    height: 200,
+    flex: 1,
+    overflow: 'hidden',
+    borderRadius: 8,
   },
 });

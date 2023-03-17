@@ -10,7 +10,7 @@ export const CallParticipantsScreenView = () => {
   );
 
   return (
-    <>
+    <View style={{ backgroundColor: 'red', flex: 1 }}>
       {firstScreenSharingParticipant && (
         <View style={styles.screenShareContainer}>
           <Text>
@@ -37,7 +37,7 @@ export const CallParticipantsScreenView = () => {
           />
         )}
       />
-    </>
+    </View>
   );
 };
 
