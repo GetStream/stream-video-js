@@ -118,6 +118,19 @@ export class Publisher {
           transceiver.setCodecPreferences(codecPreferences);
         }
       }
+
+      if (trackType === TrackType.AUDIO) {
+        const codecPreferences = getPreferredCodecs(
+          'audio',
+          opts.preferredCodec!,
+        );
+        console.log('Preferred codec', opts.preferredCodec);
+        if ('setCodecPreferences' in transceiver && codecPreferences) {
+          console.log(`set codec preferences`, codecPreferences);
+          // @ts-ignore
+          transceiver.setCodecPreferences(codecPreferences);
+        }
+      }
     } else {
       transceiver.sender.track?.stop();
       await transceiver.sender.replaceTrack(track);
@@ -210,6 +223,15 @@ export class Publisher {
   private onNegotiationNeeded = async () => {
     console.log('AAA onNegotiationNeeded');
     const offer = await this.publisher.createOffer();
+    const queryParams = new URLSearchParams(location.search);
+    const isDtxEnabled = queryParams.get('dtx') === 'false' ? false : true;
+    console.log('DTX enabled', isDtxEnabled);
+    if (isDtxEnabled && offer.sdp) {
+      offer.sdp = offer.sdp.replace(
+        'useinbandfec=1',
+        'useinbandfec=1;usedtx=1',
+      );
+    }
     await this.publisher.setLocalDescription(offer);
 
     const trackInfos = this.publisher
