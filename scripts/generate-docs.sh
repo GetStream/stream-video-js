@@ -26,6 +26,7 @@ rm -rf "docusaurus/docs/$SDK_DIR_IN_DOCS/03-ui/*.md/"
 rm -rf "docusaurus/docs/$SDK_DIR_IN_DOCS/03-ui/Interfaces/"
 
 mkdir generated-docs
+mkdir generated-docs/Interfaces
 
 # generate and process new docs
 
