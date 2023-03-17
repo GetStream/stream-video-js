@@ -104,7 +104,18 @@ export const useAcceptedCall = () => {
   return useObservableValue(acceptedCall$);
 };
 
+/**
+ * Utility hook which provides call metadata (such as blocked users and own capabilities).
+ */
 export const useCallMetadata = () => {
   const { metadata$ } = useCallState();
   return useObservableValue(metadata$);
+};
+
+/**
+ * Utility hook which provides a list of call members.
+ */
+export const useCallMembers = () => {
+  const { members$ } = useCallState();
+  return useObservableValue(members$);
 };
