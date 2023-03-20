@@ -127,11 +127,11 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       {kind === 'video' && (
         <View style={styles.status}>
           <Text style={styles.userNameLabel}>{participantLabel}</Text>
-          <View style={styles.svgContainerStyle}>
-            {isAudioMuted && <MicOff color={'red'} />}
+          <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+            {isAudioMuted && <MicOff color={theme.light.error} />}
           </View>
-          <View style={styles.svgContainerStyle}>
-            {isVideoMuted && <VideoSlash color={'red'} />}
+          <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+            {isVideoMuted && <VideoSlash color={theme.light.error} />}
           </View>
         </View>
       )}
@@ -181,9 +181,6 @@ const styles = StyleSheet.create({
     ...theme.fonts.caption,
   },
   svgContainerStyle: {
-    width: 10,
-    height: 10,
-    backgroundColor: 'yellow',
     marginLeft: theme.margin.xs,
   },
   isSpeaking: {

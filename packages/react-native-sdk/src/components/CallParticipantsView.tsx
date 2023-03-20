@@ -1,24 +1,14 @@
 import React, { useMemo } from 'react';
-import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { ParticipantView } from './ParticipantView';
 import { LocalVideoView } from './LocalVideoView';
 import { useRemoteParticipants } from '@stream-io/video-react-bindings';
 import { StreamVideoParticipant } from '@stream-io/video-client';
+import { theme } from '../theme';
 
-const putRemoteParticipantsInView = (
-  remoteParticipants: StreamVideoParticipant[],
-) => {
-  const speakingParticipants = remoteParticipants.filter(
-    (participant) => participant.isDominantSpeaker || participant.isSpeaking,
-  );
-
-  const notSpeakingParticipants = remoteParticipants.filter(
-    (participant) => !participant.isSpeaking && !participant.isDominantSpeaker,
-  );
-
-  return [...speakingParticipants, ...notSpeakingParticipants];
+const PARTICIPANT_STYLE = {
+  height: 200,
 };
-
 /**
  * CallParticipantsView is a component that displays the participants in a call.
  * This component supports the rendering of up to 5 participants.
@@ -46,28 +36,18 @@ export const CallParticipantsView = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      <LocalVideoView layout={'floating'} />
+      <LocalVideoView layout={'floating'} zOrder={2} />
       <FlatList
         data={participantsToDisplay}
         renderItem={({
           item: [firstParticipantInRow, secondParticipantInRow],
-          index,
         }) => {
           return (
             <View
-              style={{
-                flexDirection: 'row',
-                flex: 1,
-              }}
+              style={styles.participantsRow}
               key={`${firstParticipantInRow.userId}/${firstParticipantInRow.sessionId}`}
             >
-              <View
-                style={{
-                  height: 200,
-                  flex: 1,
-                  margin: 8,
-                }}
-              >
+              <View style={styles.participantWrapper}>
                 {firstParticipantInRow && (
                   <ParticipantView
                     participant={firstParticipantInRow}
@@ -76,13 +56,7 @@ export const CallParticipantsView = () => {
                   />
                 )}
               </View>
-              <View
-                style={{
-                  height: 200,
-                  flex: 1,
-                  margin: 8,
-                }}
-              >
+              <View style={styles.participantWrapper}>
                 {secondParticipantInRow && (
                   <ParticipantView
                     participant={secondParticipantInRow}
@@ -100,9 +74,18 @@ export const CallParticipantsView = () => {
 };
 
 const styles = StyleSheet.create({
+  participantsRow: {
+    flexDirection: 'row',
+    flex: 1,
+  },
+  participantWrapper: {
+    height: PARTICIPANT_STYLE.height,
+    flex: 1,
+    margin: theme.margin.sm,
+  },
   participantView: {
     flex: 1,
     overflow: 'hidden',
-    borderRadius: 8,
+    borderRadius: theme.rounded.sm,
   },
 });

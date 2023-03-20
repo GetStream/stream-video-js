@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StreamCallProvider,
   useActiveCall,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
-import { StyleSheet, View } from 'react-native';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
@@ -43,6 +43,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 };
 
 const InnerActiveCall = (props: ActiveCallProps) => {
+  const [height, setHeight] = useState(0);
   const activeCall = useActiveCall();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
   const { onOpenCallParticipantsInfoView } = props;
@@ -74,20 +75,31 @@ const InnerActiveCall = (props: ActiveCallProps) => {
     }
   }, [activeCall, currentVideoDevice, isVideoMuted]);
 
+  const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
+    setHeight(
+      Math.trunc(event.nativeEvent.layout.height - theme.spacing.lg * 2),
+    );
+  };
+  console.log('height', height);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <CallParticipantsBadge
         onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
       />
-      <View style={styles.callParticipantsWrapper}>
+      <View style={[styles.callParticipantsWrapper, { paddingBottom: height }]}>
         {hasScreenShare ? (
           <CallParticipantsScreenView />
         ) : (
           <CallParticipantsView />
         )}
       </View>
-      <CallControlsView onHangupCall={onHangupCall} />
-    </View>
+      <View
+        onLayout={onLayout}
+        style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}
+      >
+        <CallControlsView onHangupCall={onHangupCall} />
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -96,9 +108,5 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.light.static_grey,
   },
-  callParticipantsWrapper: {
-    flex: 1,
-    bottom: -theme.spacing.lg,
-    paddingTop: theme.padding.lg,
-  },
+  callParticipantsWrapper: { flex: 1 },
 });

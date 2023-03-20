@@ -32,6 +32,8 @@ export interface LocalVideoViewProps {
    * @defaultValue 'floating'
    */
   layout?: 'floating' | 'fullscreen';
+
+  zOrder?: number;
 }
 
 const LOCAL_VIDEO_VIEW_POSITION_FROM_TOP = 100;
@@ -44,7 +46,7 @@ const LOCAL_VIDEO_VIEW_POSITION_FROM_TOP = 100;
  * |![local-video-view-1](https://user-images.githubusercontent.com/25864161/217491433-60848d95-1a14-422e-b4e1-7540f3ba30b4.png)|![local-video-view-2](https://user-images.githubusercontent.com/25864161/217491438-75bad10c-8850-49f5-b3bd-af22995e11c2.png)|
  */
 export const LocalVideoView = (props: LocalVideoViewProps) => {
-  const { layout = 'floating' } = props;
+  const { layout = 'floating', zOrder = 1 } = props;
   const containerStyle =
     layout === 'floating'
       ? styles.floatingContainer
@@ -75,7 +77,7 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
       mirror={isCameraOnFrontFacingMode}
       mediaStream={localParticipant.videoStream}
       style={style}
-      zOrder={2}
+      zOrder={zOrder}
     />
   );
 };

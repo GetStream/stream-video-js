@@ -1,6 +1,6 @@
 import { SfuModels } from '@stream-io/video-client';
 import { useParticipants } from '@stream-io/video-react-bindings';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { ParticipantView } from './ParticipantView';
 import { theme } from '../theme';
 
@@ -28,6 +28,7 @@ export const CallParticipantsScreenView = () => {
       )}
 
       <FlatList
+        showsHorizontalScrollIndicator={false}
         horizontal
         data={allParticipants}
         style={styles.participantVideoContainer}
