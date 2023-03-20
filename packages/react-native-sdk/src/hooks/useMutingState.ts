@@ -5,6 +5,8 @@ import {
 /**
  * A helper hook which exposes audio, video mute and camera facing mode and
  * their respective functions to toggle state
+ *
+ * @category Device Management
  */
 export const useMutingState = () => {
   const isAudioMuted = useStreamVideoStoreValue((store) => store.isAudioMuted);

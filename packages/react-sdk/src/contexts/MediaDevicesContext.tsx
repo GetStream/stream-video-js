@@ -53,6 +53,10 @@ const DEVICE_STATE_TOGGLE: Record<DeviceStateType, 'starting' | 'stopped'> = {
   error: 'starting',
 };
 
+/**
+ * Exclude types from documentaiton site, but we should still add doc comments
+ * @internal
+ */
 export const DEVICE_STATE: {
   starting: EnabledDeviceState<'starting'>;
   playing: EnabledDeviceState<'playing'>;
@@ -67,6 +71,10 @@ export const DEVICE_STATE: {
   error: { type: 'error', message: '', enabled: false },
 };
 
+/**
+ * Exclude types from documentaiton site, but we should still add doc comments
+ * @internal
+ */
 export type MediaDevicesContextAPI = {
   audioInputDevices: MediaDeviceInfo[];
   audioOutputDevices: MediaDeviceInfo[];
@@ -92,6 +100,10 @@ export type MediaDevicesContextAPI = {
 
 const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
 
+/**
+ * Exclude types from documentaiton site, but we should still add doc comments
+ * @internal
+ */
 export type MediaDevicesProviderProps = PropsWithChildren<{
   enumerate?: boolean;
   initialAudioEnabled?: boolean;
@@ -102,6 +114,13 @@ export type MediaDevicesProviderProps = PropsWithChildren<{
 }>;
 
 // todo: republish the stream, when a new default device connected
+/**
+ *
+ * @param param0
+ * @returns
+ *
+ * @category Device Management
+ */
 export const MediaDevicesProvider = ({
   children,
   enumerate = true,
@@ -321,6 +340,12 @@ export const MediaDevicesProvider = ({
   );
 };
 
+/**
+ *
+ * @returns
+ *
+ * @category Device Management
+ */
 export const useMediaDevices = () => {
   const value = useContext(MediaDevicesContext);
   if (!value) {

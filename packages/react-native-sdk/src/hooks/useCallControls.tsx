@@ -17,6 +17,8 @@ import { useMediaDevices } from '../contexts/MediaDevicesContext';
 /**
  * A helper hook which exposes audio, video mute and camera facing mode and
  * their respective functions to toggle state
+ *
+ * @category Device Management
  */
 export const useCallControls = () => {
   const localParticipant = useLocalParticipant();

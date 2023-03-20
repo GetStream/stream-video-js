@@ -26,7 +26,7 @@ coverage
 
 # Ignore generated documentation.. it can always be regenerated
 packages/react-sdk/docusaurus/docs/React/04-call-engine/
-packages/react-sdk/docusaurus/docs/React/07-reference/
+packages/react-sdk/docusaurus/docs/React/03-ui/**/*.md
 /**/generated-docs
 /**/temp-docs
 /**/docusaurus/shared

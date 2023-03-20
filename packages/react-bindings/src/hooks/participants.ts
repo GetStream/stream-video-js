@@ -3,6 +3,8 @@ import { useCallState } from './store';
 
 /**
  * A hook which provides a list of all participants that have joined an active call.
+ *
+ * @category Call State
  */
 export const useParticipants = () => {
   const { participants$ } = useCallState();
@@ -12,6 +14,8 @@ export const useParticipants = () => {
 /**
  * A hook which provides a StreamVideoLocalParticipant object.
  * It signals that I have joined a call.
+ *
+ * @category Call State
  */
 export const useLocalParticipant = () => {
   const { localParticipant$ } = useCallState();
@@ -20,6 +24,8 @@ export const useLocalParticipant = () => {
 
 /**
  * A hook which provides a list of all other participants than me that have joined an active call.
+ *
+ * @category Call State
  */
 export const useRemoteParticipants = () => {
   const { remoteParticipants$ } = useCallState();

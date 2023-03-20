@@ -1,13 +1,16 @@
 import { StreamVideoParticipant } from '@stream-io/video-client';
-import { Cross, Pin, SpotLight } from '../icons';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Cross } from '../icons';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { generateParticipantTitle } from '../utils';
 import { useCallback } from 'react';
+import { Avatar } from './Avatar';
+import { theme } from '../theme';
+type CallParticipantType = {
+  title: string;
+  icon: JSX.Element;
+};
 
-const options = [
-  { title: 'Spotlight Video', icon: <SpotLight color="#72767E" /> },
-  { title: 'Pin', icon: <Pin color="#72767E" /> },
-];
+const options: CallParticipantType[] = [];
 
 type CallParticipantOptionsType = {
   participant: StreamVideoParticipant;
@@ -27,13 +30,8 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
     <View style={styles.menu}>
       <View style={styles.participantInfo}>
         <View style={styles.userInfo}>
-          <Image
-            style={[styles.avatar]}
-            // FIXME: use real avatar from coordinator this is temporary
-            source={{
-              uri: `https://getstream.io/random_png/?id=${participant.userId}&name=${participant.userId}`,
-            }}
-          />
+          <Avatar radius={50} participant={participant} />
+
           <Text style={styles.name}>
             {generateParticipantTitle(participant.userId) +
               (participant.isLoggedInUser ? ' (You)' : '')}
@@ -41,7 +39,7 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
         </View>
 
         <Pressable style={styles.icon} onPress={onCloseParticipantOptions}>
-          <Cross color="#000000" />
+          <Cross color={theme.light.primary} />
         </Pressable>
       </View>
       <View style={styles.options}>
@@ -78,10 +76,9 @@ const styles = StyleSheet.create({
   icon: {
     height: 20,
     width: 20,
-    marginLeft: 5,
   },
   menu: {
-    backgroundColor: 'white',
+    backgroundColor: theme.light.bars,
     marginLeft: 'auto',
     marginRight: 'auto',
     marginTop: 'auto',
@@ -112,11 +109,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     marginLeft: 20,
-    color: '#000000',
+    color: theme.light.text_high_emphasis,
     fontWeight: '400',
   },
   borderBottom: {
-    borderBottomColor: '#DBDDE1',
+    borderBottomColor: theme.light.borders,
     borderBottomWidth: 1,
   },
 });

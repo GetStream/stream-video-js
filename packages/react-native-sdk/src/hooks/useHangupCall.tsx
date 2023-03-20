@@ -4,6 +4,8 @@ import { useActiveCall } from '@stream-io/video-react-bindings';
 
 /**
  * A hook which provides a list of all participants that have joined an active call.
+ *
+ * @category Call Operations
  */
 export const useHangupCall = () => {
   const activeCall = useActiveCall();
