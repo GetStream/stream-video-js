@@ -45,7 +45,7 @@ export const CallParticipantsView = () => {
   if (isUserAloneInCall) return <LocalVideoView layout={'fullscreen'} />;
 
   return (
-    <View style={{ flex: 1, backgroundColor: 'blue' }}>
+    <View style={{ flex: 1 }}>
       <LocalVideoView layout={'floating'} />
       <FlatList
         data={participantsToDisplay}

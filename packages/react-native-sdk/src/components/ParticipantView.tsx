@@ -12,6 +12,7 @@ import { Avatar } from './Avatar';
 import { useStreamVideoStoreValue } from '../contexts';
 import { MicOff, ScreenShare, VideoSlash } from '../icons';
 import { theme } from '../theme';
+import { palette } from '../theme/constants';
 /**
  * Props to be passed for the ParticipantView component.
  */
@@ -89,7 +90,10 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   );
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && styles.isSpeaking;
-  const videoOnlyStyle = !isScreenSharing && { borderColor: '#1C1E22' };
+  const videoOnlyStyle = !isScreenSharing && {
+    borderColor: palette.grey800,
+    borderWidth: 2,
+  };
 
   const participantLabel =
     participant.userId.length > 15
@@ -124,16 +128,16 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         <View style={styles.status}>
           <Text style={styles.userNameLabel}>{participantLabel}</Text>
           <View style={styles.svgContainerStyle}>
-            {isAudioMuted && <MicOff color={theme.light.error} />}
+            {isAudioMuted && <MicOff color={'red'} />}
           </View>
           <View style={styles.svgContainerStyle}>
-            {isVideoMuted && <VideoSlash color={theme.light.error} />}
+            {isVideoMuted && <VideoSlash color={'red'} />}
           </View>
         </View>
       )}
       {kind === 'screen' && (
         <View style={styles.screenViewStatus}>
-          <View style={[styles.svgContainerStyle, theme.icon.md]}>
+          <View style={[{ marginRight: theme.margin.sm }, theme.icon.md]}>
             <ScreenShare color={theme.light.static_white} />
           </View>
           <Text style={styles.userNameLabel}>
@@ -148,17 +152,10 @@ export const ParticipantView = (props: ParticipantViewProps) => {
 const styles = StyleSheet.create({
   containerBase: {
     justifyContent: 'center',
-    borderWidth: 2,
   },
   videoRenderer: {
     flex: 1,
     justifyContent: 'center',
-  },
-  screenVideoRenderer: {
-    flex: 1,
-    justifyContent: 'center',
-    borderRadius: theme.rounded.md,
-    marginLeft: theme.margin.sm,
   },
   status: {
     flexDirection: 'row',
@@ -172,12 +169,10 @@ const styles = StyleSheet.create({
   },
   screenViewStatus: {
     position: 'absolute',
-    left: theme.spacing.md,
     top: theme.spacing.md,
     padding: theme.padding.sm,
     borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
-    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -186,6 +181,9 @@ const styles = StyleSheet.create({
     ...theme.fonts.caption,
   },
   svgContainerStyle: {
+    width: 10,
+    height: 10,
+    backgroundColor: 'yellow',
     marginLeft: theme.margin.xs,
   },
   isSpeaking: {

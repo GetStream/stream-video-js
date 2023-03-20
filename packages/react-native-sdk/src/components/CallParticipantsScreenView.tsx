@@ -4,6 +4,11 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { ParticipantView } from './ParticipantView';
 import { theme } from '../theme';
 
+const PARTICIPANT_VIEW_CONTAINER_SIZE = {
+  width: 150,
+  height: 150,
+};
+
 export const CallParticipantsScreenView = () => {
   const allParticipants = useParticipants();
   const firstScreenSharingParticipant = allParticipants.find((p) =>
@@ -11,12 +16,9 @@ export const CallParticipantsScreenView = () => {
   );
 
   return (
-    <View style={{ backgroundColor: 'red', flex: 1 }}>
+    <View style={{ flex: 1, padding: theme.padding.md }}>
       {firstScreenSharingParticipant && (
         <View style={styles.screenShareContainer}>
-          <Text>
-            {firstScreenSharingParticipant.userId} is presenting their screen.
-          </Text>
           <ParticipantView
             participant={firstScreenSharingParticipant}
             containerStyle={{ flex: 1 }}
@@ -29,14 +31,20 @@ export const CallParticipantsScreenView = () => {
         horizontal
         data={allParticipants}
         style={styles.participantVideoContainer}
-        renderItem={({ item: participant }) => (
-          <ParticipantView
-            key={`${participant.userId}/${participant.sessionId}`}
-            participant={participant}
-            kind="video"
-            containerStyle={styles.participantViewContainer}
-          />
-        )}
+        renderItem={({ item: participant, index }) => {
+          const isLast = index === allParticipants.length - 1;
+          return (
+            <ParticipantView
+              key={`${participant.userId}/${participant.sessionId}`}
+              participant={participant}
+              kind="video"
+              containerStyle={[
+                styles.participantViewContainer,
+                isLast && { marginRight: 0 },
+              ]}
+            />
+          );
+        }}
       />
     </View>
   );
@@ -48,16 +56,12 @@ const styles = StyleSheet.create({
   },
   participantVideoContainer: {
     flex: 1,
-    paddingHorizontal: 8,
-    paddingTop: 8,
-    paddingBottom: 24,
-    bottom: 24,
+    paddingTop: theme.padding.lg,
   },
   participantViewContainer: {
-    width: 150,
-    height: 150,
-    marginRight: 8,
+    ...PARTICIPANT_VIEW_CONTAINER_SIZE,
+    marginRight: theme.margin.sm,
+    borderRadius: theme.rounded.sm,
     overflow: 'hidden',
-    borderRadius: 8,
   },
 });

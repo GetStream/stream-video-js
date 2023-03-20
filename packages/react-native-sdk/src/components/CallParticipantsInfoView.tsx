@@ -4,7 +4,7 @@ import {
   useActiveCall,
   useParticipants,
 } from '@stream-io/video-react-bindings';
-import { StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { MicOff, ScreenShare, VideoSlash } from '../icons';
 import React, { useState } from 'react';
 import { generateParticipantTitle } from '../utils';
@@ -98,15 +98,17 @@ const InnerCallParticipantsInfoView = () => {
 
   return (
     <>
-      {participants.map((participant) => {
-        return (
+      <FlatList
+        data={participants}
+        keyExtractor={(item) => `${item.userId}${item.sessionId}`}
+        renderItem={({ item: participant }) => (
           <CallParticipantInfoItem
             key={`${participant.userId}${participant.sessionId}`}
             participant={participant}
             setSelectedParticipant={setSelectedParticipant}
           />
-        );
-      })}
+        )}
+      />
       {selectedParticipant && (
         <View style={[StyleSheet.absoluteFill, styles.modal]}>
           <CallParticipantOptions

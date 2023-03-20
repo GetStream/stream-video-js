@@ -96,5 +96,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.light.static_grey,
   },
-  callParticipantsWrapper: { flex: 1, bottom: -24 },
+  callParticipantsWrapper: {
+    flex: 1,
+    bottom: -theme.spacing.lg,
+    paddingTop: theme.padding.lg,
+  },
 });
