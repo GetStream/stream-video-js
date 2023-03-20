@@ -17,6 +17,7 @@ export interface ParticipantBoxProps {
   isMuted?: boolean;
   call: Call;
   sinkId?: string;
+  videoKind?: 'video' | 'screen';
   indicatorsVisible?: boolean;
   setVideoElementRef?: (element: HTMLElement | null) => void;
   className?: string;
@@ -27,6 +28,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
     participant,
     isMuted = false,
     indicatorsVisible = true,
+    videoKind = 'video',
     call,
     sinkId,
     setVideoElementRef,
@@ -68,10 +70,12 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
         <Video
           call={call}
           participant={participant}
-          kind="video"
+          kind={videoKind}
           setVideoElementRef={setVideoElementRef}
           className={clsx('str-video__remote-video', {
-            'str-video__remote-video--mirror': isLocalParticipant,
+            'str-video__remote-video--mirror':
+              isLocalParticipant && videoKind === 'video',
+            'str-video__screen-share': videoKind === 'screen',
           })}
           muted={isMuted}
           autoPlay

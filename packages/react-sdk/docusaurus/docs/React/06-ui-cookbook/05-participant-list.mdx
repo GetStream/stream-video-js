@@ -194,15 +194,20 @@ import { useSpotlightParticipant } from './SpeakerView';
 
 /**
  * Sorts participants so that:
- * - the dominant speaker is first,
+ *  - the presenter is first,
+ * - the dominant speaker is next,
  * - then video, then audio, then the rest.
  */
 export const useSortedParticipants = () => {
-  const participants = useParticipants();
   const participantInSpotlight = useSpotlightParticipant();
+  const participants = useParticipants();
   const otherParticipants = useMemo(() => {
     return participants
-      .filter((p) => p !== participantInSpotlight)
+      .filter(
+        (p) =>
+          hasScreenShare(participantInSpotlight) ||
+          p !== participantInSpotlight,
+      )
       .sort((a, b) => {
         if (hasScreenShare(a) && !hasScreenShare(b)) return -1;
         if (!hasScreenShare(a) && hasScreenShare(b)) return 1;
@@ -233,6 +238,7 @@ import { PropsWithChildren } from 'react';
 import {
   CancelCallButton,
   ParticipantBox,
+  ScreenShareButton,
   SpeakingWhileMutedNotification,
   ToggleAudioPublishingButton,
   ToggleCameraPublishingButton,
@@ -274,6 +280,7 @@ export const SpeakerView = () => {
       </div>
 
       <CustomCallControls>
+        <ScreenShareButton call={call} />
         <SpeakingWhileMutedNotification>
           <ToggleAudioPublishingButton />
         </SpeakingWhileMutedNotification>

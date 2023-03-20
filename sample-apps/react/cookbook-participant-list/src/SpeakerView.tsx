@@ -2,6 +2,7 @@ import { PropsWithChildren, useMemo } from 'react';
 import {
   CancelCallButton,
   ParticipantBox,
+  ScreenShareButton,
   SfuModels,
   SpeakingWhileMutedNotification,
   StreamVideoParticipant,
@@ -18,6 +19,10 @@ export const SpeakerView = () => {
   const call = useCall()!;
   const [participantInSpotlight, ...otherParticipants] =
     useSortedParticipants();
+
+  const isScreenSharing = participantInSpotlight?.publishedTracks.includes(
+    SfuModels.TrackType.SCREEN_SHARE,
+  );
   return (
     <div className="speaker-view">
       {otherParticipants.length > 0 && (
@@ -38,11 +43,16 @@ export const SpeakerView = () => {
 
       <div className="spotlight">
         {participantInSpotlight && (
-          <ParticipantBox participant={participantInSpotlight} call={call} />
+          <ParticipantBox
+            participant={participantInSpotlight}
+            call={call}
+            videoKind={isScreenSharing ? 'screen' : 'video'}
+          />
         )}
       </div>
 
       <CustomCallControls>
+        <ScreenShareButton call={call} />
         <SpeakingWhileMutedNotification>
           <ToggleAudioPublishingButton />
         </SpeakingWhileMutedNotification>
@@ -64,7 +74,8 @@ const CustomCallControls = ({ children }: PropsWithChildren<{}>) => {
 
 /**
  * Sorts participants so that:
- * - the dominant speaker is first,
+ *  - the presenter is first,
+ * - the dominant speaker is next,
  * - then video, then audio, then the rest.
  */
 export const useSortedParticipants = () => {
@@ -72,8 +83,11 @@ export const useSortedParticipants = () => {
   const participants = useParticipants();
   const otherParticipants = useMemo(() => {
     return participants
-
-      .filter((p) => p !== participantInSpotlight)
+      .filter(
+        (p) =>
+          hasScreenShare(participantInSpotlight) ||
+          p !== participantInSpotlight,
+      )
       .sort((a, b) => {
         if (hasScreenShare(a) && !hasScreenShare(b)) return -1;
         if (!hasScreenShare(a) && hasScreenShare(b)) return 1;
