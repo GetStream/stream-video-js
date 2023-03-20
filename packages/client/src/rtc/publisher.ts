@@ -18,6 +18,7 @@ export type PublisherOpts = {
   rpcClient: StreamSfuClient;
   connectionConfig?: RTCConfiguration;
   isDtxEnabled: boolean;
+  isRedEnabled: boolean;
 };
 
 /**
@@ -46,8 +47,14 @@ export class Publisher {
     [TrackType.UNSPECIFIED]: undefined,
   };
   private isDtxEnabled: boolean;
+  private isRedEnabled: boolean;
 
-  constructor({ connectionConfig, rpcClient, isDtxEnabled }: PublisherOpts) {
+  constructor({
+    connectionConfig,
+    rpcClient,
+    isDtxEnabled,
+    isRedEnabled,
+  }: PublisherOpts) {
     const pc = new RTCPeerConnection(connectionConfig);
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
@@ -65,6 +72,7 @@ export class Publisher {
     this.publisher = pc;
     this.rpcClient = rpcClient;
     this.isDtxEnabled = isDtxEnabled;
+    this.isRedEnabled = isRedEnabled;
   }
 
   /**
@@ -268,10 +276,13 @@ export class Publisher {
           layers: layers,
           trackType,
           mid: transceiver.mid || '',
+          dtxEnabled: this.isDtxEnabled,
+          redEnabled: this.isRedEnabled,
         };
       });
 
     // TODO debounce for 250ms
+    console.log('Track infos', trackInfos);
     const response = await this.rpcClient.setPublisher({
       sdp: offer.sdp || '',
       tracks: trackInfos,

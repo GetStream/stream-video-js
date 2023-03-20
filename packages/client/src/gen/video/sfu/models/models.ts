@@ -201,6 +201,14 @@ export interface TrackInfo {
      * @generated from protobuf field: string mid = 6;
      */
     mid: string;
+    /**
+     * @generated from protobuf field: bool dtx_enabled = 7;
+     */
+    dtxEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool red_enabled = 8;
+     */
+    redEnabled: boolean;
 }
 /**
  * todo remove this
@@ -257,6 +265,10 @@ export interface Error {
      * @generated from protobuf field: string message = 2;
      */
     message: string;
+    /**
+     * @generated from protobuf field: bool should_retry = 3;
+     */
+    shouldRetry: boolean;
 }
 /**
  * @generated from protobuf enum stream.video.sfu.models.PeerType
@@ -372,6 +384,22 @@ export enum ErrorCode {
      * @generated from protobuf enum value: ERROR_CODE_CALL_NOT_FOUND = 300;
      */
     CALL_NOT_FOUND = 300,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_REQUEST_VALIDATION_FAILED = 400;
+     */
+    REQUEST_VALIDATION_FAILED = 400,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_UNAUTHENTICATED = 401;
+     */
+    UNAUTHENTICATED = 401,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_PERMISSION_DENIED = 403;
+     */
+    PERMISSION_DENIED = 403,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_TOO_MANY_REQUESTS = 429;
+     */
+    TOO_MANY_REQUESTS = 429,
     /**
      * @generated from protobuf enum value: ERROR_CODE_INTERNAL_SERVER_ERROR = 500;
      */
@@ -889,11 +917,13 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
             { no: 1, name: "track_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "track_type", kind: "enum", T: () => ["stream.video.sfu.models.TrackType", TrackType, "TRACK_TYPE_"] },
             { no: 5, name: "layers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => VideoLayer },
-            { no: 6, name: "mid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 6, name: "mid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "dtx_enabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 8, name: "red_enabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<TrackInfo>): TrackInfo {
-        const message = { trackId: "", trackType: 0, layers: [], mid: "" };
+        const message = { trackId: "", trackType: 0, layers: [], mid: "", dtxEnabled: false, redEnabled: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<TrackInfo>(this, message, value);
@@ -915,6 +945,12 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
                     break;
                 case /* string mid */ 6:
                     message.mid = reader.string();
+                    break;
+                case /* bool dtx_enabled */ 7:
+                    message.dtxEnabled = reader.bool();
+                    break;
+                case /* bool red_enabled */ 8:
+                    message.redEnabled = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -940,6 +976,12 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
         /* string mid = 6; */
         if (message.mid !== "")
             writer.tag(6, WireType.LengthDelimited).string(message.mid);
+        /* bool dtx_enabled = 7; */
+        if (message.dtxEnabled !== false)
+            writer.tag(7, WireType.Varint).bool(message.dtxEnabled);
+        /* bool red_enabled = 8; */
+        if (message.redEnabled !== false)
+            writer.tag(8, WireType.Varint).bool(message.redEnabled);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1044,11 +1086,12 @@ class Error$Type extends MessageType<Error> {
     constructor() {
         super("stream.video.sfu.models.Error", [
             { no: 1, name: "code", kind: "enum", T: () => ["stream.video.sfu.models.ErrorCode", ErrorCode, "ERROR_CODE_"] },
-            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "should_retry", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Error>): Error {
-        const message = { code: 0, message: "" };
+        const message = { code: 0, message: "", shouldRetry: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Error>(this, message, value);
@@ -1064,6 +1107,9 @@ class Error$Type extends MessageType<Error> {
                     break;
                 case /* string message */ 2:
                     message.message = reader.string();
+                    break;
+                case /* bool should_retry */ 3:
+                    message.shouldRetry = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1083,6 +1129,9 @@ class Error$Type extends MessageType<Error> {
         /* string message = 2; */
         if (message.message !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.message);
+        /* bool should_retry = 3; */
+        if (message.shouldRetry !== false)
+            writer.tag(3, WireType.Varint).bool(message.shouldRetry);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

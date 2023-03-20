@@ -237,11 +237,27 @@ export class Call {
       const queryParams = new URLSearchParams(window.location.search);
       isDtxEnabled = queryParams.get('dtx') === 'false' ? false : isDtxEnabled;
     }
+    let preferredCodec =
+      audioSettings?.redundant_coding_enabled === undefined
+        ? 'opus'
+        : audioSettings.redundant_coding_enabled
+        ? 'red'
+        : 'opus';
+    if (
+      typeof window !== 'undefined' &&
+      window.location &&
+      window.location.search
+    ) {
+      const queryParams = new URLSearchParams(window.location.search);
+      preferredCodec = queryParams.get('codec') || preferredCodec;
+    }
     console.log('DTX enabled', isDtxEnabled);
+    console.log('Preferred codec', preferredCodec);
     this.publisher = new Publisher({
       rpcClient: sfuClient,
       connectionConfig: call.connectionConfig,
       isDtxEnabled,
+      isRedEnabled: preferredCodec === 'red',
     });
 
     this.statsReporter = createStatsReporter({
