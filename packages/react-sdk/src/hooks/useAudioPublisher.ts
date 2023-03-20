@@ -4,6 +4,7 @@ import {
   disposeOfMediaStream,
   getAudioStream,
   SfuModels,
+  watchForAddedDefaultAudioDevice,
   watchForDisconnectedAudioDevice,
 } from '@stream-io/video-client';
 import { map } from 'rxjs';
@@ -105,9 +106,28 @@ export const useAudioPublisher = ({
     if (!participant?.audioStream || !call || !isPublishingAudio) return;
 
     const [track] = participant.audioStream.getAudioTracks();
+    const selectedAudioDeviceId = track.getSettings().deviceId;
+
+    const republishDefaultDevice = watchForAddedDefaultAudioDevice().subscribe(
+      async () => {
+        if (
+          !(
+            call &&
+            participant?.audioStream &&
+            selectedAudioDeviceId === 'default'
+          )
+        )
+          return;
+        // We need to stop the original track first in order
+        // we can retrieve the new default device stream
+        track.stop();
+        const audioStream = await getAudioStream('default');
+        await call.publishAudioStream(audioStream);
+      },
+    );
+
     const handleTrackEnded = async () => {
-      const endedTrackDeviceId = track.getSettings().deviceId;
-      if (endedTrackDeviceId === audioDeviceId) {
+      if (selectedAudioDeviceId === audioDeviceId) {
         const audioStream = await getAudioStream(audioDeviceId);
         await call.publishAudioStream(audioStream);
       }
@@ -116,6 +136,7 @@ export const useAudioPublisher = ({
     track.addEventListener('ended', handleTrackEnded);
     return () => {
       track.removeEventListener('ended', handleTrackEnded);
+      republishDefaultDevice.unsubscribe();
     };
   }, [audioDeviceId, call, participant?.audioStream, isPublishingAudio]);
 
