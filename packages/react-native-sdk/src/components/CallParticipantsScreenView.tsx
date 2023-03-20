@@ -2,6 +2,7 @@ import { SfuModels } from '@stream-io/video-client';
 import { useParticipants } from '@stream-io/video-react-bindings';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { ParticipantView } from './ParticipantView';
+import { theme } from '../theme';
 
 export const CallParticipantsScreenView = () => {
   const allParticipants = useParticipants();

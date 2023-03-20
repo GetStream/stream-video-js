@@ -15,6 +15,8 @@ export const useStore = () => {
 
 /**
  * Utility hook which provides the current call's state.
+ *
+ * @category Call State
  */
 export const useCallState = () => {
   const call = useCall();

@@ -22,6 +22,12 @@ type MediaDeviceInfo = {
   label: string;
 };
 
+/**
+ * Exclude types from documentaiton site, but we should still add doc comments
+ * @internal
+ *
+ * @category Device Management
+ */
 export type MediaDevicesContextAPI = {
   audioDevice?: MediaDeviceInfo;
   currentVideoDevice?: MediaDeviceInfo;
@@ -35,6 +41,12 @@ export type MediaDevicesContextAPI = {
 
 const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
 
+/**
+ *
+ * @returns
+ *
+ * @category Device Management
+ */
 export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
@@ -81,6 +93,12 @@ export const MediaDevicesProvider = (props: PropsWithChildren<{}>) => {
   );
 };
 
+/**
+ *
+ * @returns
+ *
+ * @category Device Management
+ */
 export const useMediaDevices = () => {
   const value = useContext(MediaDevicesContext);
   if (!value) {

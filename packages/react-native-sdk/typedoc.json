@@ -1,14 +1,13 @@
 {
   "plugin": ["typedoc-plugin-markdown"],
+  "cleanOutputDir": true,
+  "out": "temp-docs",
   "entryPoints": ["./index.ts"],
-  "externalPattern": ["**/node_modules/**", "**/dist/**"],
-  "excludeExternals": true,
+  "excludePrivate": true,
   "excludeInternal": true,
   "hideBreadcrumbs": true,
   "hideInPageTOC": true,
-  "cleanOutputDir": true,
-  "excludePrivate": true,
-  "out": "temp-docs",
   "logLevel": "Error",
-  "tsconfig": "./tsconfig.json"
+  "tsconfig": "./tsconfig.json",
+  "categorizeByGroup": false
 }

@@ -25,22 +25,24 @@ export const OutgoingCallView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cancelCall]);
 
+  const muteStatusColor = (status: boolean) => {
+    return status ? theme.light.overlay_dark : theme.light.static_white;
+  };
+
   return (
     <>
       <View style={[StyleSheet.absoluteFill, styles.container]}>
-        <UserInfoView />
-        <Text style={styles.callingText}>Calling...</Text>
-        <View style={styles.buttons}>
+        <View style={styles.content}>
+          <UserInfoView />
+          <Text style={styles.callingText}>Calling...</Text>
+        </View>
+        <View style={styles.buttonGroup}>
           <View style={styles.deviceControlButtons}>
             <CallControlsButton
               onPress={toggleAudioState}
-              color={
-                isAudioMuted
-                  ? theme.light.overlay_dark
-                  : theme.light.static_white
-              }
-              style={styles.buttonStyle}
-              svgContainerStyle={styles.svgStyle}
+              color={muteStatusColor(isAudioMuted)}
+              style={[styles.button, theme.button.lg]}
+              svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
             >
               {isAudioMuted ? (
                 <MicOff color={theme.light.static_white} />
@@ -50,13 +52,9 @@ export const OutgoingCallView = () => {
             </CallControlsButton>
             <CallControlsButton
               onPress={toggleVideoState}
-              color={
-                isVideoMuted
-                  ? theme.light.overlay_dark
-                  : theme.light.static_white
-              }
-              style={styles.buttonStyle}
-              svgContainerStyle={styles.svgStyle}
+              color={muteStatusColor(isVideoMuted)}
+              style={[styles.button, theme.button.lg]}
+              svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
             >
               {isVideoMuted ? (
                 <VideoSlash color={theme.light.static_white} />
@@ -69,8 +67,8 @@ export const OutgoingCallView = () => {
           <CallControlsButton
             onPress={hangupCallHandler}
             color={theme.light.error}
-            style={[styles.buttonStyle, styles.hangupButton]}
-            svgContainerStyle={styles.svgStyle}
+            style={[styles.button, styles.hangupButton, theme.button.lg]}
+            svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
           >
             <PhoneDown color={theme.light.static_white} />
           </CallControlsButton>
@@ -99,40 +97,33 @@ const Background = () => {
 
 const styles = StyleSheet.create({
   container: {
-    zIndex: 2,
+    zIndex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    paddingVertical: 2 * theme.margin.xl,
   },
   background: {
     backgroundColor: theme.light.static_grey,
   },
+  content: {},
   callingText: {
-    fontSize: 20,
-    marginTop: 16,
+    marginTop: theme.margin.md,
     textAlign: 'center',
     color: theme.light.static_white,
-    fontWeight: '600',
+    ...theme.fonts.heading6,
   },
-  buttons: {
-    position: 'absolute',
-    bottom: 90,
-    width: '100%',
-  },
+  buttonGroup: {},
   deviceControlButtons: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 20,
+    marginBottom: theme.margin.md,
   },
   hangupButton: {
     alignSelf: 'center',
   },
-  buttonStyle: {
-    height: 70,
-    width: 70,
-    borderRadius: 70,
-  },
-  svgStyle: {
-    height: 30,
-    width: 30,
-  },
+  button: {},
+  svgContainerStyle: {},
   stream: {
     flex: 1,
   },

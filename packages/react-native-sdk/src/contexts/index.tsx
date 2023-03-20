@@ -6,3 +6,4 @@ import {
 export { useStreamVideoStoreSetState, useStreamVideoStoreValue };
 
 export * from './CallCycleContext';
+export * from './MediaDevicesContext';

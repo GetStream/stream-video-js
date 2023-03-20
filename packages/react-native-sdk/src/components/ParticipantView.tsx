@@ -123,17 +123,17 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       {kind === 'video' && (
         <View style={styles.status}>
           <Text style={styles.userNameLabel}>{participantLabel}</Text>
-          <View style={styles.svgWrapper}>
+          <View style={styles.svgContainerStyle}>
             {isAudioMuted && <MicOff color={theme.light.error} />}
           </View>
-          <View style={styles.svgWrapper}>
+          <View style={styles.svgContainerStyle}>
             {isVideoMuted && <VideoSlash color={theme.light.error} />}
           </View>
         </View>
       )}
       {kind === 'screen' && (
         <View style={styles.screenViewStatus}>
-          <View style={[styles.svgWrapper, styles.screenShareIcon]}>
+          <View style={[styles.svgContainerStyle, theme.icon.md]}>
             <ScreenShare color={theme.light.static_white} />
           </View>
           <Text style={styles.userNameLabel}>
@@ -157,41 +157,36 @@ const styles = StyleSheet.create({
   screenVideoRenderer: {
     flex: 1,
     justifyContent: 'center',
-    borderRadius: 16,
-    marginLeft: 8,
+    borderRadius: theme.rounded.md,
+    marginLeft: theme.margin.sm,
   },
   status: {
     flexDirection: 'row',
     alignItems: 'center',
     position: 'absolute',
-    left: 6,
-    bottom: 6,
-    padding: 6,
-    borderRadius: 6,
+    left: theme.spacing.sm,
+    bottom: theme.spacing.sm,
+    padding: theme.padding.sm,
+    borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
   },
   screenViewStatus: {
     position: 'absolute',
-    left: 8,
-    top: 8,
-    padding: 4,
-    borderRadius: 6,
+    left: theme.spacing.md,
+    top: theme.spacing.md,
+    padding: theme.padding.sm,
+    borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
   },
-  screenShareIcon: {
-    marginRight: 5,
-  },
   userNameLabel: {
     color: theme.light.static_white,
-    fontSize: 12,
+    ...theme.fonts.caption,
   },
-  svgWrapper: {
-    height: 16,
-    width: 16,
-    marginLeft: 6,
+  svgContainerStyle: {
+    marginLeft: theme.margin.xs,
   },
   isSpeaking: {
     borderColor: theme.light.primary,

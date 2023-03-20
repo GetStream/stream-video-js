@@ -6,6 +6,8 @@ import { SfuModels } from '@stream-io/video-client';
 import { useStreamVideoStoreValue } from '../contexts';
 import { theme } from '../theme';
 import { VideoSlash } from '../icons';
+import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
+
 /**
  * Props to be passed for the LocalVideoView component.
  */
@@ -17,9 +19,9 @@ export interface LocalVideoViewProps {
    *     position: 'absolute',
    *     height: 140,
    *     width: 80,
-   *     right: 20,
+   *     right: 2 * theme.spacing.lg,
    *     top: 100,
-   *     borderRadius: 10,
+   *     borderRadius: theme.rounded.sm,
    *     zIndex: 1,
    *   }`
    */
@@ -31,6 +33,8 @@ export interface LocalVideoViewProps {
    */
   layout?: 'floating' | 'fullscreen';
 }
+
+const LOCAL_VIDEO_VIEW_POSITION_FROM_TOP = 100;
 
 /**
  * Shows a floating participant UI that can be dragged (to be implemented) within certain bounds.
@@ -79,11 +83,11 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
 const styles = StyleSheet.create({
   floatingContainer: {
     position: 'absolute',
-    height: 140,
-    width: 80,
-    right: 20,
-    top: 100,
-    borderRadius: 10,
+    height: LOCAL_VIDEO_VIEW_STYLE.height,
+    width: LOCAL_VIDEO_VIEW_STYLE.width,
+    right: theme.spacing.lg * 2,
+    top: LOCAL_VIDEO_VIEW_POSITION_FROM_TOP,
+    borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius,
     zIndex: 1,
     overflow: 'hidden',
     backgroundColor: theme.light.disabled,
