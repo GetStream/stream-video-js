@@ -120,7 +120,7 @@ export const App = () => {
 };
 ```
 
-Behind the scenes, the `<StreamMeeting />` component will set up and join a new [Call](./Call.md) instance
+Behind the scenes, the `<StreamMeeting />` component will set up and join a new [Call](./Call.md) instance,
 and it will expose down in the component tree through a React Context the [CallState](./CallState.md) object.
 
 You can read more about this mechanism as part of our [React Bindings and Hooks documentation](./ReactSDK.md).
@@ -131,7 +131,6 @@ Now that we have successfully set up the React Video SDK and joined the call, we
 For that purpose, we are going to utilize some of the fundamental React Video SDK components and hooks.
 
 - `<ParticipantBox />` - A component that renders a video stream of a participant.
-- `<CallControls />` - A component that renders the call controls (mute/unmute audio, mute/unmute video).
 - `useCall()` - A hook that returns the current call instance. You can use this hook to access the call state and call methods.
 - `useParticipants()` - A hook that returns the list of all participants in the call.
 - `useDominantSpeaker()` - A hook that returns the current dominant speaker in the call.
