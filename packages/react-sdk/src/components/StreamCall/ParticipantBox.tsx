@@ -58,6 +58,8 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
       className={clsx(
         'str-video__participant',
         isSpeaking && 'str-video__participant--speaking',
+        !hasVideo && 'str-video__participant--no-video',
+        !hasAudio && 'str-video__participant--no-audio',
         className,
       )}
     >

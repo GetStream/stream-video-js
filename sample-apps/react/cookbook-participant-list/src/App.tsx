@@ -1,0 +1,53 @@
+import './App.scss';
+import { createTheme, ThemeProvider } from '@mui/material';
+import { CallSetup } from './CallSetup';
+import { useEffect, useState } from 'react';
+import {
+  StreamMeeting,
+  StreamVideo,
+  useCreateStreamVideoClient,
+} from '@stream-io/video-react-sdk';
+import { SpeakerView } from './SpeakerView';
+
+const theme = createTheme({
+  palette: {
+    mode: 'dark',
+  },
+});
+
+const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
+const token = import.meta.env.VITE_STREAM_TOKEN as string;
+const userId = import.meta.env.VITE_USER_ID as string;
+
+const App = () => {
+  const [callId, setCallId] = useState<string>();
+  const client = useCreateStreamVideoClient({
+    apiKey,
+    tokenOrProvider: token,
+    user: {
+      id: userId,
+    },
+  });
+
+  useEffect(() => {
+    if (!callId) return;
+    window.location.hash = `call_id=${callId}`;
+  }, [callId]);
+
+  return (
+    <main className="main-container str-video">
+      <ThemeProvider theme={theme}>
+        {!callId && <CallSetup onJoin={setCallId} />}
+        {callId && (
+          <StreamVideo client={client}>
+            <StreamMeeting callId={callId} callType="default">
+              <SpeakerView />
+            </StreamMeeting>
+          </StreamVideo>
+        )}
+      </ThemeProvider>
+    </main>
+  );
+};
+
+export default App;

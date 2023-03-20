@@ -1,3 +1,4 @@
+import { CallState } from '@stream-io/video-client';
 import { useCall, useStreamVideoClient } from '../contexts';
 
 /**
@@ -20,10 +21,7 @@ export const useStore = () => {
  */
 export const useCallState = () => {
   const call = useCall();
-  if (!call) {
-    throw new Error(
-      `Call isn't initialized or this hook is called outside of <StreamCallProvider> context.`,
-    );
-  }
-  return call.state;
+  // return an empty and unlinked CallState object if there is no call in the provider
+  // this ensures that the hooks always return a value and many null checks can be avoided
+  return call?.state || new CallState();
 };
