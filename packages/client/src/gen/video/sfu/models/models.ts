@@ -257,6 +257,10 @@ export interface Error {
      * @generated from protobuf field: string message = 2;
      */
     message: string;
+    /**
+     * @generated from protobuf field: bool should_retry = 3;
+     */
+    shouldRetry: boolean;
 }
 /**
  * @generated from protobuf enum stream.video.sfu.models.PeerType
@@ -372,6 +376,22 @@ export enum ErrorCode {
      * @generated from protobuf enum value: ERROR_CODE_CALL_NOT_FOUND = 300;
      */
     CALL_NOT_FOUND = 300,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_REQUEST_VALIDATION_FAILED = 400;
+     */
+    REQUEST_VALIDATION_FAILED = 400,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_UNAUTHENTICATED = 401;
+     */
+    UNAUTHENTICATED = 401,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_PERMISSION_DENIED = 403;
+     */
+    PERMISSION_DENIED = 403,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_TOO_MANY_REQUESTS = 429;
+     */
+    TOO_MANY_REQUESTS = 429,
     /**
      * @generated from protobuf enum value: ERROR_CODE_INTERNAL_SERVER_ERROR = 500;
      */
@@ -1044,11 +1064,12 @@ class Error$Type extends MessageType<Error> {
     constructor() {
         super("stream.video.sfu.models.Error", [
             { no: 1, name: "code", kind: "enum", T: () => ["stream.video.sfu.models.ErrorCode", ErrorCode, "ERROR_CODE_"] },
-            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "should_retry", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Error>): Error {
-        const message = { code: 0, message: "" };
+        const message = { code: 0, message: "", shouldRetry: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Error>(this, message, value);
@@ -1064,6 +1085,9 @@ class Error$Type extends MessageType<Error> {
                     break;
                 case /* string message */ 2:
                     message.message = reader.string();
+                    break;
+                case /* bool should_retry */ 3:
+                    message.shouldRetry = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1083,6 +1107,9 @@ class Error$Type extends MessageType<Error> {
         /* string message = 2; */
         if (message.message !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.message);
+        /* bool should_retry = 3; */
+        if (message.shouldRetry !== false)
+            writer.tag(3, WireType.Varint).bool(message.shouldRetry);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
