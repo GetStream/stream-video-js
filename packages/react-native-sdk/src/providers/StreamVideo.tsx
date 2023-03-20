@@ -5,7 +5,10 @@ import {
 import React, { PropsWithChildren } from 'react';
 import { Provider } from '../contexts/StreamVideoContext';
 import { MediaDevicesProvider } from '../contexts/MediaDevicesContext';
-import { CallCycleHandlersType, CallCycleProvider } from '../contexts';
+import {
+  CallCycleProvider,
+  CallCycleHandlersType,
+} from '../contexts/CallCycleContext';
 
 /**
  *

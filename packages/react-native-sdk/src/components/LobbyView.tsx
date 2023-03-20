@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
 import {
@@ -15,6 +15,7 @@ import { useLocalVideoStream } from '../hooks';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
 import { StreamVideoParticipant } from '@stream-io/video-client';
+import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -33,12 +34,12 @@ const ParticipantStatus = () => {
     <View style={styles.status}>
       <Text style={styles.userNameLabel}>{connectedUser?.id}</Text>
       {isAudioMuted && (
-        <View style={styles.svgWrapper}>
+        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
           <MicOff color={theme.light.error} />
         </View>
       )}
       {isVideoMuted && (
-        <View style={styles.svgWrapper}>
+        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
           {isVideoMuted && <VideoSlash color={theme.light.error} />}
         </View>
       )}
@@ -92,54 +93,67 @@ export const LobbyView = (props: LobbyViewProps) => {
     name: connectedUser?.name,
   } as StreamVideoParticipant;
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Before Joining</Text>
-      <Text style={styles.subHeading}>Setup your audio and video</Text>
-      <View style={styles.videoView}>
-        {isVideoAvailable ? (
-          <VideoRenderer
-            mirror={isCameraOnFrontFacingMode}
-            mediaStream={localVideoStream}
-            objectFit="cover"
-            style={styles.stream}
-          />
-        ) : (
-          <Avatar participant={connectedUserAsParticipant} />
-        )}
-        <ParticipantStatus />
-      </View>
+  const muteStatusColor = (status: boolean) => {
+    return !status ? theme.light.static_white : theme.light.static_black;
+  };
 
-      <View style={styles.buttons}>
-        <CallControlsButton
-          onPress={toggleAudioState}
-          color={
-            !isAudioMuted ? theme.light.static_white : theme.light.static_black
-          }
-          style={styles.button}
-        >
-          {MicIcon}
-        </CallControlsButton>
-        <CallControlsButton
-          onPress={toggleVideoState}
-          color={
-            !isVideoMuted ? theme.light.static_white : theme.light.static_black
-          }
-          style={styles.button}
-        >
-          {VideoIcon}
-        </CallControlsButton>
+  return (
+    <SafeAreaView style={[styles.container, StyleSheet.absoluteFillObject]}>
+      <View style={styles.content}>
+        <Text style={styles.heading}>Before Joining</Text>
+        <Text style={styles.subHeading}>Setup your audio and video</Text>
+        <View style={styles.videoView}>
+          {isVideoAvailable ? (
+            <VideoRenderer
+              mirror={isCameraOnFrontFacingMode}
+              mediaStream={localVideoStream}
+              objectFit="cover"
+              style={styles.stream}
+            />
+          ) : (
+            <Avatar participant={connectedUserAsParticipant} />
+          )}
+          <ParticipantStatus />
+        </View>
+        <View style={styles.buttonGroup}>
+          <CallControlsButton
+            onPress={toggleAudioState}
+            color={muteStatusColor(isAudioMuted)}
+            style={[
+              styles.button,
+              theme.button.md,
+              {
+                shadowColor: muteStatusColor(isAudioMuted),
+              },
+            ]}
+          >
+            {MicIcon}
+          </CallControlsButton>
+          <CallControlsButton
+            onPress={toggleVideoState}
+            color={muteStatusColor(isVideoMuted)}
+            style={[
+              styles.button,
+              theme.button.md,
+              {
+                shadowColor: muteStatusColor(isVideoMuted),
+              },
+            ]}
+          >
+            {VideoIcon}
+          </CallControlsButton>
+        </View>
+        <View style={styles.info}>
+          <Text style={styles.infoText}>
+            You are about to join a test call at Stream. 3 more people are in
+            the call now.
+          </Text>
+          <Pressable style={styles.joinButton} onPress={joinCallHandler}>
+            <Text style={styles.joinButtonText}>Join</Text>
+          </Pressable>
+        </View>
       </View>
-      <View style={styles.info}>
-        <Text style={styles.infoText}>
-          You are about to join a test call at Stream. 3 more people are in the
-          call now.
-        </Text>
-        <Pressable style={styles.joinButton} onPress={joinCallHandler}>
-          <Text style={styles.joinButtonText}>Join</Text>
-        </Pressable>
-      </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -147,98 +161,87 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: theme.light.static_grey,
     justifyContent: 'center',
-    flex: 1,
   },
   content: {
-    position: 'absolute',
-    bottom: 10,
+    width: '100%',
+    alignItems: 'center',
+    bottom: theme.spacing.lg,
+    marginVertical: theme.margin.md,
+    paddingHorizontal: theme.padding.md,
   },
   heading: {
     color: theme.light.static_white,
-    fontSize: 40,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    ...theme.fonts.heading4,
   },
   stream: {
-    height: '100%',
-    width: '100%',
+    flex: 1,
   },
   subHeading: {
     color: theme.light.text_low_emphasis,
-    fontSize: 20,
-    textAlign: 'center',
+    ...theme.fonts.subtitle,
+    marginBottom: theme.margin.sm,
   },
   videoView: {
     backgroundColor: theme.light.disabled,
-    height: 280,
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    marginVertical: 30,
-    borderRadius: 20,
+    height: LOCAL_VIDEO_VIEW_STYLE.height * 2,
+    borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius * 2,
     justifyContent: 'center',
     overflow: 'hidden',
-    width: '90%',
+    marginVertical: theme.margin.md,
+    width: '100%',
   },
-  buttons: {
+  buttonGroup: {
     flexDirection: 'row',
     justifyContent: 'center',
+    marginBottom: theme.margin.md,
   },
   button: {
-    height: 70,
-    width: 70,
-    borderRadius: 70,
-    marginHorizontal: 10,
+    marginHorizontal: theme.margin.sm,
   },
   info: {
     backgroundColor: theme.light.static_overlay,
-    padding: 15,
-    marginHorizontal: '5%',
-    borderRadius: 10,
-    marginVertical: 30,
+    padding: theme.padding.md,
+    borderRadius: theme.rounded.sm,
+    width: '100%',
   },
   infoText: {
     color: theme.light.static_white,
-    fontSize: 15,
-    fontWeight: '600',
+    ...theme.fonts.subtitleBold,
   },
   joinButton: {
-    width: '100%',
     backgroundColor: theme.light.primary,
-    borderRadius: 10,
-    marginTop: 20,
+    borderRadius: theme.rounded.sm,
+    marginTop: theme.margin.md,
     justifyContent: 'center',
-    paddingVertical: 10,
+    paddingVertical: theme.padding.sm,
   },
   joinButtonText: {
     color: theme.light.static_white,
-    fontSize: 20,
-    fontWeight: 'bold',
     textAlign: 'center',
+    ...theme.fonts.subtitleBold,
   },
   status: {
     flexDirection: 'row',
     alignItems: 'center',
     position: 'absolute',
-    left: 6,
-    bottom: 6,
-    padding: 6,
-    borderRadius: 6,
+    left: theme.spacing.sm,
+    bottom: theme.spacing.sm,
+    padding: theme.padding.sm,
+    borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
     zIndex: 10,
   },
   avatar: {
-    height: 100,
-    width: 100,
-    borderRadius: 100,
+    height: theme.avatar.sm,
+    width: theme.avatar.sm,
+    borderRadius: theme.avatar.sm / 2,
     alignSelf: 'center',
   },
   userNameLabel: {
     color: theme.light.static_white,
-    fontSize: 12,
+    ...theme.fonts.caption,
   },
-  svgWrapper: {
-    height: 12,
-    width: 12,
-    marginLeft: 6,
+  svgContainerStyle: {
+    marginLeft: theme.margin.sm,
   },
 });

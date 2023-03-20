@@ -5,8 +5,8 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import {
-  createContext,
   PropsWithChildren,
+  createContext,
   useContext,
   useEffect,
   useState,

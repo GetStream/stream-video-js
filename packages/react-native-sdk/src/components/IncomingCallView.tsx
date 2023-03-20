@@ -30,14 +30,17 @@ export const IncomingCallView = () => {
 
   return (
     <Background>
-      <UserInfoView />
-      <Text style={styles.incomingCallText}>Incoming Call...</Text>
-      <View style={styles.buttons}>
+      <View style={styles.content}>
+        <UserInfoView />
+        <Text style={styles.incomingCallText}>Incoming Call...</Text>
+      </View>
+
+      <View style={styles.buttonGroup}>
         <CallControlsButton
           onPress={rejectCallHandler}
           color={theme.light.error}
-          style={styles.buttonStyle}
-          svgContainerStyle={styles.svgStyle}
+          style={[styles.button, theme.button.lg]}
+          svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
         >
           <PhoneDown color={theme.light.static_white} />
         </CallControlsButton>
@@ -46,8 +49,8 @@ export const IncomingCallView = () => {
           color={
             !isVideoMuted ? theme.light.static_white : theme.light.overlay_dark
           }
-          style={styles.buttonStyle}
-          svgContainerStyle={styles.svgStyle}
+          style={[styles.button, theme.button.lg]}
+          svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
         >
           {isVideoMuted ? (
             <VideoSlash color={theme.light.static_white} />
@@ -58,8 +61,8 @@ export const IncomingCallView = () => {
         <CallControlsButton
           onPress={answerCallHandler}
           color={theme.light.info}
-          style={styles.buttonStyle}
-          svgContainerStyle={styles.svgStyle}
+          style={[styles.button, theme.button.lg]}
+          svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
         >
           <Phone color={theme.light.static_white} />
         </CallControlsButton>
@@ -84,7 +87,7 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
         source={{
           uri: members[0].image,
         }}
-        style={StyleSheet.absoluteFill}
+        style={[StyleSheet.absoluteFill, styles.background]}
       >
         {children}
       </ImageBackground>
@@ -98,31 +101,23 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
 const styles = StyleSheet.create({
   background: {
     backgroundColor: theme.light.static_grey,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    paddingVertical: 2 * theme.margin.xl,
   },
+  content: {},
   incomingCallText: {
-    marginTop: 16,
-    fontSize: 20,
+    marginTop: theme.margin.md,
     textAlign: 'center',
     color: theme.light.static_white,
-    fontWeight: '600',
+    ...theme.fonts.heading6,
   },
-  buttons: {
+  buttonGroup: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 40,
-    marginTop: '40%',
-    position: 'absolute',
-    bottom: 90,
-    left: 0,
-    right: 0,
+    paddingHorizontal: theme.padding.xl,
   },
-  buttonStyle: {
-    height: 70,
-    width: 70,
-    borderRadius: 70,
-  },
-  svgStyle: {
-    height: 30,
-    width: 30,
-  },
+  button: {},
+  svgContainerStyle: {},
 });

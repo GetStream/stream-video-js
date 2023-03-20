@@ -20,7 +20,7 @@ export interface AvatarProps {
   radius?: number;
 }
 
-const DEFAULT_AVATAR_RADIUS = 100;
+const DEFAULT_AVATAR_RADIUS = theme.avatar.sm;
 
 /**
  * Shows either user's image or initials based on the user state and existence of
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: theme.light.bars,
-    fontWeight: '600',
     textAlign: 'center',
+    ...theme.fonts.heading4,
   },
 });
