@@ -62,17 +62,6 @@
   gap: 10px;
 }
 
-.str-chat__custom-channel-header__warning-button {
-  all: unset;
-  padding: 5px;
-  border-radius: var(
-    --str-video__participant-list-header__close-button--border-radius
-  );
-  background: var(
-    --str-video__participant-list-header__close-button--background-color
-  );
-}
-
 .str-chat__chat-button__wrapper {
   position: relative;
   display: flex;

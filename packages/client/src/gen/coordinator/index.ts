@@ -449,6 +449,7 @@ export interface UpdateCallMemberRequest {
   add_members?: Array<MemberRequest>;
   remove_members?: Array<string>;
   update_members?: Array<MemberRequest>;
+  disconnectRemovedMembers?: boolean;
 }
 
 // FIXME OL: this model is manually added, don't remove it until it becomes available in the OpenAPI schema

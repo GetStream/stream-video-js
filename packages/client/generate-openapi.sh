@@ -1,13 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-CHAT_REPO_ROOT_DIR="../../../chat"
-SCHEMA_FILE="$CHAT_REPO_ROOT_DIR/releases/video-openapi.yaml"
+PROTOCOL_REPO_DIR="../../../protocol"
+SCHEMA_FILE="$PROTOCOL_REPO_DIR/openapi/video-openapi.yaml"
 OUTPUT_DIR="./src/gen/coordinator"
 TEMP_OUTPUT_DIR="./src/gen/openapi-temp"
-
-# Generate the Coordinator OpenAPI schema
-make -C $CHAT_REPO_ROOT_DIR video-openapi-yaml
 
 # Clean previous output
 rm -rf $TEMP_OUTPUT_DIR

@@ -21,6 +21,8 @@ import {
   watchCallRecordingStopped,
   watchCallRejected,
   watchNewReactions,
+  watchBlockedUser,
+  watchUnblockedUser,
 } from './events';
 
 import { CALL_CONFIG, CallConfig } from './config';
@@ -119,6 +121,17 @@ export class StreamVideoClient {
       'call.permissions_updated',
       // @ts-expect-error until we sort out the types
       watchCallPermissionsUpdated(this.writeableStateStore),
+    );
+
+    this.on(
+      'call.blocked_user',
+      // @ts-expect-error until we sort out the types
+      watchBlockedUser(this.writeableStateStore),
+    );
+    this.on(
+      'call.unblocked_user',
+      // @ts-expect-error until we sort out the types
+      watchUnblockedUser(this.writeableStateStore),
     );
 
     this.on(

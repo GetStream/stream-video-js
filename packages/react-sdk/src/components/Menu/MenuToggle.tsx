@@ -1,32 +1,33 @@
 import {
   ComponentType,
-  ForwardedRef,
   PropsWithChildren,
   useEffect,
   useState,
+  ForwardedRef,
 } from 'react';
 import { usePopper } from 'react-popper';
+import { Placement } from '@popperjs/core';
 
 export type ToggleMenuButtonProps = {
   menuShown: boolean;
   ref: ForwardedRef<HTMLButtonElement>;
 };
 
-export type MenuToggleProps = {
+export type MenuToggleProps = PropsWithChildren<{
   ToggleButton: ComponentType<ToggleMenuButtonProps>;
-  Menu: ComponentType;
-};
+  placement?: Placement;
+}>;
 
 export const MenuToggle = ({
   ToggleButton,
-  Menu,
-}: PropsWithChildren<MenuToggleProps>) => {
+  placement = 'top-start',
+  children,
+}: MenuToggleProps) => {
   const [menuShown, setMenuShown] = useState(false);
-  const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [popover, setPopover] = useState<HTMLDivElement | null>(null);
   const { styles, attributes } = usePopper(anchor, popover, {
-    // FIXME OL: provide a prop for this setting
-    placement: 'top-start',
+    placement,
     modifiers: [
       {
         name: 'offset',
@@ -72,7 +73,7 @@ export const MenuToggle = ({
           style={styles.popper}
           {...attributes.popper}
         >
-          <Menu />
+          {children}
         </div>
       )}
       <ToggleButton menuShown={menuShown} ref={setAnchor} />

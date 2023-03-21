@@ -9,7 +9,11 @@ import { IconButton } from '../Button';
 import clsx from 'clsx';
 
 export const DeviceSettings = () => {
-  return <MenuToggle ToggleButton={ToggleMenuButton} Menu={Menu} />;
+  return (
+    <MenuToggle ToggleButton={ToggleMenuButton}>
+      <Menu />
+    </MenuToggle>
+  );
 };
 
 const Menu = () => (
