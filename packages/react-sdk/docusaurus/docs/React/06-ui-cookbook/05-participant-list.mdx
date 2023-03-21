@@ -294,7 +294,13 @@ export const SpeakerView = () => {
 
       <div className="spotlight">
         {participantInSpotlight && (
-          <ParticipantBox participant={participantInSpotlight} call={call} />
+          <ParticipantBox
+            participant={participantInSpotlight}
+            call={call}
+            videoKind={
+              hasScreenShare(participantInSpotlight) ? 'screen' : 'video'
+            }
+          />
         )}
       </div>
 

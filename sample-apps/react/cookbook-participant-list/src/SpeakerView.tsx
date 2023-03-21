@@ -19,10 +19,6 @@ export const SpeakerView = () => {
   const call = useCall()!;
   const [participantInSpotlight, ...otherParticipants] =
     useSortedParticipants();
-
-  const isScreenSharing = participantInSpotlight?.publishedTracks.includes(
-    SfuModels.TrackType.SCREEN_SHARE,
-  );
   return (
     <div className="speaker-view">
       {otherParticipants.length > 0 && (
@@ -40,7 +36,9 @@ export const SpeakerView = () => {
           <ParticipantBox
             participant={participantInSpotlight}
             call={call}
-            videoKind={isScreenSharing ? 'screen' : 'video'}
+            videoKind={
+              hasScreenShare(participantInSpotlight) ? 'screen' : 'video'
+            }
           />
         )}
       </div>
