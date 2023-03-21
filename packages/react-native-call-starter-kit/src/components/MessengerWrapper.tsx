@@ -63,7 +63,6 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
   }, [channel, navigation]);
 
   const onRejectCall = useCallback(() => {
-    console.log('onRejectCall');
     if (!channel) {
       navigation.navigate('ChannelListScreen');
     } else {

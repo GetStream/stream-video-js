@@ -77,6 +77,9 @@ const InnerActiveCall = (props: ActiveCallProps) => {
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     setHeight(
+      // we're saving the CallControlsView height and subtracting an amount of padding.
+      // this is done to get the CallParticipants(Screen)View neatly underneath the
+      // rounded corners of the CallControlsView.
       Math.trunc(event.nativeEvent.layout.height - theme.spacing.lg * 2),
     );
   };
@@ -93,10 +96,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
           <CallParticipantsView />
         )}
       </View>
-      <View
-        onLayout={onLayout}
-        style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}
-      >
+      <View onLayout={onLayout} style={styles.callControlsWrapper}>
         <CallControlsView onHangupCall={onHangupCall} />
       </View>
     </SafeAreaView>
@@ -109,4 +109,5 @@ const styles = StyleSheet.create({
     backgroundColor: theme.light.static_grey,
   },
   callParticipantsWrapper: { flex: 1 },
+  callControlsWrapper: { position: 'absolute', bottom: 0, left: 0, right: 0 },
 });
