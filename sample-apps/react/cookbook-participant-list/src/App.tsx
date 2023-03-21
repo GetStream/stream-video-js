@@ -15,6 +15,10 @@ const theme = createTheme({
   },
 });
 
+// We are going to use Vite's environment variables to store our API key and token.
+// https://vitejs.dev/guide/env-and-mode.html#env-files
+//
+// You can use any other method to store your API key and token.
 const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
 const token = import.meta.env.VITE_STREAM_TOKEN as string;
 const userId = import.meta.env.VITE_USER_ID as string;
