@@ -1,6 +1,7 @@
 export const getPreferredCodecs = (
   kind: 'audio' | 'video',
   preferredCodec: string,
+  returnOnlyMatched = false,
 ) => {
   if (!('getCapabilities' in RTCRtpSender)) {
     console.warn('RTCRtpSender.getCapabilities is not supported');
@@ -34,11 +35,13 @@ export const getPreferredCodecs = (
     matched.push(c);
   });
 
-  return [
-    ...matched,
-    ...partialMatched,
-    ...unmatched,
-  ] as RTCRtpCodecCapability[];
+  return returnOnlyMatched
+    ? [...matched]
+    : ([
+        ...matched,
+        ...partialMatched,
+        ...unmatched,
+      ] as RTCRtpCodecCapability[]);
 };
 
 export const getGenericSdp = async (
@@ -50,13 +53,19 @@ export const getGenericSdp = async (
   tempPc.addTransceiver('video', { direction });
 
   if ('setCodecPreferences' in audioTransceiver) {
-    const audioCodecPreferences = getPreferredCodecs('audio', preferredCodec);
+    let returnOnlyMatched = preferredCodec === 'opus';
+    const audioCodecPreferences = getPreferredCodecs(
+      'audio',
+      preferredCodec,
+      returnOnlyMatched,
+    );
     // @ts-ignore
     audioTransceiver.setCodecPreferences([...(audioCodecPreferences || [])]);
   }
 
   const offer = await tempPc.createOffer();
   const sdp = offer.sdp;
+  console.log(sdp);
 
   tempPc.getTransceivers().forEach((t) => {
     t.stop();

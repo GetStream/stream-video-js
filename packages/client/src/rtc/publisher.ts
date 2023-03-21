@@ -123,9 +123,11 @@ export class Publisher {
       }
 
       if (trackType === TrackType.AUDIO) {
+        let returnOnlyMatched = opts.preferredCodec === 'opus';
         const codecPreferences = getPreferredCodecs(
           'audio',
           opts.preferredCodec!,
+          returnOnlyMatched,
         );
         console.log('Preferred codec', opts.preferredCodec);
         if ('setCodecPreferences' in transceiver && codecPreferences) {
