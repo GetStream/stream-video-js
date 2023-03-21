@@ -21,6 +21,9 @@ export const CallParticipantsView = () => {
   let remoteParticipants = useRemoteParticipants();
   const isUserAloneInCall = remoteParticipants.length === 0;
 
+  // We want to display the participants in a 2 X n/2 grid
+  // this is why we're building a 2D array to group them in pairs
+  // *n is the number of participants
   const participantsToDisplay = useMemo(
     () =>
       remoteParticipants.reduce(
