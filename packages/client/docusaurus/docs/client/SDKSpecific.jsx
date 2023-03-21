@@ -3,7 +3,7 @@ import BrowserOnly from '@docusaurus/BrowserOnly';
 
 const SDKSpecific = ({ children, name = 'angular' }) => (
   <BrowserOnly>
-    {() => window.location.pathname.includes(`/sdk/${name}`) ? children : null}
+    {() => window.location.pathname.includes(`/${name}/`) ? children : null}
   </BrowserOnly>
 );
 
