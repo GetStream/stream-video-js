@@ -17,6 +17,7 @@ import {
   GoLiveResponse,
   JoinCallRequest,
   JoinCallResponse,
+  MuteUsersResponse,
   QueryCallsRequest,
   QueryCallsResponse,
   RequestPermissionRequest,
@@ -66,6 +67,25 @@ export class StreamCall {
   unblockUser = async (userId: string) => {
     return this.client.post<UnblockUserResponse>(`${this.basePath}/unblock`, {
       user_id: userId,
+    });
+  };
+
+  muteUser = (
+    userId: string,
+    type: 'audio' | 'video' | 'screenshare',
+    sessionId?: string,
+  ) => {
+    return this.client.post<MuteUsersResponse>(`${this.basePath}/mute_users`, {
+      user_ids: [userId],
+      [type]: true,
+      // session_ids: [sessionId],
+    });
+  };
+
+  muteAllUsers = (type: 'audio' | 'video' | 'screenshare') => {
+    return this.client.post<MuteUsersResponse>(`${this.basePath}/mute_users`, {
+      mute_all_users: true,
+      [type]: true,
     });
   };
 

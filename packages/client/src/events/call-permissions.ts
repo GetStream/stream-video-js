@@ -56,7 +56,7 @@ export const watchCallPermissionsUpdated = (
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     if (!activeCall) {
       console.warn(
-        `Ignoring "call.permission_request" as there is no active call`,
+        `Ignoring "call.permissions_updated" as there is no active call`,
         event,
       );
       return;
@@ -64,7 +64,7 @@ export const watchCallPermissionsUpdated = (
 
     if (activeCall.cid !== event.call_cid) {
       console.warn(
-        `Ignoring "call.permission_request" as it doesn't belong to the active call`,
+        `Ignoring "call.permissions_updated" as it doesn't belong to the active call`,
         event,
       );
       return;

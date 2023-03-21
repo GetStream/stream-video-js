@@ -1,0 +1,21 @@
+.str-video__generic-menu {
+  list-style: none;
+  margin: unset;
+  padding: unset;
+  padding: 5px;
+  border-radius: var(--str-video__border-radius-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  .str-video__generic-menu-item {
+    display: flex;
+    button {
+      all: unset;
+      width: 100%;
+      font-size: 13px;
+      padding: 5px 10px;
+      border-radius: var(--str-video__border-radius-xs);
+    }
+  }
+}

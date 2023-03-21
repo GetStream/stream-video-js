@@ -23,7 +23,11 @@ export const CompositeButton = ({
         })}
       >
         {children}
-        {Menu && <MenuToggle ToggleButton={ToggleMenuButton} Menu={Menu} />}
+        {Menu && (
+          <MenuToggle ToggleButton={ToggleMenuButton}>
+            <Menu />
+          </MenuToggle>
+        )}
       </div>
       {caption && (
         <div className="str-video__composite-button__caption">{caption}</div>
