@@ -42,9 +42,9 @@ export interface ParticipantBoxProps {
   /**
    * A function meant for exposing the "native" element ref to the integrators.
    * The element can either be:
-   * - <video>, for participants with enabled video.
-   * - <div>, for participants with disabled video. This ref would point to the
-   * VideoPlaceholder component.
+   * - `<video />` for participants with enabled video.
+   * - `<div />` for participants with disabled video. This ref would point to
+   * the VideoPlaceholder component.
    *
    * @param element the element ref.
    */
