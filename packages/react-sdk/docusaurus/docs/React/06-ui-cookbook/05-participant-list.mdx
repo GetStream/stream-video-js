@@ -225,32 +225,37 @@ import { useSpotlightParticipant } from './SpeakerView';
  */
 export const useSortedParticipants = () => {
   const participantInSpotlight = useSpotlightParticipant();
-  const participants = useParticipants();
-  const otherParticipants = useMemo(() => {
-    return participants
-      .filter(
-        (p) =>
-          hasScreenShare(participantInSpotlight) ||
-          p !== participantInSpotlight,
-      )
-      .sort((a, b) => {
-        if (hasScreenShare(a) && !hasScreenShare(b)) return -1;
-        if (!hasScreenShare(a) && hasScreenShare(b)) return 1;
 
-        if (
-          (hasVideo(a) && hasAudio(a) && !hasVideo(b) && !hasAudio(b)) ||
-          (hasVideo(a) && !hasAudio(a) && !hasVideo(b) && hasAudio(b))
-        )
-          return -1;
+  // we filter out the participant in spotlight if they are not sharing screen
+  const allParticipants = useParticipants();
+  const participants = allParticipants.filter((p) => {
+    return (
+      hasScreenShare(participantInSpotlight) || p !== participantInSpotlight
+    );
+  });
 
-        if (!hasVideo(a) && !hasAudio(a) && hasVideo(b) && hasAudio(b))
-          return 1;
+  const presenters = participants.filter((p) => hasScreenShare(p));
+  const videoAndAudioParticipants = participants.filter(
+    (p) => hasVideo(p) && hasAudio(p),
+  );
+  const videoOnlyParticipants = participants.filter(
+    (p) => hasVideo(p) && !hasAudio(p),
+  );
+  const audioOnlyParticipants = participants.filter(
+    (p) => !hasVideo(p) && hasAudio(p),
+  );
+  const muteParticipants = participants.filter(
+    (p) => !hasVideo(p) && !hasAudio(p),
+  );
 
-        return 0;
-      });
-  }, [participants, participantInSpotlight]);
-
-  return [participantInSpotlight, ...otherParticipants];
+  return [
+    participantInSpotlight,
+    ...presenters,
+    ...videoAndAudioParticipants,
+    ...videoOnlyParticipants,
+    ...audioOnlyParticipants,
+    ...muteParticipants,
+  ];
 };
 ```
 
