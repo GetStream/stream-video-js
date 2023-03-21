@@ -44,8 +44,6 @@ jobs:
           cache: 'yarn'
       - name: Install Dependencies
         run: yarn install --immutable
-      - name: Build packages
-        run: yarn build:all
 
       - name: Generate React Native SDK documentation
         run: yarn generate-docs:react-native:sdk;

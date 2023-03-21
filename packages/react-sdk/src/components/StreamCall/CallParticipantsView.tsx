@@ -17,7 +17,6 @@ export const CallParticipantsView = (props: { call: Call }) => {
           participant={localParticipant}
           call={call}
           sinkId={localParticipant.audioOutputDeviceId}
-          isMuted
         />
       )}
 
