@@ -47,6 +47,9 @@ export const SpeakerView = () => {
             participant={participantInSpotlight}
             call={call}
             videoKind={isScreenSharing ? 'screen' : 'video'}
+            // mute the local participant,
+            // as we don't want to hear ourselves
+            isMuted={participantInSpotlight.isLoggedInUser}
           />
         )}
       </div>
