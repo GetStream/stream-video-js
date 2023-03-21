@@ -1,9 +1,9 @@
 import React, {useCallback} from 'react';
 import {ActiveCall, useActiveCall} from '@stream-io/video-react-native-sdk';
-import {ActivityIndicator, StyleSheet} from 'react-native';
+import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import {NavigationStackParamsList} from '../types';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {SafeAreaView} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {theme} from '@stream-io/video-react-native-sdk/dist/src/theme';
 
 type ActiveCallScreenProps = NativeStackScreenProps<
@@ -13,6 +13,7 @@ type ActiveCallScreenProps = NativeStackScreenProps<
 
 export function ActiveCallScreen({navigation}: ActiveCallScreenProps) {
   const activeCall = useActiveCall();
+  const insets = useSafeAreaInsets();
 
   const onOpenCallParticipantsInfoViewHandler = useCallback(() => {
     navigation.navigate('CallParticipantsInfoScreen');
@@ -22,11 +23,11 @@ export function ActiveCallScreen({navigation}: ActiveCallScreenProps) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
   return (
-    <SafeAreaView style={styles.wrapper}>
+    <View style={[styles.wrapper, {paddingTop: insets.top}]}>
       <ActiveCall
         onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
