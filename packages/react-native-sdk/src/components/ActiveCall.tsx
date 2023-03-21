@@ -83,7 +83,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
       Math.trunc(event.nativeEvent.layout.height - theme.spacing.lg * 2),
     );
   };
-  console.log('height', height);
+
   return (
     <View style={styles.container}>
       <CallParticipantsBadge
