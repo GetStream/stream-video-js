@@ -1,8 +1,13 @@
 import { SfuModels } from '@stream-io/video-client';
 import { useParticipants } from '@stream-io/video-react-bindings';
-import { View, Text, StyleSheet } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { ParticipantView } from './ParticipantView';
 import { theme } from '../theme';
+
+const PARTICIPANT_VIEW_CONTAINER_SIZE = {
+  width: 150,
+  height: 150,
+};
 
 export const CallParticipantsScreenView = () => {
   const allParticipants = useParticipants();
@@ -10,50 +15,55 @@ export const CallParticipantsScreenView = () => {
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
   );
 
-  // TODO: temporaily showing only 2 participants, in future we show all using flatlist
-  const firstTwoParticipants = allParticipants.slice(0, 2);
-
   return (
-    <>
+    <View style={styles.container}>
       {firstScreenSharingParticipant && (
         <View style={styles.screenShareContainer}>
-          <Text>
-            {firstScreenSharingParticipant.userId} is presenting their screen.
-          </Text>
           <ParticipantView
             participant={firstScreenSharingParticipant}
-            size={'large'}
+            containerStyle={{ flex: 1 }}
             kind="screen"
           />
         </View>
       )}
 
-      <View style={styles.participantVideoContainer}>
-        {firstTwoParticipants.map((participant) => (
-          <ParticipantView
-            key={`${participant.userId}/${participant.sessionId}`}
-            participant={participant}
-            size={'small'}
-            kind="video"
-            style={styles.participantVideoBox}
-          />
-        ))}
-      </View>
-    </>
+      <FlatList
+        showsHorizontalScrollIndicator={false}
+        horizontal
+        data={allParticipants}
+        style={styles.participantVideoContainer}
+        keyExtractor={(item) => `participant-view-${item.sessionId}`}
+        renderItem={({ item: participant, index }) => {
+          const isLast = index === allParticipants.length - 1;
+          return (
+            <ParticipantView
+              participant={participant}
+              kind="video"
+              containerStyle={[
+                styles.participantViewContainer,
+                isLast && { marginRight: 0 },
+              ]}
+            />
+          );
+        }}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: { flex: 1, padding: theme.padding.md },
   screenShareContainer: {
     flex: 3,
   },
   participantVideoContainer: {
-    marginTop: theme.margin.sm,
     flex: 1,
-    flexDirection: 'row',
+    paddingTop: theme.padding.lg,
   },
-  participantVideoBox: {
-    borderRadius: theme.rounded.md,
-    marginLeft: theme.margin.sm,
+  participantViewContainer: {
+    ...PARTICIPANT_VIEW_CONTAINER_SIZE,
+    marginRight: theme.margin.sm,
+    borderRadius: theme.rounded.sm,
+    overflow: 'hidden',
   },
 });

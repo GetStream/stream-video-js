@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StreamCallProvider,
   useActiveCall,
@@ -43,6 +43,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 };
 
 const InnerActiveCall = (props: ActiveCallProps) => {
+  const [height, setHeight] = useState(0);
   const activeCall = useActiveCall();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
   const { onOpenCallParticipantsInfoView } = props;
@@ -74,19 +75,30 @@ const InnerActiveCall = (props: ActiveCallProps) => {
     }
   }, [activeCall, currentVideoDevice, isVideoMuted]);
 
+  const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
+    setHeight(
+      // we're saving the CallControlsView height and subtracting an amount of padding.
+      // this is done to get the CallParticipants(Screen)View neatly underneath the
+      // rounded corners of the CallControlsView.
+      Math.trunc(event.nativeEvent.layout.height - theme.spacing.lg * 2),
+    );
+  };
+
   return (
     <View style={styles.container}>
       <CallParticipantsBadge
         onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
       />
-      <View style={styles.callParticipantsWrapper}>
+      <View style={[styles.callParticipantsWrapper, { paddingBottom: height }]}>
         {hasScreenShare ? (
           <CallParticipantsScreenView />
         ) : (
           <CallParticipantsView />
         )}
       </View>
-      <CallControlsView onHangupCall={onHangupCall} />
+      <View onLayout={onLayout} style={styles.callControlsWrapper}>
+        <CallControlsView onHangupCall={onHangupCall} />
+      </View>
     </View>
   );
 };
@@ -97,4 +109,5 @@ const styles = StyleSheet.create({
     backgroundColor: theme.light.static_grey,
   },
   callParticipantsWrapper: { flex: 1 },
+  callControlsWrapper: { position: 'absolute', bottom: 0, left: 0, right: 0 },
 });

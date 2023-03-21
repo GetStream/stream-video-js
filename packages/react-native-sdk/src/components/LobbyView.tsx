@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
 import {
@@ -98,7 +98,7 @@ export const LobbyView = (props: LobbyViewProps) => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, StyleSheet.absoluteFillObject]}>
+    <View style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.heading}>Before Joining</Text>
         <Text style={styles.subHeading}>Setup your audio and video</Text>
@@ -153,20 +153,18 @@ export const LobbyView = (props: LobbyViewProps) => {
           </Pressable>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     backgroundColor: theme.light.static_grey,
     justifyContent: 'center',
   },
   content: {
-    width: '100%',
     alignItems: 'center',
-    bottom: theme.spacing.lg,
-    marginVertical: theme.margin.md,
     paddingHorizontal: theme.padding.md,
   },
   heading: {
