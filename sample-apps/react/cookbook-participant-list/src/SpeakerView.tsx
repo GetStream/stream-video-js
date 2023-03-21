@@ -68,7 +68,7 @@ const CustomCallControls = ({ children }: PropsWithChildren<{}>) => {
 
 /**
  * Sorts participants so that:
- *  - the presenter is first,
+ * - the presenter is first,
  * - the dominant speaker is next,
  * - then video, then audio, then the rest.
  */
