@@ -16,7 +16,7 @@ export const CallParticipantsScreenView = () => {
   );
 
   return (
-    <View style={{ flex: 1, padding: theme.padding.md }}>
+    <View style={styles.container}>
       {firstScreenSharingParticipant && (
         <View style={styles.screenShareContainer}>
           <ParticipantView
@@ -32,11 +32,11 @@ export const CallParticipantsScreenView = () => {
         horizontal
         data={allParticipants}
         style={styles.participantVideoContainer}
+        keyExtractor={(item) => `participant-view-${item.sessionId}`}
         renderItem={({ item: participant, index }) => {
           const isLast = index === allParticipants.length - 1;
           return (
             <ParticipantView
-              key={`${participant.userId}/${participant.sessionId}`}
               participant={participant}
               kind="video"
               containerStyle={[
@@ -52,6 +52,7 @@ export const CallParticipantsScreenView = () => {
 };
 
 const styles = StyleSheet.create({
+  container: { flex: 1, padding: theme.padding.md },
   screenShareContainer: {
     flex: 3,
   },

@@ -100,10 +100,9 @@ const InnerCallParticipantsInfoView = () => {
     <>
       <FlatList
         data={participants}
-        keyExtractor={(item) => `${item.userId}${item.sessionId}`}
+        keyExtractor={(item) => `participant-info-${item.sessionId}`}
         renderItem={({ item: participant }) => (
           <CallParticipantInfoItem
-            key={`${participant.userId}${participant.sessionId}`}
             participant={participant}
             setSelectedParticipant={setSelectedParticipant}
           />

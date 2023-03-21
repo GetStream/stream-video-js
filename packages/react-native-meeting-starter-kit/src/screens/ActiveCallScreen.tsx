@@ -4,7 +4,7 @@ import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import {NavigationStackParamsList} from '../types';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {theme} from '@stream-io/video-react-native-sdk/dist/src/theme';
+import {theme} from '@stream-io/video-react-native-sdk/src/theme';
 
 type ActiveCallScreenProps = NativeStackScreenProps<
   NavigationStackParamsList,

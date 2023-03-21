@@ -39,14 +39,14 @@ export const CallParticipantsView = () => {
       <LocalVideoView layout={'floating'} zOrder={2} />
       <FlatList
         data={participantsToDisplay}
+        keyExtractor={([firstParticipantInRow]) =>
+          `participants-row-${firstParticipantInRow?.sessionId}`
+        }
         renderItem={({
           item: [firstParticipantInRow, secondParticipantInRow],
         }) => {
           return (
-            <View
-              style={styles.participantsRow}
-              key={`${firstParticipantInRow.userId}/${firstParticipantInRow.sessionId}`}
-            >
+            <View style={styles.participantsRow}>
               <View style={styles.participantWrapper}>
                 {firstParticipantInRow && (
                   <ParticipantView
