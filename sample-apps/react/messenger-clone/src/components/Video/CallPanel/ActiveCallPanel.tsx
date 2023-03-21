@@ -26,11 +26,7 @@ export const ActiveCallPanel = ({ activeCall }: ActiveCallPanelProps) => {
       <div className="rmc__call-panel">
         <div className="rmc__secondary-participant-wrapper">
           {localParticipant && (
-            <ParticipantBox
-              isMuted={true}
-              participant={localParticipant}
-              call={activeCall}
-            />
+            <ParticipantBox participant={localParticipant} call={activeCall} />
           )}
           {!localParticipant && (
             <ParticipantPlaceholder

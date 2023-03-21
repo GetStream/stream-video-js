@@ -13,20 +13,52 @@ import { Notification } from '../Notification';
 import { Reaction } from '../Reaction';
 
 export interface ParticipantBoxProps {
+  /**
+   * The participant bound to this component.
+   */
   participant: StreamVideoParticipant;
-  isMuted?: boolean;
+
+  /**
+   * The current call.
+   */
   call: Call;
+
+  /**
+   * In supported browsers, this sets the default audio output.
+   * The value of this prop should be a valid Audio Output `deviceId`.
+   */
   sinkId?: string;
+
+  /**
+   * The kind of video stream to play for the given participant.
+   */
   videoKind?: 'video' | 'screen';
+
+  /**
+   * Turns on/off the status indicator icons (mute, connection quality, etc...).
+   */
   indicatorsVisible?: boolean;
+
+  /**
+   * A function meant for exposing the "native" element ref to the integrators.
+   * The element can either be:
+   * - <video>, for participants with enabled video.
+   * - <div>, for participants with disabled video. This ref would point to the
+   * VideoPlaceholder component.
+   *
+   * @param element the element ref.
+   */
   setVideoElementRef?: (element: HTMLElement | null) => void;
+
+  /**
+   * An additional list of class names to append to the root DOM element.
+   */
   className?: string;
 }
 
 export const ParticipantBox = (props: ParticipantBoxProps) => {
   const {
     participant,
-    isMuted = false,
     indicatorsVisible = true,
     videoKind = 'video',
     call,
@@ -66,7 +98,12 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
       )}
     >
       <div className="str-video__video-container">
-        <Audio muted={isMuted} sinkId={sinkId} audioStream={audioStream} />
+        <Audio
+          // mute the local participant, as we don't want to hear ourselves
+          muted={participant.isLoggedInUser}
+          sinkId={sinkId}
+          audioStream={audioStream}
+        />
         <Video
           call={call}
           participant={participant}
@@ -77,7 +114,8 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
               isLocalParticipant && videoKind === 'video',
             'str-video__screen-share': videoKind === 'screen',
           })}
-          muted={isMuted}
+          // mute the local participant, as we don't want to hear ourselves
+          muted={participant.isLoggedInUser}
           autoPlay
         />
         {reaction && (

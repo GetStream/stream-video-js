@@ -99,7 +99,6 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
                 key={participant.sessionId}
                 participant={participant}
                 call={call}
-                isMuted={participant.isLoggedInUser}
                 sinkId={localParticipant?.audioOutputDeviceId}
               />
             ))}

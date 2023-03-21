@@ -29,13 +29,7 @@ export const SpeakerView = () => {
         <div className="participants-bar">
           {otherParticipants.map((participant) => (
             <div className="participant-tile" key={participant.sessionId}>
-              <ParticipantBox
-                participant={participant}
-                call={call}
-                // mute the local participant,
-                // as we don't want to hear ourselves
-                isMuted={participant.isLoggedInUser}
-              />
+              <ParticipantBox participant={participant} call={call} />
             </div>
           ))}
         </div>
@@ -47,9 +41,6 @@ export const SpeakerView = () => {
             participant={participantInSpotlight}
             call={call}
             videoKind={isScreenSharing ? 'screen' : 'video'}
-            // mute the local participant,
-            // as we don't want to hear ourselves
-            isMuted={participantInSpotlight.isLoggedInUser}
           />
         )}
       </div>
