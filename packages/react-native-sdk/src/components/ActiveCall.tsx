@@ -4,7 +4,7 @@ import {
   useActiveCall,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
@@ -85,7 +85,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
   };
   console.log('height', height);
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <CallParticipantsBadge
         onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
       />
@@ -99,7 +99,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
       <View onLayout={onLayout} style={styles.callControlsWrapper}>
         <CallControlsView onHangupCall={onHangupCall} />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
