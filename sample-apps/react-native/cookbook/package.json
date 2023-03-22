@@ -11,8 +11,14 @@
     "pod-install": "RCT_NEW_ARCH_ENABLED=1 bundle exec pod install"
   },
   "dependencies": {
+    "@stream-io/video-react-native-sdk": "workspace:^",
     "react": "18.2.0",
-    "react-native": "0.71.4"
+    "react-native": "0.71.4",
+    "react-native-callkeep": "^4.3.8",
+    "react-native-incall-manager": "^4.0.1",
+    "react-native-svg": "^13.8.0",
+    "react-native-webrtc": "^106.0.7",
+    "text-encoding-polyfill": "^0.6.7"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
