@@ -12,3 +12,4 @@ export * from './Search';
 export * from './Tooltip';
 export * from './Video';
 export * from './Menu';
+export * from './CallLayout';

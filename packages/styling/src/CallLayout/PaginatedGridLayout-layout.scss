@@ -1,0 +1,43 @@
+.str-video__paginated-grid-layout-wrapper {
+  flex-grow: 1;
+  position: relative;
+}
+
+.str-video__paginated-grid-layout {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 1.25rem;
+
+  .str-video__paginated-grid-layout-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    max-width: 100vh;
+    padding-inline: 1.25rem;
+    margin: auto; // when arrows aren't rendered this element jumps to the left
+    width: 100%; // prevent resizing of placeholders 
+
+    .str-video__participant {
+      flex: 0 1 calc(25% - 6px);
+    }
+
+    &.one {
+      .str-video__participant {
+        flex: 0 1 calc(100% - 6px);
+      }
+    }
+    &.two-four {
+      .str-video__participant {
+        flex: 0 1 calc(50% - 6px);
+      }
+    }
+    &.five-nine {
+      .str-video__participant {
+        flex: 0 1 calc(33% - 6px);
+      }
+    }
+  }
+}
