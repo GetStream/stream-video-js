@@ -107,12 +107,25 @@
       -webkit-mask-image: var(--str-video__icon--screen-share-off);
     }
 
-    &-menu-shown {
+    &-caret-down {
+      transform: rotate(180deg);
       mask-image: var(--str-video__icon--caret);
       -webkit-mask-image: var(--str-video__icon--caret);
     }
 
-    &-menu-hidden {
+    &-caret-up {
+      mask-image: var(--str-video__icon--caret);
+      -webkit-mask-image: var(--str-video__icon--caret);
+    }
+
+    &-caret-right {
+      transform: rotate(90deg);
+      mask-image: var(--str-video__icon--caret);
+      -webkit-mask-image: var(--str-video__icon--caret);
+    }
+
+    &-caret-left {
+      transform: rotate(-90deg);
       mask-image: var(--str-video__icon--caret);
       -webkit-mask-image: var(--str-video__icon--caret);
     }
