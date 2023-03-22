@@ -14,9 +14,14 @@ dialogs
 APIs
 SDKs
 grayscale
-registery
+registry
 GH
 (?i)livestream
 performant
 follow
 tokenization
+Tooltip
+Vite
+useState
+useMemo
+useParticipants
