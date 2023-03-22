@@ -80,6 +80,18 @@ export interface AudioSettings {
    * @memberof AudioSettings
    */
   access_request_enabled: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettings
+   */
+  opus_dtx_enabled: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettings
+   */
+  redundant_coding_enabled: boolean;
 }
 /**
  *
@@ -443,20 +455,6 @@ export interface CallRejectedEvent {
    */
   user: UserResponse;
 }
-
-// FIXME OL: this model is manually added, don't remove it until it becomes available in the OpenAPI schema
-export interface UpdateCallMemberRequest {
-  add_members?: Array<MemberRequest>;
-  remove_members?: Array<string>;
-  update_members?: Array<MemberRequest>;
-  disconnectRemovedMembers?: boolean;
-}
-
-// FIXME OL: this model is manually added, don't remove it until it becomes available in the OpenAPI schema
-export interface UpdateCallMemberResponse {
-  members?: Array<string>;
-}
-
 /**
  *
  * @export
@@ -729,6 +727,43 @@ export interface CallStateResponseFields {
 /**
  *
  * @export
+ * @interface CallTypeResponse
+ */
+export interface CallTypeResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof CallTypeResponse
+   */
+  created_at: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof CallTypeResponse
+   */
+  grants: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {string}
+   * @memberof CallTypeResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {CallSettingsResponse}
+   * @memberof CallTypeResponse
+   */
+  settings: CallSettingsResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallTypeResponse
+   */
+  updated_at: string;
+}
+/**
+ *
+ * @export
  * @interface CallUpdatedEvent
  */
 export interface CallUpdatedEvent {
@@ -775,6 +810,74 @@ export interface Coordinates {
    * @memberof Coordinates
    */
   longitude: number;
+}
+/**
+ *
+ * @export
+ * @interface CreateCallTypeRequest
+ */
+export interface CreateCallTypeRequest {
+  /**
+   *
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof CreateCallTypeRequest
+   */
+  grants?: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {string}
+   * @memberof CreateCallTypeRequest
+   */
+  name: string;
+  /**
+   *
+   * @type {CallSettingsRequest}
+   * @memberof CreateCallTypeRequest
+   */
+  settings?: CallSettingsRequest;
+}
+/**
+ *
+ * @export
+ * @interface CreateCallTypeResponse
+ */
+export interface CreateCallTypeResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof CreateCallTypeResponse
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateCallTypeResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof CreateCallTypeResponse
+   */
+  grants: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {string}
+   * @memberof CreateCallTypeResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {CallSettingsResponse}
+   * @memberof CreateCallTypeResponse
+   */
+  settings: CallSettingsResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateCallTypeResponse
+   */
+  updated_at: string;
 }
 /**
  *
@@ -920,6 +1023,18 @@ export interface Device {
 export interface EdgeResponse {
   /**
    *
+   * @type {string}
+   * @memberof EdgeResponse
+   */
+  continent_code: string;
+  /**
+   *
+   * @type {string}
+   * @memberof EdgeResponse
+   */
+  country_iso_code: string;
+  /**
+   *
    * @type {number}
    * @memberof EdgeResponse
    */
@@ -954,6 +1069,12 @@ export interface EdgeResponse {
    * @memberof EdgeResponse
    */
   red: number;
+  /**
+   *
+   * @type {string}
+   * @memberof EdgeResponse
+   */
+  subdivision_iso_code: string;
   /**
    *
    * @type {number}
@@ -1338,6 +1459,25 @@ export interface JoinCallResponse {
 /**
  *
  * @export
+ * @interface ListCallTypeResponse
+ */
+export interface ListCallTypeResponse {
+  /**
+   *
+   * @type {{ [key: string]: CallTypeResponse; }}
+   * @memberof ListCallTypeResponse
+   */
+  call_types: { [key: string]: CallTypeResponse };
+  /**
+   *
+   * @type {string}
+   * @memberof ListCallTypeResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
  * @interface ListRecordingsResponse
  */
 export interface ListRecordingsResponse {
@@ -1639,6 +1779,12 @@ export interface PermissionRequestEvent {
 export interface QueryCallsRequest {
   /**
    *
+   * @type {string}
+   * @memberof QueryCallsRequest
+   */
+  connection_id?: string;
+  /**
+   *
    * @type {{ [key: string]: any; }}
    * @memberof QueryCallsRequest
    */
@@ -1667,6 +1813,12 @@ export interface QueryCallsRequest {
    * @memberof QueryCallsRequest
    */
   sort: Array<SortParamRequest>;
+  /**
+   *
+   * @type {boolean}
+   * @memberof QueryCallsRequest
+   */
+  watch?: boolean;
 }
 /**
  *
@@ -2151,6 +2303,68 @@ export interface UpdateCallResponse {
    * @memberof UpdateCallResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface UpdateCallTypeRequest
+ */
+export interface UpdateCallTypeRequest {
+  /**
+   *
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof UpdateCallTypeRequest
+   */
+  grants?: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {CallSettingsRequest}
+   * @memberof UpdateCallTypeRequest
+   */
+  settings?: CallSettingsRequest;
+}
+/**
+ *
+ * @export
+ * @interface UpdateCallTypeResponse
+ */
+export interface UpdateCallTypeResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateCallTypeResponse
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateCallTypeResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof UpdateCallTypeResponse
+   */
+  grants: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateCallTypeResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {CallSettingsResponse}
+   * @memberof UpdateCallTypeResponse
+   */
+  settings: CallSettingsResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateCallTypeResponse
+   */
+  updated_at: string;
 }
 /**
  *

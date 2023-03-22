@@ -8,6 +8,8 @@ import {
 import {
   BlockUserResponse,
   CallSettingsRequest,
+  CreateCallTypeRequest,
+  CreateCallTypeResponse,
   EndCallResponse,
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
@@ -17,6 +19,7 @@ import {
   GoLiveResponse,
   JoinCallRequest,
   JoinCallResponse,
+  ListCallTypeResponse,
   MuteUsersResponse,
   QueryCallsRequest,
   QueryCallsResponse,
@@ -32,6 +35,8 @@ import {
   UpdateCallMemberResponse,
   UpdateCallRequest,
   UpdateCallResponse,
+  UpdateCallTypeRequest,
+  UpdateCallTypeResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
 } from '../gen/coordinator';
@@ -170,6 +175,29 @@ export class StreamCall {
 
   endCall = async () => {
     return this.client.post<EndCallResponse>(`${this.basePath}/mark_ended`);
+  };
+
+  // server-side only endpoints
+  createCallType = async (data: CreateCallTypeRequest) => {
+    return this.client.post<CreateCallTypeResponse>(
+      `${this.basePath}/calltypes`,
+      data,
+    );
+  };
+
+  updateCallType = async (name: string, data: UpdateCallTypeRequest) => {
+    return this.client.put<UpdateCallTypeResponse>(
+      `${this.basePath}/calltypes/${name}`,
+      data,
+    );
+  };
+
+  deleteCallType = async (name: string) => {
+    return this.client.delete(`${this.basePath}/calltypes/${name}`);
+  };
+
+  listCallTypes = async () => {
+    return this.client.get<ListCallTypeResponse>(`${this.basePath}/calltypes`);
   };
 }
 
