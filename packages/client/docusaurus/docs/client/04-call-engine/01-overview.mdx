@@ -23,7 +23,7 @@ You can find the reference documentation of the `Call` class on the [Call page](
 
 ## Reactive state store
 
-Our SDK uses a design pattern that we refer to as reactive state store. The `StreamVideoClient` instance manages it's own state store and each `Call` instance has its own state store as well. The state stores are updated after each API call/WebSocket event. The reactive state store makes it possible to observe the state from anywhere in your application. You can access the state store using hooks.
+Our SDK uses a design pattern that we refer to as a reactive state store. The `StreamVideoClient` instance manages its own state store and each `Call` instance has its own state store as well. The state stores are updated after each API call/WebSocket event. The reactive state store makes it possible to observe the state from anywhere in your application. You can access the state store using hooks.
 
 - You can find a guide to our reactive state store on the [State store page](./02-state-store.mdx).
 - You can find the list of state variables managed by the `StreamVideoClient` instance on the [Hooks/Client State page](./hooks.md/#client-state)
