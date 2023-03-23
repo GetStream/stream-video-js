@@ -13,6 +13,7 @@ import {
   EndCallResponse,
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
+  GetCallTypeResponse,
   GetEdgesResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
@@ -311,6 +312,10 @@ export class StreamCoordinatorClient {
   // server-side only endpoints
   createCallType = async (data: CreateCallTypeRequest) => {
     return this.client.post<CreateCallTypeResponse>(`/calltypes`, data);
+  };
+
+  getCallType = async (name: string) => {
+    return this.client.get<GetCallTypeResponse>(`/calltypes/${name}`);
   };
 
   updateCallType = async (name: string, data: UpdateCallTypeRequest) => {

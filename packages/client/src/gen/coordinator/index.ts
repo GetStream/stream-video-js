@@ -566,10 +566,10 @@ export interface CallResponse {
   id: string;
   /**
    * The capabilities of the current user
-   * @type {Array<string>}
+   * @type {Array<OwnCapability>}
    * @memberof CallResponse
    */
-  own_capabilities: Array<string>;
+  own_capabilities: Array<OwnCapability>;
   /**
    *
    * @type {boolean}
@@ -1180,6 +1180,49 @@ export interface GetCallEdgeServerResponse {
 /**
  *
  * @export
+ * @interface GetCallTypeResponse
+ */
+export interface GetCallTypeResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallTypeResponse
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallTypeResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof GetCallTypeResponse
+   */
+  grants: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallTypeResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {CallSettingsResponse}
+   * @memberof GetCallTypeResponse
+   */
+  settings: CallSettingsResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallTypeResponse
+   */
+  updated_at: string;
+}
+/**
+ *
+ * @export
  * @interface GetEdgesResponse
  */
 export interface GetEdgesResponse {
@@ -1624,6 +1667,34 @@ export interface MuteUsersResponse {
    */
   duration: string;
 }
+
+/**
+ * All possibility of string to use
+ * @export
+ */
+export const OwnCapability = {
+  update_call_permissions: 'update-call-permissions',
+  block_users: 'block-users',
+  create_reaction: 'create-reaction',
+  read_call: 'read-call',
+  join_ended_call: 'join-ended-call',
+  screenshare: 'screenshare',
+  stop_record_call: 'stop-record-call',
+  end_call: 'end-call',
+  join_call: 'join-call',
+  update_call: 'update-call',
+  send_audio: 'send-audio',
+  stop_broadcast_call: 'stop-broadcast-call',
+  create_call: 'create-call',
+  join_backstage: 'join-backstage',
+  mute_users: 'mute-users',
+  update_call_settings: 'update-call-settings',
+  send_video: 'send-video',
+  start_record_call: 'start-record-call',
+  start_broadcast_call: 'start-broadcast-call',
+} as const;
+export type OwnCapability = (typeof OwnCapability)[keyof typeof OwnCapability];
+
 /**
  *
  * @export
@@ -2423,11 +2494,11 @@ export interface UpdatedCallPermissionsEvent {
    */
   created_at: string;
   /**
-   * The updated list of capabilities the user has in the call
-   * @type {Array<string>}
+   * The capabilities of the current user
+   * @type {Array<OwnCapability>}
    * @memberof UpdatedCallPermissionsEvent
    */
-  own_capabilities: Array<string>;
+  own_capabilities: Array<OwnCapability>;
   /**
    *
    * @type {string}
