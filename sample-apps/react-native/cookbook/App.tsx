@@ -6,6 +6,8 @@
  */
 
 import React, {Fragment} from 'react';
+import {NavigationContainer} from '@react-navigation/native';
+
 import {
   ImageBackground,
   SafeAreaView,
@@ -20,6 +22,8 @@ import {
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 // @ts-ignore
 import openURLInBrowser from 'react-native/Libraries/Core/Devtools/openURLInBrowser';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {RootStackParamList} from './types';
 
 const Header = () => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -89,7 +93,7 @@ const LearnMoreLinks = () => {
   );
 };
 
-function App(): JSX.Element {
+const WelcomeScreen = () => {
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
@@ -98,13 +102,13 @@ function App(): JSX.Element {
 
   return (
     <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={backgroundStyle}>
+        <StatusBar
+          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+          backgroundColor={backgroundStyle.backgroundColor}
+        />
         <Header />
         <View
           style={{
@@ -137,7 +141,21 @@ function App(): JSX.Element {
       </ScrollView>
     </SafeAreaView>
   );
-}
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const StackNavigator = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="WelcomeScreen"
+        component={WelcomeScreen}
+        options={{headerShown: false}}
+      />
+    </Stack.Navigator>
+  );
+};
 
 const styles = StyleSheet.create({
   sectionContainer: {
@@ -203,4 +221,10 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default () => {
+  return (
+    <NavigationContainer>
+      <StackNavigator />
+    </NavigationContainer>
+  );
+};
