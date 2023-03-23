@@ -6,9 +6,9 @@ import { TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import {
   Dispatcher,
+  SfuEventKindMap,
   SfuEventKinds,
   SfuEventListener,
-  SfuEventKindMap,
 } from './Dispatcher';
 import { CallState } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
@@ -35,6 +35,7 @@ import {
   Subject,
   takeWhile,
 } from 'rxjs';
+import { Comparator } from '../sorting';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import {
   createStatsReporter,
@@ -73,6 +74,11 @@ export type CallConstructor = {
    * This is useful when initializing a new "pending call" from an event.
    */
   members?: MemberResponse[];
+
+  /**
+   * The default criteria to use when sorting participants.
+   */
+  participantsSortCriteria?: Comparator<StreamVideoParticipant>[];
 };
 
 /**
@@ -98,7 +104,7 @@ export class Call {
   /**
    * The state of this call.
    */
-  readonly state = new CallState();
+  readonly state: CallState;
 
   /**
    * The event dispatcher instance dedicated to this Call instance.
@@ -119,12 +125,20 @@ export class Call {
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    */
-  constructor({ type, id, httpClient, metadata, members }: CallConstructor) {
+  constructor({
+    type,
+    id,
+    httpClient,
+    metadata,
+    members,
+    participantsSortCriteria,
+  }: CallConstructor) {
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
     this.httpClient = httpClient;
 
+    this.state = new CallState(participantsSortCriteria);
     this.state.metadataSubject.next(metadata);
     this.state.membersSubject.next(members || []);
 
@@ -616,6 +630,15 @@ export class Call {
     this.state.updateParticipant(sessionId, {
       reaction: undefined,
     });
+  };
+
+  /**
+   * Sets the list of criteria to sort the participants by.
+   *
+   * @param criteria the list of criteria to sort the participants by.
+   */
+  setSortParticipantsBy: CallState['setSortParticipantsBy'] = (criteria) => {
+    return this.state.setSortParticipantsBy(criteria);
   };
 
   /**
