@@ -83,34 +83,18 @@ export class StreamClient {
    * @param {Logger} [options.Logger] - custom logger
    * @param {number} [options.timeout] - default to 3000
    * @param {httpsAgent} [options.httpsAgent] - custom httpsAgent, in node it's default to https.agent()
-   * @example <caption>initialize the client in user mode</caption>
-   * new StreamChat('api_key')
-   * @example <caption>initialize the client in user mode with options</caption>
-   * new StreamChat('api_key', { warmUp:true, timeout:5000 })
-   * @example <caption>secret is optional and only used in server side mode</caption>
-   * new StreamChat('api_key', "secret", { httpsAgent: customAgent })
    */
-  constructor(key: string, options?: StreamClientOptions);
-  constructor(key: string, secret?: string, options?: StreamClientOptions);
-  constructor(
-    key: string,
-    secretOrOptions?: StreamClientOptions | string,
-    options?: StreamClientOptions,
-  ) {
+  constructor(key: string, options?: StreamClientOptions) {
     // set the key
     this.key = key;
     this.listeners = {};
 
     // set the secret
-    if (secretOrOptions && isString(secretOrOptions)) {
-      this.secret = secretOrOptions;
-    }
+    this.secret = options?.secret;
 
     // set the options... and figure out defaults...
     const inputOptions = options
       ? options
-      : secretOrOptions && !isString(secretOrOptions)
-      ? secretOrOptions
       : ({
           browser: typeof window !== 'undefined',
         } as Partial<StreamClientOptions>);

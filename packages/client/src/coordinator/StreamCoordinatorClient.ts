@@ -31,8 +31,6 @@ import {
   SortParamRequest,
   StopLiveResponse,
   UnblockUserResponse,
-  UpdateCallMemberRequest,
-  UpdateCallMemberResponse,
   UpdateCallRequest,
   UpdateCallResponse,
   UpdateCallTypeRequest,
@@ -147,13 +145,6 @@ export class StreamCall {
     );
   };
 
-  updateCallMembers = async (data: UpdateCallMemberRequest) => {
-    return this.client.post<UpdateCallMemberResponse>(
-      `${this.basePath}/update_member`,
-      data,
-    );
-  };
-
   goLive = async () => {
     return this.client.post<GoLiveResponse>(`${this.basePath}/go_live`, {});
   };
@@ -175,29 +166,6 @@ export class StreamCall {
 
   endCall = async () => {
     return this.client.post<EndCallResponse>(`${this.basePath}/mark_ended`);
-  };
-
-  // server-side only endpoints
-  createCallType = async (data: CreateCallTypeRequest) => {
-    return this.client.post<CreateCallTypeResponse>(
-      `${this.basePath}/calltypes`,
-      data,
-    );
-  };
-
-  updateCallType = async (name: string, data: UpdateCallTypeRequest) => {
-    return this.client.put<UpdateCallTypeResponse>(
-      `${this.basePath}/calltypes/${name}`,
-      data,
-    );
-  };
-
-  deleteCallType = async (name: string) => {
-    return this.client.delete(`${this.basePath}/calltypes/${name}`);
-  };
-
-  listCallTypes = async () => {
-    return this.client.get<ListCallTypeResponse>(`${this.basePath}/calltypes`);
   };
 }
 
@@ -340,11 +308,20 @@ export class StreamCoordinatorClient {
     return this.call(type, id).endCall();
   };
 
-  updateCallMembers = async (
-    id: string,
-    type: string,
-    data: UpdateCallMemberRequest,
-  ) => {
-    return this.call(type, id).updateCallMembers(data);
+  // server-side only endpoints
+  createCallType = async (data: CreateCallTypeRequest) => {
+    return this.client.post<CreateCallTypeResponse>(`/calltypes`, data);
+  };
+
+  updateCallType = async (name: string, data: UpdateCallTypeRequest) => {
+    return this.client.put<UpdateCallTypeResponse>(`/calltypes/${name}`, data);
+  };
+
+  deleteCallType = async (name: string) => {
+    return this.client.delete(`/calltypes/${name}`);
+  };
+
+  listCallTypes = async () => {
+    return this.client.get<ListCallTypeResponse>(`/calltypes`);
   };
 }
