@@ -41,10 +41,19 @@ export const getPreferredCodecs = (
   ] as RTCRtpCodecCapability[];
 };
 
-export const getGenericSdp = async (direction: RTCRtpTransceiverDirection) => {
+export const getGenericSdp = async (
+  direction: RTCRtpTransceiverDirection,
+  preferredCodec: string,
+) => {
   const tempPc = new RTCPeerConnection();
-  tempPc.addTransceiver('audio', { direction });
+  const audioTransceiver = tempPc.addTransceiver('audio', { direction });
   tempPc.addTransceiver('video', { direction });
+
+  if ('setCodecPreferences' in audioTransceiver) {
+    const audioCodecPreferences = getPreferredCodecs('audio', preferredCodec);
+    // @ts-ignore
+    audioTransceiver.setCodecPreferences([...(audioCodecPreferences || [])]);
+  }
 
   const offer = await tempPc.createOffer();
   const sdp = offer.sdp;
