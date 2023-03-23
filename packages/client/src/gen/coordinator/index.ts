@@ -80,6 +80,18 @@ export interface AudioSettings {
    * @memberof AudioSettings
    */
   access_request_enabled: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettings
+   */
+  opus_dtx_enabled: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettings
+   */
+  redundant_coding_enabled: boolean;
 }
 /**
  *
@@ -443,20 +455,6 @@ export interface CallRejectedEvent {
    */
   user: UserResponse;
 }
-
-// FIXME OL: this model is manually added, don't remove it until it becomes available in the OpenAPI schema
-export interface UpdateCallMemberRequest {
-  add_members?: Array<MemberRequest>;
-  remove_members?: Array<string>;
-  update_members?: Array<MemberRequest>;
-  disconnectRemovedMembers?: boolean;
-}
-
-// FIXME OL: this model is manually added, don't remove it until it becomes available in the OpenAPI schema
-export interface UpdateCallMemberResponse {
-  members?: Array<string>;
-}
-
 /**
  *
  * @export
@@ -568,10 +566,10 @@ export interface CallResponse {
   id: string;
   /**
    * The capabilities of the current user
-   * @type {Array<string>}
+   * @type {Array<OwnCapability>}
    * @memberof CallResponse
    */
-  own_capabilities: Array<string>;
+  own_capabilities: Array<OwnCapability>;
   /**
    *
    * @type {boolean}
@@ -729,6 +727,43 @@ export interface CallStateResponseFields {
 /**
  *
  * @export
+ * @interface CallTypeResponse
+ */
+export interface CallTypeResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof CallTypeResponse
+   */
+  created_at: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof CallTypeResponse
+   */
+  grants: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {string}
+   * @memberof CallTypeResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {CallSettingsResponse}
+   * @memberof CallTypeResponse
+   */
+  settings: CallSettingsResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallTypeResponse
+   */
+  updated_at: string;
+}
+/**
+ *
+ * @export
  * @interface CallUpdatedEvent
  */
 export interface CallUpdatedEvent {
@@ -775,6 +810,74 @@ export interface Coordinates {
    * @memberof Coordinates
    */
   longitude: number;
+}
+/**
+ *
+ * @export
+ * @interface CreateCallTypeRequest
+ */
+export interface CreateCallTypeRequest {
+  /**
+   *
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof CreateCallTypeRequest
+   */
+  grants?: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {string}
+   * @memberof CreateCallTypeRequest
+   */
+  name: string;
+  /**
+   *
+   * @type {CallSettingsRequest}
+   * @memberof CreateCallTypeRequest
+   */
+  settings?: CallSettingsRequest;
+}
+/**
+ *
+ * @export
+ * @interface CreateCallTypeResponse
+ */
+export interface CreateCallTypeResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof CreateCallTypeResponse
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateCallTypeResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof CreateCallTypeResponse
+   */
+  grants: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {string}
+   * @memberof CreateCallTypeResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {CallSettingsResponse}
+   * @memberof CreateCallTypeResponse
+   */
+  settings: CallSettingsResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateCallTypeResponse
+   */
+  updated_at: string;
 }
 /**
  *
@@ -920,6 +1023,18 @@ export interface Device {
 export interface EdgeResponse {
   /**
    *
+   * @type {string}
+   * @memberof EdgeResponse
+   */
+  continent_code: string;
+  /**
+   *
+   * @type {string}
+   * @memberof EdgeResponse
+   */
+  country_iso_code: string;
+  /**
+   *
    * @type {number}
    * @memberof EdgeResponse
    */
@@ -954,6 +1069,12 @@ export interface EdgeResponse {
    * @memberof EdgeResponse
    */
   red: number;
+  /**
+   *
+   * @type {string}
+   * @memberof EdgeResponse
+   */
+  subdivision_iso_code: string;
   /**
    *
    * @type {number}
@@ -1055,6 +1176,49 @@ export interface GetCallEdgeServerResponse {
    * @memberof GetCallEdgeServerResponse
    */
   membership?: MemberResponse;
+}
+/**
+ *
+ * @export
+ * @interface GetCallTypeResponse
+ */
+export interface GetCallTypeResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallTypeResponse
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallTypeResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof GetCallTypeResponse
+   */
+  grants: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallTypeResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {CallSettingsResponse}
+   * @memberof GetCallTypeResponse
+   */
+  settings: CallSettingsResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallTypeResponse
+   */
+  updated_at: string;
 }
 /**
  *
@@ -1338,6 +1502,25 @@ export interface JoinCallResponse {
 /**
  *
  * @export
+ * @interface ListCallTypeResponse
+ */
+export interface ListCallTypeResponse {
+  /**
+   *
+   * @type {{ [key: string]: CallTypeResponse; }}
+   * @memberof ListCallTypeResponse
+   */
+  call_types: { [key: string]: CallTypeResponse };
+  /**
+   *
+   * @type {string}
+   * @memberof ListCallTypeResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
  * @interface ListRecordingsResponse
  */
 export interface ListRecordingsResponse {
@@ -1484,6 +1667,34 @@ export interface MuteUsersResponse {
    */
   duration: string;
 }
+
+/**
+ * All possibility of string to use
+ * @export
+ */
+export const OwnCapability = {
+  update_call_permissions: 'update-call-permissions',
+  block_users: 'block-users',
+  create_reaction: 'create-reaction',
+  read_call: 'read-call',
+  join_ended_call: 'join-ended-call',
+  screenshare: 'screenshare',
+  stop_record_call: 'stop-record-call',
+  end_call: 'end-call',
+  join_call: 'join-call',
+  update_call: 'update-call',
+  send_audio: 'send-audio',
+  stop_broadcast_call: 'stop-broadcast-call',
+  create_call: 'create-call',
+  join_backstage: 'join-backstage',
+  mute_users: 'mute-users',
+  update_call_settings: 'update-call-settings',
+  send_video: 'send-video',
+  start_record_call: 'start-record-call',
+  start_broadcast_call: 'start-broadcast-call',
+} as const;
+export type OwnCapability = (typeof OwnCapability)[keyof typeof OwnCapability];
+
 /**
  *
  * @export
@@ -1639,6 +1850,12 @@ export interface PermissionRequestEvent {
 export interface QueryCallsRequest {
   /**
    *
+   * @type {string}
+   * @memberof QueryCallsRequest
+   */
+  connection_id?: string;
+  /**
+   *
    * @type {{ [key: string]: any; }}
    * @memberof QueryCallsRequest
    */
@@ -1667,6 +1884,12 @@ export interface QueryCallsRequest {
    * @memberof QueryCallsRequest
    */
   sort: Array<SortParamRequest>;
+  /**
+   *
+   * @type {boolean}
+   * @memberof QueryCallsRequest
+   */
+  watch?: boolean;
 }
 /**
  *
@@ -2155,6 +2378,68 @@ export interface UpdateCallResponse {
 /**
  *
  * @export
+ * @interface UpdateCallTypeRequest
+ */
+export interface UpdateCallTypeRequest {
+  /**
+   *
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof UpdateCallTypeRequest
+   */
+  grants?: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {CallSettingsRequest}
+   * @memberof UpdateCallTypeRequest
+   */
+  settings?: CallSettingsRequest;
+}
+/**
+ *
+ * @export
+ * @interface UpdateCallTypeResponse
+ */
+export interface UpdateCallTypeResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateCallTypeResponse
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateCallTypeResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof UpdateCallTypeResponse
+   */
+  grants: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateCallTypeResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {CallSettingsResponse}
+   * @memberof UpdateCallTypeResponse
+   */
+  settings: CallSettingsResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateCallTypeResponse
+   */
+  updated_at: string;
+}
+/**
+ *
+ * @export
  * @interface UpdateUserPermissionsRequest
  */
 export interface UpdateUserPermissionsRequest {
@@ -2209,11 +2494,11 @@ export interface UpdatedCallPermissionsEvent {
    */
   created_at: string;
   /**
-   * The updated list of capabilities the user has in the call
-   * @type {Array<string>}
+   * The capabilities of the current user
+   * @type {Array<OwnCapability>}
    * @memberof UpdatedCallPermissionsEvent
    */
-  own_capabilities: Array<string>;
+  own_capabilities: Array<OwnCapability>;
   /**
    *
    * @type {string}
