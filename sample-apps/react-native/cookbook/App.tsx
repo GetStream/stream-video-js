@@ -29,25 +29,15 @@ const Header = () => {
   const isDarkMode = useColorScheme() === 'dark';
   return (
     <ImageBackground
-      accessibilityRole="image"
-      testID="new-app-screen-header"
-      source={{
-        uri: 'https://getstream.imgix.net/images/cookbook-logo.png',
-      }}
+      resizeMode="contain"
+      source={require('./assets/header-banner.jpg')}
       style={[
         styles.background,
         {
           backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
         },
-      ]}
-      imageStyle={styles.logo}>
-      <Text
-        style={[
-          styles.text,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
+      ]}>
+      <Text style={styles.text}>
         Welcome to
         {'\n'}
         Stream's Video Cookbook
@@ -175,26 +165,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   background: {
-    paddingBottom: 40,
-    paddingTop: 96,
-    paddingHorizontal: 32,
-  },
-  logo: {
-    opacity: 0.2,
-    overflow: 'visible',
-    resizeMode: 'cover',
-    /*
-     * These negative margins allow the image to be offset similarly across screen sizes and component sizes.
-     *
-     * The source logo.png image is 512x512px, so as such, these margins attempt to be relative to the
-     * source image's size.
-     */
-    marginLeft: -128,
-    marginBottom: -192,
+    paddingVertical: 70,
   },
   text: {
     fontSize: 40,
     fontWeight: '700',
+    color: '#ffffff',
     textAlign: 'center',
   },
   container: {
