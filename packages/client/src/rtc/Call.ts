@@ -78,7 +78,7 @@ export type CallConstructor = {
   /**
    * The default criteria to use when sorting participants.
    */
-  participantsSortCriteria?: Comparator<StreamVideoParticipant>[];
+  sortParticipantsByCriteria?: Comparator<StreamVideoParticipant>[];
 };
 
 /**
@@ -131,14 +131,14 @@ export class Call {
     httpClient,
     metadata,
     members,
-    participantsSortCriteria,
+    sortParticipantsByCriteria,
   }: CallConstructor) {
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
     this.httpClient = httpClient;
 
-    this.state = new CallState(participantsSortCriteria);
+    this.state = new CallState(sortParticipantsByCriteria);
     this.state.metadataSubject.next(metadata);
     this.state.membersSubject.next(members || []);
 
