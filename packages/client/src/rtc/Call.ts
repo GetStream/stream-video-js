@@ -41,6 +41,8 @@ import {
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
 
+const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
+
 /**
  * The options to pass to {@link Call} constructor.
  */
@@ -152,7 +154,7 @@ export class Call {
     registerEventHandlers(this, this.state, this.dispatcher);
 
     this.trackSubscriptionsSubject
-      .pipe(debounceTime(1200))
+      .pipe(debounceTime(UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION))
       .subscribe((subscriptions) => {
         this.sfuClient?.updateSubscriptions(subscriptions);
       });
