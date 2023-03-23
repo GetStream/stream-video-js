@@ -6,32 +6,36 @@
  */
 
 import React from 'react';
-import {UserList} from './src/components/UserList';
-import {NavigationStackParamsList} from './src/types';
-import {ActiveCallScreen} from './src/screens/ActiveCallScreen';
-import {LobbyViewScreen} from './src/screens/LobbyViewScreen';
-import {
-  NativeStackNavigationProp,
-  createNativeStackNavigator,
-} from '@react-navigation/native-stack';
 import {NavigationContainer, useNavigation} from '@react-navigation/native';
 import {AppProvider, useAppContext} from './src/context/AppContext';
-import {useVideoClient} from './src/hooks/useVideoClient';
+import {AuthProgressLoader} from './src/components/AuthProgressLoader';
+import {STREAM_API_KEY} from 'react-native-dotenv';
 import {
   CallParticipantsInfoView,
   StreamVideo,
+  useCreateStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
-import {AuthProgressLoader} from './src/components/AuthProgressLoader';
-import {NavigationHeader} from './src/components/NavigationHeader';
+import {
+  createNativeStackNavigator,
+  NativeStackNavigationProp,
+} from '@react-navigation/native-stack';
+import {NavigationStackParamsList} from './src/types';
+import {UserList} from './src/components/UserList';
 import {JoinMeetingScreen} from './src/screens/JoinMeetingScreen';
+import {NavigationHeader} from './src/components/NavigationHeader';
+import {LobbyViewScreen} from './src/screens/LobbyViewScreen';
+import {ActiveCallScreen} from './src/screens/ActiveCallScreen';
+
+console.log('STREAM_API_KEY', STREAM_API_KEY);
 
 const Stack = createNativeStackNavigator<NavigationStackParamsList>();
 
 const Navigator = () => {
   const {user} = useAppContext();
-  const {videoClient} = useVideoClient({
+  const videoClient = useCreateStreamVideoClient({
     user: user,
-    token: user?.token,
+    tokenOrProvider: user?.custom?.token,
+    apiKey: STREAM_API_KEY,
   });
   const navigation =
     useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();

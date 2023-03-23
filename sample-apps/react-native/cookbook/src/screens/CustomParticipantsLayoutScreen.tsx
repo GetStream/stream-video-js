@@ -1,12 +1,20 @@
 import {StyleSheet, Text} from 'react-native';
 import {View} from 'react-native';
 import React from 'react';
+import {StreamVideo} from '@stream-io/video-react-native-sdk';
 
 export default () => {
   return (
-    <View style={styles.container}>
-      <Text>Hello</Text>
-    </View>
+    <StreamVideo
+      client={videoClient}
+      callCycleHandlers={{
+        onActiveCall: () => navigation.navigate('ActiveCallScreen'),
+        onHangupCall: () => navigation.navigate('JoinMeetingScreen'),
+      }}>
+      <View style={styles.container}>
+        <Text>Hello</Text>
+      </View>
+    </StreamVideo>
   );
 };
 

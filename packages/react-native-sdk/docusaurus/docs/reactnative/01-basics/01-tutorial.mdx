@@ -120,43 +120,7 @@ const App = () => {
 };
 ```
 
-For simplicity you can also use this hook:
-
-```tsx title="src/hooks/useVideoClient.tsx"
-import { StreamVideoClient } from '@stream-io/video-client';
-import { useEffect, useState } from 'react';
-import { VideoProps } from '../types';
-
-const APIParams = {
-  apiKey: STREAM_API_KEY, // see <video>/data/fixtures/apps.yaml for API key/secret
-};
-
-export const useVideoClient = ({ user, token }: VideoProps) => {
-  const [videoClient, setVideoClient] = useState<StreamVideoClient>();
-
-  useEffect(() => {
-    const run = async () => {
-      try {
-        if (user && token) {
-          const client = new StreamVideoClient(
-            APIParams.apiKey,
-            {},
-            CALL_CONFIG.meeting,
-          );
-          await client.connectUser(user, token);
-          setVideoClient(client);
-        }
-      } catch (err) {
-        console.error('Failed to establish connection', err);
-      }
-    };
-
-    run();
-  }, [token, user]);
-
-  return { videoClient };
-};
-```
+For simplicity you can also use the `useVideoClient` [hook](../../call-engine/hooks#usecreatestreamvideoclient) to connect and disconnect from the client.
 
 ### Provide the video client logic to the rest of the app
 
