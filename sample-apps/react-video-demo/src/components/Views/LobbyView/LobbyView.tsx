@@ -1,9 +1,5 @@
 import { FC } from 'react';
-
-import {
-  useActiveCall,
-  useLocalParticipant,
-} from '@stream-io/video-react-bindings';
+import { FeatureCollection, Geometry } from 'geojson';
 
 import LobbyPanel from '../../LobbyPanel';
 import Header from '../../Header';
@@ -14,10 +10,12 @@ import styles from './LobbyView.module.css';
 
 export type Props = {
   logo: string;
-  avatar: string;
+  avatar?: string;
   joinCall(): void;
   callId: string;
-  isCallActive: boolean;
+  edges?: FeatureCollection<Geometry>;
+  fastestEdge: any;
+  isjoiningCall: boolean;
 };
 
 export type Lobby = {
@@ -25,39 +23,31 @@ export type Lobby = {
   loading?: boolean;
 };
 
-export const Lobby: FC<Props & Lobby> = ({
+export const LobbyView: FC<Props & Lobby> = ({
   logo,
-  avatar,
   joinCall,
   call,
   callId,
-  isCallActive,
+  edges,
+  fastestEdge,
+  isjoiningCall,
 }) => {
-  const localParticipant: any = useLocalParticipant();
-
   return (
     <LobbyLayout
-      header={
-        <Header logo={logo} callId={callId} isCallActive={isCallActive} />
-      }
+      edges={edges}
+      header={<Header logo={logo} callId={callId} isCallActive={false} />}
     >
-      <LobbyPanel
-        className={styles.lobbyPanel}
-        joinCall={joinCall}
-        logo={logo}
-        avatar={avatar}
-        call={call}
-        localParticipant={localParticipant}
-      />
+      {isjoiningCall ? (
+        <div> Joining call ... </div>
+      ) : (
+        <LobbyPanel
+          className={styles.lobbyPanel}
+          joinCall={joinCall}
+          logo={logo}
+          call={call}
+          fastestEdge={fastestEdge}
+        />
+      )}
     </LobbyLayout>
   );
-};
-
-export const LobbyView: FC<Props> = (props) => {
-  const activeCall: any = useActiveCall();
-
-  if (!activeCall || !activeCall?.data.call?.callCid)
-    return <Lobby {...props} loading={true} />;
-
-  return <Lobby call={activeCall} loading={false} {...props} />;
 };

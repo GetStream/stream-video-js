@@ -2,16 +2,34 @@
   @apply flex items-start;
 }
 
+.cameraSettings,
+.audioSettings {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+.cameraSettings {
+  width: 300px;
+  transform: translateX(20%);
+}
+
 .portal:empty {
   @apply hidden;
 }
+
 .portal {
-  @apply relative;
-  width: 300px;
+  @apply absolute;
+  min-width: 300px;
+  left: -50%;
+  width: 100%;
 }
 
 .videoButton,
-.audioButton {
+.audioButton,
+.speakerButton {
   @apply ml-2 mr-2;
 }
 
@@ -27,11 +45,11 @@
 }
 
 .selectedDevice {
-  @apply bg-demo-black-light;
+  @apply bg-video-grey-700;
 }
 
 .label {
-  @apply text-white;
+  @apply text-video-white;
 }
 
 .radioButton {
@@ -39,5 +57,5 @@
 }
 
 .panel .footer {
-  @apply flex items-center justify-center text-white text-xs;
+  @apply flex items-center justify-center text-video-white text-xs;
 }

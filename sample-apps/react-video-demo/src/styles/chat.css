@@ -1,0 +1,29 @@
+.str-chat__empty-channel {
+  @apply hidden;
+}
+
+.str-chat__channel-header {
+  @apply hidden;
+}
+
+.str-chat {
+  --str-chat__primary-color: var(--color-video-grey-600);
+  --str-chat__primary-overlay-color: var(--color-video-grey-800);
+  --str-chat__primary-color-low-emphasis: var(--str-chat__blue700);
+  --str-chat__active-primary-color: var(--str-chat__blue600);
+  --str-chat__on-primary-color: var(--str-chat__grey50);
+  --str-chat__background-color: var(--color-video-grey-600);
+  --str-chat__secondary-background-color: var(--str-chat__grey900);
+  --str-chat__primary-surface-color: var(--color-video-grey-700);
+}
+
+/* .str-chat {
+  --str-chat__primary-color: var(--str-video__primary-color);
+  --str-chat__active-primary-color: var(--str-video__secondary-color);
+  --str-chat__background-color: var(--str-video__background-color1);
+  --str-chat__primary-surface-color: var(--str-video__background-color2);
+  --str-chat__primary-surface-color-low-emphasis: var(
+    --str-video__background-color2
+  );
+  --str-chat__secondary-background-color: var(--str-video__background-color4);
+} */

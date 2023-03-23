@@ -1,0 +1,36 @@
+.chat {
+}
+.chatContainer {
+}
+.channel {
+}
+.channelList {
+}
+.message {
+}
+.messageList {
+}
+.thread {
+}
+.threadList {
+}
+.virtualMessage {
+}
+.virtualizedMessageList {
+}
+
+.noMessages {
+  @apply flex flex-col items-center  text-center justify-center p-4 w-full;
+}
+
+.chatRound {
+  @apply text-video-grey-500;
+}
+
+.description:first-of-type {
+  @apply text-video-white font-bold mt-4;
+}
+
+.description {
+  @apply text-video-grey-400 mt-2 text-sm;
+}

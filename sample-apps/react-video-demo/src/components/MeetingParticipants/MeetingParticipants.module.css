@@ -1,0 +1,68 @@
+.meetingGrid {
+  @apply grid p-4 h-full gap-y-3 gap-x-3;
+}
+
+.meetingGrid.slider {
+  @apply grid p-4  gap-y-3  w-full;
+  /* height: calc(100vh - 180px); */
+  grid-template-rows: 1fr 0.25fr;
+  grid-template-areas:
+    'localParticipant'
+    'participantSlider';
+}
+
+.meetingGrid.slider.localParticipant {
+  grid-area: localParticipant;
+  @apply flex justify-center items-center;
+}
+
+.participantSlider {
+  grid-area: participantSlider;
+  @apply flex;
+}
+
+.meetingGrid-1 {
+  @apply flex items-center justify-center;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: repeat(1, 1fr);
+}
+
+.meetingGrid-1 .localParticipant,
+.meetingGrid-1 .remoteParticipant {
+  max-height: 449px;
+  max-width: 904px;
+}
+
+.meetingGrid-2 {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(1, 1fr);
+}
+
+.meetingGrid-3 {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+.meetingGrid-4 {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+.meetingGrid-5 {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+.meetingGrid-6 {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+.meetingGrid-7 {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+.meetingGrid-8 {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+.meetingGrid-9 {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}

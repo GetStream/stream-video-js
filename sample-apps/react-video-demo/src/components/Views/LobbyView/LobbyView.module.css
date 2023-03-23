@@ -4,7 +4,6 @@
 
 .layoutContainer {
   @apply grid relative z-10;
-  /* pointer-events: none; */
   grid-template-areas:
     'header'
     'body'
@@ -12,12 +11,12 @@
 }
 
 .header {
-  @apply w-screen h-10 p-4 text-base;
+  @apply w-screen h-10 p-4;
   grid-area: header;
 }
 
 .callIdentification {
-  @apply flex items-center text-white;
+  @apply flex items-center text-video-white;
 }
 
 .logo {

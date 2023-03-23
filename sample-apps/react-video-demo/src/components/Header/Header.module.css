@@ -1,15 +1,24 @@
 .header {
-  @apply flex justify-between items-center;
+  @apply grid justify-between items-center;
+  grid-template-row: 1fr;
+  grid-template-columns: 1fr 100px 1fr;
+  grid-template-areas: 'participants elapsed latency';
 }
 .callIdentification {
-  @apply flex items-center text-white;
+  grid-area: participants;
+  @apply flex items-center text-video-white;
+}
+
+.callId {
+  @apply hidden sm:flex;
 }
 
 .logo {
-  @apply mr-2;
+  @apply mr-2 h-8 w-8;
 }
 
 .participants {
+  grid-area: participants;
   @apply flex items-center;
 }
 
@@ -22,17 +31,49 @@
 }
 
 .avatar:not(:first-of-type) {
-  @apply absolute m-4 z-10;
+  @apply absolute ml-4 z-10;
+}
+
+.placeholder {
+  @apply absolute flex items-center justify-center rounded-full h-10 w-10 bg-video-grey-400 text-video-grey-700 border-2 border-video-grey-200;
+}
+
+.placeholder:not(:first-of-type) {
+  @apply absolute ml-4 z-10;
 }
 
 .names {
-  @apply m-8 text-white;
+  @apply hidden sm:flex mr-8 ml-8 text-video-white;
 }
 
+.elapsedContainer {
+  grid-area: elapsed;
+  @apply flex items-center justify-center;
+}
 .elapsed {
-  @apply bg-demo-black-dark flex items-center justify-center text-xs text-white p-2 rounded-container;
+  @apply bg-video-grey-800  text-xs text-video-white p-2 rounded-container;
 }
 
 .latency {
-  @apply text-white text-xs;
+  grid-area: latency;
+  @apply flex justify-end w-full;
+}
+
+.latencyContainer {
+  @apply flex text-video-white text-xs bg-video-grey-500 p-2 pl-2 rounded-container items-center justify-center w-auto;
+}
+
+.latencyIndicator {
+  @apply h-1 w-1 rounded-full mr-2 ml-2;
+}
+
+.latencyIndicator.green {
+  @apply bg-video-green-500;
+}
+
+.latencyIndicator.yellow {
+  @apply bg-video-yellow-500;
+}
+.latencyIndicator.red {
+  @apply bg-video-green-500;
 }

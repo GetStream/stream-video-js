@@ -1,129 +1,166 @@
-import { FC, useState, useMemo } from 'react';
+import { FC, useState, useCallback, useEffect } from 'react';
+
+import { v1 as uuidv1 } from 'uuid';
 import {
-  StreamMeeting,
   StreamVideo,
   useCreateStreamVideoClient,
-<<<<<<< HEAD
   MediaDevicesProvider,
-=======
->>>>>>> d4aaab4 (feat: app index)
 } from '@stream-io/video-react-sdk';
-
-import { v4 as uuidv4 } from 'uuid';
-
-import { UserType } from './types/chat';
+import { CallConfig, CALL_CONFIG, User } from '@stream-io/video-client';
+import { FeatureCollection, Geometry } from 'geojson';
 
 import LobbyView from './components/Views/LobbyView';
 import MeetingView from './components/Views/MeetingView';
+import EndCallView from './components/Views/EndCallView';
 
+import { TourProvider, useTourContext } from './contexts/TourContext';
+import { ModalProvider } from './contexts/ModalContext';
+import { NotificationProvider } from './contexts/NotificationsContext';
+
+import { createGeoJsonFeatures } from './utils/useCreateGeoJsonFeatures';
+import { useCreateStreamChatClient } from './hooks/useChatClient';
+
+import { tour } from '../data/tour';
+
+import '@getstream/ui-library/build/index.css';
 import './App.css';
 
 export type Props = {
-  callId: string;
   logo: string;
-  user: UserType;
+  user: User;
   token: string;
   apiKey: string;
-  coordinatorRpcUrl: string;
-  coordinatorWsUrl: string;
+  incomingCallId?: string | null;
 };
 
 const config = {
-  apiKey: import.meta.env.VITE_VEDEIO_API_KEY,
+  apiKey: import.meta.env.VITE_STREAM_KEY,
   user: {
     id: import.meta.env.VITE_VIDEO_USER_ID,
-    name: 'Niels',
+    name: import.meta.env.VITE_VIDEO_USER_NAME,
     role: 'admin',
     teams: ['team-1', 'team-2'],
-    imageUrl: 'https://randomuser.me/api/portraits/men/57.jpg',
+    image: '',
     customJson: new Uint8Array(),
   },
   token: import.meta.env.VITE_VIDEO_USER_TOKEN,
-  coordinatorWsUrl: import.meta.env.VITE_VIDEO_COORDINATOR_WS_URL,
-  coordinatorRpcUrl: import.meta.env.VITE_VIDEO_COORDINATOR_RPC_ENDPOINT,
 };
 
-const Init: FC<Props> = ({
-  callId,
-  logo,
-  user,
-  token,
-  coordinatorRpcUrl,
-  coordinatorWsUrl,
-  apiKey,
-}) => {
-<<<<<<< HEAD
-  const [isCallActive, setIsCallActive] = useState(true);
-=======
+const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const [isCallActive, setIsCallActive] = useState(false);
->>>>>>> d4aaab4 (feat: app index)
-  const call: {
-    callId: string;
-    currentUser: any;
-    callType: string;
-    input: { members: any; createdBy: any };
-    autoJoin: boolean;
-  } = useMemo(() => {
-    return {
-      callId: callId,
-      callType: 'default',
-      input: {
-        members: [
-          {
-            userId: user.id,
-            role: user.role,
-            customJson: user.customJson,
-          },
-        ],
-        createdBy: user.id,
-      },
+  const [callHasEnded, setCallHasEnded] = useState(false);
+  const [callId, setCallId] = useState<string>();
+  const [edges, setEdges] = useState<FeatureCollection<Geometry>>();
+  const [fastestEdge, setFastestEdge] = useState<any>();
+  const [isjoiningCall, setIsJoiningCall] = useState(false);
 
-      currentUser: user,
-      autoJoin: true,
-    };
-  }, [user, callId]);
+  const callType: string = 'default';
+  const callConfig: CallConfig = CALL_CONFIG.meeting;
 
-  const videoStream = useCreateStreamVideoClient({
-    coordinatorRpcUrl,
-    coordinatorWsUrl,
+  const { setSteps } = useTourContext();
+
+  const client = useCreateStreamVideoClient({
     apiKey,
-    token,
+    tokenOrProvider: token,
     user,
+    callConfig,
   });
 
+  const chatClient = useCreateStreamChatClient({
+    apiKey,
+    tokenOrProvider: token,
+    userData: user,
+  });
+
+  useEffect(() => {
+    if (incomingCallId && incomingCallId !== null) {
+      setCallId(incomingCallId);
+    }
+  }, [incomingCallId]);
+
+  useEffect(() => {
+    setSteps(tour);
+  }, []);
+
+  useEffect(() => {
+    async function fetchEdges() {
+      const response = await client.coordinatorClient.edges();
+      const fastedEdges = response.edges.sort(
+        (a: any, b: any) => a.latency - b.latency,
+      );
+      setFastestEdge(fastedEdges[0]);
+
+      const features = createGeoJsonFeatures(response.edges);
+      setEdges(features);
+    }
+    fetchEdges();
+  }, []);
+
+  const createMeeting = useCallback(async () => {
+    try {
+      const id = uuidv1();
+      setIsJoiningCall(true);
+      await client?.joinCall(id, callType);
+      setCallId(id);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsJoiningCall(false);
+      setIsCallActive(true);
+    }
+  }, [client]);
+
+  const joinMeeting = useCallback(async () => {
+    if (client && callId) {
+      try {
+        setIsJoiningCall(true);
+        await client.joinCall(callId, callType);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsJoiningCall(false);
+        setIsCallActive(true);
+      }
+    }
+  }, [client, callId]);
+
+  if (callHasEnded) {
+    return <EndCallView />;
+  }
+
   return (
-    <>
-      {isCallActive ? (
-        <StreamVideo client={videoStream}>
-          <StreamMeeting
-            callId={call.callId}
-            callType={call.callType}
-            input={call.input}
-            currentUser={call.currentUser}
-          >
-            <MeetingView
-              logo={logo}
-              callId={callId}
-              isCallActive={isCallActive}
-            />
-          </StreamMeeting>
-        </StreamVideo>
-      ) : (
-        <StreamVideo client={videoStream}>
-          <MediaDevicesProvider>
+    <StreamVideo client={client}>
+      <MediaDevicesProvider initialVideoEnabled={true}>
+        <ModalProvider>
+          {isCallActive && callId && client ? (
+            <NotificationProvider>
+              <TourProvider>
+                <MeetingView
+                  logo={logo}
+                  callId={callId}
+                  callType={callType}
+                  isCallActive={isCallActive}
+                  setCallHasEnded={setCallHasEnded}
+                  chatClient={chatClient}
+                />
+              </TourProvider>
+            </NotificationProvider>
+          ) : (
             <LobbyView
               logo={logo}
-              avatar={user.imageUrl}
-              callId={callId}
-              isCallActive={isCallActive}
+              avatar={user.image}
+              callId={callId || ''}
+              edges={edges}
+              fastestEdge={fastestEdge}
+              isjoiningCall={isjoiningCall}
               joinCall={() => {
-                setIsCallActive(true);
+                incomingCallId ? joinMeeting() : createMeeting();
               }}
             />
-          </MediaDevicesProvider>
-        </StreamVideo>
-      )}
-    </>
+          )}
+        </ModalProvider>
+      </MediaDevicesProvider>
+    </StreamVideo>
   );
 };
 
@@ -131,14 +168,9 @@ const App: FC = () => {
   const logo = '/images/icons/stream-logo.svg';
 
   const location = window?.document?.location;
+  const callId = new URL(location.href).searchParams.get('id');
 
-<<<<<<< HEAD
-  const callId = '123-abc'; //new URL(location.href).searchParams.get('id') || uuidv4();
-=======
-  const callId = new URL(location.href).searchParams.get('id') || uuidv4();
->>>>>>> d4aaab4 (feat: app index)
-
-  return <Init {...config} logo={logo} callId={callId} />;
+  return <Init {...config} logo={logo} incomingCallId={callId} />;
 };
 
 export default App;

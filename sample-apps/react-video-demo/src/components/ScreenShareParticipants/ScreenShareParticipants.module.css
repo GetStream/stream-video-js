@@ -1,0 +1,71 @@
+.root {
+  @apply flex p-4;
+}
+
+.localView {
+  @apply grid p-4  gap-x-3 h-full;
+  grid-template-row: 1fr;
+  grid-template-areas: 'localContainer';
+}
+
+.localView.hasRemoteParticipants {
+  @apply grid p-4  gap-y-3;
+  grid-template-row: 1fr 0.5fr;
+  grid-template-areas:
+    'localContainer'
+    'remoteParticipants';
+}
+
+.localContainer {
+  @apply grid  gap-x-3 h-full;
+  grid-area: localContainer;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas: 'localNotification localParticipant';
+}
+
+.localNotification {
+  @apply flex flex-col justify-center items-center text-video-white border-2 border-video-stream-500 rounded-container;
+  grid-area: localNotification;
+}
+
+.screenShareIcon {
+  @apply h-20 w-20 mb-3;
+}
+
+.heading {
+  @apply text-xl mb-2;
+}
+
+.button {
+  @apply font-medium flex items-center mt-2;
+}
+
+.closeIcon {
+  @apply h-7 w-7 mr-2;
+}
+
+.localParticipant {
+  grid-area: localParticipant;
+}
+
+.remoteParticipants {
+  @apply flex w-full;
+  grid-area: remoteParticipants;
+}
+
+.remoteView {
+  @apply grid p-4  gap-x-3 w-full;
+  height: calc(100vh - 180px);
+  grid-template-columns: 1fr 0.25fr;
+  grid-template-areas: 'screenShareContainer remoteParticipants';
+}
+
+.screenShareContainer {
+  @apply flex  gap-x-3;
+  height: calc(100vh - 215px);
+  grid-area: screenShareContainer;
+}
+
+.screenShareContainer video {
+  object-fit: contain;
+}

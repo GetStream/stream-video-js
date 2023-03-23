@@ -1,0 +1,28 @@
+.root {
+  @apply flex flex-col items-center justify-center bg-video-grey-700;
+  height: 100vh;
+}
+.panel {
+  @apply mr-4 ml-4 sm:m-0 md:w-6/12  flex flex-col items-center justify-center;
+}
+
+.image {
+  @apply h-20 w-20;
+}
+
+.heading {
+  @apply text-center text-video-white font-extrabold;
+  font-size: 50px;
+}
+
+.description {
+  @apply mt-4 text-video-white text-center text-xl font-light;
+}
+
+.ctas {
+  @apply mt-8 flex items-center justify-between w-full max-w-md;
+}
+
+.feedback {
+  @apply mt-8;
+}

@@ -1,0 +1,63 @@
+.root {
+}
+
+.root.vertical {
+  @apply relative w-full;
+}
+
+.root.horizontal {
+  @apply relative h-full h-full;
+}
+
+.swiper {
+  @apply flex h-full w-full;
+}
+
+.slide.horizontal {
+  max-height: 100%;
+  max-width: 20%;
+}
+
+.slide.vertical {
+  height: 125px;
+  width: 100%;
+}
+
+.participant.horizontal {
+  max-height: 100%;
+}
+.participant.vertical {
+  height: 10%;
+  width: 100%;
+}
+
+.next,
+.previous {
+  @apply flex items-center justify-center absolute bg-video-black text-video-white h-10 w-10 rounded-container;
+  z-index: 20;
+}
+
+.next:hover,
+.previous:hover {
+  @apply cursor-pointer;
+}
+
+.previous.vertical {
+  @apply top-0;
+  left: 45%;
+}
+
+.previous.horizontal {
+  @apply left-0;
+  top: 35%;
+}
+
+.next.horizontal {
+  @apply right-0;
+  top: 35%;
+}
+
+.next.vertical {
+  @apply bottom-0;
+  left: 45%;
+}

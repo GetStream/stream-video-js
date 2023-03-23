@@ -1,4 +1,4 @@
-import { FC, ReactNode, useCallback, useState } from 'react';
+import { FC, ReactNode, useCallback, useState, useRef } from 'react';
 import classnames from 'classnames';
 
 import { ArrowDown } from '../Icons';
@@ -38,6 +38,7 @@ export const Panel: FC<Props> = ({
 
   const headingClassName = classnames(styles.header, {
     [styles.canCollapse]: canCollapse,
+    [styles.open]: isOpen,
   });
 
   const arrowClassName = classnames(styles.arrow, {

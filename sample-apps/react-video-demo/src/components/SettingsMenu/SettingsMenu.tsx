@@ -6,7 +6,7 @@ import styles from './SettingsMenu.module.css';
 export type Props = {
   className?: string;
   title?: string;
-  icon?: FC<{ className: string }>;
+  icon?: ReactNode;
   children?: ReactNode | undefined;
 };
 
@@ -21,9 +21,9 @@ export const SettingsMenu: FC<Props> = ({
     <div className={rootClassName}>
       {title ? (
         <div className={styles.header}>
-          {icon && createElement(icon, { className: styles.prefix })}
+          {icon}
 
-          <h3>{title}</h3>
+          <h3 className={styles.heading}>{title}</h3>
         </div>
       ) : null}
       <div className={styles.body}>{children}</div>

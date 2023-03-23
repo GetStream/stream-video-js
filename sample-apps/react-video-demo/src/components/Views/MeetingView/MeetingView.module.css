@@ -1,10 +1,7 @@
-video {
-  height: 300px;
-}
-
 .sidebar {
   @apply grid  gap-y-3;
   grid-template-columns: 1fr;
+  grid-template-rows: 1fr min-content;
   grid-template-areas:
     'invitePanel'
     'participantsPanel'
@@ -21,4 +18,61 @@ video {
 
 .chatPanel {
   grid-area: chatPanel;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 100%;
+}
+
+.content.activeTour {
+  @apply relative grid gap-y-3;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    'stage'
+    'tour';
+}
+
+@media screen(sm) {
+  .content.activeTour {
+    @apply relative grid gap-y-3;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'stage'
+      'tour';
+  }
+}
+
+.stage {
+  grid-area: stage;
+  height: 100%;
+  width: 100%;
+}
+
+.tour {
+  @apply flex absolute items-center justify-center w-full;
+  bottom: 10px;
+  margin: 0 auto;
+  grid-area: tour;
+}
+
+.animation-enter {
+  opacity: 0;
+  display: block;
+}
+.animation-enter-active {
+  opacity: 1;
+  transition: opacity 700ms;
+}
+.animation-exit {
+  opacity: 1;
+}
+.animation-exit-active {
+  opacity: 0;
+  display: none;
+  transition: opacity 200ms;
 }

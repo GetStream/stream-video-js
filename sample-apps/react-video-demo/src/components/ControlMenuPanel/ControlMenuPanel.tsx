@@ -1,7 +1,7 @@
 import { FC } from 'react';
-import classnames from 'classnames';
 
 import SettingsMenu from '../SettingsMenu';
+import DeviceList from '../DeviceList';
 
 import { Settings } from '../Icons';
 
@@ -19,7 +19,7 @@ export type Props = {
   title: string;
   label: string;
 
-  selectDevice: (kind: Partial<MediaDeviceKind>, deviceId: string) => void;
+  selectDevice(kind: Partial<MediaDeviceKind>, deviceId: string): void;
 };
 
 export const ControlMenuPanel: FC<Props> = ({
@@ -32,34 +32,13 @@ export const ControlMenuPanel: FC<Props> = ({
 }) => {
   return (
     <SettingsMenu className={className} title={title}>
-      <ul className={styles.deviceList}>
-        {devices.map(({ kind, label, deviceId }) => {
-          const deviceClassName = classnames(styles.device, {
-            [styles.selectedDevice]: selectedDeviceId === deviceId,
-          });
-
-          return (
-            <li
-              className={deviceClassName}
-              onClick={() => selectDevice(kind, deviceId)}
-            >
-              <label className={styles.label} htmlFor={deviceId}>
-                <input
-                  id={kind}
-                  className={styles.radioButton}
-                  name={deviceId}
-                  type="radio"
-                  checked={selectedDeviceId === deviceId}
-                  value={deviceId}
-                />
-                {label}
-              </label>
-            </li>
-          );
-        })}
-      </ul>
+      <DeviceList
+        devices={devices}
+        selectedDeviceId={selectedDeviceId}
+        selectDevice={selectDevice}
+      />
       <div className={styles.footer}>
-        <Settings />
+        <Settings className={styles.settings} />
         <p>{label}</p>
       </div>
     </SettingsMenu>

@@ -7,27 +7,44 @@
 }
 
 .label {
-  @apply text-white text-xs mt-1;
+  @apply text-video-white text-xs mt-1;
 }
 
 .primary {
-  @apply bg-stream text-white shadow-button border-stream;
+  @apply bg-video-stream-500 text-video-white  border-video-stream-500;
 }
 
 .secondary {
-  @apply bg-demo-grey-lighter text-white border-demo-grey-lighter;
+  @apply bg-video-grey-500 text-video-white border-video-grey-500;
+  transition: background 300ms;
+}
+
+.secondary:hover {
+  @apply bg-video-grey-400 text-video-white border-video-grey-400;
+  transition: background 300ms;
+  transition: border 100ms;
 }
 
 .danger {
-  @apply bg-red text-white border-red;
+  @apply bg-video-red-600 text-video-white border-video-red-600;
+}
+
+.danger:hover {
+  @apply bg-video-red-300  border-video-red-300;
 }
 
 .transparent {
-  @apply bg-transparent text-white border-transparent;
+  @apply bg-video-transparent text-video-white border-video-transparent;
 }
 
 .active {
-  @apply bg-demo-grey-light text-white border-demo-grey-light;
+  @apply bg-video-grey-400 text-video-white border-video-grey-400;
+  transition: background 300ms;
+}
+
+.active:hover {
+  @apply bg-video-grey-800 text-video-white border-video-grey-800;
+  transition: background 300ms;
 }
 
 .circle {
@@ -42,7 +59,11 @@
 }
 
 .rectangle {
-  @apply rounded-input flex items-center;
+  @apply pt-1 pb-1 pl-2 pr-2 rounded-input flex items-center;
   height: 42px;
-  padding: 4px;
+}
+
+.oval {
+  @apply pt-1 pb-1 pl-3 pr-3 uppercase tracking-wider text-xs font-extrabold;
+  border-radius: 59px;
 }

@@ -1,0 +1,8 @@
+.input .str-chat__textarea textarea {
+  padding: 4px 4px 4px 12px;
+  border-radius: 45px;
+  border: 1px solid black;
+  background: black;
+  color: white;
+  height: 31px !important;
+}

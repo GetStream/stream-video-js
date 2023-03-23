@@ -1,15 +1,10 @@
-import {
-  FC,
-  useCallback,
-  useEffect,
-  useState,
-  createElement,
-  ReactNode,
-} from 'react';
+import { FC, useCallback, useState, ReactNode, useRef } from 'react';
 import classnames from 'classnames';
 
 import Button from '../Button';
 import { ChevronUp } from '../Icons';
+
+import { useOnClickOutside } from '../../utils/useClickOutsite';
 
 import styles from './ControlButton.module.css';
 
@@ -18,63 +13,72 @@ export type Props = {
   label?: string;
   prefix?: ReactNode;
   panel: ReactNode;
-  state?: 'disabled' | 'prominent' | 'accent';
+  showPanel?: boolean;
   onClick?(): void;
   children?: ReactNode | undefined;
+  portalId?: string;
 };
 
 export const ControlButton: FC<Props> = ({
   className,
   label,
-  state,
   prefix,
   panel,
+  showPanel = false,
   onClick,
   children,
+  portalId,
 }) => {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState<boolean>(false);
 
-  const handleOnClick = useCallback(() => {
-    onClick?.();
-  }, [active]);
+  const container: any = useRef();
 
   const togglePanel = useCallback(() => {
     setActive(!active);
   }, [active]);
 
+  const closePanel = useCallback(() => {
+    if (active) {
+      setActive(false);
+    }
+  }, [active]);
+
   const rootClassName = classnames(
     styles.root,
     {
-      [styles.active]: active,
-      [styles.disabled]: state === 'disabled',
-      [styles.prominent]: state === 'prominent',
-      [styles.accent]: state === 'accent',
+      [styles.active]: active || showPanel,
     },
     className,
   );
 
   const toggleClassName = classnames(styles.toggle, {
-    [styles.active]: active,
-    [styles.disabled]: state === 'disabled',
-    [styles.prominent]: state === 'prominent',
-    [styles.accent]: state === 'accent',
+    [styles.active]: active || showPanel,
   });
 
   const toggleIndicatorClassName = classnames(styles.toggleIndicator, {
-    [styles.active]: active,
+    [styles.active]: active || showPanel,
   });
+
+  const toggleIconClassName = classnames(styles.toggleIcon, {
+    [styles.active]: active || showPanel,
+  });
+
+  useOnClickOutside(container, closePanel);
 
   return (
     <>
-      <div className={styles.container}>
-        {panel && active && panel}
+      <div ref={container} className={styles.container}>
+        {portalId ? (
+          <div id={portalId} className={styles.portalContainer} />
+        ) : null}
+        {panel && (active || showPanel) !== false && panel}
         <div className={rootClassName}>
           <div className={toggleClassName}>
             <Button
               className={styles.button}
               color="transparent"
               shape="square"
-              onClick={() => handleOnClick()}
+              onClick={onClick}
             >
               {prefix}
               {children}
@@ -83,7 +87,7 @@ export const ControlButton: FC<Props> = ({
               className={toggleIndicatorClassName}
               onClick={() => togglePanel()}
             >
-              <ChevronUp className={styles.toggleIcon} />
+              <ChevronUp className={toggleIconClassName} />
             </div>
           </div>
           {label ? <span className={styles.label}>{label}</span> : null}

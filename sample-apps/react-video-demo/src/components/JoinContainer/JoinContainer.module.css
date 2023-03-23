@@ -1,5 +1,6 @@
 .root {
-  @apply bg-demo-background-black rounded-container p-4;
+  @apply rounded-container p-4;
+  background: rgba(28, 28, 30, 0.9);
   display: grid;
   grid-template-areas:
     'logo description'
@@ -9,11 +10,10 @@
 .logo {
   @apply h-12 w-12;
   grid-area: logo;
-  
 }
 
 .description {
-  @apply text-white ml-1;
+  @apply text-video-white ml-1;
   grid-area: description;
 }
 

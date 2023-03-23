@@ -1,3 +1,5 @@
 import { Props } from './ControlMenu';
 
-export const KichinSink: Props = {};
+export const KichinSink: Props = {
+  localParticipant: '',
+};

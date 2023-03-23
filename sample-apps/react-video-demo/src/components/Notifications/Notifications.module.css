@@ -1,0 +1,13 @@
+.root {
+  @apply absolute flex flex-col pl-4 pr-4;
+  z-index: 50;
+}
+
+.notification {
+  @apply flex items-center mt-4 p-2 pl-3 pr-3 text-video-white rounded-container bg-video-black/80;
+  width: auto;
+}
+
+.icon {
+  @apply mr-2;
+}

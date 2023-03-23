@@ -1,0 +1,6 @@
+.root {
+  min-height: 350px;
+}
+.heading {
+  @apply mb-4;
+}

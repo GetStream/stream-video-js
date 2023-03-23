@@ -1,9 +1,11 @@
-import { FC, useCallback, useState } from 'react';
+import { FC, useCallback, useState, useRef, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import classnames from 'classnames';
 
 import { Copy, UserChecked } from '../Icons';
 import Panel from '../Panel';
+
+import { useTraceUpdate } from '../../hooks/useTraceUpdate';
 
 import styles from './InvitePanel.module.css';
 
@@ -15,6 +17,21 @@ export type Props = {
 
 export const InvitePanel: FC<Props> = ({ className, isFocused, callId }) => {
   const [isCopied, setIsCopied] = useState(false);
+  const [showQr, setShowQr] = useState(false);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputRef && inputRef.current) {
+      inputRef.current.value = `${window.location.href}?id=${callId}`;
+    }
+  }, [inputRef, callId]);
+
+  const handleCopy = useCallback(() => {
+    if (inputRef && inputRef.current) {
+      copyUrl(inputRef?.current?.value);
+    }
+  }, [inputRef]);
 
   const copyUrl = useCallback(
     (value: string) => {
@@ -32,7 +49,19 @@ export const InvitePanel: FC<Props> = ({ className, isFocused, callId }) => {
     [isCopied],
   );
 
+  const handleToggleDisplayQr = useCallback(() => {
+    setShowQr(!showQr);
+  }, [showQr]);
+
   const rootClassname = classnames(styles.root, className);
+
+  const qrClassNames = classnames(styles.qr, {
+    [styles.hide]: showQr === false,
+  });
+
+  const showQrIndicatorClassNames = classnames(styles.showQrIndicator, {
+    [styles.transform]: showQr === false,
+  });
 
   return (
     <Panel
@@ -44,7 +73,7 @@ export const InvitePanel: FC<Props> = ({ className, isFocused, callId }) => {
         <p className={styles.description}>
           Send the URL below to someone and have them join this private call:
         </p>
-        <div className={styles.copy}>
+        <div className={styles.copy} onClick={() => handleCopy()}>
           {isCopied ? (
             <div className={styles.copied}>
               <UserChecked className={styles.copiedIcon} />
@@ -53,22 +82,18 @@ export const InvitePanel: FC<Props> = ({ className, isFocused, callId }) => {
               <Copy className={styles.copyIcon} />
             </div>
           ) : (
-            <>
-              <input
-                className={styles.input}
-                value={callId}
-                onClick={(e) => copyUrl(e.currentTarget.value)}
-                readOnly={true}
-              />
+            <div>
+              <input ref={inputRef} className={styles.input} readOnly={true} />
               <Copy className={styles.copyIcon} />
-            </>
+            </div>
           )}
         </div>
 
-        <p className={styles.description}>
+        <p className={styles.description} onClick={handleToggleDisplayQr}>
           Or scan the QR code with your phone to test it yourself:
+          <span className={showQrIndicatorClassNames}>▼</span>
         </p>
-        <div className={styles.qr}>
+        <div className={qrClassNames}>
           <QRCodeSVG className={styles.code} value={callId} />
         </div>
       </>

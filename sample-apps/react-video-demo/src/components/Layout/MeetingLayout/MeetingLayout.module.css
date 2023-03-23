@@ -1,22 +1,42 @@
 .root {
-  @apply grid relative bg-demo-black-light;
+  @apply grid relative bg-video-grey-700;
   padding: 10px;
-  grid-template-columns: 2fr 0.5fr;
+  grid-template-columns: 1fr;
   grid-column-gap: 10px;
 
-  height: 100vh;
+  min-height: 100vh;
+  height: 100%;
   width: 100vw;
 
   grid-template-areas:
-    'layoutContainer sidebar'
-    'layoutContainer sidebar'
-    'layoutContainer sidebar';
+    'layoutContainer'
+    'layoutContainer'
+    'layoutContainer'
+    'sidebar';
+}
+
+@media screen(sm) {
+  .root {
+    @apply grid relative bg-video-grey-700;
+    padding: 10px;
+    grid-template-columns: 2fr 0.5fr;
+    grid-column-gap: 10px;
+
+    min-height: 100vh;
+    height: 100%;
+    width: 100vw;
+
+    grid-template-areas:
+      'layoutContainer sidebar'
+      'layoutContainer sidebar'
+      'layoutContainer sidebar';
+  }
 }
 
 .layoutContainer {
   grid-area: layoutContainer;
-  @apply rounded-container bg-demo-grey-lighter;
-  grid-template-rows: 1fr 4fr 1fr;
+  @apply grid rounded-container bg-video-grey-600 w-full;
+  grid-template-rows: 80px calc(100vh - 200px) 100px;
   grid-template-areas:
     'header'
     'body'
@@ -26,19 +46,86 @@
 .sidebar {
   grid-area: sidebar;
   @apply rounded-container;
+  overflow-y: scroll;
+  overflow: hidden;
 }
 
 .header {
-  @apply pl-4 pr-4 text-base;
+  @apply p-4;
   grid-area: header;
 }
 
 .body {
   grid-area: body;
-  height: calc(100vh - 12.5rem);
 }
 
 .footer {
-  @apply flex h-20 p-4;
+  @apply flex p-4;
   grid-area: footer;
+}
+
+.modals {
+  @apply p-4 grid bg-video-transparent absolute w-full h-full fixed;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+
+  grid-template-columns: 1fr;
+
+  height: 100vh;
+  width: 100vw;
+
+  grid-template-areas: 'modal space';
+}
+
+@media screen(sm) {
+  .modals {
+    grid-template-columns: 2fr 0.5fr;
+    grid-column-gap: 10px;
+  }
+}
+
+.modal {
+  @apply w-full h-full flex items-center justify-center z-10;
+  grid-area: modal;
+  pointer-events: none;
+}
+
+.modal > * {
+  pointer-events: visible;
+}
+.space {
+  @apply w-full h-full;
+  grid-area: space;
+}
+
+.backdrop {
+  @apply grid bg-video-grey-800/70 fixed w-full h-full fixed z-0;
+  top: 0;
+  left: 0;
+  pointer-events: visible;
+
+  height: 100vh;
+  width: 100vw;
+}
+
+.backdrop:hover {
+  @apply cursor-pointer;
+}
+
+.animation-enter {
+  opacity: 0;
+  display: grid;
+}
+.animation-enter-active {
+  opacity: 1;
+  transition: opacity 300ms;
+}
+.animation-exit {
+  opacity: 1;
+}
+.animation-exit-active {
+  opacity: 0;
+  display: none;
+  transition: opacity 200ms;
 }

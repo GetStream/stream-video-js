@@ -1,4 +1,5 @@
 import { ControlMenu } from './ControlMenu';
+import { MediaDevicesProvider } from '@stream-io/video-react-sdk';
 
 import * as data from './ControlMenu.data';
 
@@ -9,7 +10,9 @@ export default {
 };
 
 export const KichinSink = (props: any) => (
-  <ControlMenu {...props}></ControlMenu>
+  <MediaDevicesProvider>
+    <ControlMenu {...props}></ControlMenu>
+  </MediaDevicesProvider>
 );
 
 KichinSink.args = {

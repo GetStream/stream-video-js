@@ -17,7 +17,7 @@ export const Portal: FC<Props> = ({ className, children, selector }) => {
   const rootClassName = classNames(styles.root, className);
 
   const element = useMemo(() => {
-    return document?.querySelector(`${selector}`);
+    return document?.querySelector(`#${selector}`);
   }, [selector]);
 
   if (ref && element) {

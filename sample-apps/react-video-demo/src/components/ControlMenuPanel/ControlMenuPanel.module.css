@@ -3,24 +3,31 @@
 }
 
 .deviceList {
+  @apply pb-3 pt-3;
+  font-size: 16px;
 }
 
 .device {
-  @apply p-1 pr-2 pl-2;
+  @apply pt-1 pb-1 pr-2 pl-2;
 }
 
 .selectedDevice {
-  @apply bg-demo-black-light;
+  @apply bg-video-grey-700;
+  border-radius: 6px;
 }
 
 .label {
-  @apply text-white;
+  @apply text-video-white;
 }
 
 .radioButton {
   @apply mr-2;
 }
 
-.panel .footer {
-  @apply flex items-center justify-center text-white text-xs;
+.footer {
+  @apply flex bg-video-grey-800 pt-1 pb-1 items-center justify-center text-video-white text-xs;
+  border-radius: 30px;
+}
+.settings {
+  @apply mr-1;
 }
