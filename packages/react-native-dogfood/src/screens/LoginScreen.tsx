@@ -120,6 +120,8 @@ const LoginScreen = () => {
               setLocalUserName(text);
             }}
             style={styles.textInput}
+            autoCapitalize="none"
+            autoCorrect={false}
             placeholderTextColor="gray"
           />
         </View>
