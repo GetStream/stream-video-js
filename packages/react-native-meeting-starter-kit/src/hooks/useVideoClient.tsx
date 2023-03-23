@@ -7,7 +7,7 @@ const APIParams = {
   apiKey: STREAM_API_KEY, // see <video>/data/fixtures/apps.yaml for API key/secret
 };
 
-export const useVideoClient = ({user, token}: VideoProps) => {
+const useVideoClient = ({user, token}: VideoProps) => {
   const [videoClient, setVideoClient] = useState<StreamVideoClient>();
   const [authenticationInProgress, setAuthenticationInProgress] =
     useState(true);

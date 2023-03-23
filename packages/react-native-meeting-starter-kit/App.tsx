@@ -16,14 +16,16 @@ import {
 } from '@react-navigation/native-stack';
 import {NavigationContainer, useNavigation} from '@react-navigation/native';
 import {AppProvider, useAppContext} from './src/context/AppContext';
-import {useVideoClient} from './src/hooks/useVideoClient';
 import {
   CallParticipantsInfoView,
   StreamVideo,
+  useVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import {AuthProgressLoader} from './src/components/AuthProgressLoader';
 import {NavigationHeader} from './src/components/NavigationHeader';
 import {JoinMeetingScreen} from './src/screens/JoinMeetingScreen';
+import {STREAM_API_KEY} from 'react-native-dotenv';
+console.log('STREAM_API_KEY', STREAM_API_KEY);
 
 const Stack = createNativeStackNavigator<NavigationStackParamsList>();
 
@@ -32,6 +34,7 @@ const Navigator = () => {
   const {videoClient} = useVideoClient({
     user: user,
     token: user?.token,
+    apiKey: STREAM_API_KEY,
   });
   const navigation =
     useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();
