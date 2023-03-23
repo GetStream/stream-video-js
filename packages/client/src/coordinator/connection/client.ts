@@ -594,12 +594,10 @@ export class StreamClient {
     response: AxiosResponse<APIErrorResponse>,
   ): ErrorFromResponse<APIErrorResponse> {
     let err: ErrorFromResponse<APIErrorResponse>;
-    err = new ErrorFromResponse(
-      `StreamChat error HTTP code: ${response.status}`,
-    );
+    err = new ErrorFromResponse(`Stream error HTTP code: ${response.status}`);
     if (response.data && response.data.code) {
       err = new Error(
-        `StreamChat error code ${response.data.code}: ${response.data.message}`,
+        `Stream error code ${response.data.code}: ${response.data.message}`,
       );
       err.code = response.data.code;
     }
