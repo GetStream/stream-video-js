@@ -13,8 +13,6 @@ import { useStreamVideoStoreValue } from '../contexts';
 import { MicOff, ScreenShare, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { palette } from '../theme/constants';
-import { VideoDimension } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
-
 /**
  * Props to be passed for the ParticipantView component.
  */
@@ -49,8 +47,8 @@ interface ParticipantViewProps {
 export const ParticipantView = (props: ParticipantViewProps) => {
   const { participant, kind } = props;
   const call = useActiveCall();
-  const pendingVideoLayoutRef = useRef<VideoDimension>();
-  const subscribedVideoLayoutRef = useRef<VideoDimension>();
+  const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
+  const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const { isSpeaking, isLoggedInUser, publishedTracks } = participant;
   const isPublishingVideoTrack = publishedTracks.includes(
     kind === 'video'
