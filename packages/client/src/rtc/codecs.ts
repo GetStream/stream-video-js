@@ -65,7 +65,6 @@ export const getGenericSdp = async (
 
   const offer = await tempPc.createOffer();
   const sdp = offer.sdp;
-  console.log(sdp);
 
   tempPc.getTransceivers().forEach((t) => {
     t.stop();
