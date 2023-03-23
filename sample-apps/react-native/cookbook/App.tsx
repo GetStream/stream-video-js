@@ -5,55 +5,89 @@
  * @format
  */
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {Fragment} from 'react';
 import {
+  ImageBackground,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   useColorScheme,
   View,
 } from 'react-native';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
+// @ts-ignore
+import openURLInBrowser from 'react-native/Libraries/Core/Devtools/openURLInBrowser';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): JSX.Element {
+const Header = () => {
   const isDarkMode = useColorScheme() === 'dark';
   return (
-    <View style={styles.sectionContainer}>
+    <ImageBackground
+      accessibilityRole="image"
+      testID="new-app-screen-header"
+      source={{
+        uri: 'https://getstream.imgix.net/images/cookbook-logo.png',
+      }}
+      style={[
+        styles.background,
+        {
+          backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+        },
+      ]}
+      imageStyle={styles.logo}>
       <Text
         style={[
-          styles.sectionTitle,
+          styles.text,
           {
             color: isDarkMode ? Colors.white : Colors.black,
           },
         ]}>
-        {title}
+        Welcome to
+        {'\n'}
+        Stream's Video Cookbook
       </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
+    </ImageBackground>
+  );
+};
+
+const links = [
+  {
+    id: 1,
+    title: 'Custom Participants List layout',
+    link: 'http://localhost:3000/chat/docs/sdk/reactnative/ui-cookbook/01-ui-cookbooks-overview/',
+    description:
+      "Build your own call participant's grid with a custom behaviour",
+  },
+];
+
+const LearnMoreLinks = () => {
+  const isDarkMode = useColorScheme() === 'dark';
+  return (
+    <View style={styles.container}>
+      {links.map(({id, title, link, description}) => (
+        <Fragment key={id}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={() => openURLInBrowser(link)}
+            style={styles.linkContainer}>
+            <Text style={styles.link}>{title}</Text>
+            <Text
+              style={[
+                styles.description,
+                {
+                  color: isDarkMode ? Colors.lighter : Colors.dark,
+                },
+              ]}>
+              {description}
+            </Text>
+          </TouchableOpacity>
+        </Fragment>
+      ))}
     </View>
   );
-}
+};
 
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -76,19 +110,28 @@ function App(): JSX.Element {
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
+          <View style={styles.sectionContainer}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                {
+                  color: isDarkMode ? Colors.white : Colors.black,
+                },
+              ]}>
+              Table of contents
+            </Text>
+            <Text
+              style={[
+                styles.sectionDescription,
+                {
+                  color: isDarkMode ? Colors.light : Colors.dark,
+                },
+              ]}>
+              In the following sections, you will find a list of UI recipes that
+              will help you build and personalize video app with Stream's RN and
+              JS SDK.
+            </Text>
+          </View>
           <LearnMoreLinks />
         </View>
       </ScrollView>
@@ -112,6 +155,51 @@ const styles = StyleSheet.create({
   },
   highlight: {
     fontWeight: '700',
+  },
+  background: {
+    paddingBottom: 40,
+    paddingTop: 96,
+    paddingHorizontal: 32,
+  },
+  logo: {
+    opacity: 0.2,
+    overflow: 'visible',
+    resizeMode: 'cover',
+    /*
+     * These negative margins allow the image to be offset similarly across screen sizes and component sizes.
+     *
+     * The source logo.png image is 512x512px, so as such, these margins attempt to be relative to the
+     * source image's size.
+     */
+    marginLeft: -128,
+    marginBottom: -192,
+  },
+  text: {
+    fontSize: 40,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  container: {
+    marginTop: 32,
+    paddingHorizontal: 24,
+  },
+  linkContainer: {
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  link: {
+    flex: 2,
+    fontSize: 16,
+    fontWeight: '400',
+    color: Colors.primary,
+    marginRight: 4,
+  },
+  description: {
+    flex: 3,
+    paddingVertical: 8,
+    fontSize: 14,
   },
 });
 

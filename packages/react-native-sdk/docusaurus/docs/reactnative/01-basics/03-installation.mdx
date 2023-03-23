@@ -8,8 +8,7 @@ title: Installation
 Install Stream's Video SDK and it's peer dependencies
 
 ```bash
-yarn add stream-video-react-native react-native-webrtc react-native-callkeep
-react-native-incall-manager react-native-svg text-encoding-polyfill
+yarn add stream-video-react-native react-native-webrtc react-native-callkeep react-native-incall-manager react-native-svg text-encoding-polyfill react-native-url-polyfill react-native-get-random-values
 ```
 
 Some dependencies require us to make changes to our application for all functionalities to be available. Please apply the following steps:
@@ -26,18 +25,20 @@ So what did we install precisely?
 - `react-native-incall-manager` handles media-routes/sensors/events during a audio/video call.
 - `react-native-callkeep` utilises CallKit (iOS) and ConnectionService (Android). SVRN's uses this dependency to render native ringers and handle accepting/declining a call when the app is in background/dead mode.
 - `react-native-svg` provides SVG support to React Native, SVRN's components and it's icons are reliant on this dependency.
-
+- `text-encoding-polyfill` is an implementation of the WHATWG URL Standard optimized for React Native
+- `react-native-url-polyfill` is a polyfill for the Encoding Living Standard API for the Web, allowing encoding and decoding of textual data to and from Typed Array buffers for binary data in JS
+- `react-native-get-random-values` is used for crypto.getRandomValues polyfill to generate uuid
 
 ### First things first: encoding, polyfills and globals config
 
 Add the following imports and statements to your `index.js` file in the project's root.
 
 ```tsx
-/** URL polyfill */
+/** Initialize URL polyfill */
 import 'text-encoding-polyfill';
-/** Text decoder polyfill */
+/** Initialize text decoder polyfill */
 import 'react-native-url-polyfill/auto';
-/** crypto.getRandomValues polyfill for uuid */
+/** Initialize polyfill for uuid */
 import 'react-native-get-random-values';
 import {registerGlobals} from 'react-native-webrtc';
 ...
