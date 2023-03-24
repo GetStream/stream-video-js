@@ -15,7 +15,7 @@ export default () => {
   const isDarkMode = useColorScheme() === 'dark';
   return (
     <ImageBackground
-      resizeMode="contain"
+      resizeMode="cover"
       source={headerBanner}
       style={[
         styles.background,

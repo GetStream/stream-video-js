@@ -33,8 +33,6 @@ export const useCreateStreamVideoClient = ({
   const [client] = useState(
     () => new StreamVideoClient(apiKey, options, callConfig),
   );
-  const [authenticationInProgress, setAuthenticationInProgress] =
-    useState(false);
   const disconnectRef = useRef(Promise.resolve());
 
   useEffect(() => {
@@ -42,14 +40,9 @@ export const useCreateStreamVideoClient = ({
     if (!user) return;
 
     const connection = disconnectRef.current.then(() => {
-      setAuthenticationInProgress(true);
-      return client
-        .connectUser(user, tokenOrProvider)
-        .then(() => setAuthenticationInProgress(false))
-        .catch((err) => {
-          setAuthenticationInProgress(false);
-          console.error(`Failed to establish connection`, err);
-        });
+      return client.connectUser(user, tokenOrProvider).catch((err) => {
+        console.error(`Failed to establish connection`, err);
+      });
     });
 
     return () => {
@@ -64,5 +57,5 @@ export const useCreateStreamVideoClient = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey, tokenOrProvider, client, user?.id]);
 
-  return { client, authenticationInProgress };
+  return client;
 };
