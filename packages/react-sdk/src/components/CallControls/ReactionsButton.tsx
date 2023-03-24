@@ -11,6 +11,7 @@ export const ReactionsButton = () => {
     <CompositeButton
       active={false}
       caption="Reactions"
+      menuPlacement="top-start"
       Menu={DefaultReactionsMenu}
     >
       <IconButton
