@@ -57,12 +57,14 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   const [_forceUpdateValue, forceUpdate] = useReducer((x) => x + 1, 0);
   const forceUpdateValue = useDebounce(_forceUpdateValue, 500); // we debounce forced value to avoid multiple viewability change continuous rerenders due to callbacks that occurs simultaneously during a large list scroll or when scrolling is completed
 
+  // This is the function that gets called when the user scrolls the list of participants.
+  // It updates viewableParticipantSessionIds HashSet with the session IDs
+  // of the participants that are currently visible.
   const onViewableItemsChanged = useRef<
     FlatListProps['onViewableItemsChanged']
   >(({ changed }) => {
     changed.forEach((viewToken) => {
       if (viewToken.isViewable) {
-        if (viewableParticipantSessionIds.current.has(viewToken.key)) return;
         viewableParticipantSessionIds.current.add(viewToken.key);
       } else {
         viewableParticipantSessionIds.current.delete(viewToken.key);
