@@ -13,6 +13,7 @@ import { useStreamVideoStoreValue } from '../contexts';
 import { MicOff, ScreenShare, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { palette } from '../theme/constants';
+
 /**
  * Props to be passed for the ParticipantView component.
  */
