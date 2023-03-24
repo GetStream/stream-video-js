@@ -44,14 +44,11 @@ interface CallParticipantsListProps {
 
 /**
  * The CallParticipantsList component displays a list of participants in a FlatList
- * NOTE: this component uses flex to calculate the height of the participant view, hence it should be used only in a flex parent container
+ * NOTE: this component depends on a flex container to calculate the width and height of the participant view, hence it should be used only in a flex parent container
  */
 export const CallParticipantsList = (props: CallParticipantsListProps) => {
   const { numColumns = 2, horizontal, participants } = props;
-  const [containerLayout, setContainerLayout] = useState({
-    width: 0,
-    height: 0,
-  });
+  const [containerWidth, setContainerWidth] = useState(0);
 
   // we use a HashSet to track the currently viewable participants
   // and a separate force update state to rerender the component to inform that the HashSet has changed
@@ -59,7 +56,6 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   const viewableParticipantSessionIds = useRef<Set<string>>(new Set());
   const [_forceUpdateValue, forceUpdate] = useReducer((x) => x + 1, 0);
   const forceUpdateValue = useDebounce(_forceUpdateValue, 500); // we debounce forced value to avoid multiple viewability change continuous rerenders due to callbacks that occurs simultaneously during a large list scroll or when scrolling is completed
-  console.log({ forceUpdateValue, old: _forceUpdateValue });
 
   const onViewableItemsChanged = useRef<
     FlatListProps['onViewableItemsChanged']
@@ -83,25 +79,18 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   ).current;
 
   const onLayout = useRef<FlatListProps['onLayout']>((event) => {
-    const { width, height } = event.nativeEvent.layout;
-    setContainerLayout((prev) => {
-      if (prev.width === width && prev.height === height) return prev;
-      return { width, height };
-    });
+    const { width } = event.nativeEvent.layout;
+    setContainerWidth(width);
   }).current;
 
   const itemContainerStyle = useMemo<StyleProp<ViewStyle>>(() => {
+    const size = containerWidth / numColumns;
+    const style = { width: size, height: size };
     if (horizontal) {
-      return [
-        styles.participantWrapperHorizontal,
-        { width: containerLayout.width / numColumns },
-      ];
+      return [styles.participantWrapperHorizontal, style];
     }
-    return [
-      styles.participantWrapperVertical,
-      { height: containerLayout.width / numColumns },
-    ];
-  }, [horizontal, numColumns, containerLayout.width]);
+    return [styles.participantWrapperVertical, style];
+  }, [horizontal, numColumns, containerWidth]);
 
   const renderItem = useCallback<NonNullable<FlatListProps['renderItem']>>(
     ({ item: participant }) => {
@@ -133,7 +122,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
       numColumns={!horizontal ? numColumns : undefined}
       horizontal={horizontal}
       showsHorizontalScrollIndicator={false}
-      extraData={`${forceUpdateValue}${containerLayout.width}`} // this is important to force re-render when visibility changes
+      extraData={`${forceUpdateValue}${containerWidth}`} // this is important to force re-render when visibility changes
     />
   );
 };
@@ -143,13 +132,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   participantWrapperVertical: {
-    flex: 1,
     margin: theme.margin.sm,
     overflow: 'hidden',
     borderRadius: theme.rounded.sm,
   },
   participantWrapperHorizontal: {
-    flex: 1,
     marginHorizontal: theme.margin.sm,
     overflow: 'hidden',
     borderRadius: theme.rounded.sm,
