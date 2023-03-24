@@ -17,6 +17,7 @@ const participants: StreamVideoParticipant[] = [
     isDominantSpeaker: false,
     audioLevel: 0,
     image: '',
+    roles: [],
   },
   {
     // Presenter, video, audio
@@ -30,6 +31,7 @@ const participants: StreamVideoParticipant[] = [
     isDominantSpeaker: false,
     audioLevel: 0,
     image: '',
+    roles: [],
   },
   {
     // Muted
@@ -43,6 +45,7 @@ const participants: StreamVideoParticipant[] = [
     isDominantSpeaker: false,
     audioLevel: 0,
     image: '',
+    roles: [],
   },
   {
     // Dominant speaker
@@ -56,6 +59,7 @@ const participants: StreamVideoParticipant[] = [
     isDominantSpeaker: true,
     audioLevel: 0,
     image: '',
+    roles: [],
   },
   {
     // Presenter only
@@ -69,6 +73,7 @@ const participants: StreamVideoParticipant[] = [
     isDominantSpeaker: false,
     audioLevel: 0,
     image: '',
+    roles: [],
   },
   {
     // pinned
@@ -83,6 +88,7 @@ const participants: StreamVideoParticipant[] = [
     audioLevel: 0,
     image: '',
     isPinned: true,
+    roles: [],
   },
 ];
 

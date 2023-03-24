@@ -15,6 +15,18 @@ export const dominantSpeaker: Comparator<StreamVideoParticipant> = (a, b) => {
 };
 
 /**
+ * A comparator which sorts participants by the fact that they are speaking or not.
+ *
+ * @param a the first participant.
+ * @param b the second participant.
+ */
+export const talking: Comparator<StreamVideoParticipant> = (a, b) => {
+  if (a.isSpeaking && !b.isSpeaking) return -1;
+  if (!a.isSpeaking && b.isSpeaking) return 1;
+  return 0;
+};
+
+/**
  * A comparator which sorts participants by screen sharing status.
  *
  * @param a the first participant.
@@ -61,6 +73,35 @@ export const pinned: Comparator<StreamVideoParticipant> = (a, b) => {
   if (!a.isPinned && b.isPinned) return 1;
   return 0;
 };
+
+/**
+ * A comparator creator which will set up a comparator which prioritizes
+ * participants who have a specific role.
+ *
+ * @param roles the roles to prioritize.
+ */
+export const role =
+  (...roles: string[]): Comparator<StreamVideoParticipant> =>
+  (a, b) => {
+    if (hasAnyRole(a, roles) && !hasAnyRole(b, roles)) return -1;
+    if (!hasAnyRole(a, roles) && hasAnyRole(b, roles)) return 1;
+    return 0;
+  };
+
+/**
+ * A comparator which sorts participants by name.
+ *
+ * @param a the first participant.
+ * @param b the second participant.
+ */
+export const name: Comparator<StreamVideoParticipant> = (a, b) => {
+  if (a.name < b.name) return -1;
+  if (a.name > b.name) return 1;
+  return 0;
+};
+
+const hasAnyRole = (p: StreamVideoParticipant, roles: string[]) =>
+  (p.roles || []).some((r) => roles.includes(r));
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(TrackType.SCREEN_SHARE);

@@ -16,7 +16,8 @@ import {
   UserResponse,
 } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
-import { Comparator, ParticipantComparators, sortBy } from '../sorting';
+import { Comparator } from '../sorting';
+import * as SortingPreset from '../sorting/presets';
 
 export type UserResponseMap = {
   [userId: string]: UserResponse;
@@ -159,29 +160,20 @@ export class CallState {
    *
    * @private
    */
-  private sortParticipantsByCriteria: Comparator<StreamVideoParticipant>[];
+  private sortParticipantsBy: Comparator<StreamVideoParticipant>;
 
   /**
    * Creates a new instance of the CallState class.
    *
-   * @param sortParticipantsByCriteria the list of comparators that are used to sort the participants.
+   * @param sortParticipantsBy the comparator that is used to sort the participants.
    */
   constructor(
-    sortParticipantsByCriteria?: Comparator<StreamVideoParticipant>[],
+    sortParticipantsBy: Comparator<StreamVideoParticipant> = SortingPreset.defaultSortPreset,
   ) {
-    this.sortParticipantsByCriteria = sortParticipantsByCriteria || [
-      ParticipantComparators.pinned,
-      ParticipantComparators.screenSharing,
-      ParticipantComparators.dominantSpeaker,
-      ParticipantComparators.video,
-      ParticipantComparators.audio,
-    ];
+    this.sortParticipantsBy = sortParticipantsBy;
 
     this.participants$ = this.participantsSubject.pipe(
-      map((participants) => {
-        const sort = sortBy(...this.sortParticipantsByCriteria);
-        return sort(participants);
-      }),
+      map((ps) => [...ps].sort(this.sortParticipantsBy)),
     );
 
     this.localParticipant$ = this.participants$.pipe(
@@ -230,16 +222,14 @@ export class CallState {
 
   /**
    * Sets the list of criteria that are used to sort the participants.
-   * You can provide an empty array or `undefined` if you want to disable sorting.
+   * To disable sorting, you can pass `noopComparator()`.
    *
-   * @param criteria the list of comparators that are used to sort the participants.
+   * @param comparator the comparator to use to sort the participants.
    */
-  setSortParticipantsBy = (criteria?: Comparator<StreamVideoParticipant>[]) => {
-    this.sortParticipantsByCriteria = criteria || [];
+  setSortParticipantsBy = (comparator: Comparator<StreamVideoParticipant>) => {
+    this.sortParticipantsBy = comparator;
     // trigger re-sorting of participants
-    this.setCurrentValue(this.participantsSubject, (participants) => {
-      return participants;
-    });
+    this.setCurrentValue(this.participantsSubject, (ps) => ps);
   };
 
   /**

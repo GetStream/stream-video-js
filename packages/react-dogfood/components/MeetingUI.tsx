@@ -6,10 +6,12 @@ import {
   CallStatsButton,
   CancelCallButton,
   CompositeButton,
+  defaultSortPreset,
   DeviceSettings,
   GetInviteLinkButton,
   IconButton,
   LoadingIndicator,
+  noopComparator,
   ReactionsButton,
   RecordCallButton,
   ScreenShareButton,
@@ -109,6 +111,15 @@ export const MeetingUI = ({
       router.events.off('routeChangeStart', handlePageLeave);
     };
   }, [callId, callType, client, router.events]);
+
+  useEffect(() => {
+    if (!activeCall) return;
+    if (router.query['enableSorting'] === 'true') {
+      activeCall.setSortParticipantsBy(defaultSortPreset);
+    } else {
+      activeCall.setSortParticipantsBy(noopComparator());
+    }
+  });
 
   if (show === 'error-join' || show === 'error-leave') {
     return (

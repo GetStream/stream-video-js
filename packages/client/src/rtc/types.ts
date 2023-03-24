@@ -55,6 +55,9 @@ export interface StreamVideoParticipant extends Participant {
    * Integrators can batch/collect past reactions and show them to the UI.
    */
   reaction?: StreamReaction;
+
+  // FIXME: remove once this field once the deployed SFU is supporting it
+  roles?: string[];
 }
 
 export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
