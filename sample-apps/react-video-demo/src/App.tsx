@@ -138,15 +138,14 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
           {isCallActive && callId && client ? (
             <NotificationProvider>
               <TourProvider>
-                <div>hoiiii</div>
-                {/* <MeetingView
+                <MeetingView
                   logo={logo}
                   callId={callId}
                   callType={callType}
                   isCallActive={isCallActive}
                   setCallHasEnded={setCallHasEnded}
                   chatClient={chatClient}
-                /> */}
+                />
               </TourProvider>
             </NotificationProvider>
           ) : (

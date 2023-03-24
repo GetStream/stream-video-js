@@ -176,8 +176,6 @@ export const Meeting: FC<Props & Meeting> = ({
     [styles.activeTour]: active,
   });
 
-  console.log('hoi');
-
   return (
     <MeetingLayout
       header={

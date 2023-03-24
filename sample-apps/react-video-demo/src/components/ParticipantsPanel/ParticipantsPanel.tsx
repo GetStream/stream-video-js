@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useState, useCallback } from 'react';
 import classnames from 'classnames';
 
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
@@ -6,6 +6,7 @@ import {
   useConnectedUser,
   useActiveCall,
   useLocalParticipant,
+  useCall,
 } from '@stream-io/video-react-bindings';
 
 import Panel from '../Panel';
@@ -34,22 +35,22 @@ export const ParticipantsPanel: FC<Props> = ({
 
   const rootClassname = classnames(styles.root, className);
 
-  const handleBlockUser = (participantId: string) => {
+  const handleBlockUser = useCallback((participantId: string) => {
     call?.blockUser(participantId);
-  };
+  }, []);
 
-  const handleMuteUser = (
-    participantId: string,
-    participantSessionId: string,
-  ) => {
-    call?.muteUser(participantId, 'audio', participantSessionId);
-  };
-  const handleDisableVideo = (
-    participantId: string,
-    participantSessionId: string,
-  ) => {
-    call?.muteUser(participantId, 'video', participantSessionId);
-  };
+  const handleMuteUser = useCallback(
+    (participantId: string, participantSessionId: string) => {
+      call?.muteUser(participantId, 'audio', participantSessionId);
+    },
+    [],
+  );
+  const handleDisableVideo = useCallback(
+    (participantId: string, participantSessionId: string) => {
+      call?.muteUser(participantId, 'video', participantSessionId);
+    },
+    [],
+  );
 
   return (
     <Panel
