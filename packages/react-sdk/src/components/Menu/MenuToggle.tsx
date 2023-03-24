@@ -5,8 +5,13 @@ import {
   useState,
   ForwardedRef,
 } from 'react';
-import { Placement } from '@popperjs/core';
-import { offset, autoUpdate, size, useFloating } from '@floating-ui/react';
+import {
+  offset,
+  autoUpdate,
+  size,
+  useFloating,
+  Placement,
+} from '@floating-ui/react';
 
 export type ToggleMenuButtonProps = {
   menuShown: boolean;
@@ -33,7 +38,7 @@ export const MenuToggle = ({
     update,
     elements: { domReference, floating },
   } = useFloating({
-    placement: 'bottom-end',
+    placement,
     middleware: [
       offset(10),
       size({

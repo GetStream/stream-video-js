@@ -2,11 +2,13 @@ import clsx from 'clsx';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
 import { ComponentType, forwardRef, PropsWithChildren } from 'react';
 import { IconButton } from './IconButton';
+import { Placement } from '@floating-ui/react';
 
 export type IconButtonWithMenuProps = PropsWithChildren<{
   active?: boolean;
   Menu?: ComponentType;
   caption?: string;
+  menuPlacement?: Placement;
 }>;
 
 export const CompositeButton = ({
@@ -14,6 +16,7 @@ export const CompositeButton = ({
   children,
   active,
   Menu,
+  menuPlacement,
 }: IconButtonWithMenuProps) => {
   return (
     <div className="str-video__composite-button">
@@ -24,7 +27,7 @@ export const CompositeButton = ({
       >
         {children}
         {Menu && (
-          <MenuToggle ToggleButton={ToggleMenuButton}>
+          <MenuToggle placement={menuPlacement} ToggleButton={ToggleMenuButton}>
             <Menu />
           </MenuToggle>
         )}
