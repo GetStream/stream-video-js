@@ -33,6 +33,10 @@ interface ParticipantViewProps {
    * Any custom style to be merged with the VideoRenderer
    */
   videoRendererStyle?: StyleProp<ViewStyle>;
+  /**
+   * When set to true, the video stream will not be shown even if it is available.
+   */
+  disableVideo?: boolean;
 }
 
 /**
@@ -45,7 +49,7 @@ interface ParticipantViewProps {
  * |![participant-view-1](https://user-images.githubusercontent.com/25864161/217489213-d4532ca1-49ee-4ef5-940c-af2e55bc0a5f.png)|![participant-view-2](https://user-images.githubusercontent.com/25864161/217489207-fb20c124-8bce-4c2b-87f9-4fe67bc50438.png)|
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
-  const { participant, kind } = props;
+  const { participant, kind, disableVideo } = props;
   const call = useActiveCall();
 
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
@@ -110,7 +114,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       ]}
       onLayout={onLayout}
     >
-      {isVideoAvailable ? (
+      {isVideoAvailable && !disableVideo ? (
         <VideoRenderer
           zOrder={1}
           mirror={mirror}
