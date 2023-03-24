@@ -116,6 +116,27 @@ export class Call {
   private readonly httpClient: StreamCoordinatorClient;
   private sfuClient?: StreamSfuClient;
 
+  private get preferredAudioCodec() {
+    const audioSettings = this.state.getCurrentValue(this.state.metadata$)
+      ?.settings.audio;
+    let preferredCodec =
+      audioSettings?.redundant_coding_enabled === undefined
+        ? 'opus'
+        : audioSettings.redundant_coding_enabled
+        ? 'red'
+        : 'opus';
+    if (
+      typeof window !== 'undefined' &&
+      window.location &&
+      window.location.search
+    ) {
+      const queryParams = new URLSearchParams(window.location.search);
+      preferredCodec = queryParams.get('codec') || preferredCodec;
+    }
+
+    return preferredCodec;
+  }
+
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    */
@@ -242,9 +263,26 @@ export class Call {
       onTrack: this.handleOnTrack,
     });
 
+    const audioSettings = this.state.getCurrentValue(this.state.metadata$)
+      ?.settings.audio;
+    let isDtxEnabled =
+      audioSettings?.opus_dtx_enabled === undefined
+        ? false
+        : audioSettings?.opus_dtx_enabled;
+    // TODO: SZ: Remove once SFU team don't need this
+    if (
+      typeof window !== 'undefined' &&
+      window.location &&
+      window.location.search
+    ) {
+      const queryParams = new URLSearchParams(window.location.search);
+      isDtxEnabled = queryParams.get('dtx') === 'false' ? false : isDtxEnabled;
+    }
+    console.log('DTX enabled', isDtxEnabled);
     this.publisher = new Publisher({
       rpcClient: sfuClient,
       connectionConfig: call.connectionConfig,
+      isDtxEnabled,
     });
 
     this.statsReporter = createStatsReporter({
@@ -278,7 +316,10 @@ export class Call {
       this.joined$.next(true);
     });
 
-    const genericSdp = await getGenericSdp('recvonly');
+    const genericSdp = await getGenericSdp(
+      'recvonly',
+      this.preferredAudioCodec,
+    );
     await sfuClient.join({
       subscriberSdp: genericSdp || '',
     });
@@ -364,8 +405,11 @@ export class Call {
     }
 
     const trackType = TrackType.AUDIO;
+
     try {
-      await this.publisher.publishStream(audioStream, audioTrack, trackType);
+      await this.publisher.publishStream(audioStream, audioTrack, trackType, {
+        preferredCodec: this.preferredAudioCodec,
+      });
       await this.sfuClient!.updateMuteState(trackType, false);
     } catch (e) {
       throw e;

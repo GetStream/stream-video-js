@@ -24,14 +24,14 @@
     "@protobuf-ts/runtime": "^2.8.2",
     "@protobuf-ts/runtime-rpc": "^2.8.2",
     "@protobuf-ts/twirp-transport": "^2.8.2",
-    "axios": "^1.3.2",
+    "axios": "^1.3.4",
     "base64-js": "^1.5.1",
     "isomorphic-ws": "^5.0.0",
     "jsonwebtoken": "^9.0.0",
     "rxjs": "~7.5.7",
     "uuid": "^9.0.0",
-    "webrtc-adapter": "^8.2.0",
-    "ws": "^8.12.0"
+    "webrtc-adapter": "^8.2.1",
+    "ws": "^8.12.1"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.5.2",
