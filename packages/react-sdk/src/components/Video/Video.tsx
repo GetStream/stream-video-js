@@ -34,6 +34,7 @@ export const Video = (
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
     null,
   );
+  const [isVisible, setIsVisible] = useState(true);
 
   const stream = kind === 'video' ? videoStream : screenShareStream;
   const isPublishingTrack = publishedTracks.includes(
@@ -45,7 +46,7 @@ export const Video = (
   const lastDimensionRef = useRef<SfuModels.VideoDimension | undefined>();
   const updateSubscription = useCallback(() => {
     let nextDimension;
-    if (videoElement && isPublishingTrack) {
+    if (videoElement && isPublishingTrack && isVisible) {
       nextDimension = {
         width: videoElement.clientWidth,
         height: videoElement.clientHeight,
@@ -64,7 +65,17 @@ export const Video = (
       });
       lastDimensionRef.current = nextDimension;
     }
-  }, [call, isPublishingTrack, kind, sessionId, videoElement]);
+  }, [call, isPublishingTrack, kind, sessionId, videoElement, isVisible]);
+
+  useEffect(() => {
+    if (!videoElement) return;
+
+    const unobserve = call.viewportTracker.observe(videoElement, (entry) => {
+      setIsVisible(entry.isIntersecting);
+    });
+
+    return () => unobserve();
+  }, [videoElement, call.viewportTracker]);
 
   useEffect(() => {
     updateSubscription();
