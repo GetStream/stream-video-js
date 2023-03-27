@@ -3151,6 +3151,48 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@floating-ui/core@npm:^1.2.4":
+  version: 1.2.4
+  resolution: "@floating-ui/core@npm:1.2.4"
+  checksum: 1c163ea1804e2b0a28fda6e32efed0e242d0db8081fd24aab9d1cbb100f94a558709231c483bf74bf09a9204ea6e7845813d43b5322ceb6ee63285308f68f65b
+  languageName: node
+  linkType: hard
+
+"@floating-ui/dom@npm:^1.2.1":
+  version: 1.2.5
+  resolution: "@floating-ui/dom@npm:1.2.5"
+  dependencies:
+    "@floating-ui/core": ^1.2.4
+  checksum: a21c272a36c7cd7d337eaed82c1f8a81ccc5003d04cefa07591dc7fbb0a24d57a2c097b410593b5416145a68ac10a7a7a745c3cc4f8196268fa002364d28804b
+  languageName: node
+  linkType: hard
+
+"@floating-ui/react-dom@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "@floating-ui/react-dom@npm:1.3.0"
+  dependencies:
+    "@floating-ui/dom": ^1.2.1
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: ce0ad3e3bbe43cfd15a6a0d5cccede02175c845862bfab52027995ab99c6b29630180dc7d146f76ebb34730f90a6ab9bf193c8984fe8d7f56062308e4ca98f77
+  languageName: node
+  linkType: hard
+
+"@floating-ui/react@npm:^0.22.0":
+  version: 0.22.0
+  resolution: "@floating-ui/react@npm:0.22.0"
+  dependencies:
+    "@floating-ui/react-dom": ^1.3.0
+    aria-hidden: ^1.1.3
+    tabbable: ^6.0.1
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: 964aab420e0288ba391425f2e682383c3519b0b298bd8aaaa14b0773a6e889fb458c48d1384f260575d71fe04001ebf52f4daeabab2aed242e99d7e5a30d62cc
+  languageName: node
+  linkType: hard
+
 "@gar/promisify@npm:^1.0.1, @gar/promisify@npm:^1.1.3":
   version: 1.1.3
   resolution: "@gar/promisify@npm:1.1.3"
@@ -6410,7 +6452,7 @@ __metadata:
     "@types/uuid": ^9.0.0
     "@types/ws": ^8.5.4
     "@vitest/coverage-c8": ^0.25.3
-    axios: ^1.3.2
+    axios: ^1.3.4
     base64-js: ^1.5.1
     isomorphic-ws: ^5.0.0
     jsonwebtoken: ^9.0.0
@@ -6426,8 +6468,8 @@ __metadata:
     vite: ^4.2.0
     vitest: ^0.25.4
     vitest-mock-extended: ^1.0.7
-    webrtc-adapter: ^8.2.0
-    ws: ^8.12.0
+    webrtc-adapter: ^8.2.1
+    ws: ^8.12.1
   languageName: unknown
   linkType: soft
 
@@ -6610,6 +6652,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-sdk@workspace:packages/react-sdk"
   dependencies:
+    "@floating-ui/react": ^0.22.0
     "@nivo/core": ^0.80.0
     "@nivo/line": ^0.80.0
     "@popperjs/core": ^2.11.6
@@ -8916,6 +8959,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"aria-hidden@npm:^1.1.3":
+  version: 1.2.3
+  resolution: "aria-hidden@npm:1.2.3"
+  dependencies:
+    tslib: ^2.0.0
+  checksum: 7d7d211629eef315e94ed3b064c6823d13617e609d3f9afab1c2ed86399bb8e90405f9bdd358a85506802766f3ecb468af985c67c846045a34b973bcc0289db9
+  languageName: node
+  linkType: hard
+
 "aria-query@npm:5.0.2":
   version: 5.0.2
   resolution: "aria-query@npm:5.0.2"
@@ -9219,14 +9271,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.3.2":
-  version: 1.3.2
-  resolution: "axios@npm:1.3.2"
+"axios@npm:^1.3.4":
+  version: 1.3.4
+  resolution: "axios@npm:1.3.4"
   dependencies:
     follow-redirects: ^1.15.0
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
-  checksum: 9791af75a6df137b15ef45d13ad11eb357b3860d2496347ee18778db9d0abc2320362a4452f1e070e3160f1dbcc518fcefdc9e005be097e7db39acb22cf608e5
+  checksum: 7440edefcf8498bc3cdf39de00443e8101f249972c83b739c6e880d9d669fea9486372dbe8739e88b3bf8bb1ad15f6106693f206f078f4516fe8fd47b1c3093c
   languageName: node
   linkType: hard
 
@@ -26328,10 +26380,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sdp@npm:^3.0.2":
-  version: 3.0.3
-  resolution: "sdp@npm:3.0.3"
-  checksum: 3ffe6483a7967d93472ca8eb14d30cffe6ce94430c42dbfdc970d23d3c4226916a80d41bf4a70355a15f8310cd032ef25187cc5dc80b6724e2d357ea949481b0
+"sdp@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "sdp@npm:3.2.0"
+  checksum: 227885bddab9a5845e56ae184ff51e43ec7bc155e7f1ed2f17ca1b012e6767011d5bd01b6c4064ded8e3b6f6bf3c9b26b2cf754b9c8662285988ed27b54f37b1
   languageName: node
   linkType: hard
 
@@ -27739,6 +27791,13 @@ __metadata:
     "@pkgr/utils": ^2.3.1
     tslib: ^2.4.0
   checksum: 83e054fe4494dab42114fc4ed36a11b85e18742d304ade3f40d3afb4ba4145d76183adba1f29e2c36e9a0a453b93a83e2387505f96a0efd901f562927a968c44
+  languageName: node
+  linkType: hard
+
+"tabbable@npm:^6.0.1":
+  version: 6.1.1
+  resolution: "tabbable@npm:6.1.1"
+  checksum: 348639497262241ce8e0ccb0664ea582a386183107299ee8f27cf7b56bc84f36e09eaf667d3cb4201e789634012a91f7129bcbd49760abe874fbace35b4cf429
   languageName: node
   linkType: hard
 
@@ -29762,12 +29821,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webrtc-adapter@npm:^8.2.0":
-  version: 8.2.0
-  resolution: "webrtc-adapter@npm:8.2.0"
+"webrtc-adapter@npm:^8.2.1":
+  version: 8.2.1
+  resolution: "webrtc-adapter@npm:8.2.1"
   dependencies:
-    sdp: ^3.0.2
-  checksum: 67221eac0f01c35f32235b0b988ed27b7e850d03315050a4432f6dc2ff47b8e0535732dfbe5d9718f6a27d46eddc527ca1465e509ba628fdd4c968013fdacb86
+    sdp: ^3.2.0
+  checksum: bb9d3b94a1108cfaa9f18b3bac3bdeba26a9770d9d6bd6f5a970ad087af7e068fb5cc4e94a503676c82fdf41b3ccce2e1d1348fd7777c996bed9f3283bd2c7b2
   languageName: node
   linkType: hard
 
@@ -30218,9 +30277,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^8.12.0, ws@npm:^8.4.2":
-  version: 8.12.0
-  resolution: "ws@npm:8.12.0"
+"ws@npm:^8.12.1, ws@npm:^8.4.2":
+  version: 8.12.1
+  resolution: "ws@npm:8.12.1"
   peerDependencies:
     bufferutil: ^4.0.1
     utf-8-validate: ">=5.0.2"
@@ -30229,7 +30288,7 @@ __metadata:
       optional: true
     utf-8-validate:
       optional: true
-  checksum: 818ff3f8749c172a95a114cceb8b89cedd27e43a82d65c7ad0f7882b1e96a2ee6709e3746a903c3fa88beec0c8bae9a9fcd75f20858b32a166dfb7519316a5d7
+  checksum: 97301c1c4d838fc81bd413f370f75c12aabe44527b31323b761eab3043a9ecb7e32ffd668548382c9a6a5ad3a1c3a9249608e8338e6b939f2f9540f1e21970b5
   languageName: node
   linkType: hard
 

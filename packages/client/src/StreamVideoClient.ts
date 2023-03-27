@@ -379,12 +379,14 @@ export class StreamVideoClient {
     sort: Array<SortParamRequest>,
     limit?: number,
     next?: string,
+    watch?: boolean,
   ) => {
     return await this.coordinatorClient.queryCalls(
       filterConditions,
       sort,
       limit,
       next,
+      watch,
     );
   };
 

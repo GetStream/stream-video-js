@@ -6,7 +6,7 @@ title: Chat with Video
 ## Building Chat Apps With Video Support
 
 One of the most common chat app use cases is having a chat feature in your app that allows users to
-engage in audio and video communication.This direct integration allows for simple transition between
+engage in audio and video communication. This direct integration allows for simple transition between
 text and images to more complex media.
 
 Stream supports this use case, out-of-the-box.
@@ -53,13 +53,13 @@ Some dependencies require us to make changes to our application for all function
 
 So what did we install precisely?
 
-- `stream-video-react-native` (SVRN) is Stream's Video SDK which contains UI components, hooks and util functions that will enable audio/video calls.
-- `react-native-webrtc` is a WebRTC module for React Native, SVRN depends on this dependency, it's components and utilities to render audio/video tracks and intract with the phone's media devices.
+- `stream-video-react-native` (SVRN) is Stream's Video SDK which contains UI components, hooks and utility functions that will enable audio/video calls.
+- `react-native-webrtc` is a WebRTC module for React Native, SVRN depends on this dependency, it's components and utilities to render audio/video tracks and interact with the phone's media devices.
 - `react-native-incall-manager` handles media-routes/sensors/events during a audio/video call.
 - `react-native-callkeep` utilises CallKit (iOS) and ConnectionService (Android). SVRN's uses this dependency to render native ringers and handle accepting/declining a call when the app is in background/dead mode.
 - `react-native-svg` provides SVG support to React Native, SVRN's components and it's icons are reliant on this dependency.
 
-## First things first: encoding, polyfills and globals config
+## First things first: encoding, polyfills and globals configuration
 
 Add the following imports and statements to your `index.js` file in the project's root.
 
@@ -87,7 +87,7 @@ Firstly we need to authenticate the Video SDK’s Client.
 You will need a user and token to authenticate a client.
 You can use the `client` from the Chat SDK to create the user object.
 To do this, you can import the hook, `useChatContext`, and use the `client` from it, as in the example below.
-`StreamVideoClient` expects API Key as the first arguments. It also expects `options` and Call config object for type `ring`(`CALL_CONFIG.ring`).
+`StreamVideoClient` expects API Key as the first arguments. It also expects `options` and Call configuration object for type `ring`(`CALL_CONFIG.ring`).
 The call configs helps adding some default configs to the call.
 
 ```tsx
@@ -125,7 +125,7 @@ All types used in the example above can be found in the end version of this [pro
 We will connect to the Stream's client instance we've created right after the component has mounted.
 When the component un-mounts, we will disconnect from the client.
 
-_Note: We will use thw API key, user and the token from the previous step._
+_Note: We will use the API key, user and the token from the previous step._
 
 ```tsx
 import React, {useEffect, useState} from 'react';
@@ -236,7 +236,7 @@ const App = () => {
 `StreamVideo` component has a `callCycleHandlers` prop of type object that expects:
 
 - `onActiveCall` handler to deal with the case when the call is active.
-- `onHangupCall` handler to deal with the case when the call is hunged up.
+- `onHangupCall` handler to deal with the case when the call is hung up.
 - `onIncomingCall` handler to deal with the case when there's an incoming call.
 - `onOutgoingCall` handler to deal with the case when there's an outgoing call.
 - `onRejectCall` handler to deal with the case when an incoming call is rejected.
@@ -342,7 +342,7 @@ export const ActiveCallScreen = ({ navigation }: Props) => {
 
 ### Rendering the Incoming call view
 
-To render the incoming call view, you can import `IncomingCallView` from the Reatc Native Video SDK and use it in the Screen/View of your choice.
+To render the incoming call view, you can import `IncomingCallView` from the React Native Video SDK and use it in the Screen/View of your choice.
 
 _Note: In our [react-native-call-starter-kit](https://github.com/GetStream/stream-video-js/blob/a42a72fcde67877287f4df292524311723ea4e0f/packages/react-native-call-starter-kit/), we use the handlers to navigate among screens._
 

@@ -1,8 +1,24 @@
 #!/bin/bash
 set -euo pipefail
 
-PROTOCOL_REPO_DIR="../../../protocol"
-SCHEMA_FILE="$PROTOCOL_REPO_DIR/openapi/video-openapi.yaml"
+FROM_REPO=$1;
+
+if  [ "$FROM_REPO" == 'chat' ]; then
+  PROTOCOL_REPO_DIR="../../../chat"
+else 
+  PROTOCOL_REPO_DIR="../../../protocol"
+fi
+if  [ "$FROM_REPO" == 'chat' ]; then
+  SCHEMA_FILE="$PROTOCOL_REPO_DIR/releases/video-openapi.yaml"
+else 
+  SCHEMA_FILE="$PROTOCOL_REPO_DIR/openapi/video-openapi.yaml"
+fi
+
+if  [ "$FROM_REPO" == 'chat' ]; then
+  # Generate the Coordinator OpenAPI schema
+  make -C $PROTOCOL_REPO_DIR video-openapi
+fi
+
 OUTPUT_DIR="./src/gen/coordinator"
 TEMP_OUTPUT_DIR="./src/gen/openapi-temp"
 

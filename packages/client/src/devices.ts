@@ -11,6 +11,7 @@ import {
   pairwise,
   shareReplay,
 } from 'rxjs';
+import { isChrome } from './helpers/browsers';
 
 const getDevices = (constraints?: MediaStreamConstraints) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
@@ -46,9 +47,35 @@ export const checkIfAudioOutputChangeSupported = () => {
   return isFeatureSupported;
 };
 
-const audioDeviceConstraints: MediaStreamConstraints = {
-  audio: { noiseSuppression: true },
-};
+/**
+ * The default constraints used to request audio devices.
+ */
+const audioDeviceConstraints = ((): MediaStreamConstraints => {
+  if (isChrome()) {
+    return {
+      audio: {
+        // @ts-expect-error Non-standard shape for Google Chrome
+        optional: [
+          { autoGainControl: true },
+          { noiseSuppression: true },
+          { echoCancellation: true },
+        ],
+      },
+    };
+  }
+  // other browsers
+  return {
+    audio: {
+      autoGainControl: true,
+      noiseSuppression: true,
+      echoCancellation: true,
+    },
+  };
+})();
+
+/**
+ * The default constraints used to request video devices.
+ */
 const videoDeviceConstraints: MediaStreamConstraints = {
   video: { width: 960, height: 540 },
 };
@@ -141,10 +168,20 @@ const getStream = async (
   // merge the default constraints with the deviceId
   const constraints: MediaStreamConstraints = {
     [type]: {
-      ...(defaultConstraints[type] as {}),
-      deviceId,
+      ...(defaultConstraints[type] as MediaTrackConstraints),
+      // deviceId,
     },
   };
+
+  if (isChrome() && type === 'audio') {
+    // @ts-expect-error
+    constraints['audio']!.mandatory = {
+      sourceId: deviceId,
+    };
+  } else {
+    // @ts-expect-error
+    constraints[type]!.deviceId = deviceId;
+  }
 
   try {
     return await navigator.mediaDevices.getUserMedia(constraints);

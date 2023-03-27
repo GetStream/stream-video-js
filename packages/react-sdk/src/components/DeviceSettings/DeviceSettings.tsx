@@ -10,7 +10,7 @@ import clsx from 'clsx';
 
 export const DeviceSettings = () => {
   return (
-    <MenuToggle ToggleButton={ToggleMenuButton}>
+    <MenuToggle placement="bottom-end" ToggleButton={ToggleMenuButton}>
       <Menu />
     </MenuToggle>
   );

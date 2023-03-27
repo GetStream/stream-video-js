@@ -12,6 +12,7 @@
     "start:docs": "npx stream-chat-docusaurus -s"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.22.0",
     "@nivo/core": "^0.80.0",
     "@nivo/line": "^0.80.0",
     "@popperjs/core": "^2.11.6",
