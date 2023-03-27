@@ -1323,6 +1323,43 @@ export interface GetCallEdgeServerResponse {
 /**
  *
  * @export
+ * @interface GetCallResponse
+ */
+export interface GetCallResponse {
+  /**
+   *
+   * @type {Array<UserResponse>}
+   * @memberof GetCallResponse
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof GetCallResponse
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {Array<MemberResponse>}
+   * @memberof GetCallResponse
+   */
+  members: Array<MemberResponse>;
+  /**
+   *
+   * @type {MemberResponse}
+   * @memberof GetCallResponse
+   */
+  membership?: MemberResponse;
+}
+/**
+ *
+ * @export
  * @interface GetCallTypeResponse
  */
 export interface GetCallTypeResponse {
@@ -2199,7 +2236,7 @@ export interface RecordSettings {
    * @type {string}
    * @memberof RecordSettings
    */
-  quality: string;
+  quality: RecordSettingsQualityEnum;
 }
 
 /**
@@ -2212,6 +2249,20 @@ export const RecordSettingsModeEnum = {
 } as const;
 export type RecordSettingsModeEnum =
   (typeof RecordSettingsModeEnum)[keyof typeof RecordSettingsModeEnum];
+
+/**
+ * @export
+ */
+export const RecordSettingsQualityEnum = {
+  audio_only: 'audio-only',
+  _360p: '360p',
+  _480p: '480p',
+  _720p: '720p',
+  _1080p: '1080p',
+  _1440p: '1440p',
+} as const;
+export type RecordSettingsQualityEnum =
+  (typeof RecordSettingsQualityEnum)[keyof typeof RecordSettingsQualityEnum];
 
 /**
  *
@@ -2236,7 +2287,7 @@ export interface RecordSettingsRequest {
    * @type {string}
    * @memberof RecordSettingsRequest
    */
-  quality?: string;
+  quality?: RecordSettingsRequestQualityEnum;
 }
 
 /**
@@ -2249,6 +2300,20 @@ export const RecordSettingsRequestModeEnum = {
 } as const;
 export type RecordSettingsRequestModeEnum =
   (typeof RecordSettingsRequestModeEnum)[keyof typeof RecordSettingsRequestModeEnum];
+
+/**
+ * @export
+ */
+export const RecordSettingsRequestQualityEnum = {
+  audio_only: 'audio-only',
+  _360p: '360p',
+  _480p: '480p',
+  _720p: '720p',
+  _1080p: '1080p',
+  _1440p: '1440p',
+} as const;
+export type RecordSettingsRequestQualityEnum =
+  (typeof RecordSettingsRequestQualityEnum)[keyof typeof RecordSettingsRequestQualityEnum];
 
 /**
  *

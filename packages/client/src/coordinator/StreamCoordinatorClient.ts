@@ -14,6 +14,7 @@ import {
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
   GetCallTypeResponse,
+  GetCallResponse,
   GetEdgesResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
@@ -91,6 +92,10 @@ export class StreamCall {
       mute_all_users: true,
       [type]: true,
     });
+  };
+
+  get = async () => {
+    return this.client.get<GetCallResponse>(this.basePath);
   };
 
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
