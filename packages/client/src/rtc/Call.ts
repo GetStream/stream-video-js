@@ -43,6 +43,83 @@ import {
 
 const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
 
+export type EntryHandler = (entry: IntersectionObserverEntry) => void;
+export type Observe = (
+  element: HTMLElement,
+  entryHandler: EntryHandler,
+) => Unobserve;
+
+export type Unobserve = () => void;
+
+class ViewportTracker {
+  private elementHandlerMap: Map<
+    HTMLElement,
+    (entry: IntersectionObserverEntry) => void
+  > = new Map();
+  private observer: IntersectionObserver | null = null;
+  // in React children render before viewport is set, add
+  // them to queue and observe them once the observer is set
+  private queueSet: Set<readonly [HTMLElement, EntryHandler]> = new Set();
+
+  public setViewport = (
+    element: HTMLElement,
+    options?: Pick<IntersectionObserverInit, 'threshold' | 'rootMargin'>,
+  ) => {
+    const cleanup = () => {
+      this.observer?.disconnect();
+      this.observer = null;
+      this.elementHandlerMap.clear();
+    };
+
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const handler = this.elementHandlerMap.get(
+            entry.target as HTMLElement,
+          );
+          handler?.(entry);
+        });
+      },
+      { root: element, ...options, threshold: options?.threshold ?? 0.5 },
+    );
+
+    if (this.queueSet.size) {
+      this.queueSet.forEach(([queueElement, queueHandler]) => {
+        if (!this.observer!.root!.contains(element)) return;
+        this.observer!.observe(queueElement);
+        this.elementHandlerMap.set(queueElement, queueHandler);
+      });
+      this.queueSet.clear();
+    }
+
+    return cleanup;
+  };
+
+  public observe: Observe = (element, handler) => {
+    const queueItem = [element, handler] as const;
+
+    const cleanup = () => {
+      this.elementHandlerMap.delete(element);
+      this.observer?.unobserve(element);
+      this.queueSet.delete(queueItem);
+    };
+
+    if (this.elementHandlerMap.has(element)) return cleanup;
+
+    if (!this.observer) {
+      this.queueSet.add(queueItem);
+      return cleanup;
+    }
+
+    if (this.observer.root!.contains(element)) {
+      this.elementHandlerMap.set(element, handler);
+      this.observer.observe(element);
+    }
+
+    return cleanup;
+  };
+}
+
 /**
  * The options to pass to {@link Call} constructor.
  */
@@ -82,6 +159,11 @@ export type CallConstructor = {
  * It's not enough to have a `Call` instance, you will also need to call the [`join`](#join) method.
  */
 export class Call {
+  /**
+   * ViewporTracker
+   */
+  readonly viewportTracker: ViewportTracker = new ViewportTracker();
+
   /**
    * The type of the call.
    */
