@@ -249,13 +249,18 @@ export class StreamCoordinatorClient {
     sort: Array<SortParamRequest>,
     limit?: number,
     next?: string,
+    watch?: boolean,
   ) => {
     const data: QueryCallsRequest = {
       filter_conditions: filterConditions,
       sort: sort,
       limit: limit,
       next: next,
+      watch,
     };
+    if (data.watch) {
+      await this.client.connectionIdPromise;
+    }
     return this.client.post<QueryCallsResponse>(`/calls`, data);
   };
 
