@@ -1,4 +1,6 @@
-.str-video__paginated-grid-layout-wrapper {
+$scope-name: 'str-video__paginated-grid-layout';
+
+.str-video__paginated-grid-layout--wrapper {
   flex-grow: 1;
   position: relative;
 }
@@ -10,7 +12,7 @@
   justify-content: space-between;
   padding-inline: 1.25rem;
 
-  .str-video__paginated-grid-layout-group {
+  .str-video__paginated-grid-layout--group {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
@@ -24,17 +26,17 @@
       flex: 0 1 calc(25% - 6px);
     }
 
-    &.one {
+    &.str-video__paginated-grid-layout--one {
       .str-video__participant {
         flex: 0 1 calc(100% - 6px);
       }
     }
-    &.two-four {
+    &.str-video__paginated-grid-layout--two-four {
       .str-video__participant {
         flex: 0 1 calc(50% - 6px);
       }
     }
-    &.five-nine {
+    &.str-video__paginated-grid-layout--five-nine {
       .str-video__participant {
         flex: 0 1 calc(33% - 6px);
       }

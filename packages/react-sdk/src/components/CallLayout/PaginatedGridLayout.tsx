@@ -24,10 +24,12 @@ const PaginatedGridLayoutGroup = ({
 
   return (
     <div
-      className={clsx('str-video__paginated-grid-layout-group', {
-        one: group.length === 1,
-        'two-four': group.length >= 2 && group.length <= 4,
-        'five-nine': group.length >= 5 && group.length <= 9,
+      className={clsx('str-video__paginated-grid-layout--group', {
+        'str-video__paginated-grid-layout--one': group.length === 1,
+        'str-video__paginated-grid-layout--two-four':
+          group.length >= 2 && group.length <= 4,
+        'str-video__paginated-grid-layout--five-nine':
+          group.length >= 5 && group.length <= 9,
       })}
     >
       {group.map((participant) => (
@@ -76,7 +78,7 @@ export const PaginatedGridLayout = () => {
           sinkId={localParticipant?.audioOutputDeviceId}
         />
       ))}
-      <div className="str-video__paginated-grid-layout-wrapper">
+      <div className="str-video__paginated-grid-layout--wrapper">
         <div className="str-video__paginated-grid-layout">
           {pageCount > 1 && (
             <IconButton
