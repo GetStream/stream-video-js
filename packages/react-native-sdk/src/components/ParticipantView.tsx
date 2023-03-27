@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import {
@@ -13,7 +13,6 @@ import { useStreamVideoStoreValue } from '../contexts';
 import { MicOff, ScreenShare, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { palette } from '../theme/constants';
-
 /**
  * Props to be passed for the ParticipantView component.
  */
@@ -48,6 +47,8 @@ interface ParticipantViewProps {
 export const ParticipantView = (props: ParticipantViewProps) => {
   const { participant, kind } = props;
   const call = useActiveCall();
+  const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
+  const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const { isSpeaking, isLoggedInUser, publishedTracks } = participant;
   const isPublishingVideoTrack = publishedTracks.includes(
     kind === 'video'
@@ -58,15 +59,54 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     (store) => store.isCameraOnFrontFacingMode,
   );
 
-  const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
-    call?.updateSubscriptionsPartial(kind, {
-      [participant.sessionId]: {
-        dimension: {
-          width: Math.trunc(event.nativeEvent.layout.width),
-          height: Math.trunc(event.nativeEvent.layout.height),
+  useEffect(() => {
+    if (pendingVideoLayoutRef.current && call && isPublishingVideoTrack) {
+      call.updateSubscriptionsPartial(kind, {
+        [participant.sessionId]: {
+          dimension: pendingVideoLayoutRef.current,
         },
+      });
+
+      subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
+      pendingVideoLayoutRef.current = undefined;
+    }
+  }, [call, isPublishingVideoTrack, kind, participant.sessionId]);
+
+  useEffect(() => {
+    return () => {
+      subscribedVideoLayoutRef.current = undefined;
+      pendingVideoLayoutRef.current = undefined;
+    };
+  }, [kind, participant.sessionId]);
+
+  const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
+    const dimension = {
+      width: Math.trunc(event.nativeEvent.layout.width),
+      height: Math.trunc(event.nativeEvent.layout.height),
+    };
+
+    // NOTE: If the participant hasn't published a video track yet,
+    // we store the dimensions and handle it when the track is published
+    if (!call || !isPublishingVideoTrack) {
+      pendingVideoLayoutRef.current = dimension;
+      return;
+    }
+
+    // NOTE: We don't want to update the subscription if the dimension hasn't changed
+    if (
+      subscribedVideoLayoutRef.current?.width === dimension.width &&
+      subscribedVideoLayoutRef.current?.height === dimension.height
+    ) {
+      return;
+    }
+
+    call.updateSubscriptionsPartial(kind, {
+      [participant.sessionId]: {
+        dimension,
       },
     });
+    subscribedVideoLayoutRef.current = dimension;
+    pendingVideoLayoutRef.current = undefined;
   };
 
   // NOTE: We have to cast to MediaStream type from webrtc
@@ -74,6 +114,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const videoStream = (
     kind === 'video' ? participant.videoStream : participant.screenShareStream
   ) as MediaStream | undefined;
+
   const audioStream = participant.audioStream as MediaStream | undefined;
   const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
@@ -101,8 +142,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         props.containerStyle,
         speakerStyle,
       ]}
-      // NOTE: We want to update the subscription only when the participant is publishing a video track
-      onLayout={isPublishingVideoTrack ? onLayout : undefined}
+      onLayout={onLayout}
     >
       {isVideoAvailable ? (
         <VideoRenderer
