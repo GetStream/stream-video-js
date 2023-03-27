@@ -7,12 +7,13 @@
 
 import React from 'react';
 
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 // @ts-ignore
 import openURLInBrowser from 'react-native/Libraries/Core/Devtools/openURLInBrowser';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../../types';
+import PressMe from '../PressMe';
 
 type Recipe = {
   id: number;
@@ -48,22 +49,16 @@ export default () => {
               </Text>
               <Text style={styles.recipeDescription}>{description}</Text>
             </View>
-            <View style={styles.recipePressablesContainer}>
-              <Pressable
-                style={styles.pressableContainer}
-                onPress={() => openURLInBrowser(linkToDocs)}>
-                <Text style={styles.pressableText}>
-                  📒 Open Recipe in Browser
-                </Text>
-              </Pressable>
-              <Pressable
-                style={styles.pressableContainer}
-                onPress={() => navigation.navigate(screenName)}>
-                <Text style={styles.pressableText}>
-                  📲 Check Final Implementation
-                </Text>
-              </Pressable>
-            </View>
+            <>
+              <PressMe
+                onPress={() => openURLInBrowser(linkToDocs)}
+                text={'📒 Open Recipe in Browser'}
+              />
+              <PressMe
+                onPress={() => navigation.navigate(screenName)}
+                text={'📲 Check Final Implementation'}
+              />
+            </>
           </View>
         ),
       )}
@@ -96,18 +91,5 @@ const styles = StyleSheet.create({
   linkWrapper: {
     flex: 2,
     marginRight: 4,
-  },
-  recipePressablesContainer: {
-    // flex: 1,
-  },
-  pressableContainer: {
-    backgroundColor: '#000',
-    padding: 8,
-    marginBottom: 4,
-  },
-  pressableText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
   },
 });
