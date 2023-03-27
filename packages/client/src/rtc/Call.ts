@@ -4,10 +4,18 @@ import { Publisher } from './publisher';
 import { getGenericSdp } from './codecs';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
-import { Dispatcher, SfuEventListener } from './Dispatcher';
+import {
+  Dispatcher,
+  SfuEventKinds,
+  SfuEventListener,
+  SfuEventKindMap,
+} from './Dispatcher';
 import { CallState } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
-import { StreamCoordinatorClient } from '../coordinator/StreamCoordinatorClient';
+import {
+  StreamCall,
+  StreamCoordinatorClient,
+} from '../coordinator/StreamCoordinatorClient';
 import {
   CallResponse,
   JoinCallRequest,
@@ -108,6 +116,27 @@ export class Call {
   private readonly httpClient: StreamCoordinatorClient;
   private sfuClient?: StreamSfuClient;
 
+  private get preferredAudioCodec() {
+    const audioSettings = this.state.getCurrentValue(this.state.metadata$)
+      ?.settings.audio;
+    let preferredCodec =
+      audioSettings?.redundant_coding_enabled === undefined
+        ? 'opus'
+        : audioSettings.redundant_coding_enabled
+        ? 'red'
+        : 'opus';
+    if (
+      typeof window !== 'undefined' &&
+      window.location &&
+      window.location.search
+    ) {
+      const queryParams = new URLSearchParams(window.location.search);
+      preferredCodec = queryParams.get('codec') || preferredCodec;
+    }
+
+    return preferredCodec;
+  }
+
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    */
@@ -136,7 +165,7 @@ export class Call {
    * @param fn
    * @returns
    */
-  on = (eventName: string, fn: SfuEventListener) => {
+  on = (eventName: SfuEventKinds, fn: SfuEventListener) => {
     return this.dispatcher.on(eventName, fn);
   };
 
@@ -146,7 +175,7 @@ export class Call {
    * @param fn
    * @returns
    */
-  off = (eventName: string, fn: SfuEventListener) => {
+  off = (eventName: SfuEventKinds, fn: SfuEventListener) => {
     return this.dispatcher.off(eventName, fn);
   };
 
@@ -177,6 +206,18 @@ export class Call {
     //   undefined,
     // );
   };
+
+  private waitForJoinResponse = (timeout: number = 10000) =>
+    new Promise<SfuEventKindMap['joinResponse']>((resolve, reject) => {
+      const unsubscribe = this.on('joinResponse', (event) => {
+        resolve(event as SfuEventKindMap['joinResponse']);
+      });
+
+      setTimeout(() => {
+        unsubscribe();
+        reject(new Error('Waiting for "joinResponse" has timed out'));
+      }, timeout);
+    });
 
   /**
    * Will initiate a call session with the server.
@@ -222,9 +263,26 @@ export class Call {
       onTrack: this.handleOnTrack,
     });
 
+    const audioSettings = this.state.getCurrentValue(this.state.metadata$)
+      ?.settings.audio;
+    let isDtxEnabled =
+      audioSettings?.opus_dtx_enabled === undefined
+        ? false
+        : audioSettings?.opus_dtx_enabled;
+    // TODO: SZ: Remove once SFU team don't need this
+    if (
+      typeof window !== 'undefined' &&
+      window.location &&
+      window.location.search
+    ) {
+      const queryParams = new URLSearchParams(window.location.search);
+      isDtxEnabled = queryParams.get('dtx') === 'false' ? false : isDtxEnabled;
+    }
+    console.log('DTX enabled', isDtxEnabled);
     this.publisher = new Publisher({
       rpcClient: sfuClient,
       connectionConfig: call.connectionConfig,
+      isDtxEnabled,
     });
 
     this.statsReporter = createStatsReporter({
@@ -234,39 +292,39 @@ export class Call {
       edgeName: call.sfuServer.edge_name,
     });
 
-    return new Promise<void>(async (resolve) => {
-      this.dispatcher.on('joinResponse', (event) => {
-        if (event.eventPayload.oneofKind !== 'joinResponse') return;
+    const joinResponsePromise = this.waitForJoinResponse().then((event) => {
+      const { callState } = event.eventPayload.joinResponse;
+      const currentParticipants = callState?.participants || [];
 
-        const { callState } = event.eventPayload.joinResponse;
-        const currentParticipants = callState?.participants || [];
+      const ownCapabilities = {
+        ownCapabilities: call.metadata.own_capabilities,
+      };
 
-        const ownCapabilities = {
-          ownCapabilities: call.metadata.own_capabilities,
-        };
+      this.state.setCurrentValue(
+        this.state.participantsSubject,
+        currentParticipants.map<StreamVideoParticipant>((participant) => ({
+          ...participant,
+          isLoggedInUser: participant.sessionId === sfuClient.sessionId,
+          // TODO: save other participants permissions once that's provided by SFU
+          ...(participant.sessionId === sfuClient.sessionId
+            ? ownCapabilities
+            : {}),
+        })),
+      );
 
-        this.state.setCurrentValue(
-          this.state.participantsSubject,
-          currentParticipants.map<StreamVideoParticipant>((participant) => ({
-            ...participant,
-            isLoggedInUser: participant.sessionId === sfuClient.sessionId,
-            // TODO: save other participants permissions once that's provided by SFU
-            ...(participant.sessionId === sfuClient.sessionId
-              ? ownCapabilities
-              : {}),
-          })),
-        );
-
-        sfuClient.keepAlive();
-        this.joined$.next(true);
-        resolve();
-      });
-
-      const genericSdp = await getGenericSdp('recvonly');
-      await sfuClient.join({
-        subscriberSdp: genericSdp || '',
-      });
+      sfuClient.keepAlive();
+      this.joined$.next(true);
     });
+
+    const genericSdp = await getGenericSdp(
+      'recvonly',
+      this.preferredAudioCodec,
+    );
+    await sfuClient.join({
+      subscriberSdp: genericSdp || '',
+    });
+
+    return joinResponsePromise;
   };
 
   /**
@@ -347,8 +405,11 @@ export class Call {
     }
 
     const trackType = TrackType.AUDIO;
+
     try {
-      await this.publisher.publishStream(audioStream, audioTrack, trackType);
+      await this.publisher.publishStream(audioStream, audioTrack, trackType, {
+        preferredCodec: this.preferredAudioCodec,
+      });
       await this.sfuClient!.updateMuteState(trackType, false);
     } catch (e) {
       throw e;
@@ -687,4 +748,16 @@ export class Call {
         });
     });
   };
+
+  blockUser: StreamCall['blockUser'] = (userId) =>
+    this.httpClient.call(this.type, this.id).blockUser(userId);
+
+  unblockUser: StreamCall['unblockUser'] = (userId) =>
+    this.httpClient.call(this.type, this.id).unblockUser(userId);
+
+  muteUser: StreamCall['muteUser'] = (userId, type, sessionId) =>
+    this.httpClient.call(this.type, this.id).muteUser(userId, type, sessionId);
+
+  muteAllUsers: StreamCall['muteAllUsers'] = (type) =>
+    this.httpClient.call(this.type, this.id).muteAllUsers(type);
 }

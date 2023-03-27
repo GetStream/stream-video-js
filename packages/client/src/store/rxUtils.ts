@@ -1,6 +1,8 @@
 import { Observable, Subject } from 'rxjs';
 import { take } from 'rxjs/operators';
 
+export type Patch<T> = T | ((currentValue: T) => T);
+
 /**
  * Gets the current value of an observable, or undefined if the observable has
  * not emitted a value yet.
@@ -26,10 +28,7 @@ export const getCurrentValue = <T>(observable$: Observable<T>) => {
  * @param update the update to apply to the subject.
  * @return the updated value.
  */
-export const setCurrentValue = <T>(
-  subject: Subject<T>,
-  update: T | ((currentValue: T) => T),
-) => {
+export const setCurrentValue = <T>(subject: Subject<T>, update: Patch<T>) => {
   const currentValue = getCurrentValue(subject);
   const next =
     // TypeScript needs more context to infer the type of update

@@ -16,8 +16,19 @@ export const LobbyViewScreen = (props: CallLobbyScreenProps) => {
   } = route;
 
   return (
-    <ScrollView style={{flex: 1}} contentContainerStyle={{flex: 1}}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainerStyle}>
       <LobbyView callID={callId} />
     </ScrollView>
   );
+};
+
+const styles = {
+  container: {
+    flex: 1,
+  },
+  contentContainerStyle: {
+    flex: 1,
+  },
 };

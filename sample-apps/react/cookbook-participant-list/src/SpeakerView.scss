@@ -1,0 +1,50 @@
+.speaker-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+
+  .spotlight {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+
+    .str-video__participant {
+      height: 100%;
+      width: auto;
+    }
+
+    .str-video__participant--no-video {
+      width: 100%;
+    }
+  }
+
+  .participants-bar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    height: 160px;
+    min-height: 160px;
+    overflow-x: scroll;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .participant-tile {
+      width: 240px;
+      min-width: 240px;
+
+      &:first-child {
+        margin-left: auto;
+      }
+
+      &:last-child {
+        margin-right: auto;
+      }
+    }
+  }
+}

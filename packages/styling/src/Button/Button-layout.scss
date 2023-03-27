@@ -65,3 +65,15 @@
     }
   }
 }
+
+.str-video__text-button {
+  all: unset;
+  padding: 5px;
+  font-size: 12px;
+  border-radius: var(
+    --str-video__participant-list-header__close-button--border-radius
+  );
+  background: var(
+    --str-video__participant-list-header__close-button--background-color
+  );
+}

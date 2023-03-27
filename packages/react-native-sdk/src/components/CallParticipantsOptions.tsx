@@ -26,91 +26,91 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
     setSelectedParticipant(undefined);
   }, [setSelectedParticipant]);
 
+  const showYouLabel = participant.isLoggedInUser;
+
   return (
-    <View style={styles.menu}>
-      <View style={styles.participantInfo}>
-        <View style={styles.userInfo}>
-          <Avatar radius={50} participant={participant} />
+    <View style={styles.container}>
+      <View style={styles.menu}>
+        <View style={styles.participantInfo}>
+          <View style={styles.userInfo}>
+            <Avatar radius={theme.avatar.xs} participant={participant} />
 
-          <Text style={styles.name}>
-            {generateParticipantTitle(participant.userId) +
-              (participant.isLoggedInUser ? ' (You)' : '')}
-          </Text>
+            <Text style={styles.name}>
+              {generateParticipantTitle(participant.userId) +
+                (showYouLabel ? ' (You)' : '')}
+            </Text>
+          </View>
+
+          <Pressable
+            style={[styles.svgContainerStyle, theme.icon.sm]}
+            onPress={onCloseParticipantOptions}
+          >
+            <Cross color={theme.light.primary} />
+          </Pressable>
         </View>
-
-        <Pressable style={styles.icon} onPress={onCloseParticipantOptions}>
-          <Cross color={theme.light.primary} />
-        </Pressable>
-      </View>
-      <View style={styles.options}>
-        {options.map((option, index) => {
-          return (
-            <Pressable
-              style={[
-                index < options.length - 1 ? styles.borderBottom : null,
-                styles.option,
-              ]}
-              key={option.title}
-            >
-              <View style={styles.icon}>{option.icon}</View>
-              <Text style={styles.title}>{option.title}</Text>
-            </Pressable>
-          );
-        })}
+        <View style={styles.options}>
+          {options.map((option, index) => {
+            const applyBottomPadding =
+              index < options.length - 1 ? styles.borderBottom : null;
+            return (
+              <Pressable
+                style={[applyBottomPadding, styles.option]}
+                key={option.title}
+              >
+                <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+                  {option.icon}
+                </View>
+                <Text style={styles.title}>{option.title}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  name: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginLeft: 10,
-  },
-  avatar: {
-    height: 50,
-    width: 50,
-    borderRadius: 50,
-  },
-  icon: {
-    height: 20,
-    width: 20,
+  container: {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    paddingHorizontal: theme.padding.xl,
   },
   menu: {
     backgroundColor: theme.light.bars,
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    marginTop: 'auto',
-    marginBottom: 'auto',
-    width: '80%',
-    borderRadius: 15,
+    borderRadius: theme.rounded.md,
   },
   participantInfo: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 15,
+    padding: theme.padding.md,
   },
   userInfo: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
   },
+  name: {
+    marginLeft: theme.margin.sm,
+    ...theme.fonts.subtitleBold,
+  },
+  svgContainerStyle: {},
   options: {},
   option: {
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingHorizontal: theme.padding.md,
+    paddingVertical: theme.padding.sm,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
   },
   title: {
-    fontSize: 18,
-    marginLeft: 20,
+    marginLeft: theme.margin.md,
     color: theme.light.text_high_emphasis,
-    fontWeight: '400',
+    ...theme.fonts.subtitle,
   },
   borderBottom: {
     borderBottomColor: theme.light.borders,

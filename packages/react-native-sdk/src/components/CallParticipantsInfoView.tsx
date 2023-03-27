@@ -4,7 +4,7 @@ import {
   useActiveCall,
   useParticipants,
 } from '@stream-io/video-react-bindings';
-import { StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { MicOff, ScreenShare, VideoSlash } from '../icons';
 import React, { useState } from 'react';
 import { generateParticipantTitle } from '../utils';
@@ -35,34 +35,35 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   const isScreenSharing = publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
   );
+  const showYouLabel = participant.isLoggedInUser;
 
   return (
     <View style={styles.participant}>
-      <Avatar radius={50} participant={participant} />
+      <Avatar radius={theme.avatar.xs} participant={participant} />
 
       <Text style={styles.name}>
         {participant.name ||
           generateParticipantTitle(participant.userId) +
-            (participant.isLoggedInUser ? ' (You)' : '')}
+            (showYouLabel ? ' (You)' : '')}
       </Text>
       <View style={styles.icons}>
         {isScreenSharing && (
-          <View style={styles.screenShareIcon}>
+          <View style={[styles.svgContainerStyle, theme.icon.md]}>
             <ScreenShare color={theme.light.info} />
           </View>
         )}
         {isAudioMuted && (
-          <View style={styles.icon}>
+          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
             <MicOff color={theme.light.error} />
           </View>
         )}
         {isVideoMuted && (
-          <View style={styles.icon}>
+          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
             <VideoSlash color={theme.light.error} />
           </View>
         )}
         {/* Disablling it until we support permissions */}
-        {/* <Pressable style={styles.icon} onPress={optionsOpenHandler}>
+        {/* <Pressable style={[styles.svgContainerStyle, theme.icon.sm]} onPress={optionsOpenHandler}>
           <ArrowRight color={theme.light.text_high_emphasis} />
         </Pressable> */}
       </View>
@@ -97,15 +98,16 @@ const InnerCallParticipantsInfoView = () => {
 
   return (
     <>
-      {participants.map((participant) => {
-        return (
+      <FlatList
+        data={participants}
+        keyExtractor={(item) => `participant-info-${item.sessionId}`}
+        renderItem={({ item: participant }) => (
           <CallParticipantInfoItem
-            key={`${participant.userId}${participant.sessionId}`}
             participant={participant}
             setSelectedParticipant={setSelectedParticipant}
           />
-        );
-      })}
+        )}
+      />
       {selectedParticipant && (
         <View style={[StyleSheet.absoluteFill, styles.modal]}>
           <CallParticipantOptions
@@ -120,8 +122,8 @@ const InnerCallParticipantsInfoView = () => {
 
 const styles = StyleSheet.create({
   participant: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: theme.padding.sm,
+    paddingVertical: theme.padding.xs,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
@@ -129,31 +131,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   name: {
-    fontWeight: 'bold',
-    fontSize: 15,
-    marginLeft: 10,
+    marginLeft: theme.margin.sm,
     color: theme.light.text_high_emphasis,
-  },
-  avatar: {
-    height: 50,
-    width: 50,
-    borderRadius: 50,
+    ...theme.fonts.subtitleBold,
   },
   icons: {
     position: 'absolute',
-    right: 10,
+    right: theme.spacing.lg,
     display: 'flex',
     flexDirection: 'row',
   },
-  icon: {
-    height: 20,
-    width: 20,
-    marginLeft: 10,
-  },
-  screenShareIcon: {
-    height: 24,
-    width: 24,
-    marginLeft: 10,
+  svgContainerStyle: {
+    marginLeft: theme.margin.sm,
   },
   modal: {
     alignItems: 'center',

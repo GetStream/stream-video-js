@@ -3,12 +3,11 @@
   "cleanOutputDir": true,
   "out": "temp-docs",
   "entryPoints": ["./index.ts"],
-  "externalPattern": ["**/node_modules/**", "**/dist/**"],
-  "excludeExternals": true,
   "excludePrivate": true,
-  "excludeNotDocumented": false,
+  "excludeInternal": true,
   "hideBreadcrumbs": true,
   "hideInPageTOC": true,
   "logLevel": "Error",
-  "tsconfig": "./tsconfig.json"
+  "tsconfig": "./tsconfig.json",
+  "categorizeByGroup": false
 }

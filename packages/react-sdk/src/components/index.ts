@@ -10,3 +10,4 @@ export * from './StreamMeeting';
 export * from './Search';
 export * from './Tooltip';
 export * from './Video';
+export * from './Menu';
