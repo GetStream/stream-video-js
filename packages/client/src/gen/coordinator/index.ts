@@ -353,6 +353,106 @@ export interface CallEndedEvent {
 /**
  *
  * @export
+ * @interface CallMemberAddedEvent
+ */
+export interface CallMemberAddedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberAddedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {Array<MemberResponse>}
+   * @memberof CallMemberAddedEvent
+   */
+  members: Array<MemberResponse>;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberAddedEvent
+   */
+  type: string;
+}
+/**
+ *
+ * @export
+ * @interface CallMemberRemovedEvent
+ */
+export interface CallMemberRemovedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberRemovedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof CallMemberRemovedEvent
+   */
+  members: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberRemovedEvent
+   */
+  type: string;
+}
+/**
+ *
+ * @export
+ * @interface CallMemberUpdatedEvent
+ */
+export interface CallMemberUpdatedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberUpdatedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {Array<MemberResponse>}
+   * @memberof CallMemberUpdatedEvent
+   */
+  members: Array<MemberResponse>;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberUpdatedEvent
+   */
+  type: string;
+}
+/**
+ *
+ * @export
+ * @interface CallMemberUpdatedPermissionEvent
+ */
+export interface CallMemberUpdatedPermissionEvent {
+  /**
+   * Maps a role to a list of capabilities
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof CallMemberUpdatedPermissionEvent
+   */
+  capabilities_by_role: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberUpdatedPermissionEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberUpdatedPermissionEvent
+   */
+  type: string;
+}
+/**
+ *
+ * @export
  * @interface CallReactionEvent
  */
 export interface CallReactionEvent {
@@ -1862,6 +1962,7 @@ export const OwnCapability = {
   join_ended_call: 'join-ended-call',
   mute_users: 'mute-users',
   read_call: 'read-call',
+  remove_call_member: 'remove-call-member',
   screenshare: 'screenshare',
   send_audio: 'send-audio',
   send_video: 'send-video',
@@ -1870,6 +1971,7 @@ export const OwnCapability = {
   stop_broadcast_call: 'stop-broadcast-call',
   stop_record_call: 'stop-record-call',
   update_call: 'update-call',
+  update_call_member: 'update-call-member',
   update_call_permissions: 'update-call-permissions',
   update_call_settings: 'update-call-settings',
 } as const;
@@ -2684,11 +2786,49 @@ export interface UnblockedUserEvent {
 /**
  *
  * @export
+ * @interface UpdateCallMemberRequest
+ */
+export interface UpdateCallMemberRequest {
+  /**
+   * List of userID to remove
+   * @type {Array<string>}
+   * @memberof UpdateCallMemberRequest
+   */
+  remove_members: Array<string>;
+  /**
+   * List of members to update or insert
+   * @type {Array<MemberRequest>}
+   * @memberof UpdateCallMemberRequest
+   */
+  update_members?: Array<MemberRequest>;
+}
+/**
+ *
+ * @export
+ * @interface UpdateCallMemberResponse
+ */
+export interface UpdateCallMemberResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof UpdateCallMemberResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {Array<MemberResponse>}
+   * @memberof UpdateCallMemberResponse
+   */
+  members: Array<MemberResponse>;
+}
+/**
+ *
+ * @export
  * @interface UpdateCallRequest
  */
 export interface UpdateCallRequest {
   /**
-   * call custom data
+   * Custom data for this object
    * @type {{ [key: string]: any; }}
    * @memberof UpdateCallRequest
    */

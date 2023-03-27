@@ -9,6 +9,7 @@ import {
   BlockUserResponse,
   CallSettingsRequest,
   CreateCallTypeRequest,
+  UpdateCallMemberRequest,
   CreateCallTypeResponse,
   EndCallResponse,
   GetCallEdgeServerRequest,
@@ -39,6 +40,7 @@ import {
   UpdateCallTypeResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
+  UpdateCallMemberResponse,
 } from '../gen/coordinator';
 
 export class StreamCall {
@@ -173,6 +175,13 @@ export class StreamCall {
   endCall = async () => {
     return this.client.post<EndCallResponse>(`${this.basePath}/mark_ended`);
   };
+
+  updateCallMembers(data: UpdateCallMemberRequest) {
+    return this.client.post<UpdateCallMemberResponse>(
+      `${this.basePath}/update_member`,
+      data,
+    );
+  }
 }
 
 export class StreamCoordinatorClient {
@@ -338,5 +347,13 @@ export class StreamCoordinatorClient {
 
   listCallTypes = async () => {
     return this.client.get<ListCallTypeResponse>(`/calltypes`);
+  };
+
+  updateCallMembers = async (
+    id: string,
+    type: string,
+    data: UpdateCallMemberRequest,
+  ) => {
+    return this.call(type, id).updateCallMembers(data);
   };
 }
