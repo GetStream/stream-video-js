@@ -10,7 +10,7 @@ import {
   SfuEventListener,
   SfuEventKindMap,
 } from './Dispatcher';
-import { CallState } from '../store';
+import { CallState, StreamVideoWriteableStateStore } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import {
   StreamCall,
@@ -20,6 +20,8 @@ import {
   CallResponse,
   JoinCallRequest,
   MemberResponse,
+  RequestPermissionRequest,
+  UpdateUserPermissionsRequest,
 } from '../gen/coordinator';
 import { join } from './flows/join';
 import type {
@@ -73,6 +75,11 @@ export type CallConstructor = {
    * This is useful when initializing a new "pending call" from an event.
    */
   members?: MemberResponse[];
+
+  /**
+   * The state store of the client
+   */
+  clientStore: StreamVideoWriteableStateStore;
 };
 
 /**
@@ -115,6 +122,7 @@ export class Call {
 
   private readonly httpClient: StreamCoordinatorClient;
   private sfuClient?: StreamSfuClient;
+  private readonly clientStore: StreamVideoWriteableStateStore;
 
   private get preferredAudioCodec() {
     const audioSettings = this.state.getCurrentValue(this.state.metadata$)
@@ -140,11 +148,19 @@ export class Call {
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    */
-  constructor({ type, id, httpClient, metadata, members }: CallConstructor) {
+  constructor({
+    type,
+    id,
+    httpClient,
+    metadata,
+    members,
+    clientStore,
+  }: CallConstructor) {
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
     this.httpClient = httpClient;
+    this.clientStore = clientStore;
 
     this.state.metadataSubject.next(metadata);
     this.state.membersSubject.next(members || []);
@@ -200,11 +216,10 @@ export class Call {
     this.sfuClient?.close();
     this.sfuClient = undefined;
 
-    // FIXME OL: sort this out
-    // this.stateStore.setCurrentValue(
-    //   this.stateStore.activeCallSubject,
-    //   undefined,
-    // );
+    this.clientStore.setCurrentValue(
+      this.clientStore.activeCallSubject,
+      undefined,
+    );
   };
 
   private waitForJoinResponse = (timeout: number = 10000) =>
@@ -760,4 +775,137 @@ export class Call {
 
   muteAllUsers: StreamCall['muteAllUsers'] = (type) =>
     this.httpClient.call(this.type, this.id).muteAllUsers(type);
+
+  /**
+   * Starts recording the call
+   */
+  startRecording = async () => {
+    try {
+      return await this.httpClient.call(this.type, this.id).startRecording();
+    } catch (error) {
+      console.log(`Failed to start recording`, error);
+    }
+  };
+
+  /**
+   * Stops recording the call
+   */
+  stopRecording = async () => {
+    try {
+      return await this.httpClient.call(this.type, this.id).stopRecording();
+    } catch (error) {
+      console.log(`Failed to stop recording`, error);
+    }
+  };
+
+  /**
+   * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
+   */
+  requestCallPermissions = async (data: RequestPermissionRequest) => {
+    return this.httpClient.call(this.type, this.id).requestPermissions(data);
+  };
+
+  /**
+   * Allows you to grant or revoke a specific permission to a user in a call. The permissions are specific to the call experience and do not survive the call itself.
+   *
+   * When revoking a permission, this endpoint will also mute the relevant track from the user. This is similar to muting a user with the difference that the user will not be able to unmute afterwards.
+   *
+   * Supported permissions that can be granted or revoked: `send-audio`, `send-video` and `screenshare`.
+   *
+   * `call.permissions_updated` event is sent to all members of the call.
+   *
+   */
+  updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
+    return this.httpClient.call(this.type, this.id).updateUserPermissions(data);
+  };
+
+  /**
+   * Sets the `participant.isPinned` value.
+   * @param sessionId the session id of the participant
+   * @param isPinned the value to set the participant.isPinned
+   * @returns
+   */
+  setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
+    this.state.updateParticipant(sessionId, {
+      isPinned,
+    });
+  };
+
+  /**
+   * Signals other users that I have accepted the incoming call.
+   * Causes the `CallAccepted` event to be emitted to all the call members.
+   * @returns
+   */
+  accept = async () => {
+    const callToAccept = this.clientStore
+      .getCurrentValue(this.clientStore.pendingCallsSubject)
+      .find((c) => c.id === this.id && c.type === this.type);
+
+    if (callToAccept) {
+      await this.httpClient.call(this.id, this.type).sendEvent({
+        type: 'call.accepted',
+      });
+
+      // remove the accepted call from the "pending calls" list.
+      this.clientStore.setCurrentValue(
+        this.clientStore.pendingCallsSubject,
+        (pendingCalls) => pendingCalls.filter((c) => c !== callToAccept),
+      );
+
+      await this.join();
+      this.clientStore.setCurrentValue(
+        this.clientStore.activeCallSubject,
+        callToAccept,
+      );
+    }
+  };
+
+  /**
+   * Signals other users that I have rejected the incoming call.
+   * Causes the `CallRejected` event to be emitted to all the call members.
+   * @returns
+   */
+  reject = async () => {
+    this.clientStore.setCurrentValue(
+      this.clientStore.pendingCallsSubject,
+      (pendingCalls) =>
+        pendingCalls.filter((incomingCall) => incomingCall.id !== this.id),
+    );
+    await this.httpClient.call(this.id, this.type).sendEvent({
+      type: 'call.rejected',
+    });
+  };
+
+  /**
+   * Signals other users that I have cancelled my call to them before they accepted it.
+   * Causes the `CallCancelled` event to be emitted to all the call members.
+   *
+   * Cancelling a call is only possible before the local participant joined the call.
+   * @returns
+   */
+  cancel = async () => {
+    const store = this.clientStore;
+    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const leavingActiveCall =
+      activeCall?.id === this.id && activeCall.type === this.type;
+    if (leavingActiveCall) {
+      activeCall.leave();
+    } else {
+      store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+        pendingCalls.filter((pendingCall) => pendingCall.id !== this.id),
+      );
+    }
+
+    if (activeCall) {
+      const state = activeCall.state;
+      const remoteParticipants = state.getCurrentValue(
+        state.remoteParticipants$,
+      );
+      if (!remoteParticipants.length && !leavingActiveCall) {
+        await this.httpClient.call(this.id, this.type).sendEvent({
+          type: 'call.cancelled',
+        });
+      }
+    }
+  };
 }
