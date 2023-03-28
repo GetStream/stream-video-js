@@ -90,7 +90,16 @@ export const Video = (
       }));
     });
 
-    return () => unobserve();
+    return () => {
+      unobserve();
+      // reset visibility state to UNKNOWN upon cleanup
+      // so that the layouts that are not actively observed
+      // can still function normally (runtime layout switching)
+      call.state.updateParticipant(sessionId, (p) => ({
+        ...p,
+        viewportVisibilityState: VisibilityState.UNKNOWN,
+      }));
+    };
   }, [videoElement, call.viewportTracker, call.state, sessionId]);
 
   useEffect(() => {
