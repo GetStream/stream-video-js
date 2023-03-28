@@ -1,4 +1,3 @@
-import { Call } from '@stream-io/video-client';
 import { useObservableValue } from './helpers/useObservableValue';
 import { useCallState, useStore } from './store';
 
