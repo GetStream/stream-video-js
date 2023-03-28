@@ -9,7 +9,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const StackNavigator = () => {
   return (
-    <Stack.Navigator initialRouteName={'CustomParticipantsLayoutScreen'}>
+    <Stack.Navigator initialRouteName={'WelcomeScreen'}>
       <Stack.Screen
         name="WelcomeScreen"
         component={WelcomeScreen}

@@ -13,6 +13,7 @@ import {
   useActiveCall,
   useCreateStreamVideoClient,
   useStreamVideoClient,
+  usePublishStreams,
 } from '@stream-io/video-react-native-sdk';
 import {
   STREAM_API_KEY,
@@ -41,7 +42,8 @@ console.log('User loaded: ', USER);
 
 const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 5);
 
-const generateCallId = () => nanoid(5);
+// const generateCallId = () => nanoid(5);
+const generateCallId = () => 'zzz';
 
 export default () => {
   const navigation = useNavigation();
@@ -114,12 +116,12 @@ function IntroModal({callId}: {callId: string}) {
     </Modal>
   );
 }
-
 const Inner = () => {
   const activeCall = useActiveCall();
   const videoClient = useStreamVideoClient();
   const insets = useSafeAreaInsets();
   const callId = useRef<string>(generateCallId());
+  usePublishStreams();
 
   useEffect(() => {
     videoClient
