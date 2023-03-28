@@ -37,104 +37,86 @@ In order to do that, please follow these steps:
 
 
 ```tsx
-import {
-  StreamVideo,
-  useCreateStreamVideoClient,
-} from '@stream-io/video-react-sdk';
-
+import { useCreateStreamVideoClient } from '@stream-io/video-react-sdk';
+import { StreamVideo } from '@stream-io/video-react-native-sdk';
 // This is the component that will render the custom layout.
 // we can assume that the implementation of this component is empty for now.
-import { SpeakerView } from './SpeakerView';
+import { MyActiveCall } from './MyActiveCall';
 
-// We are going to use Vite's environment variables to store our API key and token.
-// https://vitejs.dev/guide/env-and-mode.html#env-files
-//
-// You can use any other method to store your API key and token.
-const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
-const token = import.meta.env.VITE_STREAM_TOKEN as string;
-const userId = import.meta.env.VITE_USER_ID as string;
+// Create a user object with the user ID and token and other information.
+const USER = {
+  id: STREAM_USER_ID,
+  name: 'Alice',
+  imageUrl: 'https://randomuser.me/api/portraits/women/65.jpg',
+  custom: {
+    token: STREAM_USER_TOKEN,
+  },
+};
 
-export const App = () => {
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: token,
-    user: {
-      id: userId,
-    },
+export default () => {
+  // Create a StreamVideoClient instance using the useCreateStreamVideoClient hook.
+  const videoClient = useCreateStreamVideoClient({
+    user: USER,
+    tokenOrProvider: USER?.custom?.token,
+    apiKey: STREAM_API_KEY,
   });
 
   return (
-    <StreamVideo client={client}>
-      <SpeakerView />
+    // Wrap the MyActiveCall component with the StreamVideo component.
+    // StreamVideo will provide the necessary context (client, callCycleHandlers,
+    // device info and other relevant information about your calls) to the MyActiveCall component.
+    <StreamVideo client={videoClient}>
+      <MyActiveCall />
     </StreamVideo>
   );
 };
+
 ```
 
 ## Joining a Call
 
 To join a call, we need to know its ID and type. The call ID and type can come from any source you like.
-In our example, we are going to get the call ID and type from the URL query params.
 
-Once we have that information, we can join the call by choosing one of the two options:
-
-1. Declarative, using the [`<StreamMeeting />`](../03-ui/components.md#streammeeting) component.
-2. Imperative, using the [`StreamVideoClient`](../04-call-engine/StreamVideoClient.md) API methods (advanced usage).
-
-In our example, we are going to use the declarative approach because it is easier to understand and
-has less code:
+In our example, we are going to hardcode the call ID and type, but you can use any other method that will suit your business logics to get this information.
 
 ```tsx
-import { useState } from 'react';
-import {
-  StreamMeeting,
-  StreamVideo,
-  useCreateStreamVideoClient,
-} from '@stream-io/video-react-sdk';
+import React, {useEffect} from 'react';
+import {usePublishStreams, useStreamVideoClient } from '@stream-io/video-react-native-sdk';
+import InCallManager from 'react-native-incall-manager';
 
-// This is the component that will render the custom layout.
-// we can assume that the implementation of this component is empty for now.
-import { SpeakerView } from './SpeakerView';
 
-// We are going to use Vite's environment variables to store our API key and token.
-// https://vitejs.dev/guide/env-and-mode.html#env-files
-//
-// You can use any other method to store your API key and token.
-const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
-const token = import.meta.env.VITE_STREAM_TOKEN as string;
-const userId = import.meta.env.VITE_USER_ID as string;
+const CALL_ID = 'some-call-id';
 
-const randomId = () => Math.random().toString(36).substring(2, 12);
+const MyActiveCall = () => {
+  // Get the videoClient instance from the context.
+  const videoClient = useStreamVideoClient();
+  // Start publishing the local audio and video streams.
+  usePublishStreams();
 
-export const App = () => {
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: token,
-    user: {
-      id: userId,
-    },
-  });
-
-  // will load the call ID from the URL query params,
-  // or generate a random one in case it is not present.
-  const [callId, setCallId] = useState(() => {
-    const params = new URLSearchParams(
-      window.location.search || window.location.hash,
-    );
-
-    return params.get('call_id') || randomId();
-  });
-
-  return (
-    <StreamVideo client={client}>
-      <StreamMeeting callId={callId} callType="default">
-        <SpeakerView />
-      </StreamMeeting>
-    </StreamVideo>
-  );
+  // Join the call when the component is mounted.
+  useEffect(() => {
+    const startCall = async ()=> {
+      try {
+        // Join the call and start the call cycle.
+        await videoClient?.joinCall(CALL_ID, 'default');
+        // Start InCallManager and enable the speakerphone.
+        InCallManager.start({media: 'video'});
+        InCallManager.setForceSpeakerphoneOn(true);
+      } catch (e) {
+        console.log('Error joining call', e);
+      }
+    };
+    startCall();
+  }, []);
 };
-```
 
+
+//
+// THIS IS WHERE I STOPPED
+// THIS IS WHERE I STOPPED
+// THIS IS WHERE I STOPPED
+//
+```
 Behind the scenes, the `<StreamMeeting />` component will set up and join a new [Call](../04-call-engine/Call.md) instance,
 and it will expose down in the component tree through a React Context the [CallState](../04-call-engine/contexts.md/#streamcallprovider) object.
 
