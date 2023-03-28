@@ -1,29 +1,45 @@
-import { useLocalParticipant, useStore } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect, useRef } from 'react';
 import {
   Call,
   disposeOfMediaStream,
   getAudioStream,
   SfuModels,
+  watchForAddedDefaultAudioDevice,
   watchForDisconnectedAudioDevice,
 } from '@stream-io/video-client';
 import { map } from 'rxjs';
 
+/**
+ * Exclude types from documentaiton site, but we should still add doc comments
+ * @internal
+ */
 export type AudioPublisherInit = {
   call?: Call;
   initialAudioMuted?: boolean;
   audioDeviceId?: string;
 };
 
+/**
+ *
+ * @param param0
+ * @returns
+ *
+ * @category Device Management
+ */
 export const useAudioPublisher = ({
   call,
   initialAudioMuted,
   audioDeviceId,
 }: AudioPublisherInit) => {
-  const { localParticipant$ } = useStore();
+  // FIXME OL: cleanup
+  // const { localParticipant$ } = useStore();
+  const callState = call?.state;
+  const { localParticipant$ } = callState || {};
   // helper reference to determine initial publishing of the media stream
   const initialPublishExecuted = useRef<boolean>(false);
-  const participant = useLocalParticipant();
+  const participant = localParticipant$
+    ? callState?.getCurrentValue(localParticipant$)
+    : undefined;
 
   const isPublishingAudio = participant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
@@ -73,6 +89,7 @@ export const useAudioPublisher = ({
   }, [call, audioDeviceId]);
 
   useEffect(() => {
+    if (!localParticipant$) return;
     const subscription = watchForDisconnectedAudioDevice(
       localParticipant$.pipe(map((p) => p?.audioDeviceId)),
     ).subscribe(async () => {
@@ -84,6 +101,44 @@ export const useAudioPublisher = ({
       subscription.unsubscribe();
     };
   }, [localParticipant$, call]);
+
+  useEffect(() => {
+    if (!participant?.audioStream || !call || !isPublishingAudio) return;
+
+    const [track] = participant.audioStream.getAudioTracks();
+    const selectedAudioDeviceId = track.getSettings().deviceId;
+
+    const republishDefaultDevice = watchForAddedDefaultAudioDevice().subscribe(
+      async () => {
+        if (
+          !(
+            call &&
+            participant?.audioStream &&
+            selectedAudioDeviceId === 'default'
+          )
+        )
+          return;
+        // We need to stop the original track first in order
+        // we can retrieve the new default device stream
+        track.stop();
+        const audioStream = await getAudioStream('default');
+        await call.publishAudioStream(audioStream);
+      },
+    );
+
+    const handleTrackEnded = async () => {
+      if (selectedAudioDeviceId === audioDeviceId) {
+        const audioStream = await getAudioStream(audioDeviceId);
+        await call.publishAudioStream(audioStream);
+      }
+    };
+
+    track.addEventListener('ended', handleTrackEnded);
+    return () => {
+      track.removeEventListener('ended', handleTrackEnded);
+      republishDefaultDevice.unsubscribe();
+    };
+  }, [audioDeviceId, call, participant?.audioStream, isPublishingAudio]);
 
   return publishAudioStream;
 };

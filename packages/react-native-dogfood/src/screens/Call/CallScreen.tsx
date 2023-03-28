@@ -40,8 +40,17 @@ export const CallScreen = ({ navigation }: Props) => {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
   return (
-    <ActiveCall
-      onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
-    />
+    <SafeAreaView style={styles.wrapper}>
+      <ActiveCall
+        onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
+      />
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: theme.light.static_grey,
+  },
+});

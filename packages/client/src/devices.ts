@@ -8,8 +8,10 @@ import {
   map,
   merge,
   Observable,
+  pairwise,
   shareReplay,
 } from 'rxjs';
+import { isChrome } from './helpers/browsers';
 
 const getDevices = (constraints?: MediaStreamConstraints) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
@@ -45,9 +47,35 @@ export const checkIfAudioOutputChangeSupported = () => {
   return isFeatureSupported;
 };
 
-const audioDeviceConstraints: MediaStreamConstraints = {
-  audio: { noiseSuppression: true },
-};
+/**
+ * The default constraints used to request audio devices.
+ */
+const audioDeviceConstraints = ((): MediaStreamConstraints => {
+  if (isChrome()) {
+    return {
+      audio: {
+        // @ts-expect-error Non-standard shape for Google Chrome
+        optional: [
+          { autoGainControl: true },
+          { noiseSuppression: true },
+          { echoCancellation: true },
+        ],
+      },
+    };
+  }
+  // other browsers
+  return {
+    audio: {
+      autoGainControl: true,
+      noiseSuppression: true,
+      echoCancellation: true,
+    },
+  };
+})();
+
+/**
+ * The default constraints used to request video devices.
+ */
 const videoDeviceConstraints: MediaStreamConstraints = {
   video: { width: 960, height: 540 },
 };
@@ -140,10 +168,20 @@ const getStream = async (
   // merge the default constraints with the deviceId
   const constraints: MediaStreamConstraints = {
     [type]: {
-      ...(defaultConstraints[type] as {}),
-      deviceId,
+      ...(defaultConstraints[type] as MediaTrackConstraints),
+      // deviceId,
     },
   };
+
+  if (isChrome() && type === 'audio') {
+    // @ts-expect-error
+    constraints['audio']!.mandatory = {
+      sourceId: deviceId,
+    };
+  } else {
+    // @ts-expect-error
+    constraints[type]!.deviceId = deviceId;
+  }
 
   try {
     return await navigator.mediaDevices.getUserMedia(constraints);
@@ -264,6 +302,61 @@ export const watchForDisconnectedAudioOutputDevice = (
 ) => {
   return watchForDisconnectedDevice('audiooutput', deviceId$);
 };
+
+const watchForAddedDefaultDevice = (kind: MediaDeviceKind) => {
+  let devices$;
+  switch (kind) {
+    case 'audioinput':
+      devices$ = getAudioDevices();
+      break;
+    case 'videoinput':
+      devices$ = getVideoDevices();
+      break;
+    case 'audiooutput':
+      devices$ = getAudioOutputDevices();
+      break;
+    default:
+      throw new Error('Unknown MediaDeviceKind', kind);
+  }
+
+  return devices$.pipe(
+    pairwise(),
+    filter(([prev, current]) => {
+      const prevDefault = prev.find((device) => device.deviceId === 'default');
+      const currentDefault = current.find(
+        (device) => device.deviceId === 'default',
+      );
+      return !!(
+        current.length > prev.length &&
+        prevDefault &&
+        currentDefault &&
+        prevDefault.groupId !== currentDefault.groupId
+      );
+    }),
+    map(() => true),
+  );
+};
+
+/**
+ * Notifies the subscriber about newly added default audio input device.
+ * @returns Observable<boolean>
+ */
+export const watchForAddedDefaultAudioDevice = () =>
+  watchForAddedDefaultDevice('audioinput');
+
+/**
+ * Notifies the subscriber about newly added default audio output device.
+ * @returns Observable<boolean>
+ */
+export const watchForAddedDefaultAudioOutputDevice = () =>
+  watchForAddedDefaultDevice('audiooutput');
+
+/**
+ * Notifies the subscriber about newly added default video input device.
+ * @returns Observable<boolean>
+ */
+export const watchForAddedDefaultVideoDevice = () =>
+  watchForAddedDefaultDevice('videoinput');
 
 /**
  * Deactivates MediaStream (stops and removes tracks) to be later garbage collected

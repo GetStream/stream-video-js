@@ -17,6 +17,7 @@ import { PublishOptions } from './types';
 export type PublisherOpts = {
   rpcClient: StreamSfuClient;
   connectionConfig?: RTCConfiguration;
+  isDtxEnabled: boolean;
 };
 
 /**
@@ -44,8 +45,9 @@ export class Publisher {
     [TrackType.SCREEN_SHARE_AUDIO]: undefined,
     [TrackType.UNSPECIFIED]: undefined,
   };
+  private isDtxEnabled: boolean;
 
-  constructor({ connectionConfig, rpcClient }: PublisherOpts) {
+  constructor({ connectionConfig, rpcClient, isDtxEnabled }: PublisherOpts) {
     const pc = new RTCPeerConnection(connectionConfig);
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
@@ -62,6 +64,7 @@ export class Publisher {
 
     this.publisher = pc;
     this.rpcClient = rpcClient;
+    this.isDtxEnabled = isDtxEnabled;
   }
 
   /**
@@ -112,6 +115,21 @@ export class Publisher {
           opts.preferredCodec || 'vp8',
         );
 
+        if ('setCodecPreferences' in transceiver && codecPreferences) {
+          console.log(`set codec preferences`, codecPreferences);
+          // @ts-ignore
+          transceiver.setCodecPreferences(codecPreferences);
+        }
+      }
+
+      if (trackType === TrackType.AUDIO) {
+        let returnOnlyMatched = opts.preferredCodec === 'opus';
+        const codecPreferences = getPreferredCodecs(
+          'audio',
+          opts.preferredCodec!,
+          returnOnlyMatched,
+        );
+        console.log('Preferred codec', opts.preferredCodec);
         if ('setCodecPreferences' in transceiver && codecPreferences) {
           console.log(`set codec preferences`, codecPreferences);
           // @ts-ignore
@@ -210,6 +228,12 @@ export class Publisher {
   private onNegotiationNeeded = async () => {
     console.log('AAA onNegotiationNeeded');
     const offer = await this.publisher.createOffer();
+    if (this.isDtxEnabled && offer.sdp) {
+      offer.sdp = offer.sdp.replace(
+        'useinbandfec=1',
+        'useinbandfec=1;usedtx=1',
+      );
+    }
     await this.publisher.setLocalDescription(offer);
 
     const trackInfos = this.publisher

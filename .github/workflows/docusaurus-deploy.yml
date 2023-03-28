@@ -8,6 +8,8 @@ on:
     branches:
       - main
       - docs
+      - architecture-introduction
+
     paths:
       - 'packages/react-bindings/**'
       - 'packages/client/**'
@@ -26,6 +28,7 @@ on:
 jobs:
   push_docusaurus:
     name: Build and deploy the documentation
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -41,8 +44,6 @@ jobs:
           cache: 'yarn'
       - name: Install Dependencies
         run: yarn install --immutable
-      - name: Build packages
-        run: yarn build:all
 
       - name: Generate React Native SDK documentation
         run: yarn generate-docs:react-native:sdk;

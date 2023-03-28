@@ -22,7 +22,7 @@ export const watchCallPermissionRequest = (
       return;
     }
 
-    if (activeCall.data.call.cid !== event.call_cid) {
+    if (activeCall.cid !== event.call_cid) {
       console.warn(
         `Ignoring "call.permission_request" as it doesn't belong to the active call`,
         event,
@@ -30,7 +30,8 @@ export const watchCallPermissionRequest = (
       return;
     }
 
-    const localParticipant = store.getCurrentValue(store.localParticipant$);
+    const state = activeCall.state;
+    const localParticipant = state.getCurrentValue(state.localParticipant$);
     if (
       !localParticipant?.ownCapabilities.includes('update-call-permissions')
     ) {
@@ -40,9 +41,7 @@ export const watchCallPermissionRequest = (
       return;
     }
 
-    console.warn(event);
-
-    store.callPermissionRequestSubject.next(event);
+    state.setCurrentValue(state.callPermissionRequestSubject, event);
   };
 };
 
@@ -54,28 +53,27 @@ export const watchCallPermissionsUpdated = (
   store: StreamVideoWriteableStateStore,
 ) => {
   return function onCallPermissionsUpdated(event: UpdatedCallPermissionsEvent) {
-    console.warn(event);
     const activeCall = store.getCurrentValue(store.activeCallSubject);
-
     if (!activeCall) {
       console.warn(
-        `Ignoring "call.permission_request" as there is no active call`,
+        `Ignoring "call.permissions_updated" as there is no active call`,
         event,
       );
       return;
     }
 
-    if (activeCall.data.call.cid !== event.call_cid) {
+    if (activeCall.cid !== event.call_cid) {
       console.warn(
-        `Ignoring "call.permission_request" as it doesn't belong to the active call`,
+        `Ignoring "call.permissions_updated" as it doesn't belong to the active call`,
         event,
       );
       return;
     }
 
-    const localParticipant = store.getCurrentValue(store.localParticipant$);
+    const state = activeCall.state;
+    const localParticipant = state.getCurrentValue(state.localParticipant$);
     if (event.user.id === localParticipant?.userId) {
-      store.updateParticipant(localParticipant.sessionId, {
+      state.updateParticipant(localParticipant.sessionId, {
         ownCapabilities: event.own_capabilities,
       });
     }

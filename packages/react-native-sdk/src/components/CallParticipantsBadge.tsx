@@ -1,7 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Participants } from '../icons';
 import { useParticipants } from '@stream-io/video-react-bindings';
-
+import { theme } from '../theme';
 interface CallParticipantsBadgeProps {
   /**
    * Handler called when the participants info button is pressed in the active call screen.
@@ -22,8 +22,8 @@ export const CallParticipantsBadge = ({
       <View style={styles.badge}>
         <Text style={styles.badgeText}>{participants.length}</Text>
       </View>
-      <View style={styles.icon}>
-        <Participants color="#fff" />
+      <View style={[styles.svgContainerStyle, theme.icon.md]}>
+        <Participants color={theme.light.static_white} />
       </View>
     </Pressable>
   );
@@ -32,24 +32,23 @@ export const CallParticipantsBadge = ({
 const styles = StyleSheet.create({
   participantIcon: {
     position: 'absolute',
-    right: 20,
-    top: 40,
+    right: 2 * theme.spacing.lg,
+    top: Platform.OS === 'ios' ? 3 * theme.spacing.lg : theme.spacing.lg,
     zIndex: 2,
   },
-  icon: { height: 24, width: 27 },
+  svgContainerStyle: {},
   badge: {
-    backgroundColor: '#72767E',
-    borderRadius: 30,
-    padding: 4,
+    backgroundColor: theme.light.text_low_emphasis,
+    borderRadius: theme.rounded.xl,
+    padding: theme.padding.xs,
     position: 'relative',
-    left: 10,
-    top: 5,
+    left: theme.spacing.lg,
+    top: theme.spacing.lg,
     zIndex: 4,
   },
   badgeText: {
-    color: '#fff',
+    color: theme.light.static_white,
     textAlign: 'center',
-    fontSize: 10,
-    fontWeight: 'bold',
+    ...theme.fonts.caption,
   },
 });

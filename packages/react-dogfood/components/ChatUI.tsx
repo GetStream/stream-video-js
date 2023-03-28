@@ -7,6 +7,8 @@ import {
   useChatContext,
 } from 'stream-chat-react';
 
+import { TextButton } from '@stream-io/video-react-sdk';
+
 import { CHANNEL_TYPE } from '.';
 
 export const ChatUI = ({
@@ -45,15 +47,14 @@ export const ChatUI = ({
                 ℹ️ Messages are currently <strong>visible</strong> to anyone
                 with the link and valid session.
               </span>
-              <button
+              <TextButton
                 onClick={() => {
                   sessionStorage.setItem('noted', 'true');
                   setNoted(true);
                 }}
-                className="str-chat__custom-channel-header__warning-button"
               >
                 Noted
-              </button>
+              </TextButton>
             </div>
           )}
         </div>

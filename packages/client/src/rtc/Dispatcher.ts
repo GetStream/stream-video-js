@@ -1,5 +1,13 @@
 import type { SfuEvent } from '../gen/video/sfu/event/events';
 
+export type SfuEventKinds = NonNullable<SfuEvent['eventPayload']['oneofKind']>;
+
+export type SfuEventKindMap = {
+  [key in SfuEventKinds]: {
+    eventPayload: Extract<SfuEvent['eventPayload'], { oneofKind: key }>;
+  };
+};
+
 export type SfuEventListener = (event: SfuEvent) => void;
 
 export class Dispatcher {

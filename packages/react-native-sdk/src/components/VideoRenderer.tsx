@@ -75,7 +75,7 @@ export const VideoRenderer = (props: VideoRendererProps) => {
   } = props;
   return (
     <RTCView
-      streamURL={mediaStream.toURL()}
+      streamURL={mediaStream?.toURL()}
       mirror={mirror}
       style={style}
       objectFit={objectFit}

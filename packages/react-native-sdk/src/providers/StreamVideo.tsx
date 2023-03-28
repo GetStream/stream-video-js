@@ -10,6 +10,13 @@ import {
   CallCycleHandlersType,
 } from '../contexts/CallCycleContext';
 
+/**
+ *
+ * @param props
+ * @returns
+ *
+ * @category Client State
+ */
 export const StreamVideo = (
   props: PropsWithChildren<
     StreamVideoProps & { callCycleHandlers?: CallCycleHandlersType }

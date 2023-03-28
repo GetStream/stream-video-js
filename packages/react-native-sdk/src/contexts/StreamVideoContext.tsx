@@ -1,5 +1,9 @@
 import createStoreContext from './createStoreContext';
 
+/**
+ * Exclude types from documentaiton site, but we should still add doc comments
+ * @internal
+ */
 export interface SDKStreamVideoStore {
   isCameraOnFrontFacingMode: boolean;
   isVideoMuted: boolean;

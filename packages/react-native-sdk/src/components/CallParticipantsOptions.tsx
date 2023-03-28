@@ -1,13 +1,16 @@
 import { StreamVideoParticipant } from '@stream-io/video-client';
-import { Cross, Pin, SpotLight } from '../icons';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Cross } from '../icons';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { generateParticipantTitle } from '../utils';
 import { useCallback } from 'react';
+import { Avatar } from './Avatar';
+import { theme } from '../theme';
+type CallParticipantType = {
+  title: string;
+  icon: JSX.Element;
+};
 
-const options = [
-  { title: 'Spotlight Video', icon: <SpotLight color="#72767E" /> },
-  { title: 'Pin', icon: <Pin color="#72767E" /> },
-];
+const options: CallParticipantType[] = [];
 
 type CallParticipantOptionsType = {
   participant: StreamVideoParticipant;
@@ -23,100 +26,94 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
     setSelectedParticipant(undefined);
   }, [setSelectedParticipant]);
 
-  return (
-    <View style={styles.menu}>
-      <View style={styles.participantInfo}>
-        <View style={styles.userInfo}>
-          <Image
-            style={[styles.avatar]}
-            // FIXME: use real avatar from coordinator this is temporary
-            source={{
-              uri: `https://getstream.io/random_png/?id=${participant.userId}&name=${participant.userId}`,
-            }}
-          />
-          <Text style={styles.name}>
-            {generateParticipantTitle(participant.userId) +
-              (participant.isLoggedInUser ? ' (You)' : '')}
-          </Text>
-        </View>
+  const showYouLabel = participant.isLoggedInUser;
 
-        <Pressable style={styles.icon} onPress={onCloseParticipantOptions}>
-          <Cross color="#000000" />
-        </Pressable>
-      </View>
-      <View style={styles.options}>
-        {options.map((option, index) => {
-          return (
-            <Pressable
-              style={[
-                index < options.length - 1 ? styles.borderBottom : null,
-                styles.option,
-              ]}
-              key={option.title}
-            >
-              <View style={styles.icon}>{option.icon}</View>
-              <Text style={styles.title}>{option.title}</Text>
-            </Pressable>
-          );
-        })}
+  return (
+    <View style={styles.container}>
+      <View style={styles.menu}>
+        <View style={styles.participantInfo}>
+          <View style={styles.userInfo}>
+            <Avatar radius={theme.avatar.xs} participant={participant} />
+
+            <Text style={styles.name}>
+              {generateParticipantTitle(participant.userId) +
+                (showYouLabel ? ' (You)' : '')}
+            </Text>
+          </View>
+
+          <Pressable
+            style={[styles.svgContainerStyle, theme.icon.sm]}
+            onPress={onCloseParticipantOptions}
+          >
+            <Cross color={theme.light.primary} />
+          </Pressable>
+        </View>
+        <View style={styles.options}>
+          {options.map((option, index) => {
+            const applyBottomPadding =
+              index < options.length - 1 ? styles.borderBottom : null;
+            return (
+              <Pressable
+                style={[applyBottomPadding, styles.option]}
+                key={option.title}
+              >
+                <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+                  {option.icon}
+                </View>
+                <Text style={styles.title}>{option.title}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  name: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginLeft: 10,
-  },
-  avatar: {
-    height: 50,
-    width: 50,
-    borderRadius: 50,
-  },
-  icon: {
-    height: 20,
-    width: 20,
-    marginLeft: 5,
+  container: {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    paddingHorizontal: theme.padding.xl,
   },
   menu: {
-    backgroundColor: 'white',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    marginTop: 'auto',
-    marginBottom: 'auto',
-    width: '80%',
-    borderRadius: 15,
+    backgroundColor: theme.light.bars,
+    borderRadius: theme.rounded.md,
   },
   participantInfo: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 15,
+    padding: theme.padding.md,
   },
   userInfo: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
   },
+  name: {
+    marginLeft: theme.margin.sm,
+    ...theme.fonts.subtitleBold,
+  },
+  svgContainerStyle: {},
   options: {},
   option: {
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingHorizontal: theme.padding.md,
+    paddingVertical: theme.padding.sm,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
   },
   title: {
-    fontSize: 18,
-    marginLeft: 20,
-    color: '#000000',
-    fontWeight: '400',
+    marginLeft: theme.margin.md,
+    color: theme.light.text_high_emphasis,
+    ...theme.fonts.subtitle,
   },
   borderBottom: {
-    borderBottomColor: '#DBDDE1',
+    borderBottomColor: theme.light.borders,
     borderBottomWidth: 1,
   },
 });

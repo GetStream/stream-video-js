@@ -1,8 +1,9 @@
 import React, {useCallback} from 'react';
 import {ActiveCall, useActiveCall} from '@stream-io/video-react-native-sdk';
-import {ActivityIndicator, StyleSheet} from 'react-native';
+import {ActivityIndicator, SafeAreaView, StyleSheet} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {NavigationStackParamsList} from '../types';
+import {theme} from '@stream-io/video-react-native-sdk/src/theme';
 
 type Props = NativeStackScreenProps<
   NavigationStackParamsList,
@@ -20,8 +21,17 @@ export function ActiveCallScreen({navigation}: Props) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
   return (
-    <ActiveCall
-      onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
-    />
+    <SafeAreaView style={styles.wrapper}>
+      <ActiveCall
+        onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
+      />
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: theme.light.static_grey,
+  },
+});

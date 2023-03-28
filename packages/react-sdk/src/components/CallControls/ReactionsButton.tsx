@@ -11,6 +11,7 @@ export const ReactionsButton = () => {
     <CompositeButton
       active={false}
       caption="Reactions"
+      menuPlacement="top-start"
       Menu={DefaultReactionsMenu}
     >
       <IconButton
@@ -30,8 +31,8 @@ export const DefaultReactionsMenu = () => {
 
   const handleReaction = (reaction: StreamReaction) => {
     const call = client?.coordinatorClient.call(
-      activeCall!.data.call.type,
-      activeCall!.data.call.id,
+      activeCall!.type,
+      activeCall!.id,
     );
 
     call?.sendReaction(reaction);

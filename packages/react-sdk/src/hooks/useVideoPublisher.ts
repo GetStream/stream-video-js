@@ -3,28 +3,45 @@ import {
   disposeOfMediaStream,
   getVideoStream,
   SfuModels,
+  watchForAddedDefaultVideoDevice,
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
-import { useLocalParticipant, useStore } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect, useRef } from 'react';
 import { map } from 'rxjs';
 import { useDebugPreferredVideoCodec } from '../components/Debug/useIsDebugMode';
 
+/**
+ * Exclude types from documentaiton site, but we should still add doc comments
+ * @internal
+ *
+ * */
 export type VideoPublisherInit = {
   call?: Call;
   initialVideoMuted?: boolean;
   videoDeviceId?: string;
 };
 
+/**
+ *
+ * @param param0
+ * @returns
+ *
+ * @category Device Management
+ */
 export const useVideoPublisher = ({
   call,
   initialVideoMuted,
   videoDeviceId,
 }: VideoPublisherInit) => {
-  const { localParticipant$ } = useStore();
+  // FIXME OL: cleanup
+  // const { localParticipant$ } = useStore();
+  const callState = call?.state;
+  const { localParticipant$ } = callState || {};
   // helper reference to determine initial publishing of the media stream
   const initialPublishExecuted = useRef<boolean>(false);
-  const participant = useLocalParticipant();
+  const participant = localParticipant$
+    ? callState?.getCurrentValue(localParticipant$)
+    : undefined;
   const preferredCodec = useDebugPreferredVideoCodec();
   const isPublishingVideo = participant?.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
@@ -74,6 +91,7 @@ export const useVideoPublisher = ({
   }, [videoDeviceId, call, preferredCodec]);
 
   useEffect(() => {
+    if (!localParticipant$) return;
     const subscription = watchForDisconnectedVideoDevice(
       localParticipant$.pipe(map((p) => p?.videoDeviceId)),
     ).subscribe(async () => {
@@ -85,6 +103,44 @@ export const useVideoPublisher = ({
       subscription.unsubscribe();
     };
   }, [localParticipant$, call]);
+
+  useEffect(() => {
+    if (!participant?.videoStream || !call || !isPublishingVideo) return;
+
+    const [track] = participant.videoStream?.getVideoTracks();
+    const selectedVideoDeviceId = track.getSettings().deviceId;
+
+    const republishDefaultDevice = watchForAddedDefaultVideoDevice().subscribe(
+      async () => {
+        if (
+          !(
+            call &&
+            participant?.videoStream &&
+            selectedVideoDeviceId === 'default'
+          )
+        )
+          return;
+        // We need to stop the original track first in order
+        // we can retrieve the new default device stream
+        track.stop();
+        const videoStream = await getVideoStream('default');
+        await call.publishVideoStream(videoStream);
+      },
+    );
+
+    const handleTrackEnded = async () => {
+      if (selectedVideoDeviceId === videoDeviceId) {
+        const videoStream = await getVideoStream(videoDeviceId);
+        await call.publishVideoStream(videoStream);
+      }
+    };
+
+    track.addEventListener('ended', handleTrackEnded);
+    return () => {
+      track.removeEventListener('ended', handleTrackEnded);
+      republishDefaultDevice.unsubscribe();
+    };
+  }, [videoDeviceId, call, participant?.videoStream, isPublishingVideo]);
 
   return publishVideoStream;
 };

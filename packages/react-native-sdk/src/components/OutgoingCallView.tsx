@@ -1,19 +1,20 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { SfuModels } from '@stream-io/video-client';
-
-import { RTCView } from 'react-native-webrtc';
 import { UserInfoView } from './UserInfoView';
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
-import { useCallControls } from '../hooks/useCallControls';
 import { useRingCall } from '../hooks/useRingCall';
-import { useCallCycleContext } from '../contexts';
+import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
+import { VideoRenderer } from './VideoRenderer';
+import { useMutingState } from '../hooks/useMutingState';
+import { useLocalVideoStream } from '../hooks/useLocalVideoStream';
+import { useCallCycleContext } from '../contexts/CallCycleContext';
+import { theme } from '../theme';
 
 export const OutgoingCallView = () => {
-  const { isAudioMuted, isVideoMuted, toggleAudioMuted, toggleVideoMuted } =
-    useCallControls();
+  const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
+    useMutingState();
+
   const { cancelCall } = useRingCall();
   const { callCycleHandlers } = useCallCycleContext();
   const { onHangupCall } = callCycleHandlers;
@@ -24,42 +25,52 @@ export const OutgoingCallView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cancelCall]);
 
+  const muteStatusColor = (status: boolean) => {
+    return status ? theme.light.overlay_dark : theme.light.static_white;
+  };
+
   return (
     <>
       <View style={[StyleSheet.absoluteFill, styles.container]}>
-        <UserInfoView />
-        <Text style={styles.callingText}>Calling...</Text>
-        <View style={styles.buttons}>
+        <View style={styles.content}>
+          <UserInfoView />
+          <Text style={styles.callingText}>Calling...</Text>
+        </View>
+        <View style={styles.buttonGroup}>
           <View style={styles.deviceControlButtons}>
             <CallControlsButton
-              onPress={toggleAudioMuted}
-              colorKey={!isAudioMuted ? 'activated' : 'deactivated'}
-              style={styles.buttonStyle}
-              svgContainerStyle={styles.svgStyle}
+              onPress={toggleAudioState}
+              color={muteStatusColor(isAudioMuted)}
+              style={[styles.button, theme.button.lg]}
+              svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
             >
-              {isAudioMuted ? <MicOff color="#fff" /> : <Mic color="#000" />}
+              {isAudioMuted ? (
+                <MicOff color={theme.light.static_white} />
+              ) : (
+                <Mic color={theme.light.static_black} />
+              )}
             </CallControlsButton>
             <CallControlsButton
-              onPress={toggleVideoMuted}
-              colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
-              style={styles.buttonStyle}
-              svgContainerStyle={styles.svgStyle}
+              onPress={toggleVideoState}
+              color={muteStatusColor(isVideoMuted)}
+              style={[styles.button, theme.button.lg]}
+              svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
             >
               {isVideoMuted ? (
-                <VideoSlash color="#fff" />
+                <VideoSlash color={theme.light.static_white} />
               ) : (
-                <Video color="#000" />
+                <Video color={theme.light.static_black} />
               )}
             </CallControlsButton>
           </View>
 
           <CallControlsButton
             onPress={hangupCallHandler}
-            colorKey={'cancel'}
-            style={[styles.buttonStyle, styles.hangupButton]}
-            svgContainerStyle={styles.svgStyle}
+            color={theme.light.error}
+            style={[styles.button, styles.hangupButton, theme.button.lg]}
+            svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
           >
-            <PhoneDown color="#fff" />
+            <PhoneDown color={theme.light.static_white} />
           </CallControlsButton>
         </View>
       </View>
@@ -69,62 +80,50 @@ export const OutgoingCallView = () => {
 };
 
 const Background = () => {
-  const localParticipant = useLocalParticipant();
-  const localVideoStream = localParticipant?.videoStream;
-  const isVideoMuted = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.VIDEO,
-  );
+  const localVideoStream = useLocalVideoStream();
+  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
 
-  if (isVideoMuted)
+  if (isVideoMuted || !localVideoStream)
     return <View style={[StyleSheet.absoluteFill, styles.background]} />;
   return (
-    <RTCView
-      streamURL={localVideoStream?.toURL()}
-      objectFit="cover"
+    <VideoRenderer
+      mediaStream={localVideoStream}
       zOrder={1}
       style={styles.stream}
-      mirror={true}
+      mirror
     />
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    zIndex: 2,
+    zIndex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    paddingVertical: 2 * theme.margin.xl,
   },
   background: {
-    backgroundColor: '#272A30',
+    backgroundColor: theme.light.static_grey,
   },
+  content: {},
   callingText: {
-    fontSize: 20,
-    marginTop: 16,
+    marginTop: theme.margin.md,
     textAlign: 'center',
-    color: '#FFFFFF',
-    fontWeight: '600',
-    opacity: 0.6,
+    color: theme.light.static_white,
+    ...theme.fonts.heading6,
   },
-  buttons: {
-    position: 'absolute',
-    bottom: 90,
-    width: '100%',
-  },
+  buttonGroup: {},
   deviceControlButtons: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 20,
+    marginBottom: theme.margin.md,
   },
   hangupButton: {
     alignSelf: 'center',
   },
-  buttonStyle: {
-    height: 70,
-    width: 70,
-    borderRadius: 70,
-  },
-  svgStyle: {
-    height: 30,
-    width: 30,
-  },
+  button: {},
+  svgContainerStyle: {},
   stream: {
     flex: 1,
   },

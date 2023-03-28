@@ -14,6 +14,10 @@ import {
 import InCallManager from 'react-native-incall-manager';
 import { useCallCycleEffect } from '../hooks';
 
+/**
+ * Exclude types from documentaiton site, but we should still add doc comments
+ * @internal
+ */
 export type CallCycleHandlersType = {
   onActiveCall?: () => void;
   onIncomingCall?: () => void;
@@ -28,17 +32,37 @@ export type CallCycleHandlersType = {
   onRejectCall?: () => void;
 };
 
+/**
+ * Exclude types from documentaiton site, but we should still add doc comments
+ * @internal
+ */
 export type CallCycleProviderProps = {
   callCycleHandlers: CallCycleHandlersType;
 };
 
+/**
+ * @internal
+ */
 export const CallCycleContext = createContext<CallCycleProviderProps>({
   callCycleHandlers: {},
 });
 
+/**
+ *
+ * @returns
+ *
+ * @category Client State
+ */
 export const useCallCycleContext = () =>
   useContext<CallCycleProviderProps>(CallCycleContext);
 
+/**
+ *
+ * @param props
+ * @returns
+ *
+ * @category Client State
+ */
 export const CallCycleProvider = (
   props: PropsWithChildren<CallCycleProviderProps>,
 ) => {
@@ -57,10 +81,10 @@ export const CallCycleProvider = (
         return;
       }
       try {
-        if (outgoingCall?.call && client.callConfig.joinCallInstantly) {
-          client.joinCall(outgoingCall.call.id!, outgoingCall.call.type!);
+        if (outgoingCall && client.callConfig.joinCallInstantly) {
+          client.joinCall(outgoingCall.id, outgoingCall.type);
         } else if (acceptedCall && !client.callConfig.joinCallInstantly) {
-          client.joinCall(outgoingCall.call.id!, outgoingCall.call.type!);
+          client.joinCall(outgoingCall.id, outgoingCall.type);
         }
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);

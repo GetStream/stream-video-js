@@ -70,7 +70,7 @@ const Meeting = () => {
       />
       <MeetingStack.Screen
         name="CallParticipantsInfoScreen"
-        component={CallParticipansInfoScreen}
+        component={CallParticipantsInfoScreen}
       />
     </MeetingStack.Navigator>
   );
@@ -101,7 +101,7 @@ const Ringing = () => {
       />
       <MeetingStack.Screen
         name="CallParticipantsInfoScreen"
-        component={CallParticipansInfoScreen}
+        component={CallParticipantsInfoScreen}
       />
     </RingingStack.Navigator>
   );

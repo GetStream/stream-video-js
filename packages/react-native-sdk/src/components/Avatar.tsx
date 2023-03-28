@@ -1,6 +1,8 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 import React, { useMemo } from 'react';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
+import { getInitialsOfName } from '../utils';
+import { theme } from '../theme';
 
 /**
  * Props to be passed for the Avatar component.
@@ -18,7 +20,7 @@ export interface AvatarProps {
   radius?: number;
 }
 
-const DEFAULT_AVATAR_RADIUS = 100;
+const DEFAULT_AVATAR_RADIUS = theme.avatar.sm;
 
 /**
  * Shows either user's image or initials based on the user state and existence of
@@ -33,7 +35,10 @@ export const Avatar = (props: AvatarProps) => {
     participant: { userId, image, name },
     radius = DEFAULT_AVATAR_RADIUS,
   } = props;
-  const label = useMemo(() => name || userId || '?', [name, userId]);
+  const label = useMemo(
+    () => getInitialsOfName(name || userId) || '?',
+    [name, userId],
+  );
   const imageUrl = image;
   return (
     <View
@@ -53,7 +58,7 @@ export const Avatar = (props: AvatarProps) => {
         />
       ) : (
         <Text
-          style={{ ...styles.text, fontSize: radius / 4 }}
+          style={{ ...styles.text, fontSize: radius / 2 }}
           numberOfLines={1}
         >
           {label}
@@ -65,7 +70,7 @@ export const Avatar = (props: AvatarProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#005fff',
+    backgroundColor: theme.light.primary,
     justifyContent: 'center',
     alignSelf: 'center',
     overflow: 'hidden',
@@ -74,8 +79,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   text: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: theme.light.bars,
     textAlign: 'center',
+    ...theme.fonts.heading4,
   },
 });

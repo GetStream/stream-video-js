@@ -5,3 +5,4 @@ export * from './participant';
 export * from './reactions';
 export * from './recording';
 export * from './speaker';
+export * from './moderation';

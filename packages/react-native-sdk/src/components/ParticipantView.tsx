@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import {
@@ -10,18 +10,13 @@ import { useActiveCall } from '@stream-io/video-react-bindings';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
 import { useStreamVideoStoreValue } from '../contexts';
-import { Mic, MicOff, Video, VideoSlash } from '../icons';
-
-type SizeType = 'small' | 'medium' | 'large' | 'xl';
-
+import { MicOff, ScreenShare, VideoSlash } from '../icons';
+import { theme } from '../theme';
+import { palette } from '../theme/constants';
 /**
  * Props to be passed for the ParticipantView component.
  */
 interface ParticipantViewProps {
-  /**
-   * The size of the participant that correlates to a specific layout
-   */
-  size: SizeType;
   /**
    * The participant that will be displayed
    */
@@ -33,7 +28,11 @@ interface ParticipantViewProps {
   /**
    * Any custom style to be merged with the participant view
    */
-  style?: StyleProp<ViewStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Any custom style to be merged with the VideoRenderer
+   */
+  videoRendererStyle?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -46,29 +45,69 @@ interface ParticipantViewProps {
  * |![participant-view-1](https://user-images.githubusercontent.com/25864161/217489213-d4532ca1-49ee-4ef5-940c-af2e55bc0a5f.png)|![participant-view-2](https://user-images.githubusercontent.com/25864161/217489207-fb20c124-8bce-4c2b-87f9-4fe67bc50438.png)|
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
-  const { size, participant, kind } = props;
+  const { participant, kind } = props;
   const call = useActiveCall();
-
+  const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
+  const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
+  const { isSpeaking, isLoggedInUser, publishedTracks } = participant;
+  const isPublishingVideoTrack = publishedTracks.includes(
+    kind === 'video'
+      ? SfuModels.TrackType.VIDEO
+      : SfuModels.TrackType.SCREEN_SHARE,
+  );
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
 
+  useEffect(() => {
+    if (pendingVideoLayoutRef.current && call && isPublishingVideoTrack) {
+      call.updateSubscriptionsPartial(kind, {
+        [participant.sessionId]: {
+          dimension: pendingVideoLayoutRef.current,
+        },
+      });
+
+      subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
+      pendingVideoLayoutRef.current = undefined;
+    }
+  }, [call, isPublishingVideoTrack, kind, participant.sessionId]);
+
+  useEffect(() => {
+    return () => {
+      subscribedVideoLayoutRef.current = undefined;
+      pendingVideoLayoutRef.current = undefined;
+    };
+  }, [kind, participant.sessionId]);
+
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
-    if (!call) {
+    const dimension = {
+      width: Math.trunc(event.nativeEvent.layout.width),
+      height: Math.trunc(event.nativeEvent.layout.height),
+    };
+
+    // NOTE: If the participant hasn't published a video track yet,
+    // we store the dimensions and handle it when the track is published
+    if (!call || !isPublishingVideoTrack) {
+      pendingVideoLayoutRef.current = dimension;
       return;
     }
-    const { height, width } = event.nativeEvent.layout;
+
+    // NOTE: We don't want to update the subscription if the dimension hasn't changed
+    if (
+      subscribedVideoLayoutRef.current?.width === dimension.width &&
+      subscribedVideoLayoutRef.current?.height === dimension.height
+    ) {
+      return;
+    }
+
     call.updateSubscriptionsPartial(kind, {
       [participant.sessionId]: {
-        dimension: {
-          width: Math.trunc(width),
-          height: Math.trunc(height),
-        },
+        dimension,
       },
     });
+    subscribedVideoLayoutRef.current = dimension;
+    pendingVideoLayoutRef.current = undefined;
   };
-
-  const { isSpeaking, isLoggedInUser, publishedTracks } = participant;
 
   // NOTE: We have to cast to MediaStream type from webrtc
   // as JS client sends the web navigators' mediastream type instead
@@ -81,32 +120,37 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
   const isScreenSharing = kind === 'screen';
   const mirror = isLoggedInUser && isCameraOnFrontFacingMode;
-  const MicIcon = isAudioMuted ? MicOff : Mic;
-  const VideoIcon = isVideoMuted ? VideoSlash : Video;
-  const isAudioAvailable = useMemo(
-    () => kind === 'video' && !!audioStream && !isAudioMuted,
-    [kind, audioStream, isAudioMuted],
-  );
-  const isVideoAvailable = useMemo(
-    () => !!videoStream && !isVideoMuted,
-    [videoStream, isVideoMuted],
-  );
+  const isAudioAvailable = kind === 'video' && !!audioStream && !isAudioMuted;
+  const isVideoAvailable = !!videoStream && !isVideoMuted;
+  const applySpeakerStyle = isSpeaking && !isScreenSharing;
+  const speakerStyle = applySpeakerStyle && styles.isSpeaking;
+  const videoOnlyStyle = !isScreenSharing && {
+    borderColor: palette.grey800,
+    borderWidth: 2,
+  };
+
+  const participantLabel =
+    participant.userId.length > 15
+      ? `${participant.userId.slice(0, 15)}...`
+      : participant.userId;
+
   return (
     <View
       style={[
         styles.containerBase,
-        styles[`${size}Container`],
-        isSpeaking && !isScreenSharing ? styles.dominantSpeaker : {},
-        props.style,
+        videoOnlyStyle,
+        props.containerStyle,
+        speakerStyle,
       ]}
       onLayout={onLayout}
     >
       {isVideoAvailable ? (
         <VideoRenderer
+          zOrder={1}
           mirror={mirror}
           mediaStream={videoStream as MediaStream}
           objectFit={kind === 'screen' ? 'contain' : 'cover'}
-          style={styles.videoRenderer}
+          style={[styles.videoRenderer, props.videoRendererStyle]}
         />
       ) : (
         <Avatar participant={participant} />
@@ -116,19 +160,22 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       )}
       {kind === 'video' && (
         <View style={styles.status}>
-          <Text style={styles.userNameLabel}>{participant.userId}</Text>
-          <View style={styles.svgWrapper}>
-            <MicIcon color="#FFF" />
+          <Text style={styles.userNameLabel}>{participantLabel}</Text>
+          <View style={styles.svgContainerStyle}>
+            {isAudioMuted && <MicOff color={theme.light.error} />}
           </View>
-          <View style={styles.svgWrapper}>
-            <VideoIcon color="#FFF" />
+          <View style={styles.svgContainerStyle}>
+            {isVideoMuted && <VideoSlash color={theme.light.error} />}
           </View>
         </View>
       )}
       {kind === 'screen' && (
         <View style={styles.screenViewStatus}>
+          <View style={[{ marginRight: theme.margin.sm }, theme.icon.md]}>
+            <ScreenShare color={theme.light.static_white} />
+          </View>
           <Text style={styles.userNameLabel}>
-            {participant.userId} is presenting
+            {participant.userId} is sharing their screen
           </Text>
         </View>
       )}
@@ -139,58 +186,40 @@ export const ParticipantView = (props: ParticipantViewProps) => {
 const styles = StyleSheet.create({
   containerBase: {
     justifyContent: 'center',
-    flex: 1,
-    width: '100%',
   },
-  smallContainer: {
-    flexBasis: '33.33%',
-    width: '50%',
-  },
-  mediumContainer: {
-    flexBasis: '50%',
-    width: '50%',
-  },
-  largeContainer: {},
-  xlContainer: {},
   videoRenderer: {
     flex: 1,
     justifyContent: 'center',
-  },
-  screenVideoRenderer: {
-    flex: 1,
-    justifyContent: 'center',
-    borderRadius: 16,
-    marginLeft: 8,
   },
   status: {
     flexDirection: 'row',
     alignItems: 'center',
     position: 'absolute',
-    left: 6,
-    bottom: 6,
-    padding: 6,
-    borderRadius: 6,
-    backgroundColor: '#1C1E22',
+    left: theme.spacing.sm,
+    bottom: theme.spacing.sm,
+    padding: theme.padding.sm,
+    borderRadius: theme.rounded.xs,
+    backgroundColor: theme.light.static_overlay,
   },
   screenViewStatus: {
     position: 'absolute',
-    left: 8,
-    top: 8,
-    padding: 4,
-    borderRadius: 6,
-    backgroundColor: '#1C1E22',
+    top: theme.spacing.md,
+    padding: theme.padding.sm,
+    borderRadius: theme.rounded.xs,
+    backgroundColor: theme.light.static_overlay,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   userNameLabel: {
-    color: '#fff',
-    fontSize: 10,
+    color: theme.light.static_white,
+    ...theme.fonts.caption,
   },
-  svgWrapper: {
-    height: 16,
-    width: 16,
-    marginLeft: 6,
+  svgContainerStyle: {
+    marginLeft: theme.margin.xs,
+    ...(theme.icon.xs as object),
   },
-  dominantSpeaker: {
-    borderColor: '#005FFF',
+  isSpeaking: {
+    borderColor: theme.light.primary,
     borderWidth: 2,
   },
 });

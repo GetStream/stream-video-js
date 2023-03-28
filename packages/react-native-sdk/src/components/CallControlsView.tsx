@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useCall, useCallControls } from '../hooks';
+import { useCallControls } from '../hooks/useCallControls';
+import { useHangupCall } from '../hooks/useHangupCall';
 import {
   CameraSwitch,
   Chat,
@@ -11,7 +12,7 @@ import {
   VideoSlash,
 } from '../icons';
 import { CallControlsButton } from './CallControlsButton';
-
+import { theme } from '../theme';
 /**
  * Props to be passed for the CallControlsView component.
  */
@@ -39,7 +40,7 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
     toggleAudioMuted,
     toggleCameraFacingMode,
   } = useCallControls();
-  const { hangupCall } = useCall();
+  const { hangupCall } = useHangupCall();
 
   const handleHangUpCall = useCallback(async () => {
     await hangupCall();
@@ -47,39 +48,61 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hangupCall]);
 
+  const muteStatusColor = (status: boolean) => {
+    return status ? theme.light.overlay_dark : theme.light.static_white;
+  };
+
   return (
     <View style={styles.container}>
       <CallControlsButton
-        colorKey="activated"
+        color={theme.light.static_white}
         onPress={() => null}
-        svgContainerStyle={styles.chatSvgStyle}
+        svgContainerStyle={styles.svgContainerStyle}
+        style={styles.button}
       >
-        <Chat color="#080707" />
+        <Chat color={theme.light.static_black} />
       </CallControlsButton>
       <CallControlsButton
         onPress={toggleVideoMuted}
-        colorKey={isVideoMuted ? 'deactivated' : 'activated'}
+        color={muteStatusColor(isVideoMuted)}
+        style={!isVideoMuted ? styles.button : null}
       >
         {isVideoMuted ? (
-          <VideoSlash color="#ffffff" />
+          <VideoSlash color={theme.light.static_white} />
         ) : (
-          <Video color="#080707" />
+          <Video color={theme.light.static_black} />
         )}
       </CallControlsButton>
       <CallControlsButton
         onPress={toggleAudioMuted}
-        colorKey={isAudioMuted ? 'deactivated' : 'activated'}
+        color={muteStatusColor(isAudioMuted)}
+        style={!isAudioMuted ? styles.button : null}
       >
-        {isAudioMuted ? <MicOff color="#ffffff" /> : <Mic color="#080707" />}
+        {isAudioMuted ? (
+          <MicOff color={theme.light.static_white} />
+        ) : (
+          <Mic color={theme.light.static_black} />
+        )}
       </CallControlsButton>
       <CallControlsButton
         onPress={toggleCameraFacingMode}
-        colorKey={isCameraOnFrontFacingMode ? 'activated' : 'deactivated'}
+        color={muteStatusColor(!isCameraOnFrontFacingMode)}
+        style={isCameraOnFrontFacingMode ? styles.button : null}
       >
-        <CameraSwitch color={isCameraOnFrontFacingMode ? '#080707' : '#FFF'} />
+        <CameraSwitch
+          color={
+            isCameraOnFrontFacingMode
+              ? theme.light.static_black
+              : theme.light.static_white
+          }
+        />
       </CallControlsButton>
-      <CallControlsButton onPress={handleHangUpCall} colorKey="cancel">
-        <PhoneDown color="#ffffff" />
+      <CallControlsButton
+        onPress={handleHangUpCall}
+        color={theme.light.error}
+        style={[styles.button, { shadowColor: theme.light.error }]}
+      >
+        <PhoneDown color={theme.light.static_white} />
       </CallControlsButton>
     </View>
   );
@@ -87,18 +110,28 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    paddingVertical: 25,
-    paddingHorizontal: 16,
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-    backgroundColor: '#121416',
-    bottom: 0,
+    paddingVertical: theme.padding.lg,
+    paddingHorizontal: theme.padding.md,
+    borderTopLeftRadius: theme.rounded.lg,
+    borderTopRightRadius: theme.rounded.lg,
+    backgroundColor: theme.light.controls_bg,
     zIndex: 2,
   },
-  chatSvgStyle: {
-    paddingTop: 4,
+  button: {
+    // For iOS
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.37,
+    shadowRadius: 7.49,
+
+    // For android
+    elevation: 6,
+  },
+  svgContainerStyle: {
+    paddingTop: theme.padding.xs,
   },
 });

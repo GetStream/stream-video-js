@@ -1,30 +1,22 @@
 import {
   Call,
   ParticipantBox,
-  StreamVideoLocalParticipant,
-  StreamVideoParticipant,
   useConnectedUser,
+  useLocalParticipant,
   useMediaDevices,
+  useRemoteParticipants,
 } from '@stream-io/video-react-sdk';
 import { ParticipantPlaceholder } from './ParticipantPlaceholder';
 import { ActiveCallControls } from './CallControls';
 
 type ActiveCallPanelProps = {
   activeCall: Call;
-  localParticipant?: StreamVideoLocalParticipant;
-  remoteParticipant?: StreamVideoParticipant;
 };
 
-export const ActiveCallPanel = ({
-  activeCall,
-  remoteParticipant,
-  localParticipant,
-}: ActiveCallPanelProps) => {
-  const {
-    // @ts-expect-error
-    imageUrl,
-  } = useConnectedUser();
-
+export const ActiveCallPanel = ({ activeCall }: ActiveCallPanelProps) => {
+  const user = useConnectedUser();
+  const localParticipant = useLocalParticipant();
+  const [remoteParticipant] = useRemoteParticipants();
   const { publishAudioStream, publishVideoStream } = useMediaDevices();
 
   const remoteParticipantImage = remoteParticipant?.image;
@@ -34,16 +26,12 @@ export const ActiveCallPanel = ({
       <div className="rmc__call-panel">
         <div className="rmc__secondary-participant-wrapper">
           {localParticipant && (
-            <ParticipantBox
-              isMuted={true}
-              participant={localParticipant}
-              call={activeCall}
-            />
+            <ParticipantBox participant={localParticipant} call={activeCall} />
           )}
           {!localParticipant && (
             <ParticipantPlaceholder
               className="rmc__secondary-participant-placeholder"
-              imageSrc={imageUrl}
+              imageSrc={user?.image}
             />
           )}
         </div>

@@ -1,30 +1,41 @@
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Platform, StyleSheet, Text, View } from 'react-native';
 import { MAX_AVATARS_IN_VIEW } from '../constants';
-import { generateCallTitle } from '../utils';
+import {
+  generateCallTitle,
+  getMembersForIncomingCall,
+  getMembersForOutgoingCall,
+} from '../utils';
+import {
+  useConnectedUser,
+  useIncomingCalls,
+  useOutgoingCalls,
+} from '@stream-io/video-react-bindings';
+import { UserResponse } from '@stream-io/video-client';
+import { theme } from '../theme';
 
 enum AvatarModes {
-  small = 'small',
-  medium = 'medium',
-  large = 'large',
+  small = 'sm',
+  medium = 'md',
+  large = 'lg',
 }
 
 export const UserInfoView = () => {
-  // const activeCall = useActiveCall();
-  // const activeCallDetails = activeCall?.data.details;
-  // const incomingCalls = useIncomingCalls();
-  // const incomingCallDetails =
-  //   incomingCalls.length && incomingCalls[incomingCalls.length - 1].details;
-  // FIXME OL: use real data from coordinator
-  const memberUserIds = ['alice', 'bob', 'charlie'];
-  // (activeCallDetails && activeCallDetails.memberUserIds) ||
-  // (incomingCallDetails && incomingCallDetails?.memberUserIds) ||
-  // [];
+  const [outgoingCall] = useOutgoingCalls();
+  const [incomingCall] = useIncomingCalls();
+  const connectedUser = useConnectedUser();
+
+  let members: UserResponse[] = [];
+  if (outgoingCall) {
+    members = getMembersForOutgoingCall(outgoingCall);
+  } else if (incomingCall) {
+    members = getMembersForIncomingCall(incomingCall, connectedUser);
+  }
+
+  const memberUserIds = members.map((member) => member.name || member.id);
+
   const callTitle = generateCallTitle(memberUserIds);
-  const supportedAmountOfMemberUserIds = memberUserIds.slice(
-    0,
-    MAX_AVATARS_IN_VIEW,
-  );
+  const supportedAmountOfMembers = members.slice(0, MAX_AVATARS_IN_VIEW);
 
   const avatarSizeModes: { [key: number]: AvatarModes } = {
     1: AvatarModes.large,
@@ -34,63 +45,53 @@ export const UserInfoView = () => {
 
   const mode = avatarSizeModes[memberUserIds.length] || AvatarModes.small;
 
-  const avatarStyles = styles[`${mode}Avatar`];
+  const avatarStyles = {
+    height: theme.avatar[mode],
+    width: theme.avatar[mode],
+    borderRadius: theme.avatar[mode] / 2,
+  };
+
+  const fontStyleByMembersCount =
+    memberUserIds.length > 1 ? theme.fonts.heading5 : theme.fonts.heading4;
 
   return (
     <View style={styles.userInfo}>
-      <View style={styles.avatarView}>
-        {supportedAmountOfMemberUserIds.map((member) => {
+      <View style={styles.avatarGroup}>
+        {supportedAmountOfMembers.map((member) => {
           return (
             <Image
-              key={member}
-              style={[styles.avatar, avatarStyles]}
+              key={member.id}
+              style={[avatarStyles]}
               // FIXME: use real avatar from coordinator this is temporary
               source={{
-                uri: `https://getstream.io/random_png/?id=${member}&name=${member}`,
+                uri: member.image,
               }}
             />
           );
         })}
       </View>
-      <Text style={styles.name}>{callTitle}</Text>
+      <Text style={[styles.name, fontStyleByMembersCount]}>{callTitle}</Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   userInfo: {
-    textAlign: 'center',
-    alignItems: 'center',
-    marginTop: 90,
-    paddingHorizontal: 55,
+    paddingHorizontal:
+      Platform.OS === 'android' ? theme.padding.xl * 4 : theme.padding.xl * 2,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
   },
-  avatarView: {
+  avatarGroup: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     flexWrap: 'wrap',
-    width: '100%',
-  },
-  avatar: {
-    borderRadius: 100,
-  },
-  largeAvatar: {
-    height: 200,
-    width: 200,
-  },
-  mediumAvatar: {
-    height: 120,
-    width: 120,
-  },
-  smallAvatar: {
-    height: 100,
-    width: 100,
   },
   name: {
-    marginTop: 45,
-    fontSize: 30,
-    color: 'white',
-    fontWeight: '400',
+    color: theme.light.static_white,
     textAlign: 'center',
+    marginTop: theme.margin.xl,
   },
 });

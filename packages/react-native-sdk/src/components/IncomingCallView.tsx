@@ -1,28 +1,23 @@
 import React from 'react';
-import { StyleSheet, Text, View, ImageBackground } from 'react-native';
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { CallControlsButton } from './CallControlsButton';
-import { useIncomingCalls } from '@stream-io/video-react-bindings';
-import { UserInfoView } from './UserInfoView';
 import {
-  useCallCycleContext,
-  useStreamVideoStoreSetState,
-  useStreamVideoStoreValue,
-} from '../contexts';
+  useConnectedUser,
+  useIncomingCalls,
+} from '@stream-io/video-react-bindings';
+import { UserInfoView } from './UserInfoView';
+import { useCallCycleContext } from '../contexts';
 import { useRingCall } from '../hooks/useRingCall';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
+import { theme } from '../theme';
+import { getMembersForIncomingCall } from '../utils';
+import { useMutingState } from '../hooks/useMutingState';
 
 export const IncomingCallView = () => {
-  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
-  const setState = useStreamVideoStoreSetState();
+  const { isVideoMuted, toggleVideoState } = useMutingState();
   const { answerCall, rejectCall } = useRingCall();
   const { callCycleHandlers } = useCallCycleContext();
   const { onRejectCall } = callCycleHandlers;
-
-  const videoToggle = async () => {
-    setState((prevState) => ({
-      isVideoMuted: !prevState.isVideoMuted,
-    }));
-  };
 
   const answerCallHandler = async () => {
     await answerCall();
@@ -35,36 +30,41 @@ export const IncomingCallView = () => {
 
   return (
     <Background>
-      <UserInfoView />
-      <Text style={styles.incomingCallText}>Incoming Call...</Text>
-      <View style={styles.buttons}>
+      <View style={styles.content}>
+        <UserInfoView />
+        <Text style={styles.incomingCallText}>Incoming Call...</Text>
+      </View>
+
+      <View style={styles.buttonGroup}>
         <CallControlsButton
           onPress={rejectCallHandler}
-          colorKey={'cancel'}
-          style={styles.buttonStyle}
-          svgContainerStyle={styles.svgStyle}
+          color={theme.light.error}
+          style={[styles.button, theme.button.lg]}
+          svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
         >
-          <PhoneDown color="#ffffff" />
+          <PhoneDown color={theme.light.static_white} />
         </CallControlsButton>
         <CallControlsButton
-          onPress={videoToggle}
-          colorKey={!isVideoMuted ? 'activated' : 'deactivated'}
-          style={styles.buttonStyle}
-          svgContainerStyle={styles.svgStyle}
+          onPress={toggleVideoState}
+          color={
+            !isVideoMuted ? theme.light.static_white : theme.light.overlay_dark
+          }
+          style={[styles.button, theme.button.lg]}
+          svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
         >
           {isVideoMuted ? (
-            <VideoSlash color="#ffffff" />
+            <VideoSlash color={theme.light.static_white} />
           ) : (
-            <Video color="#000000" />
+            <Video color={theme.light.static_black} />
           )}
         </CallControlsButton>
         <CallControlsButton
           onPress={answerCallHandler}
-          colorKey={'callToAction'}
-          style={styles.buttonStyle}
-          svgContainerStyle={styles.svgStyle}
+          color={theme.light.info}
+          style={[styles.button, theme.button.lg]}
+          svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
         >
-          <Phone color="#ffffff" />
+          <Phone color={theme.light.static_white} />
         </CallControlsButton>
       </View>
     </Background>
@@ -74,25 +74,25 @@ export const IncomingCallView = () => {
 const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const incomingCalls = useIncomingCalls();
-  // FIXME OL: this needs to be reworked
-  const lastIncomingCall =
-    (incomingCalls.length && incomingCalls[incomingCalls.length - 1]) || null;
-  const memberUserIds = Object.keys(lastIncomingCall?.users || {});
+  const [incomingCall] = useIncomingCalls();
+  const connectedUser = useConnectedUser();
+  if (!incomingCall) return null;
 
-  if (memberUserIds.length)
+  const members = getMembersForIncomingCall(incomingCall, connectedUser);
+
+  if (members.length) {
     return (
       <ImageBackground
         blurRadius={10}
         source={{
-          //FIXME: This is a temporary solution to get a random image for the background. Replace with image from coordinator
-          uri: `https://getstream.io/random_png/?id=${memberUserIds[0]}&name=${memberUserIds[0]}`,
+          uri: members[0].image,
         }}
-        style={StyleSheet.absoluteFill}
+        style={[StyleSheet.absoluteFill, styles.background]}
       >
         {children}
       </ImageBackground>
     );
+  }
   return (
     <View style={[StyleSheet.absoluteFill, styles.background]}>{children}</View>
   );
@@ -100,33 +100,24 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: '#272A30',
+    backgroundColor: theme.light.static_grey,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    paddingVertical: 2 * theme.margin.xl,
   },
+  content: {},
   incomingCallText: {
-    marginTop: 16,
-    fontSize: 20,
+    marginTop: theme.margin.md,
     textAlign: 'center',
-    color: '#FFFFFF',
-    fontWeight: '600',
-    opacity: 0.6,
+    color: theme.light.static_white,
+    ...theme.fonts.heading6,
   },
-  buttons: {
+  buttonGroup: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 40,
-    marginTop: '40%',
-    position: 'absolute',
-    bottom: 90,
-    left: 0,
-    right: 0,
+    paddingHorizontal: theme.padding.xl,
   },
-  buttonStyle: {
-    height: 70,
-    width: 70,
-    borderRadius: 70,
-  },
-  svgStyle: {
-    height: 30,
-    width: 30,
-  },
+  button: {},
+  svgContainerStyle: {},
 });

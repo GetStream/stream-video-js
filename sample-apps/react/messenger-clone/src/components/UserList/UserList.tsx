@@ -15,7 +15,7 @@ export const UserList = () => {
             <a
               className="user-list-item--link"
               // @ts-ignore
-              href={`${window.location.origin}?ut=${u.token}&uid=${u.id}`}
+              href={`${window.location.origin}?uid=${u.id}&ut=${u.token}`}
             >
               <div className="user-list-item--avatar-name">
                 <Avatar user={u} image={u.image} name={u.name} />

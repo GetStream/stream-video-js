@@ -1,47 +1,71 @@
 import {
   ComponentType,
-  ForwardedRef,
   PropsWithChildren,
   useEffect,
   useState,
+  ForwardedRef,
 } from 'react';
-import { usePopper } from 'react-popper';
+import {
+  offset,
+  autoUpdate,
+  size,
+  useFloating,
+  Placement,
+} from '@floating-ui/react';
 
 export type ToggleMenuButtonProps = {
   menuShown: boolean;
   ref: ForwardedRef<HTMLButtonElement>;
 };
 
-export type MenuToggleProps = {
+export type MenuToggleProps = PropsWithChildren<{
   ToggleButton: ComponentType<ToggleMenuButtonProps>;
-  Menu: ComponentType;
-};
+  placement?: Placement;
+}>;
 
 export const MenuToggle = ({
   ToggleButton,
-  Menu,
-}: PropsWithChildren<MenuToggleProps>) => {
+  placement = 'top-start',
+  children,
+}: MenuToggleProps) => {
   const [menuShown, setMenuShown] = useState(false);
-  const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
-  const [popover, setPopover] = useState<HTMLDivElement | null>(null);
-  const { styles, attributes } = usePopper(anchor, popover, {
-    // FIXME OL: provide a prop for this setting
-    placement: 'top-start',
-    modifiers: [
-      {
-        name: 'offset',
-        options: {
-          offset: [0, 10],
+
+  const {
+    refs,
+    strategy,
+    x,
+    y,
+    update,
+    elements: { domReference, floating },
+  } = useFloating({
+    placement,
+    middleware: [
+      offset(10),
+      size({
+        padding: 10,
+        apply({ availableHeight, elements }) {
+          Object.assign(elements.floating.style, {
+            maxHeight: `${availableHeight}px`,
+          });
         },
-      },
+      }),
     ],
   });
 
+  // handle window resizing
+  useEffect(() => {
+    if (!domReference || !floating) return;
+
+    const cleanup = autoUpdate(domReference, floating, update);
+
+    return () => cleanup();
+  }, [domReference, floating, update]);
+
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
-      if (!popover && anchor?.contains(event.target as Node)) {
+      if (!floating && domReference?.contains(event.target as Node)) {
         setMenuShown(true);
-      } else if (popover && !popover?.contains(event.target as Node)) {
+      } else if (floating && !floating?.contains(event.target as Node)) {
         setMenuShown(false);
       }
     };
@@ -61,21 +85,25 @@ export const MenuToggle = ({
       document?.removeEventListener('click', handleClick, { capture: true });
       document?.removeEventListener('keydown', handleKeyDown);
     };
-  }, [popover, anchor]);
+  }, [floating, domReference]);
 
   return (
     <>
       {menuShown && (
         <div
           className="str-video__menu-container"
-          ref={setPopover}
-          style={styles.popper}
-          {...attributes.popper}
+          ref={refs.setFloating}
+          style={{
+            position: strategy,
+            top: y ?? 0,
+            left: x ?? 0,
+            overflowY: 'auto',
+          }}
         >
-          <Menu />
+          {children}
         </div>
       )}
-      <ToggleButton menuShown={menuShown} ref={setAnchor} />
+      <ToggleButton menuShown={menuShown} ref={refs.setReference} />
     </>
   );
 };
