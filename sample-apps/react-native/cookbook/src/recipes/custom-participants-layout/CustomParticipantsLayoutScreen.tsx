@@ -131,6 +131,7 @@ const Inner = () => {
       .catch(err => {
         console.log('Error joining call', err);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [callId.current]);
 
   if (!activeCall) {
