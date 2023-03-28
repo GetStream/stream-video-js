@@ -1,4 +1,3 @@
-import { Call } from '@stream-io/video-client';
 import { useObservableValue } from './helpers/useObservableValue';
 import { useCallState, useStore } from './store';
 
@@ -118,4 +117,12 @@ export const useCallMetadata = () => {
 export const useCallMembers = () => {
   const { members$ } = useCallState();
   return useObservableValue(members$);
+};
+
+/**
+ * Utility hook providing the latest list of recordings performed during the active call
+ */
+export const useCallRecordings = () => {
+  const { callRecordingList$ } = useCallState();
+  return useObservableValue(callRecordingList$);
 };
