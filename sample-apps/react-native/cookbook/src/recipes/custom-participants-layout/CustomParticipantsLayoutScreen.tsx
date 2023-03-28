@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import {
-  ActiveCall,
+  StreamCallProvider,
   StreamVideo,
   useActiveCall,
   useCreateStreamVideoClient,
@@ -26,7 +26,8 @@ import InCallManager from 'react-native-incall-manager';
 // @ts-ignore
 import openURLInBrowser from 'react-native/Libraries/Core/Devtools/openURLInBrowser';
 import {customAlphabet} from 'nanoid';
-import PressMe from '../components/PressMe';
+import PressMe from '../../components/PressMe';
+import MyCallParticipantsView from './MyCallParticipantsView';
 
 const USER = {
   id: STREAM_USER_ID,
@@ -64,18 +65,16 @@ export default () => {
   );
 };
 
-function IntroModal(props: {
-  visible: boolean;
-  onRequestClose: () => void;
-  callId: string;
-}) {
+function IntroModal({callId}: {callId: string}) {
+  const [isIntroModalVisible, setIsIntroModalVisible] = useState(true);
+
   return (
     <Modal
       presentationStyle={'overFullScreen'}
-      visible={props.visible}
+      visible={isIntroModalVisible}
       animationType="slide"
-      transparent
-      onRequestClose={props.onRequestClose}>
+      onRequestClose={() => setIsIntroModalVisible(false)}
+      transparent>
       <View style={styles.modalWrapper}>
         <View style={styles.modalContainer}>
           <Text style={{fontSize: 16}}>
@@ -83,13 +82,13 @@ function IntroModal(props: {
             join the call from another device
           </Text>
           <Text style={[styles.margined, {fontWeight: 'bold'}]}>
-            Your call ID: {props.callId}
+            Your call ID: {callId}
           </Text>
           <PressMe
             style={styles.margined}
             onPress={() =>
               openURLInBrowser(
-                `https://stream-calls-dogfood.vercel.app/join/${props.callId}`,
+                `https://stream-calls-dogfood.vercel.app/join/${callId}`,
               )
             }
             text={
@@ -107,7 +106,7 @@ function IntroModal(props: {
           />
           <Pressable
             style={[styles.margined, {alignSelf: 'flex-end'}]}
-            onPress={props.onRequestClose}>
+            onPress={() => setIsIntroModalVisible(false)}>
             <Text>Close</Text>
           </Pressable>
         </View>
@@ -121,8 +120,6 @@ const Inner = () => {
   const videoClient = useStreamVideoClient();
   const insets = useSafeAreaInsets();
   const callId = useRef<string>(generateCallId());
-  const [isIntroModalVisible, setIsIntroModalVisible] = useState(true);
-  const onOpenCallParticipantsInfoViewHandler = () => null;
 
   useEffect(() => {
     videoClient
@@ -134,23 +131,19 @@ const Inner = () => {
       .catch(err => {
         console.log('Error joining call', err);
       });
-  }, []);
+  }, [callId.current]);
 
   if (!activeCall) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
 
   return (
-    <View style={[styles.wrapper, {paddingTop: insets.top}]}>
-      <IntroModal
-        visible={isIntroModalVisible}
-        onRequestClose={() => setIsIntroModalVisible(false)}
-        callId={callId.current}
-      />
-      <ActiveCall
-        onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
-      />
-    </View>
+    <StreamCallProvider call={activeCall}>
+      <View style={[styles.wrapper, {paddingTop: insets.top}]}>
+        <IntroModal callId={callId.current} />
+        <MyCallParticipantsView />
+      </View>
+    </StreamCallProvider>
   );
 };
 
