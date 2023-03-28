@@ -17,28 +17,34 @@ export const useVerticalScrollPosition = (
   useEffect(() => {
     if (!scrollElement) return;
 
-    const hasVerticalScrollbar =
-      scrollElement.scrollHeight > scrollElement.clientHeight;
+    const scrollHandler = () => {
+      const element = scrollElement;
 
-    setScrollPosition(hasVerticalScrollbar ? 'top' : null);
+      const hasVerticalScrollbar = element.scrollHeight > element.clientHeight;
 
-    const scrollHandler = (e: Event) => {
-      const element = e.currentTarget as Element;
+      if (!hasVerticalScrollbar) return setScrollPosition(null);
 
       const isAtTheTop = element.scrollTop <= treshold;
+      if (isAtTheTop) return setScrollPosition('top');
+
       const isAtTheBottom =
         Math.abs(
           element.scrollHeight - element.scrollTop - element.clientHeight,
         ) <= treshold;
 
-      if (isAtTheTop) return setScrollPosition('top');
       if (isAtTheBottom) return setScrollPosition('bottom');
 
       setScrollPosition('between');
     };
 
+    const resizeObserver = new ResizeObserver(scrollHandler);
+    resizeObserver.observe(scrollElement);
+
     scrollElement.addEventListener('scroll', scrollHandler);
-    return () => scrollElement.removeEventListener('scroll', scrollHandler);
+    return () => {
+      scrollElement.removeEventListener('scroll', scrollHandler);
+      resizeObserver.disconnect();
+    };
   }, [scrollElement, treshold]);
 
   return scrollPosition;
