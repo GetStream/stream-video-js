@@ -1,14 +1,15 @@
-import { combineComparators } from './index';
 import {
   audio,
+  combineComparators,
   dominantSpeaker,
   name,
   pinned,
+  reactionType,
   role,
   screenSharing,
   talking,
   video,
-} from './participants';
+} from './index';
 
 /**
  * The default sorting preset.
@@ -18,6 +19,7 @@ export const defaultSortPreset = combineComparators(
   screenSharing,
   dominantSpeaker,
   talking,
+  reactionType('raised-hand'),
   video,
   audio,
   name,
@@ -29,6 +31,7 @@ export const defaultSortPreset = combineComparators(
 export const livestreamOrAudioRoomSortPreset = combineComparators(
   dominantSpeaker,
   talking,
+  reactionType('raised-hand'),
   video,
   audio,
   role('admin', 'host', 'speaker'),

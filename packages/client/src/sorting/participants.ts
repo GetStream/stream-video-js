@@ -76,6 +76,22 @@ export const pinned: Comparator<StreamVideoParticipant> = (a, b) => {
 
 /**
  * A comparator creator which will set up a comparator which prioritizes
+ * participants who have a specific reaction.
+ *
+ * @param type the reaction type.
+ */
+export const reactionType = (
+  type: string,
+): Comparator<StreamVideoParticipant> => {
+  return (a, b) => {
+    if (a.reaction?.type === type && b.reaction?.type !== type) return -1;
+    if (a.reaction?.type !== type && b.reaction?.type === type) return 1;
+    return 0;
+  };
+};
+
+/**
+ * A comparator creator which will set up a comparator which prioritizes
  * participants who have a specific role.
  *
  * @param roles the roles to prioritize.

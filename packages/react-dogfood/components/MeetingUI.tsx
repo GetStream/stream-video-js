@@ -114,11 +114,29 @@ export const MeetingUI = ({
 
   useEffect(() => {
     if (!activeCall) return;
+
+    const subscription = activeCall.state.hasOngoingScreenShare$.subscribe(
+      (hasScreenShare) => {
+        // enable sorting if screen share is active or,
+        // if sorting is enabled via query param
+        if (hasScreenShare || router.query['enableSorting'] === 'true') {
+          activeCall.setSortParticipantsBy(defaultSortPreset);
+        } else {
+          activeCall.setSortParticipantsBy(noopComparator());
+        }
+      },
+    );
+
+    // enable sorting via query param feature flag is provided
     if (router.query['enableSorting'] === 'true') {
       activeCall.setSortParticipantsBy(defaultSortPreset);
     } else {
       activeCall.setSortParticipantsBy(noopComparator());
     }
+
+    return () => {
+      subscription.unsubscribe();
+    };
   });
 
   if (show === 'error-join' || show === 'error-leave') {
