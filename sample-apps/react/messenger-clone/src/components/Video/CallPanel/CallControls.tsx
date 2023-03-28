@@ -2,7 +2,6 @@ import {
   Call,
   SfuModels,
   StreamVideoLocalParticipant,
-  useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import {
   LocalPhone,
@@ -64,8 +63,6 @@ export const ActiveCallControls = ({
   publishAudioStream,
   publishVideoStream,
 }: ActiveCallControlsProps) => {
-  const videoClient = useStreamVideoClient();
-
   const isAudioMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
@@ -102,7 +99,7 @@ export const ActiveCallControls = ({
         className="rmc__button rmc__button--red"
         onClick={() => {
           if (activeCall) {
-            videoClient?.cancelCall(activeCall.id, activeCall.type);
+            activeCall.cancel();
           }
         }}
       >

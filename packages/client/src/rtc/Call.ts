@@ -235,7 +235,17 @@ export class Call {
     });
 
   /**
-   * Will initiate a call session with the server.
+   * Will start to watch for call related WebSocket events, but it won't join the call. If you watch a call you'll be notified about WebSocket events, but you won't be able to publish your audio and video, and you won't be able to see and hear others. You won't show up in the list of joined participants.
+   *
+   * @param data
+   */
+  watch = async (data?: JoinCallRequest) => {
+    const response = await this.connectToCoordinator(data);
+    return response;
+  };
+
+  /**
+   * Will start to watch for call related WebSocket events and initiate a call session with the server.
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
@@ -244,9 +254,7 @@ export class Call {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    const call = await join(this.httpClient, this.type, this.id, data);
-    this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
-    this.state.setCurrentValue(this.state.membersSubject, call.members);
+    const call = await this.connectToCoordinator(data);
 
     // FIXME OL: convert to a derived state
     this.state.setCurrentValue(
@@ -340,6 +348,13 @@ export class Call {
     });
 
     return joinResponsePromise;
+  };
+
+  private connectToCoordinator = async (data?: JoinCallRequest) => {
+    const call = await join(this.httpClient, this.type, this.id, data);
+    this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
+    this.state.setCurrentValue(this.state.membersSubject, call.members);
+    return call;
   };
 
   /**
@@ -842,7 +857,7 @@ export class Call {
       .find((c) => c.id === this.id && c.type === this.type);
 
     if (callToAccept) {
-      await this.httpClient.call(this.id, this.type).sendEvent({
+      await this.httpClient.call(this.type, this.id).sendEvent({
         type: 'call.accepted',
       });
 
@@ -871,7 +886,7 @@ export class Call {
       (pendingCalls) =>
         pendingCalls.filter((incomingCall) => incomingCall.id !== this.id),
     );
-    await this.httpClient.call(this.id, this.type).sendEvent({
+    await this.httpClient.call(this.type, this.id).sendEvent({
       type: 'call.rejected',
     });
   };
@@ -884,6 +899,7 @@ export class Call {
    * @returns
    */
   cancel = async () => {
+    console.log('call cancelled');
     const store = this.clientStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     const leavingActiveCall =
@@ -902,7 +918,7 @@ export class Call {
         state.remoteParticipants$,
       );
       if (!remoteParticipants.length && !leavingActiveCall) {
-        await this.httpClient.call(this.id, this.type).sendEvent({
+        await this.httpClient.call(this.type, this.id).sendEvent({
           type: 'call.cancelled',
         });
       }

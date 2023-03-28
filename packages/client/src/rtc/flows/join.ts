@@ -13,7 +13,7 @@ export const join = async (
   id: string,
   data?: JoinCallRequest,
 ) => {
-  const joinCallResponse = await httpClient.joinCall(id, type, data);
+  const joinCallResponse = await httpClient.call(type, id).join(data);
   const { call, edges, members } = joinCallResponse;
 
   const { credentials } = await getCallEdgeServer(httpClient, type, id, edges);

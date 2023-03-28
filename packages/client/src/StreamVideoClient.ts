@@ -273,6 +273,34 @@ export class StreamVideoClient {
     return call;
   };
 
+  /**
+   * Allows you to create a new call with the given parameters and watch the call. If you watch a call you'll be notified about WebSocket events, but you won't be able to publish your audio and video, and you won't be able to see and hear others. You won't show up in the list of joined participants.
+   *
+   * If a call with the same combination of `type` and `id` already exists, it will watch the existing call.
+   *
+   * @param id the id of the call.
+   * @param type the type of the call.
+   * @param data the data for the call.
+   * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
+   */
+  watchCall = async (id: string, type: string, data?: JoinCallRequest) => {
+    const call = new Call({
+      httpClient: this.coordinatorClient,
+      id,
+      type,
+      clientStore: this.writeableStateStore,
+    });
+
+    await call.watch(data);
+
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.activeCallSubject,
+      call,
+    );
+
+    return call;
+  };
+
   queryCalls = async (
     filterConditions: { [key: string]: any },
     sort: Array<SortParamRequest>,

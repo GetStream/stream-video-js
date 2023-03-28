@@ -89,7 +89,6 @@ export const MeetingUI = ({
   }, [callId, callType, client]);
 
   const onLeave = useCallback(async () => {
-    if (!client) return;
     setShow('loading');
     try {
       await activeCall?.cancel();
