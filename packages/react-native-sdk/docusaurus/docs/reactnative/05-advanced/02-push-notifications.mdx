@@ -10,13 +10,18 @@ import iosCallkitLibrariesLinkImage from '../assets/ios-callkit-libraries-link.p
 import iosSearchPaths from '../assets/ios-search-paths.png'
 import iosInfoPlist from '../assets/ios-info-plist.png'
 
-The normal user experience in a ringing app when a user receives a call is to show a notification. The user can then interact with the notification to accept or reject the call. In this guide, we explain how to set up your react-native app to get push notifications from Stream for the incoming calls that your user will receive.
+This guide discusses how to add push notifications to your project. It will discuss both Android and iOS and go through all the necessary steps
+
+The normal user experience in a ringing app when a user receives a call is to show a push notification. The user can then interact with the notification to accept or reject the call. In this guide, you will learn how to set up your React Native app to get push notifications from Stream for the incoming calls that your user will receive.
 
 ## Add push provider credentials to Stream
 
 // TODO - write about adding firebase credentials and APN certificates to Stream
 
 ## Install Dependencies
+
+The first step is to install all necessary packages with your package manager of choice. Specifically, you will need to install the Firebase-related packages (for this use case that is [React Native Firebase App module](https://www.npmjs.com/package/@react-native-firebase/app) and [React Native Firebase Messaging module](https://www.npmjs.com/package/@react-native-firebase/messaging)) to receive notifications on Android. Also, you need to install [React Native VoIP Push Notification](https://github.com/react-native-webrtc/react-native-voip-push-notification) package to receive notifications on iOS. And finally, you to install [React Native CallKeep](https://github.com/react-native-webrtc/react-native-callkeep) package to interact with the native dialer on both iOS and Android platforms. 
+
 <Tabs groupId="package-manager">
   <TabItem value="Yarn" default>
 
@@ -42,6 +47,8 @@ The normal user experience in a ringing app when a user receives a call is to sh
 </Tabs>
 
 ## Platform-specific setup
+
+After installing the package dependencies there are some platform-specific setup steps required to complete the setup.
 
 <Tabs
   defaultValue='android'
@@ -344,11 +351,12 @@ export const useIosPushEffect = () => {
 
 ## Handle events from react-native-callkeep
 
+We need to interact with the native dialer of both iOS and Android to process the incoming call. The React Native CallKeep library utilizes CallKit on iOS and ConnectionService on Android to interact with the native dialer. Please follow the steps below to handle events from it.
 ### Add the ability to statically navigate to screens in your app
 
-When a user taps on the push notification, if the JS engine is not ready, we should still be able to navigate to the screen that shows the active call. We can do this by the ability to [navigate without the navigation prop in react-navigation library](https://reactnavigation.org/docs/navigating-without-navigation-prop/).
+When a user taps on the push notification and the JS engine is not ready, they should still be able to navigate to the screen that shows the active call. You can achieve this by adding the ability to [navigate without the navigation property in the react-navigation library](https://reactnavigation.org/docs/navigating-without-navigation-prop/).
 
-Following is an example implementation of a utility file that has helpers to statically navigate in the app:
+The following is an example implementation of a utility file that has helpers to statically navigate in the app:
 
 ```ts title="src/utils/staticNavigation.ts"
 import {
@@ -394,7 +402,7 @@ export const RunStaticNavigation = (callback: () => void) => {
 
 ```
 
-Also, importantly set the `navigationRef` in your navigation container as shown below:
+When doing this it is _very important_ to set the `navigationRef` in your navigation container as shown below:
 
 ```ts
 import { navigationRef } from './src/utils/staticNavigationUtils';
@@ -407,7 +415,7 @@ import { navigationRef } from './src/utils/staticNavigationUtils';
 
 ### Setup the active call screen to process the incoming call from the push notification
 
-Following is an example implementation of the screen that shows the active call. It is set up to accept the incoming call once a call-id for the incoming call is received.
+The following is an example implementation of the screen that shows the active call. It is set up to accept the incoming call once a `call-id` for the incoming call is received.
 
 ```ts
 import {
