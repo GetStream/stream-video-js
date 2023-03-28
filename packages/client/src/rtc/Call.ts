@@ -867,7 +867,7 @@ export class Call {
       .find((c) => c.id === this.id && c.type === this.type);
 
     if (callToAccept) {
-      await this.httpClient.call(this.id, this.type).sendEvent({
+      await this.httpClient.call(this.type, this.id).sendEvent({
         type: 'call.accepted',
       });
 
@@ -896,7 +896,7 @@ export class Call {
       (pendingCalls) =>
         pendingCalls.filter((incomingCall) => incomingCall.id !== this.id),
     );
-    await this.httpClient.call(this.id, this.type).sendEvent({
+    await this.httpClient.call(this.type, this.id).sendEvent({
       type: 'call.rejected',
     });
   };
@@ -909,6 +909,7 @@ export class Call {
    * @returns
    */
   cancel = async () => {
+    console.log('call cancelled');
     const store = this.clientStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     const leavingActiveCall =
