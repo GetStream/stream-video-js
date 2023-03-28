@@ -1,19 +1,13 @@
+import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import React, {useEffect, useRef} from 'react';
 import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
-import {
+  CallControlsView,
   StreamCallProvider,
   StreamVideo,
   useActiveCall,
   useCreateStreamVideoClient,
-  useStreamVideoClient,
   usePublishStreams,
+  useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import {
   STREAM_API_KEY,
@@ -22,13 +16,12 @@ import {
 } from 'react-native-dotenv';
 import {useNavigation} from '@react-navigation/core';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {theme} from '@stream-io/video-react-native-sdk/dist/src/theme';
 import InCallManager from 'react-native-incall-manager';
-// @ts-ignore
-import openURLInBrowser from 'react-native/Libraries/Core/Devtools/openURLInBrowser';
 import {customAlphabet} from 'nanoid';
-import PressMe from '../../components/PressMe';
 import MyCallParticipantsView from './MyCallParticipantsView';
+import IntroModal from './IntroModal';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../../../types';
 
 const USER = {
   id: STREAM_USER_ID,
@@ -41,12 +34,8 @@ const USER = {
 console.log('User loaded: ', USER);
 
 const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 5);
-
-// const generateCallId = () => nanoid(5);
-const generateCallId = () => 'zzz';
-
+const generateCallId = () => nanoid(5);
 export default () => {
-  const navigation = useNavigation();
   const videoClient = useCreateStreamVideoClient({
     user: USER,
     tokenOrProvider: USER?.custom?.token,
@@ -54,69 +43,15 @@ export default () => {
   });
 
   return (
-    <StreamVideo
-      client={videoClient}
-      callCycleHandlers={{
-        onActiveCall: () => null,
-        onHangupCall: () => navigation.navigate('WelcomeScreen'),
-      }}>
-      <>
-        <Inner />
-      </>
+    <StreamVideo client={videoClient}>
+      <MyActiveCall />
     </StreamVideo>
   );
 };
 
-function IntroModal({callId}: {callId: string}) {
-  const [isIntroModalVisible, setIsIntroModalVisible] = useState(true);
-
-  return (
-    <Modal
-      presentationStyle={'overFullScreen'}
-      visible={isIntroModalVisible}
-      animationType="slide"
-      onRequestClose={() => setIsIntroModalVisible(false)}
-      transparent>
-      <View style={styles.modalWrapper}>
-        <View style={styles.modalContainer}>
-          <Text style={{fontSize: 16}}>
-            Your call has just started. To check the full implementation, please
-            join the call from another device
-          </Text>
-          <Text style={[styles.margined, {fontWeight: 'bold'}]}>
-            Your call ID: {callId}
-          </Text>
-          <PressMe
-            style={styles.margined}
-            onPress={() =>
-              openURLInBrowser(
-                `https://stream-calls-dogfood.vercel.app/join/${callId}`,
-              )
-            }
-            text={
-              '🧑‍💻️ Click here to join the call with more participants via a web browser'
-            }
-          />
-          <PressMe
-            style={styles.margined}
-            onPress={() =>
-              openURLInBrowser(
-                'https://github.com/GetStream/stream-video-buddy',
-              )
-            }
-            text={'⌨️ Click here to join via Stream Video Buddy CLI'}
-          />
-          <Pressable
-            style={[styles.margined, {alignSelf: 'flex-end'}]}
-            onPress={() => setIsIntroModalVisible(false)}>
-            <Text>Close</Text>
-          </Pressable>
-        </View>
-      </View>
-    </Modal>
-  );
-}
-const Inner = () => {
+const MyActiveCall = () => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const activeCall = useActiveCall();
   const videoClient = useStreamVideoClient();
   const insets = useSafeAreaInsets();
@@ -145,27 +80,17 @@ const Inner = () => {
       <View style={[styles.wrapper, {paddingTop: insets.top}]}>
         <IntroModal callId={callId.current} />
         <MyCallParticipantsView />
+        <CallControlsView
+          onHangupCall={() => navigation.navigate('WelcomeScreen')}
+        />
       </View>
     </StreamCallProvider>
   );
 };
 
 const styles = StyleSheet.create({
-  modalWrapper: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  modalContainer: {
-    justifyContent: 'center',
-    padding: 16,
-    marginTop: 50,
-    marginHorizontal: 16,
-    backgroundColor: 'rgba(13,150,236,0.4)',
-    borderRadius: 8,
-  },
   wrapper: {
     flex: 1,
-    backgroundColor: theme.light.static_grey,
+    backgroundColor: '#272A30',
   },
-  margined: {marginTop: 16},
 });

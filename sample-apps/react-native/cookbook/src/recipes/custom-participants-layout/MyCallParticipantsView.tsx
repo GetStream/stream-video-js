@@ -1,22 +1,22 @@
-import {
-  CallControlsView,
-  ParticipantView,
-} from '@stream-io/video-react-native-sdk';
+import {ParticipantView} from '@stream-io/video-react-native-sdk';
 import {useSortedParticipants} from './useSortedParticipants';
 import {FlatList, StyleSheet, View} from 'react-native';
-import {theme} from '@stream-io/video-react-native-sdk/dist/src/theme';
 import {StreamVideoParticipant} from '@stream-io/video-client';
 import {hasScreenShare} from './utils';
 import React from 'react';
+import {useConnectedUser} from '@stream-io/video-react-bindings';
+
 export default () => {
   const [participantInSpotlight, ...otherParticipants] =
     useSortedParticipants();
+  const connectedUser = useConnectedUser();
 
   const renderItem = ({item: participant}: {item: StreamVideoParticipant}) => {
     return (
       <ParticipantView
         participant={participant}
         containerStyle={[styles.baseParticipant, styles.participant]}
+        disableAudio={participant.userId === connectedUser?.id}
         kind="video"
       />
     );
@@ -29,6 +29,7 @@ export default () => {
           participant={participantInSpotlight}
           containerStyle={[styles.baseParticipant, styles.spotlightParticipant]}
           kind={hasScreenShare(participantInSpotlight) ? 'screen' : 'video'}
+          disableAudio={participantInSpotlight.userId === connectedUser?.id}
         />
       )}
       <View style={styles.participantVideoContainer}>
@@ -40,22 +41,20 @@ export default () => {
           showsHorizontalScrollIndicator={false}
         />
       </View>
-      <CallControlsView onHangupCall={() => null} />
     </View>
   );
 };
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.light.static_grey,
   },
   participantVideoContainer: {
-    paddingVertical: theme.padding.md,
+    paddingVertical: 16,
   },
   baseParticipant: {
-    marginHorizontal: theme.margin.sm,
+    marginHorizontal: 8,
     overflow: 'hidden',
-    borderRadius: theme.rounded.sm,
+    borderRadius: 10,
   },
   spotlightParticipant: {
     flex: 1,

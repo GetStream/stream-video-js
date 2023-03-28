@@ -1,5 +1,6 @@
 import { useActiveCall } from '@stream-io/video-react-bindings';
-import { useMediaDevices, useStreamVideoStoreValue } from '../contexts';
+import { useMediaDevices } from '../contexts/MediaDevicesContext';
+import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { getAudioStream, getVideoStream } from '@stream-io/video-client';
 import { useEffect } from 'react';
 

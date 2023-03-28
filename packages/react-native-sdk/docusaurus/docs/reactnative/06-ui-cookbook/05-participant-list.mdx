@@ -2,6 +2,8 @@
 id: participant-list
 title: Custom Participants List layout
 ---
+import FinalLayout1 from '../assets/06-ui-cookbook/05-participant-list/01-final-layout.png';
+import FinalLayout2 from '../assets/06-ui-cookbook/05-participant-list/02-final-layout.png';
 
 ## Introduction
 
@@ -11,9 +13,9 @@ join a call, and build the layout.
 
 ## About the sample application
 
-To demonstrate the flexibility of our React Video SDK, we are going to build a custom layout that looks similar to
+To demonstrate the flexibility of our React Native Video SDK, we are going to build a custom layout that looks similar to
 Zoom's Speaker View layout. We would be using Vite + TS SPA template.
-The app boilerplate can be found [here](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/cookbook-participant-list).
+The app boilerplate can be found [here](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react-native/cookbook/).
 
 This application allows a user to join a call by providing the call ID and type.
 Once joined in a call, the user would be able to mute/unmute their audio and video and
@@ -21,7 +23,9 @@ display the video streams of all participants in a "Zoom Speaker View"-like layo
 
 The final layout looks like this:
 
-[//]: # (![Final Layout]&#40;../assets/ui-cookbook/participant-list/final-layout.png&#41;)
+| Layout when screen is shared | Call Layout |
+| :--- | :--- |
+| <img src={FinalLayout1} /> | <img src={FinalLayout2} /> |
 
 ## Prerequisites
 
@@ -29,11 +33,8 @@ Before we can join a call, we need to connect to Stream's edge infrastructure.
 In order to do that, please follow these steps:
 
 - Register for a Stream account and obtain your API key and secret.
-- Install the Stream React Video SDK:
-  - `npm install @stream-io/video-react-sdk`
-  - `yarn add @stream-io/video-react-sdk`
-- Initialize the SDK by passing in your API key, token and user information:
-  - Note: for token generation, you can use our [Token Generator](https://getstream.io/chat/docs/token_generator/)
+- To install the Stream React Native Video SDK and it's dependencies follow this [guide](01-basics/03-installation.mdx).
+
 
 ```tsx
 import {
