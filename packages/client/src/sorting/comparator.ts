@@ -36,6 +36,25 @@ export const descending = <T>(comparator: Comparator<T>): Comparator<T> => {
 };
 
 /**
+ * Creates a new comparator which conditionally applies the given comparator.
+ *
+ * @example
+ * const shouldSortByValue = () => return false; // to turn it off
+ * const byValue = (a, b) => a < b ? - 1 : a > b ? 1 : 0;
+ * const comparator = conditional(shouldSortByValue)(byValue);
+ *
+ * @param predicate the predicate to use for determining whether to apply the comparator.
+ */
+export const conditional = <T>(predicate: (a: T, b: T) => boolean) => {
+  return (comparator: Comparator<T>): Comparator<T> => {
+    return (a, b) => {
+      if (!predicate(a, b)) return 0;
+      return comparator(a, b);
+    };
+  };
+};
+
+/**
  * A no-op comparator which always returns 0.
  */
 export const noopComparator = <T>(): Comparator<T> => {

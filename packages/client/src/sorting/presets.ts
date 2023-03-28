@@ -1,6 +1,6 @@
+import { combineComparators } from './comparator';
 import {
   audio,
-  combineComparators,
   dominantSpeaker,
   name,
   pinned,
@@ -9,7 +9,7 @@ import {
   screenSharing,
   talking,
   video,
-} from './index';
+} from './participants';
 
 /**
  * The default sorting preset.

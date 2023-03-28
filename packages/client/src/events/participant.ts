@@ -1,5 +1,6 @@
 import { Dispatcher } from '../rtc/Dispatcher';
 import { CallState } from '../store';
+import { VisibilityState } from '../rtc/types';
 
 /**
  * An event responder which handles the `participantJoined` event.
@@ -16,7 +17,7 @@ export const watchParticipantJoined = (
 
     store.setCurrentValue(store.participantsSubject, (currentParticipants) => [
       ...currentParticipants,
-      participant,
+      { ...participant, viewportVisibilityState: VisibilityState.UNKNOWN },
     ]);
   });
 };

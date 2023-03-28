@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest';
 import {
   audio,
   combineComparators,
+  Comparator,
+  conditional,
   dominantSpeaker,
   pinned,
   screenSharing,
   video,
 } from '../index';
-import ParticipantDataTest from './participant-data';
+import { participants as ParticipantDataTest } from './participant-data';
 
 describe('Sorting', () => {
   it('presenter, dominant speaker, video, audio, mute', () => {
@@ -31,5 +33,14 @@ describe('Sorting', () => {
     );
     const sorted = [...ParticipantDataTest].sort(comparator);
     expect(sorted.map((p) => p.name)).toEqual(['F', 'D', 'B', 'A', 'E', 'C']);
+  });
+
+  it('conditional comparator', () => {
+    const byValue: Comparator<number> = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+    const input = [2, 3, 1];
+    expect([...input].sort(byValue)).toEqual([1, 2, 3]);
+
+    const disableComparator = conditional<number>(() => false);
+    expect([...input].sort(disableComparator(byValue))).toEqual([2, 3, 1]);
   });
 });

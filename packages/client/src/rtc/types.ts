@@ -9,6 +9,12 @@ export type StreamReaction = Pick<
   'type' | 'emoji_code' | 'custom'
 >;
 
+export enum VisibilityState {
+  UNKNOWN = 'UNKNOWN',
+  VISIBLE = 'VISIBLE',
+  INVISIBLE = 'INVISIBLE',
+}
+
 export interface StreamVideoParticipant extends Participant {
   /**
    * The participant's audio stream, if they are publishing audio and
@@ -56,8 +62,15 @@ export interface StreamVideoParticipant extends Participant {
    */
   reaction?: StreamReaction;
 
-  // FIXME: remove once this field once the deployed SFU is supporting it
+  // FIXME OL: remove once this field once the deployed SFU is supporting it
   roles?: string[];
+
+  /**
+   * The visibility state of the participant's video element
+   * within the pre-configured viewport.
+   * @default VisibilityState.UNKNOWN
+   */
+  viewportVisibilityState?: VisibilityState;
 }
 
 export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
