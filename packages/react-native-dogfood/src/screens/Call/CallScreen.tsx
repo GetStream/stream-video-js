@@ -7,7 +7,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RingingStackParamList } from '../../../types';
-import { ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
 import { callkeepCallId$ } from '../../hooks/useCallkeepEffect';
 
 type Props = NativeStackScreenProps<RingingStackParamList, 'CallScreen'>;

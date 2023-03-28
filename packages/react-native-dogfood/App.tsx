@@ -29,7 +29,7 @@ import { CallScreen } from './src/screens/Call/CallScreen';
 import JoinMeetingScreen from './src/screens/Meeting/JoinMeetingScreen';
 import JoinCallScreen from './src/screens/Call/JoinCallScreen';
 import { ChooseFlowScreen } from './src/screens/ChooseFlowScreen';
-import { CallParticipansInfoScreen } from './src/screens/Meeting/CallParticipantsInfoScreen';
+import { CallParticipantsInfoScreen } from './src/screens/Meeting/CallParticipantsInfoScreen';
 import { setFirebaseHandler } from './src/modules/push/android';
 import { useIosPushEffect } from './src/hooks/useIosPushEffect';
 import { Platform } from 'react-native';
