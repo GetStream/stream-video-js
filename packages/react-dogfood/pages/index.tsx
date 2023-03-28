@@ -44,14 +44,14 @@ export default function Home() {
               Stream Meetings
             </Typography>
           </Box>
-          <JoinCall />
+          <JoinCallForm />
         </Stack>
       </Stack>
     </>
   );
 }
 
-const JoinCall = () => {
+const JoinCallForm = () => {
   const ref = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
   const [disabled, setDisabled] = useState(true);
