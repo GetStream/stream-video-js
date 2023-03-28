@@ -10,6 +10,7 @@ import {
 } from '../rtc/types';
 import { CallStatsReport } from '../stats/types';
 import {
+  CallRecording,
   CallResponse,
   MemberResponse,
   PermissionRequestEvent,
@@ -56,6 +57,11 @@ export class CallState {
    */
   // FIXME OL: might be derived from `this.call.recording`.
   callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
+
+  /**
+   * Emits a list of details about recordings performed during the active call
+   */
+  callRecordingListSubject = new BehaviorSubject<CallRecording[]>([]);
 
   /**
    * Emits the latest call permission request sent by any participant of the
@@ -121,6 +127,11 @@ export class CallState {
   callRecordingInProgress$: Observable<boolean>;
 
   /**
+   * Emits a list of details about recordings performed during the active call
+   */
+  callRecordingList$;
+
+  /**
    * Emits the latest call permission request sent by any participant of the active call. Or `undefined` if there is no active call or if the current user doesn't have the necessary permission to handle these events.
    */
   callPermissionRequest$: Observable<PermissionRequestEvent | undefined>;
@@ -167,6 +178,8 @@ export class CallState {
       this.callRecordingInProgressSubject.asObservable();
     this.callPermissionRequest$ =
       this.callPermissionRequestSubject.asObservable();
+
+    this.callRecordingList$ = this.callRecordingListSubject.asObservable();
 
     this.metadata$ = this.metadataSubject.asObservable();
     // FIXME OL: is the shape of this observable ok? Shall we expose the whole MemberResponse instead?
