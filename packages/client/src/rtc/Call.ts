@@ -22,11 +22,12 @@ import {
   MemberResponse,
 } from '../gen/coordinator';
 import { join } from './flows/join';
-import type {
+import {
   PublishOptions,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
+  VisibilityState,
 } from './types';
 import {
   BehaviorSubject,
@@ -396,6 +397,7 @@ export class Call {
         currentParticipants.map<StreamVideoParticipant>((participant) => ({
           ...participant,
           isLoggedInUser: participant.sessionId === sfuClient.sessionId,
+          viewportVisibilityState: VisibilityState.UNKNOWN,
           // TODO: save other participants permissions once that's provided by SFU
           ...(participant.sessionId === sfuClient.sessionId
             ? ownCapabilities
