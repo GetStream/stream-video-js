@@ -58,11 +58,11 @@ class ViewportTracker {
   > = new Map();
   private observer: IntersectionObserver | null = null;
   // in React children render before viewport is set, add
-  // them to queue and observe them once the observer is set
+  // them to the queue and observe them once the observer is ready
   private queueSet: Set<readonly [HTMLElement, EntryHandler]> = new Set();
 
   public setViewport = (
-    element: HTMLElement,
+    viewportElement: HTMLElement,
     options?: Pick<IntersectionObserverInit, 'threshold' | 'rootMargin'>,
   ) => {
     const cleanup = () => {
@@ -80,12 +80,19 @@ class ViewportTracker {
           handler?.(entry);
         });
       },
-      { root: element, ...options, threshold: options?.threshold ?? 0.5 },
+      {
+        root: viewportElement,
+        ...options,
+        threshold: options?.threshold ?? 0.5,
+      },
     );
 
     if (this.queueSet.size) {
       this.queueSet.forEach(([queueElement, queueHandler]) => {
-        if (!this.observer!.root!.contains(element)) return;
+        // check if element which requested observation is
+        // a child of a viewport element, skip if isn't
+        if (!viewportElement.contains(queueElement)) return;
+
         this.observer!.observe(queueElement);
         this.elementHandlerMap.set(queueElement, queueHandler);
       });
