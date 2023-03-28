@@ -21,6 +21,7 @@ import {
   JoinCallRequest,
   JoinCallResponse,
   ListCallTypeResponse,
+  ListRecordingsResponse,
   MuteUsersResponse,
   QueryCallsRequest,
   QueryCallsResponse,
@@ -124,6 +125,13 @@ export class StreamCall {
     return this.client.post(`${this.basePath}/event`, event);
   };
 
+  queryRecordings = () => {
+    // FIXME: this is a temporary setting to take call ID as session ID
+    const sessionId = this.id;
+    return this.client.get<ListRecordingsResponse>(
+      `${this.basePath}/${sessionId}/recordings`,
+    );
+  };
   startRecording = async () => {
     return this.client.post(`${this.basePath}/start_recording`, {});
   };

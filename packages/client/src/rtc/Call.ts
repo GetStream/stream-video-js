@@ -760,4 +760,18 @@ export class Call {
 
   muteAllUsers: StreamCall['muteAllUsers'] = (type) =>
     this.httpClient.call(this.type, this.id).muteAllUsers(type);
+
+  /**
+   * Performs HTTP request to retrieve the list of recordings for the current call
+   */
+  queryRecordings: StreamCall['queryRecordings'] = () =>
+    this.httpClient.call(this.type, this.id).queryRecordings();
+
+  /**
+   * Retrieves the list of recordings done with the current call and updates the call state
+   */
+  updateRecordingsList = async () => {
+    const { recordings } = await this.queryRecordings();
+    this.state.setCurrentValue(this.state.callRecordingListSubject, recordings);
+  };
 }

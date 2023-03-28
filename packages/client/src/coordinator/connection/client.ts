@@ -123,6 +123,7 @@ export class StreamClient {
 
     this.axiosInstance = axios.create(this.options);
 
+    // todo: replace 'https://chat.stream-io-api.com' with an actual video server URL
     this.setBaseURL(this.options.baseURL || 'https://chat.stream-io-api.com');
 
     if (typeof process !== 'undefined' && process.env.STREAM_LOCAL_TEST_RUN) {
