@@ -11,3 +11,13 @@
   width: 4rem;
   mask-size: 4rem;
 }
+
+.rd__call-recording__loading-indicator {
+  margin-top: 1rem;
+
+  .str-video__loading-indicator__icon.spinner {
+    height: 2rem;
+    width: 2rem;
+    mask-size: 2rem;
+  }
+}

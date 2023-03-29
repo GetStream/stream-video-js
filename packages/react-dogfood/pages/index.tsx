@@ -106,8 +106,7 @@ const JoinCallForm = () => {
         </Button>
       )}
       <input
-        className="rd__join-call-input"
-        style={{}}
+        className="rd__input rd__input--underlined rd__join-call-input"
         data-testid="join-call-input"
         ref={ref}
         onChange={handleChange}
