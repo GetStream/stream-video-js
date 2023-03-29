@@ -15,7 +15,7 @@ import { StreamClient } from '../coordinator/connection/client';
  */
 export const watchCallCreated = (
   store: StreamVideoWriteableStateStore,
-  httpClient: StreamClient,
+  coordinatorClient: StreamClient,
 ) => {
   return function onCallCreated(event: CallCreatedEvent) {
     const { call, members } = event;
@@ -33,7 +33,7 @@ export const watchCallCreated = (
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) => [
       ...pendingCalls,
       new Call({
-        httpClient,
+        coordinatorClient,
         type: call.type,
         id: call.id,
         metadata: call,

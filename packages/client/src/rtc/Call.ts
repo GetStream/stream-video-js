@@ -69,9 +69,9 @@ const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
  */
 export type CallConstructor = {
   /**
-   * The httpClient instance to use.
+   * The coordinatorClient instance to use.
    */
-  httpClient: StreamClient;
+  coordinatorClient: StreamClient;
 
   /**
    * The Call type.
@@ -151,7 +151,7 @@ export class Call {
   private statsReporter?: StatsReporter;
   private joined$ = new BehaviorSubject<boolean>(false);
 
-  private readonly httpClient: StreamClient;
+  private readonly coordinatorClient: StreamClient;
   private sfuClient?: StreamSfuClient;
   private readonly clientStore: StreamVideoWriteableStateStore;
 
@@ -176,7 +176,7 @@ export class Call {
     return preferredCodec;
   }
 
-  private basePath: string;
+  private coordinatorBasePath: string;
 
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
@@ -184,7 +184,7 @@ export class Call {
   constructor({
     type,
     id,
-    httpClient,
+    coordinatorClient,
     metadata,
     members,
     sortParticipantsBy,
@@ -193,9 +193,9 @@ export class Call {
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
-    this.httpClient = httpClient;
+    this.coordinatorClient = coordinatorClient;
     this.clientStore = clientStore;
-    this.basePath = `/call/${this.type}/${this.id}`;
+    this.coordinatorBasePath = `/call/${this.type}/${this.id}`;
 
     const callTypeConfig = CallTypes.get(type);
     this.state = new CallState(
@@ -400,7 +400,7 @@ export class Call {
   };
 
   private connectToCoordinator = async (data?: JoinCallRequest) => {
-    const call = await join(this.httpClient, this.type, this.id, data);
+    const call = await join(this.coordinatorClient, this.type, this.id, data);
     this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
     this.state.setCurrentValue(this.state.membersSubject, call.members);
     return call;
@@ -838,21 +838,24 @@ export class Call {
   };
 
   sendReaction = async (reaction: SendReactionRequest) => {
-    return this.httpClient.post<SendReactionResponse>(
-      `${this.basePath}/reaction`,
+    return this.coordinatorClient.post<SendReactionResponse>(
+      `${this.coordinatorBasePath}/reaction`,
       reaction,
     );
   };
 
   blockUser = async (userId: string) => {
-    return this.httpClient.post<BlockUserResponse>(`${this.basePath}/block`, {
-      user_id: userId,
-    });
+    return this.coordinatorClient.post<BlockUserResponse>(
+      `${this.coordinatorBasePath}/block`,
+      {
+        user_id: userId,
+      },
+    );
   };
 
   unblockUser = async (userId: string) => {
-    return this.httpClient.post<UnblockUserResponse>(
-      `${this.basePath}/unblock`,
+    return this.coordinatorClient.post<UnblockUserResponse>(
+      `${this.coordinatorBasePath}/unblock`,
       {
         user_id: userId,
       },
@@ -864,8 +867,8 @@ export class Call {
     type: 'audio' | 'video' | 'screenshare',
     sessionId?: string,
   ) => {
-    return this.httpClient.post<MuteUsersResponse>(
-      `${this.basePath}/mute_users`,
+    return this.coordinatorClient.post<MuteUsersResponse>(
+      `${this.coordinatorBasePath}/mute_users`,
       {
         user_ids: [userId],
         [type]: true,
@@ -875,8 +878,8 @@ export class Call {
   };
 
   muteAllUsers = (type: 'audio' | 'video' | 'screenshare') => {
-    return this.httpClient.post<MuteUsersResponse>(
-      `${this.basePath}/mute_users`,
+    return this.coordinatorClient.post<MuteUsersResponse>(
+      `${this.coordinatorBasePath}/mute_users`,
       {
         mute_all_users: true,
         [type]: true,
@@ -885,7 +888,9 @@ export class Call {
   };
 
   get = async () => {
-    const response = await this.httpClient.get<GetCallResponse>(this.basePath);
+    const response = await this.coordinatorClient.get<GetCallResponse>(
+      this.coordinatorBasePath,
+    );
     this.state.setCurrentValue(this.state.metadataSubject, response.call);
     this.state.setCurrentValue(this.state.membersSubject, response.members);
 
@@ -893,8 +898,8 @@ export class Call {
   };
 
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
-    const response = await this.httpClient.post<GetOrCreateCallResponse>(
-      this.basePath,
+    const response = await this.coordinatorClient.post<GetOrCreateCallResponse>(
+      this.coordinatorBasePath,
       data,
     );
     this.state.setCurrentValue(this.state.metadataSubject, response.call);
@@ -922,7 +927,10 @@ export class Call {
    */
   startRecording = async () => {
     try {
-      return await this.httpClient.post(`${this.basePath}/start_recording`, {});
+      return await this.coordinatorClient.post(
+        `${this.coordinatorBasePath}/start_recording`,
+        {},
+      );
     } catch (error) {
       console.log(`Failed to start recording`, error);
     }
@@ -933,7 +941,10 @@ export class Call {
    */
   stopRecording = async () => {
     try {
-      return await this.httpClient.post(`${this.basePath}/stop_recording`, {});
+      return await this.coordinatorClient.post(
+        `${this.coordinatorBasePath}/stop_recording`,
+        {},
+      );
     } catch (error) {
       console.log(`Failed to stop recording`, error);
     }
@@ -943,8 +954,8 @@ export class Call {
    * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
    */
   requestPermissions = async (data: RequestPermissionRequest) => {
-    return this.httpClient.post<RequestPermissionResponse>(
-      `${this.basePath}/request_permission`,
+    return this.coordinatorClient.post<RequestPermissionResponse>(
+      `${this.coordinatorBasePath}/request_permission`,
       data,
     );
   };
@@ -960,19 +971,22 @@ export class Call {
    *
    */
   updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
-    return this.httpClient.post<UpdateUserPermissionsResponse>(
-      `${this.basePath}/user_permissions`,
+    return this.coordinatorClient.post<UpdateUserPermissionsResponse>(
+      `${this.coordinatorBasePath}/user_permissions`,
       data,
     );
   };
 
   goLive = async () => {
-    return this.httpClient.post<GoLiveResponse>(`${this.basePath}/go_live`, {});
+    return this.coordinatorClient.post<GoLiveResponse>(
+      `${this.coordinatorBasePath}/go_live`,
+      {},
+    );
   };
 
   stopLive = async () => {
-    return this.httpClient.post<StopLiveResponse>(
-      `${this.basePath}/stop_live`,
+    return this.coordinatorClient.post<StopLiveResponse>(
+      `${this.coordinatorBasePath}/stop_live`,
       {},
     );
   };
@@ -985,14 +999,16 @@ export class Call {
       custom: custom,
       settings_override: settings,
     };
-    return this.httpClient.patch<UpdateCallResponse>(
-      `${this.basePath}`,
+    return this.coordinatorClient.patch<UpdateCallResponse>(
+      `${this.coordinatorBasePath}`,
       payload,
     );
   };
 
   endCall = async () => {
-    return this.httpClient.post<EndCallResponse>(`${this.basePath}/mark_ended`);
+    return this.coordinatorClient.post<EndCallResponse>(
+      `${this.coordinatorBasePath}/mark_ended`,
+    );
   };
 
   /**
@@ -1018,7 +1034,7 @@ export class Call {
       .find((c) => c.id === this.id && c.type === this.type);
 
     if (callToAccept) {
-      await this.httpClient.post(`${this.basePath}/event`, {
+      await this.coordinatorClient.post(`${this.coordinatorBasePath}/event`, {
         type: 'call.accepted',
       });
 
@@ -1047,7 +1063,7 @@ export class Call {
       (pendingCalls) =>
         pendingCalls.filter((incomingCall) => incomingCall.id !== this.id),
     );
-    await this.httpClient.post(`${this.basePath}/event`, {
+    await this.coordinatorClient.post(`${this.coordinatorBasePath}/event`, {
       type: 'call.rejected',
     });
   };
@@ -1079,7 +1095,7 @@ export class Call {
         state.remoteParticipants$,
       );
       if (!remoteParticipants.length && !leavingActiveCall) {
-        await this.httpClient.post(`${this.basePath}/event`, {
+        await this.coordinatorClient.post(`${this.coordinatorBasePath}/event`, {
           type: 'call.cancelled',
         });
       }
