@@ -33,3 +33,7 @@ useCallback
 useMemo
 useParticipants
 registerGlobals
+ios
+callkeep
+voip
+navigationRef

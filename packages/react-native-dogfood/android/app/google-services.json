@@ -37,6 +37,14 @@
             {
               "client_id": "347024607410-ett7cjt6ah9aj6s6k20p5fissj80d9la.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "347024607410-a466jkdqm1mma55s90on17aovv5gp4ss.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.getstream.rnvideosample",
+                "app_store_id": "6443437501"
+              }
             }
           ]
         }
@@ -66,6 +74,14 @@
             {
               "client_id": "347024607410-ett7cjt6ah9aj6s6k20p5fissj80d9la.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "347024607410-a466jkdqm1mma55s90on17aovv5gp4ss.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.getstream.rnvideosample",
+                "app_store_id": "6443437501"
+              }
             }
           ]
         }
@@ -119,6 +135,14 @@
             {
               "client_id": "347024607410-ett7cjt6ah9aj6s6k20p5fissj80d9la.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "347024607410-a466jkdqm1mma55s90on17aovv5gp4ss.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.getstream.rnvideosample",
+                "app_store_id": "6443437501"
+              }
             }
           ]
         }
@@ -172,6 +196,14 @@
             {
               "client_id": "347024607410-ett7cjt6ah9aj6s6k20p5fissj80d9la.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "347024607410-a466jkdqm1mma55s90on17aovv5gp4ss.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.getstream.rnvideosample",
+                "app_store_id": "6443437501"
+              }
             }
           ]
         }
