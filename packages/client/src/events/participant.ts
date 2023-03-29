@@ -1,7 +1,6 @@
 import { Dispatcher } from '../rtc/Dispatcher';
 import { VisibilityState } from '../rtc/types';
 import { CallState } from '../store';
-import { VisibilityState } from '../rtc/types';
 
 /**
  * An event responder which handles the `participantJoined` event.

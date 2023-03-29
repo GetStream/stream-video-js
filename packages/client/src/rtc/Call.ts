@@ -327,7 +327,6 @@ export class Call {
         this.state.participantsSubject,
         currentParticipants.map<StreamVideoParticipant>((participant) => ({
           ...participant,
-          viewportVisibilityState: VisibilityState.UNKNOWN,
           isLoggedInUser: participant.sessionId === sfuClient.sessionId,
           viewportVisibilityState: VisibilityState.UNKNOWN,
           // TODO: save other participants permissions once that's provided by SFU
