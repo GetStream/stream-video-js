@@ -16,24 +16,36 @@ import {
   UserResponse,
 } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
+import { Comparator } from '../sorting';
+import * as SortingPreset from '../sorting/presets';
 
 export type UserResponseMap = {
   [userId: string]: UserResponse;
 };
 
+/**
+ * Holds the state of the current call.
+ * @react You don't have to use this class directly, as we are exposing the state through Hooks.
+ */
 export class CallState {
   /**
    * The raw call metadata object, as defined on the backend.
+   *
+   * @internal
    */
   metadataSubject = new BehaviorSubject<CallResponse | undefined>(undefined);
 
   /**
    * The list of members of the current call.
+   *
+   * @internal
    */
   membersSubject = new BehaviorSubject<MemberResponse[]>([]);
 
   /**
    * All participants of the current call (including the logged-in user).
+   *
+   * @internal
    */
   participantsSubject = new BehaviorSubject<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
@@ -46,6 +58,8 @@ export class CallState {
    *
    * Consumers of this observable can implement their own batching logic
    * in case they want to show historical stat data.
+   *
+   * @internal
    */
   callStatsReportSubject = new BehaviorSubject<CallStatsReport | undefined>(
     undefined,
@@ -53,6 +67,8 @@ export class CallState {
 
   /**
    * Emits a boolean indicating whether a call recording is currently in progress.
+   *
+   * @internal
    */
   // FIXME OL: might be derived from `this.call.recording`.
   callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
@@ -61,6 +77,8 @@ export class CallState {
    * Emits the latest call permission request sent by any participant of the
    * active call. Or `undefined` if there is no active call or if the current
    * user doesn't have the necessary permission to handle these events.
+   *
+   * @internal
    */
   callPermissionRequestSubject = new BehaviorSubject<
     PermissionRequestEvent | undefined
@@ -115,13 +133,15 @@ export class CallState {
    * in case they want to show historical stats data.
    */
   callStatsReport$: Observable<CallStatsReport | undefined>;
+
   /**
    * Emits a boolean indicating whether a call recording is currently in progress.
    */
   callRecordingInProgress$: Observable<boolean>;
 
   /**
-   * Emits the latest call permission request sent by any participant of the active call. Or `undefined` if there is no active call or if the current user doesn't have the necessary permission to handle these events.
+   * Emits the latest call permission request sent by any participant of the active call.
+   * Or `undefined` if there is no active call or if the current user doesn't have the necessary permission to handle these events.
    */
   callPermissionRequest$: Observable<PermissionRequestEvent | undefined>;
 
@@ -135,25 +155,44 @@ export class CallState {
    */
   members$: Observable<UserResponseMap>;
 
-  constructor() {
-    this.participants$ = this.participantsSubject.asObservable();
-    this.localParticipant$ = this.participantsSubject.pipe(
+  /**
+   * A list of comparators that are used to sort the participants.
+   *
+   * @private
+   */
+  private sortParticipantsBy: Comparator<StreamVideoParticipant>;
+
+  /**
+   * Creates a new instance of the CallState class.
+   *
+   * @param sortParticipantsBy the comparator that is used to sort the participants.
+   */
+  constructor(
+    sortParticipantsBy: Comparator<StreamVideoParticipant> = SortingPreset.defaultSortPreset,
+  ) {
+    this.sortParticipantsBy = sortParticipantsBy;
+
+    this.participants$ = this.participantsSubject.pipe(
+      map((ps) => [...ps].sort(this.sortParticipantsBy)),
+    );
+
+    this.localParticipant$ = this.participants$.pipe(
       map((participants) => participants.find(isStreamVideoLocalParticipant)),
     );
 
-    this.remoteParticipants$ = this.participantsSubject.pipe(
+    this.remoteParticipants$ = this.participants$.pipe(
       map((participants) => participants.filter((p) => !p.isLoggedInUser)),
     );
 
-    this.pinnedParticipants$ = this.participantsSubject.pipe(
+    this.pinnedParticipants$ = this.participants$.pipe(
       map((participants) => participants.filter((p) => p.isPinned)),
     );
 
-    this.dominantSpeaker$ = this.participantsSubject.pipe(
+    this.dominantSpeaker$ = this.participants$.pipe(
       map((participants) => participants.find((p) => p.isDominantSpeaker)),
     );
 
-    this.hasOngoingScreenShare$ = this.participantsSubject.pipe(
+    this.hasOngoingScreenShare$ = this.participants$.pipe(
       map((participants) => {
         return participants.some((p) =>
           p.publishedTracks.includes(TrackType.SCREEN_SHARE),
@@ -182,6 +221,18 @@ export class CallState {
   }
 
   /**
+   * Sets the list of criteria that are used to sort the participants.
+   * To disable sorting, you can pass `noopComparator()`.
+   *
+   * @param comparator the comparator to use to sort the participants.
+   */
+  setSortParticipantsBy = (comparator: Comparator<StreamVideoParticipant>) => {
+    this.sortParticipantsBy = comparator;
+    // trigger re-sorting of participants
+    this.setCurrentValue(this.participantsSubject, (ps) => ps);
+  };
+
+  /**
    * Gets the current value of an observable, or undefined if the observable has
    * not emitted a value yet.
    *
@@ -193,6 +244,8 @@ export class CallState {
    * Updates the value of the provided Subject.
    * An `update` can either be a new value or a function which takes
    * the current value and returns a new value.
+   *
+   * @internal
    *
    * @param subject the subject to update.
    * @param update the update to apply to the subject.
@@ -216,6 +269,8 @@ export class CallState {
   /**
    * Updates a participant in the active call identified by the given `sessionId`.
    * If the participant can't be found, this operation is no-op.
+   *
+   * @internal
    *
    * @param sessionId the session ID of the participant to update.
    * @param patch the patch to apply to the participant.
@@ -251,6 +306,8 @@ export class CallState {
   /**
    * Updates all participants in the active call whose session ID is in the given `sessionIds`.
    * If no patch are provided, this operation is no-op.
+   *
+   * @internal
    *
    * @param patch the patch to apply to the participants.
    * @returns all participants, with all patch applied.

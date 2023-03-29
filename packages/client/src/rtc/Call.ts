@@ -6,9 +6,9 @@ import { TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import {
   Dispatcher,
+  SfuEventKindMap,
   SfuEventKinds,
   SfuEventListener,
-  SfuEventKindMap,
 } from './Dispatcher';
 import { CallState, StreamVideoWriteableStateStore } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
@@ -38,6 +38,7 @@ import {
   Subject,
   takeWhile,
 } from 'rxjs';
+import { Comparator } from '../sorting';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import {
   createStatsReporter,
@@ -81,6 +82,11 @@ export type CallConstructor = {
   members?: MemberResponse[];
 
   /**
+   * The default comparator to use when sorting participants.
+   */
+  sortParticipantsBy?: Comparator<StreamVideoParticipant>;
+
+  /**
    * The state store of the client
    */
   clientStore: StreamVideoWriteableStateStore;
@@ -114,7 +120,7 @@ export class Call {
   /**
    * The state of this call.
    */
-  readonly state = new CallState();
+  readonly state: CallState;
 
   /**
    * The event dispatcher instance dedicated to this Call instance.
@@ -163,6 +169,7 @@ export class Call {
     httpClient,
     metadata,
     members,
+    sortParticipantsBy,
     clientStore,
   }: CallConstructor) {
     this.type = type;
@@ -171,6 +178,7 @@ export class Call {
     this.httpClient = httpClient;
     this.clientStore = clientStore;
 
+    this.state = new CallState(sortParticipantsBy);
     this.state.metadataSubject.next(metadata);
     this.state.membersSubject.next(members || []);
 
@@ -700,6 +708,15 @@ export class Call {
     this.state.updateParticipant(sessionId, {
       reaction: undefined,
     });
+  };
+
+  /**
+   * Sets the list of criteria to sort the participants by.
+   *
+   * @param criteria the list of criteria to sort the participants by.
+   */
+  setSortParticipantsBy: CallState['setSortParticipantsBy'] = (criteria) => {
+    return this.state.setSortParticipantsBy(criteria);
   };
 
   /**

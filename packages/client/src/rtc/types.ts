@@ -10,9 +10,9 @@ export type StreamReaction = Pick<
 >;
 
 export enum VisibilityState {
-  VISIBLE,
-  INVISIBLE,
-  UNKNOWN,
+  UNKNOWN = 'UNKNOWN',
+  VISIBLE = 'VISIBLE',
+  INVISIBLE = 'INVISIBLE',
 }
 
 export interface StreamVideoParticipant extends Participant {
@@ -61,6 +61,9 @@ export interface StreamVideoParticipant extends Participant {
    * Integrators can batch/collect past reactions and show them to the UI.
    */
   reaction?: StreamReaction;
+
+  // FIXME OL: remove once this field once the deployed SFU is supporting it
+  roles?: string[];
 
   /**
    * The visibility state of the participant's video element
