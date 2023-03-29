@@ -1,6 +1,5 @@
 import { MouseEventHandler, useCallback } from 'react';
 import { Call } from '@stream-io/video-client';
-import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 import { IconButton } from '../Button/';
 
 export type CancelCallButtonProps = {
@@ -14,17 +13,16 @@ export const CancelCallButton = ({
   onClick,
   onLeave,
 }: CancelCallButtonProps) => {
-  const client = useStreamVideoClient();
   const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(
     async (e) => {
       if (onClick) {
         onClick(e);
-      } else if (client && call) {
-        await client?.cancelCall(call.id, call.type);
+      } else if (call) {
+        await call.cancel();
         onLeave?.();
       }
     },
-    [onClick, onLeave, client, call],
+    [onClick, onLeave, call],
   );
   return <IconButton icon="call-end" variant="danger" onClick={handleClick} />;
 };
