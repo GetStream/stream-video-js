@@ -13,15 +13,27 @@ import {
 import { CallState, StreamVideoWriteableStateStore } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import {
-  StreamCall,
-  StreamCoordinatorClient,
-} from '../coordinator/StreamCoordinatorClient';
-import {
+  BlockUserResponse,
   CallResponse,
+  CallSettingsRequest,
+  EndCallResponse,
+  GetCallResponse,
+  GetOrCreateCallRequest,
+  GetOrCreateCallResponse,
+  GoLiveResponse,
   JoinCallRequest,
   MemberResponse,
+  MuteUsersResponse,
   RequestPermissionRequest,
+  RequestPermissionResponse,
+  SendReactionRequest,
+  SendReactionResponse,
+  StopLiveResponse,
+  UnblockUserResponse,
+  UpdateCallRequest,
+  UpdateCallResponse,
   UpdateUserPermissionsRequest,
+  UpdateUserPermissionsResponse,
 } from '../gen/coordinator';
 import { join } from './flows/join';
 import {
@@ -46,6 +58,7 @@ import {
 import { ViewportTracker } from '../ViewportTracker';
 
 const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
+import { StreamClient } from '../coordinator/connection/client';
 
 /**
  * The options to pass to {@link Call} constructor.
@@ -54,7 +67,7 @@ export type CallConstructor = {
   /**
    * The httpClient instance to use.
    */
-  httpClient: StreamCoordinatorClient;
+  httpClient: StreamClient;
 
   /**
    * The Call type.
@@ -129,7 +142,7 @@ export class Call {
   private statsReporter?: StatsReporter;
   private joined$ = new BehaviorSubject<boolean>(false);
 
-  private readonly httpClient: StreamCoordinatorClient;
+  private readonly httpClient: StreamClient;
   private sfuClient?: StreamSfuClient;
   private readonly clientStore: StreamVideoWriteableStateStore;
 
@@ -154,6 +167,8 @@ export class Call {
     return preferredCodec;
   }
 
+  private basePath: string;
+
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    */
@@ -170,6 +185,7 @@ export class Call {
     this.cid = `${type}:${id}`;
     this.httpClient = httpClient;
     this.clientStore = clientStore;
+    this.basePath = `/call/${this.type}/${this.id}`;
 
     this.state.metadataSubject.next(metadata);
     this.state.membersSubject.next(members || []);
@@ -789,24 +805,67 @@ export class Call {
     });
   };
 
-  blockUser: StreamCall['blockUser'] = (userId) =>
-    this.httpClient.call(this.type, this.id).blockUser(userId);
+  sendReaction = async (reaction: SendReactionRequest) => {
+    return this.httpClient.post<SendReactionResponse>(
+      `${this.basePath}/reaction`,
+      reaction,
+    );
+  };
 
-  unblockUser: StreamCall['unblockUser'] = (userId) =>
-    this.httpClient.call(this.type, this.id).unblockUser(userId);
+  blockUser = async (userId: string) => {
+    return this.httpClient.post<BlockUserResponse>(`${this.basePath}/block`, {
+      user_id: userId,
+    });
+  };
 
-  muteUser: StreamCall['muteUser'] = (userId, type, sessionId) =>
-    this.httpClient.call(this.type, this.id).muteUser(userId, type, sessionId);
+  unblockUser = async (userId: string) => {
+    return this.httpClient.post<UnblockUserResponse>(
+      `${this.basePath}/unblock`,
+      {
+        user_id: userId,
+      },
+    );
+  };
 
-  muteAllUsers: StreamCall['muteAllUsers'] = (type) =>
-    this.httpClient.call(this.type, this.id).muteAllUsers(type);
+  muteUser = (
+    userId: string,
+    type: 'audio' | 'video' | 'screenshare',
+    sessionId?: string,
+  ) => {
+    return this.httpClient.post<MuteUsersResponse>(
+      `${this.basePath}/mute_users`,
+      {
+        user_ids: [userId],
+        [type]: true,
+        // session_ids: [sessionId],
+      },
+    );
+  };
+
+  muteAllUsers = (type: 'audio' | 'video' | 'screenshare') => {
+    return this.httpClient.post<MuteUsersResponse>(
+      `${this.basePath}/mute_users`,
+      {
+        mute_all_users: true,
+        [type]: true,
+      },
+    );
+  };
+
+  get = async () => {
+    return this.httpClient.get<GetCallResponse>(this.basePath);
+  };
+
+  getOrCreate = async (data?: GetOrCreateCallRequest) => {
+    return this.httpClient.post<GetOrCreateCallResponse>(this.basePath, data);
+  };
 
   /**
    * Starts recording the call
    */
   startRecording = async () => {
     try {
-      return await this.httpClient.call(this.type, this.id).startRecording();
+      return await this.httpClient.post(`${this.basePath}/start_recording`, {});
     } catch (error) {
       console.log(`Failed to start recording`, error);
     }
@@ -817,7 +876,7 @@ export class Call {
    */
   stopRecording = async () => {
     try {
-      return await this.httpClient.call(this.type, this.id).stopRecording();
+      return await this.httpClient.post(`${this.basePath}/stop_recording`, {});
     } catch (error) {
       console.log(`Failed to stop recording`, error);
     }
@@ -826,8 +885,11 @@ export class Call {
   /**
    * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
    */
-  requestCallPermissions = async (data: RequestPermissionRequest) => {
-    return this.httpClient.call(this.type, this.id).requestPermissions(data);
+  requestPermissions = async (data: RequestPermissionRequest) => {
+    return this.httpClient.post<RequestPermissionResponse>(
+      `${this.basePath}/request_permission`,
+      data,
+    );
   };
 
   /**
@@ -841,7 +903,39 @@ export class Call {
    *
    */
   updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
-    return this.httpClient.call(this.type, this.id).updateUserPermissions(data);
+    return this.httpClient.post<UpdateUserPermissionsResponse>(
+      `${this.basePath}/user_permissions`,
+      data,
+    );
+  };
+
+  goLive = async () => {
+    return this.httpClient.post<GoLiveResponse>(`${this.basePath}/go_live`, {});
+  };
+
+  stopLive = async () => {
+    return this.httpClient.post<StopLiveResponse>(
+      `${this.basePath}/stop_live`,
+      {},
+    );
+  };
+
+  update = async (
+    custom: { [key: string]: any },
+    settings?: CallSettingsRequest,
+  ) => {
+    const payload: UpdateCallRequest = {
+      custom: custom,
+      settings_override: settings,
+    };
+    return this.httpClient.patch<UpdateCallResponse>(
+      `${this.basePath}`,
+      payload,
+    );
+  };
+
+  endCall = async () => {
+    return this.httpClient.post<EndCallResponse>(`${this.basePath}/mark_ended`);
   };
 
   /**
@@ -867,7 +961,7 @@ export class Call {
       .find((c) => c.id === this.id && c.type === this.type);
 
     if (callToAccept) {
-      await this.httpClient.call(this.type, this.id).sendEvent({
+      await this.httpClient.post(`${this.basePath}/event`, {
         type: 'call.accepted',
       });
 
@@ -896,7 +990,7 @@ export class Call {
       (pendingCalls) =>
         pendingCalls.filter((incomingCall) => incomingCall.id !== this.id),
     );
-    await this.httpClient.call(this.type, this.id).sendEvent({
+    await this.httpClient.post(`${this.basePath}/event`, {
       type: 'call.rejected',
     });
   };
@@ -928,7 +1022,7 @@ export class Call {
         state.remoteParticipants$,
       );
       if (!remoteParticipants.length && !leavingActiveCall) {
-        await this.httpClient.call(this.type, this.id).sendEvent({
+        await this.httpClient.post(`${this.basePath}/event`, {
           type: 'call.cancelled',
         });
       }

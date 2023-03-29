@@ -1,19 +1,34 @@
 import {
   DatacenterResponse,
   GetCallEdgeServerRequest,
+  GetCallEdgeServerResponse,
   ICEServer,
   JoinCallRequest,
+  JoinCallResponse,
 } from '../../gen/coordinator';
 import { measureResourceLoadLatencyTo } from './latency';
-import { StreamCoordinatorClient } from '../../coordinator/StreamCoordinatorClient';
+import { StreamClient } from '../../coordinator/connection/client';
 
 export const join = async (
-  httpClient: StreamCoordinatorClient,
+  httpClient: StreamClient,
   type: string,
   id: string,
   data?: JoinCallRequest,
 ) => {
-  const joinCallResponse = await httpClient.call(type, id).join(data);
+  await httpClient.connectionIdPromise;
+  let joinCallResponse: JoinCallResponse;
+  try {
+    joinCallResponse = await httpClient.post<JoinCallResponse>(
+      `/call/${type}/${id}/join`,
+      data,
+    );
+  } catch (e) {
+    // fallback scenario, until we get a new Coordinator deployed
+    joinCallResponse = await httpClient.post<JoinCallResponse>(
+      `/join_call/${type}/${id}`,
+      data,
+    );
+  }
   const { call, edges, members } = joinCallResponse;
 
   const { credentials } = await getCallEdgeServer(httpClient, type, id, edges);
@@ -27,7 +42,7 @@ export const join = async (
 };
 
 const getCallEdgeServer = async (
-  httpClient: StreamCoordinatorClient,
+  httpClient: StreamClient,
   type: string,
   id: string,
   edges: DatacenterResponse[],
@@ -41,9 +56,12 @@ const getCallEdgeServer = async (
     }),
   );
 
-  return httpClient.getCallEdgeServer(id, type, {
-    latency_measurements: latencyByEdge,
-  });
+  return httpClient.post<GetCallEdgeServerResponse>(
+    `/call/${type}/${id}/get_edge_server`,
+    {
+      latency_measurements: latencyByEdge,
+    },
+  );
 };
 
 const toRtcConfiguration = (config?: ICEServer[]) => {
