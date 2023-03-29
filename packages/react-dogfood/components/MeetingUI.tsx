@@ -91,26 +91,25 @@ export const MeetingUI = ({
   }, [callId, callType, client]);
 
   const onLeave = useCallback(async () => {
-    if (!client) return;
     setShow('loading');
     try {
-      await client.cancelCall(callId, callType);
+      await activeCall?.cancel();
       await router.push('/');
     } catch (e) {
       console.error(e);
       setShow('error-leave');
     }
-  }, [client, callType, callId, router]);
+  }, [activeCall, router]);
 
   useEffect(() => {
     const handlePageLeave = async () => {
-      await client?.cancelCall(callId, callType);
+      await activeCall?.cancel();
     };
     router.events.on('routeChangeStart', handlePageLeave);
     return () => {
       router.events.off('routeChangeStart', handlePageLeave);
     };
-  }, [callId, callType, client, router.events]);
+  }, [activeCall, router.events]);
 
   useEffect(() => {
     if (!activeCall) return;

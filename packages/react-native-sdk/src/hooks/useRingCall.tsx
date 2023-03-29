@@ -1,47 +1,42 @@
 import {
   useIncomingCalls,
   useOutgoingCalls,
-  useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { useCallback } from 'react';
 import InCallManager from 'react-native-incall-manager';
 
 /**
- * A helper hook which exposes functions to answerCall, rejectCall, cancelCall
+ * A helper hook which exposes functions to answer and reject incoming calls and cancel outgoing calls
  *
- * @category Client Operations
+ * @category Call Operations
  */
 export const useRingCall = () => {
-  const client = useStreamVideoClient();
   const [incomingCall] = useIncomingCalls();
   const [outgoingCall] = useOutgoingCalls();
 
   const answerCall = useCallback(() => {
-    if (!client || !incomingCall) {
+    if (!incomingCall) {
       return;
     }
-    client
-      .acceptCall(incomingCall.id, incomingCall.type)
+    incomingCall
+      .accept()
       .then(() => {
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
       })
       .catch((error) => console.log('Error accepting call', error));
-  }, [client, incomingCall]);
+  }, [incomingCall]);
 
   const rejectCall = useCallback(async () => {
-    if (!client || !incomingCall) {
+    if (!incomingCall) {
       return;
     }
-    await client.rejectCall(incomingCall.id, incomingCall.type);
-  }, [client, incomingCall]);
+    await incomingCall.reject();
+  }, [incomingCall]);
 
   const cancelCall = useCallback(async () => {
-    if (!client) {
-      return;
-    }
-    await client.cancelCall(outgoingCall.id, outgoingCall.type);
-  }, [client, outgoingCall]);
+    await outgoingCall.cancel();
+  }, [outgoingCall]);
 
   return { answerCall, rejectCall, cancelCall };
 };
