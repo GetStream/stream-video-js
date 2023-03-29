@@ -9,6 +9,12 @@ export type StreamReaction = Pick<
   'type' | 'emoji_code' | 'custom'
 >;
 
+export enum VisibilityState {
+  VISIBLE,
+  INVISIBLE,
+  UNKNOWN,
+}
+
 export interface StreamVideoParticipant extends Participant {
   /**
    * The participant's audio stream, if they are publishing audio and
@@ -55,6 +61,13 @@ export interface StreamVideoParticipant extends Participant {
    * Integrators can batch/collect past reactions and show them to the UI.
    */
   reaction?: StreamReaction;
+
+  /**
+   * The visibility state of the participant's video element
+   * within the pre-configured viewport.
+   * @default VisibilityState.UNKNOWN
+   */
+  viewportVisibilityState?: VisibilityState;
 }
 
 export interface StreamVideoLocalParticipant extends StreamVideoParticipant {

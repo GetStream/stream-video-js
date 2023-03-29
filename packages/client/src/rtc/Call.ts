@@ -22,11 +22,12 @@ import {
   MemberResponse,
 } from '../gen/coordinator';
 import { join } from './flows/join';
-import type {
+import {
   PublishOptions,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
+  VisibilityState,
 } from './types';
 import {
   BehaviorSubject,
@@ -40,6 +41,9 @@ import {
   createStatsReporter,
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
+import { ViewportTracker } from '../ViewportTracker';
+
+const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
 
 /**
  * The options to pass to {@link Call} constructor.
@@ -80,6 +84,11 @@ export type CallConstructor = {
  * It's not enough to have a `Call` instance, you will also need to call the [`join`](#join) method.
  */
 export class Call {
+  /**
+   * ViewporTracker instance
+   */
+  readonly viewportTracker = new ViewportTracker();
+
   /**
    * The type of the call.
    */
@@ -152,7 +161,7 @@ export class Call {
     registerEventHandlers(this, this.state, this.dispatcher);
 
     this.trackSubscriptionsSubject
-      .pipe(debounceTime(1200))
+      .pipe(debounceTime(UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION))
       .subscribe((subscriptions) => {
         this.sfuClient?.updateSubscriptions(subscriptions);
       });
@@ -305,6 +314,7 @@ export class Call {
         currentParticipants.map<StreamVideoParticipant>((participant) => ({
           ...participant,
           isLoggedInUser: participant.sessionId === sfuClient.sessionId,
+          viewportVisibilityState: VisibilityState.UNKNOWN,
           // TODO: save other participants permissions once that's provided by SFU
           ...(participant.sessionId === sfuClient.sessionId
             ? ownCapabilities
