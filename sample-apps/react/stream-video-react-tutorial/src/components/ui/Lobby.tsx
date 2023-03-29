@@ -74,7 +74,7 @@ const JoinExistingCallForm = () => {
       event.preventDefault();
       setLoading(true);
       try {
-        await videoClient.call(joinCallId, 'default').join();
+        await videoClient.call('default', joinCallId).join();
       } catch (e) {
         console.error(e);
       } finally {

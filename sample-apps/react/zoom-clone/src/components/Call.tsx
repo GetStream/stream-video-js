@@ -16,7 +16,7 @@ export const Call = () => {
   const activeCall = useActiveCall();
 
   useEffect(() => {
-    const call = client?.call(callId as string, 'default');
+    const call = client?.call('default', callId as string);
     const joining = call?.join();
 
     return () => {

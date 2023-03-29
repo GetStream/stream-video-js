@@ -24,7 +24,7 @@ export const ChannelHeader = (props: ChannelHeaderProps) => {
 
     if (videoClient) {
       try {
-        videoClient?.call(callID, 'default').getOrCreate({
+        videoClient?.call('default', callID).getOrCreate({
           ring: true,
           data: {
             members: members.map(ringingUserId => {

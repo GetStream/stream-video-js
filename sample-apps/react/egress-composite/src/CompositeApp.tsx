@@ -31,7 +31,7 @@ export const CompositeApp = () => {
   useEffect(() => {
     if (!client) return;
     let joinInterrupted = false;
-    const call = client.call(config.callId, config.callType);
+    const call = client.call(config.callType, config.callId);
     const currentCall = call.join().then(() => {
       if (!joinInterrupted) {
         setActiveCall(call);

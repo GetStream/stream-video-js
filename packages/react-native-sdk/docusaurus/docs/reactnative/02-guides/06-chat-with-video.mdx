@@ -290,7 +290,7 @@ export default () => {
 	const joinCallHandler = useCallback(() => {
 	  if (videoClient) {
 	    try {
-	      videoClient?.call(callID, "default").getOrCreate({
+	      videoClient?.call("default", callID).getOrCreate({
 	          ring: true,
 	          members: members.map((memberId) => {
 	            return {
