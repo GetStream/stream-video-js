@@ -55,8 +55,9 @@ import {
   StreamVideoParticipantPatches,
   SubscriptionChanges,
   VisibilityState,
+  DebounceType,
 } from './types';
-import { debounceTime, pairwise, Subject, takeWhile, tap } from 'rxjs';
+import { pairwise, Subject, takeWhile, tap, debounce, timer, map } from 'rxjs';
 import { createSubscription } from '../store/rxUtils';
 import { Comparator } from '../sorting';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
@@ -76,8 +77,6 @@ import {
   EventHandler,
   StreamCallEvent,
 } from '../coordinator/connection/types';
-
-const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
 
 /**
  * The options to pass to {@link Call} constructor.
@@ -172,7 +171,10 @@ export class Call {
 
   private subscriber?: RTCPeerConnection;
   private publisher?: Publisher;
-  private trackSubscriptionsSubject = new Subject<TrackSubscriptionDetails[]>();
+  private trackSubscriptionsSubject = new Subject<{
+    type?: DebounceType;
+    data: TrackSubscriptionDetails[];
+  }>();
 
   private statsReporter?: StatsReporter;
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -254,7 +256,8 @@ export class Call {
     this.leaveCallHooks.push(
       createSubscription(
         this.trackSubscriptionsSubject.pipe(
-          debounceTime(UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION),
+          debounce((v) => timer(v.type ?? DebounceType.SLOW)),
+          map((v) => v.data),
         ),
         (subscriptions) => this.sfuClient?.updateSubscriptions(subscriptions),
       ),
@@ -818,6 +821,7 @@ export class Call {
   updateSubscriptionsPartial = (
     kind: 'video' | 'screen',
     changes: SubscriptionChanges,
+    type: DebounceType = DebounceType.SLOW,
   ) => {
     const participants = this.state.updateParticipants(
       Object.entries(changes).reduce<StreamVideoParticipantPatches>(
@@ -840,11 +844,14 @@ export class Call {
     );
 
     if (participants) {
-      this.updateSubscriptions(participants);
+      this.updateSubscriptions(participants, type);
     }
   };
 
-  private updateSubscriptions = (participants: StreamVideoParticipant[]) => {
+  private updateSubscriptions = (
+    participants: StreamVideoParticipant[],
+    type: DebounceType = DebounceType.SLOW,
+  ) => {
     const subscriptions: TrackSubscriptionDetails[] = [];
     participants.forEach((p) => {
       if (p.isLoggedInUser) return;
@@ -876,7 +883,7 @@ export class Call {
       }
     });
     // schedule update
-    this.trackSubscriptionsSubject.next(subscriptions);
+    this.trackSubscriptionsSubject.next({ type, data: subscriptions });
   };
 
   /**

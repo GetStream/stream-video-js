@@ -15,6 +15,12 @@ export enum VisibilityState {
   INVISIBLE = 'INVISIBLE',
 }
 
+export enum DebounceType {
+  IMMEDIATE = 0,
+  MEDIUM = 600,
+  SLOW = 1200,
+}
+
 export interface StreamVideoParticipant extends Participant {
   /**
    * The participant's audio stream, if they are publishing audio and
