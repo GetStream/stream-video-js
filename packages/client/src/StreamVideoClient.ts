@@ -3,9 +3,6 @@ import {
   StreamVideoWriteableStateStore,
 } from './store';
 import {
-  GetOrCreateCallRequest,
-  GetOrCreateCallResponse,
-  JoinCallRequest,
   QueryCallsRequest,
   QueryCallsResponse,
   SortParamRequest,
@@ -207,70 +204,7 @@ export class StreamVideoClient {
     return this.streamClient.off(event, callback);
   };
 
-  /**
-   * Allows you to create new calls with the given parameters.
-   * If a call with the same combination of type and id already exists, it will be returned.
-   *
-   * Causes the CallCreated event to be emitted to all the call members in case this call didnot exist before.
-   *
-   * @param id the id of the call.
-   * @param type the type of the call.
-   * @param data the data for the call.
-   * @returns A call metadata with information about the call.
-   */
-  getOrCreateCall = async (
-    id: string,
-    type: string,
-    data?: GetOrCreateCallRequest,
-  ) => {
-    const response = await this.streamClient.post<GetOrCreateCallResponse>(
-      `/call/${type}/${id}`,
-      data,
-    );
-    const { call, members } = response;
-    if (!call) {
-      console.log(`Call with id ${id} and type ${type} could not be created`);
-      return;
-    }
-
-    const currentPendingCalls = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.pendingCallsSubject,
-    );
-    const callAlreadyRegistered = currentPendingCalls.find(
-      (pendingCall) => pendingCall.id === call.id,
-    );
-
-    const callController = new Call({
-      httpClient: this.streamClient,
-      type: call.type,
-      id: call.id,
-      metadata: call,
-      members,
-      clientStore: this.writeableStateStore,
-    });
-
-    if (!callAlreadyRegistered) {
-      this.writeableStateStore.setCurrentValue(
-        this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => [...pendingCalls, callController],
-      );
-      return callController;
-    } else {
-      // TODO: handle error?
-      return undefined;
-    }
-  };
-
-  /**
-   * Allows you to create a new call with the given parameters and joins the call immediately.
-   * If a call with the same combination of `type` and `id` already exists, it will join the existing call.
-   *
-   * @param id the id of the call.
-   * @param type the type of the call.
-   * @param data the data for the call.
-   * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
-   */
-  joinCall = async (id: string, type: string, data?: JoinCallRequest) => {
+  call(type: string, id: string) {
     const call = new Call({
       httpClient: this.streamClient,
       id,
@@ -278,43 +212,8 @@ export class StreamVideoClient {
       clientStore: this.writeableStateStore,
     });
 
-    await call.join(data);
-
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.activeCallSubject,
-      call,
-    );
-
     return call;
-  };
-
-  /**
-   * Allows you to create a new call with the given parameters and watch the call. If you watch a call you'll be notified about WebSocket events, but you won't be able to publish your audio and video, and you won't be able to see and hear others. You won't show up in the list of joined participants.
-   *
-   * If a call with the same combination of `type` and `id` already exists, it will watch the existing call.
-   *
-   * @param id the id of the call.
-   * @param type the type of the call.
-   * @param data the data for the call.
-   * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
-   */
-  watchCall = async (id: string, type: string, data?: JoinCallRequest) => {
-    const call = new Call({
-      httpClient: this.streamClient,
-      id,
-      type,
-      clientStore: this.writeableStateStore,
-    });
-
-    await call.watch(data);
-
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.activeCallSubject,
-      call,
-    );
-
-    return call;
-  };
+  }
 
   queryCalls = async (
     filterConditions: { [key: string]: any },

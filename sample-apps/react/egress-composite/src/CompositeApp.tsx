@@ -31,14 +31,13 @@ export const CompositeApp = () => {
   useEffect(() => {
     if (!client) return;
     let joinInterrupted = false;
-    const currentCall = client
-      .joinCall(config.callId, config.callType)
-      .then((call) => {
-        if (!joinInterrupted) {
-          setActiveCall(call);
-        }
-        return call;
-      });
+    const call = client.call(config.callId, config.callType);
+    const currentCall = call.join().then(() => {
+      if (!joinInterrupted) {
+        setActiveCall(call);
+      }
+      return call;
+    });
     return () => {
       joinInterrupted = true;
       currentCall.then((call) => {

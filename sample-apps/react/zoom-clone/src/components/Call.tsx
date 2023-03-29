@@ -16,10 +16,11 @@ export const Call = () => {
   const activeCall = useActiveCall();
 
   useEffect(() => {
-    const joining = client?.joinCall(callId as string, 'default');
+    const call = client?.call(callId as string, 'default');
+    const joining = call?.join();
 
     return () => {
-      joining?.then((call) => call?.leave());
+      joining?.then(() => call?.leave());
     };
   }, [callId, client]);
 

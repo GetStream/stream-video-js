@@ -82,9 +82,9 @@ export const CallCycleProvider = (
       }
       try {
         if (outgoingCall && client.callConfig.joinCallInstantly) {
-          client.joinCall(outgoingCall.id, outgoingCall.type);
+          client.call(outgoingCall.id, outgoingCall.type).join();
         } else if (acceptedCall && !client.callConfig.joinCallInstantly) {
-          client.joinCall(outgoingCall.id, outgoingCall.type);
+          client.call(outgoingCall.id, outgoingCall.type).join();
         }
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);

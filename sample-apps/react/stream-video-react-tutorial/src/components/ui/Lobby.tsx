@@ -47,10 +47,9 @@ const StartNewCallButton = () => {
   const startMeeting = useCallback(async () => {
     setLoading(true);
     try {
-      await videoClient.joinCall(
-        String(Math.round(Math.random() * 100000000)),
-        'default',
-      );
+      await videoClient
+        .call(String(Math.round(Math.random() * 100000000)), 'default')
+        .join();
     } catch (e) {
       console.error(e);
     } finally {
@@ -75,7 +74,7 @@ const JoinExistingCallForm = () => {
       event.preventDefault();
       setLoading(true);
       try {
-        await videoClient.joinCall(joinCallId, 'default');
+        await videoClient.call(joinCallId, 'default').join();
       } catch (e) {
         console.error(e);
       } finally {

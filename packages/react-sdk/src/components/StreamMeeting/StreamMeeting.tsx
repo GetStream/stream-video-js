@@ -25,7 +25,7 @@ export const StreamMeeting = ({
   useEffect(() => {
     if (!client) return;
     const initiateMeeting = async () => {
-      await client.joinCall(callId, callType, input);
+      await client.call(callId, callType).join(input);
     };
 
     initiateMeeting().catch((e) => {

@@ -379,6 +379,11 @@ export class Call {
         })),
       );
 
+      this.clientStore.setCurrentValue(
+        this.clientStore.activeCallSubject,
+        this,
+      );
+
       sfuClient.keepAlive();
       this.joined$.next(true);
     });
@@ -880,11 +885,36 @@ export class Call {
   };
 
   get = async () => {
-    return this.httpClient.get<GetCallResponse>(this.basePath);
+    const response = await this.httpClient.get<GetCallResponse>(this.basePath);
+    this.state.setCurrentValue(this.state.metadataSubject, response.call);
+    this.state.setCurrentValue(this.state.membersSubject, response.members);
+
+    return response;
   };
 
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
-    return this.httpClient.post<GetOrCreateCallResponse>(this.basePath, data);
+    const response = await this.httpClient.post<GetOrCreateCallResponse>(
+      this.basePath,
+      data,
+    );
+    this.state.setCurrentValue(this.state.metadataSubject, response.call);
+    this.state.setCurrentValue(this.state.membersSubject, response.members);
+
+    const currentPendingCalls = this.clientStore.getCurrentValue(
+      this.clientStore.pendingCallsSubject,
+    );
+    const callAlreadyRegistered = currentPendingCalls.find(
+      (pendingCall) => pendingCall.id === this.id,
+    );
+
+    if (!callAlreadyRegistered) {
+      this.clientStore.setCurrentValue(
+        this.clientStore.pendingCallsSubject,
+        (pendingCalls) => [...pendingCalls, this],
+      );
+    }
+
+    return response;
   };
 
   /**
