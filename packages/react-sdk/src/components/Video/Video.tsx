@@ -79,30 +79,6 @@ export const Video = (
   ]);
 
   useEffect(() => {
-    if (!videoElement) return;
-
-    const unobserve = call.viewportTracker.observe(videoElement, (entry) => {
-      call.state.updateParticipant(sessionId, (p) => ({
-        ...p,
-        viewportVisibilityState: entry.isIntersecting
-          ? VisibilityState.VISIBLE
-          : VisibilityState.INVISIBLE,
-      }));
-    });
-
-    return () => {
-      unobserve();
-      // reset visibility state to UNKNOWN upon cleanup
-      // so that the layouts that are not actively observed
-      // can still function normally (runtime layout switching)
-      call.state.updateParticipant(sessionId, (p) => ({
-        ...p,
-        viewportVisibilityState: VisibilityState.UNKNOWN,
-      }));
-    };
-  }, [videoElement, call.viewportTracker, call.state, sessionId]);
-
-  useEffect(() => {
     updateSubscription();
   }, [updateSubscription]);
 
@@ -145,7 +121,11 @@ export const Video = (
     };
   }, [stream, videoElement]);
 
-  if (!isPublishingTrack)
+  if (
+    !isPublishingTrack ||
+    (participant.viewportVisibilityState === VisibilityState.INVISIBLE &&
+      !screenShareStream)
+  )
     return (
       <VideoPlaceholder
         imageSrc={participant.image}

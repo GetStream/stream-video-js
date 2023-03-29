@@ -46,6 +46,7 @@
     flex: 1 1;
     overflow-y: auto;
     scrollbar-width: none;
+    width: 100%;
     &::-webkit-scrollbar {
       display: none;
     }
