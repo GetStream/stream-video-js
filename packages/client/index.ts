@@ -18,6 +18,7 @@ export * from './src/StreamSfuClient';
 export * from './src/devices';
 export * from './src/store';
 export * from './src/sorting';
+export * from './src/ViewportTracker';
 
 export * from './src/config/defaultConfigs';
 
