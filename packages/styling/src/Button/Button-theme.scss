@@ -189,5 +189,10 @@
       mask-image: var(--str-video__icon--ellipsis);
       -webkit-mask-image: var(--str-video__icon--ellipsis);
     }
+
+    &-grid {
+      mask-image: var(--str-video__icon--grid);
+      -webkit-mask-image: var(--str-video__icon--grid);
+    }
   }
 }
