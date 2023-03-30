@@ -38,6 +38,7 @@ export const watchCallCreated = (
         id: call.id,
         metadata: call,
         members,
+        clientStore: store,
       }),
     ]);
   };

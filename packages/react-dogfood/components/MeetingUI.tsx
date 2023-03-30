@@ -6,8 +6,10 @@ import {
   CallStatsButton,
   CancelCallButton,
   CompositeButton,
+  defaultSortPreset,
   IconButton,
   LoadingIndicator,
+  noopComparator,
   ReactionsButton,
   RecordCallButton,
   ScreenShareButton,
@@ -86,26 +88,52 @@ export const MeetingUI = ({
   }, [callId, callType, client]);
 
   const onLeave = useCallback(async () => {
-    if (!client) return;
     setShow('loading');
     try {
-      await client.cancelCall(callId, callType);
+      await activeCall?.cancel();
       await router.push('/');
     } catch (e) {
       console.error(e);
       setShow('error-leave');
     }
-  }, [client, callType, callId, router]);
+  }, [activeCall, router]);
 
   useEffect(() => {
     const handlePageLeave = async () => {
-      await client?.cancelCall(callId, callType);
+      await activeCall?.cancel();
     };
     router.events.on('routeChangeStart', handlePageLeave);
     return () => {
       router.events.off('routeChangeStart', handlePageLeave);
     };
-  }, [callId, callType, client, router.events]);
+  }, [activeCall, router.events]);
+
+  useEffect(() => {
+    if (!activeCall) return;
+
+    const subscription = activeCall.state.hasOngoingScreenShare$.subscribe(
+      (hasScreenShare) => {
+        // enable sorting if screen share is active or,
+        // if sorting is enabled via query param
+        if (hasScreenShare || router.query['enableSorting'] === 'true') {
+          activeCall.setSortParticipantsBy(defaultSortPreset);
+        } else {
+          activeCall.setSortParticipantsBy(noopComparator());
+        }
+      },
+    );
+
+    // enable sorting via query param feature flag is provided
+    if (router.query['enableSorting'] === 'true') {
+      activeCall.setSortParticipantsBy(defaultSortPreset);
+    } else {
+      activeCall.setSortParticipantsBy(noopComparator());
+    }
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  });
 
   if (show === 'error-join' || show === 'error-leave') {
     return (

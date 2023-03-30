@@ -5,9 +5,7 @@ import {
 import {
   GetOrCreateCallRequest,
   JoinCallRequest,
-  RequestPermissionRequest,
   SortParamRequest,
-  UpdateUserPermissionsRequest,
 } from './gen/coordinator';
 import { Call } from './rtc/Call';
 
@@ -87,8 +85,6 @@ export class StreamVideoClient {
     this.callDropScheduler = new CallDropScheduler(
       this.writeableStateStore,
       this.callConfig,
-      this.rejectCall,
-      this.cancelCall,
     );
 
     this.on(
@@ -229,109 +225,24 @@ export class StreamVideoClient {
       (pendingCall) => pendingCall.id === call.id,
     );
 
+    const callController = new Call({
+      httpClient: this.coordinatorClient,
+      type: call.type,
+      id: call.id,
+      metadata: call,
+      members,
+      clientStore: this.writeableStateStore,
+    });
+
     if (!callAlreadyRegistered) {
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => [
-          ...pendingCalls,
-          new Call({
-            httpClient: this.coordinatorClient,
-            type: call.type,
-            id: call.id,
-            metadata: call,
-            members,
-          }),
-        ],
+        (pendingCalls) => [...pendingCalls, callController],
       );
-      return response;
+      return callController;
     } else {
       // TODO: handle error?
       return undefined;
-    }
-  };
-
-  /**
-   * Signals other users that I have accepted the incoming call.
-   * Causes the `CallAccepted` event to be emitted to all the call members.
-   * @param callId
-   * @param callType
-   * @returns
-   */
-  acceptCall = async (callId: string, callType: string) => {
-    const callToAccept = this.writeableStateStore
-      .getCurrentValue(this.writeableStateStore.pendingCallsSubject)
-      .find((c) => c.id === callId && c.type === callType);
-
-    if (callToAccept) {
-      await this.coordinatorClient.sendEvent(callId, callType, {
-        type: 'call.accepted',
-      });
-
-      // remove the accepted call from the "pending calls" list.
-      this.writeableStateStore.setCurrentValue(
-        this.writeableStateStore.pendingCallsSubject,
-        (pendingCalls) => pendingCalls.filter((c) => c !== callToAccept),
-      );
-
-      await callToAccept.join();
-      // FIXME OL: temporary. Remove this later.
-      this.writeableStateStore.setCurrentValue(
-        this.writeableStateStore.activeCallSubject,
-        callToAccept,
-      );
-    }
-  };
-
-  /**
-   * Signals other users that I have rejected the incoming call.
-   * Causes the `CallRejected` event to be emitted to all the call members.
-   * @param callId
-   * @param callType
-   * @returns
-   */
-  rejectCall = async (callId: string, callType: string) => {
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.pendingCallsSubject,
-      (pendingCalls) =>
-        pendingCalls.filter((incomingCall) => incomingCall.id !== callId),
-    );
-    await this.coordinatorClient.sendEvent(callId, callType, {
-      type: 'call.rejected',
-    });
-  };
-
-  /**
-   * Signals other users that I have cancelled my call to them before they accepted it.
-   * Causes the CallCancelled event to be emitted to all the call members.
-   *
-   * Cancelling a call is only possible before the local participant joined the call.
-   * @param callId
-   * @param callType
-   * @returns
-   */
-  cancelCall = async (callId: string, callType: string) => {
-    const store = this.writeableStateStore;
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
-    const leavingActiveCall =
-      activeCall?.id === callId && activeCall.type === callType;
-    if (leavingActiveCall) {
-      activeCall.leave();
-    } else {
-      store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
-        pendingCalls.filter((pendingCall) => pendingCall.id !== callId),
-      );
-    }
-
-    if (activeCall) {
-      const state = activeCall.state;
-      const remoteParticipants = state.getCurrentValue(
-        state.remoteParticipants$,
-      );
-      if (!remoteParticipants.length && !leavingActiveCall) {
-        await this.coordinatorClient.sendEvent(callId, callType, {
-          type: 'call.cancelled',
-        });
-      }
     }
   };
 
@@ -349,6 +260,7 @@ export class StreamVideoClient {
       httpClient: this.coordinatorClient,
       id,
       type,
+      clientStore: this.writeableStateStore,
     });
 
     await call.join(data);
@@ -362,16 +274,31 @@ export class StreamVideoClient {
   };
 
   /**
-   * Starts recording for the call described by the given `callId` and `callType`.
-   * @param callId can be extracted from a [`Call` instance](./Call.md/#data)
-   * @param callType can be extracted from a [`Call` instance](./Call.md/#data)
+   * Allows you to create a new call with the given parameters and watch the call. If you watch a call you'll be notified about WebSocket events, but you won't be able to publish your audio and video, and you won't be able to see and hear others. You won't show up in the list of joined participants.
+   *
+   * If a call with the same combination of `type` and `id` already exists, it will watch the existing call.
+   *
+   * @param id the id of the call.
+   * @param type the type of the call.
+   * @param data the data for the call.
+   * @returns A [`Call`](./Call.md) instance that can be used to interact with the call.
    */
-  startRecording = async (callId: string, callType: string) => {
-    try {
-      return await this.coordinatorClient.startRecording(callId, callType);
-    } catch (error) {
-      console.log(`Failed to start recording`, error);
-    }
+  watchCall = async (id: string, type: string, data?: JoinCallRequest) => {
+    const call = new Call({
+      httpClient: this.coordinatorClient,
+      id,
+      type,
+      clientStore: this.writeableStateStore,
+    });
+
+    await call.watch(data);
+
+    this.writeableStateStore.setCurrentValue(
+      this.writeableStateStore.activeCallSubject,
+      call,
+    );
+
+    return call;
   };
 
   queryCalls = async (
@@ -379,79 +306,33 @@ export class StreamVideoClient {
     sort: Array<SortParamRequest>,
     limit?: number,
     next?: string,
+    watch?: boolean,
   ) => {
-    return await this.coordinatorClient.queryCalls(
-      filterConditions,
-      sort,
-      limit,
-      next,
-    );
-  };
-
-  /**
-   * Stops recording for the call described by the given `callId` and `callType`.
-   * @param callId can be extracted from a [`Call` instance](./Call.md/#data)
-   * @param callType can be extracted from a [`Call` instance](./Call.md/#data)
-   */
-  stopRecording = async (callId: string, callType: string) => {
     try {
-      return await this.coordinatorClient.stopRecording(callId, callType);
+      const response = await this.coordinatorClient.queryCalls(
+        filterConditions,
+        sort,
+        limit,
+        next,
+        watch,
+      );
+      const calls = response.calls.map(
+        (c) =>
+          new Call({
+            httpClient: this.coordinatorClient,
+            id: c.call.id,
+            type: c.call.type,
+            metadata: c.call,
+            members: c.members,
+            clientStore: this.writeableStateStore,
+          }),
+      );
+      return {
+        ...response,
+        calls: calls,
+      };
     } catch (error) {
-      console.log(`Failed to stop recording`, error);
+      throw error;
     }
-  };
-
-  /**
-   * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
-   * @param callId
-   * @param callType
-   * @param data
-   * @returns
-   */
-  requestCallPermissions = async (
-    callId: string,
-    callType: string,
-    data: RequestPermissionRequest,
-  ) => {
-    return this.coordinatorClient.requestCallPermissions(
-      callId,
-      callType,
-      data,
-    );
-  };
-
-  /**
-   * Allows you to grant or revoke a specific permission to a user in a call. The permissions are specific to the call experience and do not survive the call itself.
-   *
-   * When revoking a permission, this endpoint will also mute the relevant track from the user. This is similar to muting a user with the difference that the user will not be able to unmute afterwards.
-   *
-   * Supported permissions that can be granted or revoked: `send-audio`, `send-video` and `screenshare`.
-   *
-   * `call.permissions_updated` event is sent to all members of the call.
-   *
-   * @param callId
-   * @param callType
-   * @param data
-   * @returns
-   */
-  updateUserPermissions = async (
-    callId: string,
-    callType: string,
-    data: UpdateUserPermissionsRequest,
-  ) => {
-    return this.coordinatorClient.updateUserPermissions(callId, callType, data);
-  };
-
-  /**
-   * Sets the `participant.isPinned` value.
-   * @param sessionId the session id of the participant
-   * @param isPinned the value to set the participant.isPinned
-   * @returns
-   */
-  setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
-    // FIXME OL: move to Call
-    // this.writeableStateStore.updateParticipant(sessionId, {
-    //   isPinned,
-    // });
   };
 }

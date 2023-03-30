@@ -14,6 +14,7 @@ import {
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
   GetCallTypeResponse,
+  GetCallResponse,
   GetEdgesResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
@@ -92,6 +93,10 @@ export class StreamCall {
       mute_all_users: true,
       [type]: true,
     });
+  };
+
+  get = async () => {
+    return this.client.get<GetCallResponse>(this.basePath);
   };
 
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
@@ -252,13 +257,18 @@ export class StreamCoordinatorClient {
     sort: Array<SortParamRequest>,
     limit?: number,
     next?: string,
+    watch?: boolean,
   ) => {
     const data: QueryCallsRequest = {
       filter_conditions: filterConditions,
       sort: sort,
       limit: limit,
       next: next,
+      watch,
     };
+    if (data.watch) {
+      await this.client.connectionIdPromise;
+    }
     return this.client.post<QueryCallsResponse>(`/calls`, data);
   };
 

@@ -3,7 +3,7 @@
  */
 export const isSafari = () => {
   if (typeof navigator === 'undefined') return false;
-  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent || '');
 };
 
 /**
@@ -11,7 +11,7 @@ export const isSafari = () => {
  */
 export const isFirefox = () => {
   if (typeof navigator === 'undefined') return false;
-  return navigator.userAgent.includes('Firefox');
+  return navigator.userAgent?.includes('Firefox');
 };
 
 /**
@@ -19,5 +19,5 @@ export const isFirefox = () => {
  */
 export const isChrome = () => {
   if (typeof navigator === 'undefined') return false;
-  return navigator.userAgent.includes('Chrome');
+  return navigator.userAgent?.includes('Chrome');
 };

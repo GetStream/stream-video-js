@@ -96,6 +96,31 @@ export interface AudioSettings {
 /**
  *
  * @export
+ * @interface AudioSettingsRequest
+ */
+export interface AudioSettingsRequest {
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettingsRequest
+   */
+  access_request_enabled?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettingsRequest
+   */
+  opus_dtx_enabled?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettingsRequest
+   */
+  redundant_coding_enabled?: boolean;
+}
+/**
+ *
+ * @export
  * @interface BackstageSettings
  */
 export interface BackstageSettings {
@@ -105,6 +130,19 @@ export interface BackstageSettings {
    * @memberof BackstageSettings
    */
   enabled: boolean;
+}
+/**
+ *
+ * @export
+ * @interface BackstageSettingsRequest
+ */
+export interface BackstageSettingsRequest {
+  /**
+   *
+   * @type {boolean}
+   * @memberof BackstageSettingsRequest
+   */
+  enabled?: boolean;
 }
 /**
  *
@@ -621,6 +659,18 @@ export interface CallResponse {
 export interface CallSettingsRequest {
   /**
    *
+   * @type {AudioSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  audio?: AudioSettingsRequest;
+  /**
+   *
+   * @type {BackstageSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  backstage?: BackstageSettingsRequest;
+  /**
+   *
    * @type {GeofenceSettingsRequest}
    * @memberof CallSettingsRequest
    */
@@ -633,10 +683,22 @@ export interface CallSettingsRequest {
   recording?: RecordSettingsRequest;
   /**
    *
+   * @type {RingSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  ring?: RingSettingsRequest;
+  /**
+   *
    * @type {ScreensharingSettingsRequest}
    * @memberof CallSettingsRequest
    */
   screensharing?: ScreensharingSettingsRequest;
+  /**
+   *
+   * @type {TranscriptionSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  transcription?: TranscriptionSettingsRequest;
   /**
    *
    * @type {VideoSettingsRequest}
@@ -682,10 +744,22 @@ export interface CallSettingsResponse {
   recording: RecordSettings;
   /**
    *
+   * @type {RingSettings}
+   * @memberof CallSettingsResponse
+   */
+  ring: RingSettings;
+  /**
+   *
    * @type {ScreensharingSettings}
    * @memberof CallSettingsResponse
    */
   screensharing: ScreensharingSettings;
+  /**
+   *
+   * @type {TranscriptionSettings}
+   * @memberof CallSettingsResponse
+   */
+  transcription: TranscriptionSettings;
   /**
    *
    * @type {VideoSettings}
@@ -791,6 +865,37 @@ export interface CallUpdatedEvent {
    * @memberof CallUpdatedEvent
    */
   type: string;
+}
+/**
+ *
+ * @export
+ * @interface ConnectUserDetailsRequest
+ */
+export interface ConnectUserDetailsRequest {
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof ConnectUserDetailsRequest
+   */
+  custom?: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectUserDetailsRequest
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectUserDetailsRequest
+   */
+  image?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectUserDetailsRequest
+   */
+  name?: string;
 }
 /**
  *
@@ -1018,6 +1123,44 @@ export interface Device {
 /**
  *
  * @export
+ * @interface DeviceFieldsRequest
+ */
+export interface DeviceFieldsRequest {
+  /**
+   * Device ID
+   * @type {string}
+   * @memberof DeviceFieldsRequest
+   */
+  id?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof DeviceFieldsRequest
+   */
+  push_provider?: DeviceFieldsRequestPushProviderEnum;
+  /**
+   * Name of the push provider configuration
+   * @type {string}
+   * @memberof DeviceFieldsRequest
+   */
+  push_provider_name?: string;
+}
+
+/**
+ * @export
+ */
+export const DeviceFieldsRequestPushProviderEnum = {
+  firebase: 'firebase',
+  apn: 'apn',
+  huawei: 'huawei',
+  xiaomi: 'xiaomi',
+} as const;
+export type DeviceFieldsRequestPushProviderEnum =
+  (typeof DeviceFieldsRequestPushProviderEnum)[keyof typeof DeviceFieldsRequestPushProviderEnum];
+
+/**
+ *
+ * @export
  * @interface EdgeResponse
  */
 export interface EdgeResponse {
@@ -1180,6 +1323,43 @@ export interface GetCallEdgeServerResponse {
 /**
  *
  * @export
+ * @interface GetCallResponse
+ */
+export interface GetCallResponse {
+  /**
+   *
+   * @type {Array<UserResponse>}
+   * @memberof GetCallResponse
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof GetCallResponse
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {Array<MemberResponse>}
+   * @memberof GetCallResponse
+   */
+  members: Array<MemberResponse>;
+  /**
+   *
+   * @type {MemberResponse}
+   * @memberof GetCallResponse
+   */
+  membership?: MemberResponse;
+}
+/**
+ *
+ * @export
  * @interface GetCallTypeResponse
  */
 export interface GetCallTypeResponse {
@@ -1258,7 +1438,7 @@ export interface GetOrCreateCallRequest {
    */
   members?: PaginationParamsRequest;
   /**
-   *
+   * if provided it overrides the default ring setting for this call
    * @type {boolean}
    * @memberof GetOrCreateCallRequest
    */
@@ -1673,25 +1853,25 @@ export interface MuteUsersResponse {
  * @export
  */
 export const OwnCapability = {
-  update_call_permissions: 'update-call-permissions',
   block_users: 'block-users',
-  create_reaction: 'create-reaction',
-  read_call: 'read-call',
-  join_ended_call: 'join-ended-call',
-  screenshare: 'screenshare',
-  stop_record_call: 'stop-record-call',
-  end_call: 'end-call',
-  join_call: 'join-call',
-  update_call: 'update-call',
-  send_audio: 'send-audio',
-  stop_broadcast_call: 'stop-broadcast-call',
   create_call: 'create-call',
+  create_reaction: 'create-reaction',
+  end_call: 'end-call',
   join_backstage: 'join-backstage',
+  join_call: 'join-call',
+  join_ended_call: 'join-ended-call',
   mute_users: 'mute-users',
-  update_call_settings: 'update-call-settings',
+  read_call: 'read-call',
+  screenshare: 'screenshare',
+  send_audio: 'send-audio',
   send_video: 'send-video',
-  start_record_call: 'start-record-call',
   start_broadcast_call: 'start-broadcast-call',
+  start_record_call: 'start-record-call',
+  stop_broadcast_call: 'stop-broadcast-call',
+  stop_record_call: 'stop-record-call',
+  update_call: 'update-call',
+  update_call_permissions: 'update-call-permissions',
+  update_call_settings: 'update-call-settings',
 } as const;
 export type OwnCapability = (typeof OwnCapability)[keyof typeof OwnCapability];
 
@@ -2050,14 +2230,40 @@ export interface RecordSettings {
    * @type {string}
    * @memberof RecordSettings
    */
-  mode: string;
+  mode: RecordSettingsModeEnum;
   /**
    *
    * @type {string}
    * @memberof RecordSettings
    */
-  quality: string;
+  quality: RecordSettingsQualityEnum;
 }
+
+/**
+ * @export
+ */
+export const RecordSettingsModeEnum = {
+  available: 'available',
+  disabled: 'disabled',
+  auto_on: 'auto-on',
+} as const;
+export type RecordSettingsModeEnum =
+  (typeof RecordSettingsModeEnum)[keyof typeof RecordSettingsModeEnum];
+
+/**
+ * @export
+ */
+export const RecordSettingsQualityEnum = {
+  audio_only: 'audio-only',
+  _360p: '360p',
+  _480p: '480p',
+  _720p: '720p',
+  _1080p: '1080p',
+  _1440p: '1440p',
+} as const;
+export type RecordSettingsQualityEnum =
+  (typeof RecordSettingsQualityEnum)[keyof typeof RecordSettingsQualityEnum];
+
 /**
  *
  * @export
@@ -2075,14 +2281,40 @@ export interface RecordSettingsRequest {
    * @type {string}
    * @memberof RecordSettingsRequest
    */
-  mode?: string;
+  mode?: RecordSettingsRequestModeEnum;
   /**
    *
    * @type {string}
    * @memberof RecordSettingsRequest
    */
-  quality?: string;
+  quality?: RecordSettingsRequestQualityEnum;
 }
+
+/**
+ * @export
+ */
+export const RecordSettingsRequestModeEnum = {
+  available: 'available',
+  disabled: 'disabled',
+  auto_on: 'auto-on',
+} as const;
+export type RecordSettingsRequestModeEnum =
+  (typeof RecordSettingsRequestModeEnum)[keyof typeof RecordSettingsRequestModeEnum];
+
+/**
+ * @export
+ */
+export const RecordSettingsRequestQualityEnum = {
+  audio_only: 'audio-only',
+  _360p: '360p',
+  _480p: '480p',
+  _720p: '720p',
+  _1080p: '1080p',
+  _1440p: '1440p',
+} as const;
+export type RecordSettingsRequestQualityEnum =
+  (typeof RecordSettingsRequestQualityEnum)[keyof typeof RecordSettingsRequestQualityEnum];
+
 /**
  *
  * @export
@@ -2108,6 +2340,56 @@ export interface RequestPermissionResponse {
    * @memberof RequestPermissionResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface RingSettings
+ */
+export interface RingSettings {
+  /**
+   *
+   * @type {number}
+   * @memberof RingSettings
+   */
+  auto_cancel_timeout_ms: number;
+  /**
+   *
+   * @type {number}
+   * @memberof RingSettings
+   */
+  auto_reject_timeout_ms: number;
+  /**
+   *
+   * @type {boolean}
+   * @memberof RingSettings
+   */
+  enabled: boolean;
+}
+/**
+ *
+ * @export
+ * @interface RingSettingsRequest
+ */
+export interface RingSettingsRequest {
+  /**
+   *
+   * @type {number}
+   * @memberof RingSettingsRequest
+   */
+  auto_cancel_timeout_ms?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof RingSettingsRequest
+   */
+  auto_reject_timeout_ms?: number;
+  /**
+   *
+   * @type {boolean}
+   * @memberof RingSettingsRequest
+   */
+  enabled?: boolean;
 }
 /**
  *
@@ -2280,6 +2562,68 @@ export interface StopLiveResponse {
    */
   duration: string;
 }
+/**
+ *
+ * @export
+ * @interface TranscriptionSettings
+ */
+export interface TranscriptionSettings {
+  /**
+   *
+   * @type {string}
+   * @memberof TranscriptionSettings
+   */
+  closed_caption_mode: string;
+  /**
+   *
+   * @type {string}
+   * @memberof TranscriptionSettings
+   */
+  mode: TranscriptionSettingsModeEnum;
+}
+
+/**
+ * @export
+ */
+export const TranscriptionSettingsModeEnum = {
+  available: 'available',
+  disabled: 'disabled',
+  auto_on: 'auto-on',
+} as const;
+export type TranscriptionSettingsModeEnum =
+  (typeof TranscriptionSettingsModeEnum)[keyof typeof TranscriptionSettingsModeEnum];
+
+/**
+ *
+ * @export
+ * @interface TranscriptionSettingsRequest
+ */
+export interface TranscriptionSettingsRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof TranscriptionSettingsRequest
+   */
+  closed_caption_mode?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof TranscriptionSettingsRequest
+   */
+  mode?: TranscriptionSettingsRequestModeEnum;
+}
+
+/**
+ * @export
+ */
+export const TranscriptionSettingsRequestModeEnum = {
+  available: 'available',
+  disabled: 'disabled',
+  auto_on: 'auto-on',
+} as const;
+export type TranscriptionSettingsRequestModeEnum =
+  (typeof TranscriptionSettingsRequestModeEnum)[keyof typeof TranscriptionSettingsRequestModeEnum];
+
 /**
  *
  * @export
@@ -2653,4 +2997,29 @@ export interface VideoSettingsRequest {
    * @memberof VideoSettingsRequest
    */
   enabled?: boolean;
+}
+/**
+ *
+ * @export
+ * @interface WSAuthMessageRequest
+ */
+export interface WSAuthMessageRequest {
+  /**
+   *
+   * @type {DeviceFieldsRequest}
+   * @memberof WSAuthMessageRequest
+   */
+  device?: DeviceFieldsRequest;
+  /**
+   *
+   * @type {string}
+   * @memberof WSAuthMessageRequest
+   */
+  token: string;
+  /**
+   *
+   * @type {ConnectUserDetailsRequest}
+   * @memberof WSAuthMessageRequest
+   */
+  user_details: ConnectUserDetailsRequest;
 }
