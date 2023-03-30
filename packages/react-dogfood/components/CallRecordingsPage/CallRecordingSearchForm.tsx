@@ -14,13 +14,8 @@ import React, {
 import { Button, Stack } from '@mui/material';
 import clsx from 'clsx';
 
-const CALL_TYPES = [
-  'default',
-  'videocall',
-  'development',
-  'audio-room',
-  'livestream',
-];
+const CALL_TYPES = ['default', 'development', 'audio-room', 'livestream'];
+
 type CallRecordingSearchFormProps = {
   setLoading: (loading: boolean) => void;
   setResult: (recordings: CallRecording[] | undefined) => void;
