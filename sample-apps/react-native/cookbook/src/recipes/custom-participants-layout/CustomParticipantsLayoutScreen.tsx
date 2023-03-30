@@ -59,15 +59,18 @@ const MyActiveCall = () => {
   usePublishStreams();
 
   useEffect(() => {
-    videoClient
-      ?.joinCall(callId.current, 'default')
-      .then(() => {
+    const startCall = async () => {
+      try {
+        // Join the call and start the call cycle.
+        await videoClient?.joinCall(callId.current, 'default');
+        // Start InCallManager and enable the speakerphone.
         InCallManager.start({media: 'video'});
         InCallManager.setForceSpeakerphoneOn(true);
-      })
-      .catch(err => {
-        console.log('Error joining call', err);
-      });
+      } catch (e) {
+        console.log('Error joining call', e);
+      }
+    };
+    startCall();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [callId.current]);
 

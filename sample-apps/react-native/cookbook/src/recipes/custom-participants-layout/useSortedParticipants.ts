@@ -10,12 +10,8 @@ import {hasAudio, hasScreenShare, hasVideo} from './utils';
  */
 export const useSortedParticipants = () => {
   const participantInSpotlight = useSpotlightParticipant();
-
-  // console.log('otherParticipants', otherParticipants);
   // we filter out the participant in spotlight if they are not sharing screen
   const allParticipants = useParticipants();
-  console.log('allParticipants', allParticipants);
-
   const participants = allParticipants.filter(p => {
     return (
       hasScreenShare(participantInSpotlight) || p !== participantInSpotlight
