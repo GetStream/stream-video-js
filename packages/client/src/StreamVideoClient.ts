@@ -213,7 +213,7 @@ export class StreamVideoClient {
 
   call(type: string, id: string) {
     const call = new Call({
-      coordinatorClient: this.streamClient,
+      streamClient: this.streamClient,
       id,
       type,
       clientStore: this.writeableStateStore,
@@ -247,7 +247,7 @@ export class StreamVideoClient {
       const calls = response.calls.map(
         (c) =>
           new Call({
-            coordinatorClient: this.streamClient,
+            streamClient: this.streamClient,
             id: c.call.id,
             type: c.call.type,
             metadata: c.call,

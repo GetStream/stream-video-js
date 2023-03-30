@@ -71,9 +71,9 @@ const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
  */
 export type CallConstructor = {
   /**
-   * The coordinatorClient instance to use.
+   * The streamClient instance to use.
    */
-  coordinatorClient: StreamClient;
+  streamClient: StreamClient;
 
   /**
    * The Call type.
@@ -153,7 +153,7 @@ export class Call {
   private statsReporter?: StatsReporter;
   private joined$ = new BehaviorSubject<boolean>(false);
 
-  private readonly coordinatorClient: StreamClient;
+  private readonly streamClient: StreamClient;
   private sfuClient?: StreamSfuClient;
   private readonly clientStore: StreamVideoWriteableStateStore;
 
@@ -186,7 +186,7 @@ export class Call {
   constructor({
     type,
     id,
-    coordinatorClient,
+    streamClient,
     metadata,
     members,
     sortParticipantsBy,
@@ -195,7 +195,7 @@ export class Call {
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
-    this.coordinatorClient = coordinatorClient;
+    this.streamClient = streamClient;
     this.clientStore = clientStore;
     this.coordinatorBasePath = `/call/${this.type}/${this.id}`;
 
@@ -285,12 +285,7 @@ export class Call {
    * @param data
    */
   watch = async (data?: JoinCallRequest) => {
-    const response = await watch(
-      this.coordinatorClient,
-      this.type,
-      this.id,
-      data,
-    );
+    const response = await watch(this.streamClient, this.type, this.id, data);
     this.state.setCurrentValue(this.state.metadataSubject, response.call);
     this.state.setCurrentValue(this.state.membersSubject, response.members);
 
@@ -307,7 +302,7 @@ export class Call {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    const call = await join(this.coordinatorClient, this.type, this.id, data);
+    const call = await join(this.streamClient, this.type, this.id, data);
     this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
     this.state.setCurrentValue(this.state.membersSubject, call.members);
 
@@ -843,14 +838,14 @@ export class Call {
   };
 
   sendReaction = async (reaction: SendReactionRequest) => {
-    return this.coordinatorClient.post<SendReactionResponse>(
+    return this.streamClient.post<SendReactionResponse>(
       `${this.coordinatorBasePath}/reaction`,
       reaction,
     );
   };
 
   blockUser = async (userId: string) => {
-    return this.coordinatorClient.post<BlockUserResponse>(
+    return this.streamClient.post<BlockUserResponse>(
       `${this.coordinatorBasePath}/block`,
       {
         user_id: userId,
@@ -859,7 +854,7 @@ export class Call {
   };
 
   unblockUser = async (userId: string) => {
-    return this.coordinatorClient.post<UnblockUserResponse>(
+    return this.streamClient.post<UnblockUserResponse>(
       `${this.coordinatorBasePath}/unblock`,
       {
         user_id: userId,
@@ -872,7 +867,7 @@ export class Call {
     type: 'audio' | 'video' | 'screenshare',
     sessionId?: string,
   ) => {
-    return this.coordinatorClient.post<MuteUsersResponse>(
+    return this.streamClient.post<MuteUsersResponse>(
       `${this.coordinatorBasePath}/mute_users`,
       {
         user_ids: [userId],
@@ -883,7 +878,7 @@ export class Call {
   };
 
   muteAllUsers = (type: 'audio' | 'video' | 'screenshare') => {
-    return this.coordinatorClient.post<MuteUsersResponse>(
+    return this.streamClient.post<MuteUsersResponse>(
       `${this.coordinatorBasePath}/mute_users`,
       {
         mute_all_users: true,
@@ -893,7 +888,7 @@ export class Call {
   };
 
   get = async () => {
-    const response = await this.coordinatorClient.get<GetCallResponse>(
+    const response = await this.streamClient.get<GetCallResponse>(
       this.coordinatorBasePath,
     );
     this.state.setCurrentValue(this.state.metadataSubject, response.call);
@@ -903,7 +898,7 @@ export class Call {
   };
 
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
-    const response = await this.coordinatorClient.post<GetOrCreateCallResponse>(
+    const response = await this.streamClient.post<GetOrCreateCallResponse>(
       this.coordinatorBasePath,
       data,
     );
@@ -932,7 +927,7 @@ export class Call {
    */
   startRecording = async () => {
     try {
-      return await this.coordinatorClient.post(
+      return await this.streamClient.post(
         `${this.coordinatorBasePath}/start_recording`,
         {},
       );
@@ -946,7 +941,7 @@ export class Call {
    */
   stopRecording = async () => {
     try {
-      return await this.coordinatorClient.post(
+      return await this.streamClient.post(
         `${this.coordinatorBasePath}/stop_recording`,
         {},
       );
@@ -959,7 +954,7 @@ export class Call {
    * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
    */
   requestPermissions = async (data: RequestPermissionRequest) => {
-    return this.coordinatorClient.post<RequestPermissionResponse>(
+    return this.streamClient.post<RequestPermissionResponse>(
       `${this.coordinatorBasePath}/request_permission`,
       data,
     );
@@ -976,21 +971,21 @@ export class Call {
    *
    */
   updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
-    return this.coordinatorClient.post<UpdateUserPermissionsResponse>(
+    return this.streamClient.post<UpdateUserPermissionsResponse>(
       `${this.coordinatorBasePath}/user_permissions`,
       data,
     );
   };
 
   goLive = async () => {
-    return this.coordinatorClient.post<GoLiveResponse>(
+    return this.streamClient.post<GoLiveResponse>(
       `${this.coordinatorBasePath}/go_live`,
       {},
     );
   };
 
   stopLive = async () => {
-    return this.coordinatorClient.post<StopLiveResponse>(
+    return this.streamClient.post<StopLiveResponse>(
       `${this.coordinatorBasePath}/stop_live`,
       {},
     );
@@ -1004,14 +999,14 @@ export class Call {
       custom: custom,
       settings_override: settings,
     };
-    return this.coordinatorClient.patch<UpdateCallResponse>(
+    return this.streamClient.patch<UpdateCallResponse>(
       `${this.coordinatorBasePath}`,
       payload,
     );
   };
 
   endCall = async () => {
-    return this.coordinatorClient.post<EndCallResponse>(
+    return this.streamClient.post<EndCallResponse>(
       `${this.coordinatorBasePath}/mark_ended`,
     );
   };
@@ -1039,7 +1034,7 @@ export class Call {
       .find((c) => c.id === this.id && c.type === this.type);
 
     if (callToAccept) {
-      await this.coordinatorClient.post(`${this.coordinatorBasePath}/event`, {
+      await this.streamClient.post(`${this.coordinatorBasePath}/event`, {
         type: 'call.accepted',
       });
 
@@ -1068,7 +1063,7 @@ export class Call {
       (pendingCalls) =>
         pendingCalls.filter((incomingCall) => incomingCall.id !== this.id),
     );
-    await this.coordinatorClient.post(`${this.coordinatorBasePath}/event`, {
+    await this.streamClient.post(`${this.coordinatorBasePath}/event`, {
       type: 'call.rejected',
     });
   };
@@ -1100,7 +1095,7 @@ export class Call {
         state.remoteParticipants$,
       );
       if (!remoteParticipants.length && !leavingActiveCall) {
-        await this.coordinatorClient.post(`${this.coordinatorBasePath}/event`, {
+        await this.streamClient.post(`${this.coordinatorBasePath}/event`, {
           type: 'call.cancelled',
         });
       }
@@ -1127,16 +1122,13 @@ export class Call {
   };
 
   getEdgeServer = (data: GetCallEdgeServerRequest) => {
-    return this.coordinatorClient.post<GetCallEdgeServerResponse>(
+    return this.streamClient.post<GetCallEdgeServerResponse>(
       `${this.coordinatorBasePath}/get_edge_server`,
       data,
     );
   };
 
   sendEvent = async (event: SendEventRequest) => {
-    return this.coordinatorClient.post(
-      `${this.coordinatorBasePath}/event`,
-      event,
-    );
+    return this.streamClient.post(`${this.coordinatorBasePath}/event`, event);
   };
 }
