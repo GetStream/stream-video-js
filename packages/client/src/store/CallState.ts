@@ -184,7 +184,7 @@ export class CallState {
     this.sortParticipantsBy = sortParticipantsBy;
 
     this.participants$ = this.participantsSubject.pipe(
-      map((ps) => [...ps].sort(this.sortParticipantsBy)),
+      map((ps) => ps.sort(this.sortParticipantsBy)),
     );
 
     this.localParticipant$ = this.participants$.pipe(
