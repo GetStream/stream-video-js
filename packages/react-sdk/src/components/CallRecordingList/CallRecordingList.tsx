@@ -1,4 +1,4 @@
-import React from 'react';
+import { ComponentType } from 'react';
 import { CallRecording } from '@stream-io/video-client';
 
 import {
@@ -10,16 +10,24 @@ import {
   CallRecordingListItemProps,
 } from './CallRecordingListItem';
 import { EmptyCallRecordingList as DefaultEmptyCallRecordingList } from './EmptyCallRecordingList';
+import {
+  LoadingCallRecordingList as DefaultLoadingCallRecordingList,
+  LoadingCallRecordingListProps,
+} from './LoadingCallRecordingList';
 
-type CallRecordingListProps = {
+export type CallRecordingListProps = {
   /** Array of CallRecording objects */
   callRecordings: CallRecording[];
   /** Custom component to replace the default header implementation */
-  CallRecordingListHeader?: React.ComponentType<CallRecordingListHeaderProps>;
+  CallRecordingListHeader?: ComponentType<CallRecordingListHeaderProps>;
   /** Custom component to replace the default list item implementation */
-  CallRecordingListItem?: React.ComponentType<CallRecordingListItemProps>;
+  CallRecordingListItem?: ComponentType<CallRecordingListItemProps>;
   /** Custom component to replace the default empty list component implementation */
-  EmptyCallRecordingList?: React.ComponentType;
+  EmptyCallRecordingList?: ComponentType;
+  /** Indicator that a request for new list of CallRecording object has been initiated */
+  loading?: boolean;
+  /** */
+  LoadingCallRecordingList?: ComponentType<LoadingCallRecordingListProps>;
 };
 
 export const CallRecordingList = ({
@@ -27,17 +35,23 @@ export const CallRecordingList = ({
   CallRecordingListHeader = DefaultCallRecordingListHeader,
   CallRecordingListItem = DefaultCallRecordingListItem,
   EmptyCallRecordingList = DefaultEmptyCallRecordingList,
+  loading,
+  LoadingCallRecordingList = DefaultLoadingCallRecordingList,
 }: CallRecordingListProps) => {
   return callRecordings.length ? (
     <div className="str-video__call-recording-list">
       <CallRecordingListHeader callRecordings={callRecordings} />
       <div className="str-video__call-recording-list__listing">
-        {callRecordings.map((recording) => (
-          <CallRecordingListItem
-            recording={recording}
-            key={recording.filename}
-          />
-        ))}
+        {loading ? (
+          <LoadingCallRecordingList callRecordings={callRecordings} />
+        ) : (
+          callRecordings.map((recording) => (
+            <CallRecordingListItem
+              recording={recording}
+              key={recording.filename}
+            />
+          ))
+        )}
       </div>
     </div>
   ) : (

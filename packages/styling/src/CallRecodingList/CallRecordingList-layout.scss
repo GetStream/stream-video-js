@@ -32,8 +32,9 @@
 }
 
 .str-video__call-recording-list__listing {
-  padding: 0.5rem;
+  padding-inline: 0.5rem;
   max-height: 400px;
+  overflow-y: auto;
 
   &.str-video__call-recording-list__listing--empty {
     display: flex;
@@ -59,6 +60,7 @@
   justify-content: space-between;
   overflow: hidden;
   width: 100%;
+  padding-block: 0.125rem;
 
   .str-video__call-recording-list-item__info {
     display: flex;
@@ -86,6 +88,25 @@
           height: 1.25rem;
         }
       }
+    }
+  }
+}
+
+.str-video__call-recording-list__listing {
+  .str-video__loading-indicator {
+      padding-block: 0.5rem;
+      flex-direction: row;
+      justify-content: flex-start;
+      gap: 0.5rem;
+
+    .str-video__loading-indicator__icon.spinner {
+      height: 1rem;
+      width: 1rem;
+      mask-size: 1rem;
+    }
+
+    .str-video__loading-indicator-text {
+      @include utils.ellipsis-text;
     }
   }
 }

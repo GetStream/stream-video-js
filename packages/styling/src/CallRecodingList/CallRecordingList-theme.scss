@@ -81,3 +81,12 @@
 }
 
 
+.str-video__call-recording-list__listing {
+  .str-video__loading-indicator {
+    .str-video__loading-indicator-text {
+      font: var(--str-video__caption-text);
+    }
+  }
+}
+
+
