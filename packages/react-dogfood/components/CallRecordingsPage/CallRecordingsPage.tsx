@@ -4,26 +4,18 @@ import {
   LoadingIndicator,
   StreamVideo,
   useCreateStreamVideoClient,
-  User,
 } from '@stream-io/video-react-sdk';
 import React, { useState } from 'react';
 import { Box } from '@mui/material';
 import { CallRecordingSearchForm } from './CallRecordingSearchForm';
 import { LobbyHeader } from '../LobbyHeader';
-
-export type CallRecordingsPageProps = {
-  user: User;
-  userToken: string;
-  apiKey: string;
-  gleapApiKey?: string;
-};
+import { ServerSideCredentialsProps } from '../../lib/getServerSideCredentialsProps';
 
 export const CallRecordingsPage = ({
   apiKey,
-  gleapApiKey,
   user,
   userToken,
-}: CallRecordingsPageProps) => {
+}: ServerSideCredentialsProps) => {
   const videoClient = useCreateStreamVideoClient({
     apiKey,
     tokenOrProvider: userToken,
