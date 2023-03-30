@@ -1,4 +1,4 @@
-const DEFAULT_THRESHOLD = 0.15;
+const DEFAULT_THRESHOLD = 0.35;
 
 export type EntryHandler = (entry: IntersectionObserverEntry) => void;
 

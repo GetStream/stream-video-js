@@ -45,6 +45,7 @@ import {
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
 import { ViewportTracker } from '../ViewportTracker';
+import { CallTypes } from './CallType';
 
 const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
 
@@ -178,7 +179,10 @@ export class Call {
     this.httpClient = httpClient;
     this.clientStore = clientStore;
 
-    this.state = new CallState(sortParticipantsBy);
+    const callTypeConfig = CallTypes.get(type);
+    this.state = new CallState(
+      sortParticipantsBy || callTypeConfig.options.sortParticipantsBy,
+    );
     this.state.metadataSubject.next(metadata);
     this.state.membersSubject.next(members || []);
 
