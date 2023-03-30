@@ -25,7 +25,7 @@ export const ActiveCallHeader = () => {
           icon="info-document"
           title="Usage guide and known limitations"
           onClick={() => {
-            if (window) {
+            if (typeof window !== 'undefined') {
               window.open(USAGE_GUIDE_LINK, '_blank', 'noopener,noreferrer');
             }
           }}
