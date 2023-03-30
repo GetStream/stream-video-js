@@ -1,3 +1,5 @@
+const DEFAULT_THRESHOLD = 0.15;
+
 export type EntryHandler = (entry: IntersectionObserverEntry) => void;
 
 export type Unobserve = () => void;
@@ -56,7 +58,7 @@ export class ViewportTracker {
       {
         root: viewportElement,
         ...options,
-        threshold: options?.threshold ?? 0.5,
+        threshold: options?.threshold ?? DEFAULT_THRESHOLD,
       },
     );
 
