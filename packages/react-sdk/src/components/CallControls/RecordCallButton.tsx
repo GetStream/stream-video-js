@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Call } from '@stream-io/video-client';
-import {
-  useIsCallRecordingInProgress,
-  useStreamVideoClient,
-} from '@stream-io/video-react-bindings';
+import { useIsCallRecordingInProgress } from '@stream-io/video-react-bindings';
 import { CompositeButton, IconButton } from '../Button/';
 import { LoadingIndicator } from '../LoadingIndicator';
 
@@ -16,7 +13,6 @@ export const RecordCallButton = ({
   call,
   caption = 'Record',
 }: RecordCallButtonProps) => {
-  const client = useStreamVideoClient();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   useEffect(() => {
@@ -30,18 +26,17 @@ export const RecordCallButton = ({
   }, [isCallRecordingInProgress]);
 
   const toggleRecording = useCallback(async () => {
-    const { id, type } = call;
     try {
       setIsAwaitingResponse(true);
       if (isCallRecordingInProgress) {
-        await client?.stopRecording(id, type);
+        await call.stopRecording();
       } else {
-        await client?.startRecording(id, type);
+        await call.startRecording();
       }
     } catch (e) {
       console.error(`Failed start recording`, e);
     }
-  }, [call, client, isCallRecordingInProgress]);
+  }, [call, isCallRecordingInProgress]);
 
   return (
     <CompositeButton active={isCallRecordingInProgress} caption={caption}>

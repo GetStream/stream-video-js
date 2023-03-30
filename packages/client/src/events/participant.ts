@@ -1,4 +1,5 @@
 import { Dispatcher } from '../rtc/Dispatcher';
+import { VisibilityState } from '../rtc/types';
 import { CallState } from '../store';
 
 /**
@@ -16,7 +17,7 @@ export const watchParticipantJoined = (
 
     store.setCurrentValue(store.participantsSubject, (currentParticipants) => [
       ...currentParticipants,
-      participant,
+      { ...participant, viewportVisibilityState: VisibilityState.UNKNOWN },
     ]);
   });
 };

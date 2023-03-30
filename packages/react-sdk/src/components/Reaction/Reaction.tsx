@@ -16,7 +16,7 @@ export const defaultEmojiReactions: Record<string, string> = {
 };
 
 export const Reaction = (props: ReactionProps) => {
-  const { reaction, sessionId, call, hideAfterTimeoutInMs = 3500 } = props;
+  const { reaction, sessionId, call, hideAfterTimeoutInMs = 5500 } = props;
   const [isShowing, setIsShowing] = useState(false);
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;

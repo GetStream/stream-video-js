@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Call, SfuModels } from '@stream-io/video-client';
 import {
   useLocalParticipant,
@@ -21,6 +21,14 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
   const [scrollWrapper, setScrollWrapper] = useState<HTMLDivElement | null>(
     null,
   );
+
+  useEffect(() => {
+    if (!scrollWrapper) return;
+
+    const cleanup = call.viewportTracker.setViewport(scrollWrapper);
+
+    return () => cleanup();
+  }, [scrollWrapper, call.viewportTracker]);
 
   const scrollUpClickHandler = () => {
     scrollWrapper?.scrollBy({ top: -150, behavior: 'smooth' });
