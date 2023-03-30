@@ -20,7 +20,7 @@ export const dominantSpeaker: Comparator<StreamVideoParticipant> = (a, b) => {
  * @param a the first participant.
  * @param b the second participant.
  */
-export const talking: Comparator<StreamVideoParticipant> = (a, b) => {
+export const speaking: Comparator<StreamVideoParticipant> = (a, b) => {
   if (a.isSpeaking && !b.isSpeaking) return -1;
   if (!a.isSpeaking && b.isSpeaking) return 1;
   return 0;
@@ -44,7 +44,7 @@ export const screenSharing: Comparator<StreamVideoParticipant> = (a, b) => {
  * @param a the first participant.
  * @param b the second participant.
  */
-export const video: Comparator<StreamVideoParticipant> = (a, b) => {
+export const publishingVideo: Comparator<StreamVideoParticipant> = (a, b) => {
   if (hasVideo(a) && !hasVideo(b)) return -1;
   if (!hasVideo(a) && hasVideo(b)) return 1;
   return 0;
@@ -56,7 +56,7 @@ export const video: Comparator<StreamVideoParticipant> = (a, b) => {
  * @param a the first participant.
  * @param b the second participant.
  */
-export const audio: Comparator<StreamVideoParticipant> = (a, b) => {
+export const publishingAudio: Comparator<StreamVideoParticipant> = (a, b) => {
   if (hasAudio(a) && !hasAudio(b)) return -1;
   if (!hasAudio(a) && hasAudio(b)) return 1;
   return 0;

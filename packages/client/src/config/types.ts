@@ -1,4 +1,4 @@
-export type CallType = 'ring' | 'meeting';
+export type CallMode = 'ring' | 'meeting';
 
 export type CallConfig = {
   /**

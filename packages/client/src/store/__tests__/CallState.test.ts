@@ -1,34 +1,37 @@
 import { describe, expect, it } from 'vitest';
+import { StreamVideoParticipant, VisibilityState } from '../../rtc/types';
 import { CallState } from '../CallState';
 import {
-  audio,
   combineComparators,
   conditional,
   descending,
   dominantSpeaker,
   name,
   noopComparator,
+  publishingAudio,
+  publishingVideo,
   screenSharing,
-  video,
 } from '../../sorting';
 
 import * as TestData from '../../sorting/__tests__/participant-data';
-import { StreamVideoParticipant, VisibilityState } from '../../rtc/types';
-
-const ParticipantDataTest = TestData.participants as StreamVideoParticipant[];
 
 describe('CallState', () => {
   it('should emit sorted participants', () => {
-    const state = new CallState();
-    state.setCurrentValue(state.participantsSubject, ParticipantDataTest);
+    const state = new CallState(noopComparator());
+    state.setCurrentValue(state.participantsSubject, TestData.participants());
 
     // initial sort criteria
     const ps = state.getCurrentValue(state.participants$);
-    expect(ps.map((p) => p.name)).toEqual(['F', 'B', 'E', 'D', 'A', 'C']);
+    expect(ps.map((p) => p.name)).toEqual(['A', 'B', 'C', 'D', 'E', 'F']);
 
     // update sort criteria
     state.setSortParticipantsBy(
-      combineComparators(dominantSpeaker, audio, video, screenSharing),
+      combineComparators(
+        dominantSpeaker,
+        publishingAudio,
+        publishingVideo,
+        screenSharing,
+      ),
     );
 
     const ps2 = state.getCurrentValue(state.participants$);
@@ -36,31 +39,38 @@ describe('CallState', () => {
   });
 
   it('should be able to disable sorting', () => {
+    const participants = TestData.participants();
     const state = new CallState();
-    state.setCurrentValue(state.participantsSubject, ParticipantDataTest);
+    state.setCurrentValue(state.participantsSubject, participants);
 
     // initial sort criteria
     const ps = state.getCurrentValue(state.participants$);
-    expect(ps.map((p) => p.name)).toEqual(['F', 'B', 'E', 'D', 'A', 'C']);
+    expect(ps.map((p) => p.name)).toEqual(['F', 'B', 'E', 'A', 'C', 'D']);
 
     // disable sorting
     state.setSortParticipantsBy(noopComparator());
 
+    // update the dominant speaker -> in this case, no sorting should be applied
+    const [A] = participants;
+    state.updateParticipant(A.sessionId, {
+      isDominantSpeaker: true,
+    });
+
     const ps2 = state.getCurrentValue(state.participants$);
-    expect(ps2.map((p) => p.name)).toEqual(['A', 'B', 'C', 'D', 'E', 'F']);
+    expect(ps2.map((p) => p.name)).toEqual(['F', 'B', 'E', 'A', 'C', 'D']);
   });
 
   it('should support custom sorting', () => {
     const state = new CallState();
     state.setSortParticipantsBy(descending(name));
 
-    state.setCurrentValue(state.participantsSubject, ParticipantDataTest);
+    state.setCurrentValue(state.participantsSubject, TestData.participants());
     const ps = state.getCurrentValue(state.participants$);
     expect(ps.map((p) => p.name)).toEqual(['F', 'E', 'D', 'C', 'B', 'A']);
   });
 
   it('should consider participant visibility', () => {
-    const [A, B, C, D] = ParticipantDataTest;
+    const [A, B, C, D] = TestData.participants();
 
     const state = new CallState();
     state.setSortParticipantsBy(name);

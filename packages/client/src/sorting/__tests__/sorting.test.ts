@@ -1,25 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import {
-  audio,
   combineComparators,
   Comparator,
   conditional,
   dominantSpeaker,
   pinned,
+  publishingAudio,
+  publishingVideo,
   screenSharing,
-  video,
 } from '../index';
-import { participants as ParticipantDataTest } from './participant-data';
+import * as TestData from './participant-data';
 
 describe('Sorting', () => {
   it('presenter, dominant speaker, video, audio, mute', () => {
     const comparator = combineComparators(
       screenSharing,
       dominantSpeaker,
-      video,
-      audio,
+      publishingVideo,
+      publishingAudio,
     );
-    const sorted = [...ParticipantDataTest].sort(comparator);
+    const sorted = TestData.participants().sort(comparator);
     expect(sorted.map((p) => p.name)).toEqual(['B', 'E', 'D', 'A', 'F', 'C']);
   });
 
@@ -27,11 +27,11 @@ describe('Sorting', () => {
     const comparator = combineComparators(
       pinned,
       dominantSpeaker,
-      audio,
-      video,
+      publishingAudio,
+      publishingVideo,
       screenSharing,
     );
-    const sorted = [...ParticipantDataTest].sort(comparator);
+    const sorted = TestData.participants().sort(comparator);
     expect(sorted.map((p) => p.name)).toEqual(['F', 'D', 'B', 'A', 'E', 'C']);
   });
 
