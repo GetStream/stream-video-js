@@ -1,6 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  CallTypes,
+  defaultSortPreset,
+  SfuModels,
+  speakerLayoutSortPreset,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
 import { useCall, useParticipants } from '@stream-io/video-react-bindings';
 
 import { ParticipantBox } from '../StreamCall';
@@ -32,6 +38,27 @@ export const SpeakerLayout = () => {
 
     return () => cleanup();
   }, [scrollWrapper, call.viewportTracker]);
+
+  useEffect(() => {
+    if (otherParticipants.length === 1) {
+      // always show the remote participant in the spotlight.
+      call.setSortParticipantsBy((a, b) => {
+        if (a.isLoggedInUser) return 1;
+        if (b.isLoggedInUser) return -1;
+        return 0;
+      });
+    } else {
+      // otherwise, use the default sorting preset.
+      call.setSortParticipantsBy(speakerLayoutSortPreset);
+    }
+    return () => {
+      // reset the sorting to the default for the call type
+      const callConfig = CallTypes.get(call.type);
+      call.setSortParticipantsBy(
+        callConfig.options.sortParticipantsBy || defaultSortPreset,
+      );
+    };
+  }, [call, otherParticipants.length]);
 
   return (
     <div className="str-video__speaker-layout--wrapper">
