@@ -17,6 +17,7 @@ import {
   StreamCoordinatorClient,
 } from '../coordinator/StreamCoordinatorClient';
 import {
+  CallRecording,
   CallResponse,
   JoinCallRequest,
   MemberResponse,
@@ -764,14 +765,17 @@ export class Call {
   /**
    * Performs HTTP request to retrieve the list of recordings for the current call
    */
-  queryRecordings: StreamCall['queryRecordings'] = () =>
-    this.httpClient.call(this.type, this.id).queryRecordings();
+  queryRecordings = async (): Promise<CallRecording[]> => {
+    const { recordings } = await this.httpClient
+      .call(this.type, this.id)
+      .queryRecordings();
+    return recordings;
+  };
 
   /**
-   * Retrieves the list of recordings done with the current call and updates the call state
+   * Updates the call state with provided array of CallRecording objects
    */
-  updateRecordingsList = async () => {
-    const { recordings } = await this.queryRecordings();
+  updateRecordingsList = async (recordings: CallRecording[]) => {
     this.state.setCurrentValue(this.state.callRecordingListSubject, recordings);
   };
 }
