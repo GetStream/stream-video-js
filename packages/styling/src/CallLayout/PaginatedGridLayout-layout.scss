@@ -2,7 +2,6 @@ $scope-name: 'str-video__paginated-grid-layout';
 
 .str-video__paginated-grid-layout--wrapper {
   flex-grow: 1;
-  position: relative;
 }
 
 .str-video__paginated-grid-layout {
@@ -17,7 +16,8 @@ $scope-name: 'str-video__paginated-grid-layout';
     flex-wrap: wrap;
     gap: 8px;
     justify-content: center;
-    max-width: 100vh;
+    // prevents horizontal overflow
+    max-width: 110vh; // TODO: consider applying different limits (2 participants "unset", 4 participants 110vh...) 
     padding-inline: 1.25rem;
     margin: auto; // when arrows aren't rendered this element jumps to the left
     width: 100%; // prevent resizing of placeholders 

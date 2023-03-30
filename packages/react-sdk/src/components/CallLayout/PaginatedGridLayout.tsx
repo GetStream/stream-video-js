@@ -43,20 +43,22 @@ const PaginatedGridLayoutGroup = ({
   );
 };
 
-export const PaginatedGridLayout = () => {
+export const PaginatedGridLayout = ({
+  groupSize = GROUP_SIZE,
+}: {
+  groupSize?: number;
+}) => {
   const [page, setPage] = useState(0);
 
   const localParticipant = useLocalParticipant();
-  // TODO: add sorting algorithm (is talking > has video > (connected at | alphabetically))
-  // maybe allow integrators to pass pre-sorted participants through prop?
   const participants = useParticipants();
   // used to render audio elements
   const remoteParticipants = useRemoteParticipants();
 
   // only used to render video elements
   const participantGroups = useMemo(
-    () => chunk(participants, GROUP_SIZE),
-    [participants],
+    () => chunk(participants, groupSize),
+    [participants, groupSize],
   );
 
   const pageCount = participantGroups.length;
