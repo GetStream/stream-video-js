@@ -36,8 +36,8 @@ export const CallRecordingsPage = ({
   return (
     <StreamVideo client={videoClient}>
       <LobbyHeader />
-      <Box display={'flex'} justifyContent="center">
-        <Box display={'flex'} alignItems="center" flexDirection="column">
+      <Box display="flex" justifyContent="center">
+        <Box display="flex" alignItems="center" flexDirection="column">
           <CallRecordingSearchForm
             setResult={setRecordings}
             setResultError={setError}
