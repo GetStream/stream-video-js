@@ -143,7 +143,7 @@ export class StreamClient {
     this.persistUserOnConnectionFailure =
       this.options?.persistUserOnConnectionFailure;
 
-    // If its a server-side client, then lets initialize the tokenManager, since token will be
+    // If it is a server-side client, then lets initialize the tokenManager, since token will be
     // generated from secret.
     this.tokenManager = new TokenManager(this.secret);
     this.consecutiveFailures = 0;
@@ -358,14 +358,11 @@ export class StreamClient {
 
     this.anonymous = false;
 
-    const closePromise = this.closeConnection(timeout);
-    // reset token manager
-    setTimeout(this.tokenManager.reset); // delay reseting to use token for disconnect calls
+    await this.closeConnection(timeout);
 
-    return closePromise.then(() => {
-      // drop all event listeners on user disconnect
-      this.listeners = {};
-    });
+    this.tokenManager.reset();
+    // drop all event listeners on user disconnect
+    this.listeners = {};
   };
 
   /**
@@ -668,7 +665,7 @@ export class StreamClient {
       if (this.wsFallback) {
         return await this.wsFallback.connect();
       }
-
+      console.log('StreamClient.connect: this.wsConnection.connect()');
       // if WSFallback is enabled, ws connect should timeout faster so fallback can try
       return await this.wsConnection.connect(
         this.options.enableWSFallback

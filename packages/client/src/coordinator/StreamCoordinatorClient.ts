@@ -212,7 +212,7 @@ export class StreamCoordinatorClient {
   };
 
   disconnectUser = async (timeout?: number) => {
-    return this.client.disconnectUser(timeout);
+    await this.client.disconnectUser(timeout);
   };
 
   // DEPRECATED: use call.getOrCreate() instead
