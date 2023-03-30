@@ -6,11 +6,11 @@ import { TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import {
   Dispatcher,
+  SfuEventKindMap,
   SfuEventKinds,
   SfuEventListener,
-  SfuEventKindMap,
 } from './Dispatcher';
-import { CallState } from '../store';
+import { CallState, StreamVideoWriteableStateStore } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import {
   StreamCall,
@@ -20,13 +20,16 @@ import {
   CallResponse,
   JoinCallRequest,
   MemberResponse,
+  RequestPermissionRequest,
+  UpdateUserPermissionsRequest,
 } from '../gen/coordinator';
 import { join } from './flows/join';
-import type {
+import {
   PublishOptions,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
+  VisibilityState,
 } from './types';
 import {
   BehaviorSubject,
@@ -35,11 +38,16 @@ import {
   Subject,
   takeWhile,
 } from 'rxjs';
+import { Comparator } from '../sorting';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import {
   createStatsReporter,
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
+import { ViewportTracker } from '../ViewportTracker';
+import { CallTypes } from './CallType';
+
+const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
 
 /**
  * The options to pass to {@link Call} constructor.
@@ -73,6 +81,16 @@ export type CallConstructor = {
    * This is useful when initializing a new "pending call" from an event.
    */
   members?: MemberResponse[];
+
+  /**
+   * The default comparator to use when sorting participants.
+   */
+  sortParticipantsBy?: Comparator<StreamVideoParticipant>;
+
+  /**
+   * The state store of the client
+   */
+  clientStore: StreamVideoWriteableStateStore;
 };
 
 /**
@@ -80,6 +98,11 @@ export type CallConstructor = {
  * It's not enough to have a `Call` instance, you will also need to call the [`join`](#join) method.
  */
 export class Call {
+  /**
+   * ViewporTracker instance
+   */
+  readonly viewportTracker = new ViewportTracker();
+
   /**
    * The type of the call.
    */
@@ -98,7 +121,7 @@ export class Call {
   /**
    * The state of this call.
    */
-  readonly state = new CallState();
+  readonly state: CallState;
 
   /**
    * The event dispatcher instance dedicated to this Call instance.
@@ -115,23 +138,58 @@ export class Call {
 
   private readonly httpClient: StreamCoordinatorClient;
   private sfuClient?: StreamSfuClient;
+  private readonly clientStore: StreamVideoWriteableStateStore;
+
+  private get preferredAudioCodec() {
+    const audioSettings = this.state.getCurrentValue(this.state.metadata$)
+      ?.settings.audio;
+    let preferredCodec =
+      audioSettings?.redundant_coding_enabled === undefined
+        ? 'opus'
+        : audioSettings.redundant_coding_enabled
+        ? 'red'
+        : 'opus';
+    if (
+      typeof window !== 'undefined' &&
+      window.location &&
+      window.location.search
+    ) {
+      const queryParams = new URLSearchParams(window.location.search);
+      preferredCodec = queryParams.get('codec') || preferredCodec;
+    }
+
+    return preferredCodec;
+  }
 
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    */
-  constructor({ type, id, httpClient, metadata, members }: CallConstructor) {
+  constructor({
+    type,
+    id,
+    httpClient,
+    metadata,
+    members,
+    sortParticipantsBy,
+    clientStore,
+  }: CallConstructor) {
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
     this.httpClient = httpClient;
+    this.clientStore = clientStore;
 
+    const callTypeConfig = CallTypes.get(type);
+    this.state = new CallState(
+      sortParticipantsBy || callTypeConfig.options.sortParticipantsBy,
+    );
     this.state.metadataSubject.next(metadata);
     this.state.membersSubject.next(members || []);
 
     registerEventHandlers(this, this.state, this.dispatcher);
 
     this.trackSubscriptionsSubject
-      .pipe(debounceTime(1200))
+      .pipe(debounceTime(UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION))
       .subscribe((subscriptions) => {
         this.sfuClient?.updateSubscriptions(subscriptions);
       });
@@ -179,11 +237,10 @@ export class Call {
     this.sfuClient?.close();
     this.sfuClient = undefined;
 
-    // FIXME OL: sort this out
-    // this.stateStore.setCurrentValue(
-    //   this.stateStore.activeCallSubject,
-    //   undefined,
-    // );
+    this.clientStore.setCurrentValue(
+      this.clientStore.activeCallSubject,
+      undefined,
+    );
   };
 
   private waitForJoinResponse = (timeout: number = 10000) =>
@@ -199,7 +256,17 @@ export class Call {
     });
 
   /**
-   * Will initiate a call session with the server.
+   * Will start to watch for call related WebSocket events, but it won't join the call. If you watch a call you'll be notified about WebSocket events, but you won't be able to publish your audio and video, and you won't be able to see and hear others. You won't show up in the list of joined participants.
+   *
+   * @param data
+   */
+  watch = async (data?: JoinCallRequest) => {
+    const response = await this.connectToCoordinator(data);
+    return response;
+  };
+
+  /**
+   * Will start to watch for call related WebSocket events and initiate a call session with the server.
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
@@ -208,9 +275,7 @@ export class Call {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    const call = await join(this.httpClient, this.type, this.id, data);
-    this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
-    this.state.setCurrentValue(this.state.membersSubject, call.members);
+    const call = await this.connectToCoordinator(data);
 
     // FIXME OL: convert to a derived state
     this.state.setCurrentValue(
@@ -242,9 +307,26 @@ export class Call {
       onTrack: this.handleOnTrack,
     });
 
+    const audioSettings = this.state.getCurrentValue(this.state.metadata$)
+      ?.settings.audio;
+    let isDtxEnabled =
+      audioSettings?.opus_dtx_enabled === undefined
+        ? false
+        : audioSettings?.opus_dtx_enabled;
+    // TODO: SZ: Remove once SFU team don't need this
+    if (
+      typeof window !== 'undefined' &&
+      window.location &&
+      window.location.search
+    ) {
+      const queryParams = new URLSearchParams(window.location.search);
+      isDtxEnabled = queryParams.get('dtx') === 'false' ? false : isDtxEnabled;
+    }
+    console.log('DTX enabled', isDtxEnabled);
     this.publisher = new Publisher({
       rpcClient: sfuClient,
       connectionConfig: call.connectionConfig,
+      isDtxEnabled,
     });
 
     this.statsReporter = createStatsReporter({
@@ -267,6 +349,7 @@ export class Call {
         currentParticipants.map<StreamVideoParticipant>((participant) => ({
           ...participant,
           isLoggedInUser: participant.sessionId === sfuClient.sessionId,
+          viewportVisibilityState: VisibilityState.UNKNOWN,
           // TODO: save other participants permissions once that's provided by SFU
           ...(participant.sessionId === sfuClient.sessionId
             ? ownCapabilities
@@ -278,12 +361,22 @@ export class Call {
       this.joined$.next(true);
     });
 
-    const genericSdp = await getGenericSdp('recvonly');
+    const genericSdp = await getGenericSdp(
+      'recvonly',
+      this.preferredAudioCodec,
+    );
     await sfuClient.join({
       subscriberSdp: genericSdp || '',
     });
 
     return joinResponsePromise;
+  };
+
+  private connectToCoordinator = async (data?: JoinCallRequest) => {
+    const call = await join(this.httpClient, this.type, this.id, data);
+    this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
+    this.state.setCurrentValue(this.state.membersSubject, call.members);
+    return call;
   };
 
   /**
@@ -364,8 +457,11 @@ export class Call {
     }
 
     const trackType = TrackType.AUDIO;
+
     try {
-      await this.publisher.publishStream(audioStream, audioTrack, trackType);
+      await this.publisher.publishStream(audioStream, audioTrack, trackType, {
+        preferredCodec: this.preferredAudioCodec,
+      });
       await this.sfuClient!.updateMuteState(trackType, false);
     } catch (e) {
       throw e;
@@ -619,6 +715,15 @@ export class Call {
   };
 
   /**
+   * Sets the list of criteria to sort the participants by.
+   *
+   * @param criteria the list of criteria to sort the participants by.
+   */
+  setSortParticipantsBy: CallState['setSortParticipantsBy'] = (criteria) => {
+    return this.state.setSortParticipantsBy(criteria);
+  };
+
+  /**
    * @internal
    * @param enabledRids
    * @returns
@@ -716,4 +821,138 @@ export class Call {
 
   muteAllUsers: StreamCall['muteAllUsers'] = (type) =>
     this.httpClient.call(this.type, this.id).muteAllUsers(type);
+
+  /**
+   * Starts recording the call
+   */
+  startRecording = async () => {
+    try {
+      return await this.httpClient.call(this.type, this.id).startRecording();
+    } catch (error) {
+      console.log(`Failed to start recording`, error);
+    }
+  };
+
+  /**
+   * Stops recording the call
+   */
+  stopRecording = async () => {
+    try {
+      return await this.httpClient.call(this.type, this.id).stopRecording();
+    } catch (error) {
+      console.log(`Failed to stop recording`, error);
+    }
+  };
+
+  /**
+   * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
+   */
+  requestCallPermissions = async (data: RequestPermissionRequest) => {
+    return this.httpClient.call(this.type, this.id).requestPermissions(data);
+  };
+
+  /**
+   * Allows you to grant or revoke a specific permission to a user in a call. The permissions are specific to the call experience and do not survive the call itself.
+   *
+   * When revoking a permission, this endpoint will also mute the relevant track from the user. This is similar to muting a user with the difference that the user will not be able to unmute afterwards.
+   *
+   * Supported permissions that can be granted or revoked: `send-audio`, `send-video` and `screenshare`.
+   *
+   * `call.permissions_updated` event is sent to all members of the call.
+   *
+   */
+  updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
+    return this.httpClient.call(this.type, this.id).updateUserPermissions(data);
+  };
+
+  /**
+   * Sets the `participant.isPinned` value.
+   * @param sessionId the session id of the participant
+   * @param isPinned the value to set the participant.isPinned
+   * @returns
+   */
+  setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
+    this.state.updateParticipant(sessionId, {
+      isPinned,
+    });
+  };
+
+  /**
+   * Signals other users that I have accepted the incoming call.
+   * Causes the `CallAccepted` event to be emitted to all the call members.
+   * @returns
+   */
+  accept = async () => {
+    const callToAccept = this.clientStore
+      .getCurrentValue(this.clientStore.pendingCallsSubject)
+      .find((c) => c.id === this.id && c.type === this.type);
+
+    if (callToAccept) {
+      await this.httpClient.call(this.type, this.id).sendEvent({
+        type: 'call.accepted',
+      });
+
+      // remove the accepted call from the "pending calls" list.
+      this.clientStore.setCurrentValue(
+        this.clientStore.pendingCallsSubject,
+        (pendingCalls) => pendingCalls.filter((c) => c !== callToAccept),
+      );
+
+      await this.join();
+      this.clientStore.setCurrentValue(
+        this.clientStore.activeCallSubject,
+        callToAccept,
+      );
+    }
+  };
+
+  /**
+   * Signals other users that I have rejected the incoming call.
+   * Causes the `CallRejected` event to be emitted to all the call members.
+   * @returns
+   */
+  reject = async () => {
+    this.clientStore.setCurrentValue(
+      this.clientStore.pendingCallsSubject,
+      (pendingCalls) =>
+        pendingCalls.filter((incomingCall) => incomingCall.id !== this.id),
+    );
+    await this.httpClient.call(this.type, this.id).sendEvent({
+      type: 'call.rejected',
+    });
+  };
+
+  /**
+   * Signals other users that I have cancelled my call to them before they accepted it.
+   * Causes the `CallCancelled` event to be emitted to all the call members.
+   *
+   * Cancelling a call is only possible before the local participant joined the call.
+   * @returns
+   */
+  cancel = async () => {
+    console.log('call cancelled');
+    const store = this.clientStore;
+    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const leavingActiveCall =
+      activeCall?.id === this.id && activeCall.type === this.type;
+    if (leavingActiveCall) {
+      activeCall.leave();
+    } else {
+      store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+        pendingCalls.filter((pendingCall) => pendingCall.id !== this.id),
+      );
+    }
+
+    if (activeCall) {
+      const state = activeCall.state;
+      const remoteParticipants = state.getCurrentValue(
+        state.remoteParticipants$,
+      );
+      if (!remoteParticipants.length && !leavingActiveCall) {
+        await this.httpClient.call(this.type, this.id).sendEvent({
+          type: 'call.cancelled',
+        });
+      }
+    }
+  };
 }

@@ -30,11 +30,25 @@ import JoinMeetingScreen from './src/screens/Meeting/JoinMeetingScreen';
 import JoinCallScreen from './src/screens/Call/JoinCallScreen';
 import { ChooseFlowScreen } from './src/screens/ChooseFlowScreen';
 import { CallParticipantsInfoScreen } from './src/screens/Meeting/CallParticipantsInfoScreen';
+import { setFirebaseHandler } from './src/modules/push/android';
+import { useIosPushEffect } from './src/hooks/useIosPushEffect';
+import { Platform } from 'react-native';
+import { useCallKeepEffect } from './src/hooks/useCallkeepEffect';
+import { navigationRef } from './src/utils/staticNavigationUtils';
+
+import Logger from 'react-native-webrtc/src/Logger';
 import { LobbyViewScreen } from './src/screens/Meeting/LobbyViewScreen';
+
+// @ts-expect-error
+Logger.enable(false);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const MeetingStack = createNativeStackNavigator<MeetingStackParamList>();
 const RingingStack = createNativeStackNavigator<RingingStackParamList>();
+
+if (Platform.OS === 'android') {
+  setFirebaseHandler();
+}
 
 const Meeting = () => {
   return (
@@ -146,6 +160,9 @@ const StackNavigator = () => {
     onRejectCall,
   ]);
 
+  useIosPushEffect();
+  useCallKeepEffect();
+
   if (authenticationInProgress) {
     return <AuthenticatingProgressScreen />;
   }
@@ -183,7 +200,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AppGlobalContextProvider>
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
           <StackNavigator />
         </NavigationContainer>
       </AppGlobalContextProvider>

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import {
@@ -56,27 +56,67 @@ interface ParticipantViewProps {
 export const ParticipantView = (props: ParticipantViewProps) => {
   const { participant, kind, disableVideo, disableAudio } = props;
   const call = useActiveCall();
-
+  const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
+  const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
+  const { isSpeaking, isLoggedInUser, publishedTracks } = participant;
+  const isPublishingVideoTrack = publishedTracks.includes(
+    kind === 'video'
+      ? SfuModels.TrackType.VIDEO
+      : SfuModels.TrackType.SCREEN_SHARE,
+  );
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
 
+  useEffect(() => {
+    if (pendingVideoLayoutRef.current && call && isPublishingVideoTrack) {
+      call.updateSubscriptionsPartial(kind, {
+        [participant.sessionId]: {
+          dimension: pendingVideoLayoutRef.current,
+        },
+      });
+
+      subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
+      pendingVideoLayoutRef.current = undefined;
+    }
+  }, [call, isPublishingVideoTrack, kind, participant.sessionId]);
+
+  useEffect(() => {
+    return () => {
+      subscribedVideoLayoutRef.current = undefined;
+      pendingVideoLayoutRef.current = undefined;
+    };
+  }, [kind, participant.sessionId]);
+
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
-    if (!call) {
+    const dimension = {
+      width: Math.trunc(event.nativeEvent.layout.width),
+      height: Math.trunc(event.nativeEvent.layout.height),
+    };
+
+    // NOTE: If the participant hasn't published a video track yet,
+    // we store the dimensions and handle it when the track is published
+    if (!call || !isPublishingVideoTrack) {
+      pendingVideoLayoutRef.current = dimension;
       return;
     }
-    const { height, width } = event.nativeEvent.layout;
+
+    // NOTE: We don't want to update the subscription if the dimension hasn't changed
+    if (
+      subscribedVideoLayoutRef.current?.width === dimension.width &&
+      subscribedVideoLayoutRef.current?.height === dimension.height
+    ) {
+      return;
+    }
+
     call.updateSubscriptionsPartial(kind, {
       [participant.sessionId]: {
-        dimension: {
-          width: Math.trunc(width),
-          height: Math.trunc(height),
-        },
+        dimension,
       },
     });
+    subscribedVideoLayoutRef.current = dimension;
+    pendingVideoLayoutRef.current = undefined;
   };
-
-  const { isSpeaking, isLoggedInUser, publishedTracks } = participant;
 
   // NOTE: We have to cast to MediaStream type from webrtc
   // as JS client sends the web navigators' mediastream type instead
@@ -89,14 +129,8 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
   const isScreenSharing = kind === 'screen';
   const mirror = isLoggedInUser && isCameraOnFrontFacingMode;
-  const isAudioAvailable = useMemo(
-    () => kind === 'video' && !!audioStream && !isAudioMuted && !disableAudio,
-    [kind, audioStream, isAudioMuted, disableAudio],
-  );
-  const isVideoAvailable = useMemo(
-    () => !!videoStream && !isVideoMuted && !disableVideo,
-    [videoStream, isVideoMuted, disableVideo],
-  );
+  const isAudioAvailable = kind === 'video' && !!audioStream && !isAudioMuted && !disableAudio;
+  const isVideoAvailable = !!videoStream && !isVideoMuted && !disableVideo;
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && styles.isSpeaking;
   const videoOnlyStyle = !isScreenSharing && {
