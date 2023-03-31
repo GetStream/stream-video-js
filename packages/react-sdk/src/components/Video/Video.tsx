@@ -5,6 +5,8 @@ import {
   useRef,
   useState,
   VideoHTMLAttributes,
+  createElement,
+  ElementType,
 } from 'react';
 import {
   Call,
@@ -83,16 +85,16 @@ export const Video = (
   }, [updateSubscription]);
 
   // cleanup subscription on unmount
-  useEffect(() => {
-    if (call && sessionId && kind)
-      return () => {
-        call.updateSubscriptionsPartial(kind, {
-          [sessionId]: {
-            dimension: undefined,
-          },
-        });
-      };
-  }, [call, kind, sessionId]);
+  // useEffect(() => {
+  //   if (call && sessionId && kind)
+  //     return () => {
+  //       call.updateSubscriptionsPartial(kind, {
+  //         [sessionId]: {
+  //           dimension: undefined,
+  //         },
+  //       });
+  //     };
+  // }, [call, kind, sessionId]);
 
   useEffect(() => {
     if (!videoElement) return;
