@@ -9558,6 +9558,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"audio-rooms@workspace:sample-apps/react/audio-rooms":
+  version: 0.0.0-use.local
+  resolution: "audio-rooms@workspace:sample-apps/react/audio-rooms"
+  dependencies:
+    "@types/react": ^18.0.28
+    "@types/react-dom": ^18.0.11
+    "@vitejs/plugin-react": ^3.1.0
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    typescript: ^4.9.3
+    vite: ^4.2.0
+  languageName: unknown
+  linkType: soft
+
 "autoprefixer@npm:^10.4.13, autoprefixer@npm:^10.4.8":
   version: 10.4.14
   resolution: "autoprefixer@npm:10.4.14"
@@ -29713,7 +29727,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.9.5":
+"typescript@npm:^4.9.3, typescript@npm:^4.9.5":
   version: 4.9.5
   resolution: "typescript@npm:4.9.5"
   bin:
@@ -29763,7 +29777,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
+"typescript@patch:typescript@^4.9.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
   version: 4.9.5
   resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
   bin:
