@@ -156,7 +156,7 @@ export const CallRecordingSearchForm = ({
               onFocus={() => setShowDropdown(true)}
               onBlur={() => setTimeout(() => setShowDropdown(false), 100)}
               onKeyDown={handleDropdownNavigation}
-              placeholder="call type"
+              placeholder="Call Type"
               tabIndex={1}
             />
             {showDropdown && (
@@ -186,7 +186,7 @@ export const CallRecordingSearchForm = ({
             type="text"
             onChange={handleChange}
             ref={setCallIdInput}
-            placeholder="call ID"
+            placeholder="Call ID"
             tabIndex={2}
           />
         </Stack>
