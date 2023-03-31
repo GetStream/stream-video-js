@@ -31,11 +31,15 @@ export const LayoutMap = {
   },
 };
 
+type LayoutSelectorProps = {
+  onMenuItemClick: (key: keyof typeof LayoutMap) => void;
+  selectedLayout: keyof typeof LayoutMap;
+};
+
 export const LayoutSelector = ({
   onMenuItemClick: setLayout,
-}: {
-  onMenuItemClick: (key: keyof typeof LayoutMap) => void;
-}) => {
+  selectedLayout,
+}: LayoutSelectorProps) => {
   const hasScreenShare = useHasOngoingScreenShare();
 
   useEffect(() => {
@@ -46,7 +50,7 @@ export const LayoutSelector = ({
 
   return (
     <MenuToggle placement="bottom-end" ToggleButton={LayoutSelectorButton}>
-      <Menu onItemClick={setLayout} />
+      <Menu onMenuItemClick={setLayout} selectedLayout={selectedLayout} />
     </MenuToggle>
   );
 };
@@ -59,16 +63,16 @@ const LayoutSelectorButton = forwardRef<
 ));
 
 const Menu = ({
-  onItemClick: setLayout,
-}: {
-  onItemClick: (key: keyof typeof LayoutMap) => void;
-}) => {
+  onMenuItemClick: setLayout,
+  selectedLayout,
+}: LayoutSelectorProps) => {
   const hasScreenShare = useHasOngoingScreenShare();
 
   return (
     <GenericMenu>
       {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>).map((key) => (
         <GenericMenuButtonItem
+          aria-selected={key === selectedLayout}
           disabled={
             (hasScreenShare &&
               (key === 'LegacyGrid' || key === 'PaginatedGrid')) ||
