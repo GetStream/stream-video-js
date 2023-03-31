@@ -5,8 +5,8 @@
   min-height: 0;
   max-height: 100%;
 
-  @mixin video-border {
-    border: 2px solid var(--str-video__primary-color);
+  @mixin video-outline {
+    outline: 2px solid var(--str-video__primary-color);
   }
 
   .str-call__participant {
@@ -20,7 +20,7 @@
 
     &.str-video__participant--speaking {
       .str-video__remote-video {
-        @include video-border;
+        @include video-outline;
       }
     }
   }
@@ -37,14 +37,14 @@
       border-radius: var(--str-video__border-radius2);
       width: 100%;
       object-fit: cover;
-      aspect-ratio: 16/9;
+      aspect-ratio: 4/3;
       background: var(--str-video__text-color3);
     }
   }
 
   &.str-video__participant--speaking {
     .str-video__remote-video {
-      @include video-border;
+      @include video-outline;
     }
   }
 

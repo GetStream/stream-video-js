@@ -35,6 +35,20 @@ export const defaultSortPreset = combineComparators(
 );
 
 /**
+ * The sorting preset for speaker layout.
+ */
+export const speakerLayoutSortPreset = combineComparators(
+  pinned,
+  screenSharing,
+  dominantSpeaker,
+  ifInvisibleBy(speaking),
+  ifInvisibleBy(reactionType('raised-hand')),
+  ifInvisibleBy(publishingVideo),
+  ifInvisibleBy(publishingAudio),
+  // ifInvisibleBy(name),
+);
+
+/**
  * The sorting preset for livestreams and audio rooms.
  */
 export const livestreamOrAudioRoomSortPreset = combineComparators(

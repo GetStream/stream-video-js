@@ -54,7 +54,7 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   ({ menuShown }, ref) => (
     <IconButton
       className={'str-video__menu-toggle-button'}
-      icon={menuShown ? 'menu-shown' : 'menu-hidden'}
+      icon={menuShown ? 'caret-down' : 'caret-up'}
       title="Toggle device menu"
       ref={ref}
     />

@@ -43,6 +43,7 @@ export const Video = (
       : SfuModels.TrackType.SCREEN_SHARE,
   );
 
+  const lastSessionId = useRef<string>(sessionId);
   const lastDimensionRef = useRef<SfuModels.VideoDimension | undefined>();
   const updateSubscription = useCallback(() => {
     let nextDimension;
@@ -59,6 +60,7 @@ export const Video = (
 
     const lastDimension = lastDimensionRef.current;
     if (
+      sessionId !== lastSessionId.current ||
       nextDimension?.width !== lastDimension?.width ||
       nextDimension?.height !== lastDimension?.height
     ) {
@@ -68,6 +70,7 @@ export const Video = (
         },
       });
       lastDimensionRef.current = nextDimension;
+      lastSessionId.current = sessionId;
     }
   }, [
     call,
@@ -83,16 +86,16 @@ export const Video = (
   }, [updateSubscription]);
 
   // cleanup subscription on unmount
-  useEffect(() => {
-    if (call && sessionId && kind)
-      return () => {
-        call.updateSubscriptionsPartial(kind, {
-          [sessionId]: {
-            dimension: undefined,
-          },
-        });
-      };
-  }, [call, kind, sessionId]);
+  // useEffect(() => {
+  //   if (call && sessionId && kind)
+  //     return () => {
+  //       call.updateSubscriptionsPartial(kind, {
+  //         [sessionId]: {
+  //           dimension: undefined,
+  //         },
+  //       });
+  //     };
+  // }, [call, kind, sessionId]);
 
   useEffect(() => {
     if (!videoElement) return;

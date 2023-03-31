@@ -1,3 +1,3 @@
 export * from './CallParticipantsList';
 export * from './CallParticipantListing';
-export * from './GetInviteLinkButton';
+export * from './CallParticipantListingItem';
