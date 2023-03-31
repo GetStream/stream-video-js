@@ -1,13 +1,13 @@
-import { useEffect, forwardRef } from 'react';
+import { forwardRef, useEffect } from 'react';
 import {
-  PaginatedGridLayout,
-  CallParticipantsView,
-  SpeakerLayout,
   CallParticipantsScreenView,
+  CallParticipantsView,
   GenericMenu,
   GenericMenuButtonItem,
-  MenuToggle,
   IconButton,
+  MenuToggle,
+  PaginatedGridLayout,
+  SpeakerLayout,
   ToggleMenuButtonProps,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-sdk';
@@ -15,19 +15,19 @@ import {
 export const LayoutMap = {
   PaginatedGrid: {
     Component: PaginatedGridLayout,
-    title: 'Paginated grid layout (beta)',
-  },
-  LegacyGrid: {
-    Component: CallParticipantsView,
-    title: 'Grid layout',
+    title: 'Grid (beta)',
   },
   Speaker: {
     Component: SpeakerLayout,
-    title: 'Speaker layout (beta)',
+    title: 'Spotlight (beta)',
+  },
+  LegacyGrid: {
+    Component: CallParticipantsView,
+    title: 'Grid',
   },
   LegacySpeaker: {
     Component: CallParticipantsScreenView,
-    title: 'Screen-share layout',
+    title: 'Screen-share',
   },
 };
 
