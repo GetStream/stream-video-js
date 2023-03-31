@@ -1109,8 +1109,8 @@ export class Call {
   queryRecordings = async (): Promise<ListRecordingsResponse> => {
     // FIXME: this is a temporary setting to take call ID as session ID
     const sessionId = this.id;
-    const response = await this.httpClient.get<ListRecordingsResponse>(
-      `${this.basePath}/${sessionId}/recordings`,
+    const response = await this.streamClient.get<ListRecordingsResponse>(
+      `${this.coordinatorBasePath}/${sessionId}/recordings`,
     );
 
     this.state.setCurrentValue(
