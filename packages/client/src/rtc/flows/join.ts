@@ -9,7 +9,7 @@ import {
 import { measureResourceLoadLatencyTo } from './latency';
 import { StreamClient } from '../../coordinator/connection/client';
 
-export const join = async (
+export const watch = async (
   httpClient: StreamClient,
   type: string,
   id: string,
@@ -29,6 +29,16 @@ export const join = async (
       data,
     );
   }
+  return joinCallResponse;
+};
+
+export const join = async (
+  httpClient: StreamClient,
+  type: string,
+  id: string,
+  data?: JoinCallRequest,
+) => {
+  const joinCallResponse = await watch(httpClient, type, id, data);
   const { call, edges, members } = joinCallResponse;
 
   const { credentials } = await getCallEdgeServer(httpClient, type, id, edges);

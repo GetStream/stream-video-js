@@ -13,11 +13,12 @@ import {
 import { CallState, StreamVideoWriteableStateStore } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import {
-  CallRecording,
   BlockUserResponse,
   CallResponse,
   CallSettingsRequest,
   EndCallResponse,
+  GetCallEdgeServerRequest,
+  GetCallEdgeServerResponse,
   GetCallResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
@@ -27,6 +28,7 @@ import {
   MuteUsersResponse,
   RequestPermissionRequest,
   RequestPermissionResponse,
+  SendEventRequest,
   SendReactionRequest,
   SendReactionResponse,
   StopLiveResponse,
@@ -37,7 +39,7 @@ import {
   UpdateUserPermissionsResponse,
   ListRecordingsResponse,
 } from '../gen/coordinator';
-import { join } from './flows/join';
+import { join, watch } from './flows/join';
 import {
   PublishOptions,
   StreamVideoParticipant,
@@ -283,7 +285,15 @@ export class Call {
    * @param data
    */
   watch = async (data?: JoinCallRequest) => {
-    const response = await this.connectToCoordinator(data);
+    const response = await watch(
+      this.coordinatorClient,
+      this.type,
+      this.id,
+      data,
+    );
+    this.state.setCurrentValue(this.state.metadataSubject, response.call);
+    this.state.setCurrentValue(this.state.membersSubject, response.members);
+
     return response;
   };
 
@@ -297,7 +307,9 @@ export class Call {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    const call = await this.connectToCoordinator(data);
+    const call = await join(this.coordinatorClient, this.type, this.id, data);
+    this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
+    this.state.setCurrentValue(this.state.membersSubject, call.members);
 
     // FIXME OL: convert to a derived state
     this.state.setCurrentValue(
@@ -397,13 +409,6 @@ export class Call {
     });
 
     return joinResponsePromise;
-  };
-
-  private connectToCoordinator = async (data?: JoinCallRequest) => {
-    const call = await join(this.coordinatorClient, this.type, this.id, data);
-    this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
-    this.state.setCurrentValue(this.state.membersSubject, call.members);
-    return call;
   };
 
   /**
@@ -1119,5 +1124,19 @@ export class Call {
     );
 
     return response;
+  };
+
+  getEdgeServer = (data: GetCallEdgeServerRequest) => {
+    return this.coordinatorClient.post<GetCallEdgeServerResponse>(
+      `${this.coordinatorBasePath}/get_edge_server`,
+      data,
+    );
+  };
+
+  sendEvent = async (event: SendEventRequest) => {
+    return this.coordinatorClient.post(
+      `${this.coordinatorBasePath}/event`,
+      event,
+    );
   };
 }

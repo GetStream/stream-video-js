@@ -3,9 +3,16 @@ import {
   StreamVideoWriteableStateStore,
 } from './store';
 import {
+  CreateCallTypeRequest,
+  CreateCallTypeResponse,
+  GetCallTypeResponse,
+  GetEdgesResponse,
+  ListCallTypeResponse,
   QueryCallsRequest,
   QueryCallsResponse,
   SortParamRequest,
+  UpdateCallTypeRequest,
+  UpdateCallTypeResponse,
 } from './gen/coordinator';
 import { Call } from './rtc/Call';
 
@@ -259,5 +266,33 @@ export class StreamVideoClient {
 
   queryUsers = async () => {
     console.log('Querying users is not implemented yet.');
+  };
+
+  edges = async () => {
+    return this.streamClient.get<GetEdgesResponse>(`/edges`);
+  };
+
+  // server-side only endpoints
+  createCallType = async (data: CreateCallTypeRequest) => {
+    return this.streamClient.post<CreateCallTypeResponse>(`/calltypes`, data);
+  };
+
+  getCallType = async (name: string) => {
+    return this.streamClient.get<GetCallTypeResponse>(`/calltypes/${name}`);
+  };
+
+  updateCallType = async (name: string, data: UpdateCallTypeRequest) => {
+    return this.streamClient.put<UpdateCallTypeResponse>(
+      `/calltypes/${name}`,
+      data,
+    );
+  };
+
+  deleteCallType = async (name: string) => {
+    return this.streamClient.delete(`/calltypes/${name}`);
+  };
+
+  listCallTypes = async () => {
+    return this.streamClient.get<ListCallTypeResponse>(`/calltypes`);
   };
 }
