@@ -21,16 +21,16 @@ export const CallRecordings = () => {
 
   const [loadingCallRecordings, setLoadingCallRecordings] = useState(false);
   const recordingPollRequestsCount = useRef(0);
-  const recordingPollRequestsInterval = useRef<
-    ReturnType<typeof setInterval> | undefined
-  >();
 
   useEffect(() => {
     if (!(client && activeCall && callRecordings)) return;
-
+    let recordingPollRequestsInterval:
+      | ReturnType<typeof setInterval>
+      | undefined;
     const scheduleCallRecordingPolling = () => {
       setLoadingCallRecordings(true);
-      recordingPollRequestsInterval.current = setInterval(async () => {
+
+      recordingPollRequestsInterval = setInterval(async () => {
         let recordings: CallRecording[] = [];
         try {
           recordings = await activeCall.queryRecordings();
@@ -47,7 +47,7 @@ export const CallRecordings = () => {
             recordingPollRequestsCount.current === MAX_NUMBER_POLL_REQUESTS ||
             hasNewRecordings
           ) {
-            clearInterval(recordingPollRequestsInterval.current);
+            clearInterval(recordingPollRequestsInterval);
             setLoadingCallRecordings(false);
           }
         }
@@ -58,6 +58,9 @@ export const CallRecordings = () => {
 
     return () => {
       client.off('call.recording_stopped', scheduleCallRecordingPolling);
+      if (recordingPollRequestsInterval) {
+        clearInterval(recordingPollRequestsInterval);
+      }
     };
   }, [client, activeCall, callRecordings]);
 
