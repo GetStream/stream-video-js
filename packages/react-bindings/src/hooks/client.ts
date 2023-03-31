@@ -36,21 +36,21 @@ export const useCreateStreamVideoClient = ({
   const [client] = useState(
     () => new StreamVideoClient(apiKey, options, callConfig),
   );
+
   const disconnectRef = useRef(Promise.resolve());
   useEffect(() => {
-    const connection = disconnectRef.current.then(() =>
-      client.connectUser(user, tokenOrProvider).catch((err) => {
+    const connectionPromise = disconnectRef.current.then(() => {
+      return client.connectUser(user, tokenOrProvider).catch((err) => {
         console.error(`Failed to establish connection`, err);
-      }),
-    );
+      });
+    });
 
     return () => {
-      connection.then(() => {
-        disconnectRef.current = client.disconnectUser();
-        disconnectRef.current.catch((err) => {
+      disconnectRef.current = connectionPromise
+        .then(client.disconnectUser)
+        .catch((err) => {
           console.error(`Failed to disconnect`, err);
         });
-      });
     };
     // we want to re-run this effect only in some special cases
     // eslint-disable-next-line react-hooks/exhaustive-deps
