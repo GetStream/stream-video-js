@@ -83,34 +83,18 @@ export class StreamClient {
    * @param {Logger} [options.Logger] - custom logger
    * @param {number} [options.timeout] - default to 3000
    * @param {httpsAgent} [options.httpsAgent] - custom httpsAgent, in node it's default to https.agent()
-   * @example <caption>initialize the client in user mode</caption>
-   * new StreamChat('api_key')
-   * @example <caption>initialize the client in user mode with options</caption>
-   * new StreamChat('api_key', { warmUp:true, timeout:5000 })
-   * @example <caption>secret is optional and only used in server side mode</caption>
-   * new StreamChat('api_key', "secret", { httpsAgent: customAgent })
    */
-  constructor(key: string, options?: StreamClientOptions);
-  constructor(key: string, secret?: string, options?: StreamClientOptions);
-  constructor(
-    key: string,
-    secretOrOptions?: StreamClientOptions | string,
-    options?: StreamClientOptions,
-  ) {
+  constructor(key: string, options?: StreamClientOptions) {
     // set the key
     this.key = key;
     this.listeners = {};
 
     // set the secret
-    if (secretOrOptions && isString(secretOrOptions)) {
-      this.secret = secretOrOptions;
-    }
+    this.secret = options?.secret;
 
     // set the options... and figure out defaults...
     const inputOptions = options
       ? options
-      : secretOrOptions && !isString(secretOrOptions)
-      ? secretOrOptions
       : ({
           browser: typeof window !== 'undefined',
         } as Partial<StreamClientOptions>);
@@ -139,6 +123,7 @@ export class StreamClient {
 
     this.axiosInstance = axios.create(this.options);
 
+    // todo: replace 'https://chat.stream-io-api.com' with an actual video server URL
     this.setBaseURL(this.options.baseURL || 'https://chat.stream-io-api.com');
 
     if (typeof process !== 'undefined' && process.env.STREAM_LOCAL_TEST_RUN) {
@@ -159,7 +144,7 @@ export class StreamClient {
     this.persistUserOnConnectionFailure =
       this.options?.persistUserOnConnectionFailure;
 
-    // If its a server-side client, then lets initialize the tokenManager, since token will be
+    // If it is a server-side client, then lets initialize the tokenManager, since token will be
     // generated from secret.
     this.tokenManager = new TokenManager(this.secret);
     this.consecutiveFailures = 0;
@@ -374,14 +359,11 @@ export class StreamClient {
 
     this.anonymous = false;
 
-    const closePromise = this.closeConnection(timeout);
-    // reset token manager
-    setTimeout(this.tokenManager.reset); // delay reseting to use token for disconnect calls
+    await this.closeConnection(timeout);
 
-    return closePromise.then(() => {
-      // drop all event listeners on user disconnect
-      this.listeners = {};
-    });
+    this.tokenManager.reset();
+    // drop all event listeners on user disconnect
+    this.listeners = {};
   };
 
   /**
@@ -594,12 +576,10 @@ export class StreamClient {
     response: AxiosResponse<APIErrorResponse>,
   ): ErrorFromResponse<APIErrorResponse> {
     let err: ErrorFromResponse<APIErrorResponse>;
-    err = new ErrorFromResponse(
-      `StreamChat error HTTP code: ${response.status}`,
-    );
+    err = new ErrorFromResponse(`Stream error HTTP code: ${response.status}`);
     if (response.data && response.data.code) {
       err = new Error(
-        `StreamChat error code ${response.data.code}: ${response.data.message}`,
+        `Stream error code ${response.data.code}: ${response.data.message}`,
       );
       err.code = response.data.code;
     }
@@ -686,7 +666,7 @@ export class StreamClient {
       if (this.wsFallback) {
         return await this.wsFallback.connect();
       }
-
+      console.log('StreamClient.connect: this.wsConnection.connect()');
       // if WSFallback is enabled, ws connect should timeout faster so fallback can try
       return await this.wsConnection.connect(
         this.options.enableWSFallback

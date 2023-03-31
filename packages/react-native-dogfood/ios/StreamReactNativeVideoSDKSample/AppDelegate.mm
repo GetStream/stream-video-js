@@ -9,6 +9,10 @@
 #import <React/RCTAppSetupUtils.h>
 #import "RNCallKeep.h"
 
+#import <Firebase.h>
+#import <PushKit/PushKit.h>
+#import "RNVoipPushNotificationManager.h"
+
 #if RCT_NEW_ARCH_ENABLED
 #import <React/CoreModulesPlugins.h>
 #import <React/RCTCxxBridgeDelegate.h>
@@ -55,11 +59,59 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
   return handledCK || handledLM;
 }
 
+// --- Handle updated push credentials
+- (void)pushRegistry:(PKPushRegistry *)registry didUpdatePushCredentials:(PKPushCredentials *)credentials forType:(PKPushType)type {
+  // Register VoIP push token (a property of PKPushCredentials) with server
+  // Fire 'register' event to JS
+  [RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];
+}
+
+// --- Handle incoming pushes
+- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
+
+   // --- Process the received push // fire 'notification' event to JS
+   [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
+  
+   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
+   NSString *callCid = stream[@"call_cid"];
+  
+   NSUUID* uuid = [NSUUID alloc];
+   NSString* uuidString = [uuid UUIDString];
+   NSString *userIds = stream[@"user_ids"];
+
+  [RNCallKeep reportNewIncomingCall: uuidString
+                             handle: @"984213015"
+                         handleType: @"generic"
+                           hasVideo: NO
+                localizedCallerName: userIds
+                    supportsHolding: YES
+                       supportsDTMF: YES
+                   supportsGrouping: YES
+                 supportsUngrouping: YES
+                        fromPushKit: YES
+                            payload: stream
+              withCompletionHandler: completion];
+
+//  // --- this is optional, only required if you want to call `completion()` on the js side
+//  [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
+//
+//  // --- You don't need to call it if you stored `completion()` and will call it on the js side.
+//  completion();
+}
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+  [FIRApp configure];
+  [RNCallKeep setup:@{
+    @"appName": @"Awesome App",
+    @"supportsVideo": @YES,
+  }];
+
   RCTAppSetupPrepareApp(application);
 
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
+
+  [RNVoipPushNotificationManager voipRegistration];
 
 #if RCT_NEW_ARCH_ENABLED
   _contextContainer = std::make_shared<facebook::react::ContextContainer const>();

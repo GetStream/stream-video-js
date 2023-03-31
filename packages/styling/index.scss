@@ -14,6 +14,7 @@
 @import 'src/CallParticipantsScreenView';
 @import 'src/CallParticipantsView';
 @import 'src/CallParticipantList';
+@import 'src/CallRecodingList';
 @import 'src/CallStats';
 @import 'src/DeviceSettings';
 @import 'src/LoadingIndicator';
@@ -22,7 +23,9 @@
 @import 'src/Reaction';
 @import 'src/Search';
 @import 'src/StreamCall';
-@import "src/Tooltip";
+@import 'src/Tooltip';
 @import 'src/Video';
 
 @import './src/Debug';
+
+@import './src/CallLayout';

@@ -5,9 +5,9 @@ import {
   useCallback,
 } from 'react';
 import { useParticipants } from '@stream-io/video-react-bindings';
-import { EmptyParticipantSearchList as DefaultEmptyParticipantList } from './EmptyParticipantSearchList';
-import { GetInviteLinkButton } from './GetInviteLinkButton';
-import { LoadingIndicator } from '../LoadingIndicator';
+import type { StreamVideoParticipant } from '@stream-io/video-client';
+import { BlockedUserListing } from './BlockedUserListing';
+import { CopyToClipboardButtonWithPopup } from '../Button';
 import {
   CallParticipantListHeader,
   CallParticipantListHeaderProps,
@@ -16,11 +16,10 @@ import {
   CallParticipantListing as DefaultParticipantListing,
   CallParticipantListingProps,
 } from './CallParticipantListing';
+import { EmptyParticipantSearchList as DefaultEmptyParticipantList } from './EmptyParticipantSearchList';
+import { LoadingIndicator } from '../LoadingIndicator';
 import { SearchInput, SearchResults } from '../Search';
 import { useSearch, UseSearchParams } from '../Search/hooks';
-
-import type { StreamVideoParticipant } from '@stream-io/video-client';
-import { BlockedUserListing } from './BlockedUserListing';
 
 type CallParticipantListProps = {
   /** Click event listener function to be invoked in order to dismiss / hide the CallParticipantsList from the UI */
@@ -94,7 +93,14 @@ export const CallParticipantsList = ({
         <BlockedUserListing />
       </div>
       <div className="str-video__participant-list__footer">
-        {InviteLinkButton && <GetInviteLinkButton Button={InviteLinkButton} />}
+        {InviteLinkButton && (
+          <CopyToClipboardButtonWithPopup
+            Button={InviteLinkButton}
+            copyValue={
+              typeof window !== 'undefined' ? window.location.href : ''
+            }
+          />
+        )}
       </div>
     </div>
   );

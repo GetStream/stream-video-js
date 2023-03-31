@@ -8,15 +8,21 @@ import {
 import {
   BlockUserResponse,
   CallSettingsRequest,
+  CreateCallTypeRequest,
+  CreateCallTypeResponse,
   EndCallResponse,
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
+  GetCallTypeResponse,
+  GetCallResponse,
   GetEdgesResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
   GoLiveResponse,
   JoinCallRequest,
   JoinCallResponse,
+  ListCallTypeResponse,
+  ListRecordingsResponse,
   MuteUsersResponse,
   QueryCallsRequest,
   QueryCallsResponse,
@@ -28,10 +34,10 @@ import {
   SortParamRequest,
   StopLiveResponse,
   UnblockUserResponse,
-  UpdateCallMemberRequest,
-  UpdateCallMemberResponse,
   UpdateCallRequest,
   UpdateCallResponse,
+  UpdateCallTypeRequest,
+  UpdateCallTypeResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
 } from '../gen/coordinator';
@@ -89,6 +95,10 @@ export class StreamCall {
     });
   };
 
+  get = async () => {
+    return this.client.get<GetCallResponse>(this.basePath);
+  };
+
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
     return this.client.post<GetOrCreateCallResponse>(this.basePath, data);
   };
@@ -120,6 +130,13 @@ export class StreamCall {
     return this.client.post(`${this.basePath}/event`, event);
   };
 
+  queryRecordings = () => {
+    // FIXME: this is a temporary setting to take call ID as session ID
+    const sessionId = this.id;
+    return this.client.get<ListRecordingsResponse>(
+      `${this.basePath}/${sessionId}/recordings`,
+    );
+  };
   startRecording = async () => {
     return this.client.post(`${this.basePath}/start_recording`, {});
   };
@@ -138,13 +155,6 @@ export class StreamCall {
   updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
     return this.client.post<UpdateUserPermissionsResponse>(
       `${this.basePath}/user_permissions`,
-      data,
-    );
-  };
-
-  updateCallMembers = async (data: UpdateCallMemberRequest) => {
-    return this.client.post<UpdateCallMemberResponse>(
-      `${this.basePath}/update_member`,
       data,
     );
   };
@@ -215,7 +225,7 @@ export class StreamCoordinatorClient {
   };
 
   disconnectUser = async (timeout?: number) => {
-    return this.client.disconnectUser(timeout);
+    await this.client.disconnectUser(timeout);
   };
 
   // DEPRECATED: use call.getOrCreate() instead
@@ -247,13 +257,18 @@ export class StreamCoordinatorClient {
     sort: Array<SortParamRequest>,
     limit?: number,
     next?: string,
+    watch?: boolean,
   ) => {
     const data: QueryCallsRequest = {
       filter_conditions: filterConditions,
       sort: sort,
       limit: limit,
       next: next,
+      watch,
     };
+    if (data.watch) {
+      await this.client.connectionIdPromise;
+    }
     return this.client.post<QueryCallsResponse>(`/calls`, data);
   };
 
@@ -312,11 +327,24 @@ export class StreamCoordinatorClient {
     return this.call(type, id).endCall();
   };
 
-  updateCallMembers = async (
-    id: string,
-    type: string,
-    data: UpdateCallMemberRequest,
-  ) => {
-    return this.call(type, id).updateCallMembers(data);
+  // server-side only endpoints
+  createCallType = async (data: CreateCallTypeRequest) => {
+    return this.client.post<CreateCallTypeResponse>(`/calltypes`, data);
+  };
+
+  getCallType = async (name: string) => {
+    return this.client.get<GetCallTypeResponse>(`/calltypes/${name}`);
+  };
+
+  updateCallType = async (name: string, data: UpdateCallTypeRequest) => {
+    return this.client.put<UpdateCallTypeResponse>(`/calltypes/${name}`, data);
+  };
+
+  deleteCallType = async (name: string) => {
+    return this.client.delete(`/calltypes/${name}`);
+  };
+
+  listCallTypes = async () => {
+    return this.client.get<ListCallTypeResponse>(`/calltypes`);
   };
 }

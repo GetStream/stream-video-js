@@ -46,6 +46,7 @@
     flex: 1 1;
     overflow-y: auto;
     scrollbar-width: none;
+    width: 100%;
     &::-webkit-scrollbar {
       display: none;
     }
@@ -66,7 +67,6 @@
     flex-direction: column;
 
     .str-video__call-participants-screen-view__button-up {
-      border-radius: var(--str-video__border-radius-circle);
       position: absolute;
       top: 0.5rem;
       z-index: 1;
@@ -77,7 +77,6 @@
       }
     }
     .str-video__call-participants-screen-view__button-down {
-      border-radius: var(--str-video__border-radius-circle);
       position: absolute;
       bottom: 0.5rem;
       z-index: 1;

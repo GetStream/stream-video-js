@@ -1,7 +1,6 @@
 .str-video__generic-menu {
   list-style: none;
   margin: unset;
-  padding: unset;
   padding: 5px;
   border-radius: var(--str-video__border-radius-xs);
   display: flex;
@@ -14,8 +13,19 @@
       all: unset;
       width: 100%;
       font-size: 13px;
-      padding: 5px 10px;
+      padding: 5px 10px 5px 26px;
       border-radius: var(--str-video__border-radius-xs);
+
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    // TODO: remove once "device selector" component becomes reusable
+    button[aria-selected='true']::after {
+      content: '●';
+      font-size: 10px;
+      left: 8px;
+      position: absolute;
     }
   }
 }

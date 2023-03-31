@@ -85,6 +85,7 @@ rm -rf generated-docs/client/
 
 # copy shared JS docs to the docs to SDK's docusaurus
 cp -a ../client/generated-docs/. "docusaurus/docs/$SDK_DIR_IN_DOCS/04-call-engine/"
+cp ../client/docusaurus/docs/client/SDKSpecific.jsx "docusaurus/docs/$SDK_DIR_IN_DOCS/SDKSpecific.jsx"
 
 cp -a generated-docs/hooks.md "docusaurus/docs/$SDK_DIR_IN_DOCS/04-call-engine/"
 cp -a generated-docs/contexts.md "docusaurus/docs/$SDK_DIR_IN_DOCS/04-call-engine/"
