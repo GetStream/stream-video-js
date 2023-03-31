@@ -16,7 +16,7 @@ export type StreamVideoClientInit = {
   tokenOrProvider: TokenOrProvider;
   callConfig?: CallConfig;
   options?: StreamClientOptions;
-  user: User | undefined;
+  user: User;
 };
 
 /**
@@ -39,9 +39,6 @@ export const useCreateStreamVideoClient = ({
 
   const disconnectRef = useRef(Promise.resolve());
   useEffect(() => {
-    // if user is not defined, we don't want to connect. this happens in some of our use cases
-    if (!user) return;
-
     const connectionPromise = disconnectRef.current.then(() => {
       return client.connectUser(user, tokenOrProvider).catch((err) => {
         console.error(`Failed to establish connection`, err);

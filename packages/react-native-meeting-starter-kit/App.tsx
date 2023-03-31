@@ -25,24 +25,29 @@ import {JoinMeetingScreen} from './src/screens/JoinMeetingScreen';
 import {NavigationHeader} from './src/components/NavigationHeader';
 import {LobbyViewScreen} from './src/screens/LobbyViewScreen';
 import {ActiveCallScreen} from './src/screens/ActiveCallScreen';
+import {User} from '@stream-io/video-client';
 
 console.log('STREAM_API_KEY', STREAM_API_KEY);
 
 const Stack = createNativeStackNavigator<NavigationStackParamsList>();
 
-const Navigator = () => {
+const Root = () => {
   const {user} = useAppContext();
+  if (!user) {
+    return <UserList />;
+  }
+
+  return <Navigator selectedUser={user} />;
+};
+
+const Navigator = ({selectedUser}: {selectedUser: User}) => {
   const videoClient = useCreateStreamVideoClient({
-    user: user,
-    tokenOrProvider: user?.custom?.token,
+    user: selectedUser,
+    tokenOrProvider: selectedUser.custom?.token,
     apiKey: STREAM_API_KEY,
   });
   const navigation =
     useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();
-
-  if (!user) {
-    return <UserList />;
-  }
 
   if (!videoClient) {
     return <AuthProgressLoader />;
@@ -84,7 +89,7 @@ function App(): JSX.Element {
   return (
     <NavigationContainer>
       <AppProvider>
-        <Navigator />
+        <Root />
       </AppProvider>
     </NavigationContainer>
   );
