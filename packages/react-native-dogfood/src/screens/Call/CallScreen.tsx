@@ -4,6 +4,7 @@ import {
   useActiveCall,
   useIncomingCalls,
   useRingCall,
+  theme,
 } from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RingingStackParamList } from '../../../types';
@@ -19,7 +20,7 @@ export const CallScreen = ({ navigation }: Props) => {
 
   useEffect(() => {
     // effect to answer call when incoming call is received from callkeep
-    if (!incomingCall?.call) {
+    if (!incomingCall) {
       return;
     }
     const subscription = callkeepCallId$.subscribe((callkeepCallId) => {
@@ -30,7 +31,7 @@ export const CallScreen = ({ navigation }: Props) => {
       }
     });
     return () => subscription.unsubscribe();
-  }, [answerCall, incomingCall?.call]);
+  }, [answerCall, incomingCall]);
 
   const onOpenCallParticipantsInfoViewHandler = () => {
     navigation.navigate('CallParticipantsInfoScreen');
