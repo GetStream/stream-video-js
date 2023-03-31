@@ -61,7 +61,7 @@ const Navbar = () => {
         </MuiLink>
       </Tooltip>
       <Tooltip title={'Search, share & download call recordngs'}>
-        <MuiLink href="/call-recordings" target="_blank" sx={navbarLinkStyle}>
+        <MuiLink href="/call-recordings" sx={navbarLinkStyle}>
           <SearchIcon /> Recordings
         </MuiLink>
       </Tooltip>
