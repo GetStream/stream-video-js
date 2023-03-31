@@ -66,7 +66,11 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
                 Object.entries(call.state)
                   .filter(([k]) => k.endsWith('$') && !ignoredKeys.includes(k))
                   .forEach(([k, v]) => {
-                    acc[`${key}.${k}`] = getCurrentValue(v);
+                    if (!!v && typeof v.subscribe === 'function') {
+                      acc[`${key}.${k}`] = getCurrentValue(v);
+                    } else {
+                      acc[`${key}.${k}`] = v;
+                    }
                   });
               } else {
                 acc[key] = value;
