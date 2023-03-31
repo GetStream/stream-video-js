@@ -19,6 +19,15 @@ const nextConfig = {
           },
         ],
       },
+      {
+        source: '/api/auth/create-token',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+        ],
+      },
     ];
   },
 
