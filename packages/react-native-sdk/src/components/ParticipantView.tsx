@@ -129,7 +129,8 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
   const isScreenSharing = kind === 'screen';
   const mirror = isLoggedInUser && isCameraOnFrontFacingMode;
-  const isAudioAvailable = kind === 'video' && !!audioStream && !isAudioMuted && !disableAudio;
+  const isAudioAvailable =
+    kind === 'video' && !!audioStream && !isAudioMuted && !disableAudio;
   const isVideoAvailable = !!videoStream && !isVideoMuted && !disableVideo;
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && styles.isSpeaking;
