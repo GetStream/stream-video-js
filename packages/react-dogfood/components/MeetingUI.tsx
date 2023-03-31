@@ -7,8 +7,6 @@ import {
   CancelCallButton,
   CompositeButton,
   defaultSortPreset,
-  DeviceSettings,
-  GetInviteLinkButton,
   IconButton,
   LoadingIndicator,
   noopComparator,
@@ -24,8 +22,7 @@ import {
   useActiveCall,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { IconInviteLinkButton, InviteLinkButton } from './InviteLinkButton';
-import { CallHeaderTitle } from './CallHeaderTitle';
+import { InviteLinkButton } from './InviteLinkButton';
 import { Lobby } from './Lobby';
 import { Button, Stack, Typography } from '@mui/material';
 import { StreamChat } from 'stream-chat';
@@ -35,10 +32,10 @@ import {
   ChatWrapper,
   NewMessageNotification,
   UnreadCountBadge,
-  USAGE_GUIDE_LINK,
 } from '.';
-import { useWatchChannel } from '../hooks';
+import { ActiveCallHeader } from './ActiveCallHeader';
 import { DeviceSettingsCaptor } from './DeviceSettingsCaptor';
+import { useWatchChannel } from '../hooks';
 
 const contents = {
   'error-join': {
@@ -147,26 +144,7 @@ export const MeetingUI = ({
     <StreamCallProvider call={activeCall}>
       <div className="str-video str-video__call">
         <div className="str-video__call__main">
-          <div className="str-video__call-header">
-            <CallHeaderTitle />
-            <div className="str-video__call-header__controls-group">
-              <IconButton
-                icon="info-document"
-                title="Usage guide and known limitations"
-                onClick={() => {
-                  if (window) {
-                    window.open(
-                      USAGE_GUIDE_LINK,
-                      '_blank',
-                      'noopener,noreferrer',
-                    );
-                  }
-                }}
-              />
-              <GetInviteLinkButton Button={IconInviteLinkButton} />
-              <DeviceSettings />
-            </div>
-          </div>
+          <ActiveCallHeader />
           <Stage call={activeCall} />
           <div
             className="str-video__call-controls"

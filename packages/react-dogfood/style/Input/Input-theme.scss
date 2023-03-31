@@ -1,4 +1,4 @@
-.rd__join-call-input {
+.rd__input--underlined {
   background: transparent;
   outline: none;
   border: none;
@@ -6,6 +6,11 @@
   color: #fff;
 }
 
-.rd__join-call-input::placeholder {
+.rd__call-recording-search-input {
+  font-size: 1.125rem;
+  text-align: center;
+}
+
+.rd__input::placeholder {
   color: currentColor;
 }
