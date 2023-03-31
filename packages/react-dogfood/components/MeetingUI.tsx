@@ -110,15 +110,16 @@ export const MeetingUI = ({
     };
   }, [activeCall, router.events]);
 
+  const isSortingDisabled = router.query['enableSorting'] === 'false';
   useEffect(() => {
     if (!activeCall) return;
     // enable sorting via query param feature flag is provided
-    if (router.query['enableSorting'] === 'false') {
+    if (isSortingDisabled) {
       activeCall.setSortParticipantsBy(noopComparator());
     } else {
       activeCall.setSortParticipantsBy(defaultSortPreset);
     }
-  });
+  }, [activeCall, isSortingDisabled]);
 
   if (show === 'error-join' || show === 'error-leave') {
     return (

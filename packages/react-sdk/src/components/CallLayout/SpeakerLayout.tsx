@@ -51,6 +51,9 @@ export const SpeakerLayout = () => {
       // otherwise, use the default sorting preset.
       call.setSortParticipantsBy(speakerLayoutSortPreset);
     }
+  }, [call, otherParticipants.length]);
+
+  useEffect(() => {
     return () => {
       // reset the sorting to the default for the call type
       const callConfig = CallTypes.get(call.type);
@@ -58,7 +61,7 @@ export const SpeakerLayout = () => {
         callConfig.options.sortParticipantsBy || defaultSortPreset,
       );
     };
-  }, [call, otherParticipants.length]);
+  }, [call]);
 
   return (
     <div className="str-video__speaker-layout--wrapper">
