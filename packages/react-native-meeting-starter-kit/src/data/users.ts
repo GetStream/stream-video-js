@@ -28,7 +28,9 @@ export const users = [
     id: 'brian',
     name: 'Brian',
     imageUrl: 'https://randomuser.me/api/portraits/men/80.jpg',
-    token: STREAM_TOKEN_BRIAN,
+    custom: {
+      token: STREAM_TOKEN_BRIAN,
+    },
   },
   {
     id: 'evelyn',

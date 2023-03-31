@@ -16,7 +16,7 @@ export type StreamVideoClientInit = {
   tokenOrProvider: TokenOrProvider;
   callConfig?: CallConfig;
   options?: StreamClientOptions;
-  user: User;
+  user: User | undefined;
 };
 
 /**
@@ -57,7 +57,7 @@ export const useCreateStreamVideoClient = ({
     };
     // we want to re-run this effect only in some special cases
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiKey, tokenOrProvider, client, user.id]);
+  }, [apiKey, tokenOrProvider, client, user?.id]);
 
   return client;
 };
