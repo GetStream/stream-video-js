@@ -9,7 +9,7 @@ import React from 'react';
 import {ImageBackground, StyleSheet, Text, useColorScheme} from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 
-const headerBanner = require('../../../assets/header-banner.jpg');
+const headerBanner = require('../../../assets/welcome-screen-header-banner.jpg');
 
 export default () => {
   const isDarkMode = useColorScheme() === 'dark';
