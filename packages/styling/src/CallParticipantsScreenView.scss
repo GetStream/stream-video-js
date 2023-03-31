@@ -67,7 +67,6 @@
     flex-direction: column;
 
     .str-video__call-participants-screen-view__button-up {
-      border-radius: var(--str-video__border-radius-circle);
       position: absolute;
       top: 0.5rem;
       z-index: 1;
@@ -78,7 +77,6 @@
       }
     }
     .str-video__call-participants-screen-view__button-down {
-      border-radius: var(--str-video__border-radius-circle);
       position: absolute;
       bottom: 0.5rem;
       z-index: 1;

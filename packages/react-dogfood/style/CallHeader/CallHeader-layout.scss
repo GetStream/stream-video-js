@@ -1,4 +1,4 @@
-@use "../../../styling/src/utils";
+@use '../../../styling/src/utils';
 
 .str-video__call-header {
   display: flex;
@@ -10,6 +10,10 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+
+    a[data-testid='home-button'] {
+      display: flex;
+    }
 
     .str-video__call-header-title {
       @include utils.ellipsis-text;

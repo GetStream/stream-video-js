@@ -14,7 +14,6 @@ import {
   RecordCallButton,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
-  Stage,
   StreamCallProvider,
   ToggleAudioPublishingButton,
   ToggleCameraPublishingButton,
@@ -36,6 +35,8 @@ import {
 import { ActiveCallHeader } from './ActiveCallHeader';
 import { DeviceSettingsCaptor } from './DeviceSettingsCaptor';
 import { useWatchChannel } from '../hooks';
+import { LayoutMap } from './LayoutSelector';
+import { Stage } from './Stage';
 
 const contents = {
   'error-join': {
@@ -61,6 +62,7 @@ export const MeetingUI = ({
   const activeCall = useActiveCall();
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [layout, setLayout] = useState<keyof typeof LayoutMap>('LegacyGrid');
 
   const showSidebar = showParticipants || showChat;
 
@@ -108,15 +110,16 @@ export const MeetingUI = ({
     };
   }, [activeCall, router.events]);
 
+  const isSortingDisabled = router.query['enableSorting'] === 'false';
   useEffect(() => {
     if (!activeCall) return;
     // enable sorting via query param feature flag is provided
-    if (router.query['enableSorting'] === 'false') {
+    if (isSortingDisabled) {
       activeCall.setSortParticipantsBy(noopComparator());
     } else {
       activeCall.setSortParticipantsBy(defaultSortPreset);
     }
-  });
+  }, [activeCall, isSortingDisabled]);
 
   if (show === 'error-join' || show === 'error-leave') {
     return (
@@ -144,8 +147,11 @@ export const MeetingUI = ({
     <StreamCallProvider call={activeCall}>
       <div className="str-video str-video__call">
         <div className="str-video__call__main">
-          <ActiveCallHeader />
-          <Stage call={activeCall} />
+          <ActiveCallHeader
+            selectedLayout={layout}
+            onMenuItemClick={setLayout}
+          />
+          <Stage selectedLayout={layout} />
           <div
             className="str-video__call-controls"
             data-testid="str-video__call-controls"
