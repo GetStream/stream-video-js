@@ -31,7 +31,7 @@ export const LayoutMap = {
   },
 };
 
-type LayoutSelectorProps = {
+export type LayoutSelectorProps = {
   onMenuItemClick: (key: keyof typeof LayoutMap) => void;
   selectedLayout: keyof typeof LayoutMap;
 };

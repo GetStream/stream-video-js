@@ -147,7 +147,10 @@ export const MeetingUI = ({
     <StreamCallProvider call={activeCall}>
       <div className="str-video str-video__call">
         <div className="str-video__call__main">
-          <ActiveCallHeader />
+          <ActiveCallHeader
+            selectedLayout={layout}
+            onMenuItemClick={setLayout}
+          />
           <Stage selectedLayout={layout} />
           <div
             className="str-video__call-controls"
