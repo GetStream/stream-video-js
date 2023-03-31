@@ -34,6 +34,16 @@ export const APIErrorCodes: Record<
   '99': { name: 'AppSuspendedError', retryable: false },
 };
 
+// todo: this is not a correct error declaration. /recordings endpoint returns error objects as follows:
+// {
+//     "code": 16,
+//     "message": "ListRecordings failed with error: \"Can't find call with id default:bbbb\"",
+//     "StatusCode": 404,
+//     "duration": "0.00ms",
+//     "more_info": "https://getstream.io/chat/docs/api_errors_response",
+//     "details": []
+// }
+
 type APIError = Error & { code: number; isWSFailure?: boolean };
 
 export function isAPIError(error: Error): error is APIError {

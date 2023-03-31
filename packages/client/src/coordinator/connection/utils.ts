@@ -10,6 +10,7 @@ export function isFunction<T>(value: Function | T): value is Function {
   );
 }
 
+// todo: rename so that it does not contain word "chat"
 export const chatCodes = {
   TOKEN_EXPIRED: 40,
   WS_CLOSED_SUCCESS: 1000,
