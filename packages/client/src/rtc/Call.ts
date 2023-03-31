@@ -178,7 +178,7 @@ export class Call {
     return preferredCodec;
   }
 
-  private coordinatorBasePath: string;
+  private streamClientBasePath: string;
 
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
@@ -197,7 +197,7 @@ export class Call {
     this.cid = `${type}:${id}`;
     this.streamClient = streamClient;
     this.clientStore = clientStore;
-    this.coordinatorBasePath = `/call/${this.type}/${this.id}`;
+    this.streamClientBasePath = `/call/${this.type}/${this.id}`;
 
     const callTypeConfig = CallTypes.get(type);
     this.state = new CallState(
@@ -839,14 +839,14 @@ export class Call {
 
   sendReaction = async (reaction: SendReactionRequest) => {
     return this.streamClient.post<SendReactionResponse>(
-      `${this.coordinatorBasePath}/reaction`,
+      `${this.streamClientBasePath}/reaction`,
       reaction,
     );
   };
 
   blockUser = async (userId: string) => {
     return this.streamClient.post<BlockUserResponse>(
-      `${this.coordinatorBasePath}/block`,
+      `${this.streamClientBasePath}/block`,
       {
         user_id: userId,
       },
@@ -855,7 +855,7 @@ export class Call {
 
   unblockUser = async (userId: string) => {
     return this.streamClient.post<UnblockUserResponse>(
-      `${this.coordinatorBasePath}/unblock`,
+      `${this.streamClientBasePath}/unblock`,
       {
         user_id: userId,
       },
@@ -868,7 +868,7 @@ export class Call {
     sessionId?: string,
   ) => {
     return this.streamClient.post<MuteUsersResponse>(
-      `${this.coordinatorBasePath}/mute_users`,
+      `${this.streamClientBasePath}/mute_users`,
       {
         user_ids: [userId],
         [type]: true,
@@ -879,7 +879,7 @@ export class Call {
 
   muteAllUsers = (type: 'audio' | 'video' | 'screenshare') => {
     return this.streamClient.post<MuteUsersResponse>(
-      `${this.coordinatorBasePath}/mute_users`,
+      `${this.streamClientBasePath}/mute_users`,
       {
         mute_all_users: true,
         [type]: true,
@@ -889,7 +889,7 @@ export class Call {
 
   get = async () => {
     const response = await this.streamClient.get<GetCallResponse>(
-      this.coordinatorBasePath,
+      this.streamClientBasePath,
     );
     this.state.setCurrentValue(this.state.metadataSubject, response.call);
     this.state.setCurrentValue(this.state.membersSubject, response.members);
@@ -899,7 +899,7 @@ export class Call {
 
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
     const response = await this.streamClient.post<GetOrCreateCallResponse>(
-      this.coordinatorBasePath,
+      this.streamClientBasePath,
       data,
     );
     this.state.setCurrentValue(this.state.metadataSubject, response.call);
@@ -928,7 +928,7 @@ export class Call {
   startRecording = async () => {
     try {
       return await this.streamClient.post(
-        `${this.coordinatorBasePath}/start_recording`,
+        `${this.streamClientBasePath}/start_recording`,
         {},
       );
     } catch (error) {
@@ -942,7 +942,7 @@ export class Call {
   stopRecording = async () => {
     try {
       return await this.streamClient.post(
-        `${this.coordinatorBasePath}/stop_recording`,
+        `${this.streamClientBasePath}/stop_recording`,
         {},
       );
     } catch (error) {
@@ -955,7 +955,7 @@ export class Call {
    */
   requestPermissions = async (data: RequestPermissionRequest) => {
     return this.streamClient.post<RequestPermissionResponse>(
-      `${this.coordinatorBasePath}/request_permission`,
+      `${this.streamClientBasePath}/request_permission`,
       data,
     );
   };
@@ -972,21 +972,21 @@ export class Call {
    */
   updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
     return this.streamClient.post<UpdateUserPermissionsResponse>(
-      `${this.coordinatorBasePath}/user_permissions`,
+      `${this.streamClientBasePath}/user_permissions`,
       data,
     );
   };
 
   goLive = async () => {
     return this.streamClient.post<GoLiveResponse>(
-      `${this.coordinatorBasePath}/go_live`,
+      `${this.streamClientBasePath}/go_live`,
       {},
     );
   };
 
   stopLive = async () => {
     return this.streamClient.post<StopLiveResponse>(
-      `${this.coordinatorBasePath}/stop_live`,
+      `${this.streamClientBasePath}/stop_live`,
       {},
     );
   };
@@ -1000,14 +1000,14 @@ export class Call {
       settings_override: settings,
     };
     return this.streamClient.patch<UpdateCallResponse>(
-      `${this.coordinatorBasePath}`,
+      `${this.streamClientBasePath}`,
       payload,
     );
   };
 
   endCall = async () => {
     return this.streamClient.post<EndCallResponse>(
-      `${this.coordinatorBasePath}/mark_ended`,
+      `${this.streamClientBasePath}/mark_ended`,
     );
   };
 
@@ -1034,7 +1034,7 @@ export class Call {
       .find((c) => c.id === this.id && c.type === this.type);
 
     if (callToAccept) {
-      await this.streamClient.post(`${this.coordinatorBasePath}/event`, {
+      await this.streamClient.post(`${this.streamClientBasePath}/event`, {
         type: 'call.accepted',
       });
 
@@ -1063,7 +1063,7 @@ export class Call {
       (pendingCalls) =>
         pendingCalls.filter((incomingCall) => incomingCall.id !== this.id),
     );
-    await this.streamClient.post(`${this.coordinatorBasePath}/event`, {
+    await this.streamClient.post(`${this.streamClientBasePath}/event`, {
       type: 'call.rejected',
     });
   };
@@ -1095,7 +1095,7 @@ export class Call {
         state.remoteParticipants$,
       );
       if (!remoteParticipants.length && !leavingActiveCall) {
-        await this.streamClient.post(`${this.coordinatorBasePath}/event`, {
+        await this.streamClient.post(`${this.streamClientBasePath}/event`, {
           type: 'call.cancelled',
         });
       }
@@ -1110,7 +1110,7 @@ export class Call {
     // FIXME: this is a temporary setting to take call ID as session ID
     const sessionId = this.id;
     const response = await this.streamClient.get<ListRecordingsResponse>(
-      `${this.coordinatorBasePath}/${sessionId}/recordings`,
+      `${this.streamClientBasePath}/${sessionId}/recordings`,
     );
 
     this.state.setCurrentValue(
@@ -1123,12 +1123,12 @@ export class Call {
 
   getEdgeServer = (data: GetCallEdgeServerRequest) => {
     return this.streamClient.post<GetCallEdgeServerResponse>(
-      `${this.coordinatorBasePath}/get_edge_server`,
+      `${this.streamClientBasePath}/get_edge_server`,
       data,
     );
   };
 
   sendEvent = async (event: SendEventRequest) => {
-    return this.streamClient.post(`${this.coordinatorBasePath}/event`, event);
+    return this.streamClient.post(`${this.streamClientBasePath}/event`, event);
   };
 }
