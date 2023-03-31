@@ -20,9 +20,7 @@ export const CallRecordingListHeader = ({
       </div>
       <button
         className="str-video__refresh-button"
-        onClick={() =>
-          activeCall?.queryRecordings().then(activeCall?.updateRecordingsList)
-        }
+        onClick={() => activeCall?.queryRecordings()}
         title="Refresh"
       >
         <span className="str-video__refresh-button--icon" />

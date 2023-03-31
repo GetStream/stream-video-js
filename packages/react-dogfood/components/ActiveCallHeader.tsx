@@ -14,7 +14,7 @@ export const ActiveCallHeader = () => {
   const activeCall = useActiveCall();
 
   useEffect(() => {
-    activeCall?.queryRecordings().then(activeCall?.updateRecordingsList);
+    activeCall?.queryRecordings();
   }, [activeCall]);
 
   return (

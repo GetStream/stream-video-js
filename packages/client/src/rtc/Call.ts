@@ -959,18 +959,14 @@ export class Call {
 
   /**
    * Performs HTTP request to retrieve the list of recordings for the current call
+   * Updates the call state with provided array of CallRecording objects
    */
   queryRecordings = async (): Promise<CallRecording[]> => {
     const { recordings } = await this.httpClient
       .call(this.type, this.id)
       .queryRecordings();
-    return recordings;
-  };
-
-  /**
-   * Updates the call state with provided array of CallRecording objects
-   */
-  updateRecordingsList = async (recordings: CallRecording[]) => {
     this.state.setCurrentValue(this.state.callRecordingListSubject, recordings);
+
+    return recordings;
   };
 }
