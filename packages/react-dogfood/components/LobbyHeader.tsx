@@ -104,7 +104,7 @@ const UserInfo = () => {
         onClick={handleClick}
         sx={{ padding: 0, margin: 0, width: 'fit-content', minWidth: 'unset' }}
       >
-        <Avatar src={theSession.user.image} />
+        <Avatar src={theSession.user.image || undefined} />
       </Button>
       <Menu
         anchorEl={anchorEl}
