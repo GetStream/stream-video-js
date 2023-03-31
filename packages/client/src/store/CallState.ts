@@ -148,7 +148,7 @@ export class CallState {
   /**
    * Emits a list of details about recordings performed during the active call
    */
-  callRecordingList$;
+  callRecordingList$: Observable<CallRecording[]>;
 
   /**
    * Emits the latest call permission request sent by any participant of the active call.
