@@ -63,6 +63,7 @@ export const SpeakerLayout = () => {
     };
   }, [call]);
 
+  const isSpeakerScreenSharing = hasScreenShare(participantInSpotlight);
   return (
     <div className="str-video__speaker-layout--wrapper">
       <div className="str-video__speaker-layout">
@@ -80,6 +81,17 @@ export const SpeakerLayout = () => {
               ref={setScrollWrapper}
             >
               <div className="str-video__speaker-layout--participants-bar">
+                {isSpeakerScreenSharing && (
+                  <div
+                    className="str-video__speaker-layout--participant-tile"
+                    key={participantInSpotlight.sessionId}
+                  >
+                    <ParticipantBox
+                      participant={participantInSpotlight}
+                      call={call}
+                    />
+                  </div>
+                )}
                 {otherParticipants.map((participant) => (
                   <div
                     className="str-video__speaker-layout--participant-tile"
@@ -105,9 +117,7 @@ export const SpeakerLayout = () => {
             <ParticipantBox
               participant={participantInSpotlight}
               call={call}
-              videoKind={
-                hasScreenShare(participantInSpotlight) ? 'screen' : 'video'
-              }
+              videoKind={isSpeakerScreenSharing ? 'screen' : 'video'}
             />
           )}
         </div>
