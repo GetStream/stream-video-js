@@ -244,6 +244,10 @@ export class Call {
     );
   };
 
+  get data() {
+    return this.state.getCurrentValue(this.state.metadata$);
+  }
+
   private waitForJoinResponse = (timeout: number = 10000) =>
     new Promise<SfuEventKindMap['joinResponse']>((resolve, reject) => {
       const unsubscribe = this.on('joinResponse', (event) => {
