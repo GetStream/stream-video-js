@@ -47,7 +47,7 @@ export const useCreateStreamVideoClient = ({
 
     return () => {
       disconnectRef.current = connectionPromise
-        .then(client.disconnectUser)
+        .then(() => client.disconnectUser())
         .catch((err) => {
           console.error(`Failed to disconnect`, err);
         });
