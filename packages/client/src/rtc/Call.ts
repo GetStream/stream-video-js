@@ -13,18 +13,33 @@ import {
 import { CallState, StreamVideoWriteableStateStore } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import {
-  StreamCall,
-  StreamCoordinatorClient,
-} from '../coordinator/StreamCoordinatorClient';
-import {
-  CallRecording,
+  BlockUserResponse,
   CallResponse,
+  CallSettingsRequest,
+  EndCallResponse,
+  GetCallEdgeServerRequest,
+  GetCallEdgeServerResponse,
+  GetCallResponse,
+  GetOrCreateCallRequest,
+  GetOrCreateCallResponse,
+  GoLiveResponse,
   JoinCallRequest,
   MemberResponse,
+  MuteUsersResponse,
   RequestPermissionRequest,
+  RequestPermissionResponse,
+  SendEventRequest,
+  SendReactionRequest,
+  SendReactionResponse,
+  StopLiveResponse,
+  UnblockUserResponse,
+  UpdateCallRequest,
+  UpdateCallResponse,
   UpdateUserPermissionsRequest,
+  UpdateUserPermissionsResponse,
+  ListRecordingsResponse,
 } from '../gen/coordinator';
-import { join } from './flows/join';
+import { join, watch } from './flows/join';
 import {
   PublishOptions,
   StreamVideoParticipant,
@@ -47,6 +62,7 @@ import {
 } from '../stats/state-store-stats-reporter';
 import { ViewportTracker } from '../ViewportTracker';
 import { CallTypes } from './CallType';
+import { StreamClient } from '../coordinator/connection/client';
 
 const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
 
@@ -55,9 +71,9 @@ const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
  */
 export type CallConstructor = {
   /**
-   * The httpClient instance to use.
+   * The streamClient instance to use.
    */
-  httpClient: StreamCoordinatorClient;
+  streamClient: StreamClient;
 
   /**
    * The Call type.
@@ -137,7 +153,7 @@ export class Call {
   private statsReporter?: StatsReporter;
   private joined$ = new BehaviorSubject<boolean>(false);
 
-  private readonly httpClient: StreamCoordinatorClient;
+  private readonly streamClient: StreamClient;
   private sfuClient?: StreamSfuClient;
   private readonly clientStore: StreamVideoWriteableStateStore;
 
@@ -162,13 +178,15 @@ export class Call {
     return preferredCodec;
   }
 
+  private streamClientBasePath: string;
+
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    */
   constructor({
     type,
     id,
-    httpClient,
+    streamClient,
     metadata,
     members,
     sortParticipantsBy,
@@ -177,8 +195,9 @@ export class Call {
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
-    this.httpClient = httpClient;
+    this.streamClient = streamClient;
     this.clientStore = clientStore;
+    this.streamClientBasePath = `/call/${this.type}/${this.id}`;
 
     const callTypeConfig = CallTypes.get(type);
     this.state = new CallState(
@@ -266,7 +285,10 @@ export class Call {
    * @param data
    */
   watch = async (data?: JoinCallRequest) => {
-    const response = await this.connectToCoordinator(data);
+    const response = await watch(this.streamClient, this.type, this.id, data);
+    this.state.setCurrentValue(this.state.metadataSubject, response.call);
+    this.state.setCurrentValue(this.state.membersSubject, response.members);
+
     return response;
   };
 
@@ -280,7 +302,9 @@ export class Call {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    const call = await this.connectToCoordinator(data);
+    const call = await join(this.streamClient, this.type, this.id, data);
+    this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
+    this.state.setCurrentValue(this.state.membersSubject, call.members);
 
     // FIXME OL: convert to a derived state
     this.state.setCurrentValue(
@@ -362,6 +386,11 @@ export class Call {
         })),
       );
 
+      this.clientStore.setCurrentValue(
+        this.clientStore.activeCallSubject,
+        this,
+      );
+
       sfuClient.keepAlive();
       this.joined$.next(true);
     });
@@ -375,13 +404,6 @@ export class Call {
     });
 
     return joinResponsePromise;
-  };
-
-  private connectToCoordinator = async (data?: JoinCallRequest) => {
-    const call = await join(this.httpClient, this.type, this.id, data);
-    this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
-    this.state.setCurrentValue(this.state.membersSubject, call.members);
-    return call;
   };
 
   /**
@@ -815,24 +837,100 @@ export class Call {
     });
   };
 
-  blockUser: StreamCall['blockUser'] = (userId) =>
-    this.httpClient.call(this.type, this.id).blockUser(userId);
+  sendReaction = async (reaction: SendReactionRequest) => {
+    return this.streamClient.post<SendReactionResponse>(
+      `${this.streamClientBasePath}/reaction`,
+      reaction,
+    );
+  };
 
-  unblockUser: StreamCall['unblockUser'] = (userId) =>
-    this.httpClient.call(this.type, this.id).unblockUser(userId);
+  blockUser = async (userId: string) => {
+    return this.streamClient.post<BlockUserResponse>(
+      `${this.streamClientBasePath}/block`,
+      {
+        user_id: userId,
+      },
+    );
+  };
 
-  muteUser: StreamCall['muteUser'] = (userId, type, sessionId) =>
-    this.httpClient.call(this.type, this.id).muteUser(userId, type, sessionId);
+  unblockUser = async (userId: string) => {
+    return this.streamClient.post<UnblockUserResponse>(
+      `${this.streamClientBasePath}/unblock`,
+      {
+        user_id: userId,
+      },
+    );
+  };
 
-  muteAllUsers: StreamCall['muteAllUsers'] = (type) =>
-    this.httpClient.call(this.type, this.id).muteAllUsers(type);
+  muteUser = (
+    userId: string,
+    type: 'audio' | 'video' | 'screenshare',
+    sessionId?: string,
+  ) => {
+    return this.streamClient.post<MuteUsersResponse>(
+      `${this.streamClientBasePath}/mute_users`,
+      {
+        user_ids: [userId],
+        [type]: true,
+        // session_ids: [sessionId],
+      },
+    );
+  };
+
+  muteAllUsers = (type: 'audio' | 'video' | 'screenshare') => {
+    return this.streamClient.post<MuteUsersResponse>(
+      `${this.streamClientBasePath}/mute_users`,
+      {
+        mute_all_users: true,
+        [type]: true,
+      },
+    );
+  };
+
+  get = async () => {
+    const response = await this.streamClient.get<GetCallResponse>(
+      this.streamClientBasePath,
+    );
+    this.state.setCurrentValue(this.state.metadataSubject, response.call);
+    this.state.setCurrentValue(this.state.membersSubject, response.members);
+
+    return response;
+  };
+
+  getOrCreate = async (data?: GetOrCreateCallRequest) => {
+    const response = await this.streamClient.post<GetOrCreateCallResponse>(
+      this.streamClientBasePath,
+      data,
+    );
+    this.state.setCurrentValue(this.state.metadataSubject, response.call);
+    this.state.setCurrentValue(this.state.membersSubject, response.members);
+
+    const currentPendingCalls = this.clientStore.getCurrentValue(
+      this.clientStore.pendingCallsSubject,
+    );
+    const callAlreadyRegistered = currentPendingCalls.find(
+      (pendingCall) => pendingCall.id === this.id,
+    );
+
+    if (!callAlreadyRegistered) {
+      this.clientStore.setCurrentValue(
+        this.clientStore.pendingCallsSubject,
+        (pendingCalls) => [...pendingCalls, this],
+      );
+    }
+
+    return response;
+  };
 
   /**
    * Starts recording the call
    */
   startRecording = async () => {
     try {
-      return await this.httpClient.call(this.type, this.id).startRecording();
+      return await this.streamClient.post(
+        `${this.streamClientBasePath}/start_recording`,
+        {},
+      );
     } catch (error) {
       console.log(`Failed to start recording`, error);
     }
@@ -843,7 +941,10 @@ export class Call {
    */
   stopRecording = async () => {
     try {
-      return await this.httpClient.call(this.type, this.id).stopRecording();
+      return await this.streamClient.post(
+        `${this.streamClientBasePath}/stop_recording`,
+        {},
+      );
     } catch (error) {
       console.log(`Failed to stop recording`, error);
     }
@@ -852,8 +953,11 @@ export class Call {
   /**
    * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
    */
-  requestCallPermissions = async (data: RequestPermissionRequest) => {
-    return this.httpClient.call(this.type, this.id).requestPermissions(data);
+  requestPermissions = async (data: RequestPermissionRequest) => {
+    return this.streamClient.post<RequestPermissionResponse>(
+      `${this.streamClientBasePath}/request_permission`,
+      data,
+    );
   };
 
   /**
@@ -867,7 +971,44 @@ export class Call {
    *
    */
   updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
-    return this.httpClient.call(this.type, this.id).updateUserPermissions(data);
+    return this.streamClient.post<UpdateUserPermissionsResponse>(
+      `${this.streamClientBasePath}/user_permissions`,
+      data,
+    );
+  };
+
+  goLive = async () => {
+    return this.streamClient.post<GoLiveResponse>(
+      `${this.streamClientBasePath}/go_live`,
+      {},
+    );
+  };
+
+  stopLive = async () => {
+    return this.streamClient.post<StopLiveResponse>(
+      `${this.streamClientBasePath}/stop_live`,
+      {},
+    );
+  };
+
+  update = async (
+    custom: { [key: string]: any },
+    settings?: CallSettingsRequest,
+  ) => {
+    const payload: UpdateCallRequest = {
+      custom: custom,
+      settings_override: settings,
+    };
+    return this.streamClient.patch<UpdateCallResponse>(
+      `${this.streamClientBasePath}`,
+      payload,
+    );
+  };
+
+  endCall = async () => {
+    return this.streamClient.post<EndCallResponse>(
+      `${this.streamClientBasePath}/mark_ended`,
+    );
   };
 
   /**
@@ -893,7 +1034,7 @@ export class Call {
       .find((c) => c.id === this.id && c.type === this.type);
 
     if (callToAccept) {
-      await this.httpClient.call(this.type, this.id).sendEvent({
+      await this.streamClient.post(`${this.streamClientBasePath}/event`, {
         type: 'call.accepted',
       });
 
@@ -922,7 +1063,7 @@ export class Call {
       (pendingCalls) =>
         pendingCalls.filter((incomingCall) => incomingCall.id !== this.id),
     );
-    await this.httpClient.call(this.type, this.id).sendEvent({
+    await this.streamClient.post(`${this.streamClientBasePath}/event`, {
       type: 'call.rejected',
     });
   };
@@ -954,7 +1095,7 @@ export class Call {
         state.remoteParticipants$,
       );
       if (!remoteParticipants.length && !leavingActiveCall) {
-        await this.httpClient.call(this.type, this.id).sendEvent({
+        await this.streamClient.post(`${this.streamClientBasePath}/event`, {
           type: 'call.cancelled',
         });
       }
@@ -965,12 +1106,29 @@ export class Call {
    * Performs HTTP request to retrieve the list of recordings for the current call
    * Updates the call state with provided array of CallRecording objects
    */
-  queryRecordings = async (): Promise<CallRecording[]> => {
-    const { recordings } = await this.httpClient
-      .call(this.type, this.id)
-      .queryRecordings();
-    this.state.setCurrentValue(this.state.callRecordingListSubject, recordings);
+  queryRecordings = async (): Promise<ListRecordingsResponse> => {
+    // FIXME: this is a temporary setting to take call ID as session ID
+    const sessionId = this.id;
+    const response = await this.streamClient.get<ListRecordingsResponse>(
+      `${this.streamClientBasePath}/${sessionId}/recordings`,
+    );
 
-    return recordings;
+    this.state.setCurrentValue(
+      this.state.callRecordingListSubject,
+      response.recordings,
+    );
+
+    return response;
+  };
+
+  getEdgeServer = (data: GetCallEdgeServerRequest) => {
+    return this.streamClient.post<GetCallEdgeServerResponse>(
+      `${this.streamClientBasePath}/get_edge_server`,
+      data,
+    );
+  };
+
+  sendEvent = async (event: SendEventRequest) => {
+    return this.streamClient.post(`${this.streamClientBasePath}/event`, event);
   };
 }

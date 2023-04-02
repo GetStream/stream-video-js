@@ -74,7 +74,8 @@ export const LobbyView = (props: LobbyViewProps) => {
 
   const joinCallHandler = () => {
     videoClient
-      ?.joinCall(callID, 'default')
+      ?.call('default', callID)
+      .join()
       .then(() => {
         if (onActiveCall) {
           onActiveCall();
