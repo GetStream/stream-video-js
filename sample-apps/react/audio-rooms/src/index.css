@@ -12,6 +12,9 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+
+  --background-color: hsl(36, 31%, 81%);
+  --background-color-light: hsl(37, 31%, 91%);
 }
 
 a {
@@ -29,6 +32,11 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background: linear-gradient(
+    to left top,
+    var(--background-color-light),
+    var(--background-color)
+  );
 }
 
 h1 {
