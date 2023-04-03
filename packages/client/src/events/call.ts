@@ -6,7 +6,7 @@ import {
   CallRejectedEvent,
 } from '../gen/coordinator';
 import { Call } from '../rtc/Call';
-import { StreamCoordinatorClient } from '../coordinator/StreamCoordinatorClient';
+import { StreamClient } from '../coordinator/connection/client';
 
 /**
  * Event handler that watches the delivery of CallCreated Websocket event
@@ -15,7 +15,7 @@ import { StreamCoordinatorClient } from '../coordinator/StreamCoordinatorClient'
  */
 export const watchCallCreated = (
   store: StreamVideoWriteableStateStore,
-  httpClient: StreamCoordinatorClient,
+  streamClient: StreamClient,
 ) => {
   return function onCallCreated(event: CallCreatedEvent) {
     const { call, members } = event;
@@ -33,7 +33,7 @@ export const watchCallCreated = (
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) => [
       ...pendingCalls,
       new Call({
-        httpClient,
+        streamClient,
         type: call.type,
         id: call.id,
         metadata: call,

@@ -59,9 +59,14 @@
 
   .str-video__participant_name {
     border-radius: var(--str-video__border-radius1);
+    background-color: var(--str-video__background-color4);
     display: flex;
     align-items: center;
     gap: 0.3125rem;
+    padding: 4px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     @mixin icon {
       $icon-size: 1rem;
