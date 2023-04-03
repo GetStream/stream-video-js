@@ -34,6 +34,9 @@ In order to do that, please follow these steps:
 - Register for a Stream account and obtain your API key and secret.
 - To install the Stream React Native Video SDK and it's dependencies follow this [guide](01-basics/03-installation.mdx).
 
+We will start by creating our root component where we will initialize the Stream Video SDK and connect to Stream's edge infrastructure.
+We will wrap our root component with the `StreamVideo` component and pass the `videoClient` instance to it.
+This will ensure that the `videoClient` instance, among other APIs (see explanation below) will be available to all the components in the component tree.
 
 ```tsx
 import { useCreateStreamVideoClient } from '@stream-io/video-react-sdk';
@@ -98,7 +101,7 @@ const MyActiveCall = () => {
     const startCall = async ()=> {
       try {
         // Join the call and start the call cycle.
-        await videoClient?.joinCall(CALL_ID, 'default');
+        await videoClient?.call('default', CALL_ID).join();
         // Start InCallManager and enable the speakerphone.
         InCallManager.start({media: 'video'});
         InCallManager.setForceSpeakerphoneOn(true);
@@ -117,8 +120,8 @@ const MyActiveCall = () => {
 };
 ```
 
-Behind the scenes, by calling `videoClient.joinCall` a new [Call](../04-call-engine/Call.md) instance will be created and the connected user will join the call automatically.
-The active call instance will be exposed down in the component tree through a React Context the [CallState](../04-call-engine/contexts.md/#streamcallprovider) object.
+Behind the scenes, by calling `ideoClient?.call('default', CALL_ID).join()` a new [Call](../04-call-engine/Call.md) instance will be created and the connected user will join the call automatically.
+The active call instance will be exposed down in the component tree through a React Context in the [CallState](../04-call-engine/contexts.md/#streamcallprovider) object.
 
 You can read more about this mechanism as part of our [React Bindings and Hooks documentation](../04-call-engine/01-overview.gen.mdx).
 
@@ -168,7 +171,7 @@ export const hasAudio = (p: StreamVideoParticipant) =>
 ```
 
 
-Now let's introduce our first custom hook `useSpotlightParticipant`
+Now let's introduce our first custom hook `useSpotlightParticipant`:
 
 ```tsx
 import {useMemo} from 'react';
@@ -201,7 +204,7 @@ export const useSpotlightParticipant = () => {
 ### Sort the other participants
 
 Now that we have the dominant speaker, we can sort the rest of the participants.
-Similar like for the spotlight participant, we are going to use a custom hook to encapsulate the sorting logic:
+Similar to the spotlight participant, we are going to use a custom hook to encapsulate the sorting logic:
 
 ```tsx
 import {useParticipants} from '@stream-io/video-react-native-sdk';
@@ -252,6 +255,7 @@ export const useSortedParticipants = () => {
 ### Create your custom call participants view
 
 Now that we have all the data we need, organized in the way we want, we can render the layout in a new component `MyCallParticipantsView`:
+
 ```tsx
 import {ParticipantView} from '@stream-io/video-react-native-sdk';
 import {useSortedParticipants} from './useSortedParticipants';
@@ -328,8 +332,7 @@ const styles = StyleSheet.create({
 ```
 
 ### Render it all together
-Now we're ready to continue with the `MyActiveCall` component from the previous [step](#joining-a-call).
-
+Now we're ready to continue with the implementation of the `MyActiveCall` component from the previous [step](#joining-a-call).
 ```tsx
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import React, {useEffect} from 'react';
@@ -354,7 +357,7 @@ const MyActiveCall = () => {
     const startCall = async ()=> {
       try {
         // Join the call and start the call cycle.
-        await videoClient?.joinCall(CALL_ID, 'default');
+        await videoClient?.call('default', CALL_ID).join();
         // Start InCallManager and enable the speakerphone.
         InCallManager.start({media: 'video'});
         InCallManager.setForceSpeakerphoneOn(true);

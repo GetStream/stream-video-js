@@ -5,8 +5,9 @@ import {
   StreamCallProvider,
   StreamVideo,
   useActiveCall,
+  useCallCycleContext,
   useCreateStreamVideoClient,
-  usePublishStreams,
+  usePublishMediaStreams,
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import {
@@ -36,33 +37,38 @@ console.log('User loaded: ', USER);
 const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 5);
 const generateCallId = () => nanoid(5);
 export default () => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const videoClient = useCreateStreamVideoClient({
     user: USER,
     tokenOrProvider: USER?.custom?.token,
     apiKey: STREAM_API_KEY,
   });
+  const handleOnHangupCall = () => navigation.navigate('WelcomeScreen');
 
   return (
-    <StreamVideo client={videoClient}>
+    <StreamVideo
+      client={videoClient}
+      callCycleHandlers={{onHangupCall: handleOnHangupCall}}>
       <MyActiveCall />
     </StreamVideo>
   );
 };
 
 const MyActiveCall = () => {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const activeCall = useActiveCall();
   const videoClient = useStreamVideoClient();
   const insets = useSafeAreaInsets();
   const callId = useRef<string>(generateCallId());
-  usePublishStreams();
+  usePublishMediaStreams();
+  const {callCycleHandlers} = useCallCycleContext();
+  const {onHangupCall} = callCycleHandlers;
 
   useEffect(() => {
     const startCall = async () => {
       try {
         // Join the call and start the call cycle.
-        await videoClient?.joinCall(callId.current, 'default');
+        await videoClient?.call('default', callId.current).join();
         // Start InCallManager and enable the speakerphone.
         InCallManager.start({media: 'video'});
         InCallManager.setForceSpeakerphoneOn(true);
@@ -83,9 +89,7 @@ const MyActiveCall = () => {
       <View style={[styles.wrapper, {paddingTop: insets.top}]}>
         <IntroModal callId={callId.current} />
         <MyCallParticipantsView />
-        <CallControlsView
-          onHangupCall={() => navigation.navigate('WelcomeScreen')}
-        />
+        <CallControlsView onHangupCall={onHangupCall} />
       </View>
     </StreamCallProvider>
   );

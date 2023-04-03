@@ -9,7 +9,7 @@ import { useEffect } from 'react';
  *
  * @category Device Management
  */
-export const usePublishStreams = () => {
+export const usePublishMediaStreams = () => {
   const activeCall = useActiveCall();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);

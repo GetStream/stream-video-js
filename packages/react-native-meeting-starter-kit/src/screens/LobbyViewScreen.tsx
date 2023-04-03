@@ -1,9 +1,8 @@
 import React from 'react';
 import {ScrollView} from 'react-native';
-import {LobbyView} from '@stream-io/video-react-native-sdk';
+import {LobbyView, theme} from '@stream-io/video-react-native-sdk';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {NavigationStackParamsList} from '../types';
-import {theme} from '@stream-io/video-react-native-sdk/dist/src/theme';
 
 type CallLobbyScreenProps = NativeStackScreenProps<
   NavigationStackParamsList,
