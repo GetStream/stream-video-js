@@ -113,7 +113,7 @@ export const useAudioPublisher = ({
         if (
           !(
             call &&
-            participant?.audioStream &&
+            participant.audioStream &&
             selectedAudioDeviceId === 'default'
           )
         )

@@ -9,7 +9,7 @@ import { useAppConfig } from '../../hooks/useAppConfig';
 
 export const useSpotlightParticipant = () => {
   const [speakerInSpotlight, setSpeakerInSpotlight] =
-    useState<StreamVideoParticipant | null>(null);
+    useState<StreamVideoParticipant>();
 
   const { spotlightMode } = useAppConfig();
   const dominantSpeaker = useDominantSpeaker();

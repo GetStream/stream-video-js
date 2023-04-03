@@ -3,7 +3,7 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  # SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 on:
   # Trigger flow when pushing in main or pull requests, and when creating
@@ -11,7 +11,6 @@ on:
   push:
     branches:
       - main
-      - video-coordinator
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -51,8 +50,9 @@ jobs:
       - name: Test packages
         run: yarn test:ci:all
 
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@master
+      # TODO OL: Enable SonarCloud once we go public
+      # - name: SonarCloud Scan
+      #  uses: sonarsource/sonarcloud-github-action@master
 
       - name: Release packages
         run: echo 'TODO'
@@ -89,38 +89,4 @@ jobs:
         if: ${{ github.ref_name == 'main' }}
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: yarn vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
-
-      # Vercel deployment: Dogfood 2 (Preview)
-      - name: Vercel Pull Configuration Dogfood2 (Preview)
-        if: ${{ github.base_ref == 'video-coordinator' }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DOGFOOD2 }}
-        run: yarn vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Vercel Build Dogfood2 (Preview)
-        if: ${{ github.base_ref == 'video-coordinator' }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DOGFOOD2}}
-        run: yarn vercel build --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Vercel Deploy Dogfood2 (Preview)
-        if: ${{ github.base_ref == 'video-coordinator' }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DOGFOOD2 }}
-        run: yarn vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
-
-      # Vercel deployment Dogfood 2 (Production)
-      - name: Vercel Pull Configuration Dogfood2 (Production)
-        if: ${{ github.ref_name == 'video-coordinator' }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DOGFOOD2 }}
-        run: yarn vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Vercel Build Dogfood2 (Production)
-        if: ${{ github.ref_name == 'video-coordinator' }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DOGFOOD2 }}
-        run: yarn vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Vercel Deploy Dogfood2 (Production)
-        if: ${{ github.ref_name == 'video-coordinator' }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DOGFOOD2 }}
         run: yarn vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}

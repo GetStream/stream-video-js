@@ -44,14 +44,14 @@ export default function Home() {
               Stream Meetings
             </Typography>
           </Box>
-          <JoinCall />
+          <JoinCallForm />
         </Stack>
       </Stack>
     </>
   );
 }
 
-const JoinCall = () => {
+const JoinCallForm = () => {
   const ref = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
   const [disabled, setDisabled] = useState(true);
@@ -106,8 +106,7 @@ const JoinCall = () => {
         </Button>
       )}
       <input
-        className="rd__join-call-input"
-        style={{}}
+        className="rd__input rd__input--underlined rd__join-call-input"
         data-testid="join-call-input"
         ref={ref}
         onChange={handleChange}

@@ -4,7 +4,7 @@ import android.os.Bundle;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactRootView;
-import io.wazo.callkeep.RNCallKeepModule; // Add these import lines
+import io.wazo.callkeep.RNCallKeepModule;
 
 public class MainActivity extends ReactActivity {
 

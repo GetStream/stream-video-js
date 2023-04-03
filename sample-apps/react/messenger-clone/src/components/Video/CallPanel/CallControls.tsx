@@ -2,7 +2,6 @@ import {
   Call,
   SfuModels,
   StreamVideoLocalParticipant,
-  useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import {
   LocalPhone,
@@ -14,21 +13,15 @@ import {
 } from '@mui/icons-material';
 
 type OutgoingCallControlsProps = {
-  callId: string;
-  callType: string;
+  call: Call;
 };
 
-export const OutgoingCallControls = ({
-  callId,
-  callType,
-}: OutgoingCallControlsProps) => {
-  const videoClient = useStreamVideoClient();
-
+export const OutgoingCallControls = ({ call }: OutgoingCallControlsProps) => {
   return (
     <div className="rmc__button-controls">
       <button
         className="rmc__button rmc__button--red"
-        onClick={() => videoClient?.cancelCall(callId, callType)}
+        onClick={() => call.cancel()}
       >
         <PhoneDisabled />
       </button>
@@ -37,26 +30,20 @@ export const OutgoingCallControls = ({
 };
 
 type IncomingCallControlsProps = {
-  callId: string;
-  callType: string;
+  call: Call;
 };
-export const IncomingCallControls = ({
-  callId,
-  callType,
-}: IncomingCallControlsProps) => {
-  const videoClient = useStreamVideoClient();
-
+export const IncomingCallControls = ({ call }: IncomingCallControlsProps) => {
   return (
     <div className="rmc__button-controls">
       <button
         className="rmc__button rmc__button--green"
-        onClick={() => videoClient?.acceptCall(callId, callType)}
+        onClick={() => call.accept()}
       >
         <LocalPhone />
       </button>
       <button
         className="rmc__button rmc__button--red"
-        onClick={() => videoClient?.rejectCall(callId, callType)}
+        onClick={() => call.reject()}
       >
         <PhoneDisabled />
       </button>
@@ -76,8 +63,6 @@ export const ActiveCallControls = ({
   publishAudioStream,
   publishVideoStream,
 }: ActiveCallControlsProps) => {
-  const videoClient = useStreamVideoClient();
-
   const isAudioMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
@@ -114,7 +99,7 @@ export const ActiveCallControls = ({
         className="rmc__button rmc__button--red"
         onClick={() => {
           if (activeCall) {
-            videoClient?.cancelCall(activeCall.id, activeCall.type);
+            activeCall.cancel();
           }
         }}
       >

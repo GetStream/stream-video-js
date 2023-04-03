@@ -35,11 +35,11 @@ const createCallSlackHookAPI = async (
   ).toString();
 
   try {
-    const response = await client.getOrCreateCall(meetingId(), 'default', {
+    const call = client.call('default', meetingId());
+    await call.getOrCreate({
       ring: false,
     });
-    if (response?.call) {
-      const { call } = response;
+    if (call) {
       const protocol = req.headers['x-forwarded-proto']
         ? 'https://'
         : 'http://';

@@ -45,7 +45,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
   const { member_count, subtitle } = channel?.data || {};
 
   const onCreateCall = useCallback(() => {
-    videoClient?.getOrCreateCall(meetingId(), 'default', {
+    videoClient?.call('default', meetingId()).getOrCreate({
       ring: true,
       data: {
         custom: {
@@ -123,7 +123,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
         <button
           className="rmc__button rmc__button--red"
           onClick={() => {
-            videoClient?.cancelCall(activeCall.id, activeCall.type);
+            activeCall.cancel();
           }}
         >
           <PhoneDisabled />

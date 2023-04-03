@@ -52,25 +52,6 @@ export interface APIError {
 /**
  *
  * @export
- * @interface AnyEvent
- */
-export interface AnyEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof AnyEvent
-   */
-  created_at: string;
-  /**
-   *
-   * @type {string}
-   * @memberof AnyEvent
-   */
-  type: string;
-}
-/**
- *
- * @export
  * @interface AudioSettings
  */
 export interface AudioSettings {
@@ -171,7 +152,8 @@ export interface BlockUserResponse {
   duration: string;
 }
 /**
- *
+ * This event is sent to call participants to notify when a user is blocked on a call, clients can use this event to show a notification.
+ * If the user is the current user, the client should leave the call screen as well
  * @export
  * @interface BlockedUserEvent
  */
@@ -189,13 +171,13 @@ export interface BlockedUserEvent {
    */
   created_at: string;
   /**
-   *
+   * The type of event: "call.blocked_user" in this case
    * @type {string}
    * @memberof BlockedUserEvent
    */
   type: string;
   /**
-   *
+   * The ID of the user that got blocked
    * @type {string}
    * @memberof BlockedUserEvent
    */
@@ -221,7 +203,8 @@ export interface BroadcastSettings {
   hls: HLSSettings;
 }
 /**
- *
+ * This event is sent by a user accepting an incoming ringing call.
+ * Clients receiving this event should dismiss the call screen and move to the call.
  * @export
  * @interface CallAcceptedEvent
  */
@@ -252,7 +235,8 @@ export interface CallAcceptedEvent {
   user: UserResponse;
 }
 /**
- *
+ * This event is sent when the user initiating a call cancels it. Clients receiving this event
+ * should dismiss the call screen and consider the call as cancelled by the caller
  * @export
  * @interface CallCancelledEvent
  */
@@ -270,7 +254,7 @@ export interface CallCancelledEvent {
    */
   created_at: string;
   /**
-   *
+   * The type of event: "call.cancelled" in this case
    * @type {string}
    * @memberof CallCancelledEvent
    */
@@ -283,7 +267,8 @@ export interface CallCancelledEvent {
   user: UserResponse;
 }
 /**
- *
+ * This event is sent when a call is created. Clients receiving this event should check if the ringing
+ * field is set to true and if so, show the call screen
  * @export
  * @interface CallCreatedEvent
  */
@@ -299,28 +284,34 @@ export interface CallCreatedEvent {
    * @type {string}
    * @memberof CallCreatedEvent
    */
-  created_at: string;
+  call_cid: string;
   /**
    *
+   * @type {string}
+   * @memberof CallCreatedEvent
+   */
+  created_at: string;
+  /**
+   * the members added to this call
    * @type {Array<MemberResponse>}
    * @memberof CallCreatedEvent
    */
   members: Array<MemberResponse>;
   /**
-   *
+   * true when the call was created with ring enabled
    * @type {boolean}
    * @memberof CallCreatedEvent
    */
   ringing: boolean;
   /**
-   *
+   * The type of event: "call.created" in this case
    * @type {string}
    * @memberof CallCreatedEvent
    */
   type: string;
 }
 /**
- *
+ * This event is sent when a call is mark as ended for all its participants. Clients receiving this event should leave the call screen
  * @export
  * @interface CallEndedEvent
  */
@@ -338,7 +329,7 @@ export interface CallEndedEvent {
    */
   created_at: string;
   /**
-   *
+   * The type of event: "call.ended" in this case
    * @type {string}
    * @memberof CallEndedEvent
    */
@@ -351,7 +342,7 @@ export interface CallEndedEvent {
   user?: UserResponse;
 }
 /**
- *
+ * This event is sent when a reaction is sent in a call, clients should use this to show the reaction in the call screen
  * @export
  * @interface CallReactionEvent
  */
@@ -375,7 +366,7 @@ export interface CallReactionEvent {
    */
   reaction: ReactionResponse;
   /**
-   *
+   * The type of event: "call.reaction_new" in this case
    * @type {string}
    * @memberof CallReactionEvent
    */
@@ -413,7 +404,7 @@ export interface CallRecording {
   url: string;
 }
 /**
- *
+ * This event is sent when call recording has started
  * @export
  * @interface CallRecordingStartedEvent
  */
@@ -431,14 +422,14 @@ export interface CallRecordingStartedEvent {
    */
   created_at: string;
   /**
-   *
+   * The type of event: "call.recording_started" in this case
    * @type {string}
    * @memberof CallRecordingStartedEvent
    */
   type: string;
 }
 /**
- *
+ * This event is sent when call recording has stopped
  * @export
  * @interface CallRecordingStoppedEvent
  */
@@ -456,14 +447,15 @@ export interface CallRecordingStoppedEvent {
    */
   created_at: string;
   /**
-   *
+   * The type of event: "call.recording_stopped" in this case
    * @type {string}
    * @memberof CallRecordingStoppedEvent
    */
   type: string;
 }
 /**
- *
+ * This event is sent when a user rejects a ringing call. Clients receiving this event should dismiss
+ * the call screen unless the call includes more users.
  * @export
  * @interface CallRejectedEvent
  */
@@ -481,7 +473,7 @@ export interface CallRejectedEvent {
    */
   created_at: string;
   /**
-   *
+   * The type of event: "call.rejected" in this case
    * @type {string}
    * @memberof CallRejectedEvent
    */
@@ -849,6 +841,12 @@ export interface CallUpdatedEvent {
   call: CallResponse;
   /**
    *
+   * @type {string}
+   * @memberof CallUpdatedEvent
+   */
+  call_cid: string;
+  /**
+   *
    * @type {{ [key: string]: Array<string>; }}
    * @memberof CallUpdatedEvent
    */
@@ -1010,7 +1008,7 @@ export interface Credentials {
   token: string;
 }
 /**
- *
+ * A custom event, this event is used to send custom events to other participants in the call.
  * @export
  * @interface CustomVideoEvent
  */
@@ -1034,7 +1032,7 @@ export interface CustomVideoEvent {
    */
   custom: { [key: string]: any };
   /**
-   *
+   * The type of event (custom value in this case)
    * @type {string}
    * @memberof CustomVideoEvent
    */
@@ -1433,10 +1431,10 @@ export interface GetOrCreateCallRequest {
   data?: CallRequest;
   /**
    *
-   * @type {PaginationParamsRequest}
+   * @type {number}
    * @memberof GetOrCreateCallRequest
    */
-  members?: PaginationParamsRequest;
+  members_limit?: number;
   /**
    * if provided it overrides the default ring setting for this call
    * @type {boolean}
@@ -1538,12 +1536,6 @@ export interface HLSSettings {
  */
 export interface HealthCheckEvent {
   /**
-   * The unique identifier for a call (<type>:<id>)
-   * @type {string}
-   * @memberof HealthCheckEvent
-   */
-  cid: string;
-  /**
    *
    * @type {string}
    * @memberof HealthCheckEvent
@@ -1562,7 +1554,7 @@ export interface HealthCheckEvent {
    */
   me?: OwnUserResponse;
   /**
-   *
+   * The type of event: "health.check" in this case
    * @type {string}
    * @memberof HealthCheckEvent
    */
@@ -1600,11 +1592,11 @@ export interface ICEServer {
  */
 export interface JoinCallRequest {
   /**
-   *
-   * @type {string}
+   * if true the call will be created if it doesn't exist
+   * @type {boolean}
    * @memberof JoinCallRequest
    */
-  connection_id?: string;
+  create?: boolean;
   /**
    *
    * @type {CallRequest}
@@ -1619,12 +1611,12 @@ export interface JoinCallRequest {
   datacenter_hinted_id?: string;
   /**
    *
-   * @type {PaginationParamsRequest}
+   * @type {number}
    * @memberof JoinCallRequest
    */
-  members?: PaginationParamsRequest;
+  members_limit?: number;
   /**
-   *
+   * if true and the call is created, the notification will include ring=true
    * @type {boolean}
    * @memberof JoinCallRequest
    */
@@ -1943,50 +1935,8 @@ export interface OwnUserResponse {
   updated_at: string;
 }
 /**
- *
- * @export
- * @interface PaginationParamsRequest
- */
-export interface PaginationParamsRequest {
-  /**
-   *
-   * @type {number}
-   * @memberof PaginationParamsRequest
-   */
-  id_gt?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof PaginationParamsRequest
-   */
-  id_gte?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof PaginationParamsRequest
-   */
-  id_lt?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof PaginationParamsRequest
-   */
-  id_lte?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof PaginationParamsRequest
-   */
-  limit?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof PaginationParamsRequest
-   */
-  offset?: number;
-}
-/**
- *
+ * This event is sent when a user requests access to a feature on a call,
+ * clients receiving this event should display a permission request to the user
  * @export
  * @interface PermissionRequestEvent
  */
@@ -2010,7 +1960,7 @@ export interface PermissionRequestEvent {
    */
   permissions: Array<string>;
   /**
-   *
+   * The type of event: "call.permission_request" in this case
    * @type {string}
    * @memberof PermissionRequestEvent
    */
@@ -2028,12 +1978,6 @@ export interface PermissionRequestEvent {
  * @interface QueryCallsRequest
  */
 export interface QueryCallsRequest {
-  /**
-   *
-   * @type {string}
-   * @memberof QueryCallsRequest
-   */
-  connection_id?: string;
   /**
    *
    * @type {{ [key: string]: any; }}
@@ -2359,12 +2303,6 @@ export interface RingSettings {
    * @memberof RingSettings
    */
   auto_reject_timeout_ms: number;
-  /**
-   *
-   * @type {boolean}
-   * @memberof RingSettings
-   */
-  enabled: boolean;
 }
 /**
  *
@@ -2384,12 +2322,6 @@ export interface RingSettingsRequest {
    * @memberof RingSettingsRequest
    */
   auto_reject_timeout_ms?: number;
-  /**
-   *
-   * @type {boolean}
-   * @memberof RingSettingsRequest
-   */
-  enabled?: boolean;
 }
 /**
  *
@@ -2651,7 +2583,8 @@ export interface UnblockUserResponse {
   duration: string;
 }
 /**
- *
+ * This event is sent when a user is unblocked on a call,
+ * this can be useful to notify the user that they can now join the call again
  * @export
  * @interface UnblockedUserEvent
  */
@@ -2669,13 +2602,13 @@ export interface UnblockedUserEvent {
    */
   created_at: string;
   /**
-   *
+   * The type of event: "call.unblocked_user" in this case
    * @type {string}
    * @memberof UnblockedUserEvent
    */
   type: string;
   /**
-   *
+   * The ID of the user that was unblocked
    * @type {string}
    * @memberof UnblockedUserEvent
    */
@@ -2820,7 +2753,7 @@ export interface UpdateUserPermissionsResponse {
   duration: string;
 }
 /**
- *
+ * This event is sent to notify about permission changes for a user, clients receiving this event should update their UI accordingly
  * @export
  * @interface UpdatedCallPermissionsEvent
  */
@@ -2844,7 +2777,7 @@ export interface UpdatedCallPermissionsEvent {
    */
   own_capabilities: Array<OwnCapability>;
   /**
-   *
+   * The type of event: "call.permissions_updated" in this case
    * @type {string}
    * @memberof UpdatedCallPermissionsEvent
    */
@@ -3023,3 +2956,24 @@ export interface WSAuthMessageRequest {
    */
   user_details: ConnectUserDetailsRequest;
 }
+/**
+ * @type WSEvent
+ * The discriminator object for all websocket events, you should use this to map event payloads to their own type
+ * @export
+ */
+export type WSEvent =
+  | ({ type: 'call.accepted' } & CallAcceptedEvent)
+  | ({ type: 'call.blocked_user' } & BlockedUserEvent)
+  | ({ type: 'call.cancelled' } & CallCancelledEvent)
+  | ({ type: 'call.created' } & CallCreatedEvent)
+  | ({ type: 'call.ended' } & CallEndedEvent)
+  | ({ type: 'call.permission_request' } & PermissionRequestEvent)
+  | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)
+  | ({ type: 'call.reaction_new' } & CallReactionEvent)
+  | ({ type: 'call.recording_started' } & CallRecordingStartedEvent)
+  | ({ type: 'call.recording_stopped' } & CallRecordingStoppedEvent)
+  | ({ type: 'call.rejected' } & CallRejectedEvent)
+  | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
+  | ({ type: 'call.updated' } & CallUpdatedEvent)
+  | ({ type: 'custom' } & CustomVideoEvent)
+  | ({ type: 'health.check' } & HealthCheckEvent);
