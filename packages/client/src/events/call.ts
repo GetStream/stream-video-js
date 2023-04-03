@@ -30,16 +30,20 @@ export const watchCallCreated = (
       return;
     }
 
+    const newCall = new Call({
+      httpClient,
+      type: call.type,
+      id: call.id,
+      metadata: call,
+      members,
+      clientStore: store,
+    });
+
+    newCall.scheduleReject();
+
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) => [
       ...pendingCalls,
-      new Call({
-        httpClient,
-        type: call.type,
-        id: call.id,
-        metadata: call,
-        members,
-        clientStore: store,
-      }),
+      newCall,
     ]);
   };
 };
@@ -77,7 +81,7 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
         ? activeCall
         : undefined;
 
-    if (!acceptedOutgoingCall && !acceptedActiveCall) {
+    if (!acceptedOutgoingCall) {
       console.warn(
         `CallAcceptedEvent received for a non-existent outgoing call (CID: ${call_cid}`,
       );
@@ -85,9 +89,14 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
     }
 
     // once in active call, it is unnecessary to keep track of accepted call events
-    if (call_cid === acceptedActiveCall?.cid) {
+    if (acceptedOutgoingCall.cid === acceptedActiveCall?.cid) {
       return;
     }
+
+    // do not set a new accepted call while in an active call? It would lead to joining a new active call.
+    // todo: solve the situation of 2nd outgoing call being accepted in the UI SDK
+
+    acceptedOutgoingCall.cancelScheduledDrop();
 
     store.setCurrentValue(store.acceptedCallSubject, event);
   };
@@ -118,19 +127,17 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
     const rejectedOutgoingCall = store
       .getCurrentValue(store.outgoingCalls$)
       .find((outgoingCall) => outgoingCall.cid === call_cid);
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
-    const rejectedActiveCall =
-      activeCall?.cid !== undefined && activeCall.cid === call_cid
-        ? activeCall
-        : undefined;
 
-    if (!rejectedOutgoingCall && !rejectedActiveCall) {
+    if (!rejectedOutgoingCall) {
       console.warn(
         `CallRejectedEvent received for a non-existent outgoing call (CID: ${call_cid}`,
       );
       return;
     }
 
+    rejectedOutgoingCall.cancelScheduledDrop();
+
+    // FIXME: we should remove the call from pending once every callee has rejected, but for now we support only 1:1 ring calls
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
       pendingCalls.filter((pendingCall) => pendingCall.cid !== call_cid),
     );
@@ -154,18 +161,14 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
       .getCurrentValue(store.incomingCalls$)
       .find((incomingCall) => incomingCall.cid === call_cid);
 
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
-    const cancelledActiveCall =
-      activeCall?.cid !== undefined && activeCall.cid === call_cid
-        ? activeCall
-        : undefined;
-
-    if (!cancelledIncomingCall && !cancelledActiveCall) {
+    if (!cancelledIncomingCall) {
       console.warn(
         `CallCancelledEvent received for a non-existent incoming call (CID: ${call_cid}`,
       );
       return;
     }
+
+    cancelledIncomingCall.cancelScheduledDrop();
 
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
       pendingCalls.filter((pendingCall) => pendingCall.cid !== call_cid),

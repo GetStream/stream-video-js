@@ -24,7 +24,6 @@ import {
 } from './events';
 
 import { CALL_CONFIG, CallConfig } from './config';
-import { CallDropScheduler } from './CallDropScheduler';
 import { StreamCoordinatorClient } from './coordinator/StreamCoordinatorClient';
 import {
   EventHandler,
@@ -47,7 +46,6 @@ export class StreamVideoClient {
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
-  private callDropScheduler: CallDropScheduler | undefined;
   public coordinatorClient: StreamCoordinatorClient;
 
   /**
@@ -81,11 +79,6 @@ export class StreamVideoClient {
    */
   connectUser = async (user: User, tokenOrProvider: TokenOrProvider) => {
     await this.coordinatorClient.connectUser(user, tokenOrProvider);
-
-    this.callDropScheduler = new CallDropScheduler(
-      this.writeableStateStore,
-      this.callConfig,
-    );
 
     this.on(
       'call.created',
@@ -161,7 +154,10 @@ export class StreamVideoClient {
    */
   disconnectUser = async () => {
     await this.coordinatorClient.disconnectUser();
-    this.callDropScheduler?.cleanUp();
+    const pendingCalls = this.writeableStateStore.getCurrentValue(
+      this.writeableStateStore.pendingCallsSubject,
+    );
+    pendingCalls.forEach((call) => call.cancelScheduledDrop());
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
       undefined,
@@ -235,6 +231,8 @@ export class StreamVideoClient {
     });
 
     if (!callAlreadyRegistered) {
+      callController.scheduleCancel();
+
       this.writeableStateStore.setCurrentValue(
         this.writeableStateStore.pendingCallsSubject,
         (pendingCalls) => [...pendingCalls, callController],

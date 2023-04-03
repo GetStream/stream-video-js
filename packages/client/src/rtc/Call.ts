@@ -136,6 +136,7 @@ export class Call {
 
   private statsReporter?: StatsReporter;
   private joined$ = new BehaviorSubject<boolean>(false);
+  private dropTimeout: ReturnType<typeof setTimeout> | undefined;
 
   private readonly httpClient: StreamCoordinatorClient;
   private sfuClient?: StreamSfuClient;
@@ -893,6 +894,7 @@ export class Call {
       .find((c) => c.id === this.id && c.type === this.type);
 
     if (callToAccept) {
+      this.cancelScheduledDrop();
       await this.httpClient.call(this.type, this.id).sendEvent({
         type: 'call.accepted',
       });
@@ -917,6 +919,8 @@ export class Call {
    * @returns
    */
   reject = async () => {
+    this.cancelScheduledDrop();
+
     this.clientStore.setCurrentValue(
       this.clientStore.pendingCallsSubject,
       (pendingCalls) =>
@@ -935,7 +939,6 @@ export class Call {
    * @returns
    */
   cancel = async () => {
-    console.log('call cancelled');
     const store = this.clientStore;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     const leavingActiveCall =
@@ -943,6 +946,7 @@ export class Call {
     if (leavingActiveCall) {
       activeCall.leave();
     } else {
+      this.cancelScheduledDrop();
       store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
         pendingCalls.filter((pendingCall) => pendingCall.id !== this.id),
       );
@@ -958,6 +962,30 @@ export class Call {
           type: 'call.cancelled',
         });
       }
+    }
+  };
+
+  scheduleCancel = () => {
+    if (!this.data?.settings.ring.auto_cancel_timeout_ms || this.dropTimeout)
+      return;
+    this.dropTimeout = setTimeout(
+      () => this.cancel(),
+      this.data?.settings.ring.auto_cancel_timeout_ms,
+    );
+  };
+  scheduleReject = () => {
+    if (!this.data?.settings.ring.auto_reject_timeout_ms || this.dropTimeout)
+      return;
+    this.dropTimeout = setTimeout(
+      () => this.reject(),
+      this.data?.settings.ring.auto_reject_timeout_ms,
+    );
+  };
+
+  cancelScheduledDrop = () => {
+    if (this.dropTimeout) {
+      clearTimeout(this.dropTimeout);
+      this.dropTimeout = undefined;
     }
   };
 
