@@ -11,7 +11,7 @@ import { useCallCycleContext } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsScreenView } from './CallParticipantsScreenView';
 import { theme } from '../theme';
-import { usePublishStreams } from '../hooks/usePublishStreams';
+import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -47,7 +47,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
   const hasScreenShare = useHasOngoingScreenShare();
   const { callCycleHandlers } = useCallCycleContext();
   const { onHangupCall } = callCycleHandlers;
-  usePublishStreams();
+  usePublishMediaStreams();
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     setHeight(
