@@ -12,7 +12,7 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { theme } from '../theme';
-import { useDebounce } from '../utils/hooks';
+import { useDebouncedValue } from '../utils/hooks';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant | StreamVideoLocalParticipant>
@@ -55,7 +55,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   // NOTE: we use set instead of array or object for O(1) lookup, add and delete
   const viewableParticipantSessionIds = useRef<Set<string>>(new Set());
   const [_forceUpdateValue, forceUpdate] = useReducer((x) => x + 1, 0);
-  const forceUpdateValue = useDebounce(_forceUpdateValue, 500); // we debounce forced value to avoid multiple viewability change continuous rerenders due to callbacks that occurs simultaneously during a large list scroll or when scrolling is completed
+  const forceUpdateValue = useDebouncedValue(_forceUpdateValue, 500); // we debounce forced value to avoid multiple viewability change continuous rerenders due to callbacks that occurs simultaneously during a large list scroll or when scrolling is completed
 
   // This is the function that gets called when the user scrolls the list of participants.
   // It updates viewableParticipantSessionIds HashSet with the session IDs

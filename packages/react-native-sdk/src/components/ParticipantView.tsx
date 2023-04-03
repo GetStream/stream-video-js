@@ -42,8 +42,8 @@ interface ParticipantViewProps {
 
 /**
  * Renders either the participants' video track or screenShare track
- * and additional info, by an absence of a video track only an
- * avatar and audio track will be rendered.
+ * and additional info, by an absence of a video track or when disableVideo is truthy,
+ * only an avatar and audio track will be rendered.
  *
  * | When Video is Enabled | When Video is Disabled |
  * | :--- | :----: |
