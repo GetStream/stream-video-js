@@ -81,9 +81,7 @@ export const CallCycleProvider = (
         return;
       }
       try {
-        if (outgoingCall && client.callConfig.joinCallInstantly) {
-          client.call(outgoingCall.type, outgoingCall.id).join();
-        } else if (acceptedCall && !client.callConfig.joinCallInstantly) {
+        if (acceptedCall) {
           client.call(outgoingCall.type, outgoingCall.id).join();
         }
         InCallManager.start({ media: 'video' });
