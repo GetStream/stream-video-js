@@ -39,13 +39,11 @@ export const CallParticipantsScreenView = () => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   screenShareContainer: {
-    flex: 3,
+    flex: 1,
     paddingTop: theme.padding.md,
     paddingHorizontal: theme.padding.md,
   },
   participantVideoContainer: {
-    paddingTop: theme.padding.lg,
-    paddingBottom: theme.padding.md,
-    flex: 1,
+    paddingVertical: theme.padding.sm,
   },
 });

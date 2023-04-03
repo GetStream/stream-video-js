@@ -86,7 +86,9 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   }).current;
 
   const itemContainerStyle = useMemo<StyleProp<ViewStyle>>(() => {
-    const size = containerWidth / numColumns;
+    // we calculate the size of the participant view based on the containerWidth (the phone's screen width),
+    // number of columns and the margin between the views
+    const size = containerWidth / numColumns - theme.margin.sm * 2;
     const style = { width: size, height: size };
     if (horizontal) {
       return [styles.participantWrapperHorizontal, style];
@@ -113,7 +115,6 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
 
   return (
     <FlatList
-      style={styles.container}
       onLayout={onLayout}
       key={!horizontal ? numColumns : undefined} // setting numColumns as key is a strict requirement of react-native to support changing numColumns on the fly
       data={participants}
@@ -130,9 +131,6 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   participantWrapperVertical: {
     margin: theme.margin.sm,
     overflow: 'hidden',
