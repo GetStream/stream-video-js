@@ -40,7 +40,7 @@ const TourContext = createContext<Props>({
 
 export const TourProvider = ({ children }: { children: ReactNode }) => {
   const [steps, setSteps]: any = useState(undefined);
-  const [active, setActive] = useState<boolean>(false);
+  const [active, setActive] = useState<boolean>(true);
   const [current, setCurrent]: any = useState(0);
 
   const toggleTour = useCallback(() => {

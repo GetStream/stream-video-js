@@ -1,6 +1,5 @@
-import { FC, useCallback, useState, useRef, useEffect, useMemo } from 'react';
+import { FC, useCallback, useState, useEffect, useMemo } from 'react';
 import classnames from 'classnames';
-import { CSSTransition } from 'react-transition-group';
 import { StreamChat } from 'stream-chat';
 import { getScreenShareStream, SfuModels } from '@stream-io/video-client';
 
@@ -12,10 +11,14 @@ import {
   useParticipants,
   useLocalParticipant,
   useHasOngoingScreenShare,
+  StreamCallProvider,
 } from '@stream-io/video-react-bindings';
+
+import { MediaDevicesProvider } from '@stream-io/video-react-sdk';
 
 import Header from '../../Header';
 import Footer from '../../Footer';
+import Sidebar from '../../Sidebar';
 
 import MeetingLayout from '../../Layout/MeetingLayout';
 
@@ -29,8 +32,9 @@ import TourPanel from '../../TourPanel';
 import Notifications from '../../Notifications';
 
 import { useWatchChannel } from '../../../hooks/useWatchChannel';
+import { useBreakpoint } from '../../../hooks/useBreakpoints';
 
-import { useTourContext, StepNames } from '../../../contexts/TourContext';
+import { useTourContext } from '../../../contexts/TourContext';
 import { tour } from '../../../../data/tour';
 
 import '@stream-io/video-styling/dist/css/styles.css';
@@ -64,12 +68,13 @@ export const Meeting: FC<Props & Meeting> = ({
   const [showParticipants, setShowParticpants] = useState<boolean>(true);
   const [isAwaitingRecordingResponse, setIsAwaitingRecordingResponse] =
     useState(false);
-  const chatRef = useRef(null);
-  const participantsRef = useRef(null);
+
   const [unread, setUnread] = useState<number>(0);
 
   const cid = `videocall:${callId}`;
   const channelWatched = useWatchChannel({ chatClient, channelId: callId });
+
+  const breakpoint = useBreakpoint();
 
   const { next, current, total, step, setSteps, active, toggleTour } =
     useTourContext();
@@ -78,6 +83,7 @@ export const Meeting: FC<Props & Meeting> = ({
   const participants = useParticipants();
   const statsReport = useCurrentCallStatsReport();
   const localParticipant = useLocalParticipant();
+  const isCallRecordingInProgress = useIsCallRecordingInProgress();
 
   const remoteScreenShare = useHasOngoingScreenShare();
 
@@ -88,8 +94,6 @@ export const Meeting: FC<Props & Meeting> = ({
   const isScreenSharing = useMemo(() => {
     return remoteScreenShare || localScreenShare;
   }, [remoteScreenShare, localScreenShare]);
-
-  const isCallRecordingInProgress = useIsCallRecordingInProgress();
 
   useEffect(() => {
     setSteps(tour);
@@ -173,7 +177,9 @@ export const Meeting: FC<Props & Meeting> = ({
   }, [callId, client, isCallRecordingInProgress, callType]);
 
   const contentClasses = classnames(styles.content, {
-    [styles.activeTour]: active,
+    [styles.activeTour]: active && participants.length === 1,
+    [styles.showParticipants]:
+      (showParticipants && breakpoint === 'xs') || breakpoint === 'sm',
   });
 
   return (
@@ -184,6 +190,9 @@ export const Meeting: FC<Props & Meeting> = ({
           callId={callId}
           isCallActive={isCallActive}
           participants={participants}
+          toggleParticipants={toggleParticipants}
+          showParticipants={showParticipants}
+          participantCount={participants?.length}
           latency={
             statsReport
               ? statsReport?.publisherStats?.averageRoundTripTimeInMs
@@ -192,57 +201,17 @@ export const Meeting: FC<Props & Meeting> = ({
         />
       }
       sidebar={
-        <div className={styles.sidebar}>
-          <InvitePanel
-            className={styles.invitePanel}
+        breakpoint !== 'xs' &&
+        breakpoint !== 'sm' && (
+          <Sidebar
             callId={callId}
-            isFocused={current === StepNames.Invite}
+            current={current}
+            showParticipants={showParticipants}
+            showChat={showChat}
+            chatClient={chatClient}
+            participants={participants}
           />
-          <CSSTransition
-            nodeRef={participantsRef}
-            in={showParticipants}
-            timeout={200}
-            classNames={{
-              enterActive: styles['animation-enter'],
-              enterDone: styles['animation-enter-active'],
-              exitActive: styles['animation-exit'],
-              exitDone: styles['animation-exit-active'],
-            }}
-          >
-            <div ref={participantsRef}>
-              {showParticipants ? (
-                <ParticipantsPanel
-                  className={styles.participantsPanel}
-                  participants={participants}
-                />
-              ) : null}
-            </div>
-          </CSSTransition>
-
-          <CSSTransition
-            nodeRef={chatRef}
-            in={showChat}
-            timeout={200}
-            classNames={{
-              enterActive: styles['animation-enter'],
-              enterDone: styles['animation-enter-active'],
-              exitActive: styles['animation-exit'],
-              exitDone: styles['animation-exit-active'],
-            }}
-          >
-            <div ref={chatRef}>
-              {showChat ? (
-                <ChatPanel
-                  className={styles.chatPanel}
-                  isFocused={current === 2}
-                  channelId={callId}
-                  channelType="videocall"
-                  client={chatClient}
-                />
-              ) : null}
-            </div>
-          </CSSTransition>
-        </div>
+        )
       }
       footer={
         <Footer
@@ -266,16 +235,27 @@ export const Meeting: FC<Props & Meeting> = ({
         />
       }
     >
-      <div className={''}>
-        <div className={styles.stage}>
-          <Notifications className={styles.notifications} />
-          {isScreenSharing ? (
-            <ScreenShareParticipants call={call} />
-          ) : (
-            <MeetingParticipants call={call} />
-          )}
+      <>
+        <Notifications className={styles.notifications} />
+        <div className={contentClasses}>
+          {(showParticipants && breakpoint === 'xs') ||
+            (breakpoint === 'sm' && (
+              <ParticipantsPanel
+                participants={participants}
+                close={toggleParticipants}
+                callId={callId}
+              />
+            ))}
+
+          <div className={styles.stage}>
+            {isScreenSharing ? (
+              <ScreenShareParticipants call={call} />
+            ) : (
+              <MeetingParticipants call={call} />
+            )}
+          </div>
         </div>
-        {true ? (
+        {active && participants.length === 1 ? (
           <div className={styles.tour}>
             <TourPanel
               className={styles.tourPanel}
@@ -288,7 +268,7 @@ export const Meeting: FC<Props & Meeting> = ({
             />
           </div>
         ) : null}
-      </div>
+      </>
     </MeetingLayout>
   );
 };
@@ -298,5 +278,11 @@ export const MeetingView: FC<Props> = (props) => {
 
   if (!activeCall) return null;
 
-  return <Meeting call={activeCall} {...props} />;
+  return (
+    <StreamCallProvider call={activeCall}>
+      <MediaDevicesProvider enumerate>
+        <Meeting call={activeCall} {...props} />;
+      </MediaDevicesProvider>
+    </StreamCallProvider>
+  );
 };

@@ -50,9 +50,8 @@ export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
   }, [channelId, client, setActiveChannel]);
 
   return (
-    <Channel>
+    <Channel Input={ChatInput} EmptyStateIndicator={NoMessages}>
       <Window>
-        <NoMessages />
         <MessageList />
         {/* <MessageList Message={ChatMessage} /> */}
         <MessageInput />
@@ -64,19 +63,6 @@ export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
 export const Chat: FC<Props> = (props) => {
   const { client } = props;
   if (!client) return <div>Loading Chat...</div>;
-
-  // const customClasses = {
-  //   chat: styles.chat,
-  //   chatContainer: styles.chatContainer,
-  //   channel: styles.channel,
-  //   channelList: styles.channelList,
-  //   message: styles.message,
-  //   messageList: styles.messageList,
-  //   thread: styles.tread,
-  //   threadList: styles.treadlist,
-  //   virtualMessage: styles.virtualMessage,
-  //   virtualizedMessageList: styles.virtualizedMessageList,
-  // };
 
   return (
     <StreamChat

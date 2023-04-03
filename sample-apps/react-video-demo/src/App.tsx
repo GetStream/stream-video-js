@@ -17,10 +17,7 @@ import { TourProvider, useTourContext } from './contexts/TourContext';
 import { ModalProvider } from './contexts/ModalContext';
 import { NotificationProvider } from './contexts/NotificationsContext';
 
-import {
-  createGeoJsonFeatures,
-  EdgeResponseExtended,
-} from './utils/useCreateGeoJsonFeatures';
+import { createGeoJsonFeatures } from './utils/useCreateGeoJsonFeatures';
 import { useCreateStreamChatClient } from './hooks/useChatClient';
 
 import { tour } from '../data/tour';
@@ -99,33 +96,18 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     fetchEdges();
   }, []);
 
-  const createMeeting = useCallback(async () => {
-    try {
-      const id = uuidv1();
-      setIsJoiningCall(true);
-      await client?.joinCall(id, callType);
-      setCallId(id);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsJoiningCall(false);
-      setIsCallActive(true);
-    }
-  }, [client]);
-
   const joinMeeting = useCallback(async () => {
-    if (client && callId) {
-      try {
-        setIsJoiningCall(true);
-        await client.joinCall(callId, callType);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setIsJoiningCall(false);
-        setIsCallActive(true);
-      }
+    const id = callId || uuidv1();
+    setIsJoiningCall(true);
+    try {
+      await client.joinCall(id, callType);
+      setCallId(id);
+      setIsCallActive(true);
+      setIsJoiningCall(false);
+    } catch (e) {
+      console.error(e);
     }
-  }, [client, callId]);
+  }, [callId]);
 
   if (callHasEnded) {
     return <EndCallView />;
@@ -133,22 +115,22 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
 
   return (
     <StreamVideo client={client}>
-      <MediaDevicesProvider initialVideoEnabled={true}>
-        <ModalProvider>
-          {isCallActive && callId && client ? (
-            <NotificationProvider>
-              <TourProvider>
-                <MeetingView
-                  logo={logo}
-                  callId={callId}
-                  callType={callType}
-                  isCallActive={isCallActive}
-                  setCallHasEnded={setCallHasEnded}
-                  chatClient={chatClient}
-                />
-              </TourProvider>
-            </NotificationProvider>
-          ) : (
+      <ModalProvider>
+        {isCallActive && callId && client ? (
+          <NotificationProvider>
+            <TourProvider>
+              <MeetingView
+                logo={logo}
+                callId={callId}
+                callType={callType}
+                isCallActive={isCallActive}
+                setCallHasEnded={setCallHasEnded}
+                chatClient={chatClient}
+              />
+            </TourProvider>
+          </NotificationProvider>
+        ) : (
+          <MediaDevicesProvider initialVideoEnabled={true}>
             <LobbyView
               logo={logo}
               avatar={user.image}
@@ -156,13 +138,11 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
               edges={edges}
               fastestEdge={fastestEdge}
               isjoiningCall={isjoiningCall}
-              joinCall={() => {
-                incomingCallId ? joinMeeting() : createMeeting();
-              }}
+              joinCall={joinMeeting}
             />
-          )}
-        </ModalProvider>
-      </MediaDevicesProvider>
+          </MediaDevicesProvider>
+        )}
+      </ModalProvider>
     </StreamVideo>
   );
 };

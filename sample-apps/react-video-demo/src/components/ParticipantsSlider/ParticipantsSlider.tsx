@@ -1,11 +1,5 @@
-import { FC } from 'react';
-import {
-  FreeMode,
-  Grid as GridModule,
-  Navigation,
-  Mousewheel,
-  Swiper as SwiperClass,
-} from 'swiper';
+import { FC, useState, useEffect } from 'react';
+import { FreeMode, Grid as GridModule, Navigation, Mousewheel } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import classnames from 'classnames';
@@ -14,6 +8,8 @@ import { ParticipantBox } from '@stream-io/video-react-sdk';
 import { Call, StreamVideoParticipant } from '@stream-io/video-client';
 
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from '../Icons';
+
+import { useBreakpoint } from '../../hooks/useBreakpoints';
 
 import styles from './ParticipantsSlider.module.css';
 
@@ -70,6 +66,16 @@ export const ParticipantsSlider: FC<Props> = ({
   height,
 }) => {
   const localParticipant = useLocalParticipant();
+  const breakpoint = useBreakpoint();
+  const [derivedMode, setMode] = useState<'horizontal' | 'vertical'>();
+
+  useEffect(() => {
+    if (breakpoint === 'xs' || breakpoint === 'sm') {
+      setMode('horizontal');
+    } else {
+      setMode(mode);
+    }
+  }, [breakpoint]);
 
   const rootClassName = classnames(
     styles.root,
@@ -91,52 +97,56 @@ export const ParticipantsSlider: FC<Props> = ({
     [styles?.[mode]]: mode,
   });
 
-  return (
-    <div
-      id="participant-slider"
-      className={rootClassName}
-      style={{ height: mode === 'vertical' ? `${height}px` : undefined }}
-    >
-      <Previous mode={mode} />
-      <Next mode={mode} />
-      <Swiper
-        height={mode === 'vertical' ? height : undefined}
-        modules={[Navigation, Mousewheel, GridModule, FreeMode]}
-        slidesPerView="auto"
-        slidesPerGroup={2}
-        threshold={5}
-        speed={400}
-        spaceBetween={10}
-        direction={mode}
-        mousewheel={{ forceToAxis: true }}
-        passiveListeners={true}
-        navigation={{
-          prevEl: `#participant-slider .${styles.previous}`,
-          nextEl: `#participant-slider .${styles.next}`,
-          disabledClass: 'hidden',
+  if (derivedMode) {
+    return (
+      <div
+        id="participant-slider"
+        className={rootClassName}
+        style={{
+          height: derivedMode === 'vertical' ? `${height}px` : undefined,
         }}
-        freeMode={{
-          enabled: true,
-          momentumRatio: 0.75,
-          momentumVelocityRatio: 0.75,
-        }}
-        className={swiperClassName}
       >
-        {participants?.map((participant, index) => (
-          <SwiperSlide key={index} className={slideClassName}>
-            <div key={`participant-${index}`}>
-              <ParticipantBox
-                key={participant.sessionId}
-                participant={participant}
-                className={participantClassName}
-                call={call}
-                isMuted={participant.isLoggedInUser}
-                sinkId={localParticipant?.audioOutputDeviceId}
-              />
-            </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
-    </div>
-  );
+        <Previous mode={derivedMode} />
+        <Next mode={derivedMode} />
+        <Swiper
+          height={derivedMode === 'vertical' ? height : undefined}
+          modules={[Navigation, Mousewheel, GridModule, FreeMode]}
+          slidesPerView="auto"
+          slidesPerGroup={2}
+          threshold={5}
+          speed={400}
+          spaceBetween={10}
+          mousewheel={{ forceToAxis: true }}
+          passiveListeners={true}
+          direction={derivedMode}
+          navigation={{
+            prevEl: `#participant-slider .${styles.previous}`,
+            nextEl: `#participant-slider .${styles.next}`,
+            disabledClass: 'hidden',
+          }}
+          freeMode={{
+            enabled: true,
+            momentumRatio: 0.75,
+            momentumVelocityRatio: 0.75,
+          }}
+          className={swiperClassName}
+        >
+          {participants?.map((participant, index) => (
+            <SwiperSlide key={index} className={slideClassName}>
+              <div key={`participant-${index}`}>
+                <ParticipantBox
+                  key={participant.sessionId}
+                  participant={participant}
+                  className={participantClassName}
+                  call={call}
+                  sinkId={localParticipant?.audioOutputDeviceId}
+                />
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
+    );
+  }
+  return null;
 };

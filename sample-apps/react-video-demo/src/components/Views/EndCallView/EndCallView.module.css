@@ -11,12 +11,11 @@
 }
 
 .heading {
-  @apply text-center text-video-white font-extrabold;
-  font-size: 50px;
+  @apply text-center text-video-white font-extrabold text-2xl md:text-5xl;
 }
 
 .description {
-  @apply mt-4 text-video-white text-center text-xl font-light;
+  @apply mt-4 text-video-white text-center text-base md:text-xl font-light;
 }
 
 .ctas {

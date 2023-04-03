@@ -1,7 +1,15 @@
 .footer {
   @apply grid justify-between items-center w-full;
   grid-template-columns: 1fr 1fr 1fr;
-  grid-template-areas: 'settings controls toggles';
+  grid-template-areas: 'settings toggles controls';
+}
+
+@media screen(md) {
+  .footer {
+    @apply grid justify-between items-center w-full;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas: 'settings controls toggles';
+  }
 }
 
 .settingsContainer {
@@ -19,8 +27,34 @@
   left: 0;
   z-index: 9999;
   max-width: 250px;
-  transform: translateX(155px);
 }
+
+.settingsPortal {
+  @apply ml-6;
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 9999;
+  height: auto;
+  margin-bottom: 85px;
+  /* margin-left: 25px; */
+}
+
+/* @media screen(md) {
+  .settingsPortal {
+    margin-right: 1rem;
+    position: absolute;
+    right: 0;
+    bottom: 42%;
+    left: 0;
+    z-index: 9999;
+    height: auto;
+
+    width: 300px;
+    margin-left: -75px;
+  }
+} */
 
 .record {
   @apply hidden sm:flex ml-4;
@@ -43,7 +77,7 @@
 }
 
 .cancel {
-  @apply ml-4 sm:ml-8;
+  @apply ml-2 sm:ml-8 flex;
   transition: width 100ms;
   opacity: 1;
 }
@@ -64,7 +98,7 @@
 }
 
 .cancel:hover .endCall {
-  @apply flex;
+  @apply hidden sm:flex;
   opacity: 1;
   transition-delay: 300ms;
   position: relative;
@@ -73,16 +107,16 @@
 }
 
 .toggles {
-  @apply hidden sm:flex justify-end items-center;
+  @apply flex justify-end items-center;
   grid-area: toggles;
 }
 
 .participants {
-  @apply relative;
+  @apply hidden sm:flex relative;
 }
 
 .chat {
-  @apply mr-4 relative;
+  @apply ml-2 sm:ml-0 sm:mr-4 relative;
 }
 
 .chatCounter {

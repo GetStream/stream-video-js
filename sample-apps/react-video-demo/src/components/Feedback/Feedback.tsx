@@ -147,18 +147,20 @@ export const Feedback: FC<Props> = ({ className }) => {
               <p className={styles.ratingDescription}>
                 Rate your call quality:
               </p>
-              {[...new Array(rating.maxAmount)].map((_, index: number) => {
-                const active = index + 1 <= rating.current;
-                const starClassName = classnames(styles.star, {
-                  [styles.active]: active,
-                });
+              <div className={styles.ratingStars}>
+                {[...new Array(rating.maxAmount)].map((_, index: number) => {
+                  const active = index + 1 <= rating.current;
+                  const starClassName = classnames(styles.star, {
+                    [styles.active]: active,
+                  });
 
-                return (
-                  <div onClick={() => handleSetRating(index + 1)}>
-                    <Star className={starClassName} />
-                  </div>
-                );
-              })}
+                  return (
+                    <div onClick={() => handleSetRating(index + 1)}>
+                      <Star className={starClassName} />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
             <Button
               className={styles.button}

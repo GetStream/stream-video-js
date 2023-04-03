@@ -2,8 +2,10 @@ import { FC, ReactNode, useEffect, useState, useMemo } from 'react';
 import classnames from 'classnames';
 import { differenceInSeconds } from 'date-fns';
 
-import { Security } from '../Icons';
-import ControlButton from '../ControlButton';
+import Button from '../Button';
+import { Security, People } from '../Icons';
+
+import { useBreakpoint } from '../../hooks/useBreakpoints';
 
 import styles from './Header.module.css';
 
@@ -15,6 +17,9 @@ export type Props = {
   isCallActive: boolean;
   particpants?: any;
   latency?: number;
+  showParticipants?: boolean;
+  toggleParticipants?(): void;
+  participantCount?: number;
 };
 
 export const CallIdentification: FC<
@@ -64,7 +69,7 @@ export const Elapsed: FC<{ className?: string; joinedAt: number }> = ({
         new Date(joinedAt * 1000),
       );
 
-      const format = new Date(elapsedSeconds * 1000)
+      const format = new Date(elapsedSeconds || 0 * 1000)
         .toISOString()
         .substring(14, 19);
 
@@ -121,26 +126,52 @@ export const Participants: FC<Pick<Props, 'className' | 'participants'>> = ({
 
   return (
     <div className={rootClassName}>
-      <div className={styles.avatars}>
-        {maxDisplayParticipants.map((participant: any) => {
-          return (
-            <Img
-              className={styles.avatar}
-              src={participant?.image}
-              placeholder={
-                <div className={styles.placeholder}>
-                  {String(participant?.name)?.charAt(0)}
-                </div>
-              }
-            />
-          );
-        })}
+      <div className={styles.innerParticipants}>
+        <ul className={styles.avatars}>
+          {maxDisplayParticipants.map((participant: any) => {
+            return (
+              <li key={participant?.name} className={styles.participant}>
+                <Img
+                  className={styles.avatar}
+                  src={participant?.image}
+                  placeholder={
+                    <div className={styles.placeholder}>
+                      {String(participant?.name)?.charAt(0)}
+                    </div>
+                  }
+                />
+              </li>
+            );
+          })}
+        </ul>
+        <h5 className={styles.names}>
+          {names.join(', ')} and {last} {participants.length > 3 ? '...' : ''}
+        </h5>
       </div>
-      <h5 className={styles.names}>
-        {names.join(', ')} and {last} {participants.length > 3 ? '...' : ''}
-      </h5>
       <Security />
     </div>
+  );
+};
+
+export const ParticipantsToggle: FC<
+  Pick<
+    Props,
+    'className' | 'showParticipants' | 'toggleParticipants' | 'participantCount'
+  >
+> = ({ showParticipants, toggleParticipants, participantCount }) => {
+  return (
+    <Button
+      label="Participants"
+      className={styles.participantsToggle}
+      color={showParticipants ? 'active' : 'secondary'}
+      shape="square"
+      onClick={toggleParticipants}
+    >
+      <People />
+      {!showParticipants && participantCount && participantCount > 1 ? (
+        <span className={styles.participantCounter}>{participantCount}</span>
+      ) : null}
+    </Button>
   );
 };
 
@@ -151,7 +182,12 @@ export const Header: FC<Props> = ({
   latency,
   isCallActive = true,
   participants,
+  toggleParticipants,
+  participantCount,
+  showParticipants,
 }) => {
+  const breakpoint = useBreakpoint();
+
   const rootClassName = classnames(
     styles.header,
     {
@@ -171,7 +207,15 @@ export const Header: FC<Props> = ({
           <CallIdentification callId={callId} logo={logo} />
         )}
         <Elapsed joinedAt={me?.joinedAt?.seconds} />
-        <LatencyIndicator latency={latency} />
+        {breakpoint === 'sm' ? (
+          <ParticipantsToggle
+            showParticipants={showParticipants}
+            toggleParticipants={toggleParticipants}
+            participantCount={participantCount}
+          />
+        ) : (
+          <LatencyIndicator latency={latency} />
+        )}
       </div>
     );
   }

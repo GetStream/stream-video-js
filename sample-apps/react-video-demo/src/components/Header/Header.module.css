@@ -14,7 +14,7 @@
 }
 
 .logo {
-  @apply mr-2 h-8 w-8;
+  @apply mr-2 h-10 w-10;
 }
 
 .participants {
@@ -22,16 +22,31 @@
   @apply flex items-center;
 }
 
+.innerParticipants {
+  @apply flex justify-between;
+}
+
 .avatars {
   @apply flex items-center relative;
 }
 
-.avatar {
-  @apply rounded-full h-10 w-10;
+.participant {
+  @apply fixed flex items-center;
+  z-index: 5;
 }
 
-.avatar:not(:first-of-type) {
-  @apply absolute ml-4 z-10;
+.participant + .participant {
+  @apply ml-4;
+  z-index: 4;
+}
+
+.participant + .participant + .participant {
+  @apply ml-8;
+  z-index: 3;
+}
+
+.avatar {
+  @apply rounded-full h-10 w-10;
 }
 
 .placeholder {
@@ -44,6 +59,11 @@
 
 .names {
   @apply hidden sm:flex mr-8 ml-8 text-video-white;
+  max-width: 200px;
+  overflow: hidden;
+  white-space: nowrap;
+  margin-left: 80px;
+  margin-right: 12px;
 }
 
 .elapsedContainer {
@@ -57,6 +77,11 @@
 .latency {
   grid-area: latency;
   @apply flex justify-end w-full;
+}
+
+.participantsToggle {
+  grid-area: latency;
+  @apply flex justify-end w-full items-end;
 }
 
 .latencyContainer {

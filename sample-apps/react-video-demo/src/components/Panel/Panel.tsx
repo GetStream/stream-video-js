@@ -1,7 +1,7 @@
-import { FC, ReactNode, useCallback, useState, useRef } from 'react';
+import { FC, ReactNode, useCallback, useState } from 'react';
 import classnames from 'classnames';
 
-import { ArrowDown } from '../Icons';
+import { ArrowDown, Close } from '../Icons';
 
 import Button from '../Button';
 
@@ -12,6 +12,7 @@ export type Props = {
   title: string | ReactNode;
   isFocused?: boolean;
   canCollapse?: boolean;
+  close?: () => void;
   children: ReactNode | undefined;
 };
 
@@ -21,6 +22,7 @@ export const Panel: FC<Props> = ({
   title,
   isFocused,
   canCollapse,
+  close,
 }) => {
   const [isOpen, setOpen] = useState(true);
 
@@ -50,7 +52,7 @@ export const Panel: FC<Props> = ({
       <div className={headingClassName}>
         <h2 className={styles.heading}>{title}</h2>
 
-        {canCollapse ? (
+        {canCollapse && !close ? (
           <Button
             className={styles.toggle}
             color="secondary"
@@ -58,6 +60,17 @@ export const Panel: FC<Props> = ({
             shape="square"
           >
             <ArrowDown className={arrowClassName} />
+          </Button>
+        ) : null}
+
+        {close ? (
+          <Button
+            className={styles.toggle}
+            color="secondary"
+            onClick={close}
+            shape="square"
+          >
+            <Close className={arrowClassName} />
           </Button>
         ) : null}
       </div>

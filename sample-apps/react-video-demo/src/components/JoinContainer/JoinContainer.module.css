@@ -13,7 +13,7 @@
 }
 
 .description {
-  @apply text-video-white ml-1;
+  @apply text-sm lg:text-base text-video-white ml-1;
   grid-area: description;
 }
 

@@ -9,9 +9,9 @@ import styles from './MeetingLayout.module.css';
 export type Props = {
   className?: string;
   header: ReactNode;
-  children: ReactNode;
+  children?: ReactNode;
   footer: ReactNode;
-  sidebar: ReactNode;
+  sidebar?: ReactNode;
 };
 
 export const MeetingLayout: FC<Props> = ({

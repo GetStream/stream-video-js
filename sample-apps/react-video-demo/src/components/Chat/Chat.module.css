@@ -1,22 +1,4 @@
-.chat {
-}
-.chatContainer {
-}
-.channel {
-}
-.channelList {
-}
-.message {
-}
-.messageList {
-}
-.thread {
-}
-.threadList {
-}
-.virtualMessage {
-}
-.virtualizedMessageList {
+.root {
 }
 
 .noMessages {
@@ -24,7 +6,7 @@
 }
 
 .chatRound {
-  @apply text-video-grey-500;
+  @apply text-video-grey-300;
 }
 
 .description:first-of-type {

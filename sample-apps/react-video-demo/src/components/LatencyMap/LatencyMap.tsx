@@ -102,7 +102,7 @@ export const LatencyMap: FC<Props> = ({
           }
 
           if (popUpRef && popUpRef.current) {
-            // /popUpRef.current.remove();
+            popUpRef.current.remove();
           }
         }
       });

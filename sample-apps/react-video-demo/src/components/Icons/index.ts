@@ -1,5 +1,7 @@
 export { ArrowDown } from './ArrowDown';
+export { Attachment } from './Attachment';
 export { BarGraph } from './BarGraph';
+export { Bolt } from './Bolt';
 export { Chat } from './Chat';
 export { ChatRound } from './ChatRound';
 export { ChevronUp } from './ChevronUp';
@@ -25,6 +27,7 @@ export { ScreenShare } from './ScreenShare';
 export { Search } from './Search';
 export { Settings } from './Settings';
 export { Security } from './Security';
+export { Send } from './Send';
 export { ShareScreen } from './ShareScreen';
 export { Signal } from './Signal';
 export { Speaker } from './Speaker';

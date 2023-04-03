@@ -1,5 +1,6 @@
 .root {
   @apply bg-video-grey-600 rounded-container text-video-white border-video-transparent border-2;
+  pointer-events: initial;
   max-width: 300px;
 }
 

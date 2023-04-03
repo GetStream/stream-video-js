@@ -43,23 +43,10 @@
   .str-video__participant
   .str-video__participant__connection-quality,
 .str-video__participant-angular-host
-  .str-video__participant__connection-qualit {
+  .str-video__participant__connection-quality {
   position: absolute;
   right: 0;
   top: 0;
   @apply mr-4;
   margin-top: -85px;
-}
-
-.str-video__stage
-  .str-video__call-participants-screen-view
-  .str-video__call-participants-screen-view__overlay {
-  @apply bg-video-grey-800/70 text-video-white items-start flex-col justify-end p-4;
-}
-
-.str-video__call-participants-screen-view
-  .str-video__call-participants-screen-view__overlay
-  button {
-  @apply inline-flex items-center justify-center border-2 rounded-button font-body  bg-video-stream-500 text-video-white  border-video-stream-500 pt-1 pb-1 pl-3 pr-3 uppercase tracking-wider text-xs font-extrabold;
-  border-radius: 59px;
 }

@@ -11,6 +11,18 @@
   @apply flex items-center p-2 border-b-2 border-video-grey-700;
 }
 
+.item.settings {
+  @apply sm:border-b-0;
+}
+
+.share,
+.record,
+.participants,
+.chat,
+.leave {
+  @apply flex sm:hidden;
+}
+
 .settingsIcon {
   @apply mr-4 text-video-grey-400 h-5;
 }

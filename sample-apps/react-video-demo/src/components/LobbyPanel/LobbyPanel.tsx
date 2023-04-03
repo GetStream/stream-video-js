@@ -15,6 +15,7 @@ export type Props = {
   className?: string;
   call?: any;
   fastestEdge?: any;
+  isJoiningCall?: boolean;
 };
 
 export const DisabledVideoPreview: FC<any> = () => {
@@ -33,6 +34,7 @@ export const LobbyPanel: FC<Props> = ({
   joinCall,
   className,
   fastestEdge,
+  isJoiningCall,
 }) => {
   const { initialAudioEnabled } = useMediaDevices();
 
@@ -68,6 +70,7 @@ export const LobbyPanel: FC<Props> = ({
         className={styles.lobbyContainer}
         logo={logo}
         joinCall={joinCall}
+        isJoiningCall={isJoiningCall}
       />
     </div>
   );

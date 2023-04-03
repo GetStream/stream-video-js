@@ -4,16 +4,31 @@
 
 .cameraSettings,
 .audioSettings {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  @apply flex justify-center items-center right-0 left-0 bottom-0 h-full fixed bg-video-grey-800/70 sm:bg-video-transparent pointer-events-none sm:pointer-events-auto;
   z-index: 9999;
 }
 
-.cameraSettings {
-  width: 300px;
-  transform: translateX(20%);
+@media screen(md) {
+  .cameraSettings,
+  .audioSettings {
+    margin-right: 1rem;
+    position: absolute;
+    right: 0;
+    bottom: 42%;
+    left: 0;
+    z-index: 9999;
+    height: auto;
+  }
+
+  .cameraSettings {
+    width: 300px;
+    margin-left: -75px;
+  }
+
+  .audioSettings {
+    width: 400px;
+    margin-left: -150px;
+  }
 }
 
 .portal:empty {
@@ -28,9 +43,12 @@
 }
 
 .videoButton,
-.audioButton,
-.speakerButton {
+.audioButton {
   @apply ml-2 mr-2;
+}
+
+.speakerButton {
+  @apply hidden ml-0 mr-0 md:flex md:ml-2 md:mr-2;
 }
 
 .panel {

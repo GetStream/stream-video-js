@@ -49,7 +49,6 @@ export const Footer: FC<Props> = ({
   toggleChat,
   toggleParticipants,
   handleStartRecording,
-  handlePauseRecording,
   handleStopRecording,
   toggleShareScreen,
   showChat,
@@ -66,6 +65,12 @@ export const Footer: FC<Props> = ({
   const { isVisible } = useModalContext();
 
   const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (isVisible && showSettingsPanel) {
+      setShowSettingsPanel(false);
+    }
+  }, [showSettingsPanel, isVisible]);
 
   useEffect(() => {
     if (current === StepNames.Chat && showChat === false) {
@@ -101,7 +106,16 @@ export const Footer: FC<Props> = ({
           label="More"
           panel={
             <Portal className={styles.settingsPortal} selector="settings">
-              <SettingsPanel callId={callId} />
+              <SettingsPanel
+                callId={callId}
+                leave={leave}
+                toggleChat={toggleChat}
+                toggleParticipants={toggleParticipants}
+                toggleRecording={
+                  !isRecording ? handleStartRecording : undefined
+                }
+                toggleShareScreen={toggleShareScreen}
+              />
             </Portal>
           }
           prefix={<Options />}
@@ -118,12 +132,6 @@ export const Footer: FC<Props> = ({
             {isRecording && !isAwaitingRecording && (
               <div onClick={handleStopRecording}>
                 <Stop />
-              </div>
-            )}
-
-            {isRecording && !isAwaitingRecording && (
-              <div onClick={handlePauseRecording}>
-                <Pause />
               </div>
             )}
 

@@ -1,4 +1,4 @@
-import { FC, useCallback, useState, ReactNode, useRef } from 'react';
+import { FC, useCallback, useState, ReactNode, useRef, useEffect } from 'react';
 import classnames from 'classnames';
 
 import Button from '../Button';
@@ -32,6 +32,12 @@ export const ControlButton: FC<Props> = ({
   const [active, setActive] = useState<boolean>(false);
 
   const container: any = useRef();
+
+  useEffect(() => {
+    if (showPanel !== undefined) {
+      setActive(showPanel);
+    }
+  }, [showPanel]);
 
   const togglePanel = useCallback(() => {
     setActive(!active);

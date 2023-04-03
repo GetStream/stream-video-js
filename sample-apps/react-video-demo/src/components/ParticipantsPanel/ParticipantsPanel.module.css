@@ -26,6 +26,12 @@
   top: 4px;
 }
 
+.participants {
+  max-height: 200px;
+  overflow: hidden;
+  overflow-y: scroll;
+}
+
 .participant {
   @apply flex items-center justify-between mt-2 text-sm;
 }
@@ -36,13 +42,26 @@
 
 .video,
 .mic {
-  @apply flex text-video-red-400;
-  height: 13px;
+  @apply flex text-video-white;
+  width: 15px;
+  height: 15px;
+}
+
+.mic,
+.micMuted {
+  @apply mr-2;
 }
 
 .videoOff,
 .micMuted {
   @apply flex text-video-red-400;
+  width: 15px;
+  height: 15px;
+}
 
-  height: 13px;
+.video:hover,
+.mic:hover,
+.videoOff:hover,
+.micMuted:hover {
+  @apply cursor-pointer;
 }

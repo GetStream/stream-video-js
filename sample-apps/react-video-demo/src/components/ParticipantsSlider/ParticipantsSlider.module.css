@@ -1,4 +1,5 @@
 .root {
+  z-index: 0;
 }
 
 .root.vertical {
@@ -6,7 +7,7 @@
 }
 
 .root.horizontal {
-  @apply relative h-full h-full;
+  @apply relative h-full w-full;
 }
 
 .swiper {
@@ -15,12 +16,17 @@
 
 .slide.horizontal {
   max-height: 100%;
-  max-width: 20%;
+  max-width: 75%;
+}
+
+@media screen(md) {
+  .slide.horizontal {
+    max-width: 20%;
+  }
 }
 
 .slide.vertical {
-  height: 125px;
-  width: 100%;
+  @apply w-[75%] lg:h-[125px] lg:w-full;
 }
 
 .participant.horizontal {

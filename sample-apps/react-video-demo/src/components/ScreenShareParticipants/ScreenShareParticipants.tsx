@@ -53,8 +53,6 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
     [styles.hasRemoteParticipants]: remoteParticipants.length > 0,
   });
 
-  console.log(wrapperHeight);
-
   if (
     firstScreenSharingParticipant?.sessionId === localParticipant?.sessionId
   ) {
@@ -62,8 +60,10 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
       <div className={localViewClassNames} ref={wrapper}>
         <div className={styles.localContainer}>
           <div className={styles.localNotification}>
-            <ShareScreen className={styles.screenShareIcon} />
-            <h2 className={styles.heading}>You are presenting your screen</h2>
+            <div className={styles.localNotificationHeading}>
+              <ShareScreen className={styles.screenShareIcon} />
+              <h2 className={styles.heading}>You are presenting your screen</h2>
+            </div>
 
             <Button
               className={styles.button}
@@ -72,7 +72,7 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
               onClick={stopSharing}
             >
               <Close className={styles.closeIcon} />
-              Stop Screen Sharing
+              <span> Stop Screen Sharing</span>
             </Button>
           </div>
           <div className={styles.localParticipant}>
@@ -81,7 +81,6 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
                 participant={localParticipant}
                 call={call}
                 sinkId={localParticipant.audioOutputDeviceId}
-                isMuted
               />
             )}
           </div>

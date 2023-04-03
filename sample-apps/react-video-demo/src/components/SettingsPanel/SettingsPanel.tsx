@@ -1,7 +1,17 @@
 import { FC, useCallback } from 'react';
 import classnames from 'classnames';
 
-import { Feedback as FeedbackIcon, FullScreen, Cog, Info } from '../Icons';
+import {
+  Feedback as FeedbackIcon,
+  FullScreen,
+  Cog,
+  Info,
+  Leave,
+  Chat,
+  People,
+  Record,
+  ShareScreen,
+} from '../Icons';
 
 import CallStats from '../CallStats';
 import Feedback from '../Feedback';
@@ -16,9 +26,22 @@ import styles from './SettingsPanel.module.css';
 export type Props = {
   className?: string;
   callId?: string;
+  leave?(): void;
+  toggleChat?(): void;
+  toggleParticipants?(): void;
+  toggleRecording?(): void;
+  toggleShareScreen?(): void;
 };
 
-export const SettingsPanel: FC<Props> = ({ className, callId }) => {
+export const SettingsPanel: FC<Props> = ({
+  className,
+  callId,
+  leave,
+  toggleChat,
+  toggleParticipants,
+  toggleRecording,
+  toggleShareScreen,
+}) => {
   const { setComponent } = useModalContext();
 
   const handleFeedback = useCallback(() => {
@@ -51,9 +74,47 @@ export const SettingsPanel: FC<Props> = ({ className, callId }) => {
             <FeedbackIcon className={styles.settingsIcon} />
             Send Feedback
           </li>
-          <li className={styles.item} onClick={() => handleSettings()}>
+          <li
+            className={classnames(styles.item, styles.settings)}
+            onClick={() => handleSettings()}
+          >
             <Cog className={styles.settingsIcon} />
             Settings
+          </li>
+          <li
+            className={classnames(styles.item, styles.record)}
+            onClick={() => toggleRecording?.()}
+          >
+            <Record className={styles.settingsIcon} />
+            Record
+          </li>
+          <li
+            className={classnames(styles.item, styles.share)}
+            onClick={() => toggleShareScreen?.()}
+          >
+            <ShareScreen className={styles.settingsIcon} />
+            Share screen
+          </li>
+          <li
+            className={classnames(styles.item, styles.participants)}
+            onClick={() => toggleParticipants?.()}
+          >
+            <People className={styles.settingsIcon} />
+            Particpants
+          </li>
+          <li
+            className={classnames(styles.item, styles.chat)}
+            onClick={() => toggleChat?.()}
+          >
+            <Chat className={styles.settingsIcon} />
+            Chat
+          </li>
+          <li
+            className={classnames(styles.item, styles.leave)}
+            onClick={() => leave?.()}
+          >
+            <Leave className={styles.settingsIcon} />
+            End call
           </li>
         </ul>
       </div>

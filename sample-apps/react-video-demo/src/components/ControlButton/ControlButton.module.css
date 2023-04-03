@@ -3,9 +3,7 @@
 }
 
 .portalContainer {
-  @apply absolute flex items-center justify-center;
-  min-width: 400px;
-  transform: translateX(-40%);
+  @apply absolute;
 }
 
 .toggle {
@@ -76,5 +74,5 @@
 }
 
 .label {
-  @apply text-video-white text-xs mt-1;
+  @apply hidden sm:flex text-video-white text-xs mt-1;
 }

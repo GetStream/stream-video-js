@@ -42,11 +42,15 @@
 }
 
 .rating {
-  @apply flex;
+  @apply flex flex-col md:flex-row;
+}
+
+.ratingStars {
+  @apply flex flex-row mt-2 md:mt-0;
 }
 
 .star {
-  @apply text-video-grey-500 mr-1;
+  @apply text-video-grey-200 mr-1;
 }
 
 .star:hover {

@@ -17,31 +17,47 @@
 }
 
 .localContainer {
-  @apply grid  gap-x-3 h-full;
+  @apply grid  gap-y-3 h-full;
   grid-area: localContainer;
-  grid-template-columns: 1fr 1fr;
-  grid-template-areas: 'localNotification localParticipant';
+  grid-template-rows: 0.25fr 1fr;
+  grid-template-areas: 'localNotification' 'localParticipant';
+}
+
+@media screen(md) {
+  .localContainer {
+    @apply grid  gap-x-3;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: 'localNotification localParticipant';
+  }
 }
 
 .localNotification {
-  @apply flex flex-col justify-center items-center text-video-white border-2 border-video-stream-500 rounded-container;
+  @apply p-2 lg:p-0 flex flex-row lg:flex-col justify-between lg:justify-center items-center text-video-white border-2 border-video-stream-500 rounded-container;
   grid-area: localNotification;
 }
 
+.localNotificationHeading {
+  @apply flex lg:flex-col items-center;
+}
+
 .screenShareIcon {
-  @apply h-20 w-20 mb-3;
+  @apply mr-2 lg:mr-0 lg:h-20  lg:w-20 lg:mb-3;
 }
 
 .heading {
-  @apply text-xl mb-2;
+  @apply text-sm lg:text-xl lg:mb-2;
 }
 
 .button {
-  @apply font-medium flex items-center mt-2;
+  @apply p-0 m-0 font-medium flex items-center lg:mt-2 h-auto;
+}
+
+.button > span {
+  @apply hidden lg:flex;
 }
 
 .closeIcon {
-  @apply h-7 w-7 mr-2;
+  @apply h-7 w-7 lg:mr-2;
 }
 
 .localParticipant {
@@ -55,15 +71,31 @@
 
 .remoteView {
   @apply grid p-4  gap-x-3 w-full;
-  height: calc(100vh - 180px);
-  grid-template-columns: 1fr 0.25fr;
-  grid-template-areas: 'screenShareContainer remoteParticipants';
+  height: calc(100vh - 200px);
+  grid-template-rows: 1fr 0.25fr;
+  grid-template-areas:
+    'screenShareContainer'
+    'remoteParticipants';
+}
+
+@media screen(md) {
+  .remoteView {
+    height: calc(100vh - 180px);
+    grid-template-columns: 1fr 0.25fr;
+    grid-template-areas: 'screenShareContainer remoteParticipants';
+  }
 }
 
 .screenShareContainer {
   @apply flex  gap-x-3;
-  height: calc(100vh - 215px);
+
   grid-area: screenShareContainer;
+}
+
+@media screen(md) {
+  .screenShareContainer {
+    height: calc(100vh - 215px);
+  }
 }
 
 .screenShareContainer video {

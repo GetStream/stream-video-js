@@ -5,12 +5,21 @@ import {
   EmojiPicker,
   useMessageInputContext,
 } from 'stream-chat-react';
+import classnames from 'classnames';
 
-// import { CommandBolt, EmojiPickerIcon, GiphyIcon, GiphySearch, SendArrow } from '../../assets';
-// import { useEventContext } from '../../contexts/EventContext';
+import {
+  Bolt,
+  Attachment,
+  Latency as GiphyIcon,
+  People as GiphySearch,
+  Send,
+} from '../Icons';
+
 // import { useGiphyContext } from '../../contexts/GiphyContext';
 
-export const MessageInputUI = () => {
+import styles from './ChatInput.module.css';
+
+export const ChatInput = () => {
   const {
     closeCommandsList,
     cooldownInterval,
@@ -24,8 +33,8 @@ export const MessageInputUI = () => {
     setCooldownRemaining,
     text,
   } = useMessageInputContext();
+  const [giphyState, setGiphyState] = useState<boolean>();
 
-  // const { chatType } = useEventContext();
   // const { giphyState, setGiphyState } = useGiphyContext();
 
   const [commandsOpen, setCommandsOpen] = useState(false);
@@ -42,9 +51,24 @@ export const MessageInputUI = () => {
 
   const onChange: React.ChangeEventHandler<HTMLTextAreaElement> = useCallback(
     (event) => {
+      const { value } = event.target;
+
+      const deletePressed =
+        event.nativeEvent instanceof InputEvent &&
+        event.nativeEvent.inputType === 'deleteContentBackward';
+
+      if (text.length === 1 && deletePressed) {
+        setGiphyState(false);
+      }
+
+      if (!giphyState && text.startsWith('/giphy') && !numberOfUploads) {
+        event.target.value = value.replace('/giphy', '');
+        setGiphyState(true);
+      }
+
       handleChange(event);
     },
-    [text],
+    [text, giphyState, numberOfUploads], // eslint-disable-line
   );
 
   const handleCommandsClick = () => {
@@ -54,57 +78,45 @@ export const MessageInputUI = () => {
   };
 
   return (
-    <div className="input-ui-container">
-      <EmojiPicker />
-      <div className={`input-ui-input ${giphyState ? 'giphy' : ''}`}>
-        {/* {giphyState && !numberOfUploads && <GiphyIcon />} */}
-        <ChatAutoComplete onChange={onChange} placeholder="Say something" />
-        {/* {chatType !== 'qa' && (
-          <>
-            <div
-              className={`input-ui-input-commands-button ${cooldownRemaining ? 'cooldown' : ''}`}
-              onClick={cooldownRemaining ? () => null : handleCommandsClick}
-              role='button'
-            >
-              <CommandBolt />
-            </div>
-            {!giphyState && (
-              <div
-                className={`input-ui-input-emoji-picker-button ${
-                  cooldownRemaining ? 'cooldown' : ''
-                }`}
-                ref={emojiPickerRef}
-                onClick={cooldownRemaining ? () => null : openEmojiPicker}
-              >
-                <EmojiPickerIcon />
-              </div>
-            )}
-          </>
-        )} */}
+    <div className={styles.root}>
+      <div className={styles.container}>
+        <Attachment className={styles.attachment} />
+        <Bolt className={styles.bolt} />
+        <div className={styles.input}>
+          <ChatAutoComplete onChange={onChange} placeholder="Send a message" />
+        </div>
+
+        <>
+          <div
+            className={classnames(styles.commands, {
+              [styles.cooldown]: cooldownRemaining,
+            })}
+            onClick={cooldownRemaining ? () => null : handleCommandsClick}
+            role="button"
+          ></div>
+        </>
       </div>
-      {/* <button
-        className={`input-ui-send-button ${text ? 'text' : ''} ${
-          cooldownRemaining ? 'cooldown' : ''
-        }`}
+      <button
+        className={classnames(styles.button, {
+          [styles.text]: text,
+          [styles.cooldown]: cooldownRemaining,
+        })}
         disabled={!text}
         onClick={handleSubmit}
       >
         {giphyState ? (
           <GiphySearch />
         ) : cooldownRemaining ? (
-          <div className='input-ui-send-cooldown'>
+          <div className="input-ui-send-cooldown">
             <CooldownTimer
               cooldownInterval={cooldownInterval}
               setCooldownRemaining={setCooldownRemaining}
             />
           </div>
         ) : (
-          <>
-            <SendArrow />
-            <div>{269 - text.length}</div>
-          </>
+          <Send className={styles.send} />
         )}
-      </button> */}
+      </button>
     </div>
   );
 };

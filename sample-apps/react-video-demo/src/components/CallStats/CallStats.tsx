@@ -40,6 +40,8 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
 
   const { close } = useModalContext();
 
+  console.log('STATSSS', callStatsReport);
+
   useEffect(() => {
     if (!callStatsReport) return;
     if (!previousStats.current) {
@@ -78,6 +80,16 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
           Settings
         </h2>
         <p className={styles.callId}>Call ID: {callId}</p>
+        <div className={styles.close}>
+          <Button
+            onClick={() => close()}
+            className={styles.button}
+            color="transparent"
+            shape="square"
+          >
+            <Close className={styles.closeIcon} />
+          </Button>
+        </div>
       </div>
       <div className={styles.body}>
         <div className={styles.sidebar}>
@@ -91,6 +103,13 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
         <div className={styles.content}>
           {callStatsReport && (
             <div className={styles.stats}>
+              <div className={styles.callIdContainer}>
+                <p className={styles.id}>
+                  Call ID:
+                  <br />
+                  {callId}
+                </p>
+              </div>
               <h2 className={styles.statsHeader}>Statistics</h2>
               <div className={styles.containerHeader}>
                 <Latency className={styles.latency} />
@@ -186,16 +205,7 @@ You connect to Stream’s global edge network based on your local position at th
           )}
         </div>
       </div>
-      <div className={styles.closebar}>
-        <Button
-          onClick={() => close()}
-          className={styles.close}
-          color="transparent"
-          shape="square"
-        >
-          <Close className={styles.closeIcon} />
-        </Button>
-      </div>
+      <div className={styles.closebar}></div>
     </div>
   );
 };

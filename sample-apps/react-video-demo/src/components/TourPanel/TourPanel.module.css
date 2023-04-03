@@ -43,6 +43,10 @@
   @apply flex items-center justify-between font-semibold text-lg;
 }
 
+.explanation {
+  @apply text-sm md:text-base;
+}
+
 .close {
   @apply text-video-grey-400 bg-video-grey-800 rounded-button p-1 h-auto w-auto;
 }

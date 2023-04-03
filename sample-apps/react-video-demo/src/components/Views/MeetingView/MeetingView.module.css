@@ -1,5 +1,5 @@
 .sidebar {
-  @apply grid  gap-y-3;
+  @apply hidden sm:grid  gap-y-3;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr min-content;
   grid-template-areas:
@@ -21,10 +21,7 @@
 }
 
 .content {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  height: 100%;
+  @apply flex flex-col md:flex-row items-center justify-around h-full;
 }
 
 .content.activeTour {
@@ -49,12 +46,17 @@
 
 .stage {
   grid-area: stage;
-  height: 100%;
-  width: 100%;
+  @apply h-full w-full flex justify-center;
 }
 
+@media screen(sm) {
+  .stage {
+    grid-area: stage;
+    @apply h-full w-full flex justify-center;
+  }
+}
 .tour {
-  @apply flex absolute items-center justify-center w-full;
+  @apply flex items-center justify-center w-full;
   bottom: 10px;
   margin: 0 auto;
   grid-area: tour;

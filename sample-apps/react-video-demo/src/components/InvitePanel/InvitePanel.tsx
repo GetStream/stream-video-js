@@ -4,8 +4,7 @@ import classnames from 'classnames';
 
 import { Copy, UserChecked } from '../Icons';
 import Panel from '../Panel';
-
-import { useTraceUpdate } from '../../hooks/useTraceUpdate';
+import Button from '../Button';
 
 import styles from './InvitePanel.module.css';
 
@@ -15,9 +14,11 @@ export type Props = {
   isFocused?: boolean;
 };
 
-export const InvitePanel: FC<Props> = ({ className, isFocused, callId }) => {
+export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
+  callId,
+  canShare,
+}) => {
   const [isCopied, setIsCopied] = useState(false);
-  const [showQr, setShowQr] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -49,6 +50,44 @@ export const InvitePanel: FC<Props> = ({ className, isFocused, callId }) => {
     [isCopied],
   );
 
+  return (
+    <>
+      <p className={styles.description}>
+        Send the URL below to someone and have them join this private call:
+      </p>
+      <div className={styles.copy} onClick={() => handleCopy()}>
+        {isCopied ? (
+          <div className={styles.copied}>
+            <UserChecked className={styles.copiedIcon} />
+
+            <span className={styles.copied}>Link copied</span>
+            <Copy className={styles.copyIcon} />
+          </div>
+        ) : (
+          <div>
+            <input ref={inputRef} className={styles.input} readOnly={true} />
+            <Copy className={styles.copyIcon} />
+          </div>
+        )}
+      </div>
+
+      {canShare && (
+        <Button
+          onClick={() =>
+            navigator.share({ url: `${window.location.href}?id=${callId}` })
+          }
+          color="primary"
+        >
+          Share
+        </Button>
+      )}
+    </>
+  );
+};
+
+export const InvitePanel: FC<Props> = ({ className, isFocused, callId }) => {
+  const [showQr, setShowQr] = useState(false);
+
   const handleToggleDisplayQr = useCallback(() => {
     setShowQr(!showQr);
   }, [showQr]);
@@ -70,25 +109,7 @@ export const InvitePanel: FC<Props> = ({ className, isFocused, callId }) => {
       isFocused={isFocused}
     >
       <>
-        <p className={styles.description}>
-          Send the URL below to someone and have them join this private call:
-        </p>
-        <div className={styles.copy} onClick={() => handleCopy()}>
-          {isCopied ? (
-            <div className={styles.copied}>
-              <UserChecked className={styles.copiedIcon} />
-
-              <span className={styles.copied}>Link copied</span>
-              <Copy className={styles.copyIcon} />
-            </div>
-          ) : (
-            <div>
-              <input ref={inputRef} className={styles.input} readOnly={true} />
-              <Copy className={styles.copyIcon} />
-            </div>
-          )}
-        </div>
-
+        <Invite callId={callId} canShare={false} />
         <p className={styles.description} onClick={handleToggleDisplayQr}>
           Or scan the QR code with your phone to test it yourself:
           <span className={showQrIndicatorClassNames}>▼</span>

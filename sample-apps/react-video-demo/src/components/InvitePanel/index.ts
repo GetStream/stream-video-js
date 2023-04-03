@@ -1,1 +1,1 @@
-export { InvitePanel as default } from './InvitePanel';
+export { InvitePanel as default, Invite } from './InvitePanel';

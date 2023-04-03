@@ -33,9 +33,11 @@ export const StatCard: FC<Props> = ({
     <div className={rootClassName}>
       <div className={styles.label}>
         {label}
-        <div id={id}>
-          <Info className={styles.info} />
-        </div>
+        {description && (
+          <div id={id}>
+            <Info className={styles.info} />
+          </div>
+        )}
       </div>
       <div className={styles.value}>
         {value}{' '}
