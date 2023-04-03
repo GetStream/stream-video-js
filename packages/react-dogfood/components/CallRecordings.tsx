@@ -37,7 +37,8 @@ export const CallRecordings = () => {
       recordingPollRequestsInterval.current = setInterval(async () => {
         let recordings: CallRecording[] = [];
         try {
-          recordings = await activeCall.queryRecordings();
+          const response = await activeCall.queryRecordings();
+          recordings = response.recordings;
         } catch (e) {
         } finally {
           recordingPollRequestsCount.current++;

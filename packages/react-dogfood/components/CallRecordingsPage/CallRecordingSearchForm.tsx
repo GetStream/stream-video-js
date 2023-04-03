@@ -41,7 +41,7 @@ export const CallRecordingSearchForm = ({
     async (callType: string, callId: string) => {
       if (!videoClient) return;
 
-      const call = videoClient.coordinatorClient.call(callType, callId);
+      const call = videoClient.call(callType, callId);
 
       try {
         setLoading(true);

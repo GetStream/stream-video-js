@@ -9,11 +9,11 @@ import {
   CallRecordingListItem as DefaultCallRecordingListItem,
   CallRecordingListItemProps,
 } from './CallRecordingListItem';
-import { EmptyCallRecordingList as DefaultEmptyCallRecordingList } from './EmptyCallRecordingList';
+import { EmptyCallRecordingListing as DefaultEmptyCallRecordingList } from './EmptyCallRecordingListing';
 import {
-  LoadingCallRecordingList as DefaultLoadingCallRecordingList,
+  LoadingCallRecordingListing as DefaultLoadingCallRecordingList,
   LoadingCallRecordingListProps,
-} from './LoadingCallRecordingList';
+} from './LoadingCallRecordingListing';
 
 export type CallRecordingListProps = {
   /** Array of CallRecording objects */
@@ -38,23 +38,23 @@ export const CallRecordingList = ({
   loading,
   LoadingCallRecordingList = DefaultLoadingCallRecordingList,
 }: CallRecordingListProps) => {
-  return callRecordings.length ? (
+  return (
     <div className="str-video__call-recording-list">
       <CallRecordingListHeader callRecordings={callRecordings} />
       <div className="str-video__call-recording-list__listing">
         {loading ? (
           <LoadingCallRecordingList callRecordings={callRecordings} />
-        ) : (
+        ) : callRecordings.length ? (
           callRecordings.map((recording) => (
             <CallRecordingListItem
               recording={recording}
               key={recording.filename}
             />
           ))
+        ) : (
+          <EmptyCallRecordingList />
         )}
       </div>
     </div>
-  ) : (
-    <EmptyCallRecordingList />
   );
 };

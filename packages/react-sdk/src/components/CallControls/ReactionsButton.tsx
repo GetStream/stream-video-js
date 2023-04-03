@@ -1,8 +1,5 @@
 import { CompositeButton, IconButton } from '../Button';
-import {
-  useActiveCall,
-  useStreamVideoClient,
-} from '@stream-io/video-react-bindings';
+import { useActiveCall } from '@stream-io/video-react-bindings';
 import { StreamReaction } from '@stream-io/video-client';
 import { defaultEmojiReactions } from '../Reaction';
 
@@ -58,15 +55,9 @@ export const DefaultReactionsMenu = ({
   reactions,
 }: DefaultReactionsMenuProps) => {
   const activeCall = useActiveCall();
-  const client = useStreamVideoClient();
 
   const sendReaction = (reaction: StreamReaction) => {
-    const call = client?.coordinatorClient.call(
-      activeCall!.type,
-      activeCall!.id,
-    );
-
-    call?.sendReaction(reaction);
+    activeCall?.sendReaction(reaction);
   };
 
   return (
