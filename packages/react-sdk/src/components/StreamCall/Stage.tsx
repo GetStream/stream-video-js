@@ -4,6 +4,9 @@ import { useHasOngoingScreenShare } from '@stream-io/video-react-bindings';
 import { CallParticipantsView } from './CallParticipantsView';
 import { CallParticipantsScreenView } from './CallParticipantsScreenView';
 
+/**
+ * @deprecated
+ */
 export const Stage = (props: { call: Call }) => {
   const { call } = props;
   const hasScreenShare = useHasOngoingScreenShare();

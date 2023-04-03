@@ -1,31 +1,23 @@
 import { useEffect } from 'react';
 import Gleap from 'gleap';
 import { useRouter } from 'next/router';
-import { authOptions } from '../api/auth/[...nextauth]';
-import { getServerSession } from 'next-auth';
-import { GetServerSidePropsContext } from 'next';
-import { createToken } from '../../helpers/jwt';
 import {
   Call,
   MediaDevicesProvider,
   StreamVideo,
   useCreateStreamVideoClient,
-  User,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 
 import { useCreateStreamChatClient } from '../../hooks';
 import { LoadingScreen, MeetingUI } from '../../components';
 import { getDeviceSettings } from '../../components/DeviceSettingsCaptor';
+import {
+  getServerSideCredentialsProps,
+  ServerSideCredentialsProps,
+} from '../../lib/getServerSideCredentialsProps';
 
-type CallRoomProps = {
-  user: User;
-  userToken: string;
-  apiKey: string;
-  gleapApiKey?: string;
-};
-
-const CallRoom = (props: CallRoomProps) => {
+const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
   const callId = router.query['callId'] as string;
 
@@ -62,10 +54,24 @@ const CallRoom = (props: CallRoomProps) => {
           (acc, [key, observable]) => {
             if (!!observable && typeof observable.subscribe === 'function') {
               const value = getCurrentValue<unknown>(observable);
-              if (key === 'activeCall$' && value) {
-                // special handling, the Call instance isn't serializable
-                const call = value as Call;
-                acc[key] = call.state.getCurrentValue(call.state.metadata$);
+              if (key === 'activeCall$' && value && value instanceof Call) {
+                // special handling for the active call
+                const call = value;
+                const ignoredKeys = [
+                  // these two are derived from participants$.
+                  // we don't want to send the same data twice.
+                  'localParticipant$',
+                  'remoteParticipants$',
+                ];
+                Object.entries(call.state)
+                  .filter(([k]) => k.endsWith('$') && !ignoredKeys.includes(k))
+                  .forEach(([k, v]) => {
+                    if (!!v && typeof v.subscribe === 'function') {
+                      acc[`${key}.${k}`] = getCurrentValue(v);
+                    } else {
+                      acc[`${key}.${k}`] = v;
+                    }
+                  });
               } else {
                 acc[key] = value;
               }
@@ -114,44 +120,4 @@ const CallRoom = (props: CallRoomProps) => {
 
 export default CallRoom;
 
-export const getServerSideProps = async (
-  context: GetServerSidePropsContext,
-) => {
-  const session = await getServerSession(context.req, context.res, authOptions);
-  if (!session) {
-    const url = context.req.url;
-    return {
-      redirect: {
-        destination: `/auth/signin?callbackUrl=${url}`,
-      },
-    };
-  }
-
-  const apiKey = process.env.STREAM_API_KEY as string;
-  const secretKey = process.env.STREAM_SECRET_KEY as string;
-  const gleapApiKey = (process.env.GLEAP_API_KEY as string) || null;
-
-  const userIdOverride = context.query['user_id'] as string | undefined;
-  const userId = (
-    userIdOverride ||
-    session.user?.email ||
-    'unknown-user'
-  ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
-
-  // Chat does not allow for Id's to include special characters
-  // a-z, 0-9, @, _ and - are allowed
-  const streamUserId = userId.replace(/[^_\-0-9a-zA-Z@]/g, '_');
-  const userName = session.user?.name || userId;
-  return {
-    props: {
-      apiKey,
-      userToken: createToken(streamUserId, secretKey),
-      user: {
-        id: streamUserId,
-        name: userIdOverride || userName,
-        image: session.user?.image,
-      },
-      gleapApiKey,
-    } as CallRoomProps,
-  };
-};
+export const getServerSideProps = getServerSideCredentialsProps;

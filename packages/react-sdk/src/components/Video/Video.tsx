@@ -10,6 +10,7 @@ import {
   Call,
   SfuModels,
   StreamVideoParticipant,
+  VisibilityState,
 } from '@stream-io/video-client';
 import clsx from 'clsx';
 import { VideoPlaceholder } from './VideoPlaceholder';
@@ -31,6 +32,10 @@ export const Video = (
   const { sessionId, videoStream, screenShareStream, publishedTracks } =
     participant;
 
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
+    null,
+  );
+
   const stream = kind === 'video' ? videoStream : screenShareStream;
   const isPublishingTrack = publishedTracks.includes(
     kind === 'video'
@@ -38,20 +43,24 @@ export const Video = (
       : SfuModels.TrackType.SCREEN_SHARE,
   );
 
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const lastSessionId = useRef<string>(sessionId);
   const lastDimensionRef = useRef<SfuModels.VideoDimension | undefined>();
   const updateSubscription = useCallback(() => {
     let nextDimension;
-    const $el = videoRef.current;
-    if ($el && isPublishingTrack) {
+    if (
+      videoElement &&
+      isPublishingTrack &&
+      participant.viewportVisibilityState !== VisibilityState.INVISIBLE
+    ) {
       nextDimension = {
-        width: $el.clientWidth,
-        height: $el.clientHeight,
+        width: videoElement.clientWidth,
+        height: videoElement.clientHeight,
       };
     }
 
     const lastDimension = lastDimensionRef.current;
     if (
+      sessionId !== lastSessionId.current ||
       nextDimension?.width !== lastDimension?.width ||
       nextDimension?.height !== lastDimension?.height
     ) {
@@ -61,28 +70,47 @@ export const Video = (
         },
       });
       lastDimensionRef.current = nextDimension;
+      lastSessionId.current = sessionId;
     }
-  }, [call, isPublishingTrack, kind, sessionId]);
+  }, [
+    call,
+    isPublishingTrack,
+    kind,
+    sessionId,
+    videoElement,
+    participant.viewportVisibilityState,
+  ]);
 
   useEffect(() => {
     updateSubscription();
   }, [updateSubscription]);
 
+  // cleanup subscription on unmount
+  // useEffect(() => {
+  //   if (call && sessionId && kind)
+  //     return () => {
+  //       call.updateSubscriptionsPartial(kind, {
+  //         [sessionId]: {
+  //           dimension: undefined,
+  //         },
+  //       });
+  //     };
+  // }, [call, kind, sessionId]);
+
   useEffect(() => {
-    const $videoEl = videoRef.current;
-    if (!$videoEl) return;
-    const resizeObserver = new ResizeObserver(() => {
-      updateSubscription();
-    });
-    resizeObserver.observe($videoEl);
+    if (!videoElement) return;
+
+    const resizeObserver = new ResizeObserver(updateSubscription);
+    resizeObserver.observe(videoElement);
+
     return () => {
       resizeObserver.disconnect();
     };
-  }, [updateSubscription]);
+  }, [updateSubscription, videoElement]);
 
   const [isWideMode, setIsWideMode] = useState(true);
   useEffect(() => {
-    if (!stream) return;
+    if (!stream || !videoElement) return;
     const calculateVideoRatio = () => {
       const [track] = stream.getVideoTracks();
       if (!track) return;
@@ -90,14 +118,17 @@ export const Video = (
       const { width = 0, height = 0 } = track.getSettings();
       setIsWideMode(width > height);
     };
-    const $videoEl = videoRef.current;
-    $videoEl?.addEventListener('play', calculateVideoRatio);
+    videoElement.addEventListener('play', calculateVideoRatio);
     return () => {
-      $videoEl?.removeEventListener('play', calculateVideoRatio);
+      videoElement.removeEventListener('play', calculateVideoRatio);
     };
-  }, [stream]);
+  }, [stream, videoElement]);
 
-  if (!isPublishingTrack)
+  if (
+    !isPublishingTrack ||
+    (participant.viewportVisibilityState === VisibilityState.INVISIBLE &&
+      !screenShareStream)
+  )
     return (
       <VideoPlaceholder
         imageSrc={participant.image}
@@ -118,7 +149,7 @@ export const Video = (
       data-user-id={participant.userId}
       data-session-id={sessionId}
       ref={(ref) => {
-        videoRef.current = ref;
+        setVideoElement(ref);
         setVideoElementRef?.(ref);
       }}
     />

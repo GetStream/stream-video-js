@@ -1,5 +1,5 @@
 .str-video__participant-placeholder {
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 4/3;
   height: 100%;
   width: 100%;
   display: flex;
@@ -10,6 +10,7 @@
     width: 100px;
     height: 100px;
     object-fit: cover;
+    // margin-inline: 5vh;
   }
 
   .str-video__participant-placeholder--initials-fallback {

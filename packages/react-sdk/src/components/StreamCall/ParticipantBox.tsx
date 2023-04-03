@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import {
   Call,
   SfuModels,
   StreamVideoParticipant,
+  VisibilityState,
 } from '@stream-io/video-client';
 import { useIsDebugMode } from '../Debug/useIsDebugMode';
 import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
@@ -82,9 +84,37 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
 
-  const connectionQualityAsString = String(
-    SfuModels.ConnectionQuality[connectionQuality],
-  ).toLowerCase();
+  const [trackedElement, setTrackedElement] = useState<HTMLDivElement | null>(
+    null,
+  );
+
+  const connectionQualityAsString =
+    !!connectionQuality &&
+    String(SfuModels.ConnectionQuality[connectionQuality]).toLowerCase();
+
+  useEffect(() => {
+    if (!trackedElement) return;
+
+    const unobserve = call.viewportTracker.observe(trackedElement, (entry) => {
+      call.state.updateParticipant(sessionId, (p) => ({
+        ...p,
+        viewportVisibilityState: entry.isIntersecting
+          ? VisibilityState.VISIBLE
+          : VisibilityState.INVISIBLE,
+      }));
+    });
+
+    return () => {
+      unobserve();
+      // reset visibility state to UNKNOWN upon cleanup
+      // so that the layouts that are not actively observed
+      // can still function normally (runtime layout switching)
+      call.state.updateParticipant(sessionId, (p) => ({
+        ...p,
+        viewportVisibilityState: VisibilityState.UNKNOWN,
+      }));
+    };
+  }, [trackedElement, call.viewportTracker, call.state, sessionId]);
 
   const isDebugMode = useIsDebugMode();
   return (
@@ -96,6 +126,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
         !hasAudio && 'str-video__participant--no-audio',
         className,
       )}
+      ref={setTrackedElement}
     >
       <div className="str-video__video-container">
         <Audio
@@ -138,13 +169,15 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
                 }
                 message="Poor connection quality. Please check your internet connection."
               >
-                <span
-                  className={clsx(
-                    'str-video__participant__connection-quality',
-                    `str-video__participant__connection-quality--${connectionQualityAsString}`,
-                  )}
-                  title={connectionQualityAsString}
-                />
+                {connectionQualityAsString && (
+                  <span
+                    className={clsx(
+                      'str-video__participant__connection-quality',
+                      `str-video__participant__connection-quality--${connectionQualityAsString}`,
+                    )}
+                    title={connectionQualityAsString}
+                  />
+                )}
               </Notification>
             )}
             {indicatorsVisible && !hasAudio && (

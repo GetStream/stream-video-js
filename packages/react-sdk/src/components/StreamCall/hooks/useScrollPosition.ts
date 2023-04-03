@@ -49,3 +49,47 @@ export const useVerticalScrollPosition = (
 
   return scrollPosition;
 };
+
+export const useHorizontalScrollPosition = (
+  scrollElement: HTMLElement | null,
+  treshold: number = SCROLL_TRESHOLD,
+) => {
+  const [scrollPosition, setScrollPosition] = useState<
+    'start' | 'end' | 'between' | null
+  >(null);
+
+  useEffect(() => {
+    if (!scrollElement) return;
+
+    const scrollHandler = () => {
+      const element = scrollElement;
+
+      const hasHorizontalScrollbar = element.scrollWidth > element.clientWidth;
+
+      if (!hasHorizontalScrollbar) return setScrollPosition(null);
+
+      const isAtTheStart = element.scrollLeft <= treshold;
+      if (isAtTheStart) return setScrollPosition('start');
+
+      const isAtTheEnd =
+        Math.abs(
+          element.scrollWidth - element.scrollLeft - element.clientWidth,
+        ) <= treshold;
+
+      if (isAtTheEnd) return setScrollPosition('end');
+
+      setScrollPosition('between');
+    };
+
+    const resizeObserver = new ResizeObserver(scrollHandler);
+    resizeObserver.observe(scrollElement);
+
+    scrollElement.addEventListener('scroll', scrollHandler);
+    return () => {
+      scrollElement.removeEventListener('scroll', scrollHandler);
+      resizeObserver.disconnect();
+    };
+  }, [scrollElement, treshold]);
+
+  return scrollPosition;
+};

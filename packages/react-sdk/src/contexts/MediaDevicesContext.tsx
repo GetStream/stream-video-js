@@ -19,7 +19,7 @@ import {
 } from '@stream-io/video-client';
 import { map, pairwise, take } from 'rxjs';
 import { useAudioPublisher, useVideoPublisher } from '../hooks';
-import { useActiveCall, useStore } from '@stream-io/video-react-bindings';
+import { useActiveCall } from '@stream-io/video-react-bindings';
 
 type EnabledStateType = 'starting' | 'playing';
 type DisabledStateType = 'uninitialized' | 'stopped';

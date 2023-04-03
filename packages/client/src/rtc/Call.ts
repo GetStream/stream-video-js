@@ -6,27 +6,46 @@ import { TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import {
   Dispatcher,
+  SfuEventKindMap,
   SfuEventKinds,
   SfuEventListener,
-  SfuEventKindMap,
 } from './Dispatcher';
-import { CallState } from '../store';
+import { CallState, StreamVideoWriteableStateStore } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import {
-  StreamCall,
-  StreamCoordinatorClient,
-} from '../coordinator/StreamCoordinatorClient';
-import {
+  BlockUserResponse,
   CallResponse,
+  CallSettingsRequest,
+  EndCallResponse,
+  GetCallEdgeServerRequest,
+  GetCallEdgeServerResponse,
+  GetCallResponse,
+  GetOrCreateCallRequest,
+  GetOrCreateCallResponse,
+  GoLiveResponse,
   JoinCallRequest,
+  ListRecordingsResponse,
   MemberResponse,
+  MuteUsersResponse,
+  RequestPermissionRequest,
+  RequestPermissionResponse,
+  SendEventRequest,
+  SendReactionRequest,
+  SendReactionResponse,
+  StopLiveResponse,
+  UnblockUserResponse,
+  UpdateCallRequest,
+  UpdateCallResponse,
+  UpdateUserPermissionsRequest,
+  UpdateUserPermissionsResponse,
 } from '../gen/coordinator';
-import { join } from './flows/join';
-import type {
+import { join, watch } from './flows/join';
+import {
   PublishOptions,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
+  VisibilityState,
 } from './types';
 import {
   BehaviorSubject,
@@ -35,20 +54,26 @@ import {
   Subject,
   takeWhile,
 } from 'rxjs';
+import { Comparator } from '../sorting';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import {
   createStatsReporter,
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
+import { ViewportTracker } from '../ViewportTracker';
+import { CallTypes } from './CallType';
+import { StreamClient } from '../coordinator/connection/client';
+
+const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
 
 /**
  * The options to pass to {@link Call} constructor.
  */
 export type CallConstructor = {
   /**
-   * The httpClient instance to use.
+   * The streamClient instance to use.
    */
-  httpClient: StreamCoordinatorClient;
+  streamClient: StreamClient;
 
   /**
    * The Call type.
@@ -73,6 +98,16 @@ export type CallConstructor = {
    * This is useful when initializing a new "pending call" from an event.
    */
   members?: MemberResponse[];
+
+  /**
+   * The default comparator to use when sorting participants.
+   */
+  sortParticipantsBy?: Comparator<StreamVideoParticipant>;
+
+  /**
+   * The state store of the client
+   */
+  clientStore: StreamVideoWriteableStateStore;
 };
 
 /**
@@ -80,6 +115,11 @@ export type CallConstructor = {
  * It's not enough to have a `Call` instance, you will also need to call the [`join`](#join) method.
  */
 export class Call {
+  /**
+   * ViewporTracker instance
+   */
+  readonly viewportTracker = new ViewportTracker();
+
   /**
    * The type of the call.
    */
@@ -98,7 +138,7 @@ export class Call {
   /**
    * The state of this call.
    */
-  readonly state = new CallState();
+  readonly state: CallState;
 
   /**
    * The event dispatcher instance dedicated to this Call instance.
@@ -113,8 +153,9 @@ export class Call {
   private statsReporter?: StatsReporter;
   private joined$ = new BehaviorSubject<boolean>(false);
 
-  private readonly httpClient: StreamCoordinatorClient;
+  private readonly streamClient: StreamClient;
   private sfuClient?: StreamSfuClient;
+  private readonly clientStore: StreamVideoWriteableStateStore;
 
   private get preferredAudioCodec() {
     const audioSettings = this.state.getCurrentValue(this.state.metadata$)
@@ -137,22 +178,38 @@ export class Call {
     return preferredCodec;
   }
 
+  private streamClientBasePath: string;
+
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
    */
-  constructor({ type, id, httpClient, metadata, members }: CallConstructor) {
+  constructor({
+    type,
+    id,
+    streamClient,
+    metadata,
+    members,
+    sortParticipantsBy,
+    clientStore,
+  }: CallConstructor) {
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
-    this.httpClient = httpClient;
+    this.streamClient = streamClient;
+    this.clientStore = clientStore;
+    this.streamClientBasePath = `/call/${this.type}/${this.id}`;
 
+    const callTypeConfig = CallTypes.get(type);
+    this.state = new CallState(
+      sortParticipantsBy || callTypeConfig.options.sortParticipantsBy,
+    );
     this.state.metadataSubject.next(metadata);
     this.state.membersSubject.next(members || []);
 
     registerEventHandlers(this, this.state, this.dispatcher);
 
     this.trackSubscriptionsSubject
-      .pipe(debounceTime(1200))
+      .pipe(debounceTime(UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION))
       .subscribe((subscriptions) => {
         this.sfuClient?.updateSubscriptions(subscriptions);
       });
@@ -200,12 +257,15 @@ export class Call {
     this.sfuClient?.close();
     this.sfuClient = undefined;
 
-    // FIXME OL: sort this out
-    // this.stateStore.setCurrentValue(
-    //   this.stateStore.activeCallSubject,
-    //   undefined,
-    // );
+    this.clientStore.setCurrentValue(
+      this.clientStore.activeCallSubject,
+      undefined,
+    );
   };
+
+  get data() {
+    return this.state.getCurrentValue(this.state.metadata$);
+  }
 
   private waitForJoinResponse = (timeout: number = 10000) =>
     new Promise<SfuEventKindMap['joinResponse']>((resolve, reject) => {
@@ -220,7 +280,20 @@ export class Call {
     });
 
   /**
-   * Will initiate a call session with the server.
+   * Will start to watch for call related WebSocket events, but it won't join the call. If you watch a call you'll be notified about WebSocket events, but you won't be able to publish your audio and video, and you won't be able to see and hear others. You won't show up in the list of joined participants.
+   *
+   * @param data
+   */
+  watch = async (data?: JoinCallRequest) => {
+    const response = await watch(this.streamClient, this.type, this.id, data);
+    this.state.setCurrentValue(this.state.metadataSubject, response.call);
+    this.state.setCurrentValue(this.state.membersSubject, response.members);
+
+    return response;
+  };
+
+  /**
+   * Will start to watch for call related WebSocket events and initiate a call session with the server.
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
@@ -229,7 +302,13 @@ export class Call {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    const call = await join(this.httpClient, this.type, this.id, data);
+    // FIXME OL: temporary fix which restores the previous behavior.
+    // This data should come from the SDK, or integration
+    data = data || {
+      create: true,
+    };
+
+    const call = await join(this.streamClient, this.type, this.id, data);
     this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
     this.state.setCurrentValue(this.state.membersSubject, call.members);
 
@@ -305,11 +384,17 @@ export class Call {
         currentParticipants.map<StreamVideoParticipant>((participant) => ({
           ...participant,
           isLoggedInUser: participant.sessionId === sfuClient.sessionId,
+          viewportVisibilityState: VisibilityState.UNKNOWN,
           // TODO: save other participants permissions once that's provided by SFU
           ...(participant.sessionId === sfuClient.sessionId
             ? ownCapabilities
             : {}),
         })),
+      );
+
+      this.clientStore.setCurrentValue(
+        this.clientStore.activeCallSubject,
+        this,
       );
 
       sfuClient.keepAlive();
@@ -663,6 +748,15 @@ export class Call {
   };
 
   /**
+   * Sets the list of criteria to sort the participants by.
+   *
+   * @param criteria the list of criteria to sort the participants by.
+   */
+  setSortParticipantsBy: CallState['setSortParticipantsBy'] = (criteria) => {
+    return this.state.setSortParticipantsBy(criteria);
+  };
+
+  /**
    * @internal
    * @param enabledRids
    * @returns
@@ -749,15 +843,298 @@ export class Call {
     });
   };
 
-  blockUser: StreamCall['blockUser'] = (userId) =>
-    this.httpClient.call(this.type, this.id).blockUser(userId);
+  sendReaction = async (reaction: SendReactionRequest) => {
+    return this.streamClient.post<SendReactionResponse>(
+      `${this.streamClientBasePath}/reaction`,
+      reaction,
+    );
+  };
 
-  unblockUser: StreamCall['unblockUser'] = (userId) =>
-    this.httpClient.call(this.type, this.id).unblockUser(userId);
+  blockUser = async (userId: string) => {
+    return this.streamClient.post<BlockUserResponse>(
+      `${this.streamClientBasePath}/block`,
+      {
+        user_id: userId,
+      },
+    );
+  };
 
-  muteUser: StreamCall['muteUser'] = (userId, type, sessionId) =>
-    this.httpClient.call(this.type, this.id).muteUser(userId, type, sessionId);
+  unblockUser = async (userId: string) => {
+    return this.streamClient.post<UnblockUserResponse>(
+      `${this.streamClientBasePath}/unblock`,
+      {
+        user_id: userId,
+      },
+    );
+  };
 
-  muteAllUsers: StreamCall['muteAllUsers'] = (type) =>
-    this.httpClient.call(this.type, this.id).muteAllUsers(type);
+  muteUser = (
+    userId: string,
+    type: 'audio' | 'video' | 'screenshare',
+    sessionId?: string,
+  ) => {
+    return this.streamClient.post<MuteUsersResponse>(
+      `${this.streamClientBasePath}/mute_users`,
+      {
+        user_ids: [userId],
+        [type]: true,
+        // session_ids: [sessionId],
+      },
+    );
+  };
+
+  muteAllUsers = (type: 'audio' | 'video' | 'screenshare') => {
+    return this.streamClient.post<MuteUsersResponse>(
+      `${this.streamClientBasePath}/mute_users`,
+      {
+        mute_all_users: true,
+        [type]: true,
+      },
+    );
+  };
+
+  get = async () => {
+    const response = await this.streamClient.get<GetCallResponse>(
+      this.streamClientBasePath,
+    );
+    this.state.setCurrentValue(this.state.metadataSubject, response.call);
+    this.state.setCurrentValue(this.state.membersSubject, response.members);
+
+    return response;
+  };
+
+  getOrCreate = async (data?: GetOrCreateCallRequest) => {
+    const response = await this.streamClient.post<GetOrCreateCallResponse>(
+      this.streamClientBasePath,
+      data,
+    );
+    this.state.setCurrentValue(this.state.metadataSubject, response.call);
+    this.state.setCurrentValue(this.state.membersSubject, response.members);
+
+    const currentPendingCalls = this.clientStore.getCurrentValue(
+      this.clientStore.pendingCallsSubject,
+    );
+    const callAlreadyRegistered = currentPendingCalls.find(
+      (pendingCall) => pendingCall.id === this.id,
+    );
+
+    if (!callAlreadyRegistered) {
+      this.clientStore.setCurrentValue(
+        this.clientStore.pendingCallsSubject,
+        (pendingCalls) => [...pendingCalls, this],
+      );
+    }
+
+    return response;
+  };
+
+  /**
+   * Starts recording the call
+   */
+  startRecording = async () => {
+    try {
+      return await this.streamClient.post(
+        `${this.streamClientBasePath}/start_recording`,
+        {},
+      );
+    } catch (error) {
+      console.log(`Failed to start recording`, error);
+    }
+  };
+
+  /**
+   * Stops recording the call
+   */
+  stopRecording = async () => {
+    try {
+      return await this.streamClient.post(
+        `${this.streamClientBasePath}/stop_recording`,
+        {},
+      );
+    } catch (error) {
+      console.log(`Failed to stop recording`, error);
+    }
+  };
+
+  /**
+   * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
+   */
+  requestPermissions = async (data: RequestPermissionRequest) => {
+    return this.streamClient.post<RequestPermissionResponse>(
+      `${this.streamClientBasePath}/request_permission`,
+      data,
+    );
+  };
+
+  /**
+   * Allows you to grant or revoke a specific permission to a user in a call. The permissions are specific to the call experience and do not survive the call itself.
+   *
+   * When revoking a permission, this endpoint will also mute the relevant track from the user. This is similar to muting a user with the difference that the user will not be able to unmute afterwards.
+   *
+   * Supported permissions that can be granted or revoked: `send-audio`, `send-video` and `screenshare`.
+   *
+   * `call.permissions_updated` event is sent to all members of the call.
+   *
+   */
+  updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
+    return this.streamClient.post<UpdateUserPermissionsResponse>(
+      `${this.streamClientBasePath}/user_permissions`,
+      data,
+    );
+  };
+
+  goLive = async () => {
+    return this.streamClient.post<GoLiveResponse>(
+      `${this.streamClientBasePath}/go_live`,
+      {},
+    );
+  };
+
+  stopLive = async () => {
+    return this.streamClient.post<StopLiveResponse>(
+      `${this.streamClientBasePath}/stop_live`,
+      {},
+    );
+  };
+
+  update = async (
+    custom: { [key: string]: any },
+    settings?: CallSettingsRequest,
+  ) => {
+    const payload: UpdateCallRequest = {
+      custom: custom,
+      settings_override: settings,
+    };
+    return this.streamClient.patch<UpdateCallResponse>(
+      `${this.streamClientBasePath}`,
+      payload,
+    );
+  };
+
+  endCall = async () => {
+    return this.streamClient.post<EndCallResponse>(
+      `${this.streamClientBasePath}/mark_ended`,
+    );
+  };
+
+  /**
+   * Sets the `participant.isPinned` value.
+   * @param sessionId the session id of the participant
+   * @param isPinned the value to set the participant.isPinned
+   * @returns
+   */
+  setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
+    this.state.updateParticipant(sessionId, {
+      isPinned,
+    });
+  };
+
+  /**
+   * Signals other users that I have accepted the incoming call.
+   * Causes the `CallAccepted` event to be emitted to all the call members.
+   * @returns
+   */
+  accept = async () => {
+    const callToAccept = this.clientStore
+      .getCurrentValue(this.clientStore.pendingCallsSubject)
+      .find((c) => c.id === this.id && c.type === this.type);
+
+    if (callToAccept) {
+      await this.streamClient.post(`${this.streamClientBasePath}/event`, {
+        type: 'call.accepted',
+      });
+
+      // remove the accepted call from the "pending calls" list.
+      this.clientStore.setCurrentValue(
+        this.clientStore.pendingCallsSubject,
+        (pendingCalls) => pendingCalls.filter((c) => c !== callToAccept),
+      );
+
+      await this.join();
+      this.clientStore.setCurrentValue(
+        this.clientStore.activeCallSubject,
+        callToAccept,
+      );
+    }
+  };
+
+  /**
+   * Signals other users that I have rejected the incoming call.
+   * Causes the `CallRejected` event to be emitted to all the call members.
+   * @returns
+   */
+  reject = async () => {
+    this.clientStore.setCurrentValue(
+      this.clientStore.pendingCallsSubject,
+      (pendingCalls) =>
+        pendingCalls.filter((incomingCall) => incomingCall.id !== this.id),
+    );
+    await this.streamClient.post(`${this.streamClientBasePath}/event`, {
+      type: 'call.rejected',
+    });
+  };
+
+  /**
+   * Signals other users that I have cancelled my call to them before they accepted it.
+   * Causes the `CallCancelled` event to be emitted to all the call members.
+   *
+   * Cancelling a call is only possible before the local participant joined the call.
+   * @returns
+   */
+  cancel = async () => {
+    console.log('call cancelled');
+    const store = this.clientStore;
+    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const leavingActiveCall =
+      activeCall?.id === this.id && activeCall.type === this.type;
+    if (leavingActiveCall) {
+      activeCall.leave();
+    } else {
+      store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+        pendingCalls.filter((pendingCall) => pendingCall.id !== this.id),
+      );
+    }
+
+    if (activeCall) {
+      const state = activeCall.state;
+      const remoteParticipants = state.getCurrentValue(
+        state.remoteParticipants$,
+      );
+      if (!remoteParticipants.length && !leavingActiveCall) {
+        await this.streamClient.post(`${this.streamClientBasePath}/event`, {
+          type: 'call.cancelled',
+        });
+      }
+    }
+  };
+
+  /**
+   * Performs HTTP request to retrieve the list of recordings for the current call
+   * Updates the call state with provided array of CallRecording objects
+   */
+  queryRecordings = async (): Promise<ListRecordingsResponse> => {
+    // FIXME: this is a temporary setting to take call ID as session ID
+    const sessionId = this.id;
+    const response = await this.streamClient.get<ListRecordingsResponse>(
+      `${this.streamClientBasePath}/${sessionId}/recordings`,
+    );
+
+    this.state.setCurrentValue(
+      this.state.callRecordingListSubject,
+      response.recordings,
+    );
+
+    return response;
+  };
+
+  getEdgeServer = (data: GetCallEdgeServerRequest) => {
+    return this.streamClient.post<GetCallEdgeServerResponse>(
+      `${this.streamClientBasePath}/get_edge_server`,
+      data,
+    );
+  };
+
+  sendEvent = async (event: SendEventRequest) => {
+    return this.streamClient.post(`${this.streamClientBasePath}/event`, event);
+  };
 }

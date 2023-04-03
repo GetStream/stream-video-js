@@ -107,7 +107,7 @@ export const useVideoPublisher = ({
   useEffect(() => {
     if (!participant?.videoStream || !call || !isPublishingVideo) return;
 
-    const [track] = participant.videoStream?.getVideoTracks();
+    const [track] = participant.videoStream.getVideoTracks();
     const selectedVideoDeviceId = track.getSettings().deviceId;
 
     const republishDefaultDevice = watchForAddedDefaultVideoDevice().subscribe(
@@ -115,7 +115,7 @@ export const useVideoPublisher = ({
         if (
           !(
             call &&
-            participant?.videoStream &&
+            participant.videoStream &&
             selectedVideoDeviceId === 'default'
           )
         )
