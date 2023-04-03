@@ -98,8 +98,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     };
 
     // NOTE: If the participant hasn't published a video track yet,
-    // we store the dimensions and handle it when the track is published
-    if (!call || !isPublishingVideoTrack) {
+    // or the video is disabled, we store the dimensions and handle it
+    // when the track is published or the video is enabled.
+    if (!call || !isPublishingVideoTrack || disableVideo) {
       pendingVideoLayoutRef.current = dimension;
       return;
     }

@@ -62,15 +62,20 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   // of the participants that are currently visible.
   const onViewableItemsChanged = useRef<
     FlatListProps['onViewableItemsChanged']
-  >(({ changed }) => {
-    changed.forEach((viewToken) => {
+  >(({ viewableItems }) => {
+    // NOTE: viewableItems is more reliable when items are added to the list
+    // but it is not reliable when items are removed from the list.
+    // Hence we clear the HashSet and add the viewable items to it.
+    // We could have also used changed to remove the items from the HashSet one by one, yet we chose to clear the HashSet
+    viewableParticipantSessionIds.current.clear();
+
+    // viewableItems: Visible items are the ones that are currently visible on the screen
+    viewableItems.forEach((viewToken) => {
       if (viewToken.isViewable) {
         viewableParticipantSessionIds.current.add(viewToken.key);
-      } else {
-        viewableParticipantSessionIds.current.delete(viewToken.key);
       }
     });
-    if (changed.length) {
+    if (viewableItems.length) {
       forceUpdate();
     }
   }).current;
@@ -101,6 +106,12 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
       const isVideoViewable = viewableParticipantSessionIds.current.has(
         participant.sessionId,
       );
+      console.log(
+        'viewableParticipantSessionIds.current >>>>',
+        viewableParticipantSessionIds.current,
+      );
+      console.log('participant.sessionId >>>>', participant.sessionId);
+
       return (
         <ParticipantView
           participant={participant}
