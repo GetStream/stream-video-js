@@ -24,6 +24,7 @@ import {
   GetOrCreateCallResponse,
   GoLiveResponse,
   JoinCallRequest,
+  ListRecordingsResponse,
   MemberResponse,
   MuteUsersResponse,
   RequestPermissionRequest,
@@ -37,7 +38,6 @@ import {
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
-  ListRecordingsResponse,
 } from '../gen/coordinator';
 import { join, watch } from './flows/join';
 import {
@@ -301,6 +301,12 @@ export class Call {
     if (this.joined$.getValue()) {
       throw new Error(`Illegal State: Already joined.`);
     }
+
+    // FIXME OL: temporary fix which restores the previous behavior.
+    // This data should come from the SDK, or integration
+    data = data || {
+      create: true,
+    };
 
     const call = await join(this.streamClient, this.type, this.id, data);
     this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
