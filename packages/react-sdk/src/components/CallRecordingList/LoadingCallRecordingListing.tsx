@@ -7,7 +7,7 @@ export type LoadingCallRecordingListProps = {
   callRecordings: CallRecording[];
 };
 
-export const LoadingCallRecordingList = ({
+export const LoadingCallRecordingListing = ({
   callRecordings,
 }: LoadingCallRecordingListProps) => {
   return (

@@ -12,7 +12,7 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { theme } from '../theme';
-import { useDebounce } from '../utils/hooks';
+import { useDebouncedValue } from '../utils/hooks';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant | StreamVideoLocalParticipant>
@@ -55,22 +55,27 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   // NOTE: we use set instead of array or object for O(1) lookup, add and delete
   const viewableParticipantSessionIds = useRef<Set<string>>(new Set());
   const [_forceUpdateValue, forceUpdate] = useReducer((x) => x + 1, 0);
-  const forceUpdateValue = useDebounce(_forceUpdateValue, 500); // we debounce forced value to avoid multiple viewability change continuous rerenders due to callbacks that occurs simultaneously during a large list scroll or when scrolling is completed
+  const forceUpdateValue = useDebouncedValue(_forceUpdateValue, 500); // we debounce forced value to avoid multiple viewability change continuous rerenders due to callbacks that occurs simultaneously during a large list scroll or when scrolling is completed
 
   // This is the function that gets called when the user scrolls the list of participants.
   // It updates viewableParticipantSessionIds HashSet with the session IDs
   // of the participants that are currently visible.
   const onViewableItemsChanged = useRef<
     FlatListProps['onViewableItemsChanged']
-  >(({ changed }) => {
-    changed.forEach((viewToken) => {
+  >(({ viewableItems }) => {
+    // NOTE: viewableItems is more reliable when items are added to the list
+    // but it is not reliable when items are removed from the list.
+    // Hence we clear the HashSet and add the viewable items to it.
+    // We could have also used changed to remove the items from the HashSet one by one, yet we chose to clear the HashSet
+    viewableParticipantSessionIds.current.clear();
+
+    // viewableItems: Visible items are the ones that are currently visible on the screen
+    viewableItems.forEach((viewToken) => {
       if (viewToken.isViewable) {
         viewableParticipantSessionIds.current.add(viewToken.key);
-      } else {
-        viewableParticipantSessionIds.current.delete(viewToken.key);
       }
     });
-    if (changed.length) {
+    if (viewableItems.length) {
       forceUpdate();
     }
   }).current;
@@ -86,7 +91,9 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   }).current;
 
   const itemContainerStyle = useMemo<StyleProp<ViewStyle>>(() => {
-    const size = containerWidth / numColumns;
+    // we calculate the size of the participant view based on the containerWidth (the phone's screen width),
+    // number of columns and the margin between the views
+    const size = containerWidth / numColumns - theme.margin.sm * 2;
     const style = { width: size, height: size };
     if (horizontal) {
       return [styles.participantWrapperHorizontal, style];
@@ -113,7 +120,6 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
 
   return (
     <FlatList
-      style={styles.container}
       onLayout={onLayout}
       key={!horizontal ? numColumns : undefined} // setting numColumns as key is a strict requirement of react-native to support changing numColumns on the fly
       data={participants}
@@ -130,9 +136,6 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   participantWrapperVertical: {
     margin: theme.margin.sm,
     overflow: 'hidden',

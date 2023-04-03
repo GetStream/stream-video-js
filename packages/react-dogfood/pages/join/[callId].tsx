@@ -54,10 +54,24 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
           (acc, [key, observable]) => {
             if (!!observable && typeof observable.subscribe === 'function') {
               const value = getCurrentValue<unknown>(observable);
-              if (key === 'activeCall$' && value) {
-                // special handling, the Call instance isn't serializable
-                const call = value as Call;
-                acc[key] = call.state.getCurrentValue(call.state.metadata$);
+              if (key === 'activeCall$' && value && value instanceof Call) {
+                // special handling for the active call
+                const call = value;
+                const ignoredKeys = [
+                  // these two are derived from participants$.
+                  // we don't want to send the same data twice.
+                  'localParticipant$',
+                  'remoteParticipants$',
+                ];
+                Object.entries(call.state)
+                  .filter(([k]) => k.endsWith('$') && !ignoredKeys.includes(k))
+                  .forEach(([k, v]) => {
+                    if (!!v && typeof v.subscribe === 'function') {
+                      acc[`${key}.${k}`] = getCurrentValue(v);
+                    } else {
+                      acc[`${key}.${k}`] = v;
+                    }
+                  });
               } else {
                 acc[key] = value;
               }

@@ -46,8 +46,8 @@ interface ParticipantViewProps {
 
 /**
  * Renders either the participants' video track or screenShare track
- * and additional info, by an absence of a video track only an
- * avatar and audio track will be rendered.
+ * and additional info, by an absence of a video track or when disableVideo is truthy,
+ * only an avatar and audio track will be rendered.
  *
  * | When Video is Enabled | When Video is Disabled |
  * | :--- | :----: |
@@ -69,17 +69,24 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   );
 
   useEffect(() => {
-    if (pendingVideoLayoutRef.current && call && isPublishingVideoTrack) {
-      call.updateSubscriptionsPartial(kind, {
-        [participant.sessionId]: {
-          dimension: pendingVideoLayoutRef.current,
-        },
-      });
+    // NOTE: We only want to update the subscription if the pendingVideoLayoutRef is set or if the video is disabled
+    const updateIsNeeded = pendingVideoLayoutRef.current || disableVideo;
 
-      subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
-      pendingVideoLayoutRef.current = undefined;
-    }
-  }, [call, isPublishingVideoTrack, kind, participant.sessionId]);
+    if (!updateIsNeeded || !call || !isPublishingVideoTrack) return;
+
+    // NOTE: When the participant's video is disabled, we want to subscribe to audio only.
+    // We do this by setting the dimension to width and height 0.
+    const dimension = disableVideo
+      ? { width: 0, height: 0 }
+      : pendingVideoLayoutRef.current;
+
+    call.updateSubscriptionsPartial(kind, {
+      [participant.sessionId]: { dimension },
+    });
+
+    subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
+    pendingVideoLayoutRef.current = undefined;
+  }, [call, isPublishingVideoTrack, kind, participant.sessionId, disableVideo]);
 
   useEffect(() => {
     return () => {
@@ -95,8 +102,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     };
 
     // NOTE: If the participant hasn't published a video track yet,
-    // we store the dimensions and handle it when the track is published
-    if (!call || !isPublishingVideoTrack) {
+    // or the video is disabled, we store the dimensions and handle it
+    // when the track is published or the video is enabled.
+    if (!call || !isPublishingVideoTrack || disableVideo) {
       pendingVideoLayoutRef.current = dimension;
       return;
     }

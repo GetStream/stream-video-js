@@ -81,7 +81,7 @@ export const MeetingUI = ({
     if (!client) return;
     setShow('loading');
     try {
-      await client.joinCall(callId, callType);
+      await client.call(callType, callId).join();
       setShow('active-call');
     } catch (e) {
       console.error(e);

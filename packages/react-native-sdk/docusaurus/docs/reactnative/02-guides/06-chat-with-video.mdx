@@ -215,14 +215,14 @@ export default () => {
 	const joinCallHandler = useCallback(() => {
 	  if (videoClient) {
 	    try {
-	      videoClient?.getOrCreateCall(callID, "default", {
+	      videoClient?.call("default", callID).getOrCreate({
 	          ring: true,
 	          members: members.map((memberId) => {
 	            return {
 	              user_id: memberId,
 	            };
 	          }),
-	        })
+	        });
 	    } catch (error) {
 	      console.log('Failed to createCall', callID, 'default', error);
 	    }

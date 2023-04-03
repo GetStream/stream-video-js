@@ -2,12 +2,12 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { LocalVideoView } from './LocalVideoView';
 import { useRemoteParticipants } from '@stream-io/video-react-bindings';
-import { useDebounce } from '../utils/hooks';
+import { useDebouncedValue } from '../utils/hooks';
 import { CallParticipantsList } from './CallParticipantsList';
 
 export const CallParticipantsView = () => {
   const _remoteParticipants = useRemoteParticipants();
-  const remoteParticipants = useDebounce(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
+  const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
 
   const isUserAloneInCall = remoteParticipants?.length === 0;
 

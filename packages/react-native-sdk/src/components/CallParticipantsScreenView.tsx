@@ -3,13 +3,13 @@ import { useParticipants } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { ParticipantView } from './ParticipantView';
 import { theme } from '../theme';
-import { useDebounce } from '../utils/hooks';
+import { useDebouncedValue } from '../utils/hooks';
 import { CallParticipantsList } from './CallParticipantsList';
 import { useMemo } from 'react';
 
 export const CallParticipantsScreenView = () => {
   const _allParticipants = useParticipants();
-  const allParticipants = useDebounce(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
+  const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const firstScreenSharingParticipant = useMemo(
     () =>
       allParticipants.find((p) =>
@@ -39,13 +39,11 @@ export const CallParticipantsScreenView = () => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   screenShareContainer: {
-    flex: 3,
+    flex: 1,
     paddingTop: theme.padding.md,
     paddingHorizontal: theme.padding.md,
   },
   participantVideoContainer: {
-    paddingTop: theme.padding.lg,
-    paddingBottom: theme.padding.md,
-    flex: 1,
+    paddingVertical: theme.padding.sm,
   },
 });

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import {
   Call,
@@ -88,9 +88,9 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
     null,
   );
 
-  const connectionQualityAsString = String(
-    SfuModels.ConnectionQuality[connectionQuality],
-  ).toLowerCase();
+  const connectionQualityAsString =
+    !!connectionQuality &&
+    String(SfuModels.ConnectionQuality[connectionQuality]).toLowerCase();
 
   useEffect(() => {
     if (!trackedElement) return;
@@ -169,13 +169,15 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
                 }
                 message="Poor connection quality. Please check your internet connection."
               >
-                <span
-                  className={clsx(
-                    'str-video__participant__connection-quality',
-                    `str-video__participant__connection-quality--${connectionQualityAsString}`,
-                  )}
-                  title={connectionQualityAsString}
-                />
+                {connectionQualityAsString && (
+                  <span
+                    className={clsx(
+                      'str-video__participant__connection-quality',
+                      `str-video__participant__connection-quality--${connectionQualityAsString}`,
+                    )}
+                    title={connectionQualityAsString}
+                  />
+                )}
               </Notification>
             )}
             {indicatorsVisible && !hasAudio && (

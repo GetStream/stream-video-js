@@ -35,7 +35,8 @@ const createCallSlackHookAPI = async (
   ).toString();
 
   try {
-    const call = await client.getOrCreateCall(meetingId(), 'default', {
+    const call = client.call('default', meetingId());
+    await call.getOrCreate({
       ring: false,
     });
     if (call) {
