@@ -39,8 +39,9 @@ export const SpeakerLayout = () => {
     return () => cleanup();
   }, [scrollWrapper, call.viewportTracker]);
 
+  const isOneToOneCall = otherParticipants.length === 1;
   useEffect(() => {
-    if (otherParticipants.length === 1) {
+    if (isOneToOneCall) {
       // always show the remote participant in the spotlight.
       call.setSortParticipantsBy((a, b) => {
         if (a.isLoggedInUser) return 1;
@@ -51,7 +52,7 @@ export const SpeakerLayout = () => {
       // otherwise, use the default sorting preset.
       call.setSortParticipantsBy(speakerLayoutSortPreset);
     }
-  }, [call, otherParticipants.length]);
+  }, [call, isOneToOneCall]);
 
   useEffect(() => {
     return () => {
