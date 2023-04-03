@@ -21,14 +21,14 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
     if (outgoingCall && videoClient.callConfig.joinCallInstantly) {
       videoClient
         .call(outgoingCall.type, outgoingCall.id)
-        .join()
+        .join({ create: true })
         .catch((e) => {
           console.error('Error joining call', e);
         });
     } else if (acceptedCall && !videoClient.callConfig.joinCallInstantly) {
       videoClient
         .call(outgoingCall.type, outgoingCall.id)
-        .join()
+        .join({ create: true })
         .catch((e) => {
           console.error('Error joining call', e);
         });
