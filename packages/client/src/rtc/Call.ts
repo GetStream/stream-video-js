@@ -920,6 +920,7 @@ export class Call {
     );
 
     if (!callAlreadyRegistered) {
+      this.scheduleCancel();
       this.clientStore.setCurrentValue(
         this.clientStore.pendingCallsSubject,
         (pendingCalls) => [...pendingCalls, this],
