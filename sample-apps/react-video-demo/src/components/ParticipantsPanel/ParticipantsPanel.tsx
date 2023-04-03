@@ -2,10 +2,16 @@ import { FC, useState } from 'react';
 import classnames from 'classnames';
 
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
-import { useConnectedUser } from '@stream-io/video-react-bindings';
+import {
+  useConnectedUser,
+  useActiveCall,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
 
 import Panel from '../Panel';
 import { MicMuted, Mic, Video, VideoOff, Search } from '../Icons';
+
+import { Restricted } from '../Moderation/Restricted';
 
 import styles from './ParticipantsPanel.module.css';
 
@@ -21,9 +27,29 @@ export const ParticipantsPanel: FC<Props> = ({
   participants,
 }) => {
   const [value, setValue]: any = useState(undefined);
+
+  const call = useActiveCall();
   const connectedUser = useConnectedUser();
+  const localParticipant = useLocalParticipant();
 
   const rootClassname = classnames(styles.root, className);
+
+  const handleBlockUser = (participantId: string) => {
+    call?.blockUser(participantId);
+  };
+
+  const handleMuteUser = (
+    participantId: string,
+    participantSessionId: string,
+  ) => {
+    call?.muteUser(participantId, 'audio', participantSessionId);
+  };
+  const handleDisableVideo = (
+    participantId: string,
+    participantSessionId: string,
+  ) => {
+    call?.muteUser(participantId, 'video', participantSessionId);
+  };
 
   return (
     <Panel
@@ -48,49 +74,83 @@ export const ParticipantsPanel: FC<Props> = ({
         <Search className={styles.searchIcon} />
       </div>
       <ul>
-        {participants?.map((participant: any, index: number) => {
-          const particpantName = String(participant?.user?.name).toLowerCase();
-          const searchValue = value?.toLowerCase();
+        {participants?.map(
+          (participant: StreamVideoParticipant, index: number) => {
+            const particpantName = String(participant?.name).toLowerCase();
+            const searchValue = value?.toLowerCase();
 
-          const isLocalParticipant =
-            participant?.userId === connectedUser?.id
-              ? import.meta.env.VITE_VIDEO_USER_ID
-              : '';
+            const isLocalParticipant =
+              participant?.userId === connectedUser?.id
+                ? import.meta.env.VITE_VIDEO_USER_ID
+                : '';
 
-          const isAudioOn = participant.publishedTracks.includes(
-            SfuModels.TrackType.AUDIO,
-          );
-          const isVideoOn = participant.publishedTracks.includes(
-            SfuModels.TrackType.VIDEO,
-          );
-
-          if (
-            value === undefined ||
-            value === null ||
-            particpantName.startsWith(searchValue)
-          ) {
-            return (
-              <li className={styles.participant} key={`participant-${index}`}>
-                {isLocalParticipant ? connectedUser?.name : participant?.name}
-                {!isLocalParticipant ? (
-                  <div className={styles.media}>
-                    {isAudioOn ? (
-                      <Mic className={styles.mic} />
-                    ) : (
-                      <MicMuted className={styles.micMuted} />
-                    )}
-                    {isVideoOn ? (
-                      <Video className={styles.video} />
-                    ) : (
-                      <VideoOff className={styles.videoOff} />
-                    )}
-                  </div>
-                ) : null}
-              </li>
+            const isAudioOn = participant.publishedTracks.includes(
+              SfuModels.TrackType.AUDIO,
             );
-          }
-          return null;
-        })}
+            const isVideoOn = participant.publishedTracks.includes(
+              SfuModels.TrackType.VIDEO,
+            );
+
+            if (
+              value === undefined ||
+              value === null ||
+              particpantName.startsWith(searchValue)
+            ) {
+              return (
+                <li className={styles.participant} key={`participant-${index}`}>
+                  {isLocalParticipant ? connectedUser?.name : participant?.name}
+                  {!isLocalParticipant ? (
+                    <div className={styles.media}>
+                      <Restricted
+                        availableGrants={
+                          localParticipant?.ownCapabilities ?? []
+                        }
+                        requiredGrants={['mute-users']}
+                      >
+                        {isAudioOn ? (
+                          <div
+                            onClick={() =>
+                              handleMuteUser(
+                                participant.userId,
+                                participant.sessionId,
+                              )
+                            }
+                          >
+                            <Mic className={styles.mic} />
+                          </div>
+                        ) : (
+                          <MicMuted className={styles.micMuted} />
+                        )}
+                      </Restricted>
+                      <Restricted
+                        availableGrants={
+                          localParticipant?.ownCapabilities ?? []
+                        }
+                        requiredGrants={['mute-users']}
+                      >
+                        {isVideoOn ? (
+                          <div
+                            onClick={() =>
+                              handleDisableVideo(
+                                participant.userId,
+                                participant.sessionId,
+                              )
+                            }
+                          >
+                            <Video className={styles.video} />
+                          </div>
+                        ) : (
+                          <VideoOff className={styles.videoOff} />
+                        )}
+                      </Restricted>
+                    </div>
+                  ) : null}
+                </li>
+              );
+            }
+            return null;
+          },
+        )}
       </ul>
     </Panel>
   );

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { v1 as uuid } from 'uuid';
 import { useIsCallRecordingInProgress } from '@stream-io/video-react-bindings';
 
-import { Chat } from '../components/Icons';
+import { Record } from '../components/Icons';
 
 import { useNotificationContext } from '../contexts/NotificationsContext';
 
@@ -18,7 +18,7 @@ export const useScreenRecordingNotification = () => {
       addNotification({
         id: uuid(),
         message: 'Recording in progress',
-        icon: <Chat />,
+        icon: <Record />,
       });
       setRecording(true);
     }

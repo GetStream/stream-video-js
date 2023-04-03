@@ -7,7 +7,7 @@ import {
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
 
-import { Chat } from '../components/Icons';
+import { ScreenShare } from '../components/Icons';
 
 import { useNotificationContext } from '../contexts/NotificationsContext';
 
@@ -56,7 +56,7 @@ export const useScreenShareNotification = () => {
       addNotification({
         id: uuid(),
         message,
-        icon: <Chat />,
+        icon: <ScreenShare />,
       });
     }
 

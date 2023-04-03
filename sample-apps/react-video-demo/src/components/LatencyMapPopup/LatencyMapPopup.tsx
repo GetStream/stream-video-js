@@ -1,5 +1,7 @@
 import { FC } from 'react';
 
+import styles from './LatencyMapPopup.module.css';
+
 export type Props = {
   abbriviation: string;
   city: string;
@@ -11,18 +13,19 @@ export const LatencyMapPopup: FC<Props> = ({
   city,
   countryCode,
 }) => (
-  <div className="relative">
-    <div className="bg-video-white rounded p-3">
-      <h3 className="font-bold flex items-center">
-        <span className="bg-green block rounded-full w-2 h-2 mr-2"></span>
+  <div className={styles.root}>
+    <div className={styles.container}>
+      <h3 className={styles.header}>
+        <div className={styles.latencyIndicator}></div>
+        <span className={styles.abbriviation}></span>
         {abbriviation}
       </h3>
-      <p className="font-inter text-sm text-map-popup-description">
+      <p className={styles.description}>
         {city}, {countryCode}
       </p>
     </div>
-    <div className="w-8 overflow-hidden inline-block absolute top-18  ml-2">
-      <div className="h-3 w-3 bg-video-white -rotate-45 transform origin-top-left"></div>
+    <div className={styles.indicator}>
+      <div className={styles.indicatorInner}></div>
     </div>
   </div>
 );

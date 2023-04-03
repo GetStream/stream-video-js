@@ -1,8 +1,23 @@
 import { EdgeResponse } from '@stream-io/video-client';
 import { FeatureCollection, Geometry, Feature } from 'geojson';
 
+const continents: any = {
+  AF: 'Africa',
+  NA: 'North America',
+  OC: 'Oceania',
+  AN: 'Antarctica',
+  AS: 'Asia',
+  EU: 'Europe',
+  SA: 'South America',
+};
+
+export interface EdgeResponseExtended extends EdgeResponse {
+  country_iso_code: string;
+  continent_code: string;
+}
+
 export const createGeoJsonFeatures = (
-  edges: EdgeResponse[],
+  edges: EdgeResponseExtended[],
 ): FeatureCollection<Geometry> => {
   const features = edges.map((edge, index): Feature => {
     return {
@@ -15,7 +30,8 @@ export const createGeoJsonFeatures = (
       properties: {
         abbriviation: edge.id,
         city: undefined,
-        countryCode: undefined,
+        countryCode: edge.country_iso_code,
+        continent: continents[edge.continent_code],
         ...edge,
       },
     };

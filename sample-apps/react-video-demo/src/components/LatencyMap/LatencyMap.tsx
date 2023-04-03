@@ -68,7 +68,7 @@ export const LatencyMap: FC<Props> = ({
               const root = createRoot(popupNode!);
               root.render(
                 <LatencyMapPopup
-                  city={point.properties.city}
+                  city={point.properties.continent}
                   countryCode={point.properties.countryCode}
                   abbriviation={point.properties.abbriviation}
                 />,
@@ -102,7 +102,7 @@ export const LatencyMap: FC<Props> = ({
           }
 
           if (popUpRef && popUpRef.current) {
-            popUpRef.current.remove();
+            // /popUpRef.current.remove();
           }
         }
       });

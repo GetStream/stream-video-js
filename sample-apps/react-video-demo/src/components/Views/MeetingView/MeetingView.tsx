@@ -74,8 +74,6 @@ export const Meeting: FC<Props & Meeting> = ({
   const { next, current, total, step, setSteps, active, toggleTour } =
     useTourContext();
 
-  setSteps(tour);
-
   const client = useStreamVideoClient();
   const participants = useParticipants();
   const statsReport = useCurrentCallStatsReport();
@@ -92,6 +90,10 @@ export const Meeting: FC<Props & Meeting> = ({
   }, [remoteScreenShare, localScreenShare]);
 
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
+
+  useEffect(() => {
+    setSteps(tour);
+  }, []);
 
   useEffect(() => {
     if (!chatClient || !channelWatched) return;
@@ -173,6 +175,8 @@ export const Meeting: FC<Props & Meeting> = ({
   const contentClasses = classnames(styles.content, {
     [styles.activeTour]: active,
   });
+
+  console.log('hoi');
 
   return (
     <MeetingLayout
@@ -264,7 +268,7 @@ export const Meeting: FC<Props & Meeting> = ({
         />
       }
     >
-      <div className={contentClasses}>
+      <div className={''}>
         <div className={styles.stage}>
           <Notifications className={styles.notifications} />
           {isScreenSharing ? (
@@ -273,7 +277,7 @@ export const Meeting: FC<Props & Meeting> = ({
             <MeetingParticipants call={call} />
           )}
         </div>
-        {active ? (
+        {true ? (
           <div className={styles.tour}>
             <TourPanel
               className={styles.tourPanel}

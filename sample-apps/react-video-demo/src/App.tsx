@@ -17,7 +17,10 @@ import { TourProvider, useTourContext } from './contexts/TourContext';
 import { ModalProvider } from './contexts/ModalContext';
 import { NotificationProvider } from './contexts/NotificationsContext';
 
-import { createGeoJsonFeatures } from './utils/useCreateGeoJsonFeatures';
+import {
+  createGeoJsonFeatures,
+  EdgeResponseExtended,
+} from './utils/useCreateGeoJsonFeatures';
 import { useCreateStreamChatClient } from './hooks/useChatClient';
 
 import { tour } from '../data/tour';
@@ -84,7 +87,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
 
   useEffect(() => {
     async function fetchEdges() {
-      const response = await client.coordinatorClient.edges();
+      const response: any = await client.coordinatorClient.edges();
       const fastedEdges = response.edges.sort(
         (a: any, b: any) => a.latency - b.latency,
       );
@@ -135,14 +138,15 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
           {isCallActive && callId && client ? (
             <NotificationProvider>
               <TourProvider>
-                <MeetingView
+                <div>hoiiii</div>
+                {/* <MeetingView
                   logo={logo}
                   callId={callId}
                   callType={callType}
                   isCallActive={isCallActive}
                   setCallHasEnded={setCallHasEnded}
                   chatClient={chatClient}
-                />
+                /> */}
               </TourProvider>
             </NotificationProvider>
           ) : (

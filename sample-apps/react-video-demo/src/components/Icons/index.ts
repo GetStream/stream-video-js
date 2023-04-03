@@ -21,6 +21,7 @@ export { Options } from './Options';
 export { Pause } from './Pause';
 export { People } from './People';
 export { Record } from './Record';
+export { ScreenShare } from './ScreenShare';
 export { Search } from './Search';
 export { Settings } from './Settings';
 export { Security } from './Security';

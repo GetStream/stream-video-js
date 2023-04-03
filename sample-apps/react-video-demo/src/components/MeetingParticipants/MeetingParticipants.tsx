@@ -19,7 +19,7 @@ export type Props = {
 
 export const MeetingParticipants: FC<Props> = ({
   call,
-  maxParticipantsOnScreen = 1,
+  maxParticipantsOnScreen = 8,
 }) => {
   const localParticipant = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
@@ -38,7 +38,6 @@ export const MeetingParticipants: FC<Props> = ({
           participant={localParticipant}
           call={call}
           sinkId={localParticipant.audioOutputDeviceId}
-          isMuted
         />
       )}
 

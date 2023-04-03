@@ -13,7 +13,6 @@
 
 .callContainer {
   @apply border-4 border-video-stream-500 relative mt-5 mb-5 rounded-container w-full;
-  min-height: 264px;
 }
 
 .disabledPreview {
