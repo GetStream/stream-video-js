@@ -48,7 +48,7 @@ const StartNewCallButton = () => {
     setLoading(true);
     try {
       await videoClient
-        .call(String(Math.round(Math.random() * 100000000)), 'default')
+        .call('default', String(Math.round(Math.random() * 100000000)))
         .join();
     } catch (e) {
       console.error(e);
