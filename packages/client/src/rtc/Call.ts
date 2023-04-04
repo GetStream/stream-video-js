@@ -24,6 +24,7 @@ import {
   GetOrCreateCallResponse,
   GoLiveResponse,
   JoinCallRequest,
+  JoinCallResponse,
   ListRecordingsResponse,
   MemberResponse,
   MuteUsersResponse,
@@ -34,6 +35,8 @@ import {
   SendReactionResponse,
   StopLiveResponse,
   UnblockUserResponse,
+  UpdateCallMemberRequest,
+  UpdateCallMemberResponse,
   UpdateCallRequest,
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
@@ -404,6 +407,15 @@ export class Call {
     });
 
     return joinResponsePromise;
+  };
+
+  updateCallMembers = async (
+    data: UpdateCallMemberRequest,
+  ): Promise<UpdateCallMemberResponse> => {
+    return await httpClient.post<UpdateCallMemberRequest>(
+      `${this.streamClientBasePath}/members`,
+      data,
+    );
   };
 
   /**
