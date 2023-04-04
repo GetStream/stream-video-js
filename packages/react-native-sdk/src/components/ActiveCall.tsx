@@ -13,6 +13,7 @@ import { useCallCycleContext, useStreamVideoStoreValue } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsScreenView } from './CallParticipantsScreenView';
 import { theme } from '../theme';
+import { useIncallManagerProximityEffect } from '../hooks';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -52,6 +53,8 @@ const InnerActiveCall = (props: ActiveCallProps) => {
   const hasScreenShare = useHasOngoingScreenShare();
   const { callCycleHandlers } = useCallCycleContext();
   const { onHangupCall } = callCycleHandlers;
+
+  useIncallManagerProximityEffect();
 
   useEffect(() => {
     if (audioDevice && !isAudioMuted) {
