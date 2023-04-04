@@ -1,27 +1,45 @@
-import { PropsWithChildren, useMemo } from 'react';
+import { PropsWithChildren, useEffect } from 'react';
 import {
   CancelCallButton,
+  combineComparators,
+  Comparator,
+  conditional,
+  dominantSpeaker,
   ParticipantBox,
+  pinned,
+  publishingAudio,
+  publishingVideo,
+  reactionType,
   ScreenShareButton,
+  screenSharing,
   SfuModels,
+  speaking,
   SpeakingWhileMutedNotification,
   StreamVideoParticipant,
   ToggleAudioPublishingButton,
   ToggleCameraPublishingButton,
   useCall,
-  useDominantSpeaker,
   useParticipants,
+  VisibilityState,
 } from '@stream-io/video-react-sdk';
 
 import './SpeakerView.scss';
 
 export const SpeakerView = () => {
-  const call = useCall()!;
-  const [participantInSpotlight, ...otherParticipants] =
-    useSortedParticipants();
+  const call = useCall();
+  const [participantInSpotlight, ...otherParticipants] = useParticipants();
+
+  // determine whether the call is a 1:1 call
+  const isOneToOneCall = otherParticipants.length === 1;
+  useEffect(() => {
+    if (!call) return;
+    const customSortingPreset = getCustomSortingPreset(isOneToOneCall);
+    call.setSortParticipantsBy(customSortingPreset);
+  }, [call, isOneToOneCall]);
+
   return (
     <div className="speaker-view">
-      {otherParticipants.length > 0 && (
+      {call && otherParticipants.length > 0 && (
         <div className="participants-bar">
           {otherParticipants.map((participant) => (
             <div className="participant-tile" key={participant.sessionId}>
@@ -32,7 +50,7 @@ export const SpeakerView = () => {
       )}
 
       <div className="spotlight">
-        {participantInSpotlight && (
+        {call && participantInSpotlight && (
           <ParticipantBox
             participant={participantInSpotlight}
             call={call}
@@ -44,17 +62,19 @@ export const SpeakerView = () => {
       </div>
 
       <CustomCallControls>
-        <ScreenShareButton call={call} />
+        {call && <ScreenShareButton call={call} />}
         <SpeakingWhileMutedNotification>
           <ToggleAudioPublishingButton />
         </SpeakingWhileMutedNotification>
         <ToggleCameraPublishingButton />
-        <CancelCallButton
-          call={call}
-          onLeave={() => {
-            console.log('onLeave callback called');
-          }}
-        />
+        {call && (
+          <CancelCallButton
+            call={call}
+            onLeave={() => {
+              console.log('onLeave callback called');
+            }}
+          />
+        )}
       </CustomCallControls>
     </div>
   );
@@ -64,71 +84,61 @@ const CustomCallControls = ({ children }: PropsWithChildren<{}>) => {
   return <div className="str-video__call-controls">{children}</div>;
 };
 
-/**
- * Sorts participants so that:
- * - the presenter is first,
- * - the dominant speaker is next,
- * - then video, then audio, then the rest.
- */
-export const useSortedParticipants = () => {
-  const participantInSpotlight = useSpotlightParticipant();
-
-  // we filter out the participant in spotlight if they are not sharing screen
-  const allParticipants = useParticipants();
-  const participants = allParticipants.filter((p) => {
-    return (
-      hasScreenShare(participantInSpotlight) || p !== participantInSpotlight
-    );
-  });
-
-  const presenters = participants.filter((p) => hasScreenShare(p));
-  const videoAndAudioParticipants = participants.filter(
-    (p) => hasVideo(p) && hasAudio(p),
-  );
-  const videoOnlyParticipants = participants.filter(
-    (p) => hasVideo(p) && !hasAudio(p),
-  );
-  const audioOnlyParticipants = participants.filter(
-    (p) => !hasVideo(p) && hasAudio(p),
-  );
-  const muteParticipants = participants.filter(
-    (p) => !hasVideo(p) && !hasAudio(p),
-  );
-
-  return [
-    participantInSpotlight,
-    ...presenters,
-    ...videoAndAudioParticipants,
-    ...videoOnlyParticipants,
-    ...audioOnlyParticipants,
-    ...muteParticipants,
-  ];
-};
-
-/**
- * Returns the participant to be shown in the spotlight.
- * Usually this is the dominant speaker, but if there is no dominant speaker,
- * then it's the first participant with screen share or video and audio.
- */
-export const useSpotlightParticipant = () => {
-  const participants = useParticipants();
-  const dominantSpeaker = useDominantSpeaker();
-  return useMemo(() => {
-    return (
-      dominantSpeaker ||
-      participants.find(
-        (p) => hasScreenShare(p) || (hasVideo(p) && hasAudio(p)),
-      ) ||
-      participants[0]
-    );
-  }, [participants, dominantSpeaker]);
-};
-
 const hasScreenShare = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 
-const hasVideo = (p: StreamVideoParticipant) =>
-  p.publishedTracks.includes(SfuModels.TrackType.VIDEO);
+/**
+ * Creates a custom sorting preset for the participants list.
+ *
+ * This function supports two modes:
+ *
+ * 1) 1:1 calls, where we want to always show the other participant in the spotlight,
+ *  and not show them in the participants bar.
+ *
+ * 2) group calls, where we want to show the participants in the participants bar
+ *  in a custom order:
+ *  - screen sharing participants
+ *  - dominant speaker
+ *  - pinned participants
+ *  - participants who are speaking
+ *  - participants who have raised their hand
+ *  - participants who are publishing video and audio
+ *  - participants who are publishing video
+ *  - participants who are publishing audio
+ *  - other participants
+ *
+ * @param isOneToOneCall whether the call is a 1:1 call.
+ */
+const getCustomSortingPreset = (
+  isOneToOneCall: boolean = false,
+): Comparator<StreamVideoParticipant> => {
+  // 1:1 calls are a special case, where we want to always show the other
+  // participant in the spotlight, and not show them in the participants bar.
+  if (isOneToOneCall) {
+    return (a: StreamVideoParticipant, b: StreamVideoParticipant) => {
+      if (a.isLoggedInUser) return 1;
+      if (b.isLoggedInUser) return -1;
+      return 0;
+    };
+  }
 
-const hasAudio = (p: StreamVideoParticipant) =>
-  p.publishedTracks.includes(SfuModels.TrackType.AUDIO);
+  // a comparator decorator which applies the decorated comparator only if the
+  // participant is invisible.
+  // This ensures stable sorting when all participants are visible.
+  const ifInvisibleBy = conditional(
+    (a: StreamVideoParticipant, b: StreamVideoParticipant) =>
+      a.viewportVisibilityState === VisibilityState.INVISIBLE ||
+      b.viewportVisibilityState === VisibilityState.INVISIBLE,
+  );
+
+  // the custom sorting preset
+  return combineComparators(
+    screenSharing,
+    dominantSpeaker,
+    pinned,
+    ifInvisibleBy(speaking),
+    ifInvisibleBy(reactionType('raised-hand')),
+    ifInvisibleBy(publishingVideo),
+    ifInvisibleBy(publishingAudio),
+  );
+};

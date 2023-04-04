@@ -89,7 +89,12 @@ const InnerActiveCall = (props: ActiveCallProps) => {
       <CallParticipantsBadge
         onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
       />
-      <View style={[styles.callParticipantsWrapper, { paddingBottom: height }]}>
+      <View
+        style={[
+          styles.callParticipantsWrapper,
+          { paddingBottom: height + theme.padding.lg },
+        ]}
+      >
         {hasScreenShare ? (
           <CallParticipantsScreenView />
         ) : (
