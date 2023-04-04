@@ -412,7 +412,7 @@ export class Call {
   updateCallMembers = async (
     data: UpdateCallMemberRequest,
   ): Promise<UpdateCallMemberResponse> => {
-    return await httpClient.post<UpdateCallMemberRequest>(
+    return await this.streamClient.post<UpdateCallMemberResponse>(
       `${this.streamClientBasePath}/members`,
       data,
     );
