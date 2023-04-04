@@ -6,6 +6,7 @@ import { TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import {
   Dispatcher,
+  isSfuEvent,
   SfuEventKindMap,
   SfuEventKinds,
   SfuEventListener,
@@ -41,6 +42,7 @@ import {
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
+  WSEvent,
 } from '../gen/coordinator';
 import { join, watch } from './flows/join';
 import {
@@ -66,6 +68,12 @@ import {
 import { ViewportTracker } from '../ViewportTracker';
 import { CallTypes } from './CallType';
 import { StreamClient } from '../coordinator/connection/client';
+import {
+  CallEvent,
+  CallEventHandler,
+  CallEventTypes,
+  EventHandler,
+} from '../coordinator/connection/types';
 
 const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
 
@@ -223,11 +231,26 @@ export class Call {
    * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the [reactive state store](./StreamVideoClient.md/#readonlystatestore).
    * @param eventName
    * @param fn
-   * @returns
+   * @returns a function which can be called to unsubscribe from the given event(s)
    */
-  on = (eventName: SfuEventKinds, fn: SfuEventListener) => {
-    return this.dispatcher.on(eventName, fn);
-  };
+  on(eventName: SfuEventKinds, fn: SfuEventListener): () => void;
+  on(eventName: CallEventTypes, fn: CallEventHandler): () => void;
+  on(
+    eventName: SfuEventKinds | CallEventTypes,
+    fn: SfuEventListener | CallEventHandler,
+  ) {
+    if (isSfuEvent(eventName)) {
+      return this.dispatcher.on(eventName, fn as SfuEventListener);
+    } else {
+      const eventHandler: CallEventHandler = (event: CallEvent) => {
+        if (event.call_cid && event.call_cid === this.cid) {
+          (fn as EventHandler)(event);
+        }
+      };
+
+      return this.streamClient.on(eventName, eventHandler as EventHandler);
+    }
+  }
 
   /**
    * Remove subscription for WebSocket events that were created by the `on` method.

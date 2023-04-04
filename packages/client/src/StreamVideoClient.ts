@@ -33,7 +33,10 @@ import {
 import { CALL_CONFIG, CallConfig } from './config';
 import { CallDropScheduler } from './CallDropScheduler';
 import {
+  CallEventHandler,
+  CallEventTypes,
   EventHandler,
+  EventTypes,
   StreamClientOptions,
   TokenOrProvider,
   User,
@@ -196,7 +199,7 @@ export class StreamVideoClient {
    * @param callback the callback which will be called when the event is emitted.
    * @returns an unsubscribe function.
    */
-  on = (eventName: string, callback: EventHandler) => {
+  on = (eventName: EventTypes, callback: EventHandler) => {
     return this.streamClient.on(eventName, callback);
   };
 

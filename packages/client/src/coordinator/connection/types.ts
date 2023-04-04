@@ -1,7 +1,11 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { EVENT_MAP } from './events';
 import { StableWSConnection } from './connection';
-import { CallResponse, OwnUserResponse } from '../../gen/coordinator';
+import {
+  CallResponse,
+  HealthCheckEvent,
+  OwnUserResponse,
+  WSEvent,
+} from '../../gen/coordinator';
 
 export type UR = Record<string, unknown>;
 
@@ -49,19 +53,54 @@ export class ErrorFromResponse<T> extends Error {
   response?: AxiosResponse<T>;
   status?: number;
 }
-export type EventTypes = 'all' | keyof typeof EVENT_MAP;
-export type Event = {
-  type: EventTypes;
 
-  call?: CallResponse;
+type ClientEventTypes = 'health.check';
 
-  received_at?: string | Date;
-  online?: boolean;
-  mode?: string;
-  // TODO OL: add more properties
+type LocalEventTypes =
+  | 'connection.changed'
+  | 'transport.changed'
+  | 'connection.recovered';
+
+export type EventTypes = 'all' | WSEvent['type'] | LocalEventTypes;
+
+export type CallEventTypes = Exclude<
+  EventTypes,
+  'all' | ClientEventTypes | LocalEventTypes
+>;
+
+export type ConnectionChangedEvent = {
+  type: 'connection.changed';
+  online: boolean;
 };
 
+export type TransportChangedEvent = {
+  type: 'transport.changed';
+  mode: 'longpoll';
+};
+
+export type ConnectionRecoveredEvent = {
+  type: 'connection.recovered';
+};
+
+export type Event = (
+  | WSEvent
+  | ConnectionChangedEvent
+  | TransportChangedEvent
+  | ConnectionRecoveredEvent
+) & { received_at?: string | Date };
+
+export type CallEvent = Exclude<
+  Event,
+  | HealthCheckEvent
+  | ConnectionChangedEvent
+  | TransportChangedEvent
+  | ConnectionRecoveredEvent
+>;
+
 export type EventHandler = (event: Event) => void;
+
+export type CallEventHandler = (event: CallEvent) => void;
+
 export type Logger = (
   logLevel: LogLevel,
   message: string,
