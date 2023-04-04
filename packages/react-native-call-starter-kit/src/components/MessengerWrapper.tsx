@@ -5,8 +5,10 @@ import {
   useChatContext,
 } from 'stream-chat-react-native';
 import React, {PropsWithChildren, useCallback, useMemo} from 'react';
-import {useVideoClient} from '../hooks/useVideoClient';
-import {StreamVideo} from '@stream-io/video-react-native-sdk';
+import {
+  StreamVideo,
+  useCreateStreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {userFromToken} from '../utils/userFromToken';
 import {useChatClient} from '../hooks/useChatClient';
@@ -21,7 +23,13 @@ import {STREAM_API_KEY} from 'react-native-dotenv';
 import {useAppContext} from '../context/AppContext';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {CALL_CONFIG} from '@stream-io/video-client';
+
 console.log('STREAM_API_KEY', STREAM_API_KEY);
+const APP_CALL_CONFIG = {
+  ...CALL_CONFIG.ring,
+  autoCancelTimeoutInMs: 30 * 1000,
+};
 
 export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
   const {client} = useChatContext<StreamChatGenerics>();
@@ -38,7 +46,12 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
     [client.user, token],
   );
 
-  const {videoClient} = useVideoClient({user, token});
+  const videoClient = useCreateStreamVideoClient({
+    user,
+    tokenOrProvider: token,
+    apiKey: STREAM_API_KEY,
+    callConfig: APP_CALL_CONFIG,
+  });
   const navigation =
     useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();
 

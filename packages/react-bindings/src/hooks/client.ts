@@ -1,9 +1,9 @@
 import {
-  StreamVideoClient,
   CallConfig,
-  User,
-  TokenOrProvider,
   StreamClientOptions,
+  StreamVideoClient,
+  TokenOrProvider,
+  User,
 } from '@stream-io/video-client';
 import { useEffect, useRef, useState } from 'react';
 
@@ -54,7 +54,7 @@ export const useCreateStreamVideoClient = ({
     };
     // we want to re-run this effect only in some special cases
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiKey, tokenOrProvider, client, user.id]);
+  }, [apiKey, tokenOrProvider, client, user?.id]);
 
   return client;
 };

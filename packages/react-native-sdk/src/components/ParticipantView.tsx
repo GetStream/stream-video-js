@@ -13,6 +13,7 @@ import { useStreamVideoStoreValue } from '../contexts';
 import { MicOff, ScreenShare, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { palette } from '../theme/constants';
+
 /**
  * Props to be passed for the ParticipantView component.
  */
@@ -33,19 +34,27 @@ interface ParticipantViewProps {
    * Any custom style to be merged with the VideoRenderer
    */
   videoRendererStyle?: StyleProp<ViewStyle>;
+  /**
+   * When set to true, the video stream will not be shown even if it is available.
+   */
+  disableVideo?: boolean;
+  /**
+   * When set to true, the audio stream will not be played even if it is available.
+   */
+  disableAudio?: boolean;
 }
 
 /**
  * Renders either the participants' video track or screenShare track
- * and additional info, by an absence of a video track only an
- * avatar and audio track will be rendered.
+ * and additional info, by an absence of a video track or when disableVideo is truthy,
+ * only an avatar and audio track will be rendered.
  *
  * | When Video is Enabled | When Video is Disabled |
  * | :--- | :----: |
  * |![participant-view-1](https://user-images.githubusercontent.com/25864161/217489213-d4532ca1-49ee-4ef5-940c-af2e55bc0a5f.png)|![participant-view-2](https://user-images.githubusercontent.com/25864161/217489207-fb20c124-8bce-4c2b-87f9-4fe67bc50438.png)|
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
-  const { participant, kind } = props;
+  const { participant, kind, disableVideo, disableAudio } = props;
   const call = useActiveCall();
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
@@ -60,17 +69,24 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   );
 
   useEffect(() => {
-    if (pendingVideoLayoutRef.current && call && isPublishingVideoTrack) {
-      call.updateSubscriptionsPartial(kind, {
-        [participant.sessionId]: {
-          dimension: pendingVideoLayoutRef.current,
-        },
-      });
+    // NOTE: We only want to update the subscription if the pendingVideoLayoutRef is set or if the video is disabled
+    const updateIsNeeded = pendingVideoLayoutRef.current || disableVideo;
 
-      subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
-      pendingVideoLayoutRef.current = undefined;
-    }
-  }, [call, isPublishingVideoTrack, kind, participant.sessionId]);
+    if (!updateIsNeeded || !call || !isPublishingVideoTrack) return;
+
+    // NOTE: When the participant's video is disabled, we want to subscribe to audio only.
+    // We do this by setting the dimension to width and height 0.
+    const dimension = disableVideo
+      ? { width: 0, height: 0 }
+      : pendingVideoLayoutRef.current;
+
+    call.updateSubscriptionsPartial(kind, {
+      [participant.sessionId]: { dimension },
+    });
+
+    subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
+    pendingVideoLayoutRef.current = undefined;
+  }, [call, isPublishingVideoTrack, kind, participant.sessionId, disableVideo]);
 
   useEffect(() => {
     return () => {
@@ -86,8 +102,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     };
 
     // NOTE: If the participant hasn't published a video track yet,
-    // we store the dimensions and handle it when the track is published
-    if (!call || !isPublishingVideoTrack) {
+    // or the video is disabled, we store the dimensions and handle it
+    // when the track is published or the video is enabled.
+    if (!call || !isPublishingVideoTrack || disableVideo) {
       pendingVideoLayoutRef.current = dimension;
       return;
     }
@@ -120,8 +137,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
   const isScreenSharing = kind === 'screen';
   const mirror = isLoggedInUser && isCameraOnFrontFacingMode;
-  const isAudioAvailable = kind === 'video' && !!audioStream && !isAudioMuted;
-  const isVideoAvailable = !!videoStream && !isVideoMuted;
+  const isAudioAvailable =
+    kind === 'video' && !!audioStream && !isAudioMuted && !disableAudio;
+  const isVideoAvailable = !!videoStream && !isVideoMuted && !disableVideo;
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && styles.isSpeaking;
   const videoOnlyStyle = !isScreenSharing && {
