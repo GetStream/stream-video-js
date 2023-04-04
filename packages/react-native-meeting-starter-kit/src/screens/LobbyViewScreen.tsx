@@ -1,6 +1,6 @@
 import React from 'react';
 import {ScrollView} from 'react-native';
-import {LobbyView} from '@stream-io/video-react-native-sdk';
+import {LobbyView, theme} from '@stream-io/video-react-native-sdk';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {NavigationStackParamsList} from '../types';
 
@@ -17,7 +17,7 @@ export const LobbyViewScreen = (props: CallLobbyScreenProps) => {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={{backgroundColor: theme.light.static_grey}}
       contentContainerStyle={styles.contentContainerStyle}>
       <LobbyView callID={callId} />
     </ScrollView>
@@ -25,10 +25,7 @@ export const LobbyViewScreen = (props: CallLobbyScreenProps) => {
 };
 
 const styles = {
-  container: {
-    flex: 1,
-  },
   contentContainerStyle: {
-    flex: 1,
+    paddingVertical: 16,
   },
 };
