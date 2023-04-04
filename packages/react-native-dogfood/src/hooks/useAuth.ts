@@ -43,17 +43,12 @@ export const useAuth = () => {
         const token = await createToken(username, APIParams.apiSecret);
         Sentry.setUser({ ...user, token });
         try {
-          let _videoClient;
-          if (appMode === 'Meeting') {
-            _videoClient = new StreamVideoClient(APIParams.apiKey);
-          } else {
-            console.log('ring');
-            _videoClient = new StreamVideoClient(
-              APIParams.apiKey,
-              {},
-              CALL_CONFIG.ring,
-            );
-          }
+          const config = appMode === 'Ringing' ? CALL_CONFIG.ring : undefined;
+          const _videoClient = new StreamVideoClient(
+            APIParams.apiKey,
+            {},
+            config,
+          );
           await _videoClient.connectUser(user, token);
           setVideoClient(_videoClient);
         } catch (err) {
