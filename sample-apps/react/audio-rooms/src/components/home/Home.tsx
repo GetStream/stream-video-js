@@ -1,10 +1,14 @@
-import { useAudioRoomContext } from '../../contexts/AudioRoomContext/AudioRoomContext';
+import {
+  AudioRoomState,
+  useAudioRoomContext,
+} from '../../contexts/AudioRoomContext/AudioRoomContext';
 import { useUserContext } from '../../contexts/UserContext/UserContext';
-import RoomCard from './RoomCard';
+import RoomActive from './RoomActive';
+import RoomOverview from './RoomOverview';
 
 const Home = () => {
   const { user, logout } = useUserContext();
-  const { liveRooms, upcomingRooms, join } = useAudioRoomContext();
+  const { state } = useAudioRoomContext();
 
   return (
     <div>
@@ -15,30 +19,8 @@ const Home = () => {
         </div>
         <button onClick={() => logout()}>Logout</button>
       </section>
-      <h2>Live audio rooms</h2>
-      <div className="rooms-grid">
-        {liveRooms.map((room) => (
-          <button
-            key={room.id}
-            className="room-card"
-            onClick={() => join(room)}
-          >
-            <RoomCard room={room} />
-          </button>
-        ))}
-      </div>
-      <h2>Upcoming audio rooms</h2>
-      <div className="rooms-grid">
-        {upcomingRooms.map((room) => (
-          <button
-            key={room.id}
-            className="room-card"
-            onClick={() => join(room)}
-          >
-            <RoomCard room={room} />
-          </button>
-        ))}
-      </div>
+      {state === AudioRoomState.Overview && <RoomOverview />}
+      {state === AudioRoomState.Joined && <RoomActive />}
     </div>
   );
 };

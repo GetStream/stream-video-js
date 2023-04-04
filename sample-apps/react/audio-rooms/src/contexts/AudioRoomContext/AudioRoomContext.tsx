@@ -1,7 +1,7 @@
 import { ReactNode, createContext, useContext, useState } from 'react';
 import { AudioRoom, audioRooms } from '../../data/audioRoom';
 
-enum AudioRoomState {
+export enum AudioRoomState {
   Overview,
   Joined,
 }
@@ -12,6 +12,7 @@ export interface AudioRoomsState {
   liveRooms: AudioRoom[];
   upcomingRooms: AudioRoom[];
   join: (room: AudioRoom) => void;
+  leave: () => void;
 }
 
 const defaultState: AudioRoomsState = {
@@ -20,6 +21,7 @@ const defaultState: AudioRoomsState = {
   liveRooms: audioRooms.slice(0, 3),
   upcomingRooms: audioRooms.slice(3, 4),
   join: (room: AudioRoom) => {},
+  leave: () => {},
 };
 
 const AudioRoomContext = createContext<AudioRoomsState>(defaultState);
@@ -36,6 +38,14 @@ export const AudioRoomContextProvider: any = ({
       ...myState,
       state: AudioRoomState.Joined,
       currentRoom: room,
+    });
+  };
+
+  myState.leave = () => {
+    setMyState({
+      ...myState,
+      state: AudioRoomState.Overview,
+      currentRoom: undefined,
     });
   };
 
