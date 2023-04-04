@@ -29,7 +29,7 @@ const recipes: Recipe[] = [
     description:
       "Build your own call participant's grid with a custom behaviour",
     linkToDocs:
-      'http://localhost:3000/chat/docs/sdk/reactnative/ui-cookbook/participant-list/',
+      'https://staging.getstream.io/video/docs/reactnative/ui-cookbook/05-participant-list/',
     screenName: 'CustomParticipantsLayoutScreen',
   },
 ];
