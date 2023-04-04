@@ -17,6 +17,7 @@ import {
 import { Call } from './rtc/Call';
 
 import {
+  watchBlockedUser,
   watchCallAccepted,
   watchCallCancelled,
   watchCallCreated,
@@ -26,7 +27,6 @@ import {
   watchCallRecordingStopped,
   watchCallRejected,
   watchNewReactions,
-  watchBlockedUser,
   watchUnblockedUser,
 } from './events';
 
@@ -207,15 +207,14 @@ export class StreamVideoClient {
     return this.streamClient.off(event, callback);
   };
 
-  call(type: string, id: string) {
-    const call = new Call({
+  call(type: string, id: string, ringing?: boolean) {
+    return new Call({
       streamClient: this.streamClient,
       id,
       type,
       clientStore: this.writeableStateStore,
+      ringing,
     });
-
-    return call;
   }
 
   queryCalls = async (

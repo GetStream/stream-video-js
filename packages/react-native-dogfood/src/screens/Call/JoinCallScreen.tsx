@@ -95,8 +95,9 @@ const JoinCallScreen = () => {
 
     if (client) {
       try {
-        await client.call('default', callID).getOrCreate({
-          ring: true,
+        const ring = true;
+        await client.call('default', callID, ring).getOrCreate({
+          ring,
           data: {
             members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
               return {

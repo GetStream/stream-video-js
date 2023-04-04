@@ -18,7 +18,7 @@ export const watchCallCreated = (
   streamClient: StreamClient,
 ) => {
   return function onCallCreated(event: CallCreatedEvent) {
-    const { call, members } = event;
+    const { call, members, ringing } = event;
     if (!call) {
       console.warn("Can't find call in CallCreatedEvent");
       return;
@@ -37,9 +37,8 @@ export const watchCallCreated = (
       metadata: call,
       members,
       clientStore: store,
+      ringing,
     });
-
-    newCall.scheduleReject();
 
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) => [
       ...pendingCalls,
@@ -96,8 +95,6 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
     // do not set a new accepted call while in an active call? It would lead to joining a new active call.
     // todo: solve the situation of 2nd outgoing call being accepted in the UI SDK
 
-    acceptedOutgoingCall.cancelScheduledDrop();
-
     store.setCurrentValue(store.acceptedCallSubject, event);
   };
 };
@@ -135,8 +132,6 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
-    rejectedOutgoingCall.cancelScheduledDrop();
-
     // FIXME: we should remove the call from pending once every callee has rejected, but for now we support only 1:1 ring calls
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
       pendingCalls.filter((pendingCall) => pendingCall.cid !== call_cid),
@@ -167,8 +162,6 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
       );
       return;
     }
-
-    cancelledIncomingCall.cancelScheduledDrop();
 
     store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
       pendingCalls.filter((pendingCall) => pendingCall.cid !== call_cid),

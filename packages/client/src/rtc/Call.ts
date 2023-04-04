@@ -51,8 +51,11 @@ import {
   BehaviorSubject,
   debounceTime,
   filter,
+  map,
+  pairwise,
   Subject,
   takeWhile,
+  tap,
 } from 'rxjs';
 import { Comparator } from '../sorting';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
@@ -98,6 +101,11 @@ export type CallConstructor = {
    * This is useful when initializing a new "pending call" from an event.
    */
   members?: MemberResponse[];
+
+  /**
+   * Flags the call as a ringing call.
+   */
+  ringing?: boolean;
 
   /**
    * The default comparator to use when sorting participants.
@@ -192,6 +200,7 @@ export class Call {
     members,
     sortParticipantsBy,
     clientStore,
+    ringing,
   }: CallConstructor) {
     this.type = type;
     this.id = id;
@@ -208,6 +217,11 @@ export class Call {
     this.state.membersSubject.next(members || []);
 
     registerEventHandlers(this, this.state, this.dispatcher);
+
+    if (ringing) {
+      this.scheduleAutoDrop();
+      this.scheduleAutoDropCancellation();
+    }
 
     this.trackSubscriptionsSubject
       .pipe(debounceTime(UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION))
@@ -920,7 +934,6 @@ export class Call {
     );
 
     if (!callAlreadyRegistered) {
-      this.scheduleCancel();
       this.clientStore.setCurrentValue(
         this.clientStore.pendingCallsSubject,
         (pendingCalls) => [...pendingCalls, this],
@@ -1042,7 +1055,6 @@ export class Call {
       .find((c) => c.id === this.id && c.type === this.type);
 
     if (callToAccept) {
-      this.cancelScheduledDrop();
       await this.streamClient.post(`${this.streamClientBasePath}/event`, {
         type: 'call.accepted',
       });
@@ -1067,8 +1079,6 @@ export class Call {
    * @returns
    */
   reject = async () => {
-    this.cancelScheduledDrop();
-
     this.clientStore.setCurrentValue(
       this.clientStore.pendingCallsSubject,
       (pendingCalls) =>
@@ -1094,7 +1104,6 @@ export class Call {
     if (leavingActiveCall) {
       activeCall.leave();
     } else {
-      this.cancelScheduledDrop();
       store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
         pendingCalls.filter((pendingCall) => pendingCall.id !== this.id),
       );
@@ -1113,16 +1122,22 @@ export class Call {
     }
   };
 
-  scheduleCancel = () => {
-    if (!this.data?.settings.ring.auto_cancel_timeout_ms || this.dropTimeout)
+  private scheduleCancel = () => {
+    if (
+      typeof this.data?.settings.ring.auto_cancel_timeout_ms === 'undefined' ||
+      this.dropTimeout
+    )
       return;
     this.dropTimeout = setTimeout(
       () => this.cancel(),
       this.data?.settings.ring.auto_cancel_timeout_ms,
     );
   };
-  scheduleReject = () => {
-    if (!this.data?.settings.ring.auto_reject_timeout_ms || this.dropTimeout)
+  private scheduleReject = () => {
+    if (
+      typeof this.data?.settings.ring.auto_reject_timeout_ms === 'undefined' ||
+      this.dropTimeout
+    )
       return;
     this.dropTimeout = setTimeout(
       () => this.reject(),
@@ -1130,11 +1145,47 @@ export class Call {
     );
   };
 
+  private scheduleAutoDrop = () => {
+    this.state.metadataSubject
+      .pipe(
+        takeWhile(() => !this.dropTimeout),
+        tap((meta) => {
+          const connectedUser = this.clientStore.getCurrentValue(
+            this.clientStore.connectedUserSubject,
+          );
+
+          if (!(meta && connectedUser)) return;
+
+          const isOutgoingCall = connectedUser.id === meta.created_by.id;
+
+          isOutgoingCall ? this.scheduleCancel() : this.scheduleReject();
+        }),
+      )
+      .subscribe();
+  };
+
   cancelScheduledDrop = () => {
     if (this.dropTimeout) {
       clearTimeout(this.dropTimeout);
       this.dropTimeout = undefined;
+      return true;
     }
+    return false;
+  };
+
+  private scheduleAutoDropCancellation = () => {
+    this.clientStore.pendingCallsSubject
+      .pipe(
+        pairwise(),
+        filter(([prev, next]) => {
+          const wasPending = prev.find((call) => call.cid === this.cid);
+          const isPending = next.find((call) => call.cid === this.cid);
+          return !!(wasPending && !isPending);
+        }),
+        map(this.cancelScheduledDrop),
+        takeWhile((hasTerminated) => !hasTerminated),
+      )
+      .subscribe();
   };
 
   /**

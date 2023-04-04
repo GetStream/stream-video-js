@@ -3,8 +3,29 @@ id: 02-call-lifecycle
 title: Call Lifecycle
 ---
 
-Stay tuned for more information on this topic.
+## Introduction
 
-[//]: # '- Call lifecycle:'
-[//]: # '  - Ring'
-[//]: # '  - Meeting'
+In the following sections, we will describe the flow of the two basic call scenarios:
+
+1. Call room
+2. Ring call
+
+### Call room
+
+The call room scenario refers to a setup, where participants can join a call asynchronously. That means that the call can be (re)joined or left at any time by any member of a call. Multiple call participants can exchange media streams at the same time.
+
+### Ring call
+
+The ring call scenario is analogous to the classic phone call. A person calls another person and does not join the call, until the call is accepted on the other side. For this scenario it is typical to show outgoing and incoming call screens and possibly play ring sounds or display ringing elements in the UI. Of course, the call can be terminated before it is accepted. The original caller can decide to cancel the outgoing call or the receiving side can reject the incoming call.
+
+If the incoming call is accepted, both parties join the call and start exchanging media streams (audio and video). The call is then terminated by one of the participants and both leave the call.
+
+#### Ring call lifecycle
+
+
+
+### Hybrid scenarios
+
+todo: do we want to describe those? e.g. Slack call is a hybrid of the 2 above.
+
+
