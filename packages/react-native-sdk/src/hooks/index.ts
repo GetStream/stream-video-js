@@ -5,4 +5,4 @@ export * from './useCallCycleEffect';
 export * from './useMutingState';
 export * from './useLocalVideoStream';
 export * from './useCallKeep';
-export * from './useIncallManagerProximityEffect';
+export * from './useIncallManager';
