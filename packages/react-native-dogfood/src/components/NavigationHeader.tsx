@@ -1,7 +1,7 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 import React from 'react';
-import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -61,15 +61,8 @@ export const NavigationHeader = () => {
     ]);
   };
 
-  const modeUnsetHandler = () => {
-    appStoreSetState({ appMode: 'None' });
-  };
-
   return (
     <View style={styles.header}>
-      <Pressable onPress={modeUnsetHandler}>
-        <Text style={styles.unset}>Unset Mode</Text>
-      </Pressable>
       <Pressable onPress={logoutHandler}>
         {!!userImageUrl && (
           <Image

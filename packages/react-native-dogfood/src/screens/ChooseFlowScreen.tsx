@@ -1,30 +1,23 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Button, SafeAreaView, StyleSheet, View } from 'react-native';
-import { RootStackParamList } from '../../types';
+import { LoginStackParamList } from '../../types';
 import { useAppGlobalStoreSetState } from '../contexts/AppContext';
-import { prontoCallId$ } from '../hooks/useProntoLinkEffect';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'ChooseFlowScreen'>;
+type Props = NativeStackScreenProps<LoginStackParamList, 'ChooseFlowScreen'>;
 
 export const ChooseFlowScreen = (props: Props) => {
   const { navigation } = props;
   const setState = useAppGlobalStoreSetState();
 
-  useEffect(() => {
-    const subscription = prontoCallId$.subscribe((prontoCallId) => {
-      if (prontoCallId) {
-        setState({ appMode: 'Meeting' });
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [setState, navigation]);
-
   const onMeetingSelect = () => {
     setState({ appMode: 'Meeting' });
+    navigation.navigate('LoginScreen');
   };
+
   const onRingingSelect = () => {
     setState({ appMode: 'Ringing' });
+    navigation.navigate('LoginScreen');
   };
 
   return (

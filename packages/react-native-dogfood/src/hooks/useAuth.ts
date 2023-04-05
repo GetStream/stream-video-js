@@ -1,4 +1,4 @@
-import { StreamVideoClient, User } from '@stream-io/video-client';
+import { CALL_CONFIG, StreamVideoClient, User } from '@stream-io/video-client';
 import { useEffect, useState } from 'react';
 import * as Sentry from '@sentry/react-native';
 import {
@@ -18,6 +18,7 @@ export const useAuth = () => {
     (store) => store.isStoreInitialized,
   );
   const [videoClient, setVideoClient] = useState<StreamVideoClient>();
+  const appMode = useAppGlobalStoreValue((store) => store.appMode);
   const username = useAppGlobalStoreValue((store) => store.username);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const appSetState = useAppGlobalStoreSetState();
@@ -42,7 +43,12 @@ export const useAuth = () => {
         const token = await createToken(username, APIParams.apiSecret);
         Sentry.setUser({ ...user, token });
         try {
-          const _videoClient = new StreamVideoClient(APIParams.apiKey);
+          const config = appMode === 'Ringing' ? CALL_CONFIG.ring : undefined;
+          const _videoClient = new StreamVideoClient(
+            APIParams.apiKey,
+            {},
+            config,
+          );
           await _videoClient.connectUser(user, token);
           setVideoClient(_videoClient);
         } catch (err) {
@@ -59,7 +65,7 @@ export const useAuth = () => {
     };
 
     run();
-  }, [appSetState, username, userImageUrl, isStoreInitialized]);
+  }, [appSetState, appMode, username, userImageUrl, isStoreInitialized]);
 
   return { authenticationInProgress, videoClient };
 };
