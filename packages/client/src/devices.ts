@@ -18,9 +18,11 @@ const getDevices = (constraints?: MediaStreamConstraints) => {
     navigator.mediaDevices
       .getUserMedia(constraints)
       .then((media) => {
+        console.log(media);
         // in Firefox, devices can be enumerated after userMedia is requested
         // and permissions granted. Otherwise, device labels are empty
         navigator.mediaDevices.enumerateDevices().then((devices) => {
+          console.log(devices);
           subscriber.next(devices);
           // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
           media.getTracks().forEach((t) => t.stop());
