@@ -5,11 +5,26 @@
   text-align: center;
 }
 
+.intro-area {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  text-align: left;
+}
+
+.intro-area img {
+  width: 8rem;
+  height: 8rem;
+  border-radius: 2rem;
+  background: transparent;
+}
+
 .login-screen {
   display: grid;
+  width: var(--max-width);
   grid-template-columns: repeat(2, 1fr);
   align-items: center;
-  gap: 2rem;
+  gap: 4rem;
 }
 
 .user-list {
@@ -67,6 +82,12 @@ img {
   gap: 2rem;
 }
 
+.rooms-rows {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
 .room-card {
   display: flex;
   flex-direction: column;
@@ -102,6 +123,7 @@ img {
 .active-room {
   display: grid;
   grid-template-columns: 600px 200px;
+  gap: 2rem;
   margin-top: 1rem;
   max-width: var(--max-width);
 }

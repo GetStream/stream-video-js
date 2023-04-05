@@ -1,13 +1,17 @@
 import { useAudioRoomContext } from '../../contexts/AudioRoomContext/AudioRoomContext';
 import RoomCard from './RoomCard';
 
-const RoomOverview = () => {
+interface RoomOverviewProps {
+  showAsGrid: Boolean;
+}
+
+const RoomOverview = ({ showAsGrid = true }: RoomOverviewProps) => {
   const { liveRooms, upcomingRooms, join } = useAudioRoomContext();
 
   return (
     <section>
       <h2>Live audio rooms</h2>
-      <div className="rooms-grid">
+      <div className={showAsGrid ? 'rooms-grid' : 'rooms-rows'}>
         {liveRooms.map((room) => (
           <button
             key={room.id}

@@ -1,4 +1,5 @@
 import { useAudioRoomContext } from '../../contexts/AudioRoomContext/AudioRoomContext';
+import RoomOverview from './RoomOverview';
 
 const RoomActive = () => {
   const { currentRoom, leave } = useAudioRoomContext();
@@ -108,7 +109,7 @@ const RoomActive = () => {
           </div>
         </div>
       </div>
-      <p>List of other rooms</p>
+      <RoomOverview showAsGrid={false} />
     </section>
   );
 };
