@@ -1107,9 +1107,7 @@ export class Call {
         state.remoteParticipants$,
       );
       if (!remoteParticipants.length && !leavingActiveCall) {
-        await this.streamClient.post(`${this.streamClientBasePath}/event`, {
-          type: 'call.cancelled',
-        });
+        await this.endCall();
       }
     }
   };
