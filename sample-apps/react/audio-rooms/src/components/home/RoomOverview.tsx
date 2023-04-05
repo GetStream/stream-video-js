@@ -23,7 +23,7 @@ const RoomOverview = ({ showAsGrid = true }: RoomOverviewProps) => {
         ))}
       </div>
       <h2>Upcoming audio rooms</h2>
-      <div className="rooms-grid">
+      <div className={showAsGrid ? 'rooms-grid' : 'rooms-rows'}>
         {upcomingRooms.map((room) => (
           <button
             key={room.id}

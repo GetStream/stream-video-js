@@ -119,10 +119,15 @@ img {
   margin-right: 0.5rem;
 }
 
+.hosts-grid span {
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
 /* -------- Active room -------- */
 .active-room {
   display: grid;
-  grid-template-columns: 600px 200px;
+  grid-template-columns: 600px 300px;
   gap: 2rem;
   margin-top: 1rem;
   max-width: var(--max-width);
