@@ -1,5 +1,5 @@
 import { PropsWithChildren, useEffect } from 'react';
-import { GetOrCreateCallRequest } from '@stream-io/video-client';
+import { JoinCallRequest } from '@stream-io/video-client';
 import {
   StreamCallProvider,
   useActiveCall,
@@ -10,7 +10,7 @@ import { MediaDevicesProvider } from '../../contexts';
 export type StreamMeetingProps = {
   callId: string;
   callType: string;
-  input?: Omit<GetOrCreateCallRequest, 'members'>;
+  input?: JoinCallRequest;
 };
 
 export const StreamMeeting = ({

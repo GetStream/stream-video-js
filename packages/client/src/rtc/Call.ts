@@ -24,6 +24,7 @@ import {
   GetOrCreateCallResponse,
   GoLiveResponse,
   JoinCallRequest,
+  JoinCallResponse,
   ListRecordingsResponse,
   MemberResponse,
   MuteUsersResponse,
@@ -34,6 +35,8 @@ import {
   SendReactionResponse,
   StopLiveResponse,
   UnblockUserResponse,
+  UpdateCallMemberRequest,
+  UpdateCallMemberResponse,
   UpdateCallRequest,
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
@@ -317,12 +320,6 @@ export class Call {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    // FIXME OL: temporary fix which restores the previous behavior.
-    // This data should come from the SDK, or integration
-    data = data || {
-      create: true,
-    };
-
     const call = await join(this.streamClient, this.type, this.id, data);
     this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
     this.state.setCurrentValue(this.state.membersSubject, call.members);
@@ -425,6 +422,15 @@ export class Call {
     });
 
     return joinResponsePromise;
+  };
+
+  updateCallMembers = async (
+    data: UpdateCallMemberRequest,
+  ): Promise<UpdateCallMemberResponse> => {
+    return await this.streamClient.post<UpdateCallMemberResponse>(
+      `${this.streamClientBasePath}/members`,
+      data,
+    );
   };
 
   /**
@@ -1121,9 +1127,7 @@ export class Call {
         state.remoteParticipants$,
       );
       if (!remoteParticipants.length && !leavingActiveCall) {
-        await this.streamClient.post(`${this.streamClientBasePath}/event`, {
-          type: 'call.cancelled',
-        });
+        await this.endCall();
       }
     }
   };
