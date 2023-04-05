@@ -34,10 +34,6 @@ import {
 } from './types';
 import { InsightMetrics, postInsights } from './insights';
 
-function isString(x: unknown): x is string {
-  return typeof x === 'string' || x instanceof String;
-}
-
 export class StreamClient {
   _user?: OwnUserResponse;
   anonymous: boolean;
@@ -121,18 +117,22 @@ export class StreamClient {
       this.rejectConnectionId = reject;
     });
 
-    this.axiosInstance = axios.create(this.options);
-
-    // todo: replace 'https://chat.stream-io-api.com' with an actual video server URL
-    this.setBaseURL(this.options.baseURL || 'https://chat.stream-io-api.com');
+    this.setBaseURL(
+      this.options.baseURL || 'https://video.stream-io-api.com/video',
+    );
 
     if (typeof process !== 'undefined' && process.env.STREAM_LOCAL_TEST_RUN) {
-      this.setBaseURL('http://localhost:3030');
+      this.setBaseURL('http://localhost:3030/video');
     }
 
     if (typeof process !== 'undefined' && process.env.STREAM_LOCAL_TEST_HOST) {
-      this.setBaseURL('http://' + process.env.STREAM_LOCAL_TEST_HOST);
+      this.setBaseURL(`http://${process.env.STREAM_LOCAL_TEST_HOST}/video`);
     }
+
+    this.axiosInstance = axios.create({
+      baseURL: this.baseURL,
+      ...this.options,
+    });
 
     // WS connection is initialized when setUser is called
     this.wsConnection = null;

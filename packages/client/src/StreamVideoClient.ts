@@ -17,6 +17,7 @@ import {
 import { Call } from './rtc/Call';
 
 import {
+  watchBlockedUser,
   watchCallAccepted,
   watchCallCancelled,
   watchCallCreated,
@@ -26,7 +27,6 @@ import {
   watchCallRecordingStopped,
   watchCallRejected,
   watchNewReactions,
-  watchBlockedUser,
   watchUnblockedUser,
 } from './events';
 
@@ -71,7 +71,6 @@ export class StreamVideoClient {
   ) {
     this.callConfig = callConfig;
     this.streamClient = new StreamClient(apiKey, {
-      baseURL: 'https://video-edge-frankfurt-ce1.stream-io-api.com/video',
       // FIXME: OL: fix SSR.
       browser: true,
       persistUserOnConnectionFailure: true,
