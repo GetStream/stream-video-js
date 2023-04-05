@@ -45,9 +45,8 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
   const { member_count, subtitle } = channel?.data || {};
 
   const onCreateCall = useCallback(() => {
-    const ring = true;
-    videoClient?.call('default', meetingId(), ring).getOrCreate({
-      ring,
+    videoClient?.call('default', meetingId()).getOrCreate({
+      ring: true,
       data: {
         custom: {
           channelId: channel.id,

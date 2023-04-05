@@ -207,13 +207,12 @@ export class StreamVideoClient {
     return this.streamClient.off(event, callback);
   };
 
-  call(type: string, id: string, ringing?: boolean) {
+  call(type: string, id: string) {
     return new Call({
       streamClient: this.streamClient,
       id,
       type,
       clientStore: this.writeableStateStore,
-      ringing,
     });
   }
 

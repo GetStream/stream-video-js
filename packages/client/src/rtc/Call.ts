@@ -923,6 +923,12 @@ export class Call {
       this.streamClientBasePath,
       data,
     );
+
+    if (data?.ring && !this.dropTimeout) {
+      this.scheduleAutoDrop();
+      this.scheduleAutoDropCancellation();
+    }
+
     this.state.setCurrentValue(this.state.metadataSubject, response.call);
     this.state.setCurrentValue(this.state.membersSubject, response.members);
 
