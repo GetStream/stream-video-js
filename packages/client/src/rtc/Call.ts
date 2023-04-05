@@ -24,6 +24,7 @@ import {
   GetOrCreateCallResponse,
   GoLiveResponse,
   JoinCallRequest,
+  JoinCallResponse,
   ListRecordingsResponse,
   MemberResponse,
   MuteUsersResponse,
@@ -34,6 +35,8 @@ import {
   SendReactionResponse,
   StopLiveResponse,
   UnblockUserResponse,
+  UpdateCallMemberRequest,
+  UpdateCallMemberResponse,
   UpdateCallRequest,
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
@@ -404,6 +407,15 @@ export class Call {
     });
 
     return joinResponsePromise;
+  };
+
+  updateCallMembers = async (
+    data: UpdateCallMemberRequest,
+  ): Promise<UpdateCallMemberResponse> => {
+    return await this.streamClient.post<UpdateCallMemberResponse>(
+      `${this.streamClientBasePath}/members`,
+      data,
+    );
   };
 
   /**
@@ -1095,9 +1107,7 @@ export class Call {
         state.remoteParticipants$,
       );
       if (!remoteParticipants.length && !leavingActiveCall) {
-        await this.streamClient.post(`${this.streamClientBasePath}/event`, {
-          type: 'call.cancelled',
-        });
+        await this.endCall();
       }
     }
   };

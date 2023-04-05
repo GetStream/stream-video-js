@@ -160,6 +160,12 @@ export interface BlockUserResponse {
 export interface BlockedUserEvent {
   /**
    *
+   * @type {UserResponse}
+   * @memberof BlockedUserEvent
+   */
+  blocked_by_user?: UserResponse;
+  /**
+   *
    * @type {string}
    * @memberof BlockedUserEvent
    */
@@ -177,11 +183,11 @@ export interface BlockedUserEvent {
    */
   type: string;
   /**
-   * The ID of the user that got blocked
-   * @type {string}
+   *
+   * @type {UserResponse}
    * @memberof BlockedUserEvent
    */
-  user_id: string;
+  user: UserResponse;
 }
 /**
  *
@@ -231,38 +237,6 @@ export interface CallAcceptedEvent {
    *
    * @type {UserResponse}
    * @memberof CallAcceptedEvent
-   */
-  user: UserResponse;
-}
-/**
- * This event is sent when the user initiating a call cancels it. Clients receiving this event
- * should dismiss the call screen and consider the call as cancelled by the caller
- * @export
- * @interface CallCancelledEvent
- */
-export interface CallCancelledEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallCancelledEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallCancelledEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.cancelled" in this case
-   * @type {string}
-   * @memberof CallCancelledEvent
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof CallCancelledEvent
    */
   user: UserResponse;
 }
@@ -340,6 +314,160 @@ export interface CallEndedEvent {
    * @memberof CallEndedEvent
    */
   user?: UserResponse;
+}
+/**
+ * This event is sent when one or more members are added to a call
+ * @export
+ * @interface CallMemberAddedEvent
+ */
+export interface CallMemberAddedEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallMemberAddedEvent
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberAddedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberAddedEvent
+   */
+  created_at: string;
+  /**
+   * the members added to this call
+   * @type {Array<MemberResponse>}
+   * @memberof CallMemberAddedEvent
+   */
+  members: Array<MemberResponse>;
+  /**
+   * The type of event: "call.member_added" in this case
+   * @type {string}
+   * @memberof CallMemberAddedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when one or more members are removed from a call
+ * @export
+ * @interface CallMemberRemovedEvent
+ */
+export interface CallMemberRemovedEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallMemberRemovedEvent
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberRemovedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberRemovedEvent
+   */
+  created_at: string;
+  /**
+   * the list of member IDs removed from the call
+   * @type {Array<string>}
+   * @memberof CallMemberRemovedEvent
+   */
+  members: Array<string>;
+  /**
+   * The type of event: "call.member_added" in this case
+   * @type {string}
+   * @memberof CallMemberRemovedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when one or more members are updated
+ * @export
+ * @interface CallMemberUpdatedEvent
+ */
+export interface CallMemberUpdatedEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallMemberUpdatedEvent
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberUpdatedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberUpdatedEvent
+   */
+  created_at: string;
+  /**
+   * The list of members that were updated
+   * @type {Array<MemberResponse>}
+   * @memberof CallMemberUpdatedEvent
+   */
+  members: Array<MemberResponse>;
+  /**
+   * The type of event: "call.member_added" in this case
+   * @type {string}
+   * @memberof CallMemberUpdatedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when one or more members get its role updated
+ * @export
+ * @interface CallMemberUpdatedPermissionEvent
+ */
+export interface CallMemberUpdatedPermissionEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallMemberUpdatedPermissionEvent
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberUpdatedPermissionEvent
+   */
+  call_cid: string;
+  /**
+   * The capabilities by role for this call
+   * @type {{ [key: string]: Array<string>; }}
+   * @memberof CallMemberUpdatedPermissionEvent
+   */
+  capabilities_by_role: { [key: string]: Array<string> };
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberUpdatedPermissionEvent
+   */
+  created_at: string;
+  /**
+   * The list of members that were updated
+   * @type {Array<MemberResponse>}
+   * @memberof CallMemberUpdatedPermissionEvent
+   */
+  members: Array<MemberResponse>;
+  /**
+   * The type of event: "call.member_added" in this case
+   * @type {string}
+   * @memberof CallMemberUpdatedPermissionEvent
+   */
+  type: string;
 }
 /**
  * This event is sent when a reaction is sent in a call, clients should use this to show the reaction in the call screen
@@ -828,7 +956,8 @@ export interface CallTypeResponse {
   updated_at: string;
 }
 /**
- *
+ * This event is sent when a call is updated, clients should use this update the local state of the call.
+ * This event also contains the capabilities by role for the call, clients should update the own_capability for the current.
  * @export
  * @interface CallUpdatedEvent
  */
@@ -846,7 +975,7 @@ export interface CallUpdatedEvent {
    */
   call_cid: string;
   /**
-   *
+   * The capabilities by role for this call
    * @type {{ [key: string]: Array<string>; }}
    * @memberof CallUpdatedEvent
    */
@@ -858,7 +987,7 @@ export interface CallUpdatedEvent {
    */
   created_at: string;
   /**
-   *
+   * The type of event: "call.ended" in this case
    * @type {string}
    * @memberof CallUpdatedEvent
    */
@@ -1536,7 +1665,7 @@ export interface HLSSettings {
  */
 export interface HealthCheckEvent {
   /**
-   *
+   * The connection_id for this client
    * @type {string}
    * @memberof HealthCheckEvent
    */
@@ -1547,12 +1676,6 @@ export interface HealthCheckEvent {
    * @memberof HealthCheckEvent
    */
   created_at: string;
-  /**
-   *
-   * @type {OwnUserResponse}
-   * @memberof HealthCheckEvent
-   */
-  me?: OwnUserResponse;
   /**
    * The type of event: "health.check" in this case
    * @type {string}
@@ -1854,14 +1977,18 @@ export const OwnCapability = {
   join_ended_call: 'join-ended-call',
   mute_users: 'mute-users',
   read_call: 'read-call',
+  remove_call_member: 'remove-call-member',
   screenshare: 'screenshare',
   send_audio: 'send-audio',
   send_video: 'send-video',
   start_broadcast_call: 'start-broadcast-call',
   start_record_call: 'start-record-call',
+  start_transcription_call: 'start-transcription-call',
   stop_broadcast_call: 'stop-broadcast-call',
   stop_record_call: 'stop-record-call',
+  stop_transcription_call: 'stop-transcription-call',
   update_call: 'update-call',
+  update_call_member: 'update-call-member',
   update_call_permissions: 'update-call-permissions',
   update_call_settings: 'update-call-settings',
 } as const;
@@ -2608,11 +2735,49 @@ export interface UnblockedUserEvent {
    */
   type: string;
   /**
-   * The ID of the user that was unblocked
-   * @type {string}
+   *
+   * @type {UserResponse}
    * @memberof UnblockedUserEvent
    */
-  user_id: string;
+  user: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface UpdateCallMemberRequest
+ */
+export interface UpdateCallMemberRequest {
+  /**
+   * List of userID to remove
+   * @type {Array<string>}
+   * @memberof UpdateCallMemberRequest
+   */
+  remove_members?: Array<string>;
+  /**
+   * List of members to update or insert
+   * @type {Array<MemberRequest>}
+   * @memberof UpdateCallMemberRequest
+   */
+  update_members?: Array<MemberRequest>;
+}
+/**
+ *
+ * @export
+ * @interface UpdateCallMemberResponse
+ */
+export interface UpdateCallMemberResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof UpdateCallMemberResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {Array<MemberResponse>}
+   * @memberof UpdateCallMemberResponse
+   */
+  members: Array<MemberResponse>;
 }
 /**
  *
@@ -2621,7 +2786,7 @@ export interface UnblockedUserEvent {
  */
 export interface UpdateCallRequest {
   /**
-   * call custom data
+   * Custom data for this object
    * @type {{ [key: string]: any; }}
    * @memberof UpdateCallRequest
    */
@@ -2957,6 +3122,37 @@ export interface WSAuthMessageRequest {
   user_details: ConnectUserDetailsRequest;
 }
 /**
+ * This event is sent when the WS connection is established and authenticated, this event contains the full user object as it is stored on the server
+ * @export
+ * @interface WSConnectedEvent
+ */
+export interface WSConnectedEvent {
+  /**
+   * The connection_id for this client
+   * @type {string}
+   * @memberof WSConnectedEvent
+   */
+  connection_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof WSConnectedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {OwnUserResponse}
+   * @memberof WSConnectedEvent
+   */
+  me: OwnUserResponse;
+  /**
+   * The type of event: "connection.ok" in this case
+   * @type {string}
+   * @memberof WSConnectedEvent
+   */
+  type: string;
+}
+/**
  * @type WSEvent
  * The discriminator object for all websocket events, you should use this to map event payloads to their own type
  * @export
@@ -2964,9 +3160,11 @@ export interface WSAuthMessageRequest {
 export type WSEvent =
   | ({ type: 'call.accepted' } & CallAcceptedEvent)
   | ({ type: 'call.blocked_user' } & BlockedUserEvent)
-  | ({ type: 'call.cancelled' } & CallCancelledEvent)
   | ({ type: 'call.created' } & CallCreatedEvent)
   | ({ type: 'call.ended' } & CallEndedEvent)
+  | ({ type: 'call.member_added' } & CallMemberAddedEvent)
+  | ({ type: 'call.member_removed' } & CallMemberRemovedEvent)
+  | ({ type: 'call.member_updated' } & CallMemberUpdatedEvent)
   | ({ type: 'call.permission_request' } & PermissionRequestEvent)
   | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)
   | ({ type: 'call.reaction_new' } & CallReactionEvent)
@@ -2975,5 +3173,7 @@ export type WSEvent =
   | ({ type: 'call.rejected' } & CallRejectedEvent)
   | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
   | ({ type: 'call.updated' } & CallUpdatedEvent)
+  | ({ type: 'call.updated_permission' } & CallMemberUpdatedPermissionEvent)
+  | ({ type: 'connection.ok' } & WSConnectedEvent)
   | ({ type: 'custom' } & CustomVideoEvent)
   | ({ type: 'health.check' } & HealthCheckEvent);
