@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   StreamCallProvider,
   useActiveCall,
@@ -7,13 +7,12 @@ import {
 import { StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
-import { useMediaDevices } from '../contexts/MediaDevicesContext';
-import { getAudioStream, getVideoStream } from '@stream-io/video-client';
-import { useCallCycleContext, useStreamVideoStoreValue } from '../contexts';
+import { useCallCycleContext } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsScreenView } from './CallParticipantsScreenView';
 import { theme } from '../theme';
-import { useIncallManager } from '../hooks';
+import { useIncallManager } from '../hooks/useIncallManager';
+import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -45,38 +44,13 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
-  const activeCall = useActiveCall();
-  const { audioDevice, currentVideoDevice } = useMediaDevices();
   const { onOpenCallParticipantsInfoView } = props;
-  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
-  const isAudioMuted = useStreamVideoStoreValue((store) => store.isAudioMuted);
   const hasScreenShare = useHasOngoingScreenShare();
   const { callCycleHandlers } = useCallCycleContext();
   const { onHangupCall } = callCycleHandlers;
 
   useIncallManager({ media: 'video', auto: true });
-
-  useEffect(() => {
-    if (audioDevice && !isAudioMuted) {
-      getAudioStream(audioDevice.deviceId)
-        .then((stream) => activeCall?.publishAudioStream(stream))
-        .catch((error) => {
-          console.log(error);
-        });
-    }
-  }, [activeCall, audioDevice, isAudioMuted]);
-
-  useEffect(() => {
-    if (currentVideoDevice && !isVideoMuted) {
-      getVideoStream(currentVideoDevice.deviceId)
-        .then((stream) => {
-          activeCall?.publishVideoStream(stream);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    }
-  }, [activeCall, currentVideoDevice, isVideoMuted]);
+  usePublishMediaStreams();
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     setHeight(
@@ -92,7 +66,12 @@ const InnerActiveCall = (props: ActiveCallProps) => {
       <CallParticipantsBadge
         onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
       />
-      <View style={[styles.callParticipantsWrapper, { paddingBottom: height }]}>
+      <View
+        style={[
+          styles.callParticipantsWrapper,
+          { paddingBottom: height + theme.padding.lg },
+        ]}
+      >
         {hasScreenShare ? (
           <CallParticipantsScreenView />
         ) : (

@@ -6,7 +6,7 @@ import {
   ThemeProvider,
 } from '@mui/material';
 import {
-  GetOrCreateCallRequest,
+  JoinCallRequest,
   StreamMeeting,
   StreamVideo,
   useCreateStreamVideoClient,
@@ -44,9 +44,9 @@ const App = () => {
   });
   const [callId, setCallId] = useState<string | undefined>(undefined);
   const [callType, setCallType] = useState<string>('default');
-  const [callInput, setCallInput] = useState<
-    GetOrCreateCallRequest | undefined
-  >(undefined);
+  const [callInput, setCallInput] = useState<JoinCallRequest | undefined>(
+    undefined,
+  );
   const [errorMessage] = useState('');
 
   useEffect(() => {
@@ -83,6 +83,7 @@ const App = () => {
           user_id: userId,
         })),
       },
+      create: true,
     });
   };
 

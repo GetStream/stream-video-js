@@ -81,9 +81,13 @@ export const CallCycleProvider = (
       }
       try {
         if (outgoingCall && client.callConfig.joinCallInstantly) {
-          client.call(outgoingCall.type, outgoingCall.id).join();
+          client
+            .call(outgoingCall.type, outgoingCall.id)
+            .join({ create: true });
         } else if (acceptedCall && !client.callConfig.joinCallInstantly) {
-          client.call(outgoingCall.type, outgoingCall.id).join();
+          client
+            .call(outgoingCall.type, outgoingCall.id)
+            .join({ create: true });
         }
       } catch (error) {
         console.log('Failed to join the call', error);

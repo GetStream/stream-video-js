@@ -1,7 +1,7 @@
 import { StreamVideoWriteableStateStore } from '../store';
 import {
   CallAcceptedEvent,
-  CallCancelledEvent,
+  CallEndedEvent,
   CallCreatedEvent,
   CallRejectedEvent,
 } from '../gen/coordinator';
@@ -138,15 +138,15 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
 };
 
 /**
- * Event handler that watches the delivery of CallCancelledEvent
+ * Event handler that watches the delivery of CallEndedEvent
  * Updates the state store and notifies its subscribers that
  * the call is now considered terminated.
  */
 export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
-  return function onCallCancelled(event: CallCancelledEvent) {
+  return function onCallCancelled(event: CallEndedEvent) {
     const { call_cid } = event;
     if (!call_cid) {
-      console.log("Can't find call in CallCancelledEvent");
+      console.log("Can't find call in CallEndedEvent");
       return;
     }
 
@@ -162,7 +162,7 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
 
     if (!cancelledIncomingCall && !cancelledActiveCall) {
       console.warn(
-        `CallCancelledEvent received for a non-existent incoming call (CID: ${call_cid}`,
+        `CallEndedEvent received for a non-existent incoming call (CID: ${call_cid}`,
       );
       return;
     }

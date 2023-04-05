@@ -22,13 +22,13 @@ export const watchBlockedUser =
     const localParticipant = state.getCurrentValue(state.localParticipant$);
 
     // FIXME: end call
-    if (localParticipant?.userId === event.user_id) {
+    if (localParticipant?.userId === event.user.id) {
       activeCall.leave();
     }
 
     state.setCurrentValue(state.metadataSubject, (metadata) => ({
       ...metadata!,
-      blocked_user_ids: [...metadata!.blocked_user_ids, event.user_id],
+      blocked_user_ids: [...metadata!.blocked_user_ids, event.user.id],
     }));
   };
 
@@ -53,7 +53,7 @@ export const watchUnblockedUser =
 
     state.setCurrentValue(state.metadataSubject, (metadata) => {
       const blocked_user_ids = metadata!.blocked_user_ids.filter(
-        (userId) => event.user_id !== userId,
+        (userId) => event.user.id !== userId,
       );
 
       return {

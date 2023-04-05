@@ -49,7 +49,7 @@ const StartNewCallButton = () => {
     try {
       await videoClient
         .call(String(Math.round(Math.random() * 100000000)), 'default')
-        .join();
+        .join({ create: true });
     } catch (e) {
       console.error(e);
     } finally {
@@ -74,7 +74,7 @@ const JoinExistingCallForm = () => {
       event.preventDefault();
       setLoading(true);
       try {
-        await videoClient.call('default', joinCallId).join();
+        await videoClient.call('default', joinCallId).join({ create: true });
       } catch (e) {
         console.error(e);
       } finally {

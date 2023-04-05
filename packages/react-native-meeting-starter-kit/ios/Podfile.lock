@@ -306,7 +306,7 @@ PODS:
     - RCTTypeSafety
     - React-Core
     - ReactCommon/turbomodule/core
-  - react-native-webrtc (106.0.4):
+  - react-native-webrtc (106.0.7):
     - JitsiWebRTC (~> 106.0.0)
     - React-Core
   - React-perflogger (0.71.1)
@@ -392,10 +392,10 @@ PODS:
     - React-perflogger (= 0.71.1)
   - ReactNativeIncallManager (4.0.1):
     - React-Core
-  - RNScreens (3.19.0):
+  - RNScreens (3.20.0):
     - React-Core
     - React-RCTImage
-  - RNSVG (13.7.0):
+  - RNSVG (13.8.0):
     - React-Core
   - SocketRocket (0.6.0)
   - Yoga (1.14.0)
@@ -607,7 +607,7 @@ SPEC CHECKSUMS:
   React-logger: 60a0b5f8bed667ecf9e24fecca1f30d125de6d75
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-safe-area-context: 39c2d8be3328df5d437ac1700f4f3a4f75716acc
-  react-native-webrtc: 4522d420ead45fff83c4ecc7e5a706797857a185
+  react-native-webrtc: 0df36747802476e758af6b6dceccdeaed8c826c2
   React-perflogger: ec8eef2a8f03ecfa6361c2c5fb9197ef4a29cc85
   React-RCTActionSheet: a0c023b86cf4c862fa9c4eb0f6f91fbe878fb2de
   React-RCTAnimation: 168d53718c74153947c0109f55900faa64d79439
@@ -622,8 +622,8 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: 311feb67600774723fe10eb8801d3138cae9ad67
   ReactCommon: 03be76588338a27a88d103b35c3c44a3fd43d136
   ReactNativeIncallManager: 0d2cf9f4d50359728a30c08549762fe67a2efb81
-  RNScreens: ea4cd3a853063cda19a4e3c28d2e52180c80f4eb
-  RNSVG: d787d64ca06b9158e763ad2638a8c4edce00782a
+  RNScreens: 218801c16a2782546d30bd2026bb625c0302d70f
+  RNSVG: c1e76b81c76cdcd34b4e1188852892dc280eb902
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   Yoga: 921eb014669cf9c718ada68b08d362517d564e0c
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
