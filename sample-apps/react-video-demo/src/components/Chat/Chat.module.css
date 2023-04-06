@@ -2,7 +2,7 @@
 }
 
 .noMessages {
-  @apply flex flex-col items-center  text-center justify-center p-4 w-full;
+  @apply flex flex-col items-center  text-center justify-center p-4 w-full h-full bg-video-black sm:bg-video-grey-700;
 }
 
 .chatRound {

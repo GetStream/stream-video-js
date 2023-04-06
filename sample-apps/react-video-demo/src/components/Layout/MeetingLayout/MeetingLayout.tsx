@@ -1,8 +1,12 @@
 import { FC, ReactNode, useRef } from 'react';
 import classnames from 'classnames';
 import { CSSTransition } from 'react-transition-group';
+import { StreamChat } from 'stream-chat';
+
+import ChatPanel from '../../Chat';
 
 import { useModalContext } from '../../../contexts/ModalContext';
+import { useBreakpoint } from '../../../hooks/useBreakpoints';
 
 import styles from './MeetingLayout.module.css';
 
@@ -12,6 +16,11 @@ export type Props = {
   children?: ReactNode;
   footer: ReactNode;
   sidebar?: ReactNode;
+  showParticipants?: boolean;
+  showChat?: boolean;
+  chatClient?: StreamChat | null;
+  toggleChat?: () => void;
+  callId: string;
 };
 
 export const MeetingLayout: FC<Props> = ({
@@ -20,18 +29,50 @@ export const MeetingLayout: FC<Props> = ({
   footer,
   sidebar,
   children,
+  showParticipants,
+  showChat,
+  chatClient,
+  toggleChat,
+  callId,
 }) => {
-  const rootClassName = classnames(styles.root, className);
   const { isVisible, component, close } = useModalContext();
 
   const transitionRef = useRef(null);
 
+  const breakpoint = useBreakpoint();
+
+  const rootClassName = classnames(styles.root, className);
+
+  const layoutContainerClassName = classnames(styles.layoutContainer, {
+    [styles.showParticipants]:
+      showParticipants && (breakpoint === 'xs' || breakpoint === 'sm'),
+    [styles.showChat]: showChat && (breakpoint === 'xs' || breakpoint === 'sm'),
+  });
+
+  const bodyClassName = classnames(styles.body, {
+    [styles.showChat]: showChat && (breakpoint === 'xs' || breakpoint === 'sm'),
+  });
+
   return (
     <section className={rootClassName}>
-      <div className={styles.layoutContainer}>
-        <div className={styles.header}>{header}</div>
-        <div className={styles.body}>{children}</div>
+      <div className={layoutContainerClassName}>
+        {showParticipants &&
+        (breakpoint === 'xs' || breakpoint === 'sm') ? null : (
+          <div className={styles.header}>{header}</div>
+        )}
+        <div className={bodyClassName}>{children}</div>
+
         <div className={styles.footer}>{footer}</div>
+        {showChat && (breakpoint === 'xs' || breakpoint === 'sm') ? (
+          <ChatPanel
+            className={styles.chatPanel}
+            channelId={callId}
+            channelType="videocall"
+            client={chatClient}
+            close={toggleChat}
+          />
+        ) : null}
+
         <CSSTransition
           nodeRef={transitionRef}
           in={isVisible}
@@ -53,7 +94,9 @@ export const MeetingLayout: FC<Props> = ({
           </div>
         </CSSTransition>
       </div>
-      <div className={styles.sidebar}>{sidebar}</div>
+      {breakpoint !== 'xs' && breakpoint !== 'sm' && (
+        <div className={styles.sidebar}>{sidebar}</div>
+      )}
     </section>
   );
 };

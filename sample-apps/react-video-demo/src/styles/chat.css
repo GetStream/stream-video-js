@@ -10,3 +10,11 @@
 
   --str-chat__message-input-background-color: var(--color-video-grey-800);
 }
+
+.str-chat__channel .str-chat__container {
+  @apply bg-video-black;
+}
+
+.str-chat__list {
+  @apply max-h-[200px] overflow-y-scroll;
+}

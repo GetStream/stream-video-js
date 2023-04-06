@@ -12,6 +12,8 @@ import ParticipantsSlider from '../ParticipantsSlider';
 import Button from '../Button';
 import { Close, ShareScreen } from '../Icons';
 
+import { useBreakpoint } from '../../hooks/useBreakpoints';
+
 import styles from './ScreenShareParticipants.module.css';
 
 export type Props = {
@@ -30,6 +32,8 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
   const firstScreenSharingParticipant = allParticipants.find((p) =>
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
   );
+
+  const breakpoint = useBreakpoint();
 
   const wrapper: any = useRef();
 
@@ -76,21 +80,35 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
             </Button>
           </div>
           <div className={styles.localParticipant}>
-            {localParticipant && (
-              <ParticipantBox
-                participant={localParticipant}
-                call={call}
-                sinkId={localParticipant.audioOutputDeviceId}
-              />
+            {firstScreenSharingParticipant &&
+            (breakpoint === 'xs' || breakpoint === 'sm') ? (
+              <div className={styles.screenShareContainer}>
+                <Video
+                  className={styles.screenShare}
+                  participant={firstScreenSharingParticipant}
+                  call={call}
+                  kind="screen"
+                  autoPlay
+                  muted
+                />
+              </div>
+            ) : (
+              localParticipant && (
+                <ParticipantBox
+                  participant={localParticipant}
+                  call={call}
+                  sinkId={localParticipant.audioOutputDeviceId}
+                />
+              )
             )}
           </div>
         </div>
-        {remoteParticipants.length > 0 ? (
+        {allParticipants.length > 1 ? (
           <div className={styles.remoteParticipants}>
             <ParticipantsSlider
               call={call}
               mode="horizontal"
-              participants={remoteParticipants}
+              participants={allParticipants}
             />
           </div>
         ) : null}

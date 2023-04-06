@@ -1,9 +1,5 @@
-.str-video__stage {
-}
-.str-video__call-participants-screen-view {
-}
-.str-video__call-participants-screen-view
-  .str-video__call-participants-screen-view__screen {
+.str-video__participant .str-video__video-container .str-video__remote-video {
+  aspect-ratio: auto;
 }
 
 .str-video__call-participants-screen-view

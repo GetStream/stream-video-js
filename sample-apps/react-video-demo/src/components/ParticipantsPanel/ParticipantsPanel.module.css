@@ -1,5 +1,5 @@
 .search {
-  @apply bg-video-grey-500 flex items-center relative text-video-white/50 mt-4;
+  @apply hidden sm:flex bg-video-grey-500 flex items-center relative text-video-white/50 mt-4;
   border: 1px solid #272a30;
   border-radius: 44px;
   height: 25px;
@@ -27,6 +27,8 @@
 }
 
 .participants {
+  @apply pb-4;
+  border-bottom: 1px solid #272a30;
   max-height: 200px;
   overflow: hidden;
   overflow-y: scroll;
@@ -41,7 +43,8 @@
 }
 
 .video,
-.mic {
+.mic,
+.options {
   @apply flex text-video-white;
   width: 15px;
   height: 15px;
@@ -62,6 +65,14 @@
 .video:hover,
 .mic:hover,
 .videoOff:hover,
-.micMuted:hover {
+.micMuted:hover .options:hover {
   @apply cursor-pointer;
+}
+
+.options {
+  @apply ml-3;
+}
+
+.invite {
+  @apply flex flex-col sm:hidden;
 }

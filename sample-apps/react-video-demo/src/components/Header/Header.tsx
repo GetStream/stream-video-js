@@ -158,7 +158,7 @@ export const ParticipantsToggle: FC<
     Props,
     'className' | 'showParticipants' | 'toggleParticipants' | 'participantCount'
   >
-> = ({ showParticipants, toggleParticipants, participantCount }) => {
+> = ({ showParticipants, toggleParticipants }) => {
   return (
     <Button
       label="Participants"
@@ -168,9 +168,6 @@ export const ParticipantsToggle: FC<
       onClick={toggleParticipants}
     >
       <People />
-      {!showParticipants && participantCount && participantCount > 1 ? (
-        <span className={styles.participantCounter}>{participantCount}</span>
-      ) : null}
     </Button>
   );
 };
@@ -211,7 +208,6 @@ export const Header: FC<Props> = ({
           <ParticipantsToggle
             showParticipants={showParticipants}
             toggleParticipants={toggleParticipants}
-            participantCount={participantCount}
           />
         ) : (
           <LatencyIndicator latency={latency} />

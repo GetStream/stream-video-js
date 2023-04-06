@@ -95,27 +95,6 @@ export const SettingsPanel: FC<Props> = ({
             <ShareScreen className={styles.settingsIcon} />
             Share screen
           </li>
-          <li
-            className={classnames(styles.item, styles.participants)}
-            onClick={() => toggleParticipants?.()}
-          >
-            <People className={styles.settingsIcon} />
-            Particpants
-          </li>
-          <li
-            className={classnames(styles.item, styles.chat)}
-            onClick={() => toggleChat?.()}
-          >
-            <Chat className={styles.settingsIcon} />
-            Chat
-          </li>
-          <li
-            className={classnames(styles.item, styles.leave)}
-            onClick={() => leave?.()}
-          >
-            <Leave className={styles.settingsIcon} />
-            End call
-          </li>
         </ul>
       </div>
     </>

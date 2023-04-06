@@ -1,12 +1,13 @@
-import { useActiveCall } from '@stream-io/video-react-bindings';
 import {
   createContext,
   ReactNode,
   useContext,
   useState,
   useCallback,
+  useEffect,
 } from 'react';
 
+import { useBreakpoint } from '../hooks/useBreakpoints';
 export enum StepNames {
   Invite = 1,
   Chat = 2,
@@ -43,6 +44,11 @@ export const TourProvider = ({ children }: { children: ReactNode }) => {
   const [active, setActive] = useState<boolean>(true);
   const [current, setCurrent]: any = useState(0);
 
+  const breakpoint = useBreakpoint();
+
+  useEffect(() => {
+    breakpoint === 'xs' || (breakpoint === 'sm' && setActive(false));
+  }, [breakpoint]);
   const toggleTour = useCallback(() => {
     if (active) {
       setCurrent(-1);

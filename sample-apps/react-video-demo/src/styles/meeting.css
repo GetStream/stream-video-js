@@ -38,6 +38,8 @@
 }
 
 .str-video__participant .str-video__video-container .str-video__remote-video {
+  aspect-ratio: auto;
+  object-fit: cover !important;
   border-radius: 12px;
 }
 

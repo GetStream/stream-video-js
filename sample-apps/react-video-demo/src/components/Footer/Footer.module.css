@@ -30,31 +30,14 @@
 }
 
 .settingsPortal {
-  @apply ml-6;
+  @apply ml-3 sm:ml-6 mb-[45px] sm:mb-[85px];
   position: fixed;
   right: 0;
   bottom: 0;
   left: 0;
   z-index: 9999;
   height: auto;
-  margin-bottom: 85px;
-  /* margin-left: 25px; */
 }
-
-/* @media screen(md) {
-  .settingsPortal {
-    margin-right: 1rem;
-    position: absolute;
-    right: 0;
-    bottom: 42%;
-    left: 0;
-    z-index: 9999;
-    height: auto;
-
-    width: 300px;
-    margin-left: -75px;
-  }
-} */
 
 .record {
   @apply hidden sm:flex ml-4;
@@ -107,7 +90,7 @@
 }
 
 .toggles {
-  @apply flex justify-end items-center;
+  @apply flex justify-center sm:justify-end items-center;
   grid-area: toggles;
 }
 

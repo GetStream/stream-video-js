@@ -30,9 +30,12 @@
   @apply text-video-white;
 }
 
+.limit {
+  @apply w-[90%];
+}
+
 .input {
   @apply bg-video-transparent relative border-none z-10 cursor-pointer w-full h-full text-xs;
-  width: 120px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -43,7 +46,7 @@
 }
 
 .copied {
-  @apply flex items-center justify-around text-video-white;
+  @apply flex items-center justify-around text-video-white text-xs;
 }
 
 .copiedIcon {
@@ -81,4 +84,8 @@
 
 .code {
   @apply bg-video-white rounded-container p-4;
+}
+
+.share {
+  @apply mt-3 w-full;
 }

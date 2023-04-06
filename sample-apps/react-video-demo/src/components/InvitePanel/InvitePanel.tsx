@@ -64,7 +64,7 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
             <Copy className={styles.copyIcon} />
           </div>
         ) : (
-          <div>
+          <div className={styles.limit}>
             <input ref={inputRef} className={styles.input} readOnly={true} />
             <Copy className={styles.copyIcon} />
           </div>
@@ -73,6 +73,7 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
 
       {canShare && (
         <Button
+          className={styles.share}
           onClick={() =>
             navigator.share({ url: `${window.location.href}?id=${callId}` })
           }

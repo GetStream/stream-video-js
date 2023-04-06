@@ -80,7 +80,7 @@ export const Footer: FC<Props> = ({
     if (current === StepNames.Settings && showSettingsPanel === false) {
       setShowSettingsPanel(true);
     }
-  }, [current, toggleChat, showChat]);
+  }, [current, showChat]);
 
   useEffect(() => {
     setShowSettingsPanel(isVisible || current === StepNames.Settings);
@@ -180,7 +180,7 @@ export const Footer: FC<Props> = ({
               : 'secondary'
           }
           shape="square"
-          onClick={toggleChat}
+          onClick={() => toggleChat()}
         >
           <Chat />
           {unreadMessages && unreadMessages > 0 ? (

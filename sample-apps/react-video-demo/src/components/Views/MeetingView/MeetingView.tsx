@@ -19,25 +19,17 @@ import { MediaDevicesProvider } from '@stream-io/video-react-sdk';
 import Header from '../../Header';
 import Footer from '../../Footer';
 import Sidebar from '../../Sidebar';
+import Meeting from '../../Meeting';
 
 import MeetingLayout from '../../Layout/MeetingLayout';
 
-import ScreenShareParticipants from '../../ScreenShareParticipants';
-import MeetingParticipants from '../../MeetingParticipants';
-
-import InvitePanel from '../../InvitePanel';
-import ParticipantsPanel from '../../ParticipantsPanel';
-import ChatPanel from '../../ChatPanel';
-import TourPanel from '../../TourPanel';
-import Notifications from '../../Notifications';
-
 import { useWatchChannel } from '../../../hooks/useWatchChannel';
-import { useBreakpoint } from '../../../hooks/useBreakpoints';
 
 import { useTourContext } from '../../../contexts/TourContext';
 import { tour } from '../../../../data/tour';
 
 import '@stream-io/video-styling/dist/css/styles.css';
+
 import styles from './MeetingView.module.css';
 
 export type Props = {
@@ -55,7 +47,7 @@ export type Meeting = {
   loading?: boolean;
 };
 
-export const Meeting: FC<Props & Meeting> = ({
+export const View: FC<Props & Meeting> = ({
   logo,
   call,
   callId,
@@ -74,10 +66,7 @@ export const Meeting: FC<Props & Meeting> = ({
   const cid = `videocall:${callId}`;
   const channelWatched = useWatchChannel({ chatClient, channelId: callId });
 
-  const breakpoint = useBreakpoint();
-
-  const { next, current, total, step, setSteps, active, toggleTour } =
-    useTourContext();
+  const { current, setSteps } = useTourContext();
 
   const client = useStreamVideoClient();
   const participants = useParticipants();
@@ -160,30 +149,29 @@ export const Meeting: FC<Props & Meeting> = ({
 
   const handleStartRecording = useCallback(async () => {
     if (!isCallRecordingInProgress) {
-      await client?.startRecording(callId, callType);
+      await client?.call(callId, callType).startRecording();
     }
-  }, [callId, client, isCallRecordingInProgress, callType]);
+  }, [callId, client, isCallRecordingInProgress, callType, call]);
 
   const handleStopRecording = useCallback(async () => {
     if (isCallRecordingInProgress) {
-      await client?.stopRecording(callId, callType);
+      await client?.call(callId, callType).stopRecording();
     }
   }, [callId, client, isCallRecordingInProgress, callType]);
 
   const handlePauseRecording = useCallback(async () => {
     if (isCallRecordingInProgress) {
-      await client?.stopRecording(callId, callType);
+      await client?.call(callId, callType).stopRecording;
     }
   }, [callId, client, isCallRecordingInProgress, callType]);
 
-  const contentClasses = classnames(styles.content, {
-    [styles.activeTour]: active && participants.length === 1,
-    [styles.showParticipants]:
-      (showParticipants && breakpoint === 'xs') || breakpoint === 'sm',
-  });
-
   return (
     <MeetingLayout
+      showParticipants={showParticipants}
+      showChat={showChat}
+      callId={callId}
+      chatClient={chatClient}
+      toggleChat={toggleChat}
       header={
         <Header
           logo={logo}
@@ -201,17 +189,14 @@ export const Meeting: FC<Props & Meeting> = ({
         />
       }
       sidebar={
-        breakpoint !== 'xs' &&
-        breakpoint !== 'sm' && (
-          <Sidebar
-            callId={callId}
-            current={current}
-            showParticipants={showParticipants}
-            showChat={showChat}
-            chatClient={chatClient}
-            participants={participants}
-          />
-        )
+        <Sidebar
+          callId={callId}
+          current={current}
+          showParticipants={showParticipants}
+          showChat={showChat}
+          chatClient={chatClient}
+          participants={participants}
+        />
       }
       footer={
         <Footer
@@ -235,40 +220,15 @@ export const Meeting: FC<Props & Meeting> = ({
         />
       }
     >
-      <>
-        <Notifications className={styles.notifications} />
-        <div className={contentClasses}>
-          {(showParticipants && breakpoint === 'xs') ||
-            (breakpoint === 'sm' && (
-              <ParticipantsPanel
-                participants={participants}
-                close={toggleParticipants}
-                callId={callId}
-              />
-            ))}
-
-          <div className={styles.stage}>
-            {isScreenSharing ? (
-              <ScreenShareParticipants call={call} />
-            ) : (
-              <MeetingParticipants call={call} />
-            )}
-          </div>
-        </div>
-        {active && participants.length === 1 ? (
-          <div className={styles.tour}>
-            <TourPanel
-              className={styles.tourPanel}
-              header={step?.header}
-              explanation={step?.explanation}
-              next={next}
-              current={current}
-              total={total}
-              close={toggleTour}
-            />
-          </div>
-        ) : null}
-      </>
+      <Meeting
+        isScreenSharing={isScreenSharing}
+        call={call}
+        callId={callId}
+        showParticipants={showParticipants}
+        participantsAmount={participants?.length}
+        participants={participants}
+        toggleParticipants={toggleParticipants}
+      />
     </MeetingLayout>
   );
 };
@@ -281,7 +241,7 @@ export const MeetingView: FC<Props> = (props) => {
   return (
     <StreamCallProvider call={activeCall}>
       <MediaDevicesProvider enumerate>
-        <Meeting call={activeCall} {...props} />;
+        <View call={activeCall} {...props} />
       </MediaDevicesProvider>
     </StreamCallProvider>
   );

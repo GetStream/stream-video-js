@@ -1,5 +1,5 @@
 .root {
-  @apply flex items-center justify-between bg-video-grey-800 border-t-2 border-video-grey-450;
+  @apply flex items-center justify-between bg-video-grey-800 border-t-2 border-video-grey-450 pr-2;
 }
 
 .container {

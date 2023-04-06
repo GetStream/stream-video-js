@@ -84,7 +84,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
 
   useEffect(() => {
     async function fetchEdges() {
-      const response: any = await client.coordinatorClient.edges();
+      const response: any = await client.edges();
       const fastedEdges = response.edges.sort(
         (a: any, b: any) => a.latency - b.latency,
       );
@@ -100,7 +100,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     const id = callId || uuidv1();
     setIsJoiningCall(true);
     try {
-      await client.joinCall(id, callType);
+      await client.call(callType, id).join();
       setCallId(id);
       setIsCallActive(true);
       setIsJoiningCall(false);

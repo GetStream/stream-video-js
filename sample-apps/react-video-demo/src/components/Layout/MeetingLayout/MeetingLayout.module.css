@@ -1,5 +1,5 @@
 .root {
-  @apply flex relative bg-video-grey-700;
+  @apply flex relative bg-video-black;
   height: 100vh;
   width: 100vw;
 }
@@ -24,16 +24,34 @@
 
 .layoutContainer {
   grid-area: layoutContainer;
-  @apply grid rounded-container bg-video-grey-600 w-full;
-  grid-template-rows: 80px calc(100vh - 175px) 100px;
+  @apply grid rounded-container bg-video-black sm:bg-video-grey-600 w-full;
+  grid-template-rows: 80px calc(100vh - 150px) 70px;
   grid-template-areas:
     'header'
     'body'
     'footer';
 }
 
-.layoutContainer {
-  grid-template-rows: 80px calc(100vh - 190px) 100px;
+@media screen(sm) {
+  .layoutContainer {
+    grid-template-rows: 80px calc(100vh - 200px) 120px;
+  }
+}
+
+.layoutContainer.showParticipants {
+  grid-template-areas:
+    'body'
+    'footer';
+  grid-template-rows: calc(100vh - 70px) 70px;
+}
+
+.layoutContainer.showChat {
+  grid-template-areas:
+    'header'
+    'body'
+    'footer'
+    'chatPanel';
+  grid-template-rows: 80px 30vh 70px calc(70vh - 150px);
 }
 
 .sidebar {
@@ -52,13 +70,22 @@
   grid-area: body;
 }
 
+.body.showChat {
+  @apply h-screen;
+}
+
 .footer {
-  @apply bg-video-grey-700 w-full bottom-0 left-0 flex p-4;
+  @apply bg-video-grey-700 w-full bottom-0 left-0 flex  pl-4 pr-4 pt-2 pb-2 sm:p-4 z-10;
   grid-area: footer;
   border-radius: 13px 13px 0 0;
 }
 
-@media screen(sm) {
+.chatPanel {
+  @apply max-w-none;
+  grid-area: chatPanel;
+}
+
+@media screen(lg) {
   .footer {
     @apply bg-video-transparent;
   }

@@ -30,7 +30,7 @@
 }
 
 .callContainer video {
-  @apply w-full h-auto;
+  @apply w-full h-auto max-h-[30vh];
   border-radius: 10px;
 }
 

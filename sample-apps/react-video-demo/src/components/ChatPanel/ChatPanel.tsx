@@ -13,6 +13,7 @@ export type Props = {
   channelId: string;
   client?: StreamChat | null;
   channelType: string;
+  close?: () => void;
 };
 
 export const ChatPanel: FC<Props> = ({
@@ -21,6 +22,7 @@ export const ChatPanel: FC<Props> = ({
   channelId,
   client,
   channelType,
+  close,
 }) => {
   const rootClassname = classnames(styles.root, className);
 
@@ -29,6 +31,7 @@ export const ChatPanel: FC<Props> = ({
       className={rootClassname}
       title="Chat"
       isFocused={isFocused}
+      close={close}
       canCollapse
     >
       <Chat channelId={channelId} client={client} channelType={channelType} />
