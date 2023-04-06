@@ -23,6 +23,7 @@ export const ActiveCallHeader = ({
 
   const callingState = useCallCallingState();
   const isOffline = callingState === CallingState.OFFLINE;
+  const hasFailedToRecover = callingState === CallingState.RECONNECTING_FAILED;
   const isRecoveringConnection = [
     CallingState.JOINING,
     CallingState.RECONNECTING,
@@ -62,7 +63,7 @@ export const ActiveCallHeader = ({
       </div>
       <div className="str-video__call-header__notifications">
         <Notification
-          isVisible={isRecoveringConnection || isOffline}
+          isVisible={isRecoveringConnection || isOffline || hasFailedToRecover}
           iconClassName={null}
           placement="auto"
           message={
@@ -72,6 +73,8 @@ export const ActiveCallHeader = ({
                   ? 'Reconnecting...'
                   : isOffline
                   ? 'You are offline...'
+                  : hasFailedToRecover
+                  ? 'Failed to restore connection. Check your internet connection and try again later.'
                   : `Calling state: ${callingState}`
               }
             />
