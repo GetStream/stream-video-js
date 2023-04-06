@@ -1,4 +1,4 @@
-import { BlockedUserEvent, UnblockedUserEvent } from '../gen/coordinator';
+import { StreamVideoEvent } from '../coordinator/connection/types';
 import { StreamVideoWriteableStateStore } from '../store';
 
 /**
@@ -7,7 +7,10 @@ import { StreamVideoWriteableStateStore } from '../store';
  * `event.user_id` to the list
  */
 export const watchBlockedUser =
-  (store: StreamVideoWriteableStateStore) => (event: BlockedUserEvent) => {
+  (store: StreamVideoWriteableStateStore) => (event: StreamVideoEvent) => {
+    if (event.type !== 'call.blocked_user') {
+      return;
+    }
     const activeCall = store.getCurrentValue(store.activeCallSubject);
 
     if (!activeCall || activeCall.cid !== event.call_cid) {
@@ -38,7 +41,10 @@ export const watchBlockedUser =
  * removing `event.user_id` from the list
  */
 export const watchUnblockedUser =
-  (store: StreamVideoWriteableStateStore) => (event: UnblockedUserEvent) => {
+  (store: StreamVideoWriteableStateStore) => (event: StreamVideoEvent) => {
+    if (event.type !== 'call.unblocked_user') {
+      return;
+    }
     const activeCall = store.getCurrentValue(store.activeCallSubject);
 
     if (!activeCall || activeCall.cid !== event.call_cid) {

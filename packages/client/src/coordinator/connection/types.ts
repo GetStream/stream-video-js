@@ -82,14 +82,14 @@ export type ConnectionRecoveredEvent = {
   type: 'connection.recovered';
 };
 
-export type Event = (
+export type StreamVideoEvent = (
   | WSEvent
   | ConnectionChangedEvent
   | TransportChangedEvent
   | ConnectionRecoveredEvent
 ) & { received_at?: string | Date };
 
-export type CallEvent = Exclude<
+export type StreamCallEvent = Exclude<
   Event,
   | HealthCheckEvent
   | ConnectionChangedEvent
@@ -97,9 +97,9 @@ export type CallEvent = Exclude<
   | ConnectionRecoveredEvent
 >;
 
-export type EventHandler = (event: Event) => void;
+export type EventHandler = (event: StreamVideoEvent) => void;
 
-export type CallEventHandler = (event: CallEvent) => void;
+export type CallEventHandler = (event: StreamCallEvent) => void;
 
 export type Logger = (
   logLevel: LogLevel,

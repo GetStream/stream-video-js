@@ -1,8 +1,5 @@
 import { StreamVideoWriteableStateStore } from '../store';
-import {
-  CallRecordingStartedEvent,
-  CallRecordingStoppedEvent,
-} from '../gen/coordinator';
+import { StreamVideoEvent } from '../coordinator/connection/types';
 
 /**
  * Watches for `call.recording_started` events.
@@ -10,7 +7,10 @@ import {
 export const watchCallRecordingStarted = (
   store: StreamVideoWriteableStateStore,
 ) => {
-  return function onCallRecordingStarted(event: CallRecordingStartedEvent) {
+  return function onCallRecordingStarted(event: StreamVideoEvent) {
+    if (event.type !== 'call.recording_started') {
+      return;
+    }
     const { call_cid } = event;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     if (!activeCall || activeCall.cid !== call_cid) {
@@ -28,7 +28,10 @@ export const watchCallRecordingStarted = (
 export const watchCallRecordingStopped = (
   store: StreamVideoWriteableStateStore,
 ) => {
-  return function onCallRecordingStopped(event: CallRecordingStoppedEvent) {
+  return function onCallRecordingStopped(event: StreamVideoEvent) {
+    if (event.type !== 'call.recording_stopped') {
+      return;
+    }
     const { call_cid } = event;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     if (!activeCall || activeCall.cid !== call_cid) {

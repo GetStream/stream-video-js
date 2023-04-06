@@ -1,5 +1,5 @@
+import { StreamVideoEvent } from '../coordinator/connection/types';
 import { StreamVideoWriteableStateStore } from '../store';
-import type { CallReactionEvent } from '../gen/coordinator';
 
 /**
  * Watches the delivery of CallReactionEvent.
@@ -7,7 +7,10 @@ import type { CallReactionEvent } from '../gen/coordinator';
  * @param store the state store to update.
  */
 export const watchNewReactions = (store: StreamVideoWriteableStateStore) => {
-  return function onNewReactions(event: CallReactionEvent) {
+  return function onNewReactions(event: StreamVideoEvent) {
+    if (event.type !== 'call.reaction_new') {
+      return;
+    }
     const { call_cid, reaction } = event;
     const activeCall = store.getCurrentValue(store.activeCallSubject);
     if (!activeCall || activeCall.cid !== call_cid) {

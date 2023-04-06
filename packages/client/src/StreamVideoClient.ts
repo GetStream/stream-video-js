@@ -33,8 +33,6 @@ import {
 import { CALL_CONFIG, CallConfig } from './config';
 import { CallDropScheduler } from './CallDropScheduler';
 import {
-  CallEventHandler,
-  CallEventTypes,
   EventHandler,
   EventTypes,
   StreamClientOptions,
@@ -108,64 +106,38 @@ export class StreamVideoClient {
 
     this.on(
       'call.created',
-      // @ts-expect-error until we sort out the types
       watchCallCreated(this.writeableStateStore, this.streamClient),
     );
-    this.on(
-      'call.accepted',
-      // @ts-expect-error until we sort out the types
-      watchCallAccepted(this.writeableStateStore),
-    );
-    this.on(
-      'call.rejected',
-      // @ts-expect-error until we sort out the types
-      watchCallRejected(this.writeableStateStore),
-    );
-    this.on(
-      'call.cancelled',
-      // @ts-expect-error until we sort out the types
-      watchCallCancelled(this.writeableStateStore),
-    );
+    this.on('call.accepted', watchCallAccepted(this.writeableStateStore));
+    this.on('call.rejected', watchCallRejected(this.writeableStateStore));
+    this.on('call.ended', watchCallCancelled(this.writeableStateStore));
     this.on(
       'call.permission_request',
-      // @ts-expect-error until we sort out the types
       watchCallPermissionRequest(this.writeableStateStore),
     );
 
     this.on(
       'call.permissions_updated',
-      // @ts-expect-error until we sort out the types
       watchCallPermissionsUpdated(this.writeableStateStore),
     );
 
-    this.on(
-      'call.blocked_user',
-      // @ts-expect-error until we sort out the types
-      watchBlockedUser(this.writeableStateStore),
-    );
+    this.on('call.blocked_user', watchBlockedUser(this.writeableStateStore));
     this.on(
       'call.unblocked_user',
-      // @ts-expect-error until we sort out the types
       watchUnblockedUser(this.writeableStateStore),
     );
 
     this.on(
       'call.recording_started',
-      // @ts-expect-error until we sort out the types
       watchCallRecordingStarted(this.writeableStateStore),
     );
 
     this.on(
       'call.recording_stopped',
-      // @ts-expect-error until we sort out the types
       watchCallRecordingStopped(this.writeableStateStore),
     );
 
-    this.on(
-      'call.reaction_new',
-      // @ts-expect-error until we sort out the types
-      watchNewReactions(this.writeableStateStore),
-    );
+    this.on('call.reaction_new', watchNewReactions(this.writeableStateStore));
 
     this.writeableStateStore.setCurrentValue(
       this.writeableStateStore.connectedUserSubject,
