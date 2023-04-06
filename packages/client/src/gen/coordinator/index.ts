@@ -184,6 +184,12 @@ export interface BlockedUserEvent {
   type: string;
   /**
    *
+   * @type {string}
+   * @memberof BlockedUserEvent
+   */
+  kind: string;
+  /**
+   *
    * @type {UserResponse}
    * @memberof BlockedUserEvent
    */
@@ -235,6 +241,12 @@ export interface CallAcceptedEvent {
   type: string;
   /**
    *
+   * @type {string}
+   * @memberof CallAcceptedEvent
+   */
+  kind: string;
+  /**
+   *
    * @type {UserResponse}
    * @memberof CallAcceptedEvent
    */
@@ -283,6 +295,12 @@ export interface CallCreatedEvent {
    * @memberof CallCreatedEvent
    */
   type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallCreatedEvent
+   */
+  kind: string;
 }
 /**
  * This event is sent when a call is mark as ended for all its participants. Clients receiving this event should leave the call screen
@@ -308,6 +326,12 @@ export interface CallEndedEvent {
    * @memberof CallEndedEvent
    */
   type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallEndedEvent
+   */
+  kind: string;
   /**
    *
    * @type {UserResponse}
@@ -351,6 +375,12 @@ export interface CallMemberAddedEvent {
    * @memberof CallMemberAddedEvent
    */
   type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberAddedEvent
+   */
+  kind: string;
 }
 /**
  * This event is sent when one or more members are removed from a call
@@ -388,6 +418,12 @@ export interface CallMemberRemovedEvent {
    * @memberof CallMemberRemovedEvent
    */
   type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberRemovedEvent
+   */
+  kind: string;
 }
 /**
  * This event is sent when one or more members are updated
@@ -425,6 +461,12 @@ export interface CallMemberUpdatedEvent {
    * @memberof CallMemberUpdatedEvent
    */
   type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallMemberUpdatedEvent
+   */
+  kind: string;
 }
 /**
  * This event is sent when one or more members get its role updated
@@ -499,6 +541,12 @@ export interface CallReactionEvent {
    * @memberof CallReactionEvent
    */
   type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallReactionEvent
+   */
+  kind: string;
 }
 /**
  *
@@ -555,6 +603,12 @@ export interface CallRecordingStartedEvent {
    * @memberof CallRecordingStartedEvent
    */
   type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStartedEvent
+   */
+  kind: string;
 }
 /**
  * This event is sent when call recording has stopped
@@ -580,6 +634,12 @@ export interface CallRecordingStoppedEvent {
    * @memberof CallRecordingStoppedEvent
    */
   type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingStoppedEvent
+   */
+  kind: string;
 }
 /**
  * This event is sent when a user rejects a ringing call. Clients receiving this event should dismiss
@@ -612,6 +672,12 @@ export interface CallRejectedEvent {
    * @memberof CallRejectedEvent
    */
   user: UserResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRejectedEvent
+   */
+  kind: string;
 }
 /**
  *
@@ -751,7 +817,7 @@ export interface CallResponse {
    * @type {string}
    * @memberof CallResponse
    */
-  team: string;
+  team?: string;
   /**
    *
    * @type {boolean}
@@ -992,6 +1058,12 @@ export interface CallUpdatedEvent {
    * @memberof CallUpdatedEvent
    */
   type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUpdatedEvent
+   */
+  kind: string;
 }
 /**
  *
@@ -1166,6 +1238,12 @@ export interface CustomVideoEvent {
    * @memberof CustomVideoEvent
    */
   type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CustomVideoEvent
+   */
+  kind: string;
   /**
    *
    * @type {UserResponse}
@@ -1682,6 +1760,12 @@ export interface HealthCheckEvent {
    * @memberof HealthCheckEvent
    */
   type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof HealthCheckEvent
+   */
+  kind: string;
 }
 /**
  *
@@ -1886,13 +1970,7 @@ export interface MemberResponse {
    * @type {string}
    * @memberof MemberResponse
    */
-  duration: string;
-  /**
-   *
-   * @type {string}
-   * @memberof MemberResponse
-   */
-  role: string;
+  role?: string;
   /**
    * Date/time of the last update
    * @type {string}
@@ -2098,6 +2176,12 @@ export interface PermissionRequestEvent {
    * @memberof PermissionRequestEvent
    */
   user: UserResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof PermissionRequestEvent
+   */
+  kind: string;
 }
 /**
  *
@@ -2740,42 +2824,48 @@ export interface UnblockedUserEvent {
    * @memberof UnblockedUserEvent
    */
   user: UserResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof UnblockedUserEvent
+   */
+  kind: string;
 }
 /**
  *
  * @export
- * @interface UpdateCallMemberRequest
+ * @interface UpdateCallMembersRequest
  */
-export interface UpdateCallMemberRequest {
+export interface UpdateCallMembersRequest {
   /**
    * List of userID to remove
    * @type {Array<string>}
-   * @memberof UpdateCallMemberRequest
+   * @memberof UpdateCallMembersRequest
    */
   remove_members?: Array<string>;
   /**
    * List of members to update or insert
    * @type {Array<MemberRequest>}
-   * @memberof UpdateCallMemberRequest
+   * @memberof UpdateCallMembersRequest
    */
   update_members?: Array<MemberRequest>;
 }
 /**
  *
  * @export
- * @interface UpdateCallMemberResponse
+ * @interface UpdateCallMembersResponse
  */
-export interface UpdateCallMemberResponse {
+export interface UpdateCallMembersResponse {
   /**
    * Duration of the request in human-readable format
    * @type {string}
-   * @memberof UpdateCallMemberResponse
+   * @memberof UpdateCallMembersResponse
    */
   duration: string;
   /**
    *
    * @type {Array<MemberResponse>}
-   * @memberof UpdateCallMemberResponse
+   * @memberof UpdateCallMembersResponse
    */
   members: Array<MemberResponse>;
 }
@@ -2953,6 +3043,12 @@ export interface UpdatedCallPermissionsEvent {
    * @memberof UpdatedCallPermissionsEvent
    */
   user: UserResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdatedCallPermissionsEvent
+   */
+  kind: string;
 }
 /**
  *
@@ -3122,6 +3218,37 @@ export interface WSAuthMessageRequest {
   user_details: ConnectUserDetailsRequest;
 }
 /**
+ * @type WSCallEvent
+ * The discriminator object for call websocket events, you should use this to map event payloads to their own type
+ * @export
+ */
+export type WSCallEvent =
+  | ({ type: 'call.accepted' } & CallAcceptedEvent)
+  | ({ type: 'call.blocked_user' } & BlockedUserEvent)
+  | ({ type: 'call.created' } & CallCreatedEvent)
+  | ({ type: 'call.ended' } & CallEndedEvent)
+  | ({ type: 'call.member_added' } & CallMemberAddedEvent)
+  | ({ type: 'call.member_removed' } & CallMemberRemovedEvent)
+  | ({ type: 'call.member_updated' } & CallMemberUpdatedEvent)
+  | ({ type: 'call.permission_request' } & PermissionRequestEvent)
+  | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)
+  | ({ type: 'call.reaction_new' } & CallReactionEvent)
+  | ({ type: 'call.recording_started' } & CallRecordingStartedEvent)
+  | ({ type: 'call.recording_stopped' } & CallRecordingStoppedEvent)
+  | ({ type: 'call.rejected' } & CallRejectedEvent)
+  | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
+  | ({ type: 'call.updated' } & CallUpdatedEvent)
+  | ({ type: 'call.updated_permission' } & CallMemberUpdatedPermissionEvent)
+  | ({ type: 'custom' } & CustomVideoEvent);
+/**
+ * @type WSClientEvent
+ * The discriminator object for client websocket events, you should use this to map event payloads to their own type
+ * @export
+ */
+export type WSClientEvent =
+  | ({ type: 'connection.ok' } & WSConnectedEvent)
+  | ({ type: 'health.check' } & HealthCheckEvent);
+/**
  * This event is sent when the WS connection is established and authenticated, this event contains the full user object as it is stored on the server
  * @export
  * @interface WSConnectedEvent
@@ -3151,29 +3278,18 @@ export interface WSConnectedEvent {
    * @memberof WSConnectedEvent
    */
   type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof WSConnectedEvent
+   */
+  kind: string;
 }
 /**
  * @type WSEvent
- * The discriminator object for all websocket events, you should use this to map event payloads to their own type
+ * The discriminator object for all websocket events, you should use this to differentiate between call and client events
  * @export
  */
 export type WSEvent =
-  | ({ type: 'call.accepted' } & CallAcceptedEvent)
-  | ({ type: 'call.blocked_user' } & BlockedUserEvent)
-  | ({ type: 'call.created' } & CallCreatedEvent)
-  | ({ type: 'call.ended' } & CallEndedEvent)
-  | ({ type: 'call.member_added' } & CallMemberAddedEvent)
-  | ({ type: 'call.member_removed' } & CallMemberRemovedEvent)
-  | ({ type: 'call.member_updated' } & CallMemberUpdatedEvent)
-  | ({ type: 'call.permission_request' } & PermissionRequestEvent)
-  | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)
-  | ({ type: 'call.reaction_new' } & CallReactionEvent)
-  | ({ type: 'call.recording_started' } & CallRecordingStartedEvent)
-  | ({ type: 'call.recording_stopped' } & CallRecordingStoppedEvent)
-  | ({ type: 'call.rejected' } & CallRejectedEvent)
-  | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
-  | ({ type: 'call.updated' } & CallUpdatedEvent)
-  | ({ type: 'call.updated_permission' } & CallMemberUpdatedPermissionEvent)
-  | ({ type: 'connection.ok' } & WSConnectedEvent)
-  | ({ type: 'custom' } & CustomVideoEvent)
-  | ({ type: 'health.check' } & HealthCheckEvent);
+  | ({ kind: 'call' } & WSCallEvent)
+  | ({ kind: 'client' } & WSClientEvent);
