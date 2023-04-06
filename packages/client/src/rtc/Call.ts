@@ -363,31 +363,27 @@ export class Call {
         this.state.localParticipant$,
       );
 
-      try {
-        this.subscriber?.close();
-        this.publisher?.stopPublishing({ stopTracks: false });
-        this.statsReporter?.stop();
-        sfuClient.close(); // clean up previous connection
+      this.subscriber?.close();
+      this.publisher?.stopPublishing({ stopTracks: false });
+      this.statsReporter?.stop();
+      sfuClient.close(); // clean up previous connection
 
-        await sleep(retryInterval(this.reconnectAttempts));
-        await this.join(data);
-        console.log(`Rejoin ${this.reconnectAttempts} successful!`);
-        if (localParticipant) {
-          const {
-            audioStream,
-            videoStream,
-            screenShareStream: screenShare,
-          } = localParticipant;
+      await sleep(retryInterval(this.reconnectAttempts));
+      await this.join(data);
+      console.log(`Rejoin: ${this.reconnectAttempts} successful!`);
+      if (localParticipant) {
+        const {
+          audioStream,
+          videoStream,
+          screenShareStream: screenShare,
+        } = localParticipant;
 
-          // restore previous publishing state
-          if (audioStream) await this.publishAudioStream(audioStream);
-          if (videoStream) await this.publishVideoStream(videoStream);
-          if (screenShare) await this.publishScreenShareStream(screenShare);
-        }
-        console.log(`Rejoin: state restored ${this.reconnectAttempts}`);
-      } catch (err) {
-        console.error('Rejoin failed', err);
+        // restore previous publishing state
+        if (audioStream) await this.publishAudioStream(audioStream);
+        if (videoStream) await this.publishVideoStream(videoStream);
+        if (screenShare) await this.publishScreenShareStream(screenShare);
       }
+      console.log(`Rejoin: state restored ${this.reconnectAttempts}`);
     };
 
     // reconnect if the connection was closed unexpectedly. example:
@@ -396,8 +392,16 @@ export class Call {
     sfuClient.signalReady.then(() => {
       sfuClient.signalWs.addEventListener('close', (e) => {
         // do nothing if the connection was closed on purpose
-        if (e.code === 1000 || this.reconnectAttempts >= 10) return;
-        rejoin();
+        if (e.code === 1000) return;
+        if (this.reconnectAttempts >= 10) {
+          console.log('Reconnect attempts exceeded. Giving up...');
+          this.state.setCurrentValue(
+            this.state.callingStateSubject,
+            CallingState.RECONNECTING_FAILED,
+          );
+        } else {
+          void rejoin();
+        }
       });
     });
 
@@ -508,13 +512,18 @@ export class Call {
       console.log(`Joined call ${this.cid}`);
     } catch (err) {
       // join failed, try to rejoin
-      if (this.reconnectAttempts <= 10) {
+      if (this.reconnectAttempts < 10) {
         await rejoin();
         console.log(`Rejoin ${this.reconnectAttempts} successful!`);
       } else {
         console.log(
           `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
         );
+        this.state.setCurrentValue(
+          this.state.callingStateSubject,
+          CallingState.RECONNECTING_FAILED,
+        );
+        throw new Error('Join failed');
       }
     }
   };

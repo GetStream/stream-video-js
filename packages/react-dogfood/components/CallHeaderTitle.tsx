@@ -1,6 +1,5 @@
 import {
   useActiveCall,
-  useCallCallingState,
   useConnectedUser,
   useRemoteParticipants,
 } from '@stream-io/video-react-sdk';
@@ -15,7 +14,6 @@ export const CallHeaderTitle = ({ title }: CallTitleProps) => {
   const activeCall = useActiveCall();
   const connectedUser = useConnectedUser();
   const remoteParticipants = useRemoteParticipants();
-  const callingState = useCallCallingState();
 
   const standInTitle = useMemo(() => {
     if (!connectedUser) return 'Connecting...';
@@ -35,8 +33,6 @@ export const CallHeaderTitle = ({ title }: CallTitleProps) => {
   return (
     <div className="str-video__call-header__title-group">
       <HomeButton />
-      {/* FIXME OL: switch to a nicer indicator */}
-      <span>{callingState}</span>
       <h4 className="str-video__call-header-title">{title || standInTitle}</h4>
     </div>
   );

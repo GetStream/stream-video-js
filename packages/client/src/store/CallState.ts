@@ -54,6 +54,11 @@ export enum CallingState {
   RECONNECTING = 'reconnecting',
 
   /**
+   * The call has failed to reconnect.
+   */
+  RECONNECTING_FAILED = 'reconnecting-failed',
+
+  /**
    * The call is in offline mode.
    */
   OFFLINE = 'offline',
