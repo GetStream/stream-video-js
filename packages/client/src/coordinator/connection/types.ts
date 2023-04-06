@@ -54,7 +54,7 @@ export class ErrorFromResponse<T> extends Error {
   status?: number;
 }
 
-type ClientEventTypes = 'health.check';
+type ClientEventTypes = 'health.check' | 'connection.ok';
 
 type LocalEventTypes =
   | 'connection.changed'
