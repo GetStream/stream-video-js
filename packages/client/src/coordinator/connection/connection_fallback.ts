@@ -7,7 +7,7 @@ import {
   sleep,
 } from './utils';
 import { isAPIError, isConnectionIDError, isErrorRetryable } from './errors';
-import { ConnectionOpen, Event, UR, LogLevel } from './types';
+import { ConnectionOpen, StreamVideoEvent, UR, LogLevel } from './types';
 
 export enum ConnectionState {
   Closed = 'CLOSED',
@@ -118,7 +118,7 @@ export class WSConnectionFallback {
     while (this.state === ConnectionState.Connected) {
       try {
         const data = await this._req<{
-          events: Event[];
+          events: StreamVideoEvent[];
         }>(
           {},
           {
