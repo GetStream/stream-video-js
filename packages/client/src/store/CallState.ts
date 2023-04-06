@@ -25,6 +25,41 @@ export type UserResponseMap = {
 };
 
 /**
+ * Represents the state of the current call.
+ */
+export enum CallingState {
+  /**
+   * The call is in an idle state.
+   */
+  IDLE = 'idle',
+
+  /**
+   * The call is in the process of joining.
+   */
+  JOINING = 'joining',
+
+  /**
+   * The call is currently active.
+   */
+  JOINED = 'joined',
+
+  /**
+   * The call has been left.
+   */
+  LEFT = 'left',
+
+  /**
+   * The call is in the process of reconnecting.
+   */
+  RECONNECTING = 'reconnecting',
+
+  /**
+   * The call is in offline mode.
+   */
+  OFFLINE = 'offline',
+}
+
+/**
  * Holds the state of the current call.
  * @react You don't have to use this class directly, as we are exposing the state through Hooks.
  */
@@ -42,6 +77,13 @@ export class CallState {
    * @internal
    */
   membersSubject = new BehaviorSubject<MemberResponse[]>([]);
+
+  /**
+   * The calling state.
+   *
+   * @internal
+   */
+  callingStateSubject = new BehaviorSubject<CallingState>(CallingState.IDLE);
 
   /**
    * All participants of the current call (including the logged-in user).
@@ -167,6 +209,11 @@ export class CallState {
   members$: Observable<UserResponseMap>;
 
   /**
+   * The calling state.
+   */
+  callingState$: Observable<CallingState>;
+
+  /**
    * A list of comparators that are used to sort the participants.
    *
    * @private
@@ -231,6 +278,8 @@ export class CallState {
         }, {});
       }),
     );
+
+    this.callingState$ = this.callingStateSubject.asObservable();
   }
 
   /**

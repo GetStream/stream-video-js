@@ -126,3 +126,11 @@ export const useCallRecordings = () => {
   const { callRecordingList$ } = useCallState();
   return useObservableValue(callRecordingList$);
 };
+
+/**
+ * Utility hook providing the current calling state of the call.
+ */
+export const useCallCallingState = () => {
+  const { callingState$ } = useCallState();
+  return useObservableValue(callingState$);
+};

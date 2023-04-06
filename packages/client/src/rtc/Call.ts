@@ -4,13 +4,12 @@ import { Publisher } from './publisher';
 import { getGenericSdp } from './codecs';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
+import { Dispatcher, SfuEventKinds, SfuEventListener } from './Dispatcher';
 import {
-  Dispatcher,
-  SfuEventKindMap,
-  SfuEventKinds,
-  SfuEventListener,
-} from './Dispatcher';
-import { CallState, StreamVideoWriteableStateStore } from '../store';
+  CallingState,
+  CallState,
+  StreamVideoWriteableStateStore,
+} from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import {
   BlockUserResponse,
@@ -24,7 +23,6 @@ import {
   GetOrCreateCallResponse,
   GoLiveResponse,
   JoinCallRequest,
-  JoinCallResponse,
   ListRecordingsResponse,
   MemberResponse,
   MuteUsersResponse,
@@ -50,13 +48,7 @@ import {
   SubscriptionChanges,
   VisibilityState,
 } from './types';
-import {
-  BehaviorSubject,
-  debounceTime,
-  filter,
-  Subject,
-  takeWhile,
-} from 'rxjs';
+import { debounceTime, Subject, takeWhile } from 'rxjs';
 import { Comparator } from '../sorting';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import {
@@ -66,6 +58,8 @@ import {
 import { ViewportTracker } from '../ViewportTracker';
 import { CallTypes } from './CallType';
 import { StreamClient } from '../coordinator/connection/client';
+import { retryInterval, sleep } from '../coordinator/connection/utils';
+import { JoinResponse } from '../gen/video/sfu/event/events';
 
 const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
 
@@ -119,7 +113,7 @@ export type CallConstructor = {
  */
 export class Call {
   /**
-   * ViewporTracker instance
+   * ViewportTracker instance
    */
   readonly viewportTracker = new ViewportTracker();
 
@@ -154,15 +148,14 @@ export class Call {
   private trackSubscriptionsSubject = new Subject<TrackSubscriptionDetails[]>();
 
   private statsReporter?: StatsReporter;
-  private joined$ = new BehaviorSubject<boolean>(false);
 
+  private readonly clientStore: StreamVideoWriteableStateStore;
   private readonly streamClient: StreamClient;
   private sfuClient?: StreamSfuClient;
-  private readonly clientStore: StreamVideoWriteableStateStore;
+  private reconnectAttempts = 0;
 
   private get preferredAudioCodec() {
-    const audioSettings = this.state.getCurrentValue(this.state.metadata$)
-      ?.settings.audio;
+    const audioSettings = this.data?.settings.audio;
     let preferredCodec =
       audioSettings?.redundant_coding_enabled === undefined
         ? 'opus'
@@ -181,7 +174,7 @@ export class Call {
     return preferredCodec;
   }
 
-  private streamClientBasePath: string;
+  private readonly streamClientBasePath: string;
 
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
@@ -243,10 +236,11 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = () => {
-    if (!this.joined$.getValue()) {
+    if (
+      this.state.getCurrentValue(this.state.callingState$) === CallingState.LEFT
+    ) {
       throw new Error('Cannot leave call that has already been left.');
     }
-    this.joined$.next(false);
 
     this.statsReporter?.stop();
     this.statsReporter = undefined;
@@ -260,9 +254,16 @@ export class Call {
     this.sfuClient?.close();
     this.sfuClient = undefined;
 
+    this.dispatcher.offAll();
+
     this.clientStore.setCurrentValue(
       this.clientStore.activeCallSubject,
       undefined,
+    );
+
+    this.state.setCurrentValue(
+      this.state.callingStateSubject,
+      CallingState.LEFT,
     );
   };
 
@@ -270,13 +271,16 @@ export class Call {
     return this.state.getCurrentValue(this.state.metadata$);
   }
 
-  private waitForJoinResponse = (timeout: number = 10000) =>
-    new Promise<SfuEventKindMap['joinResponse']>((resolve, reject) => {
+  private waitForJoinResponse = (timeout: number = 5000) =>
+    new Promise<JoinResponse>((resolve, reject) => {
       const unsubscribe = this.on('joinResponse', (event) => {
-        resolve(event as SfuEventKindMap['joinResponse']);
+        if (event.eventPayload.oneofKind !== 'joinResponse') return;
+        clearTimeout(timeoutId);
+        unsubscribe();
+        resolve(event.eventPayload.joinResponse);
       });
 
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         unsubscribe();
         reject(new Error('Waiting for "joinResponse" has timed out'));
       }, timeout);
@@ -301,9 +305,18 @@ export class Call {
    * @returns a promise which resolves once the call join-flow has finished.
    */
   join = async (data?: JoinCallRequest) => {
-    if (this.joined$.getValue()) {
+    if (
+      [CallingState.JOINED, CallingState.JOINING].includes(
+        this.state.getCurrentValue(this.state.callingState$),
+      )
+    ) {
       throw new Error(`Illegal State: Already joined.`);
     }
+
+    this.state.setCurrentValue(
+      this.state.callingStateSubject,
+      CallingState.JOINING,
+    );
 
     const call = await join(this.streamClient, this.type, this.id, data);
     this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
@@ -333,14 +346,95 @@ export class Call {
       call.token,
     ));
 
+    /**
+     * A closure which hides away the re-connection logic.
+     */
+    const rejoin = async () => {
+      console.log(`Rejoining call ${this.cid} (${this.reconnectAttempts})...`);
+      this.reconnectAttempts++;
+      this.state.setCurrentValue(
+        this.state.callingStateSubject,
+        CallingState.RECONNECTING,
+      );
+
+      // take a snapshot of the current "local participant" state
+      // we'll need it for restoring the previous publishing state later
+      const localParticipant = this.state.getCurrentValue(
+        this.state.localParticipant$,
+      );
+
+      try {
+        this.subscriber?.close();
+        this.publisher?.stopPublishing({ stopTracks: false });
+        this.statsReporter?.stop();
+        sfuClient.close(); // clean up previous connection
+
+        await sleep(retryInterval(this.reconnectAttempts));
+        await this.join(data);
+        console.log(`Rejoin ${this.reconnectAttempts} successful!`);
+        if (localParticipant) {
+          const {
+            audioStream,
+            videoStream,
+            screenShareStream: screenShare,
+          } = localParticipant;
+
+          // restore previous publishing state
+          if (audioStream) await this.publishAudioStream(audioStream);
+          if (videoStream) await this.publishVideoStream(videoStream);
+          if (screenShare) await this.publishScreenShareStream(screenShare);
+        }
+        console.log(`Rejoin: state restored ${this.reconnectAttempts}`);
+      } catch (err) {
+        console.error('Rejoin failed', err);
+      }
+    };
+
+    // reconnect if the connection was closed unexpectedly. example:
+    // - SFU crash or restart
+    // - network change
+    sfuClient.signalReady.then(() => {
+      sfuClient.signalWs.addEventListener('close', (e) => {
+        // do nothing if the connection was closed on purpose
+        if (e.code === 1000 || this.reconnectAttempts >= 10) return;
+        rejoin();
+      });
+    });
+
+    // handlers for connection online/offline events
+    if (typeof window !== 'undefined' && window.navigator) {
+      const handleOnOffline = () => {
+        window.removeEventListener('offline', handleOnOffline);
+        console.log('Join: Going offline...');
+        this.state.setCurrentValue(
+          this.state.callingStateSubject,
+          CallingState.OFFLINE,
+        );
+      };
+
+      const handleOnOnline = () => {
+        window.removeEventListener('online', handleOnOnline);
+        if (
+          this.state.getCurrentValue(this.state.callingState$) ===
+          CallingState.OFFLINE
+        ) {
+          console.log('Join: Going online...');
+          rejoin();
+        }
+      };
+
+      window.addEventListener('offline', handleOnOffline);
+      window.addEventListener('online', handleOnOnline);
+    }
+
     this.subscriber = createSubscriber({
       rpcClient: sfuClient,
+      dispatcher: this.dispatcher,
       connectionConfig: call.connectionConfig,
       onTrack: this.handleOnTrack,
     });
 
-    const audioSettings = this.state.getCurrentValue(this.state.metadata$)
-      ?.settings.audio;
+    const audioSettings = this.data?.settings.audio;
     let isDtxEnabled =
       audioSettings?.opus_dtx_enabled === undefined
         ? false
@@ -368,8 +462,20 @@ export class Call {
       edgeName: call.sfuServer.edge_name,
     });
 
-    const joinResponsePromise = this.waitForJoinResponse().then((event) => {
-      const { callState } = event.eventPayload.joinResponse;
+    try {
+      // 1. wait for the signal server to be ready before sending "joinRequest"
+      sfuClient.signalReady
+        .catch((err) => console.warn('Signal ready failed', err))
+        // prepare a generic SDP and send it to the SFU.
+        // this is a throw-away SDP that the SFU will use to determine
+        // the capabilities of the client (codec support, etc.)
+        .then(() => getGenericSdp('recvonly', this.preferredAudioCodec))
+        .then((sdp) => sfuClient.join({ subscriberSdp: sdp || '' }));
+
+      // 2. in parallel, wait for the SFU to send us the "joinResponse"
+      // this will throw an error if the SFU rejects the join request or
+      // fails to respond in time
+      const { callState } = await this.waitForJoinResponse();
       const currentParticipants = callState?.participants || [];
 
       const ownCapabilities = {
@@ -394,19 +500,23 @@ export class Call {
         this,
       );
 
-      sfuClient.keepAlive();
-      this.joined$.next(true);
-    });
-
-    const genericSdp = await getGenericSdp(
-      'recvonly',
-      this.preferredAudioCodec,
-    );
-    await sfuClient.join({
-      subscriberSdp: genericSdp || '',
-    });
-
-    return joinResponsePromise;
+      this.reconnectAttempts = 0; // reset the reconnect attempts counter
+      this.state.setCurrentValue(
+        this.state.callingStateSubject,
+        CallingState.JOINED,
+      );
+      console.log(`Joined call ${this.cid}`);
+    } catch (err) {
+      // join failed, try to rejoin
+      if (this.reconnectAttempts <= 10) {
+        await rejoin();
+        console.log(`Rejoin ${this.reconnectAttempts} successful!`);
+      } else {
+        console.log(
+          `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+        );
+      }
+    }
   };
 
   updateCallMembers = async (
@@ -838,14 +948,9 @@ export class Call {
 
   private assertCallJoined = () => {
     return new Promise<void>((resolve) => {
-      this.joined$
-        .pipe(
-          takeWhile((isJoined) => !isJoined, true),
-          filter((isJoined) => isJoined),
-        )
-        .subscribe(() => {
-          resolve();
-        });
+      this.state.callingState$
+        .pipe(takeWhile((state) => state !== CallingState.JOINED, true))
+        .subscribe(() => resolve());
     });
   };
 
