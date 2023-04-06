@@ -4,7 +4,12 @@ import { Publisher } from './publisher';
 import { getGenericSdp } from './codecs';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
-import { Dispatcher, SfuEventKinds, SfuEventListener } from './Dispatcher';
+import {
+  Dispatcher,
+  isSfuEvent,
+  SfuEventKinds,
+  SfuEventListener,
+} from './Dispatcher';
 import {
   CallingState,
   CallState,
@@ -51,6 +56,7 @@ import {
 import { debounceTime, Subject, takeWhile } from 'rxjs';
 import { Comparator } from '../sorting';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
+import { JoinResponse } from '../gen/video/sfu/event/events';
 import {
   createStatsReporter,
   StatsReporter,
@@ -59,7 +65,12 @@ import { ViewportTracker } from '../ViewportTracker';
 import { CallTypes } from './CallType';
 import { StreamClient } from '../coordinator/connection/client';
 import { retryInterval, sleep } from '../coordinator/connection/utils';
-import { JoinResponse } from '../gen/video/sfu/event/events';
+import {
+  CallEventHandler,
+  CallEventTypes,
+  EventHandler,
+  StreamCallEvent,
+} from '../coordinator/connection/types';
 
 const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
 
@@ -216,11 +227,26 @@ export class Call {
    * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the [reactive state store](./StreamVideoClient.md/#readonlystatestore).
    * @param eventName
    * @param fn
-   * @returns
+   * @returns a function which can be called to unsubscribe from the given event(s)
    */
-  on = (eventName: SfuEventKinds, fn: SfuEventListener) => {
-    return this.dispatcher.on(eventName, fn);
-  };
+  on(eventName: SfuEventKinds, fn: SfuEventListener): () => void;
+  on(eventName: CallEventTypes, fn: CallEventHandler): () => void;
+  on(
+    eventName: SfuEventKinds | CallEventTypes,
+    fn: SfuEventListener | CallEventHandler,
+  ) {
+    if (isSfuEvent(eventName)) {
+      return this.dispatcher.on(eventName, fn as SfuEventListener);
+    } else {
+      const eventHandler: CallEventHandler = (event: StreamCallEvent) => {
+        if (event.call_cid && event.call_cid === this.cid) {
+          (fn as EventHandler)(event);
+        }
+      };
+
+      return this.streamClient.on(eventName, eventHandler as EventHandler);
+    }
+  }
 
   /**
    * Remove subscription for WebSocket events that were created by the `on` method.

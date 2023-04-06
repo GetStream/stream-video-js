@@ -25,7 +25,7 @@ import {
   APIErrorResponse,
   ConnectAPIResponse,
   ErrorFromResponse,
-  Event,
+  StreamVideoEvent,
   EventHandler,
   Logger,
   OwnUserResponse,
@@ -44,7 +44,7 @@ export class StreamClient {
   cleaningIntervalRef?: NodeJS.Timeout;
   clientID?: string;
   key: string;
-  listeners: Record<string, Array<(event: Event) => void>>;
+  listeners: Record<string, Array<(event: StreamVideoEvent) => void>>;
   logger: Logger;
 
   node: boolean;
@@ -596,7 +596,7 @@ export class StreamClient {
     return data;
   }
 
-  dispatchEvent = (event: Event) => {
+  dispatchEvent = (event: StreamVideoEvent) => {
     if (!event.received_at) event.received_at = new Date();
 
     console.log(`Dispatching event: ${event.type}`, event);
@@ -606,14 +606,14 @@ export class StreamClient {
   handleEvent = (messageEvent: WebSocket.MessageEvent) => {
     // dispatch the event to the channel listeners
     const jsonString = messageEvent.data as string;
-    const event = JSON.parse(jsonString) as Event;
+    const event = JSON.parse(jsonString) as StreamVideoEvent;
     this.dispatchEvent(event);
   };
 
-  _callClientListeners = (event: Event) => {
+  _callClientListeners = (event: StreamVideoEvent) => {
     const client = this;
     // gather and call the listeners
-    const listeners: Array<(e: Event) => void> = [];
+    const listeners: Array<(e: StreamVideoEvent) => void> = [];
     if (client.listeners.all) {
       listeners.push(...client.listeners.all);
     }

@@ -1,12 +1,7 @@
 import { StreamVideoWriteableStateStore } from '../store';
-import {
-  CallAcceptedEvent,
-  CallEndedEvent,
-  CallCreatedEvent,
-  CallRejectedEvent,
-} from '../gen/coordinator';
 import { Call } from '../rtc/Call';
 import { StreamClient } from '../coordinator/connection/client';
+import { StreamVideoEvent } from '../coordinator/connection/types';
 
 /**
  * Event handler that watches the delivery of CallCreated Websocket event
@@ -17,7 +12,10 @@ export const watchCallCreated = (
   store: StreamVideoWriteableStateStore,
   streamClient: StreamClient,
 ) => {
-  return function onCallCreated(event: CallCreatedEvent) {
+  return function onCallCreated(event: StreamVideoEvent) {
+    if (event.type !== 'call.created') {
+      return;
+    }
     const { call, members } = event;
     if (!call) {
       console.warn("Can't find call in CallCreatedEvent");
@@ -50,7 +48,10 @@ export const watchCallCreated = (
  * the given user will be joining the call.
  */
 export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
-  return function onCallAccepted(event: CallAcceptedEvent) {
+  return function onCallAccepted(event: StreamVideoEvent) {
+    if (event.type !== 'call.accepted') {
+      return;
+    }
     const { call_cid } = event;
     if (!call_cid) {
       console.warn("Can't find call_cid in CallAcceptedEvent");
@@ -99,7 +100,10 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
  * the given user will not be joining the call.
  */
 export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
-  return function onCallRejected(event: CallRejectedEvent) {
+  return function onCallRejected(event: StreamVideoEvent) {
+    if (event.type !== 'call.rejected') {
+      return;
+    }
     const { call_cid } = event;
     if (!call_cid) {
       console.warn("Can't find call_cid in CallRejectedEvent");
@@ -143,7 +147,10 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
  * the call is now considered terminated.
  */
 export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
-  return function onCallCancelled(event: CallEndedEvent) {
+  return function onCallCancelled(event: StreamVideoEvent) {
+    if (event.type !== 'call.ended') {
+      return;
+    }
     const { call_cid } = event;
     if (!call_cid) {
       console.log("Can't find call in CallEndedEvent");
