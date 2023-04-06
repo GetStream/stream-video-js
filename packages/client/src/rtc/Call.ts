@@ -432,7 +432,8 @@ export class Call {
     });
 
     // handlers for connection online/offline events
-    if (typeof window !== 'undefined' && window.navigator) {
+    // Note: window.addEventListener is not available in React Native, hence the check
+    if (typeof window !== 'undefined' && window.addEventListener) {
       const handleOnOffline = () => {
         window.removeEventListener('offline', handleOnOffline);
         console.log('Join: Going offline...');
