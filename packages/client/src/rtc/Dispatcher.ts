@@ -3,27 +3,27 @@ import type { SfuEvent } from '../gen/video/sfu/event/events';
 
 export type SfuEventKinds = NonNullable<SfuEvent['eventPayload']['oneofKind']>;
 
+const sfuEventKinds: { [key in SfuEventKinds]: undefined } = {
+  subscriberOffer: undefined,
+  publisherAnswer: undefined,
+  connectionQualityChanged: undefined,
+  audioLevelChanged: undefined,
+  iceTrickle: undefined,
+  changePublishQuality: undefined,
+  participantJoined: undefined,
+  participantLeft: undefined,
+  dominantSpeakerChanged: undefined,
+  joinResponse: undefined,
+  healthCheckResponse: undefined,
+  trackPublished: undefined,
+  trackUnpublished: undefined,
+  error: undefined,
+};
+
 export const isSfuEvent = (
   eventName: SfuEventKinds | CallEventTypes,
 ): eventName is SfuEventKinds => {
-  const sfuEventKinds: { [key in SfuEventKinds]: undefined } = {
-    subscriberOffer: undefined,
-    publisherAnswer: undefined,
-    connectionQualityChanged: undefined,
-    audioLevelChanged: undefined,
-    iceTrickle: undefined,
-    changePublishQuality: undefined,
-    participantJoined: undefined,
-    participantLeft: undefined,
-    dominantSpeakerChanged: undefined,
-    joinResponse: undefined,
-    healthCheckResponse: undefined,
-    trackPublished: undefined,
-    trackUnpublished: undefined,
-    error: undefined,
-  };
-
-  return Object.keys(sfuEventKinds).includes(eventName);
+  return Object.prototype.hasOwnProperty.call(sfuEventKinds, eventName);
 };
 
 export type SfuEventKindMap = {
