@@ -25,7 +25,6 @@ import {
   GetOrCreateCallResponse,
   GoLiveResponse,
   JoinCallRequest,
-  JoinCallResponse,
   ListRecordingsResponse,
   MemberResponse,
   MuteUsersResponse,
@@ -42,7 +41,6 @@ import {
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
-  WSEvent,
 } from '../gen/coordinator';
 import { join, watch } from './flows/join';
 import {
@@ -69,10 +67,10 @@ import { ViewportTracker } from '../ViewportTracker';
 import { CallTypes } from './CallType';
 import { StreamClient } from '../coordinator/connection/client';
 import {
-  CallEvent,
   CallEventHandler,
   CallEventTypes,
   EventHandler,
+  StreamCallEvent,
 } from '../coordinator/connection/types';
 
 const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
@@ -242,7 +240,7 @@ export class Call {
     if (isSfuEvent(eventName)) {
       return this.dispatcher.on(eventName, fn as SfuEventListener);
     } else {
-      const eventHandler: CallEventHandler = (event: CallEvent) => {
+      const eventHandler: CallEventHandler = (event: StreamCallEvent) => {
         if (event.call_cid && event.call_cid === this.cid) {
           (fn as EventHandler)(event);
         }

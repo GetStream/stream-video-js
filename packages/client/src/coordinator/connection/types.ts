@@ -90,7 +90,7 @@ export type StreamVideoEvent = (
 ) & { received_at?: string | Date };
 
 export type StreamCallEvent = Exclude<
-  Event,
+  StreamVideoEvent,
   | HealthCheckEvent
   | ConnectionChangedEvent
   | TransportChangedEvent
