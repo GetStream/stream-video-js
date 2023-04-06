@@ -22,9 +22,9 @@ export const chatCodes = {
  * @return {number} Duration to wait in milliseconds
  */
 export function retryInterval(numberOfFailures: number) {
-  // try to reconnect in 0.25-25 seconds (random to spread out the load from failures)
-  const max = Math.min(500 + numberOfFailures * 2000, 25000);
-  const min = Math.min(Math.max(250, (numberOfFailures - 1) * 2000), 25000);
+  // try to reconnect in 0.25-5 seconds (random to spread out the load from failures)
+  const max = Math.min(500 + numberOfFailures * 2000, 5000);
+  const min = Math.min(Math.max(250, (numberOfFailures - 1) * 2000), 5000);
   return Math.floor(Math.random() * (max - min) + min);
 }
 

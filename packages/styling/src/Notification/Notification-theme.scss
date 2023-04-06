@@ -3,12 +3,13 @@
 .str-video__notification {
   background-color: var(--str-video__background-color1);
   border-radius: var(--str-video__border-radius1);
+  z-index: 100;
 
   .str-video__notification__icon {
     @include utils.apply-mask-image(
-        var(--str-video__icon--info-icon),
-        var(--str-video__text-color1),
-        1.5rem
+      var(--str-video__icon--info-icon),
+      var(--str-video__text-color1),
+      1.5rem
     );
   }
 

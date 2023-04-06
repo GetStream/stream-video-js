@@ -37,19 +37,40 @@ const toURL = (url: string) => {
   }
 };
 
+/**
+ * The client used for exchanging information with the SFU.
+ */
 export class StreamSfuClient {
-  readonly dispatcher: Dispatcher;
+  /**
+   * A buffer for ICE Candidates that are received before
+   * the PeerConnections are ready to handle them.
+   */
   readonly iceTrickleBuffer = new IceTrickleBuffer();
-  // we generate uuid session id client side
+  /**
+   * The `sessionId` of the currently connected participant.
+   */
   readonly sessionId: string;
-  private readonly rpc: SignalServerClient;
-  // Current JWT token
-  private readonly token: string;
+
+  /**
+   * Holds the current WebSocket connection to the SFU.
+   */
+  signalWs: WebSocket;
+
+  /**
+   * Promise that resolves when the WebSocket connection is ready (open).
+   */
   signalReady: Promise<WebSocket>;
+
+  private readonly rpc: SignalServerClient;
+  private readonly token: string;
   private keepAliveInterval?: NodeJS.Timeout;
+  private connectionCheckTimeout?: NodeJS.Timeout;
+  private pingIntervalInMs = 25 * 1000;
+  private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
+  private lastMessageTimestamp?: Date;
+  private readonly unsubscribeIceTrickle: () => void;
 
   constructor(dispatcher: Dispatcher, url: string, token: string) {
-    this.dispatcher = dispatcher;
     this.sessionId = uuidv4();
     this.token = token;
     this.rpc = createSignalClient({
@@ -78,29 +99,35 @@ export class StreamSfuClient {
     // connection is established. In that case, those events (ICE candidates)
     // need to be buffered and later added to the appropriate PeerConnection
     // once the remoteDescription is known and set.
-    this.dispatcher.on('iceTrickle', (e) => {
+    this.unsubscribeIceTrickle = dispatcher.on('iceTrickle', (e) => {
       if (e.eventPayload.oneofKind !== 'iceTrickle') return;
       const { iceTrickle } = e.eventPayload;
       this.iceTrickleBuffer.push(iceTrickle);
     });
 
-    this.signalReady = createWebSocketSignalChannel({
+    this.signalWs = createWebSocketSignalChannel({
       endpoint: wsEndpoint,
       onMessage: (message) => {
-        this.dispatcher.dispatch(message);
+        this.lastMessageTimestamp = new Date();
+        this.scheduleConnectionCheck();
+        dispatcher.dispatch(message);
       },
+    });
+
+    this.signalReady = new Promise((resolve) => {
+      this.signalWs.addEventListener('open', () => {
+        this.keepAlive();
+        resolve(this.signalWs);
+      });
     });
   }
 
-  close = () => {
-    this.signalReady.then((ws) => {
-      this.signalReady = Promise.reject('Connection closed');
-      // TODO OL: re-connect flow
-      ws.close(1000, 'Requested signal connection close');
+  close = (code: number = 1000) => {
+    this.signalWs.close(code, 'Requested signal connection close');
 
-      this.dispatcher.offAll();
-      clearInterval(this.keepAliveInterval);
-    });
+    this.unsubscribeIceTrickle();
+    clearInterval(this.keepAliveInterval);
+    clearTimeout(this.connectionCheckTimeout);
   };
 
   updateSubscriptions = async (subscriptions: TrackSubscriptionDetails[]) => {
@@ -173,21 +200,37 @@ export class StreamSfuClient {
     });
   };
 
-  // FIXME: make this private
-  async keepAlive() {
-    await this.signalReady;
-    console.log('Registering healthcheck for SFU');
+  private keepAlive = () => {
+    if (this.keepAliveInterval) {
+      clearInterval(this.keepAliveInterval);
+    }
     this.keepAliveInterval = setInterval(() => {
+      console.log('Sending healthCheckRequest to SFU');
       const message = SfuRequest.create({
         requestPayload: {
           oneofKind: 'healthCheckRequest',
-          healthCheckRequest: {
-            sessionId: this.sessionId,
-          },
+          healthCheckRequest: {},
         },
       });
-      console.log('Sending healthCheckRequest to SFU', message);
-      this.send(message);
-    }, 27000);
-  }
+      void this.send(message);
+    }, this.pingIntervalInMs);
+  };
+
+  private scheduleConnectionCheck = () => {
+    if (this.connectionCheckTimeout) {
+      clearTimeout(this.connectionCheckTimeout);
+    }
+
+    this.connectionCheckTimeout = setTimeout(() => {
+      if (this.lastMessageTimestamp) {
+        const timeSinceLastMessage =
+          new Date().getTime() - this.lastMessageTimestamp.getTime();
+
+        if (timeSinceLastMessage > this.unhealthyTimeoutInMs) {
+          console.log('SFU connection unhealthy, closing');
+          this.close(4001);
+        }
+      }
+    }, this.unhealthyTimeoutInMs);
+  };
 }

@@ -15,6 +15,7 @@ import {
   sleep,
 } from './utils';
 import type { ConnectAPIResponse, ConnectionOpen, LogLevel, UR } from './types';
+import type { WSAuthMessageRequest } from '../../gen/coordinator';
 
 // Type guards to check WebSocket error type
 const isCloseEvent = (
@@ -499,7 +500,7 @@ export class StableWSConnection {
       return;
     }
 
-    const authMessage = {
+    const authMessage: WSAuthMessageRequest = {
       token,
       user_details: {
         id: user.id,
