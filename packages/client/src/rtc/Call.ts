@@ -164,6 +164,7 @@ export class Call {
   private readonly streamClient: StreamClient;
   private sfuClient?: StreamSfuClient;
   private reconnectAttempts = 0;
+  private maxReconnectAttempts = 10;
 
   private get preferredAudioCodec() {
     const audioSettings = this.data?.settings.audio;
@@ -419,14 +420,22 @@ export class Call {
       sfuClient.signalWs.addEventListener('close', (e) => {
         // do nothing if the connection was closed on purpose
         if (e.code === 1000) return;
-        if (this.reconnectAttempts >= 10) {
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          rejoin().catch(() => {
+            console.log(
+              `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+            );
+            this.state.setCurrentValue(
+              this.state.callingStateSubject,
+              CallingState.RECONNECTING_FAILED,
+            );
+          });
+        } else {
           console.log('Reconnect attempts exceeded. Giving up...');
           this.state.setCurrentValue(
             this.state.callingStateSubject,
             CallingState.RECONNECTING_FAILED,
           );
-        } else {
-          void rejoin();
         }
       });
     });
@@ -450,7 +459,15 @@ export class Call {
           CallingState.OFFLINE
         ) {
           console.log('Join: Going online...');
-          rejoin();
+          rejoin().catch(() => {
+            console.log(
+              `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+            );
+            this.state.setCurrentValue(
+              this.state.callingStateSubject,
+              CallingState.RECONNECTING_FAILED,
+            );
+          });
         }
       };
 
@@ -539,7 +556,7 @@ export class Call {
       console.log(`Joined call ${this.cid}`);
     } catch (err) {
       // join failed, try to rejoin
-      if (this.reconnectAttempts < 10) {
+      if (this.reconnectAttempts < this.maxReconnectAttempts) {
         await rejoin();
         console.log(`Rejoin ${this.reconnectAttempts} successful!`);
       } else {
