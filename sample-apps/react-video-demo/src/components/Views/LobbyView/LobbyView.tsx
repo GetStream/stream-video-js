@@ -10,8 +10,6 @@ import LobbyLayout from '../../Layout/LobbyLayout';
 
 import styles from './LobbyView.module.css';
 
-// create 5 different loading sentences to show when joining a call
-
 const loadingSentences = [
   'Joining call ...',
   'Looking for the fastest route ...',

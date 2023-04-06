@@ -11,7 +11,6 @@ import {
 } from 'stream-chat-react';
 
 import ChatInput from '../ChatInput';
-import ChatMessage from '../ChatMessage';
 import { ChatRound } from '../Icons';
 
 import 'stream-chat-react/dist/css/v2/index.css';
@@ -53,7 +52,6 @@ export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
     <Channel Input={ChatInput} EmptyStateIndicator={NoMessages}>
       <Window>
         <MessageList />
-        {/* <MessageList Message={ChatMessage} /> */}
         <MessageInput />
       </Window>
     </Channel>
@@ -65,11 +63,7 @@ export const Chat: FC<Props> = (props) => {
   if (!client) return <div>Loading Chat...</div>;
 
   return (
-    <StreamChat
-      theme="str-chat__theme-dark"
-      // customClasses={customClasses}
-      client={client}
-    >
+    <StreamChat theme="str-chat__theme-dark" client={client}>
       <ActiveChat {...props} />
     </StreamChat>
   );

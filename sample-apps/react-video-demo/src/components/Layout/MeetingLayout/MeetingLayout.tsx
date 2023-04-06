@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import { CSSTransition } from 'react-transition-group';
 import { StreamChat } from 'stream-chat';
 
-import ChatPanel from '../../Chat';
+import Chat from '../../Chat';
 
 import { useModalContext } from '../../../contexts/ModalContext';
 import { useBreakpoint } from '../../../hooks/useBreakpoints';
@@ -64,12 +64,10 @@ export const MeetingLayout: FC<Props> = ({
 
         <div className={styles.footer}>{footer}</div>
         {showChat && (breakpoint === 'xs' || breakpoint === 'sm') ? (
-          <ChatPanel
-            className={styles.chatPanel}
+          <Chat
             channelId={callId}
             channelType="videocall"
             client={chatClient}
-            close={toggleChat}
           />
         ) : null}
 

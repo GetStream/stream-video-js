@@ -4,6 +4,7 @@ import mkcert from 'vite-plugin-mkcert';
 
 export default defineConfig({
   root: '.',
+
   server: {
     https: true,
   },
@@ -11,7 +12,9 @@ export default defineConfig({
   resolve: {
     preserveSymlinks: true,
   },
+
   build: {
+    polyfillModulePreload: false,
     commonjsOptions: {
       include: ['tailwind-config.cjs'],
     },
