@@ -30,7 +30,6 @@
     "isomorphic-ws": "^5.0.0",
     "jsonwebtoken": "^9.0.0",
     "rxjs": "~7.5.7",
-    "uuid": "^9.0.0",
     "webrtc-adapter": "^8.2.1",
     "ws": "^8.12.1"
   },
@@ -40,7 +39,6 @@
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/jsonwebtoken": "^9.0.1",
     "@types/rimraf": "^3.0.2",
-    "@types/uuid": "^9.0.0",
     "@types/ws": "^8.5.4",
     "@vitest/coverage-c8": "^0.25.3",
     "prettier": "^2.8.4",
