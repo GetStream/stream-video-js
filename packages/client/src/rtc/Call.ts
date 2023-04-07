@@ -166,6 +166,13 @@ export class Call {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
 
+  /**
+   * A list hooks/functions to invoke when the call is left.
+   * A typical use case is to clean up some global event handlers.
+   * @private
+   */
+  private readonly leaveCallHooks: Function[] = [];
+
   private get preferredAudioCodec() {
     const audioSettings = this.data?.settings.audio;
     let preferredCodec =
@@ -282,6 +289,9 @@ export class Call {
     this.sfuClient = undefined;
 
     this.dispatcher.offAll();
+
+    // Call all leave call hooks, e.g. to clean up global event handlers
+    this.leaveCallHooks.forEach((hook) => hook());
 
     this.clientStore.setCurrentValue(
       this.clientStore.activeCallSubject,
@@ -473,6 +483,12 @@ export class Call {
 
       window.addEventListener('offline', handleOnOffline);
       window.addEventListener('online', handleOnOnline);
+
+      // register cleanup hooks
+      this.leaveCallHooks.push(
+        () => window.removeEventListener('offline', handleOnOffline),
+        () => window.removeEventListener('online', handleOnOnline),
+      );
     }
 
     this.subscriber = createSubscriber({
@@ -735,19 +751,15 @@ export class Call {
    * @param trackType the track type to stop publishing.
    */
   stopPublish = async (trackType: TrackType) => {
-    if (!this.publisher) {
-      throw new Error(`Call not joined yet.`);
-    }
-
     console.log(`stopPublish`, TrackType[trackType]);
-    const wasPublishing = this.publisher.unpublishStream(trackType);
-    if (wasPublishing) {
-      await this.sfuClient!.updateMuteState(trackType, true);
+    const wasPublishing = this.publisher?.unpublishStream(trackType);
+    if (wasPublishing && this.sfuClient) {
+      await this.sfuClient.updateMuteState(trackType, true);
 
       const audioOrVideoOrScreenShareStream =
         trackTypeToParticipantStreamKey(trackType);
       if (audioOrVideoOrScreenShareStream) {
-        this.state.updateParticipant(this.sfuClient!.sessionId, (p) => ({
+        this.state.updateParticipant(this.sfuClient.sessionId, (p) => ({
           publishedTracks: p.publishedTracks.filter((t) => t !== trackType),
           [audioOrVideoOrScreenShareStream]: undefined,
         }));

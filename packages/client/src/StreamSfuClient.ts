@@ -1,9 +1,9 @@
+import type { FinishedUnaryCall, UnaryCall } from '@protobuf-ts/runtime-rpc';
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
 import { createSignalClient, withHeaders } from './rpc';
 import { createWebSocketSignalChannel } from './rtc/signal';
 import { JoinRequest, SfuRequest } from './gen/video/sfu/event/events';
 import { Dispatcher } from './rtc/Dispatcher';
-import { v4 as uuidv4 } from 'uuid';
 import { IceTrickleBuffer } from './rtc/IceTrickleBuffer';
 import {
   SendAnswerRequest,
@@ -11,7 +11,16 @@ import {
   TrackSubscriptionDetails,
   UpdateMuteStatesRequest,
 } from './gen/video/sfu/signal_rpc/signal';
-import { ICETrickle, TrackType } from './gen/video/sfu/models/models';
+import {
+  Error as SfuError,
+  ICETrickle,
+  TrackType,
+} from './gen/video/sfu/models/models';
+import {
+  generateUUIDv4,
+  retryInterval,
+  sleep,
+} from './coordinator/connection/utils';
 
 const hostnameFromUrl = (url: string) => {
   try {
@@ -70,8 +79,15 @@ export class StreamSfuClient {
   private lastMessageTimestamp?: Date;
   private readonly unsubscribeIceTrickle: () => void;
 
+  /**
+   * Constructs a new SFU client.
+   *
+   * @param dispatcher the event dispatcher to use.
+   * @param url the URL of the SFU.
+   * @param token the JWT token to use for authentication.
+   */
   constructor(dispatcher: Dispatcher, url: string, token: string) {
-    this.sessionId = uuidv4();
+    this.sessionId = generateUUIDv4();
     this.token = token;
     this.rpc = createSignalClient({
       baseUrl: url,
@@ -131,31 +147,39 @@ export class StreamSfuClient {
   };
 
   updateSubscriptions = async (subscriptions: TrackSubscriptionDetails[]) => {
-    return this.rpc.updateSubscriptions({
-      sessionId: this.sessionId,
-      tracks: subscriptions,
-    });
+    return retryable(() =>
+      this.rpc.updateSubscriptions({
+        sessionId: this.sessionId,
+        tracks: subscriptions,
+      }),
+    );
   };
 
   setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
-    return this.rpc.setPublisher({
-      ...data,
-      sessionId: this.sessionId,
-    });
+    return retryable(() =>
+      this.rpc.setPublisher({
+        ...data,
+        sessionId: this.sessionId,
+      }),
+    );
   };
 
   sendAnswer = async (data: Omit<SendAnswerRequest, 'sessionId'>) => {
-    return this.rpc.sendAnswer({
-      ...data,
-      sessionId: this.sessionId,
-    });
+    return retryable(() =>
+      this.rpc.sendAnswer({
+        ...data,
+        sessionId: this.sessionId,
+      }),
+    );
   };
 
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
-    return this.rpc.iceTrickle({
-      ...data,
-      sessionId: this.sessionId,
-    });
+    return retryable(() =>
+      this.rpc.iceTrickle({
+        ...data,
+        sessionId: this.sessionId,
+      }),
+    );
   };
 
   updateMuteState = async (trackType: TrackType, muted: boolean) => {
@@ -172,10 +196,12 @@ export class StreamSfuClient {
   updateMuteStates = async (
     data: Omit<UpdateMuteStatesRequest, 'sessionId'>,
   ) => {
-    return this.rpc.updateMuteStates({
-      ...data,
-      sessionId: this.sessionId,
-    });
+    return retryable(() =>
+      this.rpc.updateMuteStates({
+        ...data,
+        sessionId: this.sessionId,
+      }),
+    );
   };
 
   join = async (data: Omit<JoinRequest, 'sessionId' | 'token'>) => {
@@ -234,3 +260,54 @@ export class StreamSfuClient {
     }, this.unhealthyTimeoutInMs);
   };
 }
+
+/**
+ * An internal interface which asserts that "retryable" SFU responses
+ * contain a field called "error".
+ * Ideally, this should be coming from the Protobuf definitions.
+ */
+interface SfuResponseWithError {
+  /**
+   * An optional error field which should be present in all SFU responses.
+   */
+  error?: SfuError;
+}
+
+const MAX_RETRIES = 5;
+
+/**
+ * Creates a closure which wraps the given RPC call and retries invoking
+ * the RPC until it succeeds or the maximum number of retries is reached.
+ *
+ * Between each retry, there would be a random delay in order to avoid
+ * request bursts towards the SFU.
+ *
+ * @param rpc the closure around the RPC call to execute.
+ * @param <I> the type of the request object.
+ * @param <O> the type of the response object.
+ */
+const retryable = async <I extends object, O extends SfuResponseWithError>(
+  rpc: () => UnaryCall<I, O>,
+) => {
+  let retryAttempt = 0;
+  let rpcCallResult: FinishedUnaryCall<I, O>;
+  do {
+    // don't delay the first invocation
+    if (retryAttempt > 0) {
+      await sleep(retryInterval(retryAttempt));
+    }
+
+    rpcCallResult = await rpc();
+
+    // if the RPC call failed, log the error and retry
+    if (rpcCallResult.response.error) {
+      console.error('SFU Error:', rpcCallResult.response.error);
+    }
+    retryAttempt++;
+  } while (
+    rpcCallResult.response.error?.shouldRetry &&
+    retryAttempt < MAX_RETRIES
+  );
+
+  return rpcCallResult;
+};
