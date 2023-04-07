@@ -751,7 +751,7 @@ export interface CallResponse {
    * @type {string}
    * @memberof CallResponse
    */
-  team: string;
+  team?: string;
   /**
    *
    * @type {boolean}
@@ -1161,7 +1161,7 @@ export interface CustomVideoEvent {
    */
   custom: { [key: string]: any };
   /**
-   * The type of event (custom value in this case)
+   * The type of event, "custom" in this case
    * @type {string}
    * @memberof CustomVideoEvent
    */
@@ -1886,13 +1886,7 @@ export interface MemberResponse {
    * @type {string}
    * @memberof MemberResponse
    */
-  duration: string;
-  /**
-   *
-   * @type {string}
-   * @memberof MemberResponse
-   */
-  role: string;
+  role?: string;
   /**
    * Date/time of the last update
    * @type {string}
@@ -2744,38 +2738,38 @@ export interface UnblockedUserEvent {
 /**
  *
  * @export
- * @interface UpdateCallMemberRequest
+ * @interface UpdateCallMembersRequest
  */
-export interface UpdateCallMemberRequest {
+export interface UpdateCallMembersRequest {
   /**
    * List of userID to remove
    * @type {Array<string>}
-   * @memberof UpdateCallMemberRequest
+   * @memberof UpdateCallMembersRequest
    */
   remove_members?: Array<string>;
   /**
    * List of members to update or insert
    * @type {Array<MemberRequest>}
-   * @memberof UpdateCallMemberRequest
+   * @memberof UpdateCallMembersRequest
    */
   update_members?: Array<MemberRequest>;
 }
 /**
  *
  * @export
- * @interface UpdateCallMemberResponse
+ * @interface UpdateCallMembersResponse
  */
-export interface UpdateCallMemberResponse {
+export interface UpdateCallMembersResponse {
   /**
    * Duration of the request in human-readable format
    * @type {string}
-   * @memberof UpdateCallMemberResponse
+   * @memberof UpdateCallMembersResponse
    */
   duration: string;
   /**
    *
    * @type {Array<MemberResponse>}
-   * @memberof UpdateCallMemberResponse
+   * @memberof UpdateCallMembersResponse
    */
   members: Array<MemberResponse>;
 }
@@ -3120,6 +3114,32 @@ export interface WSAuthMessageRequest {
    * @memberof WSAuthMessageRequest
    */
   user_details: ConnectUserDetailsRequest;
+}
+/**
+ * This is just a placeholder for all client events
+ * @export
+ * @interface WSCallEvent
+ */
+export interface WSCallEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof WSCallEvent
+   */
+  call_id?: string;
+}
+/**
+ * This is just a placeholder for all client events
+ * @export
+ * @interface WSClientEvent
+ */
+export interface WSClientEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof WSClientEvent
+   */
+  connection_id?: string;
 }
 /**
  * This event is sent when the WS connection is established and authenticated, this event contains the full user object as it is stored on the server
