@@ -38,8 +38,8 @@ import {
   SendReactionResponse,
   StopLiveResponse,
   UnblockUserResponse,
-  UpdateCallMemberRequest,
-  UpdateCallMemberResponse,
+  UpdateCallMembersRequest,
+  UpdateCallMembersResponse,
   UpdateCallRequest,
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
@@ -589,9 +589,9 @@ export class Call {
   };
 
   updateCallMembers = async (
-    data: UpdateCallMemberRequest,
-  ): Promise<UpdateCallMemberResponse> => {
-    return await this.streamClient.post<UpdateCallMemberResponse>(
+    data: UpdateCallMembersRequest,
+  ): Promise<UpdateCallMembersResponse> => {
+    return await this.streamClient.post<UpdateCallMembersResponse>(
       `${this.streamClientBasePath}/members`,
       data,
     );
