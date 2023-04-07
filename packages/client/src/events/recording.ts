@@ -12,13 +12,13 @@ export const watchCallRecordingStarted = (
       return;
     }
     const { call_cid } = event;
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const activeCall = store.activeCall;
     if (!activeCall || activeCall.cid !== call_cid) {
       console.warn('Received CallRecordingStartedEvent for a non-active call');
       return;
     }
     const state = activeCall.state;
-    state.setCurrentValue(state.callRecordingInProgressSubject, true);
+    state.callRecordingInProgress = true;
   };
 };
 
@@ -33,12 +33,12 @@ export const watchCallRecordingStopped = (
       return;
     }
     const { call_cid } = event;
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const activeCall = store.activeCall;
     if (!activeCall || activeCall.cid !== call_cid) {
       console.warn('Received CallRecordingStoppedEvent for a non-active call');
       return;
     }
     const state = activeCall.state;
-    state.setCurrentValue(state.callRecordingInProgressSubject, false);
+    state.callRecordingInProgress = false;
   };
 };

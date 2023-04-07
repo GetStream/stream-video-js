@@ -12,8 +12,7 @@ export const watchCallPermissionRequest = (
     if (event.type !== 'call.permission_request') {
       return;
     }
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
-
+    const activeCall = store.activeCall;
     if (!activeCall) {
       console.warn(
         `Ignoring "call.permission_request" as there is no active call`,
@@ -31,7 +30,7 @@ export const watchCallPermissionRequest = (
     }
 
     const state = activeCall.state;
-    const localParticipant = state.getCurrentValue(state.localParticipant$);
+    const localParticipant = state.localParticipant;
     if (
       !localParticipant?.ownCapabilities.includes('update-call-permissions')
     ) {
@@ -41,7 +40,7 @@ export const watchCallPermissionRequest = (
       return;
     }
 
-    state.setCurrentValue(state.callPermissionRequestSubject, event);
+    state.callPermissionRequest = event;
   };
 };
 
@@ -56,7 +55,7 @@ export const watchCallPermissionsUpdated = (
     if (event.type !== 'call.permissions_updated') {
       return;
     }
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const activeCall = store.activeCall;
     if (!activeCall) {
       console.warn(
         `Ignoring "call.permissions_updated" as there is no active call`,
@@ -74,7 +73,7 @@ export const watchCallPermissionsUpdated = (
     }
 
     const state = activeCall.state;
-    const localParticipant = state.getCurrentValue(state.localParticipant$);
+    const localParticipant = state.localParticipant;
     if (event.user.id === localParticipant?.userId) {
       state.updateParticipant(localParticipant.sessionId, {
         ownCapabilities: event.own_capabilities,

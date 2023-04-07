@@ -12,13 +12,11 @@ export const watchParticipantJoined = (
   return dispatcher.on('participantJoined', (e) => {
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
     const { participant } = e.eventPayload.participantJoined;
-
     if (!participant) return;
-
-    store.setCurrentValue(store.participantsSubject, (currentParticipants) => [
-      ...currentParticipants,
+    store.participants = [
+      ...store.participants,
       { ...participant, viewportVisibilityState: VisibilityState.UNKNOWN },
-    ]);
+    ];
   });
 };
 
@@ -41,8 +39,8 @@ export const watchParticipantLeft = (
     //   return;
     // }
 
-    store.setCurrentValue(store.participantsSubject, (participants) =>
-      participants.filter((p) => p.sessionId !== participant.sessionId),
+    store.participants = store.participants.filter(
+      (p) => p.sessionId !== participant.sessionId,
     );
   });
 };

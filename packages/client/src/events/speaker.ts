@@ -14,27 +14,25 @@ export const watchDominantSpeakerChanged = (
     const {
       dominantSpeakerChanged: { sessionId },
     } = e.eventPayload;
-    const dominantSpeaker = store.getCurrentValue(store.dominantSpeaker$);
+    const dominantSpeaker = store.dominantSpeaker;
     if (sessionId === dominantSpeaker?.sessionId) return;
-    store.setCurrentValue(store.participantsSubject, (participants) =>
-      participants.map((participant) => {
-        // mark the new dominant speaker
-        if (participant.sessionId === sessionId) {
-          return {
-            ...participant,
-            isDominantSpeaker: true,
-          };
-        }
-        // unmark the old dominant speaker
-        if (participant.isDominantSpeaker) {
-          return {
-            ...participant,
-            isDominantSpeaker: false,
-          };
-        }
-        return participant; // no change
-      }),
-    );
+    store.participants = store.participants.map((participant) => {
+      // mark the new dominant speaker
+      if (participant.sessionId === sessionId) {
+        return {
+          ...participant,
+          isDominantSpeaker: true,
+        };
+      }
+      // unmark the old dominant speaker
+      if (participant.isDominantSpeaker) {
+        return {
+          ...participant,
+          isDominantSpeaker: false,
+        };
+      }
+      return participant; // no change
+    });
   });
 };
 

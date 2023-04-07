@@ -14,15 +14,10 @@ import {
   CallResponse,
   MemberResponse,
   PermissionRequestEvent,
-  UserResponse,
 } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { Comparator } from '../sorting';
 import * as SortingPreset from '../sorting/presets';
-
-export type UserResponseMap = {
-  [userId: string]: UserResponse;
-};
 
 /**
  * Represents the state of the current call.
@@ -74,28 +69,32 @@ export class CallState {
    *
    * @internal
    */
-  metadataSubject = new BehaviorSubject<CallResponse | undefined>(undefined);
+  private metadataSubject = new BehaviorSubject<CallResponse | undefined>(
+    undefined,
+  );
 
   /**
    * The list of members of the current call.
    *
    * @internal
    */
-  membersSubject = new BehaviorSubject<MemberResponse[]>([]);
+  private membersSubject = new BehaviorSubject<MemberResponse[]>([]);
 
   /**
    * The calling state.
    *
    * @internal
    */
-  callingStateSubject = new BehaviorSubject<CallingState>(CallingState.IDLE);
+  private callingStateSubject = new BehaviorSubject<CallingState>(
+    CallingState.IDLE,
+  );
 
   /**
    * All participants of the current call (including the logged-in user).
    *
    * @internal
    */
-  participantsSubject = new BehaviorSubject<
+  private participantsSubject = new BehaviorSubject<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >([]);
 
@@ -109,9 +108,9 @@ export class CallState {
    *
    * @internal
    */
-  callStatsReportSubject = new BehaviorSubject<CallStatsReport | undefined>(
-    undefined,
-  );
+  private callStatsReportSubject = new BehaviorSubject<
+    CallStatsReport | undefined
+  >(undefined);
 
   /**
    * Emits a boolean indicating whether a call recording is currently in progress.
@@ -119,12 +118,12 @@ export class CallState {
    * @internal
    */
   // FIXME OL: might be derived from `this.call.recording`.
-  callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
+  private callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
 
   /**
    * Emits a list of details about recordings performed during the active call
    */
-  callRecordingListSubject = new BehaviorSubject<CallRecording[]>([]);
+  private callRecordingListSubject = new BehaviorSubject<CallRecording[]>([]);
 
   /**
    * Emits the latest call permission request sent by any participant of the
@@ -133,7 +132,7 @@ export class CallState {
    *
    * @internal
    */
-  callPermissionRequestSubject = new BehaviorSubject<
+  private callPermissionRequestSubject = new BehaviorSubject<
     PermissionRequestEvent | undefined
   >(undefined);
 
@@ -211,7 +210,7 @@ export class CallState {
   /**
    * The list of members of the current call.
    */
-  members$: Observable<UserResponseMap>;
+  members$: Observable<MemberResponse[]>;
 
   /**
    * The calling state.
@@ -269,21 +268,9 @@ export class CallState {
       this.callRecordingInProgressSubject.asObservable();
     this.callPermissionRequest$ =
       this.callPermissionRequestSubject.asObservable();
-
     this.callRecordingList$ = this.callRecordingListSubject.asObservable();
-
     this.metadata$ = this.metadataSubject.asObservable();
-    // FIXME OL: is the shape of this observable ok? Shall we expose the whole MemberResponse instead?
-    this.members$ = this.membersSubject.pipe(
-      map((members) => {
-        return members.reduce<UserResponseMap>((acc, member) => {
-          const user = member.user;
-          acc[user.id] = user;
-          return acc;
-        }, {});
-      }),
-    );
-
+    this.members$ = this.membersSubject.asObservable();
     this.callingState$ = this.callingStateSubject.asObservable();
   }
 
@@ -321,6 +308,179 @@ export class CallState {
   setCurrentValue = RxUtils.setCurrentValue;
 
   /**
+   * The list of participants in the current call.
+   */
+  get participants() {
+    return this.getCurrentValue(this.participants$);
+  }
+
+  /**
+   * Sets the list of participants in the current call.
+   *
+   * @internal
+   *
+   * @param participants the list of participants.
+   */
+  set participants(participants: StreamVideoParticipant[]) {
+    this.participantsSubject.next(participants);
+  }
+
+  /**
+   * The local participant in the current call.
+   */
+  get localParticipant() {
+    return this.getCurrentValue(this.localParticipant$);
+  }
+
+  /**
+   * The list of remote participants in the current call.
+   */
+  get remoteParticipants() {
+    return this.getCurrentValue(this.remoteParticipants$);
+  }
+
+  /**
+   * The dominant speaker in the current call.
+   */
+  get dominantSpeaker() {
+    return this.getCurrentValue(this.dominantSpeaker$);
+  }
+
+  /**
+   * The list of pinned participants in the current call.
+   */
+  get pinnedParticipants() {
+    return this.getCurrentValue(this.pinnedParticipants$);
+  }
+
+  /**
+   * Tell if there is an ongoing screen share in this call.
+   */
+  get hasOngoingScreenShare() {
+    return this.getCurrentValue(this.hasOngoingScreenShare$);
+  }
+
+  /**
+   * The calling state.
+   */
+  get callingState() {
+    return this.getCurrentValue(this.callingState$);
+  }
+
+  /**
+   * Sets the calling state.
+   *
+   * @internal
+   * @param state the new calling state.
+   */
+  set callingState(state: CallingState) {
+    this.callingStateSubject.next(state);
+  }
+
+  /**
+   * The list of call recordings.
+   */
+  get callRecordingsList() {
+    return this.getCurrentValue(this.callRecordingList$);
+  }
+
+  /**
+   * Sets the list of call recordings.
+   *
+   * @internal
+   * @param recordings the list of call recordings.
+   */
+  set callRecordingsList(recordings: CallRecording[]) {
+    this.callRecordingListSubject.next(recordings);
+  }
+
+  /**
+   * Tells whether a call recording is in progress.
+   */
+  get callRecordingInProgress() {
+    return this.getCurrentValue(this.callRecordingInProgress$);
+  }
+
+  /**
+   * Sets whether a call recording is in progress.
+   *
+   * @param inProgress whether a call recording is in progress.
+   */
+  set callRecordingInProgress(inProgress: boolean) {
+    this.callRecordingInProgressSubject.next(inProgress);
+  }
+
+  /**
+   * The last call permission request.
+   */
+  get callPermissionRequest() {
+    return this.getCurrentValue(this.callPermissionRequest$);
+  }
+
+  /**
+   * Sets the last call permission request.
+   *
+   * @internal
+   * @param request the last call permission request.
+   */
+  set callPermissionRequest(request: PermissionRequestEvent | undefined) {
+    this.callPermissionRequestSubject.next(request);
+  }
+
+  /**
+   * The call stats report.
+   */
+  get callStatsReport() {
+    return this.getCurrentValue(this.callStatsReport$);
+  }
+
+  /**
+   * Sets the call stats report.
+   *
+   * @internal
+   * @param report the report to set.
+   */
+  set callStatsReport(report: CallStatsReport | undefined) {
+    this.callStatsReportSubject.next(report);
+  }
+
+  /**
+   * The metadata of the current call.
+   */
+  get metadata() {
+    return this.getCurrentValue(this.metadata$);
+  }
+
+  /**
+   * Sets the metadata of the current call.
+   *
+   * @internal
+   *
+   * @param metadata the metadata to set.
+   */
+  set metadata(metadata: CallResponse | undefined) {
+    this.metadataSubject.next(metadata);
+  }
+
+  /**
+   * The members of the current call.
+   */
+  get members() {
+    return this.getCurrentValue(this.members$);
+  }
+
+  /**
+   * Sets the members of the current call.
+   *
+   * @internal
+   *
+   * @param members the members to set.
+   */
+  set members(members: MemberResponse[]) {
+    this.membersSubject.next(members);
+  }
+
+  /**
    * Will try to find the participant with the given sessionId in the active call.
    *
    * @param sessionId the sessionId of the participant to find.
@@ -329,8 +489,7 @@ export class CallState {
   findParticipantBySessionId = (
     sessionId: string,
   ): StreamVideoParticipant | undefined => {
-    const participants = this.getCurrentValue(this.participantsSubject);
-    return participants.find((p) => p.sessionId === sessionId);
+    return this.participants.find((p) => p.sessionId === sessionId);
   };
 
   /**

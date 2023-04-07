@@ -1,7 +1,6 @@
 import type {
   AggregatedStatsReport,
   BaseStats,
-  CallStatsReport,
   ParticipantsStatsReport,
   StatsReport,
 } from './types';
@@ -118,11 +117,10 @@ export const createStatsReporter = ({
    * The main stats reporting loop.
    */
   const run = async () => {
-    const participants = store.getCurrentValue(store.participantsSubject);
     const participantStats: ParticipantsStatsReport = {};
     const sessionIds = new Set(sessionIdsToTrack);
     if (sessionIds.size > 0) {
-      for (let participant of participants) {
+      for (let participant of store.participants) {
         if (!sessionIds.has(participant.sessionId)) continue;
         const kind = participant.isLoggedInUser ? 'publisher' : 'subscriber';
         try {
@@ -169,7 +167,7 @@ export const createStatsReporter = ({
       getRawStatsForTrack('publisher'),
     ]);
 
-    const statsReport: CallStatsReport = {
+    store.callStatsReport = {
       datacenter: edgeName || 'N/A',
       publisherStats,
       subscriberStats,
@@ -178,8 +176,6 @@ export const createStatsReporter = ({
       participants: participantStats,
       timestamp: Date.now(),
     };
-
-    store.setCurrentValue(store.callStatsReportSubject, statsReport);
   };
 
   let timeoutId: NodeJS.Timeout | undefined;

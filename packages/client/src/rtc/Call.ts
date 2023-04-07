@@ -218,8 +218,8 @@ export class Call {
     this.state = new CallState(
       sortParticipantsBy || callTypeConfig.options.sortParticipantsBy,
     );
-    this.state.metadataSubject.next(metadata);
-    this.state.membersSubject.next(members || []);
+    this.state.metadata = metadata;
+    this.state.members = members || [];
 
     registerEventHandlers(this, this.state, this.dispatcher);
 
@@ -270,9 +270,7 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = () => {
-    if (
-      this.state.getCurrentValue(this.state.callingState$) === CallingState.LEFT
-    ) {
+    if (this.state.callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
     }
 
@@ -293,19 +291,12 @@ export class Call {
     // Call all leave call hooks, e.g. to clean up global event handlers
     this.leaveCallHooks.forEach((hook) => hook());
 
-    this.clientStore.setCurrentValue(
-      this.clientStore.activeCallSubject,
-      undefined,
-    );
-
-    this.state.setCurrentValue(
-      this.state.callingStateSubject,
-      CallingState.LEFT,
-    );
+    this.clientStore.activeCall = undefined;
+    this.state.callingState = CallingState.LEFT;
   };
 
   get data() {
-    return this.state.getCurrentValue(this.state.metadata$);
+    return this.state.metadata;
   }
 
   private waitForJoinResponse = (timeout: number = 5000) =>
@@ -330,8 +321,8 @@ export class Call {
    */
   watch = async (data?: JoinCallRequest) => {
     const response = await watch(this.streamClient, this.type, this.id, data);
-    this.state.setCurrentValue(this.state.metadataSubject, response.call);
-    this.state.setCurrentValue(this.state.membersSubject, response.members);
+    this.state.metadata = response.call;
+    this.state.members = response.members;
 
     return response;
   };
@@ -344,26 +335,20 @@ export class Call {
   join = async (data?: JoinCallRequest) => {
     if (
       [CallingState.JOINED, CallingState.JOINING].includes(
-        this.state.getCurrentValue(this.state.callingState$),
+        this.state.callingState,
       )
     ) {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    this.state.setCurrentValue(
-      this.state.callingStateSubject,
-      CallingState.JOINING,
-    );
+    this.state.callingState = CallingState.JOINING;
 
     const call = await join(this.streamClient, this.type, this.id, data);
-    this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
-    this.state.setCurrentValue(this.state.membersSubject, call.members);
+    this.state.metadata = call.metadata;
+    this.state.members = call.members;
 
     // FIXME OL: convert to a derived state
-    this.state.setCurrentValue(
-      this.state.callRecordingInProgressSubject,
-      call.metadata.recording,
-    );
+    this.state.callRecordingInProgress = call.metadata.recording;
 
     // FIXME OL: remove once cascading is implemented
     let sfuUrl = call.sfuServer.url;
@@ -389,16 +374,11 @@ export class Call {
     const rejoin = async () => {
       console.log(`Rejoining call ${this.cid} (${this.reconnectAttempts})...`);
       this.reconnectAttempts++;
-      this.state.setCurrentValue(
-        this.state.callingStateSubject,
-        CallingState.RECONNECTING,
-      );
+      this.state.callingState = CallingState.RECONNECTING;
 
       // take a snapshot of the current "local participant" state
       // we'll need it for restoring the previous publishing state later
-      const localParticipant = this.state.getCurrentValue(
-        this.state.localParticipant$,
-      );
+      const localParticipant = this.state.localParticipant;
 
       this.subscriber?.close();
       this.publisher?.stopPublishing({ stopTracks: false });
@@ -435,17 +415,11 @@ export class Call {
             console.log(
               `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
             );
-            this.state.setCurrentValue(
-              this.state.callingStateSubject,
-              CallingState.RECONNECTING_FAILED,
-            );
+            this.state.callingState = CallingState.RECONNECTING_FAILED;
           });
         } else {
           console.log('Reconnect attempts exceeded. Giving up...');
-          this.state.setCurrentValue(
-            this.state.callingStateSubject,
-            CallingState.RECONNECTING_FAILED,
-          );
+          this.state.callingState = CallingState.RECONNECTING_FAILED;
         }
       });
     });
@@ -456,27 +430,18 @@ export class Call {
       const handleOnOffline = () => {
         window.removeEventListener('offline', handleOnOffline);
         console.log('Join: Going offline...');
-        this.state.setCurrentValue(
-          this.state.callingStateSubject,
-          CallingState.OFFLINE,
-        );
+        this.state.callingState = CallingState.OFFLINE;
       };
 
       const handleOnOnline = () => {
         window.removeEventListener('online', handleOnOnline);
-        if (
-          this.state.getCurrentValue(this.state.callingState$) ===
-          CallingState.OFFLINE
-        ) {
+        if (this.state.callingState === CallingState.OFFLINE) {
           console.log('Join: Going online...');
           rejoin().catch(() => {
             console.log(
               `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
             );
-            this.state.setCurrentValue(
-              this.state.callingStateSubject,
-              CallingState.RECONNECTING_FAILED,
-            );
+            this.state.callingState = CallingState.RECONNECTING_FAILED;
           });
         }
       };
@@ -546,9 +511,8 @@ export class Call {
         ownCapabilities: call.metadata.own_capabilities,
       };
 
-      this.state.setCurrentValue(
-        this.state.participantsSubject,
-        currentParticipants.map<StreamVideoParticipant>((participant) => ({
+      this.state.participants = currentParticipants.map<StreamVideoParticipant>(
+        (participant) => ({
           ...participant,
           isLoggedInUser: participant.sessionId === sfuClient.sessionId,
           viewportVisibilityState: VisibilityState.UNKNOWN,
@@ -556,19 +520,13 @@ export class Call {
           ...(participant.sessionId === sfuClient.sessionId
             ? ownCapabilities
             : {}),
-        })),
+        }),
       );
 
-      this.clientStore.setCurrentValue(
-        this.clientStore.activeCallSubject,
-        this,
-      );
+      this.clientStore.activeCall = this;
 
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
-      this.state.setCurrentValue(
-        this.state.callingStateSubject,
-        CallingState.JOINED,
-      );
+      this.state.callingState = CallingState.JOINED;
       console.log(`Joined call ${this.cid}`);
     } catch (err) {
       // join failed, try to rejoin
@@ -579,10 +537,7 @@ export class Call {
         console.log(
           `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
         );
-        this.state.setCurrentValue(
-          this.state.callingStateSubject,
-          CallingState.RECONNECTING_FAILED,
-        );
+        this.state.callingState = CallingState.RECONNECTING_FAILED;
         throw new Error('Join failed');
       }
     }
@@ -951,9 +906,9 @@ export class Call {
     // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
     const [trackId, trackType] = primaryStream.id.split(':');
     console.log(`Got remote ${trackType} track:`, e.track);
-    const participantToUpdate = this.state
-      .getCurrentValue(this.state.participantsSubject)
-      .find((p) => p.trackLookupPrefix === trackId);
+    const participantToUpdate = this.state.participants.find(
+      (p) => p.trackLookupPrefix === trackId,
+    );
     if (!participantToUpdate) {
       console.error('Received track for unknown participant', trackId, e);
       return;
@@ -1073,8 +1028,8 @@ export class Call {
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
     );
-    this.state.setCurrentValue(this.state.metadataSubject, response.call);
-    this.state.setCurrentValue(this.state.membersSubject, response.members);
+    this.state.metadata = response.call;
+    this.state.members = response.members;
 
     return response;
   };
@@ -1084,21 +1039,15 @@ export class Call {
       this.streamClientBasePath,
       data,
     );
-    this.state.setCurrentValue(this.state.metadataSubject, response.call);
-    this.state.setCurrentValue(this.state.membersSubject, response.members);
+    this.state.metadata = response.call;
+    this.state.members = response.members;
 
-    const currentPendingCalls = this.clientStore.getCurrentValue(
-      this.clientStore.pendingCallsSubject,
-    );
-    const callAlreadyRegistered = currentPendingCalls.find(
+    const callAlreadyRegistered = this.clientStore.pendingCalls.find(
       (pendingCall) => pendingCall.id === this.id,
     );
 
     if (!callAlreadyRegistered) {
-      this.clientStore.setCurrentValue(
-        this.clientStore.pendingCallsSubject,
-        (pendingCalls) => [...pendingCalls, this],
-      );
+      this.clientStore.pendingCalls = [...this.clientStore.pendingCalls, this];
     }
 
     return response;
@@ -1211,9 +1160,11 @@ export class Call {
    * @returns
    */
   accept = async () => {
-    const callToAccept = this.clientStore
-      .getCurrentValue(this.clientStore.pendingCallsSubject)
-      .find((c) => c.id === this.id && c.type === this.type);
+    // FIXME OL: this method should be merged with the join method.
+
+    const callToAccept = this.clientStore.pendingCalls.find(
+      (c) => c.id === this.id && c.type === this.type,
+    );
 
     if (callToAccept) {
       await this.streamClient.post(`${this.streamClientBasePath}/event`, {
@@ -1221,16 +1172,12 @@ export class Call {
       });
 
       // remove the accepted call from the "pending calls" list.
-      this.clientStore.setCurrentValue(
-        this.clientStore.pendingCallsSubject,
-        (pendingCalls) => pendingCalls.filter((c) => c !== callToAccept),
+      this.clientStore.pendingCalls = this.clientStore.pendingCalls.filter(
+        (c) => c !== callToAccept,
       );
 
       await this.join();
-      this.clientStore.setCurrentValue(
-        this.clientStore.activeCallSubject,
-        callToAccept,
-      );
+      this.clientStore.activeCall = callToAccept;
     }
   };
 
@@ -1240,10 +1187,8 @@ export class Call {
    * @returns
    */
   reject = async () => {
-    this.clientStore.setCurrentValue(
-      this.clientStore.pendingCallsSubject,
-      (pendingCalls) =>
-        pendingCalls.filter((incomingCall) => incomingCall.id !== this.id),
+    this.clientStore.pendingCalls = this.clientStore.pendingCalls.filter(
+      (c) => c.cid !== this.cid,
     );
     await this.streamClient.post(`${this.streamClientBasePath}/event`, {
       type: 'call.rejected',
@@ -1259,23 +1204,19 @@ export class Call {
    */
   cancel = async () => {
     console.log('call cancelled');
+    // FIXME OL: this method should be merged with the leave method.
     const store = this.clientStore;
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
-    const leavingActiveCall =
-      activeCall?.id === this.id && activeCall.type === this.type;
+    const activeCall = store.activeCall;
+    const leavingActiveCall = activeCall?.cid === this.cid;
     if (leavingActiveCall) {
       activeCall.leave();
     } else {
-      store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
-        pendingCalls.filter((pendingCall) => pendingCall.id !== this.id),
-      );
+      store.pendingCalls = store.pendingCalls.filter((c) => c.cid !== this.cid);
     }
 
     if (activeCall) {
       const state = activeCall.state;
-      const remoteParticipants = state.getCurrentValue(
-        state.remoteParticipants$,
-      );
+      const remoteParticipants = state.remoteParticipants;
       if (!remoteParticipants.length && !leavingActiveCall) {
         await this.endCall();
       }
@@ -1293,10 +1234,7 @@ export class Call {
       `${this.streamClientBasePath}/${sessionId}/recordings`,
     );
 
-    this.state.setCurrentValue(
-      this.state.callRecordingListSubject,
-      response.recordings,
-    );
+    this.state.callRecordingsList = response.recordings;
 
     return response;
   };

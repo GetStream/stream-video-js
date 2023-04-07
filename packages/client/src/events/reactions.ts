@@ -12,7 +12,7 @@ export const watchNewReactions = (store: StreamVideoWriteableStateStore) => {
       return;
     }
     const { call_cid, reaction } = event;
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const activeCall = store.activeCall;
     if (!activeCall || activeCall.cid !== call_cid) {
       console.warn(
         'Received CallReactionEvent for an inactive or unknown call',
@@ -21,25 +21,23 @@ export const watchNewReactions = (store: StreamVideoWriteableStateStore) => {
     }
 
     const state = activeCall.state;
-    state.setCurrentValue(state.participantsSubject, (participants) => {
-      const { user, custom, type, emoji_code } = reaction;
-      return participants.map((p) => {
-        // skip if the reaction is not for this participant
-        if (p.userId !== user.id) return p;
+    const { user, custom, type, emoji_code } = reaction;
+    state.participants = state.participants.map((p) => {
+      // skip if the reaction is not for this participant
+      if (p.userId !== user.id) return p;
 
-        // skip if the reaction is not for this session
-        if (custom.sessionId && p.sessionId !== custom.sessionId) return p;
+      // skip if the reaction is not for this session
+      if (custom.sessionId && p.sessionId !== custom.sessionId) return p;
 
-        // update the participant with the new reaction
-        return {
-          ...p,
-          reaction: {
-            type,
-            emoji_code,
-            custom,
-          },
-        };
-      });
+      // update the participant with the new reaction
+      return {
+        ...p,
+        reaction: {
+          type,
+          emoji_code,
+          custom,
+        },
+      };
     });
   };
 };
