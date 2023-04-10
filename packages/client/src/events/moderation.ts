@@ -21,17 +21,15 @@ export const watchBlockedUser =
     }
 
     const state = activeCall.state;
-    const localParticipant = state.localParticipant;
-
     // FIXME: end call
-    if (localParticipant?.userId === event.user.id) {
+    if (state.localParticipant?.userId === event.user.id) {
       activeCall.leave();
     }
 
-    state.metadata = {
-      ...state.metadata!,
-      blocked_user_ids: [...state.metadata!.blocked_user_ids, event.user.id],
-    };
+    state.setMetadata((metadata) => ({
+      ...metadata!,
+      blocked_user_ids: [...metadata!.blocked_user_ids, event.user.id],
+    }));
   };
 
 /**
@@ -54,11 +52,13 @@ export const watchUnblockedUser =
     }
 
     const state = activeCall.state;
-    const blocked_user_ids = state.metadata!.blocked_user_ids.filter(
-      (userId) => event.user.id !== userId,
-    );
-    state.metadata = {
-      ...state.metadata!,
-      blocked_user_ids,
-    };
+    state.setMetadata((metadata) => {
+      const blocked_user_ids = metadata!.blocked_user_ids.filter(
+        (userId) => event.user.id !== userId,
+      );
+      return {
+        ...metadata!,
+        blocked_user_ids,
+      };
+    });
   };

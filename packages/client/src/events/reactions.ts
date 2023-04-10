@@ -22,22 +22,24 @@ export const watchNewReactions = (store: StreamVideoWriteableStateStore) => {
 
     const state = activeCall.state;
     const { user, custom, type, emoji_code } = reaction;
-    state.participants = state.participants.map((p) => {
-      // skip if the reaction is not for this participant
-      if (p.userId !== user.id) return p;
+    state.setParticipants((participants) => {
+      return participants.map((p) => {
+        // skip if the reaction is not for this participant
+        if (p.userId !== user.id) return p;
 
-      // skip if the reaction is not for this session
-      if (custom.sessionId && p.sessionId !== custom.sessionId) return p;
+        // skip if the reaction is not for this session
+        if (custom.sessionId && p.sessionId !== custom.sessionId) return p;
 
-      // update the participant with the new reaction
-      return {
-        ...p,
-        reaction: {
-          type,
-          emoji_code,
-          custom,
-        },
-      };
+        // update the participant with the new reaction
+        return {
+          ...p,
+          reaction: {
+            type,
+            emoji_code,
+            custom,
+          },
+        };
+      });
     });
   };
 };

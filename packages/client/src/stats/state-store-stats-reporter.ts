@@ -10,7 +10,7 @@ import { Publisher } from '../rtc/publisher';
 export type StatsReporterOpts = {
   subscriber: RTCPeerConnection;
   publisher: Publisher;
-  store: CallState;
+  state: CallState;
   pollingIntervalInMs?: number;
   edgeName?: string;
 };
@@ -65,7 +65,7 @@ export type StatsReporter = {
 export const createStatsReporter = ({
   subscriber,
   publisher,
-  store,
+  state,
   edgeName,
   pollingIntervalInMs = 2000,
 }: StatsReporterOpts): StatsReporter => {
@@ -120,7 +120,7 @@ export const createStatsReporter = ({
     const participantStats: ParticipantsStatsReport = {};
     const sessionIds = new Set(sessionIdsToTrack);
     if (sessionIds.size > 0) {
-      for (let participant of store.participants) {
+      for (let participant of state.participants) {
         if (!sessionIds.has(participant.sessionId)) continue;
         const kind = participant.isLoggedInUser ? 'publisher' : 'subscriber';
         try {
@@ -167,7 +167,7 @@ export const createStatsReporter = ({
       getRawStatsForTrack('publisher'),
     ]);
 
-    store.callStatsReport = {
+    state.setCallStatsReport({
       datacenter: edgeName || 'N/A',
       publisherStats,
       subscriberStats,
@@ -175,7 +175,7 @@ export const createStatsReporter = ({
       publisherRawStats,
       participants: participantStats,
       timestamp: Date.now(),
-    };
+    });
   };
 
   let timeoutId: NodeJS.Timeout | undefined;

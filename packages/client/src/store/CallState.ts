@@ -1,5 +1,6 @@
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
+import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
 import {
   isStreamVideoLocalParticipant,
@@ -321,9 +322,9 @@ export class CallState {
    *
    * @param participants the list of participants.
    */
-  set participants(participants: StreamVideoParticipant[]) {
-    this.participantsSubject.next(participants);
-  }
+  setParticipants = (participants: Patch<StreamVideoParticipant[]>) => {
+    return this.setCurrentValue(this.participantsSubject, participants);
+  };
 
   /**
    * The local participant in the current call.
@@ -373,9 +374,9 @@ export class CallState {
    * @internal
    * @param state the new calling state.
    */
-  set callingState(state: CallingState) {
-    this.callingStateSubject.next(state);
-  }
+  setCallingState = (state: Patch<CallingState>) => {
+    return this.setCurrentValue(this.callingStateSubject, state);
+  };
 
   /**
    * The list of call recordings.
@@ -390,9 +391,9 @@ export class CallState {
    * @internal
    * @param recordings the list of call recordings.
    */
-  set callRecordingsList(recordings: CallRecording[]) {
-    this.callRecordingListSubject.next(recordings);
-  }
+  setCallRecordingsList = (recordings: Patch<CallRecording[]>) => {
+    return this.setCurrentValue(this.callRecordingListSubject, recordings);
+  };
 
   /**
    * Tells whether a call recording is in progress.
@@ -406,9 +407,12 @@ export class CallState {
    *
    * @param inProgress whether a call recording is in progress.
    */
-  set callRecordingInProgress(inProgress: boolean) {
-    this.callRecordingInProgressSubject.next(inProgress);
-  }
+  setCallRecordingInProgress = (inProgress: Patch<boolean>) => {
+    return this.setCurrentValue(
+      this.callRecordingInProgressSubject,
+      inProgress,
+    );
+  };
 
   /**
    * The last call permission request.
@@ -423,9 +427,11 @@ export class CallState {
    * @internal
    * @param request the last call permission request.
    */
-  set callPermissionRequest(request: PermissionRequestEvent | undefined) {
-    this.callPermissionRequestSubject.next(request);
-  }
+  setCallPermissionRequest = (
+    request: Patch<PermissionRequestEvent | undefined>,
+  ) => {
+    return this.setCurrentValue(this.callPermissionRequestSubject, request);
+  };
 
   /**
    * The call stats report.
@@ -440,9 +446,9 @@ export class CallState {
    * @internal
    * @param report the report to set.
    */
-  set callStatsReport(report: CallStatsReport | undefined) {
-    this.callStatsReportSubject.next(report);
-  }
+  setCallStatsReport = (report: Patch<CallStatsReport | undefined>) => {
+    return this.setCurrentValue(this.callStatsReportSubject, report);
+  };
 
   /**
    * The metadata of the current call.
@@ -458,9 +464,9 @@ export class CallState {
    *
    * @param metadata the metadata to set.
    */
-  set metadata(metadata: CallResponse | undefined) {
-    this.metadataSubject.next(metadata);
-  }
+  setMetadata = (metadata: Patch<CallResponse | undefined>) => {
+    return this.setCurrentValue(this.metadataSubject, metadata);
+  };
 
   /**
    * The members of the current call.
@@ -473,12 +479,11 @@ export class CallState {
    * Sets the members of the current call.
    *
    * @internal
-   *
    * @param members the members to set.
    */
-  set members(members: MemberResponse[]) {
-    this.membersSubject.next(members);
-  }
+  setMembers = (members: Patch<MemberResponse[]>) => {
+    this.setCurrentValue(this.membersSubject, members);
+  };
 
   /**
    * Will try to find the participant with the given sessionId in the active call.
@@ -522,7 +527,7 @@ export class CallState {
       ...participant,
       ...thePatch,
     };
-    return this.setCurrentValue(this.participantsSubject, (participants) =>
+    return this.setParticipants((participants) =>
       participants.map((p) =>
         p.sessionId === sessionId ? updatedParticipant : p,
       ),
@@ -539,10 +544,8 @@ export class CallState {
    * @returns all participants, with all patch applied.
    */
   updateParticipants = (patch: StreamVideoParticipantPatches) => {
-    if (Object.keys(patch).length === 0) {
-      return;
-    }
-    return this.setCurrentValue(this.participantsSubject, (participants) =>
+    if (Object.keys(patch).length === 0) return;
+    return this.setParticipants((participants) =>
       participants.map((p) => {
         const thePatch = patch[p.sessionId];
         if (thePatch) {

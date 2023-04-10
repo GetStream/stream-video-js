@@ -18,7 +18,7 @@ export const watchCallRecordingStarted = (
       return;
     }
     const state = activeCall.state;
-    state.callRecordingInProgress = true;
+    state.setCallRecordingInProgress(true);
   };
 };
 
@@ -39,6 +39,6 @@ export const watchCallRecordingStopped = (
       return;
     }
     const state = activeCall.state;
-    state.callRecordingInProgress = false;
+    state.setCallRecordingInProgress(false);
   };
 };

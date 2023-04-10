@@ -40,7 +40,7 @@ export const watchCallPermissionRequest = (
       return;
     }
 
-    state.callPermissionRequest = event;
+    state.setCallPermissionRequest(event);
   };
 };
 

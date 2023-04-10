@@ -139,7 +139,7 @@ export class StreamVideoClient {
 
     this.on('call.reaction_new', watchNewReactions(this.writeableStateStore));
 
-    this.writeableStateStore.connectedUser = user;
+    this.writeableStateStore.setConnectedUser(user);
   };
 
   /**
@@ -153,7 +153,7 @@ export class StreamVideoClient {
   disconnectUser = async (timeout?: number) => {
     await this.streamClient.disconnectUser(timeout);
     this.callDropScheduler?.cleanUp();
-    this.writeableStateStore.connectedUser = undefined;
+    this.writeableStateStore.setConnectedUser(undefined);
   };
 
   /**

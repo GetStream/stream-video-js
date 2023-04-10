@@ -18,7 +18,7 @@ import * as TestData from '../../sorting/__tests__/participant-data';
 describe('CallState', () => {
   it('should emit sorted participants', () => {
     const state = new CallState(noopComparator());
-    state.participants = TestData.participants();
+    state.setParticipants(TestData.participants());
 
     // initial sort criteria
     const ps = state.participants;
@@ -41,7 +41,7 @@ describe('CallState', () => {
   it('should be able to disable sorting', () => {
     const participants = TestData.participants();
     const state = new CallState();
-    state.participants = TestData.participants();
+    state.setParticipants(TestData.participants());
     // initial sort criteria
     const ps = state.participants;
     expect(ps.map((p) => p.name)).toEqual(['F', 'B', 'E', 'A', 'C', 'D']);
@@ -63,7 +63,7 @@ describe('CallState', () => {
     const state = new CallState();
     state.setSortParticipantsBy(descending(name));
 
-    state.participants = TestData.participants();
+    state.setParticipants(TestData.participants());
     const ps = state.participants;
     expect(ps.map((p) => p.name)).toEqual(['F', 'E', 'D', 'C', 'B', 'A']);
   });
@@ -73,7 +73,7 @@ describe('CallState', () => {
 
     const state = new CallState();
     state.setSortParticipantsBy(name);
-    state.participants = [A, B, C, D];
+    state.setParticipants([A, B, C, D]);
     expect(state.participants).toEqual([A, B, C, D]);
 
     const Z = {
@@ -82,7 +82,7 @@ describe('CallState', () => {
     };
 
     // normal mode: Z is pushed to the end
-    state.participants = [Z, B, C, D];
+    state.setParticipants([Z, B, C, D]);
     expect(state.participants).toEqual([B, C, D, Z]);
 
     const ifInvisibleBy = conditional(
@@ -93,12 +93,12 @@ describe('CallState', () => {
     state.setSortParticipantsBy(ifInvisibleBy(name));
 
     // Z is visible, so it is kept in the same position
-    state.participants = [Z, B, C, D];
+    state.setParticipants([Z, B, C, D]);
     expect(state.participants).toEqual([Z, B, C, D]);
 
     // Z is invisible, so, the normal sorting is applied and Z is pushed to the end
     Z.viewportVisibilityState = VisibilityState.INVISIBLE;
-    state.participants = [Z, B, C, D];
+    state.setParticipants([Z, B, C, D]);
     expect(state.participants).toEqual([B, C, D, Z]);
   });
 });

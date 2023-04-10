@@ -1,5 +1,6 @@
 import { BehaviorSubject, Observable } from 'rxjs';
 import { combineLatestWith, map } from 'rxjs/operators';
+import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
 import { Call } from '../rtc/Call';
 import type { User } from '../coordinator/connection/types';
@@ -104,9 +105,9 @@ export class StreamVideoWriteableStateStore {
    * @internal
    * @param user the user to set as connected.
    */
-  set connectedUser(user: User | undefined) {
-    this.setCurrentValue(this.connectedUserSubject, user);
-  }
+  setConnectedUser = (user: Patch<User | undefined>) => {
+    return this.setCurrentValue(this.connectedUserSubject, user);
+  };
 
   /**
    * A list of objects describing all created calls that
@@ -123,9 +124,9 @@ export class StreamVideoWriteableStateStore {
    * @internal
    * @param calls the calls to set as pending.
    */
-  set pendingCalls(calls: Call[]) {
-    this.setCurrentValue(this.pendingCallsSubject, calls);
-  }
+  setPendingCalls = (calls: Patch<Call[]>) => {
+    return this.setCurrentValue(this.pendingCallsSubject, calls);
+  };
 
   /**
    * A list of objects describing incoming calls.
@@ -154,8 +155,8 @@ export class StreamVideoWriteableStateStore {
    * @internal
    * @param call the call event.
    */
-  set acceptedCall(call: CallAcceptedEvent | undefined) {
-    this.setCurrentValue(this.acceptedCallSubject, call);
+  setAcceptedCall(call: Patch<CallAcceptedEvent | undefined>) {
+    return this.setCurrentValue(this.acceptedCallSubject, call);
   }
 
   /**
@@ -171,9 +172,9 @@ export class StreamVideoWriteableStateStore {
    * @internal
    * @param call the call instance.
    */
-  set activeCall(call: Call | undefined) {
-    this.setCurrentValue(this.activeCallSubject, call);
-  }
+  setActiveCall = (call: Patch<Call | undefined>) => {
+    return this.setCurrentValue(this.activeCallSubject, call);
+  };
 }
 
 /**

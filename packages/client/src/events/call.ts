@@ -28,8 +28,8 @@ export const watchCallCreated = (
       return;
     }
 
-    store.pendingCalls = [
-      ...store.pendingCalls,
+    store.setPendingCalls((pendingCalls) => [
+      ...pendingCalls,
       new Call({
         streamClient,
         type: call.type,
@@ -38,7 +38,7 @@ export const watchCallCreated = (
         members,
         clientStore: store,
       }),
-    ];
+    ]);
   };
 };
 
@@ -89,7 +89,7 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
-    store.acceptedCall = event;
+    store.setAcceptedCall(event);
   };
 };
 
@@ -134,8 +134,8 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
-    store.pendingCalls = store.pendingCalls.filter(
-      (pendingCall) => pendingCall.cid !== call_cid,
+    store.setPendingCalls((pendingCalls) =>
+      pendingCalls.filter((pendingCall) => pendingCall.cid !== call_cid),
     );
   };
 };
@@ -173,8 +173,8 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
-    store.pendingCalls = store.pendingCalls.filter(
-      (pendingCall) => pendingCall.cid !== call_cid,
+    store.setPendingCalls((pendingCalls) =>
+      pendingCalls.filter((pendingCall) => pendingCall.cid !== call_cid),
     );
   };
 };
