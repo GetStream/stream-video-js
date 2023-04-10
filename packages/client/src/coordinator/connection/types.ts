@@ -1,10 +1,9 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { StableWSConnection } from './connection';
 import {
-  CallResponse,
+  ConnectedEvent,
   HealthCheckEvent,
-  OwnUserResponse,
-  WSEvent,
+  VideoEvent,
 } from '../../gen/coordinator';
 
 export type UR = Record<string, unknown>;
@@ -22,15 +21,7 @@ export type User = {
 
 export type { OwnUserResponse } from '../../gen/coordinator';
 
-export type ConnectionOpen = {
-  connection_id: string;
-  cid?: string;
-  created_at?: string;
-  me?: OwnUserResponse;
-  type?: string;
-};
-
-export type ConnectAPIResponse = Promise<void | ConnectionOpen>;
+export type ConnectAPIResponse = Promise<void | ConnectedEvent>;
 
 export type LogLevel = 'info' | 'error' | 'warn';
 
@@ -61,7 +52,7 @@ type LocalEventTypes =
   | 'transport.changed'
   | 'connection.recovered';
 
-export type EventTypes = 'all' | WSEvent['type'] | LocalEventTypes;
+export type EventTypes = 'all' | VideoEvent['type'] | LocalEventTypes;
 
 export type CallEventTypes = Exclude<
   EventTypes,
@@ -83,7 +74,7 @@ export type ConnectionRecoveredEvent = {
 };
 
 export type StreamVideoEvent = (
-  | WSEvent
+  | VideoEvent
   | ConnectionChangedEvent
   | TransportChangedEvent
   | ConnectionRecoveredEvent

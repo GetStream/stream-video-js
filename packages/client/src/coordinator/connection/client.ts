@@ -13,9 +13,9 @@ import { TokenManager } from './token_manager';
 import { WSConnectionFallback } from './connection_fallback';
 import { isErrorResponse, isWSFailure } from './errors';
 import {
-  chatCodes,
   isFunction,
   isOnline,
+  KnownCodes,
   randomId,
   retryInterval,
   sleep,
@@ -25,11 +25,11 @@ import {
   APIErrorResponse,
   ConnectAPIResponse,
   ErrorFromResponse,
-  StreamVideoEvent,
   EventHandler,
   Logger,
   OwnUserResponse,
   StreamClientOptions,
+  StreamVideoEvent,
   TokenOrProvider,
 } from './types';
 import { InsightMetrics, postInsights } from './insights';
@@ -531,7 +531,7 @@ export class StreamClient {
       if (e.response) {
         /** connection_fallback depends on this token expiration logic */
         if (
-          e.response.data.code === chatCodes.TOKEN_EXPIRED &&
+          e.response.data.code === KnownCodes.TOKEN_EXPIRED &&
           !this.tokenManager.isStatic()
         ) {
           if (this.consecutiveFailures > 1) {
