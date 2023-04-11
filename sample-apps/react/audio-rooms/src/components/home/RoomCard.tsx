@@ -6,7 +6,7 @@ const RoomCard = ({ room }: { room: AudioRoom }) => (
     <span>Host(s)</span>
     <div className="hosts-grid">
       {room.hosts.map((host) => (
-        <div>
+        <div key={host.id}>
           <img src={host.imageUrl} alt={`Profile of ${host.name}`} />
           <span>{host.name}</span>
         </div>

@@ -9562,6 +9562,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "audio-rooms@workspace:sample-apps/react/audio-rooms"
   dependencies:
+    "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@types/react": ^18.0.28
@@ -30522,7 +30523,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^3.0.0 || ^4.0.0, vite@npm:^4.1.4, vite@npm:^4.2.1":
+"vite@npm:^3.0.0 || ^4.0.0, vite@npm:^4.1.4, vite@npm:^4.2.0, vite@npm:^4.2.1":
   version: 4.2.1
   resolution: "vite@npm:4.2.1"
   dependencies:

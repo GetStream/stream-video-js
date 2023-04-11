@@ -1,9 +1,13 @@
 import { ReactNode, createContext, useContext, useState } from 'react';
 import { User } from '../../data/users';
+import { useStreamVideoClient } from '@stream-io/video-react-bindings';
+import { tokenProvider } from './tokenProvider';
+import { StreamVideoClient } from '@stream-io/video-client';
 
 export interface UserState {
   loggedIn: Boolean;
   user: User | undefined;
+  client: StreamVideoClient | undefined;
   login: (user: User) => void;
   logout: () => void;
 }
@@ -11,25 +15,12 @@ export interface UserState {
 const defaultState: UserState = {
   loggedIn: false,
   user: undefined,
+  client: undefined,
   login: async (user: User) => {},
   logout: () => {},
 };
 
 const UserContext = createContext<UserState>(defaultState);
-
-const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
-const url =
-  'https://stream-calls-dogfood.vercel.app/api/auth/create-token?api_key=hd8szvscpxvd&user_id=oliver';
-
-function constructUrl(userId: string): string {
-  return (
-    url +
-    new URLSearchParams({
-      api_key: apiKey,
-      user_id: userId,
-    })
-  );
-}
 
 export const UserContextProvider: any = ({
   children,
@@ -37,13 +28,14 @@ export const UserContextProvider: any = ({
   children: ReactNode;
 }) => {
   const [myState, setMyState] = useState<UserState>(defaultState);
+  const client = useStreamVideoClient();
   const store: UserState = myState;
 
   store.login = async (user: User) => {
-    console.log('login');
-    const token = await fetch(constructUrl(user.id), {
-      method: 'GET',
-    });
+    const token = await tokenProvider(user.id);
+    user.token = token;
+    await client?.connectUser(user, token);
+
     setMyState({
       ...myState,
       loggedIn: true,

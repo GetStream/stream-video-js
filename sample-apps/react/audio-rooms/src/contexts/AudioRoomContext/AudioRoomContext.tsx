@@ -28,7 +28,7 @@ const defaultState: AudioRoomsState = {
 
 const AudioRoomContext = createContext<AudioRoomsState>(defaultState);
 
-export const AudioRoomContextProvider: any = ({
+export const AudioRoomContextProvider = ({
   children,
 }: {
   children: ReactNode;

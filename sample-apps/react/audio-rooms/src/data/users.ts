@@ -2,6 +2,7 @@ export interface User {
   id: string;
   name: string;
   imageUrl: string;
+  token?: string;
 }
 
 const users: User[] = [
