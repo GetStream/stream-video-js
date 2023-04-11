@@ -1270,19 +1270,17 @@ export class Call {
   };
 
   private scheduleAutoDrop = () => {
-    this.state.metadata$
-      .pipe(
-        takeWhile(() => !this.dropTimeout),
-        tap((meta) => {
-          if (!(meta && this.clientStore.connectedUser)) return;
+    this.state.metadata$.pipe(
+      takeWhile(() => !this.dropTimeout),
+      tap((meta) => {
+        if (!(meta && this.clientStore.connectedUser)) return;
 
-          const isOutgoingCall =
-            this.clientStore.connectedUser.id === meta.created_by.id;
+        const isOutgoingCall =
+          this.clientStore.connectedUser.id === meta.created_by.id;
 
-          isOutgoingCall ? this.scheduleCancel() : this.scheduleReject();
-        }),
-      )
-      .subscribe();
+        isOutgoingCall ? this.scheduleCancel() : this.scheduleReject();
+      }),
+    );
   };
 
   cancelScheduledDrop = () => {
