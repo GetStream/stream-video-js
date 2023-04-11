@@ -31,6 +31,14 @@ const Home = ({ userTapped }: { userTapped: User }) => {
     login(userTapped, client);
   }, []);
 
+  const client = useCreateStreamVideoClient({
+    apiKey,
+    tokenOrProvider: user?.token || '',
+    user: {
+      id: user?.id || '',
+    },
+  });
+
   return (
     <StreamVideo client={client}>
       <div className="home-container">
