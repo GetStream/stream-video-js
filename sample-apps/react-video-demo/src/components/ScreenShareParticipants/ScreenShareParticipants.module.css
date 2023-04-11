@@ -4,13 +4,13 @@
 
 .localView {
   @apply grid p-4  gap-x-3 h-full;
-  grid-template-row: 1fr;
+  grid-template-rows: 1fr;
   grid-template-areas: 'localContainer';
 }
 
 .localView.hasRemoteParticipants {
   @apply grid p-4  gap-y-3;
-  grid-template-row: 1fr 0.5fr;
+  grid-template-rows: 1fr 0.5fr;
   grid-template-areas:
     'localContainer'
     'remoteParticipants';

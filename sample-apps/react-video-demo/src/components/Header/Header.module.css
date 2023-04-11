@@ -1,6 +1,6 @@
 .header {
   @apply grid justify-between items-center;
-  grid-template-row: 1fr;
+  grid-template-rows: 1fr;
   grid-template-columns: 1fr 100px 1fr;
   grid-template-areas: 'participants elapsed latency';
 }

@@ -4,7 +4,6 @@ import mkcert from 'vite-plugin-mkcert';
 
 export default defineConfig({
   root: '.',
-
   server: {
     https: true,
   },
@@ -12,11 +11,12 @@ export default defineConfig({
   resolve: {
     preserveSymlinks: true,
   },
-
+  optimizeDeps: {
+    include: ['stream-video-js'],
+  },
   build: {
-    polyfillModulePreload: false,
     commonjsOptions: {
-      include: ['tailwind-config.cjs'],
+      include: ['tailwind-config.cjs', /stream-video-js/],
     },
   },
 });
