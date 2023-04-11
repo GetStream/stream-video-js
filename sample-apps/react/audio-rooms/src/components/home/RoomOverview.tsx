@@ -1,12 +1,16 @@
+import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 import { useAudioRoomContext } from '../../contexts/AudioRoomContext/AudioRoomContext';
 import RoomCard from './RoomCard';
 
 interface RoomOverviewProps {
-  showAsGrid: Boolean;
+  showAsGrid?: Boolean;
 }
 
 const RoomOverview = ({ showAsGrid = true }: RoomOverviewProps) => {
   const { liveRooms, upcomingRooms, join } = useAudioRoomContext();
+  const client = useStreamVideoClient();
+
+  loadCalls();
 
   return (
     <section>
@@ -36,6 +40,11 @@ const RoomOverview = ({ showAsGrid = true }: RoomOverviewProps) => {
       </div>
     </section>
   );
+
+  async function loadCalls() {
+    const calls = await client?.queryCalls({ custom: { audioRoom: true } }, []);
+    console.log(calls);
+  }
 };
 
 export default RoomOverview;

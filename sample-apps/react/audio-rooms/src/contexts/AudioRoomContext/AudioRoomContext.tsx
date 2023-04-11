@@ -18,6 +18,8 @@ export interface AudioRoomsState {
 const defaultState: AudioRoomsState = {
   state: AudioRoomState.Overview,
   currentRoom: undefined,
+  // liveRooms: [],
+  // upcomingRooms: [],
   liveRooms: audioRooms.slice(0, 3),
   upcomingRooms: audioRooms.slice(3, 4),
   join: (room: AudioRoom) => {},

@@ -11,11 +11,25 @@ export interface UserState {
 const defaultState: UserState = {
   loggedIn: false,
   user: undefined,
-  login: (user: User) => {},
+  login: async (user: User) => {},
   logout: () => {},
 };
 
 const UserContext = createContext<UserState>(defaultState);
+
+const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
+const url =
+  'https://stream-calls-dogfood.vercel.app/api/auth/create-token?api_key=hd8szvscpxvd&user_id=oliver';
+
+function constructUrl(userId: string): string {
+  return (
+    url +
+    new URLSearchParams({
+      api_key: apiKey,
+      user_id: userId,
+    })
+  );
+}
 
 export const UserContextProvider: any = ({
   children,
@@ -25,8 +39,11 @@ export const UserContextProvider: any = ({
   const [myState, setMyState] = useState<UserState>(defaultState);
   const store: UserState = myState;
 
-  store.login = (user: User) => {
+  store.login = async (user: User) => {
     console.log('login');
+    const token = await fetch(constructUrl(user.id), {
+      method: 'GET',
+    });
     setMyState({
       ...myState,
       loggedIn: true,
