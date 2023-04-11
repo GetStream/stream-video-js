@@ -6,11 +6,15 @@ import { TrackType } from '../gen/video/sfu/models/models';
 import { registerEventHandlers } from './callEventHandlers';
 import {
   Dispatcher,
-  SfuEventKindMap,
+  isSfuEvent,
   SfuEventKinds,
   SfuEventListener,
 } from './Dispatcher';
-import { CallState, StreamVideoWriteableStateStore } from '../store';
+import {
+  CallingState,
+  CallState,
+  StreamVideoWriteableStateStore,
+} from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import {
   BlockUserResponse,
@@ -34,6 +38,8 @@ import {
   SendReactionResponse,
   StopLiveResponse,
   UnblockUserResponse,
+  UpdateCallMembersRequest,
+  UpdateCallMembersResponse,
   UpdateCallRequest,
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
@@ -48,14 +54,17 @@ import {
   VisibilityState,
 } from './types';
 import {
-  BehaviorSubject,
   debounceTime,
   filter,
+  map,
+  pairwise,
   Subject,
   takeWhile,
+  tap,
 } from 'rxjs';
 import { Comparator } from '../sorting';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
+import { JoinResponse } from '../gen/video/sfu/event/events';
 import {
   createStatsReporter,
   StatsReporter,
@@ -63,6 +72,13 @@ import {
 import { ViewportTracker } from '../ViewportTracker';
 import { CallTypes } from './CallType';
 import { StreamClient } from '../coordinator/connection/client';
+import { retryInterval, sleep } from '../coordinator/connection/utils';
+import {
+  CallEventHandler,
+  CallEventTypes,
+  EventHandler,
+  StreamCallEvent,
+} from '../coordinator/connection/types';
 
 const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
 
@@ -100,6 +116,11 @@ export type CallConstructor = {
   members?: MemberResponse[];
 
   /**
+   * Flags the call as a ringing call.
+   */
+  ringing?: boolean;
+
+  /**
    * The default comparator to use when sorting participants.
    */
   sortParticipantsBy?: Comparator<StreamVideoParticipant>;
@@ -116,7 +137,7 @@ export type CallConstructor = {
  */
 export class Call {
   /**
-   * ViewporTracker instance
+   * ViewportTracker instance
    */
   readonly viewportTracker = new ViewportTracker();
 
@@ -151,16 +172,23 @@ export class Call {
   private trackSubscriptionsSubject = new Subject<TrackSubscriptionDetails[]>();
 
   private statsReporter?: StatsReporter;
-  private joined$ = new BehaviorSubject<boolean>(false);
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
 
+  private readonly clientStore: StreamVideoWriteableStateStore;
   private readonly streamClient: StreamClient;
   private sfuClient?: StreamSfuClient;
-  private readonly clientStore: StreamVideoWriteableStateStore;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 10;
+
+  /**
+   * A list hooks/functions to invoke when the call is left.
+   * A typical use case is to clean up some global event handlers.
+   * @private
+   */
+  private readonly leaveCallHooks: Function[] = [];
 
   private get preferredAudioCodec() {
-    const audioSettings = this.state.getCurrentValue(this.state.metadata$)
-      ?.settings.audio;
+    const audioSettings = this.data?.settings.audio;
     let preferredCodec =
       audioSettings?.redundant_coding_enabled === undefined
         ? 'opus'
@@ -179,7 +207,7 @@ export class Call {
     return preferredCodec;
   }
 
-  private streamClientBasePath: string;
+  private readonly streamClientBasePath: string;
 
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
@@ -192,6 +220,7 @@ export class Call {
     members,
     sortParticipantsBy,
     clientStore,
+    ringing,
   }: CallConstructor) {
     this.type = type;
     this.id = id;
@@ -204,10 +233,15 @@ export class Call {
     this.state = new CallState(
       sortParticipantsBy || callTypeConfig.options.sortParticipantsBy,
     );
-    this.state.metadataSubject.next(metadata);
-    this.state.membersSubject.next(members || []);
+    this.state.setMetadata(metadata);
+    this.state.setMembers(members || []);
 
     registerEventHandlers(this, this.state, this.dispatcher);
+
+    if (ringing) {
+      this.scheduleAutoDrop();
+      this.scheduleAutoDropCancellation();
+    }
 
     this.trackSubscriptionsSubject
       .pipe(debounceTime(UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION))
@@ -221,11 +255,26 @@ export class Call {
    * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the [reactive state store](./StreamVideoClient.md/#readonlystatestore).
    * @param eventName
    * @param fn
-   * @returns
+   * @returns a function which can be called to unsubscribe from the given event(s)
    */
-  on = (eventName: SfuEventKinds, fn: SfuEventListener) => {
-    return this.dispatcher.on(eventName, fn);
-  };
+  on(eventName: SfuEventKinds, fn: SfuEventListener): () => void;
+  on(eventName: CallEventTypes, fn: CallEventHandler): () => void;
+  on(
+    eventName: SfuEventKinds | CallEventTypes,
+    fn: SfuEventListener | CallEventHandler,
+  ) {
+    if (isSfuEvent(eventName)) {
+      return this.dispatcher.on(eventName, fn as SfuEventListener);
+    } else {
+      const eventHandler: CallEventHandler = (event: StreamCallEvent) => {
+        if (event.call_cid && event.call_cid === this.cid) {
+          (fn as EventHandler)(event);
+        }
+      };
+
+      return this.streamClient.on(eventName, eventHandler as EventHandler);
+    }
+  }
 
   /**
    * Remove subscription for WebSocket events that were created by the `on` method.
@@ -241,10 +290,9 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = () => {
-    if (!this.joined$.getValue()) {
+    if (this.state.callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
     }
-    this.joined$.next(false);
 
     this.statsReporter?.stop();
     this.statsReporter = undefined;
@@ -258,23 +306,29 @@ export class Call {
     this.sfuClient?.close();
     this.sfuClient = undefined;
 
-    this.clientStore.setCurrentValue(
-      this.clientStore.activeCallSubject,
-      undefined,
-    );
+    this.dispatcher.offAll();
+
+    // Call all leave call hooks, e.g. to clean up global event handlers
+    this.leaveCallHooks.forEach((hook) => hook());
+
+    this.clientStore.setActiveCall(undefined);
+    this.state.setCallingState(CallingState.LEFT);
   };
 
   get data() {
-    return this.state.getCurrentValue(this.state.metadata$);
+    return this.state.metadata;
   }
 
-  private waitForJoinResponse = (timeout: number = 10000) =>
-    new Promise<SfuEventKindMap['joinResponse']>((resolve, reject) => {
+  private waitForJoinResponse = (timeout: number = 5000) =>
+    new Promise<JoinResponse>((resolve, reject) => {
       const unsubscribe = this.on('joinResponse', (event) => {
-        resolve(event as SfuEventKindMap['joinResponse']);
+        if (event.eventPayload.oneofKind !== 'joinResponse') return;
+        clearTimeout(timeoutId);
+        unsubscribe();
+        resolve(event.eventPayload.joinResponse);
       });
 
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         unsubscribe();
         reject(new Error('Waiting for "joinResponse" has timed out'));
       }, timeout);
@@ -287,8 +341,8 @@ export class Call {
    */
   watch = async (data?: JoinCallRequest) => {
     const response = await watch(this.streamClient, this.type, this.id, data);
-    this.state.setCurrentValue(this.state.metadataSubject, response.call);
-    this.state.setCurrentValue(this.state.membersSubject, response.members);
+    this.state.setMetadata(response.call);
+    this.state.setMembers(response.members);
 
     return response;
   };
@@ -299,25 +353,22 @@ export class Call {
    * @returns a promise which resolves once the call join-flow has finished.
    */
   join = async (data?: JoinCallRequest) => {
-    if (this.joined$.getValue()) {
+    if (
+      [CallingState.JOINED, CallingState.JOINING].includes(
+        this.state.callingState,
+      )
+    ) {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    // FIXME OL: temporary fix which restores the previous behavior.
-    // This data should come from the SDK, or integration
-    data = data || {
-      create: true,
-    };
+    this.state.setCallingState(CallingState.JOINING);
 
     const call = await join(this.streamClient, this.type, this.id, data);
-    this.state.setCurrentValue(this.state.metadataSubject, call.metadata);
-    this.state.setCurrentValue(this.state.membersSubject, call.members);
+    this.state.setMetadata(call.metadata);
+    this.state.setMembers(call.members);
 
     // FIXME OL: convert to a derived state
-    this.state.setCurrentValue(
-      this.state.callRecordingInProgressSubject,
-      call.metadata.recording,
-    );
+    this.state.setCallRecordingInProgress(call.metadata.recording);
 
     // FIXME OL: remove once cascading is implemented
     let sfuUrl = call.sfuServer.url;
@@ -337,14 +388,102 @@ export class Call {
       call.token,
     ));
 
+    /**
+     * A closure which hides away the re-connection logic.
+     */
+    const rejoin = async () => {
+      console.log(`Rejoining call ${this.cid} (${this.reconnectAttempts})...`);
+      this.reconnectAttempts++;
+      this.state.setCallingState(CallingState.RECONNECTING);
+
+      // take a snapshot of the current "local participant" state
+      // we'll need it for restoring the previous publishing state later
+      const localParticipant = this.state.localParticipant;
+
+      this.subscriber?.close();
+      this.publisher?.stopPublishing({ stopTracks: false });
+      this.statsReporter?.stop();
+      sfuClient.close(); // clean up previous connection
+
+      await sleep(retryInterval(this.reconnectAttempts));
+      await this.join(data);
+      console.log(`Rejoin: ${this.reconnectAttempts} successful!`);
+      if (localParticipant) {
+        const {
+          audioStream,
+          videoStream,
+          screenShareStream: screenShare,
+        } = localParticipant;
+
+        // restore previous publishing state
+        if (audioStream) await this.publishAudioStream(audioStream);
+        if (videoStream) await this.publishVideoStream(videoStream);
+        if (screenShare) await this.publishScreenShareStream(screenShare);
+      }
+      console.log(`Rejoin: state restored ${this.reconnectAttempts}`);
+    };
+
+    // reconnect if the connection was closed unexpectedly. example:
+    // - SFU crash or restart
+    // - network change
+    sfuClient.signalReady.then(() => {
+      sfuClient.signalWs.addEventListener('close', (e) => {
+        // do nothing if the connection was closed on purpose
+        if (e.code === 1000) return;
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          rejoin().catch(() => {
+            console.log(
+              `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+            );
+            this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+          });
+        } else {
+          console.log('Reconnect attempts exceeded. Giving up...');
+          this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+        }
+      });
+    });
+
+    // handlers for connection online/offline events
+    // Note: window.addEventListener is not available in React Native, hence the check
+    if (typeof window !== 'undefined' && window.addEventListener) {
+      const handleOnOffline = () => {
+        window.removeEventListener('offline', handleOnOffline);
+        console.log('Join: Going offline...');
+        this.state.setCallingState(CallingState.OFFLINE);
+      };
+
+      const handleOnOnline = () => {
+        window.removeEventListener('online', handleOnOnline);
+        if (this.state.callingState === CallingState.OFFLINE) {
+          console.log('Join: Going online...');
+          rejoin().catch(() => {
+            console.log(
+              `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+            );
+            this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+          });
+        }
+      };
+
+      window.addEventListener('offline', handleOnOffline);
+      window.addEventListener('online', handleOnOnline);
+
+      // register cleanup hooks
+      this.leaveCallHooks.push(
+        () => window.removeEventListener('offline', handleOnOffline),
+        () => window.removeEventListener('online', handleOnOnline),
+      );
+    }
+
     this.subscriber = createSubscriber({
       rpcClient: sfuClient,
+      dispatcher: this.dispatcher,
       connectionConfig: call.connectionConfig,
       onTrack: this.handleOnTrack,
     });
 
-    const audioSettings = this.state.getCurrentValue(this.state.metadata$)
-      ?.settings.audio;
+    const audioSettings = this.data?.settings.audio;
     let isDtxEnabled =
       audioSettings?.opus_dtx_enabled === undefined
         ? false
@@ -368,20 +507,31 @@ export class Call {
     this.statsReporter = createStatsReporter({
       subscriber: this.subscriber,
       publisher: this.publisher,
-      store: this.state,
+      state: this.state,
       edgeName: call.sfuServer.edge_name,
     });
 
-    const joinResponsePromise = this.waitForJoinResponse().then((event) => {
-      const { callState } = event.eventPayload.joinResponse;
+    try {
+      // 1. wait for the signal server to be ready before sending "joinRequest"
+      sfuClient.signalReady
+        .catch((err) => console.warn('Signal ready failed', err))
+        // prepare a generic SDP and send it to the SFU.
+        // this is a throw-away SDP that the SFU will use to determine
+        // the capabilities of the client (codec support, etc.)
+        .then(() => getGenericSdp('recvonly', this.preferredAudioCodec))
+        .then((sdp) => sfuClient.join({ subscriberSdp: sdp || '' }));
+
+      // 2. in parallel, wait for the SFU to send us the "joinResponse"
+      // this will throw an error if the SFU rejects the join request or
+      // fails to respond in time
+      const { callState } = await this.waitForJoinResponse();
       const currentParticipants = callState?.participants || [];
 
       const ownCapabilities = {
         ownCapabilities: call.metadata.own_capabilities,
       };
 
-      this.state.setCurrentValue(
-        this.state.participantsSubject,
+      this.state.setParticipants(
         currentParticipants.map<StreamVideoParticipant>((participant) => ({
           ...participant,
           isLoggedInUser: participant.sessionId === sfuClient.sessionId,
@@ -393,24 +543,33 @@ export class Call {
         })),
       );
 
-      this.clientStore.setCurrentValue(
-        this.clientStore.activeCallSubject,
-        this,
-      );
+      this.clientStore.setActiveCall(this);
 
-      sfuClient.keepAlive();
-      this.joined$.next(true);
-    });
+      this.reconnectAttempts = 0; // reset the reconnect attempts counter
+      this.state.setCallingState(CallingState.JOINED);
+      console.log(`Joined call ${this.cid}`);
+    } catch (err) {
+      // join failed, try to rejoin
+      if (this.reconnectAttempts < this.maxReconnectAttempts) {
+        await rejoin();
+        console.log(`Rejoin ${this.reconnectAttempts} successful!`);
+      } else {
+        console.log(
+          `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+        );
+        this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+        throw new Error('Join failed');
+      }
+    }
+  };
 
-    const genericSdp = await getGenericSdp(
-      'recvonly',
-      this.preferredAudioCodec,
+  updateCallMembers = async (
+    data: UpdateCallMembersRequest,
+  ): Promise<UpdateCallMembersResponse> => {
+    return await this.streamClient.post<UpdateCallMembersResponse>(
+      `${this.streamClientBasePath}/members`,
+      data,
     );
-    await sfuClient.join({
-      subscriberSdp: genericSdp || '',
-    });
-
-    return joinResponsePromise;
   };
 
   /**
@@ -567,19 +726,15 @@ export class Call {
    * @param trackType the track type to stop publishing.
    */
   stopPublish = async (trackType: TrackType) => {
-    if (!this.publisher) {
-      throw new Error(`Call not joined yet.`);
-    }
-
     console.log(`stopPublish`, TrackType[trackType]);
-    const wasPublishing = this.publisher.unpublishStream(trackType);
-    if (wasPublishing) {
-      await this.sfuClient!.updateMuteState(trackType, true);
+    const wasPublishing = this.publisher?.unpublishStream(trackType);
+    if (wasPublishing && this.sfuClient) {
+      await this.sfuClient.updateMuteState(trackType, true);
 
       const audioOrVideoOrScreenShareStream =
         trackTypeToParticipantStreamKey(trackType);
       if (audioOrVideoOrScreenShareStream) {
-        this.state.updateParticipant(this.sfuClient!.sessionId, (p) => ({
+        this.state.updateParticipant(this.sfuClient.sessionId, (p) => ({
           publishedTracks: p.publishedTracks.filter((t) => t !== trackType),
           [audioOrVideoOrScreenShareStream]: undefined,
         }));
@@ -771,9 +926,9 @@ export class Call {
     // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
     const [trackId, trackType] = primaryStream.id.split(':');
     console.log(`Got remote ${trackType} track:`, e.track);
-    const participantToUpdate = this.state
-      .getCurrentValue(this.state.participantsSubject)
-      .find((p) => p.trackLookupPrefix === trackId);
+    const participantToUpdate = this.state.participants.find(
+      (p) => p.trackLookupPrefix === trackId,
+    );
     if (!participantToUpdate) {
       console.error('Received track for unknown participant', trackId, e);
       return;
@@ -833,14 +988,9 @@ export class Call {
 
   private assertCallJoined = () => {
     return new Promise<void>((resolve) => {
-      this.joined$
-        .pipe(
-          takeWhile((isJoined) => !isJoined, true),
-          filter((isJoined) => isJoined),
-        )
-        .subscribe(() => {
-          resolve();
-        });
+      this.state.callingState$
+        .pipe(takeWhile((state) => state !== CallingState.JOINED, true))
+        .subscribe(() => resolve());
     });
   };
 
@@ -898,8 +1048,8 @@ export class Call {
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
     );
-    this.state.setCurrentValue(this.state.metadataSubject, response.call);
-    this.state.setCurrentValue(this.state.membersSubject, response.members);
+    this.state.setMetadata(response.call);
+    this.state.setMembers(response.members);
 
     return response;
   };
@@ -909,22 +1059,24 @@ export class Call {
       this.streamClientBasePath,
       data,
     );
-    this.state.setCurrentValue(this.state.metadataSubject, response.call);
-    this.state.setCurrentValue(this.state.membersSubject, response.members);
 
-    const currentPendingCalls = this.clientStore.getCurrentValue(
-      this.clientStore.pendingCallsSubject,
-    );
-    const callAlreadyRegistered = currentPendingCalls.find(
+    if (data?.ring && !this.dropTimeout) {
+      this.scheduleAutoDrop();
+      this.scheduleAutoDropCancellation();
+    }
+
+    this.state.setMetadata(response.call);
+    this.state.setMembers(response.members);
+
+    const callAlreadyRegistered = this.clientStore.pendingCalls.find(
       (pendingCall) => pendingCall.id === this.id,
     );
 
     if (!callAlreadyRegistered) {
-      this.scheduleCancel();
-      this.clientStore.setCurrentValue(
-        this.clientStore.pendingCallsSubject,
-        (pendingCalls) => [...pendingCalls, this],
-      );
+      this.clientStore.setPendingCalls((pendingCalls) => [
+        ...pendingCalls,
+        this,
+      ]);
     }
 
     return response;
@@ -1037,27 +1189,24 @@ export class Call {
    * @returns
    */
   accept = async () => {
-    const callToAccept = this.clientStore
-      .getCurrentValue(this.clientStore.pendingCallsSubject)
-      .find((c) => c.id === this.id && c.type === this.type);
+    // FIXME OL: this method should be merged with the join method.
+
+    const callToAccept = this.clientStore.pendingCalls.find(
+      (c) => c.id === this.id && c.type === this.type,
+    );
 
     if (callToAccept) {
-      this.cancelScheduledDrop();
       await this.streamClient.post(`${this.streamClientBasePath}/event`, {
         type: 'call.accepted',
       });
 
       // remove the accepted call from the "pending calls" list.
-      this.clientStore.setCurrentValue(
-        this.clientStore.pendingCallsSubject,
-        (pendingCalls) => pendingCalls.filter((c) => c !== callToAccept),
+      this.clientStore.setPendingCalls((pendingCalls) =>
+        pendingCalls.filter((c) => c !== callToAccept),
       );
 
       await this.join();
-      this.clientStore.setCurrentValue(
-        this.clientStore.activeCallSubject,
-        callToAccept,
-      );
+      this.clientStore.setActiveCall(callToAccept);
     }
   };
 
@@ -1067,12 +1216,8 @@ export class Call {
    * @returns
    */
   reject = async () => {
-    this.cancelScheduledDrop();
-
-    this.clientStore.setCurrentValue(
-      this.clientStore.pendingCallsSubject,
-      (pendingCalls) =>
-        pendingCalls.filter((incomingCall) => incomingCall.id !== this.id),
+    this.clientStore.setPendingCalls((pendingCalls) =>
+      pendingCalls.filter((c) => c.cid !== this.cid),
     );
     await this.streamClient.post(`${this.streamClientBasePath}/event`, {
       type: 'call.rejected',
@@ -1081,48 +1226,42 @@ export class Call {
 
   /**
    * Signals other users that I have cancelled my call to them before they accepted it.
-   * Causes the `CallCancelled` event to be emitted to all the call members.
+   * Causes the `call.ended` event to be emitted to all the call members.
    *
-   * Cancelling a call is only possible before the local participant joined the call.
    * @returns
    */
   cancel = async () => {
+    console.log('call cancelled');
+    // FIXME OL: this method should be merged with the leave method.
     const store = this.clientStore;
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
-    const leavingActiveCall =
-      activeCall?.id === this.id && activeCall.type === this.type;
+    const activeCall = store.activeCall;
+    const leavingActiveCall = activeCall?.cid === this.cid;
     if (leavingActiveCall) {
       activeCall.leave();
     } else {
-      this.cancelScheduledDrop();
-      store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
-        pendingCalls.filter((pendingCall) => pendingCall.id !== this.id),
+      await this.endCall();
+      store.setPendingCalls((pendingCalls) =>
+        pendingCalls.filter((c) => c.cid !== this.cid),
       );
-    }
-
-    if (activeCall) {
-      const state = activeCall.state;
-      const remoteParticipants = state.getCurrentValue(
-        state.remoteParticipants$,
-      );
-      if (!remoteParticipants.length && !leavingActiveCall) {
-        await this.streamClient.post(`${this.streamClientBasePath}/event`, {
-          type: 'call.cancelled',
-        });
-      }
     }
   };
 
-  scheduleCancel = () => {
-    if (!this.data?.settings.ring.auto_cancel_timeout_ms || this.dropTimeout)
+  private scheduleCancel = () => {
+    if (
+      typeof this.data?.settings.ring.auto_cancel_timeout_ms === 'undefined' ||
+      this.dropTimeout
+    )
       return;
     this.dropTimeout = setTimeout(
       () => this.cancel(),
       this.data?.settings.ring.auto_cancel_timeout_ms,
     );
   };
-  scheduleReject = () => {
-    if (!this.data?.settings.ring.auto_reject_timeout_ms || this.dropTimeout)
+  private scheduleReject = () => {
+    if (
+      typeof this.data?.settings.ring.auto_reject_timeout_ms === 'undefined' ||
+      this.dropTimeout
+    )
       return;
     this.dropTimeout = setTimeout(
       () => this.reject(),
@@ -1130,11 +1269,44 @@ export class Call {
     );
   };
 
+  private scheduleAutoDrop = () => {
+    this.state.metadata$
+      .pipe(
+        takeWhile(() => !this.dropTimeout),
+        tap((meta) => {
+          if (!(meta && this.clientStore.connectedUser)) return;
+
+          const isOutgoingCall =
+            this.clientStore.connectedUser.id === meta.created_by.id;
+
+          isOutgoingCall ? this.scheduleCancel() : this.scheduleReject();
+        }),
+      )
+      .subscribe();
+  };
+
   cancelScheduledDrop = () => {
     if (this.dropTimeout) {
       clearTimeout(this.dropTimeout);
       this.dropTimeout = undefined;
+      return true;
     }
+    return false;
+  };
+
+  private scheduleAutoDropCancellation = () => {
+    this.clientStore.pendingCallsSubject
+      .pipe(
+        pairwise(),
+        filter(([prev, next]) => {
+          const wasPending = prev.find((call) => call.cid === this.cid);
+          const isPending = next.find((call) => call.cid === this.cid);
+          return !!(wasPending && !isPending);
+        }),
+        map(this.cancelScheduledDrop),
+        takeWhile((hasTerminated) => !hasTerminated),
+      )
+      .subscribe();
   };
 
   /**
@@ -1148,10 +1320,7 @@ export class Call {
       `${this.streamClientBasePath}/${sessionId}/recordings`,
     );
 
-    this.state.setCurrentValue(
-      this.state.callRecordingListSubject,
-      response.recordings,
-    );
+    this.state.setCallRecordingsList(response.recordings);
 
     return response;
   };

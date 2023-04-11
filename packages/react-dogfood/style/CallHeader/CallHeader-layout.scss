@@ -29,3 +29,22 @@
   display: flex;
   gap: 0.5rem;
 }
+
+.str-video__call-header__notifications {
+  display: flex;
+  justify-content: center;
+
+  .str-video__loading-indicator {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .str-video__loading-indicator__icon {
+    width: 1rem;
+    height: 1rem;
+  }
+  .str-video__loading-indicator-text {
+    font-size: 0.875rem;
+  }
+}

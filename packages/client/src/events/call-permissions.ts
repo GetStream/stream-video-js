@@ -1,7 +1,4 @@
-import {
-  PermissionRequestEvent,
-  UpdatedCallPermissionsEvent,
-} from '../gen/coordinator';
+import { StreamVideoEvent } from '../coordinator/connection/types';
 import { StreamVideoWriteableStateStore } from '../store';
 
 /**
@@ -11,9 +8,11 @@ import { StreamVideoWriteableStateStore } from '../store';
 export const watchCallPermissionRequest = (
   store: StreamVideoWriteableStateStore,
 ) => {
-  return function onCallPermissionRequest(event: PermissionRequestEvent) {
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
-
+  return function onCallPermissionRequest(event: StreamVideoEvent) {
+    if (event.type !== 'call.permission_request') {
+      return;
+    }
+    const activeCall = store.activeCall;
     if (!activeCall) {
       console.warn(
         `Ignoring "call.permission_request" as there is no active call`,
@@ -31,7 +30,7 @@ export const watchCallPermissionRequest = (
     }
 
     const state = activeCall.state;
-    const localParticipant = state.getCurrentValue(state.localParticipant$);
+    const localParticipant = state.localParticipant;
     if (
       !localParticipant?.ownCapabilities.includes('update-call-permissions')
     ) {
@@ -41,7 +40,7 @@ export const watchCallPermissionRequest = (
       return;
     }
 
-    state.setCurrentValue(state.callPermissionRequestSubject, event);
+    state.setCallPermissionRequest(event);
   };
 };
 
@@ -52,8 +51,11 @@ export const watchCallPermissionRequest = (
 export const watchCallPermissionsUpdated = (
   store: StreamVideoWriteableStateStore,
 ) => {
-  return function onCallPermissionsUpdated(event: UpdatedCallPermissionsEvent) {
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
+  return function onCallPermissionsUpdated(event: StreamVideoEvent) {
+    if (event.type !== 'call.permissions_updated') {
+      return;
+    }
+    const activeCall = store.activeCall;
     if (!activeCall) {
       console.warn(
         `Ignoring "call.permissions_updated" as there is no active call`,
@@ -71,7 +73,7 @@ export const watchCallPermissionsUpdated = (
     }
 
     const state = activeCall.state;
-    const localParticipant = state.getCurrentValue(state.localParticipant$);
+    const localParticipant = state.localParticipant;
     if (event.user.id === localParticipant?.userId) {
       state.updateParticipant(localParticipant.sessionId, {
         ownCapabilities: event.own_capabilities,

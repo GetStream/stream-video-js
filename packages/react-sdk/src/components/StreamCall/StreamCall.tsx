@@ -16,17 +16,15 @@ export const StreamCall = ({ children }: { children: ReactNode }) => {
   const activeCall = useActiveCall();
 
   useEffect(() => {
-    if (!videoClient || activeCall) return;
+    if (!(videoClient && acceptedCall) || activeCall) return;
 
-    if (acceptedCall) {
-      const [type, id] = acceptedCall.call_cid.split(':');
-      videoClient
-        .call(type, id)
-        .join()
-        .catch((e) => {
-          console.error('Error joining call', e);
-        });
-    }
+    const [type, id] = acceptedCall.call_cid.split(':');
+    videoClient
+      .call(type, id)
+      .join()
+      .catch((e) => {
+        console.error('Error joining call', e);
+      });
   }, [videoClient, outgoingCall, acceptedCall, activeCall]);
 
   return (

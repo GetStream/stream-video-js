@@ -38,48 +38,9 @@ Stream Chat supports creating applications using Expo and React Native CLI. But 
 The easiest way to get a chat project up and running can be done by using the [Chat Starter Kit Template](https://github.com/GetStream/react-native-stream-chat-template#react-native-stream-chat-template) or to
 follow [React Native Chat Tutorial](https://getstream.io/chat/react-native-chat/tutorial/) first and get a basic chat screens ready in your app.
 
-## Add Stream's Video SDK and it's peer dependencies
+## Install dependencies and initial setup
 
-```bash
-yarn add stream-video-react-native react-native-webrtc react-native-callkeep react-native-incall-manager react-native-svg text-encoding-polyfill
-```
-
-Some dependencies require us to make changes to our application for all functionalities to be available. Please apply the following steps:
-
-- `react-native-webrtc` installation on [Android](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/AndroidInstallation.md) and [iOS](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/iOSInstallation.md).
-- `react-native-svg` be aware of [compatibility](https://github.com/software-mansion/react-native-svg#supported-react-native-versions) with RN versions and [troubleshooting](https://github.com/software-mansion/react-native-svg#troubleshooting) steps.
-- `react-native-incall-manager` installation on [Android](https://github.com/react-native-webrtc/react-native-incall-manager#android) and [iOS](https://github.com/react-native-webrtc/react-native-incall-manager#ios).
-- `react-native-callkeep` installation on [Android](https://github.com/react-native-webrtc/react-native-callkeep/blob/master/docs/android-installation.md) and [iOS](https://github.com/react-native-webrtc/react-native-callkeep/blob/master/docs/ios-installation.md).
-
-So what did we install precisely?
-
-- `stream-video-react-native` (SVRN) is Stream's Video SDK which contains UI components, hooks and utility functions that will enable audio/video calls.
-- `react-native-webrtc` is a WebRTC module for React Native, SVRN depends on this dependency, it's components and utilities to render audio/video tracks and interact with the phone's media devices.
-- `react-native-incall-manager` handles media-routes/sensors/events during a audio/video call.
-- `react-native-callkeep` utilises CallKit (iOS) and ConnectionService (Android). SVRN's uses this dependency to render native ringers and handle accepting/declining a call when the app is in background/dead mode.
-- `react-native-svg` provides SVG support to React Native, SVRN's components and it's icons are reliant on this dependency.
-
-## First things first: encoding, polyfills and globals configuration
-
-Add the following imports and statements to your `index.js` file in the project's root.
-
-```tsx
-/** URL polyfill */
-import 'text-encoding-polyfill';
-/** Text decoder polyfill */
-import 'react-native-url-polyfill/auto';
-/** crypto.getRandomValues polyfill for uuid */
-import 'react-native-get-random-values';
-import {registerGlobals} from 'react-native-webrtc';
-...
-
-// We're registering globals, because our video JS client is serving SDKs that use browser based webRTC functions.
-// This will result in creation of 2 global objects: `window` and `navigator`
-// Further [reading](https://github.com/react-native-webrtc/react-native-webrtc/blob/16cff1523da457dbcc27bb0744ee2bad3a987c41/Documentation/BasicUsage.md#registering-globals) about this process
-if (Platform.OS !== 'web') {
-  registerGlobals();
-}
-```
+Follow this [guide](01-basics/03-installation.mdx) to install the dependencies and setup the project.
 
 ### Create `StreamVideoClient`
 
@@ -87,7 +48,8 @@ Firstly we need to authenticate the Video SDK’s Client.
 You will need a user and token to authenticate a client.
 You can use the `client` from the Chat SDK to create the user object.
 To do this, you can import the hook, `useChatContext`, and use the `client` from it, as in the example below.
-`StreamVideoClient` expects API Key as the first arguments. It also expects `options`.
+`StreamVideoClient` expects API Key as the first arguments. It also expects `options` and Call configuration object for type `ring`(`CALL_CONFIG.ring`).
+The call configs helps adding some default configs to the call.
 
 ```tsx
 import { useChatContext } from 'stream-chat-react-native';
@@ -114,7 +76,7 @@ const APIParams = {
 };
 
 // authenticate and create the video client
-const client = new StreamVideoClient(APIParams.apiKey);
+const client = new StreamVideoClient(APIParams.apiKey, {}, CALL_CONFIG.ring);
 ```
 
 All types used in the example above can be found in the end version of this [project](https://github.com/GetStream/stream-video-js/blob/a42a72fcde67877287f4df292524311723ea4e0f/packages/react-native-call-starter-kit/src/types.ts)
@@ -169,39 +131,7 @@ const App = () => {
 };
 ```
 
-For simplicity you can also use this hook:
-
-```tsx title="src/hooks/useVideoClient.tsx"
-import { StreamVideoClient } from '@stream-io/video-client';
-import { useEffect, useState } from 'react';
-import { VideoProps } from '../types';
-
-const APIParams = {
-  apiKey: STREAM_API_KEY, // see <video>/data/fixtures/apps.yaml for API key/secret
-};
-
-export const useVideoClient = ({ user, token }: VideoProps) => {
-  const [videoClient, setVideoClient] = useState<StreamVideoClient>();
-
-  useEffect(() => {
-    const run = async () => {
-      try {
-        if (user && token) {
-          const client = new StreamVideoClient(APIParams.apiKey);
-          await client.connectUser(user, token);
-          setVideoClient(client);
-        }
-      } catch (err) {
-        console.error('Failed to establish connection', err);
-      }
-    };
-
-    run();
-  }, [token, user]);
-
-  return { videoClient };
-};
-```
+For simplicity you can also use the `useCreateStreamVideoClient` [hook](../../call-engine/hooks#usecreatestreamvideoclient) to connect and disconnect from the client.
 
 ### Providing the video client and Call logic to the rest of the app
 

@@ -13,9 +13,9 @@ import { TokenManager } from './token_manager';
 import { WSConnectionFallback } from './connection_fallback';
 import { isErrorResponse, isWSFailure } from './errors';
 import {
-  chatCodes,
   isFunction,
   isOnline,
+  KnownCodes,
   randomId,
   retryInterval,
   sleep,
@@ -25,18 +25,14 @@ import {
   APIErrorResponse,
   ConnectAPIResponse,
   ErrorFromResponse,
-  Event,
   EventHandler,
   Logger,
   OwnUserResponse,
   StreamClientOptions,
+  StreamVideoEvent,
   TokenOrProvider,
 } from './types';
 import { InsightMetrics, postInsights } from './insights';
-
-function isString(x: unknown): x is string {
-  return typeof x === 'string' || x instanceof String;
-}
 
 export class StreamClient {
   _user?: OwnUserResponse;
@@ -48,7 +44,7 @@ export class StreamClient {
   cleaningIntervalRef?: NodeJS.Timeout;
   clientID?: string;
   key: string;
-  listeners: Record<string, Array<(event: Event) => void>>;
+  listeners: Record<string, Array<(event: StreamVideoEvent) => void>>;
   logger: Logger;
 
   node: boolean;
@@ -121,18 +117,22 @@ export class StreamClient {
       this.rejectConnectionId = reject;
     });
 
-    this.axiosInstance = axios.create(this.options);
-
-    // todo: replace 'https://chat.stream-io-api.com' with an actual video server URL
-    this.setBaseURL(this.options.baseURL || 'https://chat.stream-io-api.com');
+    this.setBaseURL(
+      this.options.baseURL || 'https://video.stream-io-api.com/video',
+    );
 
     if (typeof process !== 'undefined' && process.env.STREAM_LOCAL_TEST_RUN) {
-      this.setBaseURL('http://localhost:3030');
+      this.setBaseURL('http://localhost:3030/video');
     }
 
     if (typeof process !== 'undefined' && process.env.STREAM_LOCAL_TEST_HOST) {
-      this.setBaseURL('http://' + process.env.STREAM_LOCAL_TEST_HOST);
+      this.setBaseURL(`http://${process.env.STREAM_LOCAL_TEST_HOST}/video`);
     }
+
+    this.axiosInstance = axios.create({
+      baseURL: this.baseURL,
+      ...this.options,
+    });
 
     // WS connection is initialized when setUser is called
     this.wsConnection = null;
@@ -531,7 +531,7 @@ export class StreamClient {
       if (e.response) {
         /** connection_fallback depends on this token expiration logic */
         if (
-          e.response.data.code === chatCodes.TOKEN_EXPIRED &&
+          e.response.data.code === KnownCodes.TOKEN_EXPIRED &&
           !this.tokenManager.isStatic()
         ) {
           if (this.consecutiveFailures > 1) {
@@ -596,7 +596,7 @@ export class StreamClient {
     return data;
   }
 
-  dispatchEvent = (event: Event) => {
+  dispatchEvent = (event: StreamVideoEvent) => {
     if (!event.received_at) event.received_at = new Date();
 
     console.log(`Dispatching event: ${event.type}`, event);
@@ -606,14 +606,14 @@ export class StreamClient {
   handleEvent = (messageEvent: WebSocket.MessageEvent) => {
     // dispatch the event to the channel listeners
     const jsonString = messageEvent.data as string;
-    const event = JSON.parse(jsonString) as Event;
+    const event = JSON.parse(jsonString) as StreamVideoEvent;
     this.dispatchEvent(event);
   };
 
-  _callClientListeners = (event: Event) => {
+  _callClientListeners = (event: StreamVideoEvent) => {
     const client = this;
     // gather and call the listeners
-    const listeners: Array<(e: Event) => void> = [];
+    const listeners: Array<(e: StreamVideoEvent) => void> = [];
     if (client.listeners.all) {
       listeners.push(...client.listeners.all);
     }

@@ -1,9 +1,13 @@
 import { useEffect } from 'react';
 import {
+  CallingState,
   CopyToClipboardButtonWithPopup,
   DeviceSettings,
   IconButton,
+  LoadingIndicator,
+  Notification,
   useActiveCall,
+  useCallCallingState,
 } from '@stream-io/video-react-sdk';
 import { CallHeaderTitle } from './CallHeaderTitle';
 import { CallRecordings } from './CallRecordings';
@@ -17,34 +21,68 @@ export const ActiveCallHeader = ({
 }: LayoutSelectorProps) => {
   const activeCall = useActiveCall();
 
+  const callingState = useCallCallingState();
+  const isOffline = callingState === CallingState.OFFLINE;
+  const hasFailedToRecover = callingState === CallingState.RECONNECTING_FAILED;
+  const isRecoveringConnection = [
+    CallingState.JOINING,
+    CallingState.RECONNECTING,
+  ].includes(callingState);
+
   useEffect(() => {
     activeCall?.queryRecordings();
   }, [activeCall]);
 
   return (
-    <div className="str-video__call-header">
-      <CallHeaderTitle />
-      <div className="str-video__call-header__controls-group">
-        <LayoutSelector
-          selectedLayout={selectedLayout}
-          onMenuItemClick={setLayout}
-        />
-        <IconButton
-          icon="info-document"
-          title="Usage guide and known limitations"
-          onClick={() => {
-            if (typeof window !== 'undefined') {
-              window.open(USAGE_GUIDE_LINK, '_blank', 'noopener,noreferrer');
+    <>
+      <div className="str-video__call-header">
+        <CallHeaderTitle />
+        <div className="str-video__call-header__controls-group">
+          <LayoutSelector
+            selectedLayout={selectedLayout}
+            onMenuItemClick={setLayout}
+          />
+          <IconButton
+            icon="info-document"
+            title="Usage guide and known limitations"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.open(USAGE_GUIDE_LINK, '_blank', 'noopener,noreferrer');
+              }
+            }}
+          />
+          <CopyToClipboardButtonWithPopup
+            Button={IconInviteLinkButton}
+            copyValue={
+              typeof window !== 'undefined' ? window.location.href : ''
             }
-          }}
-        />
-        <CopyToClipboardButtonWithPopup
-          Button={IconInviteLinkButton}
-          copyValue={typeof window !== 'undefined' ? window.location.href : ''}
-        />
-        <CallRecordings />
-        <DeviceSettings />
+          />
+          <CallRecordings />
+          <DeviceSettings />
+        </div>
       </div>
-    </div>
+      <div className="str-video__call-header__notifications">
+        <Notification
+          isVisible={isRecoveringConnection || isOffline || hasFailedToRecover}
+          iconClassName={null}
+          placement="auto"
+          message={
+            <LoadingIndicator
+              text={
+                isRecoveringConnection
+                  ? 'Reconnecting...'
+                  : isOffline
+                  ? 'You are offline...'
+                  : hasFailedToRecover
+                  ? 'Failed to restore connection. Check your internet connection and try again later.'
+                  : `Calling state: ${callingState}`
+              }
+            />
+          }
+        >
+          <span />
+        </Notification>
+      </div>
+    </>
   );
 };

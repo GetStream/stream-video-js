@@ -1,4 +1,3 @@
-import { NavigatorScreenParams } from '@react-navigation/native';
 import { SfuEvent } from '@stream-io/video-client/dist/src/gen/video/sfu/event/events';
 
 type BinaryType = 'arraybuffer' | 'blob';
@@ -115,6 +114,11 @@ export interface RTCDataChannel extends EventTarget {
 
 export type EventHandler = (event: SfuEvent) => void;
 
+export type LoginStackParamList = {
+  ChooseFlowScreen: undefined;
+  LoginScreen: undefined;
+};
+
 export type MeetingStackParamList = {
   JoinMeetingScreen: undefined;
   MeetingScreen: undefined;
@@ -131,8 +135,8 @@ export type RingingStackParamList = {
 };
 
 export type RootStackParamList = {
+  Login: undefined;
   ActiveCallScreen: undefined;
-  ChooseFlowScreen: undefined;
-  Meeting: NavigatorScreenParams<MeetingStackParamList>;
-  Ringing: NavigatorScreenParams<RingingStackParamList>;
+  Meeting: undefined;
+  Ringing: undefined;
 };

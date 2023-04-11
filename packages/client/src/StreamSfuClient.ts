@@ -1,9 +1,9 @@
+import type { FinishedUnaryCall, UnaryCall } from '@protobuf-ts/runtime-rpc';
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
 import { createSignalClient, withHeaders } from './rpc';
 import { createWebSocketSignalChannel } from './rtc/signal';
 import { JoinRequest, SfuRequest } from './gen/video/sfu/event/events';
 import { Dispatcher } from './rtc/Dispatcher';
-import { v4 as uuidv4 } from 'uuid';
 import { IceTrickleBuffer } from './rtc/IceTrickleBuffer';
 import {
   SendAnswerRequest,
@@ -11,7 +11,16 @@ import {
   TrackSubscriptionDetails,
   UpdateMuteStatesRequest,
 } from './gen/video/sfu/signal_rpc/signal';
-import { ICETrickle, TrackType } from './gen/video/sfu/models/models';
+import {
+  Error as SfuError,
+  ICETrickle,
+  TrackType,
+} from './gen/video/sfu/models/models';
+import {
+  generateUUIDv4,
+  retryInterval,
+  sleep,
+} from './coordinator/connection/utils';
 
 const hostnameFromUrl = (url: string) => {
   try {
@@ -37,20 +46,48 @@ const toURL = (url: string) => {
   }
 };
 
+/**
+ * The client used for exchanging information with the SFU.
+ */
 export class StreamSfuClient {
-  readonly dispatcher: Dispatcher;
+  /**
+   * A buffer for ICE Candidates that are received before
+   * the PeerConnections are ready to handle them.
+   */
   readonly iceTrickleBuffer = new IceTrickleBuffer();
-  // we generate uuid session id client side
+  /**
+   * The `sessionId` of the currently connected participant.
+   */
   readonly sessionId: string;
-  private readonly rpc: SignalServerClient;
-  // Current JWT token
-  private readonly token: string;
-  signalReady: Promise<WebSocket>;
-  private keepAliveInterval?: NodeJS.Timeout;
 
+  /**
+   * Holds the current WebSocket connection to the SFU.
+   */
+  signalWs: WebSocket;
+
+  /**
+   * Promise that resolves when the WebSocket connection is ready (open).
+   */
+  signalReady: Promise<WebSocket>;
+
+  private readonly rpc: SignalServerClient;
+  private readonly token: string;
+  private keepAliveInterval?: NodeJS.Timeout;
+  private connectionCheckTimeout?: NodeJS.Timeout;
+  private pingIntervalInMs = 25 * 1000;
+  private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
+  private lastMessageTimestamp?: Date;
+  private readonly unsubscribeIceTrickle: () => void;
+
+  /**
+   * Constructs a new SFU client.
+   *
+   * @param dispatcher the event dispatcher to use.
+   * @param url the URL of the SFU.
+   * @param token the JWT token to use for authentication.
+   */
   constructor(dispatcher: Dispatcher, url: string, token: string) {
-    this.dispatcher = dispatcher;
-    this.sessionId = uuidv4();
+    this.sessionId = generateUUIDv4();
     this.token = token;
     this.rpc = createSignalClient({
       baseUrl: url,
@@ -78,57 +115,71 @@ export class StreamSfuClient {
     // connection is established. In that case, those events (ICE candidates)
     // need to be buffered and later added to the appropriate PeerConnection
     // once the remoteDescription is known and set.
-    this.dispatcher.on('iceTrickle', (e) => {
+    this.unsubscribeIceTrickle = dispatcher.on('iceTrickle', (e) => {
       if (e.eventPayload.oneofKind !== 'iceTrickle') return;
       const { iceTrickle } = e.eventPayload;
       this.iceTrickleBuffer.push(iceTrickle);
     });
 
-    this.signalReady = createWebSocketSignalChannel({
+    this.signalWs = createWebSocketSignalChannel({
       endpoint: wsEndpoint,
       onMessage: (message) => {
-        this.dispatcher.dispatch(message);
+        this.lastMessageTimestamp = new Date();
+        this.scheduleConnectionCheck();
+        dispatcher.dispatch(message);
       },
+    });
+
+    this.signalReady = new Promise((resolve) => {
+      this.signalWs.addEventListener('open', () => {
+        this.keepAlive();
+        resolve(this.signalWs);
+      });
     });
   }
 
-  close = () => {
-    this.signalReady.then((ws) => {
-      this.signalReady = Promise.reject('Connection closed');
-      // TODO OL: re-connect flow
-      ws.close(1000, 'Requested signal connection close');
+  close = (code: number = 1000) => {
+    this.signalWs.close(code, 'Requested signal connection close');
 
-      this.dispatcher.offAll();
-      clearInterval(this.keepAliveInterval);
-    });
+    this.unsubscribeIceTrickle();
+    clearInterval(this.keepAliveInterval);
+    clearTimeout(this.connectionCheckTimeout);
   };
 
   updateSubscriptions = async (subscriptions: TrackSubscriptionDetails[]) => {
-    return this.rpc.updateSubscriptions({
-      sessionId: this.sessionId,
-      tracks: subscriptions,
-    });
+    return retryable(() =>
+      this.rpc.updateSubscriptions({
+        sessionId: this.sessionId,
+        tracks: subscriptions,
+      }),
+    );
   };
 
   setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
-    return this.rpc.setPublisher({
-      ...data,
-      sessionId: this.sessionId,
-    });
+    return retryable(() =>
+      this.rpc.setPublisher({
+        ...data,
+        sessionId: this.sessionId,
+      }),
+    );
   };
 
   sendAnswer = async (data: Omit<SendAnswerRequest, 'sessionId'>) => {
-    return this.rpc.sendAnswer({
-      ...data,
-      sessionId: this.sessionId,
-    });
+    return retryable(() =>
+      this.rpc.sendAnswer({
+        ...data,
+        sessionId: this.sessionId,
+      }),
+    );
   };
 
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
-    return this.rpc.iceTrickle({
-      ...data,
-      sessionId: this.sessionId,
-    });
+    return retryable(() =>
+      this.rpc.iceTrickle({
+        ...data,
+        sessionId: this.sessionId,
+      }),
+    );
   };
 
   updateMuteState = async (trackType: TrackType, muted: boolean) => {
@@ -145,10 +196,12 @@ export class StreamSfuClient {
   updateMuteStates = async (
     data: Omit<UpdateMuteStatesRequest, 'sessionId'>,
   ) => {
-    return this.rpc.updateMuteStates({
-      ...data,
-      sessionId: this.sessionId,
-    });
+    return retryable(() =>
+      this.rpc.updateMuteStates({
+        ...data,
+        sessionId: this.sessionId,
+      }),
+    );
   };
 
   join = async (data: Omit<JoinRequest, 'sessionId' | 'token'>) => {
@@ -173,21 +226,88 @@ export class StreamSfuClient {
     });
   };
 
-  // FIXME: make this private
-  async keepAlive() {
-    await this.signalReady;
-    console.log('Registering healthcheck for SFU');
+  private keepAlive = () => {
+    if (this.keepAliveInterval) {
+      clearInterval(this.keepAliveInterval);
+    }
     this.keepAliveInterval = setInterval(() => {
+      console.log('Sending healthCheckRequest to SFU');
       const message = SfuRequest.create({
         requestPayload: {
           oneofKind: 'healthCheckRequest',
-          healthCheckRequest: {
-            sessionId: this.sessionId,
-          },
+          healthCheckRequest: {},
         },
       });
-      console.log('Sending healthCheckRequest to SFU', message);
-      this.send(message);
-    }, 27000);
-  }
+      void this.send(message);
+    }, this.pingIntervalInMs);
+  };
+
+  private scheduleConnectionCheck = () => {
+    if (this.connectionCheckTimeout) {
+      clearTimeout(this.connectionCheckTimeout);
+    }
+
+    this.connectionCheckTimeout = setTimeout(() => {
+      if (this.lastMessageTimestamp) {
+        const timeSinceLastMessage =
+          new Date().getTime() - this.lastMessageTimestamp.getTime();
+
+        if (timeSinceLastMessage > this.unhealthyTimeoutInMs) {
+          console.log('SFU connection unhealthy, closing');
+          this.close(4001);
+        }
+      }
+    }, this.unhealthyTimeoutInMs);
+  };
 }
+
+/**
+ * An internal interface which asserts that "retryable" SFU responses
+ * contain a field called "error".
+ * Ideally, this should be coming from the Protobuf definitions.
+ */
+interface SfuResponseWithError {
+  /**
+   * An optional error field which should be present in all SFU responses.
+   */
+  error?: SfuError;
+}
+
+const MAX_RETRIES = 5;
+
+/**
+ * Creates a closure which wraps the given RPC call and retries invoking
+ * the RPC until it succeeds or the maximum number of retries is reached.
+ *
+ * Between each retry, there would be a random delay in order to avoid
+ * request bursts towards the SFU.
+ *
+ * @param rpc the closure around the RPC call to execute.
+ * @param <I> the type of the request object.
+ * @param <O> the type of the response object.
+ */
+const retryable = async <I extends object, O extends SfuResponseWithError>(
+  rpc: () => UnaryCall<I, O>,
+) => {
+  let retryAttempt = 0;
+  let rpcCallResult: FinishedUnaryCall<I, O>;
+  do {
+    // don't delay the first invocation
+    if (retryAttempt > 0) {
+      await sleep(retryInterval(retryAttempt));
+    }
+
+    rpcCallResult = await rpc();
+
+    // if the RPC call failed, log the error and retry
+    if (rpcCallResult.response.error) {
+      console.error('SFU Error:', rpcCallResult.response.error);
+    }
+    retryAttempt++;
+  } while (
+    rpcCallResult.response.error?.shouldRetry &&
+    retryAttempt < MAX_RETRIES
+  );
+
+  return rpcCallResult;
+};

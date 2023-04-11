@@ -17,7 +17,7 @@ export const Call = () => {
 
   useEffect(() => {
     const call = client?.call('default', callId as string);
-    const joining = call?.join();
+    const joining = call?.join({ create: true });
 
     return () => {
       joining?.then(() => call?.leave());

@@ -44,7 +44,11 @@ const App = () => {
         {!callId && <CallSetup onJoin={setCallId} />}
         {callId && (
           <StreamVideo client={client}>
-            <StreamMeeting callId={callId} callType="default">
+            <StreamMeeting
+              callId={callId}
+              callType="default"
+              input={{ create: true }}
+            >
               <SpeakerView />
             </StreamMeeting>
           </StreamVideo>

@@ -5,6 +5,7 @@ import {
   createNativeStackNavigator,
 } from '@react-navigation/native-stack';
 import {
+  LoginStackParamList,
   MeetingStackParamList,
   RingingStackParamList,
   RootStackParamList,
@@ -13,7 +14,10 @@ import LoginScreen from './src/screens/LoginScreen';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { useAuth } from './src/hooks/useAuth';
 import AuthenticatingProgressScreen from './src/screens/AuthenticatingProgress';
-import { useProntoLinkEffect } from './src/hooks/useProntoLinkEffect';
+import {
+  prontoCallId$,
+  useProntoLinkEffect,
+} from './src/hooks/useProntoLinkEffect';
 import {
   IncomingCallView,
   OutgoingCallView,
@@ -21,6 +25,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import {
   AppGlobalContextProvider,
+  useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from './src/contexts/AppContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -43,6 +48,7 @@ import { LobbyViewScreen } from './src/screens/Meeting/LobbyViewScreen';
 Logger.enable(false);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const LoginStack = createNativeStackNavigator<LoginStackParamList>();
 const MeetingStack = createNativeStackNavigator<MeetingStackParamList>();
 const RingingStack = createNativeStackNavigator<RingingStackParamList>();
 
@@ -107,6 +113,35 @@ const Ringing = () => {
   );
 };
 
+const Login = () => {
+  const setState = useAppGlobalStoreSetState();
+  const loginNavigation =
+    useNavigation<NativeStackNavigationProp<LoginStackParamList>>();
+  React.useEffect(() => {
+    const subscription = prontoCallId$.subscribe((prontoCallId) => {
+      if (prontoCallId) {
+        setState({ appMode: 'Meeting' });
+        loginNavigation.navigate('LoginScreen');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [setState, loginNavigation]);
+  return (
+    <LoginStack.Navigator>
+      <LoginStack.Screen
+        name="ChooseFlowScreen"
+        component={ChooseFlowScreen}
+        options={{ headerShown: false }}
+      />
+      <LoginStack.Screen
+        name="LoginScreen"
+        component={LoginScreen}
+        options={{ headerShown: false }}
+      />
+    </LoginStack.Navigator>
+  );
+};
+
 const StackNavigator = () => {
   useProntoLinkEffect();
   const { authenticationInProgress, videoClient } = useAuth();
@@ -166,31 +201,27 @@ const StackNavigator = () => {
   if (authenticationInProgress) {
     return <AuthenticatingProgressScreen />;
   }
+
   if (!videoClient) {
-    return <LoginScreen />;
+    return <Login />;
   }
+
   return (
     <StreamVideo client={videoClient} callCycleHandlers={callCycleHandlers}>
       <Stack.Navigator>
-        {appMode === 'None' ? (
-          <Stack.Screen
-            name="ChooseFlowScreen"
-            component={ChooseFlowScreen}
-            options={{ headerShown: false }}
-          />
-        ) : appMode === 'Meeting' ? (
+        {appMode === 'Meeting' ? (
           <Stack.Screen
             name="Meeting"
             component={Meeting}
             options={{ headerShown: false }}
           />
-        ) : (
+        ) : appMode === 'Ringing' ? (
           <Stack.Screen
             name="Ringing"
             component={Ringing}
             options={{ headerShown: false }}
           />
-        )}
+        ) : null}
       </Stack.Navigator>
     </StreamVideo>
   );

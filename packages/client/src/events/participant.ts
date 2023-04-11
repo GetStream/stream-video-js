@@ -7,16 +7,14 @@ import { CallState } from '../store';
  */
 export const watchParticipantJoined = (
   dispatcher: Dispatcher,
-  store: CallState,
+  state: CallState,
 ) => {
   return dispatcher.on('participantJoined', (e) => {
     if (e.eventPayload.oneofKind !== 'participantJoined') return;
     const { participant } = e.eventPayload.participantJoined;
-
     if (!participant) return;
-
-    store.setCurrentValue(store.participantsSubject, (currentParticipants) => [
-      ...currentParticipants,
+    state.setParticipants((participants) => [
+      ...participants,
       { ...participant, viewportVisibilityState: VisibilityState.UNKNOWN },
     ]);
   });
@@ -27,7 +25,7 @@ export const watchParticipantJoined = (
  */
 export const watchParticipantLeft = (
   dispatcher: Dispatcher,
-  store: CallState,
+  state: CallState,
 ) => {
   return dispatcher.on('participantLeft', (e) => {
     if (e.eventPayload.oneofKind !== 'participantLeft') return;
@@ -41,7 +39,7 @@ export const watchParticipantLeft = (
     //   return;
     // }
 
-    store.setCurrentValue(store.participantsSubject, (participants) =>
+    state.setParticipants((participants) =>
       participants.filter((p) => p.sessionId !== participant.sessionId),
     );
   });
@@ -53,14 +51,14 @@ export const watchParticipantLeft = (
  */
 export const watchTrackPublished = (
   dispatcher: Dispatcher,
-  store: CallState,
+  state: CallState,
 ) => {
   return dispatcher.on('trackPublished', (e) => {
     if (e.eventPayload.oneofKind !== 'trackPublished') return;
     const {
       trackPublished: { type, sessionId },
     } = e.eventPayload;
-    store.updateParticipant(sessionId, (p) => ({
+    state.updateParticipant(sessionId, (p) => ({
       publishedTracks: [...p.publishedTracks, type].filter(unique),
     }));
   });
@@ -72,14 +70,14 @@ export const watchTrackPublished = (
  */
 export const watchTrackUnpublished = (
   dispatcher: Dispatcher,
-  store: CallState,
+  state: CallState,
 ) => {
   return dispatcher.on('trackUnpublished', (e) => {
     if (e.eventPayload.oneofKind !== 'trackUnpublished') return;
     const {
       trackUnpublished: { type, sessionId },
     } = e.eventPayload;
-    store.updateParticipant(sessionId, (p) => ({
+    state.updateParticipant(sessionId, (p) => ({
       publishedTracks: p.publishedTracks.filter((t) => t !== type),
     }));
   });
