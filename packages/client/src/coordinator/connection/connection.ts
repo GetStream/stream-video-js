@@ -7,14 +7,18 @@ import {
 } from './insights';
 import {
   addConnectionEventListeners,
-  chatCodes,
   convertErrorToJson,
+  KnownCodes,
   randomId,
   removeConnectionEventListeners,
   retryInterval,
   sleep,
 } from './utils';
-import type { ConnectAPIResponse, ConnectionOpen, LogLevel, UR } from './types';
+import type { ConnectAPIResponse, LogLevel, UR } from './types';
+import type {
+  ConnectedEvent,
+  WSAuthMessageRequest,
+} from '../../gen/coordinator';
 
 // Type guards to check WebSocket error type
 const isCloseEvent = (
@@ -66,7 +70,7 @@ export class StableWSConnection {
     },
   ) => void;
   requestID: string | undefined;
-  resolvePromise?: (value: ConnectionOpen) => void;
+  resolvePromise?: (value: ConnectedEvent) => void;
   totalFailures: number;
   ws?: WebSocket;
   wsID: number;
@@ -112,7 +116,7 @@ export class StableWSConnection {
   /**
    * connect - Connect to the WS URL
    * the default 15s timeout allows between 2~3 tries
-   * @return {ConnectAPIResponse<ChannelType, CommandType, UserType>} Promise that completes once the first health check message is received
+   * @return {ConnectAPIResponse<ConnectedEvent>} Promise that completes once the first health check message is received
    */
   async connect(timeout = 15000) {
     if (this.isConnecting) {
@@ -136,7 +140,7 @@ export class StableWSConnection {
 
       if (
         // @ts-ignore
-        error.code === chatCodes.TOKEN_EXPIRED &&
+        error.code === KnownCodes.TOKEN_EXPIRED &&
         !this.client.tokenManager.isStatic()
       ) {
         this._log(
@@ -283,7 +287,7 @@ export class StableWSConnection {
       );
 
       ws.close(
-        chatCodes.WS_CLOSED_SUCCESS,
+        KnownCodes.WS_CLOSED_SUCCESS,
         'Manually closed connection by calling client.disconnect()',
       );
     } else {
@@ -301,7 +305,7 @@ export class StableWSConnection {
   /**
    * _connect - Connect to the WS endpoint
    *
-   * @return {ConnectAPIResponse<ChannelType, CommandType, UserType>} Promise that completes once the first health check message is received
+   * @return {ConnectAPIResponse<ConnectedEvent>} Promise that completes once the first health check message is received
    */
   async _connect() {
     if (
@@ -439,7 +443,7 @@ export class StableWSConnection {
       this.isHealthy = false;
       this.consecutiveFailures += 1;
       if (
-        error.code === chatCodes.TOKEN_EXPIRED &&
+        error.code === KnownCodes.TOKEN_EXPIRED &&
         !this.client.tokenManager.isStatic()
       ) {
         this._log(
@@ -499,7 +503,7 @@ export class StableWSConnection {
       return;
     }
 
-    const authMessage = {
+    const authMessage: WSAuthMessageRequest = {
       token,
       user_details: {
         id: user.id,
@@ -549,7 +553,7 @@ export class StableWSConnection {
 
     this._log('onclose() - onclose callback - ' + event.code, { event, wsID });
 
-    if (event.code === chatCodes.WS_CLOSED_SUCCESS) {
+    if (event.code === KnownCodes.WS_CLOSED_SUCCESS) {
       // this is a permanent error raised by stream..
       // usually caused by invalid auth details
       const error = new Error(
@@ -696,7 +700,7 @@ export class StableWSConnection {
   _setupConnectionPromise = () => {
     this.isResolved = false;
     /** a promise that is resolved once ws.open is called */
-    this.connectionOpen = new Promise<ConnectionOpen>((resolve, reject) => {
+    this.connectionOpen = new Promise<ConnectedEvent>((resolve, reject) => {
       this.resolvePromise = resolve;
       this.rejectPromise = reject;
     });

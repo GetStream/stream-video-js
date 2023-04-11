@@ -1,12 +1,7 @@
 import { StreamVideoWriteableStateStore } from '../store';
-import {
-  CallAcceptedEvent,
-  CallEndedEvent,
-  CallCreatedEvent,
-  CallRejectedEvent,
-} from '../gen/coordinator';
 import { Call } from '../rtc/Call';
 import { StreamClient } from '../coordinator/connection/client';
+import { StreamVideoEvent } from '../coordinator/connection/types';
 
 /**
  * Event handler that watches the delivery of CallCreated Websocket event
@@ -17,32 +12,32 @@ export const watchCallCreated = (
   store: StreamVideoWriteableStateStore,
   streamClient: StreamClient,
 ) => {
-  return function onCallCreated(event: CallCreatedEvent) {
+  return function onCallCreated(event: StreamVideoEvent) {
+    if (event.type !== 'call.created') {
+      return;
+    }
     const { call, members, ringing } = event;
     if (!call) {
       console.warn("Can't find call in CallCreatedEvent");
       return;
     }
 
-    const currentUser = store.getCurrentValue(store.connectedUserSubject);
+    const currentUser = store.connectedUser;
     if (currentUser?.id === call.created_by.id) {
       console.warn('Received CallCreatedEvent sent by the current user');
       return;
     }
 
-    const newCall = new Call({
-      streamClient,
-      type: call.type,
-      id: call.id,
-      metadata: call,
-      members,
-      clientStore: store,
-      ringing,
-    });
-
-    store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) => [
+    store.setPendingCalls((pendingCalls) => [
       ...pendingCalls,
-      newCall,
+      new Call({
+        streamClient,
+        type: call.type,
+        id: call.id,
+        metadata: call,
+        members,
+        clientStore: store,
+      }),
     ]);
   };
 };
@@ -53,26 +48,28 @@ export const watchCallCreated = (
  * the given user will be joining the call.
  */
 export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
-  return function onCallAccepted(event: CallAcceptedEvent) {
+  return function onCallAccepted(event: StreamVideoEvent) {
+    if (event.type !== 'call.accepted') {
+      return;
+    }
     const { call_cid } = event;
     if (!call_cid) {
       console.warn("Can't find call_cid in CallAcceptedEvent");
       return;
     }
 
-    const acceptedIncomingCall = store
-      .getCurrentValue(store.incomingCalls$)
-      .find((incomingCall) => incomingCall.cid === call_cid);
-
+    const acceptedIncomingCall = store.incomingCalls.find(
+      (incomingCall) => incomingCall.cid === call_cid,
+    );
     if (acceptedIncomingCall) {
       console.warn('Received CallAcceptedEvent for an incoming call');
       return;
     }
 
-    const acceptedOutgoingCall = store
-      .getCurrentValue(store.outgoingCalls$)
-      .find((outgoingCall) => outgoingCall.cid === call_cid);
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const acceptedOutgoingCall = store.outgoingCalls.find(
+      (outgoingCall) => outgoingCall.cid === call_cid,
+    );
+    const activeCall = store.activeCall;
 
     // FIXME OL: we should revisit this logic, it is hard to follow
     const acceptedActiveCall =
@@ -80,7 +77,7 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
         ? activeCall
         : undefined;
 
-    if (!acceptedOutgoingCall) {
+    if (!acceptedOutgoingCall && !acceptedActiveCall) {
       console.warn(
         `CallAcceptedEvent received for a non-existent outgoing call (CID: ${call_cid}`,
       );
@@ -88,14 +85,14 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
     }
 
     // once in active call, it is unnecessary to keep track of accepted call events
-    if (acceptedOutgoingCall.cid === acceptedActiveCall?.cid) {
+    if (call_cid === acceptedActiveCall?.cid) {
       return;
     }
 
     // do not set a new accepted call while in an active call? It would lead to joining a new active call.
     // todo: solve the situation of 2nd outgoing call being accepted in the UI SDK
 
-    store.setCurrentValue(store.acceptedCallSubject, event);
+    store.setAcceptedCall(event);
   };
 };
 
@@ -105,27 +102,35 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
  * the given user will not be joining the call.
  */
 export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
-  return function onCallRejected(event: CallRejectedEvent) {
+  return function onCallRejected(event: StreamVideoEvent) {
+    if (event.type !== 'call.rejected') {
+      return;
+    }
     const { call_cid } = event;
     if (!call_cid) {
       console.warn("Can't find call_cid in CallRejectedEvent");
       return;
     }
 
-    const rejectedIncomingCall = store
-      .getCurrentValue(store.incomingCalls$)
-      .find((incomingCall) => incomingCall.cid === call_cid);
+    const rejectedIncomingCall = store.incomingCalls.find(
+      (incomingCall) => incomingCall.cid === call_cid,
+    );
 
     if (rejectedIncomingCall) {
       console.warn('Received CallRejectedEvent for an incoming call');
       return;
     }
 
-    const rejectedOutgoingCall = store
-      .getCurrentValue(store.outgoingCalls$)
-      .find((outgoingCall) => outgoingCall.cid === call_cid);
+    const rejectedOutgoingCall = store.outgoingCalls.find(
+      (outgoingCall) => outgoingCall.cid === call_cid,
+    );
+    const activeCall = store.activeCall;
+    const rejectedActiveCall =
+      activeCall?.cid !== undefined && activeCall.cid === call_cid
+        ? activeCall
+        : undefined;
 
-    if (!rejectedOutgoingCall) {
+    if (!rejectedOutgoingCall && !rejectedActiveCall) {
       console.warn(
         `CallRejectedEvent received for a non-existent outgoing call (CID: ${call_cid}`,
       );
@@ -133,7 +138,7 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
     }
 
     // FIXME: we should remove the call from pending once every callee has rejected, but for now we support only 1:1 ring calls
-    store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+    store.setPendingCalls((pendingCalls) =>
       pendingCalls.filter((pendingCall) => pendingCall.cid !== call_cid),
     );
   };
@@ -145,17 +150,27 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
  * the call is now considered terminated.
  */
 export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
-  return function onCallCancelled(event: CallEndedEvent) {
+  return function onCallCancelled(event: StreamVideoEvent) {
+    if (event.type !== 'call.ended') {
+      return;
+    }
     const { call_cid } = event;
     if (!call_cid) {
       console.log("Can't find call in CallEndedEvent");
       return;
     }
 
-    const cancelledIncomingCall = store
-      .getCurrentValue(store.incomingCalls$)
-      .find((incomingCall) => incomingCall.cid === call_cid);
+    const cancelledIncomingCall = store.incomingCalls.find(
+      (incomingCall) => incomingCall.cid === call_cid,
+    );
 
+    const activeCall = store.activeCall;
+    const cancelledActiveCall =
+      activeCall?.cid !== undefined && activeCall.cid === call_cid
+        ? activeCall
+        : undefined;
+
+    if (!cancelledIncomingCall && !cancelledActiveCall) {
     if (!cancelledIncomingCall) {
       console.warn(
         `CallEndedEvent received for a non-existent incoming call (CID: ${call_cid}`,
@@ -163,7 +178,7 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
-    store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+    store.setPendingCalls((pendingCalls) =>
       pendingCalls.filter((pendingCall) => pendingCall.cid !== call_cid),
     );
   };

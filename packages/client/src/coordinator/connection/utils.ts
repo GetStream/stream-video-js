@@ -10,8 +10,10 @@ export function isFunction<T>(value: Function | T): value is Function {
   );
 }
 
-// todo: rename so that it does not contain word "chat"
-export const chatCodes = {
+/**
+ * A map of known error codes.
+ */
+export const KnownCodes = {
   TOKEN_EXPIRED: 40,
   WS_CLOSED_SUCCESS: 1000,
 };
@@ -22,9 +24,9 @@ export const chatCodes = {
  * @return {number} Duration to wait in milliseconds
  */
 export function retryInterval(numberOfFailures: number) {
-  // try to reconnect in 0.25-25 seconds (random to spread out the load from failures)
-  const max = Math.min(500 + numberOfFailures * 2000, 25000);
-  const min = Math.min(Math.max(250, (numberOfFailures - 1) * 2000), 25000);
+  // try to reconnect in 0.25-5 seconds (random to spread out the load from failures)
+  const max = Math.min(500 + numberOfFailures * 2000, 5000);
+  const min = Math.min(Math.max(250, (numberOfFailures - 1) * 2000), 5000);
   return Math.floor(Math.random() * (max - min) + min);
 }
 

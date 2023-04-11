@@ -13,6 +13,10 @@ import {
 } from '@stream-io/video-react-sdk';
 
 export const LayoutMap = {
+  LegacyGrid: {
+    Component: CallParticipantsView,
+    title: 'Grid',
+  },
   PaginatedGrid: {
     Component: PaginatedGridLayout,
     title: 'Grid (beta)',
@@ -21,13 +25,9 @@ export const LayoutMap = {
     Component: SpeakerLayout,
     title: 'Spotlight (beta)',
   },
-  LegacyGrid: {
-    Component: CallParticipantsView,
-    title: 'Grid',
-  },
   LegacySpeaker: {
     Component: CallParticipantsScreenView,
-    title: 'Screen-share',
+    title: 'Sidebar',
   },
 };
 

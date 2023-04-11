@@ -2,6 +2,8 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import Gleap from 'gleap';
 import {
+  Call,
+  CallingState,
   CallParticipantsList,
   CallStatsButton,
   CancelCallButton,
@@ -18,7 +20,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleCameraPublishingButton,
   ToggleParticipantListButton,
-  useActiveCall,
+  useCallCallingState,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { InviteLinkButton } from './InviteLinkButton';
@@ -59,7 +61,7 @@ export const MeetingUI = ({
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
   const client = useStreamVideoClient();
-  const activeCall = useActiveCall();
+  const [activeCall, setActiveCall] = useState<Call>();
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [layout, setLayout] = useState<keyof typeof LayoutMap>('LegacyGrid');
@@ -81,7 +83,10 @@ export const MeetingUI = ({
     if (!client) return;
     setShow('loading');
     try {
-      await client.call(callType, callId).join({ create: true });
+      const call = client.call(callType, callId);
+      setActiveCall(call);
+
+      await call.join({ create: true });
       setShow('active-call');
     } catch (e) {
       console.error(e);
@@ -132,7 +137,12 @@ export const MeetingUI = ({
   }
   if (show === 'lobby') return <Lobby onJoin={onJoin} />;
 
-  if (show === 'loading') return <LoadingScreen />;
+  if (show === 'loading')
+    return (
+      <StreamCallProvider call={activeCall}>
+        <LoadingScreen />;
+      </StreamCallProvider>
+    );
 
   if (!activeCall)
     return (
@@ -274,10 +284,21 @@ const ErrorPage = ({ heading, onClickHome, onClickLobby }: ErrorPageProps) => (
   </Stack>
 );
 
-export const LoadingScreen = () => (
-  <div className=" str-video str-video__call">
-    <div className="str-video__call__loading-screen">
-      <LoadingIndicator />
+export const LoadingScreen = () => {
+  const callingState = useCallCallingState();
+  const [message, setMessage] = useState('');
+  useEffect(() => {
+    if (callingState === CallingState.RECONNECTING) {
+      setMessage('Please wait, we are connecting you to the call...');
+    } else if (callingState === CallingState.JOINED) {
+      setMessage('');
+    }
+  }, [callingState]);
+  return (
+    <div className=" str-video str-video__call">
+      <div className="str-video__call__loading-screen">
+        <LoadingIndicator text={message} />
+      </div>
     </div>
-  </div>
-);
+  );
+};

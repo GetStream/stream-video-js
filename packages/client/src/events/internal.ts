@@ -24,14 +24,14 @@ export const watchChangePublishQuality = (
 
 export const watchConnectionQualityChanged = (
   dispatcher: Dispatcher,
-  store: CallState,
+  state: CallState,
 ) => {
   return dispatcher.on('connectionQualityChanged', (e) => {
     if (e.eventPayload.oneofKind !== 'connectionQualityChanged') return;
     const { connectionQualityChanged } = e.eventPayload;
     const { connectionQualityUpdates } = connectionQualityChanged;
     if (!connectionQualityUpdates) return;
-    store.updateParticipants(
+    state.updateParticipants(
       connectionQualityUpdates.reduce<StreamVideoParticipantPatches>(
         (patches, update) => {
           const { sessionId, connectionQuality } = update;

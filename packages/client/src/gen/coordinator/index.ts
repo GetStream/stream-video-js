@@ -751,7 +751,7 @@ export interface CallResponse {
    * @type {string}
    * @memberof CallResponse
    */
-  team: string;
+  team?: string;
   /**
    *
    * @type {boolean}
@@ -1025,6 +1025,37 @@ export interface ConnectUserDetailsRequest {
   name?: string;
 }
 /**
+ * This event is sent when the WS connection is established and authenticated, this event contains the full user object as it is stored on the server
+ * @export
+ * @interface ConnectedEvent
+ */
+export interface ConnectedEvent {
+  /**
+   * The connection_id for this client
+   * @type {string}
+   * @memberof ConnectedEvent
+   */
+  connection_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {OwnUserResponse}
+   * @memberof ConnectedEvent
+   */
+  me: OwnUserResponse;
+  /**
+   * The type of event: "connection.ok" in this case
+   * @type {string}
+   * @memberof ConnectedEvent
+   */
+  type: string;
+}
+/**
  *
  * @export
  * @interface Coordinates
@@ -1161,7 +1192,7 @@ export interface CustomVideoEvent {
    */
   custom: { [key: string]: any };
   /**
-   * The type of event (custom value in this case)
+   * The type of event, "custom" in this case
    * @type {string}
    * @memberof CustomVideoEvent
    */
@@ -1886,13 +1917,7 @@ export interface MemberResponse {
    * @type {string}
    * @memberof MemberResponse
    */
-  duration: string;
-  /**
-   *
-   * @type {string}
-   * @memberof MemberResponse
-   */
-  role: string;
+  role?: string;
   /**
    * Date/time of the last update
    * @type {string}
@@ -2744,38 +2769,38 @@ export interface UnblockedUserEvent {
 /**
  *
  * @export
- * @interface UpdateCallMemberRequest
+ * @interface UpdateCallMembersRequest
  */
-export interface UpdateCallMemberRequest {
+export interface UpdateCallMembersRequest {
   /**
    * List of userID to remove
    * @type {Array<string>}
-   * @memberof UpdateCallMemberRequest
+   * @memberof UpdateCallMembersRequest
    */
   remove_members?: Array<string>;
   /**
    * List of members to update or insert
    * @type {Array<MemberRequest>}
-   * @memberof UpdateCallMemberRequest
+   * @memberof UpdateCallMembersRequest
    */
   update_members?: Array<MemberRequest>;
 }
 /**
  *
  * @export
- * @interface UpdateCallMemberResponse
+ * @interface UpdateCallMembersResponse
  */
-export interface UpdateCallMemberResponse {
+export interface UpdateCallMembersResponse {
   /**
    * Duration of the request in human-readable format
    * @type {string}
-   * @memberof UpdateCallMemberResponse
+   * @memberof UpdateCallMembersResponse
    */
   duration: string;
   /**
    *
    * @type {Array<MemberResponse>}
-   * @memberof UpdateCallMemberResponse
+   * @memberof UpdateCallMembersResponse
    */
   members: Array<MemberResponse>;
 }
@@ -3059,6 +3084,31 @@ export interface UserResponse {
   updated_at: string;
 }
 /**
+ * @type VideoEvent
+ * The discriminator object for all websocket events, you should use this to map event payloads to their own type
+ * @export
+ */
+export type VideoEvent =
+  | ({ type: 'call.accepted' } & CallAcceptedEvent)
+  | ({ type: 'call.blocked_user' } & BlockedUserEvent)
+  | ({ type: 'call.created' } & CallCreatedEvent)
+  | ({ type: 'call.ended' } & CallEndedEvent)
+  | ({ type: 'call.member_added' } & CallMemberAddedEvent)
+  | ({ type: 'call.member_removed' } & CallMemberRemovedEvent)
+  | ({ type: 'call.member_updated' } & CallMemberUpdatedEvent)
+  | ({ type: 'call.permission_request' } & PermissionRequestEvent)
+  | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)
+  | ({ type: 'call.reaction_new' } & CallReactionEvent)
+  | ({ type: 'call.recording_started' } & CallRecordingStartedEvent)
+  | ({ type: 'call.recording_stopped' } & CallRecordingStoppedEvent)
+  | ({ type: 'call.rejected' } & CallRejectedEvent)
+  | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
+  | ({ type: 'call.updated' } & CallUpdatedEvent)
+  | ({ type: 'call.updated_permission' } & CallMemberUpdatedPermissionEvent)
+  | ({ type: 'connection.ok' } & ConnectedEvent)
+  | ({ type: 'custom' } & CustomVideoEvent)
+  | ({ type: 'health.check' } & HealthCheckEvent);
+/**
  *
  * @export
  * @interface VideoSettings
@@ -3122,58 +3172,28 @@ export interface WSAuthMessageRequest {
   user_details: ConnectUserDetailsRequest;
 }
 /**
- * This event is sent when the WS connection is established and authenticated, this event contains the full user object as it is stored on the server
+ * This is just a placeholder for all client events
  * @export
- * @interface WSConnectedEvent
+ * @interface WSCallEvent
  */
-export interface WSConnectedEvent {
-  /**
-   * The connection_id for this client
-   * @type {string}
-   * @memberof WSConnectedEvent
-   */
-  connection_id: string;
+export interface WSCallEvent {
   /**
    *
    * @type {string}
-   * @memberof WSConnectedEvent
+   * @memberof WSCallEvent
    */
-  created_at: string;
-  /**
-   *
-   * @type {OwnUserResponse}
-   * @memberof WSConnectedEvent
-   */
-  me: OwnUserResponse;
-  /**
-   * The type of event: "connection.ok" in this case
-   * @type {string}
-   * @memberof WSConnectedEvent
-   */
-  type: string;
+  call_id?: string;
 }
 /**
- * @type WSEvent
- * The discriminator object for all websocket events, you should use this to map event payloads to their own type
+ * This is just a placeholder for all client events
  * @export
+ * @interface WSClientEvent
  */
-export type WSEvent =
-  | ({ type: 'call.accepted' } & CallAcceptedEvent)
-  | ({ type: 'call.blocked_user' } & BlockedUserEvent)
-  | ({ type: 'call.created' } & CallCreatedEvent)
-  | ({ type: 'call.ended' } & CallEndedEvent)
-  | ({ type: 'call.member_added' } & CallMemberAddedEvent)
-  | ({ type: 'call.member_removed' } & CallMemberRemovedEvent)
-  | ({ type: 'call.member_updated' } & CallMemberUpdatedEvent)
-  | ({ type: 'call.permission_request' } & PermissionRequestEvent)
-  | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)
-  | ({ type: 'call.reaction_new' } & CallReactionEvent)
-  | ({ type: 'call.recording_started' } & CallRecordingStartedEvent)
-  | ({ type: 'call.recording_stopped' } & CallRecordingStoppedEvent)
-  | ({ type: 'call.rejected' } & CallRejectedEvent)
-  | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
-  | ({ type: 'call.updated' } & CallUpdatedEvent)
-  | ({ type: 'call.updated_permission' } & CallMemberUpdatedPermissionEvent)
-  | ({ type: 'connection.ok' } & WSConnectedEvent)
-  | ({ type: 'custom' } & CustomVideoEvent)
-  | ({ type: 'health.check' } & HealthCheckEvent);
+export interface WSClientEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof WSClientEvent
+   */
+  connection_id?: string;
+}

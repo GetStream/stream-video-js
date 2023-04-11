@@ -1,4 +1,4 @@
-import type {
+import {
   MethodInfo,
   NextUnaryFn,
   RpcInterceptor,
@@ -14,6 +14,7 @@ import { SignalServerClient } from '../gen/video/sfu/signal_rpc/signal.client';
 const defaultOptions: TwirpOptions = {
   baseUrl: '',
   sendJson: true,
+  timeout: 5 * 1000, // ms.
   jsonOptions: {
     ignoreUnknownFields: true,
   },

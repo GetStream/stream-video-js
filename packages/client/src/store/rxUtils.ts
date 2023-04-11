@@ -1,6 +1,9 @@
 import { Observable, Subject } from 'rxjs';
 import { take } from 'rxjs/operators';
 
+/**
+ * A value or a function which takes the current value and returns a new value.
+ */
 export type Patch<T> = T | ((currentValue: T) => T);
 
 /**
@@ -29,13 +32,12 @@ export const getCurrentValue = <T>(observable$: Observable<T>) => {
  * @return the updated value.
  */
 export const setCurrentValue = <T>(subject: Subject<T>, update: Patch<T>) => {
-  const currentValue = getCurrentValue(subject);
   const next =
     // TypeScript needs more context to infer the type of update
     typeof update === 'function' && update instanceof Function
-      ? update(currentValue)
+      ? update(getCurrentValue(subject))
       : update;
 
   subject.next(next);
-  return getCurrentValue(subject);
+  return next;
 };

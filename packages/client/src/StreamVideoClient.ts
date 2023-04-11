@@ -33,6 +33,7 @@ import {
 import { CALL_CONFIG, CallConfig } from './config';
 import {
   EventHandler,
+  EventTypes,
   StreamClientOptions,
   TokenOrProvider,
   User,
@@ -69,7 +70,6 @@ export class StreamVideoClient {
   ) {
     this.callConfig = callConfig;
     this.streamClient = new StreamClient(apiKey, {
-      baseURL: 'https://video-edge-frankfurt-ce1.stream-io-api.com/video',
       // FIXME: OL: fix SSR.
       browser: true,
       persistUserOnConnectionFailure: true,
@@ -99,69 +99,40 @@ export class StreamVideoClient {
 
     this.on(
       'call.created',
-      // @ts-expect-error until we sort out the types
       watchCallCreated(this.writeableStateStore, this.streamClient),
     );
-    this.on(
-      'call.accepted',
-      // @ts-expect-error until we sort out the types
-      watchCallAccepted(this.writeableStateStore),
-    );
-    this.on(
-      'call.rejected',
-      // @ts-expect-error until we sort out the types
-      watchCallRejected(this.writeableStateStore),
-    );
-    this.on(
-      'call.cancelled',
-      // @ts-expect-error until we sort out the types
-      watchCallCancelled(this.writeableStateStore),
-    );
+    this.on('call.accepted', watchCallAccepted(this.writeableStateStore));
+    this.on('call.rejected', watchCallRejected(this.writeableStateStore));
+    this.on('call.ended', watchCallCancelled(this.writeableStateStore));
     this.on(
       'call.permission_request',
-      // @ts-expect-error until we sort out the types
       watchCallPermissionRequest(this.writeableStateStore),
     );
 
     this.on(
       'call.permissions_updated',
-      // @ts-expect-error until we sort out the types
       watchCallPermissionsUpdated(this.writeableStateStore),
     );
 
-    this.on(
-      'call.blocked_user',
-      // @ts-expect-error until we sort out the types
-      watchBlockedUser(this.writeableStateStore),
-    );
+    this.on('call.blocked_user', watchBlockedUser(this.writeableStateStore));
     this.on(
       'call.unblocked_user',
-      // @ts-expect-error until we sort out the types
       watchUnblockedUser(this.writeableStateStore),
     );
 
     this.on(
       'call.recording_started',
-      // @ts-expect-error until we sort out the types
       watchCallRecordingStarted(this.writeableStateStore),
     );
 
     this.on(
       'call.recording_stopped',
-      // @ts-expect-error until we sort out the types
       watchCallRecordingStopped(this.writeableStateStore),
     );
 
-    this.on(
-      'call.reaction_new',
-      // @ts-expect-error until we sort out the types
-      watchNewReactions(this.writeableStateStore),
-    );
+    this.on('call.reaction_new', watchNewReactions(this.writeableStateStore));
 
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.connectedUserSubject,
-      user,
-    );
+    this.writeableStateStore.setConnectedUser(user);
   };
 
   /**
@@ -178,10 +149,7 @@ export class StreamVideoClient {
       this.writeableStateStore.pendingCallsSubject,
     );
     pendingCalls.forEach((call) => call.cancelScheduledDrop());
-    this.writeableStateStore.setCurrentValue(
-      this.writeableStateStore.connectedUserSubject,
-      undefined,
-    );
+    this.writeableStateStore.setConnectedUser(undefined);
   };
 
   /**
@@ -193,7 +161,7 @@ export class StreamVideoClient {
    * @param callback the callback which will be called when the event is emitted.
    * @returns an unsubscribe function.
    */
-  on = (eventName: string, callback: EventHandler) => {
+  on = (eventName: EventTypes, callback: EventHandler) => {
     return this.streamClient.on(eventName, callback);
   };
 
