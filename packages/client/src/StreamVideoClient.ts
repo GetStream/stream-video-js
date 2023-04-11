@@ -145,10 +145,9 @@ export class StreamVideoClient {
    */
   disconnectUser = async (timeout?: number) => {
     await this.streamClient.disconnectUser(timeout);
-    const pendingCalls = this.writeableStateStore.getCurrentValue(
-      this.writeableStateStore.pendingCallsSubject,
+    this.writeableStateStore.pendingCalls.forEach((call) =>
+      call.cancelScheduledDrop(),
     );
-    pendingCalls.forEach((call) => call.cancelScheduledDrop());
     this.writeableStateStore.setConnectedUser(undefined);
   };
 

@@ -54,7 +54,6 @@ import {
   VisibilityState,
 } from './types';
 import {
-  BehaviorSubject,
   debounceTime,
   filter,
   map,
@@ -1227,9 +1226,8 @@ export class Call {
 
   /**
    * Signals other users that I have cancelled my call to them before they accepted it.
-   * Causes the `CallCancelled` event to be emitted to all the call members.
+   * Causes the `call.ended` event to be emitted to all the call members.
    *
-   * Cancelling a call is only possible before the local participant joined the call.
    * @returns
    */
   cancel = async () => {
@@ -1241,17 +1239,10 @@ export class Call {
     if (leavingActiveCall) {
       activeCall.leave();
     } else {
+      await this.endCall();
       store.setPendingCalls((pendingCalls) =>
         pendingCalls.filter((c) => c.cid !== this.cid),
       );
-    }
-
-    if (activeCall) {
-      const state = activeCall.state;
-      const remoteParticipants = state.remoteParticipants;
-      if (!remoteParticipants.length && !leavingActiveCall) {
-        await this.endCall();
-      }
     }
   };
 
@@ -1279,17 +1270,14 @@ export class Call {
   };
 
   private scheduleAutoDrop = () => {
-    this.state.metadataSubject
+    this.state.metadata$
       .pipe(
         takeWhile(() => !this.dropTimeout),
         tap((meta) => {
-          const connectedUser = this.clientStore.getCurrentValue(
-            this.clientStore.connectedUserSubject,
-          );
+          if (!(meta && this.clientStore.connectedUser)) return;
 
-          if (!(meta && connectedUser)) return;
-
-          const isOutgoingCall = connectedUser.id === meta.created_by.id;
+          const isOutgoingCall =
+            this.clientStore.connectedUser.id === meta.created_by.id;
 
           isOutgoingCall ? this.scheduleCancel() : this.scheduleReject();
         }),

@@ -36,6 +36,7 @@ export const watchCallCreated = (
         id: call.id,
         metadata: call,
         members,
+        ringing,
         clientStore: store,
       }),
     ]);
@@ -171,7 +172,6 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
         : undefined;
 
     if (!cancelledIncomingCall && !cancelledActiveCall) {
-    if (!cancelledIncomingCall) {
       console.warn(
         `CallEndedEvent received for a non-existent incoming call (CID: ${call_cid}`,
       );
