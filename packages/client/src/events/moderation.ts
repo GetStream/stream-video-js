@@ -11,8 +11,7 @@ export const watchBlockedUser =
     if (event.type !== 'call.blocked_user') {
       return;
     }
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
-
+    const activeCall = store.activeCall;
     if (!activeCall || activeCall.cid !== event.call_cid) {
       console.warn(
         `Received "call.blocked_user" for an inactive or unknown call`,
@@ -22,14 +21,12 @@ export const watchBlockedUser =
     }
 
     const state = activeCall.state;
-    const localParticipant = state.getCurrentValue(state.localParticipant$);
-
     // FIXME: end call
-    if (localParticipant?.userId === event.user.id) {
+    if (state.localParticipant?.userId === event.user.id) {
       activeCall.leave();
     }
 
-    state.setCurrentValue(state.metadataSubject, (metadata) => ({
+    state.setMetadata((metadata) => ({
       ...metadata!,
       blocked_user_ids: [...metadata!.blocked_user_ids, event.user.id],
     }));
@@ -45,8 +42,7 @@ export const watchUnblockedUser =
     if (event.type !== 'call.unblocked_user') {
       return;
     }
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
-
+    const activeCall = store.activeCall;
     if (!activeCall || activeCall.cid !== event.call_cid) {
       console.warn(
         `Received "call.unblocked_user" for an inactive or unknown call`,
@@ -56,12 +52,10 @@ export const watchUnblockedUser =
     }
 
     const state = activeCall.state;
-
-    state.setCurrentValue(state.metadataSubject, (metadata) => {
+    state.setMetadata((metadata) => {
       const blocked_user_ids = metadata!.blocked_user_ids.filter(
         (userId) => event.user.id !== userId,
       );
-
       return {
         ...metadata!,
         blocked_user_ids,

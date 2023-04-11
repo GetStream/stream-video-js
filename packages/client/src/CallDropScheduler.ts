@@ -56,10 +56,7 @@ export class CallDropScheduler {
 
           if (!newIncomingCall) return;
 
-          const activeCall = this.store.getCurrentValue(
-            this.store.activeCallSubject,
-          );
-
+          const activeCall = this.store.activeCall;
           if (activeCall) {
             await newIncomingCall.reject();
           }
@@ -80,9 +77,7 @@ export class CallDropScheduler {
         );
         if (!newIncomingCall) return;
 
-        const activeCall = this.store.getCurrentValue(
-          this.store.activeCallSubject,
-        );
+        const activeCall = this.store.activeCall;
         const incomingCallRejectedImmediately =
           activeCall && this.callConfig.autoRejectWhenInCall;
         if (incomingCallRejectedImmediately) return;
@@ -146,8 +141,6 @@ export class CallDropScheduler {
 
   /**
    * Schedules automatic call rejection.
-   * @param {string} callId
-   * @param {string} callType
    */
   private scheduleReject = (call: Call) => {
     const timeout = this.callConfig.autoRejectTimeoutInMs;

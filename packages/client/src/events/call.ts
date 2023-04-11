@@ -22,13 +22,13 @@ export const watchCallCreated = (
       return;
     }
 
-    const currentUser = store.getCurrentValue(store.connectedUserSubject);
+    const currentUser = store.connectedUser;
     if (currentUser?.id === call.created_by.id) {
       console.warn('Received CallCreatedEvent sent by the current user');
       return;
     }
 
-    store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) => [
+    store.setPendingCalls((pendingCalls) => [
       ...pendingCalls,
       new Call({
         streamClient,
@@ -58,19 +58,18 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
-    const acceptedIncomingCall = store
-      .getCurrentValue(store.incomingCalls$)
-      .find((incomingCall) => incomingCall.cid === call_cid);
-
+    const acceptedIncomingCall = store.incomingCalls.find(
+      (incomingCall) => incomingCall.cid === call_cid,
+    );
     if (acceptedIncomingCall) {
       console.warn('Received CallAcceptedEvent for an incoming call');
       return;
     }
 
-    const acceptedOutgoingCall = store
-      .getCurrentValue(store.outgoingCalls$)
-      .find((outgoingCall) => outgoingCall.cid === call_cid);
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const acceptedOutgoingCall = store.outgoingCalls.find(
+      (outgoingCall) => outgoingCall.cid === call_cid,
+    );
+    const activeCall = store.activeCall;
 
     // FIXME OL: we should revisit this logic, it is hard to follow
     const acceptedActiveCall =
@@ -90,7 +89,7 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
-    store.setCurrentValue(store.acceptedCallSubject, event);
+    store.setAcceptedCall(event);
   };
 };
 
@@ -110,19 +109,19 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
-    const rejectedIncomingCall = store
-      .getCurrentValue(store.incomingCalls$)
-      .find((incomingCall) => incomingCall.cid === call_cid);
+    const rejectedIncomingCall = store.incomingCalls.find(
+      (incomingCall) => incomingCall.cid === call_cid,
+    );
 
     if (rejectedIncomingCall) {
       console.warn('Received CallRejectedEvent for an incoming call');
       return;
     }
 
-    const rejectedOutgoingCall = store
-      .getCurrentValue(store.outgoingCalls$)
-      .find((outgoingCall) => outgoingCall.cid === call_cid);
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const rejectedOutgoingCall = store.outgoingCalls.find(
+      (outgoingCall) => outgoingCall.cid === call_cid,
+    );
+    const activeCall = store.activeCall;
     const rejectedActiveCall =
       activeCall?.cid !== undefined && activeCall.cid === call_cid
         ? activeCall
@@ -135,7 +134,7 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
-    store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+    store.setPendingCalls((pendingCalls) =>
       pendingCalls.filter((pendingCall) => pendingCall.cid !== call_cid),
     );
   };
@@ -157,11 +156,11 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
-    const cancelledIncomingCall = store
-      .getCurrentValue(store.incomingCalls$)
-      .find((incomingCall) => incomingCall.cid === call_cid);
+    const cancelledIncomingCall = store.incomingCalls.find(
+      (incomingCall) => incomingCall.cid === call_cid,
+    );
 
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
+    const activeCall = store.activeCall;
     const cancelledActiveCall =
       activeCall?.cid !== undefined && activeCall.cid === call_cid
         ? activeCall
@@ -174,7 +173,7 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
-    store.setCurrentValue(store.pendingCallsSubject, (pendingCalls) =>
+    store.setPendingCalls((pendingCalls) =>
       pendingCalls.filter((pendingCall) => pendingCall.cid !== call_cid),
     );
   };
