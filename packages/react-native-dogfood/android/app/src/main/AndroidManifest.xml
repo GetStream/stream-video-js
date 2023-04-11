@@ -47,6 +47,9 @@
         <action android:name="android.telecom.ConnectionService" />
       </intent-filter>
     </service>
+    <service
+      android:name="app.notifee.core.ForegroundService"
+      android:foregroundServiceType="camera|microphone" />
 
     <service android:name="io.wazo.callkeep.RNCallKeepBackgroundMessagingService" />
   </application>
