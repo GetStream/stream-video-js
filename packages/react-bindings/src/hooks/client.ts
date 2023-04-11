@@ -1,5 +1,4 @@
 import {
-  CallConfig,
   StreamClientOptions,
   StreamVideoClient,
   TokenOrProvider,
