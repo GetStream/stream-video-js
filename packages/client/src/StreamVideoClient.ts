@@ -31,7 +31,6 @@ import {
 } from './events';
 
 import { CALL_CONFIG, CallConfig } from './config';
-import { CallDropScheduler } from './CallDropScheduler';
 import {
   EventHandler,
   EventTypes,
@@ -55,7 +54,6 @@ export class StreamVideoClient {
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
-  private callDropScheduler: CallDropScheduler | undefined;
   public streamClient: StreamClient;
 
   /**
@@ -97,11 +95,6 @@ export class StreamVideoClient {
       // @ts-expect-error
       user,
       tokenOrProvider,
-    );
-
-    this.callDropScheduler = new CallDropScheduler(
-      this.writeableStateStore,
-      this.callConfig,
     );
 
     this.on(
@@ -152,7 +145,9 @@ export class StreamVideoClient {
    */
   disconnectUser = async (timeout?: number) => {
     await this.streamClient.disconnectUser(timeout);
-    this.callDropScheduler?.cleanUp();
+    this.writeableStateStore.pendingCalls.forEach((call) =>
+      call.cancelScheduledDrop(),
+    );
     this.writeableStateStore.setConnectedUser(undefined);
   };
 
@@ -180,14 +175,12 @@ export class StreamVideoClient {
   };
 
   call(type: string, id: string) {
-    const call = new Call({
+    return new Call({
       streamClient: this.streamClient,
       id,
       type,
       clientStore: this.writeableStateStore,
     });
-
-    return call;
   }
 
   queryCalls = async (

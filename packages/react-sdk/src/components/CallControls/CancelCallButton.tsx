@@ -18,7 +18,7 @@ export const CancelCallButton = ({
       if (onClick) {
         onClick(e);
       } else if (call) {
-        await call.cancel();
+        await call.leave();
         onLeave?.();
       }
     },
