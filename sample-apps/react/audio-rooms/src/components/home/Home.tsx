@@ -9,12 +9,13 @@ import {
 import { useUserContext } from '../../contexts/UserContext/UserContext';
 import RoomOverview from './RoomOverview';
 import RoomActiveContainer from './RoomActive/RoomActiveContainer';
+import RoomForm from '../room-form/RoomForm';
 
 const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
 
 const Home = () => {
   const { user, logout } = useUserContext();
-  const { state } = useAudioRoomContext();
+  const { state, create } = useAudioRoomContext();
 
   const client = useCreateStreamVideoClient({
     apiKey,
@@ -34,13 +35,8 @@ const Home = () => {
           </div>
           <button onClick={() => logout()}>Sign out</button>
           <button
-            onClick={async () => {
-              const result = await client?.getOrCreateCall(
-                'demoAudioRoom1',
-                'default',
-              );
-
-              console.log(`Result: ${JSON.stringify(result)}`);
+            onClick={() => {
+              create();
             }}
           >
             + Start a room
@@ -48,6 +44,7 @@ const Home = () => {
         </section>
         {state === AudioRoomState.Overview && <RoomOverview />}
         {state === AudioRoomState.Joined && <RoomActiveContainer />}
+        {state === AudioRoomState.Create && <RoomForm />}
       </div>
     </StreamVideo>
   );

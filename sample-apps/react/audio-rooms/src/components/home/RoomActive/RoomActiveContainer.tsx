@@ -26,7 +26,12 @@ function RoomActiveContainer() {
     if (currentRoom?.id) {
       getCall(currentRoom?.id);
     }
-  }, [currentRoom, getCall]);
+
+    return () => {
+      console.log('Leaving call.');
+      call?.leave();
+    };
+  }, [currentRoom, getCall, call]);
   return (
     <>
       {call && (

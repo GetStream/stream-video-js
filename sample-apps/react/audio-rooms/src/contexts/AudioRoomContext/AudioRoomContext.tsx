@@ -4,6 +4,7 @@ import { AudioRoom, audioRooms } from '../../data/audioRoom';
 export enum AudioRoomState {
   Overview,
   Joined,
+  Create,
 }
 
 export interface AudioRoomsState {
@@ -13,6 +14,7 @@ export interface AudioRoomsState {
   upcomingRooms: AudioRoom[];
   join: (room: AudioRoom) => void;
   leave: () => void;
+  create: () => void;
 }
 
 const defaultState: AudioRoomsState = {
@@ -24,6 +26,7 @@ const defaultState: AudioRoomsState = {
   upcomingRooms: audioRooms.slice(3, 4),
   join: (room: AudioRoom) => {},
   leave: () => {},
+  create: () => {},
 };
 
 const AudioRoomContext = createContext<AudioRoomsState>(defaultState);
@@ -48,6 +51,13 @@ export const AudioRoomContextProvider = ({
       ...myState,
       state: AudioRoomState.Overview,
       currentRoom: undefined,
+    });
+  };
+
+  myState.create = () => {
+    setMyState({
+      ...myState,
+      state: AudioRoomState.Create,
     });
   };
 
