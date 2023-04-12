@@ -231,7 +231,6 @@ export class StreamSfuClient {
       clearInterval(this.keepAliveInterval);
     }
     this.keepAliveInterval = setInterval(() => {
-      console.log('Sending healthCheckRequest to SFU');
       const message = SfuRequest.create({
         requestPayload: {
           oneofKind: 'healthCheckRequest',
