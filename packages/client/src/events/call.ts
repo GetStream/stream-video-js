@@ -16,7 +16,7 @@ export const watchCallCreated = (
     if (event.type !== 'call.created') {
       return;
     }
-    const { call, members } = event;
+    const { call, members, ringing } = event;
     if (!call) {
       console.warn("Can't find call in CallCreatedEvent");
       return;
@@ -36,6 +36,7 @@ export const watchCallCreated = (
         id: call.id,
         metadata: call,
         members,
+        ringing,
         clientStore: store,
       }),
     ]);
@@ -89,6 +90,9 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
+    // do not set a new accepted call while in an active call? It would lead to joining a new active call.
+    // todo: solve the situation of 2nd outgoing call being accepted in the UI SDK
+
     store.setAcceptedCall(event);
   };
 };
@@ -134,6 +138,7 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
       return;
     }
 
+    // FIXME: we should remove the call from pending once every callee has rejected, but for now we support only 1:1 ring calls
     store.setPendingCalls((pendingCalls) =>
       pendingCalls.filter((pendingCall) => pendingCall.cid !== call_cid),
     );

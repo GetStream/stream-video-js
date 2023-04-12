@@ -53,7 +53,7 @@ import {
   SubscriptionChanges,
   VisibilityState,
 } from './types';
-import { debounceTime, Subject, takeWhile } from 'rxjs';
+import { debounceTime, pairwise, Subject, takeWhile, tap } from 'rxjs';
 import { Comparator } from '../sorting';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import { JoinResponse } from '../gen/video/sfu/event/events';
@@ -108,6 +108,12 @@ export type CallConstructor = {
   members?: MemberResponse[];
 
   /**
+   * Flags the call as a ringing call.
+   * @default false
+   */
+  ringing?: boolean;
+
+  /**
    * The default comparator to use when sorting participants.
    */
   sortParticipantsBy?: Comparator<StreamVideoParticipant>;
@@ -159,6 +165,7 @@ export class Call {
   private trackSubscriptionsSubject = new Subject<TrackSubscriptionDetails[]>();
 
   private statsReporter?: StatsReporter;
+  private dropTimeout: ReturnType<typeof setTimeout> | undefined;
 
   private readonly clientStore: StreamVideoWriteableStateStore;
   private readonly streamClient: StreamClient;
@@ -206,6 +213,7 @@ export class Call {
     members,
     sortParticipantsBy,
     clientStore,
+    ringing = false,
   }: CallConstructor) {
     this.type = type;
     this.id = id;
@@ -218,6 +226,12 @@ export class Call {
     this.state = new CallState(
       sortParticipantsBy || callTypeConfig.options.sortParticipantsBy,
     );
+
+    if (ringing) {
+      this.scheduleAutoDrop();
+      this.watchForAutoDropCancellation();
+    }
+
     this.state.setMetadata(metadata);
     this.state.setMembers(members || []);
 
@@ -1039,6 +1053,12 @@ export class Call {
       this.streamClientBasePath,
       data,
     );
+
+    if (data?.ring && !this.dropTimeout) {
+      this.scheduleAutoDrop();
+      this.watchForAutoDropCancellation();
+    }
+
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
 
@@ -1200,32 +1220,90 @@ export class Call {
 
   /**
    * Signals other users that I have cancelled my call to them before they accepted it.
-   * Causes the `CallCancelled` event to be emitted to all the call members.
+   * Causes the `call.ended` event to be emitted to all the call members.
    *
-   * Cancelling a call is only possible before the local participant joined the call.
    * @returns
    */
   cancel = async () => {
     console.log('call cancelled');
     // FIXME OL: this method should be merged with the leave method.
-    const store = this.clientStore;
-    const activeCall = store.activeCall;
-    const leavingActiveCall = activeCall?.cid === this.cid;
+    const leavingActiveCall = this.clientStore.activeCall?.cid === this.cid;
     if (leavingActiveCall) {
-      activeCall.leave();
+      this.leave();
     } else {
-      store.setPendingCalls((pendingCalls) =>
+      await this.endCall();
+      this.clientStore.setPendingCalls((pendingCalls) =>
         pendingCalls.filter((c) => c.cid !== this.cid),
       );
     }
+  };
 
-    if (activeCall) {
-      const state = activeCall.state;
-      const remoteParticipants = state.remoteParticipants;
-      if (!remoteParticipants.length && !leavingActiveCall) {
-        await this.endCall();
-      }
+  private scheduleAutoDrop = () => {
+    const subscription = this.state.metadata$
+      .pipe(
+        pairwise(),
+        tap(([prevMeta, currentMeta]) => {
+          if (!(currentMeta && this.clientStore.connectedUser)) return;
+
+          const isOutgoingCall =
+            this.clientStore.connectedUser.id === currentMeta.created_by.id;
+
+          const [prevTimeoutMs, timeoutMs, dropFn] = isOutgoingCall
+            ? [
+                prevMeta?.settings.ring.auto_cancel_timeout_ms,
+                currentMeta.settings.ring.auto_cancel_timeout_ms,
+                this.cancel,
+              ]
+            : [
+                prevMeta?.settings.ring.auto_reject_timeout_ms,
+                currentMeta.settings.ring.auto_reject_timeout_ms,
+                this.reject,
+              ];
+          if (typeof timeoutMs === 'undefined' || timeoutMs === prevTimeoutMs)
+            return;
+
+          if (this.dropTimeout) clearTimeout(this.dropTimeout);
+          this.dropTimeout = setTimeout(dropFn, timeoutMs);
+        }),
+        takeWhile(
+          () =>
+            !!this.clientStore.pendingCalls.find(
+              (call) => call.cid === this.cid,
+            ),
+        ),
+      )
+      .subscribe();
+
+    this.leaveCallHooks.push(() => {
+      !subscription.closed && subscription.unsubscribe();
+    });
+  };
+
+  cancelScheduledDrop = () => {
+    if (this.dropTimeout) {
+      clearTimeout(this.dropTimeout);
+      this.dropTimeout = undefined;
     }
+  };
+
+  private watchForAutoDropCancellation = () => {
+    const subscription = this.clientStore.pendingCallsSubject
+      .pipe(
+        pairwise(),
+        tap(([prev, next]) => {
+          const wasPending = prev.find((call) => call.cid === this.cid);
+          const isPending = next.find((call) => call.cid === this.cid);
+          if (wasPending && !isPending) {
+            this.cancelScheduledDrop();
+          }
+        }),
+      )
+      .subscribe();
+
+    this.leaveCallHooks.push(() => {
+      this.cancelScheduledDrop();
+      !subscription.closed && subscription.unsubscribe();
+    });
   };
 
   /**

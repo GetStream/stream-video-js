@@ -2,18 +2,6 @@ export type CallMode = 'ring' | 'meeting';
 
 export type CallConfig = {
   /**
-   * Optional parameter to define after how many milliseconds without receiving CallAccepted event should the outgoing call be cancelled.
-   * If not defined, the call will not be cancelled automatically by the client and the user is expected to cancel or leave the call manually.
-   * Note: Is relevant to outgoing calls only.
-   */
-  autoCancelTimeoutInMs?: number;
-  /**
-   * Optional parameter to define after how many milliseconds an incoming ring call should be automatically rejected.
-   * If not defined, the call will not be rejected automatically by the client and the user is expected to reject the call manually.
-   * Note: Is relevant to incoming calls only.
-   */
-  autoRejectTimeoutInMs?: number;
-  /**
    * Optional parameter enabling automatic rejections of incoming calls while participating at an active call.
    */
   autoRejectWhenInCall?: boolean;
