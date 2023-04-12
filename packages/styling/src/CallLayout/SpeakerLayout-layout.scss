@@ -11,7 +11,6 @@ $scope-name: 'str-video__speaker-layout';
   height: 100%;
   width: 100%;
 
-  // FIXME: remove this rule and adjust this layout to 4:3 aspect ratio
   .str-video__participant-placeholder,
   .str-video__remote-video {
     aspect-ratio: 16/9 !important;
