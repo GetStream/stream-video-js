@@ -104,6 +104,18 @@ export const MeetingUI = ({
     }
   }, [router]);
 
+  useEffect(() => {
+    const handlePageLeave = async () => {
+      if (activeCall?.state.callingState !== CallingState.LEFT) {
+        await activeCall?.leave();
+      }
+    };
+    router.events.on('routeChangeStart', handlePageLeave);
+    return () => {
+      router.events.off('routeChangeStart', handlePageLeave);
+    };
+  }, [activeCall, router.events]);
+
   const isSortingDisabled = router.query['enableSorting'] === 'false';
   useEffect(() => {
     if (!activeCall) return;
