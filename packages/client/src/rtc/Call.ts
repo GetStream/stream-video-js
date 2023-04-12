@@ -201,6 +201,7 @@ export class Call {
   }
 
   private readonly streamClientBasePath: string;
+  private streamClientEventHandlers = new Map<Function, CallEventHandler>();
 
   /**
    * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
@@ -265,6 +266,7 @@ export class Call {
           (fn as EventHandler)(event);
         }
       };
+      this.streamClientEventHandlers.set(fn, eventHandler);
 
       return this.streamClient.on(eventName, eventHandler as EventHandler);
     }
@@ -276,9 +278,24 @@ export class Call {
    * @param fn
    * @returns
    */
-  off = (eventName: SfuEventKinds, fn: SfuEventListener) => {
-    return this.dispatcher.off(eventName, fn);
-  };
+  off(eventName: SfuEventKinds, fn: SfuEventListener): void;
+  off(eventName: CallEventTypes, fn: CallEventHandler): void;
+  off(
+    eventName: SfuEventKinds | CallEventTypes,
+    fn: SfuEventListener | CallEventHandler,
+  ) {
+    if (isSfuEvent(eventName)) {
+      return this.dispatcher.off(eventName, fn as SfuEventListener);
+    } else {
+      const registeredEventHandler = this.streamClientEventHandlers.get(fn);
+      if (registeredEventHandler) {
+        return this.streamClient.off(
+          eventName,
+          registeredEventHandler as EventHandler,
+        );
+      }
+    }
+  }
 
   /**
    * Leave the call and stop the media streams that were published by the call.
@@ -1329,7 +1346,9 @@ export class Call {
     );
   };
 
-  sendEvent = async (event: SendEventRequest) => {
+  sendEvent = async (
+    event: SendEventRequest & { type: StreamCallEvent['type'] },
+  ) => {
     return this.streamClient.post(`${this.streamClientBasePath}/event`, event);
   };
 }
