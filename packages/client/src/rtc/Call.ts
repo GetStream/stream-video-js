@@ -1227,14 +1227,12 @@ export class Call {
   cancel = async () => {
     console.log('call cancelled');
     // FIXME OL: this method should be merged with the leave method.
-    const store = this.clientStore;
-    const activeCall = store.activeCall;
-    const leavingActiveCall = activeCall?.cid === this.cid;
+    const leavingActiveCall = this.clientStore.activeCall?.cid === this.cid;
     if (leavingActiveCall) {
-      activeCall.leave();
+      this.leave();
     } else {
       await this.endCall();
-      store.setPendingCalls((pendingCalls) =>
+      this.clientStore.setPendingCalls((pendingCalls) =>
         pendingCalls.filter((c) => c.cid !== this.cid),
       );
     }
