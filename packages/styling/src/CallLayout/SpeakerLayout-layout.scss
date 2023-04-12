@@ -6,8 +6,8 @@ $scope-name: 'str-video__speaker-layout';
 
 .str-video__speaker-layout {
   display: flex;
-  flex-direction: column-reverse;
-  padding-inline: 1.25rem;
+  flex-direction: column;
+  justify-content: center;
   height: 100%;
   width: 100%;
 
@@ -17,16 +17,16 @@ $scope-name: 'str-video__speaker-layout';
   }
 
   .str-video__speaker-layout--spotlight {
-    flex: 1;
+    // flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 0;
 
-    .str-video__participant {
-      height: 100%;
-      width: auto;
-    }
+    // .str-video__participant {
+    //   height: 100%;
+    //   width: auto;
+    // }
 
     .str-video__participant--no-video {
       width: 100%;
@@ -73,19 +73,21 @@ $scope-name: 'str-video__speaker-layout';
       flex-direction: row;
       align-items: center;
       gap: 10px;
-      height: 160px;
-      min-height: 160px;
+      height: 180px;
+      min-height: 180px;
 
       .str-video__speaker-layout--participant-tile {
-        width: 240px;
-        min-width: 240px;
+        width: 280px;
+        min-width: 280px;
 
-        &:first-child {
-          margin-left: auto;
+        .str-video__participant_details {
+          display: none;
         }
 
-        &:last-child {
-          margin-right: auto;
+        &:hover {
+          .str-video__participant_details {
+            display: flex;
+          }
         }
       }
     }
