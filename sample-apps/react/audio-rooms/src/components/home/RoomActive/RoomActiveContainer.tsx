@@ -15,7 +15,6 @@ function RoomActiveContainer() {
   const getCall = useCallback(
     async (id: string) => {
       const activeCall = await client?.joinCall(id, 'default');
-      console.log(`activeCall: ${JSON.stringify(activeCall)}`);
       if (activeCall) {
         setCall(activeCall);
       }
@@ -35,7 +34,7 @@ function RoomActiveContainer() {
           <RoomActive />
         </StreamCallProvider>
       )}
-      {!call && <div>Loading</div>}
+      {!call && <div className="active-room">Loading</div>}
     </>
   );
 }

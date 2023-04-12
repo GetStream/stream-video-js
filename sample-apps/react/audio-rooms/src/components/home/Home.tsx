@@ -7,8 +7,8 @@ import {
   useAudioRoomContext,
 } from '../../contexts/AudioRoomContext/AudioRoomContext';
 import { useUserContext } from '../../contexts/UserContext/UserContext';
-import RoomActive from './RoomActive';
 import RoomOverview from './RoomOverview';
+import RoomActiveContainer from './RoomActive/RoomActiveContainer';
 
 const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
 
@@ -33,10 +33,21 @@ const Home = () => {
             <h3>@{user?.name}</h3>
           </div>
           <button onClick={() => logout()}>Sign out</button>
-          <button onClick={() => {}}>+ Start a room</button>
+          <button
+            onClick={async () => {
+              const result = await client?.getOrCreateCall(
+                'demoAudioRoom1',
+                'default',
+              );
+
+              console.log(`Result: ${JSON.stringify(result)}`);
+            }}
+          >
+            + Start a room
+          </button>
         </section>
         {state === AudioRoomState.Overview && <RoomOverview />}
-        {state === AudioRoomState.Joined && <RoomActive />}
+        {state === AudioRoomState.Joined && <RoomActiveContainer />}
       </div>
     </StreamVideo>
   );
