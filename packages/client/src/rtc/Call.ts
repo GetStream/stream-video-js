@@ -247,11 +247,11 @@ export class Call {
     if (isSfuEvent(eventName)) {
       return this.dispatcher.on(eventName, fn as SfuEventListener);
     } else {
-      const eventHandler: CallEventHandler = ((event: StreamCallEvent) => {
+      const eventHandler: CallEventHandler = (event: StreamCallEvent) => {
         if (event.call_cid && event.call_cid === this.cid) {
           (fn as EventHandler)(event);
         }
-      });
+      };
       this.streamClientEventHandlers.set(fn, eventHandler);
 
       return this.streamClient.on(eventName, eventHandler as EventHandler);
@@ -264,21 +264,24 @@ export class Call {
    * @param fn
    * @returns
    */
-   off(eventName: SfuEventKinds, fn: SfuEventListener): void;
-   off(eventName: CallEventTypes, fn: CallEventHandler): void;
-   off(
-     eventName: SfuEventKinds | CallEventTypes,
-     fn: SfuEventListener | CallEventHandler,
-   ) {
-     if (isSfuEvent(eventName)) {
+  off(eventName: SfuEventKinds, fn: SfuEventListener): void;
+  off(eventName: CallEventTypes, fn: CallEventHandler): void;
+  off(
+    eventName: SfuEventKinds | CallEventTypes,
+    fn: SfuEventListener | CallEventHandler,
+  ) {
+    if (isSfuEvent(eventName)) {
       return this.dispatcher.off(eventName, fn as SfuEventListener);
-     } else {
+    } else {
       const registeredEventHandler = this.streamClientEventHandlers.get(fn);
       if (registeredEventHandler) {
-        return this.streamClient.off(eventName, registeredEventHandler as EventHandler);
+        return this.streamClient.off(
+          eventName,
+          registeredEventHandler as EventHandler,
+        );
       }
-     }
-  };
+    }
+  }
 
   /**
    * Leave the call and stop the media streams that were published by the call.
@@ -1322,7 +1325,9 @@ export class Call {
     );
   };
 
-  sendEvent = async (event: SendEventRequest) => {
+  sendEvent = async (
+    event: SendEventRequest & { type: StreamCallEvent['type'] },
+  ) => {
     return this.streamClient.post(`${this.streamClientBasePath}/event`, event);
   };
 }

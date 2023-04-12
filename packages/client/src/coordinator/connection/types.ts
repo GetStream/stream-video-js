@@ -2,7 +2,6 @@ import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { StableWSConnection } from './connection';
 import {
   ConnectedEvent,
-  HealthCheckEvent,
   VideoEvent,
 } from '../../gen/coordinator';
 
@@ -67,10 +66,7 @@ export type StreamVideoEvent = (
 ) & { received_at?: string | Date };
 
 // TODO: we should use WSCallEvent here but that needs fixing
-export type StreamCallEvent = Extract<
-  StreamVideoEvent,
-  {call_cid: string}
->;
+export type StreamCallEvent = Extract<StreamVideoEvent, { call_cid: string }>;
 
 export type EventHandler = (event: StreamVideoEvent) => void;
 
@@ -78,7 +74,7 @@ export type CallEventHandler = (event: StreamCallEvent) => void;
 
 export type EventTypes = 'all' | StreamVideoEvent['type'];
 
-export type CallEventTypes = StreamCallEvent['type']
+export type CallEventTypes = StreamCallEvent['type'];
 
 export type Logger = (
   logLevel: LogLevel,
