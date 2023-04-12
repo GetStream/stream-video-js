@@ -45,20 +45,6 @@ export class ErrorFromResponse<T> extends Error {
   status?: number;
 }
 
-type ClientEventTypes = 'health.check' | 'connection.ok';
-
-type LocalEventTypes =
-  | 'connection.changed'
-  | 'transport.changed'
-  | 'connection.recovered';
-
-export type EventTypes = 'all' | VideoEvent['type'] | LocalEventTypes;
-
-export type CallEventTypes = Exclude<
-  EventTypes,
-  'all' | ClientEventTypes | LocalEventTypes
->;
-
 export type ConnectionChangedEvent = {
   type: 'connection.changed';
   online: boolean;
@@ -80,17 +66,19 @@ export type StreamVideoEvent = (
   | ConnectionRecoveredEvent
 ) & { received_at?: string | Date };
 
-export type StreamCallEvent = Exclude<
+// TODO: we should use WSCallEvent here but that needs fixing
+export type StreamCallEvent = Extract<
   StreamVideoEvent,
-  | HealthCheckEvent
-  | ConnectionChangedEvent
-  | TransportChangedEvent
-  | ConnectionRecoveredEvent
+  {call_cid: string}
 >;
 
 export type EventHandler = (event: StreamVideoEvent) => void;
 
 export type CallEventHandler = (event: StreamCallEvent) => void;
+
+export type EventTypes = 'all' | StreamVideoEvent['type'];
+
+export type CallEventTypes = StreamCallEvent['type']
 
 export type Logger = (
   logLevel: LogLevel,
