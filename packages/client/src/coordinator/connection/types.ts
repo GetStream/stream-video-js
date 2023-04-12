@@ -1,9 +1,6 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { StableWSConnection } from './connection';
-import {
-  ConnectedEvent,
-  VideoEvent,
-} from '../../gen/coordinator';
+import { ConnectedEvent, VideoEvent } from '../../gen/coordinator';
 
 export type UR = Record<string, unknown>;
 
