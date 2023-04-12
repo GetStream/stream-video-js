@@ -1,5 +1,7 @@
+import { Call } from '@stream-io/video-client';
+
 import { ReactNode, createContext, useContext, useState } from 'react';
-import { AudioRoom, audioRooms } from '../../data/audioRoom';
+import { AudioRoom } from '../../data/audioRoom';
 
 export enum AudioRoomState {
   Overview,
@@ -15,18 +17,20 @@ export interface AudioRoomsState {
   join: (room: AudioRoom) => void;
   leave: () => void;
   create: () => void;
+  setRooms: (calls: Call[]) => void;
 }
 
 const defaultState: AudioRoomsState = {
   state: AudioRoomState.Overview,
   currentRoom: undefined,
-  // liveRooms: [],
-  // upcomingRooms: [],
-  liveRooms: audioRooms.slice(0, 3),
-  upcomingRooms: audioRooms.slice(3, 4),
+  liveRooms: [],
+  upcomingRooms: [],
+  // liveRooms: audioRooms.slice(0, 3),
+  // upcomingRooms: audioRooms.slice(3, 4),
   join: (room: AudioRoom) => {},
   leave: () => {},
   create: () => {},
+  setRooms: (calls: Call[]) => {},
 };
 
 const AudioRoomContext = createContext<AudioRoomsState>(defaultState);
@@ -37,6 +41,8 @@ export const AudioRoomContextProvider = ({
   children: ReactNode;
 }) => {
   const [myState, setMyState] = useState<AudioRoomsState>(defaultState);
+
+  console.log('Initiate AudioRoomContextProvider');
 
   myState.join = (room: AudioRoom) => {
     setMyState({
@@ -58,6 +64,44 @@ export const AudioRoomContextProvider = ({
     setMyState({
       ...myState,
       state: AudioRoomState.Create,
+    });
+  };
+
+  myState.setRooms = (calls: Call[]) => {
+    const liveRooms: AudioRoom[] = [];
+    const upcomingRooms: AudioRoom[] = [];
+    calls.forEach((call) => {
+      const participants = call.state.participantsSubject.getValue();
+      console.log('------');
+      console.log(`Call (${call.id}) has ${participants.length} participants.`);
+      console.log('------');
+      if (participants.length > 0) {
+        liveRooms.push({
+          id: call.id,
+          title: call.id,
+          subtitle: call.id,
+          hosts: [],
+          listeners: [],
+          speakers: [],
+          call: call,
+        });
+      } else {
+        upcomingRooms.push({
+          id: call.id,
+          title: call.id,
+          subtitle: call.id,
+          hosts: [],
+          listeners: [],
+          speakers: [],
+          call: call,
+        });
+      }
+    });
+
+    setMyState({
+      ...myState,
+      liveRooms: liveRooms,
+      upcomingRooms: upcomingRooms,
     });
   };
 

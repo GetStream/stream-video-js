@@ -1,3 +1,4 @@
+import { Call } from '@stream-io/video-client';
 import users, { User } from './users';
 
 export interface AudioRoom {
@@ -7,6 +8,7 @@ export interface AudioRoom {
   hosts: User[];
   listeners: User[];
   speakers: User[];
+  call?: Call;
 }
 
 export const audioRooms: AudioRoom[] = [

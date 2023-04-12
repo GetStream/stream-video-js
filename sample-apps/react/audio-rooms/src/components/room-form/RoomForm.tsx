@@ -29,21 +29,37 @@ function RoomForm(): JSX.Element {
             onChange={(event) => setDescription(event.target.value)}
           />
         </label>
-        <button type="submit" onClick={(event) => createButtonClicked(event)}>
+        <button
+          type="submit"
+          disabled={isButtonDisabled()}
+          onClick={(event) => createButtonClicked(event)}
+        >
           Create
         </button>
       </form>
     </section>
   );
 
+  function isButtonDisabled(): boolean {
+    return !title || !description;
+  }
+
   async function createButtonClicked(event: React.MouseEvent) {
     event.preventDefault();
-    // const result = await client?.getOrCreateCall('demoAudioRoom1', 'default', {
-    //   title: title,
-    //   description: description,
-    // });
+    const randomId = Math.random().toString(36).substring(2, 12);
+    const result = await client?.getOrCreateCall(randomId, 'audio_room', {
+      data: {
+        custom: {
+          audioRoomCall: true,
+          title: title,
+          description: description,
+        },
+      },
+    });
 
-    // console.log(`Result: ${JSON.stringify(result)}`);
+    console.log('Result:');
+    console.dir(result);
+    console.log('--------');
   }
 }
 
