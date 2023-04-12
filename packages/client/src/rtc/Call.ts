@@ -53,15 +53,7 @@ import {
   SubscriptionChanges,
   VisibilityState,
 } from './types';
-import {
-  debounceTime,
-  filter,
-  map,
-  pairwise,
-  Subject,
-  takeWhile,
-  tap,
-} from 'rxjs';
+import { debounceTime, pairwise, Subject, takeWhile, tap } from 'rxjs';
 import { Comparator } from '../sorting';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import { JoinResponse } from '../gen/video/sfu/event/events';
@@ -117,6 +109,7 @@ export type CallConstructor = {
 
   /**
    * Flags the call as a ringing call.
+   * @default false
    */
   ringing?: boolean;
 
@@ -220,7 +213,7 @@ export class Call {
     members,
     sortParticipantsBy,
     clientStore,
-    ringing,
+    ringing = false,
   }: CallConstructor) {
     this.type = type;
     this.id = id;
@@ -233,15 +226,16 @@ export class Call {
     this.state = new CallState(
       sortParticipantsBy || callTypeConfig.options.sortParticipantsBy,
     );
+
+    if (ringing) {
+      this.scheduleAutoDrop();
+      this.watchForAutoDropCancellation();
+    }
+
     this.state.setMetadata(metadata);
     this.state.setMembers(members || []);
 
     registerEventHandlers(this, this.state, this.dispatcher);
-
-    if (ringing) {
-      this.scheduleAutoDrop();
-      this.scheduleAutoDropCancellation();
-    }
 
     this.trackSubscriptionsSubject
       .pipe(debounceTime(UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION))
@@ -1062,7 +1056,7 @@ export class Call {
 
     if (data?.ring && !this.dropTimeout) {
       this.scheduleAutoDrop();
-      this.scheduleAutoDropCancellation();
+      this.watchForAutoDropCancellation();
     }
 
     this.state.setMetadata(response.call);
@@ -1246,65 +1240,72 @@ export class Call {
     }
   };
 
-  private scheduleCancel = () => {
-    if (
-      typeof this.data?.settings.ring.auto_cancel_timeout_ms === 'undefined' ||
-      this.dropTimeout
-    )
-      return;
-    this.dropTimeout = setTimeout(
-      () => this.cancel(),
-      this.data?.settings.ring.auto_cancel_timeout_ms,
-    );
-  };
-  private scheduleReject = () => {
-    if (
-      typeof this.data?.settings.ring.auto_reject_timeout_ms === 'undefined' ||
-      this.dropTimeout
-    )
-      return;
-    this.dropTimeout = setTimeout(
-      () => this.reject(),
-      this.data?.settings.ring.auto_reject_timeout_ms,
-    );
-  };
-
   private scheduleAutoDrop = () => {
-    this.state.metadata$.pipe(
-      takeWhile(() => !this.dropTimeout),
-      tap((meta) => {
-        if (!(meta && this.clientStore.connectedUser)) return;
+    const subscription = this.state.metadata$
+      .pipe(
+        pairwise(),
+        tap(([prevMeta, currentMeta]) => {
+          if (!(currentMeta && this.clientStore.connectedUser)) return;
 
-        const isOutgoingCall =
-          this.clientStore.connectedUser.id === meta.created_by.id;
+          const isOutgoingCall =
+            this.clientStore.connectedUser.id === currentMeta.created_by.id;
 
-        isOutgoingCall ? this.scheduleCancel() : this.scheduleReject();
-      }),
-    );
+          const [prevTimeoutMs, timeoutMs, dropFn] = isOutgoingCall
+            ? [
+                prevMeta?.settings.ring.auto_cancel_timeout_ms,
+                currentMeta.settings.ring.auto_cancel_timeout_ms,
+                this.cancel,
+              ]
+            : [
+                prevMeta?.settings.ring.auto_reject_timeout_ms,
+                currentMeta.settings.ring.auto_reject_timeout_ms,
+                this.reject,
+              ];
+          if (typeof timeoutMs === 'undefined' || timeoutMs === prevTimeoutMs)
+            return;
+
+          if (this.dropTimeout) clearTimeout(this.dropTimeout);
+          this.dropTimeout = setTimeout(dropFn, timeoutMs);
+        }),
+        takeWhile(
+          () =>
+            !!this.clientStore.pendingCalls.find(
+              (call) => call.cid === this.cid,
+            ),
+        ),
+      )
+      .subscribe();
+
+    this.leaveCallHooks.push(() => {
+      !subscription.closed && subscription.unsubscribe();
+    });
   };
 
   cancelScheduledDrop = () => {
     if (this.dropTimeout) {
       clearTimeout(this.dropTimeout);
       this.dropTimeout = undefined;
-      return true;
     }
-    return false;
   };
 
-  private scheduleAutoDropCancellation = () => {
-    this.clientStore.pendingCallsSubject
+  private watchForAutoDropCancellation = () => {
+    const subscription = this.clientStore.pendingCallsSubject
       .pipe(
         pairwise(),
-        filter(([prev, next]) => {
+        tap(([prev, next]) => {
           const wasPending = prev.find((call) => call.cid === this.cid);
           const isPending = next.find((call) => call.cid === this.cid);
-          return !!(wasPending && !isPending);
+          if (wasPending && !isPending) {
+            this.cancelScheduledDrop();
+          }
         }),
-        map(this.cancelScheduledDrop),
-        takeWhile((hasTerminated) => !hasTerminated),
       )
       .subscribe();
+
+    this.leaveCallHooks.push(() => {
+      this.cancelScheduledDrop();
+      !subscription.closed && subscription.unsubscribe();
+    });
   };
 
   /**
