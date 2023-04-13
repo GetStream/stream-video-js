@@ -183,9 +183,7 @@ export const LatencyMap: FC<Props> = ({
 
     setLoading(true);
 
-    mapboxgl.accessToken =
-      import.meta.env.MAPBOX_GL_TOKEN ||
-      'pk.eyJ1IjoiendhYXJkamUiLCJhIjoiY2thMTVmZXp1MGl3djNmbjZrZWFkemxrNiJ9.dk3iMrfG8ZXwKK8m4WyvfA';
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_GL_TOKEN;
 
     map.current = new mapboxgl.Map({
       projection: {
