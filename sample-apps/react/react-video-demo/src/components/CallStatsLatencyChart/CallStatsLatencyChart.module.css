@@ -1,0 +1,10 @@
+.root {
+  min-height: 350px;
+}
+.heading {
+  @apply mb-4;
+}
+
+.root > div {
+  @apply text-video-black flex flex-col min-h-[200px] sm:min-h-[250px] w-full;
+}
