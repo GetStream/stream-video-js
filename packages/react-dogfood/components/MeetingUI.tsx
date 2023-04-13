@@ -97,17 +97,18 @@ export const MeetingUI = ({
   const onLeave = useCallback(async () => {
     setShow('loading');
     try {
-      await activeCall?.cancel();
       await router.push('/');
     } catch (e) {
       console.error(e);
       setShow('error-leave');
     }
-  }, [activeCall, router]);
+  }, [router]);
 
   useEffect(() => {
     const handlePageLeave = async () => {
-      await activeCall?.cancel();
+      if (activeCall?.state.callingState !== CallingState.LEFT) {
+        await activeCall?.leave();
+      }
     };
     router.events.on('routeChangeStart', handlePageLeave);
     return () => {
@@ -176,7 +177,7 @@ export const MeetingUI = ({
                 <ToggleAudioPublishingButton />
               </SpeakingWhileMutedNotification>
               <ToggleCameraPublishingButton />
-              <CancelCallButton call={activeCall} onClick={onLeave} />
+              <CancelCallButton call={activeCall} onLeave={onLeave} />
             </div>
             <div className="rd-call-controls-group">
               <CallStatsButton />
