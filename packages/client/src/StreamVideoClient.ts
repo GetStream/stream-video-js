@@ -17,17 +17,10 @@ import {
 import { Call } from './rtc/Call';
 
 import {
-  watchBlockedUser,
   watchCallAccepted,
   watchCallCancelled,
   watchCallCreated,
-  watchCallPermissionRequest,
-  watchCallPermissionsUpdated,
-  watchCallRecordingStarted,
-  watchCallRecordingStopped,
   watchCallRejected,
-  watchNewReactions,
-  watchUnblockedUser,
 } from './events';
 
 import { CALL_CONFIG, CallConfig } from './config';
@@ -54,7 +47,7 @@ export class StreamVideoClient {
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
-  public streamClient: StreamClient;
+  streamClient: StreamClient;
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -104,33 +97,6 @@ export class StreamVideoClient {
     this.on('call.accepted', watchCallAccepted(this.writeableStateStore));
     this.on('call.rejected', watchCallRejected(this.writeableStateStore));
     this.on('call.ended', watchCallCancelled(this.writeableStateStore));
-    this.on(
-      'call.permission_request',
-      watchCallPermissionRequest(this.writeableStateStore),
-    );
-
-    this.on(
-      'call.permissions_updated',
-      watchCallPermissionsUpdated(this.writeableStateStore),
-    );
-
-    this.on('call.blocked_user', watchBlockedUser(this.writeableStateStore));
-    this.on(
-      'call.unblocked_user',
-      watchUnblockedUser(this.writeableStateStore),
-    );
-
-    this.on(
-      'call.recording_started',
-      watchCallRecordingStarted(this.writeableStateStore),
-    );
-
-    this.on(
-      'call.recording_stopped',
-      watchCallRecordingStopped(this.writeableStateStore),
-    );
-
-    this.on('call.reaction_new', watchNewReactions(this.writeableStateStore));
 
     this.writeableStateStore.setConnectedUser(user);
   };

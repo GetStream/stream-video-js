@@ -1,11 +1,15 @@
 import clsx from 'clsx';
 import { ComponentProps, ComponentType, forwardRef } from 'react';
 import {
-  useActiveCall,
+  useCall,
   useConnectedUser,
-  useLocalParticipant,
+  useOwnCapabilities,
 } from '@stream-io/video-react-bindings';
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  OwnCapability,
+  SfuModels,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
 import { IconButton } from '../Button';
 import {
   GenericMenu,
@@ -26,7 +30,7 @@ export const CallParticipantListingItem = ({
   participant,
   DisplayName = DefaultDisplayName,
 }: CallParticipantListingItemProps) => {
-  const localParticipant = useLocalParticipant();
+  const ownCapabilities = useOwnCapabilities();
 
   const isAudioOn = participant.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
@@ -58,9 +62,9 @@ export const CallParticipantListingItem = ({
           )}
         />
         <Restricted
-          availableGrants={localParticipant?.ownCapabilities ?? []}
+          availableGrants={ownCapabilities}
           // TODO: add 'kick-users' when available
-          requiredGrants={['block-users', 'mute-users']}
+          requiredGrants={[OwnCapability.BLOCK_USERS, OwnCapability.MUTE_USERS]}
         >
           <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
             <Menu participant={participant} />
@@ -110,8 +114,8 @@ const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   },
 );
 const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
-  const activeCall = useActiveCall();
-  const localParticipant = useLocalParticipant();
+  const activeCall = useCall();
+  const ownCapabilities = useOwnCapabilities();
 
   const blockUserClickHandler = () => {
     activeCall?.blockUser(participant.userId);
@@ -127,17 +131,17 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
   // };
 
   const muteAudioClickHandler = () => {
-    activeCall?.muteUser(participant.userId, 'audio', participant.sessionId);
+    activeCall?.muteUser(participant.userId, 'audio');
   };
   const muteVideoClickHandler = () => {
-    activeCall?.muteUser(participant.userId, 'video', participant.sessionId);
+    activeCall?.muteUser(participant.userId, 'video');
   };
 
   return (
     <GenericMenu>
       <Restricted
-        availableGrants={localParticipant?.ownCapabilities ?? []}
-        requiredGrants={['block-users']}
+        availableGrants={ownCapabilities}
+        requiredGrants={[OwnCapability.BLOCK_USERS]}
       >
         <GenericMenuButtonItem onClick={blockUserClickHandler}>
           Block
@@ -147,8 +151,8 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
         Kick
       </GenericMenuButtonItem> */}
       <Restricted
-        availableGrants={localParticipant?.ownCapabilities ?? []}
-        requiredGrants={['mute-users']}
+        availableGrants={ownCapabilities}
+        requiredGrants={[OwnCapability.MUTE_USERS]}
       >
         <GenericMenuButtonItem
           disabled={

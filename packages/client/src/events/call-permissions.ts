@@ -1,85 +1,29 @@
 import { StreamVideoEvent } from '../coordinator/connection/types';
-import { StreamVideoWriteableStateStore } from '../store';
+import { CallState } from '../store';
 
 /**
  * Event handler that watches for `call.permission_request` events
  * Updates the state store using the `callPermissionRequest$` stream
  */
-export const watchCallPermissionRequest = (
-  store: StreamVideoWriteableStateStore,
-) => {
+export const watchCallPermissionRequest = (state: CallState) => {
   return function onCallPermissionRequest(event: StreamVideoEvent) {
-    if (event.type !== 'call.permission_request') {
-      return;
-    }
-    const activeCall = store.activeCall;
-    if (!activeCall) {
-      console.warn(
-        `Ignoring "call.permission_request" as there is no active call`,
-        event,
-      );
-      return;
-    }
-
-    if (activeCall.cid !== event.call_cid) {
-      console.warn(
-        `Ignoring "call.permission_request" as it doesn't belong to the active call`,
-        event,
-      );
-      return;
-    }
-
-    const state = activeCall.state;
-    const localParticipant = state.localParticipant;
-    if (
-      !localParticipant?.ownCapabilities.includes('update-call-permissions')
-    ) {
-      console.warn(
-        `Ignoring "call.permission_request" as the user doesn't have permission to handle it`,
-      );
-      return;
-    }
-
+    if (event.type !== 'call.permission_request') return;
     state.setCallPermissionRequest(event);
   };
 };
 
 /**
  * Event handler that watches for `call.permissions_updated` events
- * It will update the `localParticipant$` or `remoteParticipants$` based on whose permissions were changed.
  */
-export const watchCallPermissionsUpdated = (
-  store: StreamVideoWriteableStateStore,
-) => {
+export const watchCallPermissionsUpdated = (state: CallState) => {
   return function onCallPermissionsUpdated(event: StreamVideoEvent) {
-    if (event.type !== 'call.permissions_updated') {
-      return;
-    }
-    const activeCall = store.activeCall;
-    if (!activeCall) {
-      console.warn(
-        `Ignoring "call.permissions_updated" as there is no active call`,
-        event,
-      );
-      return;
-    }
-
-    if (activeCall.cid !== event.call_cid) {
-      console.warn(
-        `Ignoring "call.permissions_updated" as it doesn't belong to the active call`,
-        event,
-      );
-      return;
-    }
-
-    const state = activeCall.state;
-    const localParticipant = state.localParticipant;
+    if (event.type !== 'call.permissions_updated') return;
+    const { localParticipant } = state;
     if (event.user.id === localParticipant?.userId) {
-      state.updateParticipant(localParticipant.sessionId, {
-        ownCapabilities: event.own_capabilities,
-      });
+      state.setMetadata((metadata) => ({
+        ...metadata!,
+        own_capabilities: event.own_capabilities,
+      }));
     }
-
-    // TODO: update remote participant once SFU includes that info in the participant data model
   };
 };

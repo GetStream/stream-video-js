@@ -10,6 +10,7 @@
 @import 'src/Avatar';
 @import 'src/Button';
 @import 'src/CallControls';
+@import 'src/CallLayout';
 @import 'src/CallParticipantView';
 @import 'src/CallParticipantsScreenView';
 @import 'src/CallParticipantsView';
@@ -20,6 +21,7 @@
 @import 'src/LoadingIndicator';
 @import 'src/Menu';
 @import 'src/Notification';
+@import 'src/Permissions';
 @import 'src/Reaction';
 @import 'src/Search';
 @import 'src/StreamCall';
@@ -27,5 +29,3 @@
 @import 'src/Video';
 
 @import './src/Debug';
-
-@import './src/CallLayout';

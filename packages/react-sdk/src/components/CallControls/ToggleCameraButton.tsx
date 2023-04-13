@@ -1,10 +1,14 @@
-import { MouseEventHandler, useCallback } from 'react';
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
-import { SfuModels } from '@stream-io/video-client';
-import { IconButton } from '../Button/';
+import { useCallback, useState } from 'react';
+import {
+  useCall,
+  useHasPermissions,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
+import { OwnCapability, SfuModels } from '@stream-io/video-client';
+import { CompositeButton, IconButton } from '../Button/';
 import { useMediaDevices } from '../../contexts';
-import { CompositeButton } from '../Button';
 import { DeviceSelectorVideo } from '../DeviceSettings';
+import { PermissionGrantedNotification } from '../Notification';
 
 export type ToggleCameraPreviewButtonProps = { caption?: string };
 
@@ -40,24 +44,55 @@ export const ToggleCameraPublishingButton = ({
     SfuModels.TrackType.VIDEO,
   );
 
-  const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(() => {
-    if (isVideoMute) {
-      void publishVideoStream();
+  const call = useCall();
+  const hasPermission = useHasPermissions(OwnCapability.SEND_VIDEO);
+  const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
+  const handleClick = useCallback(async () => {
+    if (
+      !hasPermission &&
+      call &&
+      call.permissionsContext.canRequest(OwnCapability.SEND_VIDEO)
+    ) {
+      setIsAwaitingApproval(true);
+      await call
+        .requestPermissions({
+          permissions: [OwnCapability.SEND_VIDEO],
+        })
+        .catch((reason) => {
+          console.log('RequestPermissions failed', reason);
+        });
+      return;
+    }
+    if (isVideoMute && hasPermission) {
+      await publishVideoStream();
     } else {
       stopPublishingVideo();
     }
-  }, [isVideoMute, publishVideoStream, stopPublishingVideo]);
+  }, [
+    call,
+    hasPermission,
+    isVideoMute,
+    publishVideoStream,
+    stopPublishingVideo,
+  ]);
 
   return (
-    <CompositeButton
-      Menu={DeviceSelectorVideo}
-      active={isVideoMute}
-      caption={caption}
+    <PermissionGrantedNotification
+      permission={OwnCapability.SEND_VIDEO}
+      isAwaitingApproval={isAwaitingApproval && !hasPermission}
+      messageApproved="You can now share your video."
+      messageAwaitingApproval="Awaiting for an approval to share your video."
     >
-      <IconButton
-        icon={isVideoMute ? 'camera-off' : 'camera'}
-        onClick={handleClick}
-      />
-    </CompositeButton>
+      <CompositeButton
+        Menu={DeviceSelectorVideo}
+        active={isVideoMute}
+        caption={caption}
+      >
+        <IconButton
+          icon={isVideoMute ? 'camera-off' : 'camera'}
+          onClick={handleClick}
+        />
+      </CompositeButton>
+    </PermissionGrantedNotification>
   );
 };
