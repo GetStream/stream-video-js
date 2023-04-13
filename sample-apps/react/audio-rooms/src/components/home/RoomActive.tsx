@@ -1,4 +1,5 @@
 import { useParticipants } from '@stream-io/video-react-bindings';
+import { Audio } from '@stream-io/video-react-sdk';
 import { useAudioRoomContext } from '../../contexts/AudioRoomContext/AudioRoomContext';
 import RoomOverview from './RoomOverview';
 
@@ -14,6 +15,7 @@ const RoomActive = () => {
         <p>Participants: {participants.length}</p>
         {participants.map((participant, index) => (
           <p key={`${participant.userId}-${index}`}>
+            <Audio audioStream={participant.audioStream} />
             {participant.name} (Speaking:{' '}
             {participant.isSpeaking ? 'yes' : 'no'})
           </p>
