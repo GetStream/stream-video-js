@@ -18,7 +18,6 @@ $scope-name: 'str-video__speaker-layout';
   }
 
   .str-video__speaker-layout--spotlight {
-    // flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -27,6 +26,11 @@ $scope-name: 'str-video__speaker-layout';
     .str-video__participant {
       width: 100%;
       max-width: 110vh;
+    }
+
+    .str-video__screen-share {
+      outline: none; // disable "speaking" outline for screen-share video
+      border-radius: unset;
     }
   }
 
@@ -70,18 +74,21 @@ $scope-name: 'str-video__speaker-layout';
       flex-direction: row;
       align-items: center;
       gap: 10px;
+      padding-block: 4px; // to see "speaking" outline
 
       .str-video__speaker-layout--participant-tile {
         width: 280px;
+        min-width: 280px;
         max-width: 25vh;
 
         .str-video__participant_details {
-          display: none;
+          transition: opacity 200ms ease-out;
+          opacity: 0.3;
         }
 
         &:hover {
           .str-video__participant_details {
-            display: flex;
+            opacity: 1;
           }
         }
       }

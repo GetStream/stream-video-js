@@ -7,7 +7,11 @@ import {
   speakerLayoutSortPreset,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { useCall, useParticipants } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useLocalParticipant,
+  useParticipants,
+} from '@stream-io/video-react-bindings';
 
 import { ParticipantBox } from '../StreamCall';
 import { IconButton } from '../Button';
@@ -19,6 +23,7 @@ export const SpeakerLayout = () => {
   const [scrollWrapper, setScrollWrapper] = useState<HTMLDivElement | null>(
     null,
   );
+  const localParticipant = useLocalParticipant();
 
   const scrollPosition = useHorizontalScrollPosition(scrollWrapper);
 
@@ -73,6 +78,7 @@ export const SpeakerLayout = () => {
               participant={participantInSpotlight}
               call={call}
               videoKind={isSpeakerScreenSharing ? 'screen' : 'video'}
+              sinkId={localParticipant?.audioOutputDeviceId}
             />
           )}
         </div>
@@ -98,6 +104,7 @@ export const SpeakerLayout = () => {
                     <ParticipantBox
                       participant={participantInSpotlight}
                       call={call}
+                      sinkId={localParticipant?.audioOutputDeviceId}
                     />
                   </div>
                 )}
@@ -106,7 +113,16 @@ export const SpeakerLayout = () => {
                     className="str-video__speaker-layout--participant-tile"
                     key={participant.sessionId}
                   >
-                    <ParticipantBox participant={participant} call={call} />
+                    <ParticipantBox
+                      participant={participant}
+                      call={call}
+                      sinkId={localParticipant?.audioOutputDeviceId}
+                      videoKind={
+                        isOneToOneCall && hasScreenShare(participant)
+                          ? 'screen'
+                          : 'video'
+                      }
+                    />
                   </div>
                 ))}
               </div>
