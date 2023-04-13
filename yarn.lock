@@ -31204,6 +31204,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-tooltip@npm:^5.8.3":
+  version: 5.11.1
+  resolution: "react-tooltip@npm:5.11.1"
+  dependencies:
+    "@floating-ui/dom": ^1.0.0
+    classnames: ^2.3.0
+  peerDependencies:
+    react: ">=16.14.0"
+    react-dom: ">=16.14.0"
+  checksum: 6ace7614d85774d9d90879a7bb2e23928c560b79b6b5cdef660ae02c1367aef1084af3e8446e8750116da5b40cd3f18869263951677b806bfd8d7e54d32dd35d
+  languageName: node
+  linkType: hard
+
 "react-transition-group@npm:^4.4.5":
   version: 4.4.5
   resolution: "react-transition-group@npm:4.4.5"
@@ -36406,7 +36419,63 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^3.0.0 || ^4.0.0, vite@npm:^4.1.4, vite@npm:^4.2.0, vite@npm:^4.2.1":
+"vite-plugin-mkcert@npm:^1.14.0":
+  version: 1.14.0
+  resolution: "vite-plugin-mkcert@npm:1.14.0"
+  dependencies:
+    "@octokit/rest": ^19.0.5
+    axios: ^1.2.2
+    debug: ^4.3.4
+    picocolors: ^1.0.0
+  peerDependencies:
+    vite: ">=3"
+  checksum: 8d092746b57af1b98679ad593c3a4c202e864a6ce3e85d574294f60c41d8e2129eebc5de3486c524788550aecb676c3da57159f1f40090b4c40b2d99f0d7f4ed
+  languageName: node
+  linkType: hard
+
+"vite-plugin-ssr@npm:^0.4.77":
+  version: 0.4.112
+  resolution: "vite-plugin-ssr@npm:0.4.112"
+  dependencies:
+    "@brillout/import": 0.2.3
+    "@brillout/json-serializer": ^0.5.3
+    "@brillout/vite-plugin-import-build": ^0.2.14
+    acorn: ^8.0.0
+    cac: ^6.0.0
+    es-module-lexer: ^0.10.0
+    esbuild: ^0.17.0
+    fast-glob: ^3.0.0
+    picocolors: ^1.0.0
+    sirv: ^2.0.0
+  peerDependencies:
+    react-streaming: ">=0.3.5"
+    vite: ">=3.0.0"
+  peerDependenciesMeta:
+    react-streaming:
+      optional: true
+  bin:
+    vite-plugin-ssr: node/cli/bin-entry.js
+  checksum: 5eb647e2650acfb057128bd4cad5de3a776bb025a6fc5109bdeddfa7124e1d7f5bf3452d9c158e810b20883693144356fe94451573d3a2d128385b7fe03e7561
+  languageName: node
+  linkType: hard
+
+"vite-tsconfig-paths@npm:^4.0.5":
+  version: 4.1.0
+  resolution: "vite-tsconfig-paths@npm:4.1.0"
+  dependencies:
+    debug: ^4.1.1
+    globrex: ^0.1.2
+    tsconfck: ^2.1.0
+  peerDependencies:
+    vite: "*"
+  peerDependenciesMeta:
+    vite:
+      optional: true
+  checksum: ee41bf4223538b094e721ae4c6dcd153689d5c8206624f19ca42bc5f1f0af57b5ef329ac2e2b68e527c63c574ffb2fbf360e7e6f75210c4a16840e0b85d6eea3
+  languageName: node
+  linkType: hard
+
+"vite@npm:^3.0.0 || ^4.0.0, vite@npm:^4.1.4, vite@npm:^4.2.1":
   version: 4.2.1
   resolution: "vite@npm:4.2.1"
   dependencies:
