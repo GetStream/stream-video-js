@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import {
   useCall,
@@ -47,6 +47,12 @@ export const ToggleAudioPublishingButton = ({
   const call = useCall();
   const hasPermission = useHasPermissions(OwnCapability.SEND_AUDIO);
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
+  useEffect(() => {
+    if (hasPermission) {
+      setIsAwaitingApproval(false);
+    }
+  }, [hasPermission]);
+
   const handleClick = useCallback(async () => {
     if (
       !hasPermission &&
@@ -79,7 +85,7 @@ export const ToggleAudioPublishingButton = ({
   return (
     <PermissionGrantedNotification
       permission={OwnCapability.SEND_AUDIO}
-      isAwaitingApproval={isAwaitingApproval && !hasPermission}
+      isAwaitingApproval={isAwaitingApproval}
       messageApproved="You can now speak."
       messageAwaitingApproval="Awaiting for an approval to speak."
     >

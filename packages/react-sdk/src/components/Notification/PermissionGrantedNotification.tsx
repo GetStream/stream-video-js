@@ -61,15 +61,23 @@ export const PermissionGrantedNotification = (
   }, [hasPermission]);
 
   const resetIsVisible = useCallback(() => setShowNotification(false), []);
-  const message = isAwaitingApproval
-    ? messageAwaitingApproval
-    : messageApproved;
+  if (isAwaitingApproval) {
+    return (
+      <Notification
+        isVisible={isAwaitingApproval && !hasPermission}
+        message={messageAwaitingApproval}
+      >
+        {children}
+      </Notification>
+    );
+  }
+
   return (
     <Notification
-      isVisible={showNotification || isAwaitingApproval}
+      isVisible={showNotification}
       visibilityTimeout={visibilityTimeout}
       resetIsVisible={resetIsVisible}
-      message={message}
+      message={messageApproved}
     >
       {children}
     </Notification>

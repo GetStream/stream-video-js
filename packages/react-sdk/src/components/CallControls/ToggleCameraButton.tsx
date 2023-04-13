@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   useCall,
   useHasPermissions,
@@ -47,6 +47,12 @@ export const ToggleCameraPublishingButton = ({
   const call = useCall();
   const hasPermission = useHasPermissions(OwnCapability.SEND_VIDEO);
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
+  useEffect(() => {
+    if (hasPermission) {
+      setIsAwaitingApproval(false);
+    }
+  }, [hasPermission]);
+
   const handleClick = useCallback(async () => {
     if (
       !hasPermission &&
@@ -79,7 +85,7 @@ export const ToggleCameraPublishingButton = ({
   return (
     <PermissionGrantedNotification
       permission={OwnCapability.SEND_VIDEO}
-      isAwaitingApproval={isAwaitingApproval && !hasPermission}
+      isAwaitingApproval={isAwaitingApproval}
       messageApproved="You can now share your video."
       messageAwaitingApproval="Awaiting for an approval to share your video."
     >

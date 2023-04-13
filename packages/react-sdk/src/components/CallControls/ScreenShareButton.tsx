@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Call,
   getScreenShareStream,
@@ -30,10 +30,15 @@ export const ScreenShareButton = ({
 
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
   const hasPermission = useHasPermissions(OwnCapability.SCREENSHARE);
+  useEffect(() => {
+    if (hasPermission) {
+      setIsAwaitingApproval(false);
+    }
+  }, [hasPermission]);
   return (
     <PermissionGrantedNotification
       permission={OwnCapability.SCREENSHARE}
-      isAwaitingApproval={isAwaitingApproval && !hasPermission}
+      isAwaitingApproval={isAwaitingApproval}
       messageApproved="You can now share your screen."
       messageAwaitingApproval="Awaiting for an approval to share screen."
     >
