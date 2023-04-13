@@ -15,17 +15,34 @@
 
 .intro-area img {
   width: 8rem;
-  height: 8rem;
+  aspect-ratio: 1;
   border-radius: 2rem;
   background: transparent;
 }
 
 .login-screen {
   display: grid;
-  width: var(--max-width);
+  max-width: var(--max-width);
   grid-template-columns: repeat(2, 1fr);
+  margin: auto;
   align-items: center;
   gap: 4rem;
+}
+
+@media screen and (max-width: 80rem) {
+  #root {
+    padding: 0rem;
+  }
+
+  .intro-area img {
+    width: 6rem;
+  }
+
+  .login-screen {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 1rem;
+  }
 }
 
 .user-list {
@@ -42,6 +59,7 @@
   font-weight: bold;
   transition: background 150ms ease-out;
   cursor: pointer;
+  background: var(--background-color);
 }
 
 .user-list button:hover {
@@ -70,7 +88,6 @@ img {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* justify-content: space-between; */
   gap: 1rem;
   padding: 1rem;
   border-right: 2px solid #c4c4c4;
@@ -78,7 +95,7 @@ img {
 
 .home-user-row img {
   width: 120px;
-  height: 120px;
+  aspect-ratio: 1 / 1;
 }
 
 .home-user-row div {
@@ -113,6 +130,7 @@ img {
   display: flex;
   flex-direction: column;
   text-align: start;
+  background: var(--background-color-light);
 }
 
 .room-card > span {
@@ -144,6 +162,36 @@ img {
 .hosts-grid span {
   font-size: 0.8rem;
   font-weight: bold;
+}
+
+@media screen and (max-width: 80rem) {
+  .home-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .home-user-row {
+    flex-direction: row;
+    justify-content: space-between;
+    border-right: 0px solid transparent;
+  }
+
+  .home-user-row h3 {
+    display: none;
+  }
+
+  .home-user-row img {
+    width: 60px;
+  }
+
+  .home-user-row button:last-child {
+    display: none;
+  }
+
+  .rooms-grid {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
 }
 
 /* -------- Active room -------- */
@@ -191,6 +239,24 @@ img {
 
 .hosts-grid-detail img {
   width: 100%;
+}
+
+@media screen and (max-width: 80rem) {
+  .active-room {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-room-list {
+    display: none;
+  }
+
+  .room-detail {
+    padding: 1rem;
+  }
+
+  .hosts-grid-detail {
+    gap: 1rem;
+  }
 }
 
 .hosts-grid-detail p {
