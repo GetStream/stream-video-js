@@ -15,6 +15,8 @@ body {
   background-color: #272a30;
   color: var(--str-video__text-color1);
   height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
 .str-video__call {
