@@ -19,7 +19,6 @@ import { Call } from './rtc/Call';
 import {
   watchCallAccepted,
   watchCallCancelled,
-  watchCallCreated,
   watchCallRejected,
 } from './events';
 
@@ -28,6 +27,7 @@ import {
   EventHandler,
   EventTypes,
   StreamClientOptions,
+  StreamVideoEvent,
   TokenOrProvider,
   User,
 } from './coordinator/connection/types';
@@ -90,10 +90,29 @@ export class StreamVideoClient {
       tokenOrProvider,
     );
 
-    this.on(
-      'call.created',
-      watchCallCreated(this.writeableStateStore, this.streamClient),
-    );
+    // FIXME: OL: unregister the event listeners.
+    this.on('call.created', (event: StreamVideoEvent) => {
+      if (event.type !== 'call.created') return;
+      const { call, members, ringing } = event;
+
+      if (user.id === call.created_by.id) {
+        console.warn('Received CallCreatedEvent sent by the current user');
+        return;
+      }
+
+      this.writeableStateStore.setPendingCalls((pendingCalls) => [
+        ...pendingCalls,
+        new Call({
+          streamClient: this.streamClient,
+          type: call.type,
+          id: call.id,
+          metadata: call,
+          members,
+          ringing,
+          clientStore: this.writeableStateStore,
+        }),
+      ]);
+    });
     this.on('call.accepted', watchCallAccepted(this.writeableStateStore));
     this.on('call.rejected', watchCallRejected(this.writeableStateStore));
     this.on('call.ended', watchCallCancelled(this.writeableStateStore));

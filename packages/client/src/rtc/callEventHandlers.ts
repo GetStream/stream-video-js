@@ -2,29 +2,23 @@ import { Call } from './Call';
 import { Dispatcher } from './Dispatcher';
 import { CallState } from '../store';
 import {
+  watchAudioLevelChanged,
+  watchBlockedUser,
+  watchCallPermissionRequest,
+  watchCallPermissionsUpdated,
+  watchCallRecordingStarted,
+  watchCallRecordingStopped,
+  watchCallUpdated,
   watchChangePublishQuality,
   watchConnectionQualityChanged,
-} from '../events/internal';
-import {
+  watchDominantSpeakerChanged,
+  watchNewReactions,
   watchParticipantJoined,
   watchParticipantLeft,
   watchTrackPublished,
   watchTrackUnpublished,
-} from '../events/participant';
-import {
-  watchAudioLevelChanged,
-  watchDominantSpeakerChanged,
-} from '../events/speaker';
-import {
-  watchCallPermissionRequest,
-  watchCallPermissionsUpdated,
-} from '../events/call-permissions';
-import {
-  watchCallRecordingStarted,
-  watchCallRecordingStopped,
-} from '../events/recording';
-import { watchNewReactions } from '../events/reactions';
-import { watchBlockedUser, watchUnblockedUser } from '../events/moderation';
+  watchUnblockedUser,
+} from '../events';
 
 export const registerEventHandlers = (
   call: Call,
@@ -43,6 +37,8 @@ export const registerEventHandlers = (
 
     watchAudioLevelChanged(dispatcher, state),
     watchDominantSpeakerChanged(dispatcher, state),
+
+    call.on('call.updated', watchCallUpdated(state)),
 
     call.on('call.blocked_user', watchBlockedUser(state)),
     call.on('call.unblocked_user', watchUnblockedUser(state)),
