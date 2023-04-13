@@ -1,7 +1,4 @@
-import {
-  StreamCallProvider,
-  useStreamVideoClient,
-} from '@stream-io/video-react-bindings';
+import { StreamCallProvider } from '@stream-io/video-react-bindings';
 import { useAudioRoomContext } from '../../../contexts/AudioRoomContext/AudioRoomContext';
 import { useCallback, useEffect, useState } from 'react';
 import RoomActive from '../RoomActive';
@@ -9,22 +6,18 @@ import { Call } from '@stream-io/video-client';
 
 function RoomActiveContainer() {
   const { currentRoom } = useAudioRoomContext();
-  const client = useStreamVideoClient();
   const [call, setCall] = useState<Call | undefined>(undefined);
 
-  const getCall = useCallback(
-    async (id: string) => {
-      const activeCall = await client?.joinCall(id, 'audio_room');
-      if (activeCall) {
-        setCall(activeCall);
-      }
-    },
-    [client],
-  );
+  const getCall = useCallback(async (callToJoin: Call) => {
+    console.log('getCall');
+    // await callToJoin.goLive();
+    await callToJoin.join();
+    setCall(callToJoin);
+  }, []);
 
   useEffect(() => {
-    if (currentRoom?.id) {
-      getCall(currentRoom?.id);
+    if (currentRoom?.call) {
+      getCall(currentRoom.call);
     }
 
     return () => {

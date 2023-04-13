@@ -51,7 +51,8 @@ function RoomForm(): JSX.Element {
   async function createButtonClicked(event: React.MouseEvent) {
     event.preventDefault();
     const randomId = Math.random().toString(36).substring(2, 12);
-    await client?.getOrCreateCall(randomId, 'audio_room', {
+    const call = client?.call('audio_room', randomId);
+    call?.getOrCreate({
       data: {
         members: [{ user_id: user?.id || '', role: 'admin' }],
         custom: {
