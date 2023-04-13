@@ -14,7 +14,7 @@ function RoomActiveContainer() {
 
   const getCall = useCallback(
     async (id: string) => {
-      const activeCall = await client?.joinCall(id, 'default');
+      const activeCall = await client?.joinCall(id, 'audio_room');
       if (activeCall) {
         setCall(activeCall);
       }
