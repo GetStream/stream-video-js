@@ -1,11 +1,15 @@
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 import { useState } from 'react';
+import { useAudioRoomContext } from '../../contexts/AudioRoomContext/AudioRoomContext';
+import { useUserContext } from '../../contexts/UserContext/UserContext';
 
 function RoomForm(): JSX.Element {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
   const client = useStreamVideoClient();
+  const { user } = useUserContext();
+  const { roomCreated } = useAudioRoomContext();
 
   return (
     <section>
@@ -53,13 +57,20 @@ function RoomForm(): JSX.Element {
           audioRoomCall: true,
           title: title,
           description: description,
+          hosts: [
+            {
+              name: user?.name,
+              id: user?.id,
+              imageUrl: user?.imageUrl,
+            },
+          ],
         },
       },
     });
 
-    console.log('Result:');
-    console.dir(result);
-    console.log('--------');
+    setTitle('');
+    setDescription('');
+    roomCreated();
   }
 }
 

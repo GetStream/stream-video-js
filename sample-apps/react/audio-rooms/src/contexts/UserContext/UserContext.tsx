@@ -1,23 +1,30 @@
 import { ReactNode, createContext, useContext, useState } from 'react';
 import { User } from '../../data/users';
-import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 import { tokenProvider } from './tokenProvider';
 import { StreamVideoClient } from '@stream-io/video-client';
 
+export enum AuthStatus {
+  loggedOut,
+  processing,
+  loggedIn,
+}
+
 export interface UserState {
-  loggedIn: Boolean;
+  authStatus: AuthStatus;
   user: User | undefined;
   client: StreamVideoClient | undefined;
-  login: (user: User) => void;
-  logout: () => void;
+  userTapped: (user: User) => void;
+  login: (user: User, client: StreamVideoClient) => void;
+  logout: (client: StreamVideoClient) => void;
 }
 
 const defaultState: UserState = {
-  loggedIn: false,
+  authStatus: AuthStatus.loggedOut,
   user: undefined,
   client: undefined,
+  userTapped: (user: User) => {},
   login: async (user: User) => {},
-  logout: () => {},
+  logout: (client: StreamVideoClient) => {},
 };
 
 const UserContext = createContext<UserState>(defaultState);
@@ -28,26 +35,46 @@ export const UserContextProvider: any = ({
   children: ReactNode;
 }) => {
   const [myState, setMyState] = useState<UserState>(defaultState);
-  const client = useStreamVideoClient();
   const store: UserState = myState;
 
-  store.login = async (user: User) => {
+  store.userTapped = async (user: User) => {
     const token = await tokenProvider(user.id);
     user.token = token;
-    await client?.connectUser(user, token);
 
     setMyState({
       ...myState,
-      loggedIn: true,
+      authStatus: AuthStatus.processing,
       user: user,
     });
   };
 
-  store.logout = () => {
+  store.login = async (user: User, client: StreamVideoClient) => {
+    console.log(
+      `Login called. (Client is ${
+        client === undefined ? 'undefined' : 'defined'
+      })`,
+    );
+    await client.connectUser(user, user.token);
+
     setMyState({
       ...myState,
-      user: undefined,
-      loggedIn: false,
+      authStatus: AuthStatus.loggedIn,
+      user: user,
+    });
+  };
+
+  store.logout = (client: StreamVideoClient) => {
+    setMyState({
+      ...myState,
+      authStatus: AuthStatus.processing,
+    });
+
+    client.disconnectUser().then(() => {
+      setMyState({
+        ...myState,
+        user: undefined,
+        authStatus: AuthStatus.loggedOut,
+      });
     });
   };
 

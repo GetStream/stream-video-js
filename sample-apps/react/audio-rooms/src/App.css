@@ -112,6 +112,7 @@ img {
 .room-card {
   display: flex;
   flex-direction: column;
+  text-align: start;
 }
 
 .room-card > span {

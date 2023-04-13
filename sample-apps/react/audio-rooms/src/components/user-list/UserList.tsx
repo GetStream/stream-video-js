@@ -1,11 +1,8 @@
 import { useUserContext } from '../../contexts/UserContext/UserContext';
-import users, { User } from '../../data/users';
+import users from '../../data/users';
 
 const UserList = () => {
-  const { login } = useUserContext();
-  function userTapped(user: User) {
-    login(user);
-  }
+  const { userTapped } = useUserContext();
 
   return (
     <div className="user-list">

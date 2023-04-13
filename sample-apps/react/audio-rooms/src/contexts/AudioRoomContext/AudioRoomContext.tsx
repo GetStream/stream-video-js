@@ -17,6 +17,7 @@ export interface AudioRoomsState {
   join: (room: AudioRoom) => void;
   leave: () => void;
   create: () => void;
+  roomCreated: () => void;
   setRooms: (calls: Call[]) => void;
 }
 
@@ -30,6 +31,7 @@ const defaultState: AudioRoomsState = {
   join: (room: AudioRoom) => {},
   leave: () => {},
   create: () => {},
+  roomCreated: () => {},
   setRooms: (calls: Call[]) => {},
 };
 
@@ -67,6 +69,13 @@ export const AudioRoomContextProvider = ({
     });
   };
 
+  myState.roomCreated = () => {
+    setMyState({
+      ...myState,
+      state: AudioRoomState.Overview,
+    });
+  };
+
   myState.setRooms = (calls: Call[]) => {
     const liveRooms: AudioRoom[] = [];
     const upcomingRooms: AudioRoom[] = [];
@@ -74,27 +83,22 @@ export const AudioRoomContextProvider = ({
       const participants = call.state.participantsSubject.getValue();
       console.log('------');
       console.log(`Call (${call.id}) has ${participants.length} participants.`);
+      const customData = call.state.metadataSubject.getValue()?.custom;
+      console.dir(call.state.metadataSubject.getValue());
       console.log('------');
+      const room: AudioRoom = {
+        id: call.id,
+        title: customData?.title,
+        subtitle: customData?.description,
+        hosts: customData?.hosts,
+        listeners: [],
+        speakers: [],
+        call: call,
+      };
       if (participants.length > 0) {
-        liveRooms.push({
-          id: call.id,
-          title: call.id,
-          subtitle: call.id,
-          hosts: [],
-          listeners: [],
-          speakers: [],
-          call: call,
-        });
+        liveRooms.push(room);
       } else {
-        upcomingRooms.push({
-          id: call.id,
-          title: call.id,
-          subtitle: call.id,
-          hosts: [],
-          listeners: [],
-          speakers: [],
-          call: call,
-        });
+        upcomingRooms.push(room);
       }
     });
 

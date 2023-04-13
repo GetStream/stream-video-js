@@ -2,14 +2,14 @@ import './App.css';
 import Home from './components/home/Home';
 import UserList from './components/user-list/UserList';
 import { AudioRoomContextProvider } from './contexts/AudioRoomContext/AudioRoomContext';
-import { useUserContext } from './contexts/UserContext/UserContext';
+import { AuthStatus, useUserContext } from './contexts/UserContext/UserContext';
 import icon from './assets/icon.png';
 
 function App() {
-  const { loggedIn, user } = useUserContext();
+  const { authStatus, user } = useUserContext();
   return (
     <div className="app">
-      {!loggedIn && (
+      {authStatus === AuthStatus.loggedOut && (
         <div className="login-screen">
           <div className="intro-area">
             <img src={icon} alt="Logo" />
@@ -23,9 +23,9 @@ function App() {
           <UserList />
         </div>
       )}
-      {loggedIn && (
+      {(AuthStatus.processing || AuthStatus.loggedIn) && user && (
         <AudioRoomContextProvider>
-          <Home />
+          <Home userTapped={user} />
         </AudioRoomContextProvider>
       )}
     </div>
