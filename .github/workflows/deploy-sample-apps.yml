@@ -35,9 +35,8 @@ jobs:
             populate-tokens: true
           - name: egress-composite
             project-id: prj_y9JDolEfVxWC50c4h71UxIL7XNXz
-          - name: stream-video-demo
+          - name: react-video-demo
             project-id: prj_8vo9hxdzh9FnRjO950qpt1fwUuPl
-            populate-tokens: true
 
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
