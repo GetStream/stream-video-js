@@ -1,0 +1,23 @@
+.root {
+  @apply rounded-container p-4;
+  background: rgba(28, 28, 30, 0.9);
+  display: grid;
+  grid-template-areas:
+    'logo description'
+    'button button';
+}
+
+.logo {
+  @apply h-12 w-12;
+  grid-area: logo;
+}
+
+.description {
+  @apply text-sm lg:text-base text-video-white ml-1;
+  grid-area: description;
+}
+
+.button {
+  @apply mt-3;
+  grid-area: button;
+}

@@ -8,7 +8,7 @@ import { useCurrentCallStatsReport } from '@stream-io/video-react-bindings';
 import { CallStatsLatencyChart } from './CallStatsLatencyChart';
 
 export const CallStats = (props: {
-  anchor: HTMLElement;
+  anchor?: HTMLElement;
   onClose?: () => void;
 }) => {
   const { anchor, onClose } = props;

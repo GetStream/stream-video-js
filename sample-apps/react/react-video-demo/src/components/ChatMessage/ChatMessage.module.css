@@ -1,0 +1,26 @@
+.root {
+  @apply flex items-center;
+}
+
+.content {
+  @apply grid;
+
+  grid-template-areas: ;
+}
+
+.header {
+  grid-area: header;
+  @apply flex items-center;
+}
+
+.name {
+  @apply text-sm font-semibold text-video-grey-200;
+}
+
+.timestamp {
+  @apply text-xs text-video-grey-200 ml-1;
+}
+
+.text {
+  @apply bg-video-grey-700 pl-2 pr-2;
+}
