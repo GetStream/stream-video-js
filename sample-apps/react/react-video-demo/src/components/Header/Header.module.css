@@ -4,7 +4,6 @@
   grid-template-columns: 1fr 100px 1fr;
   grid-template-areas: 'participants elapsed latency';
 }
-
 .callIdentification {
   grid-area: participants;
   @apply flex items-center text-video-white;
