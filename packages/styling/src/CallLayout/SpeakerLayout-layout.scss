@@ -10,6 +10,7 @@ $scope-name: 'str-video__speaker-layout';
   justify-content: center;
   height: 100%;
   width: 100%;
+  gap: 1rem;
 
   .str-video__participant-placeholder,
   .str-video__remote-video {
@@ -23,13 +24,9 @@ $scope-name: 'str-video__speaker-layout';
     justify-content: center;
     min-height: 0;
 
-    // .str-video__participant {
-    //   height: 100%;
-    //   width: auto;
-    // }
-
-    .str-video__participant--no-video {
+    .str-video__participant {
       width: 100%;
+      max-width: 110vh;
     }
   }
 
@@ -73,12 +70,10 @@ $scope-name: 'str-video__speaker-layout';
       flex-direction: row;
       align-items: center;
       gap: 10px;
-      height: 180px;
-      min-height: 180px;
 
       .str-video__speaker-layout--participant-tile {
         width: 280px;
-        min-width: 280px;
+        max-width: 25vh;
 
         .str-video__participant_details {
           display: none;
