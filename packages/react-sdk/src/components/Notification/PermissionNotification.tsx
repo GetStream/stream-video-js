@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { useHasPermissions } from '@stream-io/video-react-bindings';
 
-export type PermissionGrantedNotificationProps = PropsWithChildren<{
+export type PermissionNotificationProps = PropsWithChildren<{
   /**
    * The permission to check for.
    */
@@ -27,6 +27,12 @@ export type PermissionGrantedNotificationProps = PropsWithChildren<{
   messageApproved: string;
 
   /**
+   * The message to display in the notification once a permission
+   * is revoked.
+   */
+  messageRevoked: string;
+
+  /**
    * The message to display in the notification while
    * the requested permission is awaiting approval.
    */
@@ -39,28 +45,32 @@ export type PermissionGrantedNotificationProps = PropsWithChildren<{
   visibilityTimeout?: number;
 }>;
 
-export const PermissionGrantedNotification = (
-  props: PermissionGrantedNotificationProps,
-) => {
+export const PermissionNotification = (props: PermissionNotificationProps) => {
   const {
     permission,
     isAwaitingApproval,
     messageApproved,
     messageAwaitingApproval,
+    messageRevoked,
     visibilityTimeout = 3500,
     children,
   } = props;
   const hasPermission = useHasPermissions(permission);
   const prevHasPermission = useRef(hasPermission);
-  const [showNotification, setShowNotification] = useState(false);
+  const [showNotification, setShowNotification] = useState<
+    'granted' | 'revoked'
+  >();
   useEffect(() => {
     if (hasPermission && !prevHasPermission.current) {
-      setShowNotification(true);
+      setShowNotification('granted');
       prevHasPermission.current = true;
+    } else if (!hasPermission && prevHasPermission.current) {
+      setShowNotification('revoked');
+      prevHasPermission.current = false;
     }
   }, [hasPermission]);
 
-  const resetIsVisible = useCallback(() => setShowNotification(false), []);
+  const resetIsVisible = useCallback(() => setShowNotification(undefined), []);
   if (isAwaitingApproval) {
     return (
       <Notification
@@ -74,10 +84,12 @@ export const PermissionGrantedNotification = (
 
   return (
     <Notification
-      isVisible={showNotification}
+      isVisible={!!showNotification}
       visibilityTimeout={visibilityTimeout}
       resetIsVisible={resetIsVisible}
-      message={messageApproved}
+      message={
+        showNotification === 'granted' ? messageApproved : messageRevoked
+      }
     >
       {children}
     </Notification>

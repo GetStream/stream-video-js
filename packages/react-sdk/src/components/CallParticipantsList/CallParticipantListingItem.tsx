@@ -137,6 +137,20 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
     activeCall?.muteUser(participant.userId, 'video');
   };
 
+  const grantPermission = (permission: string) => () => {
+    activeCall?.updateUserPermissions({
+      user_id: participant.userId,
+      grant_permissions: [permission],
+    });
+  };
+
+  const revokePermission = (permission: string) => () => {
+    activeCall?.updateUserPermissions({
+      user_id: participant.userId,
+      revoke_permissions: [permission],
+    });
+  };
+
   return (
     <GenericMenu>
       <Restricted
@@ -169,6 +183,42 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
           onClick={muteAudioClickHandler}
         >
           Mute audio
+        </GenericMenuButtonItem>
+      </Restricted>
+      <Restricted
+        availableGrants={ownCapabilities}
+        requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}
+      >
+        <GenericMenuButtonItem
+          onClick={grantPermission(OwnCapability.SEND_AUDIO)}
+        >
+          Allow audio
+        </GenericMenuButtonItem>
+        <GenericMenuButtonItem
+          onClick={grantPermission(OwnCapability.SEND_VIDEO)}
+        >
+          Allow video
+        </GenericMenuButtonItem>
+        <GenericMenuButtonItem
+          onClick={grantPermission(OwnCapability.SCREENSHARE)}
+        >
+          Allow screen sharing
+        </GenericMenuButtonItem>
+
+        <GenericMenuButtonItem
+          onClick={revokePermission(OwnCapability.SEND_AUDIO)}
+        >
+          Disable audio
+        </GenericMenuButtonItem>
+        <GenericMenuButtonItem
+          onClick={revokePermission(OwnCapability.SEND_VIDEO)}
+        >
+          Disable video
+        </GenericMenuButtonItem>
+        <GenericMenuButtonItem
+          onClick={revokePermission(OwnCapability.SCREENSHARE)}
+        >
+          Disable screen sharing
         </GenericMenuButtonItem>
       </Restricted>
     </GenericMenu>

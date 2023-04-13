@@ -8,7 +8,7 @@ import {
 import { useMediaDevices } from '../../contexts';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { CompositeButton, IconButton } from '../Button';
-import { PermissionGrantedNotification } from '../Notification';
+import { PermissionNotification } from '../Notification';
 
 export type ToggleAudioPreviewButtonProps = { caption?: string };
 
@@ -83,11 +83,12 @@ export const ToggleAudioPublishingButton = ({
   ]);
 
   return (
-    <PermissionGrantedNotification
+    <PermissionNotification
       permission={OwnCapability.SEND_AUDIO}
       isAwaitingApproval={isAwaitingApproval}
       messageApproved="You can now speak."
       messageAwaitingApproval="Awaiting for an approval to speak."
+      messageRevoked="You can no longer speak."
     >
       <CompositeButton
         Menu={DeviceSelectorAudioInput}
@@ -99,6 +100,6 @@ export const ToggleAudioPublishingButton = ({
           onClick={handleClick}
         />
       </CompositeButton>
-    </PermissionGrantedNotification>
+    </PermissionNotification>
   );
 };

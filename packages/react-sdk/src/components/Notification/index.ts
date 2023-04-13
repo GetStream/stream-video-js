@@ -1,3 +1,3 @@
 export * from './Notification';
-export * from './PermissionGrantedNotification';
+export * from './PermissionNotification';
 export * from './SpeakingWhileMutedNotification';

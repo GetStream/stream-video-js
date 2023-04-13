@@ -8,7 +8,7 @@ import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import { CompositeButton, IconButton } from '../Button/';
 import { useMediaDevices } from '../../contexts';
 import { DeviceSelectorVideo } from '../DeviceSettings';
-import { PermissionGrantedNotification } from '../Notification';
+import { PermissionNotification } from '../Notification';
 
 export type ToggleCameraPreviewButtonProps = { caption?: string };
 
@@ -83,11 +83,12 @@ export const ToggleCameraPublishingButton = ({
   ]);
 
   return (
-    <PermissionGrantedNotification
+    <PermissionNotification
       permission={OwnCapability.SEND_VIDEO}
       isAwaitingApproval={isAwaitingApproval}
       messageApproved="You can now share your video."
       messageAwaitingApproval="Awaiting for an approval to share your video."
+      messageRevoked="You can no longer share your video."
     >
       <CompositeButton
         Menu={DeviceSelectorVideo}
@@ -99,6 +100,6 @@ export const ToggleCameraPublishingButton = ({
           onClick={handleClick}
         />
       </CompositeButton>
-    </PermissionGrantedNotification>
+    </PermissionNotification>
   );
 };

@@ -11,7 +11,7 @@ import {
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 import { CompositeButton, IconButton } from '../Button/';
-import { PermissionGrantedNotification } from '../Notification';
+import { PermissionNotification } from '../Notification';
 
 export type ScreenShareButtonProps = {
   call: Call;
@@ -36,11 +36,12 @@ export const ScreenShareButton = ({
     }
   }, [hasPermission]);
   return (
-    <PermissionGrantedNotification
+    <PermissionNotification
       permission={OwnCapability.SCREENSHARE}
       isAwaitingApproval={isAwaitingApproval}
       messageApproved="You can now share your screen."
       messageAwaitingApproval="Awaiting for an approval to share screen."
+      messageRevoked="You can no longer share your screen."
     >
       <CompositeButton active={isSomeoneScreenSharing} caption={caption}>
         <IconButton
@@ -76,6 +77,6 @@ export const ScreenShareButton = ({
           }}
         />
       </CompositeButton>
-    </PermissionGrantedNotification>
+    </PermissionNotification>
   );
 };
