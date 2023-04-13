@@ -1,5 +1,4 @@
 import { CallSettingsResponse, OwnCapability } from '../gen/coordinator';
-import { PermissionMissingError } from './PermissionMissingError';
 
 /**
  * Stores the permissions for the current user and exposes
@@ -38,19 +37,6 @@ export class PermissionsContext {
    */
   hasPermission = (permission: OwnCapability) => {
     return this.permissions.includes(permission);
-  };
-
-  /**
-   * Asserts that the current user has a specific permission.
-   * Throws {@link PermissionMissingError} otherwise.
-   *
-   * @param permission the permission to check for.
-   */
-  assertHasPermission = (permission: OwnCapability) => {
-    if (!this.hasPermission(permission)) {
-      throw new PermissionMissingError(permission);
-    }
-    // TODO OL: soft assertions
   };
 
   /**

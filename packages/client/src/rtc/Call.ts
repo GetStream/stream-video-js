@@ -615,9 +615,6 @@ export class Call {
   updateCallMembers = async (
     data: UpdateCallMembersRequest,
   ): Promise<UpdateCallMembersResponse> => {
-    this.permissionsContext.assertHasPermission(
-      OwnCapability.UPDATE_CALL_MEMBER,
-    );
     return this.streamClient.post(`${this.streamClientBasePath}/members`, data);
   };
 
@@ -645,8 +642,6 @@ export class Call {
     if (!this.publisher) {
       throw new Error(`Call not joined yet.`);
     }
-
-    this.permissionsContext.assertHasPermission(OwnCapability.SEND_VIDEO);
 
     const [videoTrack] = videoStream.getVideoTracks();
     if (!videoTrack) {
@@ -695,8 +690,6 @@ export class Call {
       throw new Error(`Call not joined yet.`);
     }
 
-    this.permissionsContext.assertHasPermission(OwnCapability.SEND_AUDIO);
-
     const [audioTrack] = audioStream.getAudioTracks();
     if (!audioTrack) {
       return console.error(`There is no audio track in the stream`);
@@ -739,7 +732,6 @@ export class Call {
     if (!this.publisher) {
       throw new Error(`Call not joined yet.`);
     }
-    this.permissionsContext.assertHasPermission(OwnCapability.SCREENSHARE);
 
     const [screenShareTrack] = screenShareStream.getVideoTracks();
     if (!screenShareTrack) {
@@ -1057,7 +1049,6 @@ export class Call {
   sendReaction = async (
     reaction: SendReactionRequest,
   ): Promise<SendReactionResponse> => {
-    this.permissionsContext.assertHasPermission(OwnCapability.CREATE_REACTION);
     return this.streamClient.post(
       `${this.streamClientBasePath}/reaction`,
       reaction,
@@ -1070,7 +1061,6 @@ export class Call {
    * @param userId the id of the user to block.
    */
   blockUser = async (userId: string) => {
-    this.permissionsContext.assertHasPermission(OwnCapability.BLOCK_USERS);
     return this.streamClient.post<BlockUserResponse, BlockUserRequest>(
       `${this.streamClientBasePath}/block`,
       {
@@ -1085,7 +1075,6 @@ export class Call {
    * @param userId the id of the user to unblock.
    */
   unblockUser = async (userId: string) => {
-    this.permissionsContext.assertHasPermission(OwnCapability.BLOCK_USERS);
     return this.streamClient.post<UnblockUserResponse, UnblockUserRequest>(
       `${this.streamClientBasePath}/unblock`,
       {
@@ -1105,8 +1094,6 @@ export class Call {
     type: 'audio' | 'video' | 'screenshare',
   ) => {
     // FIXME OL: handle muting self.
-
-    this.permissionsContext.assertHasPermission(OwnCapability.MUTE_USERS);
     return this.streamClient.post<MuteUsersResponse, MuteUsersRequest>(
       `${this.streamClientBasePath}/mute_users`,
       {
@@ -1122,7 +1109,6 @@ export class Call {
    * @param type the type of the mute operation.
    */
   muteAllUsers = (type: 'audio' | 'video' | 'screenshare') => {
-    this.permissionsContext.assertHasPermission(OwnCapability.MUTE_USERS);
     return this.streamClient.post<MuteUsersResponse, MuteUsersRequest>(
       `${this.streamClientBasePath}/mute_users`,
       {
@@ -1132,6 +1118,9 @@ export class Call {
     );
   };
 
+  /**
+   * Loads the information about the call.
+   */
   get = async () => {
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
@@ -1142,6 +1131,11 @@ export class Call {
     return response;
   };
 
+  /**
+   * Loads the information about the call and creates it if it doesn't exist.
+   *
+   * @param data the data to create the call with.
+   */
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
     const response = await this.streamClient.post<
       GetOrCreateCallResponse,
@@ -1173,9 +1167,6 @@ export class Call {
    * Starts recording the call
    */
   startRecording = async () => {
-    this.permissionsContext.assertHasPermission(
-      OwnCapability.START_RECORD_CALL,
-    );
     return this.streamClient.post(
       `${this.streamClientBasePath}/start_recording`,
       {},
@@ -1186,7 +1177,6 @@ export class Call {
    * Stops recording the call
    */
   stopRecording = async () => {
-    this.permissionsContext.assertHasPermission(OwnCapability.STOP_RECORD_CALL);
     return this.streamClient.post(
       `${this.streamClientBasePath}/stop_recording`,
       {},
@@ -1225,9 +1215,6 @@ export class Call {
    *
    */
   updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
-    this.permissionsContext.assertHasPermission(
-      OwnCapability.UPDATE_CALL_PERMISSIONS,
-    );
     return this.streamClient.post<
       UpdateUserPermissionsResponse,
       UpdateUserPermissionsRequest
@@ -1238,9 +1225,6 @@ export class Call {
    * Starts the livestreaming of the call.
    */
   goLive = async () => {
-    this.permissionsContext.assertHasPermission(
-      OwnCapability.START_BROADCAST_CALL,
-    );
     return this.streamClient.post<GoLiveResponse>(
       `${this.streamClientBasePath}/go_live`,
       {},
@@ -1251,9 +1235,6 @@ export class Call {
    * Stops the livestreaming of the call.
    */
   stopLive = async () => {
-    this.permissionsContext.assertHasPermission(
-      OwnCapability.STOP_BROADCAST_CALL,
-    );
     return this.streamClient.post<StopLiveResponse>(
       `${this.streamClientBasePath}/stop_live`,
       {},
@@ -1270,7 +1251,6 @@ export class Call {
     custom: { [key: string]: any },
     settings?: CallSettingsRequest,
   ) => {
-    this.permissionsContext.assertHasPermission(OwnCapability.UPDATE_CALL);
     const payload: UpdateCallRequest = {
       custom: custom,
       settings_override: settings,
@@ -1285,7 +1265,6 @@ export class Call {
    * Ends the call.
    */
   endCall = async () => {
-    this.permissionsContext.assertHasPermission(OwnCapability.END_CALL);
     return this.streamClient.post<EndCallResponse>(
       `${this.streamClientBasePath}/mark_ended`,
     );
