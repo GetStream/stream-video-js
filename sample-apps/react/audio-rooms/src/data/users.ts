@@ -25,22 +25,10 @@ const users: User[] = [
       'https://getstream.io/static/2796a305dd07651fcceb4721a94f4505/802d2/martin-mitrevski.webp',
   },
   {
-    id: 'filip',
-    name: 'Filip',
-    imageUrl:
-      'https://getstream.io/static/76cda49669be38b92306cfc93ca742f1/802d2/filip-babi%C4%87.webp',
-  },
-  {
     id: 'thierry',
     name: 'Thierry',
     imageUrl:
       'https://getstream.io/static/237f45f28690696ad8fff92726f45106/c59de/thierry.webp',
-  },
-  {
-    id: 'sam',
-    name: 'Sam',
-    imageUrl:
-      'https://getstream.io/static/379eda22663bae101892ad1d37778c3d/802d2/samuel-jeeves.webp',
   },
 ];
 
