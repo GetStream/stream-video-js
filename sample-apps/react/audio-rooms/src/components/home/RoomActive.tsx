@@ -1,11 +1,24 @@
 import { useParticipants } from '@stream-io/video-react-bindings';
 import { Audio } from '@stream-io/video-react-sdk';
+import { useEffect } from 'react';
 import { useAudioRoomContext } from '../../contexts/AudioRoomContext/AudioRoomContext';
 import RoomOverview from './RoomOverview';
 
 const RoomActive = () => {
   const { currentRoom, leave } = useAudioRoomContext();
   const participants = useParticipants();
+
+  useEffect(() => {
+    currentRoom?.call?.updateSubscriptionsPartial(
+      'video',
+      participants.reduce((acc, current) => {
+        return {
+          ...acc,
+          [current.sessionId]: { dimension: { width: 1, height: 1 } },
+        };
+      }, {}),
+    );
+  }, []);
 
   return (
     <section className="active-room">
@@ -17,7 +30,10 @@ const RoomActive = () => {
         <p>Participants: {participants.length}</p>
         {participants.map((participant, index) => (
           <p key={`${participant.userId}-${index}`}>
-            <Audio audioStream={participant.audioStream} />
+            <Audio
+              muted={participant.isLoggedInUser}
+              audioStream={participant.audioStream}
+            />
             {participant.name} (Speaking:{' '}
             {participant.isSpeaking ? 'yes' : 'no'})
           </p>
@@ -51,50 +67,6 @@ const RoomActive = () => {
         </p>
         <h3>Hosts ({currentRoom?.hosts.length ?? 0})</h3>
         <div className="hosts-grid-detail">
-          {currentRoom?.hosts.map((host) => (
-            <div key={host.id}>
-              <img src={host.imageUrl} alt={`Profile of ${host.name}`} />
-              <p>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-6 h-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
-                  />
-                </svg>
-                <span>{host.name}</span>
-              </p>
-            </div>
-          ))}
-          {currentRoom?.hosts.map((host) => (
-            <div key={host.id}>
-              <img src={host.imageUrl} alt={`Profile of ${host.name}`} />
-              <p>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-6 h-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
-                  />
-                </svg>
-                <span>{host.name}</span>
-              </p>
-            </div>
-          ))}
           {currentRoom?.hosts.map((host) => (
             <div key={host.id}>
               <img src={host.imageUrl} alt={`Profile of ${host.name}`} />

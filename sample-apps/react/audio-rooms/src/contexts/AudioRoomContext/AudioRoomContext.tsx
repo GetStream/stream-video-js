@@ -80,11 +80,10 @@ export const AudioRoomContextProvider = ({
     const liveRooms: AudioRoom[] = [];
     const upcomingRooms: AudioRoom[] = [];
     calls.forEach((call) => {
-      const participants = call.state.participantsSubject.getValue();
+      const isBackstage = call.state.metadata?.backstage;
       console.log('------');
-      console.log(`Call (${call.id}) has ${participants.length} participants.`);
-      const customData = call.state.metadataSubject.getValue()?.custom;
-      console.dir(call.state.metadataSubject.getValue());
+      const customData = call.data?.custom;
+      console.dir(customData);
       console.log('------');
       const room: AudioRoom = {
         id: call.id,
@@ -95,10 +94,10 @@ export const AudioRoomContextProvider = ({
         speakers: [],
         call: call,
       };
-      if (participants.length > 0) {
-        liveRooms.push(room);
-      } else {
+      if (isBackstage) {
         upcomingRooms.push(room);
+      } else {
+        liveRooms.push(room);
       }
     });
 

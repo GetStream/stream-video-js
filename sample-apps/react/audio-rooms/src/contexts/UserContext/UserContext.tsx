@@ -12,7 +12,6 @@ export enum AuthStatus {
 export interface UserState {
   authStatus: AuthStatus;
   user: User | undefined;
-  client: StreamVideoClient | undefined;
   userTapped: (user: User) => void;
   login: (user: User, client: StreamVideoClient) => void;
   logout: (client: StreamVideoClient) => void;
@@ -21,7 +20,6 @@ export interface UserState {
 const defaultState: UserState = {
   authStatus: AuthStatus.loggedOut,
   user: undefined,
-  client: undefined,
   userTapped: (user: User) => {},
   login: async (user: User) => {},
   logout: (client: StreamVideoClient) => {},

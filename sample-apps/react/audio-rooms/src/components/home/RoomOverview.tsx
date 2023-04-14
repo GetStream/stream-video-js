@@ -17,7 +17,7 @@ const RoomOverview = ({ showAsGrid = true }: RoomOverviewProps) => {
       console.log('Querying calls successful.');
       setRooms(result.calls);
     });
-  }, []);
+  }, [client]);
 
   return (
     <section>
