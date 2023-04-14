@@ -8,9 +8,7 @@ import { useCallMetadata } from './call';
  */
 export const useHasPermissions = (...permissions: OwnCapability[]) => {
   const metadata = useCallMetadata();
-  if (!metadata) {
-    return false;
-  }
+  if (!metadata) return false;
   return permissions.every((permission) =>
     metadata.own_capabilities.includes(permission),
   );
