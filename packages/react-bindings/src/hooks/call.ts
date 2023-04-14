@@ -105,6 +105,8 @@ export const useAcceptedCall = () => {
 
 /**
  * Utility hook which provides call metadata (such as blocked users and own capabilities).
+ *
+ * @category Call State
  */
 export const useCallMetadata = () => {
   const { metadata$ } = useCallState();
@@ -113,6 +115,8 @@ export const useCallMetadata = () => {
 
 /**
  * Utility hook which provides a list of call members.
+ *
+ * @category Call State
  */
 export const useCallMembers = () => {
   const { members$ } = useCallState();
@@ -121,6 +125,8 @@ export const useCallMembers = () => {
 
 /**
  * Utility hook providing the latest list of recordings performed during the active call
+ *
+ * @category Call State
  */
 export const useCallRecordings = () => {
   const { callRecordingList$ } = useCallState();
@@ -129,6 +135,8 @@ export const useCallRecordings = () => {
 
 /**
  * Utility hook providing the current calling state of the call.
+ *
+ * @category Call State
  */
 export const useCallCallingState = () => {
   const { callingState$ } = useCallState();

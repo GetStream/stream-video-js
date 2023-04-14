@@ -5,7 +5,7 @@ import {
   useCallback,
 } from 'react';
 import { useParticipants } from '@stream-io/video-react-bindings';
-import type { StreamVideoParticipant } from '@stream-io/video-client';
+import { name, StreamVideoParticipant } from '@stream-io/video-client';
 import { BlockedUserListing } from './BlockedUserListing';
 import { CopyToClipboardButtonWithPopup } from '../Button';
 import {
@@ -48,7 +48,7 @@ export const CallParticipantsList = ({
   participantSearchFn,
   throttleSearchInterval = 200,
 }: CallParticipantListProps) => {
-  const participants = useParticipants();
+  const participants = useParticipants({ sortBy: name });
   const searchFn = useCallback(
     (queryString: string) => {
       const queryRegExp = new RegExp(queryString, 'i');

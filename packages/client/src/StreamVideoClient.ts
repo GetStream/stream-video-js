@@ -17,17 +17,9 @@ import {
 import { Call } from './rtc/Call';
 
 import {
-  watchBlockedUser,
   watchCallAccepted,
   watchCallCancelled,
-  watchCallCreated,
-  watchCallPermissionRequest,
-  watchCallPermissionsUpdated,
-  watchCallRecordingStarted,
-  watchCallRecordingStopped,
   watchCallRejected,
-  watchNewReactions,
-  watchUnblockedUser,
 } from './events';
 
 import { CALL_CONFIG, CallConfig } from './config';
@@ -35,6 +27,7 @@ import {
   EventHandler,
   EventTypes,
   StreamClientOptions,
+  StreamVideoEvent,
   TokenOrProvider,
   User,
 } from './coordinator/connection/types';
@@ -54,7 +47,7 @@ export class StreamVideoClient {
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
-  public streamClient: StreamClient;
+  streamClient: StreamClient;
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -97,40 +90,32 @@ export class StreamVideoClient {
       tokenOrProvider,
     );
 
-    this.on(
-      'call.created',
-      watchCallCreated(this.writeableStateStore, this.streamClient),
-    );
+    // FIXME: OL: unregister the event listeners.
+    this.on('call.created', (event: StreamVideoEvent) => {
+      if (event.type !== 'call.created') return;
+      const { call, members, ringing } = event;
+
+      if (user.id === call.created_by.id) {
+        console.warn('Received CallCreatedEvent sent by the current user');
+        return;
+      }
+
+      this.writeableStateStore.setPendingCalls((pendingCalls) => [
+        ...pendingCalls,
+        new Call({
+          streamClient: this.streamClient,
+          type: call.type,
+          id: call.id,
+          metadata: call,
+          members,
+          ringing,
+          clientStore: this.writeableStateStore,
+        }),
+      ]);
+    });
     this.on('call.accepted', watchCallAccepted(this.writeableStateStore));
     this.on('call.rejected', watchCallRejected(this.writeableStateStore));
     this.on('call.ended', watchCallCancelled(this.writeableStateStore));
-    this.on(
-      'call.permission_request',
-      watchCallPermissionRequest(this.writeableStateStore),
-    );
-
-    this.on(
-      'call.permissions_updated',
-      watchCallPermissionsUpdated(this.writeableStateStore),
-    );
-
-    this.on('call.blocked_user', watchBlockedUser(this.writeableStateStore));
-    this.on(
-      'call.unblocked_user',
-      watchUnblockedUser(this.writeableStateStore),
-    );
-
-    this.on(
-      'call.recording_started',
-      watchCallRecordingStarted(this.writeableStateStore),
-    );
-
-    this.on(
-      'call.recording_stopped',
-      watchCallRecordingStopped(this.writeableStateStore),
-    );
-
-    this.on('call.reaction_new', watchNewReactions(this.writeableStateStore));
 
     this.writeableStateStore.setConnectedUser(user);
   };

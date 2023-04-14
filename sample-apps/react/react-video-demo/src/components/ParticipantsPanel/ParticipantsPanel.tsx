@@ -1,22 +1,22 @@
-import { FC, useState, useCallback } from 'react';
+import { FC, useCallback, useState } from 'react';
 import classnames from 'classnames';
 
 import {
+  OwnCapability,
   SfuModels,
   StreamVideoParticipant,
-  StreamVideoLocalParticipant,
   User,
 } from '@stream-io/video-client';
 import {
-  useConnectedUser,
   useActiveCall,
-  useLocalParticipant,
+  useConnectedUser,
+  useOwnCapabilities,
 } from '@stream-io/video-react-bindings';
 
 import Panel from '../Panel';
 import { Invite } from '../InvitePanel';
 import ParticipantsControlModal from '../ParticipantsControlModal';
-import { MicMuted, Mic, Video, VideoOff, Search, Options } from '../Icons';
+import { Mic, MicMuted, Options, Search, Video, VideoOff } from '../Icons';
 
 import { Restricted } from '../Moderation/Restricted';
 
@@ -35,9 +35,8 @@ export type Props = {
 
 export type RemoteParticipant = {
   participant: StreamVideoParticipant;
-  localParticipant?: StreamVideoLocalParticipant;
-  handleMuteUser: (userId: string, sessionId: string) => void;
-  handleDisableVideo: (userId: string, sessionId: string) => void;
+  handleMuteUser: (userId: string) => void;
+  handleDisableVideo: (userId: string) => void;
   handleBlockUser: (userId: string) => void;
   isAudioOn: boolean;
   isVideoOn: boolean;
@@ -53,7 +52,6 @@ export const LocalParticipant: FC<{
 
 export const RemoteParticipant: FC<RemoteParticipant> = ({
   participant,
-  localParticipant,
   isAudioOn,
   isVideoOn,
   handleMuteUser,
@@ -63,11 +61,12 @@ export const RemoteParticipant: FC<RemoteParticipant> = ({
   const { setComponent } = useModalContext();
   const breakpoint = useBreakpoint();
 
+  const ownCapabilities = useOwnCapabilities();
+
   const handleSetComponent = useCallback(() => {
     setComponent(
       <ParticipantsControlModal
         participant={participant}
-        localParticipant={localParticipant}
         handleMuteUser={handleMuteUser}
         handleDisableVideo={handleDisableVideo}
         handleBlockUser={handleBlockUser}
@@ -104,15 +103,11 @@ export const RemoteParticipant: FC<RemoteParticipant> = ({
   return (
     <div className={styles.media}>
       <Restricted
-        availableGrants={localParticipant?.ownCapabilities ?? []}
-        requiredGrants={['mute-users']}
+        availableGrants={ownCapabilities}
+        requiredGrants={[OwnCapability.MUTE_USERS]}
       >
         {isAudioOn ? (
-          <div
-            onClick={() =>
-              handleMuteUser(participant.userId, participant.sessionId)
-            }
-          >
+          <div onClick={() => handleMuteUser(participant.userId)}>
             <Mic className={styles.mic} />
           </div>
         ) : (
@@ -120,15 +115,11 @@ export const RemoteParticipant: FC<RemoteParticipant> = ({
         )}
       </Restricted>
       <Restricted
-        availableGrants={localParticipant?.ownCapabilities ?? []}
-        requiredGrants={['mute-users']}
+        availableGrants={ownCapabilities}
+        requiredGrants={[OwnCapability.MUTE_USERS]}
       >
         {isVideoOn ? (
-          <div
-            onClick={() =>
-              handleDisableVideo(participant.userId, participant.sessionId)
-            }
-          >
+          <div onClick={() => handleDisableVideo(participant.userId)}>
             <Video className={styles.video} />
           </div>
         ) : (
@@ -150,7 +141,6 @@ export const ParticipantsPanel: FC<Props> = ({
 
   const call = useActiveCall();
   const connectedUser = useConnectedUser();
-  const localParticipant = useLocalParticipant();
 
   const rootClassname = classnames(styles.root, className);
 
@@ -158,19 +148,13 @@ export const ParticipantsPanel: FC<Props> = ({
     call?.blockUser(participantId);
   }, []);
 
-  const handleMuteUser = useCallback(
-    (participantId: string, participantSessionId: string) => {
-      call?.muteUser(participantId, 'audio', participantSessionId);
-    },
-    [],
-  );
+  const handleMuteUser = useCallback((participantId: string) => {
+    call?.muteUser(participantId, 'audio');
+  }, []);
 
-  const handleDisableVideo = useCallback(
-    (participantId: string, participantSessionId: string) => {
-      call?.muteUser(participantId, 'video', participantSessionId);
-    },
-    [],
-  );
+  const handleDisableVideo = useCallback((participantId: string) => {
+    call?.muteUser(participantId, 'video');
+  }, []);
 
   return (
     <Panel
@@ -224,7 +208,6 @@ export const ParticipantsPanel: FC<Props> = ({
                   {!isLocalParticipant && (
                     <RemoteParticipant
                       participant={participant}
-                      localParticipant={localParticipant}
                       handleMuteUser={handleMuteUser}
                       handleDisableVideo={handleDisableVideo}
                       handleBlockUser={handleBlockUser}
