@@ -157,8 +157,8 @@ export const MeetingUI = ({
 
   return (
     <StreamCallProvider call={activeCall}>
-      <div className="str-video str-video__call">
-        <div className="str-video__call__main">
+      <div className="str-video__call">
+        <div className="str-video__main-call-panel">
           <ActiveCallHeader
             selectedLayout={layout}
             onMenuItemClick={setLayout}
@@ -169,19 +169,19 @@ export const MeetingUI = ({
             className="str-video__call-controls"
             data-testid="str-video__call-controls"
           >
-            <div className="rd-call-controls-group">
+            <div className="str-video__call-controls--group">
               <RecordCallButton call={activeCall} />
               <ScreenShareButton call={activeCall} />
               <ReactionsButton />
             </div>
-            <div className="rd-call-controls-group">
+            <div className="str-video__call-controls--group">
               <SpeakingWhileMutedNotification>
                 <ToggleAudioPublishingButton />
               </SpeakingWhileMutedNotification>
               <ToggleCameraPublishingButton />
               <CancelCallButton call={activeCall} onLeave={onLeave} />
             </div>
-            <div className="rd-call-controls-group">
+            <div className="str-video__call-controls--group">
               <CallStatsButton />
               <ToggleParticipantListButton
                 enabled={showParticipants}
@@ -298,7 +298,7 @@ export const LoadingScreen = () => {
     }
   }, [callingState]);
   return (
-    <div className=" str-video str-video__call">
+    <div className="str-video__call">
       <div className="str-video__call__loading-screen">
         <LoadingIndicator text={message} />
       </div>
