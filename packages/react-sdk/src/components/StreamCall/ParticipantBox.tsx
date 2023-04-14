@@ -42,6 +42,11 @@ export interface ParticipantBoxProps {
   indicatorsVisible?: boolean;
 
   /**
+   * Turns on/off the audio for the participant.
+   */
+  muteAudio?: boolean;
+
+  /**
    * A function meant for exposing the "native" element ref to the integrators.
    * The element can either be:
    * - `<video />` for participants with enabled video.
@@ -65,6 +70,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
     videoKind = 'video',
     call,
     sinkId,
+    muteAudio,
     setVideoElementRef,
     className,
   } = props;
@@ -131,7 +137,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
       <div className="str-video__video-container">
         <Audio
           // mute the local participant, as we don't want to hear ourselves
-          muted={participant.isLoggedInUser}
+          muted={participant.isLoggedInUser || muteAudio}
           sinkId={sinkId}
           audioStream={audioStream}
         />

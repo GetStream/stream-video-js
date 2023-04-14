@@ -9,7 +9,7 @@
 }
 
 .meetingGrid {
-  @apply grid p-4 h-full gap-y-3 gap-x-3;
+  @apply grid p-4  gap-y-3 gap-x-3;
 }
 
 .meetingGrid.slider {
@@ -32,7 +32,7 @@
 }
 
 .meetingGrid-1 {
-  @apply flex items-center justify-center;
+  @apply flex items-center justify-center h-full;
   grid-template-columns: repeat(1, 1fr);
   grid-template-rows: repeat(1, 1fr);
 }
@@ -49,6 +49,7 @@
 
 @media screen(sm) {
   .meetingGrid-2 {
+    @apply h-auto;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(1, 1fr);
   }
@@ -61,6 +62,7 @@
 
 @media screen(sm) {
   .meetingGrid-3 {
+    @apply h-auto;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(2, 1fr);
   }
@@ -72,10 +74,12 @@
 }
 
 .meetingGrid-5 {
+  @apply h-auto;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, 1fr);
 }
 .meetingGrid-6 {
+  @apply h-auto;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, 1fr);
 }

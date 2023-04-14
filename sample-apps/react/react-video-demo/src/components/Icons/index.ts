@@ -33,6 +33,7 @@ export { Signal } from './Signal';
 export { Speaker } from './Speaker';
 export { Star } from './Star';
 export { Stop } from './Stop';
+export { StreamMark } from './StreamMark';
 export { UserChecked } from './UserChecked';
 export { Video } from './Video';
 export { VideoOff } from './VideoOff';
