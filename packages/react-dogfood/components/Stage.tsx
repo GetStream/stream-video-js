@@ -13,12 +13,18 @@ export const Stage = ({
 
   const SelectedComponent = LayoutMap[selectedLayout].Component;
 
+  if (selectedLayout === 'LegacyGrid' || selectedLayout === 'LegacySpeaker') {
+    return (
+      <div className="str-video__stage">
+        <SelectedComponent call={call!} />
+      </div>
+    );
+  }
+
   return (
-    <div className="str-video__stage">
-      <SelectedComponent
-        call={call!}
-        groupSize={!groupSize || groupSize > 16 ? undefined : groupSize}
-      />
-    </div>
+    // @ts-expect-error
+    <SelectedComponent
+      groupSize={!groupSize || groupSize > 16 ? undefined : groupSize}
+    />
   );
 };
