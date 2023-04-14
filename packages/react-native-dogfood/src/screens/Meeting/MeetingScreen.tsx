@@ -22,10 +22,8 @@ export const MeetingScreen = ({ navigation }: Props) => {
     if (!activeCall) {
       return;
     }
-    console.log('trying to start foreground service...');
     startForegroundService();
     return () => {
-      console.log('trying to stop foreground service...');
       stopForegroundService();
     };
   }, [activeCall]);

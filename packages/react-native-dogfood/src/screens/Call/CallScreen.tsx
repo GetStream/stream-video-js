@@ -41,7 +41,6 @@ export const CallScreen = ({ navigation }: Props) => {
     if (!activeCall) {
       return;
     }
-    console.log('trying to start foreground service...');
     startForegroundService();
     return () => {
       stopForegroundService();
