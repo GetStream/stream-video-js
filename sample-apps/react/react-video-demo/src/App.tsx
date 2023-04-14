@@ -134,7 +134,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
           <MediaDevicesProvider initialVideoEnabled={true}>
             <LobbyView
               logo={logo}
-              avatar={user.image}
+              user={user}
               callId={callId || ''}
               edges={edges}
               fastestEdge={fastestEdge}

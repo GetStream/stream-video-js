@@ -1,6 +1,8 @@
 import { FC, useEffect, useState } from 'react';
 import { FeatureCollection, Geometry } from 'geojson';
 
+import { User } from '@stream-io/video-client';
+
 import LobbyPanel from '../../LobbyPanel';
 import Header from '../../Header';
 import Panel from '../../Panel';
@@ -20,7 +22,7 @@ const loadingSentences = [
 
 export type Props = {
   logo: string;
-  avatar?: string;
+  user: User;
   joinCall(): void;
   callId: string;
   edges?: FeatureCollection<Geometry>;
@@ -41,6 +43,7 @@ export const LobbyView: FC<Props & Lobby> = ({
   edges,
   fastestEdge,
   isjoiningCall,
+  user,
 }) => {
   // pick the next sentence after 1 second and display it in the panel as the title prop
   const [loadingSentence, setLoadingSentence] = useState(loadingSentences[0]);
@@ -71,6 +74,7 @@ export const LobbyView: FC<Props & Lobby> = ({
           joinCall={joinCall}
           logo={logo}
           call={call}
+          user={user}
           fastestEdge={fastestEdge}
           isJoiningCall={Boolean(callId)}
         />
