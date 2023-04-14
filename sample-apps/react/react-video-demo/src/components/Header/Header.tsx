@@ -29,7 +29,7 @@ export const CallIdentification: FC<
 
   return (
     <div className={rootClassName}>
-      <img src={logo} className={styles.logo} />
+      <img src={logo} className={styles.logo} alt="logo" />
       <span className={styles.callId}>{callId}</span>
     </div>
   );
@@ -69,9 +69,9 @@ export const Elapsed: FC<{ className?: string; joinedAt: number }> = ({
         new Date(joinedAt * 1000),
       );
 
-      const format = new Date(elapsedSeconds || 0 * 1000)
-        .toISOString()
-        .substring(14, 19);
+      const date = new Date(0);
+      date.setSeconds(elapsedSeconds);
+      const format = date.toISOString().substring(14, 19);
 
       setElapsed(format);
     }, 1000);
@@ -80,7 +80,7 @@ export const Elapsed: FC<{ className?: string; joinedAt: number }> = ({
 
   return (
     <div className={rootClassName}>
-      <div className={styles.elapsed}>{elapsed || '00:00'}</div>
+      <div className={styles.elapsed}>{elapsed}</div>
     </div>
   );
 };
