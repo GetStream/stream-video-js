@@ -116,7 +116,10 @@ export const InvitePanel: FC<Props> = ({ className, isFocused, callId }) => {
           <span className={showQrIndicatorClassNames}>▼</span>
         </p>
         <div className={qrClassNames}>
-          <QRCodeSVG className={styles.code} value={callId} />
+          <QRCodeSVG
+            className={styles.code}
+            value={`${window.location.href}?id=${callId}`}
+          />
         </div>
       </>
     </Panel>
