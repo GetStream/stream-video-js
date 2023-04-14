@@ -1,27 +1,38 @@
 import { useEffect, useMemo, useState } from 'react';
-
 import {
   useActiveCall,
   useLocalParticipant,
   useParticipants,
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
-import { StreamVideoLocalParticipant } from '@stream-io/video-client';
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  StreamVideoLocalParticipant,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
 import clsx from 'clsx';
 
 import { IconButton, ParticipantBox } from '..';
-import { Audio } from '../StreamCall/Audio';
+import { Audio } from '../StreamCall';
 
 const GROUP_SIZE = 16;
 
+type PaginatedGridLayoutGroupProps = {
+  /**
+   * The group of participants to render.
+   */
+  group: Array<StreamVideoParticipant | StreamVideoLocalParticipant>;
+
+  /**
+   * Turns on/off the status indicator icons (mute, connection quality, etc...)
+   * on the participant boxes.
+   */
+  indicatorsVisible?: boolean;
+};
 const PaginatedGridLayoutGroup = ({
   group,
-}: {
-  group: Array<StreamVideoParticipant | StreamVideoLocalParticipant>;
-}) => {
+  indicatorsVisible = true,
+}: PaginatedGridLayoutGroupProps) => {
   const call = useActiveCall();
-
   return (
     <div
       className={clsx('str-video__paginated-grid-layout--group', {
@@ -37,17 +48,43 @@ const PaginatedGridLayoutGroup = ({
           key={participant.sessionId}
           participant={participant}
           call={call!}
+          indicatorsVisible={indicatorsVisible}
+          muteAudio
         />
       ))}
     </div>
   );
 };
 
+export type PaginatedGridLayoutProps = {
+  /**
+   * The number of participants to display per page.
+   */
+  groupSize?: number;
+
+  /**
+   * Whether to exclude the local participant from the grid.
+   */
+  excludeLocalParticipant?: boolean;
+
+  /**
+   * Turns on/off the status indicator icons (mute, connection quality, etc...)
+   * on the participant boxes.
+   */
+  indicatorsVisible?: boolean;
+
+  /**
+   * Turns on/off the pagination arrows.
+   */
+  pageArrowsVisible?: boolean;
+};
+
 export const PaginatedGridLayout = ({
   groupSize = GROUP_SIZE,
-}: {
-  groupSize?: number;
-}) => {
+  excludeLocalParticipant = false,
+  indicatorsVisible = true,
+  pageArrowsVisible = true,
+}: PaginatedGridLayoutProps) => {
   const [page, setPage] = useState(0);
 
   const localParticipant = useLocalParticipant();
@@ -57,8 +94,12 @@ export const PaginatedGridLayout = ({
 
   // only used to render video elements
   const participantGroups = useMemo(
-    () => chunk(participants, groupSize),
-    [participants, groupSize],
+    () =>
+      chunk(
+        excludeLocalParticipant ? remoteParticipants : participants,
+        groupSize,
+      ),
+    [excludeLocalParticipant, remoteParticipants, participants, groupSize],
   );
 
   const pageCount = participantGroups.length;
@@ -82,7 +123,7 @@ export const PaginatedGridLayout = ({
       ))}
       <div className="str-video__paginated-grid-layout--wrapper">
         <div className="str-video__paginated-grid-layout">
-          {pageCount > 1 && (
+          {pageArrowsVisible && pageCount > 1 && (
             <IconButton
               icon="caret-left"
               disabled={page === 0}
@@ -90,9 +131,12 @@ export const PaginatedGridLayout = ({
             />
           )}
           {selectedGroup && (
-            <PaginatedGridLayoutGroup group={participantGroups[page]} />
+            <PaginatedGridLayoutGroup
+              group={participantGroups[page]}
+              indicatorsVisible={indicatorsVisible}
+            />
           )}
-          {pageCount > 1 && (
+          {pageArrowsVisible && pageCount > 1 && (
             <IconButton
               disabled={page === pageCount - 1}
               icon="caret-right"
@@ -115,28 +159,4 @@ const chunk = <T extends unknown[]>(array: T, size = GROUP_SIZE) => {
     { length: chunkCount },
     (_, index) => array.slice(size * index, size * index + size) as T,
   );
-};
-
-// TODO: maybe use this?
-// problem is, participants change due to anything (someone muted video for example)
-// which would yield new merged stream anytime someone interacted with something
-// completely unrelated to published audio tracks
-const useMergeAudioStreams = (participants: StreamVideoParticipant[]) => {
-  return useMemo(() => {
-    const audioStreams = participants
-      .map((p) => p.audioStream)
-      .filter(Boolean) as MediaStream[];
-
-    const audioContext = new AudioContext();
-
-    const sourceNodes = audioStreams.map((stream) =>
-      audioContext.createMediaStreamSource(stream),
-    );
-
-    const dest = audioContext.createMediaStreamDestination();
-
-    sourceNodes.forEach((sourceNode) => sourceNode.connect(dest));
-
-    return dest.stream;
-  }, [participants]);
 };
