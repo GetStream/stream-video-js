@@ -12,20 +12,4 @@
   .str-video__participant {
     transition: width 0.2s ease-in-out;
   }
-
-  .width--full {
-    width: 100%;
-  }
-
-  .width--half {
-    width: calc(50% - var(--gap-size));
-  }
-
-  .width--one-third {
-    width: calc(33% - var(--gap-size));
-  }
-
-  .width--one-fourth {
-    width: calc(25% - var(--gap-size));
-  }
 }
