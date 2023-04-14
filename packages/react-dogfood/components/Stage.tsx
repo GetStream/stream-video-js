@@ -1,4 +1,4 @@
-import { PermissionRequests, useCall } from '@stream-io/video-react-sdk';
+import { useCall } from '@stream-io/video-react-sdk';
 import { useSearchParams } from 'next/navigation';
 import { LayoutMap } from './LayoutSelector';
 
@@ -15,7 +15,6 @@ export const Stage = ({
 
   return (
     <div className="str-video__stage">
-      <PermissionRequests />
       <SelectedComponent
         call={call!}
         groupSize={!groupSize || groupSize > 16 ? undefined : groupSize}

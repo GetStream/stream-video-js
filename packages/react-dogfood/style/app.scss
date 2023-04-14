@@ -30,6 +30,13 @@ body {
   display: flex;
   flex-direction: column;
   flex: 1;
+
+  .str-video__permission-requests {
+    width: 100%;
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 .str-video__sidebar {
