@@ -148,20 +148,15 @@ export const View: FC<Props & Meeting> = ({
   }, [isScreenSharing, call]);
 
   const handleStartRecording = useCallback(async () => {
+    setIsAwaitingRecordingResponse(true);
     if (!isCallRecordingInProgress) {
-      await client?.call(callId, callType).startRecording();
+      await client?.call(callType, callId).startRecording();
     }
   }, [callId, client, isCallRecordingInProgress, callType, call]);
 
   const handleStopRecording = useCallback(async () => {
     if (isCallRecordingInProgress) {
-      await client?.call(callId, callType).stopRecording();
-    }
-  }, [callId, client, isCallRecordingInProgress, callType]);
-
-  const handlePauseRecording = useCallback(async () => {
-    if (isCallRecordingInProgress) {
-      await client?.call(callId, callType).stopRecording;
+      await client?.call(callType, callId).stopRecording();
     }
   }, [callId, client, isCallRecordingInProgress, callType]);
 
@@ -204,7 +199,6 @@ export const View: FC<Props & Meeting> = ({
           toggleParticipants={toggleParticipants}
           handleStartRecording={handleStartRecording}
           handleStopRecording={handleStopRecording}
-          handlePauseRecording={handlePauseRecording}
           isAwaitingRecording={isAwaitingRecordingResponse}
           toggleShareScreen={toggleShareScreen}
           call={call}
