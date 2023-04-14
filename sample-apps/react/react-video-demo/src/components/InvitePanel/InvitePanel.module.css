@@ -78,7 +78,7 @@
 }
 
 .showQrIndicator.transform {
-  transform: rotate(90deg);
+  transform: rotate(-90deg);
   transition: transform 0.3s;
 }
 
