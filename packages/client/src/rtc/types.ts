@@ -78,6 +78,7 @@ export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
    * The device ID of the currently selected audio input device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
    */
   audioDeviceId?: string;
+
   /**
    * The device ID of the currently selected video input device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
    */
@@ -89,11 +90,6 @@ export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
    * If the value is not defined, the user hasn't selected any device (in these cases the default system audio output could be used)
    */
   audioOutputDeviceId?: string;
-
-  /**
-   * The permissions that participant has in the current call. Permissions can be granted and/or revoked during a call.
-   */
-  ownCapabilities: string[];
 }
 
 export const isStreamVideoLocalParticipant = (
@@ -126,11 +122,6 @@ export type SubscriptionChange = {
 
 export type SubscriptionChanges = {
   [sessionId: string]: SubscriptionChange;
-};
-
-export type CallOptions = {
-  connectionConfig?: RTCConfiguration;
-  edgeName?: string;
 };
 
 export type PublishOptions = {

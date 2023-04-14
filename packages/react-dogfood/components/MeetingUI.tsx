@@ -12,6 +12,7 @@ import {
   IconButton,
   LoadingIndicator,
   noopComparator,
+  PermissionRequests,
   ReactionsButton,
   RecordCallButton,
   ScreenShareButton,
@@ -162,6 +163,7 @@ export const MeetingUI = ({
             selectedLayout={layout}
             onMenuItemClick={setLayout}
           />
+          <PermissionRequests />
           <Stage selectedLayout={layout} />
           <div
             className="str-video__call-controls"
