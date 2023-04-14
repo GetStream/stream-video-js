@@ -62,26 +62,34 @@ export const ActiveCallHeader = ({
         </div>
       </div>
       <div className="str-video__call-header__notifications">
-        <Notification
-          isVisible={isRecoveringConnection || isOffline || hasFailedToRecover}
-          iconClassName={null}
-          placement="auto"
-          message={
-            <LoadingIndicator
-              text={
-                isRecoveringConnection
-                  ? 'Reconnecting...'
-                  : isOffline
-                  ? 'You are offline...'
-                  : hasFailedToRecover
-                  ? 'Failed to restore connection. Check your internet connection and try again later.'
-                  : `Calling state: ${callingState}`
-              }
-            />
+        {(() => {
+          if (isOffline || hasFailedToRecover) {
+            return (
+              <Notification
+                isVisible
+                placement="auto"
+                message={
+                  isOffline
+                    ? 'You are offline. Check your internet connection and try again later.'
+                    : 'Failed to restore connection. Check your internet connection and try again later.'
+                }
+              >
+                <span />
+              </Notification>
+            );
           }
-        >
-          <span />
-        </Notification>
+
+          return (
+            <Notification
+              isVisible={isRecoveringConnection}
+              iconClassName={null}
+              placement="auto"
+              message={<LoadingIndicator text="Reconnecting..." />}
+            >
+              <span />
+            </Notification>
+          );
+        })()}
       </div>
     </>
   );
