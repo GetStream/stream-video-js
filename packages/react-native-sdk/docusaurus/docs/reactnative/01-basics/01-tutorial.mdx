@@ -55,8 +55,7 @@ We will start by creating a simple video meeting with Stream's Video SDK.
 ### Create a StreamVideoClient
 
 First things first we will create a `StreamVideoClient` that will be used to communicate to Stream's Video backend and create a new client.
-This expects an API key as the first argument. It also expects `options` and Call configuration object for type `meeting`(`CALL_CONFIG.meeting`).
-The call configs helps adding some default configs of the meeting.
+This expects an API key as the first argument. It also expects `options`.
 
 ```tsx
 import React from 'react';
@@ -69,7 +68,7 @@ const user = {
 };
 const USER_TOKEN = 'YOUR_TOKEN';
 const API_KEY = 'YOUR_TOKEN';
-const videoClient = new StreamVideoClient(API_KEY, {}, CALL_CONFIG.meeting);
+const videoClient = new StreamVideoClient(API_KEY);
 ```
 
 ### Connecting and disconnecting from the video client
