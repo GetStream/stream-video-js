@@ -12,11 +12,11 @@
 }
 
 .callContainer {
-  @apply border-4 border-video-stream-500 relative mt-5 mb-5 rounded-container w-full;
+  @apply border-4 border-video-stream-500 relative mt-5 mb-5 rounded-container w-full sm:min-h-[300px];
 }
 
 .disabledPreview {
-  @apply flex items-center justify-center text-video-white text-sm bg-video-grey-700 w-full;
+  @apply flex items-center justify-center text-video-white text-sm bg-video-grey-700 w-full sm:min-h-[300px];
   border-radius: 10px;
 }
 
@@ -30,7 +30,7 @@
 }
 
 .callContainer video {
-  @apply w-full h-auto max-h-[30vh];
+  @apply w-full h-auto  sm:min-h-[300px];
   border-radius: 10px;
 }
 
