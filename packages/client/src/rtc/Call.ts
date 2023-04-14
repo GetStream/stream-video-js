@@ -1262,7 +1262,7 @@ export class Call {
   };
 
   /**
-   * Ends the call.
+   * Ends the call. Once the call is ended, it cannot be re-joined.
    */
   endCall = async () => {
     return this.streamClient.post<EndCallResponse>(
