@@ -1,21 +1,17 @@
 import { FC } from 'react';
-import classnames from 'classnames';
 
-import {
-  StreamVideoParticipant,
-  StreamVideoLocalParticipant,
-} from '@stream-io/video-client';
+import { OwnCapability, StreamVideoParticipant } from '@stream-io/video-client';
 
 import Panel from '../Panel';
-import { MicMuted, VideoOff, People } from '../Icons';
+import { MicMuted, People, VideoOff } from '../Icons';
 
 import { Restricted } from '../Moderation/Restricted';
 
 import styles from './ParticipantsControlModal.module.css';
+import { useOwnCapabilities } from '@stream-io/video-react-bindings';
 
 export type Props = {
   participant: StreamVideoParticipant;
-  localParticipant?: StreamVideoLocalParticipant;
   handleMuteUser: (userId: string, sessionId: string) => void;
   handleDisableVideo: (userId: string, sessionId: string) => void;
   handleBlockUser: (userId: string) => void;
@@ -25,7 +21,6 @@ export type Props = {
 };
 
 export const ParticipantsControlModal: FC<Props> = ({
-  localParticipant,
   isAudioOn,
   participant,
   isVideoOn,
@@ -34,13 +29,14 @@ export const ParticipantsControlModal: FC<Props> = ({
   handleBlockUser,
   particpantName,
 }) => {
+  const ownCapabilities = useOwnCapabilities();
   return (
     <Panel className={styles.root} title={particpantName}>
       <ul className={styles.controls}>
         {isAudioOn && (
           <Restricted
-            availableGrants={localParticipant?.ownCapabilities ?? []}
-            requiredGrants={['mute-users']}
+            availableGrants={ownCapabilities}
+            requiredGrants={[OwnCapability.MUTE_USERS]}
           >
             <li
               className={styles.option}
@@ -55,8 +51,8 @@ export const ParticipantsControlModal: FC<Props> = ({
         )}
         {isVideoOn && (
           <Restricted
-            availableGrants={localParticipant?.ownCapabilities ?? []}
-            requiredGrants={['mute-users']}
+            availableGrants={ownCapabilities}
+            requiredGrants={[OwnCapability.MUTE_USERS]}
           >
             <li
               className={styles.option}
@@ -71,8 +67,8 @@ export const ParticipantsControlModal: FC<Props> = ({
         )}
 
         <Restricted
-          availableGrants={localParticipant?.ownCapabilities ?? []}
-          requiredGrants={['block-users']}
+          availableGrants={ownCapabilities}
+          requiredGrants={[OwnCapability.BLOCK_USERS]}
         >
           <li
             className={styles.option}

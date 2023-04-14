@@ -117,26 +117,3 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
 
 export type TokenProvider = () => Promise<string>;
 export type TokenOrProvider = null | string | TokenProvider | undefined;
-
-// FIXME: have this coming from OpenAPI schema
-const OwnCapabilitiesEnum = [
-  'join-call',
-  'stop-record-call',
-  'end-call',
-  'mute-users',
-  'start-broadcast-call',
-  'block-users',
-  'read-call',
-  'join-ended-call',
-  'screenshare',
-  'send-video',
-  'send-audio',
-  'start-record-call',
-  'update-call-permissions',
-  'create-call',
-  'update-call',
-  'update-call-settings',
-  'stop-broadcast-call',
-] as const;
-
-export type OwnCapabilities = Array<(typeof OwnCapabilitiesEnum)[number]>;

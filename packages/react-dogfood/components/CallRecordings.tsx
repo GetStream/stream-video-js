@@ -40,6 +40,7 @@ export const CallRecordings = () => {
           const response = await activeCall.queryRecordings();
           recordings = response.recordings;
         } catch (e) {
+          console.error('Failed to query recordings', e);
         } finally {
           recordingPollRequestsCount.current++;
           const hasNewRecordings = callRecordings.length < recordings.length;

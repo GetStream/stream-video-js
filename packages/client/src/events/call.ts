@@ -1,47 +1,5 @@
-import { StreamVideoWriteableStateStore } from '../store';
-import { Call } from '../rtc/Call';
-import { StreamClient } from '../coordinator/connection/client';
+import { CallState, StreamVideoWriteableStateStore } from '../store';
 import { StreamVideoEvent } from '../coordinator/connection/types';
-
-/**
- * Event handler that watches the delivery of CallCreated Websocket event
- * Updates the state store and notifies its subscribers that
- * a new pending call has been initiated.
- */
-export const watchCallCreated = (
-  store: StreamVideoWriteableStateStore,
-  streamClient: StreamClient,
-) => {
-  return function onCallCreated(event: StreamVideoEvent) {
-    if (event.type !== 'call.created') {
-      return;
-    }
-    const { call, members, ringing } = event;
-    if (!call) {
-      console.warn("Can't find call in CallCreatedEvent");
-      return;
-    }
-
-    const currentUser = store.connectedUser;
-    if (currentUser?.id === call.created_by.id) {
-      console.warn('Received CallCreatedEvent sent by the current user');
-      return;
-    }
-
-    store.setPendingCalls((pendingCalls) => [
-      ...pendingCalls,
-      new Call({
-        streamClient,
-        type: call.type,
-        id: call.id,
-        metadata: call,
-        members,
-        ringing,
-        clientStore: store,
-      }),
-    ]);
-  };
-};
 
 /**
  * Event handler that watched the delivery of CallAcceptedEvent
@@ -50,15 +8,8 @@ export const watchCallCreated = (
  */
 export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
   return function onCallAccepted(event: StreamVideoEvent) {
-    if (event.type !== 'call.accepted') {
-      return;
-    }
+    if (event.type !== 'call.accepted') return;
     const { call_cid } = event;
-    if (!call_cid) {
-      console.warn("Can't find call_cid in CallAcceptedEvent");
-      return;
-    }
-
     const acceptedIncomingCall = store.incomingCalls.find(
       (incomingCall) => incomingCall.cid === call_cid,
     );
@@ -104,15 +55,8 @@ export const watchCallAccepted = (store: StreamVideoWriteableStateStore) => {
  */
 export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
   return function onCallRejected(event: StreamVideoEvent) {
-    if (event.type !== 'call.rejected') {
-      return;
-    }
+    if (event.type !== 'call.rejected') return;
     const { call_cid } = event;
-    if (!call_cid) {
-      console.warn("Can't find call_cid in CallRejectedEvent");
-      return;
-    }
-
     const rejectedIncomingCall = store.incomingCalls.find(
       (incomingCall) => incomingCall.cid === call_cid,
     );
@@ -152,15 +96,8 @@ export const watchCallRejected = (store: StreamVideoWriteableStateStore) => {
  */
 export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
   return function onCallCancelled(event: StreamVideoEvent) {
-    if (event.type !== 'call.ended') {
-      return;
-    }
+    if (event.type !== 'call.ended') return;
     const { call_cid } = event;
-    if (!call_cid) {
-      console.log("Can't find call in CallEndedEvent");
-      return;
-    }
-
     const cancelledIncomingCall = store.incomingCalls.find(
       (incomingCall) => incomingCall.cid === call_cid,
     );
@@ -181,5 +118,16 @@ export const watchCallCancelled = (store: StreamVideoWriteableStateStore) => {
     store.setPendingCalls((pendingCalls) =>
       pendingCalls.filter((pendingCall) => pendingCall.cid !== call_cid),
     );
+  };
+};
+
+/**
+ * An event handler which listens to `call.updated` events
+ * and updates the given call state accordingly.
+ */
+export const watchCallUpdated = (state: CallState) => {
+  return function onCallUpdated(event: StreamVideoEvent) {
+    if (event.type !== 'call.updated') return;
+    state.setMetadata(event.call);
   };
 };
