@@ -95,7 +95,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   }
 
   return (
-    <div style={{ flexGrow: 1, minHeight: 0 }}>
+    <>
       <Head>
         <title>Stream Calls: {callId}</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
@@ -114,7 +114,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
           <MeetingUI chatClient={chatClient} />
         </MediaDevicesProvider>
       </StreamVideo>
-    </div>
+    </>
   );
 };
 
