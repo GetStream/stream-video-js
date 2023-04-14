@@ -11,7 +11,6 @@ import {
   Leave,
   Record,
   ShareScreen,
-  Pause,
   Stop,
   Loading,
 } from '../Icons';
@@ -31,7 +30,6 @@ export type Props = {
   toggleParticipants: () => void;
   handleStartRecording: () => void;
   handleStopRecording: () => void;
-  handlePauseRecording: () => void;
   toggleShareScreen: () => void;
   showChat?: boolean;
   showParticipants?: boolean;
