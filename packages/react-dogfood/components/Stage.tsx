@@ -9,7 +9,6 @@ export const Stage = ({
 }) => {
   const call = useCall();
   const searchParams = useSearchParams();
-
   const groupSize = +(searchParams.get('group_size') ?? '0');
 
   const SelectedComponent = LayoutMap[selectedLayout].Component;

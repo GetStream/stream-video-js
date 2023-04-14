@@ -1,10 +1,6 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { StableWSConnection } from './connection';
-import {
-  ConnectedEvent,
-  HealthCheckEvent,
-  VideoEvent,
-} from '../../gen/coordinator';
+import { ConnectedEvent, VideoEvent } from '../../gen/coordinator';
 
 export type UR = Record<string, unknown>;
 
@@ -45,20 +41,6 @@ export class ErrorFromResponse<T> extends Error {
   status?: number;
 }
 
-type ClientEventTypes = 'health.check' | 'connection.ok';
-
-type LocalEventTypes =
-  | 'connection.changed'
-  | 'transport.changed'
-  | 'connection.recovered';
-
-export type EventTypes = 'all' | VideoEvent['type'] | LocalEventTypes;
-
-export type CallEventTypes = Exclude<
-  EventTypes,
-  'all' | ClientEventTypes | LocalEventTypes
->;
-
 export type ConnectionChangedEvent = {
   type: 'connection.changed';
   online: boolean;
@@ -80,17 +62,16 @@ export type StreamVideoEvent = (
   | ConnectionRecoveredEvent
 ) & { received_at?: string | Date };
 
-export type StreamCallEvent = Exclude<
-  StreamVideoEvent,
-  | HealthCheckEvent
-  | ConnectionChangedEvent
-  | TransportChangedEvent
-  | ConnectionRecoveredEvent
->;
+// TODO: we should use WSCallEvent here but that needs fixing
+export type StreamCallEvent = Extract<StreamVideoEvent, { call_cid: string }>;
 
 export type EventHandler = (event: StreamVideoEvent) => void;
 
 export type CallEventHandler = (event: StreamCallEvent) => void;
+
+export type EventTypes = 'all' | StreamVideoEvent['type'];
+
+export type CallEventTypes = StreamCallEvent['type'];
 
 export type Logger = (
   logLevel: LogLevel,
@@ -136,26 +117,3 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
 
 export type TokenProvider = () => Promise<string>;
 export type TokenOrProvider = null | string | TokenProvider | undefined;
-
-// FIXME: have this coming from OpenAPI schema
-const OwnCapabilitiesEnum = [
-  'join-call',
-  'stop-record-call',
-  'end-call',
-  'mute-users',
-  'start-broadcast-call',
-  'block-users',
-  'read-call',
-  'join-ended-call',
-  'screenshare',
-  'send-video',
-  'send-audio',
-  'start-record-call',
-  'update-call-permissions',
-  'create-call',
-  'update-call',
-  'update-call-settings',
-  'stop-broadcast-call',
-] as const;
-
-export type OwnCapabilities = Array<(typeof OwnCapabilitiesEnum)[number]>;

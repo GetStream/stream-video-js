@@ -1,0 +1,38 @@
+.sidebar {
+  @apply hidden sm:grid  gap-y-3;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr min-content;
+  grid-template-areas:
+    'invitePanel'
+    'participantsPanel'
+    'chatPanel';
+}
+
+.invitePanel {
+  grid-area: invitePanel;
+}
+
+.particpantsPanel {
+  grid-area: particpantsPanel;
+}
+
+.chatPanel {
+  grid-area: chatPanel;
+}
+
+.animation-enter {
+  opacity: 0;
+  display: block;
+}
+.animation-enter-active {
+  opacity: 1;
+  transition: opacity 700ms;
+}
+.animation-exit {
+  opacity: 1;
+}
+.animation-exit-active {
+  opacity: 0;
+  display: none;
+  transition: opacity 200ms;
+}

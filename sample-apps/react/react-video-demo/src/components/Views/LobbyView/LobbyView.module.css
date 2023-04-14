@@ -1,0 +1,54 @@
+.root {
+  @apply relative;
+}
+
+.layoutContainer {
+  @apply grid relative z-10;
+  grid-template-areas:
+    'header'
+    'body'
+    'footer';
+}
+
+.header {
+  @apply w-screen h-10 p-4;
+  grid-area: header;
+}
+
+.callIdentification {
+  @apply flex items-center text-video-white;
+}
+
+.logo {
+  @apply mr-2;
+}
+
+.body {
+  grid-area: body;
+}
+
+.footer {
+  @apply w-screen h-10;
+  grid-area: footer;
+}
+
+.lobbyPanel {
+}
+
+.loadingPanel {
+  @apply bg-video-grey-600/5 p-2 sm:p-0 md:w-4/12 flex flex-col items-center;
+}
+
+.loading {
+  @apply flex h-20 w-20;
+  animation: rotating 2s linear infinite;
+}
+
+@keyframes rotating {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+  }
+}
