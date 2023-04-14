@@ -8,6 +8,7 @@ import {
 } from 'react';
 import {
   Call,
+  DebounceType,
   SfuModels,
   StreamVideoParticipant,
   VisibilityState,
@@ -43,70 +44,102 @@ export const Video = (
       : SfuModels.TrackType.SCREEN_SHARE,
   );
 
-  const lastSessionId = useRef<string>(sessionId);
-  const lastDimensionRef = useRef<SfuModels.VideoDimension | undefined>();
-  const updateSubscription = useCallback(() => {
-    let nextDimension;
-    if (
-      videoElement &&
-      isPublishingTrack &&
-      participant.viewportVisibilityState !== VisibilityState.INVISIBLE
-    ) {
-      nextDimension = {
-        width: videoElement.clientWidth,
-        height: videoElement.clientHeight,
-      };
-    }
+  const displayPlaceholder =
+    !isPublishingTrack ||
+    (participant.viewportVisibilityState === VisibilityState.INVISIBLE &&
+      !screenShareStream);
 
-    const lastDimension = lastDimensionRef.current;
-    if (
-      sessionId !== lastSessionId.current ||
-      nextDimension?.width !== lastDimension?.width ||
-      nextDimension?.height !== lastDimension?.height
-    ) {
-      call.updateSubscriptionsPartial(kind, {
-        [sessionId]: {
-          dimension: nextDimension,
+  const lastDimensionRef = useRef<string | undefined>();
+  const updateSubscription = useCallback(
+    (type: DebounceType, dimension?: SfuModels.VideoDimension) => {
+      call.updateSubscriptionsPartial(
+        kind,
+        {
+          [sessionId]: {
+            dimension,
+          },
         },
-      });
-      lastDimensionRef.current = nextDimension;
-      lastSessionId.current = sessionId;
-    }
+        type,
+      );
+    },
+    [call, kind, sessionId],
+  );
+
+  // handle generic subscription updates
+  useEffect(() => {
+    if (!isPublishingTrack || !videoElement) return;
+
+    updateSubscription(DebounceType.FAST, {
+      height: videoElement.clientHeight,
+      width: videoElement.clientWidth,
+    });
+
+    return () => {
+      updateSubscription(DebounceType.FAST);
+    };
+  }, [updateSubscription, videoElement, isPublishingTrack]);
+
+  // handle visibility subscription updates
+  useEffect(() => {
+    const isUnknownVVS =
+      participant.viewportVisibilityState === VisibilityState.UNKNOWN;
+    if (!videoElement || !isPublishingTrack || isUnknownVVS) return;
+
+    const isInvisibleVVS =
+      participant.viewportVisibilityState === VisibilityState.INVISIBLE;
+
+    updateSubscription(
+      DebounceType.MEDIUM,
+      isInvisibleVVS
+        ? undefined
+        : {
+            height: videoElement.clientHeight,
+            width: videoElement.clientWidth,
+          },
+    );
   }, [
-    call,
-    isPublishingTrack,
-    kind,
-    sessionId,
-    videoElement,
+    updateSubscription,
     participant.viewportVisibilityState,
+    videoElement,
+    isPublishingTrack,
   ]);
 
+  // handle resize subscription updates
   useEffect(() => {
-    updateSubscription();
-  }, [updateSubscription]);
+    if (!videoElement || !isPublishingTrack) return;
 
-  // cleanup subscription on unmount
-  // useEffect(() => {
-  //   if (call && sessionId && kind)
-  //     return () => {
-  //       call.updateSubscriptionsPartial(kind, {
-  //         [sessionId]: {
-  //           dimension: undefined,
-  //         },
-  //       });
-  //     };
-  // }, [call, kind, sessionId]);
+    const resizeObserver = new ResizeObserver(() => {
+      const currentDimensions = `${videoElement.clientWidth}:${videoElement.clientHeight}`;
 
-  useEffect(() => {
-    if (!videoElement) return;
+      // skip initial trigger of the observer
+      if (!lastDimensionRef.current) {
+        return (lastDimensionRef.current = currentDimensions);
+      }
 
-    const resizeObserver = new ResizeObserver(updateSubscription);
+      if (
+        lastDimensionRef.current === currentDimensions ||
+        // "display: none" causes dimensions to change to 0
+        participant.viewportVisibilityState === VisibilityState.INVISIBLE
+      )
+        return;
+
+      updateSubscription(DebounceType.SLOW, {
+        height: videoElement.clientHeight,
+        width: videoElement.clientWidth,
+      });
+      lastDimensionRef.current = currentDimensions;
+    });
     resizeObserver.observe(videoElement);
 
     return () => {
       resizeObserver.disconnect();
     };
-  }, [updateSubscription, videoElement]);
+  }, [
+    updateSubscription,
+    videoElement,
+    participant.viewportVisibilityState,
+    isPublishingTrack,
+  ]);
 
   const [isWideMode, setIsWideMode] = useState(true);
   useEffect(() => {
@@ -124,34 +157,40 @@ export const Video = (
     };
   }, [stream, videoElement]);
 
-  if (
-    !isPublishingTrack ||
-    (participant.viewportVisibilityState === VisibilityState.INVISIBLE &&
-      !screenShareStream)
-  )
-    return (
+  return (
+    <>
       <VideoPlaceholder
-        imageSrc={participant.image}
-        name={participant.name || participant.userId}
-        isSpeaking={participant.isSpeaking}
+        style={
+          displayPlaceholder
+            ? undefined
+            : {
+                display: 'none',
+              }
+        }
+        participant={participant}
         ref={setVideoElementRef}
       />
-    );
-
-  return (
-    <BaseVideo
-      {...rest}
-      stream={stream}
-      className={clsx(className, {
-        'str-video__video--wide': isWideMode,
-        'str-video__video--tall': !isWideMode,
-      })}
-      data-user-id={participant.userId}
-      data-session-id={sessionId}
-      ref={(ref) => {
-        setVideoElement(ref);
-        setVideoElementRef?.(ref);
-      }}
-    />
+      <BaseVideo
+        {...rest}
+        style={
+          displayPlaceholder
+            ? {
+                display: 'none',
+              }
+            : undefined
+        }
+        stream={stream}
+        className={clsx(className, {
+          'str-video__video--wide': isWideMode,
+          'str-video__video--tall': !isWideMode,
+        })}
+        data-user-id={participant.userId}
+        data-session-id={sessionId}
+        ref={(ref) => {
+          setVideoElement(ref);
+          setVideoElementRef?.(ref);
+        }}
+      />
+    </>
   );
 };
