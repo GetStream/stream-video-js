@@ -160,27 +160,3 @@ const chunk = <T extends unknown[]>(array: T, size = GROUP_SIZE) => {
     (_, index) => array.slice(size * index, size * index + size) as T,
   );
 };
-
-// TODO: maybe use this?
-// problem is, participants change due to anything (someone muted video for example)
-// which would yield new merged stream anytime someone interacted with something
-// completely unrelated to published audio tracks
-// const useMergeAudioStreams = (participants: StreamVideoParticipant[]) => {
-//   return useMemo(() => {
-//     const audioStreams = participants
-//       .map((p) => p.audioStream)
-//       .filter(Boolean) as MediaStream[];
-//
-//     const audioContext = new AudioContext();
-//
-//     const sourceNodes = audioStreams.map((stream) =>
-//       audioContext.createMediaStreamSource(stream),
-//     );
-//
-//     const dest = audioContext.createMediaStreamDestination();
-//
-//     sourceNodes.forEach((sourceNode) => sourceNode.connect(dest));
-//
-//     return dest.stream;
-//   }, [participants]);
-// };
