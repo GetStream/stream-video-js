@@ -28,6 +28,7 @@ export const DominantSpeaker = () => {
             call={activeCall}
             indicatorsVisible={false}
             setVideoElementRef={setParticipantVideoRef}
+            muteAudio
           />
         )}
       </div>
