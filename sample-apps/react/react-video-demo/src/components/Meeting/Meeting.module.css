@@ -18,7 +18,7 @@
 
 @media screen(sm) {
   .content.activeTour {
-    @apply relative grid gap-y-3;
+    @apply relative grid gap-y-3 h-auto;
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
     grid-template-areas:
