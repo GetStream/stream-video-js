@@ -1,9 +1,14 @@
-import { useCallback } from 'react';
-import { SfuModels } from '@stream-io/video-client';
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
+import { useCallback, useEffect, useState } from 'react';
+import { OwnCapability, SfuModels } from '@stream-io/video-client';
+import {
+  useCall,
+  useHasPermissions,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
 import { useMediaDevices } from '../../contexts';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { CompositeButton, IconButton } from '../Button';
+import { PermissionNotification } from '../Notification';
 
 export type ToggleAudioPreviewButtonProps = { caption?: string };
 
@@ -39,24 +44,62 @@ export const ToggleAudioPublishingButton = ({
     SfuModels.TrackType.AUDIO,
   );
 
-  const handleClick = useCallback(() => {
-    if (isAudioMute) {
-      void publishAudioStream();
+  const call = useCall();
+  const hasPermission = useHasPermissions(OwnCapability.SEND_AUDIO);
+  const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
+  useEffect(() => {
+    if (hasPermission) {
+      setIsAwaitingApproval(false);
+    }
+  }, [hasPermission]);
+
+  const handleClick = useCallback(async () => {
+    if (
+      !hasPermission &&
+      call &&
+      call.permissionsContext.canRequest(OwnCapability.SEND_AUDIO)
+    ) {
+      setIsAwaitingApproval(true);
+      await call
+        .requestPermissions({
+          permissions: [OwnCapability.SEND_AUDIO],
+        })
+        .catch((reason) => {
+          console.log('RequestPermissions failed', reason);
+        });
+      return;
+    }
+    if (isAudioMute && hasPermission) {
+      await publishAudioStream();
     } else {
       stopPublishingAudio();
     }
-  }, [isAudioMute, publishAudioStream, stopPublishingAudio]);
+  }, [
+    call,
+    hasPermission,
+    isAudioMute,
+    publishAudioStream,
+    stopPublishingAudio,
+  ]);
 
   return (
-    <CompositeButton
-      Menu={DeviceSelectorAudioInput}
-      active={isAudioMute}
-      caption={caption}
+    <PermissionNotification
+      permission={OwnCapability.SEND_AUDIO}
+      isAwaitingApproval={isAwaitingApproval}
+      messageApproved="You can now speak."
+      messageAwaitingApproval="Awaiting for an approval to speak."
+      messageRevoked="You can no longer speak."
     >
-      <IconButton
-        icon={isAudioMute ? 'mic-off' : 'mic'}
-        onClick={handleClick}
-      />
-    </CompositeButton>
+      <CompositeButton
+        Menu={DeviceSelectorAudioInput}
+        active={isAudioMute}
+        caption={caption}
+      >
+        <IconButton
+          icon={isAudioMute ? 'mic-off' : 'mic'}
+          onClick={handleClick}
+        />
+      </CompositeButton>
+    </PermissionNotification>
   );
 };
