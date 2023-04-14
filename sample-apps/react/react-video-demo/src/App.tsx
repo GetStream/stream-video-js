@@ -18,6 +18,7 @@ import { ModalProvider } from './contexts/ModalContext';
 import { NotificationProvider } from './contexts/NotificationsContext';
 
 import { createGeoJsonFeatures } from './utils/useCreateGeoJsonFeatures';
+import { generateUser } from './utils/useGenerateUser';
 import { useCreateStreamChatClient } from './hooks/useChatClient';
 
 import { tour } from '../data/tour';
@@ -30,19 +31,6 @@ export type Props = {
   token: string;
   apiKey: string;
   incomingCallId?: string | null;
-};
-
-const config = {
-  apiKey: import.meta.env.VITE_STREAM_KEY,
-  user: {
-    id: import.meta.env.VITE_VIDEO_USER_ID,
-    name: import.meta.env.VITE_VIDEO_USER_NAME,
-    role: 'admin',
-    teams: ['team-1', 'team-2'],
-    image: '',
-    customJson: new Uint8Array(),
-  },
-  token: import.meta.env.VITE_VIDEO_USER_TOKEN,
 };
 
 const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
@@ -150,11 +138,37 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
 
 const App: FC = () => {
   const logo = '/images/icons/stream-logo.svg';
+  const [user, setUser] = useState<User>();
+  const [token, setToken] = useState<string>();
 
   const location = window?.document?.location;
   const callId = new URL(location.href).searchParams.get('id');
 
-  return <Init {...config} logo={logo} incomingCallId={callId} />;
+  useEffect(() => {
+    async function fetchUser() {
+      const response = await generateUser(
+        callId ? 'user' : 'admin',
+        '@stream-io/video-demo',
+      );
+      setUser(response.user);
+      setToken(response.token);
+    }
+    fetchUser();
+  }, []);
+
+  if (user && token) {
+    return (
+      <Init
+        apiKey={import.meta.env.VITE_STREAM_KEY}
+        user={user}
+        token={token}
+        logo={logo}
+        incomingCallId={callId}
+      />
+    );
+  }
+
+  return null;
 };
 
 export default App;
