@@ -31269,6 +31269,7 @@ __metadata:
     tailwindcss: ^3.2.4
     tailwindcss-plugins: ^0.3.0
     typescript: ^4.9.3
+    unique-names-generator: ^4.7.1
     uuid: ^9.0.0
     vite: ^4.2.1
     vite-plugin-mkcert: ^1.14.0
@@ -35676,6 +35677,13 @@ __metadata:
   dependencies:
     unique-slug: ^3.0.0
   checksum: 807acf3381aff319086b64dc7125a9a37c09c44af7620bd4f7f3247fcd5565660ac12d8b80534dcbfd067e6fe88a67e621386dd796a8af828d1337a8420a255f
+  languageName: node
+  linkType: hard
+
+"unique-names-generator@npm:^4.7.1":
+  version: 4.7.1
+  resolution: "unique-names-generator@npm:4.7.1"
+  checksum: 81b58efee72458fd0c84f54a89d731b2570305d331ce62c4156273e54ece77b6488fc6c607169f4b8f6644fa48b42aef8689dbe7e310ae2c4bafbd5c0a625354
   languageName: node
   linkType: hard
 
