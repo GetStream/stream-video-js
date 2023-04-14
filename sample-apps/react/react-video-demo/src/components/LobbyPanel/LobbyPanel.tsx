@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import { VideoPreview, useMediaDevices } from '@stream-io/video-react-sdk';
 
 import ControlMenu from '../ControlMenu';
-import { Mic, MicMuted, Signal } from '../Icons';
+import { MicMuted, Signal } from '../Icons';
 
 import JoinContainer from '../JoinContainer';
 
