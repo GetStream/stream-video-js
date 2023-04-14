@@ -57,7 +57,16 @@ import {
   VisibilityState,
   DebounceType,
 } from './types';
-import { pairwise, Subject, takeWhile, tap, debounce, timer, map } from 'rxjs';
+import {
+  pairwise,
+  Subject,
+  takeWhile,
+  tap,
+  debounce,
+  timer,
+  map,
+  of,
+} from 'rxjs';
 import { createSubscription } from '../store/rxUtils';
 import { Comparator } from '../sorting';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
@@ -256,7 +265,7 @@ export class Call {
     this.leaveCallHooks.push(
       createSubscription(
         this.trackSubscriptionsSubject.pipe(
-          debounce((v) => timer(v.type ?? DebounceType.SLOW)),
+          debounce((v) => (!v.type ? of(null) : timer(v.type))),
           map((v) => v.data),
         ),
         (subscriptions) => this.sfuClient?.updateSubscriptions(subscriptions),
