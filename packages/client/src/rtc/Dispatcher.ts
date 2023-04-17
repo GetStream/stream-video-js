@@ -18,6 +18,7 @@ const sfuEventKinds: { [key in SfuEventKinds]: undefined } = {
   trackPublished: undefined,
   trackUnpublished: undefined,
   error: undefined,
+  callGrantsUpdated: undefined,
 };
 
 export const isSfuEvent = (
