@@ -2,6 +2,8 @@ import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 import { useState } from 'react';
 import { useAudioRoomContext } from '../../contexts/AudioRoomContext/AudioRoomContext';
 import { useUserContext } from '../../contexts/UserContext/UserContext';
+import { CloseIcon } from '../icons';
+import './RoomForm.css';
 
 function RoomForm(): JSX.Element {
   const [title, setTitle] = useState('');
@@ -12,9 +14,14 @@ function RoomForm(): JSX.Element {
   const { roomCreated } = useAudioRoomContext();
 
   return (
-    <section>
-      <h2>Create a room</h2>
-      <form action="">
+    <section className="form-container">
+      <div className="title-row">
+        <button onClick={() => roomCreated()}>
+          <CloseIcon />
+        </button>
+        <h2>Create a room</h2>
+      </div>
+      <form className="room-form" action="">
         <label htmlFor="title">
           <span>Title</span>
           <input

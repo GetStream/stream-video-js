@@ -8,7 +8,8 @@ interface RoomOverviewProps {
 }
 
 const RoomOverview = ({ showAsGrid = true }: RoomOverviewProps) => {
-  const { liveRooms, upcomingRooms, join, setRooms } = useAudioRoomContext();
+  const { liveRooms, upcomingRooms, create, join, setRooms } =
+    useAudioRoomContext();
   const client = useStreamVideoClient();
 
   useEffect(() => {
@@ -20,7 +21,7 @@ const RoomOverview = ({ showAsGrid = true }: RoomOverviewProps) => {
   }, [client]);
 
   return (
-    <section>
+    <section className="rooms-overview">
       <h2>Live audio rooms</h2>
       <div className={showAsGrid ? 'rooms-grid' : 'rooms-rows'}>
         {liveRooms.map((room) => (
@@ -45,6 +46,14 @@ const RoomOverview = ({ showAsGrid = true }: RoomOverviewProps) => {
           </button>
         ))}
       </div>
+      <button
+        className="start-room-button"
+        onClick={() => {
+          create();
+        }}
+      >
+        + Start room
+      </button>
     </section>
   );
 };

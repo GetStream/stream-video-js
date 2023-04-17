@@ -29,7 +29,7 @@
   gap: 4rem;
 }
 
-@media screen and (max-width: 80rem) {
+@media screen and (max-width: 800px) {
   #root {
     padding: 0rem;
   }
@@ -81,6 +81,7 @@ img {
   display: grid;
   grid-template-columns: 200px 1fr;
   gap: 2rem;
+  min-height: 600px;
 }
 
 .home-user-row {
@@ -118,6 +119,10 @@ img {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
+}
+
+.start-room-button {
+  display: none;
 }
 
 .rooms-rows {
@@ -164,10 +169,11 @@ img {
   font-weight: bold;
 }
 
-@media screen and (max-width: 80rem) {
+@media screen and (max-width: 800px) {
   .home-container {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
+    position: relative;
   }
 
   .home-user-row {
@@ -188,9 +194,24 @@ img {
     display: none;
   }
 
+  .rooms-overview {
+    margin-bottom: 3rem;
+  }
+
   .rooms-grid {
     grid-template-columns: 1fr;
     padding: 1rem;
+  }
+
+  .start-room-button {
+    display: block;
+    background-color: blue;
+    color: white;
+    position: absolute;
+    bottom: 0;
+    left: 2rem;
+    right: 2rem;
+    /* width: 100%; */
   }
 }
 
@@ -241,7 +262,7 @@ img {
   width: 100%;
 }
 
-@media screen and (max-width: 80rem) {
+@media screen and (max-width: 800px) {
   .active-room {
     grid-template-columns: 1fr;
   }

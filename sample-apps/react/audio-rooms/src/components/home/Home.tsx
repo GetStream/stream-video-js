@@ -45,7 +45,7 @@ const Home = ({ userTapped }: { userTapped: User }) => {
               create();
             }}
           >
-            + Start a room
+            + Start room
           </button>
         </section>
         {state === AudioRoomState.Overview && <RoomOverview />}
