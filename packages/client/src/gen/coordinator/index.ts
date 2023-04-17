@@ -241,6 +241,62 @@ export interface CallAcceptedEvent {
   user: UserResponse;
 }
 /**
+ * This event is sent when call broadcasting has started
+ * @export
+ * @interface CallBroadcastingStartedEvent
+ */
+export interface CallBroadcastingStartedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallBroadcastingStartedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallBroadcastingStartedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallBroadcastingStartedEvent
+   */
+  hls_playlist_url: string;
+  /**
+   * The type of event: "call.broadcasting_started" in this case
+   * @type {string}
+   * @memberof CallBroadcastingStartedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when call broadcasting has stopped
+ * @export
+ * @interface CallBroadcastingStoppedEvent
+ */
+export interface CallBroadcastingStoppedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallBroadcastingStoppedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallBroadcastingStoppedEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.broadcasting_stopped" in this case
+   * @type {string}
+   * @memberof CallBroadcastingStoppedEvent
+   */
+  type: string;
+}
+/**
  * This event is sent when a call is created. Clients receiving this event should check if the ringing
  * field is set to true and if so, show the call screen
  * @export
@@ -314,6 +370,19 @@ export interface CallEndedEvent {
    * @memberof CallEndedEvent
    */
   user?: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface CallIngressResponse
+ */
+export interface CallIngressResponse {
+  /**
+   *
+   * @type {RTMPIngress}
+   * @memberof CallIngressResponse
+   */
+  rtmp: RTMPIngress;
 }
 /**
  * This event is sent when one or more members are added to a call
@@ -722,6 +791,12 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   id: string;
+  /**
+   *
+   * @type {CallIngressResponse}
+   * @memberof CallResponse
+   */
+  ingress: CallIngressResponse;
   /**
    * The capabilities of the current user
    * @type {Array<OwnCapability>}
@@ -1141,6 +1216,44 @@ export interface CreateCallTypeResponse {
    * @memberof CreateCallTypeResponse
    */
   updated_at: string;
+}
+/**
+ *
+ * @export
+ * @interface CreateGuestRequest
+ */
+export interface CreateGuestRequest {
+  /**
+   *
+   * @type {UserRequest}
+   * @memberof CreateGuestRequest
+   */
+  user: UserRequest;
+}
+/**
+ *
+ * @export
+ * @interface CreateGuestResponse
+ */
+export interface CreateGuestResponse {
+  /**
+   * the access token to authenticate the user
+   * @type {string}
+   * @memberof CreateGuestResponse
+   */
+  access_token: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateGuestResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CreateGuestResponse
+   */
+  user: UserResponse;
 }
 /**
  *
@@ -2078,7 +2191,7 @@ export interface OwnUserResponse {
    * @type {Array<string>}
    * @memberof OwnUserResponse
    */
-  teams?: Array<string>;
+  teams: Array<string>;
   /**
    *
    * @type {string}
@@ -2277,6 +2390,19 @@ export interface QueryMembersResponse {
    * @memberof QueryMembersResponse
    */
   prev?: string;
+}
+/**
+ * RTMP input settings
+ * @export
+ * @interface RTMPIngress
+ */
+export interface RTMPIngress {
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPIngress
+   */
+  address: string;
 }
 /**
  *
@@ -2822,6 +2948,12 @@ export interface UpdateCallRequest {
    * @memberof UpdateCallRequest
    */
   settings_override?: CallSettingsRequest;
+  /**
+   * the time the call is scheduled to start
+   * @type {string}
+   * @memberof UpdateCallRequest
+   */
+  starts_at?: string;
 }
 /**
  * Represents a call
@@ -3075,7 +3207,7 @@ export interface UserResponse {
    * @type {Array<string>}
    * @memberof UserResponse
    */
-  teams?: Array<string>;
+  teams: Array<string>;
   /**
    * Date/time of the last update
    * @type {string}
@@ -3091,6 +3223,8 @@ export interface UserResponse {
 export type VideoEvent =
   | ({ type: 'call.accepted' } & CallAcceptedEvent)
   | ({ type: 'call.blocked_user' } & BlockedUserEvent)
+  | ({ type: 'call.broadcasting_started' } & CallBroadcastingStartedEvent)
+  | ({ type: 'call.broadcasting_stopped' } & CallBroadcastingStoppedEvent)
   | ({ type: 'call.created' } & CallCreatedEvent)
   | ({ type: 'call.ended' } & CallEndedEvent)
   | ({ type: 'call.member_added' } & CallMemberAddedEvent)
