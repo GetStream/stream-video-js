@@ -16,20 +16,7 @@ export const watch = async (
   data?: JoinCallRequest,
 ) => {
   await httpClient.connectionIdPromise;
-  let joinCallResponse: JoinCallResponse;
-  try {
-    joinCallResponse = await httpClient.post<JoinCallResponse>(
-      `/call/${type}/${id}/join`,
-      data,
-    );
-  } catch (e) {
-    // fallback scenario, until we get a new Coordinator deployed
-    joinCallResponse = await httpClient.post<JoinCallResponse>(
-      `/join_call/${type}/${id}`,
-      data,
-    );
-  }
-  return joinCallResponse;
+  return httpClient.post<JoinCallResponse>(`/call/${type}/${id}/join`, data);
 };
 
 export const join = async (
