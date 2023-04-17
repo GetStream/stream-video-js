@@ -38,6 +38,7 @@ describe('Call Permission Events', () => {
         role: '',
         updated_at: '',
         custom: {},
+        teams: [],
       },
     });
 
@@ -57,6 +58,7 @@ describe('Call Permission Events', () => {
         role: '',
         updated_at: '',
         custom: {},
+        teams: [],
       },
     });
     expect(state.metadata?.own_capabilities).toEqual([
