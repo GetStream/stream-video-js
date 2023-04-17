@@ -555,6 +555,7 @@ export class Call {
       rpcClient: sfuClient,
       connectionConfig: call.connectionConfig,
       isDtxEnabled,
+      preferredAudioCodec: this.preferredAudioCodec,
     });
 
     this.statsReporter = createStatsReporter({

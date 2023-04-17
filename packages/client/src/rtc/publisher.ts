@@ -13,11 +13,15 @@ import {
 } from './videoLayers';
 import { getPreferredCodecs } from './codecs';
 import { PublishOptions } from './types';
+import { isReactNative } from '../helpers/platforms';
+import { enableDtx } from '../helpers/sdp-munging/enableDtx';
+import { setPreferredCodec } from '../helpers/sdp-munging/setPreferredCodec';
 
 export type PublisherOpts = {
   rpcClient: StreamSfuClient;
   connectionConfig?: RTCConfiguration;
   isDtxEnabled: boolean;
+  preferredAudioCodec: string;
 };
 
 /**
@@ -46,8 +50,14 @@ export class Publisher {
     [TrackType.UNSPECIFIED]: undefined,
   };
   private isDtxEnabled: boolean;
+  private preferredAudioCodec: string;
 
-  constructor({ connectionConfig, rpcClient, isDtxEnabled }: PublisherOpts) {
+  constructor({
+    connectionConfig,
+    rpcClient,
+    isDtxEnabled,
+    preferredAudioCodec,
+  }: PublisherOpts) {
     const pc = new RTCPeerConnection(connectionConfig);
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
@@ -65,6 +75,7 @@ export class Publisher {
     this.publisher = pc;
     this.rpcClient = rpcClient;
     this.isDtxEnabled = isDtxEnabled;
+    this.preferredAudioCodec = preferredAudioCodec;
   }
 
   /**
@@ -240,12 +251,17 @@ export class Publisher {
   private onNegotiationNeeded = async () => {
     console.log('AAA onNegotiationNeeded');
     const offer = await this.publisher.createOffer();
-    if (this.isDtxEnabled && offer.sdp) {
-      offer.sdp = offer.sdp.replace(
-        'useinbandfec=1',
-        'useinbandfec=1;usedtx=1',
-      );
+    let sdp = offer.sdp;
+    if (sdp) {
+      if (this.isDtxEnabled) {
+        sdp = enableDtx(sdp);
+      }
+      if (isReactNative()) {
+        sdp = setPreferredCodec(sdp, 'video', 'vp8');
+        sdp = setPreferredCodec(sdp, 'audio', this.preferredAudioCodec);
+      }
     }
+    offer.sdp = sdp;
     await this.publisher.setLocalDescription(offer);
 
     const trackInfos = this.publisher
