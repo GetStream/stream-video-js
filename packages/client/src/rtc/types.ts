@@ -62,9 +62,6 @@ export interface StreamVideoParticipant extends Participant {
    */
   reaction?: StreamReaction;
 
-  // FIXME OL: remove once this field once the deployed SFU is supporting it
-  roles?: string[];
-
   /**
    * The visibility state of the participant's video element
    * within the pre-configured viewport.

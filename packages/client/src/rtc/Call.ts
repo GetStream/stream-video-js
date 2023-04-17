@@ -163,13 +163,13 @@ export class Call {
   /**
    * The permissions context of this call.
    */
-  permissionsContext = new PermissionsContext();
+  readonly permissionsContext = new PermissionsContext();
 
   /**
    * The event dispatcher instance dedicated to this Call instance.
    * @private
    */
-  private dispatcher = new Dispatcher();
+  private readonly dispatcher = new Dispatcher();
 
   private subscriber?: RTCPeerConnection;
   private publisher?: Publisher;
@@ -281,6 +281,26 @@ export class Call {
         ) {
           this.leave();
         }
+      }),
+
+      // handle the case when the user permissions are revoked.
+      createSubscription(this.state.metadata$, (metadata) => {
+        if (!metadata) return;
+        const permissionToTrackType = {
+          [OwnCapability.SEND_AUDIO]: TrackType.AUDIO,
+          [OwnCapability.SEND_VIDEO]: TrackType.VIDEO,
+          [OwnCapability.SCREENSHARE]: TrackType.SCREEN_SHARE,
+        };
+        Object.entries(permissionToTrackType).forEach(([permission, type]) => {
+          const hasPermission = this.permissionsContext.hasPermission(
+            permission as OwnCapability,
+          );
+          if (!hasPermission) {
+            this.stopPublish(type).catch((err) => {
+              console.error('Error stopping publish', type, err);
+            });
+          }
+        });
       }),
     );
   }
@@ -417,8 +437,6 @@ export class Call {
     const call = await join(this.streamClient, this.type, this.id, data);
     this.state.setMetadata(call.metadata);
     this.state.setMembers(call.members);
-
-    // TODO OL: do we need to handle JOIN_CALL permission here?
 
     // FIXME OL: convert to a derived state
     this.state.setCallRecordingInProgress(call.metadata.recording);
@@ -615,6 +633,7 @@ export class Call {
   updateCallMembers = async (
     data: UpdateCallMembersRequest,
   ): Promise<UpdateCallMembersResponse> => {
+    // FIXME: OL: implement kick-users
     return this.streamClient.post(`${this.streamClientBasePath}/members`, data);
   };
 
