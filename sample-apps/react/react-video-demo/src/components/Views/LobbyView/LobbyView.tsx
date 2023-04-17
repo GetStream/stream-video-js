@@ -1,6 +1,8 @@
 import { FC, useEffect, useState } from 'react';
 import { FeatureCollection, Geometry } from 'geojson';
 
+import { User } from '@stream-io/video-client';
+
 import LobbyPanel from '../../LobbyPanel';
 import Header from '../../Header';
 import { StreamMark } from '../../Icons';
@@ -19,7 +21,7 @@ const loadingSentences = [
 
 export type Props = {
   logo: string;
-  avatar?: string;
+  user: User;
   joinCall(): void;
   callId: string;
   edges?: FeatureCollection<Geometry>;
@@ -40,6 +42,7 @@ export const LobbyView: FC<Props & Lobby> = ({
   edges,
   fastestEdge,
   isjoiningCall,
+  user,
 }) => {
   const [loadingSentence, setLoadingSentence] = useState(loadingSentences[0]);
   useEffect(() => {
@@ -70,6 +73,7 @@ export const LobbyView: FC<Props & Lobby> = ({
           joinCall={joinCall}
           logo={logo}
           call={call}
+          user={user}
           fastestEdge={fastestEdge}
           isJoiningCall={Boolean(callId)}
         />

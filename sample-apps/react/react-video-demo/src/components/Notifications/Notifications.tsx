@@ -23,7 +23,9 @@ export const Notifications: FC<Props> = ({ className }) => {
     <ul className={rootClassNames}>
       {notifications.map((notification) => (
         <li key={notification.id} className={styles.notification}>
-          <div className={styles.icon}>{notification?.icon}</div>
+          {notification?.icon && (
+            <div className={styles.icon}>{notification?.icon}</div>
+          )}
           <p>{notification.message}</p>
         </li>
       ))}
