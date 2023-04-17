@@ -11,7 +11,7 @@ export const watchBlockedUser =
     if (event.type !== 'call.blocked_user') return;
     state.setMetadata((metadata) => ({
       ...metadata!,
-      blocked_user_ids: [...metadata!.blocked_user_ids, event.user.id],
+      blocked_user_ids: [...(metadata?.blocked_user_ids || []), event.user.id],
     }));
   };
 
@@ -24,7 +24,7 @@ export const watchUnblockedUser =
   (state: CallState) => (event: StreamVideoEvent) => {
     if (event.type !== 'call.unblocked_user') return;
     state.setMetadata((metadata) => {
-      const blocked_user_ids = metadata!.blocked_user_ids.filter(
+      const blocked_user_ids = (metadata?.blocked_user_ids || []).filter(
         (userId) => event.user.id !== userId,
       );
       return {
