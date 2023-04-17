@@ -1,5 +1,4 @@
 import { FC, useCallback, useState } from 'react';
-import classnames from 'classnames';
 
 import { useMediaDevices } from '@stream-io/video-react-sdk';
 
@@ -35,17 +34,26 @@ export const DeviceSettings: FC<Props> = ({ className }) => {
   const [audioOutputId, setAudioOutputId] = useState<string>();
   const [videoInputId, setVideoInputId] = useState<string>();
 
-  const handleSelectVideoDevice = useCallback((videoDeviceId: string) => {
-    setVideoInputId(videoDeviceId);
-  }, []);
+  const handleSelectVideoDevice = useCallback(
+    (_: string, videoDeviceId: string) => {
+      setVideoInputId(videoDeviceId);
+    },
+    [],
+  );
 
-  const handleSelectAudioDevice = useCallback((audioInputDeviceId: string) => {
-    setAudioInputId(audioInputDeviceId);
-  }, []);
+  const handleSelectAudioDevice = useCallback(
+    (_: string, audioInputDeviceId: string) => {
+      setAudioInputId(audioInputDeviceId);
+    },
+    [],
+  );
 
-  const handleSelectAudioOutputDevice = useCallback((audioDeviceId: string) => {
-    setAudioOutputId(audioDeviceId);
-  }, []);
+  const handleSelectAudioOutputDevice = useCallback(
+    (_: string, audioDeviceId: string) => {
+      setAudioOutputId(audioDeviceId);
+    },
+    [],
+  );
 
   const save = useCallback(() => {
     if (videoInputId) {
@@ -53,6 +61,7 @@ export const DeviceSettings: FC<Props> = ({ className }) => {
     }
 
     if (audioInputId) {
+      console.log('bwaaaaaa', audioInputId);
       switchDevice('audioinput', audioInputId);
     }
 

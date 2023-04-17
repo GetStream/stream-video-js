@@ -81,12 +81,16 @@ export const ChatInput = () => {
     <div className={styles.root}>
       <div className={styles.container}>
         <Attachment className={styles.attachment} />
-        <Bolt className={styles.bolt} />
+        <div onClick={handleCommandsClick}>
+          <Bolt className={styles.bolt} />
+        </div>
         <div className={styles.input}>
           <ChatAutoComplete onChange={onChange} placeholder="Send a message" />
         </div>
 
-        <>
+        {giphyState && <GiphySearch />}
+
+        {/* <>
           <div
             className={classnames(styles.commands, {
               [styles.cooldown]: cooldownRemaining,
@@ -94,7 +98,7 @@ export const ChatInput = () => {
             onClick={cooldownRemaining ? () => null : handleCommandsClick}
             role="button"
           ></div>
-        </>
+        </> */}
       </div>
       <button
         className={classnames(styles.button, {
@@ -104,18 +108,7 @@ export const ChatInput = () => {
         disabled={!text}
         onClick={handleSubmit}
       >
-        {giphyState ? (
-          <GiphySearch />
-        ) : cooldownRemaining ? (
-          <div className="input-ui-send-cooldown">
-            <CooldownTimer
-              cooldownInterval={cooldownInterval}
-              setCooldownRemaining={setCooldownRemaining}
-            />
-          </div>
-        ) : (
-          <Send className={styles.send} />
-        )}
+        <Send className={styles.send} />
       </button>
     </div>
   );
