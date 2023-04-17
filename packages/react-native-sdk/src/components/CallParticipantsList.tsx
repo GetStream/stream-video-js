@@ -10,9 +10,12 @@ import { ParticipantView } from './ParticipantView';
 import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
+  StreamVideoParticipantPatches,
+  VisibilityState,
 } from '@stream-io/video-client';
 import { theme } from '../theme';
 import { useDebouncedValue } from '../utils/hooks';
+import { useActiveCall } from '@stream-io/video-react-bindings';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant | StreamVideoLocalParticipant>
@@ -57,13 +60,24 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   const [_forceUpdateValue, forceUpdate] = useReducer((x) => x + 1, 0);
   const forceUpdateValue = useDebouncedValue(_forceUpdateValue, 500); // we debounce forced value to avoid multiple viewability change continuous rerenders due to callbacks that occurs simultaneously during a large list scroll or when scrolling is completed
 
+  // we use a ref to store the active call object
+  // so that it can be used in the onViewableItemsChanged callback
+  const activeCall = useActiveCall();
+  const activeCallRef = useRef(activeCall);
+  activeCallRef.current = activeCall;
   // This is the function that gets called when the user scrolls the list of participants.
   // It updates viewableParticipantSessionIds HashSet with the session IDs
   // of the participants that are currently visible.
   const onViewableItemsChanged = useRef<
     FlatListProps['onViewableItemsChanged']
   >(({ changed }) => {
+    const participantPatches: StreamVideoParticipantPatches = {};
     changed.forEach((viewToken) => {
+      participantPatches[viewToken.key] = {
+        viewportVisibilityState: viewToken.isViewable
+          ? VisibilityState.VISIBLE
+          : VisibilityState.INVISIBLE,
+      };
       if (viewToken.isViewable) {
         viewableParticipantSessionIds.current.add(viewToken.key);
       } else {
@@ -72,6 +86,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
     });
     if (changed.length) {
       forceUpdate();
+      activeCallRef.current?.state.updateParticipants(participantPatches);
     }
   }).current;
 
