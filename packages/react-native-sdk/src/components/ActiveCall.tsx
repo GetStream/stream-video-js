@@ -12,6 +12,7 @@ import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsScreenView } from './CallParticipantsScreenView';
 import { theme } from '../theme';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
+import { ActiveCallDefaultSorter } from './ActiveCallDefaultSorter';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -21,6 +22,10 @@ export interface ActiveCallProps {
    * Handler called when the participants info button is pressed in the active call screen.
    */
   onOpenCallParticipantsInfoView: () => void;
+  /**
+   * When true, the default participant list sorter will be disabled.
+   */
+  disableDefaultSorter?: boolean;
 }
 /**
  * View for an active call, includes call controls and participant handling.
@@ -43,7 +48,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
-  const { onOpenCallParticipantsInfoView } = props;
+  const { onOpenCallParticipantsInfoView, disableDefaultSorter } = props;
   const hasScreenShare = useHasOngoingScreenShare();
   const { callCycleHandlers } = useCallCycleContext();
   const { onHangupCall } = callCycleHandlers;
@@ -78,6 +83,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
       <View onLayout={onLayout} style={styles.callControlsWrapper}>
         <CallControlsView onHangupCall={onHangupCall} />
       </View>
+      {!disableDefaultSorter && <ActiveCallDefaultSorter />}
     </View>
   );
 };
