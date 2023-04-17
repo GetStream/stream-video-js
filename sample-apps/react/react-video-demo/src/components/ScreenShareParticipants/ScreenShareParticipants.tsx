@@ -140,7 +140,7 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
               <ParticipantsSlider
                 call={call}
                 mode="vertical"
-                participants={remoteParticipants}
+                participants={allParticipants}
                 height={wrapperHeight}
               />
             </div>

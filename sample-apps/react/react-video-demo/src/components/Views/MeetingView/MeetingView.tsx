@@ -24,6 +24,7 @@ import Meeting from '../../Meeting';
 import MeetingLayout from '../../Layout/MeetingLayout';
 
 import { useWatchChannel } from '../../../hooks/useWatchChannel';
+import { useBreakpoint } from '../../../hooks/useBreakpoints';
 
 import { useTourContext } from '../../../contexts/TourContext';
 import { tour } from '../../../../data/tour';
@@ -57,7 +58,7 @@ export const View: FC<Props & Meeting> = ({
   chatClient,
 }) => {
   const [showChat, setShowChat] = useState<boolean>(false);
-  const [showParticipants, setShowParticpants] = useState<boolean>(true);
+  const [showParticipants, setShowParticpants] = useState<boolean>(false);
   const [isAwaitingRecordingResponse, setIsAwaitingRecordingResponse] =
     useState(false);
 
@@ -76,6 +77,8 @@ export const View: FC<Props & Meeting> = ({
 
   const remoteScreenShare = useHasOngoingScreenShare();
 
+  const breakpoint = useBreakpoint();
+
   const localScreenShare = localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
   );
@@ -86,6 +89,15 @@ export const View: FC<Props & Meeting> = ({
 
   useEffect(() => {
     setSteps(tour);
+  }, []);
+
+  useEffect(() => {
+    if (breakpoint === 'xs' || breakpoint === 'sm') {
+      setShowChat(false);
+      setShowParticpants(false);
+    } else {
+      setShowParticpants(true);
+    }
   }, []);
 
   useEffect(() => {
