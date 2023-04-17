@@ -1,6 +1,12 @@
 import { FC, useState, useCallback, useEffect } from 'react';
-
 import { v1 as uuidv1 } from 'uuid';
+
+import {
+  uniqueNamesGenerator,
+  Config,
+  adjectives,
+} from 'unique-names-generator';
+
 import {
   StreamVideo,
   useCreateStreamVideoClient,
@@ -31,6 +37,12 @@ export type Props = {
   token: string;
   apiKey: string;
   incomingCallId?: string | null;
+};
+
+const config: Config = {
+  dictionaries: [adjectives],
+  separator: '-',
+  style: 'lowerCase',
 };
 
 const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
@@ -88,7 +100,8 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   }, []);
 
   const joinMeeting = useCallback(async () => {
-    const id = callId || uuidv1();
+    const id =
+      callId || `${uniqueNamesGenerator(config)}-${uuidv1().split('-')[0]}`;
     setIsJoiningCall(true);
     try {
       const call = await client.call(callType, id);
