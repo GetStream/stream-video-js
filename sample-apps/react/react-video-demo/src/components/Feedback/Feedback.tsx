@@ -77,6 +77,18 @@ export const Feedback: FC<Props> = ({ className }) => {
     meta: { isSubmitting, canSubmit },
   } = useForm({
     onSubmit: async (values, instance) => {
+      const response = await fetch(
+        `https://api.getstream.io/chat/v1.0/feedback/`,
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values),
+        },
+      );
+
       setFeedbackSent(true);
     },
     debugForm: false,

@@ -204,18 +204,18 @@ export const ParticipantsPanel: FC<Props> = ({
             ) {
               return (
                 <li className={styles.participant} key={`participant-${index}`}>
-                  {participant?.name}
-                  {!isLocalParticipant && (
-                    <RemoteParticipant
-                      participant={participant}
-                      handleMuteUser={handleMuteUser}
-                      handleDisableVideo={handleDisableVideo}
-                      handleBlockUser={handleBlockUser}
-                      isAudioOn={isAudioOn}
-                      isVideoOn={isVideoOn}
-                      particpantName={particpantName}
-                    />
-                  )}
+                  <span className={styles.name}>{participant?.name}</span>
+                  {/* {!isLocalParticipant && ( */}
+                  <RemoteParticipant
+                    participant={participant}
+                    handleMuteUser={handleMuteUser}
+                    handleDisableVideo={handleDisableVideo}
+                    handleBlockUser={handleBlockUser}
+                    isAudioOn={isAudioOn}
+                    isVideoOn={isVideoOn}
+                    particpantName={particpantName}
+                  />
+                  {/* )} */}
                 </li>
               );
             }
