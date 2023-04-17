@@ -6,6 +6,7 @@ import { StreamVideoParticipant } from '@stream-io/video-client';
 import InvitePanel from '../InvitePanel';
 import ParticipantsPanel from '../ParticipantsPanel';
 import ChatPanel from '../ChatPanel';
+import { StreamMark } from '../Icons';
 
 import { StepNames } from '../../contexts/TourContext';
 
@@ -83,6 +84,10 @@ export const Sidebar: FC<Props> = ({
           ) : null}
         </div>
       </CSSTransition>
+      <div className={styles.branding}>
+        <StreamMark className={styles.logo} />
+        <span>Powered by Stream</span>
+      </div>
     </div>
   );
 };

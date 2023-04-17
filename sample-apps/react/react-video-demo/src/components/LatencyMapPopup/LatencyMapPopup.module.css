@@ -15,7 +15,7 @@
 }
 
 .abbriviation {
-  @apply flex rounded-full w-2 h-2 mr-2;
+  @apply flex rounded-full mr-2;
 }
 
 .description {
