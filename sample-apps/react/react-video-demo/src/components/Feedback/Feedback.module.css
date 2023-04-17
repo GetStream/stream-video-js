@@ -16,19 +16,13 @@
 }
 
 .input {
-  @apply pt-1 pb-1 pl-2 pr-2 mb-2 flex items-center text-sm w-full;
-  height: 44px;
-
-  background: #000000;
+  @apply pt-1 pb-1 pl-2 pr-2 mb-2 flex items-center text-sm w-full bg-video-black text-video-white h-[44px];
   border: 1px solid #272a30;
   border-radius: 6px;
 }
 
 .textarea {
-  @apply pt-2 pb-1 pl-2 pr-2 flex items-center text-sm w-full;
-  height: 96px;
-
-  background: #000000;
+  @apply pt-2 pb-1 pl-2 pr-2 flex items-center text-sm w-full  bg-video-black text-video-white h-[96px];
   border: 1px solid #272a30;
   border-radius: 6px;
 }
