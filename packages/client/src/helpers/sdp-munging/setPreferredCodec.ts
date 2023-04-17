@@ -60,12 +60,12 @@ export const setPreferredCodec = (
   mediaType: 'video' | 'audio',
   preferredCodec: string,
 ) => {
-  const codecId = extractIdOfRtpMap(sdp, preferredCodec);
-  if (!codecId) {
-    return sdp;
-  }
   const mediaSection = getMediaSection(sdp, mediaType);
   if (!mediaSection) {
+    return sdp;
+  }
+  const codecId = extractIdOfRtpMap(sdp, preferredCodec);
+  if (!codecId) {
     return sdp;
   }
   const newCodecOrder = moveCodecToFront(mediaSection.codecOrder, codecId);
