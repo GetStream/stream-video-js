@@ -56,7 +56,11 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const chatClient = useCreateStreamChatClient({
     apiKey,
     tokenOrProvider: token,
-    userData: user,
+    userData: {
+      id: user.id,
+      name: user.name,
+      image: user.image,
+    },
   });
 
   useEffect(() => {
