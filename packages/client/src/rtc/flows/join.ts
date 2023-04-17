@@ -9,6 +9,20 @@ import {
 import { measureResourceLoadLatencyTo } from './latency';
 import { StreamClient } from '../../coordinator/connection/client';
 
+const getCascadingModeParams = () => {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  const cascadingEnabled = params.get('cascading') !== null;
+  if (cascadingEnabled) {
+    const rawParams: Record<string, string> = {};
+    params.forEach((value, key) => {
+      rawParams[key] = value;
+    });
+    return rawParams;
+  }
+  return null;
+};
+
 export const watch = async (
   httpClient: StreamClient,
   type: string,
@@ -16,6 +30,20 @@ export const watch = async (
   data?: JoinCallRequest,
 ) => {
   await httpClient.connectionIdPromise;
+  // FIXME OL: remove this once cascading is enabled by default
+  const cascadingModeParams = getCascadingModeParams();
+  if (cascadingModeParams) {
+    return httpClient.doAxiosRequest<JoinCallResponse>(
+      'post',
+      `/call/${type}/${id}/join`,
+      data,
+      {
+        params: {
+          ...cascadingModeParams,
+        },
+      },
+    );
+  }
   return httpClient.post<JoinCallResponse>(`/call/${type}/${id}/join`, data);
 };
 
