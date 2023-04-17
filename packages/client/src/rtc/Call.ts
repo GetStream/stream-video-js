@@ -20,7 +20,6 @@ import {
   BlockUserRequest,
   BlockUserResponse,
   CallResponse,
-  CallSettingsRequest,
   EndCallResponse,
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
@@ -1244,20 +1243,12 @@ export class Call {
   /**
    * Updates the call settings or custom data.
    *
-   * @param custom the custom data to update.
-   * @param settings the call settings to update.
+   * @param updates the updates to apply to the call.
    */
-  update = async (
-    custom: { [key: string]: any },
-    settings?: CallSettingsRequest,
-  ) => {
-    const payload: UpdateCallRequest = {
-      custom: custom,
-      settings_override: settings,
-    };
+  update = async (updates: UpdateCallRequest) => {
     return this.streamClient.patch<UpdateCallResponse, UpdateCallRequest>(
       `${this.streamClientBasePath}`,
-      payload,
+      updates,
     );
   };
 
