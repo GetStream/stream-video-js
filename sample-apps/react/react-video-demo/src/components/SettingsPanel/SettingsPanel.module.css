@@ -15,12 +15,15 @@
   @apply sm:border-b-0;
 }
 
-.share,
-.record,
 .participants,
 .chat,
 .leave {
   @apply flex sm:hidden;
+}
+
+.share,
+.record {
+  @apply flex lg:hidden;
 }
 
 .settingsIcon {
