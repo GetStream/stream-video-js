@@ -59,9 +59,13 @@
 
 .names {
   @apply hidden sm:flex mr-8 ml-8 text-video-white;
+  display: block;
   max-width: 200px;
   overflow: hidden;
   white-space: nowrap;
+
+  text-overflow: ellipsis;
+
   margin-left: 80px;
   margin-right: 12px;
 }

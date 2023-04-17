@@ -12,7 +12,7 @@
 }
 
 .callContainer {
-  @apply border-4 border-video-stream-500 relative mt-5 mb-5 rounded-container w-full sm:min-h-[300px];
+  @apply border-4 border-video-stream-500 bg-video-grey-600/50 relative mt-5 mb-5 rounded-container w-full sm:min-h-[300px];
 }
 
 .disabledPreview {
