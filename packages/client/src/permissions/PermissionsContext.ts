@@ -19,7 +19,7 @@ export class PermissionsContext {
    * @param permissions the permissions to set.
    */
   setPermissions = (permissions: OwnCapability[]) => {
-    this.permissions = permissions;
+    this.permissions = permissions || [];
   };
 
   /**
