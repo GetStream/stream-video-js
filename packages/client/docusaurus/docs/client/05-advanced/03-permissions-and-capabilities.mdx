@@ -83,6 +83,7 @@ At any time, a moderator or host can decide to either grant or revoke certain pe
 
 ```ts
 import { OwnCapability } from '@stream-io/video-client';
+
 const call = streamVideoClient.call(type, id);
 await call.updateUserPermissions({
   user_id: 'demo-user',
@@ -112,7 +113,7 @@ await call.muteUser(['demo-user-id', 'demo-user-id-2'], 'audio');
 await call.muteAllUsers('audio');
 ```
 
-This operation doesn't revoke any permission, and the user would still be able to unmute itself.
+This operation doesn't revoke any permission, and the user would still be able to un-mute itself.
 
 ### Ending call for everyone
 
