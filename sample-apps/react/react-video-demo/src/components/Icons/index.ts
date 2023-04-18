@@ -19,6 +19,7 @@ export { MicMuted } from './MicMuted';
 export { Latency } from './Latency';
 export { Leave } from './Leave';
 export { Loading } from './Loading';
+export { LoadingSpinner } from './LoadingSpinner';
 export { Options } from './Options';
 export { Pause } from './Pause';
 export { People } from './People';
