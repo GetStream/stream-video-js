@@ -485,10 +485,10 @@ export class StreamClient {
     });
   }
 
-  doAxiosRequest = async <T>(
+  doAxiosRequest = async <T, D = unknown>(
     type: string,
     url: string,
-    data?: unknown,
+    data?: D,
     options: AxiosRequestConfig & {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
     } = {},
@@ -538,7 +538,7 @@ export class StreamClient {
             await sleep(retryInterval(this.consecutiveFailures));
           }
           await this.tokenManager.loadToken();
-          return await this.doAxiosRequest<T>(type, url, data, options);
+          return await this.doAxiosRequest<T, D>(type, url, data, options);
         }
         return this.handleResponse(e.response);
       } else {
@@ -549,25 +549,25 @@ export class StreamClient {
   };
 
   get<T>(url: string, params?: AxiosRequestConfig['params']) {
-    return this.doAxiosRequest<T>('get', url, null, {
+    return this.doAxiosRequest<T, unknown>('get', url, null, {
       params,
     });
   }
 
-  put<T>(url: string, data?: unknown) {
-    return this.doAxiosRequest<T>('put', url, data);
+  put<T, D = unknown>(url: string, data?: D) {
+    return this.doAxiosRequest<T, D>('put', url, data);
   }
 
-  post<T>(url: string, data?: unknown) {
-    return this.doAxiosRequest<T>('post', url, data);
+  post<T, D = unknown>(url: string, data?: D) {
+    return this.doAxiosRequest<T, D>('post', url, data);
   }
 
-  patch<T>(url: string, data?: unknown) {
-    return this.doAxiosRequest<T>('patch', url, data);
+  patch<T, D = unknown>(url: string, data?: D) {
+    return this.doAxiosRequest<T, D>('patch', url, data);
   }
 
   delete<T>(url: string, params?: AxiosRequestConfig['params']) {
-    return this.doAxiosRequest<T>('delete', url, null, {
+    return this.doAxiosRequest<T, unknown>('delete', url, null, {
       params,
     });
   }

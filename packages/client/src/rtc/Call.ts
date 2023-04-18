@@ -17,9 +17,9 @@ import {
 } from '../store';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import {
+  BlockUserRequest,
   BlockUserResponse,
   CallResponse,
-  CallSettingsRequest,
   EndCallResponse,
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
@@ -30,13 +30,16 @@ import {
   JoinCallRequest,
   ListRecordingsResponse,
   MemberResponse,
+  MuteUsersRequest,
   MuteUsersResponse,
+  OwnCapability,
   RequestPermissionRequest,
   RequestPermissionResponse,
   SendEventRequest,
   SendReactionRequest,
   SendReactionResponse,
   StopLiveResponse,
+  UnblockUserRequest,
   UnblockUserResponse,
   UpdateCallMembersRequest,
   UpdateCallMembersResponse,
@@ -54,6 +57,7 @@ import {
   VisibilityState,
 } from './types';
 import { debounceTime, pairwise, Subject, takeWhile, tap } from 'rxjs';
+import { createSubscription } from '../store/rxUtils';
 import { Comparator } from '../sorting';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import { JoinResponse } from '../gen/video/sfu/event/events';
@@ -62,6 +66,7 @@ import {
   StatsReporter,
 } from '../stats/state-store-stats-reporter';
 import { ViewportTracker } from '../ViewportTracker';
+import { PermissionsContext } from '../permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from '../coordinator/connection/client';
 import { retryInterval, sleep } from '../coordinator/connection/utils';
@@ -155,10 +160,15 @@ export class Call {
   readonly state: CallState;
 
   /**
+   * The permissions context of this call.
+   */
+  readonly permissionsContext = new PermissionsContext();
+
+  /**
    * The event dispatcher instance dedicated to this Call instance.
    * @private
    */
-  private dispatcher = new Dispatcher();
+  private readonly dispatcher = new Dispatcher();
 
   private subscriber?: RTCPeerConnection;
   private publisher?: Publisher;
@@ -236,13 +246,62 @@ export class Call {
     this.state.setMetadata(metadata);
     this.state.setMembers(members || []);
 
-    registerEventHandlers(this, this.state, this.dispatcher);
+    this.leaveCallHooks.push(
+      registerEventHandlers(this, this.state, this.dispatcher),
+    );
+    this.registerEffects();
 
-    this.trackSubscriptionsSubject
-      .pipe(debounceTime(UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION))
-      .subscribe((subscriptions) => {
-        this.sfuClient?.updateSubscriptions(subscriptions);
-      });
+    this.leaveCallHooks.push(
+      createSubscription(
+        this.trackSubscriptionsSubject.pipe(
+          debounceTime(UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION),
+        ),
+        (subscriptions) => this.sfuClient?.updateSubscriptions(subscriptions),
+      ),
+    );
+  }
+
+  private registerEffects() {
+    this.leaveCallHooks.push(
+      // handles updating the permissions context when the metadata changes.
+      createSubscription(this.state.metadata$, (metadata) => {
+        if (!metadata) return;
+        this.permissionsContext.setPermissions(metadata.own_capabilities);
+        this.permissionsContext.setCallSettings(metadata.settings);
+      }),
+
+      // handles the case when the user is blocked by the call owner.
+      createSubscription(this.state.metadata$, (metadata) => {
+        if (!metadata) return;
+        const connectedUser = this.clientStore.connectedUser;
+        if (
+          connectedUser &&
+          metadata.blocked_user_ids.includes(connectedUser.id)
+        ) {
+          this.leave();
+        }
+      }),
+
+      // handle the case when the user permissions are revoked.
+      createSubscription(this.state.metadata$, (metadata) => {
+        if (!metadata) return;
+        const permissionToTrackType = {
+          [OwnCapability.SEND_AUDIO]: TrackType.AUDIO,
+          [OwnCapability.SEND_VIDEO]: TrackType.VIDEO,
+          [OwnCapability.SCREENSHARE]: TrackType.SCREEN_SHARE,
+        };
+        Object.entries(permissionToTrackType).forEach(([permission, type]) => {
+          const hasPermission = this.permissionsContext.hasPermission(
+            permission as OwnCapability,
+          );
+          if (!hasPermission) {
+            this.stopPublish(type).catch((err) => {
+              console.error('Error stopping publish', type, err);
+            });
+          }
+        });
+      }),
+    );
   }
 
   /**
@@ -537,20 +596,11 @@ export class Call {
       // fails to respond in time
       const { callState } = await this.waitForJoinResponse();
       const currentParticipants = callState?.participants || [];
-
-      const ownCapabilities = {
-        ownCapabilities: call.metadata.own_capabilities,
-      };
-
       this.state.setParticipants(
         currentParticipants.map<StreamVideoParticipant>((participant) => ({
           ...participant,
           isLoggedInUser: participant.sessionId === sfuClient.sessionId,
           viewportVisibilityState: VisibilityState.UNKNOWN,
-          // TODO: save other participants permissions once that's provided by SFU
-          ...(participant.sessionId === sfuClient.sessionId
-            ? ownCapabilities
-            : {}),
         })),
       );
 
@@ -574,13 +624,16 @@ export class Call {
     }
   };
 
+  /**
+   * Will update the call members.
+   *
+   * @param data the request data.
+   */
   updateCallMembers = async (
     data: UpdateCallMembersRequest,
   ): Promise<UpdateCallMembersResponse> => {
-    return await this.streamClient.post<UpdateCallMembersResponse>(
-      `${this.streamClientBasePath}/members`,
-      data,
-    );
+    // FIXME: OL: implement kick-users
+    return this.streamClient.post(`${this.streamClientBasePath}/members`, data);
   };
 
   /**
@@ -697,6 +750,7 @@ export class Call {
     if (!this.publisher) {
       throw new Error(`Call not joined yet.`);
     }
+
     const [screenShareTrack] = screenShareStream.getVideoTracks();
     if (!screenShareTrack) {
       return console.error(`There is no video track in the stream`);
@@ -1005,15 +1059,27 @@ export class Call {
     });
   };
 
-  sendReaction = async (reaction: SendReactionRequest) => {
-    return this.streamClient.post<SendReactionResponse>(
+  /**
+   * Sends a reaction to the other call participants.
+   *
+   * @param reaction the reaction to send.
+   */
+  sendReaction = async (
+    reaction: SendReactionRequest,
+  ): Promise<SendReactionResponse> => {
+    return this.streamClient.post(
       `${this.streamClientBasePath}/reaction`,
       reaction,
     );
   };
 
+  /**
+   * Blocks the user with the given `userId`.
+   *
+   * @param userId the id of the user to block.
+   */
   blockUser = async (userId: string) => {
-    return this.streamClient.post<BlockUserResponse>(
+    return this.streamClient.post<BlockUserResponse, BlockUserRequest>(
       `${this.streamClientBasePath}/block`,
       {
         user_id: userId,
@@ -1021,8 +1087,13 @@ export class Call {
     );
   };
 
+  /**
+   * Unblocks the user with the given `userId`.
+   *
+   * @param userId the id of the user to unblock.
+   */
   unblockUser = async (userId: string) => {
-    return this.streamClient.post<UnblockUserResponse>(
+    return this.streamClient.post<UnblockUserResponse, UnblockUserRequest>(
       `${this.streamClientBasePath}/unblock`,
       {
         user_id: userId,
@@ -1030,23 +1101,33 @@ export class Call {
     );
   };
 
+  /**
+   * Mutes the user with the given `userId`.
+   *
+   * @param userId the id of the user to mute.
+   * @param type the type of the mute operation.
+   */
   muteUser = (
-    userId: string,
+    userId: string | string[],
     type: 'audio' | 'video' | 'screenshare',
-    sessionId?: string,
   ) => {
-    return this.streamClient.post<MuteUsersResponse>(
+    // FIXME OL: handle muting self.
+    return this.streamClient.post<MuteUsersResponse, MuteUsersRequest>(
       `${this.streamClientBasePath}/mute_users`,
       {
-        user_ids: [userId],
+        user_ids: Array.isArray(userId) ? userId : [userId],
         [type]: true,
-        // session_ids: [sessionId],
       },
     );
   };
 
+  /**
+   * Will mute all users in the call.
+   *
+   * @param type the type of the mute operation.
+   */
   muteAllUsers = (type: 'audio' | 'video' | 'screenshare') => {
-    return this.streamClient.post<MuteUsersResponse>(
+    return this.streamClient.post<MuteUsersResponse, MuteUsersRequest>(
       `${this.streamClientBasePath}/mute_users`,
       {
         mute_all_users: true,
@@ -1055,6 +1136,9 @@ export class Call {
     );
   };
 
+  /**
+   * Loads the information about the call.
+   */
   get = async () => {
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
@@ -1065,17 +1149,21 @@ export class Call {
     return response;
   };
 
+  /**
+   * Loads the information about the call and creates it if it doesn't exist.
+   *
+   * @param data the data to create the call with.
+   */
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
-    const response = await this.streamClient.post<GetOrCreateCallResponse>(
-      this.streamClientBasePath,
-      data,
-    );
+    const response = await this.streamClient.post<
+      GetOrCreateCallResponse,
+      GetOrCreateCallRequest
+    >(this.streamClientBasePath, data);
 
     if (data?.ring && !this.dropTimeout) {
       this.scheduleAutoDrop();
       this.watchForAutoDropCancellation();
     }
-
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
 
@@ -1097,35 +1185,38 @@ export class Call {
    * Starts recording the call
    */
   startRecording = async () => {
-    try {
-      return await this.streamClient.post(
-        `${this.streamClientBasePath}/start_recording`,
-        {},
-      );
-    } catch (error) {
-      console.log(`Failed to start recording`, error);
-    }
+    return this.streamClient.post(
+      `${this.streamClientBasePath}/start_recording`,
+      {},
+    );
   };
 
   /**
    * Stops recording the call
    */
   stopRecording = async () => {
-    try {
-      return await this.streamClient.post(
-        `${this.streamClientBasePath}/stop_recording`,
-        {},
-      );
-    } catch (error) {
-      console.log(`Failed to stop recording`, error);
-    }
+    return this.streamClient.post(
+      `${this.streamClientBasePath}/stop_recording`,
+      {},
+    );
   };
 
   /**
    * Sends a `call.permission_request` event to all users connected to the call. The call settings object contains infomration about which permissions can be requested during a call (for example a user might be allowed to request permission to publish audio, but not video).
    */
-  requestPermissions = async (data: RequestPermissionRequest) => {
-    return this.streamClient.post<RequestPermissionResponse>(
+  requestPermissions = async (
+    data: RequestPermissionRequest,
+  ): Promise<RequestPermissionResponse> => {
+    const { permissions } = data;
+    const canRequestPermissions = permissions.every((permission) =>
+      this.permissionsContext.canRequest(permission as OwnCapability),
+    );
+    if (!canRequestPermissions) {
+      throw new Error(
+        `You are not allowed to request permissions: ${permissions.join(', ')}`,
+      );
+    }
+    return this.streamClient.post(
       `${this.streamClientBasePath}/request_permission`,
       data,
     );
@@ -1142,12 +1233,15 @@ export class Call {
    *
    */
   updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
-    return this.streamClient.post<UpdateUserPermissionsResponse>(
-      `${this.streamClientBasePath}/user_permissions`,
-      data,
-    );
+    return this.streamClient.post<
+      UpdateUserPermissionsResponse,
+      UpdateUserPermissionsRequest
+    >(`${this.streamClientBasePath}/user_permissions`, data);
   };
 
+  /**
+   * Starts the livestreaming of the call.
+   */
   goLive = async () => {
     return this.streamClient.post<GoLiveResponse>(
       `${this.streamClientBasePath}/go_live`,
@@ -1155,6 +1249,9 @@ export class Call {
     );
   };
 
+  /**
+   * Stops the livestreaming of the call.
+   */
   stopLive = async () => {
     return this.streamClient.post<StopLiveResponse>(
       `${this.streamClientBasePath}/stop_live`,
@@ -1162,20 +1259,21 @@ export class Call {
     );
   };
 
-  update = async (
-    custom: { [key: string]: any },
-    settings?: CallSettingsRequest,
-  ) => {
-    const payload: UpdateCallRequest = {
-      custom: custom,
-      settings_override: settings,
-    };
-    return this.streamClient.patch<UpdateCallResponse>(
+  /**
+   * Updates the call settings or custom data.
+   *
+   * @param updates the updates to apply to the call.
+   */
+  update = async (updates: UpdateCallRequest) => {
+    return this.streamClient.patch<UpdateCallResponse, UpdateCallRequest>(
       `${this.streamClientBasePath}`,
-      payload,
+      updates,
     );
   };
 
+  /**
+   * Ends the call. Once the call is ended, it cannot be re-joined.
+   */
   endCall = async () => {
     return this.streamClient.post<EndCallResponse>(
       `${this.streamClientBasePath}/mark_ended`,
@@ -1339,6 +1437,11 @@ export class Call {
     return response;
   };
 
+  /**
+   * Returns a list of Edge Serves for current call.
+   *
+   * @param data the data.
+   */
   getEdgeServer = (data: GetCallEdgeServerRequest) => {
     return this.streamClient.post<GetCallEdgeServerResponse>(
       `${this.streamClientBasePath}/get_edge_server`,
@@ -1346,6 +1449,11 @@ export class Call {
     );
   };
 
+  /**
+   * Sends an event to all call participants.
+   *
+   * @param event the event to send.
+   */
   sendEvent = async (
     event: SendEventRequest & { type: StreamCallEvent['type'] },
   ) => {

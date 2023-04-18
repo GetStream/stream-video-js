@@ -1,0 +1,30 @@
+.root {
+  @apply flex items-center justify-between bg-video-grey-800 border-t-2 border-video-grey-450 pr-2 pt-2;
+}
+
+.container {
+  @apply flex p-2 items-center;
+}
+
+.attachment {
+  @apply text-video-grey-400 h-5 w-5 mr-1;
+}
+
+.attachment:hover {
+  @apply cursor-pointer;
+}
+
+.bolt {
+  @apply text-video-grey-400 h-5 w-5 mr-1;
+}
+
+.bolt:hover {
+  @apply cursor-pointer;
+}
+.input textarea {
+  @apply bg-video-grey-800 border-2 text-sm pt-1 pb-1 pl-2 pr-2 border-video-grey-450 text-video-grey-400 rounded-full;
+}
+
+.button {
+  @apply flex items-center justify-center h-8 w-8 bg-video-grey-300 rounded-full;
+}

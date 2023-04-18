@@ -138,8 +138,11 @@ export class StreamSfuClient {
     });
   }
 
-  close = (code: number = 1000) => {
-    this.signalWs.close(code, 'Requested signal connection close');
+  close = (
+    code: number = 1000,
+    reason: string = 'Requested signal connection close',
+  ) => {
+    this.signalWs.close(code, reason);
 
     this.unsubscribeIceTrickle();
     clearInterval(this.keepAliveInterval);
@@ -254,7 +257,10 @@ export class StreamSfuClient {
 
         if (timeSinceLastMessage > this.unhealthyTimeoutInMs) {
           console.log('SFU connection unhealthy, closing');
-          this.close(4001);
+          this.close(
+            4001,
+            `SFU connection unhealthy. Didn't receive any healthcheck messages for ${this.unhealthyTimeoutInMs}ms`,
+          );
         }
       }
     }, this.unhealthyTimeoutInMs);

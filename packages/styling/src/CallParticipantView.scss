@@ -9,19 +9,10 @@
     outline: 2px solid var(--str-video__primary-color);
   }
 
-  .str-call__participant {
-    min-height: 0;
-    max-height: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: center;
-
-    &.str-video__participant--speaking {
-      .str-video__remote-video {
-        @include video-outline;
-      }
+  &--speaking {
+    video,
+    .str-video__participant-placeholder {
+      @include video-outline;
     }
   }
 
@@ -39,12 +30,6 @@
       object-fit: cover;
       aspect-ratio: 4/3;
       background: var(--str-video__text-color3);
-    }
-  }
-
-  &.str-video__participant--speaking {
-    .str-video__remote-video {
-      @include video-outline;
     }
   }
 

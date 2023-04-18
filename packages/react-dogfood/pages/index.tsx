@@ -38,7 +38,7 @@ export default function Home() {
         spacing={2}
         flexGrow={1}
       >
-        <Stack spacing={2} alignItems="center">
+        <Stack spacing={2} alignItems="center" flexGrow={1}>
           <Box padding={2}>
             <Typography variant="h2" textAlign="center">
               Stream Meetings

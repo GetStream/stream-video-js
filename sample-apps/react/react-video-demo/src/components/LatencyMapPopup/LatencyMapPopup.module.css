@@ -1,0 +1,33 @@
+.root {
+  @apply relative flex;
+}
+
+.container {
+  @apply bg-video-white rounded p-3;
+}
+
+.header {
+  @apply flex items-center font-bold flex items-center;
+}
+
+.latencyIndicator {
+  @apply bg-video-green-500 mr-2 h-2 w-2 rounded-full;
+}
+
+.abbriviation {
+  @apply flex rounded-full mr-2;
+}
+
+.description {
+  @apply text-sm text-map-popup-description;
+}
+
+.indicator {
+  @apply w-8 overflow-hidden inline-block absolute ml-2;
+  bottom: 0;
+  margin-bottom: -12px;
+}
+
+.indicatorInner {
+  @apply h-3 w-3 bg-video-white -rotate-45 transform origin-top-left;
+}

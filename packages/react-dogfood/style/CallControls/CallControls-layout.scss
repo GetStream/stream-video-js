@@ -1,10 +1,11 @@
 .str-video__call-controls {
   justify-content: space-between;
-  padding: 1rem 1.25rem;
-}
+  padding: unset;
+  padding-top: 1rem;
 
-.rd-call-controls-group {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
+  .str-video__call-controls--group {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
 }
