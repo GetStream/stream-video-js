@@ -53,6 +53,10 @@
   @apply w-auto;
 }
 
+.loadingSpinner {
+  @apply h-10 w-10;
+}
+
 .shareScreen {
   @apply hidden lg:flex ml-4;
 }

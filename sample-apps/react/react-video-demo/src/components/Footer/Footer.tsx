@@ -12,7 +12,7 @@ import {
   Record,
   ShareScreen,
   Stop,
-  Loading,
+  LoadingSpinner,
 } from '../Icons';
 import Portal from '../Portal';
 import SettingsPanel from '../SettingsPanel';
@@ -132,7 +132,9 @@ export const Footer: FC<Props> = ({
 
             {!isRecording && !isAwaitingRecording && <Record />}
 
-            {!isRecording && isAwaitingRecording && <Loading />}
+            {!isRecording && isAwaitingRecording && (
+              <LoadingSpinner className={styles.loadingSpinner} />
+            )}
           </>
         </Button>
 
