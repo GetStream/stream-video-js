@@ -94,6 +94,40 @@ await call.updateUserPermissions({
 The end user would get notified via a WebSocket event with a type: `call.permissions_updated`.
 In the case of revoked permissions, the SDK would automatically stop publishing the appropriate tracks.
 
+### Muting participants
+
+In addition to granting or revoking permissions, a moderator or host can also mute a participant.
+This is a common scenario as quite often, participants may be a source of unwanted noise or distraction.
+
+```ts
+const call = streamVideoClient.call(type, id);
+await call.muteUser('demo-user-id', 'audio');
+await call.muteUser('demo-user-id', 'video');
+await call.muteUser('demo-user-id', 'screenshare');
+
+// or, mute in bulk
+await call.muteUser(['demo-user-id', 'demo-user-id-2'], 'audio');
+
+// or, mute all
+await call.muteAllUsers('audio');
+```
+
+This operation doesn't revoke any permission, and the user would still be able to unmute itself.
+
+### Ending call for everyone
+
+In some cases, a moderator or host may want to end the call for everyone.
+
+```ts
+const call = streamVideoClient.call(type, id);
+await call.endCall();
+```
+
+This operation will emit `call.ended` event to every participant in the call.
+The SDK would automatically stop publishing any tracks and leave the call.
+
+Ended calls can't be re-joined.
+
 ## Capabilities
 
 Every user connecting to a Stream Call, has a set of [Capabilities](../).
