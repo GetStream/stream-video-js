@@ -6,7 +6,13 @@
 
 @media screen(md) {
   .footer {
-    @apply grid justify-between items-center w-full;
+    grid-template-columns: 0.5fr 1fr 1fr;
+    grid-template-areas: 'settings controls toggles';
+  }
+}
+
+@media screen(lg) {
+  .footer {
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-areas: 'settings controls toggles';
   }
@@ -40,15 +46,19 @@
 }
 
 .record {
-  @apply hidden sm:flex ml-4;
+  @apply hidden lg:flex ml-4;
 }
 
 .record.recording button {
   @apply w-auto;
 }
 
+.loadingSpinner {
+  @apply h-10 w-10;
+}
+
 .shareScreen {
-  @apply hidden sm:flex ml-4;
+  @apply hidden lg:flex ml-4;
 }
 
 .controls {
@@ -60,7 +70,7 @@
 }
 
 .cancel {
-  @apply ml-2 sm:ml-8 flex;
+  @apply ml-2 lg:ml-8 flex max-w-[150px];
   transition: width 100ms;
   opacity: 1;
 }

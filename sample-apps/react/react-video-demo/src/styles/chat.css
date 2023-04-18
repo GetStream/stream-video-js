@@ -12,7 +12,7 @@
 }
 
 .str-chat__channel .str-chat__container {
-  @apply bg-video-black;
+  @apply bg-video-black sm:bg-video-grey-700;
 }
 
 .str-chat__list {

@@ -1,5 +1,5 @@
 .root {
-  @apply p-2 sm:p-0 md:w-4/12 flex flex-col items-center;
+  @apply p-2 sm:p-0 md:w-6/12 lg:w-4/12 flex flex-col items-center;
   pointer-events: visible;
 }
 
@@ -12,11 +12,11 @@
 }
 
 .callContainer {
-  @apply border-4 border-video-stream-500 relative mt-5 mb-5 rounded-container w-full sm:min-h-[300px];
+  @apply overflow-hidden border-4 border-video-stream-500 bg-video-grey-600/50 relative mt-5 mb-5 rounded-container w-full h-[275px];
 }
 
 .disabledPreview {
-  @apply flex items-center justify-center text-video-white text-sm bg-video-grey-700 w-full sm:min-h-[300px];
+  @apply flex items-center justify-center text-video-white text-sm bg-video-grey-700 w-full h-[275px];
   border-radius: 10px;
 }
 
@@ -30,7 +30,7 @@
 }
 
 .callContainer video {
-  @apply w-full h-auto  sm:min-h-[300px];
+  @apply w-full h-auto  h-[275px];
   border-radius: 10px;
 }
 

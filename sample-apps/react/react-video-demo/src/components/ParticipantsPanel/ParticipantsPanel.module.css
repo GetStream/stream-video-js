@@ -2,7 +2,7 @@
   @apply hidden sm:flex bg-video-grey-500 flex items-center relative text-video-white/50 mt-4;
   border: 1px solid #272a30;
   border-radius: 44px;
-  height: 25px;
+  height: 35px;
 }
 
 .amount {
@@ -10,8 +10,7 @@
 }
 
 .input {
-  @apply bg-video-transparent p-2 relative border-none z-10 cursor-pointer w-full h-full;
-  font-size: 10px;
+  @apply bg-video-transparent p-4 relative border-none text-sm z-10 cursor-pointer w-full h-full;
 }
 
 .input:focus,
@@ -21,21 +20,23 @@
 
 .searchIcon {
   @apply absolute z-0;
-  height: 15px;
-  right: 4px;
-  top: 4px;
+  right: 8px;
 }
 
 .participants {
-  @apply pb-4;
-  border-bottom: 1px solid #272a30;
-  max-height: 200px;
-  overflow: hidden;
+  @apply overflow-hidden pb-4 pt-2 max-h-[200px];
   overflow-y: scroll;
 }
 
 .participant {
   @apply flex items-center justify-between mt-2 text-sm;
+}
+
+.name {
+  @apply block items-center max-w-[120px];
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .media {

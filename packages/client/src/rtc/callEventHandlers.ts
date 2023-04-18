@@ -4,6 +4,7 @@ import { CallState } from '../store';
 import {
   watchAudioLevelChanged,
   watchBlockedUser,
+  watchCallGrantsUpdated,
   watchCallPermissionRequest,
   watchCallPermissionsUpdated,
   watchCallRecordingStarted,
@@ -50,6 +51,7 @@ export const registerEventHandlers = (
 
     call.on('call.permission_request', watchCallPermissionRequest(state)),
     call.on('call.permissions_updated', watchCallPermissionsUpdated(state)),
+    call.on('callGrantsUpdated', watchCallGrantsUpdated(state)),
   ];
 
   return () => {

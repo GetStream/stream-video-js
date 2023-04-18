@@ -1,4 +1,5 @@
 import { uniqueNamesGenerator, Config, starWars } from 'unique-names-generator';
+import { v1 as uuid } from 'uuid';
 
 const tokenEndpoint: string =
   'https://stream-calls-dogfood.vercel.app/api/auth/create-token';
@@ -6,14 +7,14 @@ const tokenEndpoint: string =
 const config: Config = {
   dictionaries: [starWars],
   separator: '-',
-  style: 'lowerCase',
+  style: 'capital',
 };
 
 export const generateUser = async (role: string, team: string) => {
   const characterName: string = uniqueNamesGenerator(config);
 
-  const userId: string = `demo-${characterName}}`;
-  const userName: string = `Demo user ${characterName}`;
+  const userId: string = `demo-${uuid()}`;
+  const userName: string = `${characterName}`;
   let token: string | undefined;
 
   try {

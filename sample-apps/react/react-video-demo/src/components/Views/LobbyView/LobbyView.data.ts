@@ -1,7 +1,13 @@
 import { Props } from './LobbyView';
 
 export const KichinSink: Props = {
-  avatar: 'https://randomuser.me/api/portraits/men/57.jpg',
+  user: {
+    id: '123213',
+    name: 'Kichin Sink',
+    role: 'role',
+    teams: ['team'],
+    image: '',
+  },
   logo: '/images/icons/stream-logo.svg',
   joinCall: () => {},
   callId: 'ADFSDAf12124',

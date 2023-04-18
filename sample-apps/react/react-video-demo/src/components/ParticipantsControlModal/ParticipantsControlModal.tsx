@@ -1,6 +1,7 @@
 import { FC } from 'react';
 
 import { OwnCapability, StreamVideoParticipant } from '@stream-io/video-client';
+import { useOwnCapabilities } from '@stream-io/video-react-bindings';
 
 import Panel from '../Panel';
 import { MicMuted, People, VideoOff } from '../Icons';
@@ -8,7 +9,6 @@ import { MicMuted, People, VideoOff } from '../Icons';
 import { Restricted } from '../Moderation/Restricted';
 
 import styles from './ParticipantsControlModal.module.css';
-import { useOwnCapabilities } from '@stream-io/video-react-bindings';
 
 export type Props = {
   participant: StreamVideoParticipant;
