@@ -298,6 +298,11 @@ export class Publisher {
           layers: layers,
           trackType,
           mid: transceiver.mid || '',
+
+          // FIXME OL: adjust these values
+          stereo: false,
+          dtx: this.isDtxEnabled,
+          red: false,
         };
       });
 

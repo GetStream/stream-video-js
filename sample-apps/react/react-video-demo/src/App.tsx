@@ -1,12 +1,18 @@
 import { FC, useState, useCallback, useEffect } from 'react';
-
 import { v1 as uuidv1 } from 'uuid';
+
+import {
+  uniqueNamesGenerator,
+  Config,
+  adjectives,
+} from 'unique-names-generator';
+
 import {
   StreamVideo,
   useCreateStreamVideoClient,
   MediaDevicesProvider,
 } from '@stream-io/video-react-sdk';
-import { CallConfig, CALL_CONFIG, User } from '@stream-io/video-client';
+import { User } from '@stream-io/video-client';
 import { FeatureCollection, Geometry } from 'geojson';
 
 import LobbyView from './components/Views/LobbyView';
@@ -18,6 +24,7 @@ import { ModalProvider } from './contexts/ModalContext';
 import { NotificationProvider } from './contexts/NotificationsContext';
 
 import { createGeoJsonFeatures } from './utils/useCreateGeoJsonFeatures';
+import { generateUser } from './utils/useGenerateUser';
 import { useCreateStreamChatClient } from './hooks/useChatClient';
 
 import { tour } from '../data/tour';
@@ -32,17 +39,10 @@ export type Props = {
   incomingCallId?: string | null;
 };
 
-const config = {
-  apiKey: import.meta.env.VITE_STREAM_KEY,
-  user: {
-    id: import.meta.env.VITE_VIDEO_USER_ID,
-    name: import.meta.env.VITE_VIDEO_USER_NAME,
-    role: 'admin',
-    teams: ['team-1', 'team-2'],
-    image: '',
-    customJson: new Uint8Array(),
-  },
-  token: import.meta.env.VITE_VIDEO_USER_TOKEN,
+const config: Config = {
+  dictionaries: [adjectives],
+  separator: '-',
+  style: 'lowerCase',
 };
 
 const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
@@ -54,7 +54,6 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const [isjoiningCall, setIsJoiningCall] = useState(false);
 
   const callType: string = 'default';
-  const callConfig: CallConfig = CALL_CONFIG.meeting;
 
   const { setSteps } = useTourContext();
 
@@ -62,13 +61,16 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     apiKey,
     tokenOrProvider: token,
     user,
-    callConfig,
   });
 
   const chatClient = useCreateStreamChatClient({
     apiKey,
     tokenOrProvider: token,
-    userData: user,
+    userData: {
+      id: user.id,
+      name: user.name,
+      image: user.image,
+    },
   });
 
   useEffect(() => {
@@ -96,7 +98,8 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   }, []);
 
   const joinMeeting = useCallback(async () => {
-    const id = callId || uuidv1();
+    const id =
+      callId || `${uniqueNamesGenerator(config)}-${uuidv1().split('-')[0]}`;
     setIsJoiningCall(true);
     try {
       const call = await client.call(callType, id);
@@ -134,7 +137,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
           <MediaDevicesProvider initialVideoEnabled={true}>
             <LobbyView
               logo={logo}
-              avatar={user.image}
+              user={user}
               callId={callId || ''}
               edges={edges}
               fastestEdge={fastestEdge}
@@ -150,11 +153,37 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
 
 const App: FC = () => {
   const logo = '/images/icons/stream-logo.svg';
+  const [user, setUser] = useState<User>();
+  const [token, setToken] = useState<string>();
 
   const location = window?.document?.location;
   const callId = new URL(location.href).searchParams.get('id');
 
-  return <Init {...config} logo={logo} incomingCallId={callId} />;
+  useEffect(() => {
+    async function fetchUser() {
+      const response = await generateUser(
+        callId ? 'user' : 'admin',
+        '@stream-io/video-demo',
+      );
+      setUser(response.user);
+      setToken(response.token);
+    }
+    fetchUser();
+  }, []);
+
+  if (user && token) {
+    return (
+      <Init
+        apiKey={import.meta.env.VITE_STREAM_KEY}
+        user={user}
+        token={token}
+        logo={logo}
+        incomingCallId={callId}
+      />
+    );
+  }
+
+  return null;
 };
 
 export default App;

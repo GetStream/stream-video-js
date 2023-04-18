@@ -26,9 +26,6 @@ import styles from './SettingsPanel.module.css';
 export type Props = {
   className?: string;
   callId?: string;
-  leave?(): void;
-  toggleChat?(): void;
-  toggleParticipants?(): void;
   toggleRecording?(): void;
   toggleShareScreen?(): void;
 };
@@ -36,9 +33,6 @@ export type Props = {
 export const SettingsPanel: FC<Props> = ({
   className,
   callId,
-  leave,
-  toggleChat,
-  toggleParticipants,
   toggleRecording,
   toggleShareScreen,
 }) => {

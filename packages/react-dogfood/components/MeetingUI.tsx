@@ -142,7 +142,7 @@ export const MeetingUI = ({
   if (show === 'loading')
     return (
       <StreamCallProvider call={activeCall}>
-        <LoadingScreen />;
+        <LoadingScreen />
       </StreamCallProvider>
     );
 

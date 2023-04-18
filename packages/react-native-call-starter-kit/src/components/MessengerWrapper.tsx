@@ -23,13 +23,8 @@ import {STREAM_API_KEY} from 'react-native-dotenv';
 import {useAppContext} from '../context/AppContext';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {CALL_CONFIG} from '@stream-io/video-client';
 
 console.log('STREAM_API_KEY', STREAM_API_KEY);
-const APP_CALL_CONFIG = {
-  ...CALL_CONFIG.ring,
-  autoCancelTimeoutInMs: 30 * 1000,
-};
 
 export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
   const {client} = useChatContext<StreamChatGenerics>();
@@ -50,7 +45,6 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
     user,
     tokenOrProvider: token,
     apiKey: STREAM_API_KEY,
-    callConfig: APP_CALL_CONFIG,
   });
   const navigation =
     useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();

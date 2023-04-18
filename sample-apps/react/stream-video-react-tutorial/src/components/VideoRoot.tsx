@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {
-  CALL_CONFIG,
   MediaDevicesProvider,
   StreamVideo,
   useCreateStreamVideoClient,
@@ -14,7 +13,6 @@ export const VideoRoot = () => {
   const { selectedUserId, users } = useUserData();
   const { theme, toggleTheme } = useTheme();
   const client = useCreateStreamVideoClient({
-    callConfig: CALL_CONFIG.meeting,
     apiKey: import.meta.env.VITE_STREAM_API_KEY,
     tokenOrProvider: import.meta.env[
       `VITE_STREAM_USER_${selectedUserId.toUpperCase()}_TOKEN`

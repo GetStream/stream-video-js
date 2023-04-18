@@ -2,8 +2,10 @@ import { FC } from 'react';
 import classnames from 'classnames';
 import { VideoPreview, useMediaDevices } from '@stream-io/video-react-sdk';
 
+import { User } from '@stream-io/video-client';
+
 import ControlMenu from '../ControlMenu';
-import { Mic, MicMuted, Signal } from '../Icons';
+import { MicMuted, Signal } from '../Icons';
 
 import JoinContainer from '../JoinContainer';
 
@@ -12,18 +14,17 @@ import styles from './LobbyPanel.module.css';
 export type Props = {
   joinCall(): void;
   logo: string;
+  user: User;
   className?: string;
   call?: any;
   fastestEdge?: any;
   isJoiningCall?: boolean;
 };
 
-export const DisabledVideoPreview: FC<any> = () => {
+export const DisabledVideoPreview: FC<{ name?: string }> = ({ name }) => {
   return (
     <div className={styles.disabledPreview}>
-      <div className={styles.fallbackAvatar}>
-        {import.meta.env.VITE_VIDEO_USER_NAME.split('')[0]}
-      </div>
+      <div className={styles.fallbackAvatar}>{name?.split('')[0]}</div>
     </div>
   );
 };
@@ -31,6 +32,7 @@ export const DisabledVideoPreview: FC<any> = () => {
 export const LobbyPanel: FC<Props> = ({
   call,
   logo,
+  user,
   joinCall,
   className,
   fastestEdge,
@@ -53,7 +55,7 @@ export const LobbyPanel: FC<Props> = ({
             {fastestEdge?.green} ms
           </div>
           <div className={styles.name}>
-            {import.meta.env.VITE_VIDEO_USER_NAME} (You)
+            {user.name} (You)
             {initialAudioEnabled ? null : (
               <MicMuted className={styles.micMuted} />
             )}
@@ -62,7 +64,9 @@ export const LobbyPanel: FC<Props> = ({
             <Signal className={styles.signalIcon} />
           </div>
         </div>
-        <VideoPreview DisabledVideoPreview={DisabledVideoPreview} />
+        <VideoPreview
+          DisabledVideoPreview={() => <DisabledVideoPreview name={user.name} />}
+        />
       </div>
       <ControlMenu className={styles.controls} call={call} preview={true} />
 

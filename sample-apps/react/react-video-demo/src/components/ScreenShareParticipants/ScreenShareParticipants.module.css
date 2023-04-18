@@ -2,39 +2,16 @@
   @apply flex p-4;
 }
 
-.localView {
-  @apply grid p-4  gap-x-3 h-full;
-  grid-template-rows: 1fr;
-  grid-template-areas: 'localContainer';
-}
-
-.localView.hasRemoteParticipants {
-  @apply grid p-4  gap-y-3;
-  grid-template-rows: 1fr 0.5fr;
-  grid-template-areas:
-    'localContainer'
-    'remoteParticipants';
-}
-
-.localContainer {
-  @apply grid  gap-y-3 h-full;
-  grid-area: localContainer;
-  grid-template-rows: 0.25fr 1fr;
-  grid-template-areas: 'localNotification' 'localParticipant';
+.localNotification {
+  @apply fixed w-full p-2 lg:p-0 flex flex-row lg:flex-col justify-between lg:justify-center items-center text-video-white sm:border-2 sm:border-video-stream-500 rounded-container;
+  grid-area: localNotification;
 }
 
 @media screen(md) {
-  .localContainer {
-    @apply grid  gap-x-3;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: none;
-    grid-template-areas: 'localNotification localParticipant';
+  .localNotification {
+    @apply absolute w-full h-full bg-video-black/40 p-2 lg:p-0 flex flex-row lg:flex-col justify-between lg:justify-center items-center text-video-white sm:border-2 sm:border-video-stream-500 rounded-container;
+    grid-area: localNotification;
   }
-}
-
-.localNotification {
-  @apply p-2 lg:p-0 flex flex-row lg:flex-col justify-between lg:justify-center items-center text-video-white sm:border-2 sm:border-video-stream-500 rounded-container;
-  grid-area: localNotification;
 }
 
 .localNotificationHeading {
@@ -50,7 +27,7 @@
 }
 
 .button {
-  @apply p-0 m-0 font-medium flex items-center md:pl-2 md:pr-2 lg:mt-2 h-auto;
+  @apply p-0 m-0 font-medium text-sm lowercase flex items-center md:pl-2 md:pr-2 lg:mt-2 h-auto;
 }
 
 .button > span {
@@ -88,7 +65,7 @@
 }
 
 .screenShareContainer {
-  @apply flex  gap-x-3;
+  @apply relative flex  gap-x-3;
 
   grid-area: screenShareContainer;
 }

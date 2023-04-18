@@ -1,4 +1,4 @@
-import { CALL_CONFIG, StreamVideoClient, User } from '@stream-io/video-client';
+import { StreamVideoClient, User } from '@stream-io/video-client';
 import { useEffect, useState } from 'react';
 import * as Sentry from '@sentry/react-native';
 import {
@@ -43,12 +43,7 @@ export const useAuth = () => {
         const token = await createToken(username, APIParams.apiSecret);
         Sentry.setUser({ ...user, token });
         try {
-          const config = appMode === 'Ringing' ? CALL_CONFIG.ring : undefined;
-          const _videoClient = new StreamVideoClient(
-            APIParams.apiKey,
-            {},
-            config,
-          );
+          const _videoClient = new StreamVideoClient(APIParams.apiKey);
           await _videoClient.connectUser(user, token);
           setVideoClient(_videoClient);
         } catch (err) {
