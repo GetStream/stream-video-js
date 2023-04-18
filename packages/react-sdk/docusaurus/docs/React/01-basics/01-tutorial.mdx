@@ -3,5 +3,709 @@ id: 01-tutorial
 title: Tutorial
 ---
 
+import ImageShowcase from '@site/src/components/ImageShowcase';
 
-Stay tuned for more information on this topic!
+import LobbyLight from "../assets/01-basics_01-tutorial/lobby-light.png"
+import LobbyDark from "../assets/01-basics_01-tutorial/lobby-dark.png"
+import LoadingLight from "../assets/01-basics_01-tutorial/loading-light.png"
+import LoadingDark from "../assets/01-basics_01-tutorial/loading-dark.png"
+import ActiveCallLight from "../assets/01-basics_01-tutorial/active-call-light.png"
+import ActiveCallDark from "../assets/01-basics_01-tutorial/active-call-dark.png"
+
+In this tutorial, we are building a video call application using the Stream Video React SDK. We will be implementing a "Meeting Room" scenario, where users can join and leave the call independently, without causing the call to be terminated. The topics we are covering in this tutorial are:
+
+- Setting up the project
+- Creating the call UI using built-in components
+- Creating a new call
+- Joining an existing call
+
+If you are looking to build a "Ring Call" scenario, where the call is dropped, once the number of participants is reduced to 1, then please, follow the guide [Tutorial (Ring Call)](./tutorial_ring_call)
+
+## Set up for success
+
+This tutorial replicates a creation of an existing sample application. We have made [the source code](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial) available for your convenience. Feel free to take a look at the project for a complete overview.
+
+### Create a new project
+
+**TODO: create a Vite template that would generate the project boilerplate for easier onboarding.**
+
+There are plenty of tools that allow you to set up a React project. We recommend to use [Vite](https://vitejs.dev/guide/why.html) because of the excellent developer experience it provides. To set up a project, please follow the [Vite's guide](https://vitejs.dev/guide/) depending on the JS package manager of your choice and Javascript flavor (plain JS vs. TS).
+
+In this tutorial we will use Vite's react-ts template:
+
+```bash
+yarn create vite stream-video-react-tutorial --template react-ts
+```
+
+### Install the dependencies
+
+There are two dependencies we need to install - the client library `@stream-io/video-client` and the React SDK `@stream-io/video-react-sdk` (for more details on the architecture see the [Overview](./overview/))
+
+```bash
+yarn add @stream-io/video-client @stream-io/video-react-sdk
+```
+
+**TODO: bundle the stylesheets with @stream-io/video-react-sdk**
+
+We provide CSS styles for React SDK components bundled into a package called ` @stream-io/video-styling`. We encourage you to install this one as well:
+
+```bash
+yarn add @stream-io/video-styling
+```
+
+### Stream app
+
+[Start a free trial with Stream](TODO: provide link to the Start Free Trial page) if you don't have an account already. Once logged in, you will be introduced to our dashboard. There you can manage your "apps". The "app" represents Stream's dedicated infrastructure that will handle you app's video calls.
+
+Make sure to [create video application](**TODO: link to article on how to set up an application**) in your [Stream dashboard](**TODO: link to the dashboard**). The API key and secret will be generated automatically upon the app's creation. Those are the credentials we will need for authentication.
+
+**TODO: Provide dashboard screenshot**
+
+### App credentials, environment variables, user data
+
+In order to be able to communicate with Stream's back-end video service, you will need to gather the following values and store them in a `.env` file in the root of the project:
+
+```bash
+VITE_STREAM_API_KEY=<your_api_key>
+VITE_STREAM_USER_ALICE_TOKEN=<manually_generated_token_first_user>
+VITE_STREAM_USER_MARK_TOKEN=<manually_generated_token_second_user>
+```
+
+- `VITE_STREAM_API_KEY` - you can find it in [Stream dashboard](**TODO: link to the dashboard**)
+- `VITE_STREAM_USER_ALICE_TOKEN` - JWT to authenticate the user with id `'alice'`
+- `VITE_STREAM_USER_MARK_TOKEN` - JWT to authenticate the user with id `'mark'`
+
+To establish the call, we will need to authenticate ourselves against the Stream's video infrastructure. The authentication is based on JSON Web Tokens (JWT). You can generate JWT for your application by using [Stream's JWT generator](https://getstream.io/chat/docs/react/token_generator/)(**TODO: verify whether this link can be used**). In the real-life scenario, your client application will need to request short-lived JWT in the runtime from a dedicated back-end service. Such back-end service will be using the Stream app's secret (again to be found in the Stream's dashboard) to generate short-lived JWTs.
+
+1. To generate the JWT for `VITE_STREAM_USER_ALICE_TOKEN` use id `alice`.
+2. To generate the JWT for `VITE_STREAM_USER_MARK_TOKEN` use id `mark`.
+
+### User data
+
+We will use predefined static user data stored in `data/users.ts`:
+
+**TODO: get rid of `customJson` as a mandatory param?**
+
+```ts
+import { UserInput } from '@stream-io/video-client';
+
+export default {
+  alice: {
+    id: 'alice',
+    name: 'Alice',
+    imageUrl: '/alice.jpg',
+    role: 'user',
+    teams: [],
+    customJson: new Uint8Array(),
+  },
+  mark: {
+    id: 'mark',
+    name: 'Mark',
+    imageUrl: '/mark.jpg',
+    role: 'user',
+    teams: [],
+    customJson: new Uint8Array(),
+  },
+} as Record<string, UserInput>;
+```
+
+The user images `alice.jpg` and `mark.jpg` are to be stored in `public/` folder. You can use yours, or copy ours, from the [projects `public/` directory](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial/public).
+
+We have added the `data` folder and `.env` file to the project root:
+
+```bash
+|_data
+  |__users.ts
+...
+.env
+...
+```
+
+## Building the app
+
+In order to see our app running, we need to perform the following steps:
+
+1. Initiate the video API client instance
+2. Build our own app layout
+3. Fit the prebuilt components provided by the React SDK into the general layout
+
+### The tutorial app UI
+
+The application will consist of the following views:
+
+1. **A lobby**
+
+Here we can select a user that will initiate a new call or join an existing call
+
+<ImageShowcase
+    items={[
+        {
+            image: LobbyLight,
+            caption: 'Application lobby in light theme',
+            alt: 'Application lobby in light theme',
+        },
+        {
+            image: LobbyDark,
+            caption: 'Application lobby in dark theme',
+            alt: 'Application lobby in dark theme',
+        },
+    ]}
+/>
+
+2. **The loading screen**
+
+Transition screen meanwhile the call connection is being established:
+
+<ImageShowcase
+    items={[
+        {
+            image: LoadingLight,
+            caption: 'Active call loading screen, light theme',
+            alt: 'Active call loading screen, light theme',
+        },
+        {
+            image: LoadingDark,
+            caption: 'Active call loading screen, dark theme',
+            alt: 'Active call loading screen, dark theme',
+        },
+    ]}
+/>
+
+3. **The active call view itself**
+
+**TODO: change screenshot to show two different call participants (now a bug does not allow it)**
+<ImageShowcase
+    items={[
+        {
+            image: ActiveCallLight,
+            caption: 'Active call in light theme',
+            alt: 'Active call in light theme',
+        },
+        {
+            image: ActiveCallDark,
+            caption: 'Active call in dark theme',
+            alt: 'Active call in dark theme',
+        },
+    ]}
+/>
+
+**TODO: Provide default Lobby component or at least lobby components (parts)**
+
+We will have to build the lobby ourselves meanwhile the majority of the pre-built components will be used in the active call view.
+
+**TODO: Mention that (or better have such a root element in the SDK) `.str-video` class should be applied to the root element in order the styles to work**
+
+
+### The project `src` folder structure
+
+Having:
+1. the `.env` file populated in the project's root and
+2. user data stored in `data/users.ts` file,
+
+we can now focus on the `src` folder exclusively.
+
+#### The UI components
+
+We will change the contents of `App.tsx` and create a new folder, where the application user interface will be implemented.
+
+```bash
+src/
+  |_components/
+    |_ui/
+      |__ActiveCall.tsx
+      |__UI.tsx
+      |__Lobby.tsx
+    |__VideoRoot.tsx
+  ...
+  |_App.tsx
+  ...
+```
+
+#### User context
+
+As we will be switching between 2 users, we will provide the set-user-state functionality down in the context. To the above, we will add a `context` folder:
+
+```bash
+src/
+  |_components/
+    |_ui/
+      |__ActiveCall.tsx
+      |__UI.tsx
+      |__Lobby.tsx
+    |__VideoRoot.tsx
+//highlight-start
+  |_context/
+    |__UserContext.tsx
+//highlight-end
+  |_App.tsx
+  |_main.tsx
+```
+
+#### Loading state context
+
+To manage the transition between the lobby view and active call view we introduce `LoadingStateProvider` from within the `LoadingStateContext`:
+
+```bash
+src/
+  |_components/
+    |_ui/
+      |__ActiveCall.tsx
+      |__UI.tsx
+      |__Lobby.tsx
+    |__VideoRoot.tsx
+  |_context/
+    |__UserContext.tsx
+//highlight-next-line
+    |__LoadingStateContext.tsx
+  |_App.tsx
+  |_main.tsx
+```
+
+#### Custom styles
+
+**TODO: we have to support theming as with chat in order the below is true**
+
+We will also write our own CSS and store it inside `src/style` folder. Part of the styling is theming. The stylesheets provided by Stream's SDK provide CSS theme variables for easier override. Style related files were added to this project, but we will not be covering them in this tutorial. Feel free to copy and paste the [stylesheets](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial/src/style) and [`useTheme`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial/src/hooks/useTheme.ts) hook from the demo app source.
+
+```bash
+src/
+  |_components/
+    |_ui/
+      |__ActiveCall.tsx
+      |__UI.tsx
+      |__Lobby.tsx
+    |__VideoRoot.tsx
+  |_context/
+    |__UserContext.tsx
+    |__LoadingStateContext.tsx
+//highlight-start
+  |_hooks/
+    |__useTheme.ts
+  |_style/
+    |__base.css
+    |__index.css
+    |__Lobby.css
+    |__overrides.css
+    |__variables.css
+    |__VideoRoot.css
+//highlight-end
+  |_App.tsx
+  |_main.tsx
+```
+
+### The implementation
+
+#### Providing the user data
+
+To avoid prop drilling we decided to use a context provider through which we will select the user to connect with:
+
+```tsx title="src/context/UserContext.tsx"
+import { createContext, ReactNode, useContext, useState } from 'react';
+import { UserInput } from '@stream-io/video-client';
+import users from '../../data/users';
+
+type UserDataContextValue = {
+  setSelectedUserId: (userId: string) => void;
+  users: Record<string, UserInput>;
+  selectedUserId?: string;
+};
+
+const UserDataContext = createContext<UserDataContextValue>({
+  setSelectedUserId: () => null,
+  users,
+});
+
+export const UserDataProvider = ({ children }: { children: ReactNode }) => {
+  const [selectedUserId, setSelectedUserId] = useState('alice');
+
+  return (
+    <UserDataContext.Provider
+      value={{ setSelectedUserId, selectedUserId, users }}
+    >
+      {children}
+    </UserDataContext.Provider>
+  );
+};
+
+export const useUserData = () => useContext(UserDataContext);
+```
+
+#### Handling the loading state
+
+We want to provide a basic API for switching  on and off the loading state:
+
+```tsx title="src/context/LoadingStateContext.tsx"
+import { createContext, ReactNode, useContext, useState } from 'react';
+
+type LoadingContextValue = {
+  loading: boolean;
+  setLoading: (loading: boolean) => void;
+};
+
+const LoadingStateContext = createContext<LoadingContextValue>({
+  loading: false,
+  setLoading: () => null,
+});
+
+export const LoadingStateProvider = ({ children }: { children: ReactNode }) => {
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <LoadingStateContext.Provider value={{ loading, setLoading }}>
+      {children}
+    </LoadingStateContext.Provider>
+  );
+};
+
+export const useLoadingState = () => useContext(LoadingStateContext);
+```
+
+#### First adjustments to `App.tsx`
+
+First, we will import the CSS for the pre-built components into the `src/style/index.css` file:
+
+```css
+@import '@stream-io/video-styling/dist/css/styles.css' layer(default-video-sdk);
+```
+
+We have moved `index.css` `src/style/` folder and import it into `App.tsx`.
+
+In the `App.tsx` file we put together the context providers and UI `VideoRoot`:
+
+```tsx title="src/App.tsx"
+import { UserDataProvider } from './context/UserContext';
+import { VideoRoot } from './components/VideoRoot';
+import { LoadingStateProvider } from './context/LoadingStateContext';
+
+import './style/index.css';
+
+function App() {
+  return (
+    <UserDataProvider>
+      <LoadingStateProvider>
+        <VideoRoot />
+      </LoadingStateProvider>
+    </UserDataProvider>
+  );
+}
+export default App;
+```
+
+#### Instantiating the client and connection
+
+Now we can focus on instantiating the `StreamVideoClient` object that takes care of interacting with the Stream's infrastructure. We provide a hook `useCreateStreamVideoClient` that takes care of the instantiation as well as of establishing the WebSocket connection. We create `VideoRoot` component for this purpose:
+
+**TODO: remove `coordinatorRpcUrl` and `coordinatorWsUrl` once new coordinator client is available**
+
+**TODO: fix the bug to not initiate the client instance with token in `useCreateStreamVideoClient`**
+
+```tsx title="src/components/VideoRoot.tsx"
+import * as React from 'react';
+import {
+  MediaDevicesProvider,
+  StreamVideo,
+  useCreateStreamVideoClient,
+} from '@stream-io/video-react-sdk';
+
+import { UI } from './ui/UI';
+import { useUserData } from '../context/UserContext';
+import { useTheme } from '../hooks/useTheme';
+
+export const VideoRoot = () => {
+  const { selectedUserId, users } = useUserData();
+  const { theme, toggleTheme } = useTheme();
+  const client = useCreateStreamVideoClient({
+    apiKey: import.meta.env.VITE_STREAM_API_KEY,
+    token: import.meta.env[
+      `VITE_STREAM_USER_${selectedUserId.toUpperCase()}_TOKEN`
+    ],
+    user: users[selectedUserId],
+  });
+
+  return (
+    <StreamVideo client={client}>
+      <MediaDevicesProvider>
+        <div className={`str-video str-video-tutorial ${theme}`}>
+          <button
+            onClick={toggleTheme}
+            className={`str-video-tutorial__theme-btn ${theme}`}
+          >
+            {theme === 'dark' ? 'Go Light' : 'Go Dark'}
+          </button>
+          <UI />
+        </div>
+      </MediaDevicesProvider>
+    </StreamVideo>
+  );
+};
+```
+
+The client should now be provided to all the components in our app. We do that by passing the `client` instance to `StreamVideo` context provider.
+
+Another important context provider is `MediaDevicesProvider`. It takes care of registering media peripherals that would be later used in the call.
+
+The `VideoRoot` component handles also theming switching, which is out of the scope for this tutorial.
+
+#### Implementing the UI
+
+The `UI` component, implemented in `src/ui/UI.tsx` takes care of coordination between different call states from not having any call, through its initiation up to active call view rendering:
+
+```tsx title="src/components/ui/UI.tsx"
+import { LoadingIndicator, useActiveCall } from '@stream-io/video-react-sdk';
+import { Lobby } from './Lobby';
+import { ActiveCall } from './ActiveCall';
+import { useLoadingState } from '../../context/LoadingStateContext';
+
+export const UI = () => {
+  const activeCall = useActiveCall();
+  const { loading } = useLoadingState();
+
+  if (activeCall) {
+    return <ActiveCall />;
+  } else if (loading) {
+    return <LoadingIndicator text="Connecting ..." />;
+  }
+  return <Lobby />;
+};
+```
+
+Here we are using hook `useActiveCall` imported from `@stream-io/video-react-sdk` and the `loading` state flag.
+
+The `useActiveCall` hook accesses the client's state store. It emits a `Call` instance once the call connection is established. The `Call` instance exposes the API to control various aspects of the call connection (publishing media streams, leaving the call, etc.)
+
+To render the loading state, we use pre-build `LoadingIndicator` component imported from the `@stream-io/video-react-sdk` package.
+
+##### The lobby
+
+When running the app, the first view that a user will encounter is that of `Lobby`:
+
+```tsx title="src/components/ui/Lobby.tsx"
+export const Lobby = () => {
+  return (
+    <div className="str-video-tutorial__lobby">
+      <UserSelector />
+      <div className="str-video-tutorial__lobby__start-call-btn-group">
+        <StartNewCallButton />
+        <JoinExistingCallForm />
+      </div>
+    </div>
+  );
+};
+````
+
+First, we will look at the elements that initiate the active call: `StartNewCallButton` and `JoinExistingCallForm`
+
+1. **StartNewCallButton**
+
+```tsx title="src/components/ui/Lobby.tsx"
+import {
+  useCallback,
+} from 'react';
+import { useStreamVideoClient } from '@stream-io/video-react-sdk';
+import { useLoadingState } from '../../context/LoadingStateContext';
+
+const CALL_TYPE = 'default';
+
+const StartNewCallButton = () => {
+  const videoClient = useStreamVideoClient();
+  const { setLoading } = useLoadingState();
+
+  const startMeeting = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await videoClient?.createCall({
+        type: CALL_TYPE,
+      });
+
+      await videoClient.joinCall({
+        type: CALL_TYPE,
+        id: response.call.id,
+        datacenterId: '',
+      });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, videoClient]);
+
+  return <button onClick={startMeeting}>Start a call</button>;
+};
+````
+
+**TODO: remove `createCall` and keep `joinCall` once the client rewrite for coordinator is done**
+
+Here we simply register an `onclick` event handler, which creates a call of a given `type`. We are toggling the loading state to change the view from `Lobby` to `LoadingIndicator`.
+
+**TODO: document the logic behind the `type` parameter for a call.Currently it seems as an arbitrary string only.**
+
+2. **JoinExistingCallForm**
+
+To join an existing call, we use a simple `form` consisting of one `input` and a submit `button`:
+
+```tsx title="src/components/ui/Lobby.tsx"
+import {
+  ChangeEventHandler,
+  FormEventHandler,
+  useCallback,
+  useState,
+} from 'react';
+import { useStreamVideoClient } from '@stream-io/video-react-sdk';
+import { useLoadingState } from '../../context/LoadingStateContext';
+...
+
+const CALL_TYPE = 'default';
+
+const StartNewCallButton = () => {
+  ...
+};
+
+//highlight-start
+const JoinExistingCallForm = () => {
+  const videoClient = useStreamVideoClient();
+  const { setLoading } = useLoadingState();
+  const [joinCallId, setJoinCallId] = useState<string>('');
+
+  const handleChange: ChangeEventHandler<HTMLInputElement> = (event) => {
+    setJoinCallId(event.target.value);
+  };
+
+  const joinMeeting: FormEventHandler = useCallback(
+    async (event) => {
+      event.preventDefault();
+      setLoading(true);
+      try {
+        await videoClient.joinCall({
+          type: CALL_TYPE,
+          id: joinCallId,
+          datacenterId: '',
+        });
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [setLoading, joinCallId, videoClient],
+  );
+
+  return (
+    <form onSubmit={joinMeeting}>
+      <input onChange={handleChange} value={joinCallId} />
+      <button disabled={!joinCallId} type="submit">
+        Join
+      </button>
+    </form>
+  );
+};
+//highlight-end
+```
+
+In both, `StartNewCallButton` and `JoinExistingCallForm`, the execution of `joinCall()` leads to state store emitting a new active call instance and replacing the `LoadingIndicator` for the `ActiveCall` component on the screen.
+
+3. **UserSelector**
+
+For completeness, we add the `UserSelector` component to switch between the two users available for joining the call:
+
+```tsx title="src/components/ui/Lobby.tsx"
+import {
+  ChangeEventHandler,
+  FormEventHandler,
+  useCallback,
+  useState,
+} from 'react';
+import { useStreamVideoClient } from '@stream-io/video-react-sdk';
+import { useLoadingState } from '../../context/LoadingStateContext'
+//highlight-start
+import { useUserData } from '../../context/UserContext';
+
+const UserSelector = () => {
+  const { users, selectedUserId, setSelectedUserId } = useUserData();
+  const selectedUser = users[selectedUserId];
+  const name = selectedUser.name || 'Unknown name';
+  return (
+    <div className="str-video-tutorial__user-selector">
+      <h2>Log in as:</h2>
+      <div className="str-video-tutorial__user-selector__switch">
+        {Object.values(users).map((user) => (
+          <div
+            className={`str-video-tutorial__user-selector__switch-item${
+              user.id === selectedUser.id ? ' selected' : ''
+            }`}
+            key={user.id}
+            onClick={() =>
+              user.id !== selectedUser.id && setSelectedUserId(user.id)
+            }
+          >
+            <div className="str-video-tutorial__avatar">
+              <img src={user.imageUrl} alt={name} />
+            </div>
+            <div className="str-video-tutorial__avatar-name">{user.name}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+//highlight-end
+
+const CALL_TYPE = 'default';
+
+const StartNewCallButton = () => {
+  ...
+};
+
+const JoinExistingCallForm = () => {
+    ...
+}
+
+export const Lobby = () => {
+    ...
+}
+```
+
+##### Active call view
+
+The active call view heavily relies on pre-built components that handle:
+
+1. the reproduction of video - `Stage`
+2. selection of devices - `DeviceSettings`
+3. call controls (screen sharing, toggle media mute state, call recording, call cancellation, etc.) - `CallControls`
+
+```tsx title="src/components/ui/ActiveCall.tsx"
+import {
+  CallControls,
+  DeviceSettings,
+  Stage,
+  useActiveCall,
+} from '@stream-io/video-react-sdk';
+
+export const ActiveCall = () => {
+  const activeCall = useActiveCall();
+
+  const { type, id } = activeCall.data.call || {
+    type: 'Unknown Type',
+    id: 'Unknown ID',
+  };
+
+  return (
+    <div className="str-video__call">
+      <div className="str-video__call__header">
+        <h4 className="str-video__call__header-title">
+          {type}:{id}
+        </h4>
+        <DeviceSettings activeCall={activeCall} />
+      </div>
+      <Stage call={activeCall} />
+      <CallControls call={activeCall} />
+    </div>
+  );
+};
+```
+
+### Where to go next
+
+In this tutorial, we have built a simple video calling application in simple "meeting room" scenario. Users can join and leave the call independently, without causing the call to be interrupted.
+
+**TODO: Recommendations on the nexts steps**
+

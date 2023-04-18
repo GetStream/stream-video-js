@@ -21,8 +21,6 @@ import {
   watchCallCancelled,
   watchCallRejected,
 } from './events';
-
-import { CALL_CONFIG, CallConfig } from './config';
 import {
   EventHandler,
   EventTypes,
@@ -38,10 +36,6 @@ import { StreamClient } from './coordinator/connection/client';
  */
 export class StreamVideoClient {
   /**
-   * Configuration parameters for controlling call behavior.
-   */
-  callConfig: CallConfig;
-  /**
    * A reactive store that exposes all the state variables in a reactive manner - you can subscribe to changes of the different state variables. Our library is built in a way that all state changes are exposed in this store, so all UI changes in your application should be handled by subscribing to these variables.
    * @angular If you're using our Angular SDK, you shouldn't be interacting with the state store directly, instead, you should be using the [`StreamVideoService`](./StreamVideoService.md).
    */
@@ -54,14 +48,8 @@ export class StreamVideoClient {
    * @angular If you're using our Angular SDK, you shouldn't be calling the `constructor` directly, instead you should be using [`StreamVideoService`](./StreamVideoService.md/#init).
    * @param apiKey your Stream API key
    * @param opts the options for the client.
-   * @param {CallConfig} [callConfig=CALL_CONFIG.meeting] custom call configuration
    */
-  constructor(
-    apiKey: string,
-    opts?: StreamClientOptions,
-    callConfig: CallConfig = CALL_CONFIG.meeting,
-  ) {
-    this.callConfig = callConfig;
+  constructor(apiKey: string, opts?: StreamClientOptions) {
     this.streamClient = new StreamClient(apiKey, {
       // FIXME: OL: fix SSR.
       browser: true,
