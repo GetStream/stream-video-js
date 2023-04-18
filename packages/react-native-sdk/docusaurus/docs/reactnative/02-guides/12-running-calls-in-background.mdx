@@ -45,6 +45,14 @@ We can start a foreground service using the [notifee library](https://notifee.ap
 
 #### Configure the foreground service
 
+Add the following entry to your `AndroidManifest.xml`
+
+```xml
+    <service
+      android:name="app.notifee.core.ForegroundService"
+      android:foregroundServiceType="camera|microphone" />
+```
+
 Add the following function in your codebase to start a foreground service and to keep the call alive.
 
 ```ts
