@@ -1,5 +1,4 @@
 import {
-  CallConfig,
   StreamClientOptions,
   StreamVideoClient,
   TokenOrProvider,
@@ -14,7 +13,6 @@ import { useEffect, useRef, useState } from 'react';
 export type StreamVideoClientInit = {
   apiKey: string;
   tokenOrProvider: TokenOrProvider;
-  callConfig?: CallConfig;
   options?: StreamClientOptions;
   user: User;
 };
@@ -31,11 +29,8 @@ export const useCreateStreamVideoClient = ({
   tokenOrProvider,
   user,
   options,
-  callConfig,
 }: StreamVideoClientInit) => {
-  const [client] = useState(
-    () => new StreamVideoClient(apiKey, options, callConfig),
-  );
+  const [client] = useState(() => new StreamVideoClient(apiKey, options));
 
   const disconnectRef = useRef(Promise.resolve());
   useEffect(() => {

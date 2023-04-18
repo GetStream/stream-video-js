@@ -48,8 +48,7 @@ Firstly we need to authenticate the Video SDK’s Client.
 You will need a user and token to authenticate a client.
 You can use the `client` from the Chat SDK to create the user object.
 To do this, you can import the hook, `useChatContext`, and use the `client` from it, as in the example below.
-`StreamVideoClient` expects API Key as the first arguments. It also expects `options` and Call configuration object for type `ring`(`CALL_CONFIG.ring`).
-The call configs helps adding some default configs to the call.
+`StreamVideoClient` expects API Key as the first arguments. It also expects `options`.
 
 ```tsx
 import { useChatContext } from 'stream-chat-react-native';
@@ -76,7 +75,7 @@ const APIParams = {
 };
 
 // authenticate and create the video client
-const client = new StreamVideoClient(APIParams.apiKey, {}, CALL_CONFIG.ring);
+const client = new StreamVideoClient(APIParams.apiKey);
 ```
 
 All types used in the example above can be found in the end version of this [project](https://github.com/GetStream/stream-video-js/blob/a42a72fcde67877287f4df292524311723ea4e0f/packages/react-native-call-starter-kit/src/types.ts)

@@ -12,7 +12,7 @@ import {
   useCreateStreamVideoClient,
   MediaDevicesProvider,
 } from '@stream-io/video-react-sdk';
-import { CallConfig, CALL_CONFIG, User } from '@stream-io/video-client';
+import { User } from '@stream-io/video-client';
 import { FeatureCollection, Geometry } from 'geojson';
 
 import LobbyView from './components/Views/LobbyView';
@@ -54,7 +54,6 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const [isjoiningCall, setIsJoiningCall] = useState(false);
 
   const callType: string = 'default';
-  const callConfig: CallConfig = CALL_CONFIG.meeting;
 
   const { setSteps } = useTourContext();
 
@@ -62,7 +61,6 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     apiKey,
     tokenOrProvider: token,
     user,
-    callConfig,
   });
 
   const chatClient = useCreateStreamChatClient({
