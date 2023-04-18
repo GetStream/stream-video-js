@@ -4,13 +4,19 @@
   grid-template-columns: 1fr 100px 1fr;
   grid-template-areas: 'participants elapsed latency';
 }
+
 .callIdentification {
   grid-area: participants;
   @apply flex items-center text-video-white;
 }
 
 .callId {
-  @apply hidden sm:flex;
+  @apply hidden sm:block md:max-w-[300px] lg:max-w-none;
+
+  overflow: hidden;
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
 }
 
 .logo {
@@ -63,7 +69,6 @@
   max-width: 200px;
   overflow: hidden;
   white-space: nowrap;
-
   text-overflow: ellipsis;
 
   margin-left: 80px;

@@ -1,12 +1,18 @@
 import { FC, useState, useCallback, useEffect } from 'react';
-
 import { v1 as uuidv1 } from 'uuid';
+
+import {
+  uniqueNamesGenerator,
+  Config,
+  adjectives,
+} from 'unique-names-generator';
+
 import {
   StreamVideo,
   useCreateStreamVideoClient,
   MediaDevicesProvider,
 } from '@stream-io/video-react-sdk';
-import { CallConfig, CALL_CONFIG, User } from '@stream-io/video-client';
+import { User } from '@stream-io/video-client';
 import { FeatureCollection, Geometry } from 'geojson';
 
 import LobbyView from './components/Views/LobbyView';
@@ -33,6 +39,12 @@ export type Props = {
   incomingCallId?: string | null;
 };
 
+const config: Config = {
+  dictionaries: [adjectives],
+  separator: '-',
+  style: 'lowerCase',
+};
+
 const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const [isCallActive, setIsCallActive] = useState(false);
   const [callHasEnded, setCallHasEnded] = useState(false);
@@ -42,7 +54,6 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const [isjoiningCall, setIsJoiningCall] = useState(false);
 
   const callType: string = 'default';
-  const callConfig: CallConfig = CALL_CONFIG.meeting;
 
   const { setSteps } = useTourContext();
 
@@ -50,13 +61,16 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     apiKey,
     tokenOrProvider: token,
     user,
-    callConfig,
   });
 
   const chatClient = useCreateStreamChatClient({
     apiKey,
     tokenOrProvider: token,
-    userData: user,
+    userData: {
+      id: user.id,
+      name: user.name,
+      image: user.image,
+    },
   });
 
   useEffect(() => {
@@ -84,7 +98,8 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   }, []);
 
   const joinMeeting = useCallback(async () => {
-    const id = callId || uuidv1();
+    const id =
+      callId || `${uniqueNamesGenerator(config)}-${uuidv1().split('-')[0]}`;
     setIsJoiningCall(true);
     try {
       const call = await client.call(callType, id);

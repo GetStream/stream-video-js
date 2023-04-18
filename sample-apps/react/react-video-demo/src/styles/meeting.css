@@ -14,7 +14,7 @@
 }
 
 .str-video__participant-placeholder {
-  @apply border-4 w-full h-full bg-video-grey-700;
+  @apply flex w-full h-full bg-video-grey-700;
   border-radius: 12px;
 }
 
@@ -32,6 +32,10 @@
 .str-video__participant {
   @apply w-full h-full;
 }
+
+.str-video__participant.str-video__participant--no-video {
+}
+
 .str-video__participant.str-video__participant--speaking {
   @apply border-4 border-video-stream-500;
   border-radius: 12px;

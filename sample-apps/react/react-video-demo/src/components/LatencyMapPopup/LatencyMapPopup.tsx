@@ -17,8 +17,7 @@ export const LatencyMapPopup: FC<Props> = ({
     <div className={styles.container}>
       <h3 className={styles.header}>
         <div className={styles.latencyIndicator}></div>
-        <span className={styles.abbriviation}></span>
-        {abbriviation}
+        <span className={styles.abbriviation}>{abbriviation}</span>
       </h3>
       <p className={styles.description}>
         {city}, {countryCode}

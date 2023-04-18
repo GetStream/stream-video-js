@@ -61,27 +61,10 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
     firstScreenSharingParticipant?.sessionId === localParticipant?.sessionId
   ) {
     return (
-      <div className={localViewClassNames} ref={wrapper}>
-        <div className={styles.localContainer}>
-          <div className={styles.localNotification}>
-            <div className={styles.localNotificationHeading}>
-              <ShareScreen className={styles.screenShareIcon} />
-              <h2 className={styles.heading}>You are presenting your screen</h2>
-            </div>
-
-            <Button
-              className={styles.button}
-              color="danger"
-              shape="rectangle"
-              onClick={stopSharing}
-            >
-              <Close className={styles.closeIcon} />
-              <span> Stop Screen Sharing</span>
-            </Button>
-          </div>
-          <div className={styles.localParticipant}>
-            {firstScreenSharingParticipant &&
-            (breakpoint === 'xs' || breakpoint === 'sm') ? (
+      <div className={styles.remoteView} ref={wrapper}>
+        {wrapperHeight ? (
+          <>
+            {firstScreenSharingParticipant ? (
               <div className={styles.screenShareContainer}>
                 <Video
                   className={styles.screenShare}
@@ -91,26 +74,36 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
                   autoPlay
                   muted
                 />
+                <div className={styles.localNotification}>
+                  <div className={styles.localNotificationHeading}>
+                    <ShareScreen className={styles.screenShareIcon} />
+                    <h2 className={styles.heading}>
+                      You are presenting your screen
+                    </h2>
+                  </div>
+
+                  <Button
+                    className={styles.button}
+                    color="danger"
+                    shape="rectangle"
+                    onClick={stopSharing}
+                  >
+                    <Close className={styles.closeIcon} />
+                    <span> Stop Screen Sharing</span>
+                  </Button>
+                </div>
               </div>
-            ) : (
-              localParticipant && (
-                <ParticipantBox
-                  participant={localParticipant}
-                  call={call}
-                  sinkId={localParticipant.audioOutputDeviceId}
-                />
-              )
-            )}
-          </div>
-        </div>
-        {allParticipants.length > 1 ? (
-          <div className={styles.remoteParticipants}>
-            <ParticipantsSlider
-              call={call}
-              mode="horizontal"
-              participants={allParticipants}
-            />
-          </div>
+            ) : null}
+
+            <div className={styles.remoteParticipants}>
+              <ParticipantsSlider
+                call={call}
+                mode="vertical"
+                participants={allParticipants}
+                height={wrapperHeight}
+              />
+            </div>
+          </>
         ) : null}
       </div>
     );
@@ -140,7 +133,7 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
               <ParticipantsSlider
                 call={call}
                 mode="vertical"
-                participants={remoteParticipants}
+                participants={allParticipants}
                 height={wrapperHeight}
               />
             </div>

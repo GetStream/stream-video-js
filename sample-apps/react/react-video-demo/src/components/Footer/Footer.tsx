@@ -12,7 +12,7 @@ import {
   Record,
   ShareScreen,
   Stop,
-  Loading,
+  LoadingSpinner,
 } from '../Icons';
 import Portal from '../Portal';
 import SettingsPanel from '../SettingsPanel';
@@ -99,16 +99,13 @@ export const Footer: FC<Props> = ({
         <ControlButton
           className={settingsClassNames}
           portalId="settings"
-          onClick={() => {}}
+          onClick={() => setShowSettingsPanel(!showSettingsPanel)}
           showPanel={showSettingsPanel}
           label="More"
           panel={
             <Portal className={styles.settingsPortal} selector="settings">
               <SettingsPanel
                 callId={callId}
-                leave={leave}
-                toggleChat={toggleChat}
-                toggleParticipants={toggleParticipants}
                 toggleRecording={
                   !isRecording ? handleStartRecording : undefined
                 }
@@ -135,7 +132,9 @@ export const Footer: FC<Props> = ({
 
             {!isRecording && !isAwaitingRecording && <Record />}
 
-            {!isRecording && isAwaitingRecording && <Loading />}
+            {!isRecording && isAwaitingRecording && (
+              <LoadingSpinner className={styles.loadingSpinner} />
+            )}
           </>
         </Button>
 
