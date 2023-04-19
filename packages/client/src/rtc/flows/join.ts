@@ -11,7 +11,7 @@ import { StreamClient } from '../../coordinator/connection/client';
 
 const getCascadingModeParams = () => {
   if (typeof window === 'undefined') return null;
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location?.search);
   const cascadingEnabled = params.get('cascading') !== null;
   if (cascadingEnabled) {
     const rawParams: Record<string, string> = {};
