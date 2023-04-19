@@ -112,17 +112,33 @@ const notifyError = (message: string) => {
 
 const listAvailableEdges = async (client: StreamVideoClient) => {
   const { edges } = await client.edges();
+  const message = edges
+    .map((edge) => {
+      const url = new URL(edge.latency_test_url);
+      url.pathname = '';
+      return `- ${edge.id}: ${url.toString()}`;
+    })
+    .join('\n');
+
+  // Slack limits the message size to 3000 characters
+  const limit = 2900;
+  const chunks = Math.ceil(message.length / limit);
+  const chunkedMessages = [];
+  for (let i = 0; i < chunks; i++) {
+    chunkedMessages.push(message.substring(i * limit, (i + 1) * limit));
+  }
+
   return {
     response_type: 'ephemeral', // notify just the initiator
-    blocks: [
-      {
+    blocks: chunkedMessages.map((msg) => {
+      return {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `Edges: \`\`\`${JSON.stringify(edges, null, 2)}\`\`\``,
+          text: `Available edges: \`\`\`${msg}\`\`\``,
         },
-      },
-    ],
+      };
+    }),
   };
 };
 
