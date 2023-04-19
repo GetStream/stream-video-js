@@ -107,8 +107,14 @@ img {
 }
 
 .home-user-row button {
-  background: blue;
+  padding: 0.6rem 1.2rem;
+  background: hsl(240, 100%, 50%);
   color: white;
+  transition: background-color 200ms ease-out;
+}
+
+.home-user-row button:hover {
+  background: hsl(240, 100%, 70%);
 }
 
 .home-user-row button:last-child {
@@ -131,11 +137,26 @@ img {
   gap: 1rem;
 }
 
+.room-card-button {
+  padding: 0;
+  background: transparent;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  overflow: hidden;
+}
+
+.room-card-button:hover {
+  border-color: var(--prominent-color);
+}
+
 .room-card {
   display: flex;
   flex-direction: column;
   text-align: start;
+  border-radius: 8px;
   background: var(--background-color-light);
+  padding: 0.6rem 1.2rem;
+  height: auto;
 }
 
 .room-card > span {
@@ -211,7 +232,6 @@ img {
     bottom: 0;
     left: 2rem;
     right: 2rem;
-    /* width: 100%; */
   }
 }
 
@@ -327,8 +347,9 @@ img {
 }
 
 .leave-button {
+  padding: 0.6rem 1.2rem;
   background: var(--prominent-color-light);
-  transition: all ease-in-out 300ms;
+  transition: all ease-in-out 200ms;
   display: flex;
   align-items: center;
   gap: 0.5rem;

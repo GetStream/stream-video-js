@@ -27,7 +27,7 @@ const RoomOverview = ({ showAsGrid = true }: RoomOverviewProps) => {
         {liveRooms.map((room) => (
           <button
             key={room.id}
-            className="room-card"
+            className="room-card-button"
             onClick={() => join(room)}
           >
             <RoomCard room={room} />
@@ -37,13 +37,7 @@ const RoomOverview = ({ showAsGrid = true }: RoomOverviewProps) => {
       <h2>Upcoming audio rooms</h2>
       <div className={showAsGrid ? 'rooms-grid' : 'rooms-rows'}>
         {upcomingRooms.map((room) => (
-          <button
-            key={room.id}
-            className="room-card"
-            onClick={() => join(room)}
-          >
-            <RoomCard room={room} />
-          </button>
+          <RoomCard room={room} />
         ))}
       </div>
       <button

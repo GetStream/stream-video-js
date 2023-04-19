@@ -1,7 +1,7 @@
 import { AudioRoom } from '../../data/audioRoom';
 
 const RoomCard = ({ room }: { room: AudioRoom }) => (
-  <>
+  <div className="room-card">
     <h3>{room.title}</h3>
     <span>Host(s)</span>
     <div className="hosts-grid">
@@ -13,7 +13,7 @@ const RoomCard = ({ room }: { room: AudioRoom }) => (
       ))}
     </div>
     <p>{room.subtitle}</p>
-  </>
+  </div>
 );
 
 export default RoomCard;
