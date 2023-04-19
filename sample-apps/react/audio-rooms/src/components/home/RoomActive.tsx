@@ -15,9 +15,9 @@ import {
   MicrophoneButton,
   PersonIcon,
   RaiseHandIcon,
-  StarIcon,
 } from '../icons';
 import { useUserContext } from '../../contexts/UserContext/UserContext';
+import SpeakerElement from './RoomActive/SpeakerElement';
 
 const RoomActive = () => {
   const { user } = useUserContext();
@@ -38,10 +38,16 @@ const RoomActive = () => {
   }, []);
 
   // helper variables
-  const speakers = participants.map((p) => p.isSpeaking);
+  const hostIds = currentRoom?.hosts.map((host) => host.id);
+  const speakers = participants.filter(
+    (p) => p.audioStream !== undefined || hostIds?.includes(p.userId),
+  );
+  const listeners = participants.filter((p) => !speakers.includes(p));
   const isUserHost = currentRoom?.hosts.some((e) => e.id === user?.id);
-  const hasAudio = participants.find((p) => p.userId === user?.id)
-    ?.publishedTracks[SfuModels.TrackType.AUDIO];
+  const currentUser = participants.find((p) => p.userId === user?.id);
+  const hasAudio = currentUser?.publishedTracks.includes(
+    SfuModels.TrackType.AUDIO,
+  );
 
   return (
     <section className="active-room">
@@ -50,42 +56,22 @@ const RoomActive = () => {
       </div>
       <div className="room-detail">
         <h2>{currentRoom?.title}</h2>
-        <p>Participants: {participants.length}</p>
-        {participants.map((participant, index) => (
-          <p key={`${participant.userId}-${index}`}>
-            <Audio
-              muted={participant.isLoggedInUser}
-              audioStream={participant.audioStream}
-            />
-            {participant.name} (Speaking:{' '}
-            {participant.isSpeaking ? 'yes' : 'no'})
-          </p>
-        ))}
         <p className="user-counts secondaryText">
           {participants.length}
           <PersonIcon />/ {speakers.length ?? 0}
           <ChatIcon />
         </p>
-        <h3>Hosts ({currentRoom?.hosts.length ?? 0})</h3>
+        <h3>Speakers ({speakers.length ?? 0})</h3>
         <div className="hosts-grid-detail">
-          {currentRoom?.hosts.map((host) => (
-            <div key={host.id}>
-              <img src={host.imageUrl} alt={`Profile of ${host.name}`} />
-              <p>
-                <StarIcon />
-                <span>{host.name}</span>
-              </p>
-            </div>
+          {speakers.map((speaker) => (
+            <SpeakerElement key={speaker.userId} speaker={speaker} />
           ))}
         </div>
-        <h3>Listeners ({currentRoom?.listeners.length ?? 0})</h3>
+        <h3>Listeners ({listeners.length ?? 0})</h3>
         <div className="participants-grid-detail">
-          {currentRoom?.listeners.map((listener) => (
-            <div key={listener.id}>
-              <img
-                src={listener.imageUrl}
-                alt={`Profile of ${listener.name}`}
-              />
+          {listeners.map((listener) => (
+            <div key={listener.userId}>
+              <img src={listener.image} alt={`Profile of ${listener.name}`} />
               <span>{listener.name}</span>
             </div>
           ))}
@@ -125,8 +111,10 @@ const RoomActive = () => {
   async function muteUser() {
     if (user?.id) {
       if (hasAudio) {
+        console.log('Muting user');
         stopPublishingAudio();
       } else {
+        console.log('Unmuting user');
         const audioStream = await getAudioStream();
         await currentRoom?.call?.publishAudioStream(audioStream);
       }

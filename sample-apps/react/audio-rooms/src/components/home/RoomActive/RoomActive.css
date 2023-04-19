@@ -1,0 +1,26 @@
+.speaker-container {
+  position: relative;
+}
+
+.mute-icon svg {
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0.5rem;
+  aspect-ratio: 1;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.speaker-image {
+  width: 100%;
+  padding: 0.25rem;
+  box-sizing: border-box;
+  border: 6px solid transparent;
+  transition: border 200ms ease-out;
+}
+
+.speaking-indicator {
+  border-color: var(--background-color);
+}
