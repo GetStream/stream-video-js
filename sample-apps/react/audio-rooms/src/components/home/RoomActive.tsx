@@ -1,5 +1,10 @@
 import { useParticipants } from '@stream-io/video-react-bindings';
-import { Audio } from '@stream-io/video-react-sdk';
+import {
+  Audio,
+  getAudioStream,
+  SfuModels,
+  useMediaDevices,
+} from '@stream-io/video-react-sdk';
 import { useEffect } from 'react';
 import { useAudioRoomContext } from '../../contexts/AudioRoomContext/AudioRoomContext';
 import RoomOverview from './RoomOverview';
@@ -7,6 +12,7 @@ import {
   AddPersonIcon,
   ChatIcon,
   LeaveIcon,
+  MicrophoneButton,
   PersonIcon,
   RaiseHandIcon,
   StarIcon,
@@ -17,6 +23,7 @@ const RoomActive = () => {
   const { user } = useUserContext();
   const { currentRoom, leave } = useAudioRoomContext();
   const participants = useParticipants();
+  const { stopPublishingAudio } = useMediaDevices();
 
   useEffect(() => {
     currentRoom?.call?.updateSubscriptionsPartial(
@@ -33,6 +40,8 @@ const RoomActive = () => {
   // helper variables
   const speakers = participants.map((p) => p.isSpeaking);
   const isUserHost = currentRoom?.hosts.some((e) => e.id === user?.id);
+  const hasAudio = participants.find((p) => p.userId === user?.id)
+    ?.publishedTracks[SfuModels.TrackType.AUDIO];
 
   return (
     <section className="active-room">
@@ -89,9 +98,16 @@ const RoomActive = () => {
               <button className="icon-button">
                 <AddPersonIcon />
               </button>
-              <button className="icon-button">
-                <RaiseHandIcon />
-              </button>
+              {isUserHost && (
+                <button className="icon-button" onClick={() => muteUser()}>
+                  <MicrophoneButton />
+                </button>
+              )}
+              {!isUserHost && (
+                <button className="icon-button">
+                  <RaiseHandIcon />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -104,6 +120,17 @@ const RoomActive = () => {
       currentRoom?.call?.endCall();
     }
     leave();
+  }
+
+  async function muteUser() {
+    if (user?.id) {
+      if (hasAudio) {
+        stopPublishingAudio();
+      } else {
+        const audioStream = await getAudioStream();
+        await currentRoom?.call?.publishAudioStream(audioStream);
+      }
+    }
   }
 };
 
