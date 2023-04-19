@@ -6,7 +6,14 @@ export type IncallManagerProps = {
   auto: boolean;
 };
 
-// This hook is responsible to handle the proximity effect through IncallManager
+/**
+ * A hook to handle IncallManager specs in the application.
+ *
+ * @param media
+ * @param auto
+ *
+ * @category Device Management
+ *  */
 export const useIncallManager = ({ auto, media }: IncallManagerProps) => {
   useEffect(() => {
     InCallManager.start({ media, auto });
