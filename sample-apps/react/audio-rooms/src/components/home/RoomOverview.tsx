@@ -37,7 +37,13 @@ const RoomOverview = ({ showAsGrid = true }: RoomOverviewProps) => {
       <h2>Upcoming audio rooms</h2>
       <div className={showAsGrid ? 'rooms-grid' : 'rooms-rows'}>
         {upcomingRooms.map((room) => (
-          <RoomCard room={room} />
+          <button
+            key={room.id}
+            className="room-card-button"
+            onClick={() => join(room)}
+          >
+            <RoomCard room={room} />
+          </button>
         ))}
       </div>
       <button
