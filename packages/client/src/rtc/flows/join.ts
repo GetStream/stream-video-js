@@ -44,7 +44,10 @@ export const watch = async (
       },
     );
   }
-  return httpClient.post<JoinCallResponse>(`/call/${type}/${id}/join`, data);
+  return httpClient.post<JoinCallResponse, JoinCallRequest>(
+    `/call/${type}/${id}/join`,
+    data,
+  );
 };
 
 export const join = async (
@@ -81,11 +84,25 @@ const getCallEdgeServer = async (
     }),
   );
 
-  return httpClient.post<GetCallEdgeServerResponse>(
+  const data = {
+    latency_measurements: latencyByEdge,
+  };
+  // FIXME OL: remove this once cascading is enabled by default
+  const cascadingModeParams = getCascadingModeParams();
+  if (cascadingModeParams) {
+    return httpClient.doAxiosRequest<
+      GetCallEdgeServerResponse,
+      GetCallEdgeServerRequest
+    >('post', `/call/${type}/${id}/get_edge_server`, data, {
+      params: {
+        ...cascadingModeParams,
+      },
+    });
+  }
+
+  return httpClient.post<GetCallEdgeServerResponse, GetCallEdgeServerRequest>(
     `/call/${type}/${id}/get_edge_server`,
-    {
-      latency_measurements: latencyByEdge,
-    },
+    data,
   );
 };
 

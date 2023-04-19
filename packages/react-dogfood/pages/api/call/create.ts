@@ -30,12 +30,15 @@ const createCallSlackHookAPI = async (
   console.log(`Received input`, req.body);
   const initiator = req.body.user_name || 'Stream Pronto Bot';
   const { _, $0, ...args } = await yargs().parse(req.body.text || '');
-  const queryParams = new URLSearchParams(
-    args as Record<string, string>,
-  ).toString();
+  const queryParams = new URLSearchParams(args as Record<string, string>);
 
   try {
-    const call = client.call('default', meetingId());
+    let [type, id] = queryParams.get('cid')?.split(':') || [];
+    if (!id && type) {
+      id = type;
+      type = 'default';
+    }
+    const call = client.call(type || 'default', id || meetingId());
     await call.getOrCreate({
       ring: false,
     });
@@ -49,7 +52,7 @@ const createCallSlackHookAPI = async (
         req.headers.host,
         '/join/',
         call.id,
-        queryParams && `?${queryParams}`,
+        queryParams.toString() && `?${queryParams.toString()}`,
       ]
         .filter(Boolean)
         .join('');
