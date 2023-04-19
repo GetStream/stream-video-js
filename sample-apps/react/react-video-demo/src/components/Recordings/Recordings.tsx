@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   CallRecording,
   useActiveCall,
@@ -22,24 +22,23 @@ export const Recordings = () => {
   const activeCall = useActiveCall();
 
   const [loadingCallRecordings, setLoadingCallRecordings] = useState(false);
-  const recordingPollRequestsCount = useRef(0);
-  const recordingPollRequestsInterval = useRef<
-    ReturnType<typeof setInterval> | undefined
-  >();
+  useState<number>(0);
 
   const { close } = useModalContext();
 
-  useEffect(() => {
-    console.log({ client, activeCall, callRecordings });
+  const startPolling = useCallback(() => {
+    let recordingPollRequestsCount = 0;
+    let recordingPollRequestsInterval: any = undefined;
+
     if (!(client && activeCall && callRecordings)) return;
     const scheduleCallRecordingPolling = () => {
       setLoadingCallRecordings(true);
 
-      if (recordingPollRequestsInterval.current) {
-        clearInterval(recordingPollRequestsInterval.current);
+      if (recordingPollRequestsInterval) {
+        clearInterval(recordingPollRequestsInterval);
       }
 
-      recordingPollRequestsInterval.current = setInterval(async () => {
+      recordingPollRequestsInterval = setInterval(async () => {
         let recordings: CallRecording[] = [];
         try {
           const response = await activeCall.queryRecordings();
@@ -47,31 +46,47 @@ export const Recordings = () => {
         } catch (e) {
           console.error('Failed to query recordings', e);
         } finally {
-          recordingPollRequestsCount.current++;
+          recordingPollRequestsCount = recordingPollRequestsCount + 1;
           const hasNewRecordings = callRecordings.length < recordings.length;
 
-          if (
-            recordingPollRequestsCount.current === MAX_NUMBER_POLL_REQUESTS ||
-            hasNewRecordings
-          ) {
-            clearInterval(recordingPollRequestsInterval.current);
+          if (hasNewRecordings) {
             setLoadingCallRecordings(false);
+            clearInterval(recordingPollRequestsInterval);
+          }
+
+          if (recordingPollRequestsCount === MAX_NUMBER_POLL_REQUESTS) {
+            setLoadingCallRecordings(false);
+            clearInterval(recordingPollRequestsInterval);
           }
         }
       }, POLL_INTERVAL_MS);
     };
 
-    scheduleCallRecordingPolling();
+    if (callRecordings.length === 0) {
+      scheduleCallRecordingPolling();
+    }
   }, [client, activeCall, callRecordings]);
+
+  useEffect(() => {
+    startPolling();
+  }, []);
 
   return (
     <Panel className={styles.root} title="Recordings" close={close}>
-      {loadingCallRecordings && !callRecordings.length ? (
+      {loadingCallRecordings && !callRecordings.length && (
         <div className={styles.loading}>
-          <LoadingSpinner />
+          <LoadingSpinner className={styles.loadingSpinner} />
           <p>Loading recordings...</p>
         </div>
-      ) : (
+      )}
+
+      {!loadingCallRecordings && !callRecordings.length && (
+        <div className={styles.notFound}>
+          <p>No recordings found...</p>
+        </div>
+      )}
+
+      {!loadingCallRecordings && callRecordings.length > 0 && (
         <ul className={styles.list}>
           {callRecordings.map((recording, index) => (
             <li key={`recording-${index}`} className={styles.item}>
