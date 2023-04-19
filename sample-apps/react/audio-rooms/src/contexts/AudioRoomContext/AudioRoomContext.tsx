@@ -80,11 +80,7 @@ export const AudioRoomContextProvider = ({
     const liveRooms: AudioRoom[] = [];
     const upcomingRooms: AudioRoom[] = [];
     calls.forEach((call) => {
-      const isBackstage = call.state.metadata?.backstage;
-      console.log('------');
       const customData = call.data?.custom;
-      console.dir(customData);
-      console.log('------');
       const room: AudioRoom = {
         id: call.id,
         title: customData?.title,
@@ -94,12 +90,21 @@ export const AudioRoomContextProvider = ({
         speakers: [],
         call: call,
       };
-      if (isBackstage) {
-        upcomingRooms.push(room);
-      } else {
-        liveRooms.push(room);
+      // Check if call is currently live
+      const isBackstage = call.state.metadata?.backstage;
+      // If the room has ended, don't show it here as people can't join anymore.
+      if (!call.state.metadata?.ended_at) {
+        if (isBackstage) {
+          upcomingRooms.push(room);
+        } else {
+          liveRooms.push(room);
+        }
       }
     });
+
+    console.log(
+      `Found ${upcomingRooms.length} upcoming and ${liveRooms.length} live rooms.`,
+    );
 
     setMyState({
       ...myState,
