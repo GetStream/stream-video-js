@@ -7,10 +7,10 @@ import SDKSpecific from '../SDKSpecific';
 
 ## Introduction
 
-In some types of calls, there is a common requirement for participant moderation.
+In many types of calls, there is a requirement for providing different users with certain permissions and capabilities.
 A typical example is a webinar where the host wants to control who can speak or who can share their video or screen.
 
-Stream Video SDK provides a certain set of permissions and capabilities
+The Stream Video SDK provides a certain set of permissions and capabilities
 that can be used to control the behavior of participants in a call.
 
 ## Permissions
@@ -40,7 +40,7 @@ const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
 
 ### Request permissions
 
-Every user may request permissions to perform certain action depending on the call type and call settings.
+Every user may request permission to perform certain actions depending on the call type and call settings.
 For example, in an audio-room call type, only the hosts have `send-audio` permission by default.
 Other users should request this permission before they can start sending audio if the call settings allow it.
 
@@ -60,7 +60,7 @@ await call.requestPermissions({
 ### Approving permission requests
 
 Call hosts and moderators can approve permission requests from other users.
-Whenever a user requests a permission, a `call.permission_request` event will be emitted on the `Call` instance.
+Whenever a user requests a certain permission, a `call.permission_request` event will be emitted on the `Call` instance.
 You can listen to this event and approve the request.
 
 ```ts
@@ -131,7 +131,7 @@ Ended calls can't be re-joined.
 
 ## Capabilities
 
-Every user connecting to a Stream Call, has a set of [Capabilities](../).
+Every user connecting to a Stream Call has a set of [Capabilities](../).
 The capabilities of the local user live in the metadata of the `Call` instance.
 
 ```tsx
