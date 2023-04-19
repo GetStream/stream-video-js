@@ -1,36 +1,38 @@
-import { SfuModels } from '@stream-io/video-client';
+import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
 import { useParticipants } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { ParticipantView } from './ParticipantView';
 import { theme } from '../theme';
 import { useDebouncedValue } from '../utils/hooks';
 import { CallParticipantsList } from './CallParticipantsList';
-import { useMemo } from 'react';
 
-export const CallParticipantsScreenView = () => {
+const hasScreenShare = (p: StreamVideoParticipant) =>
+  p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
+
+export const CallParticipantsSpotlightView = () => {
   const _allParticipants = useParticipants();
   const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
-  const firstScreenSharingParticipant = useMemo(
-    () =>
-      allParticipants.find((p) =>
-        p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
-      ),
-    [allParticipants],
-  );
+  const [participantInSpotlight, ...otherParticipants] = allParticipants;
+  const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
 
   return (
     <View style={styles.container}>
-      {firstScreenSharingParticipant && (
+      {participantInSpotlight && (
         <View style={styles.screenShareContainer}>
           <ParticipantView
-            participant={firstScreenSharingParticipant}
+            participant={participantInSpotlight}
             containerStyle={{ flex: 1 }}
-            kind="screen"
+            kind={isScreenShareOnSpotlight ? 'screen' : 'video'}
           />
         </View>
       )}
       <View style={styles.participantVideoContainer}>
-        <CallParticipantsList participants={allParticipants} horizontal />
+        <CallParticipantsList
+          participants={
+            isScreenShareOnSpotlight ? allParticipants : otherParticipants
+          }
+          horizontal
+        />
       </View>
     </View>
   );

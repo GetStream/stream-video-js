@@ -3,13 +3,14 @@ import {
   StreamCallProvider,
   useActiveCall,
   useHasOngoingScreenShare,
+  useParticipants,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useCallCycleContext } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
-import { CallParticipantsScreenView } from './CallParticipantsScreenView';
+import { CallParticipantsSpotlightView } from './CallParticipantsScreenView';
 import { theme } from '../theme';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
 import { ActiveCallDefaultSorter } from './ActiveCallDefaultSorter';
@@ -26,6 +27,10 @@ export interface ActiveCallProps {
    * When true, the default participant list sorter will be disabled.
    */
   disableDefaultSorter?: boolean;
+  /**
+   * The mode of the call view. Defaults to 'grid'.
+   */
+  mode?: 'grid' | 'spotlight';
 }
 /**
  * View for an active call, includes call controls and participant handling.
@@ -48,11 +53,18 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
-  const { onOpenCallParticipantsInfoView, disableDefaultSorter } = props;
+  const {
+    onOpenCallParticipantsInfoView,
+    disableDefaultSorter,
+    mode = 'grid',
+  } = props;
+  const [participantInSpotlight, ...otherParticipants] = useParticipants();
   const hasScreenShare = useHasOngoingScreenShare();
   const { callCycleHandlers } = useCallCycleContext();
   const { onHangupCall } = callCycleHandlers;
   usePublishMediaStreams();
+
+  const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     setHeight(
@@ -74,8 +86,8 @@ const InnerActiveCall = (props: ActiveCallProps) => {
           { paddingBottom: height + theme.padding.lg },
         ]}
       >
-        {hasScreenShare ? (
-          <CallParticipantsScreenView />
+        {showSpotLightModeView ? (
+          <CallParticipantsSpotlightView />
         ) : (
           <CallParticipantsView />
         )}
