@@ -32,6 +32,12 @@ const createCallSlackHookAPI = async (
   const { _, $0, ...args } = await yargs().parse(req.body.text || '');
   const queryParams = new URLSearchParams(args as Record<string, string>);
 
+  // handle the special case /pronto --edges
+  if (queryParams.get('edges')) {
+    const message = await listAvailableEdges(client);
+    return res.status(200).json(message);
+  }
+
   try {
     let [type, id] = queryParams.get('cid')?.split(':') || [];
     if (!id && type) {
@@ -98,6 +104,22 @@ const notifyError = (message: string) => {
         text: {
           type: 'mrkdwn',
           text: `An error occurred: [\`${message}\`]`,
+        },
+      },
+    ],
+  };
+};
+
+const listAvailableEdges = async (client: StreamVideoClient) => {
+  const { edges } = await client.edges();
+  return {
+    response_type: 'ephemeral', // notify just the initiator
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `Edges: \`\`\`${JSON.stringify(edges, null, 2)}\`\`\``,
         },
       },
     ],
