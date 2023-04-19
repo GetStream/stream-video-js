@@ -20,6 +20,7 @@ import {
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
   const callId = router.query['callId'] as string;
+  const callType = (router.query['type'] as string) || 'default';
 
   const { userToken, user, apiKey, gleapApiKey } = props;
 
@@ -111,7 +112,11 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
             deviceSettings?.selectedAudioOutputDeviceId
           }
         >
-          <MeetingUI chatClient={chatClient} />
+          <MeetingUI
+            chatClient={chatClient}
+            callId={callId}
+            callType={callType}
+          />
         </MediaDevicesProvider>
       </StreamVideo>
     </>

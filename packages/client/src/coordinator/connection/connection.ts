@@ -349,7 +349,7 @@ export class StableWSConnection {
 
       if (response) {
         this.connectionID = response.connection_id;
-        this.client.resolveConnectionId();
+        this.client.resolveConnectionId(this.connectionID);
         if (
           this.client.insightMetrics.wsConsecutiveFailures > 0 &&
           this.client.options.enableInsights
