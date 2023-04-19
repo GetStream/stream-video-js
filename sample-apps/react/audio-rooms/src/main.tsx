@@ -5,9 +5,9 @@ import './index.css';
 import { UserContextProvider } from './contexts/UserContext/UserContext';
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <UserContextProvider>
-      <App />
-    </UserContextProvider>
-  </React.StrictMode>,
+  // <React.StrictMode>
+  <UserContextProvider>
+    <App />
+  </UserContextProvider>,
+  // </React.StrictMode>
 );
