@@ -120,7 +120,7 @@ sequenceDiagram
 #### Automatic call cancellation
 
 At times, the called in user may not respond to the incoming call by accepting or rejecting it. In that case the call is automatically rejected by the client based on the configuration parameter `settings.ring.auto_reject_timeout_ms`. The configuration parameter is provided with the `CallCreated.call` object delivered with `call.created` event.
-Symmetrically the configuration parameter `settings.ring.auto_cancel_timeout_ms` is provided to the client initiating the call when the call is created (`GetOrCreateCallResponse.call`). The default timeout is 15s for both parameters.
+Symmetrically the configuration parameter `settings.ring.auto_cancel_timeout_ms` is provided to the client initiating the call when the call is created (`GetOrCreateCallResponse.call`). The default timeout is 15 seconds for both parameters.
 
 #### Application State
 
@@ -134,6 +134,6 @@ TODO: do we want to allow multiple active calls? The store implementation will p
 
 ### Hybrid scenarios
 
-TODO: do we want to describe those? e.g. Slack call is a hybrid of the 2 above.
+TODO: do we want to describe those? For example Slack call is a hybrid of the 2 above.
 
 
