@@ -18,6 +18,7 @@ export const useAuth = () => {
     (store) => store.isStoreInitialized,
   );
   const [videoClient, setVideoClient] = useState<StreamVideoClient>();
+  const appMode = useAppGlobalStoreValue((store) => store.appMode);
   const username = useAppGlobalStoreValue((store) => store.username);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const appSetState = useAppGlobalStoreSetState();
@@ -59,7 +60,7 @@ export const useAuth = () => {
     };
 
     run();
-  }, [appSetState, username, userImageUrl, isStoreInitialized]);
+  }, [appSetState, appMode, username, userImageUrl, isStoreInitialized]);
 
   return { authenticationInProgress, videoClient };
 };

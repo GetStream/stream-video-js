@@ -8,6 +8,7 @@ export type NotificationProps = {
   visibilityTimeout?: number;
   resetIsVisible?: () => void;
   placement?: Placement;
+  iconClassName?: string | null;
 };
 
 export const Notification = (props: PropsWithChildren<NotificationProps>) => {
@@ -18,6 +19,7 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
     visibilityTimeout,
     resetIsVisible,
     placement = 'top',
+    iconClassName = 'str-video__notification__icon',
   } = props;
   const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
   const [popover, setPopover] = useState<HTMLDivElement | null>(null);
@@ -52,7 +54,7 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
           style={styles.popper}
           {...attributes.popper}
         >
-          <i className="str-video__notification__icon" />
+          {iconClassName && <i className={iconClassName} />}
           <span className="str-video__notification__message">{message}</span>
         </div>
       )}

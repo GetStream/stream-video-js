@@ -1,0 +1,98 @@
+.str-video__stage {
+  @apply p-5 flex gap-4 h-full w-full flex-wrap justify-center;
+}
+
+.str-video__call-participants-view {
+  display: grid;
+  grid-auto-rows: auto min-content;
+  grid-column-gap: 0.625rem;
+  grid-row-gap: 0.625rem;
+  align-items: center;
+  justify-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+.str-video__participant-placeholder {
+  @apply flex w-full h-full bg-video-grey-700;
+  border-radius: 12px;
+}
+
+.str-video__participant-placeholder
+  .str-video__participant-placeholder--initials-fallback {
+  @apply bg-video-stream-500 text-video-white h-20 w-20 rounded-full;
+  border-radius: 100%;
+}
+
+.str-video__participant-placeholder
+  .str-video__participant-placeholder--avatar {
+  @apply text-video-white h-20 w-20 rounded-full;
+}
+
+.str-video__participant {
+  @apply w-full h-full;
+}
+
+.str-video__participant.str-video__participant--no-video {
+}
+
+.str-video__participant.str-video__participant--speaking {
+  @apply border-4 border-video-stream-500;
+  border-radius: 12px;
+}
+
+.str-video__participant .str-video__video-container .str-video__remote-video {
+  aspect-ratio: auto;
+  object-fit: cover !important;
+  border-radius: 12px;
+}
+
+.str-video__participant.str-video__participant--speaking
+  .str-video__remote-video {
+  border-radius: 8px;
+}
+
+.str-video__participant .str-video__participant_name {
+  @apply text-xs bg-video-grey-800 p-2 pt-1 pb-1 text-video-white;
+  border-radius: 4px;
+}
+
+.str-video__participant .str-video__participant_details,
+.str-video__participant-angular-host .str-video__participant_details {
+  bottom: 0;
+  left: 0;
+  @apply w-full;
+}
+
+.str-video__participant .str-video__participant_name {
+  @apply mb-4 ml-4;
+}
+.str-video__participant
+  .str-video__participant_name
+  .str-video__participant_name--dominant_speaker {
+  @apply bg-video-white;
+}
+
+.str-video__participant
+  .str-video__participant_name
+  .str-video__participant_name--audio-muted,
+.str-video__participant-angular-host
+  .str-video__participant_name
+  .str-video__participant_name--audio-muted {
+  @apply bg-video-red-600;
+}
+
+.str-video__participant
+  .str-video__participant_name
+  .str-video__participant_name--video-muted {
+  @apply bg-video-red-600 ml-1;
+}
+
+.str-video__participant .str-video__participant__connection-quality,
+.str-video__participant-angular-host
+  .str-video__participant__connection-qualit {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  @apply mr-4 mb-4;
+}

@@ -1,7 +1,6 @@
 import { PropsWithChildren, ReactNode, useMemo } from 'react';
 import { useChatContext } from 'stream-chat-react';
 import {
-  CALL_CONFIG,
   StreamCall,
   StreamVideo,
   useCreateStreamVideoClient,
@@ -22,7 +21,6 @@ export const Video = ({
   token,
 }: PropsWithChildren<VideoProps>) => {
   const client = useCreateStreamVideoClient({
-    callConfig: CALL_CONFIG.ring,
     apiKey: import.meta.env.VITE_STREAM_KEY,
     tokenOrProvider: token,
     user,

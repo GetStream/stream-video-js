@@ -241,6 +241,62 @@ export interface CallAcceptedEvent {
   user: UserResponse;
 }
 /**
+ * This event is sent when call broadcasting has started
+ * @export
+ * @interface CallBroadcastingStartedEvent
+ */
+export interface CallBroadcastingStartedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallBroadcastingStartedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallBroadcastingStartedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallBroadcastingStartedEvent
+   */
+  hls_playlist_url: string;
+  /**
+   * The type of event: "call.broadcasting_started" in this case
+   * @type {string}
+   * @memberof CallBroadcastingStartedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when call broadcasting has stopped
+ * @export
+ * @interface CallBroadcastingStoppedEvent
+ */
+export interface CallBroadcastingStoppedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallBroadcastingStoppedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallBroadcastingStoppedEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.broadcasting_stopped" in this case
+   * @type {string}
+   * @memberof CallBroadcastingStoppedEvent
+   */
+  type: string;
+}
+/**
  * This event is sent when a call is created. Clients receiving this event should check if the ringing
  * field is set to true and if so, show the call screen
  * @export
@@ -314,6 +370,19 @@ export interface CallEndedEvent {
    * @memberof CallEndedEvent
    */
   user?: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface CallIngressResponse
+ */
+export interface CallIngressResponse {
+  /**
+   *
+   * @type {RTMPIngress}
+   * @memberof CallIngressResponse
+   */
+  rtmp: RTMPIngress;
 }
 /**
  * This event is sent when one or more members are added to a call
@@ -723,6 +792,12 @@ export interface CallResponse {
    */
   id: string;
   /**
+   *
+   * @type {CallIngressResponse}
+   * @memberof CallResponse
+   */
+  ingress: CallIngressResponse;
+  /**
    * The capabilities of the current user
    * @type {Array<OwnCapability>}
    * @memberof CallResponse
@@ -751,7 +826,7 @@ export interface CallResponse {
    * @type {string}
    * @memberof CallResponse
    */
-  team: string;
+  team?: string;
   /**
    *
    * @type {boolean}
@@ -1025,6 +1100,37 @@ export interface ConnectUserDetailsRequest {
   name?: string;
 }
 /**
+ * This event is sent when the WS connection is established and authenticated, this event contains the full user object as it is stored on the server
+ * @export
+ * @interface ConnectedEvent
+ */
+export interface ConnectedEvent {
+  /**
+   * The connection_id for this client
+   * @type {string}
+   * @memberof ConnectedEvent
+   */
+  connection_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {OwnUserResponse}
+   * @memberof ConnectedEvent
+   */
+  me: OwnUserResponse;
+  /**
+   * The type of event: "connection.ok" in this case
+   * @type {string}
+   * @memberof ConnectedEvent
+   */
+  type: string;
+}
+/**
  *
  * @export
  * @interface Coordinates
@@ -1114,6 +1220,44 @@ export interface CreateCallTypeResponse {
 /**
  *
  * @export
+ * @interface CreateGuestRequest
+ */
+export interface CreateGuestRequest {
+  /**
+   *
+   * @type {UserRequest}
+   * @memberof CreateGuestRequest
+   */
+  user: UserRequest;
+}
+/**
+ *
+ * @export
+ * @interface CreateGuestResponse
+ */
+export interface CreateGuestResponse {
+  /**
+   * the access token to authenticate the user
+   * @type {string}
+   * @memberof CreateGuestResponse
+   */
+  access_token: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateGuestResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CreateGuestResponse
+   */
+  user: UserResponse;
+}
+/**
+ *
+ * @export
  * @interface Credentials
  */
 export interface Credentials {
@@ -1161,7 +1305,7 @@ export interface CustomVideoEvent {
    */
   custom: { [key: string]: any };
   /**
-   * The type of event (custom value in this case)
+   * The type of event, "custom" in this case
    * @type {string}
    * @memberof CustomVideoEvent
    */
@@ -1277,10 +1421,10 @@ export interface DeviceFieldsRequest {
  * @export
  */
 export const DeviceFieldsRequestPushProviderEnum = {
-  firebase: 'firebase',
-  apn: 'apn',
-  huawei: 'huawei',
-  xiaomi: 'xiaomi',
+  FIREBASE: 'firebase',
+  APN: 'apn',
+  HUAWEI: 'huawei',
+  XIAOMI: 'xiaomi',
 } as const;
 export type DeviceFieldsRequestPushProviderEnum =
   (typeof DeviceFieldsRequestPushProviderEnum)[keyof typeof DeviceFieldsRequestPushProviderEnum];
@@ -1886,13 +2030,7 @@ export interface MemberResponse {
    * @type {string}
    * @memberof MemberResponse
    */
-  duration: string;
-  /**
-   *
-   * @type {string}
-   * @memberof MemberResponse
-   */
-  role: string;
+  role?: string;
   /**
    * Date/time of the last update
    * @type {string}
@@ -1968,29 +2106,29 @@ export interface MuteUsersResponse {
  * @export
  */
 export const OwnCapability = {
-  block_users: 'block-users',
-  create_call: 'create-call',
-  create_reaction: 'create-reaction',
-  end_call: 'end-call',
-  join_backstage: 'join-backstage',
-  join_call: 'join-call',
-  join_ended_call: 'join-ended-call',
-  mute_users: 'mute-users',
-  read_call: 'read-call',
-  remove_call_member: 'remove-call-member',
-  screenshare: 'screenshare',
-  send_audio: 'send-audio',
-  send_video: 'send-video',
-  start_broadcast_call: 'start-broadcast-call',
-  start_record_call: 'start-record-call',
-  start_transcription_call: 'start-transcription-call',
-  stop_broadcast_call: 'stop-broadcast-call',
-  stop_record_call: 'stop-record-call',
-  stop_transcription_call: 'stop-transcription-call',
-  update_call: 'update-call',
-  update_call_member: 'update-call-member',
-  update_call_permissions: 'update-call-permissions',
-  update_call_settings: 'update-call-settings',
+  BLOCK_USERS: 'block-users',
+  CREATE_CALL: 'create-call',
+  CREATE_REACTION: 'create-reaction',
+  END_CALL: 'end-call',
+  JOIN_BACKSTAGE: 'join-backstage',
+  JOIN_CALL: 'join-call',
+  JOIN_ENDED_CALL: 'join-ended-call',
+  MUTE_USERS: 'mute-users',
+  READ_CALL: 'read-call',
+  REMOVE_CALL_MEMBER: 'remove-call-member',
+  SCREENSHARE: 'screenshare',
+  SEND_AUDIO: 'send-audio',
+  SEND_VIDEO: 'send-video',
+  START_BROADCAST_CALL: 'start-broadcast-call',
+  START_RECORD_CALL: 'start-record-call',
+  START_TRANSCRIPTION_CALL: 'start-transcription-call',
+  STOP_BROADCAST_CALL: 'stop-broadcast-call',
+  STOP_RECORD_CALL: 'stop-record-call',
+  STOP_TRANSCRIPTION_CALL: 'stop-transcription-call',
+  UPDATE_CALL: 'update-call',
+  UPDATE_CALL_MEMBER: 'update-call-member',
+  UPDATE_CALL_PERMISSIONS: 'update-call-permissions',
+  UPDATE_CALL_SETTINGS: 'update-call-settings',
 } as const;
 export type OwnCapability = (typeof OwnCapability)[keyof typeof OwnCapability];
 
@@ -2053,7 +2191,7 @@ export interface OwnUserResponse {
    * @type {Array<string>}
    * @memberof OwnUserResponse
    */
-  teams?: Array<string>;
+  teams: Array<string>;
   /**
    *
    * @type {string}
@@ -2254,6 +2392,19 @@ export interface QueryMembersResponse {
   prev?: string;
 }
 /**
+ * RTMP input settings
+ * @export
+ * @interface RTMPIngress
+ */
+export interface RTMPIngress {
+  /**
+   *
+   * @type {string}
+   * @memberof RTMPIngress
+   */
+  address: string;
+}
+/**
  *
  * @export
  * @interface ReactionResponse
@@ -2314,9 +2465,9 @@ export interface RecordSettings {
  * @export
  */
 export const RecordSettingsModeEnum = {
-  available: 'available',
-  disabled: 'disabled',
-  auto_on: 'auto-on',
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
 } as const;
 export type RecordSettingsModeEnum =
   (typeof RecordSettingsModeEnum)[keyof typeof RecordSettingsModeEnum];
@@ -2325,12 +2476,12 @@ export type RecordSettingsModeEnum =
  * @export
  */
 export const RecordSettingsQualityEnum = {
-  audio_only: 'audio-only',
-  _360p: '360p',
-  _480p: '480p',
-  _720p: '720p',
-  _1080p: '1080p',
-  _1440p: '1440p',
+  AUDIO_ONLY: 'audio-only',
+  _360P: '360p',
+  _480P: '480p',
+  _720P: '720p',
+  _1080P: '1080p',
+  _1440P: '1440p',
 } as const;
 export type RecordSettingsQualityEnum =
   (typeof RecordSettingsQualityEnum)[keyof typeof RecordSettingsQualityEnum];
@@ -2365,9 +2516,9 @@ export interface RecordSettingsRequest {
  * @export
  */
 export const RecordSettingsRequestModeEnum = {
-  available: 'available',
-  disabled: 'disabled',
-  auto_on: 'auto-on',
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
 } as const;
 export type RecordSettingsRequestModeEnum =
   (typeof RecordSettingsRequestModeEnum)[keyof typeof RecordSettingsRequestModeEnum];
@@ -2376,12 +2527,12 @@ export type RecordSettingsRequestModeEnum =
  * @export
  */
 export const RecordSettingsRequestQualityEnum = {
-  audio_only: 'audio-only',
-  _360p: '360p',
-  _480p: '480p',
-  _720p: '720p',
-  _1080p: '1080p',
-  _1440p: '1440p',
+  AUDIO_ONLY: 'audio-only',
+  _360P: '360p',
+  _480P: '480p',
+  _720P: '720p',
+  _1080P: '1080p',
+  _1440P: '1440p',
 } as const;
 export type RecordSettingsRequestQualityEnum =
   (typeof RecordSettingsRequestQualityEnum)[keyof typeof RecordSettingsRequestQualityEnum];
@@ -2645,9 +2796,9 @@ export interface TranscriptionSettings {
  * @export
  */
 export const TranscriptionSettingsModeEnum = {
-  available: 'available',
-  disabled: 'disabled',
-  auto_on: 'auto-on',
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
 } as const;
 export type TranscriptionSettingsModeEnum =
   (typeof TranscriptionSettingsModeEnum)[keyof typeof TranscriptionSettingsModeEnum];
@@ -2676,9 +2827,9 @@ export interface TranscriptionSettingsRequest {
  * @export
  */
 export const TranscriptionSettingsRequestModeEnum = {
-  available: 'available',
-  disabled: 'disabled',
-  auto_on: 'auto-on',
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
 } as const;
 export type TranscriptionSettingsRequestModeEnum =
   (typeof TranscriptionSettingsRequestModeEnum)[keyof typeof TranscriptionSettingsRequestModeEnum];
@@ -2744,38 +2895,38 @@ export interface UnblockedUserEvent {
 /**
  *
  * @export
- * @interface UpdateCallMemberRequest
+ * @interface UpdateCallMembersRequest
  */
-export interface UpdateCallMemberRequest {
+export interface UpdateCallMembersRequest {
   /**
    * List of userID to remove
    * @type {Array<string>}
-   * @memberof UpdateCallMemberRequest
+   * @memberof UpdateCallMembersRequest
    */
   remove_members?: Array<string>;
   /**
    * List of members to update or insert
    * @type {Array<MemberRequest>}
-   * @memberof UpdateCallMemberRequest
+   * @memberof UpdateCallMembersRequest
    */
   update_members?: Array<MemberRequest>;
 }
 /**
  *
  * @export
- * @interface UpdateCallMemberResponse
+ * @interface UpdateCallMembersResponse
  */
-export interface UpdateCallMemberResponse {
+export interface UpdateCallMembersResponse {
   /**
    * Duration of the request in human-readable format
    * @type {string}
-   * @memberof UpdateCallMemberResponse
+   * @memberof UpdateCallMembersResponse
    */
   duration: string;
   /**
    *
    * @type {Array<MemberResponse>}
-   * @memberof UpdateCallMemberResponse
+   * @memberof UpdateCallMembersResponse
    */
   members: Array<MemberResponse>;
 }
@@ -2797,6 +2948,12 @@ export interface UpdateCallRequest {
    * @memberof UpdateCallRequest
    */
   settings_override?: CallSettingsRequest;
+  /**
+   * the time the call is scheduled to start
+   * @type {string}
+   * @memberof UpdateCallRequest
+   */
+  starts_at?: string;
 }
 /**
  * Represents a call
@@ -3050,7 +3207,7 @@ export interface UserResponse {
    * @type {Array<string>}
    * @memberof UserResponse
    */
-  teams?: Array<string>;
+  teams: Array<string>;
   /**
    * Date/time of the last update
    * @type {string}
@@ -3058,6 +3215,33 @@ export interface UserResponse {
    */
   updated_at: string;
 }
+/**
+ * @type VideoEvent
+ * The discriminator object for all websocket events, you should use this to map event payloads to their own type
+ * @export
+ */
+export type VideoEvent =
+  | ({ type: 'call.accepted' } & CallAcceptedEvent)
+  | ({ type: 'call.blocked_user' } & BlockedUserEvent)
+  | ({ type: 'call.broadcasting_started' } & CallBroadcastingStartedEvent)
+  | ({ type: 'call.broadcasting_stopped' } & CallBroadcastingStoppedEvent)
+  | ({ type: 'call.created' } & CallCreatedEvent)
+  | ({ type: 'call.ended' } & CallEndedEvent)
+  | ({ type: 'call.member_added' } & CallMemberAddedEvent)
+  | ({ type: 'call.member_removed' } & CallMemberRemovedEvent)
+  | ({ type: 'call.member_updated' } & CallMemberUpdatedEvent)
+  | ({ type: 'call.permission_request' } & PermissionRequestEvent)
+  | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)
+  | ({ type: 'call.reaction_new' } & CallReactionEvent)
+  | ({ type: 'call.recording_started' } & CallRecordingStartedEvent)
+  | ({ type: 'call.recording_stopped' } & CallRecordingStoppedEvent)
+  | ({ type: 'call.rejected' } & CallRejectedEvent)
+  | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
+  | ({ type: 'call.updated' } & CallUpdatedEvent)
+  | ({ type: 'call.updated_permission' } & CallMemberUpdatedPermissionEvent)
+  | ({ type: 'connection.ok' } & ConnectedEvent)
+  | ({ type: 'custom' } & CustomVideoEvent)
+  | ({ type: 'health.check' } & HealthCheckEvent);
 /**
  *
  * @export
@@ -3122,58 +3306,28 @@ export interface WSAuthMessageRequest {
   user_details: ConnectUserDetailsRequest;
 }
 /**
- * This event is sent when the WS connection is established and authenticated, this event contains the full user object as it is stored on the server
+ * This is just a placeholder for all client events
  * @export
- * @interface WSConnectedEvent
+ * @interface WSCallEvent
  */
-export interface WSConnectedEvent {
-  /**
-   * The connection_id for this client
-   * @type {string}
-   * @memberof WSConnectedEvent
-   */
-  connection_id: string;
+export interface WSCallEvent {
   /**
    *
    * @type {string}
-   * @memberof WSConnectedEvent
+   * @memberof WSCallEvent
    */
-  created_at: string;
-  /**
-   *
-   * @type {OwnUserResponse}
-   * @memberof WSConnectedEvent
-   */
-  me: OwnUserResponse;
-  /**
-   * The type of event: "connection.ok" in this case
-   * @type {string}
-   * @memberof WSConnectedEvent
-   */
-  type: string;
+  call_id?: string;
 }
 /**
- * @type WSEvent
- * The discriminator object for all websocket events, you should use this to map event payloads to their own type
+ * This is just a placeholder for all client events
  * @export
+ * @interface WSClientEvent
  */
-export type WSEvent =
-  | ({ type: 'call.accepted' } & CallAcceptedEvent)
-  | ({ type: 'call.blocked_user' } & BlockedUserEvent)
-  | ({ type: 'call.created' } & CallCreatedEvent)
-  | ({ type: 'call.ended' } & CallEndedEvent)
-  | ({ type: 'call.member_added' } & CallMemberAddedEvent)
-  | ({ type: 'call.member_removed' } & CallMemberRemovedEvent)
-  | ({ type: 'call.member_updated' } & CallMemberUpdatedEvent)
-  | ({ type: 'call.permission_request' } & PermissionRequestEvent)
-  | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)
-  | ({ type: 'call.reaction_new' } & CallReactionEvent)
-  | ({ type: 'call.recording_started' } & CallRecordingStartedEvent)
-  | ({ type: 'call.recording_stopped' } & CallRecordingStoppedEvent)
-  | ({ type: 'call.rejected' } & CallRejectedEvent)
-  | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
-  | ({ type: 'call.updated' } & CallUpdatedEvent)
-  | ({ type: 'call.updated_permission' } & CallMemberUpdatedPermissionEvent)
-  | ({ type: 'connection.ok' } & WSConnectedEvent)
-  | ({ type: 'custom' } & CustomVideoEvent)
-  | ({ type: 'health.check' } & HealthCheckEvent);
+export interface WSClientEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof WSClientEvent
+   */
+  connection_id?: string;
+}

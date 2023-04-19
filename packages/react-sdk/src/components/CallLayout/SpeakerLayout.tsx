@@ -7,7 +7,11 @@ import {
   speakerLayoutSortPreset,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { useCall, useParticipants } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useLocalParticipant,
+  useParticipants,
+} from '@stream-io/video-react-bindings';
 
 import { ParticipantBox } from '../StreamCall';
 import { IconButton } from '../Button';
@@ -15,11 +19,11 @@ import { useHorizontalScrollPosition } from '../StreamCall/hooks';
 
 export const SpeakerLayout = () => {
   const call = useCall()!;
-  // TODO: fix
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
   const [scrollWrapper, setScrollWrapper] = useState<HTMLDivElement | null>(
     null,
   );
+  const localParticipant = useLocalParticipant();
 
   const scrollPosition = useHorizontalScrollPosition(scrollWrapper);
 
@@ -68,6 +72,16 @@ export const SpeakerLayout = () => {
   return (
     <div className="str-video__speaker-layout--wrapper">
       <div className="str-video__speaker-layout">
+        <div className="str-video__speaker-layout--spotlight">
+          {participantInSpotlight && (
+            <ParticipantBox
+              participant={participantInSpotlight}
+              call={call}
+              videoKind={isSpeakerScreenSharing ? 'screen' : 'video'}
+              sinkId={localParticipant?.audioOutputDeviceId}
+            />
+          )}
+        </div>
         {otherParticipants.length > 0 && (
           <div className="str-video__speaker-layout--participants-bar-buttons-wrapper">
             {scrollPosition && scrollPosition !== 'start' && (
@@ -90,6 +104,7 @@ export const SpeakerLayout = () => {
                     <ParticipantBox
                       participant={participantInSpotlight}
                       call={call}
+                      sinkId={localParticipant?.audioOutputDeviceId}
                     />
                   </div>
                 )}
@@ -98,7 +113,16 @@ export const SpeakerLayout = () => {
                     className="str-video__speaker-layout--participant-tile"
                     key={participant.sessionId}
                   >
-                    <ParticipantBox participant={participant} call={call} />
+                    <ParticipantBox
+                      participant={participant}
+                      call={call}
+                      sinkId={localParticipant?.audioOutputDeviceId}
+                      videoKind={
+                        isOneToOneCall && hasScreenShare(participant)
+                          ? 'screen'
+                          : 'video'
+                      }
+                    />
                   </div>
                 ))}
               </div>
@@ -112,16 +136,6 @@ export const SpeakerLayout = () => {
             )}
           </div>
         )}
-
-        <div className="str-video__speaker-layout--spotlight">
-          {participantInSpotlight && (
-            <ParticipantBox
-              participant={participantInSpotlight}
-              call={call}
-              videoKind={isSpeakerScreenSharing ? 'screen' : 'video'}
-            />
-          )}
-        </div>
       </div>
     </div>
   );

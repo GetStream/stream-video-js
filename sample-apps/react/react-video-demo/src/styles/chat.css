@@ -1,0 +1,20 @@
+.str-chat {
+  --str-chat__primary-color: var(--color-video-grey-600);
+  --str-chat__primary-overlay-color: var(--color-video-grey-800);
+  --str-chat__primary-color-low-emphasis: var(--str-chat__blue700);
+  --str-chat__active-primary-color: var(--str-chat__blue600);
+  --str-chat__on-primary-color: var(--str-chat__grey50);
+  --str-chat__background-color: var(--color-video-grey-600);
+  --str-chat__secondary-background-color: var(--str-chat__grey900);
+  --str-chat__primary-surface-color: var(--color-video-grey-700);
+
+  --str-chat__message-input-background-color: var(--color-video-grey-800);
+}
+
+.str-chat__channel .str-chat__container {
+  @apply bg-video-black sm:bg-video-grey-700;
+}
+
+.str-chat__list {
+  @apply max-h-[200px] overflow-y-scroll;
+}

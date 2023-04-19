@@ -1,7 +1,6 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { EVENT_MAP } from './events';
 import { StableWSConnection } from './connection';
-import { CallResponse, OwnUserResponse } from '../../gen/coordinator';
+import { ConnectedEvent, VideoEvent } from '../../gen/coordinator';
 
 export type UR = Record<string, unknown>;
 
@@ -18,15 +17,7 @@ export type User = {
 
 export type { OwnUserResponse } from '../../gen/coordinator';
 
-export type ConnectionOpen = {
-  connection_id: string;
-  cid?: string;
-  created_at?: string;
-  me?: OwnUserResponse;
-  type?: string;
-};
-
-export type ConnectAPIResponse = Promise<void | ConnectionOpen>;
+export type ConnectAPIResponse = Promise<void | ConnectedEvent>;
 
 export type LogLevel = 'info' | 'error' | 'warn';
 
@@ -49,19 +40,39 @@ export class ErrorFromResponse<T> extends Error {
   response?: AxiosResponse<T>;
   status?: number;
 }
-export type EventTypes = 'all' | keyof typeof EVENT_MAP;
-export type Event = {
-  type: EventTypes;
 
-  call?: CallResponse;
-
-  received_at?: string | Date;
-  online?: boolean;
-  mode?: string;
-  // TODO OL: add more properties
+export type ConnectionChangedEvent = {
+  type: 'connection.changed';
+  online: boolean;
 };
 
-export type EventHandler = (event: Event) => void;
+export type TransportChangedEvent = {
+  type: 'transport.changed';
+  mode: 'longpoll';
+};
+
+export type ConnectionRecoveredEvent = {
+  type: 'connection.recovered';
+};
+
+export type StreamVideoEvent = (
+  | VideoEvent
+  | ConnectionChangedEvent
+  | TransportChangedEvent
+  | ConnectionRecoveredEvent
+) & { received_at?: string | Date };
+
+// TODO: we should use WSCallEvent here but that needs fixing
+export type StreamCallEvent = Extract<StreamVideoEvent, { call_cid: string }>;
+
+export type EventHandler = (event: StreamVideoEvent) => void;
+
+export type CallEventHandler = (event: StreamCallEvent) => void;
+
+export type EventTypes = 'all' | StreamVideoEvent['type'];
+
+export type CallEventTypes = StreamCallEvent['type'];
+
 export type Logger = (
   logLevel: LogLevel,
   message: string,
@@ -106,26 +117,3 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
 
 export type TokenProvider = () => Promise<string>;
 export type TokenOrProvider = null | string | TokenProvider | undefined;
-
-// FIXME: have this coming from OpenAPI schema
-const OwnCapabilitiesEnum = [
-  'join-call',
-  'stop-record-call',
-  'end-call',
-  'mute-users',
-  'start-broadcast-call',
-  'block-users',
-  'read-call',
-  'join-ended-call',
-  'screenshare',
-  'send-video',
-  'send-audio',
-  'start-record-call',
-  'update-call-permissions',
-  'create-call',
-  'update-call',
-  'update-call-settings',
-  'stop-broadcast-call',
-] as const;
-
-export type OwnCapabilities = Array<(typeof OwnCapabilitiesEnum)[number]>;

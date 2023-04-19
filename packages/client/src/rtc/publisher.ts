@@ -8,8 +8,8 @@ import {
 } from '../gen/video/sfu/models/models';
 import { getIceCandidate } from './helpers/iceCandidate';
 import {
-  findOptimalVideoLayers,
   findOptimalScreenSharingLayers,
+  findOptimalVideoLayers,
 } from './videoLayers';
 import { getPreferredCodecs } from './codecs';
 import { PublishOptions } from './types';
@@ -21,8 +21,8 @@ export type PublisherOpts = {
 };
 
 /**
- * @internal
  * The `Publisher` is responsible for publishing/unpublishing media streams to/from the SFU
+ * @internal
  */
 export class Publisher {
   private readonly publisher: RTCPeerConnection;
@@ -116,7 +116,7 @@ export class Publisher {
         );
 
         if ('setCodecPreferences' in transceiver && codecPreferences) {
-          console.log(`set codec preferences`, codecPreferences);
+          console.log(`set video codec preferences`, codecPreferences);
           // @ts-ignore
           transceiver.setCodecPreferences(codecPreferences);
         }
@@ -131,13 +131,16 @@ export class Publisher {
         );
         console.log('Preferred codec', opts.preferredCodec);
         if ('setCodecPreferences' in transceiver && codecPreferences) {
-          console.log(`set codec preferences`, codecPreferences);
+          console.log(`set audio codec preferences`, codecPreferences);
           // @ts-ignore
           transceiver.setCodecPreferences(codecPreferences);
         }
       }
     } else {
-      transceiver.sender.track?.stop();
+      // don't stop the track if we are re-publishing the same track
+      if (transceiver.sender.track !== track) {
+        transceiver.sender.track?.stop();
+      }
       await transceiver.sender.replaceTrack(track);
     }
   };
@@ -162,16 +165,25 @@ export class Publisher {
 
   /**
    * Stops publishing all tracks and stop all tracks.
+   *
+   * @param options - Options
+   * @param options.stopTracks - If `true` (default), all tracks will be stopped.
    */
-  stopPublishing = () => {
-    this.publisher.getSenders().forEach((s) => {
-      if (s.track) {
-        s.track.stop();
-      }
-      if (this.publisher.signalingState !== 'closed') {
-        this.publisher.removeTrack(s);
-      }
-    });
+  stopPublishing = (
+    options: {
+      stopTracks?: boolean;
+    } = {},
+  ) => {
+    const { stopTracks = true } = options;
+    if (stopTracks) {
+      this.publisher.getSenders().forEach((s) => {
+        s.track?.stop();
+
+        if (this.publisher.signalingState !== 'closed') {
+          this.publisher.removeTrack(s);
+        }
+      });
+    }
     this.publisher.close();
   };
 
@@ -270,19 +282,28 @@ export class Publisher {
           layers: layers,
           trackType,
           mid: transceiver.mid || '',
+
+          // FIXME OL: adjust these values
+          stereo: false,
+          dtx: this.isDtxEnabled,
+          red: false,
         };
       });
 
     // TODO debounce for 250ms
-    const response = await this.rpcClient.setPublisher({
+    const { response } = await this.rpcClient.setPublisher({
       sdp: offer.sdp || '',
       tracks: trackInfos,
     });
 
-    await this.publisher.setRemoteDescription({
-      type: 'answer',
-      sdp: response.response.sdp,
-    });
+    try {
+      await this.publisher.setRemoteDescription({
+        type: 'answer',
+        sdp: response.sdp,
+      });
+    } catch (e) {
+      console.error(`Publisher: setRemoteDescription error`, response.sdp, e);
+    }
 
     this.rpcClient.iceTrickleBuffer.publisherCandidates.subscribe(
       async (candidate) => {
@@ -290,7 +311,7 @@ export class Publisher {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
           await this.publisher.addIceCandidate(iceCandidate);
         } catch (e) {
-          console.error(`[Publisher] ICE candidate error`, e, candidate);
+          console.error(`Publisher: ICE candidate error`, e, candidate);
         }
       },
     );
@@ -300,22 +321,20 @@ export class Publisher {
     const errorMessage =
       e instanceof RTCPeerConnectionIceErrorEvent &&
       `${e.errorCode}: ${e.errorText}`;
-    console.error(`Publisher: ICE Candidate error`, errorMessage, e);
+    console.error(`Publisher: ICE Candidate error`, errorMessage);
   };
 
-  private onIceConnectionStateChange = (e: Event) => {
+  private onIceConnectionStateChange = () => {
     console.log(
       `Publisher: ICE Connection state changed`,
       this.publisher.iceConnectionState,
-      e,
     );
   };
 
-  private onIceGatheringStateChange = (e: Event) => {
+  private onIceGatheringStateChange = () => {
     console.log(
       `Publisher: ICE Gathering State`,
       this.publisher.iceGatheringState,
-      e,
     );
   };
 
