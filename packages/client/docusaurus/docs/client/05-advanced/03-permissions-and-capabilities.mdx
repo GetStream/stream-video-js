@@ -67,11 +67,12 @@ You can listen to this event and approve the request.
 import { PermissionRequestEvent } from '@stream-io/video-client';
 
 const call = streamVideoClient.call(type, id);
-call.on('permission_request', async (request: PermissionRequestEvent) => {
-  if (shouldApproveRequest(request)) {
-    await call.updateUserPermissions({
-      user_id: request.user_id,
-      grant_permissions: [...request.permissions],
+call.on('call.permission_request', (event: StreamCallEvent) => {
+    const request = event as PermissionRequestEvent;
+    if (shouldApproveRequest(request)) {
+      await call.updateUserPermissions({
+        user_id: request.user_id,
+        grant_permissions: [...request.permissions],
     });
   }
 });
