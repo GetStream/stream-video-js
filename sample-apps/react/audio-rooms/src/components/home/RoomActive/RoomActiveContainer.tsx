@@ -1,7 +1,7 @@
 import { StreamCallProvider } from '@stream-io/video-react-bindings';
 import { useAudioRoomContext } from '../../../contexts/AudioRoomContext/AudioRoomContext';
 import { useCallback, useEffect, useState } from 'react';
-import RoomActive from '../RoomActive';
+import RoomActive from './RoomActive';
 import { Call, CallingState } from '@stream-io/video-client';
 import { MediaDevicesProvider } from '@stream-io/video-react-sdk';
 

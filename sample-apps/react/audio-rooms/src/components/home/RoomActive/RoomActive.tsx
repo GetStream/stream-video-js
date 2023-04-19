@@ -1,13 +1,13 @@
 import { useParticipants } from '@stream-io/video-react-bindings';
 import {
-  Audio,
   getAudioStream,
+  OwnCapability,
   SfuModels,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 import { useEffect } from 'react';
-import { useAudioRoomContext } from '../../contexts/AudioRoomContext/AudioRoomContext';
-import RoomOverview from './RoomOverview';
+import { useAudioRoomContext } from '../../../contexts/AudioRoomContext/AudioRoomContext';
+import RoomOverview from '../RoomOverview';
 import {
   AddPersonIcon,
   ChatIcon,
@@ -15,15 +15,16 @@ import {
   MicrophoneButton,
   PersonIcon,
   RaiseHandIcon,
-} from '../icons';
-import { useUserContext } from '../../contexts/UserContext/UserContext';
-import SpeakerElement from './RoomActive/SpeakerElement';
+} from '../../icons';
+import { useUserContext } from '../../../contexts/UserContext/UserContext';
+import SpeakerElement from './SpeakerElement';
 
 const RoomActive = () => {
   const { user } = useUserContext();
   const { currentRoom, leave } = useAudioRoomContext();
   const participants = useParticipants();
   const { stopPublishingAudio } = useMediaDevices();
+  const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
 
   useEffect(() => {
     currentRoom?.call?.updateSubscriptionsPartial(
