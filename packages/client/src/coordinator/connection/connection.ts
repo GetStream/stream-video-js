@@ -349,7 +349,7 @@ export class StableWSConnection {
 
       if (response) {
         this.connectionID = response.connection_id;
-        this.client.resolveConnectionId();
+        this.client.resolveConnectionId(this.connectionID);
         if (
           this.client.insightMetrics.wsConsecutiveFailures > 0 &&
           this.client.options.enableInsights
@@ -546,6 +546,23 @@ export class StableWSConnection {
     ) {
       // the initial health-check should come from the client
       this.scheduleNextPing();
+    }
+
+    if (data && data.error) {
+      const { code } = this._errorFromWSEvent(data, true);
+      this.isHealthy = false;
+      this.isConnecting = false;
+      this.consecutiveFailures += 1;
+      if (
+        code === KnownCodes.TOKEN_EXPIRED &&
+        !this.client.tokenManager.isStatic()
+      ) {
+        clearTimeout(this.connectionCheckTimeoutRef);
+        this._log(
+          'connect() - WS failure due to expired token, so going to try to reload token and reconnect',
+        );
+        this._reconnect({ refreshToken: true });
+      }
     }
 
     this.client.handleEvent(event);

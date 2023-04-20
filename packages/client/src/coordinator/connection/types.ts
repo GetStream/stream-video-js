@@ -6,7 +6,6 @@ export type UR = Record<string, unknown>;
 
 export type User = {
   id: string;
-  anon?: boolean;
   name?: string;
   role?: string;
   teams?: string[];
