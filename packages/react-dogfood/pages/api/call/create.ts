@@ -30,12 +30,21 @@ const createCallSlackHookAPI = async (
   console.log(`Received input`, req.body);
   const initiator = req.body.user_name || 'Stream Pronto Bot';
   const { _, $0, ...args } = await yargs().parse(req.body.text || '');
-  const queryParams = new URLSearchParams(
-    args as Record<string, string>,
-  ).toString();
+  const queryParams = new URLSearchParams(args as Record<string, string>);
+
+  // handle the special case /pronto --edges
+  if (queryParams.get('edges')) {
+    const message = await listAvailableEdges(client);
+    return res.status(200).json(message);
+  }
 
   try {
-    const call = client.call('default', meetingId());
+    let [type, id] = queryParams.get('cid')?.split(':') || [];
+    if (!id && type) {
+      id = type;
+      type = 'default';
+    }
+    const call = client.call(type || 'default', id || meetingId());
     await call.getOrCreate({
       ring: false,
     });
@@ -49,7 +58,7 @@ const createCallSlackHookAPI = async (
         req.headers.host,
         '/join/',
         call.id,
-        queryParams && `?${queryParams}`,
+        queryParams.toString() && `?${queryParams.toString()}`,
       ]
         .filter(Boolean)
         .join('');
@@ -98,6 +107,38 @@ const notifyError = (message: string) => {
         },
       },
     ],
+  };
+};
+
+const listAvailableEdges = async (client: StreamVideoClient) => {
+  const { edges } = await client.edges();
+  const message = edges
+    .map((edge) => {
+      const url = new URL(edge.latency_test_url);
+      url.pathname = '';
+      return `- ${edge.id}: ${url.toString()}`;
+    })
+    .join('\n');
+
+  // Slack limits the message size to 3000 characters
+  const limit = 2900;
+  const chunks = Math.ceil(message.length / limit);
+  const chunkedMessages = [];
+  for (let i = 0; i < chunks; i++) {
+    chunkedMessages.push(message.substring(i * limit, (i + 1) * limit));
+  }
+
+  return {
+    response_type: 'ephemeral', // notify just the initiator
+    blocks: chunkedMessages.map((msg) => {
+      return {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `Available edges: \`\`\`${msg}\`\`\``,
+        },
+      };
+    }),
   };
 };
 
