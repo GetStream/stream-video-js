@@ -30,8 +30,6 @@ export const CallParticipantListingItem = ({
   participant,
   DisplayName = DefaultDisplayName,
 }: CallParticipantListingItemProps) => {
-  const ownCapabilities = useOwnCapabilities();
-
   const isAudioOn = participant.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
@@ -61,15 +59,10 @@ export const CallParticipantListingItem = ({
             }`,
           )}
         />
-        <Restricted
-          availableGrants={ownCapabilities}
-          // TODO: add 'kick-users' when available
-          requiredGrants={[OwnCapability.BLOCK_USERS, OwnCapability.MUTE_USERS]}
-        >
-          <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
-            <ParticipantActionsContextMenu participant={participant} />
-          </MenuToggle>
-        </Restricted>
+
+        <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
+          <ParticipantActionsContextMenu participant={participant} />
+        </MenuToggle>
       </div>
     </div>
   );
