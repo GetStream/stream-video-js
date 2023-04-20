@@ -23,8 +23,8 @@ const PanelContext = createContext<Props>({
 });
 
 export const PanelProvider = ({ children }: { children: ReactNode }) => {
-  const [isChatVisible, setChatVisible]: any = useState<boolean>(false);
-  const [isParticipantsVisible, setParticipantsVisible]: any =
+  const [isChatVisible, setChatVisible] = useState<boolean>(false);
+  const [isParticipantsVisible, setParticipantsVisible] =
     useState<boolean>(false);
 
   const breakpoint = useBreakpoint();
