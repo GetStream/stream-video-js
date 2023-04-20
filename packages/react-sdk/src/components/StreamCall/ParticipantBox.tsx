@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 import clsx from 'clsx';
 import {
   Call,
@@ -13,6 +13,9 @@ import { Audio } from './Audio';
 import { Video } from '../Video';
 import { Notification } from '../Notification';
 import { Reaction } from '../Reaction';
+import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
+import { IconButton } from '../Button';
+import { ParticipantActionsContextMenu } from '../CallParticipantsList';
 
 export interface ParticipantBoxProps {
   /**
@@ -62,6 +65,12 @@ export interface ParticipantBoxProps {
    */
   className?: string;
 }
+
+const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
+  (props, ref) => {
+    return <IconButton enabled={props.menuShown} icon="ellipsis" ref={ref} />;
+  },
+);
 
 export const ParticipantBox = (props: ParticipantBoxProps) => {
   const {
@@ -135,6 +144,10 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
       )}
       ref={setTrackedElement}
     >
+      <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
+        <ParticipantActionsContextMenu participant={participant} />
+      </MenuToggle>
+
       <div className="str-video__video-container">
         <Audio
           // mute the local participant, as we don't want to hear ourselves

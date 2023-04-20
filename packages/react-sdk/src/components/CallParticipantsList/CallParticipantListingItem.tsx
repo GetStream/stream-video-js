@@ -67,7 +67,7 @@ export const CallParticipantListingItem = ({
           requiredGrants={[OwnCapability.BLOCK_USERS, OwnCapability.MUTE_USERS]}
         >
           <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
-            <Menu participant={participant} />
+            <ParticipantActionsContextMenu participant={participant} />
           </MenuToggle>
         </Restricted>
       </div>
@@ -113,7 +113,12 @@ const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
     return <IconButton enabled={props.menuShown} icon="ellipsis" ref={ref} />;
   },
 );
-const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
+
+export const ParticipantActionsContextMenu = ({
+  participant,
+}: {
+  participant: StreamVideoParticipant;
+}) => {
   const activeCall = useCall();
   const ownCapabilities = useOwnCapabilities();
 
