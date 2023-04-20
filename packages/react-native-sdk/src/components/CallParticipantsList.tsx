@@ -96,8 +96,8 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
     });
     viewableParticipantSessionIds.current = newVisibleParticipantSessionIds;
     if (mustUpdate) {
-      forceUpdate();
       activeCallRef.current?.state.updateParticipants(participantPatches);
+      forceUpdate();
     }
   }).current;
 
@@ -124,7 +124,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
 
   const renderItem = useCallback<NonNullable<FlatListProps['renderItem']>>(
     ({ item: participant }) => {
-      const isVideoViewable = viewableParticipantSessionIds.current.has(
+      const isVisible = viewableParticipantSessionIds.current.has(
         participant.sessionId,
       );
       return (
@@ -132,7 +132,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
           participant={participant}
           containerStyle={itemContainerStyle}
           kind="video"
-          disableVideo={!isVideoViewable}
+          isVisible={isVisible}
         />
       );
     },
