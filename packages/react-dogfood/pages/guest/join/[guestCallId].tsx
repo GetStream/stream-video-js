@@ -11,15 +11,17 @@ import { getDeviceSettings } from '../../../components/DeviceSettingsCaptor';
 import { MeetingUI } from '../../../components';
 import { createToken } from '../../../helpers/jwt';
 import { useEffect, useState } from 'react';
+import { useGleap } from '../../../hooks/useGleap';
 
 type GuestCallRoomProps = {
   user: UserResponse;
   apiKey: string;
   token: string;
+  gleapApiKey?: string;
 };
 
 export default function GuestCallRoom(props: GuestCallRoomProps) {
-  const { apiKey, user, token } = props;
+  const { apiKey, user, token, gleapApiKey } = props;
 
   const router = useRouter();
   const callId = router.query['guestCallId'] as string;
@@ -57,6 +59,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
       });
   }, [client, guestUserId, mode]);
 
+  useGleap(gleapApiKey, client, userToConnect);
   const deviceSettings = getDeviceSettings();
   return (
     <>
@@ -90,6 +93,7 @@ export const getServerSideProps = async (
 
   const apiKey = process.env.STREAM_API_KEY as string;
   const secretKey = process.env.STREAM_SECRET_KEY as string;
+  const gleapApiKey = (process.env.GLEAP_API_KEY as string | undefined) || null;
   const user: UserResponse = {
     id: `anonymous-${Math.random().toString(36).substring(2, 15)}`,
     created_at: new Date().toISOString(),
@@ -110,6 +114,7 @@ export const getServerSideProps = async (
       user,
       token,
       apiKey,
+      gleapApiKey,
     },
   };
 };
