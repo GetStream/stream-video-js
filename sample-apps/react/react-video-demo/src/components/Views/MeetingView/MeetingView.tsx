@@ -1,5 +1,4 @@
 import { FC, useCallback, useState, useEffect, useMemo } from 'react';
-import classnames from 'classnames';
 import { StreamChat } from 'stream-chat';
 import { getScreenShareStream, SfuModels } from '@stream-io/video-client';
 
@@ -24,14 +23,11 @@ import Meeting from '../../Meeting';
 import MeetingLayout from '../../Layout/MeetingLayout';
 
 import { useWatchChannel } from '../../../hooks/useWatchChannel';
-import { useBreakpoint } from '../../../hooks/useBreakpoints';
 
 import { useTourContext } from '../../../contexts/TourContext';
 import { tour } from '../../../../data/tour';
 
 import '@stream-io/video-styling/dist/css/styles.css';
-
-import styles from './MeetingView.module.css';
 
 export type Props = {
   loading?: boolean;
@@ -57,8 +53,6 @@ export const View: FC<Props & Meeting> = ({
   setCallHasEnded,
   chatClient,
 }) => {
-  const [showChat, setShowChat] = useState<boolean>(false);
-  const [showParticipants, setShowParticpants] = useState<boolean>(false);
   const [isAwaitingRecordingResponse, setIsAwaitingRecordingResponse] =
     useState(false);
 
@@ -77,8 +71,6 @@ export const View: FC<Props & Meeting> = ({
 
   const remoteScreenShare = useHasOngoingScreenShare();
 
-  const breakpoint = useBreakpoint();
-
   const localScreenShare = localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
   );
@@ -89,15 +81,6 @@ export const View: FC<Props & Meeting> = ({
 
   useEffect(() => {
     setSteps(tour);
-  }, []);
-
-  useEffect(() => {
-    if (breakpoint === 'xs' || breakpoint === 'sm') {
-      setShowChat(false);
-      setShowParticpants(false);
-    } else {
-      setShowParticpants(true);
-    }
   }, []);
 
   useEffect(() => {
@@ -134,18 +117,6 @@ export const View: FC<Props & Meeting> = ({
     setCallHasEnded(true);
   }, []);
 
-  const toggleChat = useCallback(() => {
-    if (showChat === false && chatClient) {
-      setUnread(0);
-    }
-
-    setShowChat(!showChat);
-  }, [showChat, chatClient]);
-
-  const toggleParticipants = useCallback(() => {
-    setShowParticpants(!showParticipants);
-  }, [showParticipants]);
-
   const toggleShareScreen = useCallback(async () => {
     if (!isScreenSharing) {
       const stream = await getScreenShareStream().catch((e) => {
@@ -174,19 +145,14 @@ export const View: FC<Props & Meeting> = ({
 
   return (
     <MeetingLayout
-      showParticipants={showParticipants}
-      showChat={showChat}
       callId={callId}
       chatClient={chatClient}
-      toggleChat={toggleChat}
       header={
         <Header
           logo={logo}
           callId={callId}
           isCallActive={isCallActive}
           participants={participants}
-          toggleParticipants={toggleParticipants}
-          showParticipants={showParticipants}
           participantCount={participants?.length}
           latency={
             statsReport
@@ -199,16 +165,12 @@ export const View: FC<Props & Meeting> = ({
         <Sidebar
           callId={callId}
           current={current}
-          showParticipants={showParticipants}
-          showChat={showChat}
           chatClient={chatClient}
           participants={participants}
         />
       }
       footer={
         <Footer
-          toggleChat={toggleChat}
-          toggleParticipants={toggleParticipants}
           handleStartRecording={handleStartRecording}
           handleStopRecording={handleStopRecording}
           isAwaitingRecording={isAwaitingRecordingResponse}
@@ -217,8 +179,6 @@ export const View: FC<Props & Meeting> = ({
           isCallActive={isCallActive}
           isScreenSharing={isScreenSharing}
           isRecording={isCallRecordingInProgress}
-          showParticipants={showParticipants}
-          showChat={showChat}
           leave={leave}
           callId={callId}
           unreadMessages={unread}
@@ -230,10 +190,8 @@ export const View: FC<Props & Meeting> = ({
         isScreenSharing={isScreenSharing}
         call={call}
         callId={callId}
-        showParticipants={showParticipants}
         participantsAmount={participants?.length}
         participants={participants}
-        toggleParticipants={toggleParticipants}
       />
     </MeetingLayout>
   );

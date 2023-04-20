@@ -9,14 +9,13 @@ import ChatPanel from '../ChatPanel';
 import { StreamMark } from '../Icons';
 
 import { StepNames } from '../../contexts/TourContext';
+import { usePanelContext } from '../../contexts/PanelContext';
 
 import styles from './Sidebar.module.css';
 
 export type Props = {
   callId: string;
   current: StepNames;
-  showParticipants: boolean;
-  showChat: boolean;
   chatClient?: StreamChat | null;
   participants: StreamVideoParticipant[];
 };
@@ -25,12 +24,12 @@ export const Sidebar: FC<Props> = ({
   chatClient,
   callId,
   current,
-  showParticipants,
   participants,
-  showChat,
 }) => {
   const chatRef = useRef(null);
   const participantsRef = useRef(null);
+
+  const { isChatVisible, isParticipantsVisible } = usePanelContext();
 
   return (
     <div className={styles.sidebar}>
@@ -41,7 +40,7 @@ export const Sidebar: FC<Props> = ({
       />
       <CSSTransition
         nodeRef={participantsRef}
-        in={showParticipants}
+        in={isParticipantsVisible}
         timeout={200}
         classNames={{
           enterActive: styles['animation-enter'],
@@ -51,7 +50,7 @@ export const Sidebar: FC<Props> = ({
         }}
       >
         <div ref={participantsRef}>
-          {showParticipants ? (
+          {isParticipantsVisible ? (
             <ParticipantsPanel
               className={styles.participantsPanel}
               participants={participants}
@@ -63,7 +62,7 @@ export const Sidebar: FC<Props> = ({
 
       <CSSTransition
         nodeRef={chatRef}
-        in={showChat}
+        in={isChatVisible}
         timeout={200}
         classNames={{
           enterActive: styles['animation-enter'],
@@ -73,7 +72,7 @@ export const Sidebar: FC<Props> = ({
         }}
       >
         <div ref={chatRef}>
-          {showChat ? (
+          {isChatVisible ? (
             <ChatPanel
               className={styles.chatPanel}
               isFocused={current === 2}
