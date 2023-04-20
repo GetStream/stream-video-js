@@ -24,10 +24,6 @@ export interface ActiveCallProps {
    */
   onOpenCallParticipantsInfoView: () => void;
   /**
-   * When true, the default participant list sorter will be disabled.
-   */
-  disableDefaultSorter?: boolean;
-  /**
    * The mode of the call view. Defaults to 'grid'.
    */
   mode?: 'grid' | 'spotlight';
@@ -53,11 +49,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
-  const {
-    onOpenCallParticipantsInfoView,
-    disableDefaultSorter,
-    mode = 'grid',
-  } = props;
+  const { onOpenCallParticipantsInfoView, mode = 'grid' } = props;
   const hasScreenShare = useHasOngoingScreenShare();
   const { callCycleHandlers } = useCallCycleContext();
   const { onHangupCall } = callCycleHandlers;
@@ -94,7 +86,6 @@ const InnerActiveCall = (props: ActiveCallProps) => {
       <View onLayout={onLayout} style={styles.callControlsWrapper}>
         <CallControlsView onHangupCall={onHangupCall} />
       </View>
-      {!disableDefaultSorter && <ActiveCallDefaultSorter />}
     </View>
   );
 };
