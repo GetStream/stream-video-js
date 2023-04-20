@@ -58,13 +58,10 @@ const InnerActiveCall = (props: ActiveCallProps) => {
     disableDefaultSorter,
     mode = 'grid',
   } = props;
-  const [participantInSpotlight, ...otherParticipants] = useParticipants();
   const hasScreenShare = useHasOngoingScreenShare();
   const { callCycleHandlers } = useCallCycleContext();
   const { onHangupCall } = callCycleHandlers;
   usePublishMediaStreams();
-
-  const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     setHeight(
@@ -74,6 +71,8 @@ const InnerActiveCall = (props: ActiveCallProps) => {
       Math.trunc(event.nativeEvent.layout.height - theme.spacing.lg * 2),
     );
   };
+
+  const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;
 
   return (
     <View style={styles.container}>
