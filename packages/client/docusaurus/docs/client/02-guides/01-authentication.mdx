@@ -35,7 +35,7 @@ You'll need to implement your own Token Provider prior to deploying your app to 
 In order to be able to construct it and connect a user, you'll need to be able to provide the following information:
 
 - `apiKey`: The API key for your Stream Video app
-- `tokenOrTokenProvider`: a static token or an async function that returns a token fetched from your Token Provider. In case when the token expires, our SDK will call this function again in order to get a fresh token.
+- `tokenOrTokenProvider`: a static token or an `async` function that returns a token fetched from your Token Provider. In case when the token expires, our SDK will call this function again in order to get a fresh token.
 - `user`: An object that defines the user you want to connect. It should match the following type [`User`](../04-call-engine/User.md)
 
 ```ts
@@ -119,7 +119,7 @@ Anonymous users don't have a profile. They are not able to send audio or video, 
 If you try to call the `connectUser` method for an anonymous user, an error will be thrown.
 
 However, anonymous users need a call token to join a call. Compared to the regular user tokens,
-the tokens issued for anonymous users must have additinal claims and constraints:
+the tokens issued for anonymous users must have additional claims and constraints:
 
 - Call tokens must have an expiration time included to avoid security problems.
 - Call tokens can contain up to 100 call ids.
