@@ -36,8 +36,37 @@ export const Video = (
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
     null,
   );
+  // const [videoTrackMuted, setVideoTrackMuted] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const viewportVisibilityRef = useRef<VisibilityState | undefined>(
+    participant.viewportVisibilityState,
+  );
 
   const stream = kind === 'video' ? videoStream : screenShareStream;
+
+  // TODO: handle track muting
+  // useEffect(() => {
+  //   if (!stream) return;
+
+  //   const [track] = stream.getVideoTracks();
+  //   setVideoTrackMuted(track.muted);
+
+  //   const handleMute = () => {
+  //     setVideoTrackMuted(true);
+  //   };
+  //   const handleUnmute = () => {
+  //     setVideoTrackMuted(false);
+  //   };
+
+  //   track.addEventListener('mute', handleMute);
+  //   track.addEventListener('unmute', handleUnmute);
+
+  //   return () => {
+  //     track.removeEventListener('mute', handleMute);
+  //     track.removeEventListener('unmute', handleUnmute);
+  //   };
+  // }, [stream]);
+
   const isPublishingTrack = publishedTracks.includes(
     kind === 'video'
       ? SfuModels.TrackType.VIDEO
@@ -47,11 +76,15 @@ export const Video = (
   const displayPlaceholder =
     !isPublishingTrack ||
     (participant.viewportVisibilityState === VisibilityState.INVISIBLE &&
-      !screenShareStream);
+      !screenShareStream) ||
+    !videoPlaying;
 
   const lastDimensionRef = useRef<string | undefined>();
   const updateSubscription = useCallback(
-    (type: DebounceType, dimension?: SfuModels.VideoDimension) => {
+    (
+      dimension?: SfuModels.VideoDimension,
+      type: DebounceType = DebounceType.SLOW,
+    ) => {
       call.updateSubscriptionsPartial(
         kind,
         {
@@ -69,18 +102,23 @@ export const Video = (
   useEffect(() => {
     if (!isPublishingTrack || !videoElement) return;
 
-    updateSubscription(DebounceType.FAST, {
-      height: videoElement.clientHeight,
-      width: videoElement.clientWidth,
-    });
+    updateSubscription(
+      {
+        height: videoElement.clientHeight,
+        width: videoElement.clientWidth,
+      },
+      DebounceType.FAST,
+    );
 
     return () => {
-      updateSubscription(DebounceType.FAST);
+      updateSubscription(undefined, DebounceType.FAST);
     };
   }, [updateSubscription, videoElement, isPublishingTrack]);
 
   // handle visibility subscription updates
   useEffect(() => {
+    viewportVisibilityRef.current = participant.viewportVisibilityState;
+
     const isUnknownVVS =
       participant.viewportVisibilityState === VisibilityState.UNKNOWN;
     if (!videoElement || !isPublishingTrack || isUnknownVVS) return;
@@ -89,13 +127,13 @@ export const Video = (
       participant.viewportVisibilityState === VisibilityState.INVISIBLE;
 
     updateSubscription(
-      DebounceType.MEDIUM,
       isInvisibleVVS
         ? undefined
         : {
             height: videoElement.clientHeight,
             width: videoElement.clientWidth,
           },
+      DebounceType.MEDIUM,
     );
   }, [
     updateSubscription,
@@ -109,7 +147,7 @@ export const Video = (
     if (!videoElement || !isPublishingTrack) return;
 
     const resizeObserver = new ResizeObserver(() => {
-      const currentDimensions = `${videoElement.clientWidth}:${videoElement.clientHeight}`;
+      const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
 
       // skip initial trigger of the observer
       if (!lastDimensionRef.current) {
@@ -118,15 +156,17 @@ export const Video = (
 
       if (
         lastDimensionRef.current === currentDimensions ||
-        // "display: none" causes dimensions to change to 0
-        participant.viewportVisibilityState === VisibilityState.INVISIBLE
+        viewportVisibilityRef.current === VisibilityState.INVISIBLE
       )
         return;
 
-      updateSubscription(DebounceType.SLOW, {
-        height: videoElement.clientHeight,
-        width: videoElement.clientWidth,
-      });
+      updateSubscription(
+        {
+          height: videoElement.clientHeight,
+          width: videoElement.clientWidth,
+        },
+        DebounceType.SLOW,
+      );
       lastDimensionRef.current = currentDimensions;
     });
     resizeObserver.observe(videoElement);
@@ -144,7 +184,11 @@ export const Video = (
   const [isWideMode, setIsWideMode] = useState(true);
   useEffect(() => {
     if (!stream || !videoElement) return;
+
+    setVideoPlaying(!videoElement.paused);
+
     const calculateVideoRatio = () => {
+      setVideoPlaying(true);
       const [track] = stream.getVideoTracks();
       if (!track) return;
 
@@ -159,26 +203,15 @@ export const Video = (
 
   return (
     <>
-      <VideoPlaceholder
-        style={
-          displayPlaceholder
-            ? undefined
-            : {
-                display: 'none',
-              }
-        }
-        participant={participant}
-        ref={setVideoElementRef}
-      />
+      {displayPlaceholder && (
+        <VideoPlaceholder
+          style={{ position: 'absolute' }}
+          participant={participant}
+          ref={setVideoElementRef}
+        />
+      )}
       <BaseVideo
         {...rest}
-        style={
-          displayPlaceholder
-            ? {
-                display: 'none',
-              }
-            : undefined
-        }
         stream={stream}
         className={clsx(className, {
           'str-video__video--wide': isWideMode,
