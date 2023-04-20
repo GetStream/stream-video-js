@@ -69,8 +69,14 @@ export const publishingAudio: Comparator<StreamVideoParticipant> = (a, b) => {
  * @param b the second participant.
  */
 export const pinned: Comparator<StreamVideoParticipant> = (a, b) => {
-  if (a.isPinned && !b.isPinned) return -1;
-  if (!a.isPinned && b.isPinned) return 1;
+  if (a.pinnedAt && b.pinnedAt) {
+    if (a.pinnedAt > b.pinnedAt) return -1;
+    if (a.pinnedAt < b.pinnedAt) return 1;
+  }
+
+  if (a.pinnedAt && !b.pinnedAt) return -1;
+  if (!a.pinnedAt && b.pinnedAt) return 1;
+
   return 0;
 };
 

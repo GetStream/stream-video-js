@@ -59,9 +59,9 @@ export interface StreamVideoParticipant extends Participant {
   isLoggedInUser?: boolean;
 
   /**
-   * True when the participant is pinned
+   * Timestamp of when the participant is pinned
    */
-  isPinned?: boolean;
+  pinnedAt?: number;
 
   /**
    * The last reaction this user has sent to this call.

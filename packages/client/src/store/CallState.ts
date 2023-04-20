@@ -248,7 +248,7 @@ export class CallState {
     );
 
     this.pinnedParticipants$ = this.participants$.pipe(
-      map((participants) => participants.filter((p) => p.isPinned)),
+      map((participants) => participants.filter((p) => p.pinnedAt)),
     );
 
     this.dominantSpeaker$ = this.participants$.pipe(
