@@ -123,11 +123,26 @@ const listAvailableEdges = async (client: StreamVideoClient) => {
   // Slack limits the message size to 3000 characters
   const limit = 2900;
   const chunks = Math.ceil(message.length / limit);
-  const chunkedMessages = [];
+  const chunkedMessages = [
+    `
+    Static edges:
+    sfu-000c954.fdc-ams1.stream-io-video.com
+    sfu-039364a.lsw-ams1.stream-io-video.com
+    sfu-9c050b4.ovh-lon1.stream-io-video.com
+    sfu-9c0dc03.ovh-lim1.stream-io-video.com
+    sfu-9f0306f.eqx-nyc1.stream-io-video.com
+    sfu-a69b58a.blu-tal1.stream-io-video.com
+    sfu-e74550c.aws-sin1.stream-io-video.com
+    sfu-f079b1a.dpk-den1.stream-io-video.com
+    sfu-dd73d37.aws-mum1.stream-io-video.com
+    `,
+  ];
   for (let i = 0; i < chunks; i++) {
     chunkedMessages.push(message.substring(i * limit, (i + 1) * limit));
   }
 
+  // https://app.slack.com/block-kit-builder/
+  // useful too for testing the formatting of the Slack messages
   return {
     response_type: 'ephemeral', // notify just the initiator
     blocks: chunkedMessages.map((msg) => {
@@ -135,7 +150,7 @@ const listAvailableEdges = async (client: StreamVideoClient) => {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `Available edges: \`\`\`${msg}\`\`\``,
+          text: `Available edges: \`\`\`${msg.trim()}\`\`\``,
         },
       };
     }),
