@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react';
 import { useRouter } from 'next/router';
 import {
   MediaDevicesProvider,
@@ -21,9 +22,27 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
   const { userToken, user, apiKey, gleapApiKey } = props;
 
+  const [initialTokenProvided, setInitialTokenProvided] = useState(false);
+  const tokenProvider = useCallback(async () => {
+    if (!initialTokenProvided) {
+      setInitialTokenProvided(true);
+      return userToken;
+    }
+
+    const { token } = await fetch(
+      '/api/auth/create-token?' +
+        new URLSearchParams({
+          api_key: apiKey,
+          user_id: user.id,
+        }),
+      {},
+    ).then((res) => res.json());
+    return token;
+  }, [apiKey, initialTokenProvided, user.id, userToken]);
+
   const client = useCreateStreamVideoClient({
     apiKey,
-    tokenOrProvider: userToken,
+    tokenOrProvider: tokenProvider,
     user,
   });
 

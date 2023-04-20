@@ -548,6 +548,23 @@ export class StableWSConnection {
       this.scheduleNextPing();
     }
 
+    if (data && data.error) {
+      const { code } = this._errorFromWSEvent(data, true);
+      this.isHealthy = false;
+      this.isConnecting = false;
+      this.consecutiveFailures += 1;
+      if (
+        code === KnownCodes.TOKEN_EXPIRED &&
+        !this.client.tokenManager.isStatic()
+      ) {
+        clearTimeout(this.connectionCheckTimeoutRef);
+        this._log(
+          'connect() - WS failure due to expired token, so going to try to reload token and reconnect',
+        );
+        this._reconnect({ refreshToken: true });
+      }
+    }
+
     this.client.handleEvent(event);
     this.scheduleConnectionCheck();
   };
