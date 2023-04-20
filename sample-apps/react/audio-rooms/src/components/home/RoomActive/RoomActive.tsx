@@ -1,11 +1,17 @@
-import { useParticipants } from '@stream-io/video-react-bindings';
+import {
+  useHasPermissions,
+  useParticipants,
+} from '@stream-io/video-react-bindings';
 import {
   getAudioStream,
   OwnCapability,
+  PermissionRequestEvent,
   SfuModels,
+  StreamCallEvent,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
-import { useEffect } from 'react';
+import {} from '@stream-io/video-react-bindings';
+import { useEffect, useState } from 'react';
 import { useAudioRoomContext } from '../../../contexts/AudioRoomContext/AudioRoomContext';
 import RoomOverview from '../RoomOverview';
 import {
@@ -18,6 +24,8 @@ import {
 } from '../../icons';
 import { useUserContext } from '../../../contexts/UserContext/UserContext';
 import SpeakerElement from './SpeakerElement';
+import { watchCallPermissionRequest } from '@stream-io/video-client/src/events';
+import SpeakingRequest from './SpeakingRequest';
 
 const RoomActive = () => {
   const { user } = useUserContext();
@@ -25,6 +33,10 @@ const RoomActive = () => {
   const participants = useParticipants();
   const { stopPublishingAudio } = useMediaDevices();
   const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
+
+  const [speakingRequests, setSpeakingRequests] = useState<
+    PermissionRequestEvent[]
+  >([]);
 
   useEffect(() => {
     currentRoom?.call?.updateSubscriptionsPartial(
@@ -38,10 +50,16 @@ const RoomActive = () => {
     );
   }, []);
 
+  participants.forEach((p) => {
+    console.log(`Permissions for ${p.name}: ${p.roles}`);
+  });
+
   // helper variables
   const hostIds = currentRoom?.hosts.map((host) => host.id);
   const speakers = participants.filter(
-    (p) => p.audioStream !== undefined || hostIds?.includes(p.userId),
+    (p) =>
+      p.publishedTracks.includes(SfuModels.TrackType.AUDIO) ||
+      hostIds?.includes(p.userId),
   );
   const listeners = participants.filter((p) => !speakers.includes(p));
   const isUserHost = currentRoom?.hosts.some((e) => e.id === user?.id);
@@ -49,6 +67,33 @@ const RoomActive = () => {
   const hasAudio = currentUser?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
+  const canRequestSpeakingPermissions =
+    currentRoom?.call?.permissionsContext.canRequest(OwnCapability.SEND_AUDIO);
+
+  useEffect(() => {
+    if (currentRoom?.call?.state) {
+      watchCallPermissionRequest(currentRoom?.call?.state);
+    }
+
+    const unsubscribe = currentRoom?.call?.on(
+      'call.permission_request',
+      (event: StreamCallEvent) => {
+        const permissionRequest = event as PermissionRequestEvent;
+
+        if (permissionRequest) {
+          setSpeakingRequests([...speakingRequests, permissionRequest]);
+        }
+      },
+    );
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, []);
+
+  //TODO: listen to 'call.permissions_updated'
 
   return (
     <section className="active-room">
@@ -57,6 +102,18 @@ const RoomActive = () => {
       </div>
       <div className="room-detail">
         <h2>{currentRoom?.title}</h2>
+        {isUserHost && speakingRequests.length !== 0 && currentRoom?.call && (
+          <div className="speaking-requests-container">
+            <h3>Speaking Requests</h3>
+            {speakingRequests.map((speakingRequest) => (
+              <SpeakingRequest
+                key={speakingRequest.user.id}
+                call={currentRoom.call}
+                speakingRequest={speakingRequest}
+              />
+            ))}
+          </div>
+        )}
         <p className="user-counts secondaryText">
           {participants.length}
           <PersonIcon />/ {speakers.length ?? 0}
@@ -85,13 +142,16 @@ const RoomActive = () => {
               <button className="icon-button">
                 <AddPersonIcon />
               </button>
-              {isUserHost && (
+              {canSendAudio && (
                 <button className="icon-button" onClick={() => muteUser()}>
                   <MicrophoneButton />
                 </button>
               )}
-              {!isUserHost && (
-                <button className="icon-button">
+              {!canSendAudio && canRequestSpeakingPermissions && (
+                <button
+                  className="icon-button"
+                  onClick={() => requestSpeakingPermission()}
+                >
                   <RaiseHandIcon />
                 </button>
               )}
@@ -101,6 +161,15 @@ const RoomActive = () => {
       </div>
     </section>
   );
+
+  async function requestSpeakingPermission() {
+    const result = await currentRoom?.call?.requestPermissions({
+      permissions: [OwnCapability.SEND_AUDIO],
+    });
+    console.log(
+      `Result of call to request speaking permissions was: ${result}`,
+    );
+  }
 
   function endOrLeaveCall() {
     if (isUserHost) {

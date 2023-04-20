@@ -33,7 +33,6 @@ export const UserContextProvider: any = ({
   children: ReactNode;
 }) => {
   const [myState, setMyState] = useState<UserState>(defaultState);
-  const client = useStreamVideoClient();
   const store: UserState = myState;
 
   store.userTapped = async (user: User) => {
