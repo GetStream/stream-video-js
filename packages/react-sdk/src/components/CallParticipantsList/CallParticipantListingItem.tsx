@@ -117,7 +117,7 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
   const activeCall = useCall();
   const ownCapabilities = useOwnCapabilities();
 
-  const blockUserClickHandler = () => {
+  const blockUser = () => {
     activeCall?.blockUser(participant.userId);
   };
 
@@ -130,10 +130,10 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
   //   });
   // };
 
-  const muteAudioClickHandler = () => {
+  const muteAudio = () => {
     activeCall?.muteUser(participant.userId, 'audio');
   };
-  const muteVideoClickHandler = () => {
+  const muteVideo = () => {
     activeCall?.muteUser(participant.userId, 'video');
   };
 
@@ -151,15 +151,23 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
     });
   };
 
+  const toggleParticipantPinnedAt = () => {
+    activeCall?.setParticipantPinnedAt(
+      participant.sessionId,
+      participant.pinnedAt ? undefined : Date.now(),
+    );
+  };
+
   return (
     <GenericMenu>
+      <GenericMenuButtonItem onClick={toggleParticipantPinnedAt}>
+        {participant.pinnedAt ? 'Unpin' : 'Pin'}
+      </GenericMenuButtonItem>
       <Restricted
         availableGrants={ownCapabilities}
         requiredGrants={[OwnCapability.BLOCK_USERS]}
       >
-        <GenericMenuButtonItem onClick={blockUserClickHandler}>
-          Block
-        </GenericMenuButtonItem>
+        <GenericMenuButtonItem onClick={blockUser}>Block</GenericMenuButtonItem>
       </Restricted>
       {/* <GenericMenuButtonItem disabled onClick={kickUserClickHandler}>
         Kick
@@ -172,7 +180,7 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
           disabled={
             !participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)
           }
-          onClick={muteVideoClickHandler}
+          onClick={muteVideo}
         >
           Mute video
         </GenericMenuButtonItem>
@@ -180,7 +188,7 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
           disabled={
             !participant.publishedTracks.includes(SfuModels.TrackType.AUDIO)
           }
-          onClick={muteAudioClickHandler}
+          onClick={muteAudio}
         >
           Mute audio
         </GenericMenuButtonItem>

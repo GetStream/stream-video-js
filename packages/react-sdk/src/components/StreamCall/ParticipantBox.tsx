@@ -89,6 +89,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
 
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  const isPinned = !!participant.pinnedAt;
 
   const [trackedElement, setTrackedElement] = useState<HTMLDivElement | null>(
     null,
@@ -191,6 +192,9 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
             )}
             {indicatorsVisible && !hasVideo && (
               <span className="str-video__participant_name--video-muted"></span>
+            )}
+            {indicatorsVisible && isPinned && (
+              <span className="str-video__participant_name--pinned"></span>
             )}
           </span>
           {isDebugMode && (
