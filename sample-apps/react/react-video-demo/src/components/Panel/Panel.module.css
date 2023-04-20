@@ -10,7 +10,7 @@
 }
 
 .header {
-  @apply flex justify-start items-center p-4;
+  @apply flex justify-between items-center p-4;
 }
 
 .header.open {

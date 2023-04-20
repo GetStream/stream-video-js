@@ -19,6 +19,7 @@ import SettingsPanel from '../SettingsPanel';
 
 import { useTourContext, StepNames } from '../../contexts/TourContext';
 import { useModalContext } from '../../contexts/ModalContext';
+import { usePanelContext } from '../../contexts/PanelContext';
 
 import styles from './Footer.module.css';
 
@@ -26,13 +27,9 @@ export type Props = {
   call: any;
   isCallActive: boolean;
   callId: string;
-  toggleChat: () => void;
-  toggleParticipants: () => void;
   handleStartRecording: () => void;
   handleStopRecording: () => void;
   toggleShareScreen: () => void;
-  showChat?: boolean;
-  showParticipants?: boolean;
   isRecording?: boolean;
   isAwaitingRecording?: boolean;
   isScreenSharing?: boolean;
@@ -44,13 +41,9 @@ export type Props = {
 export const Footer: FC<Props> = ({
   call,
   callId,
-  toggleChat,
-  toggleParticipants,
   handleStartRecording,
   handleStopRecording,
   toggleShareScreen,
-  showChat,
-  showParticipants,
   isRecording,
   isAwaitingRecording,
   isScreenSharing,
@@ -59,8 +52,13 @@ export const Footer: FC<Props> = ({
   leave,
 }) => {
   const { current } = useTourContext();
-
   const { isVisible } = useModalContext();
+  const {
+    isChatVisible,
+    isParticipantsVisible,
+    toggleChat,
+    toggleParticipants,
+  } = usePanelContext();
 
   const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(true);
 
@@ -71,14 +69,14 @@ export const Footer: FC<Props> = ({
   }, [showSettingsPanel, isVisible]);
 
   useEffect(() => {
-    if (current === StepNames.Chat && showChat === false) {
+    if (current === StepNames.Chat && isChatVisible === false) {
       toggleChat();
     }
 
     if (current === StepNames.Settings && showSettingsPanel === false) {
       setShowSettingsPanel(true);
     }
-  }, [current, showChat]);
+  }, [current, isChatVisible]);
 
   useEffect(() => {
     setShowSettingsPanel(isVisible || current === StepNames.Settings);
@@ -172,7 +170,7 @@ export const Footer: FC<Props> = ({
           color={
             current === StepNames.Chat
               ? 'primary'
-              : showChat
+              : isChatVisible
               ? 'active'
               : 'secondary'
           }
@@ -187,12 +185,14 @@ export const Footer: FC<Props> = ({
         <Button
           label="Participants"
           className={styles.participants}
-          color={showParticipants ? 'active' : 'secondary'}
+          color={isParticipantsVisible ? 'active' : 'secondary'}
           shape="square"
           onClick={toggleParticipants}
         >
           <People />
-          {!showParticipants && participantCount && participantCount > 1 ? (
+          {!isParticipantsVisible &&
+          participantCount &&
+          participantCount > 1 ? (
             <span className={styles.participantCounter}>
               {participantCount}
             </span>
