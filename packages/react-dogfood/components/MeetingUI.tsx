@@ -50,17 +50,16 @@ const contents = {
   },
 };
 
-export const MeetingUI = ({
-  chatClient,
-}: {
-  chatClient: StreamChat | null;
-}) => {
+type MeetingUIProps = {
+  chatClient?: StreamChat | null;
+  callId: string;
+  callType: string;
+};
+export const MeetingUI = ({ chatClient, callId, callType }: MeetingUIProps) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call'
   >('lobby');
   const router = useRouter();
-  const callId = router.query['callId'] as string;
-  const callType = (router.query['type'] as string) || 'default';
   const client = useStreamVideoClient();
   const [activeCall, setActiveCall] = useState<Call>();
   const [showParticipants, setShowParticipants] = useState(false);
@@ -137,7 +136,9 @@ export const MeetingUI = ({
       />
     );
   }
-  if (show === 'lobby') return <Lobby onJoin={onJoin} />;
+  if (show === 'lobby') {
+    return <Lobby onJoin={onJoin} callId={callId} />;
+  }
 
   if (show === 'loading')
     return (

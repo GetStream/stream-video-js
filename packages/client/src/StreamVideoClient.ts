@@ -5,6 +5,8 @@ import {
 import {
   CreateCallTypeRequest,
   CreateCallTypeResponse,
+  CreateGuestRequest,
+  CreateGuestResponse,
   GetCallTypeResponse,
   GetEdgesResponse,
   ListCallTypeResponse,
@@ -72,7 +74,7 @@ export class StreamVideoClient {
    * @param tokenOrProvider a token or a function that returns a token.
    */
   connectUser = async (user: User, tokenOrProvider: TokenOrProvider) => {
-    await this.streamClient.connectUser(
+    const connectUserResponse = await this.streamClient.connectUser(
       // @ts-expect-error
       user,
       tokenOrProvider,
@@ -106,6 +108,22 @@ export class StreamVideoClient {
     this.on('call.ended', watchCallCancelled(this.writeableStateStore));
 
     this.writeableStateStore.setConnectedUser(user);
+
+    return connectUserResponse;
+  };
+
+  /**
+   * Connects the given anonymous user to the client.
+   *
+   * @param user the user to connect.
+   * @param tokenOrProvider a token or a function that returns a token.
+   */
+  connectAnonymousUser = async (
+    user: User,
+    tokenOrProvider: TokenOrProvider,
+  ) => {
+    // @ts-expect-error
+    return this.streamClient.connectAnonymousUser(user, tokenOrProvider);
   };
 
   /**
@@ -147,14 +165,32 @@ export class StreamVideoClient {
     return this.streamClient.off(event, callback);
   };
 
-  call(type: string, id: string) {
+  /**
+   * Creates a new call.
+   *
+   * @param type the type of the call.
+   * @param id the id of the call.
+   */
+  call = (type: string, id: string) => {
     return new Call({
       streamClient: this.streamClient,
       id,
       type,
       clientStore: this.writeableStateStore,
     });
-  }
+  };
+
+  /**
+   * Creates a new guest user with the given data.
+   *
+   * @param data the data for the guest user.
+   */
+  createGuestUser = async (data: CreateGuestRequest) => {
+    return this.streamClient.post<CreateGuestResponse, CreateGuestRequest>(
+      '/guest',
+      data,
+    );
+  };
 
   queryCalls = async (
     filterConditions: { [key: string]: any },
@@ -170,32 +206,28 @@ export class StreamVideoClient {
       next: next,
       watch,
     };
-    try {
-      if (data.watch) {
-        await this.streamClient.connectionIdPromise;
-      }
-      const response = await this.streamClient.post<QueryCallsResponse>(
-        '/calls',
-        data,
-      );
-      const calls = response.calls.map(
-        (c) =>
-          new Call({
-            streamClient: this.streamClient,
-            id: c.call.id,
-            type: c.call.type,
-            metadata: c.call,
-            members: c.members,
-            clientStore: this.writeableStateStore,
-          }),
-      );
-      return {
-        ...response,
-        calls: calls,
-      };
-    } catch (error) {
-      throw error;
+    if (data.watch) {
+      await this.streamClient.connectionIdPromise;
     }
+    const response = await this.streamClient.post<QueryCallsResponse>(
+      '/calls',
+      data,
+    );
+    const calls = response.calls.map(
+      (c) =>
+        new Call({
+          streamClient: this.streamClient,
+          id: c.call.id,
+          type: c.call.type,
+          metadata: c.call,
+          members: c.members,
+          clientStore: this.writeableStateStore,
+        }),
+    );
+    return {
+      ...response,
+      calls: calls,
+    };
   };
 
   queryUsers = async () => {
