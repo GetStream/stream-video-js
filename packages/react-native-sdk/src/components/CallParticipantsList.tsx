@@ -70,21 +70,32 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   // of the participants that are currently visible.
   const onViewableItemsChanged = useRef<
     FlatListProps['onViewableItemsChanged']
-  >(({ changed }) => {
+  >(({ viewableItems }) => {
     const participantPatches: StreamVideoParticipantPatches = {};
-    changed.forEach((viewToken) => {
-      participantPatches[viewToken.key] = {
-        viewportVisibilityState: viewToken.isViewable
-          ? VisibilityState.VISIBLE
-          : VisibilityState.INVISIBLE,
-      };
-      if (viewToken.isViewable) {
-        viewableParticipantSessionIds.current.add(viewToken.key);
-      } else {
-        viewableParticipantSessionIds.current.delete(viewToken.key);
+    let mustUpdate = false;
+    const newVisibleParticipantSessionIds = new Set<string>(
+      viewableItems.map((v) => v.key),
+    );
+    const oldVisibleParticipantSessionIds =
+      viewableParticipantSessionIds.current;
+    newVisibleParticipantSessionIds.forEach((key) => {
+      if (!oldVisibleParticipantSessionIds.has(key)) {
+        mustUpdate = true;
+        participantPatches[key] = {
+          viewportVisibilityState: VisibilityState.VISIBLE,
+        };
       }
     });
-    if (changed.length) {
+    oldVisibleParticipantSessionIds.forEach((key) => {
+      if (!newVisibleParticipantSessionIds.has(key)) {
+        mustUpdate = true;
+        participantPatches[key] = {
+          viewportVisibilityState: VisibilityState.INVISIBLE,
+        };
+      }
+    });
+    viewableParticipantSessionIds.current = newVisibleParticipantSessionIds;
+    if (mustUpdate) {
       forceUpdate();
       activeCallRef.current?.state.updateParticipants(participantPatches);
     }
