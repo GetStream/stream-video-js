@@ -75,17 +75,21 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     if (!updateIsNeeded || !call || !isPublishingVideoTrack) return;
 
     // NOTE: When the participant's video is disabled, we want to subscribe to audio only.
-    // We do this by setting the dimension to width and height 0.
-    const dimension = disableVideo
-      ? { width: 0, height: 0 }
-      : pendingVideoLayoutRef.current;
+    // We unsubscribe their video by setting the dimension to undefined
+    const dimension = disableVideo ? undefined : pendingVideoLayoutRef.current;
 
     call.updateSubscriptionsPartial(kind, {
       [participant.sessionId]: { dimension },
     });
 
-    subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
-    pendingVideoLayoutRef.current = undefined;
+    if (dimension) {
+      subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
+      pendingVideoLayoutRef.current = undefined;
+    } else if (subscribedVideoLayoutRef.current) {
+      // when video is enabled again, we want to use the last subscribed dimension to resubscribe
+      pendingVideoLayoutRef.current = subscribedVideoLayoutRef.current;
+      subscribedVideoLayoutRef.current = undefined;
+    }
   }, [call, isPublishingVideoTrack, kind, participant.sessionId, disableVideo]);
 
   useEffect(() => {
