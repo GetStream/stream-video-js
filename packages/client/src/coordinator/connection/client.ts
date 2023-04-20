@@ -390,6 +390,9 @@ export class StreamClient {
     this.anonymous = true;
     await this._setToken(user, tokenOrProvider, this.anonymous);
     this._setUser(user);
+    // some endpoints require a connection_id to be resolved.
+    // as anonymous users aren't allowed to open WS connections, we just
+    // resolve the connection_id here.
     this.resolveConnectionId();
   };
 
