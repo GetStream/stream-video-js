@@ -156,7 +156,7 @@ img {
   border-radius: 8px;
   background: var(--background-color-light);
   padding: 0.6rem 1.2rem;
-  height: auto;
+  height: 100%;
 }
 
 .room-card > span {

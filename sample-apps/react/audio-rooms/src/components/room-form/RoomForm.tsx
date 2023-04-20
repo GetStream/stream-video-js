@@ -43,6 +43,7 @@ function RoomForm(): JSX.Element {
         <button
           type="submit"
           disabled={isButtonDisabled()}
+          className="create-button"
           onClick={(event) => createButtonClicked(event)}
         >
           Create

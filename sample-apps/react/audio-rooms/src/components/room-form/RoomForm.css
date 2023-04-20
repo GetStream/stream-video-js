@@ -25,3 +25,13 @@
     justify-items: end;
   }
 }
+
+.create-button {
+  background: blue;
+  color: white;
+  padding: 0.6rem 1.2rem;
+}
+
+.create-button:hover {
+  background: hsl(240, 100%, 70%);
+}
