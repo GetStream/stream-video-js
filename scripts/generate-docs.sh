@@ -70,11 +70,14 @@ rm -rf temp-docs
 # move client docs to SDK's docs and mark as generated
 cp -a ../client/docusaurus/docs/client/. generated-docs/client/
 cd generated-docs/client || exit
-for sub_directories in * ;
+for sub_directory in * ;
 do
   (
-    cd "$sub_directories" || exit
-    for f in * ; do mv -- "$f" "${f%.*}.gen.${f##*.}" ; done
+    cd "$sub_directory" || exit
+    # prevent renaming the assets files to keep compatibility with mdx imports
+    if [[ "$sub_directory" != assets ]];then
+      for filename in * ; do mv -- "$filename" "${filename%.*}.gen.${filename##*.}" ; done
+    fi
   )
 done
 
