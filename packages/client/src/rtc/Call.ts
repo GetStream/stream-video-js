@@ -15,7 +15,10 @@ import {
   CallState,
   StreamVideoWriteableStateStore,
 } from '../store';
-import { trackTypeToParticipantStreamKey } from './helpers/tracks';
+import {
+  muteTypeToTrackType,
+  trackTypeToParticipantStreamKey,
+} from './helpers/tracks';
 import {
   BlockUserRequest,
   BlockUserResponse,
@@ -1119,14 +1122,7 @@ export class Call {
    * @param type the type of the mute operation.
    */
   muteOthers = (type: 'audio' | 'video' | 'screenshare') => {
-    const trackType =
-      type === 'audio'
-        ? TrackType.AUDIO
-        : type === 'video'
-        ? TrackType.VIDEO
-        : type === 'screenshare'
-        ? TrackType.SCREEN_SHARE
-        : null;
+    const trackType = muteTypeToTrackType(type);
     if (!trackType) return;
     const userIdsToMute: string[] = [];
     for (const participant of this.state.remoteParticipants) {
