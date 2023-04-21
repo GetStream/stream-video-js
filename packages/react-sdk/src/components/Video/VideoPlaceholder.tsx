@@ -1,21 +1,22 @@
-import { forwardRef, useState } from 'react';
+import { ComponentProps, forwardRef, useState } from 'react';
 import { clsx } from 'clsx';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 
 export type VideoPlaceholderProps = {
-  imageSrc?: string;
-  isSpeaking?: boolean;
-  name?: string | null;
-};
+  participant: StreamVideoParticipant;
+} & ComponentProps<'div'>;
 
 export const VideoPlaceholder = forwardRef<
   HTMLDivElement,
   VideoPlaceholderProps
->(({ imageSrc, isSpeaking, name }, ref) => {
+>(({ participant, style }, ref) => {
   const [error, setError] = useState(false);
 
+  const name = participant?.name || participant?.userId;
+
   return (
-    <div className="str-video__participant-placeholder" ref={ref}>
-      {(!imageSrc || error) &&
+    <div className="str-video__participant-placeholder" style={style} ref={ref}>
+      {(!participant.image || error) &&
         (name ? (
           <div className="str-video__participant-placeholder--initials-fallback">
             <div>{name[0]}</div>
@@ -23,14 +24,15 @@ export const VideoPlaceholder = forwardRef<
         ) : (
           <div>Video is disabled</div>
         ))}
-      {imageSrc && !error && (
+      {participant.image && !error && (
         <img
           onError={() => setError(true)}
           alt="participant-placeholder"
           className={clsx('str-video__participant-placeholder--avatar', {
-            'str-video__participant-placeholder--avatar-speaking': isSpeaking,
+            'str-video__participant-placeholder--avatar-speaking':
+              participant.isSpeaking,
           })}
-          src={imageSrc}
+          src={participant.image}
         />
       )}
     </div>
