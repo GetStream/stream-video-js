@@ -217,7 +217,15 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
               <span className="str-video__participant_name--video-muted"></span>
             )}
             {indicatorsVisible && isPinned && (
-              <span className="str-video__participant_name--pinned"></span>
+              // TODO: remove this monstrosity once we have a proper design
+              <span
+                title="Unpin"
+                onClick={() =>
+                  call.setParticipantPinnedAt(participant.sessionId)
+                }
+                style={{ cursor: 'pointer' }}
+                className="str-video__participant_name--pinned"
+              ></span>
             )}
           </span>
           {isDebugMode && (
