@@ -64,6 +64,11 @@ export interface ParticipantBoxProps {
    * An additional list of class names to append to the root DOM element.
    */
   className?: string;
+
+  /**
+   * The position of the toggle button menu, relative to its button element.
+   */
+  toggleMenuPosition?: 'top' | 'bottom';
 }
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
@@ -82,6 +87,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
     muteAudio,
     setVideoElementRef,
     className,
+    toggleMenuPosition = 'bottom',
   } = props;
 
   const {
@@ -146,7 +152,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
     >
       <MenuToggle
         strategy="fixed"
-        placement="bottom-end"
+        placement={toggleMenuPosition === 'top' ? 'top-end' : 'bottom-end'}
         ToggleButton={ToggleButton}
       >
         <ParticipantActionsContextMenu participant={participant} />
