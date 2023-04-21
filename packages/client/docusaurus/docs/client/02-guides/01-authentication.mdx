@@ -15,7 +15,10 @@ For security reasons, we recommend that you generate the JWT on your backend ser
 them on the client-side can lead to security issues.
 
 However, for development, you can use the following [JWT generator](https://getstream.io/chat/docs/react/token_generator/).
-Just keep in mind to not expose your secret or your token to the public.
+
+:::warning
+Keep in mind to not expose your secret or your token to the public.
+:::
 
 ## Token Providers
 
@@ -66,7 +69,7 @@ await videoClient.connectUser(user, tokenProvider);
 
 <SDKSpecific name="react">
 
-Our React Video SDK expose a utility hook that can make this process easier.
+Our React Video SDK exposes a utility hook that can make this process easier.
 
 The above example can be rewritten as follows:
 
