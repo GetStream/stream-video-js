@@ -68,11 +68,11 @@ import { PermissionRequestEvent } from '@stream-io/video-client';
 
 const call = streamVideoClient.call(type, id);
 call.on('call.permission_request', (event: StreamCallEvent) => {
-    const request = event as PermissionRequestEvent;
-    if (shouldApproveRequest(request)) {
-      await call.updateUserPermissions({
-        user_id: request.user_id,
-        grant_permissions: [...request.permissions],
+  const request = event as PermissionRequestEvent;
+  if (shouldApproveRequest(request)) {
+    await call.updateUserPermissions({
+      user_id: request.user_id,
+      grant_permissions: [...request.permissions],
     });
   }
 });
@@ -110,7 +110,13 @@ await call.muteUser('demo-user-id', 'screenshare');
 // or, mute in bulk
 await call.muteUser(['demo-user-id', 'demo-user-id-2'], 'audio');
 
-// or, mute all
+// or, muting self
+await call.muteSelf('audio');
+
+// or, muting others
+await call.muteOthers('audio');
+
+// or, mute all, including self.
 await call.muteAllUsers('audio');
 ```
 
