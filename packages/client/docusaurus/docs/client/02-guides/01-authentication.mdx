@@ -9,9 +9,9 @@ import SDKSpecific from '../SDKSpecific';
 
 Stream uses JWT (JSON Web Tokens) for user authentication in our services.
 These tokens are valid across both Stream Video and Stream Chat services with the assumption
-that your App ID has both Chat and Video enabled.
+that your App ID has both Chat and Video enabled on our [dashboard](https://dashboard.getstream.io/).
 
-For security reasons, we recommend that you generate the JWT on your backend server as generating
+For security reasons, we recommend that you generate the JWT token on your backend server as generating
 them on the client-side can lead to security issues.
 
 However, for development, you can use the following [JWT generator](https://getstream.io/chat/docs/react/token_generator/).
@@ -121,12 +121,15 @@ export const App = () => {
 Anonymous users don't have a profile. They are not able to send audio or video, and they are not able to perform a web socket connection.
 If you try to call the `connectUser` method for an anonymous user, an error will be thrown.
 
+A typical use case for using an anonymous user are large webinars where you expect to have a lot of
+participants in the same call.
+
 However, anonymous users need a call token to join a call. Compared to the regular user tokens,
 the tokens issued for anonymous users must have additional claims and constraints:
 
 - Call tokens must have an expiration time included to avoid security problems.
 - Call tokens can contain up to 100 call ids.
-- Call tokens for anonymous users must be generated with the special `!anon` `user_id` claim.
+- Call tokens for anonymous users must be generated with the special `{ "user_id": "!anon" }` claim.
 - Membership / role can only be invalidated using the existing API around token invalidation (we invalidate all tokens for a user).
 - Generating a call token does not require any API interaction and can be done with any server-side SDK.
 
@@ -164,32 +167,32 @@ In our React Video SDK, we can use a utility hook to make this process easier.
 ```tsx
 import { useMemo, useCallback } from 'react';
 import {
-StreamVideo,
-User,
-useCreateStreamVideoClient,
+  StreamVideo,
+  User,
+  useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 
 export const App = () => {
-const user: User = useMemo(() => ({
-id: 'anonymous-user-id',
-}), []);
+  const user: User = useMemo(() => ({
+    id: 'anonymous-user-id',
+  }), []);
 
-const tokenProvider = useCallback(async () => {
-return await fetchAnonToken(user);
-}, [user]);
+  const tokenProvider = useCallback(async () => {
+    return await fetchAnonToken(user);
+  }, [user]);
 
-const client = useCreateStreamVideoClient({
-apiKey: 'MY_API_KEY'
-user,
-tokenOrProvider: tokenProvider,
-isAnonymous: true,
-});
+  const client = useCreateStreamVideoClient({
+    apiKey: 'MY_API_KEY'
+    user,
+    tokenOrProvider: tokenProvider,
+    isAnonymous: true,
+  });
 
-return (
-<StreamVideo client={client}>
-<VideoApp />
-</StreamVideo>
-);
+  return (
+    <StreamVideo client={client}>
+      <VideoApp />
+    </StreamVideo>
+  );
 }
 ```
 
@@ -245,55 +248,55 @@ In our React Video SDK, we can use a utility hook to make this process easier.
 ```tsx
 import { useMemo, useCallback } from 'react';
 import {
-CreateGuestResponse,
-StreamVideo,
-User,
-useCreateStreamVideoClient,
+  CreateGuestResponse,
+  StreamVideo,
+  User,
+  useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 
 const anonUser: User = { id: 'anonymous-user-id'};
-const anonToken: string: = 'the-anonymous-token';
+const anonToken: string: = 'the-anonymous-user-id-token';
 
 export const App = () => {
-const [userToConnect, setUserToConnect] = useState<User>(anonUser);
-const [tokenToConnect, setTokenToConnect] = useState<string>(anonToken);
-const [isAnonymous, setIsAnonymous] = useState<boolean>(true);
+  const [userToConnect, setUserToConnect] = useState<User>(anonUser);
+  const [tokenToConnect, setTokenToConnect] = useState<string>(anonToken);
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(true);
 
-const client = useCreateStreamVideoClient({
-apiKey: 'MY_API_KEY',
-user: userToConnect,
-tokenOrProvider: tokenToConnect,
-isAnonymous: isAnonymous,
-})
+  const client = useCreateStreamVideoClient({
+    apiKey: 'MY_API_KEY',
+    user: userToConnect,
+    tokenOrProvider: tokenToConnect,
+    isAnonymous: isAnonymous,
+  })
 
-useEffect(() => {
-const switchToGuestUser = async () => {
-const response: CreateGuestResponse = await client.createGuestUser({
-user: {
-id: 'guest-user-id',
-name: 'Guest User Name',
-image: 'https://getstream.io/random_svg/?name=Guest+User+Name',
-},
-});
+  useEffect(() => {
+    const switchToGuestUser = async () => {
+      const response: CreateGuestResponse = await client.createGuestUser({
+        user: {
+          id: 'guest-user-id',
+          name: 'Guest User Name',
+          image: 'https://getstream.io/random_svg/?name=Guest+User+Name',
+        },
+      });
 
-const { user, access_token } = response;
-setUserToConnect(user);
-setTokenToConnect(access_token);
-setIsAnonymous(false);
-};
+      const { user, access_token } = response;
+      setUserToConnect(user);
+      setTokenToConnect(access_token);
+      setIsAnonymous(false);
+    };
 
-if (isAnonymous) {
-switchToGuestUser().catch((err) => {
-console.error(err);
-});
-}
-}, [isAnonymous, client]);
+    if (isAnonymous) {
+      switchToGuestUser().catch((err) => {
+        console.error(err);
+      });
+    }
+  }, [isAnonymous, client]);
 
-return (
-<StreamVideo client={client}>
-<VideoApp />
-</StreamVideo>
-);
+  return (
+    <StreamVideo client={client}>
+      <VideoApp />
+    </StreamVideo>
+  );
 }
 
 ```
