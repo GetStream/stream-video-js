@@ -4,11 +4,13 @@ import { AcceptIcon, CloseIcon } from '../../icons';
 interface SpeakingRequestProps {
   call: Call | undefined;
   speakingRequest: PermissionRequestEvent;
+  answered: (speakingRequest: PermissionRequestEvent) => void;
 }
 
 function SpeakingRequest({
   call,
   speakingRequest,
+  answered,
 }: SpeakingRequestProps): JSX.Element {
   return (
     <div className="speaking-request">
@@ -33,13 +35,16 @@ function SpeakingRequest({
     </div>
   );
 
-  function acceptRequest() {
-    call?.updateUserPermissions({
+  async function acceptRequest() {
+    await call?.updateUserPermissions({
       user_id: speakingRequest.user.id,
       grant_permissions: [...speakingRequest.permissions],
     });
+    answered(speakingRequest);
   }
 
-  function denyRequest() {}
+  function denyRequest() {
+    answered(speakingRequest);
+  }
 }
 export default SpeakingRequest;

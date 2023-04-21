@@ -24,7 +24,6 @@ import {
 } from '../../icons';
 import { useUserContext } from '../../../contexts/UserContext/UserContext';
 import SpeakerElement from './SpeakerElement';
-import { watchCallPermissionRequest } from '@stream-io/video-client/src/events';
 import SpeakingRequest from './SpeakingRequest';
 
 const RoomActive = () => {
@@ -33,6 +32,7 @@ const RoomActive = () => {
   const participants = useParticipants();
   const { stopPublishingAudio } = useMediaDevices();
   const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
+  const [speakerIds, setSpeakerIds] = useState<string[]>([]);
 
   const [speakingRequests, setSpeakingRequests] = useState<
     PermissionRequestEvent[]
@@ -55,11 +55,13 @@ const RoomActive = () => {
   });
 
   // helper variables
+  const isCallBackstage = currentRoom?.call?.data?.backstage;
   const hostIds = currentRoom?.hosts.map((host) => host.id);
   const speakers = participants.filter(
     (p) =>
       p.publishedTracks.includes(SfuModels.TrackType.AUDIO) ||
-      hostIds?.includes(p.userId),
+      hostIds?.includes(p.userId) ||
+      speakerIds.includes(p.userId),
   );
   const listeners = participants.filter((p) => !speakers.includes(p));
   const isUserHost = currentRoom?.hosts.some((e) => e.id === user?.id);
@@ -71,10 +73,6 @@ const RoomActive = () => {
     currentRoom?.call?.permissionsContext.canRequest(OwnCapability.SEND_AUDIO);
 
   useEffect(() => {
-    if (currentRoom?.call?.state) {
-      watchCallPermissionRequest(currentRoom?.call?.state);
-    }
-
     const unsubscribe = currentRoom?.call?.on(
       'call.permission_request',
       (event: StreamCallEvent) => {
@@ -93,7 +91,39 @@ const RoomActive = () => {
     };
   }, []);
 
-  //TODO: listen to 'call.permissions_updated'
+  useEffect(() => {
+    const unsubscribe = currentRoom?.call?.on(
+      'call.ended',
+      (event: StreamCallEvent) => {
+        leave();
+      },
+    );
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = currentRoom?.call?.on(
+      'call.permissions_updated',
+      (event: StreamCallEvent) => {
+        const permission_request = event as PermissionRequestEvent;
+
+        if (permission_request) {
+          setSpeakerIds([...speakerIds, permission_request.user.id]);
+        }
+      },
+    );
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, []);
 
   return (
     <section className="active-room">
@@ -110,6 +140,7 @@ const RoomActive = () => {
                 key={speakingRequest.user.id}
                 call={currentRoom.call}
                 speakingRequest={speakingRequest}
+                answered={speakingRequestAnswered}
               />
             ))}
           </div>
@@ -134,28 +165,53 @@ const RoomActive = () => {
             </div>
           ))}
           <div className="button-list">
-            <button className="leave-button" onClick={() => endOrLeaveCall()}>
-              <LeaveIcon />
-              {isUserHost ? 'End room' : 'Leave Quietly'}
-            </button>
-            <div>
-              <button className="icon-button">
-                <AddPersonIcon />
-              </button>
-              {canSendAudio && (
-                <button className="icon-button" onClick={() => muteUser()}>
-                  <MicrophoneButton />
-                </button>
-              )}
-              {!canSendAudio && canRequestSpeakingPermissions && (
+            {isCallBackstage && (
+              <div>
                 <button
-                  className="icon-button"
-                  onClick={() => requestSpeakingPermission()}
+                  className="leave-button"
+                  onClick={() => backgToOverview()}
                 >
-                  <RaiseHandIcon />
+                  Back to overview
                 </button>
-              )}
-            </div>
+                {isUserHost && (
+                  <button
+                    className="leave-button"
+                    onClick={() => goLiveWithCall()}
+                  >
+                    Go live!
+                  </button>
+                )}
+              </div>
+            )}
+            {!isCallBackstage && (
+              <>
+                <button
+                  className="leave-button"
+                  onClick={() => endOrLeaveCall()}
+                >
+                  <LeaveIcon />
+                  {isUserHost ? 'End room' : 'Leave Quietly'}
+                </button>
+                <div>
+                  <button className="icon-button">
+                    <AddPersonIcon />
+                  </button>
+                  {canSendAudio && (
+                    <button className="icon-button" onClick={() => muteUser()}>
+                      <MicrophoneButton />
+                    </button>
+                  )}
+                  {!canSendAudio && canRequestSpeakingPermissions && (
+                    <button
+                      className="icon-button"
+                      onClick={() => requestSpeakingPermission()}
+                    >
+                      <RaiseHandIcon />
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -169,6 +225,22 @@ const RoomActive = () => {
     console.log(
       `Result of call to request speaking permissions was: ${result}`,
     );
+  }
+
+  function backgToOverview() {
+    leave();
+  }
+
+  function speakingRequestAnswered(speakingRequest: PermissionRequestEvent) {
+    const newRequests = speakingRequests.filter(
+      (r) => r.user.id !== speakingRequest.user.id,
+    );
+    setSpeakingRequests(newRequests);
+  }
+
+  async function goLiveWithCall() {
+    const result = await currentRoom?.call?.goLive();
+    console.log(`Go live completed with: ${result}`);
   }
 
   function endOrLeaveCall() {
