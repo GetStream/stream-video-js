@@ -22,6 +22,7 @@ const ModeSelectionItem = ({
         setMode(mode);
         closeModal();
       }}
+      style={styles.modalButton}
     >
       <Text style={styles.modalText}>
         {selectedMode === mode ? '• ' : '  '}
@@ -86,6 +87,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalView: {
     margin: 20,
@@ -110,8 +112,7 @@ const styles = StyleSheet.create({
     minWidth: 10,
   },
   modalButton: {
-    padding: 10,
-    elevation: 2,
+    padding: 16,
     flexDirection: 'row',
   },
   textStyle: {
@@ -120,8 +121,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
+    fontSize: 18,
   },
   buttonsContainer: {
     flexDirection: 'row',
