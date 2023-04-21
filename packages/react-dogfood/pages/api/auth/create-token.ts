@@ -4,17 +4,24 @@ import { createToken } from '../../../helpers/jwt';
 const apiKeyAndSecretWhitelist =
   (process.env.STREAM_API_KEY_AND_SECRET_WHITE_LIST as string) || '';
 
+const streamApiKey = process.env.STREAM_API_KEY;
+const streamSecret = process.env.STREAM_SECRET_KEY;
+
 const secretKeyLookup = apiKeyAndSecretWhitelist
   .trim()
   .replace(/\s+/g, '')
   .split(';')
-  .reduce<Record<string, string>>((acc, item) => {
-    const [apiKey, secret] = item.trim().split(':');
-    if (apiKey && secret) {
-      acc[apiKey] = secret;
-    }
-    return acc;
-  }, {});
+  .reduce<Record<string, string>>(
+    (acc, item) => {
+      const [apiKey, secret] = item.trim().split(':');
+      if (apiKey && secret) {
+        acc[apiKey] = secret;
+      }
+      return acc;
+    },
+    // whitelist current application's api key and secret
+    streamApiKey && streamSecret ? { [streamApiKey]: streamSecret } : {},
+  );
 
 const createJwtToken = async (req: NextApiRequest, res: NextApiResponse) => {
   const {
