@@ -144,7 +144,11 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
       )}
       ref={setTrackedElement}
     >
-      <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
+      <MenuToggle
+        strategy="fixed"
+        placement="bottom-end"
+        ToggleButton={ToggleButton}
+      >
         <ParticipantActionsContextMenu participant={participant} />
       </MenuToggle>
 
