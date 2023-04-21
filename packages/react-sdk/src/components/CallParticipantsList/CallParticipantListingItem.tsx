@@ -36,6 +36,7 @@ export const CallParticipantListingItem = ({
   const isVideoOn = participant.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
   );
+  const isPinned = !!participant.pinnedAt;
 
   return (
     <div className="str-video__participant-listing-item">
@@ -59,6 +60,15 @@ export const CallParticipantListingItem = ({
             }`,
           )}
         />
+        {isPinned && (
+          <MediaIndicator
+            title={'Pinned'}
+            className={clsx(
+              'str-video__participant-listing-item__icon',
+              'str-video__participant-listing-item__icon-pinned',
+            )}
+          />
+        )}
 
         <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
           <ParticipantActionsContextMenu participant={participant} />
