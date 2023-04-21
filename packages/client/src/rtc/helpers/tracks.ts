@@ -16,3 +16,19 @@ export const trackTypeToParticipantStreamKey = (
       return undefined;
   }
 };
+
+export const muteTypeToTrackType = (
+  muteType: 'audio' | 'video' | 'screenshare',
+): TrackType | undefined => {
+  switch (muteType) {
+    case 'audio':
+      return TrackType.AUDIO;
+    case 'video':
+      return TrackType.VIDEO;
+    case 'screenshare':
+      return TrackType.SCREEN_SHARE;
+    default:
+      console.error(`Unknown mute type: ${muteType}`);
+      return undefined;
+  }
+};

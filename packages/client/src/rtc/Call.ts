@@ -15,7 +15,10 @@ import {
   CallState,
   StreamVideoWriteableStateStore,
 } from '../store';
-import { trackTypeToParticipantStreamKey } from './helpers/tracks';
+import {
+  muteTypeToTrackType,
+  trackTypeToParticipantStreamKey,
+} from './helpers/tracks';
 import {
   BlockUserRequest,
   BlockUserResponse,
@@ -1119,6 +1122,36 @@ export class Call {
   };
 
   /**
+   * Mutes the current user.
+   *
+   * @param type the type of the mute operation.
+   */
+  muteSelf = (type: 'audio' | 'video' | 'screenshare') => {
+    const myUserId = this.clientStore.connectedUser?.id;
+    if (myUserId) {
+      return this.muteUser(myUserId, type);
+    }
+  };
+
+  /**
+   * Mutes all the other participants.
+   *
+   * @param type the type of the mute operation.
+   */
+  muteOthers = (type: 'audio' | 'video' | 'screenshare') => {
+    const trackType = muteTypeToTrackType(type);
+    if (!trackType) return;
+    const userIdsToMute: string[] = [];
+    for (const participant of this.state.remoteParticipants) {
+      if (participant.publishedTracks.includes(trackType)) {
+        userIdsToMute.push(participant.userId);
+      }
+    }
+
+    return this.muteUser(userIdsToMute, type);
+  };
+
+  /**
    * Mutes the user with the given `userId`.
    *
    * @param userId the id of the user to mute.
@@ -1128,7 +1161,6 @@ export class Call {
     userId: string | string[],
     type: 'audio' | 'video' | 'screenshare',
   ) => {
-    // FIXME OL: handle muting self.
     return this.streamClient.post<MuteUsersResponse, MuteUsersRequest>(
       `${this.streamClientBasePath}/mute_users`,
       {
