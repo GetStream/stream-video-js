@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 import clsx from 'clsx';
 import {
   Call,
@@ -13,6 +13,9 @@ import { Audio } from './Audio';
 import { Video } from '../Video';
 import { Notification } from '../Notification';
 import { Reaction } from '../Reaction';
+import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
+import { IconButton } from '../Button';
+import { ParticipantActionsContextMenu } from '../CallParticipantsList';
 
 export interface ParticipantBoxProps {
   /**
@@ -63,6 +66,12 @@ export interface ParticipantBoxProps {
   className?: string;
 }
 
+const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
+  (props, ref) => {
+    return <IconButton enabled={props.menuShown} icon="ellipsis" ref={ref} />;
+  },
+);
+
 export const ParticipantBox = (props: ParticipantBoxProps) => {
   const {
     participant,
@@ -89,6 +98,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
 
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  const isPinned = !!participant.pinnedAt;
 
   const [trackedElement, setTrackedElement] = useState<HTMLDivElement | null>(
     null,
@@ -134,6 +144,14 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
       )}
       ref={setTrackedElement}
     >
+      <MenuToggle
+        strategy="fixed"
+        placement="bottom-end"
+        ToggleButton={ToggleButton}
+      >
+        <ParticipantActionsContextMenu participant={participant} />
+      </MenuToggle>
+
       <div className="str-video__video-container">
         <Audio
           // mute the local participant, as we don't want to hear ourselves
@@ -191,6 +209,9 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
             )}
             {indicatorsVisible && !hasVideo && (
               <span className="str-video__participant_name--video-muted"></span>
+            )}
+            {indicatorsVisible && isPinned && (
+              <span className="str-video__participant_name--pinned"></span>
             )}
           </span>
           {isDebugMode && (

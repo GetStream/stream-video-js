@@ -203,13 +203,6 @@ export const Video = (
 
   return (
     <>
-      {displayPlaceholder && (
-        <VideoPlaceholder
-          style={{ position: 'absolute' }}
-          participant={participant}
-          ref={setVideoElementRef}
-        />
-      )}
       <BaseVideo
         {...rest}
         stream={stream}
@@ -224,6 +217,13 @@ export const Video = (
           setVideoElementRef?.(ref);
         }}
       />
+      {displayPlaceholder && (
+        <VideoPlaceholder
+          style={{ position: 'absolute' }}
+          participant={participant}
+          ref={setVideoElementRef}
+        />
+      )}
     </>
   );
 };
