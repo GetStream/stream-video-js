@@ -115,14 +115,10 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: 'row',
   },
-  textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
   modalText: {
     fontSize: 18,
-    fontColor: 'black',
+    color: 'black',
+    fontWeight: 'bold',
   },
   buttonsContainer: {
     flexDirection: 'row',
