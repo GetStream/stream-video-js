@@ -1298,14 +1298,14 @@ export class Call {
   };
 
   /**
-   * Sets the `participant.isPinned` value.
+   * Sets the `participant.pinnedAt` value.
    * @param sessionId the session id of the participant
-   * @param isPinned the value to set the participant.isPinned
+   * @param pinnedAt the value to set the participant.pinnedAt
    * @returns
    */
-  setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
+  setParticipantPinnedAt = (sessionId: string, pinnedAt?: number): void => {
     this.state.updateParticipant(sessionId, {
-      isPinned,
+      pinnedAt,
     });
   };
 

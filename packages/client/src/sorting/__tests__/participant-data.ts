@@ -92,7 +92,7 @@ export const participants = (): StreamVideoParticipant[] => [
     isDominantSpeaker: false,
     audioLevel: 0,
     image: '',
-    isPinned: true,
+    pinnedAt: Date.now(),
     roles: [],
     viewportVisibilityState: VisibilityState.VISIBLE,
   },

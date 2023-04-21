@@ -37,6 +37,14 @@
           contain,
       );
     }
+
+    .str-video__participant-listing-item__icon-pinned {
+      @include utils.apply-mask-image(
+          var(--str-video__icon--pin),
+          var(--str-video__text-color1),
+          contain,
+      );
+    }
   }
 }
 
