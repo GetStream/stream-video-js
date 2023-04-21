@@ -3,6 +3,7 @@ import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
+import { Audio } from '@stream-io/video-react-sdk';
 import { MutedButton, StarIcon } from '../../icons';
 import './RoomActive.css';
 
@@ -14,6 +15,7 @@ function SpeakerElement({
   const hasAudio = speaker.publishedTracks.includes(SfuModels.TrackType.AUDIO);
   return (
     <div className="speaker-container">
+      <Audio muted={false} audioStream={speaker.audioStream}></Audio>
       <img
         className={`speaker-image ${
           speaker.isSpeaking ? 'speaking-indicator' : ''
