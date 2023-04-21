@@ -3,17 +3,15 @@ import {
   StreamCallProvider,
   useActiveCall,
   useHasOngoingScreenShare,
-  useParticipants,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useCallCycleContext } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
-import { CallParticipantsSpotlightView } from './CallParticipantsScreenView';
+import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
-import { ActiveCallDefaultSorter } from './ActiveCallDefaultSorter';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -25,6 +23,7 @@ export interface ActiveCallProps {
   onOpenCallParticipantsInfoView: () => void;
   /**
    * The mode of the call view. Defaults to 'grid'.
+   * Note: when there is atleast one screen share, the mode is automatically set to 'spotlight'.
    */
   mode?: 'grid' | 'spotlight';
 }

@@ -5,12 +5,15 @@ import { ParticipantView } from './ParticipantView';
 import { theme } from '../theme';
 import { useDebouncedValue } from '../utils/hooks';
 import { CallParticipantsList } from './CallParticipantsList';
+import { speakerLayoutSortPreset } from '@stream-io/video-client';
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 
 export const CallParticipantsSpotlightView = () => {
-  const _allParticipants = useParticipants();
+  const _allParticipants = useParticipants({
+    sortBy: speakerLayoutSortPreset,
+  });
   const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const [participantInSpotlight, ...otherParticipants] = allParticipants;
   const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
