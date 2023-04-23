@@ -52,6 +52,7 @@ export class StableWSConnection {
   // local vars
   connectionID?: string;
   connectionOpen?: ConnectAPIResponse;
+  authenticationSent: boolean;
   consecutiveFailures: number;
   pingInterval: number;
   healthCheckTimeoutRef?: NodeJS.Timeout;
@@ -85,6 +86,8 @@ export class StableWSConnection {
     this.totalFailures = 0;
     /** We only make 1 attempt to reconnect at the same time.. */
     this.isConnecting = false;
+    /** True after the auth payload is sent to the server */
+    this.authenticationSent = false;
     /** To avoid reconnect if client is disconnected */
     this.isDisconnected = false;
     /** Boolean that indicates if the connection promise is resolved */
@@ -513,6 +516,11 @@ export class StableWSConnection {
       },
     };
 
+    if (this.client.options.pushDevice) {
+      authMessage.device = this.client.options.pushDevice;
+    }
+
+    this.authenticationSent = true;
     this.ws?.send(JSON.stringify(authMessage));
     this._log('onopen() - onopen callback', { wsID });
   };
@@ -614,7 +622,6 @@ export class StableWSConnection {
     this.totalFailures += 1;
     this._setHealth(false);
     this.isConnecting = false;
-
     this.rejectPromise?.(this._errorFromWSEvent(event));
     this._log(`onerror() - WS connection resulted into error`, { event });
 
