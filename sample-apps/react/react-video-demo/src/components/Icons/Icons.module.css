@@ -1,8 +1,5 @@
-.root{
-    display: block;
-}
-
-.mic{
-    width: 24px;
-    height: 2px;
+.root {
+  display: block;
+  width: 24px;
+  height: 24px;
 }
