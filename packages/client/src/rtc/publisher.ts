@@ -148,14 +148,18 @@ export class Publisher {
   /**
    * Stops publishing the given track type to the SFU, if it is currently being published.
    * Underlying track will be stopped and removed from the publisher.
-   * @param trackType
+   * @param trackType the track type to unpublish.
    * @returns `true` if track with the given track type was found, otherwise `false`
    */
   unpublishStream = (trackType: TrackType) => {
     const transceiver = this.publisher
       .getTransceivers()
       .find((t) => t === this.transceiverRegistry[trackType] && t.sender.track);
-    if (transceiver && transceiver.sender.track) {
+    if (
+      transceiver &&
+      transceiver.sender.track &&
+      transceiver.sender.track.readyState === 'live'
+    ) {
       transceiver.sender.track.stop();
       return true;
     } else {

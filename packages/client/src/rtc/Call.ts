@@ -53,22 +53,22 @@ import {
 } from '../gen/coordinator';
 import { join, watch } from './flows/join';
 import {
+  DebounceType,
   PublishOptions,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
   VisibilityState,
-  DebounceType,
 } from './types';
 import {
+  debounce,
+  map,
+  of,
   pairwise,
   Subject,
   takeWhile,
   tap,
-  debounce,
   timer,
-  map,
-  of,
 } from 'rxjs';
 import { createSubscription } from '../store/rxUtils';
 import { Comparator } from '../sorting';
@@ -829,6 +829,7 @@ export class Call {
    *
    * @param kind the kind of subscription to update.
    * @param changes the list of subscription changes to do.
+   * @param type the debounce type to use for the update.
    */
   updateSubscriptionsPartial = (
     kind: 'video' | 'screen',
@@ -866,20 +867,19 @@ export class Call {
   ) => {
     const subscriptions: TrackSubscriptionDetails[] = [];
     participants.forEach((p) => {
+      // we don't want to subscribe to our own tracks
       if (p.isLoggedInUser) return;
+
+      // NOTE: audio tracks don't have to be requested explicitly
+      // as the SFU will implicitly subscribe us to all of them,
+      // once they become available.
+
       if (p.videoDimension && p.publishedTracks.includes(TrackType.VIDEO)) {
         subscriptions.push({
           userId: p.userId,
           sessionId: p.sessionId,
           trackType: TrackType.VIDEO,
           dimension: p.videoDimension,
-        });
-      }
-      if (p.publishedTracks.includes(TrackType.AUDIO)) {
-        subscriptions.push({
-          userId: p.userId,
-          sessionId: p.sessionId,
-          trackType: TrackType.AUDIO,
         });
       }
       if (
