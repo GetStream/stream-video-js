@@ -51,6 +51,7 @@ To do this, you can import the hook, `useChatContext`, and use the `client` from
 `StreamVideoClient` expects API Key as the first arguments. It also expects `options`.
 
 ```tsx
+import { Platform } from 'react-native';
 import { useChatContext } from 'stream-chat-react-native';
 import { StreamVideoClient } from '@stream-io/video-client';
 import { useMemo } from 'react';
@@ -75,7 +76,7 @@ const APIParams = {
 };
 
 // authenticate and create the video client
-const client = new StreamVideoClient(APIParams.apiKey);
+const client = new StreamVideoClient(APIParams.apiKey, undefined, Platform.OS);
 ```
 
 All types used in the example above can be found in the end version of this [project](https://github.com/GetStream/stream-video-js/blob/a42a72fcde67877287f4df292524311723ea4e0f/packages/react-native-call-starter-kit/src/types.ts)

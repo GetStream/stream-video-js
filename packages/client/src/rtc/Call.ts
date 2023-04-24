@@ -55,6 +55,7 @@ import { join, watch } from './flows/join';
 import {
   DebounceType,
   PublishOptions,
+  ReactNativePlatform,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
@@ -138,6 +139,11 @@ export type CallConstructor = {
    * The state store of the client
    */
   clientStore: StreamVideoWriteableStateStore;
+
+  /**
+   * The platform that react-native is running on.
+   */
+  reactNativePlatform?: ReactNativePlatform;
 };
 
 /**
@@ -196,6 +202,7 @@ export class Call {
   private sfuClient?: StreamSfuClient;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
+  private reactNativePlatform?: ReactNativePlatform;
 
   /**
    * A list hooks/functions to invoke when the call is left.
@@ -239,6 +246,7 @@ export class Call {
     sortParticipantsBy,
     clientStore,
     ringing = false,
+    reactNativePlatform,
   }: CallConstructor) {
     this.type = type;
     this.id = id;
@@ -274,6 +282,8 @@ export class Call {
         (subscriptions) => this.sfuClient?.updateSubscriptions(subscriptions),
       ),
     );
+
+    this.reactNativePlatform = reactNativePlatform;
   }
 
   private registerEffects() {
@@ -588,6 +598,7 @@ export class Call {
       connectionConfig: call.connectionConfig,
       isDtxEnabled,
       preferredAudioCodec: this.preferredAudioCodec,
+      reactNativePlatform: this.reactNativePlatform,
     });
 
     this.statsReporter = createStatsReporter({

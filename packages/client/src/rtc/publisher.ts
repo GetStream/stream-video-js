@@ -12,7 +12,7 @@ import {
   findOptimalVideoLayers,
 } from './videoLayers';
 import { getPreferredCodecs } from './codecs';
-import { PublishOptions } from './types';
+import { PublishOptions, ReactNativePlatform } from './types';
 import { isReactNative } from '../helpers/platforms';
 import { enableDtx } from '../helpers/sdp-munging/enableDtx';
 import { setPreferredCodec } from '../helpers/sdp-munging/setPreferredCodec';
@@ -22,6 +22,7 @@ export type PublisherOpts = {
   connectionConfig?: RTCConfiguration;
   isDtxEnabled: boolean;
   preferredAudioCodec: string;
+  reactNativePlatform?: ReactNativePlatform;
 };
 
 /**
@@ -51,12 +52,14 @@ export class Publisher {
   };
   private isDtxEnabled: boolean;
   private preferredAudioCodec: string;
+  private reactNativePlatform?: ReactNativePlatform;
 
   constructor({
     connectionConfig,
     rpcClient,
     isDtxEnabled,
     preferredAudioCodec,
+    reactNativePlatform,
   }: PublisherOpts) {
     const pc = new RTCPeerConnection(connectionConfig);
     pc.addEventListener('icecandidate', this.onIceCandidate);
@@ -76,6 +79,7 @@ export class Publisher {
     this.rpcClient = rpcClient;
     this.isDtxEnabled = isDtxEnabled;
     this.preferredAudioCodec = preferredAudioCodec;
+    this.reactNativePlatform = reactNativePlatform;
   }
 
   /**
@@ -261,7 +265,10 @@ export class Publisher {
         sdp = enableDtx(sdp);
       }
       if (isReactNative()) {
-        sdp = setPreferredCodec(sdp, 'video', 'vp8');
+        console.log({ reactNativePlatform: this.reactNativePlatform });
+        if (this.reactNativePlatform === 'android') {
+          sdp = setPreferredCodec(sdp, 'video', 'vp8');
+        }
         sdp = setPreferredCodec(sdp, 'audio', this.preferredAudioCodec);
       }
     }

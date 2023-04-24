@@ -34,6 +34,7 @@ import {
   User,
 } from './coordinator/connection/types';
 import { StreamClient } from './coordinator/connection/client';
+import { ReactNativePlatform } from './rtc/types';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -46,6 +47,7 @@ export class StreamVideoClient {
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
   streamClient: StreamClient;
+  reactNativePlatform?: ReactNativePlatform;
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -53,13 +55,18 @@ export class StreamVideoClient {
    * @param apiKey your Stream API key
    * @param opts the options for the client.
    */
-  constructor(apiKey: string, opts?: StreamClientOptions) {
+  constructor(
+    apiKey: string,
+    opts?: StreamClientOptions,
+    reactNativePlatform?: ReactNativePlatform,
+  ) {
     this.streamClient = new StreamClient(apiKey, {
       // FIXME: OL: fix SSR.
       browser: true,
       persistUserOnConnectionFailure: true,
       ...opts,
     });
+    this.reactNativePlatform = reactNativePlatform;
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
@@ -102,6 +109,7 @@ export class StreamVideoClient {
           members,
           ringing,
           clientStore: this.writeableStateStore,
+          reactNativePlatform: this.reactNativePlatform,
         }),
       ]);
     });
@@ -179,6 +187,7 @@ export class StreamVideoClient {
       id,
       type,
       clientStore: this.writeableStateStore,
+      reactNativePlatform: this.reactNativePlatform,
     });
   };
 
@@ -224,6 +233,7 @@ export class StreamVideoClient {
           metadata: c.call,
           members: c.members,
           clientStore: this.writeableStateStore,
+          reactNativePlatform: this.reactNativePlatform,
         }),
     );
     return {

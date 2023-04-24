@@ -7,6 +7,7 @@ import {
 } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/jwt';
 import { STREAM_API_KEY, STREAM_API_SECRET } from 'react-native-dotenv';
+import { Platform } from 'react-native';
 
 const APIParams = {
   apiKey: STREAM_API_KEY,
@@ -43,7 +44,11 @@ export const useAuth = () => {
         const token = await createToken(username, APIParams.apiSecret);
         Sentry.setUser({ ...user, token });
         try {
-          const _videoClient = new StreamVideoClient(APIParams.apiKey);
+          const _videoClient = new StreamVideoClient(
+            APIParams.apiKey,
+            undefined,
+            Platform.OS,
+          );
           await _videoClient.connectUser(user, token);
           setVideoClient(_videoClient);
         } catch (err) {
