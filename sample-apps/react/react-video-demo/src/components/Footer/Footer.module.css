@@ -58,7 +58,7 @@
 }
 
 .likeIcon {
-  height: 18px;
+  @apply h-[18px];
 }
 
 .record {
