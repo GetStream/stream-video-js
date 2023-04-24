@@ -8,7 +8,7 @@
 }
 
 .item {
-  @apply flex items-center p-2  text-sm;
+  @apply flex items-center p-2 text-sm;
 }
 
 .item:hover {
