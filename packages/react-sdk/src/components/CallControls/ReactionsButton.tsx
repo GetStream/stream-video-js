@@ -1,7 +1,8 @@
 import { CompositeButton, IconButton } from '../Button';
 import { useActiveCall } from '@stream-io/video-react-bindings';
-import { StreamReaction } from '@stream-io/video-client';
+import { OwnCapability, StreamReaction } from '@stream-io/video-client';
 import { defaultEmojiReactions } from '../Reaction';
+import { Restricted } from '../Moderation';
 
 export const defaultReactions: StreamReaction[] = [
   {
@@ -30,20 +31,22 @@ export const ReactionsButton = ({
   reactions = defaultReactions,
 }: ReactionsButtonProps) => {
   return (
-    <CompositeButton
-      active={false}
-      caption="Reactions"
-      menuPlacement="top-start"
-      Menu={<DefaultReactionsMenu reactions={reactions} />}
-    >
-      <IconButton
-        icon="reactions"
-        title="Reactions"
-        onClick={() => {
-          console.log('Reactions');
-        }}
-      />
-    </CompositeButton>
+    <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
+      <CompositeButton
+        active={false}
+        caption="Reactions"
+        menuPlacement="top-start"
+        Menu={<DefaultReactionsMenu reactions={reactions} />}
+      >
+        <IconButton
+          icon="reactions"
+          title="Reactions"
+          onClick={() => {
+            console.log('Reactions');
+          }}
+        />
+      </CompositeButton>
+    </Restricted>
   );
 };
 

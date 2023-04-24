@@ -9,6 +9,7 @@ import { CompositeButton, IconButton } from '../Button/';
 import { useMediaDevices } from '../../contexts';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
+import { Restricted } from '../Moderation';
 
 export type ToggleCameraPreviewButtonProps = { caption?: string };
 
@@ -83,23 +84,25 @@ export const ToggleCameraPublishingButton = ({
   ]);
 
   return (
-    <PermissionNotification
-      permission={OwnCapability.SEND_VIDEO}
-      isAwaitingApproval={isAwaitingApproval}
-      messageApproved="You can now share your video."
-      messageAwaitingApproval="Awaiting for an approval to share your video."
-      messageRevoked="You can no longer share your video."
-    >
-      <CompositeButton
-        Menu={DeviceSelectorVideo}
-        active={isVideoMute}
-        caption={caption}
+    <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
+      <PermissionNotification
+        permission={OwnCapability.SEND_VIDEO}
+        isAwaitingApproval={isAwaitingApproval}
+        messageApproved="You can now share your video."
+        messageAwaitingApproval="Awaiting for an approval to share your video."
+        messageRevoked="You can no longer share your video."
       >
-        <IconButton
-          icon={isVideoMute ? 'camera-off' : 'camera'}
-          onClick={handleClick}
-        />
-      </CompositeButton>
-    </PermissionNotification>
+        <CompositeButton
+          Menu={DeviceSelectorVideo}
+          active={isVideoMute}
+          caption={caption}
+        >
+          <IconButton
+            icon={isVideoMute ? 'camera-off' : 'camera'}
+            onClick={handleClick}
+          />
+        </CompositeButton>
+      </PermissionNotification>
+    </Restricted>
   );
 };

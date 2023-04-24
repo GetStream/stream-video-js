@@ -1,10 +1,6 @@
 import clsx from 'clsx';
 import { ComponentProps, ComponentType, forwardRef } from 'react';
-import {
-  useCall,
-  useConnectedUser,
-  useOwnCapabilities,
-} from '@stream-io/video-react-bindings';
+import { useCall, useConnectedUser } from '@stream-io/video-react-bindings';
 import {
   OwnCapability,
   SfuModels,
@@ -123,7 +119,6 @@ export const ParticipantActionsContextMenu = ({
   participant: StreamVideoParticipant;
 }) => {
   const activeCall = useCall();
-  const ownCapabilities = useOwnCapabilities();
 
   const blockUser = () => {
     activeCall?.blockUser(participant.userId);
@@ -171,19 +166,13 @@ export const ParticipantActionsContextMenu = ({
       <GenericMenuButtonItem onClick={toggleParticipantPinnedAt}>
         {participant.pinnedAt ? 'Unpin' : 'Pin'}
       </GenericMenuButtonItem>
-      <Restricted
-        availableGrants={ownCapabilities}
-        requiredGrants={[OwnCapability.BLOCK_USERS]}
-      >
+      <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
         <GenericMenuButtonItem onClick={blockUser}>Block</GenericMenuButtonItem>
       </Restricted>
       {/* <GenericMenuButtonItem disabled onClick={kickUserClickHandler}>
         Kick
       </GenericMenuButtonItem> */}
-      <Restricted
-        availableGrants={ownCapabilities}
-        requiredGrants={[OwnCapability.MUTE_USERS]}
-      >
+      <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
         <GenericMenuButtonItem
           disabled={
             !participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)
@@ -201,10 +190,7 @@ export const ParticipantActionsContextMenu = ({
           Mute audio
         </GenericMenuButtonItem>
       </Restricted>
-      <Restricted
-        availableGrants={ownCapabilities}
-        requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}
-      >
+      <Restricted requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}>
         <GenericMenuButtonItem
           onClick={grantPermission(OwnCapability.SEND_AUDIO)}
         >
