@@ -72,6 +72,7 @@ export async function startForegroundService() {
     android: {
       channelId: FOREGROUND_SERVICE_CHANNEL_ID,
       asForegroundService: true,
+      ongoing: true,
       pressAction: {
         id: 'default',
         launchActivity: 'default',

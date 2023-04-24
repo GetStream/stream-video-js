@@ -49,6 +49,7 @@
     </service>
     <service
       android:name="app.notifee.core.ForegroundService"
+      android:stopWithTask="true"
       android:foregroundServiceType="camera|microphone" />
 
     <service android:name="io.wazo.callkeep.RNCallKeepBackgroundMessagingService" />
