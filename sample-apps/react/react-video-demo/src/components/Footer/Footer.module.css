@@ -50,13 +50,11 @@
 }
 
 .reactionsPortal {
-  @apply absolute;
+  @apply absolute h-auto w-[150px];
   right: 0;
   bottom: 0;
   left: 0;
   z-index: 9999;
-  height: auto;
-  width: 150px;
 }
 
 .likeIcon {
