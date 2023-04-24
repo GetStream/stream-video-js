@@ -1,11 +1,12 @@
 import { PropsWithChildren } from 'react';
 import { OwnCapability } from '@stream-io/video-client';
+import { useCall, useOwnCapabilities } from '@stream-io/video-react-bindings';
 
 type RestrictedProps = PropsWithChildren<{
   /**
    * OwnCapabilities of the participant - grants they have available
    */
-  availableGrants: OwnCapability[] | string[];
+  availableGrants?: OwnCapability[];
   /**
    * Required grants for the component to be able to render supplied children elements
    */
@@ -18,16 +19,20 @@ type RestrictedProps = PropsWithChildren<{
 }>;
 
 export const Restricted = ({
-  availableGrants,
+  availableGrants: availableGrantsFromProps,
   requiredGrants,
-  requireAll,
+  requireAll = true,
   children,
 }: RestrictedProps) => {
-  if (
-    requiredGrants[requireAll ? 'every' : 'some']((capability) =>
-      availableGrants.includes(capability),
-    )
-  )
-    return <>{children}</>;
+  const call = useCall();
+  const ownCapabilities = useOwnCapabilities();
+  const availableGrants = availableGrantsFromProps || ownCapabilities;
+  const hasPermissions = requiredGrants[requireAll ? 'every' : 'some'](
+    (capability) => availableGrants.includes(capability),
+  );
+  const canRequest = requiredGrants.some(
+    (capability) => !!call && call.permissionsContext.canRequest(capability),
+  );
+  if (hasPermissions || canRequest) return <>{children}</>;
   return null;
 };

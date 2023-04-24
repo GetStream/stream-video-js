@@ -9,6 +9,7 @@ import { useMediaDevices } from '../../contexts';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { CompositeButton, IconButton } from '../Button';
 import { PermissionNotification } from '../Notification';
+import { Restricted } from '../Moderation';
 
 export type ToggleAudioPreviewButtonProps = { caption?: string };
 
@@ -83,23 +84,25 @@ export const ToggleAudioPublishingButton = ({
   ]);
 
   return (
-    <PermissionNotification
-      permission={OwnCapability.SEND_AUDIO}
-      isAwaitingApproval={isAwaitingApproval}
-      messageApproved="You can now speak."
-      messageAwaitingApproval="Awaiting for an approval to speak."
-      messageRevoked="You can no longer speak."
-    >
-      <CompositeButton
-        Menu={DeviceSelectorAudioInput}
-        active={isAudioMute}
-        caption={caption}
+    <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
+      <PermissionNotification
+        permission={OwnCapability.SEND_AUDIO}
+        isAwaitingApproval={isAwaitingApproval}
+        messageApproved="You can now speak."
+        messageAwaitingApproval="Awaiting for an approval to speak."
+        messageRevoked="You can no longer speak."
       >
-        <IconButton
-          icon={isAudioMute ? 'mic-off' : 'mic'}
-          onClick={handleClick}
-        />
-      </CompositeButton>
-    </PermissionNotification>
+        <CompositeButton
+          Menu={DeviceSelectorAudioInput}
+          active={isAudioMute}
+          caption={caption}
+        >
+          <IconButton
+            icon={isAudioMute ? 'mic-off' : 'mic'}
+            onClick={handleClick}
+          />
+        </CompositeButton>
+      </PermissionNotification>
+    </Restricted>
   );
 };

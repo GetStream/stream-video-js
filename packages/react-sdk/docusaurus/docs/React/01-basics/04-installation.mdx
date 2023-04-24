@@ -1,0 +1,50 @@
+---
+id: 04-installation
+title: Installation
+---
+
+The installation of the packages for the Stream Video React SDK can be either done with `yarn` or `npm`.
+
+### Install the React SDK
+
+For `yarn`:
+
+```
+yarn add @stream-io/video-react-sdk
+```
+
+For `npm`:
+
+```
+npm install @stream-io/video-react-sdk
+```
+
+### Install the low-level client
+
+For `yarn`:
+
+```
+yarn add @stream-io/video-client
+```
+
+For `npm`:
+
+```
+npm install @stream-io/video-client
+```
+
+While this installs the video client, it might be a good idea for you to also install the `react-bindings` package that we offer:
+
+```
+yarn add @stream-io/video-react-bindings
+```
+
+or
+
+```
+npm install @stream-io/video-react-bindings
+```
+
+:::note
+The `react-bindings` comes implicitly packaged within the `video-react-sdk` but not if you're building on top of our client.
+:::

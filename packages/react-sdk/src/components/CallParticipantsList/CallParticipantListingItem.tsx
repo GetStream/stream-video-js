@@ -1,10 +1,6 @@
 import clsx from 'clsx';
 import { ComponentProps, ComponentType, forwardRef } from 'react';
-import {
-  useCall,
-  useConnectedUser,
-  useOwnCapabilities,
-} from '@stream-io/video-react-bindings';
+import { useCall, useConnectedUser } from '@stream-io/video-react-bindings';
 import {
   OwnCapability,
   SfuModels,
@@ -30,14 +26,13 @@ export const CallParticipantListingItem = ({
   participant,
   DisplayName = DefaultDisplayName,
 }: CallParticipantListingItemProps) => {
-  const ownCapabilities = useOwnCapabilities();
-
   const isAudioOn = participant.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
   const isVideoOn = participant.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
   );
+  const isPinned = !!participant.pinnedAt;
 
   return (
     <div className="str-video__participant-listing-item">
@@ -61,15 +56,19 @@ export const CallParticipantListingItem = ({
             }`,
           )}
         />
-        <Restricted
-          availableGrants={ownCapabilities}
-          // TODO: add 'kick-users' when available
-          requiredGrants={[OwnCapability.BLOCK_USERS, OwnCapability.MUTE_USERS]}
-        >
-          <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
-            <Menu participant={participant} />
-          </MenuToggle>
-        </Restricted>
+        {isPinned && (
+          <MediaIndicator
+            title={'Pinned'}
+            className={clsx(
+              'str-video__participant-listing-item__icon',
+              'str-video__participant-listing-item__icon-pinned',
+            )}
+          />
+        )}
+
+        <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
+          <ParticipantActionsContextMenu participant={participant} />
+        </MenuToggle>
       </div>
     </div>
   );
@@ -113,11 +112,15 @@ const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
     return <IconButton enabled={props.menuShown} icon="ellipsis" ref={ref} />;
   },
 );
-const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
-  const activeCall = useCall();
-  const ownCapabilities = useOwnCapabilities();
 
-  const blockUserClickHandler = () => {
+export const ParticipantActionsContextMenu = ({
+  participant,
+}: {
+  participant: StreamVideoParticipant;
+}) => {
+  const activeCall = useCall();
+
+  const blockUser = () => {
     activeCall?.blockUser(participant.userId);
   };
 
@@ -130,10 +133,10 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
   //   });
   // };
 
-  const muteAudioClickHandler = () => {
+  const muteAudio = () => {
     activeCall?.muteUser(participant.userId, 'audio');
   };
-  const muteVideoClickHandler = () => {
+  const muteVideo = () => {
     activeCall?.muteUser(participant.userId, 'video');
   };
 
@@ -151,28 +154,30 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
     });
   };
 
+  const toggleParticipantPinnedAt = () => {
+    activeCall?.setParticipantPinnedAt(
+      participant.sessionId,
+      participant.pinnedAt ? undefined : Date.now(),
+    );
+  };
+
   return (
     <GenericMenu>
-      <Restricted
-        availableGrants={ownCapabilities}
-        requiredGrants={[OwnCapability.BLOCK_USERS]}
-      >
-        <GenericMenuButtonItem onClick={blockUserClickHandler}>
-          Block
-        </GenericMenuButtonItem>
+      <GenericMenuButtonItem onClick={toggleParticipantPinnedAt}>
+        {participant.pinnedAt ? 'Unpin' : 'Pin'}
+      </GenericMenuButtonItem>
+      <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
+        <GenericMenuButtonItem onClick={blockUser}>Block</GenericMenuButtonItem>
       </Restricted>
       {/* <GenericMenuButtonItem disabled onClick={kickUserClickHandler}>
         Kick
       </GenericMenuButtonItem> */}
-      <Restricted
-        availableGrants={ownCapabilities}
-        requiredGrants={[OwnCapability.MUTE_USERS]}
-      >
+      <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
         <GenericMenuButtonItem
           disabled={
             !participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)
           }
-          onClick={muteVideoClickHandler}
+          onClick={muteVideo}
         >
           Mute video
         </GenericMenuButtonItem>
@@ -180,15 +185,12 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
           disabled={
             !participant.publishedTracks.includes(SfuModels.TrackType.AUDIO)
           }
-          onClick={muteAudioClickHandler}
+          onClick={muteAudio}
         >
           Mute audio
         </GenericMenuButtonItem>
       </Restricted>
-      <Restricted
-        availableGrants={ownCapabilities}
-        requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}
-      >
+      <Restricted requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}>
         <GenericMenuButtonItem
           onClick={grantPermission(OwnCapability.SEND_AUDIO)}
         >

@@ -15,6 +15,13 @@ export enum VisibilityState {
   INVISIBLE = 'INVISIBLE',
 }
 
+export enum DebounceType {
+  IMMEDIATE = 0,
+  FAST = 100,
+  MEDIUM = 600,
+  SLOW = 1200,
+}
+
 export interface StreamVideoParticipant extends Participant {
   /**
    * The participant's audio stream, if they are publishing audio and
@@ -52,9 +59,9 @@ export interface StreamVideoParticipant extends Participant {
   isLoggedInUser?: boolean;
 
   /**
-   * True when the participant is pinned
+   * Timestamp of when the participant is pinned
    */
-  isPinned?: boolean;
+  pinnedAt?: number;
 
   /**
    * The last reaction this user has sent to this call.

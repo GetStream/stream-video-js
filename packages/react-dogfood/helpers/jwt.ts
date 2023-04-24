@@ -3,7 +3,7 @@ import { JWTUserToken } from 'stream-chat';
 export const createToken = (
   userId: string,
   jwtSecret: string,
-  params: Record<string, string> = {},
+  params: Record<string, string | string[]> = {},
 ) => {
   const {
     exp, // expiration, in seconds from now
@@ -11,7 +11,9 @@ export const createToken = (
   } = params;
 
   const maxValidityInSeconds = 3 * 60 * 60;
-  const expiryFromNowInSeconds = exp ? parseInt(exp, 10) : maxValidityInSeconds;
+  const expiryFromNowInSeconds = exp
+    ? parseInt(exp as string, 10)
+    : maxValidityInSeconds;
   const expiration = Math.round(
     Date.now() / 1000 + Math.min(expiryFromNowInSeconds, maxValidityInSeconds),
   );

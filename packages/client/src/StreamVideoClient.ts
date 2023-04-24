@@ -5,9 +5,13 @@ import {
 import {
   CreateCallTypeRequest,
   CreateCallTypeResponse,
+  CreateGuestRequest,
+  CreateGuestResponse,
+  DeviceFieldsRequest,
   GetCallTypeResponse,
   GetEdgesResponse,
   ListCallTypeResponse,
+  ListDevicesResponse,
   QueryCallsRequest,
   QueryCallsResponse,
   SortParamRequest,
@@ -72,7 +76,7 @@ export class StreamVideoClient {
    * @param tokenOrProvider a token or a function that returns a token.
    */
   connectUser = async (user: User, tokenOrProvider: TokenOrProvider) => {
-    await this.streamClient.connectUser(
+    const connectUserResponse = await this.streamClient.connectUser(
       // @ts-expect-error
       user,
       tokenOrProvider,
@@ -106,6 +110,22 @@ export class StreamVideoClient {
     this.on('call.ended', watchCallCancelled(this.writeableStateStore));
 
     this.writeableStateStore.setConnectedUser(user);
+
+    return connectUserResponse;
+  };
+
+  /**
+   * Connects the given anonymous user to the client.
+   *
+   * @param user the user to connect.
+   * @param tokenOrProvider a token or a function that returns a token.
+   */
+  connectAnonymousUser = async (
+    user: User,
+    tokenOrProvider: TokenOrProvider,
+  ) => {
+    // @ts-expect-error
+    return this.streamClient.connectAnonymousUser(user, tokenOrProvider);
   };
 
   /**
@@ -147,14 +167,32 @@ export class StreamVideoClient {
     return this.streamClient.off(event, callback);
   };
 
-  call(type: string, id: string) {
+  /**
+   * Creates a new call.
+   *
+   * @param type the type of the call.
+   * @param id the id of the call.
+   */
+  call = (type: string, id: string) => {
     return new Call({
       streamClient: this.streamClient,
       id,
       type,
       clientStore: this.writeableStateStore,
     });
-  }
+  };
+
+  /**
+   * Creates a new guest user with the given data.
+   *
+   * @param data the data for the guest user.
+   */
+  createGuestUser = async (data: CreateGuestRequest) => {
+    return this.streamClient.post<CreateGuestResponse, CreateGuestRequest>(
+      '/guest',
+      data,
+    );
+  };
 
   queryCalls = async (
     filterConditions: { [key: string]: any },
@@ -170,32 +208,28 @@ export class StreamVideoClient {
       next: next,
       watch,
     };
-    try {
-      if (data.watch) {
-        await this.streamClient.connectionIdPromise;
-      }
-      const response = await this.streamClient.post<QueryCallsResponse>(
-        '/calls',
-        data,
-      );
-      const calls = response.calls.map(
-        (c) =>
-          new Call({
-            streamClient: this.streamClient,
-            id: c.call.id,
-            type: c.call.type,
-            metadata: c.call,
-            members: c.members,
-            clientStore: this.writeableStateStore,
-          }),
-      );
-      return {
-        ...response,
-        calls: calls,
-      };
-    } catch (error) {
-      throw error;
+    if (data.watch) {
+      await this.streamClient.connectionIdPromise;
     }
+    const response = await this.streamClient.post<QueryCallsResponse>(
+      '/calls',
+      data,
+    );
+    const calls = response.calls.map(
+      (c) =>
+        new Call({
+          streamClient: this.streamClient,
+          id: c.call.id,
+          type: c.call.type,
+          metadata: c.call,
+          members: c.members,
+          clientStore: this.writeableStateStore,
+        }),
+    );
+    return {
+      ...response,
+      calls: calls,
+    };
   };
 
   queryUsers = async () => {
@@ -229,4 +263,68 @@ export class StreamVideoClient {
   listCallTypes = async () => {
     return this.streamClient.get<ListCallTypeResponse>(`/calltypes`);
   };
+
+  /**
+   * addDevice - Adds a push device for a user.
+   *
+   * @param {string} id the device id
+   * @param {string} push_provider the push provider name (eg. apn, firebase)
+   * @param {string} push_provider_name user provided push provider name
+   * @param {string} [userID] the user id (defaults to current user)
+   */
+  async addDevice(
+    id: string,
+    push_provider: string,
+    push_provider_name: string,
+    userID?: string,
+  ) {
+    return await this.streamClient.post('/devices', {
+      id,
+      push_provider,
+      ...(userID != null ? { user_id: userID } : {}),
+      ...(push_provider_name != null ? { push_provider_name } : {}),
+    });
+  }
+
+  /**
+   * getDevices - Returns the devices associated with a current user
+   * @param {string} [userID] User ID. Only works on serverside
+   */
+  async getDevices(userID?: string) {
+    return await this.streamClient.get<ListDevicesResponse>(
+      '/devices',
+      userID ? { user_id: userID } : {},
+    );
+  }
+
+  /**
+   * removeDevice - Removes the device with the given id.
+   *
+   * @param {string} id The device id
+   * @param {string} [userID] The user id. Only specify this for serverside requests
+   *
+   */
+  async removeDevice(id: string, userID?: string) {
+    return await this.streamClient.delete('/devices', {
+      id,
+      ...(userID ? { user_id: userID } : {}),
+    });
+  }
+
+  /**
+   * setDevice - Set the device info for the current client device to receive push
+   * notification, the device will be sent via WS connection automatically
+   */
+  async setDevice(device: DeviceFieldsRequest) {
+    this.streamClient.options.pushDevice = device;
+    // if the connection already did authentication then we call the endpoint
+    // directly
+    if (this.streamClient.wsConnection?.authenticationSent) {
+      return await this.addDevice(
+        device.id,
+        device.push_provider,
+        device.push_provider_name,
+      );
+    }
+  }
 }

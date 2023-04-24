@@ -22,6 +22,7 @@ import EndCallView from './components/Views/EndCallView';
 import { TourProvider, useTourContext } from './contexts/TourContext';
 import { ModalProvider } from './contexts/ModalContext';
 import { NotificationProvider } from './contexts/NotificationsContext';
+import { PanelProvider } from './contexts/PanelContext';
 
 import { createGeoJsonFeatures } from './utils/useCreateGeoJsonFeatures';
 import { generateUser } from './utils/useGenerateUser';
@@ -122,16 +123,18 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
       <ModalProvider>
         {isCallActive && callId && client ? (
           <NotificationProvider>
-            <TourProvider>
-              <MeetingView
-                logo={logo}
-                callId={callId}
-                callType={callType}
-                isCallActive={isCallActive}
-                setCallHasEnded={setCallHasEnded}
-                chatClient={chatClient}
-              />
-            </TourProvider>
+            <PanelProvider>
+              <TourProvider>
+                <MeetingView
+                  logo={logo}
+                  callId={callId}
+                  callType={callType}
+                  isCallActive={isCallActive}
+                  setCallHasEnded={setCallHasEnded}
+                  chatClient={chatClient}
+                />
+              </TourProvider>
+            </PanelProvider>
           </NotificationProvider>
         ) : (
           <MediaDevicesProvider initialVideoEnabled={true}>

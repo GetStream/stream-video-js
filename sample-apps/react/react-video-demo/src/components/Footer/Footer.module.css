@@ -82,7 +82,7 @@
 }
 
 .endCall {
-  @apply flex ml-2 uppercase font-medium;
+  @apply hidden sm:flex ml-2 uppercase font-medium;
   opacity: 0;
   white-space: nowrap;
   z-index: -1;

@@ -7,6 +7,8 @@ import { Security, People } from '../Icons';
 
 import { useBreakpoint } from '../../hooks/useBreakpoints';
 
+import { usePanelContext } from '../../contexts/PanelContext';
+
 import styles from './Header.module.css';
 
 export type Props = {
@@ -17,8 +19,6 @@ export type Props = {
   isCallActive: boolean;
   particpants?: any;
   latency?: number;
-  showParticipants?: boolean;
-  toggleParticipants?(): void;
   participantCount?: number;
 };
 
@@ -153,17 +153,14 @@ export const Participants: FC<Pick<Props, 'className' | 'participants'>> = ({
   );
 };
 
-export const ParticipantsToggle: FC<
-  Pick<
-    Props,
-    'className' | 'showParticipants' | 'toggleParticipants' | 'participantCount'
-  >
-> = ({ showParticipants, toggleParticipants }) => {
+export const ParticipantsToggle: FC = () => {
+  const { isParticipantsVisible, toggleParticipants } = usePanelContext();
+
   return (
     <Button
       label="Participants"
       className={styles.participantsToggle}
-      color={showParticipants ? 'active' : 'secondary'}
+      color={isParticipantsVisible ? 'active' : 'secondary'}
       shape="square"
       onClick={toggleParticipants}
     >
@@ -179,9 +176,6 @@ export const Header: FC<Props> = ({
   latency,
   isCallActive = true,
   participants,
-  toggleParticipants,
-  participantCount,
-  showParticipants,
 }) => {
   const breakpoint = useBreakpoint();
 
@@ -204,11 +198,8 @@ export const Header: FC<Props> = ({
           <CallIdentification callId={callId} logo={logo} />
         )}
         <Elapsed joinedAt={me?.joinedAt?.seconds} />
-        {breakpoint === 'sm' ? (
-          <ParticipantsToggle
-            showParticipants={showParticipants}
-            toggleParticipants={toggleParticipants}
-          />
+        {breakpoint === 'sm' || breakpoint === 'xs' ? (
+          <ParticipantsToggle />
         ) : (
           <LatencyIndicator latency={latency} />
         )}
