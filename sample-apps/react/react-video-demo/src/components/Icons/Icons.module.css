@@ -1,5 +1,4 @@
 .root {
   display: block;
-  width: 24px;
-  height: 24px;
+  @apply h-6 w-6;
 }
