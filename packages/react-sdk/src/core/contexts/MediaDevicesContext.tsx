@@ -6,6 +6,8 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { map, pairwise, take } from 'rxjs';
+
 import {
   checkIfAudioOutputChangeSupported,
   disposeOfMediaStream,
@@ -17,9 +19,9 @@ import {
   SfuModels,
   watchForDisconnectedAudioOutputDevice,
 } from '@stream-io/video-client';
-import { map, pairwise, take } from 'rxjs';
-import { useAudioPublisher, useVideoPublisher } from '../hooks';
 import { useActiveCall } from '@stream-io/video-react-bindings';
+
+import { useAudioPublisher, useVideoPublisher } from '../hooks';
 
 type EnabledStateType = 'starting' | 'playing';
 type DisabledStateType = 'uninitialized' | 'stopped';

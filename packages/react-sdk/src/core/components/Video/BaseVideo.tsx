@@ -16,6 +16,10 @@ export type VideoProps = DetailedHTMLProps<
   stream?: MediaStream;
 };
 
+/**
+ * @description Extends video element with `stream` property
+ * (`srcObject`) to reactively handle stream changes
+ */
 export const BaseVideo = forwardRef<HTMLVideoElement, VideoProps>(
   ({ stream, ...rest }, ref) => {
     const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
