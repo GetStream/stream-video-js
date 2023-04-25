@@ -121,12 +121,14 @@ export const App = () => {
 ## Anonymous users
 
 Anonymous users don't have a profile. They are not able to send audio or video, and they are not able to perform a web socket connection.
+A typical use case for using an anonymous user are large webinars where you expect to have a lot of participants in the same call.
+
+Anonymous users can only join a call and consume audio, video and screenshare from other participants.
+They won't appear in the list of participants but they will be counted in the total number of participants.
+
 If you try to call the `connectUser` method for an anonymous user, an error will be thrown.
 
-A typical use case for using an anonymous user are large webinars where you expect to have a lot of
-participants in the same call.
-
-However, anonymous users need a call token to join a call. Compared to the regular user tokens,
+Anonymous users need a call token to join a call. Compared to the regular user tokens,
 the tokens issued for anonymous users must have additional claims and constraints:
 
 - Call tokens must have an expiration time included to avoid security problems.
@@ -206,9 +208,7 @@ export const App = () => {
 Guest users are users that are not registered in your system but are allowed to join a call.
 Compared to the anonymous users, guest users have a profile and can send audio, video and screenshare in the call.
 
-Additionally, the guest users can open a WebSocket connection if the right permissions are configured.
-
-Guest users can only be created client-side and in order to be able to create a guest user, you need to fetch an "anonymous" user token first.
+Guest users can only be created client-side and in order to be able to create a guest user, you need to fetch and connect with an "anonymous" user token first.
 
 A typical flow for creating a guest user would be:
 
@@ -235,7 +235,10 @@ const response: CreateGuestResponse = await client.createGuestUser({
   },
 });
 
-// connect the guest user to the backend
+// disconnect the anon user
+await client.disconnectUser();
+
+// now, we can connect the guest user to the backend
 const { user, access_token } = response;
 await client.connectUser(user, access_token);
 
