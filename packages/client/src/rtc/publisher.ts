@@ -265,6 +265,7 @@ export class Publisher {
         sdp = enableDtx(sdp);
       }
       if (isReactNative()) {
+        console.log({ reactNativePlatform: this.reactNativePlatform });
         if (this.reactNativePlatform === 'android') {
           sdp = setPreferredCodec(sdp, 'video', 'vp8');
         }
