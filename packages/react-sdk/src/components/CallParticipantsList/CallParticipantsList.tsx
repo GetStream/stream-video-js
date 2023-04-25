@@ -1,10 +1,9 @@
 import {
-  ComponentPropsWithRef,
-  ComponentType,
   ForwardedRef,
   forwardRef,
   useCallback,
   useState,
+  ComponentProps,
 } from 'react';
 import {
   useCall,
@@ -17,21 +16,17 @@ import {
   OwnCapability,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
+import { clsx } from 'clsx';
+
 import { BlockedUserListing } from './BlockedUserListing';
 import {
   CopyToClipboardButtonWithPopup,
   IconButton,
   TextButton,
 } from '../Button';
-import {
-  CallParticipantListHeader,
-  CallParticipantListHeaderProps,
-} from './CallParticipantListHeader';
-import {
-  CallParticipantListing as DefaultParticipantListing,
-  CallParticipantListingProps,
-} from './CallParticipantListing';
-import { EmptyParticipantSearchList as DefaultEmptyParticipantList } from './EmptyParticipantSearchList';
+import { CallParticipantListHeader } from './CallParticipantListHeader';
+import { CallParticipantListing } from './CallParticipantListing';
+import { EmptyParticipantSearchList } from './EmptyParticipantSearchList';
 import { LoadingIndicator } from '../LoadingIndicator';
 import { SearchInput, SearchResults } from '../Search';
 import { useSearch, UseSearchParams } from '../Search/hooks';
@@ -44,20 +39,11 @@ import {
 } from '../Menu';
 
 type CallParticipantListProps = {
-  /** Click event listener function to be invoked in order to dismiss / hide the CallParticipantsList from the UI */
+  /** Click event listener function to be invoked in order to dismiss/hide the CallParticipantsList from the UI */
   onClose: () => void;
-  /** Custom component to render the list of participants. Used render participant search results as well. */
-  CallParticipantListing?: ComponentType<CallParticipantListingProps>;
-  /** Custom component to be rendered when search result is empty */
-  EmptyParticipantSearchResultComponent?: ComponentType;
-  /** Custom CallParticipantsList Header component */
-  Header?: ComponentType<CallParticipantListHeaderProps>;
-  /** Custom component to replace a button for generating invitation link to the call */
-  InviteLinkButton?: ComponentType<
-    ComponentPropsWithRef<'button'> & { ref: ForwardedRef<HTMLButtonElement> }
-  >;
-  /** Custom function to override the logic for retrieving searched for participants */
+  /** Custom function to override the searching logic of active participants */
   activeUsersSearchFn?: UseSearchParams<StreamVideoParticipant>['searchFn'];
+  /** Custom function to override the searching logic of blocked users */
   blockedUsersSearchFn?: UseSearchParams<string>['searchFn'];
   /** Interval in ms, during which the participant search calls will be throttled. The default value is 200ms. */
   debounceSearchInterval?: number;
@@ -69,10 +55,6 @@ const UserListTypes = {
 } as const;
 
 export const CallParticipantsList = ({
-  CallParticipantListing,
-  EmptyParticipantSearchResultComponent,
-  InviteLinkButton,
-  Header = CallParticipantListHeader,
   onClose,
   activeUsersSearchFn,
   blockedUsersSearchFn,
@@ -82,13 +64,11 @@ export const CallParticipantsList = ({
   const [userListType, setUserListType] =
     useState<keyof typeof UserListTypes>('active');
 
-  const participants = useParticipants();
-
   const exitSearch = useCallback(() => setSearchQuery(''), []);
 
   return (
     <div className="str-video__participant-list">
-      <Header onClose={onClose} participants={participants} />
+      <CallParticipantListHeader onClose={onClose} />
       <SearchInput
         value={searchQuery}
         onChange={({ currentTarget }) => setSearchQuery(currentTarget.value)}
@@ -104,33 +84,22 @@ export const CallParticipantsList = ({
           <ActiveUsersSearchResults
             searchQuery={searchQuery}
             activeUsersSearchFn={activeUsersSearchFn}
-            CallParticipantListing={CallParticipantListing}
-            EmptyParticipantSearchResultComponent={
-              EmptyParticipantSearchResultComponent
-            }
             debounceSearchInterval={debounceSearchInterval}
           />
         )}
         {userListType === 'blocked' && (
           <BlockedUsersSearchResults
             searchQuery={searchQuery}
-            EmptyParticipantSearchResultComponent={
-              EmptyParticipantSearchResultComponent
-            }
             blockedUsersSearchFn={blockedUsersSearchFn}
             debounceSearchInterval={debounceSearchInterval}
           />
         )}
       </div>
       <div className="str-video__participant-list__footer">
-        {InviteLinkButton && (
-          <CopyToClipboardButtonWithPopup
-            Button={InviteLinkButton}
-            copyValue={
-              typeof window !== 'undefined' ? window.location.href : ''
-            }
-          />
-        )}
+        <CopyToClipboardButtonWithPopup
+          Button={InviteLinkButton}
+          copyValue={typeof window !== 'undefined' ? window.location.href : ''}
+        />
       </div>
     </div>
   );
@@ -185,17 +154,12 @@ const CallParticipantListContentHeader = ({
 };
 
 const ActiveUsersSearchResults = ({
-  CallParticipantListing = DefaultParticipantListing,
-  EmptyParticipantSearchResultComponent = DefaultEmptyParticipantList,
   searchQuery,
   activeUsersSearchFn: activeUsersSearchFnFromProps,
   debounceSearchInterval = 200,
 }: Pick<
   CallParticipantListProps,
-  | 'EmptyParticipantSearchResultComponent'
-  | 'CallParticipantListing'
-  | 'activeUsersSearchFn'
-  | 'debounceSearchInterval'
+  'activeUsersSearchFn' | 'debounceSearchInterval'
 > & { searchQuery: string }) => {
   const participants = useParticipants({ sortBy: name });
 
@@ -220,7 +184,7 @@ const ActiveUsersSearchResults = ({
 
   return (
     <SearchResults<StreamVideoParticipant>
-      EmptySearchResultComponent={EmptyParticipantSearchResultComponent}
+      EmptySearchResultComponent={EmptyParticipantSearchList}
       LoadingIndicator={LoadingIndicator}
       searchQueryInProgress={searchQueryInProgress}
       searchResults={searchQuery ? searchResults : participants}
@@ -230,15 +194,12 @@ const ActiveUsersSearchResults = ({
 };
 
 const BlockedUsersSearchResults = ({
-  EmptyParticipantSearchResultComponent = DefaultEmptyParticipantList,
   blockedUsersSearchFn: blockedUsersSearchFnFromProps,
   debounceSearchInterval = 200,
   searchQuery,
 }: Pick<
   CallParticipantListProps,
-  | 'EmptyParticipantSearchResultComponent'
-  | 'blockedUsersSearchFn'
-  | 'debounceSearchInterval'
+  'blockedUsersSearchFn' | 'debounceSearchInterval'
 > & { searchQuery: string }) => {
   const { blocked_user_ids: blockedUsers = [] } = useCallMetadata()!;
 
@@ -262,7 +223,7 @@ const BlockedUsersSearchResults = ({
 
   return (
     <SearchResults<string>
-      EmptySearchResultComponent={EmptyParticipantSearchResultComponent}
+      EmptySearchResultComponent={EmptyParticipantSearchList}
       LoadingIndicator={LoadingIndicator}
       searchQueryInProgress={searchQueryInProgress}
       searchResults={searchQuery ? searchResults : blockedUsers}
@@ -275,4 +236,20 @@ const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   (props, ref) => {
     return <IconButton enabled={props.menuShown} icon="caret-down" ref={ref} />;
   },
+);
+
+const InviteLinkButton = forwardRef(
+  (
+    { className, ...props }: ComponentProps<'button'>,
+    ref: ForwardedRef<HTMLButtonElement>,
+  ) => (
+    <button
+      {...props}
+      className={clsx('str-video__invite-link-button', className)}
+      ref={ref}
+    >
+      <div className="str-video__invite-participant-icon" />
+      <div className="str-video__invite-link-button__text">Invite Link</div>
+    </button>
+  ),
 );
