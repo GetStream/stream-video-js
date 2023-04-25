@@ -60,11 +60,15 @@
 }
 
 .description {
-  @apply mt-4 mb-4 text-xs;
+  @apply mt-4 mb-4 text-xs flex;
+}
+
+.description:last-of-type {
+  @apply hidden lg:inline-block;
 }
 
 .qr {
-  @apply flex bg-video-grey-700 rounded-container p-4 flex justify-center;
+  @apply hidden lg:flex bg-video-grey-700 rounded-container p-4 flex justify-center;
 }
 
 .qr.hide {

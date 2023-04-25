@@ -61,6 +61,10 @@ export const Footer: FC<Props> = ({
   } = usePanelContext();
 
   const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(true);
+<<<<<<< Updated upstream
+=======
+  const [showReactionsPanel, setShowReactionsPanel] = useState<boolean>(false);
+>>>>>>> Stashed changes
 
   useEffect(() => {
     if (isVisible && showSettingsPanel) {
