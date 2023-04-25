@@ -1,7 +1,6 @@
 .root {
   @apply bg-video-grey-600 rounded-container text-video-white border-video-transparent border-2;
   pointer-events: initial;
-  max-width: 300px;
 }
 
 .root.focused {
@@ -22,7 +21,7 @@
 }
 
 .arrow {
-  @apply text-video-grey-400;
+  @apply text-video-grey-400  h-[10px] w-[10px];
 }
 
 .arrow.open {

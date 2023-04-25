@@ -6,37 +6,39 @@
   border: solid 1px transparent;
 
   background: linear-gradient(
-        94.84deg,
+        to right,
         #000000 -63.54%,
         #1d232f 14.48%,
         #000000 135.02%
       )
       padding-box,
     linear-gradient(
-      -260.52deg,
+      to left,
       #242c34 57.07%,
       #2f7deb 82.8%,
       rgba(228, 228, 228, 0) 105.55%
     ),
     border-box;
-  transition: background 5s ease-in;
+
+  transition: background 10s linear;
 }
 .root:hover {
   background: linear-gradient(
-        -94.84deg,
+        to left,
         #000000 -63.54%,
         #1d232f 14.48%,
         #000000 135.02%
       )
       padding-box,
     linear-gradient(
-      260.52deg,
+      to right,
       #242c34 57.07%,
       #2f7deb 82.8%,
       rgba(228, 228, 228, 0) 105.55%
     ),
     border-box;
-  transition: background 5s ease-out;
+
+  transition: background 10s linear;
 }
 
 .heading {

@@ -16,7 +16,15 @@ import {
 import Panel from '../Panel';
 import { Invite } from '../InvitePanel';
 import ParticipantsControlModal from '../ParticipantsControlModal';
-import { Mic, MicMuted, Options, Search, Video, VideoOff } from '../Icons';
+import {
+  Mic,
+  MicMuted,
+  Options,
+  Search,
+  Video,
+  VideoOff,
+  People,
+} from '../Icons';
 
 import { Restricted } from '../Moderation/Restricted';
 
@@ -41,6 +49,7 @@ export type RemoteParticipant = {
   isAudioOn: boolean;
   isVideoOn: boolean;
   particpantName: string;
+  isLocalParticipant: boolean;
 };
 
 export const LocalParticipant: FC<{
@@ -50,13 +59,14 @@ export const LocalParticipant: FC<{
   return <>{connectedUser?.name || participant?.name}</>;
 };
 
-export const RemoteParticipant: FC<RemoteParticipant> = ({
+export const Participant: FC<RemoteParticipant> = ({
   participant,
   isAudioOn,
   isVideoOn,
   handleMuteUser,
   handleDisableVideo,
   handleBlockUser,
+  isLocalParticipant,
 }) => {
   const { setComponent } = useModalContext();
   const breakpoint = useBreakpoint();
@@ -126,6 +136,20 @@ export const RemoteParticipant: FC<RemoteParticipant> = ({
           <VideoOff className={styles.videoOff} />
         )}
       </Restricted>
+
+      {!isLocalParticipant && (
+        <Restricted
+          availableGrants={ownCapabilities}
+          requiredGrants={[OwnCapability.BLOCK_USERS]}
+        >
+          <div
+            className={styles.block}
+            onClick={() => handleBlockUser(participant.userId)}
+          >
+            <People className={styles.block} />
+          </div>
+        </Restricted>
+      )}
     </div>
   );
 };
@@ -204,9 +228,10 @@ export const ParticipantsPanel: FC<Props> = ({
             ) {
               return (
                 <li className={styles.participant} key={`participant-${index}`}>
-                  <span className={styles.name}>{participant?.name}</span>
-                  {/* {!isLocalParticipant && ( */}
-                  <RemoteParticipant
+                  <span className={styles.name}>
+                    {participant?.name} {isLocalParticipant ? '(You)' : null}
+                  </span>
+                  <Participant
                     participant={participant}
                     handleMuteUser={handleMuteUser}
                     handleDisableVideo={handleDisableVideo}
@@ -214,8 +239,8 @@ export const ParticipantsPanel: FC<Props> = ({
                     isAudioOn={isAudioOn}
                     isVideoOn={isVideoOn}
                     particpantName={particpantName}
+                    isLocalParticipant={isLocalParticipant}
                   />
-                  {/* )} */}
                 </li>
               );
             }
