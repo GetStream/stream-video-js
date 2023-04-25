@@ -1,8 +1,5 @@
-import {
-  useCall,
-  useCallMetadata,
-  useOwnCapabilities,
-} from '@stream-io/video-react-bindings';
+import { OwnCapability } from '@stream-io/video-client';
+import { useCall, useCallMetadata } from '@stream-io/video-react-bindings';
 
 import { Restricted } from '../Moderation';
 import { TextButton } from '../Button';
@@ -27,7 +24,6 @@ export const BlockedUserListing = () => {
 };
 
 const BlockedUserListingItem = ({ userId }: { userId: string }) => {
-  const ownCapabilities = useOwnCapabilities();
   const activeCall = useCall();
 
   const unblockUserClickHandler = () => {
@@ -39,10 +35,7 @@ const BlockedUserListingItem = ({ userId }: { userId: string }) => {
       <div className="str-video__participant-listing-item__display-name">
         {userId}
       </div>
-      <Restricted
-        availableGrants={ownCapabilities}
-        requiredGrants={['block-users']}
-      >
+      <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
         <TextButton onClick={unblockUserClickHandler}>Unblock</TextButton>
       </Restricted>
     </div>

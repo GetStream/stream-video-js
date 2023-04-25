@@ -15,7 +15,10 @@ import {
   CallState,
   StreamVideoWriteableStateStore,
 } from '../store';
-import { trackTypeToParticipantStreamKey } from './helpers/tracks';
+import {
+  muteTypeToTrackType,
+  trackTypeToParticipantStreamKey,
+} from './helpers/tracks';
 import {
   BlockUserRequest,
   BlockUserResponse,
@@ -50,13 +53,23 @@ import {
 } from '../gen/coordinator';
 import { join, watch } from './flows/join';
 import {
+  DebounceType,
   PublishOptions,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
   VisibilityState,
 } from './types';
-import { debounceTime, pairwise, Subject, takeWhile, tap } from 'rxjs';
+import {
+  debounce,
+  map,
+  of,
+  pairwise,
+  Subject,
+  takeWhile,
+  tap,
+  timer,
+} from 'rxjs';
 import { createSubscription } from '../store/rxUtils';
 import { Comparator } from '../sorting';
 import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
@@ -76,8 +89,6 @@ import {
   EventHandler,
   StreamCallEvent,
 } from '../coordinator/connection/types';
-
-const UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION = 600;
 
 /**
  * The options to pass to {@link Call} constructor.
@@ -117,6 +128,13 @@ export type CallConstructor = {
    * @default false
    */
   ringing?: boolean;
+
+  /**
+   * Set to true if this call instance should receive updates from the backend.
+   *
+   * @default false.
+   */
+  watching?: boolean;
 
   /**
    * The default comparator to use when sorting participants.
@@ -160,6 +178,17 @@ export class Call {
   readonly state: CallState;
 
   /**
+   * Flag telling whether this call is a "ringing" call.
+   */
+  readonly ringing: boolean;
+
+  /**
+   * Flag indicating whether this call is "watched" and receives
+   * updates from the backend.
+   */
+  watching: boolean;
+
+  /**
    * The permissions context of this call.
    */
   readonly permissionsContext = new PermissionsContext();
@@ -172,7 +201,10 @@ export class Call {
 
   private subscriber?: RTCPeerConnection;
   private publisher?: Publisher;
-  private trackSubscriptionsSubject = new Subject<TrackSubscriptionDetails[]>();
+  private trackSubscriptionsSubject = new Subject<{
+    type?: DebounceType;
+    data: TrackSubscriptionDetails[];
+  }>();
 
   private statsReporter?: StatsReporter;
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -225,10 +257,13 @@ export class Call {
     sortParticipantsBy,
     clientStore,
     ringing = false,
+    watching = false,
   }: CallConstructor) {
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
+    this.ringing = ringing;
+    this.watching = watching;
     this.streamClient = streamClient;
     this.clientStore = clientStore;
     this.streamClientBasePath = `/call/${this.type}/${this.id}`;
@@ -237,7 +272,6 @@ export class Call {
     this.state = new CallState(
       sortParticipantsBy || callTypeConfig.options.sortParticipantsBy,
     );
-
     if (ringing) {
       this.scheduleAutoDrop();
       this.watchForAutoDropCancellation();
@@ -254,7 +288,8 @@ export class Call {
     this.leaveCallHooks.push(
       createSubscription(
         this.trackSubscriptionsSubject.pipe(
-          debounceTime(UPDATE_SUBSCRIPTIONS_DEBOUNCE_DURATION),
+          debounce((v) => (!v.type ? of(null) : timer(v.type))),
+          map((v) => v.data),
         ),
         (subscriptions) => this.sfuClient?.updateSubscriptions(subscriptions),
       ),
@@ -382,6 +417,7 @@ export class Call {
     this.leaveCallHooks.forEach((hook) => hook());
 
     this.clientStore.setActiveCall(undefined);
+    this.clientStore.unregisterCall(this);
     this.state.setCallingState(CallingState.LEFT);
   };
 
@@ -414,6 +450,9 @@ export class Call {
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
 
+    this.watching = true;
+    this.clientStore.registerCall(this);
+
     return response;
   };
 
@@ -436,6 +475,9 @@ export class Call {
     const call = await join(this.streamClient, this.type, this.id, data);
     this.state.setMetadata(call.metadata);
     this.state.setMembers(call.members);
+
+    this.watching = true;
+    this.clientStore.registerCall(this);
 
     // FIXME OL: convert to a derived state
     this.state.setCallRecordingInProgress(call.metadata.recording);
@@ -814,10 +856,12 @@ export class Call {
    *
    * @param kind the kind of subscription to update.
    * @param changes the list of subscription changes to do.
+   * @param type the debounce type to use for the update.
    */
   updateSubscriptionsPartial = (
     kind: 'video' | 'screen',
     changes: SubscriptionChanges,
+    type: DebounceType = DebounceType.SLOW,
   ) => {
     const participants = this.state.updateParticipants(
       Object.entries(changes).reduce<StreamVideoParticipantPatches>(
@@ -840,27 +884,29 @@ export class Call {
     );
 
     if (participants) {
-      this.updateSubscriptions(participants);
+      this.updateSubscriptions(participants, type);
     }
   };
 
-  private updateSubscriptions = (participants: StreamVideoParticipant[]) => {
+  private updateSubscriptions = (
+    participants: StreamVideoParticipant[],
+    type: DebounceType = DebounceType.SLOW,
+  ) => {
     const subscriptions: TrackSubscriptionDetails[] = [];
     participants.forEach((p) => {
+      // we don't want to subscribe to our own tracks
       if (p.isLoggedInUser) return;
+
+      // NOTE: audio tracks don't have to be requested explicitly
+      // as the SFU will implicitly subscribe us to all of them,
+      // once they become available.
+
       if (p.videoDimension && p.publishedTracks.includes(TrackType.VIDEO)) {
         subscriptions.push({
           userId: p.userId,
           sessionId: p.sessionId,
           trackType: TrackType.VIDEO,
           dimension: p.videoDimension,
-        });
-      }
-      if (p.publishedTracks.includes(TrackType.AUDIO)) {
-        subscriptions.push({
-          userId: p.userId,
-          sessionId: p.sessionId,
-          trackType: TrackType.AUDIO,
         });
       }
       if (
@@ -876,7 +922,7 @@ export class Call {
       }
     });
     // schedule update
-    this.trackSubscriptionsSubject.next(subscriptions);
+    this.trackSubscriptionsSubject.next({ type, data: subscriptions });
   };
 
   /**
@@ -1102,6 +1148,36 @@ export class Call {
   };
 
   /**
+   * Mutes the current user.
+   *
+   * @param type the type of the mute operation.
+   */
+  muteSelf = (type: 'audio' | 'video' | 'screenshare') => {
+    const myUserId = this.clientStore.connectedUser?.id;
+    if (myUserId) {
+      return this.muteUser(myUserId, type);
+    }
+  };
+
+  /**
+   * Mutes all the other participants.
+   *
+   * @param type the type of the mute operation.
+   */
+  muteOthers = (type: 'audio' | 'video' | 'screenshare') => {
+    const trackType = muteTypeToTrackType(type);
+    if (!trackType) return;
+    const userIdsToMute: string[] = [];
+    for (const participant of this.state.remoteParticipants) {
+      if (participant.publishedTracks.includes(trackType)) {
+        userIdsToMute.push(participant.userId);
+      }
+    }
+
+    return this.muteUser(userIdsToMute, type);
+  };
+
+  /**
    * Mutes the user with the given `userId`.
    *
    * @param userId the id of the user to mute.
@@ -1111,7 +1187,6 @@ export class Call {
     userId: string | string[],
     type: 'audio' | 'video' | 'screenshare',
   ) => {
-    // FIXME OL: handle muting self.
     return this.streamClient.post<MuteUsersResponse, MuteUsersRequest>(
       `${this.streamClientBasePath}/mute_users`,
       {
@@ -1281,14 +1356,14 @@ export class Call {
   };
 
   /**
-   * Sets the `participant.isPinned` value.
+   * Sets the `participant.pinnedAt` value.
    * @param sessionId the session id of the participant
-   * @param isPinned the value to set the participant.isPinned
+   * @param pinnedAt the value to set the participant.pinnedAt
    * @returns
    */
-  setParticipantIsPinned = (sessionId: string, isPinned: boolean): void => {
+  setParticipantPinnedAt = (sessionId: string, pinnedAt?: number): void => {
     this.state.updateParticipant(sessionId, {
-      isPinned,
+      pinnedAt,
     });
   };
 

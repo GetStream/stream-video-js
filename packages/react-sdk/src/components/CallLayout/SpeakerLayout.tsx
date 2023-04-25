@@ -117,6 +117,7 @@ export const SpeakerLayout = () => {
                       participant={participant}
                       call={call}
                       sinkId={localParticipant?.audioOutputDeviceId}
+                      toggleMenuPosition="top"
                       videoKind={
                         isOneToOneCall && hasScreenShare(participant)
                           ? 'screen'

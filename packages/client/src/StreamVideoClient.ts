@@ -5,12 +5,15 @@ import {
 import {
   CreateCallTypeRequest,
   CreateCallTypeResponse,
+  CreateGuestRequest,
+  CreateGuestResponse,
+  DeviceFieldsRequest,
   GetCallTypeResponse,
   GetEdgesResponse,
   ListCallTypeResponse,
+  ListDevicesResponse,
   QueryCallsRequest,
   QueryCallsResponse,
-  SortParamRequest,
   UpdateCallTypeRequest,
   UpdateCallTypeResponse,
 } from './gen/coordinator';
@@ -22,6 +25,7 @@ import {
   watchCallRejected,
 } from './events';
 import {
+  ConnectionChangedEvent,
   EventHandler,
   EventTypes,
   StreamClientOptions,
@@ -72,11 +76,33 @@ export class StreamVideoClient {
    * @param tokenOrProvider a token or a function that returns a token.
    */
   connectUser = async (user: User, tokenOrProvider: TokenOrProvider) => {
-    await this.streamClient.connectUser(
+    const connectUserResponse = await this.streamClient.connectUser(
       // @ts-expect-error
       user,
       tokenOrProvider,
     );
+
+    // FIXME OL: unregister the event listeners.
+    this.on('connection.changed', (e) => {
+      const event = e as ConnectionChangedEvent;
+      if (event.online) {
+        const callsToReWatch = this.writeableStateStore.calls
+          .filter((call) => call.watching)
+          .map((call) => call.cid);
+
+        if (callsToReWatch.length > 0) {
+          this.queryCalls({
+            watch: true,
+            filter_conditions: {
+              cid: { $in: callsToReWatch },
+            },
+            sort: [{ field: 'cid', direction: 1 }],
+          }).catch((err) => {
+            console.warn('Failed to re-watch calls', err);
+          });
+        }
+      }
+    });
 
     // FIXME: OL: unregister the event listeners.
     this.on('call.created', (event: StreamVideoEvent) => {
@@ -106,6 +132,22 @@ export class StreamVideoClient {
     this.on('call.ended', watchCallCancelled(this.writeableStateStore));
 
     this.writeableStateStore.setConnectedUser(user);
+
+    return connectUserResponse;
+  };
+
+  /**
+   * Connects the given anonymous user to the client.
+   *
+   * @param user the user to connect.
+   * @param tokenOrProvider a token or a function that returns a token.
+   */
+  connectAnonymousUser = async (
+    user: User,
+    tokenOrProvider: TokenOrProvider,
+  ) => {
+    // @ts-expect-error
+    return this.streamClient.connectAnonymousUser(user, tokenOrProvider);
   };
 
   /**
@@ -147,55 +189,63 @@ export class StreamVideoClient {
     return this.streamClient.off(event, callback);
   };
 
-  call(type: string, id: string) {
+  /**
+   * Creates a new call.
+   *
+   * @param type the type of the call.
+   * @param id the id of the call.
+   */
+  call = (type: string, id: string) => {
     return new Call({
       streamClient: this.streamClient,
       id,
       type,
       clientStore: this.writeableStateStore,
     });
-  }
+  };
 
-  queryCalls = async (
-    filterConditions: { [key: string]: any },
-    sort: Array<SortParamRequest>,
-    limit?: number,
-    next?: string,
-    watch?: boolean,
-  ) => {
-    const data: QueryCallsRequest = {
-      filter_conditions: filterConditions,
-      sort: sort,
-      limit: limit,
-      next: next,
-      watch,
-    };
-    try {
+  /**
+   * Creates a new guest user with the given data.
+   *
+   * @param data the data for the guest user.
+   */
+  createGuestUser = async (data: CreateGuestRequest) => {
+    return this.streamClient.post<CreateGuestResponse, CreateGuestRequest>(
+      '/guest',
+      data,
+    );
+  };
+
+  /**
+   * Will query the API for calls matching the given filters.
+   *
+   * @param data the query data.
+   */
+  queryCalls = async (data: QueryCallsRequest) => {
+    if (data.watch) await this.streamClient.connectionIdPromise;
+    const response = await this.streamClient.post<QueryCallsResponse>(
+      '/calls',
+      data,
+    );
+    const calls = response.calls.map((c) => {
+      const call = new Call({
+        streamClient: this.streamClient,
+        id: c.call.id,
+        type: c.call.type,
+        metadata: c.call,
+        members: c.members,
+        watching: data.watch,
+        clientStore: this.writeableStateStore,
+      });
       if (data.watch) {
-        await this.streamClient.connectionIdPromise;
+        this.writeableStateStore.registerCall(call);
       }
-      const response = await this.streamClient.post<QueryCallsResponse>(
-        '/calls',
-        data,
-      );
-      const calls = response.calls.map(
-        (c) =>
-          new Call({
-            streamClient: this.streamClient,
-            id: c.call.id,
-            type: c.call.type,
-            metadata: c.call,
-            members: c.members,
-            clientStore: this.writeableStateStore,
-          }),
-      );
-      return {
-        ...response,
-        calls: calls,
-      };
-    } catch (error) {
-      throw error;
-    }
+      return call;
+    });
+    return {
+      ...response,
+      calls: calls,
+    };
   };
 
   queryUsers = async () => {
@@ -229,4 +279,68 @@ export class StreamVideoClient {
   listCallTypes = async () => {
     return this.streamClient.get<ListCallTypeResponse>(`/calltypes`);
   };
+
+  /**
+   * addDevice - Adds a push device for a user.
+   *
+   * @param {string} id the device id
+   * @param {string} push_provider the push provider name (eg. apn, firebase)
+   * @param {string} push_provider_name user provided push provider name
+   * @param {string} [userID] the user id (defaults to current user)
+   */
+  async addDevice(
+    id: string,
+    push_provider: string,
+    push_provider_name: string,
+    userID?: string,
+  ) {
+    return await this.streamClient.post('/devices', {
+      id,
+      push_provider,
+      ...(userID != null ? { user_id: userID } : {}),
+      ...(push_provider_name != null ? { push_provider_name } : {}),
+    });
+  }
+
+  /**
+   * getDevices - Returns the devices associated with a current user
+   * @param {string} [userID] User ID. Only works on serverside
+   */
+  async getDevices(userID?: string) {
+    return await this.streamClient.get<ListDevicesResponse>(
+      '/devices',
+      userID ? { user_id: userID } : {},
+    );
+  }
+
+  /**
+   * removeDevice - Removes the device with the given id.
+   *
+   * @param {string} id The device id
+   * @param {string} [userID] The user id. Only specify this for serverside requests
+   *
+   */
+  async removeDevice(id: string, userID?: string) {
+    return await this.streamClient.delete('/devices', {
+      id,
+      ...(userID ? { user_id: userID } : {}),
+    });
+  }
+
+  /**
+   * setDevice - Set the device info for the current client device to receive push
+   * notification, the device will be sent via WS connection automatically
+   */
+  async setDevice(device: DeviceFieldsRequest) {
+    this.streamClient.options.pushDevice = device;
+    // if the connection already did authentication then we call the endpoint
+    // directly
+    if (this.streamClient.wsConnection?.authenticationSent) {
+      return await this.addDevice(
+        device.id,
+        device.push_provider,
+        device.push_provider_name,
+      );
+    }
+  }
 }
