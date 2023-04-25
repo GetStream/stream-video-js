@@ -6,7 +6,7 @@
 }
 
 .chatRound {
-  @apply text-video-grey-300;
+  @apply h-[50px] w-[50px] text-video-grey-300;
 }
 
 .description:first-of-type {
