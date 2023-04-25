@@ -1,5 +1,4 @@
 import {
-  ReactNativePlatform,
   StreamClientOptions,
   StreamVideoClient,
   TokenOrProvider,
@@ -32,10 +31,6 @@ export type StreamVideoClientInit = {
    * Whether the user is anonymous. Defaults to `false`.
    */
   isAnonymous?: boolean;
-  /**
-   * The platform in which react-native runs on. Defaults to `undefined`.
-   */
-  reactNativePlatform?: ReactNativePlatform;
 };
 
 /**

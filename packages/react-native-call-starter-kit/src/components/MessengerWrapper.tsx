@@ -5,7 +5,6 @@ import {
   useChatContext,
 } from 'stream-chat-react-native';
 import React, {PropsWithChildren, useCallback, useMemo} from 'react';
-import {Platform} from 'react-native';
 import {
   StreamVideo,
   useCreateStreamVideoClient,
@@ -46,7 +45,6 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
     user,
     tokenOrProvider: token,
     apiKey: STREAM_API_KEY,
-    reactNativePlatform: Platform.OS,
   });
   const navigation =
     useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();

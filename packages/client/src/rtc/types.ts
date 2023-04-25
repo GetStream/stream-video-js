@@ -22,16 +22,6 @@ export enum DebounceType {
   SLOW = 1200,
 }
 
-/**
- * Mirror of Platform.OS from react-native
- */
-export type ReactNativePlatform =
-  | 'ios'
-  | 'android'
-  | 'windows'
-  | 'macos'
-  | 'web';
-
 export interface StreamVideoParticipant extends Participant {
   /**
    * The participant's audio stream, if they are publishing audio and

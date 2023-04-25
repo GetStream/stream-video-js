@@ -26,7 +26,6 @@ import {NavigationHeader} from './src/components/NavigationHeader';
 import {LobbyViewScreen} from './src/screens/LobbyViewScreen';
 import {ActiveCallScreen} from './src/screens/ActiveCallScreen';
 import {User} from '@stream-io/video-client';
-import {Platform} from 'react-native';
 
 console.log('STREAM_API_KEY', STREAM_API_KEY);
 
@@ -46,7 +45,6 @@ const Navigator = ({selectedUser}: {selectedUser: User}) => {
     user: selectedUser,
     tokenOrProvider: selectedUser.custom?.token,
     apiKey: STREAM_API_KEY,
-    reactNativePlatform: Platform.OS,
   });
   const navigation =
     useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();

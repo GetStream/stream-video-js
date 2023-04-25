@@ -59,7 +59,6 @@ This expects an API key as the first argument. It also expects `options`.
 
 ```tsx
 import React from 'react';
-import { Platform } from 'react-native';
 import { StreamVideoClient } from '@stream-io/video-client';
 
 const user = {
@@ -69,7 +68,7 @@ const user = {
 };
 const USER_TOKEN = 'YOUR_TOKEN';
 const API_KEY = 'YOUR_TOKEN';
-const videoClient = new StreamVideoClient(API_KEY, undefined, Platform.OS);
+const videoClient = new StreamVideoClient(API_KEY);
 ```
 
 ### Connecting and disconnecting from the video client

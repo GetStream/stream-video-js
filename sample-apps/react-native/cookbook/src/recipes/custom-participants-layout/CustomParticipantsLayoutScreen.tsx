@@ -1,4 +1,4 @@
-import {ActivityIndicator, Platform, StyleSheet, View} from 'react-native';
+import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import React, {useEffect, useRef} from 'react';
 import {
   CallControlsView,
@@ -43,7 +43,6 @@ export default () => {
     user: USER,
     tokenOrProvider: USER?.custom?.token,
     apiKey: STREAM_API_KEY,
-    reactNativePlatform: Platform.OS,
   });
   const handleOnHangupCall = () => navigation.navigate('WelcomeScreen');
 
