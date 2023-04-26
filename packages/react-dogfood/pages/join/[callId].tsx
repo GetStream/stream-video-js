@@ -16,9 +16,14 @@ import {
   getServerSideCredentialsProps,
   ServerSideCredentialsProps,
 } from '../../lib/getServerSideCredentialsProps';
+import { useSettings } from '../../context/SettingsContext';
+import translations from '../../translations';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
+  const {
+    settings: { language },
+  } = useSettings();
   const callId = router.query['callId'] as string;
 
   const { userToken, user, apiKey, gleapApiKey } = props;
@@ -100,7 +105,11 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         <title>Stream Calls: {callId}</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      <StreamVideo client={client}>
+      <StreamVideo
+        client={client}
+        language={language}
+        translationsOverrides={translations}
+      >
         <MediaDevicesProvider
           enumerate
           initialAudioEnabled={!deviceSettings?.isAudioMute}
