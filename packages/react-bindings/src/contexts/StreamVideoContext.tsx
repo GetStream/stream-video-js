@@ -24,7 +24,7 @@ export type StreamVideoProps = StreamI18nProviderProps & {
 export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
   const { children, client, i18nInstance, language, translationsOverrides } =
     props;
-  console.log('CAAaaaAAAASSAAAAAAAAAAAAAAAAA');
+
   return (
     <StreamVideoContext.Provider value={client}>
       <StreamI18nProvider
