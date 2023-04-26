@@ -1,14 +1,11 @@
-import { useEffect } from 'react';
-import Gleap from 'gleap';
+import { useCallback, useState } from 'react';
 import { useRouter } from 'next/router';
 import {
-  Call,
   MediaDevicesProvider,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
-
 import { useCreateStreamChatClient } from '../../hooks';
 import { LoadingScreen, MeetingUI } from '../../components';
 import { getDeviceSettings } from '../../components/DeviceSettingsCaptor';
@@ -16,6 +13,7 @@ import {
   getServerSideCredentialsProps,
   ServerSideCredentialsProps,
 } from '../../lib/getServerSideCredentialsProps';
+import { useGleap } from '../../hooks/useGleap';
 import { useSettings } from '../../context/SettingsContext';
 import translations from '../../translations';
 
@@ -25,12 +23,31 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     settings: { language },
   } = useSettings();
   const callId = router.query['callId'] as string;
+  const callType = (router.query['type'] as string) || 'default';
 
   const { userToken, user, apiKey, gleapApiKey } = props;
 
+  const [initialTokenProvided, setInitialTokenProvided] = useState(false);
+  const tokenProvider = useCallback(async () => {
+    if (!initialTokenProvided) {
+      setInitialTokenProvided(true);
+      return userToken;
+    }
+
+    const { token } = await fetch(
+      '/api/auth/create-token?' +
+        new URLSearchParams({
+          api_key: apiKey,
+          user_id: user.id,
+        }),
+      {},
+    ).then((res) => res.json());
+    return token;
+  }, [apiKey, initialTokenProvided, user.id, userToken]);
+
   const client = useCreateStreamVideoClient({
     apiKey,
-    tokenOrProvider: userToken,
+    tokenOrProvider: tokenProvider,
     user,
   });
 
@@ -40,59 +57,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     userData: user,
   });
 
-  useEffect(() => {
-    if (gleapApiKey) {
-      Gleap.initialize(gleapApiKey);
-      Gleap.identify(user.name || user.id, {
-        name: user.name,
-      });
-    }
-  }, [gleapApiKey, user.name, user.id]);
-
-  useEffect(() => {
-    if (!gleapApiKey) return;
-
-    Gleap.on('flow-started', () => {
-      try {
-        const { getCurrentValue, ...state } = client.readOnlyStateStore;
-        const data = Object.entries(state).reduce<Record<string, any>>(
-          (acc, [key, observable]) => {
-            if (!!observable && typeof observable.subscribe === 'function') {
-              const value = getCurrentValue<unknown>(observable);
-              if (key === 'activeCall$' && value && value instanceof Call) {
-                // special handling for the active call
-                const call = value;
-                const ignoredKeys = [
-                  // these two are derived from participants$.
-                  // we don't want to send the same data twice.
-                  'localParticipant$',
-                  'remoteParticipants$',
-                ];
-                Object.entries(call.state)
-                  .filter(([k]) => k.endsWith('$') && !ignoredKeys.includes(k))
-                  .forEach(([k, v]) => {
-                    if (!!v && typeof v.subscribe === 'function') {
-                      acc[`${key}.${k}`] = getCurrentValue(v);
-                    } else {
-                      acc[`${key}.${k}`] = v;
-                    }
-                  });
-              } else {
-                acc[key] = value;
-              }
-            }
-            return acc;
-          },
-          {},
-        );
-        console.log('!!State Store', data);
-        Gleap.attachCustomData(data);
-      } catch (e) {
-        console.error(e);
-      }
-    });
-  }, [client.readOnlyStateStore, gleapApiKey]);
-
+  useGleap(gleapApiKey, client, user);
   const deviceSettings = getDeviceSettings();
 
   if (!client) {
@@ -120,7 +85,11 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
             deviceSettings?.selectedAudioOutputDeviceId
           }
         >
-          <MeetingUI chatClient={chatClient} />
+          <MeetingUI
+            chatClient={chatClient}
+            callId={callId}
+            callType={callType}
+          />
         </MediaDevicesProvider>
       </StreamVideo>
     </>

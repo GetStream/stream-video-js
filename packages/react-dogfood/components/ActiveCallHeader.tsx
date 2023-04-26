@@ -32,7 +32,9 @@ export const ActiveCallHeader = ({
   ].includes(callingState);
 
   useEffect(() => {
-    activeCall?.queryRecordings();
+    activeCall?.queryRecordings().catch((e) => {
+      console.error('Failed to query recordings', e);
+    });
   }, [activeCall]);
 
   return (

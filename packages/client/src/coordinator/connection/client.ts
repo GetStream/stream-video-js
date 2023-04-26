@@ -65,15 +65,15 @@ export class StreamClient {
   defaultWSTimeout: number;
   resolveConnectionId!: Function;
   rejectConnectionId!: Function;
-  connectionIdPromise: Promise<void>;
+  connectionIdPromise: Promise<string | undefined>;
   private nextRequestAbortController: AbortController | null = null;
 
   /**
    * Initialize a client.
    *
    * @param {string} key - the api key
-   * @param {string} [secret] - the api secret
    * @param {StreamClientOptions} [options] - additional options, here you can pass custom options to axios instance
+   * @param {string} [options.secret] - the api secret
    * @param {boolean} [options.browser] - enforce the client to be in browser mode
    * @param {boolean} [options.warmUp] - default to false, if true, client will open a connection as soon as possible to speed up following requests
    * @param {Logger} [options.Logger] - custom logger
@@ -112,10 +112,12 @@ export class StreamClient {
       });
     }
 
-    this.connectionIdPromise = new Promise((resolve, reject) => {
-      this.resolveConnectionId = resolve;
-      this.rejectConnectionId = reject;
-    });
+    this.connectionIdPromise = new Promise<string | undefined>(
+      (resolve, reject) => {
+        this.resolveConnectionId = resolve;
+        this.rejectConnectionId = reject;
+      },
+    );
 
     this.setBaseURL(
       this.options.baseURL || 'https://video.stream-io-api.com/video',
@@ -224,7 +226,11 @@ export class StreamClient {
     this.userID = user.id;
     this.anonymous = false;
 
-    const setTokenPromise = this._setToken(user, userTokenOrProvider);
+    const setTokenPromise = this._setToken(
+      user,
+      userTokenOrProvider,
+      this.anonymous,
+    );
     this._setUser(user);
 
     const wsPromise = this.openConnection();
@@ -246,8 +252,16 @@ export class StreamClient {
     }
   };
 
-  _setToken = (user: OwnUserResponse, userTokenOrProvider: TokenOrProvider) =>
-    this.tokenManager.setTokenOrProvider(userTokenOrProvider, user);
+  _setToken = (
+    user: OwnUserResponse,
+    userTokenOrProvider: TokenOrProvider,
+    isAnonymous: boolean,
+  ) =>
+    this.tokenManager.setTokenOrProvider(
+      userTokenOrProvider,
+      user,
+      isAnonymous,
+    );
 
   _setUser(user: OwnUserResponse) {
     /**
@@ -369,27 +383,17 @@ export class StreamClient {
   /**
    * connectAnonymousUser - Set an anonymous user and open a WebSocket connection
    */
-  connectAnonymousUser = () => {
-    if (
-      (this._isUsingServerAuth() || this.node) &&
-      !this.options.allowServerSideConnect
-    ) {
-      console.warn(
-        'Please do not use connectUser server side. connectUser impacts MAU and concurrent connection usage and thus your bill. If you have a valid use-case, add "allowServerSideConnect: true" to the client options to disable this warning.',
-      );
-    }
-
+  connectAnonymousUser = async (
+    user: OwnUserResponse,
+    tokenOrProvider: TokenOrProvider,
+  ) => {
     this.anonymous = true;
-    this.userID = randomId();
-    const anonymousUser = {
-      id: this.userID,
-      anon: true,
-    } as unknown as OwnUserResponse;
-
-    this._setToken(anonymousUser, '');
-    this._setUser(anonymousUser);
-
-    return this.openConnection();
+    await this._setToken(user, tokenOrProvider, this.anonymous);
+    this._setUser(user);
+    // some endpoints require a connection_id to be resolved.
+    // as anonymous users aren't allowed to open WS connections, we just
+    // resolve the connection_id here.
+    this.resolveConnectionId();
   };
 
   /**
@@ -778,7 +782,7 @@ export class StreamClient {
   }
 
   _getToken() {
-    if (!this.tokenManager || this.anonymous) return null;
+    if (!this.tokenManager) return null;
 
     return this.tokenManager.getToken();
   }

@@ -12,7 +12,7 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { theme } from '../theme';
-import { useDebouncedValue } from '../utils/hooks';
+import { useDebouncedValue } from '../utils/useDebouncedValue';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant | StreamVideoLocalParticipant>

@@ -1,12 +1,15 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { StableWSConnection } from './connection';
-import { ConnectedEvent, VideoEvent } from '../../gen/coordinator';
+import {
+  ConnectedEvent,
+  DeviceFieldsRequest,
+  VideoEvent,
+} from '../../gen/coordinator';
 
 export type UR = Record<string, unknown>;
 
 export type User = {
   id: string;
-  anon?: boolean;
   name?: string;
   role?: string;
   teams?: string[];
@@ -113,6 +116,8 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
   // Set the instance of StableWSConnection on chat client. Its purely for testing purpose and should
   // not be used in production apps.
   wsConnection?: StableWSConnection;
+  // Sets the current push device, if present this is sent to the WS when authenticating
+  pushDevice?: DeviceFieldsRequest;
 };
 
 export type TokenProvider = () => Promise<string>;

@@ -1,5 +1,5 @@
 import { Secret } from 'jsonwebtoken';
-import { UserFromToken, JWTServerToken, JWTUserToken } from './signing';
+import { JWTServerToken, JWTUserToken, UserFromToken } from './signing';
 import { isFunction } from './utils';
 import type { OwnUserResponse, TokenOrProvider } from './types';
 
@@ -37,14 +37,16 @@ export class TokenManager {
    * Set the static string token or token provider.
    * Token provider should return a token string or a promise which resolves to string token.
    *
-   * @param {TokenOrProvider} tokenOrProvider
-   * @param {UserResponse} user
+   * @param {TokenOrProvider} tokenOrProvider - the token or token provider.
+   * @param {UserResponse} user - the user object.
+   * @param {boolean} isAnonymous - whether the user is anonymous or not.
    */
   setTokenOrProvider = async (
     tokenOrProvider: TokenOrProvider,
     user: OwnUserResponse,
+    isAnonymous: boolean,
   ) => {
-    this.validateToken(tokenOrProvider, user);
+    this.validateToken(tokenOrProvider, user, isAnonymous);
     this.user = user;
 
     if (isFunction(tokenOrProvider)) {
@@ -76,15 +78,13 @@ export class TokenManager {
   };
 
   // Validates the user token.
-  validateToken = (tokenOrProvider: TokenOrProvider, user: OwnUserResponse) => {
+  validateToken = (
+    tokenOrProvider: TokenOrProvider,
+    user: OwnUserResponse,
+    isAnonymous: boolean,
+  ) => {
     // allow empty token for anon user
-    if (
-      user &&
-      // @ts-expect-error `anon` doesn't exist on `OwnUserResponse` yet
-      user.anon &&
-      !tokenOrProvider
-    )
-      return;
+    if (user && isAnonymous && !tokenOrProvider) return;
 
     // Don't allow empty token for non-server side client.
     if (!this.secret && !tokenOrProvider) {
@@ -101,17 +101,14 @@ export class TokenManager {
 
     if (typeof tokenOrProvider === 'string') {
       // Allow empty token for anonymous users
-      if (
-        // @ts-expect-error `anon` doesn't exist on `OwnUserResponse` yet
-        user.anon &&
-        tokenOrProvider === ''
-      )
-        return;
+      if (isAnonymous && tokenOrProvider === '') return;
 
       const tokenUserId = UserFromToken(tokenOrProvider);
       if (
         tokenOrProvider != null &&
-        (tokenUserId == null || tokenUserId === '' || tokenUserId !== user.id)
+        (tokenUserId == null ||
+          tokenUserId === '' ||
+          (!isAnonymous && tokenUserId !== user.id))
       ) {
         throw new Error(
           'userToken does not have a user_id or is not matching with user.id',
@@ -154,12 +151,7 @@ export class TokenManager {
       return this.token;
     }
 
-    if (
-      this.user &&
-      // @ts-expect-error `anon` doesn't exist on `OwnUserResponse` yet
-      this.user.anon &&
-      !this.token
-    ) {
+    if (this.user && !this.token) {
       return this.token;
     }
 

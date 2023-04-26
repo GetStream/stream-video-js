@@ -35,7 +35,10 @@ import JoinMeetingScreen from './src/screens/Meeting/JoinMeetingScreen';
 import JoinCallScreen from './src/screens/Call/JoinCallScreen';
 import { ChooseFlowScreen } from './src/screens/ChooseFlowScreen';
 import { CallParticipantsInfoScreen } from './src/screens/Meeting/CallParticipantsInfoScreen';
-import { setFirebaseHandler } from './src/modules/push/android';
+import {
+  setFirebaseHandler,
+  setForegroundService,
+} from './src/modules/push/android';
 import { useIosPushEffect } from './src/hooks/useIosPushEffect';
 import { Platform } from 'react-native';
 import { useCallKeepEffect } from './src/hooks/useCallkeepEffect';
@@ -55,6 +58,7 @@ const RingingStack = createNativeStackNavigator<RingingStackParamList>();
 
 if (Platform.OS === 'android') {
   setFirebaseHandler();
+  setForegroundService();
 }
 
 const Meeting = () => {

@@ -2,6 +2,7 @@ import {
   Call,
   disposeOfMediaStream,
   getVideoStream,
+  OwnCapability,
   SfuModels,
   watchForAddedDefaultVideoDevice,
   watchForDisconnectedVideoDevice,
@@ -34,13 +35,12 @@ export const useVideoPublisher = ({
   videoDeviceId,
 }: VideoPublisherInit) => {
   // FIXME OL: cleanup
-  // const { localParticipant$ } = useStore();
   const callState = call?.state;
   const { localParticipant$ } = callState || {};
   // helper reference to determine initial publishing of the media stream
   const initialPublishExecuted = useRef<boolean>(false);
   const participant = localParticipant$
-    ? callState?.getCurrentValue(localParticipant$)
+    ? callState?.localParticipant
     : undefined;
   const preferredCodec = useDebugPreferredVideoCodec();
   const isPublishingVideo = participant?.publishedTracks.includes(
@@ -49,6 +49,10 @@ export const useVideoPublisher = ({
 
   const publishVideoStream = useCallback(async () => {
     if (!call) return;
+    if (!call.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)) {
+      console.log(`No permission to publish video`);
+      return;
+    }
     try {
       const videoStream = await getVideoStream(videoDeviceId);
       await call.publishVideoStream(videoStream, { preferredCodec });
@@ -66,6 +70,7 @@ export const useVideoPublisher = ({
 
     if (
       !call ||
+      !call.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO) ||
       // FIXME: remove "&& !initialPublishExecuted.current" and make
       // sure initialVideoMuted is not changing during active call
       (initialVideoMuted && !initialPublishExecuted.current) ||

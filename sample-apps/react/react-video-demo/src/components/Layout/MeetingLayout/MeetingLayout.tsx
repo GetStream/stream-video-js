@@ -6,6 +6,8 @@ import { StreamChat } from 'stream-chat';
 import Chat from '../../Chat';
 
 import { useModalContext } from '../../../contexts/ModalContext';
+import { usePanelContext } from '../../../contexts/PanelContext';
+
 import { useBreakpoint } from '../../../hooks/useBreakpoints';
 
 import styles from './MeetingLayout.module.css';
@@ -16,10 +18,7 @@ export type Props = {
   children?: ReactNode;
   footer: ReactNode;
   sidebar?: ReactNode;
-  showParticipants?: boolean;
-  showChat?: boolean;
   chatClient?: StreamChat | null;
-  toggleChat?: () => void;
   callId: string;
 };
 
@@ -29,13 +28,11 @@ export const MeetingLayout: FC<Props> = ({
   footer,
   sidebar,
   children,
-  showParticipants,
-  showChat,
   chatClient,
-  toggleChat,
   callId,
 }) => {
   const { isVisible, component, close } = useModalContext();
+  const { isChatVisible, isParticipantsVisible } = usePanelContext();
 
   const transitionRef = useRef(null);
 
@@ -45,25 +42,27 @@ export const MeetingLayout: FC<Props> = ({
 
   const layoutContainerClassName = classnames(styles.layoutContainer, {
     [styles.showParticipants]:
-      showParticipants && (breakpoint === 'xs' || breakpoint === 'sm'),
-    [styles.showChat]: showChat && (breakpoint === 'xs' || breakpoint === 'sm'),
+      isParticipantsVisible && (breakpoint === 'xs' || breakpoint === 'sm'),
+    [styles.showChat]:
+      isChatVisible && (breakpoint === 'xs' || breakpoint === 'sm'),
   });
 
   const bodyClassName = classnames(styles.body, {
-    [styles.showChat]: showChat && (breakpoint === 'xs' || breakpoint === 'sm'),
+    [styles.showChat]:
+      isChatVisible && (breakpoint === 'xs' || breakpoint === 'sm'),
   });
 
   return (
     <section className={rootClassName}>
       <div className={layoutContainerClassName}>
-        {showParticipants &&
+        {isParticipantsVisible &&
         (breakpoint === 'xs' || breakpoint === 'sm') ? null : (
           <div className={styles.header}>{header}</div>
         )}
         <div className={bodyClassName}>{children}</div>
 
         <div className={styles.footer}>{footer}</div>
-        {showChat && (breakpoint === 'xs' || breakpoint === 'sm') ? (
+        {isChatVisible && (breakpoint === 'xs' || breakpoint === 'sm') ? (
           <Chat
             channelId={callId}
             channelType="videocall"

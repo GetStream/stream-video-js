@@ -87,6 +87,20 @@
       -webkit-mask-image: var(--str-video__icon--camera-off);
     }
 
+    .str-video__participant_name--pinned {
+      @include icon();
+      width: 0.8rem;
+      -webkit-mask-size: 0.8rem;
+      height: 1rem;
+      mask-size: 0.8rem;
+      mask-repeat: no-repeat;
+      -webkit-mask-repeat: no-repeat;
+      mask-position: center;
+      -webkit-mask-position: center;
+      mask-image: var(--str-video__icon--pin);
+      -webkit-mask-image: var(--str-video__icon--pin);
+    }
+
     .str-video__participant_name--network-stats {
       @include icon();
       background-image: var(--str-video__icon--network-quality);
