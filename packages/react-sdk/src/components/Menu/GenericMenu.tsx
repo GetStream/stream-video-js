@@ -9,7 +9,7 @@ export const GenericMenuButtonItem = ({
   ...rest
 }: Omit<ComponentProps<'button'>, 'ref'>) => {
   return (
-    <li className="str-video__generic-menu-item">
+    <li className="str-video__generic-menu--item">
       <button {...rest}>{children}</button>
     </li>
   );

@@ -24,7 +24,7 @@ import {
   useCallCallingState,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { InviteLinkButton } from './InviteLinkButton';
+
 import { Lobby } from './Lobby';
 import { Button, Stack, Typography } from '@mui/material';
 import { StreamChat } from 'stream-chat';
@@ -217,10 +217,7 @@ export const MeetingUI = ({ chatClient, callId, callType }: MeetingUIProps) => {
         {showSidebar && (
           <div className="str-video__sidebar">
             {showParticipants && (
-              <CallParticipantsList
-                onClose={hideParticipantList}
-                InviteLinkButton={InviteLinkButton}
-              />
+              <CallParticipantsList onClose={hideParticipantList} />
             )}
 
             <ChatWrapper chatClient={chatClient}>

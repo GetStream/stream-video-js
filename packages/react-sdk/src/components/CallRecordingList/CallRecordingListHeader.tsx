@@ -1,6 +1,7 @@
 import React from 'react';
 import { CallRecording } from '@stream-io/video-client';
 import { useActiveCall } from '@stream-io/video-react-bindings';
+import { IconButton } from '../Button';
 
 export type CallRecordingListHeaderProps = {
   /** Array of CallRecording objects */
@@ -18,13 +19,11 @@ export const CallRecordingListHeader = ({
         <span>Call Recordings</span>
         {callRecordings.length ? <span>({callRecordings.length})</span> : null}
       </div>
-      <button
-        className="str-video__refresh-button"
-        onClick={() => activeCall?.queryRecordings()}
+      <IconButton
+        icon="refresh"
         title="Refresh"
-      >
-        <span className="str-video__refresh-button--icon" />
-      </button>
+        onClick={() => activeCall?.queryRecordings()}
+      />
     </div>
   );
 };
