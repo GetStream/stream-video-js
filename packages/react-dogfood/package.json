@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@types/yargs": "^17.0.22",
-    "sass": "^1.58.3"
+    "sass": "^1.58.3",
+    "source-map-loader": "^4.0.1"
   }
 }
