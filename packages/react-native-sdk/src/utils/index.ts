@@ -34,21 +34,23 @@ export const getInitialsOfName = (name: string) => {
 };
 
 // Utility to generate array of member user ids from outgoing call meta data
-export const getMembersForOutgoingCall = (outgoingCall: Call) => {
-  const users = outgoingCall.state.getCurrentValue(outgoingCall.state.members$);
-  return Object.values(users);
+export const getMembersForOutgoingCall = (
+  outgoingCall: Call,
+): UserResponse[] => {
+  const users = outgoingCall.state.members;
+  return users.map((member) => member.user);
 };
 
 // Utility to generate array of member user ids from incoming call meta data
 export const getMembersForIncomingCall = (
   incomingCall: Call,
   connectedUser: User | undefined,
-) => {
-  const meta = incomingCall.state.getCurrentValue(incomingCall.state.metadata$);
-  const users = incomingCall.state.getCurrentValue(incomingCall.state.members$);
+): UserResponse[] => {
+  const meta = incomingCall.state.metadata;
+  const users = incomingCall.state.members;
   let members: UserResponse[] = [];
   Object.values(users).forEach((user) => {
-    if (connectedUser?.id !== user.id) members.push(user);
+    if (connectedUser?.id !== user.user_id) members.push(user.user);
   });
   const callCreatedBy = meta!.created_by;
   members.push(callCreatedBy);

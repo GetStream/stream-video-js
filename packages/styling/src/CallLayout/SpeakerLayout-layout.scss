@@ -6,31 +6,31 @@ $scope-name: 'str-video__speaker-layout';
 
 .str-video__speaker-layout {
   display: flex;
-  flex-direction: column-reverse;
-  padding-inline: 1.25rem;
+  flex-direction: column;
+  justify-content: center;
   height: 100%;
   width: 100%;
+  gap: 1rem;
 
-  // FIXME: remove this rule and adjust this layout to 4:3 aspect ratio
   .str-video__participant-placeholder,
   .str-video__remote-video {
     aspect-ratio: 16/9 !important;
   }
 
   .str-video__speaker-layout--spotlight {
-    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 0;
 
     .str-video__participant {
-      height: 100%;
-      width: auto;
+      width: 100%;
+      max-width: 110vh;
     }
 
-    .str-video__participant--no-video {
-      width: 100%;
+    .str-video__screen-share {
+      outline: none; // disable "speaking" outline for screen-share video
+      border-radius: unset;
     }
   }
 
@@ -74,19 +74,24 @@ $scope-name: 'str-video__speaker-layout';
       flex-direction: row;
       align-items: center;
       gap: 10px;
-      height: 160px;
-      min-height: 160px;
+      padding-block: 4px; // to see "speaking" outline
 
       .str-video__speaker-layout--participant-tile {
-        width: 240px;
-        min-width: 240px;
+        width: 280px;
+        min-width: 280px;
+        max-width: 25vh;
 
-        &:first-child {
-          margin-left: auto;
+        .str-video__participant_details,
+        .str-video__call-controls__button {
+          transition: opacity 200ms ease-out;
+          opacity: 0.3;
         }
 
-        &:last-child {
-          margin-right: auto;
+        &:hover {
+          .str-video__participant_details,
+          .str-video__call-controls__button {
+            opacity: 1;
+          }
         }
       }
     }

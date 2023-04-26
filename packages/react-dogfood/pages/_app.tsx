@@ -6,7 +6,7 @@ import { ComponentType } from 'react';
 import Head from 'next/head';
 import { Session } from 'next-auth';
 import { SessionProvider } from 'next-auth/react';
-import { createTheme, CssBaseline, Stack, ThemeProvider } from '@mui/material';
+import { createTheme, CssBaseline, ThemeProvider } from '@mui/material';
 
 const theme = createTheme({
   palette: {
@@ -46,9 +46,7 @@ export default function App({
       <CssBaseline />
       <ThemeProvider theme={theme}>
         <div className="str-video">
-          <Stack height="100vh">
-            <Component {...pageProps} />
-          </Stack>
+          <Component {...pageProps} />
         </div>
       </ThemeProvider>
     </SessionProvider>

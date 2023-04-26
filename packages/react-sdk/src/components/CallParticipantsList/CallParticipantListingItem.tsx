@@ -1,11 +1,11 @@
 import clsx from 'clsx';
 import { ComponentProps, ComponentType, forwardRef } from 'react';
+import { useCall, useConnectedUser } from '@stream-io/video-react-bindings';
 import {
-  useActiveCall,
-  useConnectedUser,
-  useLocalParticipant,
-} from '@stream-io/video-react-bindings';
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+  OwnCapability,
+  SfuModels,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
 import { IconButton } from '../Button';
 import {
   GenericMenu,
@@ -26,14 +26,13 @@ export const CallParticipantListingItem = ({
   participant,
   DisplayName = DefaultDisplayName,
 }: CallParticipantListingItemProps) => {
-  const localParticipant = useLocalParticipant();
-
   const isAudioOn = participant.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
   const isVideoOn = participant.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
   );
+  const isPinned = !!participant.pinnedAt;
 
   return (
     <div className="str-video__participant-listing-item">
@@ -57,15 +56,19 @@ export const CallParticipantListingItem = ({
             }`,
           )}
         />
-        <Restricted
-          availableGrants={localParticipant?.ownCapabilities ?? []}
-          // TODO: add 'kick-users' when available
-          requiredGrants={['block-users', 'mute-users']}
-        >
-          <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
-            <Menu participant={participant} />
-          </MenuToggle>
-        </Restricted>
+        {isPinned && (
+          <MediaIndicator
+            title={'Pinned'}
+            className={clsx(
+              'str-video__participant-listing-item__icon',
+              'str-video__participant-listing-item__icon-pinned',
+            )}
+          />
+        )}
+
+        <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
+          <ParticipantActionsContextMenu participant={participant} />
+        </MenuToggle>
       </div>
     </div>
   );
@@ -109,11 +112,15 @@ const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
     return <IconButton enabled={props.menuShown} icon="ellipsis" ref={ref} />;
   },
 );
-const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
-  const activeCall = useActiveCall();
-  const localParticipant = useLocalParticipant();
 
-  const blockUserClickHandler = () => {
+export const ParticipantActionsContextMenu = ({
+  participant,
+}: {
+  participant: StreamVideoParticipant;
+}) => {
+  const activeCall = useCall();
+
+  const blockUser = () => {
     activeCall?.blockUser(participant.userId);
   };
 
@@ -126,35 +133,51 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
   //   });
   // };
 
-  const muteAudioClickHandler = () => {
-    activeCall?.muteUser(participant.userId, 'audio', participant.sessionId);
+  const muteAudio = () => {
+    activeCall?.muteUser(participant.userId, 'audio');
   };
-  const muteVideoClickHandler = () => {
-    activeCall?.muteUser(participant.userId, 'video', participant.sessionId);
+  const muteVideo = () => {
+    activeCall?.muteUser(participant.userId, 'video');
+  };
+
+  const grantPermission = (permission: string) => () => {
+    activeCall?.updateUserPermissions({
+      user_id: participant.userId,
+      grant_permissions: [permission],
+    });
+  };
+
+  const revokePermission = (permission: string) => () => {
+    activeCall?.updateUserPermissions({
+      user_id: participant.userId,
+      revoke_permissions: [permission],
+    });
+  };
+
+  const toggleParticipantPinnedAt = () => {
+    activeCall?.setParticipantPinnedAt(
+      participant.sessionId,
+      participant.pinnedAt ? undefined : Date.now(),
+    );
   };
 
   return (
     <GenericMenu>
-      <Restricted
-        availableGrants={localParticipant?.ownCapabilities ?? []}
-        requiredGrants={['block-users']}
-      >
-        <GenericMenuButtonItem onClick={blockUserClickHandler}>
-          Block
-        </GenericMenuButtonItem>
+      <GenericMenuButtonItem onClick={toggleParticipantPinnedAt}>
+        {participant.pinnedAt ? 'Unpin' : 'Pin'}
+      </GenericMenuButtonItem>
+      <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
+        <GenericMenuButtonItem onClick={blockUser}>Block</GenericMenuButtonItem>
       </Restricted>
       {/* <GenericMenuButtonItem disabled onClick={kickUserClickHandler}>
         Kick
       </GenericMenuButtonItem> */}
-      <Restricted
-        availableGrants={localParticipant?.ownCapabilities ?? []}
-        requiredGrants={['mute-users']}
-      >
+      <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
         <GenericMenuButtonItem
           disabled={
             !participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)
           }
-          onClick={muteVideoClickHandler}
+          onClick={muteVideo}
         >
           Mute video
         </GenericMenuButtonItem>
@@ -162,9 +185,42 @@ const Menu = ({ participant }: { participant: StreamVideoParticipant }) => {
           disabled={
             !participant.publishedTracks.includes(SfuModels.TrackType.AUDIO)
           }
-          onClick={muteAudioClickHandler}
+          onClick={muteAudio}
         >
           Mute audio
+        </GenericMenuButtonItem>
+      </Restricted>
+      <Restricted requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}>
+        <GenericMenuButtonItem
+          onClick={grantPermission(OwnCapability.SEND_AUDIO)}
+        >
+          Allow audio
+        </GenericMenuButtonItem>
+        <GenericMenuButtonItem
+          onClick={grantPermission(OwnCapability.SEND_VIDEO)}
+        >
+          Allow video
+        </GenericMenuButtonItem>
+        <GenericMenuButtonItem
+          onClick={grantPermission(OwnCapability.SCREENSHARE)}
+        >
+          Allow screen sharing
+        </GenericMenuButtonItem>
+
+        <GenericMenuButtonItem
+          onClick={revokePermission(OwnCapability.SEND_AUDIO)}
+        >
+          Disable audio
+        </GenericMenuButtonItem>
+        <GenericMenuButtonItem
+          onClick={revokePermission(OwnCapability.SEND_VIDEO)}
+        >
+          Disable video
+        </GenericMenuButtonItem>
+        <GenericMenuButtonItem
+          onClick={revokePermission(OwnCapability.SCREENSHARE)}
+        >
+          Disable screen sharing
         </GenericMenuButtonItem>
       </Restricted>
     </GenericMenu>

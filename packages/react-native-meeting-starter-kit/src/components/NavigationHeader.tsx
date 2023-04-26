@@ -8,9 +8,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingTop: 50,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 24,
   },
   avatar: {
     height: 50,

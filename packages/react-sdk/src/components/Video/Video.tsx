@@ -8,6 +8,7 @@ import {
 } from 'react';
 import {
   Call,
+  DebounceType,
   SfuModels,
   StreamVideoParticipant,
   VisibilityState,
@@ -35,83 +36,159 @@ export const Video = (
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
     null,
   );
+  // const [videoTrackMuted, setVideoTrackMuted] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const viewportVisibilityRef = useRef<VisibilityState | undefined>(
+    participant.viewportVisibilityState,
+  );
 
   const stream = kind === 'video' ? videoStream : screenShareStream;
+
+  // TODO: handle track muting
+  // useEffect(() => {
+  //   if (!stream) return;
+
+  //   const [track] = stream.getVideoTracks();
+  //   setVideoTrackMuted(track.muted);
+
+  //   const handleMute = () => {
+  //     setVideoTrackMuted(true);
+  //   };
+  //   const handleUnmute = () => {
+  //     setVideoTrackMuted(false);
+  //   };
+
+  //   track.addEventListener('mute', handleMute);
+  //   track.addEventListener('unmute', handleUnmute);
+
+  //   return () => {
+  //     track.removeEventListener('mute', handleMute);
+  //     track.removeEventListener('unmute', handleUnmute);
+  //   };
+  // }, [stream]);
+
   const isPublishingTrack = publishedTracks.includes(
     kind === 'video'
       ? SfuModels.TrackType.VIDEO
       : SfuModels.TrackType.SCREEN_SHARE,
   );
 
-  const lastSessionId = useRef<string>(sessionId);
-  const lastDimensionRef = useRef<SfuModels.VideoDimension | undefined>();
-  const updateSubscription = useCallback(() => {
-    let nextDimension;
-    if (
-      videoElement &&
-      isPublishingTrack &&
-      participant.viewportVisibilityState !== VisibilityState.INVISIBLE
-    ) {
-      nextDimension = {
-        width: videoElement.clientWidth,
-        height: videoElement.clientHeight,
-      };
-    }
+  const displayPlaceholder =
+    !isPublishingTrack ||
+    (participant.viewportVisibilityState === VisibilityState.INVISIBLE &&
+      !screenShareStream) ||
+    !videoPlaying;
 
-    const lastDimension = lastDimensionRef.current;
-    if (
-      sessionId !== lastSessionId.current ||
-      nextDimension?.width !== lastDimension?.width ||
-      nextDimension?.height !== lastDimension?.height
-    ) {
-      call.updateSubscriptionsPartial(kind, {
-        [sessionId]: {
-          dimension: nextDimension,
+  const lastDimensionRef = useRef<string | undefined>();
+  const updateSubscription = useCallback(
+    (
+      dimension?: SfuModels.VideoDimension,
+      type: DebounceType = DebounceType.SLOW,
+    ) => {
+      call.updateSubscriptionsPartial(
+        kind,
+        {
+          [sessionId]: {
+            dimension,
+          },
         },
-      });
-      lastDimensionRef.current = nextDimension;
-      lastSessionId.current = sessionId;
-    }
+        type,
+      );
+    },
+    [call, kind, sessionId],
+  );
+
+  // handle generic subscription updates
+  useEffect(() => {
+    if (!isPublishingTrack || !videoElement) return;
+
+    updateSubscription(
+      {
+        height: videoElement.clientHeight,
+        width: videoElement.clientWidth,
+      },
+      DebounceType.FAST,
+    );
+
+    return () => {
+      updateSubscription(undefined, DebounceType.FAST);
+    };
+  }, [updateSubscription, videoElement, isPublishingTrack]);
+
+  // handle visibility subscription updates
+  useEffect(() => {
+    viewportVisibilityRef.current = participant.viewportVisibilityState;
+
+    const isUnknownVVS =
+      participant.viewportVisibilityState === VisibilityState.UNKNOWN;
+    if (!videoElement || !isPublishingTrack || isUnknownVVS) return;
+
+    const isInvisibleVVS =
+      participant.viewportVisibilityState === VisibilityState.INVISIBLE;
+
+    updateSubscription(
+      isInvisibleVVS
+        ? undefined
+        : {
+            height: videoElement.clientHeight,
+            width: videoElement.clientWidth,
+          },
+      DebounceType.MEDIUM,
+    );
   }, [
-    call,
-    isPublishingTrack,
-    kind,
-    sessionId,
-    videoElement,
+    updateSubscription,
     participant.viewportVisibilityState,
+    videoElement,
+    isPublishingTrack,
   ]);
 
+  // handle resize subscription updates
   useEffect(() => {
-    updateSubscription();
-  }, [updateSubscription]);
+    if (!videoElement || !isPublishingTrack) return;
 
-  // cleanup subscription on unmount
-  // useEffect(() => {
-  //   if (call && sessionId && kind)
-  //     return () => {
-  //       call.updateSubscriptionsPartial(kind, {
-  //         [sessionId]: {
-  //           dimension: undefined,
-  //         },
-  //       });
-  //     };
-  // }, [call, kind, sessionId]);
+    const resizeObserver = new ResizeObserver(() => {
+      const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
 
-  useEffect(() => {
-    if (!videoElement) return;
+      // skip initial trigger of the observer
+      if (!lastDimensionRef.current) {
+        return (lastDimensionRef.current = currentDimensions);
+      }
 
-    const resizeObserver = new ResizeObserver(updateSubscription);
+      if (
+        lastDimensionRef.current === currentDimensions ||
+        viewportVisibilityRef.current === VisibilityState.INVISIBLE
+      )
+        return;
+
+      updateSubscription(
+        {
+          height: videoElement.clientHeight,
+          width: videoElement.clientWidth,
+        },
+        DebounceType.SLOW,
+      );
+      lastDimensionRef.current = currentDimensions;
+    });
     resizeObserver.observe(videoElement);
 
     return () => {
       resizeObserver.disconnect();
     };
-  }, [updateSubscription, videoElement]);
+  }, [
+    updateSubscription,
+    videoElement,
+    participant.viewportVisibilityState,
+    isPublishingTrack,
+  ]);
 
   const [isWideMode, setIsWideMode] = useState(true);
   useEffect(() => {
     if (!stream || !videoElement) return;
+
+    setVideoPlaying(!videoElement.paused);
+
     const calculateVideoRatio = () => {
+      setVideoPlaying(true);
       const [track] = stream.getVideoTracks();
       if (!track) return;
 
@@ -124,34 +201,29 @@ export const Video = (
     };
   }, [stream, videoElement]);
 
-  if (
-    !isPublishingTrack ||
-    (participant.viewportVisibilityState === VisibilityState.INVISIBLE &&
-      !screenShareStream)
-  )
-    return (
-      <VideoPlaceholder
-        imageSrc={participant.image}
-        name={participant.name || participant.userId}
-        isSpeaking={participant.isSpeaking}
-        ref={setVideoElementRef}
-      />
-    );
-
   return (
-    <BaseVideo
-      {...rest}
-      stream={stream}
-      className={clsx(className, {
-        'str-video__video--wide': isWideMode,
-        'str-video__video--tall': !isWideMode,
-      })}
-      data-user-id={participant.userId}
-      data-session-id={sessionId}
-      ref={(ref) => {
-        setVideoElement(ref);
-        setVideoElementRef?.(ref);
-      }}
-    />
+    <>
+      <BaseVideo
+        {...rest}
+        stream={stream}
+        className={clsx(className, {
+          'str-video__video--wide': isWideMode,
+          'str-video__video--tall': !isWideMode,
+        })}
+        data-user-id={participant.userId}
+        data-session-id={sessionId}
+        ref={(ref) => {
+          setVideoElement(ref);
+          setVideoElementRef?.(ref);
+        }}
+      />
+      {displayPlaceholder && (
+        <VideoPlaceholder
+          style={{ position: 'absolute' }}
+          participant={participant}
+          ref={setVideoElementRef}
+        />
+      )}
+    </>
   );
 };

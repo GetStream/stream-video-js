@@ -1,5 +1,6 @@
 import { BehaviorSubject, Observable } from 'rxjs';
 import { combineLatestWith, map } from 'rxjs/operators';
+import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
 import { Call } from '../rtc/Call';
 import type { User } from '../coordinator/connection/types';
@@ -10,8 +11,16 @@ export class StreamVideoWriteableStateStore {
    * A store keeping data of a successfully connected user over WS to the coordinator server.
    */
   connectedUserSubject = new BehaviorSubject<User | undefined>(undefined);
+
+  /**
+   * A list of {@link Call} objects created/tracked by this client.
+   */
+  callsSubject = new BehaviorSubject<Call[]>([]);
+
   /**
    * A store that keeps track of all created calls that have not been yet accepted, rejected nor cancelled.
+   *
+   * @deprecated replace with `calls`.
    */
   pendingCallsSubject = new BehaviorSubject<Call[]>([]);
   /**
@@ -32,6 +41,8 @@ export class StreamVideoWriteableStateStore {
   );
   /**
    * A store that keeps reference to a call controller instance.
+   *
+   * @deprecated will be removed with the introduction of multiple calls.
    */
   activeCallSubject = new BehaviorSubject<Call | undefined>(undefined);
 
@@ -40,8 +51,7 @@ export class StreamVideoWriteableStateStore {
       combineLatestWith(this.connectedUserSubject),
       map(([pendingCalls, connectedUser]) =>
         pendingCalls.filter((call) => {
-          const meta = call.state.getCurrentValue(call.state.metadata$);
-          return meta?.created_by.id !== connectedUser?.id;
+          return call.state.metadata?.created_by.id !== connectedUser?.id;
         }),
       ),
     );
@@ -50,8 +60,7 @@ export class StreamVideoWriteableStateStore {
       combineLatestWith(this.connectedUserSubject),
       map(([pendingCalls, connectedUser]) =>
         pendingCalls.filter((call) => {
-          const meta = call.state.getCurrentValue(call.state.metadata$);
-          return meta?.created_by.id === connectedUser?.id;
+          return call.state.metadata?.created_by.id === connectedUser?.id;
         }),
       ),
     );
@@ -80,7 +89,7 @@ export class StreamVideoWriteableStateStore {
    *
    * @param observable$ the observable to get the value from.
    */
-  getCurrentValue = RxUtils.getCurrentValue;
+  private getCurrentValue = RxUtils.getCurrentValue;
 
   /**
    * Updates the value of the provided Subject.
@@ -91,7 +100,129 @@ export class StreamVideoWriteableStateStore {
    * @param update the update to apply to the subject.
    * @return the updated value.
    */
-  setCurrentValue = RxUtils.setCurrentValue;
+  private setCurrentValue = RxUtils.setCurrentValue;
+
+  /**
+   * The currently connected user.
+   */
+  get connectedUser(): User | undefined {
+    return this.getCurrentValue(this.connectedUserSubject);
+  }
+
+  /**
+   * Sets the currently connected user.
+   *
+   * @internal
+   * @param user the user to set as connected.
+   */
+  setConnectedUser = (user: Patch<User | undefined>) => {
+    return this.setCurrentValue(this.connectedUserSubject, user);
+  };
+
+  /**
+   * A list of {@link Call} objects created/tracked by this client.
+   */
+  get calls(): Call[] {
+    return this.getCurrentValue(this.callsSubject);
+  }
+
+  /**
+   * Sets the list of {@link Call} objects created/tracked by this client.
+   * @param calls
+   */
+  setCalls = (calls: Patch<Call[]>) => {
+    return this.setCurrentValue(this.callsSubject, calls);
+  };
+
+  /**
+   * Adds a {@link Call} object to the list of {@link Call} objects created/tracked by this client.
+   *
+   * @param call the call to add.
+   */
+  registerCall = (call: Call) => {
+    if (!this.calls.find((c) => c.cid === call.cid)) {
+      this.setCalls((calls) => [...calls, call]);
+    }
+  };
+
+  /**
+   * Removes a {@link Call} object from the list of {@link Call} objects created/tracked by this client.
+   *
+   * @param call the call to remove
+   */
+  unregisterCall = (call: Call) => {
+    return this.setCalls((calls) => calls.filter((c) => c !== call));
+  };
+
+  /**
+   * A list of objects describing all created calls that
+   * have not been yet accepted, rejected nor cancelled.
+   */
+  get pendingCalls(): Call[] {
+    return this.getCurrentValue(this.pendingCallsSubject);
+  }
+
+  /**
+   * Sets the list of objects describing all created calls that
+   * have not been yet accepted, rejected nor cancelled.
+   *
+   * @internal
+   * @param calls the calls to set as pending.
+   */
+  setPendingCalls = (calls: Patch<Call[]>) => {
+    return this.setCurrentValue(this.pendingCallsSubject, calls);
+  };
+
+  /**
+   * A list of objects describing incoming calls.
+   */
+  get incomingCalls(): Call[] {
+    return this.getCurrentValue(this.incomingCalls$);
+  }
+
+  /**
+   * A list of objects describing calls initiated by the current user.
+   */
+  get outgoingCalls(): Call[] {
+    return this.getCurrentValue(this.outgoingCalls$);
+  }
+
+  /**
+   * A notification describing accepted call.
+   */
+  get acceptedCall(): CallAcceptedEvent | undefined {
+    return this.getCurrentValue(this.acceptedCallSubject);
+  }
+
+  /**
+   * Sets a notification describing accepted call.
+   *
+   * @internal
+   * @param call the call event.
+   */
+  setAcceptedCall(call: Patch<CallAcceptedEvent | undefined>) {
+    return this.setCurrentValue(this.acceptedCallSubject, call);
+  }
+
+  /**
+   * A call controller instance.
+   *
+   * @deprecated
+   */
+  get activeCall(): Call | undefined {
+    return this.getCurrentValue(this.activeCallSubject);
+  }
+
+  /**
+   * Sets a call controller instance.
+   *
+   * @internal
+   * @param call the call instance.
+   * @deprecated
+   */
+  setActiveCall = (call: Patch<Call | undefined>) => {
+    return this.setCurrentValue(this.activeCallSubject, call);
+  };
 }
 
 /**
@@ -104,8 +235,16 @@ export class StreamVideoReadOnlyStateStore {
    * Data describing a user successfully connected over WS to coordinator server.
    */
   connectedUser$: Observable<User | undefined>;
+
+  /**
+   * A list of {@link Call} objects created/tracked by this client.
+   */
+  calls$: Observable<Call[]>;
+
   /**
    * A list of objects describing all created calls that have not been yet accepted, rejected nor cancelled.
+   *
+   * @deprecated use `calls$` instead.
    */
   pendingCalls$: Observable<Call[]>;
   /**
@@ -125,6 +264,8 @@ export class StreamVideoReadOnlyStateStore {
    * The call controller instance representing the call the user attends.
    * The controller instance exposes call metadata as well.
    * `activeCall$` will be set after calling [`join` on a `Call` instance](./Call.md/#join) and cleared after calling [`leave`](./Call.md/#leave).
+   *
+   * @deprecated will be replaced with multiple calls.
    */
   activeCall$: Observable<Call | undefined>;
 
@@ -134,11 +275,12 @@ export class StreamVideoReadOnlyStateStore {
    * @param observable the observable to get the current value of.
    * @returns the current value of the observable.
    */
-  getCurrentValue: <T>(observable: Observable<T>) => T;
+  getCurrentValue = RxUtils.getCurrentValue;
 
   constructor(store: StreamVideoWriteableStateStore) {
     // convert and expose subjects as observables
     this.connectedUser$ = store.connectedUserSubject.asObservable();
+    this.calls$ = store.callsSubject.asObservable();
     this.pendingCalls$ = store.pendingCallsSubject.asObservable();
     this.acceptedCall$ = store.acceptedCallSubject.asObservable();
     this.activeCall$ = store.activeCallSubject.asObservable();
@@ -146,8 +288,58 @@ export class StreamVideoReadOnlyStateStore {
     // re-expose observables
     this.incomingCalls$ = store.incomingCalls$;
     this.outgoingCalls$ = store.outgoingCalls$;
+  }
 
-    // re-expose methods
-    this.getCurrentValue = store.getCurrentValue;
+  /**
+   * The current user connected over WS to the backend.
+   */
+  get connectedUser(): User | undefined {
+    return RxUtils.getCurrentValue(this.connectedUser$);
+  }
+
+  /**
+   * A list of {@link Call} objects created/tracked by this client.
+   */
+  get calls(): Call[] {
+    return RxUtils.getCurrentValue(this.calls$);
+  }
+
+  /**
+   * A list of objects describing all created calls that
+   * have not been yet accepted, rejected nor cancelled.
+   *
+   * @deprecated
+   */
+  get pendingCalls(): Call[] {
+    return RxUtils.getCurrentValue(this.pendingCalls$);
+  }
+
+  /**
+   * A list of objects describing incoming calls.
+   */
+  get incomingCalls(): Call[] {
+    return RxUtils.getCurrentValue(this.incomingCalls$);
+  }
+
+  /**
+   * A list of objects describing calls initiated by the current user.
+   */
+  get outgoingCalls(): Call[] {
+    return RxUtils.getCurrentValue(this.outgoingCalls$);
+  }
+
+  /**
+   * The call data describing an incoming call accepted by the current user.
+   */
+  get acceptedCall(): CallAcceptedEvent | undefined {
+    return RxUtils.getCurrentValue(this.acceptedCall$);
+  }
+
+  /**
+   * The currenlty active call.
+   * @deprecated
+   */
+  get activeCall(): Call | undefined {
+    return RxUtils.getCurrentValue(this.activeCall$);
   }
 }

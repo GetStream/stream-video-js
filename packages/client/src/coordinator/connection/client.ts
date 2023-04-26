@@ -13,9 +13,9 @@ import { TokenManager } from './token_manager';
 import { WSConnectionFallback } from './connection_fallback';
 import { isErrorResponse, isWSFailure } from './errors';
 import {
-  chatCodes,
   isFunction,
   isOnline,
+  KnownCodes,
   randomId,
   retryInterval,
   sleep,
@@ -25,18 +25,14 @@ import {
   APIErrorResponse,
   ConnectAPIResponse,
   ErrorFromResponse,
-  Event,
   EventHandler,
   Logger,
   OwnUserResponse,
   StreamClientOptions,
+  StreamVideoEvent,
   TokenOrProvider,
 } from './types';
 import { InsightMetrics, postInsights } from './insights';
-
-function isString(x: unknown): x is string {
-  return typeof x === 'string' || x instanceof String;
-}
 
 export class StreamClient {
   _user?: OwnUserResponse;
@@ -48,7 +44,7 @@ export class StreamClient {
   cleaningIntervalRef?: NodeJS.Timeout;
   clientID?: string;
   key: string;
-  listeners: Record<string, Array<(event: Event) => void>>;
+  listeners: Record<string, Array<(event: StreamVideoEvent) => void>>;
   logger: Logger;
 
   node: boolean;
@@ -69,15 +65,15 @@ export class StreamClient {
   defaultWSTimeout: number;
   resolveConnectionId!: Function;
   rejectConnectionId!: Function;
-  connectionIdPromise: Promise<void>;
+  connectionIdPromise: Promise<string | undefined>;
   private nextRequestAbortController: AbortController | null = null;
 
   /**
    * Initialize a client.
    *
    * @param {string} key - the api key
-   * @param {string} [secret] - the api secret
    * @param {StreamClientOptions} [options] - additional options, here you can pass custom options to axios instance
+   * @param {string} [options.secret] - the api secret
    * @param {boolean} [options.browser] - enforce the client to be in browser mode
    * @param {boolean} [options.warmUp] - default to false, if true, client will open a connection as soon as possible to speed up following requests
    * @param {Logger} [options.Logger] - custom logger
@@ -116,23 +112,29 @@ export class StreamClient {
       });
     }
 
-    this.connectionIdPromise = new Promise((resolve, reject) => {
-      this.resolveConnectionId = resolve;
-      this.rejectConnectionId = reject;
-    });
+    this.connectionIdPromise = new Promise<string | undefined>(
+      (resolve, reject) => {
+        this.resolveConnectionId = resolve;
+        this.rejectConnectionId = reject;
+      },
+    );
 
-    this.axiosInstance = axios.create(this.options);
-
-    // todo: replace 'https://chat.stream-io-api.com' with an actual video server URL
-    this.setBaseURL(this.options.baseURL || 'https://chat.stream-io-api.com');
+    this.setBaseURL(
+      this.options.baseURL || 'https://video.stream-io-api.com/video',
+    );
 
     if (typeof process !== 'undefined' && process.env.STREAM_LOCAL_TEST_RUN) {
-      this.setBaseURL('http://localhost:3030');
+      this.setBaseURL('http://localhost:3030/video');
     }
 
     if (typeof process !== 'undefined' && process.env.STREAM_LOCAL_TEST_HOST) {
-      this.setBaseURL('http://' + process.env.STREAM_LOCAL_TEST_HOST);
+      this.setBaseURL(`http://${process.env.STREAM_LOCAL_TEST_HOST}/video`);
     }
+
+    this.axiosInstance = axios.create({
+      baseURL: this.baseURL,
+      ...this.options,
+    });
 
     // WS connection is initialized when setUser is called
     this.wsConnection = null;
@@ -224,7 +226,11 @@ export class StreamClient {
     this.userID = user.id;
     this.anonymous = false;
 
-    const setTokenPromise = this._setToken(user, userTokenOrProvider);
+    const setTokenPromise = this._setToken(
+      user,
+      userTokenOrProvider,
+      this.anonymous,
+    );
     this._setUser(user);
 
     const wsPromise = this.openConnection();
@@ -246,8 +252,16 @@ export class StreamClient {
     }
   };
 
-  _setToken = (user: OwnUserResponse, userTokenOrProvider: TokenOrProvider) =>
-    this.tokenManager.setTokenOrProvider(userTokenOrProvider, user);
+  _setToken = (
+    user: OwnUserResponse,
+    userTokenOrProvider: TokenOrProvider,
+    isAnonymous: boolean,
+  ) =>
+    this.tokenManager.setTokenOrProvider(
+      userTokenOrProvider,
+      user,
+      isAnonymous,
+    );
 
   _setUser(user: OwnUserResponse) {
     /**
@@ -369,27 +383,17 @@ export class StreamClient {
   /**
    * connectAnonymousUser - Set an anonymous user and open a WebSocket connection
    */
-  connectAnonymousUser = () => {
-    if (
-      (this._isUsingServerAuth() || this.node) &&
-      !this.options.allowServerSideConnect
-    ) {
-      console.warn(
-        'Please do not use connectUser server side. connectUser impacts MAU and concurrent connection usage and thus your bill. If you have a valid use-case, add "allowServerSideConnect: true" to the client options to disable this warning.',
-      );
-    }
-
+  connectAnonymousUser = async (
+    user: OwnUserResponse,
+    tokenOrProvider: TokenOrProvider,
+  ) => {
     this.anonymous = true;
-    this.userID = randomId();
-    const anonymousUser = {
-      id: this.userID,
-      anon: true,
-    } as unknown as OwnUserResponse;
-
-    this._setToken(anonymousUser, '');
-    this._setUser(anonymousUser);
-
-    return this.openConnection();
+    await this._setToken(user, tokenOrProvider, this.anonymous);
+    this._setUser(user);
+    // some endpoints require a connection_id to be resolved.
+    // as anonymous users aren't allowed to open WS connections, we just
+    // resolve the connection_id here.
+    this.resolveConnectionId();
   };
 
   /**
@@ -485,10 +489,10 @@ export class StreamClient {
     });
   }
 
-  doAxiosRequest = async <T>(
+  doAxiosRequest = async <T, D = unknown>(
     type: string,
     url: string,
-    data?: unknown,
+    data?: D,
     options: AxiosRequestConfig & {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
     } = {},
@@ -531,14 +535,14 @@ export class StreamClient {
       if (e.response) {
         /** connection_fallback depends on this token expiration logic */
         if (
-          e.response.data.code === chatCodes.TOKEN_EXPIRED &&
+          e.response.data.code === KnownCodes.TOKEN_EXPIRED &&
           !this.tokenManager.isStatic()
         ) {
           if (this.consecutiveFailures > 1) {
             await sleep(retryInterval(this.consecutiveFailures));
           }
           await this.tokenManager.loadToken();
-          return await this.doAxiosRequest<T>(type, url, data, options);
+          return await this.doAxiosRequest<T, D>(type, url, data, options);
         }
         return this.handleResponse(e.response);
       } else {
@@ -549,25 +553,25 @@ export class StreamClient {
   };
 
   get<T>(url: string, params?: AxiosRequestConfig['params']) {
-    return this.doAxiosRequest<T>('get', url, null, {
+    return this.doAxiosRequest<T, unknown>('get', url, null, {
       params,
     });
   }
 
-  put<T>(url: string, data?: unknown) {
-    return this.doAxiosRequest<T>('put', url, data);
+  put<T, D = unknown>(url: string, data?: D) {
+    return this.doAxiosRequest<T, D>('put', url, data);
   }
 
-  post<T>(url: string, data?: unknown) {
-    return this.doAxiosRequest<T>('post', url, data);
+  post<T, D = unknown>(url: string, data?: D) {
+    return this.doAxiosRequest<T, D>('post', url, data);
   }
 
-  patch<T>(url: string, data?: unknown) {
-    return this.doAxiosRequest<T>('patch', url, data);
+  patch<T, D = unknown>(url: string, data?: D) {
+    return this.doAxiosRequest<T, D>('patch', url, data);
   }
 
   delete<T>(url: string, params?: AxiosRequestConfig['params']) {
-    return this.doAxiosRequest<T>('delete', url, null, {
+    return this.doAxiosRequest<T, unknown>('delete', url, null, {
       params,
     });
   }
@@ -596,7 +600,7 @@ export class StreamClient {
     return data;
   }
 
-  dispatchEvent = (event: Event) => {
+  dispatchEvent = (event: StreamVideoEvent) => {
     if (!event.received_at) event.received_at = new Date();
 
     console.log(`Dispatching event: ${event.type}`, event);
@@ -606,14 +610,14 @@ export class StreamClient {
   handleEvent = (messageEvent: WebSocket.MessageEvent) => {
     // dispatch the event to the channel listeners
     const jsonString = messageEvent.data as string;
-    const event = JSON.parse(jsonString) as Event;
+    const event = JSON.parse(jsonString) as StreamVideoEvent;
     this.dispatchEvent(event);
   };
 
-  _callClientListeners = (event: Event) => {
+  _callClientListeners = (event: StreamVideoEvent) => {
     const client = this;
     // gather and call the listeners
-    const listeners: Array<(e: Event) => void> = [];
+    const listeners: Array<(e: StreamVideoEvent) => void> = [];
     if (client.listeners.all) {
       listeners.push(...client.listeners.all);
     }
@@ -778,7 +782,7 @@ export class StreamClient {
   }
 
   _getToken() {
-    if (!this.tokenManager || this.anonymous) return null;
+    if (!this.tokenManager) return null;
 
     return this.tokenManager.getToken();
   }

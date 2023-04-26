@@ -1,0 +1,82 @@
+.root {
+  @apply relative flex flex-col text-video-white pr-4 pl-4 pt-3 pb-3;
+  border-radius: 20px;
+  max-width: 524px;
+
+  border: solid 1px transparent;
+
+  background: linear-gradient(
+        to right,
+        #000000 -63.54%,
+        #1d232f 14.48%,
+        #000000 135.02%
+      )
+      padding-box,
+    linear-gradient(
+      to left,
+      #242c34 57.07%,
+      #2f7deb 82.8%,
+      rgba(228, 228, 228, 0) 105.55%
+    ),
+    border-box;
+
+  transition: background 10s linear;
+}
+.root:hover {
+  background: linear-gradient(
+        to left,
+        #000000 -63.54%,
+        #1d232f 14.48%,
+        #000000 135.02%
+      )
+      padding-box,
+    linear-gradient(
+      to right,
+      #242c34 57.07%,
+      #2f7deb 82.8%,
+      rgba(228, 228, 228, 0) 105.55%
+    ),
+    border-box;
+
+  transition: background 10s linear;
+}
+
+.heading {
+  @apply flex items-center justify-between font-semibold text-lg;
+}
+
+.explanation {
+  @apply text-sm md:text-base;
+}
+
+.close {
+  @apply text-video-grey-400 bg-video-grey-800 rounded-button p-1 h-auto w-auto;
+}
+
+.close:hover {
+  @apply cursor-pointer;
+}
+
+.closeIcon {
+  @apply h-4 w-4;
+}
+
+.explanation {
+  @apply text-video-white/75 pt-2 pb-4 text-sm;
+}
+
+.footer {
+  @apply flex items-center justify-between;
+}
+
+.amount {
+  @apply text-video-white/75 text-sm;
+}
+
+.next {
+  @apply font-bold;
+}
+
+.next:hover {
+  @apply cursor-pointer;
+}

@@ -38,6 +38,10 @@ interface ParticipantViewProps {
    * When set to true, the video stream will not be shown even if it is available.
    */
   disableVideo?: boolean;
+  /**
+   * When set to true, the audio stream will not be played even if it is available.
+   */
+  disableAudio?: boolean;
 }
 
 /**
@@ -50,7 +54,7 @@ interface ParticipantViewProps {
  * |![participant-view-1](https://user-images.githubusercontent.com/25864161/217489213-d4532ca1-49ee-4ef5-940c-af2e55bc0a5f.png)|![participant-view-2](https://user-images.githubusercontent.com/25864161/217489207-fb20c124-8bce-4c2b-87f9-4fe67bc50438.png)|
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
-  const { participant, kind, disableVideo } = props;
+  const { participant, kind, disableVideo, disableAudio } = props;
   const call = useActiveCall();
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
@@ -133,8 +137,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
   const isScreenSharing = kind === 'screen';
   const mirror = isLoggedInUser && isCameraOnFrontFacingMode;
-  const isAudioAvailable = kind === 'video' && !!audioStream && !isAudioMuted;
-  const isVideoAvailable = !!videoStream && !isVideoMuted;
+  const isAudioAvailable =
+    kind === 'video' && !!audioStream && !isAudioMuted && !disableAudio;
+  const isVideoAvailable = !!videoStream && !isVideoMuted && !disableVideo;
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && styles.isSpeaking;
   const videoOnlyStyle = !isScreenSharing && {
@@ -157,7 +162,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       ]}
       onLayout={onLayout}
     >
-      {isVideoAvailable && !disableVideo ? (
+      {isVideoAvailable ? (
         <VideoRenderer
           zOrder={1}
           mirror={mirror}

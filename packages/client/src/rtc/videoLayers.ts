@@ -11,7 +11,7 @@ export const findOptimalVideoLayers = (videoTrack: MediaStreamTrack) => {
   const steps: [number, number, number][] = [
     [1920, 1080, 3000000],
     [1280, 720, 1250000],
-    [960, 540, 850000],
+    [960, 540, 975000],
     [640, 480, 500000],
     [320, 240, 250000],
     [160, 120, 125000],

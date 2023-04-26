@@ -1,17 +1,13 @@
 import { ComponentType } from 'react';
-import { StreamVideoParticipant } from '@stream-io/video-client';
-import {
-  useActiveCall,
-  useLocalParticipant,
-} from '@stream-io/video-react-bindings';
+import { OwnCapability, StreamVideoParticipant } from '@stream-io/video-client';
+import { useCall } from '@stream-io/video-react-bindings';
 import { TextButton } from '../Button';
 import { Restricted } from '../Moderation';
 import { CallParticipantListingItem } from './CallParticipantListingItem';
 
 // FIXME: will probably cease to exist with new design
 const CallParticipantListingHeader = () => {
-  const activeCall = useActiveCall();
-  const localParticipant = useLocalParticipant();
+  const activeCall = useCall();
 
   const muteAllClickHandler = () => {
     activeCall?.muteAllUsers('audio');
@@ -26,10 +22,7 @@ const CallParticipantListingHeader = () => {
       }}
     >
       <div>Active users</div>
-      <Restricted
-        availableGrants={localParticipant?.ownCapabilities ?? []}
-        requiredGrants={['mute-users']}
-      >
+      <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
         <TextButton onClick={muteAllClickHandler}>Mute all</TextButton>
       </Restricted>
     </div>

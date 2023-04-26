@@ -3,7 +3,7 @@ import {
   ForwardedRef,
   forwardRef,
   useEffect,
-  useRef,
+  useState,
   VideoHTMLAttributes,
 } from 'react';
 import clsx from 'clsx';
@@ -18,9 +18,11 @@ export type VideoProps = DetailedHTMLProps<
 
 export const BaseVideo = forwardRef<HTMLVideoElement, VideoProps>(
   ({ stream, ...rest }, ref) => {
-    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
+      null,
+    );
     const setRef: ForwardedRef<HTMLVideoElement> = (instance) => {
-      videoRef.current = instance;
+      setVideoElement(instance);
       if (typeof ref === 'function') {
         (ref as (instance: HTMLVideoElement | null) => void)(instance);
       } else if (ref) {
@@ -29,25 +31,26 @@ export const BaseVideo = forwardRef<HTMLVideoElement, VideoProps>(
     };
 
     useEffect(() => {
-      const $el = videoRef.current;
-      if (!$el) return;
-      if (stream && stream !== $el.srcObject) {
-        $el.srcObject = stream;
-        if (Browsers.isSafari() || Browsers.isFirefox()) {
-          // Firefox and Safari have some timing issue
-          setTimeout(() => {
-            $el.srcObject = stream;
-            $el.play().catch((e) => {
-              console.error(`Failed to play stream`, e);
-            });
-          }, 0);
-        }
+      if (!videoElement || !stream) return;
+      if (stream === videoElement.srcObject) return;
+
+      videoElement.srcObject = stream;
+      if (Browsers.isSafari() || Browsers.isFirefox()) {
+        // Firefox and Safari have some timing issue
+        setTimeout(() => {
+          videoElement.srcObject = stream;
+          videoElement.play().catch((e) => {
+            console.error(`Failed to play stream`, e);
+          });
+        }, 0);
       }
+
       return () => {
-        $el.pause();
-        $el.srcObject = null;
+        videoElement.pause();
+        videoElement.srcObject = null;
       };
-    }, [stream]);
+    }, [stream, videoElement]);
+
     return (
       <video
         autoPlay

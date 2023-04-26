@@ -1,83 +1,69 @@
-import {
-  PermissionRequestEvent,
-  UpdatedCallPermissionsEvent,
-} from '../gen/coordinator';
-import { StreamVideoWriteableStateStore } from '../store';
+import { StreamVideoEvent } from '../coordinator/connection/types';
+import { CallState } from '../store';
+import { SfuEvent } from '../gen/video/sfu/event/events';
+import { OwnCapability } from '../gen/coordinator';
 
 /**
  * Event handler that watches for `call.permission_request` events
  * Updates the state store using the `callPermissionRequest$` stream
  */
-export const watchCallPermissionRequest = (
-  store: StreamVideoWriteableStateStore,
-) => {
-  return function onCallPermissionRequest(event: PermissionRequestEvent) {
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
-
-    if (!activeCall) {
-      console.warn(
-        `Ignoring "call.permission_request" as there is no active call`,
-        event,
-      );
-      return;
-    }
-
-    if (activeCall.cid !== event.call_cid) {
-      console.warn(
-        `Ignoring "call.permission_request" as it doesn't belong to the active call`,
-        event,
-      );
-      return;
-    }
-
-    const state = activeCall.state;
-    const localParticipant = state.getCurrentValue(state.localParticipant$);
-    if (
-      !localParticipant?.ownCapabilities.includes('update-call-permissions')
-    ) {
-      console.warn(
-        `Ignoring "call.permission_request" as the user doesn't have permission to handle it`,
-      );
-      return;
-    }
-
-    state.setCurrentValue(state.callPermissionRequestSubject, event);
+export const watchCallPermissionRequest = (state: CallState) => {
+  return function onCallPermissionRequest(event: StreamVideoEvent) {
+    if (event.type !== 'call.permission_request') return;
+    state.setCallPermissionRequest(event);
   };
 };
 
 /**
  * Event handler that watches for `call.permissions_updated` events
- * It will update the `localParticipant$` or `remoteParticipants$` based on whose permissions were changed.
  */
-export const watchCallPermissionsUpdated = (
-  store: StreamVideoWriteableStateStore,
-) => {
-  return function onCallPermissionsUpdated(event: UpdatedCallPermissionsEvent) {
-    const activeCall = store.getCurrentValue(store.activeCallSubject);
-    if (!activeCall) {
-      console.warn(
-        `Ignoring "call.permissions_updated" as there is no active call`,
-        event,
-      );
-      return;
-    }
-
-    if (activeCall.cid !== event.call_cid) {
-      console.warn(
-        `Ignoring "call.permissions_updated" as it doesn't belong to the active call`,
-        event,
-      );
-      return;
-    }
-
-    const state = activeCall.state;
-    const localParticipant = state.getCurrentValue(state.localParticipant$);
+export const watchCallPermissionsUpdated = (state: CallState) => {
+  return function onCallPermissionsUpdated(event: StreamVideoEvent) {
+    if (event.type !== 'call.permissions_updated') return;
+    const { localParticipant } = state;
     if (event.user.id === localParticipant?.userId) {
-      state.updateParticipant(localParticipant.sessionId, {
-        ownCapabilities: event.own_capabilities,
+      state.setMetadata((metadata) => ({
+        ...metadata!,
+        own_capabilities: event.own_capabilities,
+      }));
+    }
+  };
+};
+
+/**
+ * Event handler that watches for `callGrantsUpdated` events.
+ *
+ * @param state the call state to update.
+ */
+export const watchCallGrantsUpdated = (state: CallState) => {
+  return function onCallGrantsUpdated(event: SfuEvent) {
+    if (event.eventPayload.oneofKind !== 'callGrantsUpdated') return;
+    const { currentGrants } = event.eventPayload.callGrantsUpdated;
+    if (currentGrants) {
+      const { canPublishAudio, canPublishVideo, canScreenshare } =
+        currentGrants;
+
+      const update: Partial<Record<OwnCapability, boolean>> = {
+        [OwnCapability.SEND_AUDIO]: canPublishAudio,
+        [OwnCapability.SEND_VIDEO]: canPublishVideo,
+        [OwnCapability.SCREENSHARE]: canScreenshare,
+      };
+
+      const nextCapabilities = (state.metadata?.own_capabilities || []).filter(
+        (capability) => update[capability] !== false,
+      );
+      Object.entries(update).forEach(([capability, value]) => {
+        if (value && !nextCapabilities.includes(capability as OwnCapability)) {
+          nextCapabilities.push(capability as OwnCapability);
+        }
+      });
+
+      state.setMetadata((metadata) => {
+        return {
+          ...metadata!,
+          own_capabilities: nextCapabilities,
+        };
       });
     }
-
-    // TODO: update remote participant once SFU includes that info in the participant data model
   };
 };

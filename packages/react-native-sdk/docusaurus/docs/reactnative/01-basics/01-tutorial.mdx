@@ -46,36 +46,7 @@ npx react-native init StreamMeetingTutorial --template react-native-template-typ
 
 ## Install dependencies and initial setup
 
-Install Stream's Video SDK and it's peer dependencies
-
-```bash
-yarn add stream-video-react-native stream-video-react-bindings stream-video react-native-webrtc
-react-native-incall-manager react-native-svg text-encoding-polyfill
-```
-
-Some dependencies require us to make changes to our application for all
-functionalities to be available. Please apply the following steps:
-
-- `react-native-webrtc` installation on [Android](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/AndroidInstallation.md) and [iOS](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/iOSInstallation.md)
-- `react-native-svg` be aware of [compatibility](https://github.com/software-mansion/react-native-svg#supported-react-native-versions) with RN versions and [troubleshooting](https://github.com/software-mansion/react-native-svg#troubleshooting) steps
-- `react-native-incall-manager` installation on [Android](https://github.com/react-native-webrtc/react-native-incall-manager#android) and [iOS](https://github.com/react-native-webrtc/react-native-incall-manager#ios).
-
-- Add the following imports at the top of your `index.js` file
-
-```js title="index.js"
-/** URL polyfill */
-import 'text-encoding-polyfill';
-/** Text decoder polyfill */
-import 'react-native-url-polyfill/auto';
-/** crypto.getRandomValues polyfill for uuid */
-import 'react-native-get-random-values';
-import { registerGlobals } from 'react-native-webrtc';
-...
-
-if (Platform.OS !== 'web') {
-  registerGlobals();
-}
-```
+Follow this [guide](01-basics/03-installation.mdx) to install the dependencies and setup the project.
 
 ## Creating and providing the Video Client
 
@@ -84,8 +55,7 @@ We will start by creating a simple video meeting with Stream's Video SDK.
 ### Create a StreamVideoClient
 
 First things first we will create a `StreamVideoClient` that will be used to communicate to Stream's Video backend and create a new client.
-This expects an API key as the first argument. It also expects `options` and Call configuration object for type `meeting`(`CALL_CONFIG.meeting`).
-The call configs helps adding some default configs of the meeting.
+This expects an API key as the first argument. It also expects `options`.
 
 ```tsx
 import React from 'react';
@@ -98,7 +68,7 @@ const user = {
 };
 const USER_TOKEN = 'YOUR_TOKEN';
 const API_KEY = 'YOUR_TOKEN';
-const videoClient = new StreamVideoClient(API_KEY, {}, CALL_CONFIG.meeting);
+const videoClient = new StreamVideoClient(API_KEY);
 ```
 
 ### Connecting and disconnecting from the video client
@@ -149,43 +119,7 @@ const App = () => {
 };
 ```
 
-For simplicity you can also use this hook:
-
-```tsx title="src/hooks/useVideoClient.tsx"
-import { StreamVideoClient } from '@stream-io/video-client';
-import { useEffect, useState } from 'react';
-import { VideoProps } from '../types';
-
-const APIParams = {
-  apiKey: STREAM_API_KEY, // see <video>/data/fixtures/apps.yaml for API key/secret
-};
-
-export const useVideoClient = ({ user, token }: VideoProps) => {
-  const [videoClient, setVideoClient] = useState<StreamVideoClient>();
-
-  useEffect(() => {
-    const run = async () => {
-      try {
-        if (user && token) {
-          const client = new StreamVideoClient(
-            APIParams.apiKey,
-            {},
-            CALL_CONFIG.meeting,
-          );
-          await client.connectUser(user, token);
-          setVideoClient(client);
-        }
-      } catch (err) {
-        console.error('Failed to establish connection', err);
-      }
-    };
-
-    run();
-  }, [token, user]);
-
-  return { videoClient };
-};
-```
+For simplicity you can also use the `useCreateStreamVideoClient` [hook](../../call-engine/hooks#usecreatestreamvideoclient) to connect and disconnect from the client.
 
 ### Provide the video client logic to the rest of the app
 

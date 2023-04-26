@@ -1,0 +1,18 @@
+.root {
+}
+
+.noMessages {
+  @apply flex flex-col items-center  text-center justify-center p-4 w-full h-full bg-video-black sm:bg-video-grey-700;
+}
+
+.chatRound {
+  @apply h-[50px] w-[50px] text-video-grey-300;
+}
+
+.description:first-of-type {
+  @apply text-video-white font-bold mt-4;
+}
+
+.description {
+  @apply text-video-grey-400 mt-2 text-sm;
+}

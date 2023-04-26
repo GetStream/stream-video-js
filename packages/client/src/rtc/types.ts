@@ -15,6 +15,13 @@ export enum VisibilityState {
   INVISIBLE = 'INVISIBLE',
 }
 
+export enum DebounceType {
+  IMMEDIATE = 0,
+  FAST = 100,
+  MEDIUM = 600,
+  SLOW = 1200,
+}
+
 export interface StreamVideoParticipant extends Participant {
   /**
    * The participant's audio stream, if they are publishing audio and
@@ -52,18 +59,15 @@ export interface StreamVideoParticipant extends Participant {
   isLoggedInUser?: boolean;
 
   /**
-   * True when the participant is pinned
+   * Timestamp of when the participant is pinned
    */
-  isPinned?: boolean;
+  pinnedAt?: number;
 
   /**
    * The last reaction this user has sent to this call.
    * Integrators can batch/collect past reactions and show them to the UI.
    */
   reaction?: StreamReaction;
-
-  // FIXME OL: remove once this field once the deployed SFU is supporting it
-  roles?: string[];
 
   /**
    * The visibility state of the participant's video element
@@ -78,6 +82,7 @@ export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
    * The device ID of the currently selected audio input device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
    */
   audioDeviceId?: string;
+
   /**
    * The device ID of the currently selected video input device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
    */
@@ -89,11 +94,6 @@ export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
    * If the value is not defined, the user hasn't selected any device (in these cases the default system audio output could be used)
    */
   audioOutputDeviceId?: string;
-
-  /**
-   * The permissions that participant has in the current call. Permissions can be granted and/or revoked during a call.
-   */
-  ownCapabilities: string[];
 }
 
 export const isStreamVideoLocalParticipant = (
@@ -126,11 +126,6 @@ export type SubscriptionChange = {
 
 export type SubscriptionChanges = {
   [sessionId: string]: SubscriptionChange;
-};
-
-export type CallOptions = {
-  connectionConfig?: RTCConfiguration;
-  edgeName?: string;
 };
 
 export type PublishOptions = {

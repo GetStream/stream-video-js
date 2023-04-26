@@ -1,19 +1,24 @@
 import { StreamSfuClient } from '../StreamSfuClient';
 import { getIceCandidate } from './helpers/iceCandidate';
 import { PeerType } from '../gen/video/sfu/models/models';
+import { Dispatcher } from './Dispatcher';
 
 export type SubscriberOpts = {
   rpcClient: StreamSfuClient;
+  dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
   onTrack?: (e: RTCTrackEvent) => void;
 };
 
 export const createSubscriber = ({
   rpcClient,
+  dispatcher,
   connectionConfig,
   onTrack,
 }: SubscriberOpts) => {
   const subscriber = new RTCPeerConnection(connectionConfig);
+  attachDebugEventListeners(subscriber);
+
   subscriber.addEventListener('icecandidate', async (e) => {
     const { candidate } = e;
     if (!candidate) {
@@ -26,33 +31,13 @@ export const createSubscriber = ({
       peerType: PeerType.SUBSCRIBER,
     });
   });
-  subscriber.addEventListener('icecandidateerror', (e) => {
-    const errorMessage =
-      e instanceof RTCPeerConnectionIceErrorEvent &&
-      `${e.errorCode}: ${e.errorText}`;
-    console.error(`Subscriber: ICE Candidate error`, errorMessage, e);
-  });
-  subscriber.addEventListener('iceconnectionstatechange', (e) => {
-    console.log(
-      `Subscriber: ICE Connection state changed`,
-      subscriber.iceConnectionState,
-      e,
-    );
-  });
-  subscriber.addEventListener('icegatheringstatechange', (e) => {
-    console.log(
-      `Subscriber: ICE Gathering State`,
-      subscriber.iceGatheringState,
-      e,
-    );
-  });
 
   if (onTrack) {
     subscriber.addEventListener('track', onTrack);
   }
 
-  const { dispatcher, iceTrickleBuffer } = rpcClient;
-  dispatcher.on('subscriberOffer', async (message) => {
+  const { iceTrickleBuffer } = rpcClient;
+  const unsubscribe = dispatcher.on('subscriberOffer', async (message) => {
     if (message.eventPayload.oneofKind !== 'subscriberOffer') return;
     const { subscriberOffer } = message.eventPayload;
     console.log(`Received subscriberOffer`, subscriberOffer);
@@ -67,7 +52,7 @@ export const createSubscriber = ({
         const iceCandidate = JSON.parse(candidate.iceCandidate);
         await subscriber.addIceCandidate(iceCandidate);
       } catch (e) {
-        console.error(`[Subscriber] ICE candidate error`, e, candidate);
+        console.error(`Subscriber: ICE candidate error`, e, candidate);
       }
     });
 
@@ -81,5 +66,36 @@ export const createSubscriber = ({
     });
   });
 
+  // we replace the close method of the subscriber PeerConnection
+  // so that we can preform some cleanups before closing the connection.
+  // We are doing this as currently there is no event that is fired
+  // when the subscriber PeerConnection is closed.
+  const originalClose = subscriber.close;
+  subscriber.close = () => {
+    unsubscribe();
+    originalClose.call(subscriber);
+  };
+
   return subscriber;
+};
+
+const attachDebugEventListeners = (subscriber: RTCPeerConnection) => {
+  subscriber.addEventListener('icecandidateerror', (e) => {
+    const errorMessage =
+      e instanceof RTCPeerConnectionIceErrorEvent &&
+      `${e.errorCode}: ${e.errorText}`;
+    console.error(`Subscriber: ICE Candidate error`, errorMessage);
+  });
+  subscriber.addEventListener('iceconnectionstatechange', () => {
+    console.log(
+      `Subscriber: ICE Connection state changed`,
+      subscriber.iceConnectionState,
+    );
+  });
+  subscriber.addEventListener('icegatheringstatechange', () => {
+    console.log(
+      `Subscriber: ICE Gathering State`,
+      subscriber.iceGatheringState,
+    );
+  });
 };

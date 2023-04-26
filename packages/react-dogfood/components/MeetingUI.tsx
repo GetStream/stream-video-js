@@ -2,6 +2,8 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import Gleap from 'gleap';
 import {
+  Call,
+  CallingState,
   CallParticipantsList,
   CallStatsButton,
   CancelCallButton,
@@ -10,6 +12,7 @@ import {
   IconButton,
   LoadingIndicator,
   noopComparator,
+  PermissionRequests,
   ReactionsButton,
   RecordCallButton,
   ScreenShareButton,
@@ -18,7 +21,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleCameraPublishingButton,
   ToggleParticipantListButton,
-  useActiveCall,
+  useCallCallingState,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { InviteLinkButton } from './InviteLinkButton';
@@ -47,19 +50,18 @@ const contents = {
   },
 };
 
-export const MeetingUI = ({
-  chatClient,
-}: {
-  chatClient: StreamChat | null;
-}) => {
+type MeetingUIProps = {
+  chatClient?: StreamChat | null;
+  callId: string;
+  callType: string;
+};
+export const MeetingUI = ({ chatClient, callId, callType }: MeetingUIProps) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call'
   >('lobby');
   const router = useRouter();
-  const callId = router.query['callId'] as string;
-  const callType = (router.query['type'] as string) || 'default';
   const client = useStreamVideoClient();
-  const activeCall = useActiveCall();
+  const [activeCall, setActiveCall] = useState<Call>();
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [layout, setLayout] = useState<keyof typeof LayoutMap>('LegacyGrid');
@@ -81,7 +83,10 @@ export const MeetingUI = ({
     if (!client) return;
     setShow('loading');
     try {
-      await client.call(callType, callId).join();
+      const call = client.call(callType, callId);
+      setActiveCall(call);
+
+      await call.join({ create: true });
       setShow('active-call');
     } catch (e) {
       console.error(e);
@@ -92,17 +97,18 @@ export const MeetingUI = ({
   const onLeave = useCallback(async () => {
     setShow('loading');
     try {
-      await activeCall?.cancel();
       await router.push('/');
     } catch (e) {
       console.error(e);
       setShow('error-leave');
     }
-  }, [activeCall, router]);
+  }, [router]);
 
   useEffect(() => {
     const handlePageLeave = async () => {
-      await activeCall?.cancel();
+      if (activeCall?.state.callingState !== CallingState.LEFT) {
+        await activeCall?.leave();
+      }
     };
     router.events.on('routeChangeStart', handlePageLeave);
     return () => {
@@ -130,9 +136,16 @@ export const MeetingUI = ({
       />
     );
   }
-  if (show === 'lobby') return <Lobby onJoin={onJoin} />;
+  if (show === 'lobby') {
+    return <Lobby onJoin={onJoin} callId={callId} />;
+  }
 
-  if (show === 'loading') return <LoadingScreen />;
+  if (show === 'loading')
+    return (
+      <StreamCallProvider call={activeCall}>
+        <LoadingScreen />
+      </StreamCallProvider>
+    );
 
   if (!activeCall)
     return (
@@ -145,30 +158,31 @@ export const MeetingUI = ({
 
   return (
     <StreamCallProvider call={activeCall}>
-      <div className="str-video str-video__call">
-        <div className="str-video__call__main">
+      <div className="str-video__call">
+        <div className="str-video__main-call-panel">
           <ActiveCallHeader
             selectedLayout={layout}
             onMenuItemClick={setLayout}
           />
+          <PermissionRequests />
           <Stage selectedLayout={layout} />
           <div
             className="str-video__call-controls"
             data-testid="str-video__call-controls"
           >
-            <div className="rd-call-controls-group">
+            <div className="str-video__call-controls--group">
               <RecordCallButton call={activeCall} />
               <ScreenShareButton call={activeCall} />
               <ReactionsButton />
             </div>
-            <div className="rd-call-controls-group">
+            <div className="str-video__call-controls--group">
               <SpeakingWhileMutedNotification>
                 <ToggleAudioPublishingButton />
               </SpeakingWhileMutedNotification>
               <ToggleCameraPublishingButton />
-              <CancelCallButton call={activeCall} onClick={onLeave} />
+              <CancelCallButton call={activeCall} onLeave={onLeave} />
             </div>
-            <div className="rd-call-controls-group">
+            <div className="str-video__call-controls--group">
               <CallStatsButton />
               <ToggleParticipantListButton
                 enabled={showParticipants}
@@ -274,10 +288,21 @@ const ErrorPage = ({ heading, onClickHome, onClickLobby }: ErrorPageProps) => (
   </Stack>
 );
 
-export const LoadingScreen = () => (
-  <div className=" str-video str-video__call">
-    <div className="str-video__call__loading-screen">
-      <LoadingIndicator />
+export const LoadingScreen = () => {
+  const callingState = useCallCallingState();
+  const [message, setMessage] = useState('');
+  useEffect(() => {
+    if (callingState === CallingState.RECONNECTING) {
+      setMessage('Please wait, we are connecting you to the call...');
+    } else if (callingState === CallingState.JOINED) {
+      setMessage('');
+    }
+  }, [callingState]);
+  return (
+    <div className="str-video__call">
+      <div className="str-video__call__loading-screen">
+        <LoadingIndicator text={message} />
+      </div>
     </div>
-  </div>
-);
+  );
+};

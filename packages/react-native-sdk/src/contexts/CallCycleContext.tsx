@@ -77,15 +77,11 @@ export const CallCycleProvider = (
   // Effect to deal with the case that the outgoing call should be joined as soon as it is created by the user
   useEffect(() => {
     const startOutgoingCall = async () => {
-      if (!client || activeCall) {
+      if (!(client && acceptedCall) || activeCall) {
         return;
       }
       try {
-        if (outgoingCall && client.callConfig.joinCallInstantly) {
-          client.call(outgoingCall.type, outgoingCall.id).join();
-        } else if (acceptedCall && !client.callConfig.joinCallInstantly) {
-          client.call(outgoingCall.type, outgoingCall.id).join();
-        }
+        client.call(outgoingCall.type, outgoingCall.id).join();
         InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
       } catch (error) {

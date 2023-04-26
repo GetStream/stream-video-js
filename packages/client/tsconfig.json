@@ -7,6 +7,8 @@
       "esnext",
       "dom"
     ],
+    "noEmitOnError": true,
+    "noImplicitAny": true,
     "declaration": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,

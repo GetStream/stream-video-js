@@ -7,7 +7,8 @@ import {
   sleep,
 } from './utils';
 import { isAPIError, isConnectionIDError, isErrorRetryable } from './errors';
-import { ConnectionOpen, Event, UR, LogLevel } from './types';
+import { LogLevel, StreamVideoEvent, UR } from './types';
+import { ConnectedEvent } from '../../gen/coordinator';
 
 export enum ConnectionState {
   Closed = 'CLOSED',
@@ -118,7 +119,7 @@ export class WSConnectionFallback {
     while (this.state === ConnectionState.Connected) {
       try {
         const data = await this._req<{
-          events: Event[];
+          events: StreamVideoEvent[];
         }>(
           {},
           {
@@ -185,7 +186,7 @@ export class WSConnectionFallback {
     this.connectionID = undefined; // connect should be sent with empty connection_id so API creates one
     try {
       const { event } = await this._req<{
-        event: ConnectionOpen;
+        event: ConnectedEvent;
       }>(
         { json: this.client._buildWSPayload() },
         {
