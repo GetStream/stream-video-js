@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { createSoundDetector, SfuModels } from '@stream-io/video-client';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
-import { useMediaDevices } from '../../contexts';
+
+import { useMediaDevices } from '../../core/contexts';
 import { Notification } from './Notification';
 import { ChildrenOnly } from '../../types';
 

@@ -11,8 +11,9 @@ import {
 } from '@stream-io/video-client';
 import clsx from 'clsx';
 
-import { IconButton, ParticipantBox } from '..';
-import { Audio } from '../StreamCall';
+import { ParticipantBox } from '../ParticipantBox';
+import { Audio } from '../Audio';
+import { IconButton } from '../../../components';
 
 const GROUP_SIZE = 16;
 
