@@ -8,6 +8,7 @@ const env = dotenv.config({ path: '.env.local' });
  */
 const nextConfig = {
   env: env.parsed,
+  productionBrowserSourceMaps: true,
   async headers() {
     return [
       {

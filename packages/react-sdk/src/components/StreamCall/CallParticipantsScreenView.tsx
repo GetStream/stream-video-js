@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Call, SfuModels } from '@stream-io/video-client';
+
 import {
   useLocalParticipant,
   useParticipants,
 } from '@stream-io/video-react-bindings';
-import { ParticipantBox } from './ParticipantBox';
+import { ParticipantBox } from '../../core/components/ParticipantBox/ParticipantBox';
 import { Video } from '../Video';
 
 import { useVerticalScrollPosition } from './hooks';

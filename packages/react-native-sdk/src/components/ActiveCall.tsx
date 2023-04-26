@@ -9,7 +9,7 @@ import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useCallCycleContext } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
-import { CallParticipantsScreenView } from './CallParticipantsScreenView';
+import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
 
@@ -21,6 +21,11 @@ export interface ActiveCallProps {
    * Handler called when the participants info button is pressed in the active call screen.
    */
   onOpenCallParticipantsInfoView: () => void;
+  /**
+   * The mode of the call view. Defaults to 'grid'.
+   * Note: when there is atleast one screen share, the mode is automatically set to 'spotlight'.
+   */
+  mode?: 'grid' | 'spotlight';
 }
 /**
  * View for an active call, includes call controls and participant handling.
@@ -52,7 +57,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
-  const { onOpenCallParticipantsInfoView } = props;
+  const { onOpenCallParticipantsInfoView, mode = 'grid' } = props;
   const hasScreenShare = useHasOngoingScreenShare();
   const { callCycleHandlers } = useCallCycleContext();
   const { onHangupCall } = callCycleHandlers;
@@ -67,6 +72,8 @@ const InnerActiveCall = (props: ActiveCallProps) => {
     );
   };
 
+  const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;
+
   return (
     <View style={styles.container}>
       <CallParticipantsBadge
@@ -78,8 +85,8 @@ const InnerActiveCall = (props: ActiveCallProps) => {
           { paddingBottom: height + theme.padding.lg },
         ]}
       >
-        {hasScreenShare ? (
-          <CallParticipantsScreenView />
+        {showSpotLightModeView ? (
+          <CallParticipantsSpotlightView />
         ) : (
           <CallParticipantsView />
         )}

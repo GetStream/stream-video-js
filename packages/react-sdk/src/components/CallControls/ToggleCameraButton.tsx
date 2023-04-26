@@ -4,9 +4,10 @@ import {
   useHasPermissions,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
+
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import { CompositeButton, IconButton } from '../Button/';
-import { useMediaDevices } from '../../contexts';
+import { useMediaDevices } from '../../core/contexts';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 import { Restricted } from '../Moderation';
