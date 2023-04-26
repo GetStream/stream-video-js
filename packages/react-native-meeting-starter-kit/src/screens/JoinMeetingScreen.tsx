@@ -29,7 +29,7 @@ export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>{'Whats the call ID?'}</Text>
+        <Text style={styles.headerText}>{"What's the call ID?"}</Text>
         <Button
           title={'Randomise'}
           color="blue"
