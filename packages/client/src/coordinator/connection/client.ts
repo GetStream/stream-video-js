@@ -33,6 +33,7 @@ import {
   TokenOrProvider,
 } from './types';
 import { InsightMetrics, postInsights } from './insights';
+import { PushDeviceRequest } from '../../gen/coordinator';
 
 export class StreamClient {
   _user?: OwnUserResponse;
@@ -66,6 +67,8 @@ export class StreamClient {
   resolveConnectionId!: Function;
   rejectConnectionId!: Function;
   connectionIdPromise: Promise<string | undefined>;
+  pushDevice?: PushDeviceRequest;
+  voidPushDevice?: PushDeviceRequest;
   private nextRequestAbortController: AbortController | null = null;
 
   /**

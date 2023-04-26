@@ -5,9 +5,10 @@ import {
 import {
   CreateCallTypeRequest,
   CreateCallTypeResponse,
+  CreateDeviceRequest,
   CreateGuestRequest,
   CreateGuestResponse,
-  DeviceFieldsRequest,
+  PushDeviceRequest,
   GetCallTypeResponse,
   GetEdgesResponse,
   ListCallTypeResponse,
@@ -278,7 +279,7 @@ export class StreamVideoClient {
     push_provider_name: string,
     userID?: string,
   ) {
-    return await this.streamClient.post('/devices', {
+    return await this.streamClient.post<CreateDeviceRequest>('/devices', {
       id,
       push_provider,
       ...(userID != null ? { user_id: userID } : {}),
@@ -315,8 +316,25 @@ export class StreamVideoClient {
    * setDevice - Set the device info for the current client device to receive push
    * notification, the device will be sent via WS connection automatically
    */
-  async setDevice(device: DeviceFieldsRequest) {
-    this.streamClient.options.pushDevice = device;
+  async setDevice(device: PushDeviceRequest) {
+    this.streamClient.pushDevice = device;
+    // if the connection already did authentication then we call the endpoint
+    // directly
+    if (this.streamClient.wsConnection?.authenticationSent) {
+      return await this.addDevice(
+        device.id,
+        device.push_provider,
+        device.push_provider_name,
+      );
+    }
+  }
+
+  /**
+   * setVoipDevice - Set the device info for the current client device to receive push
+   * notification, the device will be sent via WS connection automatically
+   */
+  async setVoipDevice(device: PushDeviceRequest) {
+    this.streamClient.voidPushDevice = device;
     // if the connection already did authentication then we call the endpoint
     // directly
     if (this.streamClient.wsConnection?.authenticationSent) {

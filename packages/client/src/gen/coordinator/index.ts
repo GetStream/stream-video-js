@@ -1234,19 +1234,19 @@ export interface CreateDeviceRequest {
    * @type {string}
    * @memberof CreateDeviceRequest
    */
-  id?: string;
+  id: string;
   /**
    *
    * @type {string}
    * @memberof CreateDeviceRequest
    */
-  push_provider?: CreateDeviceRequestPushProviderEnum;
+  push_provider: CreateDeviceRequestPushProviderEnum;
   /**
    *
    * @type {string}
    * @memberof CreateDeviceRequest
    */
-  push_provider_name?: string;
+  push_provider_name: string;
   /**
    *
    * @type {UserRequest}
@@ -1440,45 +1440,13 @@ export interface Device {
    * @memberof Device
    */
   push_provider_name?: string;
-}
-/**
- *
- * @export
- * @interface DeviceFieldsRequest
- */
-export interface DeviceFieldsRequest {
-  /**
-   * Device ID
-   * @type {string}
-   * @memberof DeviceFieldsRequest
-   */
-  id: string;
   /**
    *
-   * @type {string}
-   * @memberof DeviceFieldsRequest
+   * @type {boolean}
+   * @memberof Device
    */
-  push_provider: DeviceFieldsRequestPushProviderEnum;
-  /**
-   * Name of the push provider configuration
-   * @type {string}
-   * @memberof DeviceFieldsRequest
-   */
-  push_provider_name: string;
+  voip?: boolean;
 }
-
-/**
- * @export
- */
-export const DeviceFieldsRequestPushProviderEnum = {
-  FIREBASE: 'firebase',
-  APN: 'apn',
-  HUAWEI: 'huawei',
-  XIAOMI: 'xiaomi',
-} as const;
-export type DeviceFieldsRequestPushProviderEnum =
-  (typeof DeviceFieldsRequestPushProviderEnum)[keyof typeof DeviceFieldsRequestPushProviderEnum];
-
 /**
  *
  * @export
@@ -2306,6 +2274,44 @@ export interface PermissionRequestEvent {
    */
   user: UserResponse;
 }
+/**
+ *
+ * @export
+ * @interface PushDeviceRequest
+ */
+export interface PushDeviceRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof PushDeviceRequest
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof PushDeviceRequest
+   */
+  push_provider: PushDeviceRequestPushProviderEnum;
+  /**
+   *
+   * @type {string}
+   * @memberof PushDeviceRequest
+   */
+  push_provider_name: string;
+}
+
+/**
+ * @export
+ */
+export const PushDeviceRequestPushProviderEnum = {
+  FIREBASE: 'firebase',
+  APN: 'apn',
+  HUAWEI: 'huawei',
+  XIAOMI: 'xiaomi',
+} as const;
+export type PushDeviceRequestPushProviderEnum =
+  (typeof PushDeviceRequestPushProviderEnum)[keyof typeof PushDeviceRequestPushProviderEnum];
+
 /**
  *
  * @export
@@ -3370,10 +3376,10 @@ export interface VideoSettingsRequest {
 export interface WSAuthMessageRequest {
   /**
    *
-   * @type {DeviceFieldsRequest}
+   * @type {PushDeviceRequest}
    * @memberof WSAuthMessageRequest
    */
-  device?: DeviceFieldsRequest;
+  device?: PushDeviceRequest;
   /**
    *
    * @type {string}
@@ -3386,6 +3392,12 @@ export interface WSAuthMessageRequest {
    * @memberof WSAuthMessageRequest
    */
   user_details: ConnectUserDetailsRequest;
+  /**
+   *
+   * @type {PushDeviceRequest}
+   * @memberof WSAuthMessageRequest
+   */
+  voip_device?: PushDeviceRequest;
 }
 /**
  * This is just a placeholder for all client events
