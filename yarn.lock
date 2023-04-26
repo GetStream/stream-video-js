@@ -5078,6 +5078,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@notifee/react-native@npm:^7.6.1":
+  version: 7.6.1
+  resolution: "@notifee/react-native@npm:7.6.1"
+  peerDependencies:
+    react-native: "*"
+  checksum: 9b3eb25ea41a48d02ff643f7f46f4d8c04d20e17ba960f412fc94a026402d57e07ed7d81f4b4e4427f11c5d3418ad584c1a15bf9ae28e549667706825d74db3c
+  languageName: node
+  linkType: hard
+
 "@npmcli/fs@npm:^1.0.0":
   version: 1.1.1
   resolution: "@npmcli/fs@npm:1.1.1"
@@ -8514,6 +8523,7 @@ __metadata:
   dependencies:
     "@babel/core": ^7.12.9
     "@babel/runtime": ^7.12.5
+    "@notifee/react-native": ^7.6.1
     "@react-native-async-storage/async-storage": ^1.17.10
     "@react-native-clipboard/clipboard": ^1.11.1
     "@react-native-community/eslint-config": ^3.1.0
