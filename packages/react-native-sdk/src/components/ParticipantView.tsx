@@ -5,6 +5,7 @@ import {
   SfuModels,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
+  VisibilityState,
 } from '@stream-io/video-client';
 import { useActiveCall } from '@stream-io/video-react-bindings';
 import { VideoRenderer } from './VideoRenderer';
@@ -35,9 +36,9 @@ interface ParticipantViewProps {
    */
   videoRendererStyle?: StyleProp<ViewStyle>;
   /**
-   * When set to true, the video stream will not be shown even if it is available.
+   * When set to false, the video stream will not be shown even if it is available.
    */
-  disableVideo?: boolean;
+  isVisible?: boolean;
   /**
    * When set to true, the audio stream will not be played even if it is available.
    */
@@ -54,7 +55,7 @@ interface ParticipantViewProps {
  * |![participant-view-1](https://user-images.githubusercontent.com/25864161/217489213-d4532ca1-49ee-4ef5-940c-af2e55bc0a5f.png)|![participant-view-2](https://user-images.githubusercontent.com/25864161/217489207-fb20c124-8bce-4c2b-87f9-4fe67bc50438.png)|
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
-  const { participant, kind, disableVideo, disableAudio } = props;
+  const { participant, kind, isVisible = true, disableAudio } = props;
   const call = useActiveCall();
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
@@ -68,25 +69,62 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     (store) => store.isCameraOnFrontFacingMode,
   );
 
+  /**
+   * This effect updates the participant's viewportVisibilityState
+   * Additionally makes sure that when this view becomes visible again, the layout to subscribe is known
+   */
   useEffect(() => {
-    // NOTE: We only want to update the subscription if the pendingVideoLayoutRef is set or if the video is disabled
-    const updateIsNeeded = pendingVideoLayoutRef.current || disableVideo;
+    if (!call) return;
+    if (isVisible) {
+      if (participant.viewportVisibilityState !== VisibilityState.VISIBLE) {
+        call.state.updateParticipant(participant.sessionId, (p) => ({
+          ...p,
+          viewportVisibilityState: VisibilityState.VISIBLE,
+        }));
+      }
+    } else {
+      if (participant.viewportVisibilityState !== VisibilityState.INVISIBLE) {
+        call.state.updateParticipant(participant.sessionId, (p) => ({
+          ...p,
+          viewportVisibilityState: VisibilityState.INVISIBLE,
+        }));
+      }
+      if (subscribedVideoLayoutRef.current) {
+        // when video is enabled again, we want to use the last subscribed dimension to resubscribe
+        pendingVideoLayoutRef.current = subscribedVideoLayoutRef.current;
+        subscribedVideoLayoutRef.current = undefined;
+      }
+    }
+  }, [
+    participant.sessionId,
+    participant.viewportVisibilityState,
+    isVisible,
+    call,
+  ]);
 
+  /**
+   * This effect updates the subscription either
+   * 1. when video tracks are published and was unpublished before
+   * 2. when the view's visibility changes
+   */
+  useEffect(() => {
+    // NOTE: We only want to update the subscription if the pendingVideoLayoutRef is set
+    const updateIsNeeded = pendingVideoLayoutRef.current;
     if (!updateIsNeeded || !call || !isPublishingVideoTrack) return;
 
-    // NOTE: When the participant's video is disabled, we want to subscribe to audio only.
-    // We do this by setting the dimension to width and height 0.
-    const dimension = disableVideo
-      ? { width: 0, height: 0 }
-      : pendingVideoLayoutRef.current;
+    // NOTE: When the view is not visible, we want to subscribe to audio only.
+    // We unsubscribe their video by setting the dimension to undefined
+    const dimension = isVisible ? pendingVideoLayoutRef.current : undefined;
 
     call.updateSubscriptionsPartial(kind, {
       [participant.sessionId]: { dimension },
     });
 
-    subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
-    pendingVideoLayoutRef.current = undefined;
-  }, [call, isPublishingVideoTrack, kind, participant.sessionId, disableVideo]);
+    if (dimension) {
+      subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
+      pendingVideoLayoutRef.current = undefined;
+    }
+  }, [call, isPublishingVideoTrack, kind, participant.sessionId, isVisible]);
 
   useEffect(() => {
     return () => {
@@ -102,9 +140,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     };
 
     // NOTE: If the participant hasn't published a video track yet,
-    // or the video is disabled, we store the dimensions and handle it
+    // or the view is not viewable, we store the dimensions and handle it
     // when the track is published or the video is enabled.
-    if (!call || !isPublishingVideoTrack || disableVideo) {
+    if (!call || !isPublishingVideoTrack || !isVisible) {
       pendingVideoLayoutRef.current = dimension;
       return;
     }
@@ -135,11 +173,15 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const audioStream = participant.audioStream as MediaStream | undefined;
   const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  const hasScreenShareTrack = publishedTracks.includes(
+    SfuModels.TrackType.SCREEN_SHARE,
+  );
   const isScreenSharing = kind === 'screen';
+  const hasVideoTrack = isScreenSharing ? hasScreenShareTrack : !isVideoMuted;
   const mirror = isLoggedInUser && isCameraOnFrontFacingMode;
   const isAudioAvailable =
     kind === 'video' && !!audioStream && !isAudioMuted && !disableAudio;
-  const isVideoAvailable = !!videoStream && !isVideoMuted && !disableVideo;
+  const canShowVideo = !!videoStream && isVisible && hasVideoTrack;
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && styles.isSpeaking;
   const videoOnlyStyle = !isScreenSharing && {
@@ -152,6 +194,19 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       ? `${participant.userId.slice(0, 15)}...`
       : participant.userId;
 
+  // if (isScreenSharing) {
+  //   console.log({
+  //     isScreenSharing,
+  //     hasScreenShareTrack,
+  //     isPublishingVideoTrack,
+  //     hasVideoTrack,
+  //     canShowVideo,
+  //     isVisible,
+  //     pVideoStream: !!participant.videoStream,
+  //     pScreenShareStream: !!participant.screenShareStream,
+  //   });
+  // }
+
   return (
     <View
       style={[
@@ -162,12 +217,12 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       ]}
       onLayout={onLayout}
     >
-      {isVideoAvailable ? (
+      {canShowVideo ? (
         <VideoRenderer
           zOrder={1}
           mirror={mirror}
           mediaStream={videoStream as MediaStream}
-          objectFit={kind === 'screen' ? 'contain' : 'cover'}
+          objectFit={isScreenSharing ? 'contain' : 'cover'}
           style={[styles.videoRenderer, props.videoRendererStyle]}
         />
       ) : (
