@@ -90,6 +90,7 @@ import {
   StreamCallEvent,
 } from '../coordinator/connection/types';
 import { UAParser } from 'ua-parser-js';
+import { getSdkInfo } from '../sdk-info';
 
 /**
  * The options to pass to {@link Call} constructor.
@@ -602,7 +603,6 @@ export class Call {
       if (typeof navigator === 'undefined') {
         // TODO RN
       } else {
-        // TODO add SDK info once versioning is set up
         const details = new UAParser(navigator.userAgent).getResult();
         clientDetails.browser = {
           name: details.browser.name || navigator.userAgent,
@@ -620,6 +620,7 @@ export class Call {
           version: '',
         };
       }
+      clientDetails.sdk = getSdkInfo();
       // 1. wait for the signal server to be ready before sending "joinRequest"
       sfuClient.signalReady
         .catch((err) => console.warn('Signal ready failed', err))
