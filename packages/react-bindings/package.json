@@ -14,10 +14,12 @@
     "rxjs": "~7.5.7"
   },
   "peerDependencies": {
+    "@stream-io/i18n": "workspace:^",
     "@stream-io/video-client": "workspace:^",
     "react": ">=17.0.0"
   },
   "devDependencies": {
+    "@stream-io/i18n": "workspace:^",
     "@stream-io/video-client": "workspace:^",
     "@types/react": "^18.0.26",
     "@types/rimraf": "^3.0.2",
