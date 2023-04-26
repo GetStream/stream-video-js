@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   StreamCallProvider,
   useActiveCall,
@@ -37,8 +37,17 @@ export interface ActiveCallProps {
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useActiveCall();
-  if (!activeCall) return null;
+  const activeCallRef = useRef(activeCall);
+  activeCallRef.current = activeCall;
 
+  useEffect(() => {
+    return () => {
+      // ensure that if this component is unmounted, the call is left.
+      activeCallRef.current?.leave();
+    };
+  }, []);
+
+  if (!activeCall) return null;
   return (
     <StreamCallProvider call={activeCall}>
       <InnerActiveCall {...props} />

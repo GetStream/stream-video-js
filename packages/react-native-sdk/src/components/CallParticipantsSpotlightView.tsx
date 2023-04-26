@@ -3,7 +3,7 @@ import { useParticipants } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { ParticipantView } from './ParticipantView';
 import { theme } from '../theme';
-import { useDebouncedValue } from '../utils/hooks';
+import { useDebouncedValue } from '../utils/useDebouncedValue';
 import { CallParticipantsList } from './CallParticipantsList';
 import { speakerLayoutSortPreset } from '@stream-io/video-client';
 

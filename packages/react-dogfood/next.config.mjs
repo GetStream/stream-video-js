@@ -31,6 +31,21 @@ const nextConfig = {
     ];
   },
 
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.module.rules.push({
+        test: /\.js$/,
+        enforce: 'pre',
+        use: ['source-map-loader'],
+      });
+      config.ignoreWarnings = [
+        ...(config.ignoreWarnings || []),
+        /Failed to parse source map/,
+      ];
+    }
+    return config;
+  },
+
   sentry: {
     // Use `hidden-source-map` rather than `source-map` as the Webpack `devtool`
     // for client-side builds. (This will be the default starting in
