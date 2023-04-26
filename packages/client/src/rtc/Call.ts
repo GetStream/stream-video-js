@@ -790,7 +790,7 @@ export class Call {
    */
   stopPublish = async (trackType: TrackType) => {
     console.log(`stopPublish`, TrackType[trackType]);
-    return this.publisher?.unpublishStream(trackType);
+    await this.publisher?.unpublishStream(trackType);
   };
 
   /**
