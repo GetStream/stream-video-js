@@ -23,6 +23,7 @@ import {STREAM_API_KEY} from 'react-native-dotenv';
 import {useAppContext} from '../context/AppContext';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {Platform} from 'react-native';
 
 console.log('STREAM_API_KEY', STREAM_API_KEY);
 
@@ -45,6 +46,9 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
     user,
     tokenOrProvider: token,
     apiKey: STREAM_API_KEY,
+    options: {
+      preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
+    },
   });
   const navigation =
     useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();

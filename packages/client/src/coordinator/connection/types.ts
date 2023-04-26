@@ -118,6 +118,10 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
   wsConnection?: StableWSConnection;
   // Sets the current push device, if present this is sent to the WS when authenticating
   pushDevice?: DeviceFieldsRequest;
+  /**
+   * The preferred video codec to use.
+   */
+  preferredVideoCodec?: string;
 };
 
 export type TokenProvider = () => Promise<string>;

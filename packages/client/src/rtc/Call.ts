@@ -588,6 +588,7 @@ export class Call {
       connectionConfig: call.connectionConfig,
       isDtxEnabled,
       preferredAudioCodec: this.preferredAudioCodec,
+      preferredVideoCodec: this.streamClient.options.preferredVideoCodec,
     });
 
     this.statsReporter = createStatsReporter({

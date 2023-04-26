@@ -22,6 +22,7 @@ export type PublisherOpts = {
   connectionConfig?: RTCConfiguration;
   isDtxEnabled: boolean;
   preferredAudioCodec: string;
+  preferredVideoCodec?: string;
 };
 
 /**
@@ -51,12 +52,14 @@ export class Publisher {
   };
   private isDtxEnabled: boolean;
   private preferredAudioCodec: string;
+  private preferredVideoCodec?: string;
 
   constructor({
     connectionConfig,
     rpcClient,
     isDtxEnabled,
     preferredAudioCodec,
+    preferredVideoCodec,
   }: PublisherOpts) {
     const pc = new RTCPeerConnection(connectionConfig);
     pc.addEventListener('icecandidate', this.onIceCandidate);
@@ -76,6 +79,7 @@ export class Publisher {
     this.rpcClient = rpcClient;
     this.isDtxEnabled = isDtxEnabled;
     this.preferredAudioCodec = preferredAudioCodec;
+    this.preferredVideoCodec = preferredVideoCodec;
   }
 
   /**
@@ -123,7 +127,7 @@ export class Publisher {
       if (trackType === TrackType.VIDEO) {
         const codecPreferences = getPreferredCodecs(
           'video',
-          opts.preferredCodec || 'vp8',
+          opts.preferredCodec || this.preferredVideoCodec || 'vp8',
         );
 
         if ('setCodecPreferences' in transceiver && codecPreferences) {
@@ -261,7 +265,9 @@ export class Publisher {
         sdp = enableDtx(sdp);
       }
       if (isReactNative()) {
-        sdp = setPreferredCodec(sdp, 'video', 'vp8');
+        if (this.preferredVideoCodec) {
+          sdp = setPreferredCodec(sdp, 'video', this.preferredVideoCodec);
+        }
         sdp = setPreferredCodec(sdp, 'audio', this.preferredAudioCodec);
       }
     }
