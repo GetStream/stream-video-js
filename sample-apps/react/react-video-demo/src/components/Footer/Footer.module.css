@@ -35,27 +35,22 @@
   margin-left: 0px;
 }
 
-<<<<<<< Updated upstream
-=======
 .reactions {
   @apply hidden xl:flex md:ml-4;
 }
 
 .reactionsPortal {
-  @apply absolute;
+  @apply absolute h-auto w-[150px];
   right: 0;
   bottom: 0;
   left: 0;
   z-index: 9999;
-  height: auto;
-  width: 150px;
 }
 
 .likeIcon {
-  height: 18px;
+  @apply h-[18px];
 }
 
->>>>>>> Stashed changes
 .record {
   @apply hidden lg:flex ml-4;
 }
