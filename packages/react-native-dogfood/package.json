@@ -22,6 +22,7 @@
     "@sentry/react-native": "5.0.0-alpha.11",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-native-sdk": "workspace:^",
+    "intl-pluralrules": "^2.0.0",
     "nanoid": "^4.0.1",
     "react": "18.2.0",
     "react-native": "0.70.6",
