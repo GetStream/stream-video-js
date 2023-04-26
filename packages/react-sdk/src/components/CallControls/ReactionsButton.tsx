@@ -1,6 +1,7 @@
-import { CompositeButton, IconButton } from '../Button';
-import { useActiveCall } from '@stream-io/video-react-bindings';
 import { OwnCapability, StreamReaction } from '@stream-io/video-client';
+import { useCall } from '@stream-io/video-react-bindings';
+
+import { CompositeButton, IconButton } from '../Button';
 import { defaultEmojiReactions } from '../Reaction';
 import { Restricted } from '../Moderation';
 
@@ -57,10 +58,10 @@ export interface DefaultReactionsMenuProps {
 export const DefaultReactionsMenu = ({
   reactions,
 }: DefaultReactionsMenuProps) => {
-  const activeCall = useActiveCall();
+  const call = useCall();
 
   const sendReaction = (reaction: StreamReaction) => {
-    activeCall?.sendReaction(reaction);
+    call?.sendReaction(reaction);
   };
 
   return (
