@@ -13,6 +13,7 @@ import {
   useStreamVideoStoreValue,
 } from '../contexts/StreamVideoContext';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
+import { useAppStateListener } from '../utils/useAppStateListener';
 
 /**
  * A helper hook which exposes audio, video mute and camera facing mode and
@@ -64,6 +65,9 @@ export const useCallControls = () => {
       console.log('Failed to publish video stream', e);
     }
   }, [call, currentVideoDevice]);
+
+  /* Attempt to republish video stream when app comes back to foreground */
+  useAppStateListener(publishVideoStream);
 
   const toggleVideoMuted = useCallback(async () => {
     if (isVideoMuted) {
