@@ -45,6 +45,22 @@
   height: auto;
 }
 
+.reactions {
+  @apply hidden md:flex md:ml-4;
+}
+
+.reactionsPortal {
+  @apply absolute h-auto w-[150px];
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+.likeIcon {
+  @apply h-[18px];
+}
+
 .record {
   @apply hidden lg:flex ml-4;
 }

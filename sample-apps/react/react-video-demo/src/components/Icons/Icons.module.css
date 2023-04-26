@@ -1,8 +1,4 @@
-.root{
-    display: block;
-}
-
-.mic{
-    width: 24px;
-    height: 2px;
+.root {
+  display: block;
+  @apply h-6 w-6;
 }

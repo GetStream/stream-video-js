@@ -1,4 +1,4 @@
-@use "../utils";
+@use '../utils';
 
 .str-video__call-recording-list {
   padding: 0.625rem; // todo: unify menu root paddings
@@ -8,23 +8,16 @@
 .str-video__call-recording-list__header {
   display: flex;
   justify-content: space-between;
-  padding: 0.5rem; // todo: unify menu header paddings
+  padding: 0rem 0.5rem 0.5rem; // todo: unify menu header paddings
+  align-items: center;
 
   .str-video__call-recording-list__title {
     display: flex;
     gap: 0.5rem;
   }
 
-  .str-video__refresh-button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 1.5rem;
-    height: 1.5rem;
-    padding: 0;
-
-    .str-video__refresh-button--icon {
-      display: block;
+  .str-video__call-controls__button {
+    .str-video__icon {
       width: 1rem;
       height: 1rem;
     }
@@ -94,10 +87,10 @@
 
 .str-video__call-recording-list__listing {
   .str-video__loading-indicator {
-      padding-block: 0.5rem;
-      flex-direction: row;
-      justify-content: flex-start;
-      gap: 0.5rem;
+    padding-block: 0.5rem;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 0.5rem;
 
     .str-video__loading-indicator__icon.spinner {
       height: 1rem;

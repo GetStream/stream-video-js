@@ -130,6 +130,13 @@ export type CallConstructor = {
   ringing?: boolean;
 
   /**
+   * Set to true if this call instance should receive updates from the backend.
+   *
+   * @default false.
+   */
+  watching?: boolean;
+
+  /**
    * The default comparator to use when sorting participants.
    */
   sortParticipantsBy?: Comparator<StreamVideoParticipant>;
@@ -169,6 +176,17 @@ export class Call {
    * The state of this call.
    */
   readonly state: CallState;
+
+  /**
+   * Flag telling whether this call is a "ringing" call.
+   */
+  readonly ringing: boolean;
+
+  /**
+   * Flag indicating whether this call is "watched" and receives
+   * updates from the backend.
+   */
+  watching: boolean;
 
   /**
    * The permissions context of this call.
@@ -239,10 +257,13 @@ export class Call {
     sortParticipantsBy,
     clientStore,
     ringing = false,
+    watching = false,
   }: CallConstructor) {
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
+    this.ringing = ringing;
+    this.watching = watching;
     this.streamClient = streamClient;
     this.clientStore = clientStore;
     this.streamClientBasePath = `/call/${this.type}/${this.id}`;
@@ -251,7 +272,6 @@ export class Call {
     this.state = new CallState(
       sortParticipantsBy || callTypeConfig.options.sortParticipantsBy,
     );
-
     if (ringing) {
       this.scheduleAutoDrop();
       this.watchForAutoDropCancellation();
@@ -397,6 +417,7 @@ export class Call {
     this.leaveCallHooks.forEach((hook) => hook());
 
     this.clientStore.setActiveCall(undefined);
+    this.clientStore.unregisterCall(this);
     this.state.setCallingState(CallingState.LEFT);
   };
 
@@ -429,6 +450,9 @@ export class Call {
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
 
+    this.watching = true;
+    this.clientStore.registerCall(this);
+
     return response;
   };
 
@@ -451,6 +475,9 @@ export class Call {
     const call = await join(this.streamClient, this.type, this.id, data);
     this.state.setMetadata(call.metadata);
     this.state.setMembers(call.members);
+
+    this.watching = true;
+    this.clientStore.registerCall(this);
 
     // FIXME OL: convert to a derived state
     this.state.setCallRecordingInProgress(call.metadata.recording);

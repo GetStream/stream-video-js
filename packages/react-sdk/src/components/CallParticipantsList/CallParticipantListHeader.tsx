@@ -1,16 +1,15 @@
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import { useParticipants } from '@stream-io/video-react-bindings';
 
 export type CallParticipantListHeaderProps = {
   /** Click event listener function to be invoked in order to dismiss / hide the CallParticipantsList from the UI */
   onClose: () => void;
-  /** Array of call participant objects */
-  participants: StreamVideoParticipant[];
 };
 
 export const CallParticipantListHeader = ({
   onClose,
-  participants,
 }: CallParticipantListHeaderProps) => {
+  const participants = useParticipants();
+
   return (
     <div className="str-video__participant-list-header">
       <div className="str-video__participant-list-header__title">

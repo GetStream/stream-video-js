@@ -5078,6 +5078,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@notifee/react-native@npm:^7.6.1":
+  version: 7.6.1
+  resolution: "@notifee/react-native@npm:7.6.1"
+  peerDependencies:
+    react-native: "*"
+  checksum: 9b3eb25ea41a48d02ff643f7f46f4d8c04d20e17ba960f412fc94a026402d57e07ed7d81f4b4e4427f11c5d3418ad584c1a15bf9ae28e549667706825d74db3c
+  languageName: node
+  linkType: hard
+
 "@npmcli/fs@npm:^1.0.0":
   version: 1.1.1
   resolution: "@npmcli/fs@npm:1.1.1"
@@ -8502,6 +8511,7 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     sass: ^1.58.3
+    source-map-loader: ^4.0.1
     stream-chat: ^8.4.1
     stream-chat-react: ^10.7.2
     yargs: ^17.7.1
@@ -8514,6 +8524,7 @@ __metadata:
   dependencies:
     "@babel/core": ^7.12.9
     "@babel/runtime": ^7.12.5
+    "@notifee/react-native": ^7.6.1
     "@react-native-async-storage/async-storage": ^1.17.10
     "@react-native-clipboard/clipboard": ^1.11.1
     "@react-native-community/eslint-config": ^3.1.0
@@ -32933,6 +32944,19 @@ __metadata:
   peerDependencies:
     webpack: ^5.0.0
   checksum: d5a4e2ab190c93ae5cba68c247fbaa9fd560333c91060602b634c399a8a4b3205b8c07714c3bcdb0a11c6cc5476c06256bd8e824e71fbbb7981e8fad5cba4a00
+  languageName: node
+  linkType: hard
+
+"source-map-loader@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "source-map-loader@npm:4.0.1"
+  dependencies:
+    abab: ^2.0.6
+    iconv-lite: ^0.6.3
+    source-map-js: ^1.0.2
+  peerDependencies:
+    webpack: ^5.72.1
+  checksum: 4ddca8b03dc61f406effd4bffe70de4b87fef48bae6f737017b2dabcbc7d609133325be1e73838e9265331de28039111d729fcbb8bce88a6018a816bef510eb1
   languageName: node
   linkType: hard
 
