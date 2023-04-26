@@ -14,6 +14,7 @@ import { useStreamVideoStoreValue } from '../contexts';
 import { MicOff, ScreenShare, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { palette } from '../theme/constants';
+import { ParticipantReactions } from './ParticipantReactions';
 
 /**
  * Props to be passed for the ParticipantView component.
@@ -68,6 +69,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
+  const { reaction, sessionId } = participant;
 
   /**
    * This effect updates the participant's viewportVisibilityState
@@ -227,6 +229,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         />
       ) : (
         <Avatar participant={participant} />
+      )}
+      {reaction && (
+        <ParticipantReactions reaction={reaction} sessionId={sessionId} />
       )}
       {isAudioAvailable && (
         <RTCView streamURL={(audioStream as MediaStream).toURL()} />

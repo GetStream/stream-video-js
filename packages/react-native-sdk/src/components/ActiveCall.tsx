@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   StreamCallProvider,
   useActiveCall,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useCallCycleContext } from '../contexts';
@@ -12,6 +12,10 @@ import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
+import { Reaction } from '../icons';
+import { ReactionModal } from './ReactionsModal';
+import { CallPermissionsWrapper } from './CallPermissionsWrapper';
+import { OwnCapability } from '@stream-io/video-client';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -57,6 +61,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
+  const [reactionModal, setReactionModal] = useState<boolean>(false);
   const { onOpenCallParticipantsInfoView, mode = 'grid' } = props;
   const hasScreenShare = useHasOngoingScreenShare();
   const { callCycleHandlers } = useCallCycleContext();
@@ -72,6 +77,10 @@ const InnerActiveCall = (props: ActiveCallProps) => {
     );
   };
 
+  const openReactionsModal = useCallback(() => {
+    setReactionModal(true);
+  }, [setReactionModal]);
+
   const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;
 
   return (
@@ -79,6 +88,16 @@ const InnerActiveCall = (props: ActiveCallProps) => {
       <CallParticipantsBadge
         onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
       />
+      <CallPermissionsWrapper requiredGrants={[OwnCapability.CREATE_REACTION]}>
+        <Pressable
+          onPress={openReactionsModal}
+          style={[styles.svgContainerStyle, theme.icon.md]}
+        >
+          <Reaction color={theme.light.static_white} />
+        </Pressable>
+      </CallPermissionsWrapper>
+
+      {reactionModal && <ReactionModal setReactionModal={setReactionModal} />}
       <View
         style={[
           styles.callParticipantsWrapper,
@@ -105,4 +124,9 @@ const styles = StyleSheet.create({
   },
   callParticipantsWrapper: { flex: 1 },
   callControlsWrapper: { position: 'absolute', bottom: 0, left: 0, right: 0 },
+  svgContainerStyle: {
+    position: 'absolute',
+    right: 2 * theme.spacing.lg,
+    zIndex: 2,
+  },
 });

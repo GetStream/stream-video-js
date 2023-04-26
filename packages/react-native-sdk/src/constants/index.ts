@@ -7,3 +7,9 @@ export const LOCAL_VIDEO_VIEW_STYLE = {
   width: 80,
   borderRadius: theme.rounded.sm,
 };
+
+export const defaultEmojiReactions: Record<string, string | JSX.Element> = {
+  ':like:': '👍',
+  ':raise-hand:': '✋',
+  ':fireworks:': '🎉',
+};
