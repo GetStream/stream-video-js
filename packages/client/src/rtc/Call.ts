@@ -91,6 +91,7 @@ import {
 } from '../coordinator/connection/types';
 import { UAParser } from 'ua-parser-js';
 import { getSdkInfo } from '../sdk-info';
+import { isReactNative } from '../helpers/platforms';
 
 /**
  * The options to pass to {@link Call} constructor.
@@ -600,7 +601,7 @@ export class Call {
 
     try {
       const clientDetails: ClientDetails = {};
-      if (typeof navigator === 'undefined') {
+      if (isReactNative()) {
         // TODO RN
       } else {
         const details = new UAParser(navigator.userAgent).getResult();
