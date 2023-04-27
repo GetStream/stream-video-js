@@ -9,7 +9,7 @@ import {
   SfuEventListener,
 } from './rtc';
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
-import { TrackType } from './gen/video/sfu/models/models';
+import { ClientDetails, TrackType } from './gen/video/sfu/models/models';
 import { registerEventHandlers } from './events/callEventHandlers';
 import {
   CallingState,
@@ -86,6 +86,9 @@ import {
   EventHandler,
   StreamCallEvent,
 } from './coordinator/connection/types';
+import { UAParser } from 'ua-parser-js';
+import { getSdkInfo } from '../sdk-info';
+import { isReactNative } from '../helpers/platforms';
 
 /**
  * The options to pass to {@link Call} constructor.
@@ -622,6 +625,28 @@ export class Call {
     });
 
     try {
+      const clientDetails: ClientDetails = {};
+      if (isReactNative()) {
+        // TODO RN
+      } else {
+        const details = new UAParser(navigator.userAgent).getResult();
+        clientDetails.browser = {
+          name: details.browser.name || navigator.userAgent,
+          version: details.browser.version || '',
+        };
+        clientDetails.os = {
+          name: details.os.name || '',
+          version: details.os.version || '',
+          architecture: details.cpu.architecture || '',
+        };
+        clientDetails.device = {
+          name: `${details.device.vendor || ''} ${details.device.model || ''} ${
+            details.device.type || ''
+          }`,
+          version: '',
+        };
+      }
+      clientDetails.sdk = getSdkInfo();
       // 1. wait for the signal server to be ready before sending "joinRequest"
       sfuClient.signalReady
         .catch((err) => console.warn('Signal ready failed', err))

@@ -21,3 +21,4 @@ export * from './src/helpers/ViewportTracker';
 
 export * from './src/helpers/sound-detector';
 export * as Browsers from './src/helpers/browsers';
+export * from './src/sdk-info';
