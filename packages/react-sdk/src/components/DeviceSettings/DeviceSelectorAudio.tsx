@@ -1,5 +1,5 @@
 import { DeviceSelector } from './DeviceSelector';
-import { useMediaDevices } from '../../contexts';
+import { useMediaDevices } from '../../core/contexts';
 
 export type DeviceSelectorAudioInputProps = {
   title?: string;

@@ -81,13 +81,15 @@ $scope-name: 'str-video__speaker-layout';
         min-width: 280px;
         max-width: 25vh;
 
-        .str-video__participant_details {
+        .str-video__participant_details,
+        .str-video__call-controls__button {
           transition: opacity 200ms ease-out;
           opacity: 0.3;
         }
 
         &:hover {
-          .str-video__participant_details {
+          .str-video__participant_details,
+          .str-video__call-controls__button {
             opacity: 1;
           }
         }

@@ -13,12 +13,15 @@ import {
   ShareScreen,
   Stop,
   LoadingSpinner,
+  Like,
 } from '../Icons';
 import Portal from '../Portal';
 import SettingsPanel from '../SettingsPanel';
+import ReactionsPanel from '../ReactionsPanel';
 
 import { useTourContext, StepNames } from '../../contexts/TourContext';
 import { useModalContext } from '../../contexts/ModalContext';
+import { usePanelContext } from '../../contexts/PanelContext';
 
 import styles from './Footer.module.css';
 
@@ -26,13 +29,9 @@ export type Props = {
   call: any;
   isCallActive: boolean;
   callId: string;
-  toggleChat: () => void;
-  toggleParticipants: () => void;
   handleStartRecording: () => void;
   handleStopRecording: () => void;
   toggleShareScreen: () => void;
-  showChat?: boolean;
-  showParticipants?: boolean;
   isRecording?: boolean;
   isAwaitingRecording?: boolean;
   isScreenSharing?: boolean;
@@ -44,13 +43,9 @@ export type Props = {
 export const Footer: FC<Props> = ({
   call,
   callId,
-  toggleChat,
-  toggleParticipants,
   handleStartRecording,
   handleStopRecording,
   toggleShareScreen,
-  showChat,
-  showParticipants,
   isRecording,
   isAwaitingRecording,
   isScreenSharing,
@@ -59,10 +54,16 @@ export const Footer: FC<Props> = ({
   leave,
 }) => {
   const { current } = useTourContext();
-
   const { isVisible } = useModalContext();
+  const {
+    isChatVisible,
+    isParticipantsVisible,
+    toggleChat,
+    toggleParticipants,
+  } = usePanelContext();
 
   const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(true);
+  const [showReactionsPanel, setShowReactionsPanel] = useState<boolean>(true);
 
   useEffect(() => {
     if (isVisible && showSettingsPanel) {
@@ -71,14 +72,14 @@ export const Footer: FC<Props> = ({
   }, [showSettingsPanel, isVisible]);
 
   useEffect(() => {
-    if (current === StepNames.Chat && showChat === false) {
+    if (current === StepNames.Chat && isChatVisible === false) {
       toggleChat();
     }
 
     if (current === StepNames.Settings && showSettingsPanel === false) {
       setShowSettingsPanel(true);
     }
-  }, [current, showChat]);
+  }, [current, isChatVisible]);
 
   useEffect(() => {
     setShowSettingsPanel(isVisible || current === StepNames.Settings);
@@ -107,7 +108,7 @@ export const Footer: FC<Props> = ({
               <SettingsPanel
                 callId={callId}
                 toggleRecording={
-                  !isRecording ? handleStartRecording : undefined
+                  !isRecording ? handleStartRecording : handleStopRecording
                 }
                 toggleShareScreen={toggleShareScreen}
               />
@@ -140,13 +141,27 @@ export const Footer: FC<Props> = ({
 
         <Button
           className={styles.shareScreen}
-          label="Share screen"
+          label="Share"
           color={isScreenSharing ? 'active' : 'secondary'}
           shape="square"
           onClick={toggleShareScreen}
         >
           <ShareScreen />
         </Button>
+
+        <ControlButton
+          className={styles.reactions}
+          portalId="reactions"
+          onClick={() => setShowReactionsPanel(!showReactionsPanel)}
+          showPanel={showReactionsPanel}
+          label="Reaction"
+          panel={
+            <Portal className={styles.reactionsPortal} selector="reactions">
+              <ReactionsPanel />
+            </Portal>
+          }
+          prefix={<Like className={styles.likeIcon} />}
+        />
       </div>
       <div className={styles.controls}>
         <ControlMenu
@@ -172,7 +187,7 @@ export const Footer: FC<Props> = ({
           color={
             current === StepNames.Chat
               ? 'primary'
-              : showChat
+              : isChatVisible
               ? 'active'
               : 'secondary'
           }
@@ -187,12 +202,14 @@ export const Footer: FC<Props> = ({
         <Button
           label="Participants"
           className={styles.participants}
-          color={showParticipants ? 'active' : 'secondary'}
+          color={isParticipantsVisible ? 'active' : 'secondary'}
           shape="square"
           onClick={toggleParticipants}
         >
           <People />
-          {!showParticipants && participantCount && participantCount > 1 ? (
+          {!isParticipantsVisible &&
+          participantCount &&
+          participantCount > 1 ? (
             <span className={styles.participantCounter}>
               {participantCount}
             </span>

@@ -6,16 +6,15 @@ import {
   FullScreen,
   Cog,
   Info,
-  Leave,
-  Chat,
-  People,
   Record,
+  Recordings as RecordingsIcon,
   ShareScreen,
 } from '../Icons';
 
 import CallStats from '../CallStats';
 import Feedback from '../Feedback';
 import DeviceSettings from '../DeviceSettings';
+import Recordings from '../Recordings';
 
 import { toggleFullScreen } from '../../utils/useToggleFullScreen';
 
@@ -46,6 +45,10 @@ export const SettingsPanel: FC<Props> = ({
     setComponent(<DeviceSettings />);
   }, []);
 
+  const handleRecordings = useCallback(() => {
+    setComponent(<Recordings />);
+  }, []);
+
   const handleToggleCallState = useCallback(() => {
     setComponent(<CallStats callId={callId} />);
   }, [callId]);
@@ -63,6 +66,10 @@ export const SettingsPanel: FC<Props> = ({
           <li className={styles.item} onClick={() => handleToggleCallState()}>
             <Info className={styles.settingsIcon} />
             Statistics
+          </li>
+          <li className={styles.item} onClick={() => handleRecordings()}>
+            <RecordingsIcon className={styles.settingsIcon} />
+            Recordings
           </li>
           <li className={styles.item} onClick={() => handleFeedback()}>
             <FeedbackIcon className={styles.settingsIcon} />

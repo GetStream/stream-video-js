@@ -786,6 +786,12 @@ export interface CallResponse {
    */
   ended_at?: string;
   /**
+   *
+   * @type {string}
+   * @memberof CallResponse
+   */
+  hls_playlist_url: string;
+  /**
    * Call ID
    * @type {string}
    * @memberof CallResponse
@@ -1220,6 +1226,56 @@ export interface CreateCallTypeResponse {
 /**
  *
  * @export
+ * @interface CreateDeviceRequest
+ */
+export interface CreateDeviceRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof CreateDeviceRequest
+   */
+  id?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateDeviceRequest
+   */
+  push_provider?: CreateDeviceRequestPushProviderEnum;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateDeviceRequest
+   */
+  push_provider_name?: string;
+  /**
+   *
+   * @type {UserRequest}
+   * @memberof CreateDeviceRequest
+   */
+  user?: UserRequest;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateDeviceRequest
+   */
+  user_id?: string;
+}
+
+/**
+ * @export
+ */
+export const CreateDeviceRequestPushProviderEnum = {
+  FIREBASE: 'firebase',
+  APN: 'apn',
+  HUAWEI: 'huawei',
+  XIAOMI: 'xiaomi',
+} as const;
+export type CreateDeviceRequestPushProviderEnum =
+  (typeof CreateDeviceRequestPushProviderEnum)[keyof typeof CreateDeviceRequestPushProviderEnum];
+
+/**
+ *
+ * @export
  * @interface CreateGuestRequest
  */
 export interface CreateGuestRequest {
@@ -1384,12 +1440,6 @@ export interface Device {
    * @memberof Device
    */
   push_provider_name?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof Device
-   */
-  user_id: string;
 }
 /**
  *
@@ -1402,19 +1452,19 @@ export interface DeviceFieldsRequest {
    * @type {string}
    * @memberof DeviceFieldsRequest
    */
-  id?: string;
+  id: string;
   /**
    *
    * @type {string}
    * @memberof DeviceFieldsRequest
    */
-  push_provider?: DeviceFieldsRequestPushProviderEnum;
+  push_provider: DeviceFieldsRequestPushProviderEnum;
   /**
    * Name of the push provider configuration
    * @type {string}
    * @memberof DeviceFieldsRequest
    */
-  push_provider_name?: string;
+  push_provider_name: string;
 }
 
 /**
@@ -1954,6 +2004,25 @@ export interface ListCallTypeResponse {
    *
    * @type {string}
    * @memberof ListCallTypeResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
+ * @interface ListDevicesResponse
+ */
+export interface ListDevicesResponse {
+  /**
+   * List of devices
+   * @type {Array<Device>}
+   * @memberof ListDevicesResponse
+   */
+  devices: Array<Device>;
+  /**
+   *
+   * @type {string}
+   * @memberof ListDevicesResponse
    */
   duration: string;
 }
@@ -2560,6 +2629,19 @@ export interface RequestPermissionResponse {
    *
    * @type {string}
    * @memberof RequestPermissionResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
+ * @interface Response
+ */
+export interface Response {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof Response
    */
   duration: string;
 }

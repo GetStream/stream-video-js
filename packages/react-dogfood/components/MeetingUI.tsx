@@ -24,7 +24,7 @@ import {
   useCallCallingState,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { InviteLinkButton } from './InviteLinkButton';
+
 import { Lobby } from './Lobby';
 import { Button, Stack, Typography } from '@mui/material';
 import { StreamChat } from 'stream-chat';
@@ -38,7 +38,7 @@ import {
 import { ActiveCallHeader } from './ActiveCallHeader';
 import { DeviceSettingsCaptor } from './DeviceSettingsCaptor';
 import { useWatchChannel } from '../hooks';
-import { LayoutMap } from './LayoutSelector';
+import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 import { Stage } from './Stage';
 
 const contents = {
@@ -50,22 +50,23 @@ const contents = {
   },
 };
 
-export const MeetingUI = ({
-  chatClient,
-}: {
-  chatClient: StreamChat | null;
-}) => {
+type MeetingUIProps = {
+  chatClient?: StreamChat | null;
+  callId: string;
+  callType: string;
+};
+export const MeetingUI = ({ chatClient, callId, callType }: MeetingUIProps) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call'
   >('lobby');
   const router = useRouter();
-  const callId = router.query['callId'] as string;
-  const callType = (router.query['type'] as string) || 'default';
   const client = useStreamVideoClient();
   const [activeCall, setActiveCall] = useState<Call>();
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [layout, setLayout] = useState<keyof typeof LayoutMap>('LegacyGrid');
+  const [layout, setLayout] = useState<keyof typeof LayoutMap>(
+    getLayoutSettings()?.selectedLayout ?? DEFAULT_LAYOUT,
+  );
 
   const showSidebar = showParticipants || showChat;
 
@@ -137,7 +138,9 @@ export const MeetingUI = ({
       />
     );
   }
-  if (show === 'lobby') return <Lobby onJoin={onJoin} />;
+  if (show === 'lobby') {
+    return <Lobby onJoin={onJoin} callId={callId} />;
+  }
 
   if (show === 'loading')
     return (
@@ -216,10 +219,7 @@ export const MeetingUI = ({
         {showSidebar && (
           <div className="str-video__sidebar">
             {showParticipants && (
-              <CallParticipantsList
-                onClose={hideParticipantList}
-                InviteLinkButton={InviteLinkButton}
-              />
+              <CallParticipantsList onClose={hideParticipantList} />
             )}
 
             <ChatWrapper chatClient={chatClient}>

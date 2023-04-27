@@ -3,6 +3,7 @@ import {
   Call,
   disposeOfMediaStream,
   getAudioStream,
+  OwnCapability,
   SfuModels,
   watchForAddedDefaultAudioDevice,
   watchForDisconnectedAudioDevice,
@@ -31,14 +32,12 @@ export const useAudioPublisher = ({
   initialAudioMuted,
   audioDeviceId,
 }: AudioPublisherInit) => {
-  // FIXME OL: cleanup
-  // const { localParticipant$ } = useStore();
   const callState = call?.state;
   const { localParticipant$ } = callState || {};
   // helper reference to determine initial publishing of the media stream
   const initialPublishExecuted = useRef<boolean>(false);
   const participant = localParticipant$
-    ? callState?.getCurrentValue(localParticipant$)
+    ? callState?.localParticipant
     : undefined;
 
   const isPublishingAudio = participant?.publishedTracks.includes(
@@ -47,6 +46,10 @@ export const useAudioPublisher = ({
 
   const publishAudioStream = useCallback(async () => {
     if (!call) return;
+    if (!call.permissionsContext.hasPermission(OwnCapability.SEND_AUDIO)) {
+      console.log(`No permission to publish audio`);
+      return;
+    }
     try {
       const audioStream = await getAudioStream(audioDeviceId);
       await call.publishAudioStream(audioStream);
@@ -64,6 +67,7 @@ export const useAudioPublisher = ({
 
     if (
       !call ||
+      !call.permissionsContext.hasPermission(OwnCapability.SEND_AUDIO) ||
       // FIXME: remove "&& !initialPublishExecuted.current" and make
       // sure initialAudioMuted is not changing during active call
       (initialAudioMuted && !initialPublishExecuted.current) ||

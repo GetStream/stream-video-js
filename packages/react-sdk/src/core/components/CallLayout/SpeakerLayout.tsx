@@ -13,9 +13,9 @@ import {
   useParticipants,
 } from '@stream-io/video-react-bindings';
 
-import { ParticipantBox } from '../StreamCall';
-import { IconButton } from '../Button';
-import { useHorizontalScrollPosition } from '../StreamCall/hooks';
+import { ParticipantBox } from '../ParticipantBox';
+import { IconButton } from '../../../components/Button';
+import { useHorizontalScrollPosition } from '../../../components/StreamCall/hooks';
 
 export const SpeakerLayout = () => {
   const call = useCall()!;
@@ -117,6 +117,7 @@ export const SpeakerLayout = () => {
                       participant={participant}
                       call={call}
                       sinkId={localParticipant?.audioOutputDeviceId}
+                      toggleMenuPosition="top"
                       videoKind={
                         isOneToOneCall && hasScreenShare(participant)
                           ? 'screen'

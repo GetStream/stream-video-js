@@ -11,6 +11,7 @@ import {
   size,
   useFloating,
   Placement,
+  Strategy,
 } from '@floating-ui/react';
 
 export type ToggleMenuButtonProps = {
@@ -21,24 +22,26 @@ export type ToggleMenuButtonProps = {
 export type MenuToggleProps = PropsWithChildren<{
   ToggleButton: ComponentType<ToggleMenuButtonProps>;
   placement?: Placement;
+  strategy?: Strategy;
 }>;
 
 export const MenuToggle = ({
   ToggleButton,
   placement = 'top-start',
+  strategy = 'absolute',
   children,
 }: MenuToggleProps) => {
   const [menuShown, setMenuShown] = useState(false);
 
   const {
     refs,
-    strategy,
     x,
     y,
     update,
     elements: { domReference, floating },
   } = useFloating({
     placement,
+    strategy,
     middleware: [
       offset(10),
       size({

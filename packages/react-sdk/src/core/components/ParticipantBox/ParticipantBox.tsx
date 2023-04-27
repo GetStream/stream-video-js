@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 import clsx from 'clsx';
 import {
   Call,
@@ -6,13 +6,16 @@ import {
   StreamVideoParticipant,
   VisibilityState,
 } from '@stream-io/video-client';
-import { useIsDebugMode } from '../Debug/useIsDebugMode';
-import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
-import { DebugStatsView } from '../Debug/DebugStatsView';
-import { Audio } from './Audio';
-import { Video } from '../Video';
-import { Notification } from '../Notification';
-import { Reaction } from '../Reaction';
+import { useIsDebugMode } from '../../../components/Debug/useIsDebugMode';
+import { DebugParticipantPublishQuality } from '../../../components/Debug/DebugParticipantPublishQuality';
+import { DebugStatsView } from '../../../components/Debug/DebugStatsView';
+import { Audio } from '../Audio/Audio';
+import { Video } from '../../../components/Video';
+import { Notification } from '../../../components/Notification';
+import { Reaction } from '../../../components/Reaction';
+import { MenuToggle, ToggleMenuButtonProps } from '../../../components/Menu';
+import { IconButton } from '../../../components/Button';
+import { ParticipantActionsContextMenu } from '../../../components/CallParticipantsList';
 
 export interface ParticipantBoxProps {
   /**
@@ -61,7 +64,18 @@ export interface ParticipantBoxProps {
    * An additional list of class names to append to the root DOM element.
    */
   className?: string;
+
+  /**
+   * The position of the toggle button menu, relative to its button element.
+   */
+  toggleMenuPosition?: 'top' | 'bottom';
 }
+
+const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
+  (props, ref) => {
+    return <IconButton enabled={props.menuShown} icon="ellipsis" ref={ref} />;
+  },
+);
 
 export const ParticipantBox = (props: ParticipantBoxProps) => {
   const {
@@ -73,6 +87,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
     muteAudio,
     setVideoElementRef,
     className,
+    toggleMenuPosition = 'bottom',
   } = props;
 
   const {
@@ -89,6 +104,7 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
 
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  const isPinned = !!participant.pinnedAt;
 
   const [trackedElement, setTrackedElement] = useState<HTMLDivElement | null>(
     null,
@@ -134,6 +150,14 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
       )}
       ref={setTrackedElement}
     >
+      <MenuToggle
+        strategy="fixed"
+        placement={toggleMenuPosition === 'top' ? 'top-end' : 'bottom-end'}
+        ToggleButton={ToggleButton}
+      >
+        <ParticipantActionsContextMenu participant={participant} />
+      </MenuToggle>
+
       <div className="str-video__video-container">
         <Audio
           // mute the local participant, as we don't want to hear ourselves
@@ -191,6 +215,17 @@ export const ParticipantBox = (props: ParticipantBoxProps) => {
             )}
             {indicatorsVisible && !hasVideo && (
               <span className="str-video__participant_name--video-muted"></span>
+            )}
+            {indicatorsVisible && isPinned && (
+              // TODO: remove this monstrosity once we have a proper design
+              <span
+                title="Unpin"
+                onClick={() =>
+                  call.setParticipantPinnedAt(participant.sessionId)
+                }
+                style={{ cursor: 'pointer' }}
+                className="str-video__participant_name--pinned"
+              ></span>
             )}
           </span>
           {isDebugMode && (

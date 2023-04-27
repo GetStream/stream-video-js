@@ -10,6 +10,8 @@ import {
 import { LobbyHeader } from './LobbyHeader';
 import { Box, Button, Stack, Typography } from '@mui/material';
 import { DisabledVideoPreview } from './DisabledVideoPreview';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 const subtitles = [
   'Because we love seeing each other.',
@@ -22,11 +24,13 @@ const subtitles = [
 
 type LobbyProps = {
   onJoin: () => void;
+  callId: string;
 };
-export const Lobby = ({ onJoin }: LobbyProps) => {
+export const Lobby = ({ onJoin, callId }: LobbyProps) => {
   const { data: session, status } = useSession();
   const { initialVideoState, isAudioOutputChangeSupported } = useMediaDevices();
 
+  const router = useRouter();
   useEffect(() => {
     if (status === 'unauthenticated') {
       void signIn();
@@ -92,6 +96,15 @@ export const Lobby = ({ onJoin }: LobbyProps) => {
           >
             Join
           </Button>
+          {!router.pathname.includes('/guest') ? (
+            <Link href={`/guest?callId=${callId}`}>
+              <Button>Join as guest or anonymously</Button>
+            </Link>
+          ) : (
+            <Link href={`/join/${callId}`}>
+              <Button>Join with your Stream Account</Button>
+            </Link>
+          )}
         </Stack>
       </Stack>
     </Stack>
