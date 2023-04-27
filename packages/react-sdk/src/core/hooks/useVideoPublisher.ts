@@ -27,6 +27,8 @@ export type VideoPublisherInit = {
  * @param param0
  * @returns
  *
+ * @internal
+ *
  * @category Device Management
  */
 export const useVideoPublisher = ({

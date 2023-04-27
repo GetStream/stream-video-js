@@ -25,6 +25,8 @@ export type AudioPublisherInit = {
  * @param param0
  * @returns
  *
+ * @internal
+ *
  * @category Device Management
  */
 export const useAudioPublisher = ({
