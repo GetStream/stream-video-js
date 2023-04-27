@@ -11,7 +11,7 @@ import {
   pairwise,
   shareReplay,
 } from 'rxjs';
-import { isChrome } from './helpers/browsers';
+import { isChrome } from '../helpers/browsers';
 
 const getDevices = (constraints?: MediaStreamConstraints) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {

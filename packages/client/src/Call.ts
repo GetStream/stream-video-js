@@ -1,21 +1,22 @@
-import { StreamSfuClient } from '../StreamSfuClient';
-import { createSubscriber } from './subscriber';
-import { Publisher } from './publisher';
-import { getGenericSdp } from './codecs';
-import { ClientDetails, TrackType } from '../gen/video/sfu/models/models';
-import { registerEventHandlers } from './callEventHandlers';
+import { StreamSfuClient } from './StreamSfuClient';
 import {
+  createSubscriber,
   Dispatcher,
+  getGenericSdp,
   isSfuEvent,
+  Publisher,
   SfuEventKinds,
   SfuEventListener,
-} from './Dispatcher';
+} from './rtc';
+import { muteTypeToTrackType } from './rtc/helpers/tracks';
+import { ClientDetails, TrackType } from './gen/video/sfu/models/models';
+import { registerEventHandlers } from './events/callEventHandlers';
 import {
   CallingState,
   CallState,
   StreamVideoWriteableStateStore,
-} from '../store';
-import { muteTypeToTrackType } from './helpers/tracks';
+} from './store';
+import { createSubscription } from './store/rxUtils';
 import {
   BlockUserRequest,
   BlockUserResponse,
@@ -47,8 +48,8 @@ import {
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
-} from '../gen/coordinator';
-import { join, watch } from './flows/join';
+} from './gen/coordinator';
+import { join, watch } from './rtc/flows/join';
 import {
   DebounceType,
   PublishOptions,
@@ -67,28 +68,27 @@ import {
   tap,
   timer,
 } from 'rxjs';
-import { createSubscription } from '../store/rxUtils';
-import { Comparator } from '../sorting';
-import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
-import { JoinResponse } from '../gen/video/sfu/event/events';
+import { Comparator } from './sorting';
+import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
+import { JoinResponse } from './gen/video/sfu/event/events';
 import {
   createStatsReporter,
   StatsReporter,
-} from '../stats/state-store-stats-reporter';
-import { ViewportTracker } from '../ViewportTracker';
-import { PermissionsContext } from '../permissions';
+} from './stats/state-store-stats-reporter';
+import { ViewportTracker } from './helpers/ViewportTracker';
+import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
-import { StreamClient } from '../coordinator/connection/client';
-import { retryInterval, sleep } from '../coordinator/connection/utils';
+import { StreamClient } from './coordinator/connection/client';
+import { retryInterval, sleep } from './coordinator/connection/utils';
 import {
   CallEventHandler,
   CallEventTypes,
   EventHandler,
   StreamCallEvent,
-} from '../coordinator/connection/types';
+} from './coordinator/connection/types';
 import { UAParser } from 'ua-parser-js';
-import { getSdkInfo } from '../sdk-info';
-import { isReactNative } from '../helpers/platforms';
+import { getSdkInfo } from './sdk-info';
+import { isReactNative } from './helpers/platforms';
 
 /**
  * The options to pass to {@link Call} constructor.

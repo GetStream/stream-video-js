@@ -1,8 +1,8 @@
 import type {
   Participant,
   VideoDimension,
-} from '../gen/video/sfu/models/models';
-import { ReactionResponse } from '../gen/coordinator';
+} from './gen/video/sfu/models/models';
+import { ReactionResponse } from './gen/coordinator';
 
 export type StreamReaction = Pick<
   ReactionResponse,

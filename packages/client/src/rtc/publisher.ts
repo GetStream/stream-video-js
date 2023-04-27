@@ -14,7 +14,7 @@ import {
 import { getPreferredCodecs } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallState } from '../store';
-import { PublishOptions } from './types';
+import { PublishOptions } from '../types';
 
 export type PublisherOpts = {
   sfuClient: StreamSfuClient;

@@ -3,7 +3,7 @@ import {
   Comparator,
   defaultSortPreset,
   livestreamOrAudioRoomSortPreset,
-} from '../sorting';
+} from './sorting';
 
 /**
  * The options for a {@link CallType}.
