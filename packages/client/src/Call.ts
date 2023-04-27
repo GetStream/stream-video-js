@@ -87,8 +87,8 @@ import {
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { UAParser } from 'ua-parser-js';
-import { getSdkInfo } from '../sdk-info';
-import { isReactNative } from '../helpers/platforms';
+import { getSdkInfo } from './sdk-info';
+import { isReactNative } from './helpers/platforms';
 
 /**
  * The options to pass to {@link Call} constructor.
