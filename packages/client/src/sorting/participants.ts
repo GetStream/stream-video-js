@@ -1,6 +1,6 @@
 import { Comparator } from './';
 import { TrackType } from '../gen/video/sfu/models/models';
-import { StreamVideoParticipant } from '../rtc/types';
+import { StreamVideoParticipant } from '../types';
 
 /**
  * A comparator which sorts participants by the fact that they are the dominant speaker or not.

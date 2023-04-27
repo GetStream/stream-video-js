@@ -1,10 +1,12 @@
 import type { FinishedUnaryCall, UnaryCall } from '@protobuf-ts/runtime-rpc';
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
 import { createSignalClient, withHeaders } from './rpc';
-import { createWebSocketSignalChannel } from './rtc/signal';
+import {
+  createWebSocketSignalChannel,
+  Dispatcher,
+  IceTrickleBuffer,
+} from './rtc';
 import { JoinRequest, SfuRequest } from './gen/video/sfu/event/events';
-import { Dispatcher } from './rtc/Dispatcher';
-import { IceTrickleBuffer } from './rtc/IceTrickleBuffer';
 import {
   SendAnswerRequest,
   SetPublisherRequest,

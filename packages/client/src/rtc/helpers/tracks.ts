@@ -1,5 +1,5 @@
 import { TrackType } from '../../gen/video/sfu/models/models';
-import type { StreamVideoParticipant } from '../types';
+import type { StreamVideoParticipant } from '../../types';
 
 export const trackTypeToParticipantStreamKey = (
   trackType: TrackType,

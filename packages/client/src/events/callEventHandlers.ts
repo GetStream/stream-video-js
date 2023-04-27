@@ -1,5 +1,5 @@
-import { Call } from './Call';
-import { Dispatcher } from './Dispatcher';
+import { Call } from '../Call';
+import { Dispatcher } from '../rtc';
 import { CallState } from '../store';
 import {
   watchAudioLevelChanged,

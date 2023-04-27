@@ -2,7 +2,7 @@ import {
   ConnectionQuality,
   TrackType,
 } from '../../gen/video/sfu/models/models';
-import { StreamVideoParticipant, VisibilityState } from '../../rtc/types';
+import { StreamVideoParticipant, VisibilityState } from '../../types';
 
 export const participants = (): StreamVideoParticipant[] => [
   {
