@@ -33,6 +33,7 @@ $scope-name: 'str-video__speaker-layout';
     .str-video__screen-share {
       outline: none; // disable "speaking" outline for screen-share video
       border-radius: unset;
+      object-fit: contain;
     }
   }
 
