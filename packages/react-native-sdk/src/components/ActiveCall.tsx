@@ -11,6 +11,7 @@ import { useCallCycleContext } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
+import { useIncallManager } from '../hooks/useIncallManager';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
 
 /**
@@ -61,6 +62,8 @@ const InnerActiveCall = (props: ActiveCallProps) => {
   const hasScreenShare = useHasOngoingScreenShare();
   const { callCycleHandlers } = useCallCycleContext();
   const { onHangupCall } = callCycleHandlers;
+
+  useIncallManager({ media: 'video', auto: true });
   usePublishMediaStreams();
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
