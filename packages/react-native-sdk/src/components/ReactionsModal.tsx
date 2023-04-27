@@ -33,7 +33,7 @@ type ReactionModalType = {
 
 export const ReactionModal = (props: ReactionModalType) => {
   const { setReactionModal } = props;
-  const onCloseParticipantOptions = useCallback(() => {
+  const onCloseReactionsModal = useCallback(() => {
     setReactionModal(false);
   }, [setReactionModal]);
   const call = useActiveCall();
@@ -47,7 +47,10 @@ export const ReactionModal = (props: ReactionModalType) => {
       <View style={styles.menu}>
         <View style={styles.reactions}>
           {reactions.map((reaction) => (
-            <Pressable onPress={() => sendReaction(reaction)}>
+            <Pressable
+              onPress={() => sendReaction(reaction)}
+              key={reaction.emoji_code}
+            >
               <Text>
                 {reaction.emoji_code &&
                   defaultEmojiReactions[reaction.emoji_code]}
@@ -56,7 +59,7 @@ export const ReactionModal = (props: ReactionModalType) => {
           ))}
           <Pressable
             style={[styles.svgContainerStyle, theme.icon.sm]}
-            onPress={onCloseParticipantOptions}
+            onPress={onCloseReactionsModal}
           >
             <Cross color={theme.light.primary} />
           </Pressable>

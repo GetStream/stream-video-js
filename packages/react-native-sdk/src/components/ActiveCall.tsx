@@ -85,19 +85,24 @@ const InnerActiveCall = (props: ActiveCallProps) => {
 
   return (
     <View style={styles.container}>
-      <CallParticipantsBadge
-        onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
-      />
-      <CallPermissionsWrapper requiredGrants={[OwnCapability.CREATE_REACTION]}>
-        <Pressable
-          onPress={openReactionsModal}
-          style={[styles.svgContainerStyle, theme.icon.md]}
+      <View style={styles.iconGroup}>
+        <CallPermissionsWrapper
+          requiredGrants={[OwnCapability.CREATE_REACTION]}
         >
-          <Reaction color={theme.light.static_white} />
-        </Pressable>
-      </CallPermissionsWrapper>
+          <Pressable
+            onPress={openReactionsModal}
+            style={[styles.svgContainerStyle, theme.icon.lg]}
+          >
+            <Reaction color={theme.light.static_white} />
+          </Pressable>
+        </CallPermissionsWrapper>
+        <CallParticipantsBadge
+          onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
+        />
+      </View>
 
       {reactionModal && <ReactionModal setReactionModal={setReactionModal} />}
+
       <View
         style={[
           styles.callParticipantsWrapper,
@@ -125,8 +130,15 @@ const styles = StyleSheet.create({
   callParticipantsWrapper: { flex: 1 },
   callControlsWrapper: { position: 'absolute', bottom: 0, left: 0, right: 0 },
   svgContainerStyle: {
-    position: 'absolute',
-    right: 2 * theme.spacing.lg,
     zIndex: 2,
+    marginRight: theme.margin.md,
+    marginTop: theme.margin.sm,
+  },
+  iconGroup: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    marginRight: theme.margin.md,
   },
 });
