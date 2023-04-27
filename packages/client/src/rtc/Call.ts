@@ -15,10 +15,7 @@ import {
   CallState,
   StreamVideoWriteableStateStore,
 } from '../store';
-import {
-  muteTypeToTrackType,
-  trackTypeToParticipantStreamKey,
-} from './helpers/tracks';
+import { muteTypeToTrackType } from './helpers/tracks';
 import {
   BlockUserRequest,
   BlockUserResponse,
@@ -589,7 +586,7 @@ export class Call {
     }
 
     this.subscriber = createSubscriber({
-      rpcClient: sfuClient,
+      sfuClient,
       dispatcher: this.dispatcher,
       connectionConfig: call.connectionConfig,
       onTrack: this.handleOnTrack,
@@ -611,7 +608,8 @@ export class Call {
     }
     console.log('DTX enabled', isDtxEnabled);
     this.publisher = new Publisher({
-      rpcClient: sfuClient,
+      sfuClient,
+      state: this.state,
       connectionConfig: call.connectionConfig,
       isDtxEnabled,
     });
@@ -708,27 +706,12 @@ export class Call {
       return console.error(`There is no video track in the stream.`);
     }
 
-    const trackType = TrackType.VIDEO;
-
-    try {
-      await this.publisher.publishStream(
-        videoStream,
-        videoTrack,
-        trackType,
-        opts,
-      );
-      await this.sfuClient?.updateMuteState(trackType, false);
-    } catch (e) {
-      throw e;
-    }
-
-    this.state.updateParticipant(this.sfuClient!.sessionId, (p) => ({
+    await this.publisher.publishStream(
       videoStream,
-      videoDeviceId: videoTrack.getSettings().deviceId,
-      publishedTracks: p.publishedTracks.includes(trackType)
-        ? p.publishedTracks
-        : [...p.publishedTracks, trackType],
-    }));
+      videoTrack,
+      TrackType.VIDEO,
+      opts,
+    );
   };
 
   /**
@@ -755,24 +738,14 @@ export class Call {
       return console.error(`There is no audio track in the stream`);
     }
 
-    const trackType = TrackType.AUDIO;
-
-    try {
-      await this.publisher.publishStream(audioStream, audioTrack, trackType, {
-        preferredCodec: this.preferredAudioCodec,
-      });
-      await this.sfuClient!.updateMuteState(trackType, false);
-    } catch (e) {
-      throw e;
-    }
-
-    this.state.updateParticipant(this.sfuClient!.sessionId, (p) => ({
+    await this.publisher.publishStream(
       audioStream,
-      audioDeviceId: audioTrack.getSettings().deviceId,
-      publishedTracks: p.publishedTracks.includes(trackType)
-        ? p.publishedTracks
-        : [...p.publishedTracks, trackType],
-    }));
+      audioTrack,
+      TrackType.AUDIO,
+      {
+        preferredCodec: this.preferredAudioCodec,
+      },
+    );
   };
 
   /**
@@ -798,28 +771,11 @@ export class Call {
       return console.error(`There is no video track in the stream`);
     }
 
-    // fires when browser's native 'Stop Sharing button' is clicked
-    const onTrackEnded = () => this.stopPublish(trackType);
-    screenShareTrack.addEventListener('ended', onTrackEnded);
-
-    const trackType = TrackType.SCREEN_SHARE;
-    try {
-      await this.publisher.publishStream(
-        screenShareStream,
-        screenShareTrack,
-        trackType,
-      );
-      await this.sfuClient!.updateMuteState(trackType, false);
-    } catch (e) {
-      throw e;
-    }
-
-    this.state.updateParticipant(this.sfuClient!.sessionId, (p) => ({
+    await this.publisher.publishStream(
       screenShareStream,
-      publishedTracks: p.publishedTracks.includes(trackType)
-        ? p.publishedTracks
-        : [...p.publishedTracks, trackType],
-    }));
+      screenShareTrack,
+      TrackType.SCREEN_SHARE,
+    );
   };
 
   /**
@@ -834,19 +790,7 @@ export class Call {
    */
   stopPublish = async (trackType: TrackType) => {
     console.log(`stopPublish`, TrackType[trackType]);
-    const wasPublishing = this.publisher?.unpublishStream(trackType);
-    if (wasPublishing && this.sfuClient) {
-      await this.sfuClient.updateMuteState(trackType, true);
-
-      const audioOrVideoOrScreenShareStream =
-        trackTypeToParticipantStreamKey(trackType);
-      if (audioOrVideoOrScreenShareStream) {
-        this.state.updateParticipant(this.sfuClient.sessionId, (p) => ({
-          publishedTracks: p.publishedTracks.filter((t) => t !== trackType),
-          [audioOrVideoOrScreenShareStream]: undefined,
-        }));
-      }
-    }
+    await this.publisher?.unpublishStream(trackType);
   };
 
   /**
