@@ -29,24 +29,17 @@ mkdir generated-docs
 
 # generate and process new docs
 
-# Hooks
-npx typedoc --options typedoc.json --exclude '!**/*hooks/**'
-npx replace-in-file '/\.md/g' '/' 'temp-docs/modules.md' --isRegex > /dev/null
-npx replace-in-file '/modules\//g' '' 'temp-docs/modules.md' --isRegex > /dev/null
-cp temp-docs/modules.md generated-docs/hooks.md
-npx replace-in-file "# $PACKAGE_NAME" '# Hooks' 'generated-docs/hooks.md' > /dev/null
-
-# Contexts
+# Hooks and Contexts
 if [ "$PACKAGE_DIR_NAME" == 'react-sdk' ]; then
-  npx typedoc --options typedoc.json --exclude '!**/*contexts/**'
+  npx typedoc --options typedoc.json --exclude '!**/*(hooks|contexts)/**'
 else
   # RN needs a special exclude statement because of reexporting StreamVideo
-  npx typedoc --options typedoc.json --exclude '**/*(hooks|components|utils)/**'
+  npx typedoc --options typedoc.json --exclude '!**/*(hooks|contexts|providers)/**'
 fi
 npx replace-in-file '/\.md/g' '/' 'temp-docs/modules.md' --isRegex > /dev/null
 npx replace-in-file '/modules\//g' '' 'temp-docs/modules.md' --isRegex > /dev/null
-cp temp-docs/modules.md generated-docs/contexts.md
-npx replace-in-file "# $PACKAGE_NAME" '# Contexts' 'generated-docs/contexts.md' > /dev/null
+cp temp-docs/modules.md generated-docs/hooks-and-contexts.md
+npx replace-in-file "# $PACKAGE_NAME" '# Hooks and Contexts' 'generated-docs/hooks-and-contexts.md' > /dev/null
 
 # Components
 npx typedoc --options typedoc.json --exclude '!**/*components/**'
@@ -90,8 +83,7 @@ rm -rf generated-docs/client/
 cp -a ../client/generated-docs/. "docusaurus/docs/$SDK_DIR_IN_DOCS/04-call-engine/"
 cp ../client/docusaurus/docs/client/SDKSpecific.jsx "docusaurus/docs/$SDK_DIR_IN_DOCS/SDKSpecific.jsx"
 
-cp -a generated-docs/hooks.md "docusaurus/docs/$SDK_DIR_IN_DOCS/04-call-engine/"
-cp -a generated-docs/contexts.md "docusaurus/docs/$SDK_DIR_IN_DOCS/04-call-engine/"
+cp -a generated-docs/hooks-and-contexts.md "docusaurus/docs/$SDK_DIR_IN_DOCS/04-call-engine/"
 
 cp -a generated-docs/components.md "docusaurus/docs/$SDK_DIR_IN_DOCS/03-ui/"
 cp -a generated-docs/Interfaces/. "docusaurus/docs/$SDK_DIR_IN_DOCS/03-ui/Interfaces/"
