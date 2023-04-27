@@ -1,16 +1,21 @@
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  OwnCapability,
+  SfuModels,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
 import {
   StreamCallProvider,
   useActiveCall,
   useParticipants,
 } from '@stream-io/video-react-bindings';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
-import { MicOff, ScreenShare, VideoSlash } from '../icons';
-import React, { useState } from 'react';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ArrowRight, MicOff, ScreenShare, VideoSlash } from '../icons';
+import React, { useCallback, useState } from 'react';
 import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
+import { CallPermissionsWrapper } from './CallPermissionsWrapper';
 type CallParticipantInfoViewType = {
   participant: StreamVideoParticipant;
   setSelectedParticipant: React.Dispatch<
@@ -19,14 +24,11 @@ type CallParticipantInfoViewType = {
 };
 
 const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
-  const {
-    participant,
-    //  setSelectedParticipant
-  } = props;
+  const { participant, setSelectedParticipant } = props;
 
-  // const optionsOpenHandler = useCallback(() => {
-  //   setSelectedParticipant(participant);
-  // }, [participant, setSelectedParticipant]);
+  const optionsOpenHandler = useCallback(() => {
+    setSelectedParticipant(participant);
+  }, [participant, setSelectedParticipant]);
 
   if (!participant) return null;
   const { publishedTracks } = participant;
@@ -63,9 +65,12 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
           </View>
         )}
         {/* Disablling it until we support permissions */}
-        {/* <Pressable style={[styles.svgContainerStyle, theme.icon.sm]} onPress={optionsOpenHandler}>
+        <Pressable
+          style={[styles.svgContainerStyle, theme.icon.sm]}
+          onPress={optionsOpenHandler}
+        >
           <ArrowRight color={theme.light.text_high_emphasis} />
-        </Pressable> */}
+        </Pressable>
       </View>
     </View>
   );
@@ -95,9 +100,21 @@ const InnerCallParticipantsInfoView = () => {
   const [selectedParticipant, setSelectedParticipant] = useState<
     StreamVideoParticipant | undefined
   >(undefined);
+  const call = useActiveCall();
+
+  const muteAllParticipantsHandler = () => {
+    call?.muteAllUsers('audio');
+  };
 
   return (
     <>
+      <View style={styles.buttonGroup}>
+        <CallPermissionsWrapper requiredGrants={[OwnCapability.MUTE_USERS]}>
+          <Pressable style={styles.button} onPress={muteAllParticipantsHandler}>
+            <Text style={styles.buttonText}>Mute All</Text>
+          </Pressable>
+        </CallPermissionsWrapper>
+      </View>
       <FlatList
         data={participants}
         keyExtractor={(item) => `participant-info-${item.sessionId}`}
@@ -121,6 +138,18 @@ const InnerCallParticipantsInfoView = () => {
 };
 
 const styles = StyleSheet.create({
+  buttonGroup: {},
+  button: {
+    backgroundColor: theme.light.primary,
+    borderRadius: theme.rounded.lg,
+    padding: theme.padding.md,
+    margin: theme.margin.lg,
+  },
+  buttonText: {
+    textAlign: 'center',
+    color: theme.light.static_white,
+    ...theme.fonts.subtitleBold,
+  },
   participant: {
     paddingHorizontal: theme.padding.sm,
     paddingVertical: theme.padding.xs,

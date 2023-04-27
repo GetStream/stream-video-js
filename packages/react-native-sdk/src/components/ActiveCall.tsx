@@ -1,8 +1,16 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   StreamCallProvider,
   useActiveCall,
+  useCallMetadata,
   useHasOngoingScreenShare,
+  useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
@@ -65,8 +73,25 @@ const InnerActiveCall = (props: ActiveCallProps) => {
   const { onOpenCallParticipantsInfoView, mode = 'grid' } = props;
   const hasScreenShare = useHasOngoingScreenShare();
   const { callCycleHandlers } = useCallCycleContext();
+  const callMetaData = useCallMetadata();
+  const localParticipant = useLocalParticipant();
   const { onHangupCall } = callCycleHandlers;
   usePublishMediaStreams();
+
+  let blocked_user_ids: string[] = useMemo(() => {
+    return callMetaData ? callMetaData.blocked_user_ids : [];
+  }, [callMetaData]);
+
+  // Effect to move out of the Active Call if the user is blocked
+  useEffect(() => {
+    if (
+      localParticipant?.userId &&
+      blocked_user_ids.includes(localParticipant.userId) &&
+      onHangupCall
+    ) {
+      onHangupCall();
+    }
+  }, [blocked_user_ids, localParticipant, onHangupCall]);
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     setHeight(

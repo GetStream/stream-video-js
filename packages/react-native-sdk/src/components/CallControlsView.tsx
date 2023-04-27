@@ -13,6 +13,10 @@ import {
 } from '../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
+import { CallPermissionsWrapper } from './CallPermissionsWrapper';
+import { OwnCapability } from '@stream-io/video-client';
+import { PermissionNotification } from './PermissionsNotification';
+import { useOwnCapabilities } from '@stream-io/video-react-bindings';
 /**
  * Props to be passed for the CallControlsView component.
  */
@@ -41,6 +45,7 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
     toggleCameraFacingMode,
   } = useCallControls();
   const { hangupCall } = useHangupCall();
+  const ownCapabilities = useOwnCapabilities();
 
   const handleHangUpCall = useCallback(async () => {
     await hangupCall();
@@ -62,48 +67,73 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
       >
         <Chat color={theme.light.static_black} />
       </CallControlsButton>
-      <CallControlsButton
-        onPress={toggleVideoMuted}
-        color={muteStatusColor(isVideoMuted)}
-        style={!isVideoMuted ? styles.button : null}
+      <CallPermissionsWrapper requiredGrants={[OwnCapability.SEND_VIDEO]}>
+        <PermissionNotification
+          permission={OwnCapability.SEND_VIDEO}
+          messageApproved="You can now share your video."
+          messageAwaitingApproval="Awaiting for an approval to share your video."
+          messageRevoked="You can no longer share your video."
+        >
+          <CallControlsButton
+            onPress={toggleVideoMuted}
+            color={muteStatusColor(isVideoMuted)}
+            style={!isVideoMuted ? styles.button : null}
+            disabled={!ownCapabilities.includes(OwnCapability.SEND_VIDEO)}
+          >
+            {isVideoMuted ? (
+              <VideoSlash color={theme.light.static_white} />
+            ) : (
+              <Video color={theme.light.static_black} />
+            )}
+          </CallControlsButton>
+        </PermissionNotification>
+      </CallPermissionsWrapper>
+
+      <PermissionNotification
+        permission={OwnCapability.SEND_AUDIO}
+        messageApproved="You can now speak."
+        messageAwaitingApproval="Awaiting for an approval to speak."
+        messageRevoked="You can no longer speak."
       >
-        {isVideoMuted ? (
-          <VideoSlash color={theme.light.static_white} />
-        ) : (
-          <Video color={theme.light.static_black} />
-        )}
-      </CallControlsButton>
-      <CallControlsButton
-        onPress={toggleAudioMuted}
-        color={muteStatusColor(isAudioMuted)}
-        style={!isAudioMuted ? styles.button : null}
-      >
-        {isAudioMuted ? (
-          <MicOff color={theme.light.static_white} />
-        ) : (
-          <Mic color={theme.light.static_black} />
-        )}
-      </CallControlsButton>
-      <CallControlsButton
-        onPress={toggleCameraFacingMode}
-        color={muteStatusColor(!isCameraOnFrontFacingMode)}
-        style={isCameraOnFrontFacingMode ? styles.button : null}
-      >
-        <CameraSwitch
-          color={
-            isCameraOnFrontFacingMode
-              ? theme.light.static_black
-              : theme.light.static_white
-          }
-        />
-      </CallControlsButton>
-      <CallControlsButton
-        onPress={handleHangUpCall}
-        color={theme.light.error}
-        style={[styles.button, { shadowColor: theme.light.error }]}
-      >
-        <PhoneDown color={theme.light.static_white} />
-      </CallControlsButton>
+        <CallPermissionsWrapper requiredGrants={[OwnCapability.SEND_AUDIO]}>
+          <CallControlsButton
+            onPress={toggleAudioMuted}
+            color={muteStatusColor(isAudioMuted)}
+            style={!isAudioMuted ? styles.button : null}
+            disabled={!ownCapabilities.includes(OwnCapability.SEND_AUDIO)}
+          >
+            {isAudioMuted ? (
+              <MicOff color={theme.light.static_white} />
+            ) : (
+              <Mic color={theme.light.static_black} />
+            )}
+          </CallControlsButton>
+        </CallPermissionsWrapper>
+      </PermissionNotification>
+      <CallPermissionsWrapper requiredGrants={[OwnCapability.SEND_VIDEO]}>
+        <CallControlsButton
+          onPress={toggleCameraFacingMode}
+          color={muteStatusColor(!isCameraOnFrontFacingMode)}
+          style={isCameraOnFrontFacingMode ? styles.button : null}
+        >
+          <CameraSwitch
+            color={
+              isCameraOnFrontFacingMode
+                ? theme.light.static_black
+                : theme.light.static_white
+            }
+          />
+        </CallControlsButton>
+      </CallPermissionsWrapper>
+      <CallPermissionsWrapper requiredGrants={[OwnCapability.END_CALL]}>
+        <CallControlsButton
+          onPress={handleHangUpCall}
+          color={theme.light.error}
+          style={[styles.button, { shadowColor: theme.light.error }]}
+        >
+          <PhoneDown color={theme.light.static_white} />
+        </CallControlsButton>
+      </CallPermissionsWrapper>
     </View>
   );
 };

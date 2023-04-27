@@ -10,3 +10,4 @@ export * from './CallControlsView';
 export * from './CallParticipantsInfoView';
 export * from './LobbyView';
 export * from './ParticipantReactions';
+export * from './PermissionsNotification';

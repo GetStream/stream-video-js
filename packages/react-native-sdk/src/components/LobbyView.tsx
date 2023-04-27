@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
 import {
@@ -85,6 +85,10 @@ export const LobbyView = (props: LobbyViewProps) => {
       })
       .catch((err) => {
         console.log('Error joining call', err);
+        Alert.alert(err.response.data.message);
+        if (callCycleHandlers.onHangupCall) {
+          callCycleHandlers.onHangupCall();
+        }
       });
   };
   const connectedUserAsParticipant = {

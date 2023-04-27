@@ -19,6 +19,10 @@ interface CallControlsButtonProps {
    */
   color?: string;
   /**
+   * If `true`, disable all interactions for this component.
+   */
+  disabled?: boolean;
+  /**
    * Style to the Pressable button.
    */
   style?: StyleProp<ViewStyle>;
@@ -34,7 +38,8 @@ const DEFAULT_BUTTON_SIZE = theme.button.sm;
 export const CallControlsButton = (
   props: React.PropsWithChildren<CallControlsButtonProps>,
 ) => {
-  const { onPress, children, color, style, svgContainerStyle } = props;
+  const { onPress, children, color, disabled, style, svgContainerStyle } =
+    props;
 
   const pressableStyle: PressableProps['style'] = ({ pressed }) => [
     DEFAULT_BUTTON_SIZE,
@@ -47,7 +52,7 @@ export const CallControlsButton = (
   ];
 
   return (
-    <Pressable style={pressableStyle} onPress={onPress}>
+    <Pressable style={pressableStyle} onPress={onPress} disabled={disabled}>
       <View
         style={[
           styles.svgContainerStyle,
