@@ -15,25 +15,19 @@
     "@floating-ui/react": "^0.22.0",
     "@nivo/core": "^0.80.0",
     "@nivo/line": "^0.80.0",
-    "@popperjs/core": "^2.11.6",
     "@stream-io/i18n": "workspace:^",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
     "clsx": "^1.2.1",
-    "lodash.throttle": "^4.1.1",
-    "react-popper": "^2.3.0",
-    "rxjs": "~7.5.7",
-    "uuid": "^9.0.0"
+    "rxjs": "~7.5.7"
   },
   "peerDependencies": {
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },
   "devDependencies": {
-    "@types/lodash.throttle": "^4",
     "@types/rimraf": "^3.0.2",
-    "@types/uuid": "^9.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "replace-in-file": "^6.3.5",
