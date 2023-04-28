@@ -18981,6 +18981,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"gleap@npm:^10.0.5":
+  version: 10.0.5
+  resolution: "gleap@npm:10.0.5"
+  checksum: 76b5866aec079267356169178a1b04e4466730091aa4de6d6e59939b470ed322738f07f3f3e8221fb8855e3101a92e2cd19cc81bf0a7f6afa50c00a650584b80
+  languageName: node
+  linkType: hard
+
 "gleap@npm:^9.0.4":
   version: 9.0.7
   resolution: "gleap@npm:9.0.7"
@@ -31028,6 +31035,7 @@ __metadata:
     concurrently: ^7.6.0
     date-fns: ^2.29.3
     geojson: ^0.5.0
+    gleap: ^10.0.5
     mapbox-gl: ^2.12.0
     postcss: ^8.4.21
     qrcode.react: ^3.1.0
