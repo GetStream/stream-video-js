@@ -5,7 +5,7 @@ title: State Store
 
 Our SDK uses a design pattern that we refer to as a reactive state store.
 
-The `StreamVideoClient` instance manages its own state store and each `Call` instance has its own state store as well.
+The `StreamVideoClient` instance manages its own state store (this contains information about the connected user and the list of incoming, outgoing and active calls) and each `Call` instance has its own state store (this contains information about the call itself, for example the list of participants) as well.
 
 The state stores are updated after each API call/WebSocket event. The reactive state store makes it possible to observe the state from anywhere in your application. You can access the state store using hooks. This guide will help you understand how state management work which is useful if you want to attach custom logic upon state changes or if you want to create custom components.
 

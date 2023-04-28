@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # the sdk's name in the folder under packages/*/docusaurus/docs/?/
 SDK_DIR_IN_DOCS=$1;
@@ -65,13 +66,16 @@ cp -a ../client/docusaurus/docs/client/. generated-docs/client/
 cd generated-docs/client || exit
 for sub_directory in * ;
 do
-  (
+  if [ -d "$sub_directory" ];
+  then
+    (
     cd "$sub_directory" || exit
     # prevent renaming the assets files to keep compatibility with mdx imports
     if [[ "$sub_directory" != assets ]];then
       for filename in * ; do mv -- "$filename" "${filename%.*}.gen.${filename##*.}" ; done
     fi
-  )
+    )
+  fi
 done
 
 cd ../../
