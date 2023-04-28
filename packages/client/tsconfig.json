@@ -20,7 +20,6 @@
     "strictNullChecks": true,
     "sourceMap": true,
     "inlineSources": true,
-    "inlineSourceMap": true
   },
   "include": [
     "./src",
