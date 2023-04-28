@@ -4,7 +4,7 @@ import {
   useActiveCall,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useCallCycleContext } from '../contexts';
@@ -12,10 +12,7 @@ import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
-import { Reaction } from '../icons';
 import { ReactionModal } from './ReactionsModal';
-import { CallPermissionsWrapper } from './CallPermissionsWrapper';
-import { OwnCapability } from '@stream-io/video-client';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -86,21 +83,10 @@ const InnerActiveCall = (props: ActiveCallProps) => {
   return (
     <View style={styles.container}>
       <View style={styles.iconGroup}>
-        <CallPermissionsWrapper
-          requiredGrants={[OwnCapability.CREATE_REACTION]}
-        >
-          <Pressable
-            onPress={openReactionsModal}
-            style={[styles.svgContainerStyle, theme.icon.lg]}
-          >
-            <Reaction color={theme.light.static_white} />
-          </Pressable>
-        </CallPermissionsWrapper>
         <CallParticipantsBadge
           onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
         />
       </View>
-
       {reactionModal && <ReactionModal setReactionModal={setReactionModal} />}
 
       <View
@@ -116,7 +102,10 @@ const InnerActiveCall = (props: ActiveCallProps) => {
         )}
       </View>
       <View onLayout={onLayout} style={styles.callControlsWrapper}>
-        <CallControlsView onHangupCall={onHangupCall} />
+        <CallControlsView
+          onHangupCall={onHangupCall}
+          onReactionsSelector={openReactionsModal}
+        />
       </View>
     </View>
   );

@@ -1,5 +1,4 @@
 import { StreamReaction } from '@stream-io/video-client';
-import { Cross } from '../icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { theme } from '../theme';
@@ -25,6 +24,8 @@ const reactions: StreamReaction[] = [
     emoji_code: ':fireworks:',
     custom: {},
   },
+  { type: 'reaction', emoji_code: ':heart:', custom: {} },
+  { type: 'reaction', emoji_code: ':rocket:', custom: {} },
 ];
 
 type ReactionModalType = {
@@ -43,7 +44,10 @@ export const ReactionModal = (props: ReactionModalType) => {
   };
 
   return (
-    <View style={styles.container}>
+    <Pressable
+      style={[styles.container, StyleSheet.absoluteFill]}
+      onPress={onCloseReactionsModal}
+    >
       <View style={styles.menu}>
         <View style={styles.reactions}>
           {reactions.map((reaction) => (
@@ -57,25 +61,17 @@ export const ReactionModal = (props: ReactionModalType) => {
               </Text>
             </Pressable>
           ))}
-          <Pressable
-            style={[styles.svgContainerStyle, theme.icon.sm]}
-            onPress={onCloseReactionsModal}
-          >
-            <Cross color={theme.light.primary} />
-          </Pressable>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    height: '100%',
-    display: 'flex',
     justifyContent: 'center',
     paddingHorizontal: theme.padding.xl,
+    zIndex: 5,
   },
   menu: {
     backgroundColor: theme.light.bars,
