@@ -14,9 +14,8 @@ $scope-name: 'str-video__speaker-layout';
   gap: 1rem;
   padding-inline: 2px; // to see "speaking" outline
 
-  .str-video__participant-placeholder,
-  .str-video__remote-video {
-    aspect-ratio: 16/9 !important;
+  .str-video__participant {
+    aspect-ratio: 16/9;
   }
 
   .str-video__speaker-layout--spotlight {
