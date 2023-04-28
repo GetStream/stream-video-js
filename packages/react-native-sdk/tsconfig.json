@@ -4,7 +4,7 @@
     "target": "esnext",
     "module": "commonjs",
     "types": ["react-native"],
-    "lib": ["es2019", "dom"],
+    "lib": ["es2019"],
     "declaration": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,

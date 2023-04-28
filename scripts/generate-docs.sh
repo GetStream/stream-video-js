@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+# set -e
 
 # the sdk's name in the folder under packages/*/docusaurus/docs/?/
 SDK_DIR_IN_DOCS=$1;
