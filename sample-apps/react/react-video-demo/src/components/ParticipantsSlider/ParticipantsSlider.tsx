@@ -97,15 +97,6 @@ export const ParticipantsSlider: FC<Props> = ({
     [styles?.[derivedMode]]: derivedMode,
   });
 
-  console.log(
-    'derivedMode',
-    derivedMode,
-    'mode',
-    mode,
-    'breakpoint',
-    breakpoint,
-  );
-
   if (derivedMode) {
     return (
       <div
