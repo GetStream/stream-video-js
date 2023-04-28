@@ -99,29 +99,13 @@ export const Video = (
   );
 
   // handle generic subscription updates
-  useEffect(() => {
-    if (!isPublishingTrack || !videoElement) return;
-
-    updateSubscription(
-      {
-        height: videoElement.clientHeight,
-        width: videoElement.clientWidth,
-      },
-      DebounceType.FAST,
-    );
-
-    return () => {
-      updateSubscription(undefined, DebounceType.FAST);
-    };
-  }, [updateSubscription, videoElement, isPublishingTrack]);
 
   // handle visibility subscription updates
   useEffect(() => {
     viewportVisibilityRef.current = participant.viewportVisibilityState;
 
-    const isUnknownVVS =
-      participant.viewportVisibilityState === VisibilityState.UNKNOWN;
-    if (!videoElement || !isPublishingTrack || isUnknownVVS) return;
+    if (!videoElement || !isPublishingTrack || participant.isLoggedInUser)
+      return;
 
     const isInvisibleVVS =
       participant.viewportVisibilityState === VisibilityState.INVISIBLE;
@@ -140,11 +124,13 @@ export const Video = (
     participant.viewportVisibilityState,
     videoElement,
     isPublishingTrack,
+    participant.isLoggedInUser,
   ]);
 
   // handle resize subscription updates
   useEffect(() => {
-    if (!videoElement || !isPublishingTrack) return;
+    if (!videoElement || !isPublishingTrack || participant.isLoggedInUser)
+      return;
 
     const resizeObserver = new ResizeObserver(() => {
       const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
@@ -179,6 +165,29 @@ export const Video = (
     videoElement,
     participant.viewportVisibilityState,
     isPublishingTrack,
+    participant.isLoggedInUser,
+  ]);
+
+  useEffect(() => {
+    if (!isPublishingTrack || !videoElement || participant.isLoggedInUser)
+      return;
+
+    updateSubscription(
+      {
+        height: videoElement.clientHeight,
+        width: videoElement.clientWidth,
+      },
+      DebounceType.FAST,
+    );
+
+    return () => {
+      updateSubscription(undefined, DebounceType.FAST);
+    };
+  }, [
+    updateSubscription,
+    videoElement,
+    isPublishingTrack,
+    participant.isLoggedInUser,
   ]);
 
   const [isWideMode, setIsWideMode] = useState(true);
