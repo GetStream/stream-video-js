@@ -3,6 +3,7 @@
   "cleanOutputDir": true,
   "hideBreadcrumbs": true,
   "hideInPageTOC": true,
+  "exclude": ["./src/utils.ts"],
   "excludePrivate": true,
   "excludeInternal": true,
   "out": "temp-docs",
