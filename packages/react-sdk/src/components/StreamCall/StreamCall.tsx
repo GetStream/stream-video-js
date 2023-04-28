@@ -7,7 +7,7 @@ import {
   useOutgoingCalls,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import { MediaDevicesProvider } from '../../contexts';
+import { MediaDevicesProvider } from '../../core/contexts';
 
 export const StreamCall = ({ children }: { children: ReactNode }) => {
   const videoClient = useStreamVideoClient();

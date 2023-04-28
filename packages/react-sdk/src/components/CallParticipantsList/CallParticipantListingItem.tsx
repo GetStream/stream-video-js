@@ -15,6 +15,7 @@ import {
 } from '../Menu';
 import { Restricted } from '../Moderation';
 import { WithTooltip } from '../Tooltip';
+import { Icon } from '../Icon';
 
 type CallParticipantListingItemProps = {
   /** Participant object be rendered */
@@ -139,6 +140,9 @@ export const ParticipantActionsContextMenu = ({
   const muteVideo = () => {
     activeCall?.muteUser(participant.userId, 'video');
   };
+  const muteScreenShare = () => {
+    activeCall?.muteUser(participant.userId, 'screenshare');
+  };
 
   const grantPermission = (permission: string) => () => {
     activeCall?.updateUserPermissions({
@@ -164,10 +168,14 @@ export const ParticipantActionsContextMenu = ({
   return (
     <GenericMenu>
       <GenericMenuButtonItem onClick={toggleParticipantPinnedAt}>
+        <Icon icon="pin" />
         {participant.pinnedAt ? 'Unpin' : 'Pin'}
       </GenericMenuButtonItem>
       <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
-        <GenericMenuButtonItem onClick={blockUser}>Block</GenericMenuButtonItem>
+        <GenericMenuButtonItem onClick={blockUser}>
+          <Icon icon="not-allowed" />
+          Block
+        </GenericMenuButtonItem>
       </Restricted>
       {/* <GenericMenuButtonItem disabled onClick={kickUserClickHandler}>
         Kick
@@ -179,7 +187,19 @@ export const ParticipantActionsContextMenu = ({
           }
           onClick={muteVideo}
         >
-          Mute video
+          <Icon icon="camera-off-outline" />
+          Turn off video
+        </GenericMenuButtonItem>
+        <GenericMenuButtonItem
+          disabled={
+            !participant.publishedTracks.includes(
+              SfuModels.TrackType.SCREEN_SHARE,
+            )
+          }
+          onClick={muteScreenShare}
+        >
+          <Icon icon="screen-share-off" />
+          Turn off screen share
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
           disabled={
@@ -187,6 +207,7 @@ export const ParticipantActionsContextMenu = ({
           }
           onClick={muteAudio}
         >
+          <Icon icon="no-audio" />
           Mute audio
         </GenericMenuButtonItem>
       </Restricted>

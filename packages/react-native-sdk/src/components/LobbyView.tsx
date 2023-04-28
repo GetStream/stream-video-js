@@ -1,6 +1,5 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import InCallManager from 'react-native-incall-manager';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
 import {
   useConnectedUser,
@@ -79,8 +78,6 @@ export const LobbyView = (props: LobbyViewProps) => {
       .then(() => {
         if (onActiveCall) {
           onActiveCall();
-          InCallManager.start({ media: 'video' });
-          InCallManager.setForceSpeakerphoneOn(true);
         }
       })
       .catch((err) => {

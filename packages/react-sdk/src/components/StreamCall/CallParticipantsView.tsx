@@ -1,5 +1,5 @@
 import { Call } from '@stream-io/video-client';
-import { ParticipantBox } from './ParticipantBox';
+import { ParticipantBox } from '../../core/components/ParticipantBox/ParticipantBox';
 import {
   useLocalParticipant,
   useParticipants,

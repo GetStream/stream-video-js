@@ -2,7 +2,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { combineLatestWith, map } from 'rxjs/operators';
 import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
-import { Call } from '../rtc/Call';
+import { Call } from '../Call';
 import type { User } from '../coordinator/connection/types';
 import type { CallAcceptedEvent } from '../gen/coordinator';
 

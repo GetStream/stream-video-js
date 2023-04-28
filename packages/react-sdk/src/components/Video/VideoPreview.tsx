@@ -7,8 +7,8 @@ import {
 } from 'react';
 import clsx from 'clsx';
 import { disposeOfMediaStream } from '@stream-io/video-client';
-import { BaseVideo } from './BaseVideo';
-import { DEVICE_STATE, useMediaDevices } from '../../contexts';
+import { BaseVideo } from '../../core/components/Video/BaseVideo';
+import { DEVICE_STATE, useMediaDevices } from '../../core/contexts';
 import { LoadingIndicator } from '../LoadingIndicator';
 
 const DefaultDisabledVideoPreview = () => {

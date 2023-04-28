@@ -11,7 +11,6 @@ import {
   useEffect,
   useState,
 } from 'react';
-import InCallManager from 'react-native-incall-manager';
 import { useCallCycleEffect } from '../hooks';
 
 /**
@@ -82,8 +81,6 @@ export const CallCycleProvider = (
       }
       try {
         client.call(outgoingCall.type, outgoingCall.id).join();
-        InCallManager.start({ media: 'video' });
-        InCallManager.setForceSpeakerphoneOn(true);
       } catch (error) {
         console.log('Failed to join the call', error);
       }

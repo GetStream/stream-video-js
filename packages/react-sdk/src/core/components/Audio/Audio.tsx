@@ -14,6 +14,7 @@ export type AudioProps = DetailedHTMLProps<
     sinkId?: string;
   };
 
+// TODO: rename to BaseAudio
 export const Audio = ({ audioStream, sinkId, ...rest }: AudioProps) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   useEffect(() => {

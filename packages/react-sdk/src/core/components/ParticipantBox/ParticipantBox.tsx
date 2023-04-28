@@ -6,16 +6,16 @@ import {
   StreamVideoParticipant,
   VisibilityState,
 } from '@stream-io/video-client';
-import { useIsDebugMode } from '../Debug/useIsDebugMode';
-import { DebugParticipantPublishQuality } from '../Debug/DebugParticipantPublishQuality';
-import { DebugStatsView } from '../Debug/DebugStatsView';
-import { Audio } from './Audio';
-import { Video } from '../Video';
-import { Notification } from '../Notification';
-import { Reaction } from '../Reaction';
-import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
-import { IconButton } from '../Button';
-import { ParticipantActionsContextMenu } from '../CallParticipantsList';
+import { useIsDebugMode } from '../../../components/Debug/useIsDebugMode';
+import { DebugParticipantPublishQuality } from '../../../components/Debug/DebugParticipantPublishQuality';
+import { DebugStatsView } from '../../../components/Debug/DebugStatsView';
+import { Audio } from '../Audio/Audio';
+import { Video } from '../../../components/Video';
+import { Notification } from '../../../components/Notification';
+import { Reaction } from '../../../components/Reaction';
+import { MenuToggle, ToggleMenuButtonProps } from '../../../components/Menu';
+import { IconButton } from '../../../components/Button';
+import { ParticipantActionsContextMenu } from '../../../components/CallParticipantsList';
 
 export interface ParticipantBoxProps {
   /**

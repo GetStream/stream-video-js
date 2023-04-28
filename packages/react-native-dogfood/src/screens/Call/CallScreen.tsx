@@ -5,18 +5,26 @@ import {
   useIncomingCalls,
   useRingCall,
   theme,
+  ActiveCallProps,
 } from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RingingStackParamList } from '../../../types';
 import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
+import { RingingStackParamList } from '../../../types';
 import { callkeepCallId$ } from '../../hooks/useCallkeepEffect';
+import {
+  startForegroundService,
+  stopForegroundService,
+} from '../../modules/push/android';
+import { ParticipantListButtons } from '../../components/ParticipantListButtons';
 
 type Props = NativeStackScreenProps<RingingStackParamList, 'CallScreen'>;
+type Mode = NonNullable<ActiveCallProps['mode']>;
 
 export const CallScreen = ({ navigation }: Props) => {
   const activeCall = useActiveCall();
   const [incomingCall] = useIncomingCalls();
   const { answerCall } = useRingCall();
+  const [selectedMode, setMode] = React.useState<Mode>('grid');
 
   useEffect(() => {
     // effect to answer call when incoming call is received from callkeep
@@ -33,6 +41,16 @@ export const CallScreen = ({ navigation }: Props) => {
     return () => subscription.unsubscribe();
   }, [answerCall, incomingCall]);
 
+  useEffect(() => {
+    if (!activeCall) {
+      return;
+    }
+    startForegroundService();
+    return () => {
+      stopForegroundService();
+    };
+  }, [activeCall]);
+
   const onOpenCallParticipantsInfoViewHandler = () => {
     navigation.navigate('CallParticipantsInfoScreen');
   };
@@ -42,8 +60,10 @@ export const CallScreen = ({ navigation }: Props) => {
   }
   return (
     <SafeAreaView style={styles.wrapper}>
+      <ParticipantListButtons selectedMode={selectedMode} setMode={setMode} />
       <ActiveCall
         onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
+        mode={selectedMode}
       />
     </SafeAreaView>
   );

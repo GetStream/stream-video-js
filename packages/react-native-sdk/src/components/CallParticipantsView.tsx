@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { LocalVideoView } from './LocalVideoView';
 import { useRemoteParticipants } from '@stream-io/video-react-bindings';
-import { useDebouncedValue } from '../utils/hooks';
+import { useDebouncedValue } from '../utils/useDebouncedValue';
 import { CallParticipantsList } from './CallParticipantsList';
 
 export const CallParticipantsView = () => {
