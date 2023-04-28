@@ -3,7 +3,7 @@
 }
 
 .container {
-  @apply flex p-2 items-center;
+  @apply flex p-2 items-center w-full;
 }
 
 .attachment {
@@ -21,8 +21,12 @@
 .bolt:hover {
   @apply cursor-pointer;
 }
+
+.input {
+  @apply w-full;
+}
 .input textarea {
-  @apply bg-video-grey-800 border-2 text-sm pt-1 pb-1 pl-2 pr-2 border-video-grey-450 text-video-grey-400 rounded-full;
+  @apply bg-video-grey-800 border-2 text-sm pt-1 pb-1 pl-2 pr-2 border-video-grey-450 text-video-grey-400 w-full rounded-full;
 }
 
 .button {

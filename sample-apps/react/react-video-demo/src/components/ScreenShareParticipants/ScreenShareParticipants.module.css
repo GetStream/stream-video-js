@@ -2,36 +2,57 @@
   @apply flex p-4;
 }
 
-.localNotification {
-  @apply fixed w-full p-2 lg:p-0 flex flex-row lg:flex-col justify-between lg:justify-center items-center text-video-white sm:border-2 sm:border-video-stream-500 rounded-container;
-  grid-area: localNotification;
+.remoteView {
+  @apply grid pl-4 pr-4  pb-4 gap-y-3 w-full;
+  height: calc(100vh - 150px);
+  grid-template-rows: 1fr 0.25fr;
+  grid-template-areas:
+    'screenShareContainer'
+    'remoteParticipants';
 }
 
 @media screen(md) {
-  .localNotification {
-    @apply absolute w-full h-full bg-video-black/40 p-2 lg:p-0 flex flex-row lg:flex-col justify-between lg:justify-center items-center text-video-white sm:border-2 sm:border-video-stream-500 rounded-container;
-    grid-area: localNotification;
+  .remoteView {
+    @apply gap-x-3 p-4;
+    height: calc(100vh - 180px);
+    grid-template-columns: 1fr 0.25fr;
+    grid-template-areas: 'screenShareContainer remoteParticipants';
   }
 }
 
+.screenShareContainer {
+  @apply flex flex-col justify-between;
+}
+
+.screenShare {
+  @apply max-h-[300px] md:max-h-none;
+  order: 2;
+}
+
+.localNotification {
+  @apply w-full md:absolute md:h-full p-2 md:p-0 md:bg-video-black/40 flex flex-row md:flex-col justify-between md:justify-center items-center text-video-white md:border-2 md:border-video-stream-500 rounded-container;
+  grid-area: localNotification;
+  order: 1;
+}
+
 .localNotificationHeading {
-  @apply flex lg:flex-col items-center;
+  @apply flex md:flex-col items-center;
 }
 
 .screenShareIcon {
-  @apply mr-2 lg:mr-0 lg:h-20  lg:w-20 lg:mb-3;
+  @apply mr-2 md:mr-0 md:h-20  md:w-20 md:mb-3;
 }
 
 .heading {
-  @apply text-sm lg:text-xl lg:mb-2;
+  @apply text-sm md:text-xl md:mb-2;
 }
 
 .button {
-  @apply p-0 m-0 font-medium text-sm lowercase flex items-center md:pl-2 md:pr-2 lg:mt-2 h-auto;
+  @apply p-0 m-0 font-medium text-sm lowercase flex items-center md:pl-2 md:pr-2 md:mt-2 h-auto;
 }
 
 .button > span {
-  @apply hidden lg:flex;
+  @apply hidden md:flex;
 }
 
 .closeIcon {
@@ -45,23 +66,6 @@
 .remoteParticipants {
   @apply flex w-full;
   grid-area: remoteParticipants;
-}
-
-.remoteView {
-  @apply grid p-4  gap-x-3 w-full;
-  height: calc(100vh - 150px);
-  grid-template-rows: 1fr 0.25fr;
-  grid-template-areas:
-    'screenShareContainer'
-    'remoteParticipants';
-}
-
-@media screen(md) {
-  .remoteView {
-    height: calc(100vh - 180px);
-    grid-template-columns: 1fr 0.25fr;
-    grid-template-areas: 'screenShareContainer remoteParticipants';
-  }
 }
 
 .screenShareContainer {
