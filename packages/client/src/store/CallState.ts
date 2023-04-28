@@ -8,7 +8,7 @@ import {
   StreamVideoParticipant,
   StreamVideoParticipantPatch,
   StreamVideoParticipantPatches,
-} from '../rtc/types';
+} from '../types';
 import { CallStatsReport } from '../stats/types';
 import {
   CallRecording,

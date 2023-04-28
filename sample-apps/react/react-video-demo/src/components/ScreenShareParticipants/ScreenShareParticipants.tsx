@@ -53,10 +53,6 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
     await call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
   }, [call]);
 
-  const localViewClassNames = classnames(styles.localView, {
-    [styles.hasRemoteParticipants]: remoteParticipants.length > 0,
-  });
-
   if (
     firstScreenSharingParticipant?.sessionId === localParticipant?.sessionId
   ) {

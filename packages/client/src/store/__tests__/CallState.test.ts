@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { StreamVideoParticipant, VisibilityState } from '../../rtc/types';
+import { StreamVideoParticipant, VisibilityState } from '../../types';
 import { CallState } from '../CallState';
 import {
   combineComparators,

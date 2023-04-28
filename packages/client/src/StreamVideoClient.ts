@@ -17,7 +17,7 @@ import {
   UpdateCallTypeRequest,
   UpdateCallTypeResponse,
 } from './gen/coordinator';
-import { Call } from './rtc/Call';
+import { Call } from './Call';
 
 import {
   watchCallAccepted,

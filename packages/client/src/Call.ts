@@ -1,24 +1,22 @@
-import { StreamSfuClient } from '../StreamSfuClient';
-import { createSubscriber } from './subscriber';
-import { Publisher } from './publisher';
-import { getGenericSdp } from './codecs';
-import { TrackType } from '../gen/video/sfu/models/models';
-import { registerEventHandlers } from './callEventHandlers';
+import { StreamSfuClient } from './StreamSfuClient';
 import {
+  createSubscriber,
   Dispatcher,
+  getGenericSdp,
   isSfuEvent,
+  Publisher,
   SfuEventKinds,
   SfuEventListener,
-} from './Dispatcher';
+} from './rtc';
+import { muteTypeToTrackType } from './rtc/helpers/tracks';
+import { ClientDetails, TrackType } from './gen/video/sfu/models/models';
+import { registerEventHandlers } from './events/callEventHandlers';
 import {
   CallingState,
   CallState,
   StreamVideoWriteableStateStore,
-} from '../store';
-import {
-  muteTypeToTrackType,
-  trackTypeToParticipantStreamKey,
-} from './helpers/tracks';
+} from './store';
+import { createSubscription } from './store/rxUtils';
 import {
   BlockUserRequest,
   BlockUserResponse,
@@ -50,8 +48,8 @@ import {
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
-} from '../gen/coordinator';
-import { join, watch } from './flows/join';
+} from './gen/coordinator';
+import { join, watch } from './rtc/flows/join';
 import {
   DebounceType,
   PublishOptions,
@@ -70,25 +68,27 @@ import {
   tap,
   timer,
 } from 'rxjs';
-import { createSubscription } from '../store/rxUtils';
-import { Comparator } from '../sorting';
-import { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
-import { JoinResponse } from '../gen/video/sfu/event/events';
+import { Comparator } from './sorting';
+import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
+import { JoinResponse } from './gen/video/sfu/event/events';
 import {
   createStatsReporter,
   StatsReporter,
-} from '../stats/state-store-stats-reporter';
-import { ViewportTracker } from '../ViewportTracker';
-import { PermissionsContext } from '../permissions';
+} from './stats/state-store-stats-reporter';
+import { ViewportTracker } from './helpers/ViewportTracker';
+import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
-import { StreamClient } from '../coordinator/connection/client';
-import { retryInterval, sleep } from '../coordinator/connection/utils';
+import { StreamClient } from './coordinator/connection/client';
+import { retryInterval, sleep } from './coordinator/connection/utils';
 import {
   CallEventHandler,
   CallEventTypes,
   EventHandler,
   StreamCallEvent,
-} from '../coordinator/connection/types';
+} from './coordinator/connection/types';
+import { UAParser } from 'ua-parser-js';
+import { getSdkInfo } from './sdk-info';
+import { isReactNative } from './helpers/platforms';
 
 /**
  * The options to pass to {@link Call} constructor.
@@ -589,7 +589,7 @@ export class Call {
     }
 
     this.subscriber = createSubscriber({
-      rpcClient: sfuClient,
+      sfuClient,
       dispatcher: this.dispatcher,
       connectionConfig: call.connectionConfig,
       onTrack: this.handleOnTrack,
@@ -611,7 +611,8 @@ export class Call {
     }
     console.log('DTX enabled', isDtxEnabled);
     this.publisher = new Publisher({
-      rpcClient: sfuClient,
+      sfuClient,
+      state: this.state,
       connectionConfig: call.connectionConfig,
       isDtxEnabled,
     });
@@ -624,6 +625,28 @@ export class Call {
     });
 
     try {
+      const clientDetails: ClientDetails = {};
+      if (isReactNative()) {
+        // TODO RN
+      } else {
+        const details = new UAParser(navigator.userAgent).getResult();
+        clientDetails.browser = {
+          name: details.browser.name || navigator.userAgent,
+          version: details.browser.version || '',
+        };
+        clientDetails.os = {
+          name: details.os.name || '',
+          version: details.os.version || '',
+          architecture: details.cpu.architecture || '',
+        };
+        clientDetails.device = {
+          name: `${details.device.vendor || ''} ${details.device.model || ''} ${
+            details.device.type || ''
+          }`,
+          version: '',
+        };
+      }
+      clientDetails.sdk = getSdkInfo();
       // 1. wait for the signal server to be ready before sending "joinRequest"
       sfuClient.signalReady
         .catch((err) => console.warn('Signal ready failed', err))
@@ -708,27 +731,12 @@ export class Call {
       return console.error(`There is no video track in the stream.`);
     }
 
-    const trackType = TrackType.VIDEO;
-
-    try {
-      await this.publisher.publishStream(
-        videoStream,
-        videoTrack,
-        trackType,
-        opts,
-      );
-      await this.sfuClient?.updateMuteState(trackType, false);
-    } catch (e) {
-      throw e;
-    }
-
-    this.state.updateParticipant(this.sfuClient!.sessionId, (p) => ({
+    await this.publisher.publishStream(
       videoStream,
-      videoDeviceId: videoTrack.getSettings().deviceId,
-      publishedTracks: p.publishedTracks.includes(trackType)
-        ? p.publishedTracks
-        : [...p.publishedTracks, trackType],
-    }));
+      videoTrack,
+      TrackType.VIDEO,
+      opts,
+    );
   };
 
   /**
@@ -755,24 +763,14 @@ export class Call {
       return console.error(`There is no audio track in the stream`);
     }
 
-    const trackType = TrackType.AUDIO;
-
-    try {
-      await this.publisher.publishStream(audioStream, audioTrack, trackType, {
-        preferredCodec: this.preferredAudioCodec,
-      });
-      await this.sfuClient!.updateMuteState(trackType, false);
-    } catch (e) {
-      throw e;
-    }
-
-    this.state.updateParticipant(this.sfuClient!.sessionId, (p) => ({
+    await this.publisher.publishStream(
       audioStream,
-      audioDeviceId: audioTrack.getSettings().deviceId,
-      publishedTracks: p.publishedTracks.includes(trackType)
-        ? p.publishedTracks
-        : [...p.publishedTracks, trackType],
-    }));
+      audioTrack,
+      TrackType.AUDIO,
+      {
+        preferredCodec: this.preferredAudioCodec,
+      },
+    );
   };
 
   /**
@@ -798,28 +796,11 @@ export class Call {
       return console.error(`There is no video track in the stream`);
     }
 
-    // fires when browser's native 'Stop Sharing button' is clicked
-    const onTrackEnded = () => this.stopPublish(trackType);
-    screenShareTrack.addEventListener('ended', onTrackEnded);
-
-    const trackType = TrackType.SCREEN_SHARE;
-    try {
-      await this.publisher.publishStream(
-        screenShareStream,
-        screenShareTrack,
-        trackType,
-      );
-      await this.sfuClient!.updateMuteState(trackType, false);
-    } catch (e) {
-      throw e;
-    }
-
-    this.state.updateParticipant(this.sfuClient!.sessionId, (p) => ({
+    await this.publisher.publishStream(
       screenShareStream,
-      publishedTracks: p.publishedTracks.includes(trackType)
-        ? p.publishedTracks
-        : [...p.publishedTracks, trackType],
-    }));
+      screenShareTrack,
+      TrackType.SCREEN_SHARE,
+    );
   };
 
   /**
@@ -834,19 +815,7 @@ export class Call {
    */
   stopPublish = async (trackType: TrackType) => {
     console.log(`stopPublish`, TrackType[trackType]);
-    const wasPublishing = this.publisher?.unpublishStream(trackType);
-    if (wasPublishing && this.sfuClient) {
-      await this.sfuClient.updateMuteState(trackType, true);
-
-      const audioOrVideoOrScreenShareStream =
-        trackTypeToParticipantStreamKey(trackType);
-      if (audioOrVideoOrScreenShareStream) {
-        this.state.updateParticipant(this.sfuClient.sessionId, (p) => ({
-          publishedTracks: p.publishedTracks.filter((t) => t !== trackType),
-          [audioOrVideoOrScreenShareStream]: undefined,
-        }));
-      }
-    }
+    await this.publisher?.unpublishStream(trackType);
   };
 
   /**

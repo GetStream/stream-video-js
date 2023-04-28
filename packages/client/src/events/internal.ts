@@ -1,7 +1,7 @@
-import { Dispatcher } from '../rtc/Dispatcher';
-import { Call } from '../rtc/Call';
+import { Dispatcher } from '../rtc';
+import { Call } from '../Call';
 import { CallState } from '../store';
-import { StreamVideoParticipantPatches } from '../rtc/types';
+import { StreamVideoParticipantPatches } from '../types';
 
 /**
  * An event responder which handles the `changePublishQuality` event.

@@ -5,7 +5,7 @@ import {
   useActiveCall,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import { MediaDevicesProvider } from '../../contexts';
+import { MediaDevicesProvider } from '../../core/contexts';
 
 export type StreamMeetingProps = {
   callId: string;

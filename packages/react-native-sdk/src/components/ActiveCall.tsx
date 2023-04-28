@@ -19,6 +19,7 @@ import { useCallCycleContext } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
+import { useIncallManager } from '../hooks/useIncallManager';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
 import { ReactionModal } from './ReactionsModal';
 
@@ -73,6 +74,8 @@ const InnerActiveCall = (props: ActiveCallProps) => {
   const callMetaData = useCallMetadata();
   const localParticipant = useLocalParticipant();
   const { onHangupCall } = callCycleHandlers;
+
+  useIncallManager({ media: 'video', auto: true });
   usePublishMediaStreams();
 
   let blocked_user_ids: string[] = useMemo(() => {

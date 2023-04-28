@@ -9,7 +9,7 @@ import {
 } from '@stream-io/video-client';
 import { useCallback, useEffect, useRef } from 'react';
 import { map } from 'rxjs';
-import { useDebugPreferredVideoCodec } from '../components/Debug/useIsDebugMode';
+import { useDebugPreferredVideoCodec } from '../../components/Debug/useIsDebugMode';
 
 /**
  * Exclude types from documentaiton site, but we should still add doc comments

@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 
 import {
   CallTypes,
+  combineComparators,
+  Comparator,
   defaultSortPreset,
+  screenSharing,
   SfuModels,
   speakerLayoutSortPreset,
   StreamVideoParticipant,
@@ -13,9 +16,9 @@ import {
   useParticipants,
 } from '@stream-io/video-react-bindings';
 
-import { ParticipantBox } from '../StreamCall';
-import { IconButton } from '../Button';
-import { useHorizontalScrollPosition } from '../StreamCall/hooks';
+import { ParticipantBox } from '../ParticipantBox';
+import { IconButton } from '../../../components/Button';
+import { useHorizontalScrollPosition } from '../../../components/StreamCall/hooks';
 
 export const SpeakerLayout = () => {
   const call = useCall()!;
@@ -23,6 +26,7 @@ export const SpeakerLayout = () => {
   const [scrollWrapper, setScrollWrapper] = useState<HTMLDivElement | null>(
     null,
   );
+  const isOneOnOneCall = otherParticipants.length === 1;
   const localParticipant = useLocalParticipant();
 
   const scrollPosition = useHorizontalScrollPosition(scrollWrapper);
@@ -43,22 +47,14 @@ export const SpeakerLayout = () => {
     return () => cleanup();
   }, [scrollWrapper, call.viewportTracker]);
 
-  const isOneToOneCall = otherParticipants.length === 1;
   useEffect(() => {
-    if (isOneToOneCall) {
-      // always show the remote participant in the spotlight.
-      call.setSortParticipantsBy((a, b) => {
-        if (a.isLoggedInUser) return 1;
-        if (b.isLoggedInUser) return -1;
-        return 0;
-      });
+    // always show the remote participant in the spotlight
+    if (isOneOnOneCall) {
+      call.setSortParticipantsBy(combineComparators(screenSharing, loggedIn));
     } else {
-      // otherwise, use the default sorting preset.
       call.setSortParticipantsBy(speakerLayoutSortPreset);
     }
-  }, [call, isOneToOneCall]);
 
-  useEffect(() => {
     return () => {
       // reset the sorting to the default for the call type
       const callConfig = CallTypes.get(call.type);
@@ -66,7 +62,7 @@ export const SpeakerLayout = () => {
         callConfig.options.sortParticipantsBy || defaultSortPreset,
       );
     };
-  }, [call]);
+  }, [call, isOneOnOneCall]);
 
   const isSpeakerScreenSharing = hasScreenShare(participantInSpotlight);
   return (
@@ -77,6 +73,7 @@ export const SpeakerLayout = () => {
             <ParticipantBox
               participant={participantInSpotlight}
               call={call}
+              muteAudio={isSpeakerScreenSharing}
               videoKind={isSpeakerScreenSharing ? 'screen' : 'video'}
               sinkId={localParticipant?.audioOutputDeviceId}
             />
@@ -105,6 +102,7 @@ export const SpeakerLayout = () => {
                       participant={participantInSpotlight}
                       call={call}
                       sinkId={localParticipant?.audioOutputDeviceId}
+                      toggleMenuPosition="top"
                     />
                   </div>
                 )}
@@ -118,11 +116,6 @@ export const SpeakerLayout = () => {
                       call={call}
                       sinkId={localParticipant?.audioOutputDeviceId}
                       toggleMenuPosition="top"
-                      videoKind={
-                        isOneToOneCall && hasScreenShare(participant)
-                          ? 'screen'
-                          : 'video'
-                      }
                     />
                   </div>
                 ))}
@@ -144,3 +137,9 @@ export const SpeakerLayout = () => {
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
+
+const loggedIn: Comparator<StreamVideoParticipant> = (a, b) => {
+  if (a.isLoggedInUser) return 1;
+  if (b.isLoggedInUser) return -1;
+  return 0;
+};

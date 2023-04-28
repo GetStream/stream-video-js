@@ -140,6 +140,9 @@ export const ParticipantActionsContextMenu = ({
   const muteVideo = () => {
     activeCall?.muteUser(participant.userId, 'video');
   };
+  const muteScreenShare = () => {
+    activeCall?.muteUser(participant.userId, 'screenshare');
+  };
 
   const grantPermission = (permission: string) => () => {
     activeCall?.updateUserPermissions({
@@ -186,6 +189,17 @@ export const ParticipantActionsContextMenu = ({
         >
           <Icon icon="camera-off-outline" />
           Turn off video
+        </GenericMenuButtonItem>
+        <GenericMenuButtonItem
+          disabled={
+            !participant.publishedTracks.includes(
+              SfuModels.TrackType.SCREEN_SHARE,
+            )
+          }
+          onClick={muteScreenShare}
+        >
+          <Icon icon="screen-share-off" />
+          Turn off screen share
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
           disabled={

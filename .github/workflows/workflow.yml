@@ -3,7 +3,7 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  # SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 on:
   # Trigger flow when pushing in main or pull requests, and when creating
@@ -50,11 +50,11 @@ jobs:
       - name: Test packages
         run: yarn test:ci:all
 
-      # TODO OL: Enable SonarCloud once we go public
-      # - name: SonarCloud Scan
-      #  uses: sonarsource/sonarcloud-github-action@master
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
 
       - name: Release packages
+        if: always()
         run: echo 'TODO'
 
       # Vercel deployment: Dogfood (Preview)

@@ -25,7 +25,7 @@
 
 .participants {
   grid-area: participants;
-  @apply flex items-center;
+  @apply hidden sm:flex items-center;
 }
 
 .innerParticipants {
