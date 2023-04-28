@@ -7,6 +7,7 @@ $scope-name: 'str-video__participant';
   max-width: 1280px;
   min-height: 0;
   max-height: 100%;
+  aspect-ratio: 4/3;
 
   & > .str-video__call-controls__button {
     position: absolute;
@@ -35,7 +36,6 @@ $scope-name: 'str-video__participant';
       border-radius: var(--str-video__border-radius2);
       width: 100%;
       object-fit: cover;
-      aspect-ratio: 4/3;
       background: var(--str-video__text-color3);
     }
   }
