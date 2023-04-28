@@ -1,10 +1,10 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import {
+  checkIfAudioOutputChangeSupported,
   ToggleAudioOutputButton,
   ToggleAudioPreviewButton,
   ToggleCameraPreviewButton,
-  useMediaDevices,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
 import { LobbyHeader } from './LobbyHeader';
@@ -28,7 +28,10 @@ type LobbyProps = {
 };
 export const Lobby = ({ onJoin, callId }: LobbyProps) => {
   const { data: session, status } = useSession();
-  const { initialVideoState, isAudioOutputChangeSupported } = useMediaDevices();
+
+  const [isAudioOutputChangeSupported] = useState(() =>
+    checkIfAudioOutputChangeSupported(),
+  );
 
   const router = useRouter();
   useEffect(() => {
@@ -62,15 +65,7 @@ export const Lobby = ({ onJoin, callId }: LobbyProps) => {
               Stream Meetings
             </Typography>
 
-            <Typography
-              textAlign="center"
-              color={
-                initialVideoState.type === 'playing'
-                  ? 'currentcolor'
-                  : 'transparent'
-              }
-              variant="subtitle1"
-            >
+            <Typography textAlign="center" variant="subtitle1">
               {subtitle}
             </Typography>
 

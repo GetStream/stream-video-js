@@ -6,7 +6,7 @@ import {
   IconButton,
   LoadingIndicator,
   Notification,
-  useActiveCall,
+  useCall,
   useCallCallingState,
 } from '@stream-io/video-react-sdk';
 import { CallHeaderTitle } from './CallHeaderTitle';
@@ -19,7 +19,7 @@ export const ActiveCallHeader = ({
   selectedLayout,
   onMenuItemClick: setLayout,
 }: LayoutSelectorProps) => {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
 
   const callingState = useCallCallingState();
   const isOffline = callingState === CallingState.OFFLINE;

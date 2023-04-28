@@ -1,5 +1,7 @@
 import {
-  useActiveCall,
+  CallingState,
+  useCall,
+  useCallCallingState,
   useConnectedUser,
   useIncomingCalls,
   useOutgoingCalls,
@@ -9,14 +11,15 @@ import { ActiveCallPanel } from './ActiveCallPanel';
 import { PendingCallPanel } from './PendingCallPanel';
 
 export const CallPanel = () => {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
+  const callingState = useCallCallingState();
   const [outgoingCall] = useOutgoingCalls();
   const [incomingCall] = useIncomingCalls();
   const localUser = useConnectedUser();
   // todo: How we can get remote user data?
   const remoteUser = {} as User;
 
-  if (activeCall) {
+  if (activeCall && callingState === CallingState.JOINED) {
     return <ActiveCallPanel activeCall={activeCall} />;
   } else if (outgoingCall) {
     return (

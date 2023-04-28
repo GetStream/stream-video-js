@@ -7,7 +7,6 @@ import {
   useState,
 } from 'react';
 import { map, pairwise, take } from 'rxjs';
-
 import {
   checkIfAudioOutputChangeSupported,
   disposeOfMediaStream,
@@ -19,7 +18,7 @@ import {
   SfuModels,
   watchForDisconnectedAudioOutputDevice,
 } from '@stream-io/video-client';
-import { useActiveCall } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
 
 import { useAudioPublisher, useVideoPublisher } from '../hooks';
 
@@ -132,7 +131,7 @@ export const MediaDevicesProvider = ({
   initialAudioOutputDeviceId = 'default',
   initialAudioInputDeviceId = 'default',
 }: MediaDevicesProviderProps) => {
-  const call = useActiveCall();
+  const call = useCall();
   const { localParticipant$ } = call?.state || {};
 
   const [audioInputDevices, setAudioInputDevices] = useState<MediaDeviceInfo[]>(
@@ -295,10 +294,10 @@ export const MediaDevicesProvider = ({
     return () => subscription.unsubscribe();
   }, [videoDevices.length]);
 
-  useEffect(() => {
-    if (!call) return;
-    call.setAudioOutputDevice(selectedAudioOutputDeviceId);
-  }, [call, selectedAudioOutputDeviceId]);
+  // useEffect(() => {
+  //   if (!call) return;
+  //   call.setAudioOutputDevice(selectedAudioOutputDeviceId);
+  // }, [call, selectedAudioOutputDeviceId]);
 
   useEffect(() => {
     if (!localParticipant$) return;

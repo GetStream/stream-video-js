@@ -11,6 +11,7 @@ import {
   defaultSortPreset,
   IconButton,
   LoadingIndicator,
+  MediaDevicesProvider,
   noopComparator,
   PermissionRequests,
   ReactionsButton,
@@ -36,7 +37,10 @@ import {
   UnreadCountBadge,
 } from '.';
 import { ActiveCallHeader } from './ActiveCallHeader';
-import { DeviceSettingsCaptor } from './DeviceSettingsCaptor';
+import {
+  DeviceSettingsCaptor,
+  getDeviceSettings,
+} from './DeviceSettingsCaptor';
 import { useWatchChannel } from '../hooks';
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 import { Stage } from './Stage';
@@ -108,8 +112,8 @@ export const MeetingUI = ({ chatClient, callId, callType }: MeetingUIProps) => {
 
   useEffect(() => {
     const handlePageLeave = async () => {
-      if (activeCall?.state.callingState !== CallingState.LEFT) {
-        await activeCall?.leave();
+      if (activeCall && activeCall?.state.callingState !== CallingState.LEFT) {
+        await activeCall.leave();
       }
     };
     router.events.on('routeChangeStart', handlePageLeave);
@@ -129,37 +133,34 @@ export const MeetingUI = ({ chatClient, callId, callType }: MeetingUIProps) => {
     }
   }, [activeCall, isSortingDisabled]);
 
+  const deviceSettings = getDeviceSettings();
+  let ComponentToRender: JSX.Element | null = null;
   if (show === 'error-join' || show === 'error-leave') {
-    return (
+    ComponentToRender = (
       <ErrorPage
         heading={contents[show].heading}
         onClickHome={() => router.push(`/`)}
         onClickLobby={() => setShow('lobby')}
       />
     );
-  }
-  if (show === 'lobby') {
-    return <Lobby onJoin={onJoin} callId={callId} />;
-  }
-
-  if (show === 'loading')
-    return (
+  } else if (show === 'lobby') {
+    ComponentToRender = <Lobby onJoin={onJoin} callId={callId} />;
+  } else if (show === 'loading') {
+    ComponentToRender = (
       <StreamCallProvider call={activeCall}>
         <LoadingScreen />
       </StreamCallProvider>
     );
-
-  if (!activeCall)
-    return (
+  } else if (!activeCall) {
+    ComponentToRender = (
       <ErrorPage
         heading={'Lost active call connection'}
         onClickHome={() => router.push(`/`)}
         onClickLobby={() => setShow('lobby')}
       />
     );
-
-  return (
-    <StreamCallProvider call={activeCall}>
+  } else {
+    ComponentToRender = (
       <div className="str-video__call">
         <div className="str-video__main-call-panel">
           <ActiveCallHeader
@@ -235,7 +236,22 @@ export const MeetingUI = ({ chatClient, callId, callType }: MeetingUIProps) => {
           </div>
         )}
       </div>
-      <DeviceSettingsCaptor />
+    );
+  }
+
+  return (
+    <StreamCallProvider call={activeCall}>
+      <MediaDevicesProvider
+        enumerate
+        initialAudioEnabled={!deviceSettings?.isAudioMute}
+        initialVideoEnabled={!deviceSettings?.isVideoMute}
+        initialVideoInputDeviceId={deviceSettings?.selectedVideoDeviceId}
+        initialAudioInputDeviceId={deviceSettings?.selectedAudioInputDeviceId}
+        initialAudioOutputDeviceId={deviceSettings?.selectedAudioOutputDeviceId}
+      >
+        {ComponentToRender}
+        <DeviceSettingsCaptor />
+      </MediaDevicesProvider>
     </StreamCallProvider>
   );
 };

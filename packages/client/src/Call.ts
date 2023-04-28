@@ -10,7 +10,10 @@ import {
 } from './rtc';
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
 import { ClientDetails, TrackType } from './gen/video/sfu/models/models';
-import { registerEventHandlers } from './events/callEventHandlers';
+import {
+  registerEventHandlers,
+  registerRingingCallEventHandlers,
+} from './events/callEventHandlers';
 import {
   CallingState,
   CallState,
@@ -37,6 +40,7 @@ import {
   RequestPermissionRequest,
   RequestPermissionResponse,
   SendEventRequest,
+  SendEventResponse,
   SendReactionRequest,
   SendReactionResponse,
   StopLiveResponse,
@@ -180,7 +184,7 @@ export class Call {
   /**
    * Flag telling whether this call is a "ringing" call.
    */
-  readonly ringing: boolean;
+  ringing: boolean;
 
   /**
    * Flag indicating whether this call is "watched" and receives
@@ -394,9 +398,31 @@ export class Call {
   /**
    * Leave the call and stop the media streams that were published by the call.
    */
-  leave = () => {
-    if (this.state.callingState === CallingState.LEFT) {
+  leave = async () => {
+    const callingState = this.state.callingState;
+    if (callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
+    }
+
+    if (this.ringing) {
+      // I'm the one who started the call, so I should cancel it.
+      const currentUserId = this.clientStore.connectedUser?.id;
+      const createdById = this.state.metadata?.created_by.id;
+      const isCallCreatedByMe = createdById === currentUserId;
+      const hasOtherParticipants = this.state.remoteParticipants.length > 0;
+
+      if (isCallCreatedByMe && !hasOtherParticipants) {
+        // Signals other users that I have cancelled my call to them
+        // before they accepted it.
+        // Causes the `call.ended` event to be emitted to all the call members.
+        await this.endCall();
+      } else if (callingState === CallingState.IDLE) {
+        // Signals other users that I have rejected the incoming call.
+        // Causes the `call.rejected` event to be emitted to all the call members.
+        await this.sendEvent({
+          type: 'call.rejected',
+        });
+      }
     }
 
     this.statsReporter?.stop();
@@ -416,7 +442,6 @@ export class Call {
     // Call all leave call hooks, e.g. to clean up global event handlers
     this.leaveCallHooks.forEach((hook) => hook());
 
-    this.clientStore.setActiveCall(undefined);
     this.clientStore.unregisterCall(this);
     this.state.setCallingState(CallingState.LEFT);
   };
@@ -441,6 +466,46 @@ export class Call {
     });
 
   /**
+   * Loads the information about the call.
+   */
+  get = async () => {
+    const response = await this.streamClient.get<GetCallResponse>(
+      this.streamClientBasePath,
+    );
+    this.state.setMetadata(response.call);
+    this.state.setMembers(response.members);
+
+    return response;
+  };
+
+  /**
+   * Loads the information about the call and creates it if it doesn't exist.
+   *
+   * @param data the data to create the call with.
+   */
+  getOrCreate = async (data?: GetOrCreateCallRequest) => {
+    const response = await this.streamClient.post<
+      GetOrCreateCallResponse,
+      GetOrCreateCallRequest
+    >(this.streamClientBasePath, data);
+
+    if (data?.ring && !this.dropTimeout) {
+      this.scheduleAutoDrop();
+      this.watchForAutoDropCancellation();
+    }
+    this.state.setMetadata(response.call);
+    this.state.setMembers(response.members);
+
+    this.clientStore.registerCall(this);
+    if (data?.ring && !this.ringing) {
+      this.ringing = true;
+      this.leaveCallHooks.push(registerRingingCallEventHandlers(this));
+    }
+
+    return response;
+  };
+
+  /**
    * Will start to watch for call related WebSocket events, but it won't join the call. If you watch a call you'll be notified about WebSocket events, but you won't be able to publish your audio and video, and you won't be able to see and hear others. You won't show up in the list of joined participants.
    *
    * @param data
@@ -452,6 +517,11 @@ export class Call {
 
     this.watching = true;
     this.clientStore.registerCall(this);
+
+    if (data?.ring && !this.ringing) {
+      this.ringing = true;
+      this.leaveCallHooks.push(registerRingingCallEventHandlers(this));
+    }
 
     return response;
   };
@@ -471,6 +541,19 @@ export class Call {
     }
 
     this.state.setCallingState(CallingState.JOINING);
+
+    if (data?.ring && !this.ringing) {
+      this.ringing = true;
+      this.leaveCallHooks.push(registerRingingCallEventHandlers(this));
+    }
+
+    if (this.ringing) {
+      // Signals other users that I have accepted the incoming call.
+      // Causes the `call.accepted` event to be emitted to all the call members.
+      await this.sendEvent({
+        type: 'call.accepted',
+      });
+    }
 
     const call = await join(this.streamClient, this.type, this.id, data);
     this.state.setMetadata(call.metadata);
@@ -668,8 +751,6 @@ export class Call {
           viewportVisibilityState: VisibilityState.UNKNOWN,
         })),
       );
-
-      this.clientStore.setActiveCall(this);
 
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
@@ -1181,51 +1262,6 @@ export class Call {
   };
 
   /**
-   * Loads the information about the call.
-   */
-  get = async () => {
-    const response = await this.streamClient.get<GetCallResponse>(
-      this.streamClientBasePath,
-    );
-    this.state.setMetadata(response.call);
-    this.state.setMembers(response.members);
-
-    return response;
-  };
-
-  /**
-   * Loads the information about the call and creates it if it doesn't exist.
-   *
-   * @param data the data to create the call with.
-   */
-  getOrCreate = async (data?: GetOrCreateCallRequest) => {
-    const response = await this.streamClient.post<
-      GetOrCreateCallResponse,
-      GetOrCreateCallRequest
-    >(this.streamClientBasePath, data);
-
-    if (data?.ring && !this.dropTimeout) {
-      this.scheduleAutoDrop();
-      this.watchForAutoDropCancellation();
-    }
-    this.state.setMetadata(response.call);
-    this.state.setMembers(response.members);
-
-    const callAlreadyRegistered = this.clientStore.pendingCalls.find(
-      (pendingCall) => pendingCall.id === this.id,
-    );
-
-    if (!callAlreadyRegistered) {
-      this.clientStore.setPendingCalls((pendingCalls) => [
-        ...pendingCalls,
-        this,
-      ]);
-    }
-
-    return response;
-  };
-
-  /**
    * Starts recording the call
    */
   startRecording = async () => {
@@ -1336,67 +1372,6 @@ export class Call {
     });
   };
 
-  /**
-   * Signals other users that I have accepted the incoming call.
-   * Causes the `CallAccepted` event to be emitted to all the call members.
-   * @returns
-   */
-  accept = async () => {
-    // FIXME OL: this method should be merged with the join method.
-
-    const callToAccept = this.clientStore.pendingCalls.find(
-      (c) => c.id === this.id && c.type === this.type,
-    );
-
-    if (callToAccept) {
-      await this.streamClient.post(`${this.streamClientBasePath}/event`, {
-        type: 'call.accepted',
-      });
-
-      // remove the accepted call from the "pending calls" list.
-      this.clientStore.setPendingCalls((pendingCalls) =>
-        pendingCalls.filter((c) => c !== callToAccept),
-      );
-
-      await this.join();
-      this.clientStore.setActiveCall(callToAccept);
-    }
-  };
-
-  /**
-   * Signals other users that I have rejected the incoming call.
-   * Causes the `CallRejected` event to be emitted to all the call members.
-   * @returns
-   */
-  reject = async () => {
-    this.clientStore.setPendingCalls((pendingCalls) =>
-      pendingCalls.filter((c) => c.cid !== this.cid),
-    );
-    await this.streamClient.post(`${this.streamClientBasePath}/event`, {
-      type: 'call.rejected',
-    });
-  };
-
-  /**
-   * Signals other users that I have cancelled my call to them before they accepted it.
-   * Causes the `call.ended` event to be emitted to all the call members.
-   *
-   * @returns
-   */
-  cancel = async () => {
-    console.log('call cancelled');
-    // FIXME OL: this method should be merged with the leave method.
-    const leavingActiveCall = this.clientStore.activeCall?.cid === this.cid;
-    if (leavingActiveCall) {
-      this.leave();
-    } else {
-      await this.endCall();
-      this.clientStore.setPendingCalls((pendingCalls) =>
-        pendingCalls.filter((c) => c.cid !== this.cid),
-      );
-    }
-  };
-
   private scheduleAutoDrop = () => {
     const subscription = this.state.metadata$
       .pipe(
@@ -1411,24 +1386,22 @@ export class Call {
             ? [
                 prevMeta?.settings.ring.auto_cancel_timeout_ms,
                 currentMeta.settings.ring.auto_cancel_timeout_ms,
-                this.cancel,
+                this.leave,
               ]
             : [
                 prevMeta?.settings.ring.auto_reject_timeout_ms,
                 currentMeta.settings.ring.auto_reject_timeout_ms,
-                this.reject,
+                this.leave,
               ];
           if (typeof timeoutMs === 'undefined' || timeoutMs === prevTimeoutMs)
             return;
 
           if (this.dropTimeout) clearTimeout(this.dropTimeout);
-          this.dropTimeout = setTimeout(dropFn, timeoutMs);
+          // FIXME OL: sort this out
+          // this.dropTimeout = setTimeout(dropFn, timeoutMs);
         }),
         takeWhile(
-          () =>
-            !!this.clientStore.pendingCalls.find(
-              (call) => call.cid === this.cid,
-            ),
+          () => !!this.clientStore.calls.find((call) => call.cid === this.cid),
         ),
       )
       .subscribe();
@@ -1446,7 +1419,7 @@ export class Call {
   };
 
   private watchForAutoDropCancellation = () => {
-    const subscription = this.clientStore.pendingCallsSubject
+    const subscription = this.clientStore.callsSubject
       .pipe(
         pairwise(),
         tap(([prev, next]) => {
@@ -1501,6 +1474,9 @@ export class Call {
   sendEvent = async (
     event: SendEventRequest & { type: StreamCallEvent['type'] },
   ) => {
-    return this.streamClient.post(`${this.streamClientBasePath}/event`, event);
+    return this.streamClient.post<SendEventResponse, SendEventRequest>(
+      `${this.streamClientBasePath}/event`,
+      event,
+    );
   };
 }
