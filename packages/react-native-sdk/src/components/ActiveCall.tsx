@@ -12,7 +12,7 @@ import {
   useHasOngoingScreenShare,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useCallCycleContext } from '../contexts';
@@ -20,10 +20,7 @@ import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
-import { Reaction } from '../icons';
 import { ReactionModal } from './ReactionsModal';
-import { CallPermissionsWrapper } from './CallPermissionsWrapper';
-import { OwnCapability } from '@stream-io/video-client';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -110,19 +107,13 @@ const InnerActiveCall = (props: ActiveCallProps) => {
 
   return (
     <View style={styles.container}>
-      <CallParticipantsBadge
-        onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
-      />
-      <CallPermissionsWrapper requiredGrants={[OwnCapability.CREATE_REACTION]}>
-        <Pressable
-          onPress={openReactionsModal}
-          style={[styles.svgContainerStyle, theme.icon.md]}
-        >
-          <Reaction color={theme.light.static_white} />
-        </Pressable>
-      </CallPermissionsWrapper>
-
+      <View style={styles.iconGroup}>
+        <CallParticipantsBadge
+          onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
+        />
+      </View>
       {reactionModal && <ReactionModal setReactionModal={setReactionModal} />}
+
       <View
         style={[
           styles.callParticipantsWrapper,
@@ -136,7 +127,10 @@ const InnerActiveCall = (props: ActiveCallProps) => {
         )}
       </View>
       <View onLayout={onLayout} style={styles.callControlsWrapper}>
-        <CallControlsView onHangupCall={onHangupCall} />
+        <CallControlsView
+          onHangupCall={onHangupCall}
+          onReactionsSelector={openReactionsModal}
+        />
       </View>
     </View>
   );
@@ -150,8 +144,15 @@ const styles = StyleSheet.create({
   callParticipantsWrapper: { flex: 1 },
   callControlsWrapper: { position: 'absolute', bottom: 0, left: 0, right: 0 },
   svgContainerStyle: {
-    position: 'absolute',
-    right: 2 * theme.spacing.lg,
     zIndex: 2,
+    marginRight: theme.margin.md,
+    marginTop: theme.margin.sm,
+  },
+  iconGroup: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    marginRight: theme.margin.md,
   },
 });

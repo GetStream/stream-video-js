@@ -1,4 +1,4 @@
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Participants } from '../icons';
 import { useParticipants } from '@stream-io/video-react-bindings';
 import { theme } from '../theme';
@@ -31,9 +31,6 @@ export const CallParticipantsBadge = ({
 
 const styles = StyleSheet.create({
   participantIcon: {
-    position: 'absolute',
-    right: 2 * theme.spacing.lg,
-    top: Platform.OS === 'ios' ? 3 * theme.spacing.lg : theme.spacing.lg,
     zIndex: 2,
   },
   svgContainerStyle: {},
@@ -44,7 +41,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     left: theme.spacing.lg,
     top: theme.spacing.lg,
-    zIndex: 4,
+    zIndex: 2,
   },
   badgeText: {
     color: theme.light.static_white,

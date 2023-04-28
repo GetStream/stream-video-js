@@ -12,4 +12,6 @@ export const defaultEmojiReactions: Record<string, string | JSX.Element> = {
   ':like:': '👍',
   ':raise-hand:': '✋',
   ':fireworks:': '🎉',
+  ':heart:': '❤️',
+  ':rocket:': '🚀',
 };

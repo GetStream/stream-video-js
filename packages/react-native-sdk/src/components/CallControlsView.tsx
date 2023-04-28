@@ -8,6 +8,7 @@ import {
   Mic,
   MicOff,
   PhoneDown,
+  Reaction,
   Video,
   VideoSlash,
 } from '../icons';
@@ -25,6 +26,10 @@ export interface CallControlsViewProps {
    * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
    */
   onHangupCall?: () => void;
+  /**
+   * Handler used to open reactions selector
+   */
+  onReactionsSelector?: () => void;
 }
 
 /**
@@ -35,7 +40,10 @@ export interface CallControlsViewProps {
  * | :--- |
  * | ![call-controls-view](https://user-images.githubusercontent.com/25864161/217349666-af0f3278-393e-449d-b30e-2d1b196abe5e.png) |
  */
-export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
+export const CallControlsView = ({
+  onHangupCall,
+  onReactionsSelector,
+}: CallControlsViewProps) => {
   const {
     isAudioMuted,
     isVideoMuted,
@@ -59,6 +67,15 @@ export const CallControlsView = ({ onHangupCall }: CallControlsViewProps) => {
 
   return (
     <View style={styles.container}>
+      <CallPermissionsWrapper requiredGrants={[OwnCapability.CREATE_REACTION]}>
+        <CallControlsButton
+          onPress={onReactionsSelector}
+          color={theme.light.static_white}
+          style={styles.button}
+        >
+          <Reaction color={theme.light.static_black} />
+        </CallControlsButton>
+      </CallPermissionsWrapper>
       <CallControlsButton
         color={theme.light.static_white}
         onPress={() => null}

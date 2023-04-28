@@ -36,8 +36,6 @@ export interface LocalVideoViewProps {
   zOrder?: number;
 }
 
-const LOCAL_VIDEO_VIEW_POSITION_FROM_TOP = 100;
-
 /**
  * Shows a floating participant UI that can be dragged (to be implemented) within certain bounds.
  *
@@ -88,7 +86,7 @@ const styles = StyleSheet.create({
     height: LOCAL_VIDEO_VIEW_STYLE.height,
     width: LOCAL_VIDEO_VIEW_STYLE.width,
     right: theme.spacing.lg * 2,
-    top: LOCAL_VIDEO_VIEW_POSITION_FROM_TOP,
+    top: theme.margin.md,
     borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius,
     zIndex: 1,
     overflow: 'hidden',
