@@ -278,30 +278,30 @@ export class StreamVideoClient {
    * @param {string} push_provider_name user provided push provider name
    * @param {string} [userID] the user id (defaults to current user)
    */
-  async addDevice(
+  addDevice = async (
     id: string,
     push_provider: string,
-    push_provider_name: string,
+    push_provider_name?: string,
     userID?: string,
-  ) {
+  ) => {
     return await this.streamClient.post('/devices', {
       id,
       push_provider,
       ...(userID != null ? { user_id: userID } : {}),
       ...(push_provider_name != null ? { push_provider_name } : {}),
     });
-  }
+  };
 
   /**
    * getDevices - Returns the devices associated with a current user
    * @param {string} [userID] User ID. Only works on serverside
    */
-  async getDevices(userID?: string) {
+  getDevices = async (userID?: string) => {
     return await this.streamClient.get<ListDevicesResponse>(
       '/devices',
       userID ? { user_id: userID } : {},
     );
-  }
+  };
 
   /**
    * removeDevice - Removes the device with the given id.
@@ -310,18 +310,18 @@ export class StreamVideoClient {
    * @param {string} [userID] The user id. Only specify this for serverside requests
    *
    */
-  async removeDevice(id: string, userID?: string) {
+  removeDevice = async (id: string, userID?: string) => {
     return await this.streamClient.delete('/devices', {
       id,
       ...(userID ? { user_id: userID } : {}),
     });
-  }
+  };
 
   /**
    * setDevice - Set the device info for the current client device to receive push
    * notification, the device will be sent via WS connection automatically
    */
-  async setDevice(device: DeviceFieldsRequest) {
+  setDevice = async (device: DeviceFieldsRequest) => {
     this.streamClient.options.pushDevice = device;
     // if the connection already did authentication then we call the endpoint
     // directly
@@ -332,5 +332,5 @@ export class StreamVideoClient {
         device.push_provider_name,
       );
     }
-  }
+  };
 }

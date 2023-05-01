@@ -9,18 +9,15 @@ export const defaultReactions: StreamReaction[] = [
   {
     type: 'reaction',
     emoji_code: ':like:',
-    custom: {},
   },
   {
     // TODO OL: use `prompt` type?
     type: 'raised-hand',
     emoji_code: ':raise-hand:',
-    custom: {},
   },
   {
     type: 'reaction',
     emoji_code: ':fireworks:',
-    custom: {},
   },
 ];
 
@@ -59,11 +56,6 @@ export const DefaultReactionsMenu = ({
   reactions,
 }: DefaultReactionsMenuProps) => {
   const call = useCall();
-
-  const sendReaction = (reaction: StreamReaction) => {
-    call?.sendReaction(reaction);
-  };
-
   return (
     <div className="str-video__reactions-menu">
       {reactions.map((reaction) => (
@@ -72,7 +64,7 @@ export const DefaultReactionsMenu = ({
           type="button"
           className="str-video__reactions-menu__button"
           onClick={() => {
-            sendReaction(reaction);
+            call?.sendReaction(reaction);
           }}
         >
           {reaction.emoji_code && defaultEmojiReactions[reaction.emoji_code]}
