@@ -34,6 +34,11 @@ $scope-name: 'str-video__speaker-layout';
       border-radius: unset;
       object-fit: contain;
     }
+
+    .str-video__participant_details,
+    .str-video__call-controls__button {
+      opacity: 1;
+    }
   }
 
   .str-video__speaker-layout--participants-bar-buttons-wrapper {
@@ -83,19 +88,6 @@ $scope-name: 'str-video__speaker-layout';
         // to see "speaking" outline
         padding-inline: 5px;
         padding-block: 2px;
-
-        .str-video__participant_details,
-        .str-video__call-controls__button {
-          transition: opacity 200ms ease-out;
-          opacity: 0.3;
-        }
-
-        &:hover {
-          .str-video__participant_details,
-          .str-video__call-controls__button {
-            opacity: 1;
-          }
-        }
       }
     }
   }
