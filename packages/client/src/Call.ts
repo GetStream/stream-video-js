@@ -182,6 +182,16 @@ export class Call {
    */
   readonly ringing: boolean;
 
+  private rejoinPromise: (() => Promise<void>) | undefined;
+
+  /**
+   * A promise that exposes the reconnection logic
+   * The use-case is for the react-native platform where online/offline events are not available in the window
+   */
+  get rejoin(): (() => Promise<void>) | undefined {
+    return this.rejoinPromise;
+  }
+
   /**
    * Flag indicating whether this call is "watched" and receives
    * updates from the backend.
@@ -398,7 +408,7 @@ export class Call {
     if (this.state.callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
     }
-
+    this.rejoinPromise = undefined;
     this.statsReporter?.stop();
     this.statsReporter = undefined;
 
@@ -534,6 +544,8 @@ export class Call {
       }
       console.log(`Rejoin: state restored ${this.reconnectAttempts}`);
     };
+
+    this.rejoinPromise = rejoin;
 
     // reconnect if the connection was closed unexpectedly. example:
     // - SFU crash or restart

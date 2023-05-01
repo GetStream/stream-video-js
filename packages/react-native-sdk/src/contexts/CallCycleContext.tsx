@@ -13,6 +13,7 @@ import {
 } from 'react';
 import NetInfo from '@react-native-community/netinfo';
 import { useCallCycleEffect } from '../hooks';
+import { CallingState } from '@stream-io/video-client';
 
 /**
  * Exclude types from documentaiton site, but we should still add doc comments
@@ -87,6 +88,25 @@ export const CallCycleProvider = (
       });
     });
   }, [client]);
+
+  /**
+   * Effect to re-join to an existing call happens in case the user comes back online
+   */
+  useEffect(() => {
+    if (!activeCall) return;
+    return NetInfo.addEventListener(({ isConnected, isInternetReachable }) => {
+      const isOnline = isConnected === true && isInternetReachable !== false;
+      if (isOnline) {
+        if (activeCall.state.callingState === CallingState.OFFLINE) {
+          activeCall.rejoin?.().catch(() => {
+            activeCall.state.setCallingState(CallingState.RECONNECTING_FAILED);
+          });
+        }
+      } else {
+        activeCall.state.setCallingState(CallingState.OFFLINE);
+      }
+    });
+  }, [activeCall]);
 
   // Effect to deal with the case that the outgoing call should be joined as soon as it is created by the user
   useEffect(() => {
