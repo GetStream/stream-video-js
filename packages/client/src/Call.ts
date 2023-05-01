@@ -250,7 +250,11 @@ export class Call {
   private streamClientEventHandlers = new Map<Function, CallEventHandler>();
 
   /**
-   * Don't call the constructor directly, use the [`StreamVideoClient.joinCall`](./StreamVideoClient.md/#joincall) method to construct a `Call` instance.
+   * Constructs a new `Call` instance.
+   *
+   * NOTE: Don't call the constructor directly, instead
+   * Use the [`StreamVideoClient.call`](./StreamVideoClient.md/#call)
+   * method to construct a `Call` instance.
    */
   constructor({
     type,
