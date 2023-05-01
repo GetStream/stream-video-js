@@ -5975,6 +5975,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-community/netinfo@npm:^9.3.9":
+  version: 9.3.9
+  resolution: "@react-native-community/netinfo@npm:9.3.9"
+  peerDependencies:
+    react-native: ">=0.59"
+  checksum: 1cad20ffdbcec96418b3aa9aa45485af74e021012e53bf31cc9039be25153b2f356bb2c4a6538f92860f14145d55027fc2f576ae9f67c47e2b77d024248f4982
+  languageName: node
+  linkType: hard
+
 "@react-native-firebase/app@npm:^16.5.0":
   version: 16.7.0
   resolution: "@react-native-firebase/app@npm:16.7.0"
@@ -8581,6 +8590,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-native-sdk@workspace:packages/react-native-sdk"
   dependencies:
+    "@react-native-community/netinfo": ^9.3.9
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:^"
     "@types/react": 18.0.26
@@ -8597,6 +8607,7 @@ __metadata:
     typedoc-plugin-markdown: ^3.13.6
     typescript: ^4.9.5
   peerDependencies:
+    "@react-native-community/netinfo": ">=9.0.0"
     react: ">=17.0.0"
     react-native: ">=0.67.0"
     react-native-callkeep: ">=4.3.4"

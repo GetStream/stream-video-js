@@ -11,6 +11,7 @@ import {
   useEffect,
   useState,
 } from 'react';
+import NetInfo from '@react-native-community/netinfo';
 import { useCallCycleEffect } from '../hooks';
 
 /**
@@ -72,6 +73,20 @@ export const CallCycleProvider = (
   const [outgoingCall] = useOutgoingCalls();
   const acceptedCall = useAcceptedCall();
   const activeCall = useActiveCall();
+
+  /**
+   * Effect to inform the coordinator about the online status of the app
+   */
+  useEffect(() => {
+    if (!client) return;
+    return NetInfo.addEventListener(({ isConnected, isInternetReachable }) => {
+      const isOnline = isConnected === true && isInternetReachable !== false;
+      // @ts-expect-error - due to being incompatible with DOM event type
+      client?.streamClient.wsConnection?.onlineStatusChanged({
+        type: isOnline ? 'online' : 'offline',
+      });
+    });
+  }, [client]);
 
   // Effect to deal with the case that the outgoing call should be joined as soon as it is created by the user
   useEffect(() => {
