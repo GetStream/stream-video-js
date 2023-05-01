@@ -14,10 +14,10 @@ export interface APIError {
   StatusCode: number;
   /**
    * API error code
-   * @type {number}
+   * @type {string}
    * @memberof APIError
    */
-  code: number;
+  code: APIErrorCodeEnum;
   /**
    * Additional error-specific information
    * @type {Array<number>}
@@ -49,6 +49,47 @@ export interface APIError {
    */
   more_info: string;
 }
+
+/**
+ * @export
+ */
+export const APIErrorCodeEnum = {
+  INTERNAL_ERROR: 'internal-error',
+  ACCESS_KEY_ERROR: 'access-key-error',
+  INPUT_ERROR: 'input-error',
+  AUTH_FAILED: 'auth-failed',
+  DUPLICATE_USERNAME: 'duplicate-username',
+  RATE_LIMITED: 'rate-limited',
+  NOT_FOUND: 'not-found',
+  NOT_ALLOWED: 'not-allowed',
+  EVENT_NOT_SUPPORTED: 'event-not-supported',
+  CHANNEL_FEATURE_NOT_SUPPORTED: 'channel-feature-not-supported',
+  MESSAGE_TOO_LONG: 'message-too-long',
+  MULTIPLE_NESTING_LEVEL: 'multiple-nesting-level',
+  PAYLOAD_TOO_BIG: 'payload-too-big',
+  EXPIRED_TOKEN: 'expired-token',
+  TOKEN_NOT_VALID_YET: 'token-not-valid-yet',
+  TOKEN_USED_BEFORE_IAT: 'token-used-before-iat',
+  INVALID_TOKEN_SIGNATURE: 'invalid-token-signature',
+  CUSTOM_COMMAND_ENDPOINT_MISSING: 'custom-command-endpoint-missing',
+  CUSTOM_COMMAND_ENDPOINTCALL_ERROR: 'custom-command-endpoint=call-error',
+  CONNECTION_ID_NOT_FOUND: 'connection-id-not-found',
+  COOL_DOWN: 'cool-down',
+  QUERY_CHANNEL_PERMISSIONS_MISMATCH: 'query-channel-permissions-mismatch',
+  TOO_MANY_CONNECTIONS: 'too-many-connections',
+  NOT_SUPPORTED_IN_PUSH_V1: 'not-supported-in-push-v1',
+  MODERATION_FAILED: 'moderation-failed',
+  VIDEO_PROVIDER_NOT_CONFIGURED: 'video-provider-not-configured',
+  VIDEO_INVALID_CALL_ID: 'video-invalid-call-id',
+  VIDEO_CREATE_CALL_FAILED: 'video-create-call-failed',
+  APP_SUSPENDED: 'app-suspended',
+  VIDEO_NO_DATACENTERS_AVAILABLE: 'video-no-datacenters-available',
+  VIDEO_JOIN_CALL_FAILURE: 'video-join-call-failure',
+  QUERY_CALLS_PERMISSIONS_MISMATCH: 'query-calls-permissions-mismatch',
+} as const;
+export type APIErrorCodeEnum =
+  (typeof APIErrorCodeEnum)[keyof typeof APIErrorCodeEnum];
+
 /**
  *
  * @export
@@ -1234,19 +1275,19 @@ export interface CreateDeviceRequest {
    * @type {string}
    * @memberof CreateDeviceRequest
    */
-  id: string;
+  id?: string;
   /**
    *
    * @type {string}
    * @memberof CreateDeviceRequest
    */
-  push_provider: CreateDeviceRequestPushProviderEnum;
+  push_provider?: CreateDeviceRequestPushProviderEnum;
   /**
    *
    * @type {string}
    * @memberof CreateDeviceRequest
    */
-  push_provider_name: string;
+  push_provider_name?: string;
   /**
    *
    * @type {UserRequest}
@@ -1259,6 +1300,12 @@ export interface CreateDeviceRequest {
    * @memberof CreateDeviceRequest
    */
   user_id?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CreateDeviceRequest
+   */
+  voip_token?: boolean;
 }
 
 /**
@@ -1440,12 +1487,6 @@ export interface Device {
    * @memberof Device
    */
   push_provider_name?: string;
-  /**
-   *
-   * @type {boolean}
-   * @memberof Device
-   */
-  voip?: boolean;
 }
 /**
  *
@@ -2274,44 +2315,6 @@ export interface PermissionRequestEvent {
    */
   user: UserResponse;
 }
-/**
- *
- * @export
- * @interface PushDeviceRequest
- */
-export interface PushDeviceRequest {
-  /**
-   *
-   * @type {string}
-   * @memberof PushDeviceRequest
-   */
-  id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof PushDeviceRequest
-   */
-  push_provider: PushDeviceRequestPushProviderEnum;
-  /**
-   *
-   * @type {string}
-   * @memberof PushDeviceRequest
-   */
-  push_provider_name: string;
-}
-
-/**
- * @export
- */
-export const PushDeviceRequestPushProviderEnum = {
-  FIREBASE: 'firebase',
-  APN: 'apn',
-  HUAWEI: 'huawei',
-  XIAOMI: 'xiaomi',
-} as const;
-export type PushDeviceRequestPushProviderEnum =
-  (typeof PushDeviceRequestPushProviderEnum)[keyof typeof PushDeviceRequestPushProviderEnum];
-
 /**
  *
  * @export
@@ -3376,12 +3379,6 @@ export interface VideoSettingsRequest {
 export interface WSAuthMessageRequest {
   /**
    *
-   * @type {PushDeviceRequest}
-   * @memberof WSAuthMessageRequest
-   */
-  device?: PushDeviceRequest;
-  /**
-   *
    * @type {string}
    * @memberof WSAuthMessageRequest
    */
@@ -3392,12 +3389,6 @@ export interface WSAuthMessageRequest {
    * @memberof WSAuthMessageRequest
    */
   user_details: ConnectUserDetailsRequest;
-  /**
-   *
-   * @type {PushDeviceRequest}
-   * @memberof WSAuthMessageRequest
-   */
-  voip_device?: PushDeviceRequest;
 }
 /**
  * This is just a placeholder for all client events

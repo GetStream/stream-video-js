@@ -8,7 +8,6 @@ import {
   CreateDeviceRequest,
   CreateGuestRequest,
   CreateGuestResponse,
-  PushDeviceRequest,
   GetCallTypeResponse,
   GetEdgesResponse,
   ListCallTypeResponse,
@@ -278,13 +277,38 @@ export class StreamVideoClient {
     push_provider: string,
     push_provider_name: string,
     userID?: string,
+    voip_token?: boolean,
   ) {
     return await this.streamClient.post<CreateDeviceRequest>('/devices', {
       id,
       push_provider,
+      voip_token,
       ...(userID != null ? { user_id: userID } : {}),
       ...(push_provider_name != null ? { push_provider_name } : {}),
     });
+  }
+
+  /**
+   * addDevice - Adds a push device for a user.
+   *
+   * @param {string} id the device id
+   * @param {string} push_provider the push provider name (eg. apn, firebase)
+   * @param {string} push_provider_name user provided push provider name
+   * @param {string} [userID] the user id (defaults to current user)
+   */
+  async addVoipDevice(
+    id: string,
+    push_provider: string,
+    push_provider_name: string,
+    userID?: string,
+  ) {
+    return await this.addDevice(
+      id,
+      push_provider,
+      push_provider_name,
+      userID,
+      true,
+    );
   }
 
   /**
@@ -310,39 +334,5 @@ export class StreamVideoClient {
       id,
       ...(userID ? { user_id: userID } : {}),
     });
-  }
-
-  /**
-   * setDevice - Set the device info for the current client device to receive push
-   * notification, the device will be sent via WS connection automatically
-   */
-  async setDevice(device: PushDeviceRequest) {
-    this.streamClient.pushDevice = device;
-    // if the connection already did authentication then we call the endpoint
-    // directly
-    if (this.streamClient.wsConnection?.authenticationSent) {
-      return await this.addDevice(
-        device.id,
-        device.push_provider,
-        device.push_provider_name,
-      );
-    }
-  }
-
-  /**
-   * setVoipDevice - Set the device info for the current client device to receive push
-   * notification, the device will be sent via WS connection automatically
-   */
-  async setVoipDevice(device: PushDeviceRequest) {
-    this.streamClient.voidPushDevice = device;
-    // if the connection already did authentication then we call the endpoint
-    // directly
-    if (this.streamClient.wsConnection?.authenticationSent) {
-      return await this.addDevice(
-        device.id,
-        device.push_provider,
-        device.push_provider_name,
-      );
-    }
   }
 }

@@ -516,11 +516,7 @@ export class StableWSConnection {
       },
     };
 
-    // fwd the push devices if set earlier
-    authMessage.device = this.client.pushDevice;
-    authMessage.voip_device = this.client.voidPushDevice;
     this.authenticationSent = true;
-
     this.ws?.send(JSON.stringify(authMessage));
     this._log('onopen() - onopen callback', { wsID });
   };
