@@ -31015,8 +31015,6 @@ __metadata:
     "@storybook/react": ^6.5.15
     "@storybook/testing-library": ^0.0.13
     "@stream-io/stream-chat-css": ^3.9.0
-    "@stream-io/video-client": "workspace:^"
-    "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
     "@types/babel__core": ^7

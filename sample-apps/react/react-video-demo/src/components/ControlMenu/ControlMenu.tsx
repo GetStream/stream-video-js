@@ -1,19 +1,18 @@
 import { FC, useCallback } from 'react';
 import classnames from 'classnames';
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
-
 import {
-  useVideoPublisher,
+  SfuModels,
   useAudioPublisher,
+  useLocalParticipant,
   useMediaDevices,
+  useVideoPublisher,
 } from '@stream-io/video-react-sdk';
-import { SfuModels } from '@stream-io/video-client';
 
 import ControlButton from '../ControlButton';
 import ControlMenuPanel from '../ControlMenuPanel';
 import Portal from '../Portal';
 
-import { Mic, MicMuted, Video, VideoOff, Speaker } from '../Icons';
+import { Mic, MicMuted, Speaker, Video, VideoOff } from '../Icons';
 
 import styles from './ControlMenu.module.css';
 

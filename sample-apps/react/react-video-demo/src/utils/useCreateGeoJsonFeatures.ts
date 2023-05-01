@@ -1,5 +1,5 @@
-import { EdgeResponse } from '@stream-io/video-client';
-import { FeatureCollection, Geometry, Feature } from 'geojson';
+import { EdgeResponse } from '@stream-io/video-react-sdk';
+import { Feature, FeatureCollection, Geometry } from 'geojson';
 
 const continents: any = {
   AF: 'Africa',

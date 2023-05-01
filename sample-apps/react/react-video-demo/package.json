@@ -18,8 +18,6 @@
   "dependencies": {
     "@nivo/line": "^0.80.0",
     "@stream-io/stream-chat-css": "^3.9.0",
-    "@stream-io/video-client": "workspace:^",
-    "@stream-io/video-react-bindings": "workspace:^",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
     "autoprefixer": "^10.4.13",
