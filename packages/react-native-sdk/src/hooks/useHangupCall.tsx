@@ -1,4 +1,3 @@
-import InCallManager from 'react-native-incall-manager';
 import { useCallback } from 'react';
 import { useActiveCall } from '@stream-io/video-react-bindings';
 
@@ -17,7 +16,6 @@ export const useHangupCall = () => {
     }
     try {
       activeCall?.leave();
-      InCallManager.stop();
     } catch (error) {
       console.warn('failed to leave call', error);
     }

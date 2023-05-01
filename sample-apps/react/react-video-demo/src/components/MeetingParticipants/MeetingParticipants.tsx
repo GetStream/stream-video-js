@@ -31,7 +31,7 @@ export const MeetingParticipants: FC<Props> = ({
 
   useEffect(() => {
     if (breakpoint === 'xs' || breakpoint === 'sm') {
-      setMaxParticipants(3);
+      setMaxParticipants(2);
     } else {
       setMaxParticipants(maxParticipantsOnScreen);
     }

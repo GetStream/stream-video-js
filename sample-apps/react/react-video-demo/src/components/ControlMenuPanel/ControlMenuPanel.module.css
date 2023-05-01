@@ -29,5 +29,5 @@
   border-radius: 30px;
 }
 .settings {
-  @apply mr-1;
+  @apply mr-2 h-3 w-3;
 }

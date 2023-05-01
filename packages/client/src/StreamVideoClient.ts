@@ -14,11 +14,10 @@ import {
   ListDevicesResponse,
   QueryCallsRequest,
   QueryCallsResponse,
-  SortParamRequest,
   UpdateCallTypeRequest,
   UpdateCallTypeResponse,
 } from './gen/coordinator';
-import { Call } from './rtc/Call';
+import { Call } from './Call';
 
 import {
   watchCallAccepted,
@@ -26,6 +25,7 @@ import {
   watchCallRejected,
 } from './events';
 import {
+  ConnectionChangedEvent,
   EventHandler,
   EventTypes,
   StreamClientOptions,
@@ -81,6 +81,28 @@ export class StreamVideoClient {
       user,
       tokenOrProvider,
     );
+
+    // FIXME OL: unregister the event listeners.
+    this.on('connection.changed', (e) => {
+      const event = e as ConnectionChangedEvent;
+      if (event.online) {
+        const callsToReWatch = this.writeableStateStore.calls
+          .filter((call) => call.watching)
+          .map((call) => call.cid);
+
+        if (callsToReWatch.length > 0) {
+          this.queryCalls({
+            watch: true,
+            filter_conditions: {
+              cid: { $in: callsToReWatch },
+            },
+            sort: [{ field: 'cid', direction: 1 }],
+          }).catch((err) => {
+            console.warn('Failed to re-watch calls', err);
+          });
+        }
+      }
+    });
 
     // FIXME: OL: unregister the event listeners.
     this.on('call.created', (event: StreamVideoEvent) => {
@@ -194,38 +216,32 @@ export class StreamVideoClient {
     );
   };
 
-  queryCalls = async (
-    filterConditions: { [key: string]: any },
-    sort: Array<SortParamRequest>,
-    limit?: number,
-    next?: string,
-    watch?: boolean,
-  ) => {
-    const data: QueryCallsRequest = {
-      filter_conditions: filterConditions,
-      sort: sort,
-      limit: limit,
-      next: next,
-      watch,
-    };
-    if (data.watch) {
-      await this.streamClient.connectionIdPromise;
-    }
+  /**
+   * Will query the API for calls matching the given filters.
+   *
+   * @param data the query data.
+   */
+  queryCalls = async (data: QueryCallsRequest) => {
+    if (data.watch) await this.streamClient.connectionIdPromise;
     const response = await this.streamClient.post<QueryCallsResponse>(
       '/calls',
       data,
     );
-    const calls = response.calls.map(
-      (c) =>
-        new Call({
-          streamClient: this.streamClient,
-          id: c.call.id,
-          type: c.call.type,
-          metadata: c.call,
-          members: c.members,
-          clientStore: this.writeableStateStore,
-        }),
-    );
+    const calls = response.calls.map((c) => {
+      const call = new Call({
+        streamClient: this.streamClient,
+        id: c.call.id,
+        type: c.call.type,
+        metadata: c.call,
+        members: c.members,
+        watching: data.watch,
+        clientStore: this.writeableStateStore,
+      });
+      if (data.watch) {
+        this.writeableStateStore.registerCall(call);
+      }
+      return call;
+    });
     return {
       ...response,
       calls: calls,
@@ -272,13 +288,13 @@ export class StreamVideoClient {
    * @param {string} push_provider_name user provided push provider name
    * @param {string} [userID] the user id (defaults to current user)
    */
-  async addDevice(
+  addDevice = async (
     id: string,
     push_provider: string,
-    push_provider_name: string,
+    push_provider_name?: string,
     userID?: string,
     voip_token?: boolean,
-  ) {
+  ) => {
     return await this.streamClient.post<CreateDeviceRequest>('/devices', {
       id,
       push_provider,
@@ -286,7 +302,7 @@ export class StreamVideoClient {
       ...(userID != null ? { user_id: userID } : {}),
       ...(push_provider_name != null ? { push_provider_name } : {}),
     });
-  }
+  };
 
   /**
    * addDevice - Adds a push device for a user.
@@ -315,12 +331,12 @@ export class StreamVideoClient {
    * getDevices - Returns the devices associated with a current user
    * @param {string} [userID] User ID. Only works on serverside
    */
-  async getDevices(userID?: string) {
+  getDevices = async (userID?: string) => {
     return await this.streamClient.get<ListDevicesResponse>(
       '/devices',
       userID ? { user_id: userID } : {},
     );
-  }
+  };
 
   /**
    * removeDevice - Removes the device with the given id.
@@ -329,10 +345,10 @@ export class StreamVideoClient {
    * @param {string} [userID] The user id. Only specify this for serverside requests
    *
    */
-  async removeDevice(id: string, userID?: string) {
+  removeDevice = async (id: string, userID?: string) => {
     return await this.streamClient.delete('/devices', {
       id,
       ...(userID ? { user_id: userID } : {}),
     });
-  }
+  };
 }

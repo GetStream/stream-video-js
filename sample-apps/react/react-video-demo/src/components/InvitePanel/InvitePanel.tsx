@@ -61,7 +61,6 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
             <UserChecked className={styles.copiedIcon} />
 
             <span className={styles.copied}>Link copied</span>
-            <Copy className={styles.copyIcon} />
           </div>
         ) : (
           <div className={styles.limit}>

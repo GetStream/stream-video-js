@@ -99,7 +99,7 @@ export class StreamClient {
     this.node = !this.browser;
 
     this.options = {
-      timeout: 3000,
+      timeout: 5000,
       withCredentials: false, // making sure cookies are not sent
       warmUp: false,
       ...inputOptions,

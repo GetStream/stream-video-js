@@ -42,3 +42,6 @@ polyfill
 uuid
 config
 logics
+notifee
+hasAudio
+hasVideo

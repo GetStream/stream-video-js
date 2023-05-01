@@ -1,11 +1,11 @@
 .footer {
-  @apply grid justify-between items-center w-full;
-  grid-template-columns: 1fr 1fr 1fr;
+  @apply grid items-center;
   grid-template-areas: 'settings toggles controls';
 }
 
 @media screen(md) {
   .footer {
+    @apply w-full;
     grid-template-columns: 0.5fr 1fr 1fr;
     grid-template-areas: 'settings controls toggles';
   }
@@ -27,22 +27,28 @@
 }
 
 .settingsPortal {
+  @apply ml-3 md:ml-6;
   position: absolute;
-  right: 0;
   bottom: 0;
-  left: 0;
   z-index: 9999;
-  max-width: 250px;
+  min-width: 250px;
+  margin-left: 0px;
 }
 
-.settingsPortal {
-  @apply ml-3 sm:ml-6 mb-[45px] sm:mb-[85px];
-  position: fixed;
+.reactions {
+  @apply hidden xl:flex md:ml-4;
+}
+
+.reactionsPortal {
+  @apply absolute h-auto w-[150px];
   right: 0;
   bottom: 0;
   left: 0;
   z-index: 9999;
-  height: auto;
+}
+
+.likeIcon {
+  @apply h-[18px];
 }
 
 .record {
@@ -105,11 +111,11 @@
 }
 
 .participants {
-  @apply hidden sm:flex relative;
+  @apply hidden md:flex relative;
 }
 
 .chat {
-  @apply ml-2 sm:ml-0 sm:mr-4 relative;
+  @apply ml-3 mr-2 md:ml-0 md:mr-4 relative;
 }
 
 .chatCounter {

@@ -5,6 +5,8 @@ import { useCallMetadata } from './call';
  * Hook that returns true if the current user has all the given permissions.
  *
  * @param permissions the permissions to check.
+ *
+ * @category Call State
  */
 export const useHasPermissions = (...permissions: OwnCapability[]) => {
   const metadata = useCallMetadata();
@@ -16,6 +18,8 @@ export const useHasPermissions = (...permissions: OwnCapability[]) => {
 
 /**
  * A hook which returns the current user's own capabilities.
+ *
+ * @category Call State
  */
 export const useOwnCapabilities = () => {
   const metadata = useCallMetadata();

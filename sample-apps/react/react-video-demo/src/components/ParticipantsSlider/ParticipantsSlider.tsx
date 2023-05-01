@@ -67,7 +67,7 @@ export const ParticipantsSlider: FC<Props> = ({
 }) => {
   const localParticipant = useLocalParticipant();
   const breakpoint = useBreakpoint();
-  const [derivedMode, setMode] = useState<'horizontal' | 'vertical'>();
+  const [derivedMode, setMode] = useState<'horizontal' | 'vertical'>(mode);
 
   useEffect(() => {
     if (breakpoint === 'xs' || breakpoint === 'sm') {
@@ -80,21 +80,21 @@ export const ParticipantsSlider: FC<Props> = ({
   const rootClassName = classnames(
     styles.root,
     {
-      [styles?.[mode]]: mode,
+      [styles?.[derivedMode]]: derivedMode,
     },
     className,
   );
 
   const swiperClassName = classnames(styles.swiper, {
-    [styles?.[mode]]: mode,
+    [styles?.[derivedMode]]: derivedMode,
   });
 
   const slideClassName = classnames(styles.slide, {
-    [styles?.[mode]]: mode,
+    [styles?.[derivedMode]]: derivedMode,
   });
 
   const participantClassName = classnames(styles.participant, {
-    [styles?.[mode]]: mode,
+    [styles?.[derivedMode]]: derivedMode,
   });
 
   if (derivedMode) {

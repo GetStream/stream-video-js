@@ -2,11 +2,11 @@
 }
 
 .noMessages {
-  @apply flex flex-col items-center  text-center justify-center p-4 w-full h-full bg-video-black sm:bg-video-grey-700;
+  @apply flex flex-col items-center  text-center justify-center p-4 w-full h-full bg-video-black md:bg-video-grey-600;
 }
 
 .chatRound {
-  @apply text-video-grey-300;
+  @apply h-[50px] w-[50px] text-video-grey-300;
 }
 
 .description:first-of-type {

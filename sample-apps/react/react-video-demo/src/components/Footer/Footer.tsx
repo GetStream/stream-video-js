@@ -13,9 +13,11 @@ import {
   ShareScreen,
   Stop,
   LoadingSpinner,
+  Like,
 } from '../Icons';
 import Portal from '../Portal';
 import SettingsPanel from '../SettingsPanel';
+import ReactionsPanel from '../ReactionsPanel';
 
 import { useTourContext, StepNames } from '../../contexts/TourContext';
 import { useModalContext } from '../../contexts/ModalContext';
@@ -61,6 +63,7 @@ export const Footer: FC<Props> = ({
   } = usePanelContext();
 
   const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(true);
+  const [showReactionsPanel, setShowReactionsPanel] = useState<boolean>(false);
 
   useEffect(() => {
     if (isVisible && showSettingsPanel) {
@@ -105,7 +108,7 @@ export const Footer: FC<Props> = ({
               <SettingsPanel
                 callId={callId}
                 toggleRecording={
-                  !isRecording ? handleStartRecording : undefined
+                  !isRecording ? handleStartRecording : handleStopRecording
                 }
                 toggleShareScreen={toggleShareScreen}
               />
@@ -138,13 +141,27 @@ export const Footer: FC<Props> = ({
 
         <Button
           className={styles.shareScreen}
-          label="Share screen"
+          label="Share"
           color={isScreenSharing ? 'active' : 'secondary'}
           shape="square"
           onClick={toggleShareScreen}
         >
           <ShareScreen />
         </Button>
+
+        <ControlButton
+          className={styles.reactions}
+          portalId="reactions"
+          onClick={() => setShowReactionsPanel(!showReactionsPanel)}
+          showPanel={showReactionsPanel}
+          label="Reaction"
+          panel={
+            <Portal className={styles.reactionsPortal} selector="reactions">
+              <ReactionsPanel />
+            </Portal>
+          }
+          prefix={<Like className={styles.likeIcon} />}
+        />
       </div>
       <div className={styles.controls}>
         <ControlMenu
