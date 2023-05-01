@@ -32,18 +32,16 @@ const nextConfig = {
     ];
   },
 
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.module.rules.push({
-        test: /\.js$/,
-        enforce: 'pre',
-        use: ['source-map-loader'],
-      });
-      config.ignoreWarnings = [
-        ...(config.ignoreWarnings || []),
-        /Failed to parse source map/,
-      ];
-    }
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /\.js$/,
+      enforce: 'pre',
+      use: ['source-map-loader'],
+    });
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      /Failed to parse source map/,
+    ];
     return config;
   },
 
