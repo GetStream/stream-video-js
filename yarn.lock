@@ -8515,7 +8515,7 @@ __metadata:
     "@types/yargs": ^17.0.22
     clsx: ^1.2.1
     dotenv: ^16.0.3
-    gleap: ^9.0.4
+    gleap: ^10.0.5
     nanoid: ^4.0.1
     next: ^13.2.3
     next-auth: ^4.20.1
@@ -18996,13 +18996,6 @@ __metadata:
   version: 10.0.5
   resolution: "gleap@npm:10.0.5"
   checksum: 76b5866aec079267356169178a1b04e4466730091aa4de6d6e59939b470ed322738f07f3f3e8221fb8855e3101a92e2cd19cc81bf0a7f6afa50c00a650584b80
-  languageName: node
-  linkType: hard
-
-"gleap@npm:^9.0.4":
-  version: 9.0.7
-  resolution: "gleap@npm:9.0.7"
-  checksum: d7f97dfa228e0750abf916d6bf9583066041358133be77fff9da29732b75eec57adf3f19dd229fa372a728ac7e497a16d410e4de002765096037778e53a9e60e
   languageName: node
   linkType: hard
 
