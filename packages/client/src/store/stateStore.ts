@@ -28,6 +28,15 @@ export class StreamVideoWriteableStateStore {
   outgoingCalls$: Observable<Call[]>;
 
   constructor() {
+    this.connectedUserSubject.subscribe(async (user) => {
+      // leave all calls when the user disconnects.
+      if (!user) {
+        for (const call of this.calls) {
+          await call.leave();
+        }
+      }
+    });
+
     this.incomingCalls$ = this.callsSubject.pipe(
       combineLatestWith(this.connectedUserSubject),
       map(([calls, connectedUser]) =>

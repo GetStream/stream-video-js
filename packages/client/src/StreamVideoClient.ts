@@ -149,10 +149,6 @@ export class StreamVideoClient {
    */
   disconnectUser = async (timeout?: number) => {
     await this.streamClient.disconnectUser(timeout);
-    this.writeableStateStore.calls.forEach((call) =>
-      call.cancelScheduledDrop(),
-    );
-    // TODO OL: perhaps reset the whole store?
     this.writeableStateStore.setConnectedUser(undefined);
   };
 

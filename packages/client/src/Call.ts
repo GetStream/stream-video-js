@@ -19,7 +19,7 @@ import {
   CallState,
   StreamVideoWriteableStateStore,
 } from './store';
-import { createSubscription } from './store/rxUtils';
+import { createSubscription, getCurrentValue } from './store/rxUtils';
 import {
   BlockUserRequest,
   BlockUserResponse,
@@ -63,6 +63,7 @@ import {
   VisibilityState,
 } from './types';
 import {
+  BehaviorSubject,
   debounce,
   map,
   of,
@@ -182,11 +183,6 @@ export class Call {
   readonly state: CallState;
 
   /**
-   * Flag telling whether this call is a "ringing" call.
-   */
-  ringing: boolean;
-
-  /**
    * Flag indicating whether this call is "watched" and receives
    * updates from the backend.
    */
@@ -196,6 +192,11 @@ export class Call {
    * The permissions context of this call.
    */
   readonly permissionsContext = new PermissionsContext();
+
+  /**
+   * Flag telling whether this call is a "ringing" call.
+   */
+  private readonly ringingSubject: Subject<boolean>;
 
   /**
    * The event dispatcher instance dedicated to this Call instance.
@@ -270,7 +271,7 @@ export class Call {
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
-    this.ringing = ringing;
+    this.ringingSubject = new BehaviorSubject(ringing);
     this.watching = watching;
     this.streamClient = streamClient;
     this.clientStore = clientStore;
@@ -280,10 +281,6 @@ export class Call {
     this.state = new CallState(
       sortParticipantsBy || callTypeConfig.options.sortParticipantsBy,
     );
-    if (ringing) {
-      this.scheduleAutoDrop();
-      this.watchForAutoDropCancellation();
-    }
 
     this.state.setMetadata(metadata);
     this.state.setMembers(members || []);
@@ -314,14 +311,14 @@ export class Call {
       }),
 
       // handles the case when the user is blocked by the call owner.
-      createSubscription(this.state.metadata$, (metadata) => {
+      createSubscription(this.state.metadata$, async (metadata) => {
         if (!metadata) return;
         const connectedUser = this.clientStore.connectedUser;
         if (
           connectedUser &&
           metadata.blocked_user_ids.includes(connectedUser.id)
         ) {
-          this.leave();
+          await this.leave();
         }
       }),
 
@@ -343,6 +340,26 @@ export class Call {
             });
           }
         });
+      }),
+
+      // watch for auto drop cancellation
+      createSubscription(this.state.callingState$, (callingState) => {
+        if (!this.ringing) return;
+        if (
+          callingState === CallingState.JOINED ||
+          callingState === CallingState.JOINING ||
+          callingState === CallingState.LEFT
+        ) {
+          clearTimeout(this.dropTimeout);
+          this.dropTimeout = undefined;
+        }
+      }),
+
+      // "ringing" mode effects and event handlers
+      createSubscription(this.ringingSubject, (isRinging) => {
+        if (!isRinging) return;
+        this.scheduleAutoDrop();
+        this.leaveCallHooks.push(registerRingingCallEventHandlers(this));
       }),
     );
   }
@@ -423,9 +440,7 @@ export class Call {
       } else if (callingState === CallingState.IDLE) {
         // Signals other users that I have rejected the incoming call.
         // Causes the `call.rejected` event to be emitted to all the call members.
-        await this.sendEvent({
-          type: 'call.rejected',
-        });
+        await this.sendEvent({ type: 'call.rejected' });
       }
     }
 
@@ -450,8 +465,18 @@ export class Call {
     this.state.setCallingState(CallingState.LEFT);
   };
 
+  /**
+   * A getter for the call metadata.
+   */
   get data() {
     return this.state.metadata;
+  }
+
+  /**
+   * A flag indicating whether the call is "ringing" type of call.
+   */
+  get ringing() {
+    return getCurrentValue(this.ringingSubject);
   }
 
   private waitForJoinResponse = (timeout: number = 5000) =>
@@ -493,18 +518,14 @@ export class Call {
       GetOrCreateCallRequest
     >(this.streamClientBasePath, data);
 
-    if (data?.ring && !this.dropTimeout) {
-      this.scheduleAutoDrop();
-      this.watchForAutoDropCancellation();
+    if (data?.ring && !this.ringing) {
+      this.ringingSubject.next(true);
     }
+
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
 
     this.clientStore.registerCall(this);
-    if (data?.ring && !this.ringing) {
-      this.ringing = true;
-      this.leaveCallHooks.push(registerRingingCallEventHandlers(this));
-    }
 
     return response;
   };
@@ -519,13 +540,12 @@ export class Call {
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
 
+    if (data?.ring && !this.ringing) {
+      this.ringingSubject.next(true);
+    }
+
     this.watching = true;
     this.clientStore.registerCall(this);
-
-    if (data?.ring && !this.ringing) {
-      this.ringing = true;
-      this.leaveCallHooks.push(registerRingingCallEventHandlers(this));
-    }
 
     return response;
   };
@@ -547,16 +567,13 @@ export class Call {
     this.state.setCallingState(CallingState.JOINING);
 
     if (data?.ring && !this.ringing) {
-      this.ringing = true;
-      this.leaveCallHooks.push(registerRingingCallEventHandlers(this));
+      this.ringingSubject.next(true);
     }
 
     if (this.ringing) {
       // Signals other users that I have accepted the incoming call.
       // Causes the `call.accepted` event to be emitted to all the call members.
-      await this.sendEvent({
-        type: 'call.accepted',
-      });
+      await this.sendEvent({ type: 'call.accepted' });
     }
 
     const call = await join(this.streamClient, this.type, this.id, data);
@@ -1386,23 +1403,20 @@ export class Call {
           const isOutgoingCall =
             this.clientStore.connectedUser.id === currentMeta.created_by.id;
 
-          const [prevTimeoutMs, timeoutMs, dropFn] = isOutgoingCall
+          const [prevTimeoutMs, timeoutMs] = isOutgoingCall
             ? [
                 prevMeta?.settings.ring.auto_cancel_timeout_ms,
                 currentMeta.settings.ring.auto_cancel_timeout_ms,
-                this.leave,
               ]
             : [
                 prevMeta?.settings.ring.auto_reject_timeout_ms,
                 currentMeta.settings.ring.auto_reject_timeout_ms,
-                this.leave,
               ];
           if (typeof timeoutMs === 'undefined' || timeoutMs === prevTimeoutMs)
             return;
 
           if (this.dropTimeout) clearTimeout(this.dropTimeout);
-          // FIXME OL: sort this out
-          // this.dropTimeout = setTimeout(dropFn, timeoutMs);
+          this.dropTimeout = setTimeout(() => this.leave(), timeoutMs);
         }),
         takeWhile(
           () => !!this.clientStore.calls.find((call) => call.cid === this.cid),
@@ -1411,33 +1425,6 @@ export class Call {
       .subscribe();
 
     this.leaveCallHooks.push(() => {
-      !subscription.closed && subscription.unsubscribe();
-    });
-  };
-
-  cancelScheduledDrop = () => {
-    if (this.dropTimeout) {
-      clearTimeout(this.dropTimeout);
-      this.dropTimeout = undefined;
-    }
-  };
-
-  private watchForAutoDropCancellation = () => {
-    const subscription = this.clientStore.callsSubject
-      .pipe(
-        pairwise(),
-        tap(([prev, next]) => {
-          const wasPending = prev.find((call) => call.cid === this.cid);
-          const isPending = next.find((call) => call.cid === this.cid);
-          if (wasPending && !isPending) {
-            this.cancelScheduledDrop();
-          }
-        }),
-      )
-      .subscribe();
-
-    this.leaveCallHooks.push(() => {
-      this.cancelScheduledDrop();
       !subscription.closed && subscription.unsubscribe();
     });
   };
