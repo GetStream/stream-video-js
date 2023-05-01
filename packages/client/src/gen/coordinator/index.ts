@@ -2526,7 +2526,7 @@ export interface QueryMembersRequest {
    * @type {{ [key: string]: any; }}
    * @memberof QueryMembersRequest
    */
-  filter_conditions: { [key: string]: any };
+  filter_conditions?: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -2619,7 +2619,7 @@ export interface ReactionResponse {
    * @type {{ [key: string]: any; }}
    * @memberof ReactionResponse
    */
-  custom: { [key: string]: any };
+  custom?: { [key: string]: any };
   /**
    *
    * @type {string}
