@@ -5,7 +5,7 @@
     "version": {
       "executor": "@jscutlery/semver:version",
       "options": {
-        "dryRun": true,
+        "dryRun": false,
         "preset": "angular",
         "tagPrefix": "client",
         "preid": "alpha"
