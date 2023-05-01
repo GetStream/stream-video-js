@@ -8,7 +8,8 @@
         "dryRun": false,
         "preset": "angular",
         "tagPrefix": "client",
-        "preid": "alpha"
+        "preid": "alpha",
+        "releaseAs": "prerelease"
       }
     }
   }

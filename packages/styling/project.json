@@ -5,9 +5,11 @@
     "version": {
       "executor": "@jscutlery/semver:version",
       "options": {
-        "dryRun": true,
+        "dryRun": false,
         "preset": "angular",
-        "preid": "alpha"
+        "preid": "alpha",
+        "releaseAs": "prerelease",
+        "trackDeps": true
       }
     }
   }
