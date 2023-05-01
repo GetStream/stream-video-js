@@ -9,6 +9,19 @@ $scope-name: 'str-video__participant';
   max-height: 100%;
   aspect-ratio: 4/3;
 
+  .str-video__participant_details,
+  .str-video__call-controls__button {
+    transition: opacity 200ms ease-out;
+    opacity: 0.3;
+  }
+
+  &:hover {
+    .str-video__participant_details,
+    .str-video__call-controls__button {
+      opacity: 1;
+    }
+  }
+
   & > .str-video__call-controls__button {
     position: absolute;
     top: 0.875rem;
