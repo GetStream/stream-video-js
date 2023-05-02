@@ -55,6 +55,9 @@ const Navigator = ({selectedUser}: {selectedUser: User}) => {
   } = useAppContext();
 
   useEffect(() => {
+    console.log('callId', callId);
+    console.log('callType', callType);
+
     if (!callId || !callType || !videoClient) {
       return;
     }

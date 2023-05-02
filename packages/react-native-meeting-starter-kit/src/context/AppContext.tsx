@@ -25,7 +25,7 @@ export const AppProvider = ({children}: PropsWithChildren<{}>) => {
     callType: string;
   }>({
     callId: '',
-    callType: '',
+    callType: 'default',
   });
   const [user, setUser] = useState<User | undefined>(undefined);
 

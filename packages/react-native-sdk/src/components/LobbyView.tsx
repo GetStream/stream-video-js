@@ -13,11 +13,6 @@ import { Avatar } from './Avatar';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
 
-/**
- * Props to be passed for the ActiveCall component.
- */
-export interface LobbyViewProps {}
-
 const ParticipantStatus = () => {
   const connectedUser = useConnectedUser();
   const { isAudioMuted, isVideoMuted } = useMutingState();
@@ -38,7 +33,7 @@ const ParticipantStatus = () => {
   );
 };
 
-export const LobbyView = (props: LobbyViewProps) => {
+export const LobbyView = () => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
   const { callCycleHandlers } = useCallCycleContext();
@@ -63,6 +58,7 @@ export const LobbyView = (props: LobbyViewProps) => {
 
   const call = useCall();
   const joinCallHandler = () => {
+    console.log('Joining call call=', call);
     call
       ?.join({ create: true })
       .then(() => {
