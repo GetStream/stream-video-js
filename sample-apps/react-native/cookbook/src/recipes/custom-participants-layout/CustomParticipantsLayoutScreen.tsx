@@ -1,10 +1,9 @@
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   CallControlsView,
   StreamCallProvider,
   StreamVideo,
-  useActiveCall,
   useCallCycleContext,
   useCreateStreamVideoClient,
   usePublishMediaStreams,
@@ -23,6 +22,7 @@ import MyCallParticipantsView from './MyCallParticipantsView';
 import IntroModal from './IntroModal';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../../types';
+import {Call} from '@stream-io/video-client';
 
 const USER = {
   id: STREAM_USER_ID,
@@ -56,19 +56,26 @@ export default () => {
 };
 
 const MyActiveCall = () => {
-  const activeCall = useActiveCall();
   const videoClient = useStreamVideoClient();
   const insets = useSafeAreaInsets();
   const callId = useRef<string>(generateCallId());
-  usePublishMediaStreams();
+  const [call, setCall] = useState<Call>();
   const {callCycleHandlers} = useCallCycleContext();
   const {onHangupCall} = callCycleHandlers;
+  usePublishMediaStreams();
 
   useEffect(() => {
     const startCall = async () => {
       try {
         // Join the call and start the call cycle.
-        await videoClient?.call('default', callId.current).join();
+        const newCall = await videoClient?.call('default', callId.current);
+        if (!newCall) {
+          return;
+        }
+
+        await newCall.join({create: true});
+        setCall(newCall);
+
         // Start InCallManager and enable the speakerphone.
         InCallManager.start({media: 'video'});
         InCallManager.setForceSpeakerphoneOn(true);
@@ -80,12 +87,12 @@ const MyActiveCall = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [callId.current]);
 
-  if (!activeCall) {
+  if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
 
   return (
-    <StreamCallProvider call={activeCall}>
+    <StreamCallProvider call={call}>
       <View style={[styles.wrapper, {paddingTop: insets.top}]}>
         <IntroModal callId={callId.current} />
         <MyCallParticipantsView />
