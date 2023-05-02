@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useActiveCall } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
 
 /**
  * A hook which provides a list of all participants that have joined an active call.
@@ -7,7 +7,7 @@ import { useActiveCall } from '@stream-io/video-react-bindings';
  * @category Call Operations
  */
 export const useHangupCall = () => {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
 
   const hangupCall = useCallback(async () => {
     if (!activeCall) {

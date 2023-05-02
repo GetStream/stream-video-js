@@ -1,10 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
-import {
-  useConnectedUser,
-  useStreamVideoClient,
-} from '@stream-io/video-react-bindings';
+import { useCall, useConnectedUser } from '@stream-io/video-react-bindings';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
@@ -19,12 +16,7 @@ import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
 /**
  * Props to be passed for the ActiveCall component.
  */
-export interface LobbyViewProps {
-  /**
-   * Call ID of the call that is to be joined.
-   */
-  callID: string;
-}
+export interface LobbyViewProps {}
 
 const ParticipantStatus = () => {
   const connectedUser = useConnectedUser();
@@ -48,7 +40,6 @@ const ParticipantStatus = () => {
 
 export const LobbyView = (props: LobbyViewProps) => {
   const localVideoStream = useLocalVideoStream();
-  const videoClient = useStreamVideoClient();
   const connectedUser = useConnectedUser();
   const { callCycleHandlers } = useCallCycleContext();
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
@@ -58,7 +49,6 @@ export const LobbyView = (props: LobbyViewProps) => {
   );
   const isVideoAvailable = !!localVideoStream && !isVideoMuted;
   const { onActiveCall } = callCycleHandlers;
-  const { callID } = props;
 
   const MicIcon = isAudioMuted ? (
     <MicOff color={theme.light.static_white} />
@@ -71,10 +61,10 @@ export const LobbyView = (props: LobbyViewProps) => {
     <Video color={theme.light.static_black} />
   );
 
+  const call = useCall();
   const joinCallHandler = () => {
-    videoClient
-      ?.call('default', callID)
-      .join({ create: true })
+    call
+      ?.join({ create: true })
       .then(() => {
         if (onActiveCall) {
           onActiveCall();

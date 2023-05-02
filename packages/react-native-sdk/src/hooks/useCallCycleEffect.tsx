@@ -1,5 +1,5 @@
 import {
-  useActiveCall,
+  useCall,
   useIncomingCalls,
   useOutgoingCalls,
 } from '@stream-io/video-react-bindings';
@@ -17,7 +17,9 @@ export const useCallCycleEffect = (
 ) => {
   const [outgoingCall] = useOutgoingCalls();
   const [incomingCall] = useIncomingCalls();
-  const activeCall = useActiveCall();
+
+  // FIXME OL: check whether we need this
+  const activeCall = useCall();
   const { onActiveCall, onIncomingCall, onOutgoingCall } = callCycleHandlers;
 
   useEffect(() => {

@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import {
   ActiveCall,
-  useActiveCall,
+  ActiveCallProps,
+  theme,
+  useCall,
   useIncomingCalls,
   useRingCall,
-  theme,
-  ActiveCallProps,
 } from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
@@ -21,7 +21,7 @@ type Props = NativeStackScreenProps<RingingStackParamList, 'CallScreen'>;
 type Mode = NonNullable<ActiveCallProps['mode']>;
 
 export const CallScreen = ({ navigation }: Props) => {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
   const [incomingCall] = useIncomingCalls();
   const { answerCall } = useRingCall();
   const [selectedMode, setMode] = React.useState<Mode>('grid');

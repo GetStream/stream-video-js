@@ -18,7 +18,7 @@ export const useRingCall = () => {
       return;
     }
     incomingCall
-      .accept()
+      .join()
       .catch((error) => console.log('Error accepting call', error));
   }, [incomingCall]);
 
@@ -26,11 +26,11 @@ export const useRingCall = () => {
     if (!incomingCall) {
       return;
     }
-    await incomingCall.reject();
+    await incomingCall.leave({ reject: true });
   }, [incomingCall]);
 
   const cancelCall = useCallback(async () => {
-    await outgoingCall.cancel();
+    await outgoingCall.leave();
   }, [outgoingCall]);
 
   return { answerCall, rejectCall, cancelCall };
