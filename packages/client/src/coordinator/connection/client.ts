@@ -796,7 +796,6 @@ export class StreamClient {
     return JSON.stringify({
       user_id: this.userID,
       user_details: this._user,
-      // device: this.options.device,
       client_request_id,
     });
   };
