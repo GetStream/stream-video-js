@@ -1,0 +1,12 @@
+name: Pull Request Name Check
+
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: GetStream/action-pr-title@master
+        with:
+          regex: '(fix|feat|build|chore|ci|docs|style|refactor|perf|test).*'
