@@ -8815,6 +8815,7 @@ __metadata:
     eslint-import-resolver-typescript: ^3.5.2
     eslint-plugin-import: ^2.26.0
     eslint-plugin-prettier: ^4.2.1
+    ngx-deploy-npm: ^5.2.0
     nx: 16.0.1
     prettier: ^2.8.4
     typescript: ^4.9.5
@@ -27774,6 +27775,17 @@ __metadata:
     chart.js: ^3.4.0
     rxjs: ^6.5.3 || ^7.4.0
   checksum: cb53c19d29a0fbc95445e6d895318ce6a1c021b4ddd2a21090d3fd6f0fd5c1fe04298da26a9f8f9d0c6cce5a9b19b3e0c1ec328d2ce35f98c9b0f610f46d56ab
+  languageName: node
+  linkType: hard
+
+"ngx-deploy-npm@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "ngx-deploy-npm@npm:5.2.0"
+  peerDependencies:
+    "@nrwl/devkit": ^14.0.0 || ^15.0.0
+    "@nrwl/workspace": ^14.0.0 || ^15.0.0
+    nx: ^14.0.0 || ^15.0.0
+  checksum: 4fffb7a49529c83ce7e92e5b850075bde54991e2ef7564d28dc9963feb7b990c11249e806e187b77f38b0c62ccd66539f69b17677bd5ce3876d2fd18df9d2351
   languageName: node
   linkType: hard
 

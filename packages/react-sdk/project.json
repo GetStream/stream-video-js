@@ -9,7 +9,15 @@
         "preset": "angular",
         "preid": "alpha",
         "releaseAs": "prerelease",
-        "trackDeps": true
+        "trackDeps": true,
+        "postTargets": ["@stream-io/video-client:github"]
+      }
+    },
+    "github": {
+      "executor": "@jscutlery/semver:github",
+      "options": {
+        "tag": "${tag}",
+        "notesFile": "./CHANGELOG.md"
       }
     }
   }
