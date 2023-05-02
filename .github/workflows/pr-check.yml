@@ -1,12 +1,19 @@
-name: Pull Request Name Check
+name: Check PR title
 
-on: [pull_request]
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
-
+    permissions:
+      statuses: write
     steps:
-      - uses: GetStream/action-pr-title@master
-        with:
-          regex: '(fix|feat|build|chore|ci|docs|style|refactor|perf|test).*'
+      - uses: aslafy-z/conventional-pr-title-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
