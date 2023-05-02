@@ -10,7 +10,7 @@
         "preid": "alpha",
         "releaseAs": "prerelease",
         "trackDeps": true,
-        "postTargets": ["@stream-io/video-client:github"]
+        "postTargets": ["@stream-io/video-styling:github"]
       }
     },
     "github": {
