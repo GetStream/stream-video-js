@@ -4,8 +4,9 @@ import {
   combineComparators,
   Comparator,
   conditional,
+  DefaultParticipantViewUI,
   dominantSpeaker,
-  ParticipantBox,
+  ParticipantView,
   pinned,
   publishingAudio,
   publishingVideo,
@@ -43,7 +44,9 @@ export const SpeakerView = () => {
         <div className="participants-bar">
           {otherParticipants.map((participant) => (
             <div className="participant-tile" key={participant.sessionId}>
-              <ParticipantBox participant={participant} call={call} />
+              <ParticipantView participant={participant}>
+                <DefaultParticipantViewUI participant={participant} />
+              </ParticipantView>
             </div>
           ))}
         </div>
@@ -51,13 +54,14 @@ export const SpeakerView = () => {
 
       <div className="spotlight">
         {call && participantInSpotlight && (
-          <ParticipantBox
+          <ParticipantView
             participant={participantInSpotlight}
-            call={call}
             videoKind={
               hasScreenShare(participantInSpotlight) ? 'screen' : 'video'
             }
-          />
+          >
+            <DefaultParticipantViewUI participant={participantInSpotlight} />
+          </ParticipantView>
         )}
       </div>
 
