@@ -6,7 +6,8 @@ import {
   useLocalParticipant,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { useMediaDevices } from '../../contexts';
+
+import { useMediaDevices } from '../../core/contexts';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { CompositeButton, IconButton } from '../Button';
 import { PermissionNotification } from '../Notification';

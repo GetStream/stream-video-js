@@ -198,7 +198,7 @@ export const Header: FC<Props> = ({
           <CallIdentification callId={callId} logo={logo} />
         )}
         <Elapsed joinedAt={me?.joinedAt?.seconds} />
-        {breakpoint === 'sm' || breakpoint === 'xs' ? (
+        {breakpoint === 'xs' || breakpoint === 'sm' ? (
           <ParticipantsToggle />
         ) : (
           <LatencyIndicator latency={latency} />

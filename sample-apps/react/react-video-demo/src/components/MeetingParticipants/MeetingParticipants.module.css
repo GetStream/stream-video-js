@@ -23,12 +23,27 @@
 
 .meetingGrid.slider.localParticipant {
   grid-area: localParticipant;
-  @apply flex justify-center items-center;
+  @apply flex justify-center items-center w-full;
 }
 
 .participantSlider {
   grid-area: participantSlider;
   @apply flex;
+}
+
+.meetingGrid .localParticipant,
+.meetingGrid .remoteParticipant {
+  @apply max-h-[225px] w-full;
+}
+
+@media screen(sm) {
+}
+
+@media screen(md) {
+  .meetingGrid .localParticipant,
+  .meetingGrid .remoteParticipant {
+    @apply max-h-[225px] w-auto;
+  }
 }
 
 .meetingGrid-1 {
@@ -37,9 +52,8 @@
   grid-template-rows: repeat(1, 1fr);
 }
 
-.meetingGrid-1 .localParticipant,
-.meetingGrid-1 .remoteParticipant {
-  @apply w-auto max-h-[300px];
+.meetingGrid.slider .localParticipant {
+  @apply w-full;
 }
 
 .meetingGrid-2 {

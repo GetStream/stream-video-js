@@ -36,6 +36,21 @@ export type LayoutSelectorProps = {
   selectedLayout: keyof typeof LayoutMap;
 };
 
+const SETTINGS_KEY = '@pronto/layout-settings';
+export const DEFAULT_LAYOUT = 'Speaker';
+
+export const getLayoutSettings = () => {
+  if (typeof window === 'undefined') return;
+  const settings = window.localStorage.getItem(SETTINGS_KEY);
+  if (settings) {
+    try {
+      return JSON.parse(settings) as { selectedLayout: keyof typeof LayoutMap };
+    } catch (e) {
+      console.log('Error parsing layout settings', e);
+    }
+  }
+};
+
 export const LayoutSelector = ({
   onMenuItemClick: setLayout,
   selectedLayout,
@@ -43,9 +58,14 @@ export const LayoutSelector = ({
   const hasScreenShare = useHasOngoingScreenShare();
 
   useEffect(() => {
-    if (hasScreenShare) return setLayout('LegacySpeaker');
+    const storedLayout = getLayoutSettings()?.selectedLayout ?? DEFAULT_LAYOUT;
+    // always switch to screen-share compatible layout
+    if (hasScreenShare) return setLayout('Speaker');
 
-    setLayout('LegacyGrid');
+    setLayout(
+      // reset to "stored" layout, use default if uncompatible layout is used
+      storedLayout === 'LegacySpeaker' ? DEFAULT_LAYOUT : storedLayout,
+    );
   }, [hasScreenShare, setLayout]);
 
   return (
@@ -78,7 +98,13 @@ const Menu = ({
               (key === 'LegacyGrid' || key === 'PaginatedGrid')) ||
             (!hasScreenShare && key === 'LegacySpeaker')
           }
-          onClick={() => setLayout(key)}
+          onClick={() => {
+            setLayout(key);
+            localStorage.setItem(
+              SETTINGS_KEY,
+              JSON.stringify({ selectedLayout: key }),
+            );
+          }}
           key={key}
         >
           {LayoutMap[key].title}

@@ -5,6 +5,7 @@ import {
   useIncomingCalls,
   useRingCall,
   theme,
+  ActiveCallProps,
 } from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
@@ -14,13 +15,16 @@ import {
   startForegroundService,
   stopForegroundService,
 } from '../../modules/push/android';
+import { ParticipantListButtons } from '../../components/ParticipantListButtons';
 
 type Props = NativeStackScreenProps<RingingStackParamList, 'CallScreen'>;
+type Mode = NonNullable<ActiveCallProps['mode']>;
 
 export const CallScreen = ({ navigation }: Props) => {
   const activeCall = useActiveCall();
   const [incomingCall] = useIncomingCalls();
   const { answerCall } = useRingCall();
+  const [selectedMode, setMode] = React.useState<Mode>('grid');
 
   useEffect(() => {
     // effect to answer call when incoming call is received from callkeep
@@ -56,8 +60,10 @@ export const CallScreen = ({ navigation }: Props) => {
   }
   return (
     <SafeAreaView style={styles.wrapper}>
+      <ParticipantListButtons selectedMode={selectedMode} setMode={setMode} />
       <ActiveCall
         onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
+        mode={selectedMode}
       />
     </SafeAreaView>
   );

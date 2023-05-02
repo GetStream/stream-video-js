@@ -1,4 +1,5 @@
 #!/bin/bash
+# set -e
 
 # the sdk's name in the folder under packages/*/docusaurus/docs/?/
 SDK_DIR_IN_DOCS=$1;
@@ -52,24 +53,17 @@ mkdir generated-docs
 
 # generate and process new docs
 
-# Hooks
-npx typedoc --options typedoc.json --exclude '!**/*hooks/**'
-npx replace-in-file '/\.md/g' '/' 'temp-docs/modules.md' --isRegex > /dev/null
-npx replace-in-file '/modules\//g' '' 'temp-docs/modules.md' --isRegex > /dev/null
-cp temp-docs/modules.md generated-docs/hooks.md
-npx replace-in-file "# $PACKAGE_NAME" '# Hooks' 'generated-docs/hooks.md' > /dev/null
-
-# Contexts
+# Hooks and Contexts
 if [ "$PACKAGE_DIR_NAME" == 'react-sdk' ]; then
-  npx typedoc --options typedoc.json --exclude '!**/*contexts/**'
+  npx typedoc --options typedoc.json --exclude '!**/*(hooks|contexts)/**'
 else
   # RN needs a special exclude statement because of reexporting StreamVideo
-  npx typedoc --options typedoc.json --exclude '**/*(hooks|components|utils)/**'
+  npx typedoc --options typedoc.json --exclude '!**/*(hooks|contexts|providers)/**'
 fi
 npx replace-in-file '/\.md/g' '/' 'temp-docs/modules.md' --isRegex > /dev/null
 npx replace-in-file '/modules\//g' '' 'temp-docs/modules.md' --isRegex > /dev/null
-cp temp-docs/modules.md generated-docs/contexts.md
-npx replace-in-file "# $PACKAGE_NAME" '# Contexts' 'generated-docs/contexts.md' > /dev/null
+cp temp-docs/modules.md generated-docs/hooks-and-contexts.md
+npx replace-in-file "# $PACKAGE_NAME" '# Hooks and Contexts' 'generated-docs/hooks-and-contexts.md' > /dev/null
 
 # Components
 npx typedoc --options typedoc.json --exclude '!**/*components/**'
@@ -104,7 +98,7 @@ cp -a ./generated-docs/i18n/. "$SDK_DOCS_PATH"
 cp -a ../client/generated-docs/. "$SDK_DOCS_PATH/04-call-engine/"
 cp "../client/$DOCUSAURUS_PATH/client/SDKSpecific.jsx" "$SDK_DOCS_PATH/SDKSpecific.jsx"
 
-cp -a generated-docs/hooks.md "$SDK_DOCS_PATH/04-call-engine/"
+cp -a generated-docs/hooks-and-contexts.md "$SDK_DOCS_PATH/04-call-engine/"
 cp -a generated-docs/contexts.md "$SDK_DOCS_PATH/04-call-engine/"
 
 cp -a generated-docs/components.md "$SDK_DOCS_PATH/03-ui/"

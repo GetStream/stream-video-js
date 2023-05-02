@@ -1,4 +1,4 @@
-import { StreamVideoParticipant, VisibilityState } from '../rtc/types';
+import { StreamVideoParticipant, VisibilityState } from '../types';
 import { combineComparators, conditional } from './comparator';
 import {
   dominantSpeaker,

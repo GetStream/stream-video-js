@@ -26,6 +26,10 @@
   @apply flex lg:hidden;
 }
 
+.record {
+  @apply border-t-2 border-video-grey-700;
+}
+
 .settingsIcon {
   @apply mr-4 text-video-grey-400 h-5;
 }

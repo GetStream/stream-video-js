@@ -3,7 +3,6 @@ import {
   useOutgoingCalls,
 } from '@stream-io/video-react-bindings';
 import { useCallback } from 'react';
-import InCallManager from 'react-native-incall-manager';
 
 /**
  * A helper hook which exposes functions to answer and reject incoming calls and cancel outgoing calls
@@ -20,10 +19,6 @@ export const useRingCall = () => {
     }
     incomingCall
       .accept()
-      .then(() => {
-        InCallManager.start({ media: 'video' });
-        InCallManager.setForceSpeakerphoneOn(true);
-      })
       .catch((error) => console.log('Error accepting call', error));
   }, [incomingCall]);
 

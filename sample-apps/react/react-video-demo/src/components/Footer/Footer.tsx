@@ -63,7 +63,7 @@ export const Footer: FC<Props> = ({
   } = usePanelContext();
 
   const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(true);
-  const [showReactionsPanel, setShowReactionsPanel] = useState<boolean>(true);
+  const [showReactionsPanel, setShowReactionsPanel] = useState<boolean>(false);
 
   useEffect(() => {
     if (isVisible && showSettingsPanel) {

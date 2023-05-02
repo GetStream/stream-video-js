@@ -24,7 +24,7 @@ import {
   useCallCallingState,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { InviteLinkButton } from './InviteLinkButton';
+
 import { Lobby } from './Lobby';
 import { Button, Stack, Typography } from '@mui/material';
 import { StreamChat } from 'stream-chat';
@@ -38,7 +38,7 @@ import {
 import { ActiveCallHeader } from './ActiveCallHeader';
 import { DeviceSettingsCaptor } from './DeviceSettingsCaptor';
 import { useWatchChannel } from '../hooks';
-import { LayoutMap } from './LayoutSelector';
+import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 import { Stage } from './Stage';
 
 const contents = {
@@ -64,7 +64,9 @@ export const MeetingUI = ({ chatClient, callId, callType }: MeetingUIProps) => {
   const [activeCall, setActiveCall] = useState<Call>();
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [layout, setLayout] = useState<keyof typeof LayoutMap>('LegacyGrid');
+  const [layout, setLayout] = useState<keyof typeof LayoutMap>(
+    getLayoutSettings()?.selectedLayout ?? DEFAULT_LAYOUT,
+  );
 
   const showSidebar = showParticipants || showChat;
 
@@ -217,10 +219,7 @@ export const MeetingUI = ({ chatClient, callId, callType }: MeetingUIProps) => {
         {showSidebar && (
           <div className="str-video__sidebar">
             {showParticipants && (
-              <CallParticipantsList
-                onClose={hideParticipantList}
-                InviteLinkButton={InviteLinkButton}
-              />
+              <CallParticipantsList onClose={hideParticipantList} />
             )}
 
             <ChatWrapper chatClient={chatClient}>

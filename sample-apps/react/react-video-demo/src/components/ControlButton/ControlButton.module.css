@@ -74,5 +74,5 @@
 }
 
 .label {
-  @apply hidden sm:flex text-video-white text-xs mt-1;
+  @apply hidden md:flex text-video-white text-xs mt-1;
 }

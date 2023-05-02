@@ -1,9 +1,9 @@
 import { TrackType } from '../../gen/video/sfu/models/models';
-import type { StreamVideoParticipant } from '../types';
+import type { StreamVideoParticipant } from '../../types';
 
 export const trackTypeToParticipantStreamKey = (
   trackType: TrackType,
-): keyof StreamVideoParticipant | undefined => {
+): keyof StreamVideoParticipant => {
   switch (trackType) {
     case TrackType.SCREEN_SHARE:
       return 'screenShareStream';
@@ -12,14 +12,13 @@ export const trackTypeToParticipantStreamKey = (
     case TrackType.AUDIO:
       return 'audioStream';
     default:
-      console.error(`Unknown track type: ${trackType}`);
-      return undefined;
+      throw new Error(`Unknown track type: ${trackType}`);
   }
 };
 
 export const muteTypeToTrackType = (
   muteType: 'audio' | 'video' | 'screenshare',
-): TrackType | undefined => {
+): TrackType => {
   switch (muteType) {
     case 'audio':
       return TrackType.AUDIO;
@@ -28,7 +27,6 @@ export const muteTypeToTrackType = (
     case 'screenshare':
       return TrackType.SCREEN_SHARE;
     default:
-      console.error(`Unknown mute type: ${muteType}`);
-      return undefined;
+      throw new Error(`Unknown mute type: ${muteType}`);
   }
 };
