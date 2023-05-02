@@ -10,11 +10,11 @@ export const watchCallAccepted = (call: Call) => {
   return async function onCallAccepted(event: StreamVideoEvent) {
     if (
       event.type !== 'call.accepted' ||
-      // @ts-ignore
       // We want to discard the event if it's from the current user
-      event.user.id === call.clientStore.connectedUser?.id
-    )
+      event.user.id === call.currentUserId
+    ) {
       return;
+    }
     const { state } = call;
     if (state.callingState === CallingState.RINGING) {
       await call.join();
