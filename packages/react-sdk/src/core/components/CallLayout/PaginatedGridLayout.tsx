@@ -6,24 +6,18 @@ import {
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
 import {
-  Call,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import clsx from 'clsx';
 
-import { ParticipantBox } from '../ParticipantBox';
+import { ParticipantView, DefaultParticipantViewUI } from '../ParticipantView';
 import { Audio } from '../Audio';
 import { IconButton } from '../../../components';
 
 const GROUP_SIZE = 16;
 
 type PaginatedGridLayoutGroupProps = {
-  /**
-   * The call object.
-   */
-  call: Call;
-
   /**
    * The group of participants to render.
    */
@@ -36,13 +30,12 @@ type PaginatedGridLayoutGroupProps = {
   indicatorsVisible?: boolean;
 };
 const PaginatedGridLayoutGroup = ({
-  call,
   group,
   indicatorsVisible = true,
 }: PaginatedGridLayoutGroupProps) => {
   return (
     <div
-      className={clsx('str-video__paginated-grid-layout--group', {
+      className={clsx('str-video__paginated-grid-layout__group', {
         'str-video__paginated-grid-layout--one': group.length === 1,
         'str-video__paginated-grid-layout--two-four':
           group.length >= 2 && group.length <= 4,
@@ -51,13 +44,16 @@ const PaginatedGridLayoutGroup = ({
       })}
     >
       {group.map((participant) => (
-        <ParticipantBox
+        <ParticipantView
           key={participant.sessionId}
           participant={participant}
-          call={call}
-          indicatorsVisible={indicatorsVisible}
           muteAudio
-        />
+        >
+          <DefaultParticipantViewUI
+            indicatorsVisible={indicatorsVisible}
+            participant={participant}
+          />
+        </ParticipantView>
       ))}
     </div>
   );
@@ -122,6 +118,7 @@ export const PaginatedGridLayout = ({
   const selectedGroup = participantGroups[page];
 
   if (!call) return null;
+
   return (
     <>
       {remoteParticipants.map((participant) => (
@@ -132,7 +129,7 @@ export const PaginatedGridLayout = ({
           sinkId={localParticipant?.audioOutputDeviceId}
         />
       ))}
-      <div className="str-video__paginated-grid-layout--wrapper">
+      <div className="str-video__paginated-grid-layout__wrapper">
         <div className="str-video__paginated-grid-layout">
           {pageArrowsVisible && pageCount > 1 && (
             <IconButton
@@ -145,7 +142,6 @@ export const PaginatedGridLayout = ({
           )}
           {selectedGroup && (
             <PaginatedGridLayoutGroup
-              call={call}
               group={participantGroups[page]}
               indicatorsVisible={indicatorsVisible}
             />
