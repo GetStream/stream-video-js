@@ -16,11 +16,15 @@ rename_generated_files () {
   for sub_directory in $* ;
   do
     (
-      cd "$sub_directory" || exit
-      # prevent renaming the assets files to keep compatibility with mdx imports
-      if [[ "$sub_directory" != assets ]];then
-        for filename in * ; do mv -- "$filename" "${filename%.*}.gen.${filename##*.}" ; done
-      fi
+      find "$sub_directory" -type f | while read filepath; do
+        if [[ $filepath != *.mdx && $filepath != *.md ]]; then continue; fi;
+        dirpath=$(dirname $filepath)
+        filename=$(basename $filepath)
+        extension="${filename##*.}"
+        name="${filename%.*}"
+
+        mv -- "$filepath" "$dirpath/$name.gen.$extension"
+      done
     )
   done
 }
@@ -86,24 +90,19 @@ echo "{
 }" > "$SDK_DOCS_PATH/04-call-engine/_category_.json"
 rm -rf temp-docs
 
-# move client docs to SDK's docs and mark as generated
+# move client, i18n docs to SDK's docs and mark as generated
 cp -a "../client/$DOCUSAURUS_PATH/client/." generated-docs/client/
+cp -a "../i18n/$DOCUSAURUS_PATH/i18n/." generated-docs/i18n/
+cp -a ../i18n/generated-docs/. generated-docs/i18n/07-i18n
 rename_generated_files generated-docs/client;
-cd ../../
+rename_generated_files generated-docs/i18n;
 
 cp -a ./generated-docs/client/. "$SDK_DOCS_PATH"
-rm -rf generated-docs/client/
+cp -a ./generated-docs/i18n/. "$SDK_DOCS_PATH"
 
 # copy shared JS docs to the docs to SDK's docusaurus
 cp -a ../client/generated-docs/. "$SDK_DOCS_PATH/04-call-engine/"
 cp "../client/$DOCUSAURUS_PATH/client/SDKSpecific.jsx" "$SDK_DOCS_PATH/SDKSpecific.jsx"
-
-# copy i18n docs
-cp -a "../i18n/$DOCUSAURUS_PATH/i18n/." generated-docs/i18n/
-cp -a ../i18n/generated-docs/. generated-docs/i18n/07-i18n
-rename_generated_files generated-docs/i18n;
-cp -a generated-docs/i18n "$SDK_DOCS_PATH"
-rm -rf generated-docs/i18n/
 
 cp -a generated-docs/hooks.md "$SDK_DOCS_PATH/04-call-engine/"
 cp -a generated-docs/contexts.md "$SDK_DOCS_PATH/04-call-engine/"
@@ -111,4 +110,5 @@ cp -a generated-docs/contexts.md "$SDK_DOCS_PATH/04-call-engine/"
 cp -a generated-docs/components.md "$SDK_DOCS_PATH/03-ui/"
 cp -a generated-docs/Interfaces/. "$SDK_DOCS_PATH/03-ui/Interfaces/"
 
+rm -rf generated-docs
 echo "Done!"

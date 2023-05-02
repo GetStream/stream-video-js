@@ -1,5 +1,5 @@
 ---
-id: 14-i18n.mdx
+id: 01-i18n
 title: Internationalization
 ---
 
@@ -19,7 +19,7 @@ Also, the SDK already provides default translations for the available components
 
 ## Integration
 
-The service is made available through [the `StreamVideo` provider](). That means that all the child components of this provider can access the `StreamI18nContextValue` object by using the `useI18n` context consumer.
+The service is made available through [the `StreamVideo` provider](../03-ui/01-overview.mdx) (**TODO: provide correct link to StreamVideo provider doc**). That means that all the child components of this provider can access the `StreamI18nContextValue` object by using the `useI18n` context consumer.
 
 The `StreamI18nContextValue` carries the following properties:
 
@@ -160,6 +160,7 @@ const App = () => {
 This is the central feature of the service. The function is passed a string we want to translate and returns its translation. If the translated key is not found, then the returned value is the original string. We rely on the translation function provided by the library `i18next`. This function is exposed on `StreamI18n` object <SDKSpecific name="react">as well as in the `StreamI18nContextValue`.</SDKSpecific>.
 
 <SDKSpecific name="react">
+
 ### Accessing the translation function
 You can access the translation function in any child component of `StreamVideo` resp. `StreamI18nProvider` through the context consumer `useI18n`:
 
