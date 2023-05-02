@@ -23,7 +23,6 @@ import { createSubscription, getCurrentValue } from './store/rxUtils';
 import {
   BlockUserRequest,
   BlockUserResponse,
-  CallResponse,
   EndCallResponse,
   GetCallEdgeServerRequest,
   GetCallEdgeServerResponse,
@@ -33,7 +32,6 @@ import {
   GoLiveResponse,
   JoinCallRequest,
   ListRecordingsResponse,
-  MemberResponse,
   MuteUsersRequest,
   MuteUsersResponse,
   OwnCapability,
@@ -55,6 +53,8 @@ import {
 } from './gen/coordinator';
 import { join, watch } from './rtc/flows/join';
 import {
+  CallConstructor,
+  CallLeaveOptions,
   DebounceType,
   PublishOptions,
   StreamVideoParticipant,
@@ -73,7 +73,6 @@ import {
   tap,
   timer,
 } from 'rxjs';
-import { Comparator } from './sorting';
 import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
 import { JoinResponse } from './gen/video/sfu/event/events';
 import {
@@ -94,63 +93,6 @@ import {
 import { UAParser } from 'ua-parser-js';
 import { getSdkInfo } from './sdk-info';
 import { isReactNative } from './helpers/platforms';
-
-/**
- * The options to pass to {@link Call} constructor.
- */
-export type CallConstructor = {
-  /**
-   * The streamClient instance to use.
-   */
-  streamClient: StreamClient;
-
-  /**
-   * The Call type.
-   */
-  type: string;
-
-  /**
-   * The Call ID.
-   */
-  id: string;
-
-  /**
-   * An optional {@link CallResponse} metadata from the backend.
-   * If provided, the call will be initialized with the data from this object.
-   * This is useful when initializing a new "pending call" from an event.
-   */
-  metadata?: CallResponse;
-
-  /**
-   * An optional list of {@link MemberResponse} from the backend.
-   * If provided, the call will be initialized with the data from this object.
-   * This is useful when initializing a new "pending call" from an event.
-   */
-  members?: MemberResponse[];
-
-  /**
-   * Flags the call as a ringing call.
-   * @default false
-   */
-  ringing?: boolean;
-
-  /**
-   * Set to true if this call instance should receive updates from the backend.
-   *
-   * @default false.
-   */
-  watching?: boolean;
-
-  /**
-   * The default comparator to use when sorting participants.
-   */
-  sortParticipantsBy?: Comparator<StreamVideoParticipant>;
-
-  /**
-   * The state store of the client
-   */
-  clientStore: StreamVideoWriteableStateStore;
-};
 
 /**
  * A `Call` object represents the active call the user is part of.
@@ -180,7 +122,7 @@ export class Call {
   /**
    * The state of this call.
    */
-  readonly state: CallState;
+  readonly state = new CallState();
 
   /**
    * Flag indicating whether this call is "watched" and receives
@@ -278,12 +220,17 @@ export class Call {
     this.streamClientBasePath = `/call/${this.type}/${this.id}`;
 
     const callTypeConfig = CallTypes.get(type);
-    this.state = new CallState(
-      sortParticipantsBy || callTypeConfig.options.sortParticipantsBy,
-    );
+    const participantSorter =
+      sortParticipantsBy || callTypeConfig.options.sortParticipantsBy;
+    if (participantSorter) {
+      this.state.setSortParticipantsBy(participantSorter);
+    }
 
     this.state.setMetadata(metadata);
     this.state.setMembers(members || []);
+    this.state.setCallingState(
+      ringing ? CallingState.RINGING : CallingState.IDLE,
+    );
 
     this.leaveCallHooks.push(
       registerEventHandlers(this, this.state, this.dispatcher),
@@ -359,6 +306,9 @@ export class Call {
       createSubscription(this.ringingSubject, (isRinging) => {
         if (!isRinging) return;
         this.scheduleAutoDrop();
+        if (this.state.callingState === CallingState.IDLE) {
+          this.state.setCallingState(CallingState.RINGING);
+        }
         this.leaveCallHooks.push(registerRingingCallEventHandlers(this));
       }),
     );
@@ -419,7 +369,7 @@ export class Call {
   /**
    * Leave the call and stop the media streams that were published by the call.
    */
-  leave = async () => {
+  leave = async ({ reject = false }: CallLeaveOptions = {}) => {
     const callingState = this.state.callingState;
     if (callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
@@ -437,7 +387,7 @@ export class Call {
         // before they accepted it.
         // Causes the `call.ended` event to be emitted to all the call members.
         await this.endCall();
-      } else if (callingState === CallingState.IDLE) {
+      } else if (reject && callingState === CallingState.RINGING) {
         // Signals other users that I have rejected the incoming call.
         // Causes the `call.rejected` event to be emitted to all the call members.
         await this.sendEvent({ type: 'call.rejected' });

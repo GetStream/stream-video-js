@@ -44,7 +44,7 @@ export class StreamVideoWriteableStateStore {
           const { metadata, callingState } = call.state;
           return (
             metadata?.created_by.id !== connectedUser?.id &&
-            callingState === CallingState.IDLE
+            callingState === CallingState.RINGING
           );
         }),
       ),
@@ -57,7 +57,7 @@ export class StreamVideoWriteableStateStore {
           const { metadata, callingState } = call.state;
           return (
             metadata?.created_by.id === connectedUser?.id &&
-            callingState === CallingState.IDLE
+            callingState === CallingState.RINGING
           );
         }),
       ),

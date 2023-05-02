@@ -10,7 +10,7 @@ export const watchCallAccepted = (call: Call) => {
   return async function onCallAccepted(event: StreamVideoEvent) {
     if (event.type !== 'call.accepted') return;
     const { state } = call;
-    if (state.callingState === CallingState.IDLE) {
+    if (state.callingState === CallingState.RINGING) {
       await call.join();
     }
   };
@@ -38,7 +38,9 @@ export const watchCallRejected = (call: Call) => {
 export const watchCallEnded = (call: Call) => {
   return async function onCallCancelled(event: StreamVideoEvent) {
     if (event.type !== 'call.ended') return;
-    await call.leave();
+    if (call.state.callingState === CallingState.RINGING) {
+      await call.leave();
+    }
   };
 };
 

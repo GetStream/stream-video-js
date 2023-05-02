@@ -30,6 +30,12 @@ export enum CallingState {
   IDLE = 'idle',
 
   /**
+   * The call is in the process of ringing.
+   * (User hasn't accepted nor rejected the call yet.)
+   */
+  RINGING = 'ringing',
+
+  /**
    * The call is in the process of joining.
    */
   JOINING = 'joining',
@@ -223,18 +229,14 @@ export class CallState {
    *
    * @private
    */
-  private sortParticipantsBy: Comparator<StreamVideoParticipant>;
+  private sortParticipantsBy: Comparator<StreamVideoParticipant> =
+    SortingPreset.defaultSortPreset;
 
   /**
    * Creates a new instance of the CallState class.
    *
-   * @param sortParticipantsBy the comparator that is used to sort the participants.
    */
-  constructor(
-    sortParticipantsBy: Comparator<StreamVideoParticipant> = SortingPreset.defaultSortPreset,
-  ) {
-    this.sortParticipantsBy = sortParticipantsBy;
-
+  constructor() {
     this.participants$ = this.participantsSubject.pipe(
       map((ps) => ps.sort(this.sortParticipantsBy)),
     );
