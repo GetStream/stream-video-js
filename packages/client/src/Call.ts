@@ -260,10 +260,10 @@ export class Call {
       // handles the case when the user is blocked by the call owner.
       createSubscription(this.state.metadata$, async (metadata) => {
         if (!metadata) return;
-        const connectedUser = this.clientStore.connectedUser;
+        const currentUserId = this.currentUserId;
         if (
-          connectedUser &&
-          metadata.blocked_user_ids.includes(connectedUser.id)
+          currentUserId &&
+          metadata.blocked_user_ids.includes(currentUserId)
         ) {
           await this.leave();
         }
@@ -377,9 +377,8 @@ export class Call {
 
     if (this.ringing) {
       // I'm the one who started the call, so I should cancel it.
-      const currentUserId = this.clientStore.connectedUser?.id;
       const createdById = this.state.metadata?.created_by.id;
-      const isCallCreatedByMe = createdById === currentUserId;
+      const isCallCreatedByMe = createdById === this.currentUserId;
       const hasOtherParticipants = this.state.remoteParticipants.length > 0;
 
       if (isCallCreatedByMe && !hasOtherParticipants) {
@@ -427,6 +426,13 @@ export class Call {
    */
   get ringing() {
     return getCurrentValue(this.ringingSubject);
+  }
+
+  /**
+   * Retrieves the current user ID.
+   */
+  get currentUserId() {
+    return this.clientStore.connectedUser?.id;
   }
 
   private waitForJoinResponse = (timeout: number = 5000) =>
@@ -520,7 +526,10 @@ export class Call {
       this.ringingSubject.next(true);
     }
 
-    if (this.ringing) {
+    if (
+      this.ringing &&
+      this.state.metadata?.created_by.id !== this.currentUserId
+    ) {
       // Signals other users that I have accepted the incoming call.
       // Causes the `call.accepted` event to be emitted to all the call members.
       await this.sendEvent({ type: 'call.accepted' });
@@ -1174,7 +1183,7 @@ export class Call {
    * @param type the type of the mute operation.
    */
   muteSelf = (type: 'audio' | 'video' | 'screenshare') => {
-    const myUserId = this.clientStore.connectedUser?.id;
+    const myUserId = this.currentUserId;
     if (myUserId) {
       return this.muteUser(myUserId, type);
     }
@@ -1351,7 +1360,7 @@ export class Call {
           if (!(currentMeta && this.clientStore.connectedUser)) return;
 
           const isOutgoingCall =
-            this.clientStore.connectedUser.id === currentMeta.created_by.id;
+            this.currentUserId === currentMeta.created_by.id;
 
           const [prevTimeoutMs, timeoutMs] = isOutgoingCall
             ? [
