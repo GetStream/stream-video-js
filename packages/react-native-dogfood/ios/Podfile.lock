@@ -313,6 +313,8 @@ PODS:
     - glog
   - react-native-get-random-values (1.8.0):
     - React-Core
+  - react-native-netinfo (9.3.9):
+    - React-Core
   - react-native-pure-jwt (3.0.1):
     - JWT (= 3.0.0-beta.12)
     - React
@@ -453,6 +455,7 @@ DEPENDENCIES:
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
+  - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pure-jwt (from `../node_modules/react-native-pure-jwt`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-webrtc (from `../node_modules/react-native-webrtc`)
@@ -550,6 +553,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/logger"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
+  react-native-netinfo:
+    :path: "../node_modules/@react-native-community/netinfo"
   react-native-pure-jwt:
     :path: "../node_modules/react-native-pure-jwt"
   react-native-safe-area-context:
@@ -649,6 +654,7 @@ SPEC CHECKSUMS:
   React-jsinspector: 60769e5a0a6d4b32294a2456077f59d0266f9a8b
   React-logger: 1623c216abaa88974afce404dc8f479406bbc3a0
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
+  react-native-netinfo: 22c082970cbd99071a4e5aa7a612ac20d66b08f0
   react-native-pure-jwt: 94a3662655c6d677acb7b16048ed69b88b93073d
   react-native-safe-area-context: 39c2d8be3328df5d437ac1700f4f3a4f75716acc
   react-native-webrtc: 0df36747802476e758af6b6dceccdeaed8c826c2
@@ -679,6 +685,6 @@ SPEC CHECKSUMS:
   Sentry: 4c9babff9034785067c896fd580b1f7de44da020
   Yoga: 99caf8d5ab45e9d637ee6e0174ec16fbbb01bcfc
 
-PODFILE CHECKSUM: 169c0beeae71eb3b46b2f6bdb4cb1c8a24a8c826
+PODFILE CHECKSUM: 89f12fe5c2ae4f9306852e0c3520cd5bff67328a
 
 COCOAPODS: 1.11.3
