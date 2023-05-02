@@ -16,7 +16,7 @@ import {
   useParticipants,
 } from '@stream-io/video-react-bindings';
 
-import { ParticipantBox } from '../ParticipantBox';
+import { ParticipantView, DefaultParticipantViewUI } from '../ParticipantView';
 import { IconButton } from '../../../components';
 import { useHorizontalScrollPosition } from '../../../components/StreamCall/hooks';
 
@@ -69,57 +69,64 @@ export const SpeakerLayout = () => {
 
   const isSpeakerScreenSharing = hasScreenShare(participantInSpotlight);
   return (
-    <div className="str-video__speaker-layout--wrapper">
+    <div className="str-video__speaker-layout__wrapper">
       <div className="str-video__speaker-layout">
-        <div className="str-video__speaker-layout--spotlight">
+        <div className="str-video__speaker-layout__spotlight">
           {participantInSpotlight && (
-            <ParticipantBox
+            <ParticipantView
               participant={participantInSpotlight}
-              call={call}
               muteAudio={isSpeakerScreenSharing}
               videoKind={isSpeakerScreenSharing ? 'screen' : 'video'}
               sinkId={localParticipant?.audioOutputDeviceId}
-            />
+            >
+              <DefaultParticipantViewUI participant={participantInSpotlight} />
+            </ParticipantView>
           )}
         </div>
         {otherParticipants.length > 0 && (
-          <div className="str-video__speaker-layout--participants-bar-buttons-wrapper">
+          <div className="str-video__speaker-layout__participants-bar-buttons-wrapper">
             {scrollPosition && scrollPosition !== 'start' && (
               <IconButton
                 onClick={scrollStartClickHandler}
                 icon="caret-left"
-                className="str-video__speaker-layout--participants-bar-button-left"
+                className="str-video__speaker-layout__participants-bar--button-left"
               />
             )}
             <div
-              className="str-video__speaker-layout--participants-bar-wrapper"
+              className="str-video__speaker-layout__participants-bar-wrapper"
               ref={setScrollWrapper}
             >
-              <div className="str-video__speaker-layout--participants-bar">
+              <div className="str-video__speaker-layout__participants-bar">
                 {isSpeakerScreenSharing && (
                   <div
-                    className="str-video__speaker-layout--participant-tile"
+                    className="str-video__speaker-layout__participant-tile"
                     key={participantInSpotlight.sessionId}
                   >
-                    <ParticipantBox
+                    <ParticipantView
                       participant={participantInSpotlight}
-                      call={call}
                       sinkId={localParticipant?.audioOutputDeviceId}
-                      toggleMenuPosition="top"
-                    />
+                    >
+                      <DefaultParticipantViewUI
+                        participant={participantInSpotlight}
+                        menuPlacement="top-end"
+                      />
+                    </ParticipantView>
                   </div>
                 )}
                 {otherParticipants.map((participant) => (
                   <div
-                    className="str-video__speaker-layout--participant-tile"
+                    className="str-video__speaker-layout__participant-tile"
                     key={participant.sessionId}
                   >
-                    <ParticipantBox
+                    <ParticipantView
                       participant={participant}
-                      call={call}
                       sinkId={localParticipant?.audioOutputDeviceId}
-                      toggleMenuPosition="top"
-                    />
+                    >
+                      <DefaultParticipantViewUI
+                        participant={participant}
+                        menuPlacement="top-end"
+                      />
+                    </ParticipantView>
                   </div>
                 ))}
               </div>
@@ -128,7 +135,7 @@ export const SpeakerLayout = () => {
               <IconButton
                 onClick={scrollEndClickHandler}
                 icon="caret-right"
-                className="str-video__speaker-layout--participants-bar-button-right"
+                className="str-video__speaker-layout__participants-bar--button-right"
               />
             )}
           </div>
