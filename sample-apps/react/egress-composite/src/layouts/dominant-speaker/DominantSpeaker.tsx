@@ -1,5 +1,6 @@
 import {
-  ParticipantBox,
+  DefaultParticipantViewUI,
+  ParticipantView,
   SfuModels,
   useCall,
   useParticipants,
@@ -23,13 +24,17 @@ export const DominantSpeaker = () => {
     <>
       <div className="spotlight-container">
         {speakerInSpotlight && (
-          <ParticipantBox
+          <ParticipantView
             participant={speakerInSpotlight}
-            call={activeCall}
-            indicatorsVisible={false}
             setVideoElementRef={setParticipantVideoRef}
             muteAudio
-          />
+          >
+            <DefaultParticipantViewUI
+              participant={speakerInSpotlight}
+              indicatorsVisible={false}
+              showMenuButton={false}
+            />
+          </ParticipantView>
         )}
       </div>
       <AudioTracks

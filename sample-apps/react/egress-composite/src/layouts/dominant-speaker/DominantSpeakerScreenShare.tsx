@@ -1,5 +1,6 @@
 import {
-  ParticipantBox,
+  DefaultParticipantViewUI,
+  ParticipantView,
   SfuModels,
   useCall,
   useRemoteParticipants,
@@ -40,11 +41,13 @@ export const DominantSpeakerScreenShare = () => {
           {screenSharingParticipant.name || screenSharingParticipant.userId}
         </span>
         <div className="current-speaker">
-          <ParticipantBox
-            participant={screenSharingParticipant}
-            call={call!}
-            indicatorsVisible={false}
-          />
+          <ParticipantView participant={screenSharingParticipant}>
+            <DefaultParticipantViewUI
+              participant={screenSharingParticipant}
+              indicatorsVisible={false}
+              showMenuButton={false}
+            />
+          </ParticipantView>
         </div>
       </div>
       <AudioTracks
