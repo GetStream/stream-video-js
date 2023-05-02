@@ -243,13 +243,11 @@ const StackNavigator = () => {
   }
 
   return (
-    <StreamVideo client={videoClient} callCycleHandlers={callCycleHandlers}>
-      {/*
-        <StreamCallProvider /> shouldn't be embedded in <StreamVideo />
-        as otherwise it becomes hard to support multiple calls
-        (call-watching scenario). eg: Audio Rooms use-case.
-      */}
-      <StreamCallProvider call={call}>
+    // <StreamCallProvider /> shouldn't be embedded in <StreamVideo />
+    //         as otherwise it becomes hard to support multiple calls
+    //         (call-watching scenario). eg: Audio Rooms use-case.
+    <StreamCallProvider call={call}>
+      <StreamVideo client={videoClient} callCycleHandlers={callCycleHandlers}>
         <Stack.Navigator>
           {appMode === 'Meeting' ? (
             <Stack.Screen
@@ -265,8 +263,8 @@ const StackNavigator = () => {
             />
           ) : null}
         </Stack.Navigator>
-      </StreamCallProvider>
-    </StreamVideo>
+      </StreamVideo>
+    </StreamCallProvider>
   );
 };
 
