@@ -1,3 +1,4 @@
+import { Call } from '@stream-io/video-client';
 import {
   useIncomingCalls,
   useOutgoingCalls,
@@ -13,14 +14,12 @@ export const useRingCall = () => {
   const [incomingCall] = useIncomingCalls();
   const [outgoingCall] = useOutgoingCalls();
 
-  const answerCall = useCallback(() => {
-    if (!incomingCall) {
+  const answerCall = useCallback((call: Call) => {
+    if (!call) {
       return;
     }
-    incomingCall
-      .join()
-      .catch((error) => console.log('Error accepting call', error));
-  }, [incomingCall]);
+    call.join().catch((error) => console.log('Error accepting call', error));
+  }, []);
 
   const rejectCall = useCallback(async () => {
     if (!incomingCall) {

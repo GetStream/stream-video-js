@@ -25,6 +25,10 @@ import * as SortingPreset from '../sorting/presets';
  */
 export enum CallingState {
   /**
+   * The call is in an unknown state.
+   */
+  UNKNOWN = 'unknown',
+  /**
    * The call is in an idle state.
    */
   IDLE = 'idle',
@@ -93,7 +97,7 @@ export class CallState {
    * @internal
    */
   private callingStateSubject = new BehaviorSubject<CallingState>(
-    CallingState.IDLE,
+    CallingState.UNKNOWN,
   );
 
   /**

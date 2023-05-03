@@ -6,6 +6,7 @@ import {
 import { useEffect } from 'react';
 import { CallCycleHandlersType } from '../contexts/CallCycleContext';
 import { CallingState } from '@stream-io/video-client';
+import { Platform } from 'react-native';
 
 /**
  *
@@ -22,8 +23,14 @@ export const useCallCycleEffect = (
   const { onActiveCall, onIncomingCall, onOutgoingCall } = callCycleHandlers;
 
   useEffect(() => {
-    if (incomingCall && onIncomingCall) onIncomingCall();
-    else if (outgoingCall && onOutgoingCall) onOutgoingCall();
+    console.log('useCallCycleEffect callingState=', {
+      callingState,
+      os: Platform.OS,
+    });
+
+    if (incomingCall && onIncomingCall) {
+      onIncomingCall();
+    } else if (outgoingCall && onOutgoingCall) onOutgoingCall();
     else if (callingState === CallingState.JOINED && onActiveCall) {
       onActiveCall();
     }

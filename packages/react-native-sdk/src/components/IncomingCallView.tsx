@@ -2,6 +2,7 @@ import React from 'react';
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { CallControlsButton } from './CallControlsButton';
 import {
+  useCall,
   useConnectedUser,
   useIncomingCalls,
 } from '@stream-io/video-react-bindings';
@@ -18,9 +19,10 @@ export const IncomingCallView = () => {
   const { answerCall, rejectCall } = useRingCall();
   const { callCycleHandlers } = useCallCycleContext();
   const { onRejectCall } = callCycleHandlers;
+  const call = useCall();
 
   const answerCallHandler = async () => {
-    await answerCall();
+    await answerCall(call);
   };
 
   const rejectCallHandler = async () => {

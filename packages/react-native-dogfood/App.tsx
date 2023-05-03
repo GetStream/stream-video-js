@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
@@ -20,11 +20,14 @@ import {
   useProntoLinkEffect,
 } from './src/hooks/useProntoLinkEffect';
 import {
+  CallCycleHandlersType,
+  CallCycleProvider,
   IncomingCallView,
   LobbyView,
   OutgoingCallView,
   StreamCallProvider,
   StreamVideo,
+  useIncomingCalls,
 } from '@stream-io/video-react-native-sdk';
 import {
   AppGlobalContextProvider,
@@ -150,10 +153,80 @@ const Login = () => {
   );
 };
 
+const StackNavigatorWrapper = (props: PropsWithChildren<{}>) => {
+  const { videoClient } = useAuth();
+  if (!videoClient) {
+    return <Login />;
+  }
+
+  return (
+    <StreamVideo client={videoClient} translationsOverrides={translations}>
+      {props.children}
+    </StreamVideo>
+  );
+};
+
+const StreamCall = ({
+  children,
+  callCycleHandlers = {},
+}: PropsWithChildren<{ callCycleHandlers?: CallCycleHandlersType }>) => {
+  const { videoClient, authenticationInProgress } = useAuth();
+  const callId = useAppGlobalStoreValue((store) => store.callId);
+  const callType = useAppGlobalStoreValue((store) => store.callType);
+  const [call, setCall] = useState<Call>();
+  const [incomingCall] = useIncomingCalls();
+  useEffect(() => {
+    if (!incomingCall) {
+      return;
+    }
+
+    setCall(incomingCall);
+  }, [incomingCall]);
+
+  useEffect(() => {
+    if (!callId || !callType || !videoClient) {
+      return;
+    }
+    const newCall = videoClient.call(callType, callId);
+    setCall(newCall);
+
+    return () => {
+      newCall.leave().catch((e) => console.log(e));
+    };
+  }, [callId, callType, videoClient]);
+
+  if (authenticationInProgress) {
+    return <AuthenticatingProgressScreen />;
+  }
+
+  return (
+    <StreamCallProvider call={call}>
+      <CallCycleProvider callCycleHandlers={callCycleHandlers}>
+        {children}
+      </CallCycleProvider>
+    </StreamCallProvider>
+  );
+};
 const StackNavigator = () => {
-  useProntoLinkEffect();
-  const { authenticationInProgress, videoClient } = useAuth();
   const appMode = useAppGlobalStoreValue((store) => store.appMode);
+  useProntoLinkEffect();
+  useIosPushEffect();
+  useCallKeepEffect();
+
+  const setState = useAppGlobalStoreSetState();
+
+  useEffect(() => {
+    const subscription = prontoCallId$.subscribe((prontoCallId) => {
+      if (prontoCallId) {
+        setState({
+          callId: prontoCallId,
+        });
+        prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [setState]);
+
   const callNavigation =
     useNavigation<NativeStackNavigationProp<RingingStackParamList>>();
   const meetingNavigation =
@@ -203,73 +276,27 @@ const StackNavigator = () => {
     onRejectCall,
   ]);
 
-  useIosPushEffect();
-  useCallKeepEffect();
-
-  const setState = useAppGlobalStoreSetState();
-  const callId = useAppGlobalStoreValue((store) => store.callId);
-  const callType = useAppGlobalStoreValue((store) => store.callType);
-  const [call, setCall] = useState<Call>();
-
-  useEffect(() => {
-    const subscription = prontoCallId$.subscribe((prontoCallId) => {
-      if (prontoCallId) {
-        setState({
-          callId: prontoCallId,
-        });
-        prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [setState]);
-
-  useEffect(() => {
-    if (!callId || !callType || !videoClient) {
-      return;
-    }
-    const newCall = videoClient.call(callType, callId);
-    setCall(newCall);
-
-    return () => {
-      newCall.leave().catch((e) => console.log(e));
-    };
-  }, [callId, callType, videoClient]);
-
-  if (authenticationInProgress) {
-    return <AuthenticatingProgressScreen />;
-  }
-
-  if (!videoClient) {
-    return <Login />;
-  }
-
   return (
-    // <StreamCallProvider /> shouldn't be embedded in <StreamVideo />
-    //         as otherwise it becomes hard to support multiple calls
-    //         (call-watching scenario). eg: Audio Rooms use-case.
-    <StreamCallProvider call={call}>
-      <StreamVideo
-        client={videoClient}
-        callCycleHandlers={callCycleHandlers}
-        translationsOverrides={translations}
-      >
-        <Stack.Navigator>
-          {appMode === 'Meeting' ? (
-            <Stack.Screen
-              name="Meeting"
-              component={Meeting}
-              options={{ headerShown: false }}
-            />
-          ) : appMode === 'Ringing' ? (
-            <Stack.Screen
-              name="Ringing"
-              component={Ringing}
-              options={{ headerShown: false }}
-            />
-          ) : null}
-        </Stack.Navigator>
-      </StreamVideo>
-    </StreamCallProvider>
+    // <StreamCall /> shouldn't be embedded in <StreamVideo />
+    // as otherwise it becomes hard to support multiple calls
+    // (call-watching scenario). eg: Audio Rooms use-case.
+    <StreamCall callCycleHandlers={callCycleHandlers}>
+      <Stack.Navigator>
+        {appMode === 'Meeting' ? (
+          <Stack.Screen
+            name="Meeting"
+            component={Meeting}
+            options={{ headerShown: false }}
+          />
+        ) : appMode === 'Ringing' ? (
+          <Stack.Screen
+            name="Ringing"
+            component={Ringing}
+            options={{ headerShown: false }}
+          />
+        ) : null}
+      </Stack.Navigator>
+    </StreamCall>
   );
 };
 
@@ -278,7 +305,9 @@ export default function App() {
     <SafeAreaProvider>
       <AppGlobalContextProvider>
         <NavigationContainer ref={navigationRef}>
-          <StackNavigator />
+          <StackNavigatorWrapper>
+            <StackNavigator />
+          </StackNavigatorWrapper>
         </NavigationContainer>
       </AppGlobalContextProvider>
     </SafeAreaProvider>

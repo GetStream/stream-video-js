@@ -1,4 +1,3 @@
-import { useOutgoingCalls } from '@stream-io/video-react-bindings';
 import {
   createContext,
   PropsWithChildren,
@@ -63,22 +62,6 @@ export const CallCycleProvider = (
   const [callCycleHandlers, setCallCycleHandlers] =
     useState<CallCycleHandlersType>({});
   const { children, callCycleHandlers: callCycleHandlersProp } = props;
-  const [outgoingCall] = useOutgoingCalls();
-
-  // Effect to deal with the case that the outgoing call should be joined as soon as it is created by the user
-  useEffect(() => {
-    const startOutgoingCall = async () => {
-      if (!outgoingCall) {
-        return;
-      }
-      try {
-        await outgoingCall.join();
-      } catch (error) {
-        console.log('Failed to join the call', error);
-      }
-    };
-    startOutgoingCall();
-  }, [outgoingCall]);
 
   useEffect(() => {
     setCallCycleHandlers(callCycleHandlersProp);
