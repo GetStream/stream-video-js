@@ -18,6 +18,7 @@ import { LobbyHeader } from '../components/LobbyHeader';
 import { meetingId } from '../lib/meetingId';
 import translations from '../translations';
 import { useSettings } from '../context/SettingsContext';
+import { Countdown } from '../components/Countdown';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -67,6 +68,7 @@ const HomeContent = () => {
           <JoinCallForm />
         </Stack>
       </Stack>
+      <Countdown />
     </>
   );
 };
