@@ -1,0 +1,15 @@
+{
+  "name": "@stream-io/video-client",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "targets": {
+    "version": {
+      "executor": "@jscutlery/semver:version",
+      "options": {
+        "dryRun": true,
+        "preset": "angular",
+        "tagPrefix": "client",
+        "preid": "alpha"
+      }
+    }
+  }
+}

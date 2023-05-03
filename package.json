@@ -50,9 +50,14 @@
     "generate-docs:react:sdk": "yarn workspace @stream-io/video-react-sdk run generate-docs",
     "generate-docs:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run generate-docs",
     "start:docs:react": "yarn workspace @stream-io/video-react-sdk run start:docs ",
-    "bootstrap": "scripts/bootstrap-rn.sh"
+    "bootstrap": "scripts/bootstrap-rn.sh",
+    "prepare": "husky install"
   },
   "devDependencies": {
+    "@commitlint/cli": "^17.0.0",
+    "@commitlint/config-angular": "^17.0.0",
+    "@jscutlery/semver": "^2.30.1",
+    "@nrwl/devkit": "^16.0.1",
     "@types/eslint": "^8.4.8",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
@@ -62,6 +67,8 @@
     "eslint-import-resolver-typescript": "^3.5.2",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.0",
+    "nx": "16.0.1",
     "prettier": "^2.8.4",
     "typescript": "^4.9.5",
     "vercel": "^28.16.15"
