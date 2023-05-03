@@ -16,6 +16,7 @@
     "@nivo/core": "^0.80.0",
     "@nivo/line": "^0.80.0",
     "@popperjs/core": "^2.11.6",
+    "@stream-io/i18n": "workspace:^",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^",
     "@stream-io/video-styling": "workspace:^",

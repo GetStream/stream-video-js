@@ -14,9 +14,14 @@ import {
   ServerSideCredentialsProps,
 } from '../../lib/getServerSideCredentialsProps';
 import { useGleap } from '../../hooks/useGleap';
+import { useSettings } from '../../context/SettingsContext';
+import translations from '../../translations';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
+  const {
+    settings: { language },
+  } = useSettings();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
 
@@ -65,7 +70,11 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         <title>Stream Calls: {callId}</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      <StreamVideo client={client}>
+      <StreamVideo
+        client={client}
+        language={language}
+        translationsOverrides={translations}
+      >
         <MediaDevicesProvider
           enumerate
           initialAudioEnabled={!deviceSettings?.isAudioMute}

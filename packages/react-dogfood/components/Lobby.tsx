@@ -4,6 +4,7 @@ import {
   ToggleAudioOutputButton,
   ToggleAudioPreviewButton,
   ToggleCameraPreviewButton,
+  useI18n,
   useMediaDevices,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
@@ -29,6 +30,7 @@ type LobbyProps = {
 export const Lobby = ({ onJoin, callId }: LobbyProps) => {
   const { data: session, status } = useSession();
   const { initialVideoState, isAudioOutputChangeSupported } = useMediaDevices();
+  const { t } = useI18n();
 
   const router = useRouter();
   useEffect(() => {
@@ -94,7 +96,7 @@ export const Lobby = ({ onJoin, callId }: LobbyProps) => {
             variant="contained"
             onClick={onJoin}
           >
-            Join
+            {t('Join')}
           </Button>
           {!router.pathname.includes('/guest') ? (
             <Link href={`/guest?callId=${callId}`}>

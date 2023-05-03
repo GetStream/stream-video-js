@@ -43,6 +43,7 @@ import { useIosPushEffect } from './src/hooks/useIosPushEffect';
 import { Platform } from 'react-native';
 import { useCallKeepEffect } from './src/hooks/useCallkeepEffect';
 import { navigationRef } from './src/utils/staticNavigationUtils';
+import translations from './src/translations';
 
 import Logger from 'react-native-webrtc/src/Logger';
 import { LobbyViewScreen } from './src/screens/Meeting/LobbyViewScreen';
@@ -211,7 +212,11 @@ const StackNavigator = () => {
   }
 
   return (
-    <StreamVideo client={videoClient} callCycleHandlers={callCycleHandlers}>
+    <StreamVideo
+      client={videoClient}
+      callCycleHandlers={callCycleHandlers}
+      translationsOverrides={translations}
+    >
       <Stack.Navigator>
         {appMode === 'Meeting' ? (
           <Stack.Screen
