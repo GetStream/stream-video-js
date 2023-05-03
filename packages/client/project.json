@@ -25,7 +25,8 @@
       "options": {
         "access": "public",
         "noBuild": true,
-        "dryRun": true
+        "dryRun": true,
+        "distFolderPath": "packages/client"
       }
     }
   }
