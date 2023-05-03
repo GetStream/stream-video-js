@@ -249,10 +249,10 @@ const StackNavigator = () => {
     //         (call-watching scenario). eg: Audio Rooms use-case.
     <StreamCallProvider call={call}>
       <StreamVideo
-      client={videoClient}
-      callCycleHandlers={callCycleHandlers}
-      translationsOverrides={translations}
-    >
+        client={videoClient}
+        callCycleHandlers={callCycleHandlers}
+        translationsOverrides={translations}
+      >
         <Stack.Navigator>
           {appMode === 'Meeting' ? (
             <Stack.Screen
