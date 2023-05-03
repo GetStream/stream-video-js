@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { usePopper } from 'react-popper';
 import {
   AggregatedStatsReport,
   CallStatsReport,
@@ -7,32 +6,14 @@ import {
 import { useCurrentCallStatsReport } from '@stream-io/video-react-bindings';
 import { CallStatsLatencyChart } from './CallStatsLatencyChart';
 
-export const CallStats = (props: {
-  anchor?: HTMLElement;
-  onClose?: () => void;
-}) => {
-  const { anchor, onClose } = props;
-  const [popover, setPopover] = useState<HTMLDivElement | null>(null);
-  const { styles, attributes } = usePopper(anchor, popover, {
-    placement: 'auto',
-    modifiers: [
-      {
-        name: 'offset',
-        options: {
-          offset: [0, 10],
-        },
-      },
-    ],
-  });
-
+export const CallStats = () => {
   const [latencyBuffer, setLatencyBuffer] = useState<
     Array<{ x: number; y: number }>
   >(() => {
     const now = Date.now();
-    return Array(20)
-      .fill(null)
-      .map((_, i) => ({ x: now + i, y: 0 }));
+    return Array.from({ length: 20 }, (_, i) => ({ x: now + i, y: 0 }));
   });
+
   const [publishBitrate, setPublishBitrate] = useState('-');
   const [subscribeBitrate, setSubscribeBitrate] = useState('-');
   const previousStats = useRef<CallStatsReport>();
@@ -68,18 +49,7 @@ export const CallStats = (props: {
   }, [callStatsReport]);
 
   return (
-    <div
-      className="str-video__call-stats"
-      ref={setPopover}
-      style={styles.popper}
-      {...attributes.popper}
-    >
-      <h2 className="str-video__call-stats__title">
-        Statistics{' '}
-        <span className="str-video__call-stats__close" onClick={onClose}>
-          X
-        </span>
-      </h2>
+    <div className="str-video__call-stats">
       {callStatsReport && (
         <>
           <h3>Call Latency</h3>

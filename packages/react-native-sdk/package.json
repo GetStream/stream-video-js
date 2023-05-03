@@ -11,6 +11,7 @@
     "generate-docs": "../../scripts/generate-docs.sh reactnative @stream-io/video-react-native-sdk react-native-sdk"
   },
   "dependencies": {
+    "@stream-io/i18n": "workspace:^",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^"
   },
