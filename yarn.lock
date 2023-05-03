@@ -8661,25 +8661,19 @@ __metadata:
     "@floating-ui/react": ^0.22.0
     "@nivo/core": ^0.80.0
     "@nivo/line": ^0.80.0
-    "@popperjs/core": ^2.11.6
     "@stream-io/i18n": "workspace:^"
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
-    "@types/lodash.throttle": ^4
     "@types/rimraf": ^3.0.2
-    "@types/uuid": ^9.0.0
     clsx: ^1.2.1
-    lodash.throttle: ^4.1.1
     react: ^18.2.0
     react-dom: ^18.2.0
-    react-popper: ^2.3.0
     replace-in-file: ^6.3.5
     rimraf: ^3.0.2
     rxjs: ~7.5.7
     typedoc: ^0.23.24
     typescript: ^4.9.5
-    uuid: ^9.0.0
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
@@ -9390,16 +9384,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash.throttle@npm:^4":
-  version: 4.1.7
-  resolution: "@types/lodash.throttle@npm:4.1.7"
-  dependencies:
-    "@types/lodash": "*"
-  checksum: 6e1b3836488fecbdc537b6ad9b3fe4855c7336b0fa388773cd57d486619f565a48cabc04b28677fd3819be3f2d13d2bb8f9d4428aa5632885c86cb99729bfd69
-  languageName: node
-  linkType: hard
-
-"@types/lodash@npm:*, @types/lodash@npm:^4.14.167":
+"@types/lodash@npm:^4.14.167":
   version: 4.14.192
   resolution: "@types/lodash@npm:4.14.192"
   checksum: 31e1f0543a04158d2c429c45efd7c77882736630d0652f82eb337d6159ec0c249c5d175c0af731537b53271e665ff8d76f43221d75d03646d31cb4bd6f0056b1

@@ -82,7 +82,7 @@ export const ActiveCallHeader = ({
             return (
               <Notification
                 isVisible
-                placement="auto"
+                placement="bottom"
                 message={
                   isOffline
                     ? 'You are offline. Check your internet connection and try again later.'
@@ -98,7 +98,7 @@ export const ActiveCallHeader = ({
             <Notification
               isVisible={isRecoveringConnection}
               iconClassName={null}
-              placement="auto"
+              placement="bottom"
               message={<LoadingIndicator text="Reconnecting..." />}
             >
               <span />
