@@ -6,7 +6,6 @@ import {
   ToggleAudioPreviewButton,
   ToggleCameraPreviewButton,
   useI18n,
-  useMediaDevices,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
 import { LobbyHeader } from './LobbyHeader';
