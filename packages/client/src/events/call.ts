@@ -32,7 +32,10 @@ export const watchCallRejected = (call: Call) => {
     if (event.type !== 'call.rejected') return;
     totalRejections++;
     const { state } = call;
-    if (totalRejections >= state.members.length) {
+    if (
+      totalRejections >= state.members.length &&
+      state.callingState === CallingState.RINGING
+    ) {
       await call.leave();
     }
   };
