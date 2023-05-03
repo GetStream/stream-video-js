@@ -11,12 +11,11 @@ import {
   useEffect,
   useState,
 } from 'react';
-import NetInfo from '@react-native-community/netinfo';
 import { useCallCycleEffect } from '../hooks';
-import { CallingState } from '@stream-io/video-client';
+import { useIsOnline } from '../hooks/useIsOnline';
 
 /**
- * Exclude types from documentaiton site, but we should still add doc comments
+ * Exclude types from documentation site, but we should still add doc comments
  * @internal
  */
 export type CallCycleHandlersType = {
@@ -34,7 +33,7 @@ export type CallCycleHandlersType = {
 };
 
 /**
- * Exclude types from documentaiton site, but we should still add doc comments
+ * Exclude types from documentation site, but we should still add doc comments
  * @internal
  */
 export type CallCycleProviderProps = {
@@ -74,39 +73,17 @@ export const CallCycleProvider = (
   const [outgoingCall] = useOutgoingCalls();
   const acceptedCall = useAcceptedCall();
   const activeCall = useActiveCall();
-
+  const isOnline = useIsOnline();
   /**
    * Effect to inform the coordinator about the online status of the app
    */
   useEffect(() => {
     if (!client) return;
-    return NetInfo.addEventListener(({ isConnected, isInternetReachable }) => {
-      const isOnline = isConnected === true && isInternetReachable !== false;
-      // @ts-expect-error - due to being incompatible with DOM event type
-      client?.streamClient.wsConnection?.onlineStatusChanged({
-        type: isOnline ? 'online' : 'offline',
-      });
+    // @ts-expect-error - due to being incompatible with DOM event type
+    client?.streamClient.wsConnection?.onlineStatusChanged({
+      type: isOnline ? 'online' : 'offline',
     });
-  }, [client]);
-
-  /**
-   * Effect to re-join to an existing call happens in case the user comes back online
-   */
-  useEffect(() => {
-    if (!activeCall) return;
-    return NetInfo.addEventListener(({ isConnected, isInternetReachable }) => {
-      const isOnline = isConnected === true && isInternetReachable !== false;
-      if (isOnline) {
-        if (activeCall.state.callingState === CallingState.OFFLINE) {
-          activeCall.rejoin?.().catch(() => {
-            activeCall.state.setCallingState(CallingState.RECONNECTING_FAILED);
-          });
-        }
-      } else {
-        activeCall.state.setCallingState(CallingState.OFFLINE);
-      }
-    });
-  }, [activeCall]);
+  }, [client, isOnline]);
 
   // Effect to deal with the case that the outgoing call should be joined as soon as it is created by the user
   useEffect(() => {

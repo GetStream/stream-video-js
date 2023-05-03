@@ -530,7 +530,7 @@ export class Call {
       await sleep(retryInterval(this.reconnectAttempts));
       await this.join(data);
       console.log(`Rejoin: ${this.reconnectAttempts} successful!`);
-      if (localParticipant) {
+      if (localParticipant && !isReactNative()) {
         const {
           audioStream,
           videoStream,
@@ -554,6 +554,7 @@ export class Call {
       sfuClient.signalWs.addEventListener('close', (e) => {
         // do nothing if the connection was closed on purpose
         if (e.code === 1000) return;
+        if (isReactNative()) return;
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           rejoin().catch(() => {
             console.log(
