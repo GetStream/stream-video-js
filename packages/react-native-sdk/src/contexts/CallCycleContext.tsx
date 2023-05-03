@@ -56,22 +56,11 @@ export const useCallCycleContext = () =>
  *
  * @category Client State
  */
-export const CallCycleProvider = (
-  props: PropsWithChildren<CallCycleProviderProps>,
-) => {
-  const [callCycleHandlers, setCallCycleHandlers] =
-    useState<CallCycleHandlersType>({});
-  const { children, callCycleHandlers: callCycleHandlersProp } = props;
-
-  useEffect(() => {
-    setCallCycleHandlers(callCycleHandlersProp);
-  }, [callCycleHandlersProp]);
-
+export const CallCycleProvider = ({
+  callCycleHandlers,
+  children,
+}: PropsWithChildren<CallCycleProviderProps>) => {
   useCallCycleEffect(callCycleHandlers);
 
-  return (
-    <CallCycleContext.Provider value={{ callCycleHandlers }}>
-      {children}
-    </CallCycleContext.Provider>
-  );
+  return <>{children}</>;
 };

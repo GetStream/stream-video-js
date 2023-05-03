@@ -1,4 +1,3 @@
-export * from './useRingCall';
 export * from './useCallControls';
 export * from './useHangupCall';
 export * from './useCallCycleEffect';

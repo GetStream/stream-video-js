@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { PropsWithChildren, useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
@@ -20,14 +20,10 @@ import {
   useProntoLinkEffect,
 } from './src/hooks/useProntoLinkEffect';
 import {
-  CallCycleHandlersType,
-  CallCycleProvider,
   IncomingCallView,
   LobbyView,
   OutgoingCallView,
-  StreamCallProvider,
-  StreamVideo,
-  useIncomingCalls,
+  StreamVideoCall,
 } from '@stream-io/video-react-native-sdk';
 import {
   AppGlobalContextProvider,
@@ -52,7 +48,7 @@ import { navigationRef } from './src/utils/staticNavigationUtils';
 import translations from './src/translations';
 
 import Logger from 'react-native-webrtc/src/Logger';
-import { Call } from '@stream-io/video-client';
+import { v4 as uuidv4 } from 'uuid';
 
 // @ts-expect-error
 Logger.enable(false);
@@ -153,67 +149,19 @@ const Login = () => {
   );
 };
 
-const StackNavigatorWrapper = (props: PropsWithChildren<{}>) => {
-  const { videoClient } = useAuth();
-  if (!videoClient) {
-    return <Login />;
-  }
-
-  return (
-    <StreamVideo client={videoClient} translationsOverrides={translations}>
-      {props.children}
-    </StreamVideo>
-  );
-};
-
-const StreamCall = ({
-  children,
-  callCycleHandlers = {},
-}: PropsWithChildren<{ callCycleHandlers?: CallCycleHandlersType }>) => {
-  const { videoClient, authenticationInProgress } = useAuth();
-  const callId = useAppGlobalStoreValue((store) => store.callId);
-  const callType = useAppGlobalStoreValue((store) => store.callType);
-  const [call, setCall] = useState<Call>();
-  const [incomingCall] = useIncomingCalls();
-  useEffect(() => {
-    if (!incomingCall) {
-      return;
-    }
-
-    setCall(incomingCall);
-  }, [incomingCall]);
-
-  useEffect(() => {
-    if (!callId || !callType || !videoClient) {
-      return;
-    }
-    const newCall = videoClient.call(callType, callId);
-    setCall(newCall);
-
-    return () => {
-      newCall.leave().catch((e) => console.log(e));
-    };
-  }, [callId, callType, videoClient]);
-
-  if (authenticationInProgress) {
-    return <AuthenticatingProgressScreen />;
-  }
-
-  return (
-    <StreamCallProvider call={call}>
-      <CallCycleProvider callCycleHandlers={callCycleHandlers}>
-        {children}
-      </CallCycleProvider>
-    </StreamCallProvider>
-  );
-};
 const StackNavigator = () => {
   const appMode = useAppGlobalStoreValue((store) => store.appMode);
+  const callId = useAppGlobalStoreValue((store) => store.callId);
+  const setState = useAppGlobalStoreSetState();
+  const { authenticationInProgress } = useAuth();
+  const callNavigation =
+    useNavigation<NativeStackNavigationProp<RingingStackParamList>>();
+  const meetingNavigation =
+    useNavigation<NativeStackNavigationProp<MeetingStackParamList>>();
+
   useProntoLinkEffect();
   useIosPushEffect();
   useCallKeepEffect();
-
-  const setState = useAppGlobalStoreSetState();
 
   useEffect(() => {
     const subscription = prontoCallId$.subscribe((prontoCallId) => {
@@ -226,11 +174,6 @@ const StackNavigator = () => {
     });
     return () => subscription.unsubscribe();
   }, [setState]);
-
-  const callNavigation =
-    useNavigation<NativeStackNavigationProp<RingingStackParamList>>();
-  const meetingNavigation =
-    useNavigation<NativeStackNavigationProp<MeetingStackParamList>>();
 
   const onActiveCall = React.useCallback(() => {
     if (appMode === 'Meeting') {
@@ -258,6 +201,9 @@ const StackNavigator = () => {
 
   const onRejectCall = React.useCallback(() => {
     callNavigation.navigate('JoinCallScreen');
+    // setState({
+    //   callId: uuidv4().toLowerCase(),
+    // });
   }, [callNavigation]);
 
   const callCycleHandlers = React.useMemo(() => {
@@ -276,11 +222,22 @@ const StackNavigator = () => {
     onRejectCall,
   ]);
 
+  const { videoClient } = useAuth();
+  if (!videoClient) {
+    return <Login />;
+  }
+
+  if (authenticationInProgress) {
+    return <AuthenticatingProgressScreen />;
+  }
+
   return (
-    // <StreamCall /> shouldn't be embedded in <StreamVideo />
-    // as otherwise it becomes hard to support multiple calls
-    // (call-watching scenario). eg: Audio Rooms use-case.
-    <StreamCall callCycleHandlers={callCycleHandlers}>
+    <StreamVideoCall
+      callId={callId}
+      callCycleHandlers={callCycleHandlers}
+      client={videoClient}
+      translationsOverrides={translations}
+    >
       <Stack.Navigator>
         {appMode === 'Meeting' ? (
           <Stack.Screen
@@ -296,7 +253,7 @@ const StackNavigator = () => {
           />
         ) : null}
       </Stack.Navigator>
-    </StreamCall>
+    </StreamVideoCall>
   );
 };
 
@@ -305,9 +262,7 @@ export default function App() {
     <SafeAreaProvider>
       <AppGlobalContextProvider>
         <NavigationContainer ref={navigationRef}>
-          <StackNavigatorWrapper>
-            <StackNavigator />
-          </StackNavigatorWrapper>
+          <StackNavigator />
         </NavigationContainer>
       </AppGlobalContextProvider>
     </SafeAreaProvider>

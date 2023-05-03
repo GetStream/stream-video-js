@@ -1,12 +1,7 @@
-import {
-  useCallCallingState,
-  useIncomingCalls,
-  useOutgoingCalls,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
 import { CallCycleHandlersType } from '../contexts/CallCycleContext';
 import { CallingState } from '@stream-io/video-client';
-import { Platform } from 'react-native';
 
 /**
  *
@@ -17,23 +12,46 @@ import { Platform } from 'react-native';
 export const useCallCycleEffect = (
   callCycleHandlers: CallCycleHandlersType,
 ) => {
-  const [outgoingCall] = useOutgoingCalls();
-  const [incomingCall] = useIncomingCalls();
+  const call = useCall();
   const callingState = useCallCallingState();
-  const { onActiveCall, onIncomingCall, onOutgoingCall } = callCycleHandlers;
+  const {
+    onActiveCall,
+    onIncomingCall,
+    onOutgoingCall,
+    onHangupCall,
+    onRejectCall,
+  } = callCycleHandlers;
 
   useEffect(() => {
-    console.log('useCallCycleEffect callingState=', {
-      callingState,
-      os: Platform.OS,
-    });
+    if (!call) return;
 
-    if (incomingCall && onIncomingCall) {
-      onIncomingCall();
-    } else if (outgoingCall && onOutgoingCall) onOutgoingCall();
-    else if (callingState === CallingState.JOINED && onActiveCall) {
-      onActiveCall();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [callingState, incomingCall, outgoingCall]);
+    const isCallCreatedByMe = call.data?.created_by.id === call?.currentUserId;
+    const isIncomingCall =
+      callingState === CallingState.RINGING &&
+      !isCallCreatedByMe &&
+      onIncomingCall;
+    const isOutgoingCall =
+      callingState === CallingState.RINGING &&
+      isCallCreatedByMe &&
+      onOutgoingCall;
+    const isActiveCall = callingState === CallingState.JOINED && onActiveCall;
+    const isCallHungUp =
+      callingState === CallingState.LEFT && isCallCreatedByMe && onHangupCall;
+    const isCallRejected =
+      callingState === CallingState.LEFT && !isCallCreatedByMe && onRejectCall;
+
+    if (isIncomingCall) return onIncomingCall();
+    if (isOutgoingCall) return onOutgoingCall();
+    if (isActiveCall) return onActiveCall();
+    if (isCallHungUp) return onHangupCall();
+    if (isCallRejected) return onRejectCall();
+  }, [
+    callingState,
+    call,
+    onIncomingCall,
+    onOutgoingCall,
+    onActiveCall,
+    onHangupCall,
+    onRejectCall,
+  ]);
 };
