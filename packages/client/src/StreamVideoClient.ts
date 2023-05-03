@@ -7,9 +7,9 @@ import {
 import type {
   CreateCallTypeRequest,
   CreateCallTypeResponse,
+  CreateDeviceRequest,
   CreateGuestRequest,
   CreateGuestResponse,
-  DeviceFieldsRequest,
   GetCallTypeResponse,
   GetEdgesResponse,
   ListCallTypeResponse,
@@ -35,7 +35,6 @@ import type {
 export class StreamVideoClient {
   /**
    * A reactive store that exposes all the state variables in a reactive manner - you can subscribe to changes of the different state variables. Our library is built in a way that all state changes are exposed in this store, so all UI changes in your application should be handled by subscribing to these variables.
-   * @angular If you're using our Angular SDK, you shouldn't be interacting with the state store directly, instead, you should be using the [`StreamVideoService`](./StreamVideoService.md).
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
@@ -43,7 +42,6 @@ export class StreamVideoClient {
 
   /**
    * You should create only one instance of `StreamVideoClient`.
-   * @angular If you're using our Angular SDK, you shouldn't be calling the `constructor` directly, instead you should be using [`StreamVideoService`](./StreamVideoService.md/#init).
    * @param apiKey your Stream API key
    * @param opts the options for the client.
    */
@@ -279,14 +277,39 @@ export class StreamVideoClient {
     push_provider: string,
     push_provider_name?: string,
     userID?: string,
+    voip_token?: boolean,
   ) => {
-    return await this.streamClient.post('/devices', {
+    return await this.streamClient.post<CreateDeviceRequest>('/devices', {
       id,
       push_provider,
+      voip_token,
       ...(userID != null ? { user_id: userID } : {}),
       ...(push_provider_name != null ? { push_provider_name } : {}),
     });
   };
+
+  /**
+   * addDevice - Adds a push device for a user.
+   *
+   * @param {string} id the device id
+   * @param {string} push_provider the push provider name (eg. apn, firebase)
+   * @param {string} push_provider_name user provided push provider name
+   * @param {string} [userID] the user id (defaults to current user)
+   */
+  async addVoipDevice(
+    id: string,
+    push_provider: string,
+    push_provider_name: string,
+    userID?: string,
+  ) {
+    return await this.addDevice(
+      id,
+      push_provider,
+      push_provider_name,
+      userID,
+      true,
+    );
+  }
 
   /**
    * getDevices - Returns the devices associated with a current user
@@ -311,22 +334,5 @@ export class StreamVideoClient {
       id,
       ...(userID ? { user_id: userID } : {}),
     });
-  };
-
-  /**
-   * setDevice - Set the device info for the current client device to receive push
-   * notification, the device will be sent via WS connection automatically
-   */
-  setDevice = async (device: DeviceFieldsRequest) => {
-    this.streamClient.options.pushDevice = device;
-    // if the connection already did authentication then we call the endpoint
-    // directly
-    if (this.streamClient.wsConnection?.authenticationSent) {
-      return await this.addDevice(
-        device.id,
-        device.push_provider,
-        device.push_provider_name,
-      );
-    }
   };
 }

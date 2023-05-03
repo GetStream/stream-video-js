@@ -7,6 +7,7 @@ import Head from 'next/head';
 import { Session } from 'next-auth';
 import { SessionProvider } from 'next-auth/react';
 import { createTheme, CssBaseline, ThemeProvider } from '@mui/material';
+import { SettingsProvider } from '../context/SettingsContext';
 
 const theme = createTheme({
   palette: {
@@ -45,9 +46,11 @@ export default function App({
 
       <CssBaseline />
       <ThemeProvider theme={theme}>
-        <div className="str-video">
-          <Component {...pageProps} />
-        </div>
+        <SettingsProvider>
+          <div className="str-video">
+            <Component {...pageProps} />
+          </div>
+        </SettingsProvider>
       </ThemeProvider>
     </SessionProvider>
   );

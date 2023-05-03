@@ -771,7 +771,6 @@ export class Call {
    * Consecutive calls to this method will replace the previously published stream.
    * The previous video stream will be stopped.
    *
-   * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
    *
    * @param videoStream the video stream to publish.
    * @param opts the options to use when publishing the stream.
@@ -807,7 +806,6 @@ export class Call {
    * Consecutive calls to this method will replace the audio stream that is currently being published.
    * The previous audio stream will be stopped.
    *
-   * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
    *
    * @param audioStream the audio stream to publish.
    */
@@ -840,7 +838,6 @@ export class Call {
    * Consecutive calls to this method will replace the previous screen-share stream.
    * The previous screen-share stream will be stopped.
    *
-   * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
    *
    * @param screenShareStream the screen-share stream to publish.
    */
@@ -870,7 +867,6 @@ export class Call {
    *
    * The `audioDeviceId`/`videoDeviceId` property of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore) won't be updated, you can do that by calling the [`setAudioDevice`](#setaudiodevice)/[`setVideoDevice`](#setvideodevice) method.
    *
-   * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
    *
    * @param trackType the track type to stop publishing.
    */
@@ -993,7 +989,6 @@ export class Call {
    *
    * This method only stores the selection, if you're using custom UI components, you'll have to implement the audio switching, for more information see: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId.
    *
-   * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
    *
    * @param deviceId the selected device, `undefined` means the user wants to use the system's default audio output
    */
@@ -1008,7 +1003,6 @@ export class Call {
    *
    * This method only stores the selection, if you want to start publishing a media stream call the [`publishAudioStream` method](#publishaudiostream) that will set `audioDeviceId` as well.
    *
-   * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
    *
    * @param deviceId the selected device, pass `undefined` to clear the device selection
    */
@@ -1022,8 +1016,6 @@ export class Call {
    * Sets the `videoDeviceId` property of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore).
    *
    * This method only stores the selection, if you want to start publishing a media stream call the [`publishVideoStream` method](#publishvideostream) that will set `videoDeviceId` as well.
-   *
-   * @angular It's recommended to use the [`InCallDeviceManagerService`](./InCallDeviceManagerService.md) that takes care of this operation for you.
    *
    * @param deviceId the selected device, pass `undefined` to clear the device selection
    */
