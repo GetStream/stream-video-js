@@ -8,6 +8,7 @@
     "ios": "react-native run-ios",
     "ios-device": "react-native run-ios --device",
     "start": "react-native start",
+    "build": "tsc",
     "test": "jest",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },

@@ -7,6 +7,7 @@
     "ios": "react-native run-ios",
     "ios-device": "react-native run-ios --device",
     "start": "react-native start",
+    "build": "tsc",
     "clean-install": "rm -rf node_modules && yarn cache clean && yarn install",
     "test": "jest",
     "lint": "eslint ."
