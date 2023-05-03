@@ -55,7 +55,7 @@ describe('Call ringing events', () => {
   });
 
   describe(`call.accepted`, () => {
-    it(`will ignore events from the current user`, () => {
+    it(`will ignore events from the current user`, async () => {
       const call = fakeCall();
       vi.spyOn(call, 'join');
       const handler = watchCallAccepted(call);
@@ -67,12 +67,12 @@ describe('Call ringing events', () => {
         },
       };
       // @ts-ignore
-      handler(event);
+      await handler(event);
 
       expect(call.join).not.toHaveBeenCalled();
     });
 
-    it(`will join the call if at least one callee has accepted`, () => {
+    it(`will join the call if at least one callee has accepted`, async () => {
       const call = fakeCall();
       vi.spyOn(call, 'join').mockImplementation(async () => {
         console.log(`TEST: join() called`);
@@ -86,22 +86,22 @@ describe('Call ringing events', () => {
         },
       };
       // @ts-ignore
-      handler(event);
+      await handler(event);
 
       expect(call.join).toHaveBeenCalled();
     });
   });
 
   describe(`call.rejected`, () => {
-    it(`will leave the call if all callees have rejected`, () => {
+    it(`will leave the call if all callees have rejected`, async () => {
       const call = fakeCall();
       // @ts-expect-error
       call.state.setMembers([{ user_id: 'm1' }, { user_id: 'm2' }]);
       vi.spyOn(call, 'leave').mockImplementation(async () => {
         console.log(`TEST: leave() called`);
       });
-      const handler = watchCallRejected(call);
 
+      const handler = watchCallRejected(call);
       // all members reject the call
       call.state.members.forEach(() => {
         // @ts-ignore
@@ -113,7 +113,7 @@ describe('Call ringing events', () => {
       expect(call.leave).toHaveBeenCalled();
     });
 
-    it(`will not leave the call if only one callee rejects`, () => {
+    it(`will not leave the call if only one callee rejects`, async () => {
       const call = fakeCall();
       // @ts-expect-error
       call.state.setMembers([{ user_id: 'm1' }, { user_id: 'm2' }]);
@@ -126,14 +126,14 @@ describe('Call ringing events', () => {
       // @ts-ignore
       const event: CallAcceptedEvent = { type: 'call.rejected' };
       // @ts-ignore
-      handler(event);
+      await handler(event);
 
       expect(call.leave).not.toHaveBeenCalled();
     });
   });
 
   describe(`call.ended`, () => {
-    it(`will leave the call unless joined`, () => {
+    it(`will leave the call unless joined`, async () => {
       const call = fakeCall();
       vi.spyOn(call, 'leave').mockImplementation(async () => {
         console.log(`TEST: leave() called`);
@@ -143,7 +143,7 @@ describe('Call ringing events', () => {
       // @ts-ignore
       const event: CallEndedEvent = { type: 'call.ended' };
       // @ts-ignore
-      handler(event);
+      await handler(event);
 
       expect(call.leave).toHaveBeenCalled();
     });
@@ -165,7 +165,7 @@ describe('Call ringing events', () => {
       // @ts-ignore
       const event: CallEndedEvent = { type: 'call.ended' };
       // @ts-ignore
-      handler(event);
+      await handler(event);
 
       expect(call.leave).not.toHaveBeenCalled();
     });
