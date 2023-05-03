@@ -41,7 +41,6 @@ import { StreamClient } from './coordinator/connection/client';
 export class StreamVideoClient {
   /**
    * A reactive store that exposes all the state variables in a reactive manner - you can subscribe to changes of the different state variables. Our library is built in a way that all state changes are exposed in this store, so all UI changes in your application should be handled by subscribing to these variables.
-   * @angular If you're using our Angular SDK, you shouldn't be interacting with the state store directly, instead, you should be using the [`StreamVideoService`](./StreamVideoService.md).
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
@@ -49,7 +48,6 @@ export class StreamVideoClient {
 
   /**
    * You should create only one instance of `StreamVideoClient`.
-   * @angular If you're using our Angular SDK, you shouldn't be calling the `constructor` directly, instead you should be using [`StreamVideoService`](./StreamVideoService.md/#init).
    * @param apiKey your Stream API key
    * @param opts the options for the client.
    */
