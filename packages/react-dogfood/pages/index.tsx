@@ -8,16 +8,23 @@ import {
   useState,
 } from 'react';
 import { useRouter } from 'next/router';
-
+import Link from 'next/link';
 import PhotoCameraFrontIcon from '@mui/icons-material/PhotoCameraFront';
 import { Box, Button, Stack, Typography } from '@mui/material';
-import Link from 'next/link';
-import { meetingId } from '../lib/meetingId';
+import { StreamI18nProvider, useI18n } from '@stream-io/video-react-sdk';
 
 import { LobbyHeader } from '../components/LobbyHeader';
 
+import { meetingId } from '../lib/meetingId';
+import translations from '../translations';
+import { useSettings } from '../context/SettingsContext';
+
 export default function Home() {
   const { data: session, status } = useSession();
+  const {
+    settings: { language },
+  } = useSettings();
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       void signIn();
@@ -27,6 +34,19 @@ export default function Home() {
   if (!session) {
     return null;
   }
+
+  return (
+    <StreamI18nProvider
+      translationsOverrides={translations}
+      language={language}
+    >
+      <HomeContent />
+    </StreamI18nProvider>
+  );
+}
+
+const HomeContent = () => {
+  const { t } = useI18n();
 
   return (
     <>
@@ -41,7 +61,7 @@ export default function Home() {
         <Stack spacing={2} alignItems="center" flexGrow={1}>
           <Box padding={2}>
             <Typography variant="h2" textAlign="center">
-              Stream Meetings
+              {t('Stream Meetings')}
             </Typography>
           </Box>
           <JoinCallForm />
@@ -49,11 +69,12 @@ export default function Home() {
       </Stack>
     </>
   );
-}
+};
 
 const JoinCallForm = () => {
-  const ref = useRef<HTMLInputElement | null>(null);
+  const { t } = useI18n();
   const router = useRouter();
+  const ref = useRef<HTMLInputElement | null>(null);
   const [disabled, setDisabled] = useState(true);
   const onJoin = useCallback(() => {
     router.push(`join/${ref.current!.value}`);
@@ -93,7 +114,7 @@ const JoinCallForm = () => {
             fullWidth
           >
             <PhotoCameraFrontIcon sx={{ mr: 1 }} />
-            New meeting
+            {t('New meeting')}
           </Button>
         </Link>
       ) : (
@@ -102,7 +123,7 @@ const JoinCallForm = () => {
           variant="contained"
           onClick={onJoin}
         >
-          Join
+          {t('Join')}
         </Button>
       )}
       <input
@@ -111,7 +132,7 @@ const JoinCallForm = () => {
         ref={ref}
         onChange={handleChange}
         onKeyUp={handleKeyUp}
-        placeholder="Or join a call with code"
+        placeholder={t('Or join a call with code')}
       />
     </div>
   );

@@ -22,10 +22,22 @@ export const StreamVideo = (
     StreamVideoProps & { callCycleHandlers?: CallCycleHandlersType }
   >,
 ) => {
-  const { callCycleHandlers = {}, client, children } = props;
+  const {
+    callCycleHandlers = {},
+    client,
+    children,
+    translationsOverrides,
+    i18nInstance,
+    language,
+  } = props;
 
   return (
-    <StreamVideoProvider client={client}>
+    <StreamVideoProvider
+      client={client}
+      translationsOverrides={translationsOverrides}
+      i18nInstance={i18nInstance}
+      language={language}
+    >
       <CallCycleProvider callCycleHandlers={callCycleHandlers}>
         <MediaDevicesProvider>
           <Provider>{children}</Provider>
