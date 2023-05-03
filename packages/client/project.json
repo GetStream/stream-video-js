@@ -23,7 +23,9 @@
     "npm": {
       "executor": "ngx-deploy-npm:deploy",
       "options": {
-        "access": "public"
+        "access": "public",
+        "noBuild": true,
+        "dryRun": true
       }
     }
   }
