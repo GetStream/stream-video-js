@@ -21,6 +21,7 @@
     "@react-navigation/stack": "^6.3.10",
     "@stream-io/flat-list-mvcp": "^0.10.2",
     "@stream-io/video-react-native-sdk": "workspace:^",
+    "intl-pluralrules": "^2.0.0",
     "react": "18.2.0",
     "react-native": "0.70.6",
     "react-native-callkeep": "^4.3.3",
