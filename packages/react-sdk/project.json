@@ -10,6 +10,7 @@
         "preid": "alpha",
         "releaseAs": "prerelease",
         "trackDeps": true,
+        "push": true,
         "postTargets": ["@stream-io/video-react-sdk:github"]
       }
     },
