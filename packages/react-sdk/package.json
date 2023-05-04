@@ -13,6 +13,8 @@
   },
   "files": [
     "dist",
+    "src",
+    "index.ts",
     "package.json",
     "README.md",
     "LICENSE",
