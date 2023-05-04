@@ -1,6 +1,7 @@
-import { PropsWithChildren, useState } from 'react';
-import { PopperProps, usePopper } from 'react-popper';
+import { PropsWithChildren, useEffect } from 'react';
 import clsx from 'clsx';
+import { useFloatingUIPreset } from '../../hooks';
+import { Placement } from '@floating-ui/react';
 
 export type TooltipProps<T extends HTMLElement> = PropsWithChildren<{
   /** Reference element to which the tooltip should attach to */
@@ -10,42 +11,39 @@ export type TooltipProps<T extends HTMLElement> = PropsWithChildren<{
   /** Popper's modifier (offset) property - [xAxis offset, yAxis offset], default [0, 10] */
   offset?: [number, number];
   /** Popper's placement property defining default position of the tooltip, default 'top' */
-  tooltipPlacement?: PopperProps<unknown>['placement'];
+  tooltipPlacement?: Placement;
   /** Tells component whether to render its contents */
   visible?: boolean;
 }>;
 
 export const Tooltip = <T extends HTMLElement>({
   children,
-  offset = [0, 10],
   referenceElement,
   tooltipClassName,
   tooltipPlacement = 'top',
   visible = false,
 }: TooltipProps<T>) => {
-  const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(
-    null,
-  );
-  const { attributes, styles } = usePopper(referenceElement, popperElement, {
-    modifiers: [
-      {
-        name: 'offset',
-        options: {
-          offset,
-        },
-      },
-    ],
+  const { refs, x, y, strategy } = useFloatingUIPreset({
     placement: tooltipPlacement,
+    strategy: 'absolute',
   });
+
+  useEffect(() => {
+    refs.setReference(referenceElement);
+  }, [referenceElement, refs]);
 
   if (!visible) return null;
 
   return (
     <div
       className={clsx('str-video__tooltip', tooltipClassName)}
-      ref={setPopperElement}
-      style={styles.popper}
-      {...attributes.popper}
+      ref={refs.setFloating}
+      style={{
+        position: strategy,
+        top: y ?? 0,
+        left: x ?? 0,
+        overflowY: 'auto',
+      }}
     >
       {children}
     </div>
