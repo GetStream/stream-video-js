@@ -11,6 +11,13 @@
     "generate-docs": "../../scripts/generate-docs.sh React @stream-io/video-react-sdk react-sdk",
     "start:docs": "npx stream-chat-docusaurus -s"
   },
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "dependencies": {
     "@floating-ui/react": "^0.22.0",
     "@nivo/core": "^0.80.0",
