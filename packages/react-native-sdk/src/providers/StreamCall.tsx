@@ -46,10 +46,9 @@ export const StreamCall = ({
 
     return () => {
       newCall.leave().catch((e) => console.log(e));
+      setCall(undefined);
     };
   }, [callId, callType, videoClient]);
-
-  // useCallCycleEffect(callCycleHandlers);
 
   return (
     <StreamCallProvider call={call}>

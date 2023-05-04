@@ -55,7 +55,6 @@ export const LobbyView = () => {
 
   const call = useCall();
   const joinCallHandler = async () => {
-    console.log('Joining call call=', call);
     try {
       await call?.join({ create: true });
     } catch (e) {

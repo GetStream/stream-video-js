@@ -2,7 +2,9 @@ import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
 import { CallingState } from '@stream-io/video-client';
 import { CallCycleHandlersType } from '../providers';
+import { usePrevious } from '../utils/usePrevious';
 
+const NON_ACTIVE_CALLING_STATES = [CallingState.UNKNOWN, CallingState.IDLE];
 /**
  *
  * @param callCycleHandlers
@@ -14,6 +16,7 @@ export const useCallCycleEffect = (
 ) => {
   const call = useCall();
   const callingState = useCallCallingState();
+  const prevCallingState = usePrevious(callingState);
   const {
     onCallJoined,
     onCallIncoming,
@@ -23,9 +26,13 @@ export const useCallCycleEffect = (
   } = callCycleHandlers;
 
   useEffect(() => {
-    if (!call) return;
-
-    const isCallCreatedByMe = call.data?.created_by.id === call?.currentUserId;
+    if (
+      !call ||
+      NON_ACTIVE_CALLING_STATES.includes(callingState) ||
+      callingState === prevCallingState
+    )
+      return;
+    const isCallCreatedByMe = call.data?.created_by.id === call.currentUserId;
     const isCallCreatedByOther =
       !!call.data?.created_by.id && !isCallCreatedByMe;
     const isIncomingCall =
@@ -37,8 +44,7 @@ export const useCallCycleEffect = (
       isCallCreatedByMe &&
       onCallOutgoing;
     const isActiveCall = callingState === CallingState.JOINED && onCallJoined;
-    const isCallHungUp =
-      callingState === CallingState.LEFT && isCallCreatedByMe && onCallHungUp;
+    const isCallHungUp = callingState === CallingState.LEFT && onCallHungUp;
     const isCallRejected =
       callingState === CallingState.LEFT &&
       isCallCreatedByOther &&
@@ -51,6 +57,7 @@ export const useCallCycleEffect = (
     if (isCallRejected) return onCallRejected();
   }, [
     callingState,
+    prevCallingState,
     call,
     onCallIncoming,
     onCallOutgoing,
