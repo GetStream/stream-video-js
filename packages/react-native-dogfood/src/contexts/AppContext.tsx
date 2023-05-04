@@ -1,5 +1,4 @@
 import createStoreContext from './createStoreContext';
-import { v4 as uuidv4 } from 'uuid';
 
 interface AppGlobalStore {
   username: string;
@@ -20,7 +19,7 @@ export const {
     userImageUrl: '',
     loopbackMyVideo: false,
     appMode: 'None',
-    callId: uuidv4().toLowerCase(),
+    callId: '',
     callType: 'default',
   },
   ['username', 'userImageUrl', 'appMode'],

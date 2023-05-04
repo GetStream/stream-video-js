@@ -6,7 +6,6 @@ import {
 import { StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
-import { useCallCycleContext } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
@@ -55,8 +54,6 @@ const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
   const { onOpenCallParticipantsInfoView, mode = 'grid' } = props;
   const hasScreenShare = useHasOngoingScreenShare();
-  const { callCycleHandlers } = useCallCycleContext();
-  const { onHangupCall } = callCycleHandlers;
 
   useIncallManager({ media: 'video', auto: true });
   usePublishMediaStreams();
@@ -90,7 +87,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
         )}
       </View>
       <View onLayout={onLayout} style={styles.callControlsWrapper}>
-        <CallControlsView onHangupCall={onHangupCall} />
+        <CallControlsView />
       </View>
     </View>
   );

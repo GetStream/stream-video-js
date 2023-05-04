@@ -155,7 +155,7 @@ const App = () => {
 
 ### Adding call cycle handlers
 
-`StreamVideo` component has a `callCycleHandlers` prop of type object that expects `onActiveCall` and `onHangupCall` handlers to deal with the case when the call is active and when the call is hung up. These handlers can be used to navigate to particular screens depending on the state.
+`StreamVideo` component has a `callCycleHandlers` prop of type object that expects `onCallJoined` and `onCallHungUp` handlers to deal with the case when the call is active and when the call is hung up. These handlers can be used to navigate to particular screens depending on the state.
 
 An example can be seen below:
 
@@ -172,8 +172,8 @@ const App = () => {
     <StreamVideo
       client={videoClient}
       callCycleHandlers={{
-        onActiveCall: () => navigation.navigate('ActiveCallScreen'),
-        onHangupCall: () => navigation.navigate('JoinMeetingScreen'),
+        onCallJoined: () => navigation.navigate('ActiveCallScreen'),
+        onCallHungUp: () => navigation.navigate('JoinMeetingScreen'),
       }}>
       {children}
     </StreamVideo>
@@ -218,8 +218,8 @@ const Navigator = () => {
     <StreamVideo
       client={videoClient}
       callCycleHandlers={{
-        onActiveCall: () => navigation.navigate('ActiveCallScreen'),
-        onHangupCall: () => navigation.navigate('JoinMeetingScreen'),
+        onCallJoined: () => navigation.navigate('ActiveCallScreen'),
+        onCallHungUp: () => navigation.navigate('JoinMeetingScreen'),
       }}>
       <Stack.Navigator>
         <Stack.Screen
@@ -318,13 +318,8 @@ type CallLobbyScreenProps = NativeStackScreenProps<
   'CallLobbyScreen'
 >;
 
-export const LobbyViewScreen = (props: CallLobbyScreenProps) => {
-  const { route } = props;
-  const {
-    params: { callId },
-  } = route;
-
-  return <LobbyView callID={callId} onActiveCall={onActiveCall} />;
+export const LobbyViewScreen = () => {
+  return <LobbyView />;
 };
 ```
 

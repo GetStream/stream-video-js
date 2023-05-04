@@ -49,19 +49,19 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();
 
-  const onActiveCall = useCallback(() => {
+  const onCallJoined = useCallback(() => {
     navigation.navigate('ActiveCallScreen');
   }, [navigation]);
 
-  const onIncomingCall = useCallback(() => {
+  const onCallIncoming = useCallback(() => {
     navigation.navigate('IncomingCallScreen');
   }, [navigation]);
 
-  const onOutgoingCall = useCallback(() => {
+  const onCallOutgoing = useCallback(() => {
     navigation.navigate('OutgoingCallScreen');
   }, [navigation]);
 
-  const onHangupCall = useCallback(() => {
+  const onCallHungUp = useCallback(() => {
     if (!channel) {
       navigation.navigate('ChannelListScreen');
     } else {
@@ -69,7 +69,7 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
     }
   }, [channel, navigation]);
 
-  const onRejectCall = useCallback(() => {
+  const onCallRejected = useCallback(() => {
     if (!channel) {
       navigation.navigate('ChannelListScreen');
     } else {
@@ -79,18 +79,18 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
 
   const callCycleHandlers = useMemo(() => {
     return {
-      onActiveCall,
-      onIncomingCall,
-      onOutgoingCall,
-      onHangupCall,
-      onRejectCall,
+      onCallJoined,
+      onCallIncoming,
+      onCallOutgoing,
+      onCallHungUp,
+      onCallRejected,
     };
   }, [
-    onActiveCall,
-    onIncomingCall,
-    onOutgoingCall,
-    onHangupCall,
-    onRejectCall,
+    onCallJoined,
+    onCallIncoming,
+    onCallOutgoing,
+    onCallHungUp,
+    onCallRejected,
   ]);
 
   if (!videoClient) {

@@ -1,7 +1,7 @@
 import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
-import { CallCycleHandlersType } from '../contexts/CallCycleContext';
 import { CallingState } from '@stream-io/video-client';
+import { CallCycleHandlersType } from '../providers';
 
 /**
  *
@@ -15,43 +15,47 @@ export const useCallCycleEffect = (
   const call = useCall();
   const callingState = useCallCallingState();
   const {
-    onActiveCall,
-    onIncomingCall,
-    onOutgoingCall,
-    onHangupCall,
-    onRejectCall,
+    onCallJoined,
+    onCallIncoming,
+    onCallOutgoing,
+    onCallHungUp,
+    onCallRejected,
   } = callCycleHandlers;
 
   useEffect(() => {
     if (!call) return;
 
     const isCallCreatedByMe = call.data?.created_by.id === call?.currentUserId;
+    const isCallCreatedByOther =
+      !!call.data?.created_by.id && !isCallCreatedByMe;
     const isIncomingCall =
       callingState === CallingState.RINGING &&
       !isCallCreatedByMe &&
-      onIncomingCall;
+      onCallIncoming;
     const isOutgoingCall =
       callingState === CallingState.RINGING &&
       isCallCreatedByMe &&
-      onOutgoingCall;
-    const isActiveCall = callingState === CallingState.JOINED && onActiveCall;
+      onCallOutgoing;
+    const isActiveCall = callingState === CallingState.JOINED && onCallJoined;
     const isCallHungUp =
-      callingState === CallingState.LEFT && isCallCreatedByMe && onHangupCall;
+      callingState === CallingState.LEFT && isCallCreatedByMe && onCallHungUp;
     const isCallRejected =
-      callingState === CallingState.LEFT && !isCallCreatedByMe && onRejectCall;
+      callingState === CallingState.LEFT &&
+      isCallCreatedByOther &&
+      onCallRejected;
 
-    if (isIncomingCall) return onIncomingCall();
-    if (isOutgoingCall) return onOutgoingCall();
-    if (isActiveCall) return onActiveCall();
-    if (isCallHungUp) return onHangupCall();
-    if (isCallRejected) return onRejectCall();
+    if (isIncomingCall) return onCallIncoming();
+    if (isOutgoingCall) return onCallOutgoing();
+    if (isActiveCall) return onCallJoined();
+    if (isCallHungUp) return onCallHungUp();
+    if (isCallRejected) return onCallRejected();
   }, [
     callingState,
     call,
-    onIncomingCall,
-    onOutgoingCall,
-    onActiveCall,
-    onHangupCall,
-    onRejectCall,
+    onCallIncoming,
+    onCallOutgoing,
+    onCallJoined,
+    onCallHungUp,
+    onCallRejected,
   ]);
 };

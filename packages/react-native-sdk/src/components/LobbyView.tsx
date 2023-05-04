@@ -5,7 +5,6 @@ import { useCall, useConnectedUser } from '@stream-io/video-react-bindings';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
-import { useCallCycleContext } from '../contexts';
 import { useMutingState } from '../hooks/useMutingState';
 import { useLocalVideoStream } from '../hooks';
 import { VideoRenderer } from './VideoRenderer';
@@ -36,14 +35,12 @@ const ParticipantStatus = () => {
 export const LobbyView = () => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
-  const { callCycleHandlers } = useCallCycleContext();
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useMutingState();
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
   const isVideoAvailable = !!localVideoStream && !isVideoMuted;
-  const { onActiveCall } = callCycleHandlers;
 
   const MicIcon = isAudioMuted ? (
     <MicOff color={theme.light.static_white} />
@@ -57,18 +54,13 @@ export const LobbyView = () => {
   );
 
   const call = useCall();
-  const joinCallHandler = () => {
+  const joinCallHandler = async () => {
     console.log('Joining call call=', call);
-    call
-      ?.join({ create: true })
-      .then(() => {
-        if (onActiveCall) {
-          onActiveCall();
-        }
-      })
-      .catch((err) => {
-        console.log('Error joining call', err);
-      });
+    try {
+      await call?.join({ create: true });
+    } catch (e) {
+      console.log('Error joining call', e);
+    }
   };
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,

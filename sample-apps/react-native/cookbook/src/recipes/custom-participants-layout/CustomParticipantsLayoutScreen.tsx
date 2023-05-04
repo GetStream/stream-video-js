@@ -44,12 +44,12 @@ export default () => {
     tokenOrProvider: USER?.custom?.token,
     apiKey: STREAM_API_KEY,
   });
-  const handleOnHangupCall = () => navigation.navigate('WelcomeScreen');
+  const handleonCallHungUp = () => navigation.navigate('WelcomeScreen');
 
   return (
     <StreamVideo
       client={videoClient}
-      callCycleHandlers={{onHangupCall: handleOnHangupCall}}>
+      callCycleHandlers={{onCallHungUp: handleonCallHungUp}}>
       <MyActiveCall />
     </StreamVideo>
   );
@@ -61,7 +61,7 @@ const MyActiveCall = () => {
   const callId = useRef<string>(generateCallId());
   const [call, setCall] = useState<Call>();
   const {callCycleHandlers} = useCallCycleContext();
-  const {onHangupCall} = callCycleHandlers;
+  const {onCallHungUp} = callCycleHandlers;
   usePublishMediaStreams();
 
   useEffect(() => {
@@ -96,7 +96,7 @@ const MyActiveCall = () => {
       <View style={[styles.wrapper, {paddingTop: insets.top}]}>
         <IntroModal callId={callId.current} />
         <MyCallParticipantsView />
-        <CallControlsView onHangupCall={onHangupCall} />
+        <CallControlsView onCallHungUp={onCallHungUp} />
       </View>
     </StreamCallProvider>
   );

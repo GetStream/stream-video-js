@@ -158,7 +158,11 @@ const StackNavigator = () => {
     useNavigation<NativeStackNavigationProp<RingingStackParamList>>();
   const meetingNavigation =
     useNavigation<NativeStackNavigationProp<MeetingStackParamList>>();
-
+  const setRandomCallId = React.useCallback(() => {
+    setState({
+      callId: uuidv4().toLowerCase(),
+    });
+  }, [setState]);
   useProntoLinkEffect();
   useIosPushEffect();
   useCallKeepEffect();
@@ -172,10 +176,14 @@ const StackNavigator = () => {
         prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
       }
     });
-    return () => subscription.unsubscribe();
-  }, [setState]);
+    if (appMode === 'Ringing') {
+      setRandomCallId();
+    }
 
-  const onActiveCall = React.useCallback(() => {
+    return () => subscription.unsubscribe();
+  }, [appMode, setRandomCallId, setState]);
+
+  const onCallJoined = React.useCallback(() => {
     if (appMode === 'Meeting') {
       meetingNavigation.navigate('MeetingScreen');
     } else {
@@ -183,43 +191,42 @@ const StackNavigator = () => {
     }
   }, [appMode, callNavigation, meetingNavigation]);
 
-  const onIncomingCall = React.useCallback(() => {
+  const onCallIncoming = React.useCallback(() => {
     callNavigation.navigate('IncomingCallScreen');
   }, [callNavigation]);
 
-  const onOutgoingCall = React.useCallback(() => {
+  const onCallOutgoing = React.useCallback(() => {
     callNavigation.navigate('OutgoingCallScreen');
   }, [callNavigation]);
 
-  const onHangupCall = React.useCallback(() => {
+  const onCallHungUp = React.useCallback(() => {
     if (appMode === 'Meeting') {
       meetingNavigation.navigate('JoinMeetingScreen');
     } else {
       callNavigation.navigate('JoinCallScreen');
+      setRandomCallId();
     }
-  }, [appMode, callNavigation, meetingNavigation]);
+  }, [appMode, callNavigation, meetingNavigation, setRandomCallId]);
 
-  const onRejectCall = React.useCallback(() => {
+  const onCallRejected = React.useCallback(() => {
     callNavigation.navigate('JoinCallScreen');
-    // setState({
-    //   callId: uuidv4().toLowerCase(),
-    // });
-  }, [callNavigation]);
+    setRandomCallId();
+  }, [callNavigation, setRandomCallId]);
 
   const callCycleHandlers = React.useMemo(() => {
     return {
-      onActiveCall,
-      onIncomingCall,
-      onOutgoingCall,
-      onHangupCall,
-      onRejectCall,
+      onCallJoined,
+      onCallIncoming,
+      onCallOutgoing,
+      onCallHungUp,
+      onCallRejected,
     };
   }, [
-    onActiveCall,
-    onIncomingCall,
-    onOutgoingCall,
-    onHangupCall,
-    onRejectCall,
+    onCallJoined,
+    onCallIncoming,
+    onCallOutgoing,
+    onCallHungUp,
+    onCallRejected,
   ]);
 
   const { videoClient } = useAuth();

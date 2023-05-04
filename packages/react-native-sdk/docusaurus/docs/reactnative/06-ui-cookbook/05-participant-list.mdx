@@ -403,7 +403,7 @@ const MyActiveCall = () => {
         <MyCallParticipantsView />
         {/*render the built-in call controls view (containing mute/hangup/toggle camera buttons etc.)*/}
         <CallControlsView
-          onHangupCall={() => {
+          onCallHungUp={() => {
             // You can use this callback to navigate back to your previous/home screen for instance.
             return;
           }}

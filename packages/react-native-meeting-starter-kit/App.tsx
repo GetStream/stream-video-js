@@ -75,8 +75,8 @@ const Navigator = ({selectedUser}: {selectedUser: User}) => {
       <StreamVideo
         client={videoClient}
         callCycleHandlers={{
-          onActiveCall: () => navigation.navigate('ActiveCallScreen'),
-          onHangupCall: () => navigation.navigate('JoinMeetingScreen'),
+          onCallJoined: () => navigation.navigate('ActiveCallScreen'),
+          onCallHungUp: () => navigation.navigate('JoinMeetingScreen'),
         }}>
         <StreamCallProvider call={call}>
           <Stack.Navigator>

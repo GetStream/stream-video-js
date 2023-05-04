@@ -159,11 +159,11 @@ const App = () => {
 
 `StreamVideo` component has a `callCycleHandlers` prop of type object that expects:
 
-- `onActiveCall` handler to deal with the case when the call is active.
-- `onHangupCall` handler to deal with the case when the call is hung up.
-- `onIncomingCall` handler to deal with the case when there's an incoming call.
-- `onOutgoingCall` handler to deal with the case when there's an outgoing call.
-- `onRejectCall` handler to deal with the case when an incoming call is rejected.
+- `onCallJoined` handler to deal with the case when the call is active.
+- `onCallHungUp` handler to deal with the case when the call is hung up.
+- `onCallIncoming` handler to deal with the case when there's an incoming call.
+- `onCallOutgoing` handler to deal with the case when there's an outgoing call.
+- `onCallRejected` handler to deal with the case when an incoming call is rejected.
 
 These handlers can be used to navigate to particular screens depending on the state.
 
@@ -182,11 +182,11 @@ const App = () => {
     <StreamVideo
       client={videoClient}
       callCycleHandlers={{
-        onActiveCall: () => console.log("Moving to active call screen"),
-        onIncomingCall: () => console.log("Incoming call created"),
-        onOutgoingCall: () => console.log("Outgoing call created"),
-        onHangupCall: () => console.log("Call Hanged up"),
-        onRejectCall: () => console.log("Incoming call rejected"),
+        onCallJoined: () => console.log("Moving to active call screen"),
+        onCallIncoming: () => console.log("Incoming call created"),
+        onCallOutgoing: () => console.log("Outgoing call created"),
+        onCallHungUp: () => console.log("Call Hanged up"),
+        onCallRejected: () => console.log("Incoming call rejected"),
       }}>
       {children}
     </StreamVideo>
