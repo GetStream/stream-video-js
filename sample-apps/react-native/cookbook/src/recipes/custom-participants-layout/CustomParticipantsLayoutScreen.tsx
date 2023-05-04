@@ -38,7 +38,7 @@ export default () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const videoClient = useCreateStreamVideoClient({
     user: USER,
-    tokenOrProvider: USER?.custom?.token,
+    tokenOrProvider: USER.custom.token,
     apiKey: STREAM_API_KEY,
   });
   const handleOnCallHungUp = () => navigation.navigate('WelcomeScreen');
