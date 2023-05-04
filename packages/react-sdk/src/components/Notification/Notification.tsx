@@ -1,6 +1,7 @@
-import { Placement } from '@popperjs/core';
-import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
-import { usePopper } from 'react-popper';
+import { PropsWithChildren, ReactNode, useEffect } from 'react';
+import { Placement } from '@floating-ui/react';
+
+import { useFloatingUIPreset } from '../../hooks';
 
 export type NotificationProps = {
   message?: ReactNode;
@@ -21,18 +22,10 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
     placement = 'top',
     iconClassName = 'str-video__notification__icon',
   } = props;
-  const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
-  const [popover, setPopover] = useState<HTMLDivElement | null>(null);
-  const { styles, attributes } = usePopper(anchor, popover, {
+
+  const { refs, x, y, strategy } = useFloatingUIPreset({
     placement,
-    modifiers: [
-      {
-        name: 'offset',
-        options: {
-          offset: [0, 15],
-        },
-      },
-    ],
+    strategy: 'absolute',
   });
 
   useEffect(() => {
@@ -46,13 +39,17 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
   }, [isVisible, resetIsVisible, visibilityTimeout]);
 
   return (
-    <div ref={setAnchor} data-popper-anchor="">
+    <div ref={refs.setReference}>
       {isVisible && (
         <div
           className="str-video__notification"
-          ref={setPopover}
-          style={styles.popper}
-          {...attributes.popper}
+          ref={refs.setFloating}
+          style={{
+            position: strategy,
+            top: y ?? 0,
+            left: x ?? 0,
+            overflowY: 'auto',
+          }}
         >
           {iconClassName && <i className={iconClassName} />}
           <span className="str-video__notification__message">{message}</span>

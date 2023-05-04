@@ -57,13 +57,11 @@ export const ControlMenu: FC<Props> = ({
     : !localParticipant?.publishedTracks.includes(SfuModels.TrackType.AUDIO);
 
   const publishVideoStream = useVideoPublisher({
-    call: call,
     initialVideoMuted,
     videoDeviceId: selectedVideoDeviceId,
   });
 
   const publishAudioStream = useAudioPublisher({
-    call: call,
     initialAudioMuted,
     audioDeviceId: selectedAudioInputDeviceId,
   });

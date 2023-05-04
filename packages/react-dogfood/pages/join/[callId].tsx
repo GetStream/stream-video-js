@@ -6,7 +6,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useCreateStreamChatClient } from '../../hooks';
-import { LoadingScreen, MeetingUI } from '../../components';
+import { MeetingUI } from '../../components';
 import {
   getServerSideCredentialsProps,
   ServerSideCredentialsProps,
@@ -56,10 +56,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   });
 
   useGleap(gleapApiKey, client, user);
-
-  if (!client) {
-    return <LoadingScreen />;
-  }
 
   return (
     <>

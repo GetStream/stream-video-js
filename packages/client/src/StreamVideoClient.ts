@@ -207,10 +207,10 @@ export class StreamVideoClient {
    */
   queryCalls = async (data: QueryCallsRequest) => {
     if (data.watch) await this.streamClient.connectionIdPromise;
-    const response = await this.streamClient.post<QueryCallsResponse>(
-      '/calls',
-      data,
-    );
+    const response = await this.streamClient.post<
+      QueryCallsResponse,
+      QueryCallsRequest
+    >('/calls', data);
     const calls = response.calls.map((c) => {
       const call = new Call({
         streamClient: this.streamClient,

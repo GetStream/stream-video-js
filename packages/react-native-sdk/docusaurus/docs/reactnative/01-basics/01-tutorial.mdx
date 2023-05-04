@@ -122,12 +122,10 @@ const App = () => {
 For simplicity, you can also use the `useCreateStreamVideoClient` [hook](../../call-engine/hooks#usecreatestreamvideoclient) to connect and disconnect from the client.
 
 ### Provide the video client logic to the rest of the app
-
 Our `StreamVideoCall` component will provide our recently created video client to the rest of the underlying components.
-
 The `client` created above can be used as follows and needs to be provided to the `client` prop of the `StreamVideoCall` component.
 
-_Note: Make sure to wrap your entire application in `StreamVideo`.
+_Note: Make sure to wrap your entire application in `StreamVideoCall`._
 
 ```tsx title="App.tsx"
 import React from 'react';
@@ -158,8 +156,8 @@ const App = () => {
 ```
 
 ### Create global app state
-In the following steps, we will need a global app state to store the callId and CallType.
-This will allow us to share and change the call params across the app.
+In the following steps, we will need a global app state to store the `callId` and `CallType`.
+This will allow us to share and change the `callParams` across the app.
 
 ```tsx title="AppContext.tsx"
 import React, {PropsWithChildren, useState} from 'react';
@@ -459,7 +457,7 @@ export const CallParticipansInfoScreen = () => {
 
 ## Further Integration
 
-Congratulations on completing the Stream Video React Native SDK tutorial. You've learned how to build two very popular use cases - Meeting and Ringing Calls. However, our SDK supports multiple other use cases and more advanced features. If you're looking to integrate more of our supported functionality, we recommend checking out the following guides:
+Congratulations on completing this tutorial. You've learned how to build two very popular use cases - Meeting and Ringing Calls. However, our SDK supports multiple other use cases and more advanced features. If you're looking to integrate more of our supported functionality, we recommend checking out the following guides:
 
 [//]: # '* [guide](05-advanced/02-push-notification/01-overview.mdx)'
 

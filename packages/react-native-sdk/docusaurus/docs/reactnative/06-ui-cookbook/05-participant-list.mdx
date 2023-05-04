@@ -68,7 +68,7 @@ export default () => {
 
   return (
     // Wrap the MyActiveCall component with the StreamVideoCall component.
-    // Behind the scenes StreamVideo will provide the necessary context (callId, client, callCycleHandlers,
+    // Behind the scenes StreamVideoCall will provide the necessary context (callId, client, callCycleHandlers,
     // device info and other relevant information about your calls) to the MyActiveCall component. StreamVideoCall
     // will also take care of the call lifecycle. In addition to that everytime a new callId is provided StreamVideoCall
     // will create a new [Call](../04-call-engine/Call.md) instance ready for use.
@@ -93,10 +93,9 @@ To join a call, we need to know its ID and type. The call ID and type can come f
 In our example, we are going to hard code the call ID and type, but you can use any other method that will suit your business logics to get this information.
 
 ```tsx
-import React, { useEffect, setState } from 'react';
+import React, { useEffect } from 'react';
 import {
   usePublishStreams,
-  useStreamVideoClient,
   useCall,
 } from '@stream-io/video-react-native-sdk';
 import InCallManager from 'react-native-incall-manager';
