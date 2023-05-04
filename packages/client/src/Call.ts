@@ -376,11 +376,8 @@ export class Call {
 
     if (this.ringing) {
       // I'm the one who started the call, so I should cancel it.
-      const createdById = this.state.metadata?.created_by.id;
-      const isCallCreatedByMe = createdById === this.currentUserId;
       const hasOtherParticipants = this.state.remoteParticipants.length > 0;
-
-      if (isCallCreatedByMe && !hasOtherParticipants) {
+      if (this.isCreatedByMe && !hasOtherParticipants) {
         // Signals other users that I have cancelled my call to them
         // before they accepted it.
         // Causes the `call.ended` event to be emitted to all the call members.
@@ -432,6 +429,13 @@ export class Call {
    */
   get currentUserId() {
     return this.clientStore.connectedUser?.id;
+  }
+
+  /**
+   * A flag indicating whether the call was created by the current user.
+   */
+  get isCreatedByMe() {
+    return this.state.metadata?.created_by.id === this.currentUserId;
   }
 
   private waitForJoinResponse = (timeout: number = 5000) =>
@@ -525,10 +529,7 @@ export class Call {
       this.ringingSubject.next(true);
     }
 
-    if (
-      this.ringing &&
-      this.state.metadata?.created_by.id !== this.currentUserId
-    ) {
+    if (this.ringing && !this.isCreatedByMe) {
       // Signals other users that I have accepted the incoming call.
       // Causes the `call.accepted` event to be emitted to all the call members.
       await this.sendEvent({ type: 'call.accepted' });

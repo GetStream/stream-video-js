@@ -19,11 +19,13 @@ export class StreamVideoWriteableStateStore {
 
   /**
    * A list of objects describing incoming calls.
+   * @deprecated derive from calls$ instead.
    */
   incomingCalls$: Observable<Call[]>;
 
   /**
    * A list of objects describing calls initiated by the current user (connectedUser).
+   * @deprecated derive from calls$ instead.
    */
   outgoingCalls$: Observable<Call[]>;
 
@@ -137,6 +139,7 @@ export class StreamVideoWriteableStateStore {
 
   /**
    * A list of objects describing incoming calls.
+   * @deprecated derive from calls$ instead.
    */
   get incomingCalls(): Call[] {
     return this.getCurrentValue(this.incomingCalls$);
@@ -144,6 +147,7 @@ export class StreamVideoWriteableStateStore {
 
   /**
    * A list of objects describing calls initiated by the current user.
+   * @deprecated derive from calls$ instead.
    */
   get outgoingCalls(): Call[] {
     return this.getCurrentValue(this.outgoingCalls$);
@@ -168,11 +172,13 @@ export class StreamVideoReadOnlyStateStore {
 
   /**
    * A list of objects describing calls initiated by the current user (connectedUser).
+   * @deprecated derive from calls$ instead.
    */
   outgoingCalls$: Observable<Call[]>;
 
   /**
    * A list of objects describing incoming calls.
+   * @deprecated derive from calls$ instead.
    */
   incomingCalls$: Observable<Call[]>;
 
@@ -210,6 +216,7 @@ export class StreamVideoReadOnlyStateStore {
 
   /**
    * A list of objects describing incoming calls.
+   * @deprecated derive from calls$ instead.
    */
   get incomingCalls(): Call[] {
     return RxUtils.getCurrentValue(this.incomingCalls$);
@@ -217,6 +224,7 @@ export class StreamVideoReadOnlyStateStore {
 
   /**
    * A list of objects describing calls initiated by the current user.
+   * @deprecated derive from calls$ instead.
    */
   get outgoingCalls(): Call[] {
     return RxUtils.getCurrentValue(this.outgoingCalls$);
