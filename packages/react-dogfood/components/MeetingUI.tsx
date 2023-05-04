@@ -2,7 +2,6 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import Gleap from 'gleap';
 import {
-  Call,
   CallingState,
   CallParticipantsList,
   CallStatsButton,
@@ -65,7 +64,7 @@ export const MeetingUI = ({ chatClient, callId, callType }: MeetingUIProps) => {
   >('lobby');
   const router = useRouter();
   const client = useStreamVideoClient();
-  const [activeCall, setActiveCall] = useState<Call>();
+  const [activeCall] = useState(() => client!.call(callType, callId));
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [layout, setLayout] = useState<keyof typeof LayoutMap>(
@@ -86,19 +85,15 @@ export const MeetingUI = ({ chatClient, callId, callType }: MeetingUIProps) => {
   const hideParticipantList = useCallback(() => setShowParticipants(false), []);
 
   const onJoin = useCallback(async () => {
-    if (!client) return;
     setShow('loading');
     try {
-      const call = client.call(callType, callId);
-      setActiveCall(call);
-
-      await call.join({ create: true });
+      await activeCall.join({ create: true });
       setShow('active-call');
     } catch (e) {
       console.error(e);
       setShow('error-join');
     }
-  }, [callId, callType, client]);
+  }, [activeCall]);
 
   const onLeave = useCallback(async () => {
     setShow('loading');

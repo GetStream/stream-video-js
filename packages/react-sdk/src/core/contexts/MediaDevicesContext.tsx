@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { map, pairwise, take } from 'rxjs';
 import {
+  CallingState,
   checkIfAudioOutputChangeSupported,
   disposeOfMediaStream,
   getAudioDevices,
@@ -18,7 +19,11 @@ import {
   SfuModels,
   watchForDisconnectedAudioOutputDevice,
 } from '@stream-io/video-client';
-import { useCall } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallCallingState,
+  useCallState,
+} from '@stream-io/video-react-bindings';
 
 import { useAudioPublisher, useVideoPublisher } from '../hooks';
 
@@ -132,7 +137,9 @@ export const MediaDevicesProvider = ({
   initialAudioInputDeviceId = 'default',
 }: MediaDevicesProviderProps) => {
   const call = useCall();
-  const { localParticipant$ } = call?.state || {};
+  const callingState = useCallCallingState();
+  const callState = useCallState();
+  const { localParticipant$ } = callState;
 
   const [audioInputDevices, setAudioInputDevices] = useState<MediaDeviceInfo[]>(
     [],
@@ -164,25 +171,35 @@ export const MediaDevicesProvider = ({
   );
 
   const publishVideoStream = useVideoPublisher({
-    call,
     initialVideoMuted: !initialVideoState.enabled,
     videoDeviceId: selectedVideoDeviceId,
   });
   const publishAudioStream = useAudioPublisher({
-    call,
     initialAudioMuted: !initAudioEnabled,
     audioDeviceId: selectedAudioInputDeviceId,
   });
 
   const stopPublishingAudio = useCallback(() => {
-    setInitAudioEnabled(false);
-    call?.stopPublish(SfuModels.TrackType.AUDIO);
-  }, [call]);
+    if (
+      callingState === CallingState.IDLE ||
+      callingState === CallingState.RINGING
+    ) {
+      setInitAudioEnabled(false);
+    } else {
+      call?.stopPublish(SfuModels.TrackType.AUDIO);
+    }
+  }, [call, callingState]);
 
   const stopPublishingVideo = useCallback(() => {
-    setInitialVideoState(DEVICE_STATE.stopped);
-    call?.stopPublish(SfuModels.TrackType.VIDEO);
-  }, [call]);
+    if (
+      callingState === CallingState.IDLE ||
+      callingState === CallingState.RINGING
+    ) {
+      setInitialVideoState(DEVICE_STATE.stopped);
+    } else {
+      call?.stopPublish(SfuModels.TrackType.VIDEO);
+    }
+  }, [call, callingState]);
 
   const toggleAudioMuteState = useCallback(
     () => setInitAudioEnabled((prev) => !prev),
@@ -294,10 +311,10 @@ export const MediaDevicesProvider = ({
     return () => subscription.unsubscribe();
   }, [videoDevices.length]);
 
-  // useEffect(() => {
-  //   if (!call) return;
-  //   call.setAudioOutputDevice(selectedAudioOutputDeviceId);
-  // }, [call, selectedAudioOutputDeviceId]);
+  useEffect(() => {
+    if (!call || callingState !== CallingState.JOINED) return;
+    call.setAudioOutputDevice(selectedAudioOutputDeviceId);
+  }, [call, callingState, selectedAudioOutputDeviceId]);
 
   useEffect(() => {
     if (!localParticipant$) return;
