@@ -5,6 +5,7 @@ import { Box, Stack } from '@mui/material';
 const PUNCHLINES = [
   'Countdown to Launching Video. Let’s go!  🚀',
   'Less than 24 hours until launch. Keep Pushing!  💪',
+  'Video has been launched! 🎉🚀 Keep Pushing!  💪',
 ];
 
 const DEADLINE = new Date(
@@ -20,11 +21,21 @@ const divMod = (dividend: number, divisor: number) => [
 ];
 const calculateTimeLeft = () => {
   const now = new Date().getTime();
-  const totalSecondsLeft = (DEADLINE - now) / 1000;
+  const totalSecondsLeft = Math.round((DEADLINE - now) / 1000);
+
+  if (totalSecondsLeft <= 0)
+    return { totalSecondsLeft: 0, days: 0, hours: 0, minutes: 0, seconds: 0 };
   const [days, minusDaysLeft] = divMod(totalSecondsLeft, 24 * 3600);
   const [hours, minusHoursLeft] = divMod(minusDaysLeft, 3600);
   const [minutes, seconds] = divMod(minusHoursLeft, 60);
-  return { days, hours, minutes, seconds: Math.round(seconds) };
+
+  return {
+    totalSecondsLeft,
+    days,
+    hours,
+    minutes,
+    seconds,
+  };
 };
 
 export const Countdown = () => {
@@ -55,7 +66,11 @@ export const Countdown = () => {
           textTransform: 'uppercase',
         }}
       >
-        {left.days === 0 ? PUNCHLINES[1] : PUNCHLINES[0]}
+        {left.totalSecondsLeft <= 0
+          ? PUNCHLINES[2]
+          : left.days === 0
+          ? PUNCHLINES[1]
+          : PUNCHLINES[0]}
       </Box>
       <Stack
         direction="row"
