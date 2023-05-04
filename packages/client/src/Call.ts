@@ -95,8 +95,7 @@ import { getSdkInfo } from './sdk-info';
 import { isReactNative } from './helpers/platforms';
 
 /**
- * A `Call` object represents the active call the user is part of.
- * It's not enough to have a `Call` instance, you will also need to call the [`join`](#join) method.
+ * An object representation of a `Call`.
  */
 export class Call {
   /**
@@ -766,11 +765,8 @@ export class Call {
    * Starts publishing the given video stream to the call.
    * The stream will be stopped if the user changes an input device, or if the user leaves the call.
    *
-   * If the method was successful the [`activeCall$` state variable](./StreamVideClient/#readonlystatestore) will be cleared
-   *
    * Consecutive calls to this method will replace the previously published stream.
    * The previous video stream will be stopped.
-   *
    *
    * @param videoStream the video stream to publish.
    * @param opts the options to use when publishing the stream.

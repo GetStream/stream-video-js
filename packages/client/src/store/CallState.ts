@@ -132,14 +132,13 @@ export class CallState {
   private callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
 
   /**
-   * Emits a list of details about recordings performed during the active call
+   * Emits a list of details about recordings performed for the current call.
    */
   private callRecordingListSubject = new BehaviorSubject<CallRecording[]>([]);
 
   /**
    * Emits the latest call permission request sent by any participant of the
-   * active call. Or `undefined` if there is no active call or if the current
-   * user doesn't have the necessary permission to handle these events.
+   * current call.
    *
    * @internal
    */
@@ -172,7 +171,7 @@ export class CallState {
   pinnedParticipants$: Observable<StreamVideoParticipant[]>;
 
   /**
-   * The currently elected dominant speaker in the active call.
+   * The currently elected dominant speaker in the current call.
    */
   dominantSpeaker$: Observable<StreamVideoParticipant | undefined>;
 
@@ -203,13 +202,12 @@ export class CallState {
   callRecordingInProgress$: Observable<boolean>;
 
   /**
-   * Emits a list of details about recordings performed during the active call
+   * Emits a list of details about recordings performed for the current call
    */
   callRecordingList$: Observable<CallRecording[]>;
 
   /**
-   * Emits the latest call permission request sent by any participant of the active call.
-   * Or `undefined` if there is no active call or if the current user doesn't have the necessary permission to handle these events.
+   * Emits the latest call permission request sent by any participant of the current call.
    */
   callPermissionRequest$: Observable<PermissionRequestEvent | undefined>;
 
@@ -219,7 +217,7 @@ export class CallState {
   metadata$: Observable<CallResponse | undefined>;
 
   /**
-   * The list of members of the current call.
+   * The list of members in the current call.
    */
   members$: Observable<MemberResponse[]>;
 
@@ -492,7 +490,7 @@ export class CallState {
   };
 
   /**
-   * Will try to find the participant with the given sessionId in the active call.
+   * Will try to find the participant with the given sessionId in the current call.
    *
    * @param sessionId the sessionId of the participant to find.
    * @returns the participant with the given sessionId or undefined if not found.
@@ -504,7 +502,7 @@ export class CallState {
   };
 
   /**
-   * Updates a participant in the active call identified by the given `sessionId`.
+   * Updates a participant in the current call identified by the given `sessionId`.
    * If the participant can't be found, this operation is no-op.
    *
    * @internal
@@ -541,8 +539,8 @@ export class CallState {
   };
 
   /**
-   * Updates all participants in the active call whose session ID is in the given `sessionIds`.
-   * If no patch are provided, this operation is no-op.
+   * Updates all participants in the current call whose session ID is in the given `sessionIds`.
+   * If no patches are provided, this operation is no-op.
    *
    * @internal
    *
