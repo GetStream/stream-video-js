@@ -51,7 +51,7 @@
     "generate-docs:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run generate-docs",
     "start:docs:react": "yarn workspace @stream-io/video-react-sdk run start:docs ",
     "bootstrap": "scripts/bootstrap-rn.sh",
-    "release": "nx affected --target version --base=origin/main --parallel=1"
+    "release": "nx run-many --target version --base=origin/main --parallel=1"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.0",
