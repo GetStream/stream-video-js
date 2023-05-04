@@ -95,8 +95,7 @@ import { getSdkInfo } from './sdk-info';
 import { isReactNative } from './helpers/platforms';
 
 /**
- * A `Call` object represents the active call the user is part of.
- * It's not enough to have a `Call` instance, you will also need to call the [`join`](#join) method.
+ * An object representation of a `Call`.
  */
 export class Call {
   /**
@@ -377,11 +376,8 @@ export class Call {
 
     if (this.ringing) {
       // I'm the one who started the call, so I should cancel it.
-      const createdById = this.state.metadata?.created_by.id;
-      const isCallCreatedByMe = createdById === this.currentUserId;
       const hasOtherParticipants = this.state.remoteParticipants.length > 0;
-
-      if (isCallCreatedByMe && !hasOtherParticipants) {
+      if (this.isCreatedByMe && !hasOtherParticipants) {
         // Signals other users that I have cancelled my call to them
         // before they accepted it.
         // Causes the `call.ended` event to be emitted to all the call members.
@@ -433,6 +429,13 @@ export class Call {
    */
   get currentUserId() {
     return this.clientStore.connectedUser?.id;
+  }
+
+  /**
+   * A flag indicating whether the call was created by the current user.
+   */
+  get isCreatedByMe() {
+    return this.state.metadata?.created_by.id === this.currentUserId;
   }
 
   private waitForJoinResponse = (timeout: number = 5000) =>
@@ -526,10 +529,7 @@ export class Call {
       this.ringingSubject.next(true);
     }
 
-    if (
-      this.ringing &&
-      this.state.metadata?.created_by.id !== this.currentUserId
-    ) {
+    if (this.ringing && !this.isCreatedByMe) {
       // Signals other users that I have accepted the incoming call.
       // Causes the `call.accepted` event to be emitted to all the call members.
       await this.sendEvent({ type: 'call.accepted' });
@@ -766,11 +766,8 @@ export class Call {
    * Starts publishing the given video stream to the call.
    * The stream will be stopped if the user changes an input device, or if the user leaves the call.
    *
-   * If the method was successful the [`activeCall$` state variable](./StreamVideClient/#readonlystatestore) will be cleared
-   *
    * Consecutive calls to this method will replace the previously published stream.
    * The previous video stream will be stopped.
-   *
    *
    * @param videoStream the video stream to publish.
    * @param opts the options to use when publishing the stream.

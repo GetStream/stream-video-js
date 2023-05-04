@@ -5,64 +5,33 @@ import {
   useState,
   ForwardedRef,
 } from 'react';
-import {
-  offset,
-  autoUpdate,
-  size,
-  useFloating,
-  Placement,
-  Strategy,
-} from '@floating-ui/react';
+import { Placement, Strategy } from '@floating-ui/react';
 
-export type ToggleMenuButtonProps = {
+import { useFloatingUIPreset } from '../../hooks';
+
+export type ToggleMenuButtonProps<E extends HTMLElement = HTMLButtonElement> = {
   menuShown: boolean;
-  ref: ForwardedRef<HTMLButtonElement>;
+  ref: ForwardedRef<E>;
 };
 
-export type MenuToggleProps = PropsWithChildren<{
-  ToggleButton: ComponentType<ToggleMenuButtonProps>;
+export type MenuToggleProps<E extends HTMLElement> = PropsWithChildren<{
+  ToggleButton: ComponentType<ToggleMenuButtonProps<E>>;
   placement?: Placement;
   strategy?: Strategy;
 }>;
 
-export const MenuToggle = ({
+export const MenuToggle = <E extends HTMLElement>({
   ToggleButton,
   placement = 'top-start',
   strategy = 'absolute',
   children,
-}: MenuToggleProps) => {
+}: MenuToggleProps<E>) => {
   const [menuShown, setMenuShown] = useState(false);
 
-  const {
-    refs,
-    x,
-    y,
-    update,
-    elements: { domReference, floating },
-  } = useFloating({
+  const { floating, domReference, refs, x, y } = useFloatingUIPreset({
     placement,
     strategy,
-    middleware: [
-      offset(10),
-      size({
-        padding: 10,
-        apply({ availableHeight, elements }) {
-          Object.assign(elements.floating.style, {
-            maxHeight: `${availableHeight}px`,
-          });
-        },
-      }),
-    ],
   });
-
-  // handle window resizing
-  useEffect(() => {
-    if (!domReference || !floating) return;
-
-    const cleanup = autoUpdate(domReference, floating, update);
-
-    return () => cleanup();
-  }, [domReference, floating, update]);
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {

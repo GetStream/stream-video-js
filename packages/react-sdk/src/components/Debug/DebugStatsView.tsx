@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { usePopper } from 'react-popper';
 import { Call } from '@stream-io/video-client';
 import { useRtcStats } from '../../hooks/useRtcStats';
+import { useFloatingUIPreset } from '../../hooks';
 
 export const DebugStatsView = (props: {
   call: Call;
@@ -11,9 +11,11 @@ export const DebugStatsView = (props: {
   const { call, kind, mediaStream } = props;
   const stats = useRtcStats(call, kind, mediaStream);
 
-  const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
-  const [popover, setPopover] = useState<HTMLDivElement | null>(null);
-  const { styles, attributes } = usePopper(anchor, popover);
+  const { refs, strategy, y, x } = useFloatingUIPreset({
+    placement: 'top',
+    strategy: 'absolute',
+  });
+
   const [isPopperOpen, setIsPopperOpen] = useState(false);
 
   const [videoTrack] = mediaStream?.getVideoTracks() ?? [];
@@ -23,7 +25,7 @@ export const DebugStatsView = (props: {
       <span
         className="str-video__debug__track-stats-icon"
         tabIndex={0}
-        ref={setAnchor}
+        ref={refs.setReference}
         title={
           settings &&
           `${settings.width}x${settings.height}@${Math.round(
@@ -37,9 +39,13 @@ export const DebugStatsView = (props: {
       {isPopperOpen && (
         <div
           className="str-video__debug__track-stats"
-          ref={setPopover}
-          style={styles.popper}
-          {...attributes.popper}
+          ref={refs.setFloating}
+          style={{
+            position: strategy,
+            top: y ?? 0,
+            left: x ?? 0,
+            overflowY: 'auto',
+          }}
         >
           <pre>{JSON.stringify(stats, null, 2)}</pre>
         </div>

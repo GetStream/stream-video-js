@@ -1,0 +1,35 @@
+{
+  "name": "@stream-io/video-client",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "targets": {
+    "version": {
+      "executor": "@jscutlery/semver:version",
+      "options": {
+        "dryRun": false,
+        "preset": "angular",
+        "tagPrefix": "client",
+        "preid": "alpha",
+        "releaseAs": "prerelease",
+        "push": true,
+        "skipCommitTypes": ["chore", "ci"],
+        "postTargets": ["@stream-io/video-client:github", "@stream-io/video-client:npm"]
+      }
+    },
+    "github": {
+      "executor": "@jscutlery/semver:github",
+      "options": {
+        "tag": "${tag}",
+        "notes": "${notes}"
+      }
+    },
+    "npm": {
+      "executor": "ngx-deploy-npm:deploy",
+      "options": {
+        "access": "public",
+        "noBuild": true,
+        "dryRun": false,
+        "distFolderPath": "packages/client"
+      }
+    }
+  }
+}

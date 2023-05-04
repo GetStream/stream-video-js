@@ -32,13 +32,6 @@ export const watchParticipantLeft = (
     const { participant } = e.eventPayload.participantLeft;
     if (!participant) return;
 
-    // FIXME OL: sort out the active call
-    // const activeCall = store.getCurrentValue(store.activeCallSubject);
-    // if (callCid !== activeCall?.data.call.cid) {
-    //   console.warn('Received participantLeft notification for a unknown call');
-    //   return;
-    // }
-
     state.setParticipants((participants) =>
       participants.filter((p) => p.sessionId !== participant.sessionId),
     );

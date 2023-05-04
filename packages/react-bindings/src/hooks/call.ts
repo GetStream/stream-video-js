@@ -64,6 +64,8 @@ export const useCalls = () => {
 /**
  * Utility hook which provides a list of all incoming ring calls (somebody calls me).
  *
+ * @deprecated derive from useCalls()/useCall() instead.
+ * @internal
  * @category Client State
  */
 export const useIncomingCalls = () => {
@@ -74,6 +76,8 @@ export const useIncomingCalls = () => {
 /**
  * Utility hook which provides a list of all outgoing ring calls (I call somebody).
  *
+ * @deprecated derive from useCalls()/useCall() instead.
+ * @internal
  * @category Client State
  */
 export const useOutgoingCalls = () => {
