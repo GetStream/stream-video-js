@@ -4,9 +4,9 @@ import {
   Streami18n,
   useChatContext,
 } from 'stream-chat-react-native';
-import React, {PropsWithChildren, useCallback, useMemo} from 'react';
+import React, {PropsWithChildren, useCallback, useMemo, useState} from 'react';
 import {
-  StreamVideo,
+  StreamVideoCall,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -23,12 +23,15 @@ import {STREAM_API_KEY} from 'react-native-dotenv';
 import {useAppContext} from '../context/AppContext';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {v4 as uuidv4} from 'uuid';
 
 console.log('STREAM_API_KEY', STREAM_API_KEY);
 
 export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
+  const setRandomCallId = () => SetCallId(uuidv4().toLowerCase());
   const {client} = useChatContext<StreamChatGenerics>();
   const {channel} = useAppContext();
+  const [callId, SetCallId] = useState<string>(uuidv4().toLowerCase());
   const token = client._getToken() || '';
 
   const user = useMemo<VideoProps['user']>(
@@ -67,6 +70,7 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
     } else {
       navigation.navigate('ChannelScreen');
     }
+    setRandomCallId();
   }, [channel, navigation]);
 
   const onCallRejected = useCallback(() => {
@@ -75,6 +79,7 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
     } else {
       navigation.navigate('ChannelScreen');
     }
+    setRandomCallId();
   }, [navigation, channel]);
 
   const callCycleHandlers = useMemo(() => {
@@ -98,9 +103,12 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
   }
 
   return (
-    <StreamVideo client={videoClient} callCycleHandlers={callCycleHandlers}>
+    <StreamVideoCall
+      callId={callId}
+      client={videoClient}
+      callCycleHandlers={callCycleHandlers}>
       {children}
-    </StreamVideo>
+    </StreamVideoCall>
   );
 };
 

@@ -1,13 +1,11 @@
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect} from 'react';
 import {
   CallControlsView,
-  StreamCallProvider,
-  StreamVideo,
-  useCallCycleContext,
+  StreamVideoCall,
+  useCall,
   useCreateStreamVideoClient,
   usePublishMediaStreams,
-  useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import {
   STREAM_API_KEY,
@@ -22,7 +20,6 @@ import MyCallParticipantsView from './MyCallParticipantsView';
 import IntroModal from './IntroModal';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../../types';
-import {Call} from '@stream-io/video-client';
 
 const USER = {
   id: STREAM_USER_ID,
@@ -44,37 +41,31 @@ export default () => {
     tokenOrProvider: USER?.custom?.token,
     apiKey: STREAM_API_KEY,
   });
-  const handleonCallHungUp = () => navigation.navigate('WelcomeScreen');
+  const handleOnCallHungUp = () => navigation.navigate('WelcomeScreen');
 
   return (
-    <StreamVideo
+    <StreamVideoCall
+      callId={generateCallId()}
       client={videoClient}
-      callCycleHandlers={{onCallHungUp: handleonCallHungUp}}>
+      callCycleHandlers={{onCallHungUp: handleOnCallHungUp}}>
       <MyActiveCall />
-    </StreamVideo>
+    </StreamVideoCall>
   );
 };
 
 const MyActiveCall = () => {
-  const videoClient = useStreamVideoClient();
+  const call = useCall();
   const insets = useSafeAreaInsets();
-  const callId = useRef<string>(generateCallId());
-  const [call, setCall] = useState<Call>();
-  const {callCycleHandlers} = useCallCycleContext();
-  const {onCallHungUp} = callCycleHandlers;
   usePublishMediaStreams();
 
   useEffect(() => {
+    if (!call) {
+      return;
+    }
     const startCall = async () => {
       try {
-        // Join the call and start the call cycle.
-        const newCall = await videoClient?.call('default', callId.current);
-        if (!newCall) {
-          return;
-        }
-
-        await newCall.join({create: true});
-        setCall(newCall);
+        // Join the call.
+        await call.join({create: true});
 
         // Start InCallManager and enable the speakerphone.
         InCallManager.start({media: 'video'});
@@ -84,21 +75,18 @@ const MyActiveCall = () => {
       }
     };
     startCall();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [callId.current]);
+  }, [call]);
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
 
   return (
-    <StreamCallProvider call={call}>
-      <View style={[styles.wrapper, {paddingTop: insets.top}]}>
-        <IntroModal callId={callId.current} />
-        <MyCallParticipantsView />
-        <CallControlsView onCallHungUp={onCallHungUp} />
-      </View>
-    </StreamCallProvider>
+    <View style={[styles.wrapper, {paddingTop: insets.top}]}>
+      <IntroModal callId={call.id} />
+      <MyCallParticipantsView />
+      <CallControlsView />
+    </View>
   );
 };
 
