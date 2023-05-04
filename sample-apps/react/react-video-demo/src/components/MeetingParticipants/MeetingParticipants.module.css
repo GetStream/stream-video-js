@@ -6,6 +6,10 @@
   .root {
     @apply max-w-[80%];
   }
+
+  .root.slider {
+    @apply max-w-none;
+  }
 }
 
 .meetingGrid {
@@ -14,14 +18,14 @@
 
 .meetingGrid.slider {
   @apply grid pl-4 pr-4 pt-0 pb-0 sm:p-4  gap-y-3  w-full;
-  height: calc(100vh - 180px);
+  height: calc(100dvh - 180px);
   grid-template-rows: 1fr 0.25fr;
   grid-template-areas:
     'localParticipant'
     'participantSlider';
 }
 
-.meetingGrid.slider.localParticipant {
+.meetingGrid.slider .localParticipant {
   grid-area: localParticipant;
   @apply flex justify-center items-center w-full;
 }
@@ -31,34 +35,53 @@
   @apply flex;
 }
 
-.meetingGrid .localParticipant,
-.meetingGrid .remoteParticipant {
-  @apply max-h-[225px] w-full;
+/* participant boxes */
+.meetingGrid .localParticipant {
+  @apply w-full;
+  aspect-ratio: auto;
 }
 
-@media screen(sm) {
+.meetingGrid .localParticipant:hover,
+.meetingGrid .remoteParticipant:hover {
+  cursor: pointer;
 }
+/* end participant boxes */
 
-@media screen(md) {
-  .meetingGrid .localParticipant,
-  .meetingGrid .remoteParticipant {
-    @apply max-h-[225px] w-auto;
-  }
-}
-
+/* one participant */
 .meetingGrid-1 {
   @apply flex items-center justify-center h-full;
   grid-template-columns: repeat(1, 1fr);
   grid-template-rows: repeat(1, 1fr);
 }
 
-.meetingGrid.slider .localParticipant {
-  @apply w-full;
+@media screen(sm) {
+  .meetingGrid-1 .localParticipant,
+  .meetingGrid-1 .remoteParticipant {
+    @apply max-h-[225px] w-full;
+  }
 }
+
+@media screen(md) {
+  .meetingGrid-1 .localParticipant,
+  .meetingGrid-1 .remoteParticipant {
+    @apply h-auto max-h-[350px] w-auto;
+    aspect-ratio: 16/9;
+  }
+}
+
+/* end one participant */
+
+/* two participants */
 
 .meetingGrid-2 {
   grid-template-columns: repeat(1, 1fr);
   grid-template-rows: repeat(2, 1fr);
+}
+
+.meetingGrid-2 .remoteParticipant,
+.meetingGrid-2 .localParticipant {
+  @apply w-full max-h-[225px];
+  aspect-ratio: 16/9;
 }
 
 @media screen(sm) {
@@ -69,9 +92,18 @@
   }
 }
 
+/* end two participants */
+
+/* three participants */
 .meetingGrid-3 {
   grid-template-columns: repeat(1, 1fr);
   grid-template-rows: repeat(3, 1fr);
+}
+
+.meetingGrid-3 .remoteParticipant,
+.meetingGrid-3 .localParticipant {
+  @apply w-full max-h-[150px];
+  aspect-ratio: 16/9;
 }
 
 @media screen(sm) {
@@ -82,30 +114,110 @@
   }
 }
 
+@media screen(md) {
+  .meetingGrid-3 .localParticipant,
+  .meetingGrid-3 .remoteParticipant {
+    @apply h-auto max-h-none w-auto;
+    aspect-ratio: 16/9;
+  }
+}
+
+/* end three participants */
+
+/* four participants */
+
 .meetingGrid-4 {
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
 }
+
+@media screen(md) {
+  .meetingGrid-4 .localParticipant,
+  .meetingGrid-4 .remoteParticipant {
+    @apply h-auto max-h-none w-auto;
+    aspect-ratio: 16/9;
+  }
+}
+
+/* end four participants */
 
 .meetingGrid-5 {
   @apply h-auto;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, 1fr);
 }
+
+@media screen(md) {
+  .meetingGrid-5 .localParticipant,
+  .meetingGrid-5 .remoteParticipant {
+    @apply h-auto max-h-none w-auto;
+    aspect-ratio: 16/9;
+  }
+}
+
+/* end five participants */
+
+/* six participants */
 .meetingGrid-6 {
   @apply h-auto;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, 1fr);
 }
+
+@media screen(md) {
+  .meetingGrid-6 .localParticipant,
+  .meetingGrid-6 .remoteParticipant {
+    @apply h-auto max-h-none w-auto;
+    aspect-ratio: 16/9;
+  }
+}
+
+/* end six participants */
+
+/* seven participants */
+
 .meetingGrid-7 {
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
 }
+
+@media screen(md) {
+  .meetingGrid-7 .localParticipant,
+  .meetingGrid-7 .remoteParticipant {
+    @apply h-auto max-h-none w-auto;
+    aspect-ratio: 16/9;
+  }
+}
+
+/* end seven participants */
+
+/* eight participants */
 .meetingGrid-8 {
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
 }
+
+@media screen(md) {
+  .meetingGrid-8 .localParticipant,
+  .meetingGrid-8 .remoteParticipant {
+    @apply h-auto max-h-none w-auto;
+    aspect-ratio: 16/9;
+  }
+}
+/* end eight participants */
+
+/* nine participants */
 .meetingGrid-9 {
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
 }
+
+@media screen(md) {
+  .meetingGrid-9 .localParticipant,
+  .meetingGrid-9 .remoteParticipant {
+    @apply h-auto max-h-none w-auto;
+    aspect-ratio: 16/9;
+  }
+}
+
+/* end nine participants */

@@ -38,6 +38,10 @@ export const MeetingParticipants: FC<Props> = ({
   }, [breakpoint]);
 
   if (maxParticipants) {
+    const rootClassNames = classnames(styles.root, {
+      [styles.slider]: remoteParticipants?.length > maxParticipants,
+    });
+
     const gridClassNames = classnames(styles.meetingGrid, {
       [styles?.[`meetingGrid-${remoteParticipants.length + 1}`]]:
         remoteParticipants?.length <= maxParticipants,
@@ -45,7 +49,7 @@ export const MeetingParticipants: FC<Props> = ({
     });
 
     return (
-      <div className={styles.root}>
+      <div className={rootClassNames}>
         <div className={gridClassNames}>
           {localParticipant && (
             <ParticipantBox

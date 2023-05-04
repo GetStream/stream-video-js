@@ -41,8 +41,15 @@
   border-radius: 12px;
 }
 
+.str-video__base-video
+  str-video__remote-video
+  str-video__remote-video--mirror
+  str-video__video--tall {
+  object-fit: cover !important;
+  border-radius: 12px;
+}
+
 .str-video__participant .str-video__video-container .str-video__remote-video {
-  aspect-ratio: auto;
   object-fit: cover !important;
   border-radius: 12px;
 }
@@ -62,6 +69,7 @@
   bottom: 0;
   left: 0;
   @apply w-full;
+  opacity: 1;
 }
 
 .str-video__participant .str-video__participant_name {
