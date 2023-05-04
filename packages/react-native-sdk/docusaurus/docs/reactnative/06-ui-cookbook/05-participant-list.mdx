@@ -3,9 +3,6 @@ id: 05-participant-list
 title: Custom Participants List layout
 ---
 
-import FinalLayout1 from '../assets/06-ui-cookbook/05-participant-list/01-final-layout.png';
-import FinalLayout2 from '../assets/06-ui-cookbook/05-participant-list/02-final-layout.png';
-
 ## Introduction
 
 The purpose of this guide is to help developers understand how to build a custom call participant list layout
@@ -82,7 +79,7 @@ To join a call, we need to know its ID and type. The call ID and type can come f
 In our example, we are going to hard code the call ID and type, but you can use any other method that will suit your business logics to get this information.
 
 ```tsx
-import React, { useEffect, setState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   usePublishStreams,
   useStreamVideoClient,
@@ -110,11 +107,11 @@ const MyActiveCall = () => {
         if (!newCall) {
           return;
         }
-        await newCall.join({create: true});
+        await newCall.join({ create: true });
         setCall(newCall);
 
         // Start InCallManager and enable the speakerphone.
-        InCallManager.start({media: 'video'});
+        InCallManager.start({ media: 'video' });
         InCallManager.setForceSpeakerphoneOn(true);
       } catch (e) {
         console.log('Error joining call', e);
