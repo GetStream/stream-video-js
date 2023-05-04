@@ -52,10 +52,16 @@ const contents = {
 
 type MeetingUIProps = {
   chatClient?: StreamChat | null;
+  enablePreview?: boolean;
   callId: string;
   callType: string;
 };
-export const MeetingUI = ({ chatClient, callId, callType }: MeetingUIProps) => {
+export const MeetingUI = ({
+  chatClient,
+  enablePreview,
+  callId,
+  callType,
+}: MeetingUIProps) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call'
   >('lobby');
@@ -139,7 +145,9 @@ export const MeetingUI = ({ chatClient, callId, callType }: MeetingUIProps) => {
     );
   }
   if (show === 'lobby') {
-    return <Lobby onJoin={onJoin} callId={callId} />;
+    return (
+      <Lobby onJoin={onJoin} callId={callId} enablePreview={enablePreview} />
+    );
   }
 
   if (show === 'loading')
