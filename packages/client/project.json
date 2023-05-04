@@ -11,6 +11,7 @@
         "preid": "alpha",
         "releaseAs": "prerelease",
         "push": true,
+        "skipCommitTypes": ["chore", "ci"],
         "postTargets": ["@stream-io/video-client:github", "@stream-io/video-client:npm"]
       }
     },

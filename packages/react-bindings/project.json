@@ -11,6 +11,7 @@
         "releaseAs": "prerelease",
         "trackDeps": true,
         "push": true,
+        "skipCommitTypes": ["chore", "ci"],
         "postTargets": ["@stream-io/video-react-bindings:github"]
       }
     },
