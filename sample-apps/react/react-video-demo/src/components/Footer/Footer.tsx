@@ -19,7 +19,7 @@ import Portal from '../Portal';
 import SettingsPanel from '../SettingsPanel';
 import ReactionsPanel from '../ReactionsPanel';
 
-import { useTourContext, StepNames } from '../../contexts/TourContext';
+import { useTourContext } from '../../contexts/TourContext';
 import { useModalContext } from '../../contexts/ModalContext';
 import { usePanelContext } from '../../contexts/PanelContext';
 
@@ -63,31 +63,13 @@ export const Footer: FC<Props> = ({
   } = usePanelContext();
 
   const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(true);
-  const [showReactionsPanel, setShowReactionsPanel] = useState<boolean>(false);
+  const [showReactionsPanel] = useState<boolean>(false);
 
   useEffect(() => {
     if (isVisible && showSettingsPanel) {
       setShowSettingsPanel(false);
     }
   }, [showSettingsPanel, isVisible]);
-
-  useEffect(() => {
-    if (current === StepNames.Chat && isChatVisible === false) {
-      toggleChat();
-    }
-
-    if (current === StepNames.Settings && showSettingsPanel === false) {
-      setShowSettingsPanel(true);
-    }
-  }, [current, isChatVisible]);
-
-  useEffect(() => {
-    setShowSettingsPanel(isVisible || current === StepNames.Settings);
-  }, [isVisible, current]);
-
-  const settingsClassNames = classnames(styles.settings, {
-    [styles.active]: current === StepNames.Settings,
-  });
 
   const recordClassNames = classnames(styles.record, {
     [styles.recording]: isRecording,
@@ -98,9 +80,8 @@ export const Footer: FC<Props> = ({
     <section className={styles.footer}>
       <div className={styles.settingsContainer}>
         <ControlButton
-          className={settingsClassNames}
+          className={styles.settings}
           portalId="settings"
-          onClick={() => setShowSettingsPanel(!showSettingsPanel)}
           showPanel={showSettingsPanel}
           label="More"
           panel={
@@ -111,6 +92,7 @@ export const Footer: FC<Props> = ({
                   !isRecording ? handleStartRecording : handleStopRecording
                 }
                 toggleShareScreen={toggleShareScreen}
+                closePanel={() => setShowSettingsPanel(false)}
               />
             </Portal>
           }
@@ -152,7 +134,6 @@ export const Footer: FC<Props> = ({
         <ControlButton
           className={styles.reactions}
           portalId="reactions"
-          onClick={() => setShowReactionsPanel(!showReactionsPanel)}
           showPanel={showReactionsPanel}
           label="Reaction"
           panel={
@@ -184,13 +165,7 @@ export const Footer: FC<Props> = ({
         <Button
           className={styles.chat}
           label="Chat"
-          color={
-            current === StepNames.Chat
-              ? 'primary'
-              : isChatVisible
-              ? 'active'
-              : 'secondary'
-          }
+          color={isChatVisible ? 'active' : 'secondary'}
           shape="square"
           onClick={() => toggleChat()}
         >
