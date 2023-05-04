@@ -8,10 +8,6 @@ const PUNCHLINES = [
   'Video has been launched! 🎉🚀 Keep Pushing!  💪',
 ];
 
-const DEADLINE = new Date(
-  new Date('2023-06-01T00:00:00Z').getTime() + 12 * 3600 * 1000,
-).getTime();
-
 const formatValue = (value: number) =>
   value < 10 ? `0${value}` : value.toString();
 
@@ -19,9 +15,9 @@ const divMod = (dividend: number, divisor: number) => [
   Math.floor(dividend / divisor),
   dividend % divisor,
 ];
-const calculateTimeLeft = () => {
+const calculateTimeLeft = (deadline: number) => {
   const now = new Date().getTime();
-  const totalSecondsLeft = Math.round((DEADLINE - now) / 1000);
+  const totalSecondsLeft = Math.round((deadline - now) / 1000);
 
   if (totalSecondsLeft <= 0)
     return { totalSecondsLeft: 0, days: 0, hours: 0, minutes: 0, seconds: 0 };
@@ -38,15 +34,22 @@ const calculateTimeLeft = () => {
   };
 };
 
-export const Countdown = () => {
-  const [left, setLeft] = useState(calculateTimeLeft);
+type CountdownProps = {
+  deadlineTimestamp: number;
+};
+
+export const Countdown = ({ deadlineTimestamp }: CountdownProps) => {
+  const [left, setLeft] = useState(calculateTimeLeft(deadlineTimestamp));
 
   useEffect(() => {
-    const interval = setInterval(() => setLeft(calculateTimeLeft()), 1000);
+    const interval = setInterval(
+      () => setLeft(calculateTimeLeft(deadlineTimestamp)),
+      1000,
+    );
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [deadlineTimestamp]);
 
   return (
     <Stack

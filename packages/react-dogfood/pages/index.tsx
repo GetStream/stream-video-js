@@ -20,7 +20,11 @@ import translations from '../translations';
 import { useSettings } from '../context/SettingsContext';
 import { Countdown } from '../components/Countdown';
 
-export default function Home() {
+type HomeProps = {
+  launchDeadlineTimestamp: number;
+};
+
+export default function Home({ launchDeadlineTimestamp }: HomeProps) {
   const { data: session, status } = useSession();
   const {
     settings: { language },
@@ -41,12 +45,12 @@ export default function Home() {
       translationsOverrides={translations}
       language={language}
     >
-      <HomeContent />
+      <HomeContent launchDeadlineTimestamp={launchDeadlineTimestamp} />
     </StreamI18nProvider>
   );
 }
 
-const HomeContent = () => {
+const HomeContent = ({ launchDeadlineTimestamp }: HomeProps) => {
   const { t } = useI18n();
 
   return (
@@ -68,7 +72,7 @@ const HomeContent = () => {
           <JoinCallForm />
         </Stack>
       </Stack>
-      <Countdown />
+      <Countdown deadlineTimestamp={launchDeadlineTimestamp} />
     </>
   );
 };
@@ -138,4 +142,17 @@ const JoinCallForm = () => {
       />
     </div>
   );
+};
+
+export const getServerSideProps = async () => {
+  const launchDeadlineTimestamp = new Date(
+    new Date(process.env.LAUNCH_DEADLINE || '2023-06-01T00:00:00Z').getTime() +
+      12 * 3600 * 1000,
+  ).getTime();
+
+  return {
+    props: {
+      launchDeadlineTimestamp,
+    } as HomeProps,
+  };
 };
