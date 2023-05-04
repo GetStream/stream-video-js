@@ -17,7 +17,7 @@
       "executor": "@jscutlery/semver:github",
       "options": {
         "tag": "${tag}",
-        "notesFile": "./CHANGELOG.md"
+        "notes": "${notes}"
       }
     },
     "npm": {
