@@ -10,12 +10,12 @@ import { useCallCycleEffect } from '../hooks';
 export interface StreamCallProps {
   callId: string;
   callType?: string;
-  callCycleHandlers?: CallCycleHandlersType;
+  callCycleHandlers: CallCycleHandlersType;
 }
 /**
- *
- * @param props
- * @returns
+ * StreamCall is a wrapper component that orchestrates the call life cycle logic and
+ * provides the call object to the children components.
+ * @param PropsWithChildren<StreamCallProps>
  *
  * @category Client State
  */
@@ -64,15 +64,24 @@ export const StreamCall = ({
  * @internal
  */
 export type CallCycleHandlersType = {
+  /**
+   * Handler called after a call is joined. Mostly used for navigation and related actions.
+   */
   onCallJoined?: () => void;
+  /**
+   * Handler called after a callee receives a call. Mostly used for navigation and related actions.
+   */
   onCallIncoming?: () => void;
   /**
-   * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
+   * Handler called after a call is hung up by the caller. Mostly used for navigation and cleanup actions.
    */
   onCallHungUp?: () => void;
+  /**
+   * Handler called after a caller initiates a call. Mostly used for navigation and related actions.
+   */
   onCallOutgoing?: () => void;
   /**
-   * Handler called when the call is rejected. Mostly used for navigation and related actions.
+   * Handler called after a call is rejected. Mostly used for navigation and cleanup actions.
    */
   onCallRejected?: () => void;
 };

@@ -3,13 +3,14 @@ import React, { PropsWithChildren } from 'react';
 import { StreamVideo } from './StreamVideo';
 import { StreamCall, StreamCallProps } from './StreamCall';
 
-// <StreamCall /> shouldn't be embedded in <StreamVideo />
-// as otherwise it becomes hard to support multiple calls
-// (call-watching scenario). eg: Audio Rooms use-case.
 /**
+ * StreamVideoCall is a wrapper component that utilizes StreamVideo and StreamCall
+ * components. It is a convenience component that can be used in cases where you have
+ * a single call in your application.
  *
- * @param props
- * @returns
+ * If you have multiple calls in your application you can use StreamVideo and StreamCall
+ * components directly by mimicking the logic in this component.
+ * @param PropsWithChildren<StreamVideoProps & StreamCallProps>
  *
  * @category Client State
  */

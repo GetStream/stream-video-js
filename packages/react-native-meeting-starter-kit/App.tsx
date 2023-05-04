@@ -5,15 +5,14 @@
  * @format
  */
 
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {NavigationContainer, useNavigation} from '@react-navigation/native';
 import {AppProvider, useAppContext} from './src/context/AppContext';
 import {AuthProgressLoader} from './src/components/AuthProgressLoader';
 import {STREAM_API_KEY} from 'react-native-dotenv';
 import {
   CallParticipantsInfoView,
-  StreamCallProvider,
-  StreamVideo,
+  StreamVideoCall,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import {
@@ -26,7 +25,7 @@ import {JoinMeetingScreen} from './src/screens/JoinMeetingScreen';
 import {NavigationHeader} from './src/components/NavigationHeader';
 import {LobbyViewScreen} from './src/screens/LobbyViewScreen';
 import {ActiveCallScreen} from './src/screens/ActiveCallScreen';
-import {Call, User} from '@stream-io/video-client';
+import {User} from '@stream-io/video-client';
 
 console.log('STREAM_API_KEY', STREAM_API_KEY);
 
@@ -49,60 +48,45 @@ const Navigator = ({selectedUser}: {selectedUser: User}) => {
   });
   const navigation =
     useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();
-  const [call, setCall] = useState<Call>();
   const {
     callParams: {callId, callType},
   } = useAppContext();
-
-  useEffect(() => {
-    if (!callId || !callType || !videoClient) {
-      return;
-    }
-    const newCall = videoClient.call(callType, callId);
-    setCall(newCall);
-
-    return () => {
-      newCall.leave().catch(e => console.log(e));
-    };
-  }, [callId, callType, videoClient]);
 
   if (!videoClient) {
     return <AuthProgressLoader />;
   }
 
   return (
-    <StreamCallProvider call={call}>
-      <StreamVideo
-        client={videoClient}
-        callCycleHandlers={{
-          onCallJoined: () => navigation.navigate('ActiveCallScreen'),
-          onCallHungUp: () => navigation.navigate('JoinMeetingScreen'),
-        }}>
-        <StreamCallProvider call={call}>
-          <Stack.Navigator>
-            <Stack.Screen
-              name="JoinMeetingScreen"
-              component={JoinMeetingScreen}
-              options={{header: NavigationHeader}}
-            />
-            <Stack.Screen
-              name="CallLobbyScreen"
-              component={LobbyViewScreen}
-              options={{header: NavigationHeader}}
-            />
-            <Stack.Screen
-              name="ActiveCallScreen"
-              component={ActiveCallScreen}
-              options={{headerShown: false}}
-            />
-            <Stack.Screen
-              name="CallParticipantsInfoScreen"
-              component={CallParticipantsInfoView}
-            />
-          </Stack.Navigator>
-        </StreamCallProvider>
-      </StreamVideo>
-    </StreamCallProvider>
+    <StreamVideoCall
+      client={videoClient}
+      callId={callId}
+      callType={callType}
+      callCycleHandlers={{
+        onCallHungUp: () => navigation.navigate('JoinMeetingScreen'),
+        onCallJoined: () => navigation.navigate('ActiveCallScreen'),
+      }}>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="JoinMeetingScreen"
+          component={JoinMeetingScreen}
+          options={{header: NavigationHeader}}
+        />
+        <Stack.Screen
+          name="CallLobbyScreen"
+          component={LobbyViewScreen}
+          options={{header: NavigationHeader}}
+        />
+        <Stack.Screen
+          name="ActiveCallScreen"
+          component={ActiveCallScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="CallParticipantsInfoScreen"
+          component={CallParticipantsInfoView}
+        />
+      </Stack.Navigator>
+    </StreamVideoCall>
   );
 };
 
