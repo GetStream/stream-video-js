@@ -60,6 +60,7 @@ export const ActiveCallHeader = ({
             copyValue={
               typeof window !== 'undefined' ? window.location.href : ''
             }
+            popupPlacement="bottom"
           />
           <CallRecordings />
           <DeviceSettings />
