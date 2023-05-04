@@ -13,6 +13,7 @@ import {
   useCreateStreamVideoClient,
   MediaDevicesProvider,
 } from '@stream-io/video-react-sdk';
+
 import { User } from '@stream-io/video-client';
 import { FeatureCollection, Geometry } from 'geojson';
 
@@ -121,24 +122,24 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
 
   return (
     <StreamVideo client={client}>
-      <ModalProvider>
-        {isCallActive && callId && client ? (
-          <NotificationProvider>
-            <PanelProvider>
-              <TourProvider>
-                <MeetingView
-                  logo={logo}
-                  callId={callId}
-                  callType={callType}
-                  isCallActive={isCallActive}
-                  setCallHasEnded={setCallHasEnded}
-                  chatClient={chatClient}
-                />
-              </TourProvider>
-            </PanelProvider>
-          </NotificationProvider>
-        ) : (
-          <MediaDevicesProvider initialVideoEnabled={true}>
+      <MediaDevicesProvider initialVideoEnabled={true}>
+        <ModalProvider>
+          {isCallActive && callId && client ? (
+            <NotificationProvider>
+              <PanelProvider>
+                <TourProvider>
+                  <MeetingView
+                    logo={logo}
+                    callId={callId}
+                    callType={callType}
+                    isCallActive={isCallActive}
+                    setCallHasEnded={setCallHasEnded}
+                    chatClient={chatClient}
+                  />
+                </TourProvider>
+              </PanelProvider>
+            </NotificationProvider>
+          ) : (
             <LobbyView
               logo={logo}
               user={user}
@@ -148,9 +149,9 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
               isjoiningCall={isjoiningCall}
               joinCall={joinMeeting}
             />
-          </MediaDevicesProvider>
-        )}
-      </ModalProvider>
+          )}
+        </ModalProvider>
+      </MediaDevicesProvider>
     </StreamVideo>
   );
 };

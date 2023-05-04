@@ -13,8 +13,6 @@ import {
   StreamCallProvider,
 } from '@stream-io/video-react-bindings';
 
-import { MediaDevicesProvider } from '@stream-io/video-react-sdk';
-
 import Header from '../../Header';
 import Footer from '../../Footer';
 import Sidebar from '../../Sidebar';
@@ -204,9 +202,7 @@ export const MeetingView: FC<Props> = (props) => {
 
   return (
     <StreamCallProvider call={activeCall}>
-      <MediaDevicesProvider enumerate>
-        <View call={activeCall} {...props} />
-      </MediaDevicesProvider>
+      <View call={activeCall} {...props} />
     </StreamCallProvider>
   );
 };
