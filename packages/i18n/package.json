@@ -9,7 +9,8 @@
     "start": "tsc --project tsconfig.json --watch",
     "build": "yarn clean && tsc --project tsconfig.json",
     "docs:clean": "rimraf generated-docs",
-    "docs:generate": "yarn docs:clean && ./scripts/generate-docs.sh"
+    "docs:generate": "yarn docs:clean && ./scripts/generate-docs.sh",
+    "publish-to-npm": "yarn npm publish --access public"
   },
   "dependencies": {
     "i18next": "^22.4.15"

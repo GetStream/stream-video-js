@@ -12,7 +12,7 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["chore", "ci"],
-        "postTargets": ["@stream-io/video-react-sdk:github", "@stream-io/video-react-sdk:npm"]
+        "postTargets": ["@stream-io/video-react-sdk:github", "@stream-io/video-react-sdk:publish"]
       }
     },
     "github": {
@@ -22,13 +22,10 @@
         "notes": "${notes}"
       }
     },
-    "npm": {
-      "executor": "ngx-deploy-npm:deploy",
+    "publish": {
+      "executor": "nx:run-script",
       "options": {
-        "access": "public",
-        "noBuild": true,
-        "dryRun": true,
-        "distFolderPath": "packages/react-sdk"
+          "script": "publish-to-npm"
       }
     }
   }

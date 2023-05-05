@@ -10,7 +10,8 @@
     "build": "tsc --project tsconfig.production.json",
     "copy-css": "cp -r ../../node_modules/@stream-io/video-styling/dist/ dist",
     "generate-docs": "../../scripts/generate-docs.sh React @stream-io/video-react-sdk react-sdk",
-    "start:docs": "npx stream-chat-docusaurus -s"
+    "start:docs": "npx stream-chat-docusaurus -s",
+    "publish-to-npm": "yarn npm publish --access public"
   },
   "files": [
     "dist",
