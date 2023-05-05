@@ -19,7 +19,6 @@ import Portal from '../Portal';
 import SettingsPanel from '../SettingsPanel';
 import ReactionsPanel from '../ReactionsPanel';
 
-import { useTourContext } from '../../contexts/TourContext';
 import { useModalContext } from '../../contexts/ModalContext';
 import { usePanelContext } from '../../contexts/PanelContext';
 
@@ -53,7 +52,6 @@ export const Footer: FC<Props> = ({
   participantCount,
   leave,
 }) => {
-  const { current } = useTourContext();
   const { isVisible } = useModalContext();
   const {
     isChatVisible,
@@ -92,7 +90,6 @@ export const Footer: FC<Props> = ({
                   !isRecording ? handleStartRecording : handleStopRecording
                 }
                 toggleShareScreen={toggleShareScreen}
-                closePanel={() => setShowSettingsPanel(false)}
               />
             </Portal>
           }
