@@ -9,7 +9,7 @@
     "start": "tsc --project tsconfig.json --watch",
     "build": "tsc --project tsconfig.production.json",
     "generate-docs": "rimraf generated-docs && typedoc --options typedoc.json ./index.ts && replace-in-file '# @stream-io/video-react-bindings' '# Hooks' temp-docs/** && replace-in-file '.md' '' 'temp-docs/**' && mkdir generated-docs && cp temp-docs/modules.md generated-docs/hooks.md && rm -rf temp-docs",
-    "publish-to-npm": "yarn npm publish --access public"
+    "publish-to-npm": "yarn npm publish --access=public"
   },
   "files": [
     "dist",

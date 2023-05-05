@@ -10,7 +10,7 @@
     "build": "yarn clean && tsc --project tsconfig.json",
     "docs:clean": "rimraf generated-docs",
     "docs:generate": "yarn docs:clean && ./scripts/generate-docs.sh",
-    "publish-to-npm": "yarn npm publish --access public"
+    "publish-to-npm": "yarn npm publish --access=public"
   },
   "files": [
     "dist",
