@@ -116,26 +116,26 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
 
   return (
     <StreamVideo client={client}>
-      <ModalProvider>
-        {isCallActive && callId && activeCall && client ? (
-          <NotificationProvider>
-            <PanelProvider>
-              <TourProvider>
-                <MeetingView
-                  logo={logo}
-                  call={activeCall}
-                  callId={callId}
-                  callType={callType}
-                  isCallActive={isCallActive}
-                  setCallHasEnded={setCallHasEnded}
-                  chatClient={chatClient}
-                />
-              </TourProvider>
-            </PanelProvider>
-          </NotificationProvider>
-        ) : (
-          <MediaDevicesProvider initialVideoEnabled={true}>
-            <StreamCallProvider call={activeCall}>
+      <StreamCallProvider call={activeCall}>
+        <ModalProvider>
+          {isCallActive && callId && client ? (
+            <NotificationProvider>
+              <PanelProvider>
+                <TourProvider>
+                  <MeetingView
+                    logo={logo}
+                    call={activeCall}
+                    callId={callId}
+                    callType={callType}
+                    isCallActive={isCallActive}
+                    setCallHasEnded={setCallHasEnded}
+                    chatClient={chatClient}
+                  />
+                </TourProvider>
+              </PanelProvider>
+            </NotificationProvider>
+          ) : (
+            <MediaDevicesProvider initialVideoEnabled={true}>
               <LobbyView
                 logo={logo}
                 user={user}
@@ -146,10 +146,10 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
                 isjoiningCall={isjoiningCall}
                 joinCall={joinMeeting}
               />
-            </StreamCallProvider>
-          </MediaDevicesProvider>
-        )}
-      </ModalProvider>
+            </MediaDevicesProvider>
+          )}
+        </ModalProvider>
+      </StreamCallProvider>
     </StreamVideo>
   );
 };

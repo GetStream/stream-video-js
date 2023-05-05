@@ -6,7 +6,6 @@ import {
   getScreenShareStream,
   MediaDevicesProvider,
   SfuModels,
-  StreamCallProvider,
   useCurrentCallStatsReport,
   useHasOngoingScreenShare,
   useIsCallRecordingInProgress,
@@ -201,10 +200,8 @@ export const View: FC<Props & Meeting> = ({
 export const MeetingView: FC<Props> = (props) => {
   const { call: activeCall, ...rest } = props;
   return (
-    <StreamCallProvider call={activeCall}>
-      <MediaDevicesProvider enumerate>
-        <View call={activeCall} {...rest} />
-      </MediaDevicesProvider>
-    </StreamCallProvider>
+    <MediaDevicesProvider enumerate>
+      <View call={activeCall} {...rest} />
+    </MediaDevicesProvider>
   );
 };
