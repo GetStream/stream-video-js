@@ -113,10 +113,9 @@ export const Img: FC<{
   return <>{placeholder}</>;
 };
 
-export const Participants: FC<Pick<Props, 'className' | 'participants'>> = ({
-  className,
-  participants,
-}) => {
+export const Participants: FC<
+  Pick<Props, 'className' | 'participants' | 'logo'>
+> = ({ className, participants, logo }) => {
   const rootClassName = classnames(styles.participants, className);
   const maxDisplayParticipants = participants.slice(0, 3);
   const names = maxDisplayParticipants.map(
@@ -126,6 +125,7 @@ export const Participants: FC<Pick<Props, 'className' | 'participants'>> = ({
 
   return (
     <div className={rootClassName}>
+      <img src={logo} className={styles.logo} alt="logo" />
       <div className={styles.innerParticipants}>
         <ul className={styles.avatars}>
           {maxDisplayParticipants.map((participant: any) => {
@@ -148,7 +148,7 @@ export const Participants: FC<Pick<Props, 'className' | 'participants'>> = ({
           {names.join(', ')} and {last} {participants.length > 3 ? '...' : ''}
         </h5>
       </div>
-      <Security />
+      <Security className={styles.security} />
     </div>
   );
 };
@@ -193,7 +193,7 @@ export const Header: FC<Props> = ({
     return (
       <div className={rootClassName}>
         {participants?.length > 1 ? (
-          <Participants participants={participants} />
+          <Participants participants={participants} logo={logo} />
         ) : (
           <CallIdentification callId={callId} logo={logo} />
         )}
