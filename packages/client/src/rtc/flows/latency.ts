@@ -1,43 +1,91 @@
+import {
+  DatacenterResponse,
+  GetCallEdgeServerRequest,
+} from '../../gen/coordinator';
+
 const toSeconds = (ms: number) => ms / 1000;
 
 /**
  * Measures the latency of the current client to the given endpoint.
- * Uses HTML Image tag in order to avoid CORS issues.
  *
  * @param endpoint the endpoint.
- * @param rounds the number of measuring rounds to perform.
  * @param timeoutAfterMs the request cancellation period.
  */
 export const measureResourceLoadLatencyTo = async (
   endpoint: string,
-  rounds: number = 3,
-  timeoutAfterMs: number = 1500,
+  timeoutAfterMs: number = 1000,
 ) => {
-  const measurements: number[] = [];
-  await Promise.all(
-    Array(rounds)
-      .fill(undefined)
-      .map(async () => {
-        const start = Date.now();
-        const controller = new AbortController();
-        const abortTimeout = setTimeout(() => {
-          controller.abort();
-        }, timeoutAfterMs);
-        try {
-          const src = new URL(endpoint);
-          src.searchParams.set('r', `js_${Math.random() * 10000000}`);
-          await fetch(src.toString(), {
-            signal: controller.signal,
-          }).then((response) => response.blob());
-          const latency = Date.now() - start;
-          measurements.push(toSeconds(latency));
-        } catch (e) {
-          console.debug(`failed to measure latency to ${endpoint}`, e);
-          measurements.push(-1); // indicate error in measurement
-        }
-        // clear timeout in case fetch completes before timeout
-        clearTimeout(abortTimeout);
-      }),
+  const start = Date.now();
+  const controller = new AbortController();
+  const abortTimeout = setTimeout(() => {
+    controller.abort();
+  }, timeoutAfterMs);
+  try {
+    const src = new URL(endpoint);
+    src.searchParams.set('r', `js_${Math.random() * 10000000}`);
+    await fetch(src.toString(), {
+      signal: controller.signal,
+    }).then((response) => response.blob());
+    const latency = Date.now() - start;
+    return toSeconds(latency);
+  } catch (e) {
+    console.debug(`failed to measure latency to ${endpoint}`, e);
+    return -1; // indicate error in measurement
+  } finally {
+    // clear timeout in case fetch completes before timeout
+    clearTimeout(abortTimeout);
+  }
+};
+
+/**
+ * Measures the latency of the current client to the given edges.
+ *
+ * All measurements run in parallel,
+ * and the whole process is limited by the given timeout.
+ *
+ * @param edges the edges to measure latency to.
+ * @param attempts the number of attempts to measure latency.
+ * @param attemptTimeoutAfterMs the request cancellation period per measurement.
+ * @param measureTimeoutAfterMs the hard-limit for the whole measure process.
+ */
+export const measureLatencyToEdges = async (
+  edges: DatacenterResponse[],
+  {
+    attempts = 3,
+    attemptTimeoutAfterMs = 1000,
+    measureTimeoutAfterMs = 1200,
+  }: {
+    attempts?: number;
+    attemptTimeoutAfterMs?: number;
+    measureTimeoutAfterMs?: number;
+  } = {},
+) => {
+  const latencyByEdge: GetCallEdgeServerRequest['latency_measurements'] = {};
+  const measurements: Promise<void>[] = [];
+  const start = Date.now();
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    for (const edge of edges) {
+      measurements.push(
+        measureResourceLoadLatencyTo(
+          edge.latency_url,
+          attemptTimeoutAfterMs,
+        ).then((latency) => {
+          (latencyByEdge[edge.name] ??= []).push(latency);
+        }),
+      );
+    }
+  }
+
+  await Promise.race([
+    Promise.all(measurements),
+    new Promise((resolve) => setTimeout(resolve, measureTimeoutAfterMs)),
+  ]);
+
+  console.log(
+    `finished measuring latency to ${edges.length} edges in ${
+      Date.now() - start
+    }ms.`,
   );
-  return measurements;
+
+  return latencyByEdge;
 };
