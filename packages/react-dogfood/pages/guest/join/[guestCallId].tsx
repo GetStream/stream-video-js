@@ -66,10 +66,10 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
       </Head>
       <StreamVideo client={client}>
         <MeetingUI
-            callId={callId}
-            callType={callType}
-            enablePreview={mode !== 'anon'}
-          />
+          callId={callId}
+          callType={callType}
+          enablePreview={mode !== 'anon'}
+        />
       </StreamVideo>
     </>
   );
