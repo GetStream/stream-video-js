@@ -25,7 +25,8 @@
     "publish": {
       "executor": "nx:run-script",
       "options": {
-          "script": "publish-to-npm"
+          "script": "publish-to-npm",
+          "unparsed": []
       }
     }
   }
