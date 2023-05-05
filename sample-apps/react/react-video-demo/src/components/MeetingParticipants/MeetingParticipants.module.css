@@ -41,10 +41,17 @@
   aspect-ratio: auto;
 }
 
+.meetingGrid .localParticipant,
+.meetingGrid .remoteParticipant {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
 .meetingGrid .localParticipant:hover,
 .meetingGrid .remoteParticipant:hover {
   cursor: pointer;
 }
+
 /* end participant boxes */
 
 /* one participant */
@@ -64,7 +71,7 @@
 @media screen(md) {
   .meetingGrid-1 .localParticipant,
   .meetingGrid-1 .remoteParticipant {
-    @apply h-auto max-h-[350px] w-auto;
+    @apply h-auto max-h-[330px] w-auto;
     aspect-ratio: 16/9;
   }
 }
