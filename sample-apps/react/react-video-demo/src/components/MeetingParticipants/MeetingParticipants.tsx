@@ -1,13 +1,14 @@
 import { FC, useEffect, useState } from 'react';
 import classnames from 'classnames';
 import { Call } from '@stream-io/video-client';
-import { ParticipantBox } from '@stream-io/video-react-sdk';
+import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
 import {
   useLocalParticipant,
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
 
 import ParticipantsSlider from '../ParticipantsSlider';
+import Participant from '../Participant';
 
 import { useBreakpoint } from '../../hooks/useBreakpoints';
 
@@ -52,24 +53,25 @@ export const MeetingParticipants: FC<Props> = ({
       <div className={rootClassNames}>
         <div className={gridClassNames}>
           {localParticipant && (
-            <ParticipantBox
+            <Participant
+              call={call}
               className={styles.localParticipant}
               participant={localParticipant}
-              call={call}
               sinkId={localParticipant.audioOutputDeviceId}
             />
           )}
 
           {remoteParticipants?.length <= maxParticipants ? (
-            remoteParticipants?.map((participant: any) => (
-              <ParticipantBox
-                className={styles.remoteParticipant}
-                key={participant.sessionId}
-                participant={participant}
-                call={call}
-                sinkId={localParticipant?.audioOutputDeviceId}
-              />
-            ))
+            remoteParticipants?.map((participant: StreamVideoParticipant) => {
+              return (
+                <Participant
+                  key={participant.sessionId}
+                  call={call}
+                  className={styles.remoteParticipant}
+                  participant={participant}
+                />
+              );
+            })
           ) : (
             <div className={styles.slider}>
               <ParticipantsSlider

@@ -8,6 +8,7 @@ import { ParticipantBox } from '@stream-io/video-react-sdk';
 import { Call, StreamVideoParticipant } from '@stream-io/video-client';
 
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from '../Icons';
+import Participant from '../Participant';
 
 import { useBreakpoint } from '../../hooks/useBreakpoints';
 
@@ -134,12 +135,11 @@ export const ParticipantsSlider: FC<Props> = ({
           {participants?.map((participant, index) => (
             <SwiperSlide key={index} className={slideClassName}>
               <div key={`participant-${index}`}>
-                <ParticipantBox
+                <Participant
                   key={participant.sessionId}
-                  participant={participant}
-                  className={participantClassName}
                   call={call}
-                  sinkId={localParticipant?.audioOutputDeviceId}
+                  className={participantClassName}
+                  participant={participant}
                 />
               </div>
             </SwiperSlide>
