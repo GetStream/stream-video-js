@@ -47,7 +47,7 @@ const App = () => {
             <StreamMeeting
               callId={callId}
               callType="default"
-              input={{ create: true }}
+              data={{ create: true }}
             >
               <SpeakerView />
             </StreamMeeting>

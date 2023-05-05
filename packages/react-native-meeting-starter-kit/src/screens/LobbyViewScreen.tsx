@@ -1,25 +1,13 @@
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {LobbyView, theme} from '@stream-io/video-react-native-sdk';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {NavigationStackParamsList} from '../types';
 
-type CallLobbyScreenProps = NativeStackScreenProps<
-  NavigationStackParamsList,
-  'CallLobbyScreen'
->;
-
-export const LobbyViewScreen = (props: CallLobbyScreenProps) => {
-  const {route} = props;
-  const {
-    params: {callId},
-  } = route;
-
+export const LobbyViewScreen = () => {
   return (
     <ScrollView
       style={{backgroundColor: theme.light.static_grey}}
       contentContainerStyle={styles.contentContainerStyle}>
-      <LobbyView callID={callId} />
+      <LobbyView />
     </ScrollView>
   );
 };

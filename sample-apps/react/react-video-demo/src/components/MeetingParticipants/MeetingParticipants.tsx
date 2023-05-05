@@ -1,11 +1,11 @@
 import { FC, useEffect, useState } from 'react';
 import classnames from 'classnames';
-import { Call } from '@stream-io/video-client';
-import { ParticipantBox } from '@stream-io/video-react-sdk';
 import {
+  Call,
+  ParticipantBox,
   useLocalParticipant,
   useRemoteParticipants,
-} from '@stream-io/video-react-bindings';
+} from '@stream-io/video-react-sdk';
 
 import ParticipantsSlider from '../ParticipantsSlider';
 

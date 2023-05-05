@@ -35,9 +35,10 @@
       color: white;
       border-radius: 9999px;
       border: unset;
+      cursor: pointer;
 
       &:hover {
-        filter: brightness(97%);
+        filter: brightness(85%);
       }
     }
     .rmc__button--green {
@@ -115,7 +116,6 @@
     }
     .str-video__participant_details {
       position: absolute;
-      right: 10px;
       bottom: 10px;
       color: white;
       background-color: rgba($color: #000000, $alpha: 0.2);

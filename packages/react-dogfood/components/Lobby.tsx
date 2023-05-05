@@ -1,11 +1,11 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import {
+  checkIfAudioOutputChangeSupported,
   ToggleAudioOutputButton,
   ToggleAudioPreviewButton,
   ToggleCameraPreviewButton,
   useI18n,
-  useMediaDevices,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
 import { LobbyHeader } from './LobbyHeader';
@@ -30,7 +30,9 @@ type LobbyProps = {
 };
 export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
   const { data: session, status } = useSession();
-  const { isAudioOutputChangeSupported } = useMediaDevices();
+  const [isAudioOutputChangeSupported] = useState(() =>
+    checkIfAudioOutputChangeSupported(),
+  );
   const { t } = useI18n();
 
   const router = useRouter();

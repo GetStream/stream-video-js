@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {ActiveCall, useActiveCall} from '@stream-io/video-react-native-sdk';
+import {ActiveCall, useCall} from '@stream-io/video-react-native-sdk';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import {NavigationStackParamsList} from '../types';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -12,7 +12,7 @@ type ActiveCallScreenProps = NativeStackScreenProps<
 >;
 
 export function ActiveCallScreen({navigation}: ActiveCallScreenProps) {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
   const insets = useSafeAreaInsets();
 
   const onOpenCallParticipantsInfoViewHandler = useCallback(() => {

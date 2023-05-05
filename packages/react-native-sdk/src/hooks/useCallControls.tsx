@@ -3,10 +3,7 @@ import {
   getVideoStream,
   SfuModels,
 } from '@stream-io/video-client';
-import {
-  useActiveCall,
-  useLocalParticipant,
-} from '@stream-io/video-react-bindings';
+import { useCall, useLocalParticipant } from '@stream-io/video-react-bindings';
 import { useCallback } from 'react';
 import {
   useStreamVideoStoreSetState,
@@ -23,7 +20,7 @@ import { useAppStateListener } from '../utils/useAppStateListener';
  */
 export const useCallControls = () => {
   const localParticipant = useLocalParticipant();
-  const call = useActiveCall();
+  const call = useCall();
   const setState = useStreamVideoStoreSetState();
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,

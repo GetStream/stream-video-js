@@ -40,8 +40,8 @@ export const CompositeApp = () => {
     });
     return () => {
       joinInterrupted = true;
-      currentCall.then((call) => {
-        call?.leave();
+      currentCall.then((theCall) => {
+        theCall?.leave();
         setActiveCall(undefined);
       });
     };

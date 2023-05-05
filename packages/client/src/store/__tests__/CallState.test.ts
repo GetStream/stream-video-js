@@ -17,7 +17,8 @@ import * as TestData from '../../sorting/__tests__/participant-data';
 
 describe('CallState', () => {
   it('should emit sorted participants', () => {
-    const state = new CallState(noopComparator());
+    const state = new CallState();
+    state.setSortParticipantsBy(noopComparator());
     state.setParticipants(TestData.participants());
 
     // initial sort criteria

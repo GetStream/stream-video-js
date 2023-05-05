@@ -1,4 +1,4 @@
-import { CallStatsReport } from '@stream-io/video-client';
+import { CallStatsReport } from '@stream-io/video-react-sdk';
 
 export const calculatePublishBitrate = (
   previousCallStatsReport: CallStatsReport,

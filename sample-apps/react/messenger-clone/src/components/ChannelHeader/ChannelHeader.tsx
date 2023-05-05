@@ -6,13 +6,12 @@ import {
   useChatContext,
   useTranslationContext,
 } from 'stream-chat-react';
-import { LocalPhone, PhoneDisabled } from '@mui/icons-material';
+import { LocalPhone } from '@mui/icons-material';
 
 import { MenuIcon } from './icons';
 import type { StreamChatType } from '../../types/chat';
 import {
   MemberRequest,
-  useActiveCall,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { meetingId } from '../../utils/meetingId';
@@ -40,7 +39,6 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
     overrideTitle,
   });
   const videoClient = useStreamVideoClient();
-  const activeCall = useActiveCall();
 
   const { member_count, subtitle } = channel?.data || {};
 
@@ -66,7 +64,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
     });
   }, [videoClient, channel.id, channel.state.members, client.user?.id]);
 
-  const disableCreateCall = !videoClient || !!activeCall;
+  const disableCreateCall = !videoClient;
 
   return (
     <div className="str-chat__header-livestream str-chat__channel-header">
@@ -111,24 +109,13 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
           })}
         </p>
       </div>
-      {!activeCall ? (
-        <button
-          className="rmc__button rmc__button--green"
-          disabled={disableCreateCall}
-          onClick={onCreateCall}
-        >
-          <LocalPhone />
-        </button>
-      ) : (
-        <button
-          className="rmc__button rmc__button--red"
-          onClick={() => {
-            activeCall.cancel();
-          }}
-        >
-          <PhoneDisabled />
-        </button>
-      )}
+      <button
+        className="rmc__button rmc__button--green"
+        disabled={disableCreateCall}
+        onClick={onCreateCall}
+      >
+        <LocalPhone />
+      </button>
     </div>
   );
 };
