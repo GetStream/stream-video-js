@@ -12,7 +12,7 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["chore", "ci"],
-        "postTargets": ["@stream-io/video-react-bindings:github"]
+        "postTargets": ["@stream-io/video-react-bindings:github", "@stream-io/video-react-bindings/publish"]
       }
     },
     "github": {
@@ -20,6 +20,12 @@
       "options": {
         "tag": "${tag}",
         "notes": "${notes}"
+      }
+    },
+    "publish": {
+      "executor": "nx:run-script",
+      "options": {
+          "script": "publish-to-npm"
       }
     }
   }
