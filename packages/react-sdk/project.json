@@ -23,10 +23,14 @@
       }
     },
     "publish": {
-      "executor": "nx:run-script",
+      "executor": "nx:run-commands",
       "options": {
-          "script": "publish-to-npm",
-          "unparsed": []
+        "commands": [
+          {
+            "command": "yarn npm publish --access=public",
+            "forwardAllArgs": false
+          }
+        ]
       }
     }
   }
