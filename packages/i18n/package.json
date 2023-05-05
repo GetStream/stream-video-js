@@ -12,6 +12,15 @@
     "docs:generate": "yarn docs:clean && ./scripts/generate-docs.sh",
     "publish-to-npm": "yarn npm publish --access public"
   },
+  "files": [
+    "dist",
+    "src",
+    "index.ts",
+    "package.json",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "dependencies": {
     "i18next": "^22.4.15"
   },
