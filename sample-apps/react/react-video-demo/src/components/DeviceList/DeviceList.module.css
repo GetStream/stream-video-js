@@ -45,11 +45,8 @@
 }
 
 .radioButton:before {
-  @apply h-4 w-4 bg-video-grey-600 border-2 border-video-grey-700 rounded-full flex;
+  @apply absolute h-4 w-4 bg-video-grey-600 border-2 border-video-grey-700 rounded-full flex;
   content: '';
-  position: absolute;
-  margin-top: -1px;
-  margin-left: -1px;
 }
 
 .radioButton:checked:before {

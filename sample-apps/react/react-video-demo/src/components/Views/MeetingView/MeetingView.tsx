@@ -164,7 +164,6 @@ export const View: FC<Props & Meeting> = ({
       sidebar={
         <Sidebar
           callId={callId}
-          current={current}
           chatClient={chatClient}
           participants={participants}
         />

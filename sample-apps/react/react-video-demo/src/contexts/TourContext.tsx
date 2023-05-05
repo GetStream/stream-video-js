@@ -8,11 +8,6 @@ import {
 } from 'react';
 
 import { useBreakpoint } from '../hooks/useBreakpoints';
-export enum StepNames {
-  Invite = 1,
-  Chat = 2,
-  Settings = 3,
-}
 
 type Step = {
   header: string;

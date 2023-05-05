@@ -117,38 +117,37 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   return (
     <StreamVideo client={client}>
       <StreamCallProvider call={activeCall}>
-        <ModalProvider>
-          {isCallActive && callId && client ? (
-            <NotificationProvider>
-              <PanelProvider>
-                <TourProvider>
-                  <MeetingView
-                    logo={logo}
-                    call={activeCall}
-                    callId={callId}
-                    callType={callType}
-                    isCallActive={isCallActive}
-                    setCallHasEnded={setCallHasEnded}
-                    chatClient={chatClient}
-                  />
-                </TourProvider>
-              </PanelProvider>
-            </NotificationProvider>
-          ) : (
-            <MediaDevicesProvider initialVideoEnabled={true}>
+        <MediaDevicesProvider initialVideoEnabled={true}>
+          <ModalProvider>
+            {isCallActive && callId && client ? (
+              <NotificationProvider>
+                <PanelProvider>
+                  <TourProvider>
+                    <MeetingView
+                      logo={logo}
+                      call={activeCall}
+                      callId={callId}
+                      callType={callType}
+                      isCallActive={isCallActive}
+                      setCallHasEnded={setCallHasEnded}
+                      chatClient={chatClient}
+                    />
+                  </TourProvider>
+                </PanelProvider>
+              </NotificationProvider>
+            ) : (
               <LobbyView
                 logo={logo}
                 user={user}
-                call={activeCall}
                 callId={callId || ''}
                 edges={edges}
                 fastestEdge={fastestEdge}
                 isjoiningCall={isjoiningCall}
                 joinCall={joinMeeting}
               />
-            </MediaDevicesProvider>
-          )}
-        </ModalProvider>
+            )}
+          </ModalProvider>
+        </MediaDevicesProvider>
       </StreamCallProvider>
     </StreamVideo>
   );

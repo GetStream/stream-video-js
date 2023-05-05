@@ -4,15 +4,12 @@ import {
   SfuModels,
   useLocalParticipant,
   useParticipants,
-  useRemoteParticipants,
   Video,
 } from '@stream-io/video-react-sdk';
 
 import ParticipantsSlider from '../ParticipantsSlider';
 import Button from '../Button';
 import { Close, ShareScreen } from '../Icons';
-
-import { useBreakpoint } from '../../hooks/useBreakpoints';
 
 import styles from './ScreenShareParticipants.module.css';
 
@@ -27,13 +24,10 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
   );
 
   const localParticipant = useLocalParticipant();
-  const remoteParticipants = useRemoteParticipants();
   const allParticipants = useParticipants();
   const firstScreenSharingParticipant = allParticipants.find((p) =>
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
   );
-
-  const breakpoint = useBreakpoint();
 
   const wrapper: any = useRef();
 
