@@ -1,7 +1,7 @@
 import { FC, useRef } from 'react';
 import { CSSTransition } from 'react-transition-group';
 import { StreamChat } from 'stream-chat';
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
 
 import InvitePanel from '../InvitePanel';
 import ParticipantsPanel from '../ParticipantsPanel';

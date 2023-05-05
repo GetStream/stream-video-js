@@ -2,6 +2,23 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.4...@stream-io/video-react-sdk-0.0.1-alpha.5) (2023-05-05)
+
+
+
+## [0.0.1-alpha.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.3...@stream-io/video-react-sdk-0.0.1-alpha.4) (2023-05-05)
+
+
+### Features
+
+* **core:** replace useActiveCall() with useCall() ([#450](https://github.com/GetStream/stream-video-js/issues/450)) ([f3b169b](https://github.com/GetStream/stream-video-js/commit/f3b169b2971a95b47cda6956f009d38cc068a793))
+
+
+
+## [0.0.1-alpha.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.2...@stream-io/video-react-sdk-0.0.1-alpha.3) (2023-05-04)
+
+
+
 ## [0.0.1-alpha.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.1...@stream-io/video-react-sdk-0.0.1-alpha.2) (2023-05-04)
 
 

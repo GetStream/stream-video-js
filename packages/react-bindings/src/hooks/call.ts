@@ -50,31 +50,22 @@ export const useDominantSpeaker = () => {
 };
 
 /**
- * Utility hook which provides controller for the currently active call and active call's metadata.
- * `activeCall$` will be set after calling [`join` on a `Call` instance](./Call.md/#join) and cleared after calling [`leave`](./Call.md/#leave).
- *
- * @category Call State
- */
-export const useActiveCall = () => {
-  const { activeCall$ } = useStore();
-  return useObservableValue(activeCall$);
-};
-
-/**
  * Utility hook which provides a list of all notifications about created calls.
  * In the ring call settings, these calls can be outgoing (I have called somebody)
  * or incoming (somebody has called me).
  *
  * @category Client State
  */
-export const usePendingCalls = () => {
-  const { pendingCalls$ } = useStore();
-  return useObservableValue(pendingCalls$);
+export const useCalls = () => {
+  const { calls$ } = useStore();
+  return useObservableValue(calls$);
 };
 
 /**
  * Utility hook which provides a list of all incoming ring calls (somebody calls me).
  *
+ * @deprecated derive from useCalls()/useCall() instead.
+ * @internal
  * @category Client State
  */
 export const useIncomingCalls = () => {
@@ -85,22 +76,13 @@ export const useIncomingCalls = () => {
 /**
  * Utility hook which provides a list of all outgoing ring calls (I call somebody).
  *
+ * @deprecated derive from useCalls()/useCall() instead.
+ * @internal
  * @category Client State
  */
 export const useOutgoingCalls = () => {
   const { outgoingCalls$ } = useStore();
   return useObservableValue(outgoingCalls$);
-};
-
-/**
- *
- * @returns
- *
- * @category Client State
- */
-export const useAcceptedCall = () => {
-  const { acceptedCall$ } = useStore();
-  return useObservableValue(acceptedCall$);
 };
 
 /**

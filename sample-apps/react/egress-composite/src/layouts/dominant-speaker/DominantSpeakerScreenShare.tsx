@@ -1,7 +1,7 @@
 import {
   ParticipantBox,
   SfuModels,
-  useActiveCall,
+  useCall,
   useRemoteParticipants,
   Video,
 } from '@stream-io/video-react-sdk';
@@ -10,7 +10,7 @@ import './ScreenShare.scss';
 import { AudioTracks } from './AudioTracks';
 
 export const DominantSpeakerScreenShare = () => {
-  const call = useActiveCall();
+  const call = useCall();
   const participants = useRemoteParticipants();
   const screenSharingParticipant = participants.find((p) =>
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),

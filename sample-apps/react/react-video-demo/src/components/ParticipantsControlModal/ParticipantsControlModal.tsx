@@ -1,7 +1,10 @@
 import { FC } from 'react';
 
-import { OwnCapability, StreamVideoParticipant } from '@stream-io/video-client';
-import { useOwnCapabilities } from '@stream-io/video-react-bindings';
+import {
+  OwnCapability,
+  StreamVideoParticipant,
+  useOwnCapabilities,
+} from '@stream-io/video-react-sdk';
 
 import Panel from '../Panel';
 import { MicMuted, People, VideoOff } from '../Icons';

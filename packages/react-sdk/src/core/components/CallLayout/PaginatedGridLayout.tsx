@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  useActiveCall,
+  useCall,
   useLocalParticipant,
   useParticipants,
   useRemoteParticipants,
@@ -33,7 +33,7 @@ const PaginatedGridLayoutGroup = ({
   group,
   indicatorsVisible = true,
 }: PaginatedGridLayoutGroupProps) => {
-  const call = useActiveCall();
+  const call = useCall();
   return (
     <div
       className={clsx('str-video__paginated-grid-layout--group', {

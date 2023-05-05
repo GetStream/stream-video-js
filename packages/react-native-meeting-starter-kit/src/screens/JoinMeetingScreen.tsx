@@ -1,17 +1,18 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {
-  StyleSheet,
-  TextInput,
-  SafeAreaView,
-  View,
-  Text,
   Button,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 
 import {meetingId} from '../utils/meetingId';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {NavigationStackParamsList} from '../types';
+import {useAppContext} from '../context/AppContext';
 
 type JoinMeetingScreenProps = NativeStackScreenProps<
   NavigationStackParamsList,
@@ -19,12 +20,15 @@ type JoinMeetingScreenProps = NativeStackScreenProps<
 >;
 
 export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
-  const [callID, setCallId] = useState('');
+  const {
+    setCallParams,
+    callParams: {callId},
+  } = useAppContext();
   const {navigation} = props;
 
   const joinCallHandler = useCallback(() => {
-    navigation.navigate('CallLobbyScreen', {callId: callID});
-  }, [navigation, callID]);
+    navigation.navigate('CallLobbyScreen');
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -34,8 +38,8 @@ export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           title={'Randomise'}
           color="blue"
           onPress={() => {
-            const ramdomCallID = meetingId();
-            setCallId(ramdomCallID);
+            const randomCallID = meetingId();
+            setCallParams(prevState => ({...prevState, callId: randomCallID}));
           }}
         />
       </View>
@@ -43,15 +47,20 @@ export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
         style={styles.textInput}
         placeholder={'Type your call ID here...'}
         placeholderTextColor={'#8C8C8CFF'}
-        value={callID}
+        value={callId}
         autoCapitalize="none"
         autoCorrect={false}
-        onChangeText={text => setCallId(text.trim().split(' ').join('-'))}
+        onChangeText={text =>
+          setCallParams(prevState => ({
+            ...prevState,
+            callId: text.trim().split(' ').join('-'),
+          }))
+        }
       />
       <Button
-        title={'Create meeting with callID: ' + callID}
+        title={'Create meeting with callID: ' + callId}
         color="blue"
-        disabled={!callID}
+        disabled={!callId}
         onPress={joinCallHandler}
       />
     </SafeAreaView>

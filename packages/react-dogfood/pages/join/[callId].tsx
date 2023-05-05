@@ -1,14 +1,12 @@
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/router';
 import {
-  MediaDevicesProvider,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useCreateStreamChatClient } from '../../hooks';
-import { LoadingScreen, MeetingUI } from '../../components';
-import { getDeviceSettings } from '../../components/DeviceSettingsCaptor';
+import { MeetingUI } from '../../components';
 import {
   getServerSideCredentialsProps,
   ServerSideCredentialsProps,
@@ -58,11 +56,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   });
 
   useGleap(gleapApiKey, client, user);
-  const deviceSettings = getDeviceSettings();
-
-  if (!client) {
-    return <LoadingScreen />;
-  }
 
   return (
     <>
@@ -75,22 +68,11 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         language={language}
         translationsOverrides={translations}
       >
-        <MediaDevicesProvider
-          enumerate
-          initialAudioEnabled={!deviceSettings?.isAudioMute}
-          initialVideoEnabled={!deviceSettings?.isVideoMute}
-          initialVideoInputDeviceId={deviceSettings?.selectedVideoDeviceId}
-          initialAudioInputDeviceId={deviceSettings?.selectedAudioInputDeviceId}
-          initialAudioOutputDeviceId={
-            deviceSettings?.selectedAudioOutputDeviceId
-          }
-        >
-          <MeetingUI
-            chatClient={chatClient}
-            callId={callId}
-            callType={callType}
-          />
-        </MediaDevicesProvider>
+        <MeetingUI
+          chatClient={chatClient}
+          callId={callId}
+          callType={callType}
+        />
       </StreamVideo>
     </>
   );

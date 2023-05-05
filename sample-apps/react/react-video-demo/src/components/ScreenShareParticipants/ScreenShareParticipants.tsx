@@ -1,10 +1,11 @@
-import { FC, useCallback, useRef, useEffect, useState } from 'react';
-import { Call, SfuModels } from '@stream-io/video-client';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Call,
+  SfuModels,
   useLocalParticipant,
   useParticipants,
-} from '@stream-io/video-react-bindings';
-import { Video } from '@stream-io/video-react-sdk';
+  Video,
+} from '@stream-io/video-react-sdk';
 
 import ParticipantsSlider from '../ParticipantsSlider';
 import Button from '../Button';

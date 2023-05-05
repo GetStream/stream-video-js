@@ -1,11 +1,11 @@
 import { FC, useEffect, useState } from 'react';
 import classnames from 'classnames';
-import { Call } from '@stream-io/video-client';
-import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
 import {
+  Call,
   useLocalParticipant,
   useRemoteParticipants,
-} from '@stream-io/video-react-bindings';
+  StreamVideoParticipant,
+} from '@stream-io/video-react-sdk';
 
 import ParticipantsSlider from '../ParticipantsSlider';
 import Participant from '../Participant';
@@ -36,7 +36,7 @@ export const MeetingParticipants: FC<Props> = ({
     } else {
       setMaxParticipants(maxParticipantsOnScreen);
     }
-  }, [breakpoint]);
+  }, [breakpoint, maxParticipantsOnScreen]);
 
   if (maxParticipants) {
     const rootClassNames = classnames(styles.root, {

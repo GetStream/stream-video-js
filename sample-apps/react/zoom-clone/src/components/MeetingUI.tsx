@@ -2,13 +2,13 @@ import {
   CallControls,
   DeviceSettings,
   Stage,
-  useActiveCall,
+  useCall,
 } from '@stream-io/video-react-sdk';
 import { useNavigate } from 'react-router-dom';
 import { PropsWithChildren } from 'react';
 
 export const MeetingUI = ({ children }: PropsWithChildren) => {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
   const navigate = useNavigate();
 
   if (!activeCall)
