@@ -84,7 +84,7 @@ export const ControlButton: FC<Props> = ({
               className={styles.button}
               color="transparent"
               shape="square"
-              onClick={onClick}
+              onClick={onClick ? onClick : togglePanel}
             >
               {prefix}
               {children}

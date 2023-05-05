@@ -31,7 +31,7 @@
 .layoutContainer {
   grid-area: layoutContainer;
   @apply grid rounded-container bg-video-black md:bg-video-grey-600 w-full;
-  grid-template-rows: 80px calc(100vh - 150px) 70px;
+  grid-template-rows: 80px calc(100dvh - 150px) 70px;
   grid-template-areas:
     'header'
     'body'
@@ -81,7 +81,7 @@
 }
 
 .footer {
-  @apply bg-video-grey-700 w-full bottom-0 left-0 flex justify-center p-4 z-10;
+  @apply bg-video-grey-700 w-full bottom-0 left-0 flex justify-center md:p-4 z-10;
   grid-area: footer;
   border-radius: 13px 13px 0 0;
 }

@@ -58,7 +58,7 @@ export const TourPanel: FC<Props> = ({
           </div>
         ) : (
           <div className={styles.next} onClick={next}>
-            Next
+            Next →
           </div>
         )}
       </div>

@@ -1,49 +1,33 @@
-import { PropsWithChildren, ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { useChatContext } from 'stream-chat-react';
 import {
-  StreamCall,
+  StreamMeeting,
   StreamVideo,
+  useCalls,
   useCreateStreamVideoClient,
+  User,
 } from '@stream-io/video-react-sdk';
 
 import { CallPanel } from './CallPanel/CallPanel';
-
 import { StreamChatType } from '../../types/chat';
 
-type VideoProps = {
-  user: StreamChatType['userType'];
-  token: string;
-};
-
-export const Video = ({
-  children,
-  user,
-  token,
-}: PropsWithChildren<VideoProps>) => {
-  const client = useCreateStreamVideoClient({
-    apiKey: import.meta.env.VITE_STREAM_KEY,
-    tokenOrProvider: token,
-    user,
-  });
-
-  if (!client) {
-    return null;
-  }
-
+export const Video = () => {
+  const calls = useCalls();
   return (
-    <StreamVideo client={client}>
-      {children}
-      <StreamCall>
-        <CallPanel />
-      </StreamCall>
-    </StreamVideo>
+    <>
+      {calls.map((call) => (
+        <StreamMeeting call={call} autoJoin={false} key={call.cid}>
+          <CallPanel />
+        </StreamMeeting>
+      ))}
+    </>
   );
 };
 
 const VideoAdapter = ({ children }: { children: ReactNode }) => {
   const { client } = useChatContext<StreamChatType>();
 
-  const user = useMemo<VideoProps['user']>(
+  const user = useMemo<User>(
     () => ({
       id: client.user!.id,
       name: client.user!.name,
@@ -53,10 +37,17 @@ const VideoAdapter = ({ children }: { children: ReactNode }) => {
     [client.user],
   );
 
+  const videoClient = useCreateStreamVideoClient({
+    apiKey: import.meta.env.VITE_STREAM_KEY,
+    tokenOrProvider: client._getToken(),
+    user,
+  });
+
   return (
-    <Video user={user} token={client._getToken()!}>
+    <StreamVideo client={videoClient}>
       {children}
-    </Video>
+      <Video />
+    </StreamVideo>
   );
 };
 

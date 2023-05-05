@@ -40,7 +40,7 @@ export const NavigationHeader = () => {
   const logoutHandler = () => {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [
       {
-        text: t<string>('Cancel'),
+        text: t('Cancel'),
         onPress: () => {},
         style: 'cancel',
       },

@@ -32,6 +32,7 @@ useEffect
 useCallback
 useMemo
 useParticipants
+useCall
 registerGlobals
 ios
 callkeep
@@ -46,3 +47,4 @@ notifee
 hasAudio
 hasVideo
 [Rr]econnections?
+_Note

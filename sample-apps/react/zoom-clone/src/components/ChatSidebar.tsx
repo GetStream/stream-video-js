@@ -1,15 +1,15 @@
 import { useEffect } from 'react';
 import {
-  useChatContext,
   Channel,
-  Window,
   ChannelHeader,
-  MessageList,
   MessageInput,
+  MessageList,
+  useChatContext,
+  Window,
 } from 'stream-chat-react';
 import { useParams } from 'react-router-dom';
 
-import { DEFAULT_CHANNEL_TYPE } from '../utils/constants';
+import { DEFAULT_CHANNEL_TYPE } from '../utils';
 
 const channelType = import.meta.env.VITE_CHANNEL_TYPE ?? DEFAULT_CHANNEL_TYPE;
 

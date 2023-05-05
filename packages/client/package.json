@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-client",
-  "version": "0.0.1-alpha.119",
+  "version": "0.0.1-alpha.124",
   "packageManager": "yarn@3.2.4",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -21,6 +21,15 @@
     "generate-docs:classes": "typedoc --options typedoc.json --exclude '!**/*(Call|StreamVideoClient).ts' ./index.ts && replace-in-file '# Class: ' '# ' temp-docs/** && cp -a temp-docs/classes/. generated-docs && rm -r temp-docs",
     "generate-docs:utils": "typedoc --options typedoc.json --exclude '!**/*(devices).ts' ./index.ts && replace-in-file '# @stream-io/video-client' '# Utilities' temp-docs/** && cp temp-docs/modules.md generated-docs/utilities.md && rm -r temp-docs"
   },
+  "files": [
+    "dist",
+    "src",
+    "index.ts",
+    "package.json",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "dependencies": {
     "@protobuf-ts/runtime": "^2.8.3",
     "@protobuf-ts/runtime-rpc": "^2.8.3",

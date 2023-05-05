@@ -1,0 +1,32 @@
+{
+  "name": "@stream-io/video-react-bindings",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "targets": {
+    "version": {
+      "executor": "@jscutlery/semver:version",
+      "options": {
+        "dryRun": false,
+        "preset": "angular",
+        "preid": "alpha",
+        "releaseAs": "prerelease",
+        "trackDeps": true,
+        "push": true,
+        "skipCommitTypes": ["chore", "ci"],
+        "postTargets": ["@stream-io/video-react-bindings:github", "@stream-io/video-react-bindings:publish"]
+      }
+    },
+    "github": {
+      "executor": "@jscutlery/semver:github",
+      "options": {
+        "tag": "${tag}",
+        "notes": "${notes}"
+      }
+    },
+    "publish": {
+      "executor": "nx:run-script",
+      "options": {
+          "script": "publish-to-npm"
+      }
+    }
+  }
+}
