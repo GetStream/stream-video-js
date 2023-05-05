@@ -8,6 +8,7 @@
     "clean": "rimraf dist",
     "start": "tsc --project tsconfig.json --watch",
     "build": "tsc --project tsconfig.production.json",
+    "copy-css": "cp -r ../../node_modules/@stream-io/video-styling/dist/ dist",
     "generate-docs": "../../scripts/generate-docs.sh React @stream-io/video-react-sdk react-sdk",
     "start:docs": "npx stream-chat-docusaurus -s"
   },
@@ -27,7 +28,6 @@
     "@stream-io/i18n": "workspace:^",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^",
-    "@stream-io/video-styling": "workspace:^",
     "clsx": "^1.2.1",
     "rxjs": "~7.5.7"
   },
@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@types/rimraf": "^3.0.2",
+    "@stream-io/video-styling": "workspace:^",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "replace-in-file": "^6.3.5",
