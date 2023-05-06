@@ -24,7 +24,7 @@ export const ControlButton: FC<Props> = ({
   label,
   prefix,
   panel,
-  showPanel = false,
+  showPanel,
   onClick,
   children,
   portalId,

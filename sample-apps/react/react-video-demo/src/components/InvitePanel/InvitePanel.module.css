@@ -31,7 +31,11 @@
 }
 
 .limit {
-  @apply w-[90%];
+  @apply hidden w-[90%];
+}
+
+.limit.canCopy {
+  @apply block;
 }
 
 .input {
@@ -46,7 +50,11 @@
 }
 
 .copied {
-  @apply flex items-center justify-around text-video-white text-xs;
+  @apply hidden items-center justify-around text-video-white text-xs;
+}
+
+.copied.isCopied {
+  @apply flex;
 }
 
 .copiedIcon {
@@ -57,6 +65,18 @@
   @apply absolute z-0 h-[18px];
   right: 8px;
   top: 11px;
+}
+
+.copyIcon:hover {
+  @apply cursor-pointer;
+}
+
+.reload {
+  @apply absolute z-0 h-[14px] right-[8px] top-[11px];
+}
+
+.reload:hover {
+  @apply cursor-pointer;
 }
 
 .description {

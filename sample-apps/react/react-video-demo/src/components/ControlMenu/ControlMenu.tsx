@@ -108,6 +108,7 @@ export const ControlMenu: FC<Props> = ({
           prefix={<Speaker />}
           portalId="audio-output-settings"
           label="Audio"
+          showPanel={false}
           panel={
             <Portal
               className={styles.audioSettings}
@@ -132,6 +133,7 @@ export const ControlMenu: FC<Props> = ({
         prefix={isAudioMuted ? <MicMuted /> : <Mic />}
         portalId="audio-settings"
         label="Mic"
+        showPanel={false}
         panel={
           <Portal className={styles.audioSettings} selector="audio-settings">
             <ControlMenuPanel
@@ -152,6 +154,7 @@ export const ControlMenu: FC<Props> = ({
         prefix={isVideoMuted ? <VideoOff /> : <Video />}
         portalId="camera-settings"
         label="Video"
+        showPanel={false}
         panel={
           <Portal className={styles.cameraSettings} selector="camera-settings">
             <ControlMenuPanel
