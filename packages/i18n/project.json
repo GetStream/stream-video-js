@@ -27,7 +27,7 @@
       "options": {
         "commands": [
           {
-            "command": "ls",
+            "command": "cd packages/i18n",
             "forwardAllArgs": false
           },
           {

@@ -27,6 +27,10 @@
       "options": {
         "commands": [
           {
+            "command": "cd packages/react-sdk",
+            "forwardAllArgs": false
+          },
+          {
             "command": "yarn npm publish --access=public",
             "forwardAllArgs": false
           }
