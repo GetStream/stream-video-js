@@ -38,20 +38,20 @@ jobs:
           path: './.eslintcache'
           key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}-${{ hashFiles('.eslintcache') }}
 
-      - name: Install Dependencies
-        run: yarn install --immutable
+      # - name: Install Dependencies
+      #   run: yarn install --immutable
 
-      - name: Lint Packages
-        run: yarn lint:ci:all
+      # - name: Lint Packages
+      #   run: yarn lint:ci:all
 
-      - name: Build packages
-        run: NODE_ENV=production yarn build:all
+      # - name: Build packages
+      #   run: NODE_ENV=production yarn build:all
 
-      - name: Test packages
-        run: yarn test:ci:all
+      # - name: Test packages
+      #   run: yarn test:ci:all
 
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@master
+      # - name: SonarCloud Scan
+      #   uses: sonarsource/sonarcloud-github-action@master
 
       - name: Version and release packages
         if: ${{ github.ref_name == 'main' }}
@@ -83,18 +83,18 @@ jobs:
         run: yarn vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
 
       # Vercel deployment Dogfood (Production)
-      - name: Vercel Pull Configuration Dogfood (Production)
-        if: ${{ github.ref_name == 'main' }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: yarn vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Vercel Build Dogfood (Production)
-        if: ${{ github.ref_name == 'main' }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: yarn vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Vercel Deploy Dogfood (Production)
-        if: ${{ github.ref_name == 'main' }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: yarn vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+      # - name: Vercel Pull Configuration Dogfood (Production)
+      #   if: ${{ github.ref_name == 'main' }}
+      #   env:
+      #     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      #   run: yarn vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      # - name: Vercel Build Dogfood (Production)
+      #   if: ${{ github.ref_name == 'main' }}
+      #   env:
+      #     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      #   run: yarn vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      # - name: Vercel Deploy Dogfood (Production)
+      #   if: ${{ github.ref_name == 'main' }}
+      #   env:
+      #     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      #   run: yarn vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}

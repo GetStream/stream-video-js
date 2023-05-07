@@ -32,6 +32,10 @@
             "forwardAllArgs": false
           },
           {
+            "command": "ls",
+            "forwardAllArgs": false
+          },
+          {
             "command": "yarn npm publish --access=public",
             "forwardAllArgs": false
           }
