@@ -25,14 +25,9 @@
     "publish": {
       "executor": "nx:run-commands",
       "options": {
-        "parallel": false,
         "commands": [
           {
-            "command": "cd packages/react-sdk",
-            "forwardAllArgs": false
-          },
-          {
-            "command": "yarn npm publish --access=public",
+            "command": "yarn release:react-sdk",
             "forwardAllArgs": false
           }
         ]

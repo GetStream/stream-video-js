@@ -27,20 +27,11 @@
       "options": {
         "commands": [
           {
-            "command": "cd packages/i18n",
-            "forwardAllArgs": false
-          },
-          {
-            "command": "ls",
-            "forwardAllArgs": false
-          },
-          {
-            "command": "yarn npm publish --access=public",
+            "command": "yarn release:18n",
             "forwardAllArgs": false
           }
         ]
-      },
-      "parallel": false
+      }
     }
   }
 }
