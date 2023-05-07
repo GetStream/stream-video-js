@@ -25,6 +25,7 @@
     "publish": {
       "executor": "nx:run-commands",
       "options": {
+        "parallel": false,
         "commands": [
           {
             "command": "cd packages/react-bindings",
