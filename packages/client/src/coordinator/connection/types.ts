@@ -112,8 +112,6 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
   // Set the instance of StableWSConnection on chat client. Its purely for testing purpose and should
   // not be used in production apps.
   wsConnection?: StableWSConnection;
-  // Sets the current push device, if present this is sent to the WS when authenticating
-  pushDevice?: DeviceFieldsRequest;
   /**
    * The preferred video codec to use.
    */
