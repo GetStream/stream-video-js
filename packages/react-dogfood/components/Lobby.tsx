@@ -25,7 +25,7 @@ const subtitles = [
 
 type LobbyProps = {
   onJoin: () => void;
-  callId: string;
+  callId?: string;
   enablePreview?: boolean;
 };
 export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
