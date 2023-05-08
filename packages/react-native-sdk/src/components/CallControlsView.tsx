@@ -14,6 +14,8 @@ import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
 import { CallPermissionsWrapper } from './CallPermissionsWrapper';
 import { OwnCapability } from '@stream-io/video-client';
+import { useCall } from '@stream-io/video-react-bindings';
+
 /**
  * Props to be passed for the CallControlsView component.
  */
@@ -23,7 +25,6 @@ export interface CallControlsViewProps {
    */
   onReactionsSelector?: () => void;
 }
-import { useCall } from '@stream-io/video-react-bindings';
 
 /**
  * Shows a list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)

@@ -1,10 +1,9 @@
 import { StreamReaction } from '@stream-io/video-client';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, Text } from 'react-native';
 
 import { theme } from '../theme';
 import { useCallback } from 'react';
-import { useActiveCall } from '@stream-io/video-react-bindings';
-import { Text } from 'react-native';
+import { useCall } from '@stream-io/video-react-bindings';
 import { defaultEmojiReactions } from '../constants';
 
 const reactions: StreamReaction[] = [
@@ -37,7 +36,7 @@ export const ReactionModal = (props: ReactionModalType) => {
   const onCloseReactionsModal = useCallback(() => {
     setReactionModal(false);
   }, [setReactionModal]);
-  const call = useActiveCall();
+  const call = useCall();
 
   const sendReaction = (reaction: StreamReaction) => {
     call?.sendReaction(reaction);
