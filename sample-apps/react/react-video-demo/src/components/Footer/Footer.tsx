@@ -60,14 +60,14 @@ export const Footer: FC<Props> = ({
     toggleParticipants,
   } = usePanelContext();
 
-  const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(true);
+  const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(false);
   const [showReactionsPanel] = useState<boolean>(false);
 
   useEffect(() => {
-    if (isVisible && showSettingsPanel) {
+    if (isVisible) {
       setShowSettingsPanel(false);
     }
-  }, [showSettingsPanel, isVisible]);
+  }, [isVisible]);
 
   const recordClassNames = classnames(styles.record, {
     [styles.recording]: isRecording,
