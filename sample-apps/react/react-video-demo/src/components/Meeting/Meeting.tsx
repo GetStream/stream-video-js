@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import classnames from 'classnames';
-import { Call, StreamVideoParticipant } from '@stream-io/video-client';
+import { Call, StreamVideoParticipant } from '@stream-io/video-react-sdk';
 
 import ScreenShareParticipants from '../ScreenShareParticipants';
 import MeetingParticipants from '../MeetingParticipants';

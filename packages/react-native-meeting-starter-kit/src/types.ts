@@ -1,5 +1,5 @@
 export type NavigationStackParamsList = {
-  CallLobbyScreen: {callId: string};
+  CallLobbyScreen: undefined;
   ActiveCallScreen: undefined;
   CallParticipantsInfoScreen: undefined;
   JoinMeetingScreen: undefined;

@@ -11,7 +11,7 @@ export const ChooseFlowScreen = (props: Props) => {
   const setState = useAppGlobalStoreSetState();
 
   const onMeetingSelect = () => {
-    setState({ appMode: 'Meeting' });
+    setState({ appMode: 'Meeting', callId: '' });
     navigation.navigate('LoginScreen');
   };
 

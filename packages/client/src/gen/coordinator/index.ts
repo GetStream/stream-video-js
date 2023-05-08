@@ -14,10 +14,10 @@ export interface APIError {
   StatusCode: number;
   /**
    * API error code
-   * @type {number}
+   * @type {string}
    * @memberof APIError
    */
-  code: number;
+  code: APIErrorCodeEnum;
   /**
    * Additional error-specific information
    * @type {Array<number>}
@@ -48,6 +48,73 @@ export interface APIError {
    * @memberof APIError
    */
   more_info: string;
+}
+
+/**
+ * @export
+ */
+export const APIErrorCodeEnum = {
+  INTERNAL_ERROR: 'internal-error',
+  ACCESS_KEY_ERROR: 'access-key-error',
+  INPUT_ERROR: 'input-error',
+  AUTH_FAILED: 'auth-failed',
+  DUPLICATE_USERNAME: 'duplicate-username',
+  RATE_LIMITED: 'rate-limited',
+  NOT_FOUND: 'not-found',
+  NOT_ALLOWED: 'not-allowed',
+  EVENT_NOT_SUPPORTED: 'event-not-supported',
+  CHANNEL_FEATURE_NOT_SUPPORTED: 'channel-feature-not-supported',
+  MESSAGE_TOO_LONG: 'message-too-long',
+  MULTIPLE_NESTING_LEVEL: 'multiple-nesting-level',
+  PAYLOAD_TOO_BIG: 'payload-too-big',
+  EXPIRED_TOKEN: 'expired-token',
+  TOKEN_NOT_VALID_YET: 'token-not-valid-yet',
+  TOKEN_USED_BEFORE_IAT: 'token-used-before-iat',
+  INVALID_TOKEN_SIGNATURE: 'invalid-token-signature',
+  CUSTOM_COMMAND_ENDPOINT_MISSING: 'custom-command-endpoint-missing',
+  CUSTOM_COMMAND_ENDPOINTCALL_ERROR: 'custom-command-endpoint=call-error',
+  CONNECTION_ID_NOT_FOUND: 'connection-id-not-found',
+  COOL_DOWN: 'cool-down',
+  QUERY_CHANNEL_PERMISSIONS_MISMATCH: 'query-channel-permissions-mismatch',
+  TOO_MANY_CONNECTIONS: 'too-many-connections',
+  NOT_SUPPORTED_IN_PUSH_V1: 'not-supported-in-push-v1',
+  MODERATION_FAILED: 'moderation-failed',
+  VIDEO_PROVIDER_NOT_CONFIGURED: 'video-provider-not-configured',
+  VIDEO_INVALID_CALL_ID: 'video-invalid-call-id',
+  VIDEO_CREATE_CALL_FAILED: 'video-create-call-failed',
+  APP_SUSPENDED: 'app-suspended',
+  VIDEO_NO_DATACENTERS_AVAILABLE: 'video-no-datacenters-available',
+  VIDEO_JOIN_CALL_FAILURE: 'video-join-call-failure',
+  QUERY_CALLS_PERMISSIONS_MISMATCH: 'query-calls-permissions-mismatch',
+} as const;
+export type APIErrorCodeEnum =
+  (typeof APIErrorCodeEnum)[keyof typeof APIErrorCodeEnum];
+
+/**
+ *
+ * @export
+ * @interface APNSNotificationSettings
+ */
+export interface APNSNotificationSettings {
+  /**
+   *
+   * @type {{ [key: string]: EventNotification; }}
+   * @memberof APNSNotificationSettings
+   */
+  EventTemplates: { [key: string]: EventNotification };
+}
+/**
+ *
+ * @export
+ * @interface APNSNotificationSettingsRequest
+ */
+export interface APNSNotificationSettingsRequest {
+  /**
+   *
+   * @type {{ [key: string]: EventNotificationRequest; }}
+   * @memberof APNSNotificationSettingsRequest
+   */
+  EventTemplates?: { [key: string]: EventNotificationRequest };
 }
 /**
  *
@@ -1025,6 +1092,12 @@ export interface CallTypeResponse {
   name: string;
   /**
    *
+   * @type {NotificationSettings}
+   * @memberof CallTypeResponse
+   */
+  notification_settings: NotificationSettings;
+  /**
+   *
    * @type {CallSettingsResponse}
    * @memberof CallTypeResponse
    */
@@ -1175,6 +1248,12 @@ export interface CreateCallTypeRequest {
   name: string;
   /**
    *
+   * @type {NotificationSettingsRequest}
+   * @memberof CreateCallTypeRequest
+   */
+  notification_settings?: NotificationSettingsRequest;
+  /**
+   *
    * @type {CallSettingsRequest}
    * @memberof CreateCallTypeRequest
    */
@@ -1210,6 +1289,12 @@ export interface CreateCallTypeResponse {
    * @memberof CreateCallTypeResponse
    */
   name: string;
+  /**
+   *
+   * @type {NotificationSettings}
+   * @memberof CreateCallTypeResponse
+   */
+  notification_settings: NotificationSettings;
   /**
    *
    * @type {CallSettingsResponse}
@@ -1259,6 +1344,12 @@ export interface CreateDeviceRequest {
    * @memberof CreateDeviceRequest
    */
   user_id?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CreateDeviceRequest
+   */
+  voip_token?: boolean;
 }
 
 /**
@@ -1444,44 +1535,6 @@ export interface Device {
 /**
  *
  * @export
- * @interface DeviceFieldsRequest
- */
-export interface DeviceFieldsRequest {
-  /**
-   * Device ID
-   * @type {string}
-   * @memberof DeviceFieldsRequest
-   */
-  id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof DeviceFieldsRequest
-   */
-  push_provider: DeviceFieldsRequestPushProviderEnum;
-  /**
-   * Name of the push provider configuration
-   * @type {string}
-   * @memberof DeviceFieldsRequest
-   */
-  push_provider_name: string;
-}
-
-/**
- * @export
- */
-export const DeviceFieldsRequestPushProviderEnum = {
-  FIREBASE: 'firebase',
-  APN: 'apn',
-  HUAWEI: 'huawei',
-  XIAOMI: 'xiaomi',
-} as const;
-export type DeviceFieldsRequestPushProviderEnum =
-  (typeof DeviceFieldsRequestPushProviderEnum)[keyof typeof DeviceFieldsRequestPushProviderEnum];
-
-/**
- *
- * @export
  * @interface EdgeResponse
  */
 export interface EdgeResponse {
@@ -1558,6 +1611,44 @@ export interface EndCallResponse {
    * @memberof EndCallResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface EventNotification
+ */
+export interface EventNotification {
+  /**
+   *
+   * @type {string}
+   * @memberof EventNotification
+   */
+  body: string;
+  /**
+   *
+   * @type {string}
+   * @memberof EventNotification
+   */
+  title: string;
+}
+/**
+ *
+ * @export
+ * @interface EventNotificationRequest
+ */
+export interface EventNotificationRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof EventNotificationRequest
+   */
+  body?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof EventNotificationRequest
+   */
+  title?: string;
 }
 /**
  *
@@ -1708,6 +1799,12 @@ export interface GetCallTypeResponse {
    * @memberof GetCallTypeResponse
    */
   name: string;
+  /**
+   *
+   * @type {NotificationSettings}
+   * @memberof GetCallTypeResponse
+   */
+  notification_settings: NotificationSettings;
   /**
    *
    * @type {CallSettingsResponse}
@@ -2169,6 +2266,44 @@ export interface MuteUsersResponse {
    */
   duration: string;
 }
+/**
+ *
+ * @export
+ * @interface NotificationSettings
+ */
+export interface NotificationSettings {
+  /**
+   *
+   * @type {APNSNotificationSettings}
+   * @memberof NotificationSettings
+   */
+  apns_notification_settings: APNSNotificationSettings;
+  /**
+   *
+   * @type {boolean}
+   * @memberof NotificationSettings
+   */
+  enabled: boolean;
+}
+/**
+ *
+ * @export
+ * @interface NotificationSettingsRequest
+ */
+export interface NotificationSettingsRequest {
+  /**
+   *
+   * @type {APNSNotificationSettingsRequest}
+   * @memberof NotificationSettingsRequest
+   */
+  apns_notification_settings?: APNSNotificationSettingsRequest;
+  /**
+   *
+   * @type {boolean}
+   * @memberof NotificationSettingsRequest
+   */
+  enabled?: boolean;
+}
 
 /**
  * All possibility of string to use
@@ -2391,7 +2526,7 @@ export interface QueryMembersRequest {
    * @type {{ [key: string]: any; }}
    * @memberof QueryMembersRequest
    */
-  filter_conditions: { [key: string]: any };
+  filter_conditions?: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -2484,7 +2619,7 @@ export interface ReactionResponse {
    * @type {{ [key: string]: any; }}
    * @memberof ReactionResponse
    */
-  custom: { [key: string]: any };
+  custom?: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -3070,6 +3205,12 @@ export interface UpdateCallTypeRequest {
   grants?: { [key: string]: Array<string> };
   /**
    *
+   * @type {NotificationSettingsRequest}
+   * @memberof UpdateCallTypeRequest
+   */
+  notification_settings?: NotificationSettingsRequest;
+  /**
+   *
    * @type {CallSettingsRequest}
    * @memberof UpdateCallTypeRequest
    */
@@ -3105,6 +3246,12 @@ export interface UpdateCallTypeResponse {
    * @memberof UpdateCallTypeResponse
    */
   name: string;
+  /**
+   *
+   * @type {NotificationSettings}
+   * @memberof UpdateCallTypeResponse
+   */
+  notification_settings: NotificationSettings;
   /**
    *
    * @type {CallSettingsResponse}
@@ -3368,12 +3515,6 @@ export interface VideoSettingsRequest {
  * @interface WSAuthMessageRequest
  */
 export interface WSAuthMessageRequest {
-  /**
-   *
-   * @type {DeviceFieldsRequest}
-   * @memberof WSAuthMessageRequest
-   */
-  device?: DeviceFieldsRequest;
   /**
    *
    * @type {string}

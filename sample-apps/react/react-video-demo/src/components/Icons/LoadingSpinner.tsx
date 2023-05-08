@@ -22,7 +22,7 @@ export const LoadingSpinner: FC<Props> = ({ className }) => {
             d="M36 18c0-9.94-8.06-18-18-18"
             id="Oval-2"
             stroke="url(#a)"
-            stroke-width="2"
+            strokeWidth="2"
           >
             <animateTransform
               attributeName="transform"

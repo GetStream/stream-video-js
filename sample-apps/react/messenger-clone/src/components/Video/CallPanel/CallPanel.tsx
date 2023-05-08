@@ -1,37 +1,37 @@
 import {
-  useActiveCall,
+  CallingState,
+  useCall,
+  useCallCallingState,
   useConnectedUser,
-  useIncomingCalls,
-  useOutgoingCalls,
-  User,
 } from '@stream-io/video-react-sdk';
 import { ActiveCallPanel } from './ActiveCallPanel';
 import { PendingCallPanel } from './PendingCallPanel';
 
 export const CallPanel = () => {
-  const activeCall = useActiveCall();
-  const [outgoingCall] = useOutgoingCalls();
-  const [incomingCall] = useIncomingCalls();
+  const call = useCall();
+  const callingState = useCallCallingState();
   const localUser = useConnectedUser();
-  // todo: How we can get remote user data?
-  const remoteUser = {} as User;
 
-  if (activeCall) {
-    return <ActiveCallPanel activeCall={activeCall} />;
-  } else if (outgoingCall) {
+  if (!call) return null;
+
+  if (callingState === CallingState.JOINED) {
+    return <ActiveCallPanel activeCall={call} />;
+  } else if (callingState === CallingState.RINGING && call.isCreatedByMe) {
+    const [callee] = call.state.members;
     return (
       <PendingCallPanel
-        outgoingCall={outgoingCall}
+        outgoingCall={call}
         localUser={localUser}
-        remoteUser={remoteUser}
+        remoteUser={callee?.user}
       />
     );
-  } else if (incomingCall) {
+  } else if (callingState === CallingState.RINGING && !call.isCreatedByMe) {
+    const caller = call.data?.created_by;
     return (
       <PendingCallPanel
-        incomingCall={incomingCall}
+        incomingCall={call}
         localUser={localUser}
-        remoteUser={remoteUser}
+        remoteUser={caller}
       />
     );
   }

@@ -3,7 +3,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   ActiveCall,
   ActiveCallProps,
-  useActiveCall,
+  useCall,
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList } from '../../../types';
 import { SafeAreaView, StyleSheet } from 'react-native';
@@ -23,7 +23,7 @@ export const MeetingScreen = ({ navigation }: Props) => {
   };
   const [selectedMode, setMode] = React.useState<Mode>('grid');
 
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
 
   useEffect(() => {
     if (!activeCall) {

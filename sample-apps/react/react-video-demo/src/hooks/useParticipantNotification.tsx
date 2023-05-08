@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { v1 as uuid } from 'uuid';
-import { useRemoteParticipants } from '@stream-io/video-react-bindings';
-
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  StreamVideoParticipant,
+  useRemoteParticipants,
+} from '@stream-io/video-react-sdk';
 
 import { People } from '../components/Icons';
 

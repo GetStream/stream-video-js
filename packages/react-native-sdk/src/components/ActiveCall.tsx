@@ -1,16 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  StreamCallProvider,
-  useActiveCall,
+  useCall,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
-import { useCallCycleContext } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
+import { useIncallManager } from '../hooks/useIncallManager';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
 import { ReactionModal } from './ReactionsModal';
 
@@ -37,7 +36,7 @@ export interface ActiveCallProps {
  */
 
 export const ActiveCall = (props: ActiveCallProps) => {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
   const activeCallRef = useRef(activeCall);
   activeCallRef.current = activeCall;
 
@@ -49,11 +48,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
   }, []);
 
   if (!activeCall) return null;
-  return (
-    <StreamCallProvider call={activeCall}>
-      <InnerActiveCall {...props} />
-    </StreamCallProvider>
-  );
+  return <InnerActiveCall {...props} />;
 };
 
 const InnerActiveCall = (props: ActiveCallProps) => {
@@ -61,8 +56,8 @@ const InnerActiveCall = (props: ActiveCallProps) => {
   const [reactionModal, setReactionModal] = useState<boolean>(false);
   const { onOpenCallParticipantsInfoView, mode = 'grid' } = props;
   const hasScreenShare = useHasOngoingScreenShare();
-  const { callCycleHandlers } = useCallCycleContext();
-  const { onHangupCall } = callCycleHandlers;
+
+  useIncallManager({ media: 'video', auto: true });
   usePublishMediaStreams();
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
@@ -102,10 +97,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
         )}
       </View>
       <View onLayout={onLayout} style={styles.callControlsWrapper}>
-        <CallControlsView
-          onHangupCall={onHangupCall}
-          onReactionsSelector={openReactionsModal}
-        />
+        <CallControlsView onReactionsSelector={openReactionsModal} />
       </View>
     </View>
   );

@@ -1,5 +1,5 @@
-import { Dispatcher } from '../rtc/Dispatcher';
-import { VisibilityState } from '../rtc/types';
+import { Dispatcher } from '../rtc';
+import { VisibilityState } from '../types';
 import { CallState } from '../store';
 
 /**
@@ -31,13 +31,6 @@ export const watchParticipantLeft = (
     if (e.eventPayload.oneofKind !== 'participantLeft') return;
     const { participant } = e.eventPayload.participantLeft;
     if (!participant) return;
-
-    // FIXME OL: sort out the active call
-    // const activeCall = store.getCurrentValue(store.activeCallSubject);
-    // if (callCid !== activeCall?.data.call.cid) {
-    //   console.warn('Received participantLeft notification for a unknown call');
-    //   return;
-    // }
 
     state.setParticipants((participants) =>
       participants.filter((p) => p.sessionId !== participant.sessionId),

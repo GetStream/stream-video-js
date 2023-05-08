@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 import clsx from 'clsx';
-import { Placement } from '@popperjs/core';
+import { Placement } from '@floating-ui/react';
 
 import { Tooltip } from '../Tooltip';
 

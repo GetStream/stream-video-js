@@ -32,6 +32,7 @@ useEffect
 useCallback
 useMemo
 useParticipants
+useCall
 registerGlobals
 ios
 callkeep
@@ -43,3 +44,6 @@ uuid
 config
 logics
 notifee
+hasAudio
+hasVideo
+_Note

@@ -1,19 +1,21 @@
-import { FC, useState, useEffect } from 'react';
-import { FreeMode, Grid as GridModule, Navigation, Mousewheel } from 'swiper';
+import { FC, useEffect, useState } from 'react';
+import { FreeMode, Grid as GridModule, Mousewheel, Navigation } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import classnames from 'classnames';
 
-import { ParticipantBox } from '@stream-io/video-react-sdk';
-import { Call, StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  Call,
+  StreamVideoParticipant,
+  useLocalParticipant,
+} from '@stream-io/video-react-sdk';
 
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from '../Icons';
+import Participant from '../Participant';
 
 import { useBreakpoint } from '../../hooks/useBreakpoints';
 
 import styles from './ParticipantsSlider.module.css';
-
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -65,9 +67,8 @@ export const ParticipantsSlider: FC<Props> = ({
   participants,
   height,
 }) => {
-  const localParticipant = useLocalParticipant();
   const breakpoint = useBreakpoint();
-  const [derivedMode, setMode] = useState<'horizontal' | 'vertical'>();
+  const [derivedMode, setMode] = useState<'horizontal' | 'vertical'>(mode);
 
   useEffect(() => {
     if (breakpoint === 'xs' || breakpoint === 'sm') {
@@ -80,21 +81,21 @@ export const ParticipantsSlider: FC<Props> = ({
   const rootClassName = classnames(
     styles.root,
     {
-      [styles?.[mode]]: mode,
+      [styles?.[derivedMode]]: derivedMode,
     },
     className,
   );
 
   const swiperClassName = classnames(styles.swiper, {
-    [styles?.[mode]]: mode,
+    [styles?.[derivedMode]]: derivedMode,
   });
 
   const slideClassName = classnames(styles.slide, {
-    [styles?.[mode]]: mode,
+    [styles?.[derivedMode]]: derivedMode,
   });
 
   const participantClassName = classnames(styles.participant, {
-    [styles?.[mode]]: mode,
+    [styles?.[derivedMode]]: derivedMode,
   });
 
   if (derivedMode) {
@@ -134,12 +135,11 @@ export const ParticipantsSlider: FC<Props> = ({
           {participants?.map((participant, index) => (
             <SwiperSlide key={index} className={slideClassName}>
               <div key={`participant-${index}`}>
-                <ParticipantBox
+                <Participant
                   key={participant.sessionId}
-                  participant={participant}
-                  className={participantClassName}
                   call={call}
-                  sinkId={localParticipant?.audioOutputDeviceId}
+                  className={participantClassName}
+                  participant={participant}
                 />
               </div>
             </SwiperSlide>

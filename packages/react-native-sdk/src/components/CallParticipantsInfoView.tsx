@@ -1,9 +1,5 @@
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
-import {
-  StreamCallProvider,
-  useActiveCall,
-  useParticipants,
-} from '@stream-io/video-react-bindings';
+import { useParticipants } from '@stream-io/video-react-bindings';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { MicOff, ScreenShare, VideoSlash } from '../icons';
 import React, { useState } from 'react';
@@ -11,6 +7,7 @@ import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
+
 type CallParticipantInfoViewType = {
   participant: StreamVideoParticipant;
   setSelectedParticipant: React.Dispatch<
@@ -72,14 +69,7 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
 };
 
 export const CallParticipantsInfoView = () => {
-  const activeCall = useActiveCall();
-  if (!activeCall) return null;
-
-  return (
-    <StreamCallProvider call={activeCall}>
-      <InnerCallParticipantsInfoView />
-    </StreamCallProvider>
-  );
+  return <InnerCallParticipantsInfoView />;
 };
 /**
  * Shows information about the call, it's participants in the call and

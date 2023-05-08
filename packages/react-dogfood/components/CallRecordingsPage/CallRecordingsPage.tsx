@@ -10,6 +10,7 @@ import { Box } from '@mui/material';
 import { CallRecordingSearchForm } from './CallRecordingSearchForm';
 import { LobbyHeader } from '../LobbyHeader';
 import { ServerSideCredentialsProps } from '../../lib/getServerSideCredentialsProps';
+import { useSettings } from '../../context/SettingsContext';
 
 export const CallRecordingsPage = ({
   apiKey,
@@ -21,12 +22,15 @@ export const CallRecordingsPage = ({
     tokenOrProvider: userToken,
     user,
   });
+  const {
+    settings: { language },
+  } = useSettings();
   const [recordings, setRecordings] = useState<CallRecording[] | undefined>();
   const [error, setError] = useState<Error | undefined>();
   const [loading, setLoading] = useState(false);
 
   return (
-    <StreamVideo client={videoClient}>
+    <StreamVideo client={videoClient} language={language}>
       <LobbyHeader />
       <Box display="flex" justifyContent="center">
         <Box display="flex" alignItems="center" flexDirection="column">

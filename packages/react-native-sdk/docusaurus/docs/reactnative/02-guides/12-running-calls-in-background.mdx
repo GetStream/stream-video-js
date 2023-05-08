@@ -120,7 +120,7 @@ export const CallScreen = ({ route, navigation }: Props) => {
     };
   }, [activeCall]);
 
-  const onHangupCallHandler = () => {
+  const onCallHungUpHandler = () => {
     navigation.navigate('JoinCallScreen');
   };
 
@@ -133,7 +133,7 @@ export const CallScreen = ({ route, navigation }: Props) => {
   }
   return (
     <ActiveCall
-      onHangupCall={onHangupCallHandler}
+      onCallHungUp={onCallHungUpHandler}
       onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
     />
   );

@@ -15,10 +15,6 @@ export const watchNewReactions = (state: CallState) => {
       return participants.map((p) => {
         // skip if the reaction is not for this participant
         if (p.userId !== user.id) return p;
-
-        // skip if the reaction is not for this session
-        if (custom.sessionId && p.sessionId !== custom.sessionId) return p;
-
         // update the participant with the new reaction
         return {
           ...p,

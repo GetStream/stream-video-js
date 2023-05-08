@@ -5,13 +5,11 @@ import {
   OwnCapability,
   SfuModels,
   StreamVideoParticipant,
-  User,
-} from '@stream-io/video-client';
-import {
-  useActiveCall,
+  useCall,
   useConnectedUser,
   useOwnCapabilities,
-} from '@stream-io/video-react-bindings';
+  User,
+} from '@stream-io/video-react-sdk';
 
 import Panel from '../Panel';
 import { Invite } from '../InvitePanel';
@@ -20,10 +18,10 @@ import {
   Mic,
   MicMuted,
   Options,
+  People,
   Search,
   Video,
   VideoOff,
-  People,
 } from '../Icons';
 
 import { Restricted } from '../Moderation/Restricted';
@@ -163,7 +161,7 @@ export const ParticipantsPanel: FC<Props> = ({
 }) => {
   const [value, setValue]: any = useState(undefined);
 
-  const call = useActiveCall();
+  const call = useCall();
   const connectedUser = useConnectedUser();
 
   const rootClassname = classnames(styles.root, className);
