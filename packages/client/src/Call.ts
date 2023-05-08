@@ -83,7 +83,11 @@ import { ViewportTracker } from './helpers/ViewportTracker';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
-import { retryInterval, sleep } from './coordinator/connection/utils';
+import {
+  KnownCodes,
+  retryInterval,
+  sleep,
+} from './coordinator/connection/utils';
 import {
   CallEventHandler,
   CallEventTypes,
@@ -604,7 +608,10 @@ export class Call {
     sfuClient.signalReady.then(() => {
       sfuClient.signalWs.addEventListener('close', (e) => {
         // do nothing if the connection was closed on purpose
-        if (e.code === 1000) return;
+        if (e.code === KnownCodes.WS_CLOSED_SUCCESS) return;
+        // do nothing if the connection was closed because of a policy violation
+        // e.g., the user has been blocked by an admin or moderator
+        if (e.code === KnownCodes.WS_POLICY_VIOLATION) return;
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           rejoin().catch(() => {
             console.log(
