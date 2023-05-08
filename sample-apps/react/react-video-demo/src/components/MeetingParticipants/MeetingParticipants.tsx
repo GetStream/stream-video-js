@@ -7,6 +7,8 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-react-sdk';
 
+import { SfuModels } from '@stream-io/video-client';
+
 import ParticipantsSlider from '../ParticipantsSlider';
 import Participant from '../Participant';
 
@@ -30,6 +32,10 @@ export const MeetingParticipants: FC<Props> = ({
 
   const breakpoint = useBreakpoint();
 
+  const localParticpantHasVideo = localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
+
   useEffect(() => {
     if (breakpoint === 'xs' || breakpoint === 'sm') {
       setMaxParticipants(2);
@@ -49,13 +55,17 @@ export const MeetingParticipants: FC<Props> = ({
       [styles.slider]: remoteParticipants?.length > maxParticipants,
     });
 
+    const localParticipantClassNames = classnames(styles.localParticipant, {
+      [styles.videoDisabled]: !localParticpantHasVideo,
+    });
+
     return (
       <div className={rootClassNames}>
         <div className={gridClassNames}>
           {localParticipant && (
             <Participant
               call={call}
-              className={styles.localParticipant}
+              className={localParticipantClassNames}
               participant={localParticipant}
               sinkId={localParticipant.audioOutputDeviceId}
             />
@@ -63,11 +73,21 @@ export const MeetingParticipants: FC<Props> = ({
 
           {remoteParticipants?.length <= maxParticipants ? (
             remoteParticipants?.map((participant: StreamVideoParticipant) => {
+              const remoteParticpantHasVideo =
+                participant.publishedTracks.includes(SfuModels.TrackType.VIDEO);
+
+              const remoteParticipantsClassNames = classnames(
+                styles.remoteParticipant,
+                {
+                  [styles.videoDisabled]: !remoteParticpantHasVideo,
+                },
+              );
+
               return (
                 <Participant
                   key={participant.sessionId}
                   call={call}
-                  className={styles.remoteParticipant}
+                  className={remoteParticipantsClassNames}
                   participant={participant}
                 />
               );

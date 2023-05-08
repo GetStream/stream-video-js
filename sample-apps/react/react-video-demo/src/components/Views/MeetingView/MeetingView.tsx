@@ -61,7 +61,7 @@ export const View: FC<Props & Meeting> = ({
   const cid = `videocall:${callId}`;
   const channelWatched = useWatchChannel({ chatClient, channelId: callId });
 
-  const { current, setSteps } = useTourContext();
+  const { setSteps } = useTourContext();
 
   const client = useStreamVideoClient();
   const participants = useParticipants();
