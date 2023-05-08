@@ -17,11 +17,11 @@ import {
 } from '@stream-io/video-react-bindings';
 
 import { ParticipantBox } from '../ParticipantBox';
-import { IconButton } from '../../../components/Button';
+import { IconButton } from '../../../components';
 import { useHorizontalScrollPosition } from '../../../components/StreamCall/hooks';
 
 export const SpeakerLayout = () => {
-  const call = useCall()!;
+  const call = useCall();
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
   const [scrollWrapper, setScrollWrapper] = useState<HTMLDivElement | null>(
     null,
@@ -40,14 +40,15 @@ export const SpeakerLayout = () => {
   };
 
   useEffect(() => {
-    if (!scrollWrapper) return;
+    if (!scrollWrapper || !call) return;
 
     const cleanup = call.viewportTracker.setViewport(scrollWrapper);
 
     return () => cleanup();
-  }, [scrollWrapper, call.viewportTracker]);
+  }, [scrollWrapper, call]);
 
   useEffect(() => {
+    if (!call) return;
     // always show the remote participant in the spotlight
     if (isOneOnOneCall) {
       call.setSortParticipantsBy(combineComparators(screenSharing, loggedIn));
@@ -69,7 +70,7 @@ export const SpeakerLayout = () => {
     <div className="str-video__speaker-layout--wrapper">
       <div className="str-video__speaker-layout">
         <div className="str-video__speaker-layout--spotlight">
-          {participantInSpotlight && (
+          {call && participantInSpotlight && (
             <ParticipantBox
               participant={participantInSpotlight}
               call={call}
@@ -93,7 +94,7 @@ export const SpeakerLayout = () => {
               ref={setScrollWrapper}
             >
               <div className="str-video__speaker-layout--participants-bar">
-                {isSpeakerScreenSharing && (
+                {call && isSpeakerScreenSharing && (
                   <div
                     className="str-video__speaker-layout--participant-tile"
                     key={participantInSpotlight.sessionId}
@@ -106,19 +107,20 @@ export const SpeakerLayout = () => {
                     />
                   </div>
                 )}
-                {otherParticipants.map((participant) => (
-                  <div
-                    className="str-video__speaker-layout--participant-tile"
-                    key={participant.sessionId}
-                  >
-                    <ParticipantBox
-                      participant={participant}
-                      call={call}
-                      sinkId={localParticipant?.audioOutputDeviceId}
-                      toggleMenuPosition="top"
-                    />
-                  </div>
-                ))}
+                {call &&
+                  otherParticipants.map((participant) => (
+                    <div
+                      className="str-video__speaker-layout--participant-tile"
+                      key={participant.sessionId}
+                    >
+                      <ParticipantBox
+                        participant={participant}
+                        call={call}
+                        sinkId={localParticipant?.audioOutputDeviceId}
+                        toggleMenuPosition="top"
+                      />
+                    </div>
+                  ))}
               </div>
             </div>
             {scrollPosition && scrollPosition !== 'end' && (

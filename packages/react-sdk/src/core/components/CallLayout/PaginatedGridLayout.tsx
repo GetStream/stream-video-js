@@ -107,7 +107,9 @@ export const PaginatedGridLayout = ({
 
   // update page when page count is reduced and selected page no longer exists
   useEffect(() => {
-    if (page > pageCount - 1) setPage(pageCount - 1);
+    if (page > pageCount - 1) {
+      setPage(Math.max(0, pageCount - 1));
+    }
   }, [page, pageCount]);
 
   const selectedGroup = participantGroups[page];
@@ -128,7 +130,9 @@ export const PaginatedGridLayout = ({
             <IconButton
               icon="caret-left"
               disabled={page === 0}
-              onClick={() => setPage((pv) => (pv === 0 ? pv : pv - 1))}
+              onClick={() =>
+                setPage((currentPage) => Math.max(0, currentPage - 1))
+              }
             />
           )}
           {selectedGroup && (
@@ -142,7 +146,9 @@ export const PaginatedGridLayout = ({
               disabled={page === pageCount - 1}
               icon="caret-right"
               onClick={() =>
-                setPage((pv) => (pv === pageCount - 1 ? pv : pv + 1))
+                setPage((currentPage) =>
+                  Math.min(pageCount - 1, currentPage + 1),
+                )
               }
             />
           )}
