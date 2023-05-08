@@ -2,6 +2,10 @@
   @apply flex items-center justify-center h-full;
 }
 
+.root.slider {
+  @apply w-full;
+}
+
 @media screen(sm) {
   .root {
     @apply max-w-[80%];
@@ -27,7 +31,7 @@
 
 .meetingGrid.slider .localParticipant {
   grid-area: localParticipant;
-  @apply flex justify-center items-center w-full;
+  @apply flex justify-center items-center w-full md:max-w-[80%] ml-auto mr-auto;
 }
 
 .participantSlider {
@@ -52,6 +56,11 @@
   cursor: pointer;
 }
 
+.meetingGrid .localParticipant.videoDisabled,
+.meetingGrid .remoteParticipant.videoDisabled {
+  @apply: bg-video-grey-700;
+}
+
 /* end participant boxes */
 
 /* one participant */
@@ -61,10 +70,20 @@
   grid-template-rows: repeat(1, 1fr);
 }
 
+.meetingGrid-1 .localParticipant.videoDisabled,
+.meetingGrid-1 .remoteParticipant.videoDisabled {
+  @apply w-[343px] h-[192px];
+}
+
 @media screen(sm) {
   .meetingGrid-1 .localParticipant,
   .meetingGrid-1 .remoteParticipant {
     @apply max-h-[225px] w-full;
+  }
+
+  .meetingGrid-1 .localParticipant.videoDisabled,
+  .meetingGrid-1 .remoteParticipant.videoDisabled {
+    @apply h-[225px] w-full;
   }
 }
 
@@ -73,6 +92,11 @@
   .meetingGrid-1 .remoteParticipant {
     @apply h-auto max-h-[330px] w-auto;
     aspect-ratio: 16/9;
+  }
+
+  .meetingGrid-1 .localParticipant.videoDisabled,
+  .meetingGrid-1 .remoteParticipant.videoDisabled {
+    @apply h-[330px] w-full;
   }
 }
 
@@ -89,6 +113,11 @@
 .meetingGrid-2 .localParticipant {
   @apply w-full max-h-[225px];
   aspect-ratio: 16/9;
+}
+
+.meetingGrid-2 .localParticipant.videoDisabled,
+.meetingGrid-2 .remoteParticipant.videoDisabled {
+  @apply h-[225px] w-full;
 }
 
 @media screen(sm) {
@@ -113,6 +142,11 @@
   aspect-ratio: 16/9;
 }
 
+.meetingGrid-3 .localParticipant.videoDisabled,
+.meetingGrid-3 .remoteParticipant.videoDisabled {
+  @apply min-h-[150px] w-full;
+}
+
 @media screen(sm) {
   .meetingGrid-3 {
     @apply h-auto;
@@ -127,6 +161,11 @@
     @apply h-auto max-h-none w-auto;
     aspect-ratio: 16/9;
   }
+
+  .meetingGrid-3 .localParticipant.videoDisabled,
+  .meetingGrid-3 .remoteParticipant.videoDisabled {
+    @apply min-h-[236px] w-full;
+  }
 }
 
 /* end three participants */
@@ -138,11 +177,21 @@
   grid-template-rows: repeat(2, 1fr);
 }
 
+.meetingGrid-4 .localParticipant.videoDisabled,
+.meetingGrid-4 .remoteParticipant.videoDisabled {
+  @apply min-h-[150px] w-full;
+}
+
 @media screen(md) {
   .meetingGrid-4 .localParticipant,
   .meetingGrid-4 .remoteParticipant {
     @apply h-auto max-h-none w-auto;
     aspect-ratio: 16/9;
+  }
+
+  .meetingGrid-4 .localParticipant.videoDisabled,
+  .meetingGrid-4 .remoteParticipant.videoDisabled {
+    @apply min-h-[236px] w-full;
   }
 }
 
@@ -152,6 +201,11 @@
   @apply h-auto;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, 1fr);
+}
+
+.meetingGrid-5 .localParticipant.videoDisabled,
+.meetingGrid-5 .remoteParticipant.videoDisabled {
+  @apply min-h-[155px] w-full;
 }
 
 @media screen(md) {
@@ -171,6 +225,11 @@
   grid-template-rows: repeat(2, 1fr);
 }
 
+.meetingGrid-6 .localParticipant.videoDisabled,
+.meetingGrid-6 .remoteParticipant.videoDisabled {
+  @apply min-h-[155px] w-full;
+}
+
 @media screen(md) {
   .meetingGrid-6 .localParticipant,
   .meetingGrid-6 .remoteParticipant {
@@ -186,6 +245,11 @@
 .meetingGrid-7 {
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
+}
+
+.meetingGrid-7 .localParticipant.videoDisabled,
+.meetingGrid-7 .remoteParticipant.videoDisabled {
+  @apply min-h-[155px] w-full;
 }
 
 @media screen(md) {
@@ -204,6 +268,11 @@
   grid-template-rows: repeat(3, 1fr);
 }
 
+.meetingGrid-8 .localParticipant.videoDisabled,
+.meetingGrid-8 .remoteParticipant.videoDisabled {
+  @apply min-h-[155px] w-full;
+}
+
 @media screen(md) {
   .meetingGrid-8 .localParticipant,
   .meetingGrid-8 .remoteParticipant {
@@ -217,6 +286,11 @@
 .meetingGrid-9 {
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
+}
+
+.meetingGrid-9 .localParticipant.videoDisabled,
+.meetingGrid-9 .remoteParticipant.videoDisabled {
+  @apply min-h-[155px] w-full;
 }
 
 @media screen(md) {
