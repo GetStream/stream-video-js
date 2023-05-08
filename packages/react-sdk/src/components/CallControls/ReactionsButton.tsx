@@ -1,6 +1,7 @@
-import { CompositeButton, IconButton } from '../Button';
-import { useActiveCall } from '@stream-io/video-react-bindings';
 import { OwnCapability, StreamReaction } from '@stream-io/video-client';
+import { useCall } from '@stream-io/video-react-bindings';
+
+import { CompositeButton, IconButton } from '../Button';
 import { defaultEmojiReactions } from '../Reaction';
 import { Restricted } from '../Moderation';
 
@@ -8,18 +9,15 @@ export const defaultReactions: StreamReaction[] = [
   {
     type: 'reaction',
     emoji_code: ':like:',
-    custom: {},
   },
   {
     // TODO OL: use `prompt` type?
     type: 'raised-hand',
     emoji_code: ':raise-hand:',
-    custom: {},
   },
   {
     type: 'reaction',
     emoji_code: ':fireworks:',
-    custom: {},
   },
 ];
 
@@ -57,12 +55,7 @@ export interface DefaultReactionsMenuProps {
 export const DefaultReactionsMenu = ({
   reactions,
 }: DefaultReactionsMenuProps) => {
-  const activeCall = useActiveCall();
-
-  const sendReaction = (reaction: StreamReaction) => {
-    activeCall?.sendReaction(reaction);
-  };
-
+  const call = useCall();
   return (
     <div className="str-video__reactions-menu">
       {reactions.map((reaction) => (
@@ -71,7 +64,7 @@ export const DefaultReactionsMenu = ({
           type="button"
           className="str-video__reactions-menu__button"
           onClick={() => {
-            sendReaction(reaction);
+            call?.sendReaction(reaction);
           }}
         >
           {reaction.emoji_code && defaultEmojiReactions[reaction.emoji_code]}

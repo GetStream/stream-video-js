@@ -1,22 +1,25 @@
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/router';
 import {
-  MediaDevicesProvider,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useCreateStreamChatClient } from '../../hooks';
-import { LoadingScreen, MeetingUI } from '../../components';
-import { getDeviceSettings } from '../../components/DeviceSettingsCaptor';
+import { MeetingUI } from '../../components';
 import {
   getServerSideCredentialsProps,
   ServerSideCredentialsProps,
 } from '../../lib/getServerSideCredentialsProps';
 import { useGleap } from '../../hooks/useGleap';
+import { useSettings } from '../../context/SettingsContext';
+import translations from '../../translations';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
+  const {
+    settings: { language },
+  } = useSettings();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
 
@@ -53,11 +56,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   });
 
   useGleap(gleapApiKey, client, user);
-  const deviceSettings = getDeviceSettings();
-
-  if (!client) {
-    return <LoadingScreen />;
-  }
 
   return (
     <>
@@ -65,23 +63,16 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         <title>Stream Calls: {callId}</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      <StreamVideo client={client}>
-        <MediaDevicesProvider
-          enumerate
-          initialAudioEnabled={!deviceSettings?.isAudioMute}
-          initialVideoEnabled={!deviceSettings?.isVideoMute}
-          initialVideoInputDeviceId={deviceSettings?.selectedVideoDeviceId}
-          initialAudioInputDeviceId={deviceSettings?.selectedAudioInputDeviceId}
-          initialAudioOutputDeviceId={
-            deviceSettings?.selectedAudioOutputDeviceId
-          }
-        >
-          <MeetingUI
-            chatClient={chatClient}
-            callId={callId}
-            callType={callType}
-          />
-        </MediaDevicesProvider>
+      <StreamVideo
+        client={client}
+        language={language}
+        translationsOverrides={translations}
+      >
+        <MeetingUI
+          chatClient={chatClient}
+          callId={callId}
+          callType={callType}
+        />
       </StreamVideo>
     </>
   );

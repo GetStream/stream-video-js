@@ -16,7 +16,19 @@
 
 .slide.horizontal {
   max-height: 100%;
-  max-width: 75%;
+  max-width: 50%;
+}
+
+@media screen(sm) {
+  .slide.horizontal {
+    max-width: 40%;
+  }
+}
+
+@media screen(md) {
+  .slide.horizontal {
+    max-width: 75%;
+  }
 }
 
 @media screen(md) {
@@ -26,15 +38,30 @@
 }
 
 .slide.vertical {
-  @apply w-[75%] lg:h-[125px] lg:w-full;
+  @apply lg:h-[125px] w-full;
 }
 
 .participant.horizontal {
-  max-height: 100%;
+  @apply max-h-full;
 }
+
+.participant.horizontal.videoDisabled {
+  @apply min-h-[125px];
+}
+
+@media screen(sm) {
+}
+
+@media screen(md) {
+}
+
 .participant.vertical {
   height: 10%;
   width: 100%;
+}
+
+.participant.vertical.videoDisabled {
+  @apply min-h-[120px];
 }
 
 .next,

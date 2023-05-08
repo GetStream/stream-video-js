@@ -2,13 +2,10 @@ import {ActivityIndicator, Platform, StyleSheet, View} from 'react-native';
 import React, {useEffect, useRef} from 'react';
 import {
   CallControlsView,
-  StreamCallProvider,
-  StreamVideo,
-  useActiveCall,
-  useCallCycleContext,
+  StreamVideoCall,
+  useCall,
   useCreateStreamVideoClient,
   usePublishMediaStreams,
-  useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import {
   STREAM_API_KEY,
@@ -41,37 +38,38 @@ export default () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const videoClient = useCreateStreamVideoClient({
     user: USER,
-    tokenOrProvider: USER?.custom?.token,
+    tokenOrProvider: USER.custom.token,
     apiKey: STREAM_API_KEY,
     options: {
       preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
     },
   });
-  const handleOnHangupCall = () => navigation.navigate('WelcomeScreen');
+  const handleOnCallHungUp = () => navigation.navigate('WelcomeScreen');
 
   return (
-    <StreamVideo
+    <StreamVideoCall
+      callId={generateCallId()}
       client={videoClient}
-      callCycleHandlers={{onHangupCall: handleOnHangupCall}}>
+      callCycleHandlers={{onCallHungUp: handleOnCallHungUp}}>
       <MyActiveCall />
-    </StreamVideo>
+    </StreamVideoCall>
   );
 };
 
 const MyActiveCall = () => {
-  const activeCall = useActiveCall();
-  const videoClient = useStreamVideoClient();
+  const call = useCall();
   const insets = useSafeAreaInsets();
-  const callId = useRef<string>(generateCallId());
   usePublishMediaStreams();
-  const {callCycleHandlers} = useCallCycleContext();
-  const {onHangupCall} = callCycleHandlers;
 
   useEffect(() => {
+    if (!call) {
+      return;
+    }
     const startCall = async () => {
       try {
-        // Join the call and start the call cycle.
-        await videoClient?.call('default', callId.current).join();
+        // Join the call.
+        await call.join({create: true});
+
         // Start InCallManager and enable the speakerphone.
         InCallManager.start({media: 'video'});
         InCallManager.setForceSpeakerphoneOn(true);
@@ -80,21 +78,18 @@ const MyActiveCall = () => {
       }
     };
     startCall();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [callId.current]);
+  }, [call]);
 
-  if (!activeCall) {
+  if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
 
   return (
-    <StreamCallProvider call={activeCall}>
-      <View style={[styles.wrapper, {paddingTop: insets.top}]}>
-        <IntroModal callId={callId.current} />
-        <MyCallParticipantsView />
-        <CallControlsView onHangupCall={onHangupCall} />
-      </View>
-    </StreamCallProvider>
+    <View style={[styles.wrapper, {paddingTop: insets.top}]}>
+      <IntroModal callId={call.id} />
+      <MyCallParticipantsView />
+      <CallControlsView />
+    </View>
   );
 };
 

@@ -1,10 +1,10 @@
-import { LoadingIndicator, useActiveCall } from '@stream-io/video-react-sdk';
+import { LoadingIndicator, useCall } from '@stream-io/video-react-sdk';
 import { Lobby } from './Lobby';
 import { ActiveCall } from './ActiveCall';
 import { useLoadingState } from '../../context/LoadingStateContext';
 
 export const UI = () => {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
   const { loading } = useLoadingState();
 
   if (activeCall) {

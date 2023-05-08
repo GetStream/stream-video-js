@@ -12,13 +12,16 @@ import {
   findOptimalVideoLayers,
 } from './videoLayers';
 import { getPreferredCodecs } from './codecs';
-import { PublishOptions } from './types';
+import { trackTypeToParticipantStreamKey } from './helpers/tracks';
+import { CallState } from '../store';
+import { PublishOptions } from '../types';
 import { isReactNative } from '../helpers/platforms';
 import { enableDtx } from '../helpers/sdp-munging/enableDtx';
 import { setPreferredCodec } from '../helpers/sdp-munging/setPreferredCodec';
 
 export type PublisherOpts = {
-  rpcClient: StreamSfuClient;
+  sfuClient: StreamSfuClient;
+  state: CallState;
   connectionConfig?: RTCConfiguration;
   isDtxEnabled: boolean;
   preferredAudioCodec: string;
@@ -31,7 +34,8 @@ export type PublisherOpts = {
  */
 export class Publisher {
   private readonly publisher: RTCPeerConnection;
-  private readonly rpcClient: StreamSfuClient;
+  private readonly sfuClient: StreamSfuClient;
+  private readonly state: CallState;
   private readonly transceiverRegistry: {
     [key in TrackType]: RTCRtpTransceiver | undefined;
   } = {
@@ -56,7 +60,8 @@ export class Publisher {
 
   constructor({
     connectionConfig,
-    rpcClient,
+    sfuClient,
+    state,
     isDtxEnabled,
     preferredAudioCodec,
     preferredVideoCodec,
@@ -76,7 +81,8 @@ export class Publisher {
     );
 
     this.publisher = pc;
-    this.rpcClient = rpcClient;
+    this.sfuClient = sfuClient;
+    this.state = state;
     this.isDtxEnabled = isDtxEnabled;
     this.preferredAudioCodec = preferredAudioCodec;
     this.preferredVideoCodec = preferredVideoCodec;
@@ -107,64 +113,69 @@ export class Publisher {
           t.sender.track?.kind === this.trackKindRegistry[trackType],
       );
 
+    /**
+     * An event handler which listens for the 'ended' event on the track.
+     * Once the track has ended, it will notify the SFU and update the state.
+     */
+    const handleTrackEnded = async () => {
+      console.log(`Track ${TrackType[trackType]} has ended, notifying the SFU`);
+      await this.notifyTrackMuteStateChanged(mediaStream, trackType, true);
+      // clean-up, this event listener needs to run only once.
+      track.removeEventListener('ended', handleTrackEnded);
+    };
+
     if (!transceiver) {
-      let videoEncodings: RTCRtpEncodingParameters[] | undefined;
-      if (trackType === TrackType.VIDEO) {
-        videoEncodings = findOptimalVideoLayers(track);
-      }
+      const videoEncodings =
+        trackType === TrackType.VIDEO
+          ? findOptimalVideoLayers(track)
+          : undefined;
+
+      const codecPreferences = this.getCodecPreferences(
+        trackType,
+        opts.preferredCodec,
+      );
+
+      // listen for 'ended' event on the track as it might be ended abruptly
+      // by an external factor as permission revokes, device disconnected, etc.
+      // keep in mind that `track.stop()` doesn't trigger this event.
+      track.addEventListener('ended', handleTrackEnded);
+
       transceiver = this.publisher.addTransceiver(track, {
         direction: 'sendonly',
         streams:
           trackType === TrackType.VIDEO || trackType === TrackType.SCREEN_SHARE
             ? [mediaStream]
             : undefined,
-        sendEncodings:
-          trackType === TrackType.VIDEO ? videoEncodings : undefined,
+        sendEncodings: videoEncodings,
       });
 
       this.transceiverRegistry[trackType] = transceiver;
 
-      if (trackType === TrackType.VIDEO) {
-        const codecPreferences = getPreferredCodecs(
-          'video',
-          opts.preferredCodec || this.preferredVideoCodec || 'vp8',
+      if ('setCodecPreferences' in transceiver && codecPreferences) {
+        console.log(
+          `Setting ${TrackType[trackType]} codec preferences`,
+          codecPreferences,
         );
-
-        if ('setCodecPreferences' in transceiver && codecPreferences) {
-          console.log(`set video codec preferences`, codecPreferences);
-          // @ts-ignore
-          transceiver.setCodecPreferences(codecPreferences);
-        }
-      }
-
-      if (trackType === TrackType.AUDIO) {
-        let returnOnlyMatched = opts.preferredCodec === 'opus';
-        const codecPreferences = getPreferredCodecs(
-          'audio',
-          opts.preferredCodec!,
-          returnOnlyMatched,
-        );
-        console.log('Preferred codec', opts.preferredCodec);
-        if ('setCodecPreferences' in transceiver && codecPreferences) {
-          console.log(`set audio codec preferences`, codecPreferences);
-          // @ts-ignore
-          transceiver.setCodecPreferences(codecPreferences);
-        }
+        transceiver.setCodecPreferences(codecPreferences);
       }
     } else {
+      const previousTrack = transceiver.sender.track;
       // don't stop the track if we are re-publishing the same track
-      if (transceiver.sender.track !== track) {
-        transceiver.sender.track?.stop();
+      if (previousTrack && previousTrack !== track) {
+        previousTrack.stop();
+        previousTrack.removeEventListener('ended', handleTrackEnded);
+        track.addEventListener('ended', handleTrackEnded);
       }
       await transceiver.sender.replaceTrack(track);
     }
+
+    await this.notifyTrackMuteStateChanged(mediaStream, trackType, false);
   };
 
   /**
    * Stops publishing the given track type to the SFU, if it is currently being published.
    * Underlying track will be stopped and removed from the publisher.
    * @param trackType the track type to unpublish.
-   * @returns `true` if track with the given track type was found, otherwise `false`
    */
   unpublishStream = (trackType: TrackType) => {
     const transceiver = this.publisher
@@ -176,9 +187,31 @@ export class Publisher {
       transceiver.sender.track.readyState === 'live'
     ) {
       transceiver.sender.track.stop();
-      return true;
+      return this.notifyTrackMuteStateChanged(undefined, trackType, true);
+    }
+  };
+
+  private notifyTrackMuteStateChanged = async (
+    mediaStream: MediaStream | undefined,
+    trackType: TrackType,
+    isMuted: boolean,
+  ) => {
+    await this.sfuClient.updateMuteState(trackType, isMuted);
+
+    const audioOrVideoOrScreenShareStream =
+      trackTypeToParticipantStreamKey(trackType);
+    if (isMuted) {
+      this.state.updateParticipant(this.sfuClient.sessionId, (p) => ({
+        publishedTracks: p.publishedTracks.filter((t) => t !== trackType),
+        [audioOrVideoOrScreenShareStream]: undefined,
+      }));
     } else {
-      return false;
+      this.state.updateParticipant(this.sfuClient.sessionId, (p) => ({
+        publishedTracks: p.publishedTracks.includes(trackType)
+          ? p.publishedTracks
+          : [...p.publishedTracks, trackType],
+        [audioOrVideoOrScreenShareStream]: mediaStream,
+      }));
     }
   };
 
@@ -244,13 +277,26 @@ export class Publisher {
     return this.publisher.getStats(selector);
   }
 
+  private getCodecPreferences = (
+    trackType: TrackType,
+    preferredCodec?: string | null,
+  ) => {
+    if (trackType === TrackType.VIDEO) {
+      return getPreferredCodecs('video', preferredCodec || 'vp8');
+    }
+    if (trackType === TrackType.AUDIO) {
+      const matchedOnly = preferredCodec === 'opus';
+      return getPreferredCodecs('audio', preferredCodec || 'opus', matchedOnly);
+    }
+  };
+
   private onIceCandidate = async (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
       console.log('null ice candidate');
       return;
     }
-    await this.rpcClient.iceTrickle({
+    await this.sfuClient.iceTrickle({
       iceCandidate: getIceCandidate(candidate),
       peerType: PeerType.PUBLISHER_UNSPECIFIED,
     });
@@ -317,7 +363,7 @@ export class Publisher {
       });
 
     // TODO debounce for 250ms
-    const { response } = await this.rpcClient.setPublisher({
+    const { response } = await this.sfuClient.setPublisher({
       sdp: offer.sdp || '',
       tracks: trackInfos,
     });
@@ -331,7 +377,7 @@ export class Publisher {
       console.error(`Publisher: setRemoteDescription error`, response.sdp, e);
     }
 
-    this.rpcClient.iceTrickleBuffer.publisherCandidates.subscribe(
+    this.sfuClient.iceTrickleBuffer.publisherCandidates.subscribe(
       async (candidate) => {
         try {
           const iceCandidate = JSON.parse(candidate.iceCandidate);

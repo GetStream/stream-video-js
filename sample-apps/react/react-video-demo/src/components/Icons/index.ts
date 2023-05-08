@@ -27,6 +27,7 @@ export { Pause } from './Pause';
 export { People } from './People';
 export { Record } from './Record';
 export { Recordings } from './Recordings';
+export { Reload } from './Reload';
 export { ScreenShare } from './ScreenShare';
 export { Search } from './Search';
 export { Settings } from './Settings';

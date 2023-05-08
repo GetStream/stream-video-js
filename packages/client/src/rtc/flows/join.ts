@@ -6,7 +6,7 @@ import {
   JoinCallRequest,
   JoinCallResponse,
 } from '../../gen/coordinator';
-import { measureResourceLoadLatencyTo } from './latency';
+import { measureLatencyToEdges } from './latency';
 import { StreamClient } from '../../coordinator/connection/client';
 
 const getCascadingModeParams = () => {
@@ -75,17 +75,8 @@ const getCallEdgeServer = async (
   id: string,
   edges: DatacenterResponse[],
 ) => {
-  const latencyByEdge: GetCallEdgeServerRequest['latency_measurements'] = {};
-  await Promise.all(
-    edges.map(async (edge) => {
-      latencyByEdge[edge.name] = await measureResourceLoadLatencyTo(
-        edge.latency_url,
-      );
-    }),
-  );
-
   const data = {
-    latency_measurements: latencyByEdge,
+    latency_measurements: await measureLatencyToEdges(edges),
   };
   // FIXME OL: remove this once cascading is enabled by default
   const cascadingModeParams = getCascadingModeParams();

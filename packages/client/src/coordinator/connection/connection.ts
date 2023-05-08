@@ -516,10 +516,6 @@ export class StableWSConnection {
       },
     };
 
-    if (this.client.options.pushDevice) {
-      authMessage.device = this.client.options.pushDevice;
-    }
-
     this.authenticationSent = true;
     this.ws?.send(JSON.stringify(authMessage));
     this._log('onopen() - onopen callback', { wsID });

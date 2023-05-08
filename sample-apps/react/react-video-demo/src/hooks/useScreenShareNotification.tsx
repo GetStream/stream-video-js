@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { v1 as uuid } from 'uuid';
-import { SfuModels } from '@stream-io/video-client';
 import {
+  SfuModels,
+  useHasOngoingScreenShare,
   useLocalParticipant,
   useParticipants,
-  useHasOngoingScreenShare,
-} from '@stream-io/video-react-bindings';
+} from '@stream-io/video-react-sdk';
 
 import { ScreenShare } from '../components/Icons';
 

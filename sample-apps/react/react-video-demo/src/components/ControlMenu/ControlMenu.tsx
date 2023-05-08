@@ -1,19 +1,18 @@
 import { FC, useCallback } from 'react';
 import classnames from 'classnames';
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
-
 import {
-  useVideoPublisher,
+  SfuModels,
   useAudioPublisher,
+  useLocalParticipant,
   useMediaDevices,
+  useVideoPublisher,
 } from '@stream-io/video-react-sdk';
-import { SfuModels } from '@stream-io/video-client';
 
 import ControlButton from '../ControlButton';
 import ControlMenuPanel from '../ControlMenuPanel';
 import Portal from '../Portal';
 
-import { Mic, MicMuted, Video, VideoOff, Speaker } from '../Icons';
+import { Mic, MicMuted, Speaker, Video, VideoOff } from '../Icons';
 
 import styles from './ControlMenu.module.css';
 
@@ -58,13 +57,11 @@ export const ControlMenu: FC<Props> = ({
     : !localParticipant?.publishedTracks.includes(SfuModels.TrackType.AUDIO);
 
   const publishVideoStream = useVideoPublisher({
-    call: call,
     initialVideoMuted,
     videoDeviceId: selectedVideoDeviceId,
   });
 
   const publishAudioStream = useAudioPublisher({
-    call: call,
     initialAudioMuted,
     audioDeviceId: selectedAudioInputDeviceId,
   });
@@ -111,6 +108,7 @@ export const ControlMenu: FC<Props> = ({
           prefix={<Speaker />}
           portalId="audio-output-settings"
           label="Audio"
+          showPanel={false}
           panel={
             <Portal
               className={styles.audioSettings}
@@ -135,6 +133,7 @@ export const ControlMenu: FC<Props> = ({
         prefix={isAudioMuted ? <MicMuted /> : <Mic />}
         portalId="audio-settings"
         label="Mic"
+        showPanel={false}
         panel={
           <Portal className={styles.audioSettings} selector="audio-settings">
             <ControlMenuPanel
@@ -155,6 +154,7 @@ export const ControlMenu: FC<Props> = ({
         prefix={isVideoMuted ? <VideoOff /> : <Video />}
         portalId="camera-settings"
         label="Video"
+        showPanel={false}
         panel={
           <Portal className={styles.cameraSettings} selector="camera-settings">
             <ControlMenuPanel

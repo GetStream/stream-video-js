@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   CallRecording,
-  useActiveCall,
+  useCall,
   useCallRecordings,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
@@ -19,7 +19,7 @@ const POLL_INTERVAL_MS = 10 * 1000;
 export const Recordings = () => {
   const callRecordings = useCallRecordings();
   const client = useStreamVideoClient();
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
 
   const [loadingCallRecordings, setLoadingCallRecordings] = useState(false);
   useState<number>(0);

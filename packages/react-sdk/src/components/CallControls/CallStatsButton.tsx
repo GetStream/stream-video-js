@@ -1,6 +1,8 @@
-import { useRef, useState } from 'react';
+import { forwardRef } from 'react';
+
 import { CallStats } from '../StreamCall/CallStats';
 import { CompositeButton, IconButton } from '../Button/';
+import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
 
 type CallStatsButtonProps = {
   caption?: string;
@@ -9,28 +11,18 @@ type CallStatsButtonProps = {
 export const CallStatsButton = ({
   caption = 'Stats',
 }: CallStatsButtonProps) => {
-  const [isStatsOpen, setIsStatsOpen] = useState(false);
-  const statsAnchorRef = useRef<HTMLButtonElement>(null);
   return (
-    <>
-      {isStatsOpen && (
-        <CallStats
-          anchor={statsAnchorRef.current!}
-          onClose={() => {
-            setIsStatsOpen(false);
-          }}
-        />
-      )}
-      <CompositeButton active={isStatsOpen} caption={caption}>
-        <IconButton
-          icon="stats"
-          title="Statistics"
-          ref={statsAnchorRef}
-          onClick={() => {
-            setIsStatsOpen((v) => !v);
-          }}
-        />
-      </CompositeButton>
-    </>
+    <MenuToggle placement="top-end" ToggleButton={ToggleMenuButton}>
+      <CallStats />
+    </MenuToggle>
   );
 };
+
+const ToggleMenuButton = forwardRef<
+  HTMLDivElement,
+  ToggleMenuButtonProps<HTMLDivElement>
+>(({ menuShown }, ref) => (
+  <CompositeButton ref={ref} active={menuShown} caption={'Stats'}>
+    <IconButton icon="stats" title="Statistics" />
+  </CompositeButton>
+));

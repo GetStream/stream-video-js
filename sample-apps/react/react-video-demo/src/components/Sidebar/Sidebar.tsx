@@ -1,31 +1,24 @@
 import { FC, useRef } from 'react';
 import { CSSTransition } from 'react-transition-group';
 import { StreamChat } from 'stream-chat';
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
 
 import InvitePanel from '../InvitePanel';
 import ParticipantsPanel from '../ParticipantsPanel';
 import ChatPanel from '../ChatPanel';
 import { StreamMark } from '../Icons';
 
-import { StepNames } from '../../contexts/TourContext';
 import { usePanelContext } from '../../contexts/PanelContext';
 
 import styles from './Sidebar.module.css';
 
 export type Props = {
   callId: string;
-  current: StepNames;
   chatClient?: StreamChat | null;
   participants: StreamVideoParticipant[];
 };
 
-export const Sidebar: FC<Props> = ({
-  chatClient,
-  callId,
-  current,
-  participants,
-}) => {
+export const Sidebar: FC<Props> = ({ chatClient, callId, participants }) => {
   const chatRef = useRef(null);
   const participantsRef = useRef(null);
 
@@ -33,11 +26,7 @@ export const Sidebar: FC<Props> = ({
 
   return (
     <div className={styles.sidebar}>
-      <InvitePanel
-        className={styles.invitePanel}
-        callId={callId}
-        isFocused={current === StepNames.Invite}
-      />
+      <InvitePanel className={styles.invitePanel} callId={callId} />
       <CSSTransition
         nodeRef={participantsRef}
         in={isParticipantsVisible}
@@ -75,7 +64,6 @@ export const Sidebar: FC<Props> = ({
           {isChatVisible ? (
             <ChatPanel
               className={styles.chatPanel}
-              isFocused={current === 2}
               channelId={callId}
               channelType="videocall"
               client={chatClient}

@@ -22,15 +22,12 @@ const isComponentType = (
   return !isValidElement(elementOrComponent);
 };
 
-export const CompositeButton = ({
-  caption,
-  children,
-  active,
-  Menu,
-  menuPlacement,
-}: IconButtonWithMenuProps) => {
+export const CompositeButton = forwardRef<
+  HTMLDivElement,
+  IconButtonWithMenuProps
+>(({ caption, children, active, Menu, menuPlacement }, ref) => {
   return (
-    <div className="str-video__composite-button">
+    <div className="str-video__composite-button" ref={ref}>
       <div
         className={clsx('str-video__composite-button__button-group', {
           'str-video__composite-button__button-group--active': active,
@@ -48,7 +45,7 @@ export const CompositeButton = ({
       )}
     </div>
   );
-};
+});
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   ({ menuShown }, ref) => (
