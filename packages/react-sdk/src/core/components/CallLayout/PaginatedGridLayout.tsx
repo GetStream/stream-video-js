@@ -6,6 +6,7 @@ import {
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
 import {
+  Call,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
@@ -19,6 +20,11 @@ const GROUP_SIZE = 16;
 
 type PaginatedGridLayoutGroupProps = {
   /**
+   * The call object.
+   */
+  call: Call;
+
+  /**
    * The group of participants to render.
    */
   group: Array<StreamVideoParticipant | StreamVideoLocalParticipant>;
@@ -30,10 +36,10 @@ type PaginatedGridLayoutGroupProps = {
   indicatorsVisible?: boolean;
 };
 const PaginatedGridLayoutGroup = ({
+  call,
   group,
   indicatorsVisible = true,
 }: PaginatedGridLayoutGroupProps) => {
-  const call = useCall();
   return (
     <div
       className={clsx('str-video__paginated-grid-layout--group', {
@@ -48,7 +54,7 @@ const PaginatedGridLayoutGroup = ({
         <ParticipantBox
           key={participant.sessionId}
           participant={participant}
-          call={call!}
+          call={call}
           indicatorsVisible={indicatorsVisible}
           muteAudio
         />
@@ -88,6 +94,7 @@ export const PaginatedGridLayout = ({
 }: PaginatedGridLayoutProps) => {
   const [page, setPage] = useState(0);
 
+  const call = useCall();
   const localParticipant = useLocalParticipant();
   const participants = useParticipants();
   // used to render audio elements
@@ -107,11 +114,14 @@ export const PaginatedGridLayout = ({
 
   // update page when page count is reduced and selected page no longer exists
   useEffect(() => {
-    if (page > pageCount - 1) setPage(pageCount - 1);
+    if (page > pageCount - 1) {
+      setPage(Math.max(0, pageCount - 1));
+    }
   }, [page, pageCount]);
 
   const selectedGroup = participantGroups[page];
 
+  if (!call) return null;
   return (
     <>
       {remoteParticipants.map((participant) => (
@@ -128,11 +138,14 @@ export const PaginatedGridLayout = ({
             <IconButton
               icon="caret-left"
               disabled={page === 0}
-              onClick={() => setPage((pv) => (pv === 0 ? pv : pv - 1))}
+              onClick={() =>
+                setPage((currentPage) => Math.max(0, currentPage - 1))
+              }
             />
           )}
           {selectedGroup && (
             <PaginatedGridLayoutGroup
+              call={call}
               group={participantGroups[page]}
               indicatorsVisible={indicatorsVisible}
             />
@@ -142,7 +155,9 @@ export const PaginatedGridLayout = ({
               disabled={page === pageCount - 1}
               icon="caret-right"
               onClick={() =>
-                setPage((pv) => (pv === pageCount - 1 ? pv : pv + 1))
+                setPage((currentPage) =>
+                  Math.min(pageCount - 1, currentPage + 1),
+                )
               }
             />
           )}
