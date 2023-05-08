@@ -25,7 +25,7 @@ export const measureResourceLoadLatencyTo = async (
     src.searchParams.set('r', `js_${Math.random() * 10000000}`);
     await fetch(src.toString(), {
       signal: controller.signal,
-    }).then((response) => response.blob());
+    });
     const latency = Date.now() - start;
     return toSeconds(latency);
   } catch (e) {
