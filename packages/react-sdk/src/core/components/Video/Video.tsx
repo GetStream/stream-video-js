@@ -1,35 +1,40 @@
 import {
-  DetailedHTMLProps,
+  ComponentType,
   useCallback,
   useEffect,
   useRef,
   useState,
-  VideoHTMLAttributes,
+  ComponentPropsWithoutRef,
 } from 'react';
 import {
-  Call,
   DebounceType,
   SfuModels,
   StreamVideoParticipant,
   VisibilityState,
 } from '@stream-io/video-client';
 import clsx from 'clsx';
-import { VideoPlaceholder } from './VideoPlaceholder';
+import {
+  VideoPlaceholder as DefaultVideoPlaceholder,
+  VideoPlaceholderProps,
+} from './VideoPlaceholder';
 import { BaseVideo } from './BaseVideo';
+import { useCall } from '@stream-io/video-react-bindings';
 
-export const Video = (
-  props: DetailedHTMLProps<
-    VideoHTMLAttributes<HTMLVideoElement>,
-    HTMLVideoElement
-  > & {
-    call: Call;
-    kind: 'video' | 'screen';
-    participant: StreamVideoParticipant;
-    setVideoElementRef?: (element: HTMLElement | null) => void;
-  },
-) => {
-  const { call, kind, participant, className, setVideoElementRef, ...rest } =
-    props;
+export type VideoProps = ComponentPropsWithoutRef<'video'> & {
+  kind: 'video' | 'screen';
+  participant: StreamVideoParticipant;
+  setVideoElementRef?: (element: HTMLElement | null) => void;
+  VideoPlaceholder?: ComponentType<VideoPlaceholderProps>;
+};
+
+export const Video = ({
+  kind,
+  participant,
+  className,
+  setVideoElementRef,
+  VideoPlaceholder = DefaultVideoPlaceholder,
+  ...rest
+}: VideoProps) => {
   const {
     sessionId,
     videoStream,
@@ -39,6 +44,8 @@ export const Video = (
     isLoggedInUser,
     userId,
   } = participant;
+
+  const call = useCall();
 
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
     null,
@@ -93,6 +100,8 @@ export const Video = (
       dimension?: SfuModels.VideoDimension,
       type: DebounceType = DebounceType.SLOW,
     ) => {
+      if (!call) return;
+
       call.updateSubscriptionsPartial(
         kind,
         {
@@ -208,6 +217,8 @@ export const Video = (
       videoElement.removeEventListener('play', calculateVideoRatio);
     };
   }, [stream, videoElement]);
+
+  if (!call) return null;
 
   return (
     <>

@@ -1,9 +1,9 @@
-import { ComponentProps, forwardRef, useState } from 'react';
+import { ComponentPropsWithRef, forwardRef, useState } from 'react';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 
 export type VideoPlaceholderProps = {
   participant: StreamVideoParticipant;
-} & ComponentProps<'div'>;
+} & ComponentPropsWithRef<'div'>;
 
 export const VideoPlaceholder = forwardRef<
   HTMLDivElement,
