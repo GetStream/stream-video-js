@@ -23,9 +23,14 @@
       }
     },
     "publish": {
-      "executor": "nx:run-script",
+      "executor": "nx:run-commands",
       "options": {
-          "script": "publish-to-npm"
+        "commands": [
+          {
+            "command": "yarn release:react-bindings",
+            "forwardAllArgs": false
+          }
+        ]
       }
     }
   }

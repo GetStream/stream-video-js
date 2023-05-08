@@ -8,10 +8,9 @@
     "clean": "rimraf dist",
     "start": "tsc --project tsconfig.json --watch",
     "build": "tsc --project tsconfig.production.json",
-    "copy-css": "cp -r ../../node_modules/@stream-io/video-styling/dist/ dist",
+    "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/",
     "generate-docs": "../../scripts/generate-docs.sh React @stream-io/video-react-sdk react-sdk",
-    "start:docs": "npx stream-chat-docusaurus -s",
-    "publish-to-npm": "yarn npm publish --access=public"
+    "start:docs": "npx stream-chat-docusaurus -s"
   },
   "files": [
     "dist",
@@ -46,5 +45,5 @@
     "typedoc": "^0.23.24",
     "typescript": "^4.9.5"
   },
-  "version": "0.0.1-alpha.6"
+  "version": "0.0.1-alpha.15"
 }

@@ -2,7 +2,7 @@ import { FC, useCallback, useState, useRef, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import classnames from 'classnames';
 
-import { Copy, UserChecked } from '../Icons';
+import { Copy, UserChecked, Reload } from '../Icons';
 import Panel from '../Panel';
 import Button from '../Button';
 
@@ -34,40 +34,44 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
     }
   }, [inputRef]);
 
-  const copyUrl = useCallback(
-    (value: string) => {
-      try {
-        navigator.clipboard.writeText(value).then(
-          function () {
-            setIsCopied(!isCopied);
-          },
-          function (err) {
-            console.error('Async: Could not copy text: ', err);
-          },
-        );
-      } catch (error) {}
-    },
-    [isCopied],
-  );
+  const copyUrl = useCallback((value: string) => {
+    try {
+      navigator.clipboard.writeText(value).then(
+        function () {
+          setIsCopied(true);
+        },
+        function (err) {
+          console.error('Async: Could not copy text: ', err);
+        },
+      );
+    } catch (error) {}
+  }, []);
+
+  const copiedClasses = classnames(styles.copied, {
+    [styles.isCopied]: isCopied,
+  });
+
+  const limitClasses = classnames(styles.limit, {
+    [styles.canCopy]: isCopied === false,
+  });
 
   return (
     <>
       <p className={styles.description}>
         Send the URL below to someone and have them join this private call:
       </p>
-      <div className={styles.copy} onClick={() => handleCopy()}>
-        {isCopied ? (
-          <div className={styles.copied}>
-            <UserChecked className={styles.copiedIcon} />
+      <div className={styles.copy}>
+        <div className={copiedClasses} onClick={() => setIsCopied(false)}>
+          <UserChecked className={styles.copiedIcon} />
 
-            <span className={styles.copied}>Link copied</span>
-          </div>
-        ) : (
-          <div className={styles.limit}>
-            <input ref={inputRef} className={styles.input} readOnly={true} />
-            <Copy className={styles.copyIcon} />
-          </div>
-        )}
+          <span className={copiedClasses}>Link copied</span>
+          <Reload className={styles.reload} />
+        </div>
+
+        <div className={limitClasses} onClick={() => handleCopy()}>
+          <input ref={inputRef} className={styles.input} readOnly={true} />
+          <Copy className={styles.copyIcon} />
+        </div>
       </div>
 
       {canShare && (
