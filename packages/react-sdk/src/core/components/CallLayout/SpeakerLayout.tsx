@@ -65,12 +65,14 @@ export const SpeakerLayout = () => {
     };
   }, [call, isOneOnOneCall]);
 
+  if (!call) return null;
+
   const isSpeakerScreenSharing = hasScreenShare(participantInSpotlight);
   return (
     <div className="str-video__speaker-layout--wrapper">
       <div className="str-video__speaker-layout">
         <div className="str-video__speaker-layout--spotlight">
-          {call && participantInSpotlight && (
+          {participantInSpotlight && (
             <ParticipantBox
               participant={participantInSpotlight}
               call={call}
@@ -94,7 +96,7 @@ export const SpeakerLayout = () => {
               ref={setScrollWrapper}
             >
               <div className="str-video__speaker-layout--participants-bar">
-                {call && isSpeakerScreenSharing && (
+                {isSpeakerScreenSharing && (
                   <div
                     className="str-video__speaker-layout--participant-tile"
                     key={participantInSpotlight.sessionId}
@@ -107,20 +109,19 @@ export const SpeakerLayout = () => {
                     />
                   </div>
                 )}
-                {call &&
-                  otherParticipants.map((participant) => (
-                    <div
-                      className="str-video__speaker-layout--participant-tile"
-                      key={participant.sessionId}
-                    >
-                      <ParticipantBox
-                        participant={participant}
-                        call={call}
-                        sinkId={localParticipant?.audioOutputDeviceId}
-                        toggleMenuPosition="top"
-                      />
-                    </div>
-                  ))}
+                {otherParticipants.map((participant) => (
+                  <div
+                    className="str-video__speaker-layout--participant-tile"
+                    key={participant.sessionId}
+                  >
+                    <ParticipantBox
+                      participant={participant}
+                      call={call}
+                      sinkId={localParticipant?.audioOutputDeviceId}
+                      toggleMenuPosition="top"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
             {scrollPosition && scrollPosition !== 'end' && (

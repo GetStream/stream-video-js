@@ -6,6 +6,7 @@ import {
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
 import {
+  Call,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
@@ -19,6 +20,11 @@ const GROUP_SIZE = 16;
 
 type PaginatedGridLayoutGroupProps = {
   /**
+   * The call object.
+   */
+  call: Call;
+
+  /**
    * The group of participants to render.
    */
   group: Array<StreamVideoParticipant | StreamVideoLocalParticipant>;
@@ -30,10 +36,10 @@ type PaginatedGridLayoutGroupProps = {
   indicatorsVisible?: boolean;
 };
 const PaginatedGridLayoutGroup = ({
+  call,
   group,
   indicatorsVisible = true,
 }: PaginatedGridLayoutGroupProps) => {
-  const call = useCall();
   return (
     <div
       className={clsx('str-video__paginated-grid-layout--group', {
@@ -48,7 +54,7 @@ const PaginatedGridLayoutGroup = ({
         <ParticipantBox
           key={participant.sessionId}
           participant={participant}
-          call={call!}
+          call={call}
           indicatorsVisible={indicatorsVisible}
           muteAudio
         />
@@ -88,6 +94,7 @@ export const PaginatedGridLayout = ({
 }: PaginatedGridLayoutProps) => {
   const [page, setPage] = useState(0);
 
+  const call = useCall();
   const localParticipant = useLocalParticipant();
   const participants = useParticipants();
   // used to render audio elements
@@ -114,6 +121,7 @@ export const PaginatedGridLayout = ({
 
   const selectedGroup = participantGroups[page];
 
+  if (!call) return null;
   return (
     <>
       {remoteParticipants.map((participant) => (
@@ -137,6 +145,7 @@ export const PaginatedGridLayout = ({
           )}
           {selectedGroup && (
             <PaginatedGridLayoutGroup
+              call={call}
               group={participantGroups[page]}
               indicatorsVisible={indicatorsVisible}
             />
