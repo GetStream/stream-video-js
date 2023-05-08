@@ -1,10 +1,9 @@
-import { PropsWithChildren, useState } from 'react';
+import { forwardRef, PropsWithChildren, useState } from 'react';
 import clsx from 'clsx';
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
-import { useCall } from '@stream-io/video-react-bindings';
 
 import { Audio } from '../Audio';
-import { Video } from '../Video';
+import { applyElementRef, Video, VideoProps } from '../Video';
 import { useTrackElementVisibility } from '../../hooks';
 
 export type ParticipantViewProps = PropsWithChildren<{
@@ -44,65 +43,72 @@ export type ParticipantViewProps = PropsWithChildren<{
    * An additional list of class names to append to the root DOM element.
    */
   className?: string;
-}>;
+}> &
+  Pick<VideoProps, 'VideoPlaceholder'>;
 
-export const ParticipantView = ({
-  participant,
-  sinkId,
-  videoKind = 'video',
-  muteAudio,
-  setVideoElementRef,
-  className,
-  children,
-}: ParticipantViewProps) => {
-  const {
-    audioStream,
-    isLoggedInUser,
-    isSpeaking,
-    publishedTracks,
-    sessionId,
-  } = participant;
+export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
+  (
+    {
+      participant,
+      sinkId,
+      videoKind = 'video',
+      muteAudio,
+      setVideoElementRef,
+      className,
+      children,
+      VideoPlaceholder,
+    },
+    ref,
+  ) => {
+    const {
+      audioStream,
+      isLoggedInUser,
+      isSpeaking,
+      publishedTracks,
+      sessionId,
+    } = participant;
 
-  const call = useCall()!;
+    const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
+    const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
 
-  const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
-  const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
+    const [trackedElement, setTrackedElement] = useState<HTMLDivElement | null>(
+      null,
+    );
 
-  const [trackedElement, setTrackedElement] = useState<HTMLDivElement | null>(
-    null,
-  );
+    useTrackElementVisibility({
+      sessionId,
+      trackedElement,
+    });
 
-  useTrackElementVisibility({
-    sessionId,
-    trackedElement,
-    viewportTracker: call.viewportTracker,
-  });
-
-  return (
-    <div
-      className={clsx(
-        'str-video__participant-view',
-        isSpeaking && 'str-video__participant-view--speaking',
-        !hasVideo && 'str-video__participant-view--no-video',
-        !hasAudio && 'str-video__participant-view--no-audio',
-        className,
-      )}
-      ref={setTrackedElement}
-    >
-      {children}
-      <Audio
-        // mute the local participant, as we don't want to hear ourselves
-        muted={isLoggedInUser || muteAudio}
-        sinkId={sinkId}
-        audioStream={audioStream}
-      />
-      <Video
-        call={call}
-        participant={participant}
-        kind={videoKind}
-        setVideoElementRef={setVideoElementRef}
-        autoPlay
-      />
-    </div>
-  );
-};
+    return (
+      <div
+        ref={(element) => {
+          applyElementRef(ref, element);
+          setTrackedElement(element);
+        }}
+        className={clsx(
+          'str-video__participant-view',
+          isSpeaking && 'str-video__participant-view--speaking',
+          !hasVideo && 'str-video__participant-view--no-video',
+          !hasAudio && 'str-video__participant-view--no-audio',
+          className,
+        )}
+      >
+        {children}
+        <Audio
+          // mute the local participant, as we don't want to hear ourselves
+          muted={isLoggedInUser || muteAudio}
+          sinkId={sinkId}
+          audioStream={audioStream}
+        />
+        <Video
+          VideoPlaceholder={VideoPlaceholder}
+          participant={participant}
+          kind={videoKind}
+          setVideoElementRef={setVideoElementRef}
+          autoPlay
+        />
+      </div>
+    );
+  },
+);

@@ -4,17 +4,19 @@ import { useCall } from '@stream-io/video-react-bindings';
 
 export const useTrackElementVisibility = <T extends HTMLElement>({
   trackedElement,
-  viewportTracker,
+  viewportTracker: propsViewportTracker,
   sessionId,
 }: {
   trackedElement: T | null;
-  viewportTracker: ViewportTracker;
   sessionId: string;
+  viewportTracker?: ViewportTracker;
 }) => {
-  const call = useCall()!;
+  const call = useCall();
+
+  const viewportTracker = propsViewportTracker ?? call?.viewportTracker;
 
   useEffect(() => {
-    if (!trackedElement) return;
+    if (!trackedElement || !viewportTracker || !call) return;
 
     const unobserve = viewportTracker.observe(trackedElement, (entry) => {
       call.state.updateParticipant(sessionId, (p) => ({
@@ -35,5 +37,5 @@ export const useTrackElementVisibility = <T extends HTMLElement>({
         viewportVisibilityState: VisibilityState.UNKNOWN,
       }));
     };
-  }, [trackedElement, viewportTracker, call.state, sessionId]);
+  }, [trackedElement, viewportTracker, call, sessionId]);
 };
