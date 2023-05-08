@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.126](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.125...client0.0.1-alpha.126) (2023-05-08)
+
+
+### Features
+
+* **latency:** breadth-first time-boxed latency measurement ([#467](https://github.com/GetStream/stream-video-js/issues/467)) ([6d66003](https://github.com/GetStream/stream-video-js/commit/6d660032064667586902a9b410ee6dabfcc6b7ba))
+
+
+
 ## [0.0.1-alpha.125](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.124...client0.0.1-alpha.125) (2023-05-08)
 
 
