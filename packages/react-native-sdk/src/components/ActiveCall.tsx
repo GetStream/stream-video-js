@@ -4,7 +4,7 @@ import {
   useActiveCall,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
-import { StyleSheet, View } from 'react-native';
+import { PermissionsAndroid, Platform, StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { useCallCycleContext } from '../contexts';
@@ -42,6 +42,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
   activeCallRef.current = activeCall;
 
   useEffect(() => {
+    // when the component mounts, we ask for necessary permissions.
+    verifyAndroidPermissions();
     return () => {
       // ensure that if this component is unmounted, the call is left.
       activeCallRef.current?.leave();
@@ -109,3 +111,33 @@ const styles = StyleSheet.create({
   callParticipantsWrapper: { flex: 1 },
   callControlsWrapper: { position: 'absolute', bottom: 0, left: 0, right: 0 },
 });
+
+const verifyAndroidPermissions = async () => {
+  const shouldCheckForPermissions = Number(Platform.Version) >= 31;
+  if (!shouldCheckForPermissions) return true;
+  const getCheckPermissionPromise = () => {
+    return PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+    );
+  };
+  const hasPermission = await getCheckPermissionPromise();
+  if (!hasPermission) {
+    const getRequestPermissionPromise = async () => {
+      const result = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+        {
+          buttonNegative: 'Deny',
+          buttonNeutral: 'Ask Me Later',
+          buttonPositive: 'Allow',
+          message:
+            'Permissions are required to route audio to bluetooth devices.',
+          title: 'Bluetooth connect Access',
+        },
+      ).then((status) => status === PermissionsAndroid.RESULTS.GRANTED);
+      return result;
+    };
+    const granted = await getRequestPermissionPromise();
+    return granted;
+  }
+  return true;
+};
