@@ -4,6 +4,7 @@ import { CallSetup } from './CallSetup';
 import { useEffect, useState } from 'react';
 import {
   StreamMeeting,
+  StreamTheme,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
@@ -39,7 +40,7 @@ const App = () => {
   }, [callId]);
 
   return (
-    <main className="main-container str-video">
+    <StreamTheme as="main" className="main-container">
       <ThemeProvider theme={theme}>
         {!callId && <CallSetup onJoin={setCallId} />}
         {callId && (
@@ -54,7 +55,7 @@ const App = () => {
           </StreamVideo>
         )}
       </ThemeProvider>
-    </main>
+    </StreamTheme>
   );
 };
 
