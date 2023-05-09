@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.128](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.127...client0.0.1-alpha.128) (2023-05-09)
+
+
+### Reverts
+
+* Revert "chore: Avoid non-atomic pushes resulting in invalid version tags" ([24be283](https://github.com/GetStream/stream-video-js/commit/24be28300a5f5d452338457d60b1e34682027be6))
+
+
+
 ## [0.0.1-alpha.127](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.126...client0.0.1-alpha.127) (2023-05-09)
 
 
