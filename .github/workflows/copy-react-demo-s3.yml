@@ -57,7 +57,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{vars.AWS_REGION}}
 
-     - name: Copy artifacts to AWS S3 Bucket
+     - name: Copy PR build artifacts to AWS S3 Bucket
+       if: ${{ github.ref_name != 'main' }}
        run: |
-          aws s3 sync sample-apps/react/react-video-demo/build s3://${{vars.S3_BUCKET_NAME}}/react-video-demo --delete
+          aws s3 sync sample-apps/react/react-video-demo/staging/dist s3://${{vars.S3_BUCKET_NAME_STAGING}}/video/demos --delete
 
+     - name: Copy main build artifacts to AWS S3 Bucket
+       if: ${{ github.ref_name == 'main' }}
+       run: |
+          aws s3 sync sample-apps/react/react-video-demo/main/dist s3://${{vars.S3_BUCKET_NAME}}/video/demos --delete
