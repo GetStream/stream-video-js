@@ -55,14 +55,13 @@ jobs:
        with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{vars.AWS_REGION}}
 
      - name: Copy PR build artifacts to AWS S3 Bucket
        if: ${{ github.ref_name != 'main' }}
        run: |
-          aws s3 sync sample-apps/react/react-video-demo/staging/dist s3://${{vars.S3_BUCKET_NAME_STAGING}}/video/demos --delete
+          aws s3 sync sample-apps/react/react-video-demo/staging/dist s3://${{secrets.S3_BUCKET_NAME_STAGING}}/video/demos --delete
 
      - name: Copy main build artifacts to AWS S3 Bucket
        if: ${{ github.ref_name == 'main' }}
        run: |
-          aws s3 sync sample-apps/react/react-video-demo/main/dist s3://${{vars.S3_BUCKET_NAME}}/video/demos --delete
+          aws s3 sync sample-apps/react/react-video-demo/main/dist s3://${{secrets.S3_BUCKET_NAME_PRODUCTION}}/video/demos --delete 
