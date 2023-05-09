@@ -52,8 +52,8 @@ export const StreamMeeting = ({
 }: PropsWithChildren<StreamMeetingProps>) => {
   const client = useStreamVideoClient();
   const [activeCall, setActiveCall] = useState<Call | undefined>(() => {
-    if (!client || call) return call;
-    if (!callId || !callType) return;
+    if (call) return call;
+    if (!client || !callId || !callType) return;
     return client.call(callType, callId);
   });
 
