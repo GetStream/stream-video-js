@@ -44,9 +44,10 @@ export const SpeakerView = () => {
         <div className="participants-bar">
           {otherParticipants.map((participant) => (
             <div className="participant-tile" key={participant.sessionId}>
-              <ParticipantView participant={participant}>
-                <DefaultParticipantViewUI participant={participant} />
-              </ParticipantView>
+              <ParticipantView
+                participant={participant}
+                ParticipantViewUI={DefaultParticipantViewUI}
+              />
             </div>
           ))}
         </div>
@@ -59,9 +60,8 @@ export const SpeakerView = () => {
             videoKind={
               hasScreenShare(participantInSpotlight) ? 'screen' : 'video'
             }
-          >
-            <DefaultParticipantViewUI participant={participantInSpotlight} />
-          </ParticipantView>
+            ParticipantViewUI={DefaultParticipantViewUI}
+          />
         )}
       </div>
 

@@ -1,6 +1,7 @@
 import {
   DefaultParticipantViewUI,
   ParticipantView,
+  ParticipantViewUIProps,
   SfuModels,
   useCall,
   useParticipants,
@@ -9,6 +10,14 @@ import { useSpotlightParticipant } from './useSpotlightParticipant';
 import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
 import './Spotlight.scss';
 import { AudioTracks } from './AudioTracks';
+
+const CustomParticipantViewUI = ({ participant }: ParticipantViewUIProps) => (
+  <DefaultParticipantViewUI
+    participant={participant}
+    indicatorsVisible={false}
+    showMenuButton={false}
+  />
+);
 
 export const DominantSpeaker = () => {
   const activeCall = useCall();
@@ -28,13 +37,8 @@ export const DominantSpeaker = () => {
             participant={speakerInSpotlight}
             setVideoElementRef={setParticipantVideoRef}
             muteAudio
-          >
-            <DefaultParticipantViewUI
-              participant={speakerInSpotlight}
-              indicatorsVisible={false}
-              showMenuButton={false}
-            />
-          </ParticipantView>
+            ParticipantViewUI={CustomParticipantViewUI}
+          />
         )}
       </div>
       <AudioTracks

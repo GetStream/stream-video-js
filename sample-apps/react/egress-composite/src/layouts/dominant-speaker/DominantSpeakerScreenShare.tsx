@@ -1,8 +1,8 @@
 import {
   DefaultParticipantViewUI,
   ParticipantView,
+  ParticipantViewUIProps,
   SfuModels,
-  useCall,
   useRemoteParticipants,
   Video,
 } from '@stream-io/video-react-sdk';
@@ -10,8 +10,15 @@ import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
 import './ScreenShare.scss';
 import { AudioTracks } from './AudioTracks';
 
+const CustomParticipantViewUI = ({ participant }: ParticipantViewUIProps) => (
+  <DefaultParticipantViewUI
+    participant={participant}
+    indicatorsVisible={false}
+    showMenuButton={false}
+  />
+);
+
 export const DominantSpeakerScreenShare = () => {
-  const call = useCall();
   const participants = useRemoteParticipants();
   const screenSharingParticipant = participants.find((p) =>
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
@@ -30,7 +37,6 @@ export const DominantSpeakerScreenShare = () => {
         <Video
           className="screen-share-player"
           participant={screenSharingParticipant}
-          call={call!}
           kind="screen"
           autoPlay
           muted
@@ -41,13 +47,10 @@ export const DominantSpeakerScreenShare = () => {
           {screenSharingParticipant.name || screenSharingParticipant.userId}
         </span>
         <div className="current-speaker">
-          <ParticipantView participant={screenSharingParticipant}>
-            <DefaultParticipantViewUI
-              participant={screenSharingParticipant}
-              indicatorsVisible={false}
-              showMenuButton={false}
-            />
-          </ParticipantView>
+          <ParticipantView
+            participant={screenSharingParticipant}
+            ParticipantViewUI={CustomParticipantViewUI}
+          />
         </div>
       </div>
       <AudioTracks
