@@ -49,6 +49,7 @@ const App = () => {
               callId={callId}
               callType="default"
               data={{ create: true }}
+              autoJoin
             >
               <SpeakerView />
             </StreamMeeting>
