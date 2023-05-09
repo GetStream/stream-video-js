@@ -23,7 +23,7 @@ export default function App() {
     apiKey: import.meta.env.VITE_STREAM_API_KEY,
     tokenOrProvider: params.ut || import.meta.env.VITE_STREAM_USER_TOKEN,
     user: {
-      id: params.user_id || 'alice',
+      id: params.user_id || import.meta.env.VITE_STREAM_USER_ID,
     },
   });
 
@@ -50,16 +50,13 @@ export const UI = () => {
   const call = useCall();
   const { publishVideoStream, publishAudioStream } = useMediaDevices();
   const callingState = useCallCallingState();
-  console.log('callingState', callingState);
+
   useEffect(() => {
     if (callingState === CallingState.JOINED) {
       publishVideoStream();
       publishAudioStream();
     }
   }, [publishVideoStream, publishAudioStream, callingState]);
-
-  if (callingState === CallingState.UNKNOWN) {
-  }
 
   return (
     <div className={`str-video light`}>
