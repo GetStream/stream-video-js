@@ -10,9 +10,9 @@
         "preid": "alpha",
         "releaseAs": "prerelease",
         "trackDeps": true,
-        "push": false,
+        "push": true,
         "skipCommitTypes": ["chore", "ci"],
-        "postTargets": ["@stream-io/video-react-bindings:github", "@stream-io/video-react-bindings:publish", "@stream-io/video-react-bindings:push"]
+        "postTargets": ["@stream-io/video-react-bindings:github", "@stream-io/video-react-bindings:publish"]
       }
     },
     "github": {
@@ -28,17 +28,6 @@
         "commands": [
           {
             "command": "yarn release:react-bindings",
-            "forwardAllArgs": false
-          }
-        ]
-      }
-    },
-    "push": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": [
-          {
-            "command": "git push -u origin --follow-tags",
             "forwardAllArgs": false
           }
         ]

@@ -10,9 +10,9 @@
         "preid": "alpha",
         "releaseAs": "prerelease",
         "trackDeps": true,
-        "push": false,
+        "push": true,
         "skipCommitTypes": ["chore", "ci"],
-        "postTargets": ["@stream-io/video-styling:github", "@stream-io/video-styling:push"]
+        "postTargets": ["@stream-io/video-styling:github"]
       }
     },
     "github": {
@@ -20,17 +20,6 @@
       "options": {
         "tag": "${tag}",
         "notes": "${notes}"
-      }
-    },
-    "push": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": [
-          {
-            "command": "git push -u origin --follow-tags",
-            "forwardAllArgs": false
-          }
-        ]
       }
     }
   }
