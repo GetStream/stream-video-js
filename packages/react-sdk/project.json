@@ -10,9 +10,9 @@
         "preid": "alpha",
         "releaseAs": "prerelease",
         "trackDeps": true,
-        "push": true,
+        "push": false,
         "skipCommitTypes": ["chore", "ci"],
-        "postTargets": ["@stream-io/video-react-sdk:github", "@stream-io/video-react-sdk:publish"]
+        "postTargets": ["@stream-io/video-react-sdk:github", "@stream-io/video-react-sdk:publish", "@stream-io/video-react-sdk:push"]
       }
     },
     "github": {
@@ -28,6 +28,17 @@
         "commands": [
           {
             "command": "yarn release:react-sdk",
+            "forwardAllArgs": false
+          }
+        ]
+      }
+    },
+    "push": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "git push -u origin --follow-tags",
             "forwardAllArgs": false
           }
         ]

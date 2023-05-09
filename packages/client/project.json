@@ -10,9 +10,9 @@
         "tagPrefix": "client",
         "preid": "alpha",
         "releaseAs": "prerelease",
-        "push": true,
+        "push": false,
         "skipCommitTypes": ["chore", "ci"],
-        "postTargets": ["@stream-io/video-client:github", "@stream-io/video-client:npm"]
+        "postTargets": ["@stream-io/video-client:github", "@stream-io/video-client:npm", "@stream-io/video-client:push"]
       }
     },
     "github": {
@@ -29,6 +29,17 @@
         "noBuild": true,
         "dryRun": false,
         "distFolderPath": "packages/client"
+      }
+    },
+    "push": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "git push -u origin --follow-tags",
+            "forwardAllArgs": false
+          }
+        ]
       }
     }
   }

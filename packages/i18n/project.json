@@ -10,9 +10,9 @@
         "preid": "alpha",
         "releaseAs": "prerelease",
         "trackDeps": true,
-        "push": true,
+        "push": false,
         "skipCommitTypes": ["chore", "ci"],
-        "postTargets": ["@stream-io/i18n:github", "@stream-io/i18n:publish"]
+        "postTargets": ["@stream-io/i18n:github", "@stream-io/i18n:publish", "@stream-io/i18n:push"]
       }
     },
     "github": {
@@ -28,6 +28,17 @@
         "commands": [
           {
             "command": "yarn release:18n",
+            "forwardAllArgs": false
+          }
+        ]
+      }
+    },
+    "push": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "git push -u origin --follow-tags",
             "forwardAllArgs": false
           }
         ]
