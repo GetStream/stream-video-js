@@ -60,9 +60,9 @@ jobs:
      - name: Copy PR build artifacts to AWS S3 Bucket
        if: ${{ github.ref_name != 'main' }}
        run: |
-          aws s3 sync sample-apps/react/react-video-demo/staging/dist s3://${{secrets.S3_BUCKET_NAME_STAGING}}/video/demos --delete
+          aws s3 sync sample-apps/react/react-video-demo/dist s3://${{secrets.S3_BUCKET_NAME_STAGING}}/video/demos --delete
 
      - name: Copy main build artifacts to AWS S3 Bucket
        if: ${{ github.ref_name == 'main' }}
        run: |
-          aws s3 sync sample-apps/react/react-video-demo/main/dist s3://${{secrets.S3_BUCKET_NAME_PRODUCTION}}/video/demos --delete 
+          aws s3 sync sample-apps/react/react-video-demo/dist s3://${{secrets.S3_BUCKET_NAME_PRODUCTION}}/video/demos --delete 
