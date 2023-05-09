@@ -137,4 +137,17 @@ describe('sdp-munging', () => {
       expectedOutput,
     );
   });
+
+  it('When RED audio codec is the preferred codec and if original SDP doesnt support RED, dont do anything', () => {
+    const mediaType = 'audio';
+    const preferredCodec = 'RED';
+    // 63 is red so remove 63
+    const sdpWithoutRED = sdp.replace(
+      'm=audio 9 UDP/TLS/RTP/SAVPF 111 63 103 104 9 102 0 8 106 105 13 110 112 113 126',
+      'm=audio 9 UDP/TLS/RTP/SAVPF 111 103 104 9 102 0 8 106 105 13 110 112 113 126',
+    );
+    expect(setPreferredCodec(sdpWithoutRED, mediaType, preferredCodec)).toEqual(
+      sdpWithoutRED,
+    );
+  });
 });
