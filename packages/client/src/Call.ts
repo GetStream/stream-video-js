@@ -718,7 +718,13 @@ export class Call {
         // prepare a generic SDP and send it to the SFU.
         // this is a throw-away SDP that the SFU will use to determine
         // the capabilities of the client (codec support, etc.)
-        .then(() => getGenericSdp('recvonly', this.preferredAudioCodec))
+        .then(() =>
+          getGenericSdp(
+            'recvonly',
+            this.preferredAudioCodec,
+            this.streamClient.options.preferredVideoCodec,
+          ),
+        )
         .then((sdp) => sfuClient.join({ subscriberSdp: sdp || '' }));
 
       // 2. in parallel, wait for the SFU to send us the "joinResponse"

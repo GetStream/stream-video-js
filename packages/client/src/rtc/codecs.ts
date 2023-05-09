@@ -1,3 +1,6 @@
+import { isReactNative } from '../helpers/platforms';
+import { setPreferredCodec } from '../helpers/sdp-munging/setPreferredCodec';
+
 export const getPreferredCodecs = (
   kind: 'audio' | 'video',
   preferredCodec: string,
@@ -46,17 +49,30 @@ export const getPreferredCodecs = (
 
 export const getGenericSdp = async (
   direction: RTCRtpTransceiverDirection,
-  preferredCodec: string,
+  preferredAudioCodec: string,
+  preferredVideoCodec: string | undefined,
 ) => {
   const tempPc = new RTCPeerConnection();
+  const videoTransceiver = tempPc.addTransceiver('video', { direction });
+
+  if ('setCodecPreferences' in videoTransceiver) {
+    const videoCodecPreferences = getPreferredCodecs(
+      'audio',
+      preferredVideoCodec || 'vp8',
+    );
+    // @ts-ignore
+    videoCodecPreferences.setCodecPreferences([
+      ...(videoCodecPreferences || []),
+    ]);
+  }
+
   const audioTransceiver = tempPc.addTransceiver('audio', { direction });
-  tempPc.addTransceiver('video', { direction });
 
   if ('setCodecPreferences' in audioTransceiver) {
-    let returnOnlyMatched = preferredCodec === 'opus';
+    let returnOnlyMatched = preferredAudioCodec === 'opus';
     const audioCodecPreferences = getPreferredCodecs(
       'audio',
-      preferredCodec,
+      preferredAudioCodec,
       returnOnlyMatched,
     );
     // @ts-ignore
@@ -64,7 +80,14 @@ export const getGenericSdp = async (
   }
 
   const offer = await tempPc.createOffer();
-  const sdp = offer.sdp;
+  let sdp = offer.sdp || '';
+
+  if (isReactNative()) {
+    if (preferredVideoCodec) {
+      sdp = setPreferredCodec(sdp, 'video', preferredVideoCodec);
+    }
+    sdp = setPreferredCodec(sdp, 'audio', preferredAudioCodec);
+  }
 
   tempPc.getTransceivers().forEach((t) => {
     t.stop();
