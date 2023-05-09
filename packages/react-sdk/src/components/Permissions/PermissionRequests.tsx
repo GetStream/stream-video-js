@@ -53,15 +53,9 @@ export const PermissionRequests = () => {
     return async () => {
       const { user, permissions } = request;
       if (allow) {
-        await call?.updateUserPermissions({
-          user_id: user.id,
-          grant_permissions: permissions,
-        });
+        await call?.grantPermissions(user.id, permissions);
       } else {
-        await call?.updateUserPermissions({
-          user_id: user.id,
-          revoke_permissions: permissions,
-        });
+        await call?.revokePermissions(user.id, permissions);
       }
       setPermissionRequests((requests) =>
         requests.filter((r) => r !== request),

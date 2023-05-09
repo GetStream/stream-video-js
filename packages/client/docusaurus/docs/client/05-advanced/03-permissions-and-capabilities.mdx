@@ -65,16 +65,16 @@ Whenever a user requests a certain permission, a `call.permission_request` event
 You can listen to this event and approve the request.
 
 ```ts
-import { PermissionRequestEvent } from '@stream-io/video-client';
+import {
+  PermissionRequestEvent,
+  StreamCallEvent,
+} from '@stream-io/video-client';
 
 const call = streamVideoClient.call(type, id);
-call.on('call.permission_request', (event: StreamCallEvent) => {
+call.on('call.permission_request', async (event: StreamCallEvent) => {
   const request = event as PermissionRequestEvent;
   if (shouldApproveRequest(request)) {
-    await call.updateUserPermissions({
-      user_id: request.user_id,
-      grant_permissions: [...request.permissions],
-    });
+    await call.grantPermissions(request.user_id, request.permissions);
   }
 });
 ```
@@ -92,6 +92,15 @@ await call.updateUserPermissions({
   grant_permission: [OwnCapability.SEND_AUDIO, OwnCapability.SEND_VIDEO],
   revoke_permissions: [OwnCapability.SCREENSHARE],
 });
+
+// alternate API for granting user permissions:
+await call.grantPermissions('demo-user', [
+  OwnCapability.SEND_AUDIO,
+  OwnCapability.SEND_VIDEO,
+]);
+
+// alternate API for revoking user permissions:
+await call.revokePermissions('demo-user', [OwnCapability.SCREENSHARE]);
 ```
 
 The end user would get notified via a WebSocket event with a type: `call.permissions_updated`.
