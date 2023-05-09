@@ -1272,6 +1272,44 @@ export class Call {
   };
 
   /**
+   * Allows you to grant certain permissions to a user in a call.
+   * The permissions are specific to the call experience and do not survive the call itself.
+   *
+   * Supported permissions that can be granted are:
+   * - `send-audio`
+   * - `send-video`
+   * - `screenshare`
+   *
+   * @param userId the id of the user to grant permissions to.
+   * @param permissions the permissions to grant.
+   */
+  grantPermissions = async (userId: string, permissions: string[]) => {
+    return this.updateUserPermissions({
+      user_id: userId,
+      grant_permissions: permissions,
+    });
+  };
+
+  /**
+   * Allows you to revoke certain permissions from a user in a call.
+   * The permissions are specific to the call experience and do not survive the call itself.
+   *
+   * Supported permissions that can be revoked are:
+   * - `send-audio`
+   * - `send-video`
+   * - `screenshare`
+   *
+   * @param userId the id of the user to revoke permissions from.
+   * @param permissions the permissions to revoke.
+   */
+  revokePermissions = async (userId: string, permissions: string[]) => {
+    return this.updateUserPermissions({
+      user_id: userId,
+      revoke_permissions: permissions,
+    });
+  };
+
+  /**
    * Allows you to grant or revoke a specific permission to a user in a call. The permissions are specific to the call experience and do not survive the call itself.
    *
    * When revoking a permission, this endpoint will also mute the relevant track from the user. This is similar to muting a user with the difference that the user will not be able to unmute afterwards.

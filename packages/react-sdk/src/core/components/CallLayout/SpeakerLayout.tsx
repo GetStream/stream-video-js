@@ -17,11 +17,11 @@ import {
 } from '@stream-io/video-react-bindings';
 
 import { ParticipantBox } from '../ParticipantBox';
-import { IconButton } from '../../../components/Button';
+import { IconButton } from '../../../components';
 import { useHorizontalScrollPosition } from '../../../components/StreamCall/hooks';
 
 export const SpeakerLayout = () => {
-  const call = useCall()!;
+  const call = useCall();
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
   const [scrollWrapper, setScrollWrapper] = useState<HTMLDivElement | null>(
     null,
@@ -40,14 +40,15 @@ export const SpeakerLayout = () => {
   };
 
   useEffect(() => {
-    if (!scrollWrapper) return;
+    if (!scrollWrapper || !call) return;
 
     const cleanup = call.viewportTracker.setViewport(scrollWrapper);
 
     return () => cleanup();
-  }, [scrollWrapper, call.viewportTracker]);
+  }, [scrollWrapper, call]);
 
   useEffect(() => {
+    if (!call) return;
     // always show the remote participant in the spotlight
     if (isOneOnOneCall) {
       call.setSortParticipantsBy(combineComparators(screenSharing, loggedIn));
@@ -63,6 +64,8 @@ export const SpeakerLayout = () => {
       );
     };
   }, [call, isOneOnOneCall]);
+
+  if (!call) return null;
 
   const isSpeakerScreenSharing = hasScreenShare(participantInSpotlight);
   return (
