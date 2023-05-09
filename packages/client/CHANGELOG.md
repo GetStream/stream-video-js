@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.127](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.126...client0.0.1-alpha.127) (2023-05-09)
+
+
+### Bug Fixes
+
+* **permissions:** add shortcut APIs ([#475](https://github.com/GetStream/stream-video-js/issues/475)) ([466614c](https://github.com/GetStream/stream-video-js/commit/466614ccf7f15cb16fffc97d5aa05318d2adf7e7))
+* preserve last used deviceId when muting ([#470](https://github.com/GetStream/stream-video-js/issues/470)) ([b4ed2d0](https://github.com/GetStream/stream-video-js/commit/b4ed2d0cce1456a748f070bc01a68df574683862))
+
+
+
 ## [0.0.1-alpha.126](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.125...client0.0.1-alpha.126) (2023-05-08)
 
 
