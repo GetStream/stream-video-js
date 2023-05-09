@@ -8578,7 +8578,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/i18n@^0.0.1-alpha.10, @stream-io/i18n@workspace:^, @stream-io/i18n@workspace:packages/i18n":
+"@stream-io/i18n@workspace:^, @stream-io/i18n@workspace:packages/i18n":
   version: 0.0.0-use.local
   resolution: "@stream-io/i18n@workspace:packages/i18n"
   dependencies:
@@ -8776,7 +8776,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/video-client@^0.0.1-alpha.126, @stream-io/video-client@workspace:^, @stream-io/video-client@workspace:packages/client":
+"@stream-io/video-client@workspace:^, @stream-io/video-client@workspace:packages/client":
   version: 0.0.0-use.local
   resolution: "@stream-io/video-client@workspace:packages/client"
   dependencies:
@@ -8837,7 +8837,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/video-react-bindings@^0.0.1-alpha.15, @stream-io/video-react-bindings@workspace:^, @stream-io/video-react-bindings@workspace:packages/react-bindings":
+"@stream-io/video-react-bindings@workspace:^, @stream-io/video-react-bindings@workspace:packages/react-bindings":
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-bindings@workspace:packages/react-bindings"
   dependencies:
@@ -8999,25 +8999,6 @@ __metadata:
     typescript: ^4.9.5
   languageName: unknown
   linkType: soft
-
-"@stream-io/video-react-sdk@npm:latest":
-  version: 0.0.1-alpha.17
-  resolution: "@stream-io/video-react-sdk@npm:0.0.1-alpha.17"
-  dependencies:
-    "@floating-ui/react": ^0.22.0
-    "@nivo/core": ^0.80.0
-    "@nivo/line": ^0.80.0
-    "@stream-io/i18n": ^0.0.1-alpha.10
-    "@stream-io/video-client": ^0.0.1-alpha.126
-    "@stream-io/video-react-bindings": ^0.0.1-alpha.15
-    clsx: ^1.2.1
-    rxjs: ~7.5.7
-  peerDependencies:
-    react: ^18.0.0
-    react-dom: ^18.0.0
-  checksum: 2cfda04bf0ec115c3b52f9a7b248532653adb50ba0a08c89cb1c28b4ff051471fc98d17dc3854ba24fbd29765d18fceca29813c87cdbe1566a3ed0568742343f
-  languageName: node
-  linkType: hard
 
 "@stream-io/video-react-sdk@workspace:^, @stream-io/video-react-sdk@workspace:packages/react-sdk":
   version: 0.0.0-use.local
@@ -34875,7 +34856,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "stream-video-react-tutorial@workspace:sample-apps/react/stream-video-react-tutorial"
   dependencies:
-    "@stream-io/video-react-sdk": latest
+    "@stream-io/video-react-sdk": "workspace:^"
     "@types/react": ^18.0.26
     "@types/react-dom": ^18.0.9
     "@vitejs/plugin-react": ^3.0.0
