@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.19...@stream-io/video-react-sdk-0.0.1-alpha.20) (2023-05-09)
+
+
+### Features
+
+* StreamTheme component and docs ([#477](https://github.com/GetStream/stream-video-js/issues/477)) ([440de24](https://github.com/GetStream/stream-video-js/commit/440de246d0a510f99a93ea34df6d03a9127c8d32))
+
+
+
 ## [0.0.1-alpha.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.18...@stream-io/video-react-sdk-0.0.1-alpha.19) (2023-05-09)
 
 
