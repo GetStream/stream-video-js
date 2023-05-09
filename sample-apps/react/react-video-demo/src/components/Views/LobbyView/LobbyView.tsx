@@ -25,7 +25,10 @@ export type Props = {
   joinCall(): void;
   callId: string;
   edges?: FeatureCollection<Geometry>;
-  fastestEdge: any;
+  fastestEdge: {
+    id: string;
+    latency: number;
+  };
   isjoiningCall: boolean;
 };
 

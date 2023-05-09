@@ -120,7 +120,6 @@ export const ControlMenu: FC<Props> = ({
                 selectDevice={switchDevice}
                 devices={audioOutputDevices}
                 title="Select an Audio Output"
-                label="Audio output settings"
               />
             </Portal>
           }
@@ -142,7 +141,6 @@ export const ControlMenu: FC<Props> = ({
               selectDevice={switchDevice}
               devices={audioInputDevices}
               title="Select an Audio Input"
-              label="Audio input settings"
             />
           </Portal>
         }
@@ -163,7 +161,6 @@ export const ControlMenu: FC<Props> = ({
               selectDevice={switchDevice}
               devices={videoDevices}
               title="Select a Camera"
-              label="Camera Settings"
             />
           </Portal>
         }

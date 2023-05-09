@@ -34,8 +34,10 @@ export const ControlButton: FC<Props> = ({
   const container: any = useRef();
 
   useEffect(() => {
+    console.log('show or not?', showPanel, active);
+
     if (showPanel !== undefined) {
-      setActive(showPanel);
+      setActive(false);
     }
   }, [showPanel]);
 

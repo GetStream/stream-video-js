@@ -29,8 +29,8 @@ export const LatencyMap: FC<Props> = ({
   const mapContainer = useRef<any>(undefined);
   const map = useRef<mapboxgl.Map | null>(null);
 
-  const [lng] = useState(39);
-  const [lat] = useState(34);
+  const [lng] = useState(-38.632571);
+  const [lat] = useState(25);
   const [zoom] = useState(zoomLevel);
 
   const [hoverId, setHoverId] = useState(undefined);
@@ -190,7 +190,7 @@ export const LatencyMap: FC<Props> = ({
         name: 'mercator',
       },
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: 'mapbox://styles/zwaardje/clhf9caar013j01qt07ib4bea',
       center: [lng, lat],
       zoom: zoom,
     });

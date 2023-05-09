@@ -73,6 +73,7 @@
 }
 
 .body {
+  @apply flex md:justify-center flex-col;
   grid-area: body;
 }
 
