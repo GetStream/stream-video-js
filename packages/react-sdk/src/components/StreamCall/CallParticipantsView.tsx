@@ -16,9 +16,8 @@ export const CallParticipantsView = (props: { call: Call }) => {
           key={participant.sessionId}
           participant={participant}
           sinkId={localParticipant?.audioOutputDeviceId}
-        >
-          <DefaultParticipantViewUI participant={participant} />
-        </ParticipantView>
+          ParticipantViewUI={DefaultParticipantViewUI}
+        />
       ))}
     </div>
   );

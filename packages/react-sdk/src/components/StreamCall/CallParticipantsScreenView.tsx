@@ -5,7 +5,7 @@ import {
   useLocalParticipant,
   useParticipants,
 } from '@stream-io/video-react-bindings';
-import { DefaultParticipantViewUI, ParticipantView } from '../../core';
+import { ParticipantView, DefaultParticipantViewUI } from '../../core';
 import { Video } from '../Video';
 
 import { useVerticalScrollPosition } from './hooks';
@@ -60,7 +60,6 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
               <Video
                 className="str-video__screen-share"
                 participant={firstScreenSharingParticipant}
-                call={call}
                 kind="screen"
                 autoPlay
                 muted
@@ -108,9 +107,8 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
                 key={participant.sessionId}
                 participant={participant}
                 sinkId={localParticipant?.audioOutputDeviceId}
-              >
-                <DefaultParticipantViewUI participant={participant} />
-              </ParticipantView>
+                ParticipantViewUI={DefaultParticipantViewUI}
+              />
             ))}
           </div>
         </div>

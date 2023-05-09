@@ -11,7 +11,11 @@ import {
 } from '@stream-io/video-client';
 import clsx from 'clsx';
 
-import { ParticipantView, DefaultParticipantViewUI } from '../ParticipantView';
+import {
+  ParticipantView,
+  DefaultParticipantViewUI,
+  ParticipantViewProps,
+} from '../ParticipantView';
 import { Audio } from '../Audio';
 import { IconButton } from '../../../components';
 
@@ -22,16 +26,13 @@ type PaginatedGridLayoutGroupProps = {
    * The group of participants to render.
    */
   group: Array<StreamVideoParticipant | StreamVideoLocalParticipant>;
+} & Pick<ParticipantViewProps, 'VideoPlaceholder'> &
+  Required<Pick<ParticipantViewProps, 'ParticipantViewUI'>>;
 
-  /**
-   * Turns on/off the status indicator icons (mute, connection quality, etc...)
-   * on the participant boxes.
-   */
-  indicatorsVisible?: boolean;
-};
 const PaginatedGridLayoutGroup = ({
   group,
-  indicatorsVisible = true,
+  VideoPlaceholder,
+  ParticipantViewUI,
 }: PaginatedGridLayoutGroupProps) => {
   return (
     <div
@@ -48,12 +49,9 @@ const PaginatedGridLayoutGroup = ({
           key={participant.sessionId}
           participant={participant}
           muteAudio
-        >
-          <DefaultParticipantViewUI
-            indicatorsVisible={indicatorsVisible}
-            participant={participant}
-          />
-        </ParticipantView>
+          VideoPlaceholder={VideoPlaceholder}
+          ParticipantViewUI={ParticipantViewUI}
+        />
       ))}
     </div>
   );
@@ -71,22 +69,17 @@ export type PaginatedGridLayoutProps = {
   excludeLocalParticipant?: boolean;
 
   /**
-   * Turns on/off the status indicator icons (mute, connection quality, etc...)
-   * on the participant boxes.
-   */
-  indicatorsVisible?: boolean;
-
-  /**
    * Turns on/off the pagination arrows.
    */
   pageArrowsVisible?: boolean;
-};
+} & Pick<ParticipantViewProps, 'ParticipantViewUI' | 'VideoPlaceholder'>;
 
 export const PaginatedGridLayout = ({
   groupSize = GROUP_SIZE,
   excludeLocalParticipant = false,
-  indicatorsVisible = true,
   pageArrowsVisible = true,
+  VideoPlaceholder,
+  ParticipantViewUI = DefaultParticipantViewUI,
 }: PaginatedGridLayoutProps) => {
   const [page, setPage] = useState(0);
 
@@ -143,7 +136,8 @@ export const PaginatedGridLayout = ({
           {selectedGroup && (
             <PaginatedGridLayoutGroup
               group={participantGroups[page]}
-              indicatorsVisible={indicatorsVisible}
+              VideoPlaceholder={VideoPlaceholder}
+              ParticipantViewUI={ParticipantViewUI}
             />
           )}
           {pageArrowsVisible && pageCount > 1 && (

@@ -16,11 +16,37 @@ import {
   useParticipants,
 } from '@stream-io/video-react-bindings';
 
-import { ParticipantView, DefaultParticipantViewUI } from '../ParticipantView';
+import {
+  ParticipantView,
+  DefaultParticipantViewUI,
+  ParticipantViewProps,
+  ParticipantViewUIProps,
+} from '../ParticipantView';
 import { IconButton } from '../../../components';
 import { useHorizontalScrollPosition } from '../../../components/StreamCall/hooks';
 
-export const SpeakerLayout = () => {
+export type SpeakerLayoutProps = {
+  ParticipantViewUISpotlight?: ParticipantViewProps['ParticipantViewUI'];
+  ParticipantViewUIBar?: ParticipantViewProps['ParticipantViewUI'];
+} & Pick<ParticipantViewProps, 'VideoPlaceholder'>;
+
+const DefaultParticipantViewUIBar = ({
+  participant,
+}: ParticipantViewUIProps) => (
+  <DefaultParticipantViewUI participant={participant} menuPlacement="top-end" />
+);
+
+const DefaultParticipantViewUISpotlight = ({
+  participant,
+}: ParticipantViewUIProps) => (
+  <DefaultParticipantViewUI participant={participant} />
+);
+
+export const SpeakerLayout = ({
+  ParticipantViewUIBar = DefaultParticipantViewUIBar,
+  ParticipantViewUISpotlight = DefaultParticipantViewUISpotlight,
+  VideoPlaceholder,
+}: SpeakerLayoutProps) => {
   const call = useCall();
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
   const [scrollWrapper, setScrollWrapper] = useState<HTMLDivElement | null>(
@@ -78,9 +104,9 @@ export const SpeakerLayout = () => {
               muteAudio={isSpeakerScreenSharing}
               videoKind={isSpeakerScreenSharing ? 'screen' : 'video'}
               sinkId={localParticipant?.audioOutputDeviceId}
-            >
-              <DefaultParticipantViewUI participant={participantInSpotlight} />
-            </ParticipantView>
+              ParticipantViewUI={ParticipantViewUISpotlight}
+              VideoPlaceholder={VideoPlaceholder}
+            />
           )}
         </div>
         {otherParticipants.length > 0 && (
@@ -105,12 +131,9 @@ export const SpeakerLayout = () => {
                     <ParticipantView
                       participant={participantInSpotlight}
                       sinkId={localParticipant?.audioOutputDeviceId}
-                    >
-                      <DefaultParticipantViewUI
-                        participant={participantInSpotlight}
-                        menuPlacement="top-end"
-                      />
-                    </ParticipantView>
+                      ParticipantViewUI={ParticipantViewUIBar}
+                      VideoPlaceholder={VideoPlaceholder}
+                    />
                   </div>
                 )}
                 {otherParticipants.map((participant) => (
@@ -121,12 +144,9 @@ export const SpeakerLayout = () => {
                     <ParticipantView
                       participant={participant}
                       sinkId={localParticipant?.audioOutputDeviceId}
-                    >
-                      <DefaultParticipantViewUI
-                        participant={participant}
-                        menuPlacement="top-end"
-                      />
-                    </ParticipantView>
+                      ParticipantViewUI={ParticipantViewUIBar}
+                      VideoPlaceholder={VideoPlaceholder}
+                    />
                   </div>
                 ))}
               </div>

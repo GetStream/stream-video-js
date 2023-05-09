@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { Placement } from '@floating-ui/react';
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import { SfuModels } from '@stream-io/video-client';
 import { useCall } from '@stream-io/video-react-bindings';
 import { clsx } from 'clsx';
 
@@ -12,13 +12,15 @@ import {
   ToggleMenuButtonProps,
 } from '../../../components';
 import { Reaction } from '../../../components/Reaction';
+import { ParticipantViewProps } from './ParticipantView';
 
 import { DebugParticipantPublishQuality } from '../../../components/Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../../../components/Debug/DebugStatsView';
 import { useIsDebugMode } from '../../../components/Debug/useIsDebugMode';
 
-export type ParticipantViewUIProps = {
-  participant: StreamVideoParticipant;
+export type ParticipantViewUIProps = Pick<ParticipantViewProps, 'participant'>;
+
+export type DefaultParticipantViewUIProps = {
   /**
    * Turns on/off the status indicator icons (mute, connection quality, etc...).
    */
@@ -31,7 +33,7 @@ export type ParticipantViewUIProps = {
    * Option to show/hide menu button component
    */
   showMenuButton?: boolean;
-};
+} & Pick<ParticipantViewProps, 'participant'>;
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   (props, ref) => {
@@ -44,7 +46,7 @@ export const DefaultParticipantViewUI = ({
   indicatorsVisible = true,
   menuPlacement = 'bottom-end',
   showMenuButton = true,
-}: ParticipantViewUIProps) => {
+}: DefaultParticipantViewUIProps) => {
   const call = useCall()!;
   const { reaction, sessionId } = participant;
 
@@ -73,7 +75,10 @@ export const DefaultParticipantViewUI = ({
 export const ParticipantDetails = ({
   participant,
   indicatorsVisible = true,
-}: Pick<ParticipantViewUIProps, 'participant' | 'indicatorsVisible'>) => {
+}: Pick<
+  DefaultParticipantViewUIProps,
+  'participant' | 'indicatorsVisible'
+>) => {
   const {
     isDominantSpeaker,
     isLoggedInUser,

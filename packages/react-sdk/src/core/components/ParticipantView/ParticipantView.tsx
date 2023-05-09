@@ -1,16 +1,26 @@
-import { forwardRef, PropsWithChildren, useState } from 'react';
+import { forwardRef, ComponentType, useState } from 'react';
 import clsx from 'clsx';
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  SfuModels,
+  StreamVideoLocalParticipant,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
 
 import { Audio } from '../Audio';
 import { applyElementRef, Video, VideoProps } from '../Video';
 import { useTrackElementVisibility } from '../../hooks';
+import { ParticipantViewUIProps } from './DefaultParticipantViewUI';
 
-export type ParticipantViewProps = PropsWithChildren<{
+export type ParticipantViewProps = {
   /**
    * The participant bound to this component.
    */
-  participant: StreamVideoParticipant;
+  participant: StreamVideoParticipant | StreamVideoLocalParticipant;
+
+  /**
+   * Component used to render user interface elements (details, network status...)
+   */
+  ParticipantViewUI?: ComponentType<ParticipantViewUIProps>;
 
   /**
    * In supported browsers, this sets the default audio output.
@@ -43,8 +53,7 @@ export type ParticipantViewProps = PropsWithChildren<{
    * An additional list of class names to append to the root DOM element.
    */
   className?: string;
-}> &
-  Pick<VideoProps, 'VideoPlaceholder'>;
+} & Pick<VideoProps, 'VideoPlaceholder'>;
 
 export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
   (
@@ -55,8 +64,8 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       muteAudio,
       setVideoElementRef,
       className,
-      children,
       VideoPlaceholder,
+      ParticipantViewUI,
     },
     ref,
   ) => {
@@ -94,7 +103,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
           className,
         )}
       >
-        {children}
+        {ParticipantViewUI && <ParticipantViewUI participant={participant} />}
         <Audio
           // mute the local participant, as we don't want to hear ourselves
           muted={isLoggedInUser || muteAudio}
