@@ -29,9 +29,17 @@ $scope-name: 'str-video__speaker-layout';
       max-width: 110vh;
     }
 
-    .str-video__video--screen-share {
-      outline: none; // disable "speaking" outline for screen-share video
+    .str-video__participant-view--speaking:has(
+        .str-video__video--screen-share
+      ) {
+      outline: none;
+    }
+
+    .str-video__participant-view:has(.str-video__video--screen-share) {
       border-radius: unset;
+    }
+
+    .str-video__video--screen-share {
       object-fit: contain;
     }
 
