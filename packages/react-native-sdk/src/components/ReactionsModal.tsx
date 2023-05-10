@@ -38,8 +38,8 @@ export const ReactionModal = (props: ReactionModalType) => {
   }, [setReactionModal]);
   const call = useCall();
 
-  const sendReaction = (reaction: StreamReaction) => {
-    call?.sendReaction(reaction);
+  const sendReaction = async (reaction: StreamReaction) => {
+    await call?.sendReaction(reaction);
   };
 
   return (
