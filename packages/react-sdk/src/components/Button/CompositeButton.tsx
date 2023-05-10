@@ -1,13 +1,10 @@
 import clsx from 'clsx';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
-import {
-  ComponentType,
-  forwardRef,
-  isValidElement,
-  PropsWithChildren,
-} from 'react';
-import { IconButton } from './IconButton';
+import { ComponentType, forwardRef, PropsWithChildren } from 'react';
 import { Placement } from '@floating-ui/react';
+
+import { IconButton } from './IconButton';
+import { isComponentType } from '../../utilities';
 
 export type IconButtonWithMenuProps = PropsWithChildren<{
   active?: boolean;
@@ -15,12 +12,6 @@ export type IconButtonWithMenuProps = PropsWithChildren<{
   caption?: string;
   menuPlacement?: Placement;
 }>;
-
-const isComponentType = (
-  elementOrComponent: ComponentType | JSX.Element,
-): elementOrComponent is ComponentType => {
-  return !isValidElement(elementOrComponent);
-};
 
 export const CompositeButton = forwardRef<
   HTMLDivElement,

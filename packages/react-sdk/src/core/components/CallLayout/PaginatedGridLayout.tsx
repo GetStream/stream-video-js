@@ -18,6 +18,7 @@ import {
 } from '../ParticipantView';
 import { Audio } from '../Audio';
 import { IconButton } from '../../../components';
+import { chunk } from '../../../utilities';
 
 const GROUP_SIZE = 16;
 
@@ -154,15 +155,5 @@ export const PaginatedGridLayout = ({
         </div>
       </div>
     </>
-  );
-};
-
-// TODO: move to utilities
-const chunk = <T extends unknown[]>(array: T, size = GROUP_SIZE) => {
-  const chunkCount = Math.ceil(array.length / size);
-
-  return Array.from(
-    { length: chunkCount },
-    (_, index) => array.slice(size * index, size * index + size) as T,
   );
 };

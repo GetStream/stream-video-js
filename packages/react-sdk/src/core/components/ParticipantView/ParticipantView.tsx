@@ -1,4 +1,4 @@
-import { forwardRef, ComponentType, useState } from 'react';
+import { forwardRef, ComponentType, useState, ReactElement } from 'react';
 import clsx from 'clsx';
 import {
   SfuModels,
@@ -10,6 +10,7 @@ import { Audio } from '../Audio';
 import { applyElementRef, Video, VideoProps } from '../Video';
 import { useTrackElementVisibility } from '../../hooks';
 import { ParticipantViewUIProps } from './DefaultParticipantViewUI';
+import { isComponentType } from '../../../utilities';
 
 export type ParticipantViewProps = {
   /**
@@ -20,7 +21,7 @@ export type ParticipantViewProps = {
   /**
    * Component used to render user interface elements (details, network status...)
    */
-  ParticipantViewUI?: ComponentType<ParticipantViewUIProps>;
+  ParticipantViewUI?: ComponentType<ParticipantViewUIProps> | ReactElement;
 
   /**
    * In supported browsers, this sets the default audio output.
@@ -103,7 +104,11 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
           className,
         )}
       >
-        {ParticipantViewUI && <ParticipantViewUI participant={participant} />}
+        {isComponentType(ParticipantViewUI) ? (
+          <ParticipantViewUI participant={participant} />
+        ) : (
+          ParticipantViewUI
+        )}
         <Audio
           // mute the local participant, as we don't want to hear ourselves
           muted={isLoggedInUser || muteAudio}
