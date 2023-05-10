@@ -124,14 +124,6 @@ export class CallState {
   >(undefined);
 
   /**
-   * Emits a boolean indicating whether a call recording is currently in progress.
-   *
-   * @internal
-   */
-  // FIXME OL: might be derived from `this.call.recording`.
-  private callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
-
-  /**
    * Emits a list of details about recordings performed for the current call.
    */
   private callRecordingListSubject = new BehaviorSubject<CallRecording[]>([]);
@@ -195,11 +187,6 @@ export class CallState {
    * in case they want to show historical stats data.
    */
   callStatsReport$: Observable<CallStatsReport | undefined>;
-
-  /**
-   * Emits a boolean indicating whether a call recording is currently in progress.
-   */
-  callRecordingInProgress$: Observable<boolean>;
 
   /**
    * Emits a list of details about recordings performed for the current call
@@ -269,8 +256,6 @@ export class CallState {
     );
 
     this.callStatsReport$ = this.callStatsReportSubject.asObservable();
-    this.callRecordingInProgress$ =
-      this.callRecordingInProgressSubject.asObservable();
     this.callPermissionRequest$ =
       this.callPermissionRequestSubject.asObservable();
     this.callRecordingList$ = this.callRecordingListSubject.asObservable();
@@ -397,25 +382,6 @@ export class CallState {
    */
   setCallRecordingsList = (recordings: Patch<CallRecording[]>) => {
     return this.setCurrentValue(this.callRecordingListSubject, recordings);
-  };
-
-  /**
-   * Tells whether a call recording is in progress.
-   */
-  get callRecordingInProgress() {
-    return this.getCurrentValue(this.callRecordingInProgress$);
-  }
-
-  /**
-   * Sets whether a call recording is in progress.
-   *
-   * @param inProgress whether a call recording is in progress.
-   */
-  setCallRecordingInProgress = (inProgress: Patch<boolean>) => {
-    return this.setCurrentValue(
-      this.callRecordingInProgressSubject,
-      inProgress,
-    );
   };
 
   /**
