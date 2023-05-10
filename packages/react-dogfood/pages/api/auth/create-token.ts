@@ -48,6 +48,13 @@ const createJwtToken = async (req: NextApiRequest, res: NextApiResponse) => {
     params.exp = String(expiration);
   }
 
+  if (params.call_cids) {
+    try {
+      // support `?call_cids=["cid:1","cid:2"]` query param
+      params.call_cids = JSON.parse(params.call_cids as string);
+    } catch (e) {}
+  }
+
   const token = createToken(userId, secretKey, params);
   return res.status(200).json({
     userId,
