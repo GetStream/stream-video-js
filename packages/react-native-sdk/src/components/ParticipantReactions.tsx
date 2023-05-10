@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { StreamReaction } from '@stream-io/video-client';
 import { defaultEmojiReactions } from '../constants';
 import { StyleSheet, Text, View } from 'react-native';
-import { useActiveCall } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
 import { theme } from '../theme';
 
 export type ReactionProps = {
@@ -19,7 +19,7 @@ export const ParticipantReactions = (props: ReactionProps) => {
     sessionId,
     hideAfterTimeoutInMs = 5500,
   } = props;
-  const call = useActiveCall();
+  const call = useCall();
   const [isShowing, setIsShowing] = useState(false);
 
   useEffect(() => {
@@ -38,19 +38,18 @@ export const ParticipantReactions = (props: ReactionProps) => {
 
   const { emoji_code } = reaction;
 
-  return isShowing ? (
-    <View style={styles.container}>
-      {emoji_code ? (
-        typeof reactionMappings[emoji_code] === 'string' ? (
-          <Text style={styles.reaction}>{reactionMappings[emoji_code]}</Text>
-        ) : (
-          <View style={[styles.svgContainerStyle, theme.icon.md]}>
-            {reactionMappings[emoji_code]}
-          </View>
-        )
-      ) : null}
-    </View>
-  ) : null;
+  if (!emoji_code) return null;
+
+  const renderEmoji =
+    typeof reactionMappings[emoji_code] === 'string' ? (
+      <Text style={styles.reaction}>{reactionMappings[emoji_code]}</Text>
+    ) : (
+      <View style={[styles.svgContainerStyle, theme.icon.md]}>
+        {reactionMappings[emoji_code]}
+      </View>
+    );
+
+  return isShowing ? <View style={styles.container}>{renderEmoji}</View> : null;
 };
 
 const styles = StyleSheet.create({

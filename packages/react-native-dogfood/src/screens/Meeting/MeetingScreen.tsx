@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   ActiveCall,
   ActiveCallProps,
+  ReactionModal,
+  StreamVideoRN,
   useCall,
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList } from '../../../types';
@@ -18,9 +20,7 @@ type Props = NativeStackScreenProps<MeetingStackParamList, 'MeetingScreen'>;
 type Mode = NonNullable<ActiveCallProps['mode']>;
 
 export const MeetingScreen = ({ navigation }: Props) => {
-  const onOpenCallParticipantsInfoViewHandler = () => {
-    navigation.navigate('CallParticipantsInfoScreen');
-  };
+  const [reactionModal, setReactionModal] = useState<boolean>(false);
   const [selectedMode, setMode] = React.useState<Mode>('grid');
 
   const activeCall = useCall();
@@ -35,13 +35,24 @@ export const MeetingScreen = ({ navigation }: Props) => {
     };
   }, [activeCall]);
 
+  const onOpenCallParticipantsInfoViewHandler = () => {
+    navigation.navigate('CallParticipantsInfoScreen');
+  };
+
+  const onOpenReactionsModalHandler = useCallback(() => {
+    setReactionModal(true);
+  }, [setReactionModal]);
+
+  StreamVideoRN.setConfig({
+    onOpenCallParticipantsInfoView: onOpenCallParticipantsInfoViewHandler,
+    onOpenReactionsModal: onOpenReactionsModalHandler,
+  });
+
   return (
     <SafeAreaView style={styles.wrapper}>
       <ParticipantListButtons selectedMode={selectedMode} setMode={setMode} />
-      <ActiveCall
-        onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
-        mode={selectedMode}
-      />
+      <ActiveCall mode={selectedMode} />
+      {reactionModal && <ReactionModal setReactionModal={setReactionModal} />}
     </SafeAreaView>
   );
 };

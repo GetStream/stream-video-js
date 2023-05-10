@@ -12,9 +12,10 @@ import {
 } from '../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
-import { useCall, useOwnCapabilities } from '@stream-io/video-react-bindings';
 import { CallPermissionsWrapper } from './CallPermissionsWrapper';
 import { OwnCapability } from '@stream-io/video-client';
+import { useCall, useOwnCapabilities } from '@stream-io/video-react-bindings';
+import { StreamVideoRN } from '../utils/StreamVideoRN';
 import { PermissionNotification } from './PermissionsNotification';
 
 /**
@@ -36,6 +37,7 @@ export const CallControlsView = () => {
   } = useCallControls();
   const call = useCall();
   const ownCapabilities = useOwnCapabilities();
+  const { onOpenReactionsModal } = StreamVideoRN.config;
 
   const handleHangUpCall = () => call?.leave();
   const muteStatusColor = (status: boolean) => {
@@ -46,7 +48,7 @@ export const CallControlsView = () => {
     <View style={styles.container}>
       <CallPermissionsWrapper requiredGrants={[OwnCapability.CREATE_REACTION]}>
         <CallControlsButton
-          onPress={onReactionsSelector}
+          onPress={onOpenReactionsModal}
           color={theme.light.static_white}
           style={styles.button}
         >

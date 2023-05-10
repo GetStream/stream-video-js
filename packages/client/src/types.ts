@@ -10,6 +10,7 @@ import type {
 import type { StreamClient } from './coordinator/connection/client';
 import type { Comparator } from './sorting';
 import type { StreamVideoWriteableStateStore } from './store';
+import { AxiosError } from 'axios';
 
 export type StreamReaction = Pick<
   ReactionResponse,
@@ -205,3 +206,5 @@ export type CallConstructor = {
    */
   clientStore: StreamVideoWriteableStateStore;
 };
+
+export { AxiosError };

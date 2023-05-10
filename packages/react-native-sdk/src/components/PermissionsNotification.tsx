@@ -1,8 +1,5 @@
-import { OwnCapability } from '@stream-io/video-client';
-import {
-  useActiveCall,
-  useHasPermissions,
-} from '@stream-io/video-react-bindings';
+import { AxiosError, OwnCapability } from '@stream-io/video-client';
+import { useCall, useHasPermissions } from '@stream-io/video-react-bindings';
 import {
   PropsWithChildren,
   useCallback,
@@ -49,7 +46,7 @@ export const PermissionNotification = (props: PermissionNotificationProps) => {
   const previousHasPermission = useRef(hasPermission);
 
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
-  const call = useActiveCall();
+  const call = useCall();
 
   const showGrantedNotification = useCallback(() => {
     Alert.alert(messageApproved);
@@ -93,8 +90,13 @@ export const PermissionNotification = (props: PermissionNotificationProps) => {
       setIsAwaitingApproval(true);
       await call
         .requestPermissions({ permissions: [permission] })
-        .catch((reason) => {
-          console.log('RequestPermissions failed', reason);
+        .catch((error) => {
+          if (error instanceof AxiosError) {
+            console.log(
+              'RequestPermissions failed',
+              error.response?.data.message,
+            );
+          }
         });
     }
   }, [call, permission]);

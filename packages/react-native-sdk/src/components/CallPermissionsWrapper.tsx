@@ -26,7 +26,7 @@ export const CallPermissionsWrapper = ({
 }: RestrictedProps) => {
   const call = useCall();
   const ownCapabilities = useOwnCapabilities();
-  const availableGrants = availableGrantsFromProps || ownCapabilities;
+  const availableGrants = availableGrantsFromProps ?? ownCapabilities;
   const hasPermissions = requiredGrants[requireAll ? 'every' : 'some'](
     (capability) => availableGrants.includes(capability),
   );

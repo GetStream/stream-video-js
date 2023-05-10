@@ -9,10 +9,7 @@ import { generateParticipantTitle } from '../utils';
 import { useCallback } from 'react';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
-import {
-  useActiveCall,
-  useOwnCapabilities,
-} from '@stream-io/video-react-bindings';
+import { useCall, useOwnCapabilities } from '@stream-io/video-react-bindings';
 
 type CallParticipantOptionType = {
   title: string;
@@ -30,7 +27,7 @@ type CallParticipantOptionsType = {
 export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
   const { participant, setSelectedParticipant } = props;
   const ownCapabilities = useOwnCapabilities();
-  const call = useActiveCall();
+  const call = useCall();
 
   const grantPermission = (permission: string) => () => {
     call?.updateUserPermissions({

@@ -1,12 +1,5 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  StreamCallProvider,
   useCallMetadata,
   useCall,
   useHasOngoingScreenShare,
@@ -20,16 +13,11 @@ import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
 import { useIncallManager } from '../hooks/useIncallManager';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
-import { ReactionModal } from './ReactionsModal';
 
 /**
  * Props to be passed for the ActiveCall component.
  */
 export interface ActiveCallProps {
-  /**
-   * Handler called when the participants info button is pressed in the active call screen.
-   */
-  onOpenCallParticipantsInfoView: () => void;
   /**
    * The mode of the call view. Defaults to 'grid'.
    * Note: when there is atleast one screen share, the mode is automatically set to 'spotlight'.
@@ -62,8 +50,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
-  const [reactionModal, setReactionModal] = useState<boolean>(false);
-  const { onOpenCallParticipantsInfoView, mode = 'grid' } = props;
+  const { mode = 'grid' } = props;
   const hasScreenShare = useHasOngoingScreenShare();
   const callMetaData = useCallMetadata();
   const localParticipant = useLocalParticipant();
@@ -79,12 +66,10 @@ const InnerActiveCall = (props: ActiveCallProps) => {
   useEffect(() => {
     if (
       localParticipant?.userId &&
-      blocked_user_ids.includes(localParticipant.userId) &&
-      onHangupCall
+      blocked_user_ids.includes(localParticipant.userId)
     ) {
-      onHangupCall();
     }
-  }, [blocked_user_ids, localParticipant, onHangupCall]);
+  }, [blocked_user_ids, localParticipant]);
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     setHeight(
@@ -100,11 +85,8 @@ const InnerActiveCall = (props: ActiveCallProps) => {
   return (
     <View style={styles.container}>
       <View style={styles.iconGroup}>
-        <CallParticipantsBadge
-          onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
-        />
+        <CallParticipantsBadge />
       </View>
-      {reactionModal && <ReactionModal setReactionModal={setReactionModal} />}
 
       <View
         style={[
