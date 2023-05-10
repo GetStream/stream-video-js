@@ -15,16 +15,7 @@ import { theme } from '../theme';
 import { CallPermissionsWrapper } from './CallPermissionsWrapper';
 import { OwnCapability } from '@stream-io/video-client';
 import { useCall } from '@stream-io/video-react-bindings';
-
-/**
- * Props to be passed for the CallControlsView component.
- */
-export interface CallControlsViewProps {
-  /**
-   * Handler used to open reactions selector
-   */
-  onReactionsSelector?: () => void;
-}
+import { StreamVideoRN } from '../utils/StreamVideoRN';
 
 /**
  * Shows a list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
@@ -34,9 +25,7 @@ export interface CallControlsViewProps {
  * | :--- |
  * | ![call-controls-view](https://user-images.githubusercontent.com/25864161/217349666-af0f3278-393e-449d-b30e-2d1b196abe5e.png) |
  */
-export const CallControlsView = ({
-  onReactionsSelector,
-}: CallControlsViewProps) => {
+export const CallControlsView = () => {
   const {
     isAudioMuted,
     isVideoMuted,
@@ -46,6 +35,7 @@ export const CallControlsView = ({
     toggleCameraFacingMode,
   } = useCallControls();
   const call = useCall();
+  const { onOpenReactionsModal } = StreamVideoRN.config;
 
   const handleHangUpCall = () => call?.leave();
   const muteStatusColor = (status: boolean) => {
@@ -56,7 +46,7 @@ export const CallControlsView = ({
     <View style={styles.container}>
       <CallPermissionsWrapper requiredGrants={[OwnCapability.CREATE_REACTION]}>
         <CallControlsButton
-          onPress={onReactionsSelector}
+          onPress={onOpenReactionsModal}
           color={theme.light.static_white}
           style={styles.button}
         >

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   useCall,
   useHasOngoingScreenShare,
@@ -11,16 +11,11 @@ import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
 import { useIncallManager } from '../hooks/useIncallManager';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
-import { ReactionModal } from './ReactionsModal';
 
 /**
  * Props to be passed for the ActiveCall component.
  */
 export interface ActiveCallProps {
-  /**
-   * Handler called when the participants info button is pressed in the active call screen.
-   */
-  onOpenCallParticipantsInfoView: () => void;
   /**
    * The mode of the call view. Defaults to 'grid'.
    * Note: when there is atleast one screen share, the mode is automatically set to 'spotlight'.
@@ -53,8 +48,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
-  const [reactionModal, setReactionModal] = useState<boolean>(false);
-  const { onOpenCallParticipantsInfoView, mode = 'grid' } = props;
+  const { mode = 'grid' } = props;
   const hasScreenShare = useHasOngoingScreenShare();
 
   useIncallManager({ media: 'video', auto: true });
@@ -69,20 +63,13 @@ const InnerActiveCall = (props: ActiveCallProps) => {
     );
   };
 
-  const openReactionsModal = useCallback(() => {
-    setReactionModal(true);
-  }, [setReactionModal]);
-
   const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;
 
   return (
     <View style={styles.container}>
       <View style={styles.iconGroup}>
-        <CallParticipantsBadge
-          onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
-        />
+        <CallParticipantsBadge />
       </View>
-      {reactionModal && <ReactionModal setReactionModal={setReactionModal} />}
 
       <View
         style={[
@@ -97,7 +84,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
         )}
       </View>
       <View onLayout={onLayout} style={styles.callControlsWrapper}>
-        <CallControlsView onReactionsSelector={openReactionsModal} />
+        <CallControlsView />
       </View>
     </View>
   );
