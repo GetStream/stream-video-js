@@ -4,11 +4,16 @@ import { CallState } from '../store';
 import {
   watchAudioLevelChanged,
   watchBlockedUser,
+  watchCallAccepted,
+  watchCallBroadcastingStarted,
+  watchCallBroadcastingStopped,
+  watchCallEnded,
   watchCallGrantsUpdated,
   watchCallPermissionRequest,
   watchCallPermissionsUpdated,
   watchCallRecordingStarted,
   watchCallRecordingStopped,
+  watchCallRejected,
   watchCallUpdated,
   watchChangePublishQuality,
   watchConnectionQualityChanged,
@@ -48,10 +53,29 @@ export const registerEventHandlers = (
 
     call.on('call.recording_started', watchCallRecordingStarted(state)),
     call.on('call.recording_stopped', watchCallRecordingStopped(state)),
+    call.on('call.broadcasting_started', watchCallBroadcastingStarted(state)),
+    call.on('call.broadcasting_stopped', watchCallBroadcastingStopped(state)),
 
     call.on('call.permission_request', watchCallPermissionRequest(state)),
     call.on('call.permissions_updated', watchCallPermissionsUpdated(state)),
     call.on('callGrantsUpdated', watchCallGrantsUpdated(state)),
+  ];
+
+  if (call.ringing) {
+    // these events are only relevant when the call is ringing
+    eventHandlers.push(registerRingingCallEventHandlers(call));
+  }
+
+  return () => {
+    eventHandlers.forEach((unsubscribe) => unsubscribe());
+  };
+};
+
+export const registerRingingCallEventHandlers = (call: Call) => {
+  const eventHandlers = [
+    call.on('call.accepted', watchCallAccepted(call)),
+    call.on('call.rejected', watchCallRejected(call)),
+    call.on('call.ended', watchCallEnded(call)),
   ];
 
   return () => {

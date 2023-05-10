@@ -43,7 +43,7 @@
 
 .callId {
   grid-area: callId;
-  @apply hidden sm:flex text-video-grey-400 ml-4;
+  @apply hidden sm:flex text-video-grey-400 ml-2;
 }
 
 .callIdContainer {

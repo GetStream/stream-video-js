@@ -1,6 +1,11 @@
 import { useEffect } from 'react';
 import Gleap from 'gleap';
-import { Call, StreamVideoClient, User } from '@stream-io/video-react-sdk';
+import {
+  Call,
+  RxUtils,
+  StreamVideoClient,
+  User,
+} from '@stream-io/video-react-sdk';
 
 export const useGleap = (
   gleapApiKey: string | undefined,
@@ -21,29 +26,17 @@ export const useGleap = (
 
     Gleap.on('flow-started', () => {
       try {
-        const { getCurrentValue, ...state } = client.readOnlyStateStore;
+        const state = client.readOnlyStateStore;
         const data = Object.entries(state).reduce<Record<string, any>>(
           (acc, [key, observable]) => {
             if (!!observable && typeof observable.subscribe === 'function') {
-              const value = getCurrentValue<unknown>(observable);
-              if (key === 'activeCall$' && value && value instanceof Call) {
+              const value = RxUtils.getCurrentValue<unknown>(observable);
+              if (value && value instanceof Call) {
                 // special handling for the active call
-                const call = value;
-                const ignoredKeys = [
-                  // these two are derived from participants$.
-                  // we don't want to send the same data twice.
-                  'localParticipant$',
-                  'remoteParticipants$',
-                ];
-                Object.entries(call.state)
-                  .filter(([k]) => k.endsWith('$') && !ignoredKeys.includes(k))
-                  .forEach(([k, v]) => {
-                    if (!!v && typeof v.subscribe === 'function') {
-                      acc[`${key}.${k}`] = getCurrentValue(v);
-                    } else {
-                      acc[`${key}.${k}`] = v;
-                    }
-                  });
+                acc[key] = serializeCallState(value);
+              } else if (key === 'calls$' && Array.isArray(value)) {
+                // special handling for the list of calls
+                acc[key] = value.map(serializeCallState);
               } else {
                 acc[key] = value;
               }
@@ -53,10 +46,39 @@ export const useGleap = (
           {},
         );
         console.log('!!State Store', data);
-        Gleap.attachCustomData(data);
+        try {
+          // Gleap stringifies the data internally.
+          // Occasionally, this fails because the data contains circular references.
+          // We don't want to crash the feedback submission flow.
+          // We want to detect this early and include the serialization error
+          // as part of the Gleap feedback item.
+          JSON.stringify(data);
+          Gleap.attachCustomData(data);
+        } catch (e) {
+          console.warn(e);
+        }
       } catch (e) {
         console.error(e);
       }
     });
   }, [client.readOnlyStateStore, gleapApiKey]);
+};
+
+export const serializeCallState = (call: Call) => {
+  const ignoredKeys = [
+    // these two are derived from participants$.
+    // we don't want to send the same data twice.
+    'localParticipant$',
+    'remoteParticipants$',
+  ];
+  return Object.entries(call.state)
+    .filter(([k]) => k.endsWith('$') && !ignoredKeys.includes(k))
+    .reduce<Record<string, any>>((acc, [k, v]) => {
+      if (!!v && typeof v.subscribe === 'function') {
+        acc[k] = RxUtils.getCurrentValue(v);
+      } else {
+        acc[k] = v;
+      }
+      return acc;
+    }, {});
 };

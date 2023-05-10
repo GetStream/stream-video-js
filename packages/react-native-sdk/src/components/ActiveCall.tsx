@@ -7,15 +7,14 @@ import React, {
 } from 'react';
 import {
   StreamCallProvider,
-  useActiveCall,
   useCallMetadata,
+  useCall,
   useHasOngoingScreenShare,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
-import { useCallCycleContext } from '../contexts';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
@@ -46,7 +45,7 @@ export interface ActiveCallProps {
  */
 
 export const ActiveCall = (props: ActiveCallProps) => {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
   const activeCallRef = useRef(activeCall);
   activeCallRef.current = activeCall;
 
@@ -58,11 +57,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
   }, []);
 
   if (!activeCall) return null;
-  return (
-    <StreamCallProvider call={activeCall}>
-      <InnerActiveCall {...props} />
-    </StreamCallProvider>
-  );
+  return <InnerActiveCall {...props} />;
 };
 
 const InnerActiveCall = (props: ActiveCallProps) => {
@@ -70,10 +65,8 @@ const InnerActiveCall = (props: ActiveCallProps) => {
   const [reactionModal, setReactionModal] = useState<boolean>(false);
   const { onOpenCallParticipantsInfoView, mode = 'grid' } = props;
   const hasScreenShare = useHasOngoingScreenShare();
-  const { callCycleHandlers } = useCallCycleContext();
   const callMetaData = useCallMetadata();
   const localParticipant = useLocalParticipant();
-  const { onHangupCall } = callCycleHandlers;
 
   useIncallManager({ media: 'video', auto: true });
   usePublishMediaStreams();
@@ -102,10 +95,6 @@ const InnerActiveCall = (props: ActiveCallProps) => {
     );
   };
 
-  const openReactionsModal = useCallback(() => {
-    setReactionModal(true);
-  }, [setReactionModal]);
-
   const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;
 
   return (
@@ -130,10 +119,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
         )}
       </View>
       <View onLayout={onLayout} style={styles.callControlsWrapper}>
-        <CallControlsView
-          onHangupCall={onHangupCall}
-          onReactionsSelector={openReactionsModal}
-        />
+        <CallControlsView />
       </View>
     </View>
   );

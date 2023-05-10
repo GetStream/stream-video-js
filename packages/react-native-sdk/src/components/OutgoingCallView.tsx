@@ -1,30 +1,20 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { UserInfoView } from './UserInfoView';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
-import { useRingCall } from '../hooks/useRingCall';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { VideoRenderer } from './VideoRenderer';
 import { useMutingState } from '../hooks/useMutingState';
 import { useLocalVideoStream } from '../hooks/useLocalVideoStream';
-import { useCallCycleContext } from '../contexts/CallCycleContext';
 import { theme } from '../theme';
+import { useCall } from '@stream-io/video-react-bindings';
 
 export const OutgoingCallView = () => {
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useMutingState();
-
-  const { cancelCall } = useRingCall();
-  const { callCycleHandlers } = useCallCycleContext();
-  const { onHangupCall } = callCycleHandlers;
-
-  const hangupCallHandler = useCallback(async () => {
-    await cancelCall();
-    if (onHangupCall) onHangupCall();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cancelCall]);
-
+  const call = useCall();
+  const hangupCallHandler = () => call?.leave();
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
   };

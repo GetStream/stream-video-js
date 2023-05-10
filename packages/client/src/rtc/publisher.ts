@@ -12,7 +12,10 @@ import {
   findOptimalVideoLayers,
 } from './videoLayers';
 import { getPreferredCodecs } from './codecs';
-import { trackTypeToParticipantStreamKey } from './helpers/tracks';
+import {
+  trackTypeToDeviceIdKey,
+  trackTypeToParticipantStreamKey,
+} from './helpers/tracks';
 import { CallState } from '../store';
 import { PublishOptions } from '../types';
 
@@ -108,7 +111,12 @@ export class Publisher {
      */
     const handleTrackEnded = async () => {
       console.log(`Track ${TrackType[trackType]} has ended, notifying the SFU`);
-      await this.notifyTrackMuteStateChanged(mediaStream, trackType, true);
+      await this.notifyTrackMuteStateChanged(
+        mediaStream,
+        track,
+        trackType,
+        true,
+      );
       // clean-up, this event listener needs to run only once.
       track.removeEventListener('ended', handleTrackEnded);
     };
@@ -158,7 +166,12 @@ export class Publisher {
       await transceiver.sender.replaceTrack(track);
     }
 
-    await this.notifyTrackMuteStateChanged(mediaStream, trackType, false);
+    await this.notifyTrackMuteStateChanged(
+      mediaStream,
+      track,
+      trackType,
+      false,
+    );
   };
 
   /**
@@ -166,7 +179,7 @@ export class Publisher {
    * Underlying track will be stopped and removed from the publisher.
    * @param trackType the track type to unpublish.
    */
-  unpublishStream = (trackType: TrackType) => {
+  unpublishStream = async (trackType: TrackType) => {
     const transceiver = this.publisher
       .getTransceivers()
       .find((t) => t === this.transceiverRegistry[trackType] && t.sender.track);
@@ -176,12 +189,18 @@ export class Publisher {
       transceiver.sender.track.readyState === 'live'
     ) {
       transceiver.sender.track.stop();
-      return this.notifyTrackMuteStateChanged(undefined, trackType, true);
+      return this.notifyTrackMuteStateChanged(
+        undefined,
+        transceiver.sender.track,
+        trackType,
+        true,
+      );
     }
   };
 
   private notifyTrackMuteStateChanged = async (
     mediaStream: MediaStream | undefined,
+    track: MediaStreamTrack,
     trackType: TrackType,
     isMuted: boolean,
   ) => {
@@ -195,12 +214,17 @@ export class Publisher {
         [audioOrVideoOrScreenShareStream]: undefined,
       }));
     } else {
-      this.state.updateParticipant(this.sfuClient.sessionId, (p) => ({
-        publishedTracks: p.publishedTracks.includes(trackType)
-          ? p.publishedTracks
-          : [...p.publishedTracks, trackType],
-        [audioOrVideoOrScreenShareStream]: mediaStream,
-      }));
+      const deviceId = track.getSettings().deviceId;
+      const audioOrVideoDeviceKey = trackTypeToDeviceIdKey(trackType);
+      this.state.updateParticipant(this.sfuClient.sessionId, (p) => {
+        return {
+          publishedTracks: p.publishedTracks.includes(trackType)
+            ? p.publishedTracks
+            : [...p.publishedTracks, trackType],
+          ...(audioOrVideoDeviceKey && { [audioOrVideoDeviceKey]: deviceId }),
+          [audioOrVideoOrScreenShareStream]: mediaStream,
+        };
+      });
     }
   };
 

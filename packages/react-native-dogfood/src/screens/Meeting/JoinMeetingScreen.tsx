@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback } from 'react';
 import {
+  Button,
   StyleSheet,
+  Switch,
+  Text,
   TextInput,
   View,
-  Text,
-  Switch,
-  Button,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
@@ -13,8 +13,6 @@ import {
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { meetingId } from '../../modules/helpers/meetingId';
-
-import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
 
@@ -24,27 +22,17 @@ type JoinMeetingScreenProps = NativeStackScreenProps<
 >;
 
 const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
+  const callID = useAppGlobalStoreValue((store) => store.callId);
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
-  const [callID, setCallId] = useState('');
   const { navigation } = props;
 
   const setState = useAppGlobalStoreSetState();
 
   const joinCallHandler = useCallback(() => {
-    navigation.navigate('LobbyViewScreen', { callID: callID });
-  }, [navigation, callID]);
-
-  useEffect(() => {
-    const subscription = prontoCallId$.subscribe((prontoCallId) => {
-      if (prontoCallId) {
-        setCallId(prontoCallId);
-        prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [joinCallHandler]);
+    navigation.navigate('LobbyViewScreen');
+  }, [navigation]);
 
   const handleCopyInviteLink = useCallback(
     () =>
@@ -62,8 +50,10 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           title={'Randomise'}
           color="blue"
           onPress={() => {
-            const ramdomCallID = meetingId();
-            setCallId(ramdomCallID);
+            const randomCallID = meetingId();
+            setState(() => ({
+              callId: randomCallID,
+            }));
           }}
         />
       </View>
@@ -74,7 +64,11 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
         value={callID}
         autoCapitalize="none"
         autoCorrect={false}
-        onChangeText={(text) => setCallId(text.trim().split(' ').join('-'))}
+        onChangeText={(text) => {
+          setState(() => ({
+            callId: text.trim().split(' ').join('-'),
+          }));
+        }}
       />
       <Button
         title={'Create or Join call with callID: ' + callID}

@@ -20,7 +20,7 @@ The normal user experience in a ringing app when a user receives a call is to sh
 
 ## Install Dependencies
 
-The first step is to install all necessary packages with your package manager of choice. Specifically, you will need to install the Firebase-related packages (for this use case that is [React Native Firebase App module](https://www.npmjs.com/package/@react-native-firebase/app) and [React Native Firebase Messaging module](https://www.npmjs.com/package/@react-native-firebase/messaging)) to receive notifications on Android. Also, you need to install [React Native VoIP Push Notification](https://github.com/react-native-webrtc/react-native-voip-push-notification) package to receive notifications on iOS. And finally, you to install [React Native CallKeep](https://github.com/react-native-webrtc/react-native-callkeep) package to interact with the native dialer on both iOS and Android platforms. 
+The first step is to install all necessary packages with your package manager of choice. Specifically, you will need to install the Firebase-related packages (for this use case that is [React Native Firebase App module](https://www.npmjs.com/package/@react-native-firebase/app) and [React Native Firebase Messaging module](https://www.npmjs.com/package/@react-native-firebase/messaging)) to receive notifications on Android. Also, you need to install [React Native VoIP Push Notification](https://github.com/react-native-webrtc/react-native-voip-push-notification) package to receive notifications on iOS. And finally, you to install [React Native CallKeep](https://github.com/react-native-webrtc/react-native-callkeep) package to interact with the native dialer on both iOS and Android platforms.
 
 <Tabs groupId="package-manager">
   <TabItem value="Yarn" default>
@@ -137,7 +137,7 @@ Follow [this guide at react-native-firebase documentation](https://rnfirebase.io
 
 :::note
 
-We don't use Firebase cloud messaging in the iOS app. But `react-native-firebase` library will throw an error if iOS credentials are not added. 
+We don't use Firebase cloud messaging in the iOS app. But `react-native-firebase` library will throw an error if iOS credentials are not added.
 
 :::
 ### Link required libraries for react native callkeep library
@@ -262,12 +262,12 @@ Add the following methods to process and display the incoming call notification:
 
    // fire 'notification' event to JS
    [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
-  
+
    // Retrieve information from your stream's push payload
    NSDictionary *stream = payload.dictionaryPayload[@"stream"];
    NSString *callCid = stream[@"call_cid"];
    NSString *userIds = stream[@"user_ids"];
-  
+
    // construct a random uuid // TODO: may be call_cid is enough
    NSUUID* uuid = [NSUUID alloc];
    NSString* uuidString = [uuid UUIDString];
@@ -443,7 +443,7 @@ export const CallScreen = ({ route, navigation }: Props) => {
     });
   }, [callIdFromPushNotif, incomingCall?.call]);
 
-  const onHangupCallHandler = () => {
+  const onCallHungUpHandler = () => {
     navigation.navigate('JoinCallScreen');
   };
 
@@ -456,7 +456,7 @@ export const CallScreen = ({ route, navigation }: Props) => {
   }
   return (
     <ActiveCall
-      onHangupCall={onHangupCallHandler}
+      onCallHungUp={onCallHungUpHandler}
       onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
     />
   );
@@ -467,7 +467,7 @@ export const CallScreen = ({ route, navigation }: Props) => {
 
 // TODO: can we move a lot of this stuff into SDK?
 
-Finally, we can listen to the event of accepting or rejecting a call from the push notification and do the necessary action. When a call has been accepted we can use the static navigation utility that we created above to navigate to the active call screen. 
+Finally, we can listen to the event of accepting or rejecting a call from the push notification and do the necessary action. When a call has been accepted we can use the static navigation utility that we created above to navigate to the active call screen.
 
 ```ts title="src/hooks/useCallKeepEffect.ts"
 import { useEffect } from 'react';

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { v1 as uuid } from 'uuid';
-import { useIsCallRecordingInProgress } from '@stream-io/video-react-bindings';
+import { useIsCallRecordingInProgress } from '@stream-io/video-react-sdk';
 
 import { Record } from '../components/Icons';
 

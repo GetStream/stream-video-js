@@ -1,17 +1,22 @@
 export const tour = [
   {
-    header: 'Invite a Friend',
+    header: 'Video Calling, Livestreaming, and Audio Rooms',
     explanation:
-      'Copy, paste, and send the unique URL for this private call to a friend or scan the QR code with your phone to test it yourself.',
+      'You can use Stream to build any type of video calling, audio room or livestream experience. This example app shows a video calling experience.',
   },
   {
-    header: 'Send a Message',
+    header: 'Edge Network',
     explanation:
-      "Now use Stream's in-call chat messaging to write and send a message to the group, and react to their messages.",
+      'Our global edge network ensures an optimal call latency. This improves call quality, user experience and reliability.',
   },
   {
-    header: 'Check Call Quality & Statistics',
+    header: 'Developer Experience',
     explanation:
-      'View monitored call metrics such as latency, jitter, and packet loss in real-time for in-depth performance insights.',
+      "While competing SDKs can take months, Stream focuses on a great developer experience and enables you to build in-app video, audio or livestreaming in days. Try the tutorials and you'll see the difference.",
+  },
+  {
+    header: 'Try It On Your Phone',
+    explanation:
+      'Scan the QR code to open the app on your phone. Or invite a friend by sending them this URL.',
   },
 ];

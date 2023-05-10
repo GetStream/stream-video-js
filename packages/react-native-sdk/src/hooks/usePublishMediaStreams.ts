@@ -1,4 +1,4 @@
-import { useActiveCall } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import {
@@ -14,7 +14,7 @@ import { useEffect } from 'react';
  * @category Device Management
  */
 export const usePublishMediaStreams = () => {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const isAudioMuted = useStreamVideoStoreValue((store) => store.isAudioMuted);

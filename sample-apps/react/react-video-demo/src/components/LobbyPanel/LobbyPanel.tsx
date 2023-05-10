@@ -1,8 +1,10 @@
 import { FC } from 'react';
 import classnames from 'classnames';
-import { VideoPreview, useMediaDevices } from '@stream-io/video-react-sdk';
-
-import { User } from '@stream-io/video-client';
+import {
+  useMediaDevices,
+  User,
+  VideoPreview,
+} from '@stream-io/video-react-sdk';
 
 import ControlMenu from '../ControlMenu';
 import { MicMuted, Signal } from '../Icons';

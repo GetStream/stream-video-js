@@ -3,11 +3,7 @@ import {
   SfuModels,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import {
-  StreamCallProvider,
-  useActiveCall,
-  useParticipants,
-} from '@stream-io/video-react-bindings';
+import { useCall, useParticipants } from '@stream-io/video-react-bindings';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ArrowRight, MicOff, ScreenShare, VideoSlash } from '../icons';
 import React, { useCallback, useState } from 'react';
@@ -16,6 +12,7 @@ import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
 import { CallPermissionsWrapper } from './CallPermissionsWrapper';
+
 type CallParticipantInfoViewType = {
   participant: StreamVideoParticipant;
   setSelectedParticipant: React.Dispatch<
@@ -77,14 +74,7 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
 };
 
 export const CallParticipantsInfoView = () => {
-  const activeCall = useActiveCall();
-  if (!activeCall) return null;
-
-  return (
-    <StreamCallProvider call={activeCall}>
-      <InnerCallParticipantsInfoView />
-    </StreamCallProvider>
-  );
+  return <InnerCallParticipantsInfoView />;
 };
 /**
  * Shows information about the call, it's participants in the call and
@@ -100,7 +90,7 @@ const InnerCallParticipantsInfoView = () => {
   const [selectedParticipant, setSelectedParticipant] = useState<
     StreamVideoParticipant | undefined
   >(undefined);
-  const call = useActiveCall();
+  const call = useCall();
 
   const muteAllParticipantsHandler = () => {
     call?.muteAllUsers('audio');

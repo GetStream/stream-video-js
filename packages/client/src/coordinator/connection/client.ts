@@ -376,8 +376,6 @@ export class StreamClient {
     await this.closeConnection(timeout);
 
     this.tokenManager.reset();
-    // drop all event listeners on user disconnect
-    this.listeners = {};
   };
 
   /**
@@ -796,7 +794,6 @@ export class StreamClient {
     return JSON.stringify({
       user_id: this.userID,
       user_details: this._user,
-      // device: this.options.device,
       client_request_id,
     });
   };

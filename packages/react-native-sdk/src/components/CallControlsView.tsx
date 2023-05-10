@@ -1,7 +1,5 @@
-import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useCallControls } from '../hooks/useCallControls';
-import { useHangupCall } from '../hooks/useHangupCall';
 import {
   CameraSwitch,
   Chat,
@@ -14,23 +12,10 @@ import {
 } from '../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
+import { useCall, useOwnCapabilities } from '@stream-io/video-react-bindings';
 import { CallPermissionsWrapper } from './CallPermissionsWrapper';
 import { OwnCapability } from '@stream-io/video-client';
 import { PermissionNotification } from './PermissionsNotification';
-import { useOwnCapabilities } from '@stream-io/video-react-bindings';
-/**
- * Props to be passed for the CallControlsView component.
- */
-export interface CallControlsViewProps {
-  /**
-   * Handler called when the call is hanged up by the caller. Mostly used for navigation and related actions.
-   */
-  onHangupCall?: () => void;
-  /**
-   * Handler used to open reactions selector
-   */
-  onReactionsSelector?: () => void;
-}
 
 /**
  * Shows a list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
@@ -40,10 +25,7 @@ export interface CallControlsViewProps {
  * | :--- |
  * | ![call-controls-view](https://user-images.githubusercontent.com/25864161/217349666-af0f3278-393e-449d-b30e-2d1b196abe5e.png) |
  */
-export const CallControlsView = ({
-  onHangupCall,
-  onReactionsSelector,
-}: CallControlsViewProps) => {
+export const CallControlsView = () => {
   const {
     isAudioMuted,
     isVideoMuted,
@@ -52,15 +34,10 @@ export const CallControlsView = ({
     toggleAudioMuted,
     toggleCameraFacingMode,
   } = useCallControls();
-  const { hangupCall } = useHangupCall();
+  const call = useCall();
   const ownCapabilities = useOwnCapabilities();
 
-  const handleHangUpCall = useCallback(async () => {
-    await hangupCall();
-    if (onHangupCall) onHangupCall();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hangupCall]);
-
+  const handleHangUpCall = () => call?.leave();
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
   };

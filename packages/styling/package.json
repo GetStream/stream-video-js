@@ -12,5 +12,6 @@
     "@types/rimraf": "^3.0.2",
     "rimraf": "^3.0.2",
     "sass": "^1.56.1"
-  }
+  },
+  "version": "0.0.1-alpha.5"
 }

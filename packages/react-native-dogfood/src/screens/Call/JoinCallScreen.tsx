@@ -8,9 +8,8 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { v4 as uuidv4 } from 'uuid';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
-import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
+import { useCall } from '@stream-io/video-react-native-sdk';
 import { MemberRequest } from '@stream-io/video-client';
 
 const styles = StyleSheet.create({
@@ -77,7 +76,7 @@ const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
   const username = useAppGlobalStoreValue((store) => store.username);
   const [ringingUsers, setRingingUsers] = useState<string[]>([]);
-  const client = useStreamVideoClient();
+  const call = useCall();
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },
@@ -88,28 +87,28 @@ const JoinCallScreen = () => {
   ];
 
   const startCallHandler = useCallback(async () => {
-    const callID = uuidv4().toLowerCase();
+    if (!call) {
+      return;
+    }
+
     let ringingUserIds = !ringingUserIdsText
       ? ringingUsers
       : ringingUserIdsText.split(',');
-
-    if (client) {
-      try {
-        await client.call('default', callID).getOrCreate({
-          ring: true,
-          data: {
-            members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
-              return {
-                user_id: ringingUserId,
-              };
-            }),
-          },
-        });
-      } catch (error) {
-        console.log('Failed to createCall', callID, 'default', error);
-      }
+    try {
+      await call.getOrCreate({
+        ring: true,
+        data: {
+          members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
+            return {
+              user_id: ringingUserId,
+            };
+          }),
+        },
+      });
+    } catch (error) {
+      console.log('Failed to createCall', call.id, 'default', error);
     }
-  }, [ringingUsers, ringingUserIdsText, client]);
+  }, [call, ringingUserIdsText, ringingUsers]);
 
   const isRingingUserSelected = (userId: string) =>
     ringingUsers.find((ringingUser) => ringingUser === userId);

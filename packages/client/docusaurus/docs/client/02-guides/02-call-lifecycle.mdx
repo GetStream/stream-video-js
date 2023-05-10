@@ -20,9 +20,30 @@ Before we start to describe the individual call scenarios, we should get acquain
 
 ### Call room
 
-The call room scenario refers to a setup, where participants can join a call asynchronously. That means that the call can be (re)joined or left at any time by any number of participants.
+The call room scenario refers to a setup, where participants can join a call asynchronously. That means that the call can be (re)joined or left at any time by any number of participants. However, once the call is **ended**, the call cannot be re-joined. This scenario is useful if you want to create calls that work similarly to Google Meet or Zoom calls.
 
-TODO: Finish Call room section
+:::note
+You can end a call by calling [`endCall()` method](../04-call-engine/Call.md#endcall) of the `Call` class.
+:::
+
+#### Call room lifecycle
+
+The asynchronous nature of the call room makes it easy to create and join a call. There is no need to wait for other participants. The member initiating the call can create and join it in one single step by calling [`join()` method](../04-call-engine/Call.md#join) of a `Call` instance:
+
+```ts
+const call = videoClient.call(callType, callId)
+await call.join({create: true});
+```
+
+This takes care of the whole negotiation process and connection to the nearest SFU.
+
+To leave the call without interrupting it, simply call [`leave()` method](../04-call-engine/Call.md#leave) of the `Call` class.
+
+Call can be ended immediately and also prevented from being re-joined permanently by calling the [`endCall()` method](../04-call-engine/Call.md#endcall) of the `Call` class.
+
+#### Application State
+
+We recommend you to keep the `Call` instance in your app's local state to have access to its API.
 
 ### Ring call
 
@@ -131,6 +152,8 @@ TODO: do we want to allow multiple active calls? The store implementation will p
 1. **Pending calls array** - the UI shows the incoming / outgoing calls based on this array
 2. **Accepted call** - the app can start the process of joining the outgoing call
 2. **Active call** - the app shows the active call UI
+
+### Reconnections
 
 ### Hybrid scenarios
 
