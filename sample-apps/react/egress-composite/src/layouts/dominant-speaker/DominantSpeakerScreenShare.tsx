@@ -1,7 +1,6 @@
 import {
   DefaultParticipantViewUI,
   ParticipantView,
-  ParticipantViewUIProps,
   SfuModels,
   useRemoteParticipants,
   Video,
@@ -9,14 +8,6 @@ import {
 import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
 import './ScreenShare.scss';
 import { AudioTracks } from './AudioTracks';
-
-const CustomParticipantViewUI = ({ participant }: ParticipantViewUIProps) => (
-  <DefaultParticipantViewUI
-    participant={participant}
-    indicatorsVisible={false}
-    showMenuButton={false}
-  />
-);
 
 export const DominantSpeakerScreenShare = () => {
   const participants = useRemoteParticipants();
@@ -49,7 +40,13 @@ export const DominantSpeakerScreenShare = () => {
         <div className="current-speaker">
           <ParticipantView
             participant={screenSharingParticipant}
-            ParticipantViewUI={CustomParticipantViewUI}
+            ParticipantViewUI={
+              <DefaultParticipantViewUI
+                participant={screenSharingParticipant}
+                indicatorsVisible={false}
+                showMenuButton={false}
+              />
+            }
           />
         </div>
       </div>
