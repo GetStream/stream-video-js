@@ -1,5 +1,6 @@
 import { GetServerSidePropsContext } from 'next';
 import {
+  StreamMeeting,
   StreamVideo,
   useCreateStreamVideoClient,
   UserResponse,
@@ -65,11 +66,9 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <StreamVideo client={client}>
-        <MeetingUI
-          callId={callId}
-          callType={callType}
-          enablePreview={mode !== 'anon'}
-        />
+        <StreamMeeting callId={callId} callType={callType} autoJoin={false}>
+          <MeetingUI enablePreview={mode !== 'anon'} />
+        </StreamMeeting>
       </StreamVideo>
     </>
   );

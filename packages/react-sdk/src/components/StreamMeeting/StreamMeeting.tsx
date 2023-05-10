@@ -23,10 +23,10 @@ type InitStreamMeeting = InitWithCallCID | InitWithCallInstance;
 export type StreamMeetingProps = InitStreamMeeting & {
   /**
    * If true, the call will be joined automatically.
-   * Usually, in the "ring" scenario, this flag should be set to false as
-   * the callee should decide whether to join the call or not.
+   * Set it to true if you want to join the call immediately.
+   * Useful for scenarios where you want to skip prompting the user to join the call.
    *
-   * @default true.
+   * @default false.
    */
   autoJoin?: boolean;
 
@@ -46,12 +46,16 @@ export const StreamMeeting = ({
   callId,
   callType,
   call,
-  autoJoin = true,
+  autoJoin = false,
   data,
   mediaDevicesProviderProps,
 }: PropsWithChildren<StreamMeetingProps>) => {
   const client = useStreamVideoClient();
-  const [activeCall, setActiveCall] = useState<Call | undefined>(call);
+  const [activeCall, setActiveCall] = useState<Call | undefined>(() => {
+    if (call) return call;
+    if (!client || !callId || !callType) return;
+    return client.call(callType, callId);
+  });
 
   useEffect(() => {
     if (!client) return;

@@ -376,8 +376,6 @@ export class StreamClient {
     await this.closeConnection(timeout);
 
     this.tokenManager.reset();
-    // drop all event listeners on user disconnect
-    this.listeners = {};
   };
 
   /**

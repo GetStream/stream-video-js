@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.16...@stream-io/video-react-bindings-0.0.1-alpha.17) (2023-05-09)
+
+
+### Reverts
+
+* Revert "chore: Avoid non-atomic pushes resulting in invalid version tags" ([24be283](https://github.com/GetStream/stream-video-js/commit/24be28300a5f5d452338457d60b1e34682027be6))
+
+
+
+## [0.0.1-alpha.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.15...@stream-io/video-react-bindings-0.0.1-alpha.16) (2023-05-09)
+
+
+### Bug Fixes
+
+* edge cases in default layouts ([#471](https://github.com/GetStream/stream-video-js/issues/471)) ([c79a733](https://github.com/GetStream/stream-video-js/commit/c79a7330a1e0a84ce8eb3b0d9f7d9eea1b1f5d3a))
+
+
+
 ## [0.0.1-alpha.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.15...@stream-io/video-react-bindings-0.0.1-alpha.16) (2023-05-08)
 
 

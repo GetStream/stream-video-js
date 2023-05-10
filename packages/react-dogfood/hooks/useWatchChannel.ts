@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { Event, StreamChat } from 'stream-chat';
 
 import { CHANNEL_TYPE } from '../components';
@@ -9,12 +9,10 @@ export const useWatchChannel = ({
   channelId,
 }: {
   chatClient?: StreamChat | null;
-  channelId: string;
+  channelId?: string;
   channelType?: string;
 }) => {
   const [channelWatched, setChannelWatched] = useState(false);
-
-  const cid = `${channelType}:${channelId}`;
 
   useEffect(() => {
     if (!client) return;
@@ -32,7 +30,7 @@ export const useWatchChannel = ({
 
   useEffect(() => {
     if (!client) return;
-
+    const cid = `${channelType}:${channelId}`;
     const handleEvent = (event: Event) => {
       if (event?.cid === cid) setChannelWatched(true);
     };
@@ -41,7 +39,7 @@ export const useWatchChannel = ({
     return () => {
       client.off('user.watching.start', handleEvent);
     };
-  }, [client, cid]);
+  }, [client, channelType, channelId]);
 
   return channelWatched;
 };

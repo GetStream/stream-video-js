@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.129](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.128...client0.0.1-alpha.129) (2023-05-09)
+
+
+### Bug Fixes
+
+* bugfixes in event handling and blocking users ([#476](https://github.com/GetStream/stream-video-js/issues/476)) ([5e9a4fb](https://github.com/GetStream/stream-video-js/commit/5e9a4fb2819cc087f3e095b93488fa9c4df018a4))
+
+
+
+## [0.0.1-alpha.128](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.127...client0.0.1-alpha.128) (2023-05-09)
+
+
+### Reverts
+
+* Revert "chore: Avoid non-atomic pushes resulting in invalid version tags" ([24be283](https://github.com/GetStream/stream-video-js/commit/24be28300a5f5d452338457d60b1e34682027be6))
+
+
+
 ## [0.0.1-alpha.127](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.126...client0.0.1-alpha.127) (2023-05-09)
 
 

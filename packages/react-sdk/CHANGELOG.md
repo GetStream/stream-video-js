@@ -2,6 +2,34 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.19...@stream-io/video-react-sdk-0.0.1-alpha.20) (2023-05-09)
+
+
+### Features
+
+* StreamTheme component and docs ([#477](https://github.com/GetStream/stream-video-js/issues/477)) ([440de24](https://github.com/GetStream/stream-video-js/commit/440de246d0a510f99a93ea34df6d03a9127c8d32))
+
+
+
+## [0.0.1-alpha.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.18...@stream-io/video-react-sdk-0.0.1-alpha.19) (2023-05-09)
+
+
+### Reverts
+
+* Revert "chore: Avoid non-atomic pushes resulting in invalid version tags" ([24be283](https://github.com/GetStream/stream-video-js/commit/24be28300a5f5d452338457d60b1e34682027be6))
+
+
+
+## [0.0.1-alpha.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.17...@stream-io/video-react-sdk-0.0.1-alpha.18) (2023-05-09)
+
+
+### Bug Fixes
+
+* edge cases in default layouts ([#471](https://github.com/GetStream/stream-video-js/issues/471)) ([c79a733](https://github.com/GetStream/stream-video-js/commit/c79a7330a1e0a84ce8eb3b0d9f7d9eea1b1f5d3a))
+* **permissions:** add shortcut APIs ([#475](https://github.com/GetStream/stream-video-js/issues/475)) ([466614c](https://github.com/GetStream/stream-video-js/commit/466614ccf7f15cb16fffc97d5aa05318d2adf7e7))
+
+
+
 ## [0.0.1-alpha.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.17...@stream-io/video-react-sdk-0.0.1-alpha.18) (2023-05-08)
 
 
