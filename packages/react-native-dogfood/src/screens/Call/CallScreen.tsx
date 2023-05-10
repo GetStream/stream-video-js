@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import {
   ActiveCall,
   ActiveCallProps,
+  StreamVideoRN,
   theme,
   useCall,
   useIncomingCalls,
@@ -54,16 +55,17 @@ export const CallScreen = ({ navigation }: Props) => {
     navigation.navigate('CallParticipantsInfoScreen');
   };
 
+  StreamVideoRN.setConfig({
+    onOpenCallParticipantsInfoView: onOpenCallParticipantsInfoViewHandler,
+  });
+
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
   return (
     <SafeAreaView style={styles.wrapper}>
       <ParticipantListButtons selectedMode={selectedMode} setMode={setMode} />
-      <ActiveCall
-        onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
-        mode={selectedMode}
-      />
+      <ActiveCall mode={selectedMode} />
     </SafeAreaView>
   );
 };
