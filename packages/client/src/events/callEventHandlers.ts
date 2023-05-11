@@ -34,6 +34,7 @@ export const registerEventHandlers = (
   const eventHandlers = [
     watchChangePublishQuality(dispatcher, call),
     watchConnectionQualityChanged(dispatcher, state),
+    watchConnectionQualityChanged(dispatcher, state),
 
     watchParticipantJoined(dispatcher, state),
     watchParticipantLeft(dispatcher, state),
