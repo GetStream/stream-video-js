@@ -126,7 +126,7 @@ export const App = () => {
 Behind the scenes, the `<StreamMeeting />` component will set up and join a new [Call](../04-call-engine/Call.md) instance,
 and will expose the [CallState](../04-call-engine/hooks-and-contexts.md/#streamcallprovider) object down in the component tree through a [React Context](https://react.dev/learn/passing-data-deeply-with-context).
 
-You can read more about this mechanism as part of our [React Bindings and Hooks documentation](../../call-engine/overview).
+You can read more about this mechanism as part of our [React Bindings and Hooks documentation](../../call-engine/01-call-engine-overview).
 
 ## Building and rendering the Layout
 
@@ -349,7 +349,7 @@ At last, you can find the running example of this guide [here](https://github.co
 
 ## Further customization
 
-The React Video SDK is built on top of the data model that our [call engine](../../call-engine/overview) exposes.
+The React Video SDK is built on top of the data model that our [call engine](../../call-engine/01-call-engine-overview) exposes.
 As such, you can use the same data model to build your own custom layouts.
 You can go further and build your own custom components, but we advise you to at least use some of our base components and hooks
 to make sure that you wouldn't have to re-implement some baked-in functionality like:
