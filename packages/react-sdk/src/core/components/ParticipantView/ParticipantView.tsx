@@ -51,7 +51,7 @@ export type ParticipantViewProps = {
   setVideoElementRef?: (element: HTMLElement | null) => void;
 
   /**
-   * An additional list of class names to append to the root DOM element.
+   * Custom class applied to the root DOM element.
    */
   className?: string;
 } & Pick<VideoProps, 'VideoPlaceholder'>;
