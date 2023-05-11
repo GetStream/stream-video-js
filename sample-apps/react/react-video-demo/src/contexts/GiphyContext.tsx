@@ -1,5 +1,4 @@
-import React, { useContext, useState } from 'react';
-import { PropsWithChildrenOnly } from '../types';
+import React, { useContext, useState, ReactNode } from 'react';
 
 const GiphyContext = React.createContext(
   {} as {
@@ -8,7 +7,7 @@ const GiphyContext = React.createContext(
   },
 );
 
-export const GiphyContextProvider = ({ children }: PropsWithChildrenOnly) => {
+export const GiphyContextProvider = ({ children }: { children: ReactNode }) => {
   const [giphyState, setGiphyState] = useState(false);
 
   const value = { giphyState, setGiphyState };
