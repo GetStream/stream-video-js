@@ -83,7 +83,11 @@ import { ViewportTracker } from './helpers/ViewportTracker';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
-import { retryInterval, sleep } from './coordinator/connection/utils';
+import {
+  KnownCodes,
+  retryInterval,
+  sleep,
+} from './coordinator/connection/utils';
 import {
   CallEventHandler,
   CallEventTypes,
@@ -522,9 +526,6 @@ export class Call {
     this.watching = true;
     this.clientStore.registerCall(this);
 
-    // FIXME OL: convert to a derived state
-    this.state.setCallRecordingInProgress(call.metadata.recording);
-
     // FIXME OL: remove once cascading is implemented
     let sfuUrl = call.sfuServer.url;
     if (
@@ -584,7 +585,10 @@ export class Call {
     sfuClient.signalReady.then(() => {
       sfuClient.signalWs.addEventListener('close', (e) => {
         // do nothing if the connection was closed on purpose
-        if (e.code === 1000) return;
+        if (e.code === KnownCodes.WS_CLOSED_SUCCESS) return;
+        // do nothing if the connection was closed because of a policy violation
+        // e.g., the user has been blocked by an admin or moderator
+        if (e.code === KnownCodes.WS_POLICY_VIOLATION) return;
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           rejoin().catch(() => {
             console.log(
@@ -1245,6 +1249,44 @@ export class Call {
   };
 
   /**
+   * Allows you to grant certain permissions to a user in a call.
+   * The permissions are specific to the call experience and do not survive the call itself.
+   *
+   * Supported permissions that can be granted are:
+   * - `send-audio`
+   * - `send-video`
+   * - `screenshare`
+   *
+   * @param userId the id of the user to grant permissions to.
+   * @param permissions the permissions to grant.
+   */
+  grantPermissions = async (userId: string, permissions: string[]) => {
+    return this.updateUserPermissions({
+      user_id: userId,
+      grant_permissions: permissions,
+    });
+  };
+
+  /**
+   * Allows you to revoke certain permissions from a user in a call.
+   * The permissions are specific to the call experience and do not survive the call itself.
+   *
+   * Supported permissions that can be revoked are:
+   * - `send-audio`
+   * - `send-video`
+   * - `screenshare`
+   *
+   * @param userId the id of the user to revoke permissions from.
+   * @param permissions the permissions to revoke.
+   */
+  revokePermissions = async (userId: string, permissions: string[]) => {
+    return this.updateUserPermissions({
+      user_id: userId,
+      revoke_permissions: permissions,
+    });
+  };
+
+  /**
    * Allows you to grant or revoke a specific permission to a user in a call. The permissions are specific to the call experience and do not survive the call itself.
    *
    * When revoking a permission, this endpoint will also mute the relevant track from the user. This is similar to muting a user with the difference that the user will not be able to unmute afterwards.
@@ -1277,6 +1319,26 @@ export class Call {
   stopLive = async () => {
     return this.streamClient.post<StopLiveResponse>(
       `${this.streamClientBasePath}/stop_live`,
+      {},
+    );
+  };
+
+  /**
+   * Starts the broadcasting of the call.
+   */
+  startBroadcasting = async () => {
+    return this.streamClient.post(
+      `${this.streamClientBasePath}/start_broadcasting`,
+      {},
+    );
+  };
+
+  /**
+   * Stops the broadcasting of the call.
+   */
+  stopBroadcasting = async () => {
+    return this.streamClient.post(
+      `${this.streamClientBasePath}/stop_broadcasting`,
       {},
     );
   };

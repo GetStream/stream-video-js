@@ -142,12 +142,14 @@ For that purpose, we are going to utilize some fundamental React Video SDK compo
 import '@stream-io/video-styling/dist/css/styles.css';
 import './SpeakerView.scss';
 
+import { StreamTheme } from '@stream-io/video-react-sdk';
+
 export const SpeakerView = () => {
   const call = useCall();
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
   return (
-    // "str-video" enables the default styling for the video SDK
-    <div className="str-video speaker-view">
+    // enables the default styling for the video SDK
+    <StreamTheme className="speaker-view">
       {call && otherParticipants.length > 0 && (
         <div className="participants-bar">
           {otherParticipants.map((participant) => (
@@ -185,7 +187,7 @@ export const SpeakerView = () => {
           />
         )}
       </CustomCallControls>
-    </div>
+    </StreamTheme>
   );
 };
 

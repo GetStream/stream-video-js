@@ -14,6 +14,7 @@ export const Call = () => {
         callId={callId!}
         callType="default"
         data={{ create: true }}
+        autoJoin
       >
         <MeetingUI>
           <button

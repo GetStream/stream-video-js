@@ -7,7 +7,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "start": "tsc --project tsconfig.json --watch",
-    "build": "tsc --project tsconfig.production.json",
+    "build": "tsc --project tsconfig.production.json && yarn copy-css",
     "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/",
     "generate-docs": "../../scripts/generate-docs.sh React @stream-io/video-react-sdk react-sdk",
     "start:docs": "npx stream-chat-docusaurus -s"
@@ -45,5 +45,5 @@
     "typedoc": "^0.23.24",
     "typescript": "^4.9.5"
   },
-  "version": "0.0.1-alpha.17"
+  "version": "0.0.1-alpha.24"
 }

@@ -122,6 +122,7 @@ const App = () => {
 For simplicity, you can also use the `useCreateStreamVideoClient` [hook](../../call-engine/hooks#usecreatestreamvideoclient) to connect and disconnect from the client.
 
 ### Provide the video client logic to the rest of the app
+
 Our `StreamVideoCall` component will provide our recently created video client to the rest of the underlying components.
 The `client` created above can be used as follows and needs to be provided to the `client` prop of the `StreamVideoCall` component.
 
@@ -156,23 +157,24 @@ const App = () => {
 ```
 
 ### Create global app state
+
 In the following steps, we will need a global app state to store the `callId` and `CallType`.
 This will allow us to share and change the `callParams` across the app.
 
 ```tsx title="AppContext.tsx"
-import React, {PropsWithChildren, useState} from 'react';
+import React, { PropsWithChildren, useState } from 'react';
 
 type AppContextType = {
-  callParams: {callId: string; callType: string};
+  callParams: { callId: string; callType: string };
   setCallParams: React.Dispatch<
-    React.SetStateAction<{callId: string; callType: string}>
+    React.SetStateAction<{ callId: string; callType: string }>
   >;
 };
 
 // Create a context by using React's createContext method
 export const AppContext = React.createContext({} as AppContextType);
 
-export const AppProvider = ({children}: PropsWithChildren<{}>) => {
+export const AppProvider = ({ children }: PropsWithChildren<{}>) => {
   // Create a state to hold the call params
   const [callParams, setCallParams] = useState<{
     callId: string;
@@ -187,8 +189,9 @@ export const AppProvider = ({children}: PropsWithChildren<{}>) => {
     <AppContext.Provider
       value={{
         callParams,
-        setCallParams
-      }}>
+        setCallParams,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );
@@ -319,11 +322,11 @@ We can use the create call button to show/navigate to LobbyView component/screen
 Our implementation of this screen is as follows:
 
 ```tsx title="src/screens/JoinMeetingScreen.tsx"
-import React, {useCallback} from 'react';
-import {Button, SafeAreaView, Text, TextInput, View} from 'react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {NavigationStackParamsList} from '../types';
-import {useAppContext} from './AppContext';
+import React, { useCallback } from 'react';
+import { Button, SafeAreaView, Text, TextInput, View } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NavigationStackParamsList } from '../types';
+import { useAppContext } from './AppContext';
 
 type JoinMeetingScreenProps = NativeStackScreenProps<
   NavigationStackParamsList,
@@ -333,7 +336,7 @@ type JoinMeetingScreenProps = NativeStackScreenProps<
 export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const {
     setCallParams,
-    callParams: {callId},
+    callParams: { callId },
   } = useAppContext();
   const { navigation } = props;
 
@@ -348,16 +351,16 @@ export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
       </View>
       <TextInput
         value={callId}
-        onChangeText={(text) => setCallParams(
-          prevState=> ({
+        onChangeText={(text) =>
+          setCallParams((prevState) => ({
             ...prevState,
             callId: text.trim().split(' ').join('-'),
-          })
-        )
-      } />
+          }))
+        }
+      />
       <Button
         title={'Create meeting with callID: ' + callId}
-        color='blue'
+        color="blue"
         disabled={!callId}
         onPress={joinCallHandler}
       />
@@ -373,14 +376,15 @@ in the Screen/View. `LobbyView` component expects a meeting id that will be used
 
 ```tsx title="src/screens/LobbyViewScreen.tsx"
 import React from 'react';
-import {ScrollView} from 'react-native';
-import {LobbyView, theme} from '@stream-io/video-react-native-sdk';
+import { ScrollView } from 'react-native';
+import { LobbyView, theme } from '@stream-io/video-react-native-sdk';
 
 export const LobbyViewScreen = () => {
   return (
     <ScrollView
-      style={{backgroundColor: theme.light.static_grey}}
-      contentContainerStyle={styles.contentContainerStyle}>
+      style={{ backgroundColor: theme.light.static_grey }}
+      contentContainerStyle={styles.contentContainerStyle}
+    >
       <LobbyView />
     </ScrollView>
   );
@@ -400,20 +404,20 @@ Screen/View where you want to render it. This component expects a handler to dea
 happen when user clicks on the Participants View icon(`onOpenCallParticipantsInfoView`).
 
 ```tsx title="src/screens/ActiveCallScreen.tsx"
-import React, {useCallback} from 'react';
-import {ActiveCall, useCall} from '@stream-io/video-react-native-sdk';
-import {ActivityIndicator, StyleSheet, View} from 'react-native';
-import {NavigationStackParamsList} from '../types';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {theme} from '@stream-io/video-react-native-sdk/src/theme';
+import React, { useCallback } from 'react';
+import { ActiveCall, useCall } from '@stream-io/video-react-native-sdk';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { NavigationStackParamsList } from '../types';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { theme } from '@stream-io/video-react-native-sdk/src/theme';
 
 type ActiveCallScreenProps = NativeStackScreenProps<
   NavigationStackParamsList,
   'ActiveCallScreen'
 >;
 
-export function ActiveCallScreen({navigation}: ActiveCallScreenProps) {
+export function ActiveCallScreen({ navigation }: ActiveCallScreenProps) {
   const activeCall = useCall();
   const insets = useSafeAreaInsets();
 
@@ -427,7 +431,7 @@ export function ActiveCallScreen({navigation}: ActiveCallScreenProps) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
   return (
-    <View style={[styles.wrapper, {paddingTop: insets.top}]}>
+    <View style={[styles.wrapper, { paddingTop: insets.top }]}>
       <ActiveCall
         onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
       />
@@ -444,6 +448,7 @@ const styles = StyleSheet.create({
 ```
 
 ### Rendering the CallParticipantsInfoView component
+
 To render the call participants info view, you can import `CallParticipantsInfoView` from the Video SDK and use it in the Screen/View where you want to render it.
 
 ```tsx title="src/screens/CallParticipansInfoScreen.tsx"
@@ -461,7 +466,7 @@ Congratulations on completing this tutorial. You've learned how to build two ver
 
 [//]: # '* [guide](05-advanced/02-push-notification/01-overview.mdx)'
 
-(../02-guides/04-socket-events.mdx)
+(../02-guides/05-socket-events.mdx)
 
 - [Call Lifecycle](../02-guides/02-call-lifecycle.mdx): It's important to understand the lifecycle of our SDK and Calls to properly build complex use cases for your users.
 - [Call Engine](../02-guides/03-call-engine.mdx): If you're looking to utilize our state machine to the fullest, explore what our internal CallEngine does and how to listen to state.

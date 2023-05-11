@@ -24,9 +24,10 @@ export const useCallState = () => {
   // return an empty and unlinked CallState object if there is no call in the provider
   // this ensures that the hooks always return a value and many null checks can be avoided
   if (!call) {
-    console.warn(
-      `You are using useCallState() outside a Call context. Please wrap your component in <StreamCallProvider />`,
-    );
+    const message =
+      'You are using useCallState() outside a Call context. ' +
+      'Please wrap your component in <StreamCallProvider /> and provide a non-null "call" instance.';
+    console.warn(message);
     return new CallState();
   }
   return call.state;

@@ -1,5 +1,8 @@
 import { TrackType } from '../../gen/video/sfu/models/models';
-import type { StreamVideoParticipant } from '../../types';
+import type {
+  StreamVideoLocalParticipant,
+  StreamVideoParticipant,
+} from '../../types';
 
 export const trackTypeToParticipantStreamKey = (
   trackType: TrackType,
@@ -11,6 +14,21 @@ export const trackTypeToParticipantStreamKey = (
       return 'videoStream';
     case TrackType.AUDIO:
       return 'audioStream';
+    default:
+      throw new Error(`Unknown track type: ${trackType}`);
+  }
+};
+
+export const trackTypeToDeviceIdKey = (
+  trackType: TrackType,
+): keyof StreamVideoLocalParticipant | undefined => {
+  switch (trackType) {
+    case TrackType.AUDIO:
+      return 'audioDeviceId';
+    case TrackType.VIDEO:
+      return 'videoDeviceId';
+    case TrackType.SCREEN_SHARE:
+      return undefined;
     default:
       throw new Error(`Unknown track type: ${trackType}`);
   }
