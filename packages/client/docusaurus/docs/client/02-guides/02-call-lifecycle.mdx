@@ -78,7 +78,7 @@ We distinguish between call members and call participants. Members are considere
 
 Once the call is created by Client A, there are three possible paths:
 
-**1. Client B accepts the call**
+##### **1. Client B accepts the call**
 
 This is the happy path, when both parties join the active call. The
 
@@ -104,7 +104,7 @@ sequenceDiagram
 
 <img src={CallAcceptedDiagram} alt='Sequence diagram of accepted ring call' width='800' />
 
-**2. Client B rejects the call**
+##### **2. Client B rejects the call**
 
 This scenario takes place, when the **Client B** sends the rejection request to the `back-end` service. The service then communicates this information to the **Client A** through a WebSocket event `call.rejected`. Note that `SFU` is not assigned and thus not taking part in this process.
 
@@ -121,7 +121,7 @@ sequenceDiagram
 
 <img src={CallRejectedDiagram} alt='Sequence diagram of rejected ring call' width='800' />
 
-**3. Client A cancels the call**
+##### **3. Client A cancels the call**
 
 This scenario takes place, when the **Client A** hangs up before the user using **Client B** reacts to the incoming call notification. The service then communicates this information to the **Client B** through a WebSocket event `call.ended`. Note that `SFU` is not assigned and thus not taking part in this process.
 
@@ -152,6 +152,10 @@ TODO: do we want to allow multiple active calls? The store implementation will p
 1. **Pending calls array** - the UI shows the incoming / outgoing calls based on this array
 2. **Accepted call** - the app can start the process of joining the outgoing call
 2. **Active call** - the app shows the active call UI
+
+### Call calling state
+In an individual call lifespan various situations can occur that are then reflected in something we named **calling state**. Thus, a call can be in state of joining, reconnection, left etc.
+This is reflected within the [`Call` objects internal state](../../call-engine/Call#state).
 
 ### Reconnections
 
