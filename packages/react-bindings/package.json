@@ -20,7 +20,7 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "rxjs": "~7.5.7"
+    "rxjs": "~7.8.1"
   },
   "peerDependencies": {
     "@stream-io/i18n": "workspace:^",
