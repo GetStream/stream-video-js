@@ -190,9 +190,11 @@ export const removeCodec = (
       mediaSection.original,
       `${mediaSection.mediaWithPorts} ${newCodecOrder}`,
     )
-    .replace(rtpMap.original, '') // remove the corresponding rtpmap line
-    .replace(fmtp?.original || '', '') // remove the corresponding fmtp line
-    .replace(/^\s*$[\r\n|\r|\n]/gm, ''); // remove any empty lines
+    .replace(new RegExp(`${rtpMap.original}[\r\n|\r|\n]`), '') // remove the corresponding rtpmap line
+    .replace(
+      fmtp?.original ? new RegExp(`${fmtp?.original}[\r\n|\r|\n]`) : '',
+      '',
+    ); // remove the corresponding fmtp line
 };
 
 /**
