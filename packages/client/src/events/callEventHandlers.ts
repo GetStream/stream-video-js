@@ -19,6 +19,7 @@ import {
   watchConnectionQualityChanged,
   watchDominantSpeakerChanged,
   watchNewReactions,
+  watchParticipantCountChanged,
   watchParticipantJoined,
   watchParticipantLeft,
   watchTrackPublished,
@@ -34,7 +35,7 @@ export const registerEventHandlers = (
   const eventHandlers = [
     watchChangePublishQuality(dispatcher, call),
     watchConnectionQualityChanged(dispatcher, state),
-    watchConnectionQualityChanged(dispatcher, state),
+    watchParticipantCountChanged(dispatcher, state),
 
     watchParticipantJoined(dispatcher, state),
     watchParticipantLeft(dispatcher, state),
