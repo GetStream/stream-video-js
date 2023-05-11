@@ -5,6 +5,18 @@ import Gleap from 'gleap';
 import * as Sentry from '@sentry/react';
 
 import './index.css';
+import TagManager from 'react-gtm-module';
+
+if (import.meta.env.MODE === 'production') {
+  const tagManagerArgs = {
+    gtmId: import.meta.env.VITE_GTM_ID,
+    dataLayer: {
+      userProject: import.meta.env.VITE_GTM_PROJECT,
+    },
+  };
+
+  TagManager.initialize(tagManagerArgs);
+}
 
 if (
   import.meta.env.MODE === 'staging' ||
