@@ -9,7 +9,10 @@ import {
 import { Audio } from '../Audio';
 import { applyElementRef, Video, VideoProps } from '../Video';
 import { useTrackElementVisibility } from '../../hooks';
-import { ParticipantViewUIProps } from './DefaultParticipantViewUI';
+import {
+  DefaultParticipantViewUI,
+  ParticipantViewUIProps,
+} from './DefaultParticipantViewUI';
 import { isComponentType } from '../../../utilities';
 
 export type ParticipantViewProps = {
@@ -19,9 +22,14 @@ export type ParticipantViewProps = {
   participant: StreamVideoParticipant | StreamVideoLocalParticipant;
 
   /**
-   * Component used to render user interface elements (details, network status...)
+   * Component used to render user interface elements (details, network status...),
+   * pass `null` if you wish to not render anything
+   * @default DefaultParticipantViewUI
    */
-  ParticipantViewUI?: ComponentType<ParticipantViewUIProps> | ReactElement;
+  ParticipantViewUI?:
+    | ComponentType<ParticipantViewUIProps>
+    | ReactElement
+    | null;
 
   /**
    * In supported browsers, this sets the default audio output.
@@ -66,7 +74,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       setVideoElementRef,
       className,
       VideoPlaceholder,
-      ParticipantViewUI,
+      ParticipantViewUI = DefaultParticipantViewUI as ComponentType<ParticipantViewUIProps>,
     },
     ref,
   ) => {

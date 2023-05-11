@@ -33,7 +33,7 @@ export type DefaultParticipantViewUIProps = {
    * Option to show/hide menu button component
    */
   showMenuButton?: boolean;
-} & Pick<ParticipantViewProps, 'participant'>;
+} & ParticipantViewUIProps;
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   (props, ref) => {
