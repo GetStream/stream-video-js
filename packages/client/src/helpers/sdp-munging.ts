@@ -192,7 +192,7 @@ export const removeCodec = (
     )
     .replace(rtpMap.original, '') // remove the corresponding rtpmap line
     .replace(fmtp?.original || '', '') // remove the corresponding fmtp line
-    .replace(/^\s*\n/gm, ''); // remove any empty lines
+    .replace(/^\s*$[\r\n|\r|\n]/gm, ''); // remove any empty lines
 };
 
 /**
