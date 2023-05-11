@@ -1,0 +1,92 @@
+---
+title: Overview
+description: Overview of the UI components
+---
+
+:::warning
+TODO create pages for the components
+:::
+
+:::warning
+Here is a list of things still to address on this page:
+
+- Show an example of how to use one of the pre-built components
+- Add more CSS theming examples
+
+(Whenever you add one of the sections please remove the point from the list.)
+:::
+
+## Introduction
+
+There are different ways to use the React Video SDK to build out UI. It comes with powerful built-in components ready for use.
+In addition, it allows for styling and custom theming options with custom CSS.
+
+For custom use cases it is also possible to create your own components to fully tailor the SDK to your needs. Please note that we suggest not to override a few, core components as those contain complex, low-level logic related to performance, the list of these components can be found in the TODO.
+
+This page guides you through all the options you have with increasing levels of customization.
+
+## Using pre-built components
+
+The SDK comes with a lot of pre-built components for the different elements of the UI.
+
+## Theming with CSS
+
+If you only want to customize the styling of the available components, there is a wide range of CSS variables that you can override.
+With that, you can achieve a significant amount of theming in your video product.
+
+The way this works is that there are various reserved variable names inside of our [styling package](TODO: link to styling package).
+To change them you can simply override them with your custom values.
+
+Here are a few examples:
+
+```scss
+// Change the font family (make sure to provide enough fallback fonts, though)
+--str-video__font-family: Roboto, sans-serif;
+
+// The primary color that is used
+--str-video__primary-color: green;
+```
+
+There are too many variables that you can change, so here are links to the files that contain them for you to discover:
+
+- [Global Theming](https://github.com/GetStream/stream-video-js/blob/main/packages/styling/src/_global-theme-variables.scss)
+- [Global Layout](https://github.com/GetStream/stream-video-js/blob/main/packages/styling/src/_global-layout-variables.scss)
+- [Color Palette](https://github.com/GetStream/stream-video-js/blob/main/packages/styling/src/_palette-variables.scss)
+- [Icons and Colors](https://github.com/GetStream/stream-video-js/blob/main/packages/styling/src/_variables.scss)
+
+## Custom components
+
+You can create custom components from scratch or you can use built-in components as building blocks.
+
+Here is an example of how you can use the `useParticipants()` hook to get all call participants and render them in your application.
+
+```tsx
+import { useParticipants } from '@stream-io/video-react-sdk';
+
+const ParticipantList = () => {
+    const participants = useParticipants();
+
+    return (
+        <>
+            <h2>Participants</h2>
+            { participants.map((participant) => (
+                <div key={participant.userId}>
+                    <img src={participant.image} alt={`Profile picture of ${participant.name}.`}
+                    <span>{participant.name}</span>
+                </div>
+            ))}
+        </>
+    )
+}
+```
+
+:::note
+A more thorough example of how to do this can be found in the [Custom Participant List](../../ui-cookbook/participant-list) guide in the UI Cookbook section.
+:::
+
+Combining all of the possibilities that you have gives you the freedom to use the performant pre-built components when they suit your needs.
+At the same time if you have more customized use cases you can fully tailor the appearance to your needs.
+
+## UI Cookbook
+
+The [UI Cookbook section](../06-ui-cookbook/01-overview.mdx) contains tutorials with various customization examples.
