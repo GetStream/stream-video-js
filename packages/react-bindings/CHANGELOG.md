@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.20...@stream-io/video-react-bindings-0.0.1-alpha.21) (2023-05-11)
+
+
+
+## [0.0.1-alpha.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.19...@stream-io/video-react-bindings-0.0.1-alpha.20) (2023-05-11)
+
+
+
+## [0.0.1-alpha.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.18...@stream-io/video-react-bindings-0.0.1-alpha.19) (2023-05-10)
+
+
+### Features
+
+* call broadcasting events and apis ([#478](https://github.com/GetStream/stream-video-js/issues/478)) ([8aa4fcb](https://github.com/GetStream/stream-video-js/commit/8aa4fcbbe00b43d4d9f977daa2fd297436e83b51))
+
+
+
+## [0.0.1-alpha.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.17...@stream-io/video-react-bindings-0.0.1-alpha.18) (2023-05-10)
+
+
+
 ## [0.0.1-alpha.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.16...@stream-io/video-react-bindings-0.0.1-alpha.17) (2023-05-09)
 
 

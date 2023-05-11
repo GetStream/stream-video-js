@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.133](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.132...client0.0.1-alpha.133) (2023-05-11)
+
+
+
+## [0.0.1-alpha.132](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.131...client0.0.1-alpha.132) (2023-05-11)
+
+
+
+## [0.0.1-alpha.131](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.130...client0.0.1-alpha.131) (2023-05-10)
+
+
+### Features
+
+* call broadcasting events and apis ([#478](https://github.com/GetStream/stream-video-js/issues/478)) ([8aa4fcb](https://github.com/GetStream/stream-video-js/commit/8aa4fcbbe00b43d4d9f977daa2fd297436e83b51))
+
+
+
+## [0.0.1-alpha.130](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.129...client0.0.1-alpha.130) (2023-05-10)
+
+
+
 ## [0.0.1-alpha.129](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.128...client0.0.1-alpha.129) (2023-05-09)
 
 

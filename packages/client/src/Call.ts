@@ -546,9 +546,6 @@ export class Call {
     this.watching = true;
     this.clientStore.registerCall(this);
 
-    // FIXME OL: convert to a derived state
-    this.state.setCallRecordingInProgress(call.metadata.recording);
-
     // FIXME OL: remove once cascading is implemented
     let sfuUrl = call.sfuServer.url;
     if (
@@ -1349,6 +1346,26 @@ export class Call {
   stopLive = async () => {
     return this.streamClient.post<StopLiveResponse>(
       `${this.streamClientBasePath}/stop_live`,
+      {},
+    );
+  };
+
+  /**
+   * Starts the broadcasting of the call.
+   */
+  startBroadcasting = async () => {
+    return this.streamClient.post(
+      `${this.streamClientBasePath}/start_broadcasting`,
+      {},
+    );
+  };
+
+  /**
+   * Stops the broadcasting of the call.
+   */
+  stopBroadcasting = async () => {
+    return this.streamClient.post(
+      `${this.streamClientBasePath}/stop_broadcasting`,
       {},
     );
   };
