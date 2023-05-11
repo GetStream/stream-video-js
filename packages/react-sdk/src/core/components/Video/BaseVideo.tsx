@@ -1,22 +1,7 @@
-import {
-  ComponentPropsWithRef,
-  ForwardedRef,
-  forwardRef,
-  useEffect,
-  useState,
-} from 'react';
+import { ComponentPropsWithRef, forwardRef, useEffect, useState } from 'react';
 import { Browsers } from '@stream-io/video-client';
 
-export const applyElementRef = <T extends HTMLElement | null>(
-  ref: ForwardedRef<T>,
-  element: T,
-) => {
-  if (!ref) return;
-
-  if (typeof ref === 'function') return ref(element);
-
-  ref.current = element;
-};
+import { applyElementRef } from '../../../utilities';
 
 export type BaseVideoProps = ComponentPropsWithRef<'video'> & {
   stream?: MediaStream;

@@ -7,13 +7,13 @@ import {
 } from '@stream-io/video-client';
 
 import { Audio } from '../Audio';
-import { applyElementRef, Video, VideoProps } from '../Video';
+import { Video, VideoProps } from '../Video';
 import { useTrackElementVisibility } from '../../hooks';
 import {
   DefaultParticipantViewUI,
   ParticipantViewUIProps,
 } from './DefaultParticipantViewUI';
-import { isComponentType } from '../../../utilities';
+import { isComponentType, applyElementRef } from '../../../utilities';
 
 export type ParticipantViewProps = {
   /**
