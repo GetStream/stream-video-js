@@ -55,3 +55,12 @@ export const useRemoteParticipants = () => {
   const { remoteParticipants$ } = useCallState();
   return useObservableValue(remoteParticipants$);
 };
+
+/**
+ * Returns the approximate participant count of the active call.
+ * This includes the anonymous users as well, and it is computed on the server.
+ */
+export const useParticipantCount = () => {
+  const { participantCount$ } = useCallState();
+  return useObservableValue(participantCount$);
+};
