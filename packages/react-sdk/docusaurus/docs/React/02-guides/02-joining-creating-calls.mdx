@@ -71,24 +71,9 @@ If you set the `autoJoin` prop to `false` the call won't be joined (nor will it 
 This is what call join looks like under the hood:
 
 ```ts
-import {
-  StreamVideoClient,
-  TokenOrProvider,
-  User,
-} from '@stream-io/video-client';
-
-const user: User = {
-  id: '<user id>'
-};
-
-const tokenProvider: TokenOrProvider = <token provider>
-
-const videoClient = new StreamVideoClient('MY_API_KEY');
-await videoClient.connectUser(user, tokenProvider);
-
 const callType = 'default';
 const callId = 'test-call';
-await videoClient.call(callType, callId).join({create: true});
+await videoClient.call(callType, callId).join({ create: true });
 ```
 
 To see possible call configuration options (for example, call members), go to the [`join` method reference](../../call-engine/Call/#join).
