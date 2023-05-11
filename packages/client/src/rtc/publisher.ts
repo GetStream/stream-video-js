@@ -16,15 +16,18 @@ import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallState } from '../store';
 import { PublishOptions } from '../types';
 import { isReactNative } from '../helpers/platforms';
-import { enableDtx } from '../helpers/sdp-munging/enableDtx';
-import { setPreferredCodec } from '../helpers/sdp-munging/setPreferredCodec';
+import {
+  removeCodec,
+  setPreferredCodec,
+  toggleDtx,
+} from '../helpers/sdp-munging';
 
 export type PublisherOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
   connectionConfig?: RTCConfiguration;
   isDtxEnabled: boolean;
-  preferredAudioCodec: string;
+  isRedEnabled: boolean;
   preferredVideoCodec?: string;
 };
 
@@ -55,7 +58,7 @@ export class Publisher {
     [TrackType.UNSPECIFIED]: undefined,
   };
   private isDtxEnabled: boolean;
-  private preferredAudioCodec: string;
+  private isRedEnabled: boolean;
   private preferredVideoCodec?: string;
 
   constructor({
@@ -63,7 +66,7 @@ export class Publisher {
     sfuClient,
     state,
     isDtxEnabled,
-    preferredAudioCodec,
+    isRedEnabled,
     preferredVideoCodec,
   }: PublisherOpts) {
     const pc = new RTCPeerConnection(connectionConfig);
@@ -84,7 +87,7 @@ export class Publisher {
     this.sfuClient = sfuClient;
     this.state = state;
     this.isDtxEnabled = isDtxEnabled;
-    this.preferredAudioCodec = preferredAudioCodec;
+    this.isRedEnabled = isRedEnabled;
     this.preferredVideoCodec = preferredVideoCodec;
   }
 
@@ -285,8 +288,13 @@ export class Publisher {
       return getPreferredCodecs('video', preferredCodec || 'vp8');
     }
     if (trackType === TrackType.AUDIO) {
-      const matchedOnly = preferredCodec === 'opus';
-      return getPreferredCodecs('audio', preferredCodec || 'opus', matchedOnly);
+      const defaultAudioCodec = this.isRedEnabled ? 'red' : 'opus';
+      const codecToRemove = !this.isRedEnabled ? 'red' : undefined;
+      return getPreferredCodecs(
+        'audio',
+        preferredCodec || defaultAudioCodec,
+        codecToRemove,
+      );
     }
   };
 
@@ -307,14 +315,19 @@ export class Publisher {
     const offer = await this.publisher.createOffer();
     let sdp = offer.sdp;
     if (sdp) {
-      if (this.isDtxEnabled) {
-        sdp = enableDtx(sdp);
-      }
+      toggleDtx(sdp, this.isDtxEnabled);
       if (isReactNative()) {
         if (this.preferredVideoCodec) {
           sdp = setPreferredCodec(sdp, 'video', this.preferredVideoCodec);
         }
-        sdp = setPreferredCodec(sdp, 'audio', this.preferredAudioCodec);
+        sdp = setPreferredCodec(
+          sdp,
+          'audio',
+          this.isRedEnabled ? 'red' : 'opus',
+        );
+        if (!this.isRedEnabled) {
+          sdp = removeCodec(sdp, 'audio', 'red');
+        }
       }
     }
     offer.sdp = sdp;

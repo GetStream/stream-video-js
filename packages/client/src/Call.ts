@@ -168,26 +168,6 @@ export class Call {
    */
   private readonly leaveCallHooks: Function[] = [];
 
-  private get preferredAudioCodec() {
-    const audioSettings = this.data?.settings.audio;
-    let preferredCodec =
-      audioSettings?.redundant_coding_enabled === undefined
-        ? 'opus'
-        : audioSettings.redundant_coding_enabled
-        ? 'red'
-        : 'opus';
-    if (
-      typeof window !== 'undefined' &&
-      window.location &&
-      window.location.search
-    ) {
-      const queryParams = new URLSearchParams(window.location.search);
-      preferredCodec = queryParams.get('codec') || preferredCodec;
-    }
-
-    return preferredCodec;
-  }
-
   private readonly streamClientBasePath: string;
   private streamClientEventHandlers = new Map<Function, CallEventHandler>();
 
@@ -659,26 +639,14 @@ export class Call {
     });
 
     const audioSettings = this.data?.settings.audio;
-    let isDtxEnabled =
-      audioSettings?.opus_dtx_enabled === undefined
-        ? false
-        : audioSettings?.opus_dtx_enabled;
-    // TODO: SZ: Remove once SFU team don't need this
-    if (
-      typeof window !== 'undefined' &&
-      window.location &&
-      window.location.search
-    ) {
-      const queryParams = new URLSearchParams(window.location.search);
-      isDtxEnabled = queryParams.get('dtx') === 'false' ? false : isDtxEnabled;
-    }
-    console.log('DTX enabled', isDtxEnabled);
+    const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
+    const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
     this.publisher = new Publisher({
       sfuClient,
       state: this.state,
       connectionConfig: call.connectionConfig,
       isDtxEnabled,
-      preferredAudioCodec: this.preferredAudioCodec,
+      isRedEnabled,
       preferredVideoCodec: this.streamClient.options.preferredVideoCodec,
     });
 
@@ -721,7 +689,7 @@ export class Call {
         .then(() =>
           getGenericSdp(
             'recvonly',
-            this.preferredAudioCodec,
+            isRedEnabled,
             this.streamClient.options.preferredVideoCodec,
           ),
         )
@@ -831,9 +799,6 @@ export class Call {
       audioStream,
       audioTrack,
       TrackType.AUDIO,
-      {
-        preferredCodec: this.preferredAudioCodec,
-      },
     );
   };
 

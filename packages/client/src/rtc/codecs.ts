@@ -1,11 +1,11 @@
 import { isReactNative } from '../helpers/platforms';
-import { setPreferredCodec } from '../helpers/sdp-munging/setPreferredCodec';
+import { removeCodec, setPreferredCodec } from '../helpers/sdp-munging';
 
 export const getPreferredCodecs = (
   kind: 'audio' | 'video',
   preferredCodec: string,
-  returnOnlyMatched = false,
-) => {
+  codecToRemove?: string,
+): RTCRtpCodecCapability[] | undefined => {
   if (!('getCapabilities' in RTCRtpSender)) {
     console.warn('RTCRtpSender.getCapabilities is not supported');
     return;
@@ -19,6 +19,9 @@ export const getPreferredCodecs = (
   cap.codecs.forEach((c) => {
     const codec = c.mimeType.toLowerCase();
     console.log(c);
+    const shouldRemoveCodec =
+      codecToRemove && codec === `${kind}/${codecToRemove}`;
+    if (shouldRemoveCodec) return;
     const matchesCodec = codec === `${kind}/${preferredCodec}`;
     if (!matchesCodec) {
       unmatched.push(c);
@@ -38,18 +41,12 @@ export const getPreferredCodecs = (
     matched.push(c);
   });
 
-  return returnOnlyMatched
-    ? [...matched]
-    : ([
-        ...matched,
-        ...partialMatched,
-        ...unmatched,
-      ] as RTCRtpCodecCapability[]);
+  return [...matched, ...partialMatched, ...unmatched];
 };
 
 export const getGenericSdp = async (
   direction: RTCRtpTransceiverDirection,
-  preferredAudioCodec: string,
+  isRedEnabled: boolean,
   preferredVideoCodec: string | undefined,
 ) => {
   const tempPc = new RTCPeerConnection();
@@ -67,13 +64,14 @@ export const getGenericSdp = async (
   }
 
   const audioTransceiver = tempPc.addTransceiver('audio', { direction });
+  const preferredAudioCodec = isRedEnabled ? 'red' : 'opus';
+  const audioCodecToRemove = !isRedEnabled ? 'red' : undefined;
 
   if ('setCodecPreferences' in audioTransceiver) {
-    let returnOnlyMatched = preferredAudioCodec === 'opus';
     const audioCodecPreferences = getPreferredCodecs(
       'audio',
       preferredAudioCodec,
-      returnOnlyMatched,
+      audioCodecToRemove,
     );
     // @ts-ignore
     audioTransceiver.setCodecPreferences([...(audioCodecPreferences || [])]);
@@ -87,6 +85,9 @@ export const getGenericSdp = async (
       sdp = setPreferredCodec(sdp, 'video', preferredVideoCodec);
     }
     sdp = setPreferredCodec(sdp, 'audio', preferredAudioCodec);
+    if (audioCodecToRemove) {
+      sdp = removeCodec(sdp, 'audio', audioCodecToRemove);
+    }
   }
 
   tempPc.getTransceivers().forEach((t) => {
