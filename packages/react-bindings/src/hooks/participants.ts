@@ -59,6 +59,8 @@ export const useRemoteParticipants = () => {
 /**
  * Returns the approximate participant count of the active call.
  * This includes the anonymous users as well, and it is computed on the server.
+ *
+ * @category Call State
  */
 export const useParticipantCount = () => {
   const { participantCount$ } = useCallState();
