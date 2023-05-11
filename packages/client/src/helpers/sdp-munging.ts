@@ -1,4 +1,4 @@
-type MediaSection = {
+type Media = {
   original: string;
   mediaWithPorts: string;
   codecOrder: string;
@@ -32,7 +32,7 @@ const getRtpMap = (line: string): RtpMap | undefined => {
 
 const getFmtp = (line: string): Fmtp | undefined => {
   // Example: a=fmtp:111 minptime=10; useinbandfec=1
-  const fmtpRegex = /^a=fmtp:(\d*) ([\S| ]*)/;
+  const fmtpRegex = /^a=fmtp:(\d*) (.*)/;
   const fmtpMatch = line.match(fmtpRegex);
   // The first captured group is the payload type number, the second captured group is any additional parameters.
   if (fmtpMatch) {
@@ -44,8 +44,25 @@ const getFmtp = (line: string): Fmtp | undefined => {
   }
 };
 
+/**
+ * gets the media section for the specified media type.
+ * The media section contains the media type, port, codec, and payload type.
+ * Example: m=video 9 UDP/TLS/RTP/SAVPF 100 101 96 97 35 36 102 125 127
+ */
+const getMedia = (line: string, mediaType: string): Media | undefined => {
+  const regex = new RegExp(`(m=${mediaType} \\d+ [\\w/]+) ([\\d\\s]+)`);
+  const match = line.match(regex);
+  if (match) {
+    return {
+      original: match[0],
+      mediaWithPorts: match[1],
+      codecOrder: match[2],
+    };
+  }
+};
+
 const getMediaSection = (sdp: string, mediaType: 'video' | 'audio') => {
-  let mediaSection: MediaSection | undefined;
+  let media: Media | undefined;
   const rtpMap: RtpMap[] = [];
   const fmtp: Fmtp[] = [];
   let isTheRequiredMediaSection = false;
@@ -58,38 +75,24 @@ const getMediaSection = (sdp: string, mediaType: 'video' | 'audio') => {
     */
     const type = line[0];
     if (type === 'm') {
-      /**
-       * gets the media section for the specified media type.
-       * The media section contains the media type, port, codec, and payload type.
-       * Example: m=video 9 UDP/TLS/RTP/SAVPF 100 101 96 97 35 36 102 125 127
-       * The function returns an object with the original media section, the media section without the port, and the codec order.
-       */
-      const regex = new RegExp(`(m=${mediaType} \\d+ [\\w/]+) ([\\d\\s]+)`);
-      const match = line.match(regex);
-      if (match) {
-        mediaSection = {
-          original: match[0],
-          mediaWithPorts: match[1],
-          codecOrder: match[2],
-        };
+      const _media = getMedia(line, mediaType);
+      isTheRequiredMediaSection = !!_media;
+      if (_media) {
+        media = _media;
       }
-      isTheRequiredMediaSection = !!match;
     } else if (isTheRequiredMediaSection && type === 'a') {
-      // Example: a=rtpmap:110 opus/48000/2
       const rtpMapLine = getRtpMap(line);
+      const fmtpLine = getFmtp(line);
       if (rtpMapLine) {
         rtpMap.push(rtpMapLine);
-      } else {
-        const fmtpLine = getFmtp(line);
-        if (fmtpLine) {
-          fmtp.push(fmtpLine);
-        }
+      } else if (fmtpLine) {
+        fmtp.push(fmtpLine);
       }
     }
   });
-  if (mediaSection) {
+  if (media) {
     return {
-      mediaSection,
+      media,
       rtpMap,
       fmtp,
     };
@@ -146,13 +149,10 @@ export const setPreferredCodec = (
   );
   const codecId = rtpMap?.payload;
   if (!codecId) return sdp;
-  const newCodecOrder = moveCodecToFront(
-    section.mediaSection.codecOrder,
-    codecId,
-  );
+  const newCodecOrder = moveCodecToFront(section.media.codecOrder, codecId);
   return sdp.replace(
-    section.mediaSection.original,
-    `${section.mediaSection.mediaWithPorts} ${newCodecOrder}`,
+    section.media.original,
+    `${section.media.mediaWithPorts} ${newCodecOrder}`,
   );
 };
 
@@ -172,7 +172,7 @@ export const removeCodec = (
   codecToRemove: string,
 ) => {
   const section = getMediaSection(sdp, mediaType);
-  const mediaSection = section?.mediaSection;
+  const mediaSection = section?.media;
   if (!mediaSection) {
     return sdp;
   }
