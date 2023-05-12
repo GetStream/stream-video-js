@@ -112,11 +112,6 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
           className,
         )}
       >
-        {isComponentType(ParticipantViewUI) ? (
-          <ParticipantViewUI participant={participant} />
-        ) : (
-          ParticipantViewUI
-        )}
         <Audio
           // mute the local participant, as we don't want to hear ourselves
           muted={isLoggedInUser || muteAudio}
@@ -130,6 +125,11 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
           setVideoElementRef={setVideoElementRef}
           autoPlay
         />
+        {isComponentType(ParticipantViewUI) ? (
+          <ParticipantViewUI participant={participant} />
+        ) : (
+          ParticipantViewUI
+        )}
       </div>
     );
   },

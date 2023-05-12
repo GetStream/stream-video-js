@@ -34,7 +34,6 @@ $scope-name: 'str-video__participant-view';
     position: absolute;
     top: 0.875rem;
     right: 0.875rem;
-    z-index: 1;
     padding: 0.3rem;
   }
 
@@ -45,7 +44,6 @@ $scope-name: 'str-video__participant-view';
     display: flex;
     align-items: center;
     gap: 0.3125rem;
-    z-index: 1;
 
     .str-video__participant-details__name {
       border-radius: var(--str-video__border-radius1);
