@@ -1,24 +1,18 @@
-import { Avatar } from 'stream-chat-react';
-import { useEffect, useState, MouseEvent, useCallback } from 'react';
+import { Avatar, useChatContext } from 'stream-chat-react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { produce } from 'immer';
 import dayjs from 'dayjs';
 import { clsx } from 'clsx';
 
 import type {
-  Event,
-  UserResponse,
-  ExtendableGenerics,
   DefaultGenerics,
+  Event,
+  ExtendableGenerics,
+  UserResponse,
 } from 'stream-chat';
-import { useChatContext } from 'stream-chat-react';
-
-type QuickDialProps<SCG extends ExtendableGenerics = DefaultGenerics> = {
-  onUserClick: (
-    user: UserResponse<SCG>,
-    event: MouseEvent<HTMLButtonElement>,
-  ) => void;
-};
+import { useStreamVideoClient } from '@stream-io/video-react-sdk';
+import { meetingId } from '../../utils/meetingId';
 
 const useGetUsers = () => {
   const { client } = useChatContext();
@@ -44,9 +38,7 @@ const useGetUsers = () => {
   );
 };
 
-export const QuickDial = <SCG extends ExtendableGenerics = DefaultGenerics>({
-  onUserClick,
-}: QuickDialProps<SCG>) => {
+export const QuickDial = () => {
   const { client } = useChatContext();
   const getUsers = useGetUsers();
 
@@ -91,24 +83,39 @@ export const QuickDial = <SCG extends ExtendableGenerics = DefaultGenerics>({
     // FIXME: add horizontall scrolling
     <div className="quick-dial">
       {Object.values(users).map((user) => (
-        <QuickDialButton key={user.id} user={user} onUserClick={onUserClick} />
+        <QuickDialButton key={user.id} user={user} />
       ))}
     </div>
   );
 };
 
-type QuickDialButtonProps<SCG extends ExtendableGenerics = DefaultGenerics> =
-  Partial<Pick<QuickDialProps<SCG>, 'onUserClick'>> & {
-    user: Parameters<QuickDialProps<SCG>['onUserClick']>['0'];
-  };
+type QuickDialButtonProps<SCG extends ExtendableGenerics = DefaultGenerics> = {
+  user: UserResponse<SCG>;
+};
 
 const QuickDialButton = <SCG extends ExtendableGenerics = DefaultGenerics>({
   user,
-  onUserClick,
 }: QuickDialButtonProps<SCG>) => {
+  const videoClient = useStreamVideoClient();
+  const createCall = useCallback(() => {
+    videoClient?.call('default', meetingId()).getOrCreate({
+      ring: true,
+      data: {
+        // custom: {
+        //   channelId: channel.id,
+        // },
+        members: [
+          {
+            user_id: user.id,
+          },
+        ],
+      },
+    });
+  }, [videoClient, user]);
+
   return (
     <button
-      onClick={(event) => onUserClick?.(user, event)}
+      onClick={createCall}
       className={clsx('quick-dial-button', {
         online: user.online,
         away: !user.online,
