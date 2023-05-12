@@ -15,7 +15,10 @@ export const EndCallView: FC<Props> = ({ className }) => {
   return (
     <div className={rootClassName}>
       <div className={styles.panel}>
-        <img className={styles.image} src="/images/end-call.png" />
+        <img
+          className={styles.image}
+          src={`${import.meta.env.BASE_URL}images/end-call.png`}
+        />
         <h1 className={styles.heading}>Stream Video Calling</h1>
         <p className={styles.description}>
           Build in-app audio rooms, video calling and livestreaming experiences
