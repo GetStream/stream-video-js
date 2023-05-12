@@ -23,8 +23,9 @@ export const CallPanel = () => {
 
   if (!call) return null;
 
+  const metadata = useCallMetadata();
   const callingToActiveChannel =
-    activeChannel?.id === call.data?.custom.channelId;
+    activeChannel?.id === metadata?.custom.channelId;
   // FIXME: currently does not show call panel when called from channel not loaded into state
   if (CallingState.RINGING === callingState && !callingToActiveChannel)
     return null;
