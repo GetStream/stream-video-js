@@ -39,7 +39,7 @@
     "chart.js": "^4.0.1",
     "ng2-charts": "~4.0.2",
     "ngx-popperjs": "^14.1.2",
-    "rxjs": "~7.5.7",
+    "rxjs": "~7.8.1",
     "stream-chat": "^8.4.1",
     "stream-chat-angular": "^4.15.0",
     "tslib": "^2.5.0",
@@ -66,10 +66,10 @@
     "karma-jasmine-html-reporter": "~2.0.0",
     "ng-packagr": "^14.1.0",
     "replace-in-file": "^6.3.5",
-    "typedoc": "^0.23.23",
-    "typedoc-plugin-markdown": "^3.13.6",
+    "typedoc": "^0.24.7",
+    "typedoc-plugin-markdown": "^3.15.3",
     "typescript": "~4.7.4",
-    "vercel": "^28.16.15",
+    "vercel": "^29.3.0",
     "wait-on": "^6.0.1"
   }
 }

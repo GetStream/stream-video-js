@@ -3,11 +3,11 @@ import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import {
   useCall,
   useHasPermissions,
-  useLocalParticipant,
   useI18n,
+  useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 
-import { useMediaDevices } from '../../core/contexts';
+import { useMediaDevices } from '../../core';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { CompositeButton, IconButton } from '../Button';
 import { PermissionNotification } from '../Notification';
@@ -39,12 +39,15 @@ export type ToggleAudioPublishingButtonProps = {
   caption?: string;
 };
 
-export const ToggleAudioPublishingButton = ({
-  caption,
-}: ToggleAudioPublishingButtonProps) => {
+export const ToggleAudioPublishingButton = (
+  props: ToggleAudioPublishingButtonProps,
+) => {
   const { publishAudioStream, stopPublishingAudio } = useMediaDevices();
   const localParticipant = useLocalParticipant();
   const { t } = useI18n();
+
+  const { caption = t('Mic') } = props;
+
   const isAudioMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
@@ -99,7 +102,7 @@ export const ToggleAudioPublishingButton = ({
         <CompositeButton
           Menu={DeviceSelectorAudioInput}
           active={isAudioMute}
-          caption={caption || t('Mic')}
+          caption={caption}
         >
           <IconButton
             icon={isAudioMute ? 'mic-off' : 'mic'}
