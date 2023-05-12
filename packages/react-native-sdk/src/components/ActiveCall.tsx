@@ -11,6 +11,7 @@ import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
 import { useIncallManager } from '../hooks/useIncallManager';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
+import { verifyAndroidBluetoothPermissions } from '../utils/verifyAndroidBluetoothPermissions';
 
 /**
  * Props to be passed for the ActiveCall component.
