@@ -1,27 +1,3 @@
-.str-video__video-preview-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  $container-width: 500px;
-  width: $container-width;
-  height: calc(calc($container-width / 12) * 9);
-
-  .str-video__loading-indicator__icon {
-    $indicator-size: 3rem;
-    height: $indicator-size;
-    width: $indicator-size;
-    mask-size: $indicator-size;
-  }
-
-  .str-video__video-preview--mirror {
-    transform: scaleX(-1);
-  }
-
-  .str-video__video-preview--loading {
-    display: none;
-  }
-}
-
 .str-video__video {
   object-fit: cover;
   width: 100%;
