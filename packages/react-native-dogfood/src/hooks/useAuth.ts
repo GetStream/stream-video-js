@@ -1,12 +1,13 @@
+import * as Sentry from '@sentry/react-native';
 import { StreamVideoClient, User } from '@stream-io/video-client';
 import { useEffect, useState } from 'react';
-import * as Sentry from '@sentry/react-native';
+import { STREAM_API_KEY, STREAM_API_SECRET } from 'react-native-dotenv';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/jwt';
-import { STREAM_API_KEY, STREAM_API_SECRET } from 'react-native-dotenv';
+import { Platform } from 'react-native';
 
 const APIParams = {
   apiKey: STREAM_API_KEY,
@@ -43,7 +44,9 @@ export const useAuth = () => {
         const token = await createToken(username, APIParams.apiSecret);
         Sentry.setUser({ ...user, token });
         try {
-          const _videoClient = new StreamVideoClient(APIParams.apiKey);
+          const _videoClient = new StreamVideoClient(APIParams.apiKey, {
+            preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
+          });
           await _videoClient.connectUser(user, token);
           setVideoClient(_videoClient);
         } catch (err) {

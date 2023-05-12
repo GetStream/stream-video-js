@@ -49,6 +49,7 @@ describe('Publisher', () => {
       sfuClient,
       state,
       isDtxEnabled: true,
+      isRedEnabled: true,
     });
   });
 
