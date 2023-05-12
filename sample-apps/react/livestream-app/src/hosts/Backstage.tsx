@@ -42,13 +42,14 @@ export const Backstage = () => {
 const BackstageUI = () => {
   const call = useCall();
   const callState = useCallCallingState();
-  const { publishVideoStream } = useMediaDevices();
+  const { publishVideoStream, publishAudioStream } = useMediaDevices();
   useEffect(() => {
     if (!call) return;
     if (callState === CallingState.JOINED) {
       publishVideoStream();
+      publishAudioStream();
     }
-  }, [call, callState, publishVideoStream]);
+  }, [call, callState, publishAudioStream, publishVideoStream]);
   return (
     <>
       <BackstageHeader />
