@@ -17,7 +17,9 @@ export const PendingCallControls = () => {
         <>
           <AcceptCallButton call={call} disabled={buttonsDisabled} />
           <CancelCallButton
-            onClick={() => call.leave({ reject: true })}
+            onClick={() => {
+              call.leave({ reject: true });
+            }}
             disabled={buttonsDisabled}
           />
         </>
