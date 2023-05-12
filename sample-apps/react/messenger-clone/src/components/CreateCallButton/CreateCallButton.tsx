@@ -18,7 +18,7 @@ export const CreateCallButton = () => {
       ring: true,
       data: {
         custom: {
-          channelId: channel.id,
+          channelCid: channel.cid,
         },
         members: Object.values(channel.state.members).reduce<MemberRequest[]>(
           (acc, member) => {
@@ -33,7 +33,7 @@ export const CreateCallButton = () => {
         ),
       },
     });
-  }, [videoClient, channel.id, channel.state.members, client.user?.id]);
+  }, [videoClient, channel.cid, channel.state.members, client.user?.id]);
 
   const disableCreateCall = !videoClient;
   return (

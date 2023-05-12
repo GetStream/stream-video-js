@@ -13,7 +13,7 @@ export const ChannelPreviewCallControls = () => {
   const callingState = useCallCallingState();
 
   const callingToActiveChannel =
-    activeChannel && call && activeChannel.id === call.data?.custom.channelId;
+    activeChannel && call && activeChannel.cid === call.data?.custom.channelCid;
 
   const isRinging = callingState === CallingState.RINGING;
 
