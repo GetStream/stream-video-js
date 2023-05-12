@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --mode development",
-    "start": "vite",
+    "dev": "vite --host --port 3000 --mode staging",
+    "start": "vite --host --port 3000 --mode staging",
     "build": "tsc && vite build --base=/video/demos/",
     "preview": "vite preview",
     "storybook": "concurrently \"yarn:watch:*\"",
