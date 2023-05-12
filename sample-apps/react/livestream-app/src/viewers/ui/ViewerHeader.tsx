@@ -5,7 +5,7 @@ import {
   HDBadge,
   LiveBadge,
   TotalViewersBadge,
-} from '../../ui/components';
+} from '../../components';
 import {
   IconButton,
   MenuToggle,

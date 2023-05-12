@@ -10,7 +10,7 @@ import {
   LiveBadge,
   StreamLogo,
   TotalViewersBadge,
-} from '../../ui/components';
+} from '../../components';
 
 export const BackstageHeader = () => {
   const call = useCall();

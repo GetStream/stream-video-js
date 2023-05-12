@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { LeaveBadge } from '../../ui/components';
+import { LeaveBadge } from '../../components';
 
 import './ViewerControls.scss';
 
