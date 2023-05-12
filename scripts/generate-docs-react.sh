@@ -33,7 +33,7 @@ mkdir generated-docs
 
 # Hooks and Contexts
 if [ "$PACKAGE_DIR_NAME" == 'react-sdk' ]; then
-  npx typedoc --options typedoc.json --exclude '!**/*(hooks|contexts)/**'
+  npx typedoc --options typedoc.json --exclude '!**/+(hooks|contexts)/**'
 else
   # RN needs a special exclude statement because of reexporting StreamVideo
   npx typedoc --options typedoc.json --exclude '!**/*(hooks|contexts|providers)/**'
