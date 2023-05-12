@@ -154,7 +154,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
 };
 
 const App: FC = () => {
-  const logo = '/images/icons/stream-logo.svg';
+  const logo = `${import.meta.env.BASE_URL}images/icons/stream-logo.svg`;
   const [user, setUser] = useState<User>();
   const [token, setToken] = useState<string>();
 
