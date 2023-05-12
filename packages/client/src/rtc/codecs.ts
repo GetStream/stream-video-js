@@ -52,30 +52,26 @@ export const getGenericSdp = async (
   const tempPc = new RTCPeerConnection();
   const videoTransceiver = tempPc.addTransceiver('video', { direction });
 
-  if ('setCodecPreferences' in videoTransceiver) {
-    const videoCodecPreferences = getPreferredCodecs(
-      'audio',
-      preferredVideoCodec ?? 'vp8',
-    );
-    // @ts-ignore
-    videoCodecPreferences.setCodecPreferences([
-      ...(videoCodecPreferences ?? []),
-    ]);
-  }
+  // if ('setCodecPreferences' in videoTransceiver) {
+  //   const videoCodecPreferences = getPreferredCodecs(
+  //     'audio',
+  //     preferredVideoCodec ?? 'vp8',
+  //   );
+  //   videoTransceiver.setCodecPreferences([...(videoCodecPreferences ?? [])]);
+  // }
 
   const audioTransceiver = tempPc.addTransceiver('audio', { direction });
   const preferredAudioCodec = isRedEnabled ? 'red' : 'opus';
   const audioCodecToRemove = !isRedEnabled ? 'red' : undefined;
 
-  if ('setCodecPreferences' in audioTransceiver) {
-    const audioCodecPreferences = getPreferredCodecs(
-      'audio',
-      preferredAudioCodec,
-      audioCodecToRemove,
-    );
-    // @ts-ignore
-    audioTransceiver.setCodecPreferences([...(audioCodecPreferences || [])]);
-  }
+  // if ('setCodecPreferences' in audioTransceiver) {
+  //   const audioCodecPreferences = getPreferredCodecs(
+  //     'audio',
+  //     preferredAudioCodec,
+  //     // audioCodecToRemove,
+  //   );
+  //   audioTransceiver.setCodecPreferences([...(audioCodecPreferences || [])]);
+  // }
 
   const offer = await tempPc.createOffer();
   let sdp = offer.sdp ?? '';
