@@ -115,7 +115,10 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
 
   useEffect(() => {
     const handlePageLeave = async () => {
-      if (activeCall && callState !== CallingState.LEFT) {
+      if (
+        activeCall &&
+        [CallingState.JOINING, CallingState.JOINED].includes(callState)
+      ) {
         await activeCall.leave();
       }
     };
