@@ -66,8 +66,8 @@
     "karma-jasmine-html-reporter": "~2.0.0",
     "ng-packagr": "^14.1.0",
     "replace-in-file": "^6.3.5",
-    "typedoc": "^0.23.23",
-    "typedoc-plugin-markdown": "^3.13.6",
+    "typedoc": "^0.24.7",
+    "typedoc-plugin-markdown": "^3.15.3",
     "typescript": "~4.7.4",
     "vercel": "^29.3.0",
     "wait-on": "^6.0.1"
