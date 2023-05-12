@@ -64,6 +64,7 @@ export const Footer: FC<Props> = ({
   const [showReactionsPanel] = useState<boolean>(false);
 
   useEffect(() => {
+    console.log('MODAL VISIBLE', isVisible);
     if (isVisible) {
       setShowSettingsPanel(false);
     }

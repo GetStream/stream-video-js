@@ -6,7 +6,8 @@ import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
 import InvitePanel from '../InvitePanel';
 import ParticipantsPanel from '../ParticipantsPanel';
 import ChatPanel from '../ChatPanel';
-import { StreamMark } from '../Icons';
+
+import PoweredBy from '../PoweredBy';
 
 import { usePanelContext } from '../../contexts/PanelContext';
 
@@ -71,10 +72,7 @@ export const Sidebar: FC<Props> = ({ chatClient, callId, participants }) => {
           ) : null}
         </div>
       </CSSTransition>
-      <div className={styles.branding}>
-        <StreamMark className={styles.logo} />
-        <span>Powered by Stream</span>
-      </div>
+      <PoweredBy className={styles.branding} />
     </div>
   );
 };
