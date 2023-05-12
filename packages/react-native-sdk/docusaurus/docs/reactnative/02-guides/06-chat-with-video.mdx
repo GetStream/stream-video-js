@@ -133,6 +133,7 @@ const App = () => {
 For simplicity, you can also use the `useCreateStreamVideoClient` [hook](../../call-engine/hooks#usecreatestreamvideoclient) to connect and disconnect from the client.
 
 ### Providing the video client and Call logic to the rest of the app
+
 Our `StreamVideoCall` component will provide our recently created video client to the rest of the underlying components.
 The `client` created above can be used as follows and needs to be provided to the `client` prop of the `StreamVideoCall` component.
 
@@ -165,6 +166,7 @@ const App = () => {
 ```
 
 ### Adding call cycle handlers
+
 `StreamVideoCall` component has also a `callCycleHandlers` prop of type object that expects:
 
 - `onCallJoined` callback that is called after the user joins the call.
@@ -261,19 +263,19 @@ Use it in the Screen/View where you want to render it.
 This component expects a handlers to deal with the case when user clicks on the Participants View icon(`onOpenCallParticipantsInfoView`).
 
 ```tsx
-import React, {useCallback} from 'react';
-import {ActiveCall, useCall} from '@stream-io/video-react-native-sdk';
-import {ActivityIndicator, SafeAreaView, StyleSheet} from 'react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {NavigationStackParamsList} from '../types';
-import {theme} from '@stream-io/video-react-native-sdk/src/theme';
+import React, { useCallback } from 'react';
+import { ActiveCall, useCall } from '@stream-io/video-react-native-sdk';
+import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NavigationStackParamsList } from '../types';
+import { theme } from '@stream-io/video-react-native-sdk/src/theme';
 
 type Props = NativeStackScreenProps<
   NavigationStackParamsList,
   'ActiveCallScreen'
 >;
 
-export function ActiveCallScreen({navigation}: Props) {
+export function ActiveCallScreen({ navigation }: Props) {
   const activeCall = useCall();
 
   // Handler executed when the call participants icon is clicked. This is used to render CallParticipantsInfoView.
@@ -348,14 +350,13 @@ export function CallParticipansInfoScreen() {
 }
 ```
 
-
 ## Further Integration
 
 Congratulations on completing this guide. You've learned how to build two very popular use cases - Meeting and Ringing Calls. However, our SDK supports multiple other use cases and more advanced features. If you're looking to integrate more of our supported functionality, we recommend checking out the following guides:
 
 [//]: # '* [guide](05-advanced/02-push-notification/01-overview.mdx)'
 
-(../02-guides/04-socket-events.mdx)
+(../02-guides/05-socket-events.mdx)
 
 - [Call Lifecycle](../02-guides/02-call-lifecycle.mdx): It's important to understand the lifecycle of our SDK and Calls to properly build complex use cases for your users.
 - [Call Engine](../02-guides/03-call-engine.mdx): If you're looking to utilize our state machine to the fullest, explore what our internal CallEngine does and how to listen to state.

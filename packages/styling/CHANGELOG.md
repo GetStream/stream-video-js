@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.6...@stream-io/video-styling-0.0.1-alpha.7) (2023-05-12)
+
+
+
+## [0.0.1-alpha.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.5...@stream-io/video-styling-0.0.1-alpha.6) (2023-05-12)
+
+
+### Features
+
+* Livestream sample app ([#489](https://github.com/GetStream/stream-video-js/issues/489)) ([bf6e6e5](https://github.com/GetStream/stream-video-js/commit/bf6e6e54dab884828ca08208f25b1285cf3f1944))
+
+
+
 ## [0.0.1-alpha.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.4...@stream-io/video-styling-0.0.1-alpha.5) (2023-05-10)
 
 
