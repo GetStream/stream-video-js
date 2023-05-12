@@ -3,9 +3,9 @@ import {
   CallingState,
   CancelCallButton,
   useCall,
+  useCallCallingState,
 } from '@stream-io/video-react-sdk';
 import { useChatContext } from 'stream-chat-react';
-import { useCallCallingState } from '../../hooks/useCallCallingState';
 
 export const ChannelPreviewCallControls = () => {
   const { channel: activeChannel } = useChatContext();

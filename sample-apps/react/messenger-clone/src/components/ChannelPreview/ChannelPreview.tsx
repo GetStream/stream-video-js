@@ -24,7 +24,7 @@ const UnMemoizedChannelPreview = (props: ChannelPreviewUIComponentProps) => {
   const channelPreviewButton = useRef<HTMLButtonElement | null>(null);
   const calls = useCalls();
   const callToChannel = useMemo(() => {
-    return calls.find((call) => call.data?.custom.channelId === channel.id);
+    return calls.find((call) => call.data?.custom.channelCid === channel.cid);
   }, [calls, channel]);
 
   const avatarName =
@@ -65,9 +65,11 @@ const UnMemoizedChannelPreview = (props: ChannelPreviewUIComponentProps) => {
           <div className="str-chat__channel-preview-messenger--name">
             <span>{displayTitle}</span>
           </div>
-          <StreamCallProvider call={callToChannel}>
-            <ChannelPreviewCallControls />
-          </StreamCallProvider>
+          {callToChannel && (
+            <StreamCallProvider call={callToChannel}>
+              <ChannelPreviewCallControls />
+            </StreamCallProvider>
+          )}
           {!!unread && (
             <div
               className="str-chat__channel-preview-unread-badge"
