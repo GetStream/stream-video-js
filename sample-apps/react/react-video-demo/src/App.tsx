@@ -9,11 +9,13 @@ import {
 } from 'unique-names-generator';
 
 import {
+  GetEdgesResponse,
   MediaDevicesProvider,
   StreamCallProvider,
   StreamVideo,
   useCreateStreamVideoClient,
   User,
+  DatacenterResponse,
 } from '@stream-io/video-react-sdk';
 import { FeatureCollection, Geometry } from 'geojson';
 
@@ -28,6 +30,7 @@ import { PanelProvider } from './contexts/PanelContext';
 
 import { createGeoJsonFeatures } from './utils/useCreateGeoJsonFeatures';
 import { generateUser } from './utils/useGenerateUser';
+import { measureLatencyToEdges } from './utils/useMeasureLatencyReponse';
 import { useCreateStreamChatClient } from './hooks/useChatClient';
 
 import { tour } from '../data/tour';
@@ -52,7 +55,10 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const [isCallActive, setIsCallActive] = useState(false);
   const [callHasEnded, setCallHasEnded] = useState(false);
   const [edges, setEdges] = useState<FeatureCollection<Geometry>>();
-  const [fastestEdge, setFastestEdge] = useState<any>();
+  const [fastestEdge, setFastestEdge] = useState<{
+    id: string;
+    latency: number;
+  }>();
   const [isjoiningCall, setIsJoiningCall] = useState(false);
 
   const { setSteps } = useTourContext();
@@ -86,11 +92,47 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
 
   useEffect(() => {
     async function fetchEdges() {
-      const response: any = await client.edges();
-      const fastedEdges = response.edges.sort(
-        (a: any, b: any) => a.latency - b.latency,
+      const response: GetEdgesResponse = await client.edges();
+
+      const dataCenterResponse: DatacenterResponse[] = response.edges.map(
+        (edge) => ({
+          coordinates: {
+            latitude: edge.latitude,
+            longitude: edge.longitude,
+          },
+          latency_url: edge.latency_test_url,
+          name: edge.id,
+        }),
       );
-      setFastestEdge(fastedEdges[0]);
+
+      const latencies = await measureLatencyToEdges(dataCenterResponse);
+
+      const edgeId: string = Object.keys(latencies).reduce((acc, curr) => {
+        const lowestCurr = Math.min(...latencies[curr]);
+
+        if (lowestCurr === -1) {
+          return acc;
+        }
+
+        if (acc) {
+          const lowestAcc = Math.min(...latencies[acc]);
+
+          if (lowestCurr < lowestAcc) {
+            return curr;
+          } else {
+            return acc;
+          }
+        }
+
+        return curr;
+      });
+
+      const latency = Math.min(...latencies[edgeId]);
+
+      setFastestEdge({
+        id: edgeId,
+        latency: latency,
+      });
 
       const features = createGeoJsonFeatures(response.edges);
       setEdges(features);
@@ -154,7 +196,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
 };
 
 const App: FC = () => {
-  const logo = '/images/icons/stream-logo.svg';
+  const logo = `${import.meta.env.BASE_URL}images/icons/stream-logo.svg`;
   const [user, setUser] = useState<User>();
   const [token, setToken] = useState<string>();
 

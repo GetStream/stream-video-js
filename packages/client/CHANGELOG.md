@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.135](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.134...client0.0.1-alpha.135) (2023-05-12)
+
+
+### Bug Fixes
+
+* disable sdp munging ([#491](https://github.com/GetStream/stream-video-js/issues/491)) ([5bca195](https://github.com/GetStream/stream-video-js/commit/5bca195dbb99efb77c5d7106a251e88d9a045498)), closes [#395](https://github.com/GetStream/stream-video-js/issues/395)
+
+
+### Features
+
+* enable codec preferring through sdp munging ([#395](https://github.com/GetStream/stream-video-js/issues/395)) ([a5db5a8](https://github.com/GetStream/stream-video-js/commit/a5db5a831ccfc833ecfc29e22540be0f0121287d))
+
+
+
 ## [0.0.1-alpha.134](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.133...client0.0.1-alpha.134) (2023-05-11)
 
 
