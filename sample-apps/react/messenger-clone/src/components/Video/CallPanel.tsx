@@ -9,6 +9,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleCameraPublishingButton,
   CancelCallButton,
+  useCallMetadata,
 } from '@stream-io/video-react-sdk';
 import { useChatContext } from 'stream-chat-react';
 import { useState } from 'react';
@@ -17,13 +18,13 @@ import { useDraggable } from '../../hooks/useDraggable';
 export const CallPanel = () => {
   const call = useCall();
   const callingState = useCallCallingState();
+  const metadata = useCallMetadata();
   const { channel: activeChannel } = useChatContext();
   const [panelElement, setPanelElement] = useState<HTMLDivElement | null>(null);
   useDraggable(panelElement);
 
   if (!call) return null;
 
-  const metadata = useCallMetadata();
   const callingToActiveChannel =
     activeChannel?.id === metadata?.custom.channelId;
   // FIXME: currently does not show call panel when called from channel not loaded into state
