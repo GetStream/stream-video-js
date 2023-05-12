@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.26...@stream-io/video-react-sdk-0.0.1-alpha.27) (2023-05-12)
+
+
+### Features
+
+* Livestream sample app ([#489](https://github.com/GetStream/stream-video-js/issues/489)) ([bf6e6e5](https://github.com/GetStream/stream-video-js/commit/bf6e6e54dab884828ca08208f25b1285cf3f1944))
+
+
+
 ## [0.0.1-alpha.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.25...@stream-io/video-react-sdk-0.0.1-alpha.26) (2023-05-12)
 
 
