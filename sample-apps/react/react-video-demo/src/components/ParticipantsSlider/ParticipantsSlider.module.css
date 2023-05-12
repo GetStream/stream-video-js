@@ -42,11 +42,26 @@
 }
 
 .participant.horizontal {
-  max-height: 100%;
+  @apply max-h-full;
 }
+
+.participant.horizontal.videoDisabled {
+  @apply min-h-[125px];
+}
+
+@media screen(sm) {
+}
+
+@media screen(md) {
+}
+
 .participant.vertical {
   height: 10%;
   width: 100%;
+}
+
+.participant.vertical.videoDisabled {
+  @apply min-h-[120px];
 }
 
 .next,

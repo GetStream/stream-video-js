@@ -1,8 +1,10 @@
+import { Call } from './Call';
+import { StreamClient } from './coordinator/connection/client';
 import {
   StreamVideoReadOnlyStateStore,
   StreamVideoWriteableStateStore,
 } from './store';
-import {
+import type {
   CreateCallTypeRequest,
   CreateCallTypeResponse,
   CreateDeviceRequest,
@@ -17,14 +19,7 @@ import {
   UpdateCallTypeRequest,
   UpdateCallTypeResponse,
 } from './gen/coordinator';
-import { Call } from './Call';
-
-import {
-  watchCallAccepted,
-  watchCallCancelled,
-  watchCallRejected,
-} from './events';
-import {
+import type {
   ConnectionChangedEvent,
   EventHandler,
   EventTypes,
@@ -33,7 +28,6 @@ import {
   TokenOrProvider,
   User,
 } from './coordinator/connection/types';
-import { StreamClient } from './coordinator/connection/client';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -106,14 +100,12 @@ export class StreamVideoClient {
     this.on('call.created', (event: StreamVideoEvent) => {
       if (event.type !== 'call.created') return;
       const { call, members, ringing } = event;
-
       if (user.id === call.created_by.id) {
-        console.warn('Received CallCreatedEvent sent by the current user');
+        console.warn('Received `call.created` sent by the current user');
         return;
       }
 
-      this.writeableStateStore.setPendingCalls((pendingCalls) => [
-        ...pendingCalls,
+      this.writeableStateStore.registerCall(
         new Call({
           streamClient: this.streamClient,
           type: call.type,
@@ -123,11 +115,8 @@ export class StreamVideoClient {
           ringing,
           clientStore: this.writeableStateStore,
         }),
-      ]);
+      );
     });
-    this.on('call.accepted', watchCallAccepted(this.writeableStateStore));
-    this.on('call.rejected', watchCallRejected(this.writeableStateStore));
-    this.on('call.ended', watchCallCancelled(this.writeableStateStore));
 
     this.writeableStateStore.setConnectedUser(user);
 
@@ -158,9 +147,6 @@ export class StreamVideoClient {
    */
   disconnectUser = async (timeout?: number) => {
     await this.streamClient.disconnectUser(timeout);
-    this.writeableStateStore.pendingCalls.forEach((call) =>
-      call.cancelScheduledDrop(),
-    );
     this.writeableStateStore.setConnectedUser(undefined);
   };
 
@@ -221,10 +207,10 @@ export class StreamVideoClient {
    */
   queryCalls = async (data: QueryCallsRequest) => {
     if (data.watch) await this.streamClient.connectionIdPromise;
-    const response = await this.streamClient.post<QueryCallsResponse>(
-      '/calls',
-      data,
-    );
+    const response = await this.streamClient.post<
+      QueryCallsResponse,
+      QueryCallsRequest
+    >('/calls', data);
     const calls = response.calls.map((c) => {
       const call = new Call({
         streamClient: this.streamClient,

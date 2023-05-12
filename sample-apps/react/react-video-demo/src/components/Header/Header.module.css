@@ -25,11 +25,18 @@
 
 .participants {
   grid-area: participants;
-  @apply hidden sm:flex items-center;
+  @apply flex items-center;
 }
 
+.participants .logo {
+  @apply flex sm:hidden;
+}
+
+.security {
+  @apply hidden sm:flex;
+}
 .innerParticipants {
-  @apply flex justify-between;
+  @apply hidden sm:flex justify-between;
 }
 
 .avatars {

@@ -1,49 +1,43 @@
+import { useCallback, useEffect } from 'react';
+import { map } from 'rxjs';
 import {
-  Call,
-  disposeOfMediaStream,
+  CallingState,
   getVideoStream,
   OwnCapability,
   SfuModels,
   watchForAddedDefaultVideoDevice,
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
-import { useCallback, useEffect, useRef } from 'react';
-import { map } from 'rxjs';
+import {
+  useCall,
+  useCallCallingState,
+  useCallState,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
 import { useDebugPreferredVideoCodec } from '../../components/Debug/useIsDebugMode';
 
 /**
- * Exclude types from documentaiton site, but we should still add doc comments
  * @internal
- *
- * */
+ */
 export type VideoPublisherInit = {
-  call?: Call;
   initialVideoMuted?: boolean;
   videoDeviceId?: string;
 };
 
 /**
- *
- * @param param0
- * @returns
- *
  * @internal
- *
  * @category Device Management
  */
 export const useVideoPublisher = ({
-  call,
   initialVideoMuted,
   videoDeviceId,
 }: VideoPublisherInit) => {
-  // FIXME OL: cleanup
-  const callState = call?.state;
-  const { localParticipant$ } = callState || {};
-  // helper reference to determine initial publishing of the media stream
-  const initialPublishExecuted = useRef<boolean>(false);
-  const participant = localParticipant$
-    ? callState?.localParticipant
-    : undefined;
+  const call = useCall();
+  const callState = useCallState();
+  const callingState = useCallCallingState();
+  const participant = useLocalParticipant();
+  const { localParticipant$ } = callState;
+
   const preferredCodec = useDebugPreferredVideoCodec();
   const isPublishingVideo = participant?.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
@@ -52,8 +46,7 @@ export const useVideoPublisher = ({
   const publishVideoStream = useCallback(async () => {
     if (!call) return;
     if (!call.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)) {
-      console.log(`No permission to publish video`);
-      return;
+      throw new Error(`No permission to publish video`);
     }
     try {
       const videoStream = await getVideoStream(videoDeviceId);
@@ -64,38 +57,12 @@ export const useVideoPublisher = ({
   }, [call, preferredCodec, videoDeviceId]);
 
   useEffect(() => {
-    let interrupted = false;
-
-    if (!call && initialPublishExecuted.current) {
-      initialPublishExecuted.current = false;
+    if (callingState === CallingState.JOINED && !initialVideoMuted) {
+      publishVideoStream().catch((e) => {
+        console.error('Failed to publish video stream', e);
+      });
     }
-
-    if (
-      !call ||
-      !call.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO) ||
-      // FIXME: remove "&& !initialPublishExecuted.current" and make
-      // sure initialVideoMuted is not changing during active call
-      (initialVideoMuted && !initialPublishExecuted.current) ||
-      (!isPublishingVideo && initialPublishExecuted.current)
-    ) {
-      return;
-    }
-
-    getVideoStream(videoDeviceId).then((stream) => {
-      if (interrupted) {
-        return disposeOfMediaStream(stream);
-      }
-
-      initialPublishExecuted.current = true;
-      return call.publishVideoStream(stream, { preferredCodec });
-    });
-
-    return () => {
-      interrupted = true;
-      call.stopPublish(SfuModels.TrackType.VIDEO);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoDeviceId, call, preferredCodec]);
+  }, [callingState, initialVideoMuted, publishVideoStream]);
 
   useEffect(() => {
     if (!localParticipant$) return;

@@ -1,0 +1,69 @@
+.root {
+  @apply flex relative;
+}
+
+.video {
+  border-radius: 12px;
+}
+
+.videoOverlay {
+  @apply absolute top-0 left-0 w-full h-full flex items-center justify-center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.reaction {
+  @apply absolute top-0 right-0 mr-8 h-full flex items-center;
+  z-index: 150;
+}
+
+.reaction span {
+  @apply absolute top-0 mt-4;
+  animation: move 5s infinite;
+}
+
+.noVideo {
+  @apply flex w-full h-full bg-video-grey-700;
+  border-radius: 12px;
+}
+
+.noAudio {
+}
+
+.isDominantSpeaker {
+  @apply border-2 border-video-stream-500;
+}
+.isSpeaking {
+  @apply border-2 border-video-stream-500;
+}
+
+.isPinned {
+}
+
+/* Overlay  */
+.name {
+  @apply flex items-center absolute bottom-0 left-0 mb-4 ml-4 text-xs bg-video-grey-800 p-2 pt-1 pb-1 text-video-white;
+  border-radius: 4px;
+}
+
+.connectionQuality {
+  @apply flex items-center absolute bottom-0 right-0 mb-4 mr-4 text-xs bg-video-grey-800  text-video-white;
+  border-radius: 4px;
+}
+
+.micMuted {
+  @apply ml-1 h-4 w-4 text-video-red-600;
+}
+
+/* end overlay */
+
+.disabledPreview {
+  @apply flex relative items-center justify-center text-video-white text-sm bg-video-grey-700;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+}
+
+.fallbackAvatar {
+  @apply flex items-center justify-center uppercase text-2xl font-bold bg-video-stream-500 text-video-white h-20 w-20 rounded-full;
+}

@@ -17,7 +17,6 @@ import {
   getVideoStream,
   IconButton,
   MediaDevicesProvider,
-  useActiveCall,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
@@ -68,9 +67,6 @@ export const Preview = {
     const [initialVideoMuted, setInitialVideoMuted] = useState<boolean>(false);
     const [initialAudioMuted, setInitialAudioMuted] = useState<boolean>(false);
 
-    // FIXME: not sure about this
-    const activeCall = useActiveCall();
-
     return (
       <PreviewContext.Provider
         value={{
@@ -84,15 +80,7 @@ export const Preview = {
           setInitialAudioMuted,
         }}
       >
-        <MediaDevicesProvider
-          enumerate={
-            (videoState.type === 'finished' &&
-              audioState.type === 'finished') ||
-            !!activeCall
-          }
-        >
-          {children}
-        </MediaDevicesProvider>
+        <MediaDevicesProvider enumerate>{children}</MediaDevicesProvider>
       </PreviewContext.Provider>
     );
   },

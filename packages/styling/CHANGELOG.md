@@ -2,6 +2,23 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.4...@stream-io/video-styling-0.0.1-alpha.5) (2023-05-10)
+
+
+
+## [0.0.1-alpha.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.3...@stream-io/video-styling-0.0.1-alpha.4) (2023-05-09)
+
+
+### Reverts
+
+* Revert "chore: Avoid non-atomic pushes resulting in invalid version tags" ([24be283](https://github.com/GetStream/stream-video-js/commit/24be28300a5f5d452338457d60b1e34682027be6))
+
+
+
+## [0.0.1-alpha.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.2...@stream-io/video-styling-0.0.1-alpha.3) (2023-05-05)
+
+
+
 ## [0.0.1-alpha.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.1...@stream-io/video-styling-0.0.1-alpha.2) (2023-05-04)
 
 

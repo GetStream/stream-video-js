@@ -27,6 +27,7 @@ export type Props = {
   callId?: string;
   toggleRecording?(): void;
   toggleShareScreen?(): void;
+  closePanel?(): void;
 };
 
 export const SettingsPanel: FC<Props> = ({
@@ -34,24 +35,37 @@ export const SettingsPanel: FC<Props> = ({
   callId,
   toggleRecording,
   toggleShareScreen,
+  closePanel,
 }) => {
   const { setComponent } = useModalContext();
 
   const handleFeedback = useCallback(() => {
-    setComponent(<Feedback />);
-  }, []);
+    setComponent(<Feedback callId={callId} inMeeting={true} />);
+  }, [setComponent]);
 
   const handleSettings = useCallback(() => {
     setComponent(<DeviceSettings />);
-  }, []);
+  }, [setComponent]);
 
   const handleRecordings = useCallback(() => {
     setComponent(<Recordings />);
-  }, []);
+  }, [setComponent]);
 
   const handleToggleCallState = useCallback(() => {
     setComponent(<CallStats callId={callId} />);
-  }, [callId]);
+  }, [callId, setComponent]);
+
+  const handleFullScreen = useCallback(() => {
+    toggleFullScreen();
+  }, []);
+
+  const handleRecording = useCallback(() => {
+    toggleRecording?.();
+  }, [toggleRecording]);
+
+  const handleShareScreen = useCallback(() => {
+    toggleShareScreen?.();
+  }, [toggleShareScreen]);
 
   const rootClassName = classnames(styles.root, className);
 
@@ -59,7 +73,7 @@ export const SettingsPanel: FC<Props> = ({
     <>
       <div className={rootClassName}>
         <ul className={styles.list}>
-          <li className={styles.item} onClick={() => toggleFullScreen()}>
+          <li className={styles.item} onClick={handleFullScreen}>
             <FullScreen className={styles.settingsIcon} />
             Full screen
           </li>
@@ -84,14 +98,14 @@ export const SettingsPanel: FC<Props> = ({
           </li>
           <li
             className={classnames(styles.item, styles.record)}
-            onClick={() => toggleRecording?.()}
+            onClick={handleRecording}
           >
             <Record className={styles.settingsIcon} />
             Record
           </li>
           <li
             className={classnames(styles.item, styles.share)}
-            onClick={() => toggleShareScreen?.()}
+            onClick={handleShareScreen}
           >
             <ShareScreen className={styles.settingsIcon} />
             Share screen

@@ -20,6 +20,7 @@ export type Props = {
   onMouseLeave?(): void;
   children?: ReactNode | undefined;
   label?: string;
+  disabled?: boolean;
 };
 
 export const Button: FC<Props> = ({
@@ -31,6 +32,7 @@ export const Button: FC<Props> = ({
   onMouseLeave,
   color,
   shape = 'rectangle',
+  disabled = false,
   label,
 }) => {
   const states = {
@@ -63,6 +65,7 @@ export const Button: FC<Props> = ({
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      disabled={disabled}
     >
       {children}
     </button>

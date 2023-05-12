@@ -1,41 +1,84 @@
-import { PropsWithChildren, useEffect } from 'react';
-import { JoinCallRequest } from '@stream-io/video-client';
+import { PropsWithChildren, useEffect, useState } from 'react';
+import { Call, CallingState, JoinCallRequest } from '@stream-io/video-client';
 import {
   StreamCallProvider,
-  useActiveCall,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import { MediaDevicesProvider } from '../../core/contexts';
+import { MediaDevicesProvider, MediaDevicesProviderProps } from '../../core';
 
-export type StreamMeetingProps = {
+type InitWithCallCID = {
   callId: string;
   callType: string;
-  input?: JoinCallRequest;
+  call?: never;
+};
+
+type InitWithCallInstance = {
+  call: Call | undefined;
+  callId?: never;
+  callType?: never;
+};
+
+type InitStreamMeeting = InitWithCallCID | InitWithCallInstance;
+
+export type StreamMeetingProps = InitStreamMeeting & {
+  /**
+   * If true, the call will be joined automatically.
+   * Set it to true if you want to join the call immediately.
+   * Useful for scenarios where you want to skip prompting the user to join the call.
+   *
+   * @default false.
+   */
+  autoJoin?: boolean;
+
+  /**
+   * An optional data to pass when joining the call.
+   */
+  data?: JoinCallRequest;
+
+  /**
+   * An optional props to pass to the `MediaDevicesProvider`.
+   */
+  mediaDevicesProviderProps?: MediaDevicesProviderProps;
 };
 
 export const StreamMeeting = ({
   children,
   callId,
   callType,
-  input,
+  call,
+  autoJoin = false,
+  data,
+  mediaDevicesProviderProps,
 }: PropsWithChildren<StreamMeetingProps>) => {
   const client = useStreamVideoClient();
-  const activeCall = useActiveCall();
+  const [activeCall, setActiveCall] = useState<Call | undefined>(() => {
+    if (call) return call;
+    if (!client || !callId || !callType) return;
+    return client.call(callType, callId);
+  });
 
   useEffect(() => {
     if (!client) return;
-    const initiateMeeting = async () => {
-      await client.call(callType, callId).join(input);
-    };
 
-    initiateMeeting().catch((e) => {
-      console.error(`Failed to getOrCreateCall`, callId, callType, e);
-    });
-  }, [callId, client, callType, input]);
+    if (callId && callType && !activeCall) {
+      const newCall = client.call(callType, callId);
+      setActiveCall(newCall);
+    }
+  }, [activeCall, callId, callType, client]);
+
+  useEffect(() => {
+    if (autoJoin && activeCall?.state.callingState === CallingState.IDLE) {
+      activeCall.join(data).catch((err) => {
+        console.error(`Failed to join call`, err);
+      });
+    }
+  }, [activeCall, autoJoin, data]);
 
   return (
     <StreamCallProvider call={activeCall}>
-      <MediaDevicesProvider enumerate>{children}</MediaDevicesProvider>
+      <MediaDevicesProvider {...mediaDevicesProviderProps}>
+        {children}
+      </MediaDevicesProvider>
     </StreamCallProvider>
   );
 };

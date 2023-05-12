@@ -1,0 +1,86 @@
+---
+id: 04-state-store
+title: State Store
+---
+
+Our SDK uses a design pattern that we refer to as a reactive state store.
+
+The `StreamVideoClient` instance manages its own state store (this contains information about the connected user and the list of incoming, outgoing and active calls) and each `Call` instance has its own state store (this contains information about the call itself, for example the list of participants) as well.
+
+The state stores are updated after each API call/WebSocket event. The reactive state store makes it possible to observe the state from anywhere in your application. You can access the state store using hooks. This guide will help you understand how state management work which is useful if you want to attach custom logic upon state changes or if you want to create custom components.
+
+## Create client
+
+Before we can explore the state management mechanism we need to have a `StreamVideoClient` instance, to create it we can use the [`useCreateStreamVideoClient`](./hooks-and-contexts.md#usecreatestreamvideoclient) hook.
+
+```typescript
+const client = useCreateStreamVideoClient({
+    <your API key>,
+    <user token>,
+    <user>,
+});
+```
+
+## Observe client state
+
+To observe client state you need to use the [`StreamVideo`](./hooks-and-contexts.md#streamvideo) context provider:
+
+```tsx
+const client = useCreateStreamVideoClient({
+    <your API key>,
+    <user token>,
+    <user>,
+});
+
+<StreamVideo client="{client}">
+    <!-- Video UI -->
+</StreamVideo>
+```
+
+Then you'll be able to use the [client state hooks](./hooks-and-contexts.md#client-state) to easily access the client state anywhere in your application. These hooks are updated when a relevant client state change occurs.
+
+Let's see an example:
+
+If you want to watch for incoming calls to display a notification you can use the `useCalls` hook.
+
+TODO give example for `useCalls` once the refactor is done
+
+This approach makes it possible to access the client state and be notified about changes anywhere in your application without having to manually subscribe to WebSocket events.
+
+The full list of available client state hooks are available in the [Hooks and Contexts page](./hooks-and-contexts.md#client-state).
+
+## Observe call state
+
+To observe call state you need to use the [`StreamCallProvider`](./hooks-and-contexts.md#streamcallprovider):
+
+```tsx
+const client = useCreateStreamVideoClient({
+    <your API key>,
+    <user token>,
+    <user>,
+});
+
+const activeCall = // this should change with the refactor
+
+<StreamVideo client="{client}">
+  <StreamCallProvider call="{activeCall}">
+    <!-- Video UI -->
+  </StreamCallProvider>
+</StreamVideo>
+```
+
+Then you'll be able to use the [call state hooks](./hooks-and-contexts.md#call-state) to easily access the client state anywhere in your application. These hooks are updated when a relevant call state change occurs.
+
+Let's see an example:
+
+If you want to display a notification when a recording is started or ended you can use the [`useIsCallRecordingInProgress`](./hooks-and-contexts.md#useiscallrecordinginprogress) hook.
+
+```typescript
+const isCallRecordingInProgress = useIsCallRecordingInProgress();
+
+// Display notification based on recording state
+```
+
+This approach makes it possible to access the call state and be notified about changes anywhere in your application without having to manually subscribe to WebSocket events.
+
+The full list of available client state hooks are available in the [Hooks and Contexts page](./hooks-and-contexts.md#call-state).

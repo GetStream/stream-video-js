@@ -21,7 +21,7 @@ export const OutgoingCallControls = ({ call }: OutgoingCallControlsProps) => {
     <div className="rmc__button-controls">
       <button
         className="rmc__button rmc__button--red"
-        onClick={() => call.cancel()}
+        onClick={() => call.leave()}
       >
         <PhoneDisabled />
       </button>
@@ -37,13 +37,13 @@ export const IncomingCallControls = ({ call }: IncomingCallControlsProps) => {
     <div className="rmc__button-controls">
       <button
         className="rmc__button rmc__button--green"
-        onClick={() => call.accept()}
+        onClick={() => call.join()}
       >
         <LocalPhone />
       </button>
       <button
         className="rmc__button rmc__button--red"
-        onClick={() => call.reject()}
+        onClick={() => call.leave({ reject: true })}
       >
         <PhoneDisabled />
       </button>
@@ -52,7 +52,7 @@ export const IncomingCallControls = ({ call }: IncomingCallControlsProps) => {
 };
 
 type ActiveCallControlsProps = {
-  activeCall?: Call;
+  activeCall: Call;
   localParticipant?: StreamVideoLocalParticipant;
   publishAudioStream: () => Promise<void>;
   publishVideoStream: () => Promise<void>;
@@ -97,11 +97,7 @@ export const ActiveCallControls = ({
       </button>
       <button
         className="rmc__button rmc__button--red"
-        onClick={() => {
-          if (activeCall) {
-            activeCall.cancel();
-          }
-        }}
+        onClick={() => activeCall.leave()}
       >
         <PhoneDisabled />
       </button>

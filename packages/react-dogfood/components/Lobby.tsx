@@ -1,11 +1,11 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import {
+  checkIfAudioOutputChangeSupported,
   ToggleAudioOutputButton,
   ToggleAudioPreviewButton,
   ToggleCameraPreviewButton,
   useI18n,
-  useMediaDevices,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
 import { LobbyHeader } from './LobbyHeader';
@@ -25,11 +25,14 @@ const subtitles = [
 
 type LobbyProps = {
   onJoin: () => void;
-  callId: string;
+  callId?: string;
+  enablePreview?: boolean;
 };
-export const Lobby = ({ onJoin, callId }: LobbyProps) => {
+export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
   const { data: session, status } = useSession();
-  const { initialVideoState, isAudioOutputChangeSupported } = useMediaDevices();
+  const [isAudioOutputChangeSupported] = useState(() =>
+    checkIfAudioOutputChangeSupported(),
+  );
   const { t } = useI18n();
 
   const router = useRouter();
@@ -64,31 +67,27 @@ export const Lobby = ({ onJoin, callId }: LobbyProps) => {
               Stream Meetings
             </Typography>
 
-            <Typography
-              textAlign="center"
-              color={
-                initialVideoState.type === 'playing'
-                  ? 'currentcolor'
-                  : 'transparent'
-              }
-              variant="subtitle1"
-            >
+            <Typography textAlign="center" variant="subtitle1">
               {subtitle}
             </Typography>
 
-            <VideoPreview DisabledVideoPreview={DisabledVideoPreview} />
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                marginTop: '0.75rem',
-              }}
-            >
-              <ToggleAudioPreviewButton />
-              <ToggleCameraPreviewButton />
-              {isAudioOutputChangeSupported && <ToggleAudioOutputButton />}
-            </div>
+            {enablePreview && (
+              <VideoPreview DisabledVideoPreview={DisabledVideoPreview} />
+            )}
+            {enablePreview && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  marginTop: '0.75rem',
+                }}
+              >
+                <ToggleAudioPreviewButton />
+                <ToggleCameraPreviewButton />
+                {isAudioOutputChangeSupported && <ToggleAudioOutputButton />}
+              </div>
+            )}
           </Box>
           <Button
             style={{ width: '200px' }}

@@ -45,7 +45,7 @@ jobs:
         run: yarn lint:ci:all
 
       - name: Build packages
-        run: yarn build:all
+        run: NODE_ENV=production yarn build:all
 
       - name: Test packages
         run: yarn test:ci:all
@@ -61,6 +61,8 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
           npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+          yarn config set npmRegistryServer https://registry.npmjs.org/
+          yarn config set npmAuthToken ${{ secrets.NPM_TOKEN }}
           yarn release
 
       # Vercel deployment: Dogfood (Preview)

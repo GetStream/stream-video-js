@@ -2,12 +2,11 @@ import React from 'react';
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { CallControlsButton } from './CallControlsButton';
 import {
+  useCall,
   useConnectedUser,
   useIncomingCalls,
 } from '@stream-io/video-react-bindings';
 import { UserInfoView } from './UserInfoView';
-import { useCallCycleContext } from '../contexts';
-import { useRingCall } from '../hooks/useRingCall';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { getMembersForIncomingCall } from '../utils';
@@ -15,18 +14,9 @@ import { useMutingState } from '../hooks/useMutingState';
 
 export const IncomingCallView = () => {
   const { isVideoMuted, toggleVideoState } = useMutingState();
-  const { answerCall, rejectCall } = useRingCall();
-  const { callCycleHandlers } = useCallCycleContext();
-  const { onRejectCall } = callCycleHandlers;
-
-  const answerCallHandler = async () => {
-    await answerCall();
-  };
-
-  const rejectCallHandler = async () => {
-    await rejectCall();
-    if (onRejectCall) onRejectCall();
-  };
+  const call = useCall();
+  const answerCallHandler = () => call?.join();
+  const rejectCallHandler = () => call?.leave({ reject: true });
 
   return (
     <Background>
