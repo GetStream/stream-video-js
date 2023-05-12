@@ -20,7 +20,7 @@ const getRtpMap = (line: string): RtpMap | undefined => {
   // Example: a=rtpmap:110 opus/48000/2
   const rtpRegex = /^a=rtpmap:(\d*) ([\w\-.]*)(?:\s*\/(\d*)(?:\s*\/(\S*))?)?/;
   // The first captured group is the payload type number, the second captured group is the encoding name, the third captured group is the clock rate, and the fourth captured group is any additional parameters.
-  const rtpMatch = line.match(rtpRegex);
+  const rtpMatch = rtpRegex.exec(line);
   if (rtpMatch) {
     return {
       original: rtpMatch[0],
@@ -33,7 +33,7 @@ const getRtpMap = (line: string): RtpMap | undefined => {
 const getFmtp = (line: string): Fmtp | undefined => {
   // Example: a=fmtp:111 minptime=10; useinbandfec=1
   const fmtpRegex = /^a=fmtp:(\d*) (.*)/;
-  const fmtpMatch = line.match(fmtpRegex);
+  const fmtpMatch = fmtpRegex.exec(line);
   // The first captured group is the payload type number, the second captured group is any additional parameters.
   if (fmtpMatch) {
     return {
@@ -51,7 +51,7 @@ const getFmtp = (line: string): Fmtp | undefined => {
  */
 const getMedia = (line: string, mediaType: string): Media | undefined => {
   const regex = new RegExp(`(m=${mediaType} \\d+ [\\w/]+) ([\\d\\s]+)`);
-  const match = line.match(regex);
+  const match = regex.exec(line);
   if (match) {
     return {
       original: match[0],
@@ -216,7 +216,7 @@ const getOpusFmtp = (sdp: string) => {
 export const toggleDtx = (sdp: string, enable: boolean) => {
   const opusFmtp = getOpusFmtp(sdp);
   if (opusFmtp) {
-    const matchDtx = opusFmtp.config.match(/usedtx=(\d)/);
+    const matchDtx = /usedtx=(\d)/.exec(opusFmtp.config);
     const requiredDtxConfig = `usedtx=${enable ? '1' : '0'}`;
     if (matchDtx) {
       const newFmtp = opusFmtp.original.replace(
