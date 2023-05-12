@@ -13,7 +13,7 @@ if (
   Sentry.init({
     environment:
       import.meta.env.MODE === 'production' ? 'production' : 'staging',
-    dsn: import.meta.env.VITE_SENTRY_DNS,
+    dsn: import.meta.env.VITE_VIDEO_DEMO_SENTRY_DNS,
     integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()],
     maxBreadcrumbs: import.meta.env.MODE === 'staging' ? 50 : 10,
     debug: import.meta.env.MODE === 'staging',
