@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.22...@stream-io/video-react-native-sdk-0.0.1-alpha.23) (2023-05-12)
+
+
+### Bug Fixes
+
+* in call manager bluetooth state patch for android ([#474](https://github.com/GetStream/stream-video-js/issues/474)) ([9b1d4bb](https://github.com/GetStream/stream-video-js/commit/9b1d4bbf740e172b2bbfc22e8cb95f4db29436b1))
+
+
+### Features
+
+* enable codec preferring through sdp munging ([#395](https://github.com/GetStream/stream-video-js/issues/395)) ([a5db5a8](https://github.com/GetStream/stream-video-js/commit/a5db5a831ccfc833ecfc29e22540be0f0121287d))
+
+
+
 ## [0.0.1-alpha.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.21...@stream-io/video-react-native-sdk-0.0.1-alpha.22) (2023-05-11)
 
 
