@@ -316,7 +316,7 @@ export class Publisher {
       const codecToRemove = !this.isRedEnabled ? 'red' : undefined;
       return getPreferredCodecs(
         'audio',
-        preferredCodec || defaultAudioCodec,
+        preferredCodec ?? defaultAudioCodec,
         codecToRemove,
       );
     }

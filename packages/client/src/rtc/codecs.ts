@@ -55,11 +55,11 @@ export const getGenericSdp = async (
   if ('setCodecPreferences' in videoTransceiver) {
     const videoCodecPreferences = getPreferredCodecs(
       'audio',
-      preferredVideoCodec || 'vp8',
+      preferredVideoCodec ?? 'vp8',
     );
     // @ts-ignore
     videoCodecPreferences.setCodecPreferences([
-      ...(videoCodecPreferences || []),
+      ...(videoCodecPreferences ?? []),
     ]);
   }
 
@@ -78,7 +78,7 @@ export const getGenericSdp = async (
   }
 
   const offer = await tempPc.createOffer();
-  let sdp = offer.sdp || '';
+  let sdp = offer.sdp ?? '';
 
   if (isReactNative()) {
     if (preferredVideoCodec) {
