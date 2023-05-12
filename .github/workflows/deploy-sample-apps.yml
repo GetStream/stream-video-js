@@ -51,8 +51,7 @@ jobs:
       VITE_VIDEO_USER_NAME: ${{vars.VIDEO_DEMO_USER_NAME}}
       VITE_VIDEO_USER_TOKEN: ${{secrets.VIDEO_DEMO_USER_TOKEN}}
       VITE_MAPBOX_GL_TOKEN: ${{secrets.VIDEO_DEMO_MAPBOX_GL_TOKEN}}
-
-
+      VITE_VIDEO_DEMO_SENTRY_DNS: ${{secrets.VIDEO_DEMO_SENTRY_DNS}}
     steps:
       - uses: actions/checkout@v3
         with:

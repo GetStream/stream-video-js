@@ -1,6 +1,5 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 import { v1 as uuidv1 } from 'uuid';
-import Gleap from 'gleap';
 
 import {
   adjectives,
@@ -202,8 +201,6 @@ const App: FC = () => {
 
   const location = window?.document?.location;
   const callId = new URL(location.href).searchParams.get('id');
-
-  Gleap.initialize(import.meta.env.VITE_GLEAP_KEY);
 
   useEffect(() => {
     async function fetchUser() {
