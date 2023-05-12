@@ -16,8 +16,9 @@ export const PendingCallPanel = () => {
 
   const metadata = useCallMetadata();
   const caller = metadata?.created_by;
+  const members = useCallMembers();
   const membersToShow = call.isCreatedByMe
-    ? call.state.members
+    ? members
         ?.slice(0, 3)
         .map(({ user }) => user)
         .filter((u) => !!u) || []
