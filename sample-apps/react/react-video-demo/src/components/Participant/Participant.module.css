@@ -9,7 +9,7 @@
 .videoOverlay {
   @apply absolute top-0 left-0 w-full h-full flex items-center justify-center;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
 }
 
 .reaction {

@@ -27628,7 +27628,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:^4.0.1":
+"nanoid@npm:^4.0.1, nanoid@npm:^4.0.2":
   version: 4.0.2
   resolution: "nanoid@npm:4.0.2"
   bin:
@@ -31491,7 +31491,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dropzone@npm:^14.2.2":
+"react-dropzone@npm:^14.2.2, react-dropzone@npm:^14.2.3":
   version: 14.2.3
   resolution: "react-dropzone@npm:14.2.3"
   dependencies:
@@ -32379,10 +32379,13 @@ __metadata:
     geojson: ^0.5.0
     gleap: ^10.0.5
     mapbox-gl: ^2.12.0
+    nanoid: ^4.0.2
     postcss: ^8.4.21
     qrcode.react: ^3.1.0
     react: ^18.2.0
     react-dom: ^18.2.0
+    react-dropzone: ^14.2.3
+    react-file-utils: ^1.2.0
     react-form: ^4.0.1
     react-tooltip: ^5.8.3
     react-transition-group: ^4.4.5

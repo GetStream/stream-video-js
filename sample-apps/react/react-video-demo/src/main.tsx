@@ -1,10 +1,10 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './index.css';
 
 import Gleap from 'gleap';
 import * as Sentry from '@sentry/react';
+
+import './index.css';
 
 if (
   import.meta.env.MODE === 'staging' ||
@@ -27,6 +27,6 @@ if (import.meta.env.MODE === 'staging') {
   Gleap.initialize(import.meta.env.VITE_GLEAP_KEY);
 }
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <App />,
-);
+ReactDOM.createRoot(
+  document.getElementById('video-demo') as HTMLElement,
+).render(<App />);

@@ -6,6 +6,8 @@ import { Copy, UserChecked, Reload } from '../Icons';
 import Panel from '../Panel';
 import Button from '../Button';
 
+import { useBreakpoint } from '../../hooks/useBreakpoints';
+
 import styles from './InvitePanel.module.css';
 
 export type Props = {
@@ -91,6 +93,14 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
 
 export const InvitePanel: FC<Props> = ({ className, isFocused, callId }) => {
   const [showQr, setShowQr] = useState(false);
+
+  const breakpoint = useBreakpoint();
+
+  useEffect(() => {
+    if (breakpoint === 'lg') {
+      setShowQr(true);
+    }
+  }, [breakpoint]);
 
   const handleToggleDisplayQr = useCallback(() => {
     setShowQr(!showQr);

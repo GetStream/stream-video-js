@@ -19,8 +19,8 @@ body {
   z-index: 9999;
   top: 0;
   width: 140px;
-  min-width: 140px;
-  max-width: 140px;
+  min-width: 160px;
+  max-width: 160px;
   left: 55px;
 }
 
