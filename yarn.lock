@@ -31731,12 +31731,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-incall-manager@npm:^4.0.0, react-native-incall-manager@npm:^4.0.1":
+"react-native-incall-manager@npm:4.0.1":
   version: 4.0.1
   resolution: "react-native-incall-manager@npm:4.0.1"
   peerDependencies:
     react-native: ">=0.40.0"
   checksum: f7f11f1d314fb89d6c5c0e504fb73f0e515740cf9732709a2692c95755ffed600dd38ba85784d9998efffdf4cdc1873cc303d1f9c06efbd631f91cb4753d6e7f
+  languageName: node
+  linkType: hard
+
+"react-native-incall-manager@patch:react-native-incall-manager@npm%3A4.0.1#./.yarn/patches/react-native-incall-manager-npm-4.0.1-b8859eeb2a.patch::locator=%40stream-io%2Fvideo-js-root%40workspace%3A.":
+  version: 4.0.1
+  resolution: "react-native-incall-manager@patch:react-native-incall-manager@npm%3A4.0.1#./.yarn/patches/react-native-incall-manager-npm-4.0.1-b8859eeb2a.patch::version=4.0.1&hash=ef1903&locator=%40stream-io%2Fvideo-js-root%40workspace%3A."
+  peerDependencies:
+    react-native: ">=0.40.0"
+  checksum: 5618a889eed9eeca73f2e5daaabd6e8753da766ce59bd9dd40d0468741620669bcbca7cda0406020e96f2f1887c128e94511f67730ab3677b0f44937efe9c5b4
   languageName: node
   linkType: hard
 
