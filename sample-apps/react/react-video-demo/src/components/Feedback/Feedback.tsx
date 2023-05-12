@@ -1,4 +1,10 @@
-import { FC, HTMLInputTypeAttribute, useCallback, useState } from 'react';
+import {
+  FC,
+  HTMLInputTypeAttribute,
+  useCallback,
+  useState,
+  useMemo,
+} from 'react';
 import classnames from 'classnames';
 import { useForm, useField } from 'react-form';
 
@@ -11,6 +17,8 @@ import styles from './Feedback.module.css';
 
 export type Props = {
   className?: string;
+  callId?: string;
+  inMeeting?: boolean;
 };
 
 function required(value: string | number, name: string) {
@@ -63,7 +71,7 @@ const TextArea: FC<{
   return <textarea className={rootClassName} {...getInputProps()} {...rest} />;
 };
 
-export const Feedback: FC<Props> = ({ className }) => {
+export const Feedback: FC<Props> = ({ className, callId, inMeeting }) => {
   const [rating, setRating] = useState<{ current: number; maxAmount: number }>({
     current: 0,
     maxAmount: 5,
@@ -72,22 +80,36 @@ export const Feedback: FC<Props> = ({ className }) => {
 
   const { close, isVisible } = useModalContext();
 
+  const endpointUrl =
+    import.meta.env.MODE === 'staging' || import.meta.env.MODE === 'development'
+      ? 'https://staging.getstream.io'
+      : 'https://getstream.io';
   const {
     Form,
-    meta: { isSubmitting, canSubmit },
+    meta: { isSubmitting },
   } = useForm({
+    defaultValues: useMemo(
+      () => ({
+        email: '',
+        message: '',
+      }),
+      [],
+    ),
     onSubmit: async (values, instance) => {
-      const response = await fetch(
-        `https://api.getstream.io/chat/v1.0/feedback/`,
-        {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(values),
+      const response = await fetch(`${endpointUrl}/api/crm/video_feedback/`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({
+          values,
+          page_url:
+            callId && inMeeting
+              ? `${endpointUrl}?id=${callId}&meeting=true`
+              : `${endpointUrl}?id=${callId}&meeting=false`,
+        }),
+      });
 
       setFeedbackSent(true);
     },
@@ -160,18 +182,23 @@ export const Feedback: FC<Props> = ({ className }) => {
                 Rate your call quality:
               </p>
               <div className={styles.ratingStars}>
-                {[...new Array(rating.maxAmount)].map((_, index: number) => {
-                  const active = index + 1 <= rating.current;
-                  const starClassName = classnames(styles.star, {
-                    [styles.active]: active,
-                  });
+                {[...new Array(rating.maxAmount)].map(
+                  (amount, index: number) => {
+                    const active = index + 1 <= rating.current;
+                    const starClassName = classnames(styles.star, {
+                      [styles.active]: active,
+                    });
 
-                  return (
-                    <div onClick={() => handleSetRating(index + 1)}>
-                      <Star className={starClassName} />
-                    </div>
-                  );
-                })}
+                    return (
+                      <div
+                        key={`star-${index}`}
+                        onClick={() => handleSetRating(index + 1)}
+                      >
+                        <Star className={starClassName} />
+                      </div>
+                    );
+                  },
+                )}
               </div>
             </div>
             <Button
@@ -179,6 +206,7 @@ export const Feedback: FC<Props> = ({ className }) => {
               type="submit"
               color="primary"
               shape="oval"
+              disabled={isSubmitting}
               onClick={() => {}}
             >
               {' '}

@@ -40,7 +40,7 @@ export const SettingsPanel: FC<Props> = ({
   const { setComponent } = useModalContext();
 
   const handleFeedback = useCallback(() => {
-    setComponent(<Feedback />);
+    setComponent(<Feedback callId={callId} inMeeting={true} />);
   }, [setComponent]);
 
   const handleSettings = useCallback(() => {

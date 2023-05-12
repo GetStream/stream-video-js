@@ -29,7 +29,7 @@ export const EndCallView: FC<Props> = ({ className }) => {
             SDK Tutorials
           </Button>
         </div>
-        <Feedback className={styles.feedback} />
+        <Feedback className={styles.feedback} inMeeting={false} />
       </div>
     </div>
   );
