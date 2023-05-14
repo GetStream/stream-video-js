@@ -11,6 +11,7 @@ import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
 import { useIncallManager } from '../hooks/useIncallManager';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
+import { verifyAndroidBluetoothPermissions } from '../utils/verifyAndroidBluetoothPermissions';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -36,6 +37,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
   activeCallRef.current = activeCall;
 
   useEffect(() => {
+    // when the component mounts, we ask for necessary permissions.
+    verifyAndroidBluetoothPermissions();
     return () => {
       // ensure that if this component is unmounted, the call is left.
       activeCallRef.current?.leave();

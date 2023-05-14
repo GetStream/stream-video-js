@@ -6,6 +6,7 @@ import { ComponentType } from 'react';
 import Head from 'next/head';
 import { Session } from 'next-auth';
 import { SessionProvider } from 'next-auth/react';
+import { StreamTheme } from '@stream-io/video-react-sdk';
 import { createTheme, CssBaseline, ThemeProvider } from '@mui/material';
 import { SettingsProvider } from '../context/SettingsContext';
 
@@ -42,14 +43,44 @@ export default function App({
       <Head>
         <title>Stream Calls</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/favicon-32x32.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="/favicon-16x16.png"
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/apple-touch-icon.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="192x192"
+          href="/android-chrome-192x192.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="512x512"
+          href="/android-chrome-512x512.png"
+        />
       </Head>
 
       <CssBaseline />
       <ThemeProvider theme={theme}>
         <SettingsProvider>
-          <div className="str-video">
+          <StreamTheme>
             <Component {...pageProps} />
-          </div>
+          </StreamTheme>
         </SettingsProvider>
       </ThemeProvider>
     </SessionProvider>

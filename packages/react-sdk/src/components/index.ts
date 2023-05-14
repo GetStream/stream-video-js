@@ -1,7 +1,6 @@
 export * from './Avatar';
 export * from './Button';
 export * from './CallControls';
-export * from '../core/components/CallLayout';
 export * from './CallParticipantsList';
 export * from './CallRecordingList';
 export * from './DeviceSettings';
@@ -11,6 +10,7 @@ export * from './Notification';
 export * from './Permissions';
 export * from './StreamCall';
 export * from './StreamMeeting';
+export * from './StreamTheme';
 export * from './Search';
 export * from './Tooltip';
 export * from './Video';

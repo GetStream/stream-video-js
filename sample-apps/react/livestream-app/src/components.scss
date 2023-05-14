@@ -1,0 +1,38 @@
+.duration-badge {
+  background-color: #13181c;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 8px;
+  height: 24px;
+  margin-right: 6px;
+
+  .elapsed-time {
+    padding-left: 5px;
+  }
+}
+
+.live-badge {
+  background-color: #005fff;
+  border-radius: 4px 0 0 4px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 8px;
+  height: 24px;
+}
+
+.total-viewers-badge {
+  background-color: #13181c;
+  border-radius: 0 4px 4px 0;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 8px;
+  height: 24px;
+
+  .total-viewers {
+    padding-left: 5px;
+  }
+}

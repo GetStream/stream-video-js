@@ -5,6 +5,8 @@ import {
   watchAudioLevelChanged,
   watchBlockedUser,
   watchCallAccepted,
+  watchCallBroadcastingStarted,
+  watchCallBroadcastingStopped,
   watchCallEnded,
   watchCallGrantsUpdated,
   watchCallPermissionRequest,
@@ -17,6 +19,7 @@ import {
   watchConnectionQualityChanged,
   watchDominantSpeakerChanged,
   watchNewReactions,
+  watchParticipantCountChanged,
   watchParticipantJoined,
   watchParticipantLeft,
   watchTrackPublished,
@@ -32,6 +35,7 @@ export const registerEventHandlers = (
   const eventHandlers = [
     watchChangePublishQuality(dispatcher, call),
     watchConnectionQualityChanged(dispatcher, state),
+    watchParticipantCountChanged(dispatcher, state),
 
     watchParticipantJoined(dispatcher, state),
     watchParticipantLeft(dispatcher, state),
@@ -51,6 +55,8 @@ export const registerEventHandlers = (
 
     call.on('call.recording_started', watchCallRecordingStarted(state)),
     call.on('call.recording_stopped', watchCallRecordingStopped(state)),
+    call.on('call.broadcasting_started', watchCallBroadcastingStarted(state)),
+    call.on('call.broadcasting_stopped', watchCallBroadcastingStopped(state)),
 
     call.on('call.permission_request', watchCallPermissionRequest(state)),
     call.on('call.permissions_updated', watchCallPermissionsUpdated(state)),

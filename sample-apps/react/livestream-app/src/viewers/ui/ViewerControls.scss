@@ -1,0 +1,24 @@
+.viewer-controls {
+  padding: 15px 20px;
+  display: flex;
+  justify-content: center;
+
+  .viewer-control-button {
+    background-color: #1a2329;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 500;
+    padding: 4px 10px;
+    height: 50px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    &:hover {
+      cursor: pointer;
+      background-color: #13181c;
+    }
+  }
+}

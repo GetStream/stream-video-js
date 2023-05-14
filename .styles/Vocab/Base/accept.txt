@@ -46,4 +46,5 @@ logics
 notifee
 hasAudio
 hasVideo
+[Rr]econnections?
 _Note

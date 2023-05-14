@@ -7,8 +7,18 @@ import { useCallState, useStore } from './store';
  * @category Call State
  */
 export const useIsCallRecordingInProgress = () => {
-  const { callRecordingInProgress$ } = useCallState();
-  return useObservableValue(callRecordingInProgress$);
+  const metadata = useCallMetadata();
+  return !!metadata?.recording;
+};
+
+/**
+ * Utility hook which provides information whether the current call is broadcasting.
+ *
+ * @category Call State
+ */
+export const useIsCallBroadcastingInProgress = () => {
+  const metadata = useCallMetadata();
+  return !!metadata?.broadcasting;
 };
 
 /**

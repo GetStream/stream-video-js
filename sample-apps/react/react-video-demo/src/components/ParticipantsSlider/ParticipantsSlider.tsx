@@ -1,14 +1,9 @@
 import { FC, useEffect, useState } from 'react';
 import { FreeMode, Grid as GridModule, Mousewheel, Navigation } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
-
 import classnames from 'classnames';
-
-import {
-  Call,
-  StreamVideoParticipant,
-  useLocalParticipant,
-} from '@stream-io/video-react-sdk';
+import { Call, StreamVideoParticipant } from '@stream-io/video-react-sdk';
+import { SfuModels } from '@stream-io/video-client';
 
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from '../Icons';
 import Participant from '../Participant';
@@ -94,10 +89,6 @@ export const ParticipantsSlider: FC<Props> = ({
     [styles?.[derivedMode]]: derivedMode,
   });
 
-  const participantClassName = classnames(styles.participant, {
-    [styles?.[derivedMode]]: derivedMode,
-  });
-
   if (derivedMode) {
     return (
       <div
@@ -132,18 +123,29 @@ export const ParticipantsSlider: FC<Props> = ({
           }}
           className={swiperClassName}
         >
-          {participants?.map((participant, index) => (
-            <SwiperSlide key={index} className={slideClassName}>
-              <div key={`participant-${index}`}>
-                <Participant
-                  key={participant.sessionId}
-                  call={call}
-                  className={participantClassName}
-                  participant={participant}
-                />
-              </div>
-            </SwiperSlide>
-          ))}
+          {participants?.map((participant, index) => {
+            const particpantHasVideo = participant.publishedTracks.includes(
+              SfuModels.TrackType.VIDEO,
+            );
+
+            const participantClassName = classnames(styles.participant, {
+              [styles?.[derivedMode]]: derivedMode,
+              [styles.videoDisabled]: !particpantHasVideo,
+            });
+
+            return (
+              <SwiperSlide key={index} className={slideClassName}>
+                <div key={`participant-${index}`}>
+                  <Participant
+                    key={participant.sessionId}
+                    call={call}
+                    className={participantClassName}
+                    participant={participant}
+                  />
+                </div>
+              </SwiperSlide>
+            );
+          })}
         </Swiper>
       </div>
     );

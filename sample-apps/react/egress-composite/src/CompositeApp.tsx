@@ -3,6 +3,7 @@ import {
   Call,
   StreamCallProvider,
   StreamClientOptions,
+  StreamTheme,
   StreamVideo,
   useCreateStreamVideoClient,
   useHasOngoingScreenShare,
@@ -53,13 +54,15 @@ export const CompositeApp = () => {
 
   return (
     <StreamVideo client={client}>
-      <EgressReadyNotificationProvider>
-        {activeCall && (
-          <StreamCallProvider call={activeCall}>
-            <UiDispatcher layout={config.layout} />
-          </StreamCallProvider>
-        )}
-      </EgressReadyNotificationProvider>
+      <StreamTheme>
+        <EgressReadyNotificationProvider>
+          {activeCall && (
+            <StreamCallProvider call={activeCall}>
+              <UiDispatcher layout={config.layout} />
+            </StreamCallProvider>
+          )}
+        </EgressReadyNotificationProvider>
+      </StreamTheme>
     </StreamVideo>
   );
 };

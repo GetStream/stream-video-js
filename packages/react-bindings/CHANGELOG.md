@@ -2,6 +2,88 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.25](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.24...@stream-io/video-react-bindings-0.0.1-alpha.25) (2023-05-12)
+
+
+
+## [0.0.1-alpha.24](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.23...@stream-io/video-react-bindings-0.0.1-alpha.24) (2023-05-12)
+
+
+### Features
+
+* Livestream sample app ([#489](https://github.com/GetStream/stream-video-js/issues/489)) ([bf6e6e5](https://github.com/GetStream/stream-video-js/commit/bf6e6e54dab884828ca08208f25b1285cf3f1944))
+
+
+
+## [0.0.1-alpha.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.22...@stream-io/video-react-bindings-0.0.1-alpha.23) (2023-05-12)
+
+
+
+## [0.0.1-alpha.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.21...@stream-io/video-react-bindings-0.0.1-alpha.22) (2023-05-11)
+
+
+### Features
+
+* server-side participant counting ([#481](https://github.com/GetStream/stream-video-js/issues/481)) ([3410c25](https://github.com/GetStream/stream-video-js/commit/3410c25ec1449f4d39b44080ad64238b38446612))
+
+
+
+## [0.0.1-alpha.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.20...@stream-io/video-react-bindings-0.0.1-alpha.21) (2023-05-11)
+
+
+
+## [0.0.1-alpha.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.19...@stream-io/video-react-bindings-0.0.1-alpha.20) (2023-05-11)
+
+
+
+## [0.0.1-alpha.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.18...@stream-io/video-react-bindings-0.0.1-alpha.19) (2023-05-10)
+
+
+### Features
+
+* call broadcasting events and apis ([#478](https://github.com/GetStream/stream-video-js/issues/478)) ([8aa4fcb](https://github.com/GetStream/stream-video-js/commit/8aa4fcbbe00b43d4d9f977daa2fd297436e83b51))
+
+
+
+## [0.0.1-alpha.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.17...@stream-io/video-react-bindings-0.0.1-alpha.18) (2023-05-10)
+
+
+
+## [0.0.1-alpha.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.16...@stream-io/video-react-bindings-0.0.1-alpha.17) (2023-05-09)
+
+
+### Reverts
+
+* Revert "chore: Avoid non-atomic pushes resulting in invalid version tags" ([24be283](https://github.com/GetStream/stream-video-js/commit/24be28300a5f5d452338457d60b1e34682027be6))
+
+
+
+## [0.0.1-alpha.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.15...@stream-io/video-react-bindings-0.0.1-alpha.16) (2023-05-09)
+
+
+### Bug Fixes
+
+* edge cases in default layouts ([#471](https://github.com/GetStream/stream-video-js/issues/471)) ([c79a733](https://github.com/GetStream/stream-video-js/commit/c79a7330a1e0a84ce8eb3b0d9f7d9eea1b1f5d3a))
+
+
+
+## [0.0.1-alpha.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.15...@stream-io/video-react-bindings-0.0.1-alpha.16) (2023-05-08)
+
+
+### Bug Fixes
+
+* edge cases in default layouts ([#471](https://github.com/GetStream/stream-video-js/issues/471)) ([c79a733](https://github.com/GetStream/stream-video-js/commit/c79a7330a1e0a84ce8eb3b0d9f7d9eea1b1f5d3a))
+
+
+
+## [0.0.1-alpha.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.14...@stream-io/video-react-bindings-0.0.1-alpha.15) (2023-05-08)
+
+
+
+## [0.0.1-alpha.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.13...@stream-io/video-react-bindings-0.0.1-alpha.14) (2023-05-08)
+
+
+
 ## [0.0.1-alpha.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.12...@stream-io/video-react-bindings-0.0.1-alpha.13) (2023-05-07)
 
 

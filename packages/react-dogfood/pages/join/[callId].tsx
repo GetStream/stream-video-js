@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/router';
 import {
+  StreamMeeting,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
@@ -68,11 +69,9 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         language={language}
         translationsOverrides={translations}
       >
-        <MeetingUI
-          chatClient={chatClient}
-          callId={callId}
-          callType={callType}
-        />
+        <StreamMeeting callId={callId} callType={callType} autoJoin={false}>
+          <MeetingUI chatClient={chatClient} />
+        </StreamMeeting>
       </StreamVideo>
     </>
   );

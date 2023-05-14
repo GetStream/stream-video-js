@@ -101,6 +101,14 @@ export class CallState {
   );
 
   /**
+   * The server-side counted number of participants connected to the current call.
+   * This number includes the anonymous participants as well.
+   *
+   * @internal
+   */
+  private participantCountSubject = new BehaviorSubject<number>(0);
+
+  /**
    * All participants of the current call (including the logged-in user).
    *
    * @internal
@@ -124,14 +132,6 @@ export class CallState {
   >(undefined);
 
   /**
-   * Emits a boolean indicating whether a call recording is currently in progress.
-   *
-   * @internal
-   */
-  // FIXME OL: might be derived from `this.call.recording`.
-  private callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
-
-  /**
    * Emits a list of details about recordings performed for the current call.
    */
   private callRecordingListSubject = new BehaviorSubject<CallRecording[]>([]);
@@ -147,13 +147,19 @@ export class CallState {
   >(undefined);
 
   // Derived state
+
+  /**
+   * The server-side counted number of participants connected to the current call.
+   * This number includes the anonymous participants as well.
+   */
+  participantCount$: Observable<number>;
+
   /**
    * All participants of the current call (this includes the current user and other participants as well).
    */
   participants$: Observable<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >;
-  /**
 
   /**
    * Remote participants of the current call (this includes every participant except the logged-in user).
@@ -195,11 +201,6 @@ export class CallState {
    * in case they want to show historical stats data.
    */
   callStatsReport$: Observable<CallStatsReport | undefined>;
-
-  /**
-   * Emits a boolean indicating whether a call recording is currently in progress.
-   */
-  callRecordingInProgress$: Observable<boolean>;
 
   /**
    * Emits a list of details about recordings performed for the current call
@@ -268,9 +269,9 @@ export class CallState {
       distinctUntilChanged(),
     );
 
+    this.participantCount$ = this.participantCountSubject.asObservable();
+
     this.callStatsReport$ = this.callStatsReportSubject.asObservable();
-    this.callRecordingInProgress$ =
-      this.callRecordingInProgressSubject.asObservable();
     this.callPermissionRequest$ =
       this.callPermissionRequestSubject.asObservable();
     this.callRecordingList$ = this.callRecordingListSubject.asObservable();
@@ -311,6 +312,24 @@ export class CallState {
    * @return the updated value.
    */
   setCurrentValue = RxUtils.setCurrentValue;
+
+  /**
+   * The server-side counted number of participants connected to the current call.
+   * This number includes the anonymous participants as well.
+   */
+  get participantCount() {
+    return this.getCurrentValue(this.participantCount$);
+  }
+
+  /**
+   * Sets the number of participants in the current call.
+   *
+   * @internal
+   * @param count the number of participants.
+   */
+  setParticipantCount = (count: Patch<number>) => {
+    return this.setCurrentValue(this.participantCountSubject, count);
+  };
 
   /**
    * The list of participants in the current call.
@@ -397,25 +416,6 @@ export class CallState {
    */
   setCallRecordingsList = (recordings: Patch<CallRecording[]>) => {
     return this.setCurrentValue(this.callRecordingListSubject, recordings);
-  };
-
-  /**
-   * Tells whether a call recording is in progress.
-   */
-  get callRecordingInProgress() {
-    return this.getCurrentValue(this.callRecordingInProgress$);
-  }
-
-  /**
-   * Sets whether a call recording is in progress.
-   *
-   * @param inProgress whether a call recording is in progress.
-   */
-  setCallRecordingInProgress = (inProgress: Patch<boolean>) => {
-    return this.setCurrentValue(
-      this.callRecordingInProgressSubject,
-      inProgress,
-    );
   };
 
   /**

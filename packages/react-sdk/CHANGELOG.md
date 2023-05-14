@@ -2,6 +2,97 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.28...@stream-io/video-react-sdk-0.0.1-alpha.29) (2023-05-12)
+
+
+
+## [0.0.1-alpha.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.27...@stream-io/video-react-sdk-0.0.1-alpha.28) (2023-05-12)
+
+
+
+## [0.0.1-alpha.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.26...@stream-io/video-react-sdk-0.0.1-alpha.27) (2023-05-12)
+
+
+### Features
+
+* Livestream sample app ([#489](https://github.com/GetStream/stream-video-js/issues/489)) ([bf6e6e5](https://github.com/GetStream/stream-video-js/commit/bf6e6e54dab884828ca08208f25b1285cf3f1944))
+
+
+
+## [0.0.1-alpha.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.25...@stream-io/video-react-sdk-0.0.1-alpha.26) (2023-05-12)
+
+
+
+## [0.0.1-alpha.25](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.24...@stream-io/video-react-sdk-0.0.1-alpha.25) (2023-05-11)
+
+
+
+## [0.0.1-alpha.24](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.23...@stream-io/video-react-sdk-0.0.1-alpha.24) (2023-05-11)
+
+
+
+## [0.0.1-alpha.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.22...@stream-io/video-react-sdk-0.0.1-alpha.23) (2023-05-11)
+
+
+
+## [0.0.1-alpha.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.21...@stream-io/video-react-sdk-0.0.1-alpha.22) (2023-05-10)
+
+
+
+## [0.0.1-alpha.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.20...@stream-io/video-react-sdk-0.0.1-alpha.21) (2023-05-10)
+
+
+### Bug Fixes
+
+* bugfixes in event handling and blocking users ([#476](https://github.com/GetStream/stream-video-js/issues/476)) ([5e9a4fb](https://github.com/GetStream/stream-video-js/commit/5e9a4fb2819cc087f3e095b93488fa9c4df018a4))
+
+
+
+## [0.0.1-alpha.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.19...@stream-io/video-react-sdk-0.0.1-alpha.20) (2023-05-09)
+
+
+### Features
+
+* StreamTheme component and docs ([#477](https://github.com/GetStream/stream-video-js/issues/477)) ([440de24](https://github.com/GetStream/stream-video-js/commit/440de246d0a510f99a93ea34df6d03a9127c8d32))
+
+
+
+## [0.0.1-alpha.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.18...@stream-io/video-react-sdk-0.0.1-alpha.19) (2023-05-09)
+
+
+### Reverts
+
+* Revert "chore: Avoid non-atomic pushes resulting in invalid version tags" ([24be283](https://github.com/GetStream/stream-video-js/commit/24be28300a5f5d452338457d60b1e34682027be6))
+
+
+
+## [0.0.1-alpha.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.17...@stream-io/video-react-sdk-0.0.1-alpha.18) (2023-05-09)
+
+
+### Bug Fixes
+
+* edge cases in default layouts ([#471](https://github.com/GetStream/stream-video-js/issues/471)) ([c79a733](https://github.com/GetStream/stream-video-js/commit/c79a7330a1e0a84ce8eb3b0d9f7d9eea1b1f5d3a))
+* **permissions:** add shortcut APIs ([#475](https://github.com/GetStream/stream-video-js/issues/475)) ([466614c](https://github.com/GetStream/stream-video-js/commit/466614ccf7f15cb16fffc97d5aa05318d2adf7e7))
+
+
+
+## [0.0.1-alpha.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.17...@stream-io/video-react-sdk-0.0.1-alpha.18) (2023-05-08)
+
+
+### Bug Fixes
+
+* edge cases in default layouts ([#471](https://github.com/GetStream/stream-video-js/issues/471)) ([c79a733](https://github.com/GetStream/stream-video-js/commit/c79a7330a1e0a84ce8eb3b0d9f7d9eea1b1f5d3a))
+
+
+
+## [0.0.1-alpha.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.16...@stream-io/video-react-sdk-0.0.1-alpha.17) (2023-05-08)
+
+
+
+## [0.0.1-alpha.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.15...@stream-io/video-react-sdk-0.0.1-alpha.16) (2023-05-08)
+
+
+
 ## [0.0.1-alpha.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.14...@stream-io/video-react-sdk-0.0.1-alpha.15) (2023-05-07)
 
 

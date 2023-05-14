@@ -12,6 +12,7 @@ import { MicMuted, Signal } from '../Icons';
 import JoinContainer from '../JoinContainer';
 
 import styles from './LobbyPanel.module.css';
+import { PoweredBy } from '../PoweredBy/PoweredBy';
 
 export type Props = {
   joinCall(): void;
@@ -19,7 +20,10 @@ export type Props = {
   user: User;
   className?: string;
   call?: any;
-  fastestEdge?: any;
+  fastestEdge?: {
+    id: string;
+    latency: number;
+  };
   isJoiningCall?: boolean;
 };
 
@@ -43,18 +47,22 @@ export const LobbyPanel: FC<Props> = ({
   const { initialAudioEnabled } = useMediaDevices();
 
   const rootClassName = classnames(styles.root, className);
+
+  const callContainerClassNames = classnames(styles.callContainer, {
+    [styles.audioEnabled]: initialAudioEnabled,
+  });
   return (
     <div className={rootClassName}>
       <h1 className={styles.heading}>Optimizing Call Experience</h1>
       <p className={styles.description}>
         Our Edge Network is selecting the best server for your call...
       </p>
-      <div className={styles.callContainer}>
+      <div className={callContainerClassNames}>
         <div className={styles.videoOverlay}>
           <div className={styles.server}>Connected to {fastestEdge?.id}</div>
           <div className={styles.latency}>
             <span className={styles.latencyIndicator} />
-            {fastestEdge?.green} ms
+            {fastestEdge?.latency} ms
           </div>
           <div className={styles.name}>
             {user.name} (You)
@@ -78,6 +86,7 @@ export const LobbyPanel: FC<Props> = ({
         joinCall={joinCall}
         isJoiningCall={isJoiningCall}
       />
+      <PoweredBy className={styles.poweredBy} />
     </div>
   );
 };

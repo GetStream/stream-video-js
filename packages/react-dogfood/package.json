@@ -8,10 +8,10 @@
     "start": "next start"
   },
   "dependencies": {
-    "@emotion/react": "^11.10.6",
-    "@emotion/styled": "^11.10.6",
-    "@mui/icons-material": "^5.11.11",
-    "@mui/material": "^5.11.12",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.11.16",
+    "@mui/material": "^5.13.0",
     "@sentry/nextjs": "^7.41.0",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@types/yargs": "^17.0.22",
-    "sass": "^1.58.3",
+    "sass": "^1.62.1",
     "source-map-loader": "^4.0.1"
   }
 }
