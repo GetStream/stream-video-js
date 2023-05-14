@@ -1,18 +1,17 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  useCallMetadata,
   useCall,
   useHasOngoingScreenShare,
-  useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
-import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
 import { useIncallManager } from '../hooks/useIncallManager';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
+import { CallParticipantsBadge } from './CallParticipantsBadge';
+import { PermissionRequests } from './PermissionRequests';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -52,24 +51,9 @@ const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
   const { mode = 'grid' } = props;
   const hasScreenShare = useHasOngoingScreenShare();
-  const callMetaData = useCallMetadata();
-  const localParticipant = useLocalParticipant();
 
   useIncallManager({ media: 'video', auto: true });
   usePublishMediaStreams();
-
-  let blocked_user_ids: string[] = useMemo(() => {
-    return callMetaData ? callMetaData.blocked_user_ids : [];
-  }, [callMetaData]);
-
-  // Effect to move out of the Active Call if the user is blocked
-  useEffect(() => {
-    if (
-      localParticipant?.userId &&
-      blocked_user_ids.includes(localParticipant.userId)
-    ) {
-    }
-  }, [blocked_user_ids, localParticipant]);
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     setHeight(
@@ -87,6 +71,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
       <View style={styles.iconGroup}>
         <CallParticipantsBadge />
       </View>
+      <PermissionRequests />
 
       <View
         style={[
