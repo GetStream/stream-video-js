@@ -100,6 +100,19 @@
   }
 }
 
+@media screen(2xl) {
+  .meetingGrid-1 .localParticipant,
+  .meetingGrid-1 .remoteParticipant {
+    @apply h-auto max-h-[660px] w-auto;
+    aspect-ratio: 16/9;
+  }
+
+  .meetingGrid-1 .localParticipant.videoDisabled,
+  .meetingGrid-1 .remoteParticipant.videoDisabled {
+    @apply h-[660px] w-full;
+  }
+}
+
 /* end one participant */
 
 /* two participants */
@@ -125,6 +138,19 @@
     @apply h-auto;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(1, 1fr);
+  }
+}
+
+@media screen(2xl) {
+  .meetingGrid-2 .localParticipant,
+  .meetingGrid-2 .remoteParticipant {
+    @apply w-[500px] max-w-[500px] h-auto;
+    aspect-ratio: 16/9;
+  }
+
+  .meetingGrid-2 .localParticipant.videoDisabled,
+  .meetingGrid-2 .remoteParticipant.videoDisabled {
+    @apply w-[500px] h-full;
   }
 }
 

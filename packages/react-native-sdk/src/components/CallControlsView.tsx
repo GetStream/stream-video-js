@@ -12,9 +12,12 @@ import {
 } from '../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
-import { CallPermissionsWrapper } from './CallPermissionsWrapper';
 import { OwnCapability } from '@stream-io/video-client';
-import { useCall, useOwnCapabilities } from '@stream-io/video-react-bindings';
+import {
+  CallPermissionsWrapper,
+  useCall,
+  useOwnCapabilities,
+} from '@stream-io/video-react-bindings';
 import { StreamVideoRN } from '../utils/StreamVideoRN';
 import { PermissionNotification } from './PermissionsNotification';
 

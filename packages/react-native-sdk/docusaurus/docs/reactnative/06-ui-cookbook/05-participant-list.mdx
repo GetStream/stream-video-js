@@ -41,7 +41,8 @@ This will ensure that the `videoClient` instance, among other APIs (see explanat
 
 ```tsx
 import { useCreateStreamVideoClient } from '@stream-io/video-react-sdk';
-import { StreamVideoCall } from '@stream-io/video-react-native-sdk';
+import { StreamVideo } from '@stream-io/video-react-native-sdk';
+import { Platform } from 'react-native';
 // This is the component that will render the custom layout.
 // we can assume that the implementation of this component is empty for now.
 import { MyActiveCall } from './MyActiveCall';
@@ -64,6 +65,9 @@ export default () => {
     user: USER,
     tokenOrProvider: USER.custom.token,
     apiKey: STREAM_API_KEY,
+    options: {
+      preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
+    },
   });
 
   return (

@@ -6,6 +6,7 @@ import {
   ComponentProps,
 } from 'react';
 import {
+  CallPermissionsWrapper,
   useCall,
   useCallMetadata,
   useOwnCapabilities,
@@ -30,7 +31,6 @@ import { EmptyParticipantSearchList } from './EmptyParticipantSearchList';
 import { LoadingIndicator } from '../LoadingIndicator';
 import { SearchInput, SearchResults } from '../Search';
 import { useSearch, UseSearchParams } from '../Search/hooks';
-import { Restricted } from '../Moderation';
 import {
   GenericMenu,
   GenericMenuButtonItem,
@@ -141,12 +141,12 @@ const CallParticipantListContentHeader = ({
       <div className="str-video__participant-list__content-header-title">
         <span>{UserListTypes[userListType]}</span>
         {userListType === 'active' && (
-          <Restricted
+          <CallPermissionsWrapper
             availableGrants={ownCapabilities} // TODO: remove this line once Oliver's PR lands
             requiredGrants={[OwnCapability.MUTE_USERS]}
           >
             <TextButton onClick={muteAll}>Mute all</TextButton>
-          </Restricted>
+          </CallPermissionsWrapper>
         )}
       </div>
     </div>

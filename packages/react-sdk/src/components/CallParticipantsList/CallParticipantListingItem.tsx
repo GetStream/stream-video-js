@@ -1,6 +1,10 @@
 import clsx from 'clsx';
 import { ComponentProps, ComponentType, forwardRef } from 'react';
-import { useCall, useConnectedUser } from '@stream-io/video-react-bindings';
+import {
+  CallPermissionsWrapper,
+  useCall,
+  useConnectedUser,
+} from '@stream-io/video-react-bindings';
 import {
   OwnCapability,
   SfuModels,
@@ -13,7 +17,6 @@ import {
   MenuToggle,
   ToggleMenuButtonProps,
 } from '../Menu';
-import { Restricted } from '../Moderation';
 import { WithTooltip } from '../Tooltip';
 import { Icon } from '../Icon';
 
@@ -171,16 +174,16 @@ export const ParticipantActionsContextMenu = ({
         <Icon icon="pin" />
         {participant.pinnedAt ? 'Unpin' : 'Pin'}
       </GenericMenuButtonItem>
-      <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
+      <CallPermissionsWrapper requiredGrants={[OwnCapability.BLOCK_USERS]}>
         <GenericMenuButtonItem onClick={blockUser}>
           <Icon icon="not-allowed" />
           Block
         </GenericMenuButtonItem>
-      </Restricted>
+      </CallPermissionsWrapper>
       {/* <GenericMenuButtonItem disabled onClick={kickUserClickHandler}>
         Kick
       </GenericMenuButtonItem> */}
-      <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
+      <CallPermissionsWrapper requiredGrants={[OwnCapability.MUTE_USERS]}>
         <GenericMenuButtonItem
           disabled={
             !participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)
@@ -210,8 +213,10 @@ export const ParticipantActionsContextMenu = ({
           <Icon icon="no-audio" />
           Mute audio
         </GenericMenuButtonItem>
-      </Restricted>
-      <Restricted requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}>
+      </CallPermissionsWrapper>
+      <CallPermissionsWrapper
+        requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}
+      >
         <GenericMenuButtonItem
           onClick={grantPermission(OwnCapability.SEND_AUDIO)}
         >
@@ -243,7 +248,7 @@ export const ParticipantActionsContextMenu = ({
         >
           Disable screen sharing
         </GenericMenuButtonItem>
-      </Restricted>
+      </CallPermissionsWrapper>
     </GenericMenu>
   );
 };

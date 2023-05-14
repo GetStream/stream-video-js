@@ -2,10 +2,12 @@
 
 .str-video__loading-indicator__icon.spinner {
   @include utils.apply-mask-image(
-      var(--str-video__icon--loading),
-      var(--str-video__text-color2),
+    var(--str-video__icon--loading),
+    var(--str-video__text-color2)
   );
   animation: rotation 1s linear infinite;
+  width: 1rem;
+  height: 1rem;
 }
 
 @keyframes rotation {

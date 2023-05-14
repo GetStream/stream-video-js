@@ -37,7 +37,7 @@
 }
 
 .radioButton {
-  @apply mr-3;
+  @apply mr-3 bg-video-transparent;
 }
 
 .radioButton:hover {
@@ -45,8 +45,10 @@
 }
 
 .radioButton:before {
-  @apply absolute h-4 w-4 bg-video-grey-600 border-2 border-video-grey-700 rounded-full flex;
+  @apply absolute h-4 w-4 bg-video-grey-400 border-2 border-video-grey-600 rounded-full flex;
   content: '';
+  margin-top: -0.5px;
+  margin-left: -0.5px;
 }
 
 .radioButton:checked:before {

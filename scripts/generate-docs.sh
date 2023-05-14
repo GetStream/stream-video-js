@@ -45,9 +45,10 @@ rm -rf ../react-bindings/dist/
 # clean up old docs
 rm -rf generated-docs
 rm -rf "$SDK_DOCS_PATH/04-call-engine/"
-rm -rf "$SDK_DOCS_PATH/03-ui/*.md/"
+rm -rf "$SDK_DOCS_PATH"/03-ui/*.md
 rm -rf "$SDK_DOCS_PATH/03-ui/Interfaces/"
 rm -rf "$SDK_DOCS_PATH/07-i18n/"
+rm -rf "$SDK_DOCS_PATH"/02-guides/*gen.mdx
 
 mkdir generated-docs
 
@@ -99,10 +100,10 @@ cp -a ../client/generated-docs/. "$SDK_DOCS_PATH/04-call-engine/"
 cp "../client/$DOCUSAURUS_PATH/client/SDKSpecific.jsx" "$SDK_DOCS_PATH/SDKSpecific.jsx"
 
 cp -a generated-docs/hooks-and-contexts.md "$SDK_DOCS_PATH/04-call-engine/"
-cp -a generated-docs/contexts.md "$SDK_DOCS_PATH/04-call-engine/"
 
 cp -a generated-docs/components.md "$SDK_DOCS_PATH/03-ui/"
 cp -a generated-docs/Interfaces/. "$SDK_DOCS_PATH/03-ui/Interfaces/"
 
 rm -rf generated-docs
+
 echo "Done!"

@@ -1,0 +1,195 @@
+---
+title: Call & Participant State
+description: How the state is exposed
+---
+
+Our SDK uses a design pattern that we refer to as a reactive state store.
+
+The [`StreamVideoClient`](../../call-engine/StreamVideoClient/) instance manages its own state store (this contains information about the connected user and the list of incoming, outgoing and active calls). Additionally each [`Call`](../../call-engine/Call/) instance has its own state store (this contains information about the call itself, for example, the list of participants).
+
+The state stores are updated after each API call/WebSocket event. The reactive state store makes it possible to observe the state from anywhere in your application. You can access the state store using hooks. This guide will help you understand how state management works which is helpful if you want to attach custom logic upon state changes or if you want to create custom components.
+
+## Create client
+
+Before we can explore the state management mechanism, we need to have a `StreamVideoClient` instance, to create it we can use the [`useCreateStreamVideoClient`](../../call-engine/hooks-and-contexts#usecreatestreamvideoclient) hook.
+
+```tsx
+import {
+  useCreateStreamVideoClient,
+  StreamVideo,
+  useConnectedUser,
+} from '@stream-io/video-react-sdk';
+
+export default function App() {
+  const client = useCreateStreamVideoClient({
+    apiKey: '<Your API key>',
+    tokenOrProvider: '<token provider>',
+    user: {
+      id: '<user id>',
+      name: '<name>',
+    },
+  });
+  return ();
+}
+```
+
+## Observe client state
+
+To observe client state you need to use the [`StreamVideo`](../../call-engine/hooks-and-contexts#streamvideo) context provider:
+
+```tsx
+import {
+  useCreateStreamVideoClient,
+  StreamVideo,
+  useConnectedUser,
+} from '@stream-io/video-react-sdk';
+
+export default function App() {
+  const client = useCreateStreamVideoClient({
+    apiKey: '<Your API key>',
+    tokenOrProvider: '<token provider>',
+    user: {
+      id: '<user id>',
+      name: '<name>',
+    },
+  });
+  return <StreamVideo client={client}></StreamVideo>;
+}
+```
+
+Then you'll be able to use the [client state hooks](../../call-engine/hooks-and-contexts/#client-state) to easily access the client state anywhere in your application. These hooks are updated when a relevant client state change occurs.
+
+Let's see an example:
+
+If you want to observe the connected user you can use the [`useConnectedUser`](../../call-engine/hooks-and-contexts/#useconnecteduser) hook.
+
+```tsx
+import {
+  useCreateStreamVideoClient,
+  StreamVideo,
+  useConnectedUser,
+} from '@stream-io/video-react-sdk';
+
+export default function App() {
+  const client = useCreateStreamVideoClient({
+    apiKey: '<Your API key>',
+    tokenOrProvider: '<token provider>',
+    user: {
+      id: '<user id>',
+      name: '<name>',
+    },
+  });
+  return (
+    <StreamVideo client={client}>
+      <Header></Header>
+    </StreamVideo>
+  );
+}
+
+const Header = () => {
+  const user = useConnectedUser();
+  return <div>{user ? `Logged in: ${user.name}` : 'Logged out'}</div>;
+};
+```
+
+This approach makes it possible to access the client state and be notified about changes anywhere in your application without having to manually subscribe to WebSocket events.
+
+The full list of available client state hooks are available in the [Hooks and Contexts page](../../call-engine/hooks-and-contexts#client-state).
+
+## Observe call state
+
+To observe call state you can use [`StreamMeeting` component](TODO link):
+
+```tsx
+import {
+  useCreateStreamVideoClient,
+  StreamVideo,
+  useConnectedUser,
+} from '@stream-io/video-react-sdk';
+
+export default function App() {
+  const client = useCreateStreamVideoClient({
+    apiKey: '<Your API key>',
+    tokenOrProvider: '<token provider>',
+    user: {
+      id: '<user id>',
+      name: '<name>',
+    },
+  });
+
+  return (
+    <StreamVideo client={client}>
+      <Header></Header>
+      <StreamMeeting
+        callType="default"
+        callId="test-call"
+        autoJoin={true}
+        data={{ create: true }}
+      ></StreamMeeting>
+    </StreamVideo>
+  );
+}
+
+const Header = () => {
+  const user = useConnectedUser();
+  return <div>{user ? `Logged in: ${user.name}` : 'Logged out'}</div>;
+};
+```
+
+Let's see an example where we use the [`useCall`](../../call-engine/hooks-and-contexts/#usecall) and [`useCallCallingState`](../../call-engine/hooks-and-contexts/#usecallcallingstate) hooks to display some basic information about the call:
+
+```tsx
+import {
+  useCreateStreamVideoClient,
+  StreamVideo,
+  useConnectedUser,
+} from '@stream-io/video-react-sdk';
+
+export default function App() {
+  const client = useCreateStreamVideoClient({
+    apiKey: '<Your API key>',
+    tokenOrProvider: '<token provider>',
+    user: {
+      id: '<user id>',
+      name: '<name>',
+    },
+  });
+
+  return (
+    <StreamVideo client={client}>
+      <Header></Header>
+      <StreamMeeting
+        callType="default"
+        callId="test-call"
+        autoJoin={true}
+        data={{ create: true }}
+      >
+        <Call />
+      </StreamMeeting>
+    </StreamVideo>
+  );
+}
+
+const Header = () => {
+  const user = useConnectedUser();
+  return <div>{user ? `Logged in: ${user.name}` : 'Logged out'}</div>;
+};
+
+const Call = () => {
+  const call = useCall();
+  const callingState = useCallCallingState();
+
+  return (
+    <div>
+      <div>Call: {call?.data?.cid}</div>
+      <div>State: {callingState}</div>
+    </div>
+  );
+};
+```
+
+This approach makes it possible to access the call state and be notified about changes anywhere in your application without having to manually subscribe to WebSocket events.
+
+The list of call state hooks can be found on the [Hooks and Contexts page](../../call-engine/hooks-and-contexts#call-state).
+
+The `StreamMeeting` component uses the [`StreamCallProvider`](../../call-engine/hooks-and-contexts/#streamcallprovider) under the hood.

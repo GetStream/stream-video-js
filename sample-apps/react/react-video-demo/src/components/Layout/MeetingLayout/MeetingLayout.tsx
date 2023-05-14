@@ -32,7 +32,8 @@ export const MeetingLayout: FC<Props> = ({
   callId,
 }) => {
   const { isVisible, component, close } = useModalContext();
-  const { isChatVisible, isParticipantsVisible } = usePanelContext();
+  const { isChatVisible, isParticipantsVisible, toggleChat } =
+    usePanelContext();
 
   const transitionRef = useRef(null);
 
@@ -59,9 +60,13 @@ export const MeetingLayout: FC<Props> = ({
         (breakpoint === 'xs' || breakpoint === 'sm') ? null : (
           <div className={styles.header}>{header}</div>
         )}
+        {isChatVisible && (breakpoint === 'xs' || breakpoint === 'sm') ? (
+          <div className={styles.backdrop} onClick={toggleChat} />
+        ) : null}
         <div className={bodyClassName}>{children}</div>
 
         <div className={styles.footer}>{footer}</div>
+
         {isChatVisible && (breakpoint === 'xs' || breakpoint === 'sm') ? (
           <Chat
             channelId={callId}

@@ -20,7 +20,7 @@ export class StreamVideoRN {
   /**
    * Set global config for StreamVideoRN allows you to set wished CDN hosts for resizing images.
    * This function accepts an config object that will be merged with the default config.
-   * @example StreamChatRN.setConfig({ onOpenCallParticipantsInfoView: () => {} });
+   * @example StreamVideoRN.setConfig({ onOpenCallParticipantsInfoView: () => {} });
    */
   static setConfig(config: Partial<StreamVideoConfig>) {
     this.config = { ...this.config, ...config };

@@ -13,7 +13,7 @@ import { useStreamVideoStoreValue } from '../contexts';
 import { MicOff, ScreenShare, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { palette } from '../theme/constants';
-import { ParticipantReactions } from './ParticipantReactions';
+import { ParticipantReaction } from './ParticipantReaction';
 import { useCall } from '@stream-io/video-react-bindings';
 
 /**
@@ -231,7 +231,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         <Avatar participant={participant} />
       )}
       {reaction && (
-        <ParticipantReactions reaction={reaction} sessionId={sessionId} />
+        <ParticipantReaction reaction={reaction} sessionId={sessionId} />
       )}
       {isAudioAvailable && (
         <RTCView streamURL={(audioStream as MediaStream).toURL()} />
