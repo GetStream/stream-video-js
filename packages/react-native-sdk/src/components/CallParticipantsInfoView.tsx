@@ -3,8 +3,19 @@ import {
   SfuModels,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { useCall, useParticipants } from '@stream-io/video-react-bindings';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  useCall,
+  useConnectedUser,
+  useParticipants,
+} from '@stream-io/video-react-bindings';
+import {
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { ArrowRight, MicOff, ScreenShare, VideoSlash } from '../icons';
 import React, { useCallback, useState } from 'react';
 import { generateParticipantTitle } from '../utils';
@@ -22,7 +33,7 @@ type CallParticipantInfoViewType = {
 
 const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   const { participant, setSelectedParticipant } = props;
-
+  const connectedUser = useConnectedUser();
   const optionsOpenHandler = useCallback(() => {
     setSelectedParticipant(participant);
   }, [participant, setSelectedParticipant]);
@@ -34,16 +45,16 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   const isScreenSharing = publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
   );
-  const showYouLabel = participant.isLoggedInUser;
+  const showYouLabel = participant.userId === connectedUser?.id;
+  console.log({ showYouLabel });
 
   return (
     <View style={styles.participant}>
       <Avatar radius={theme.avatar.xs} participant={participant} />
 
       <Text style={styles.name}>
-        {participant.name ||
-          generateParticipantTitle(participant.userId) +
-            (showYouLabel ? ' (You)' : '')}
+        {(participant.name || generateParticipantTitle(participant.userId)) +
+          (showYouLabel ? ' (You)' : '')}
       </Text>
       <View style={styles.icons}>
         {isScreenSharing && (
@@ -93,7 +104,14 @@ const InnerCallParticipantsInfoView = () => {
   const call = useCall();
 
   const muteAllParticipantsHandler = () => {
-    call?.muteAllUsers('audio');
+    call
+      ?.muteAllUsers('audio')
+      .then((response) => {
+        Alert.alert('Users Muted Successfully');
+      })
+      .catch((error) => {
+        console.log('Error muting users', error);
+      });
   };
 
   return (

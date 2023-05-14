@@ -91,7 +91,7 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
           },
           {
             title: 'Disable Screen Sharing',
-            onPressHandler: grantPermission(OwnCapability.SCREENSHARE),
+            onPressHandler: revokePermission(OwnCapability.SCREENSHARE),
           },
         ]
       : [];
