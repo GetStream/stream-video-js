@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Call, OwnCapability } from '@stream-io/video-client';
-import { useIsCallRecordingInProgress } from '@stream-io/video-react-bindings';
+import {
+  CallPermissionsWrapper,
+  useIsCallRecordingInProgress,
+} from '@stream-io/video-react-bindings';
 import { CompositeButton, IconButton } from '../Button/';
 import { LoadingIndicator } from '../LoadingIndicator';
-import { Restricted } from '../Moderation';
 
 export type RecordCallButtonProps = {
   call: Call;
@@ -40,7 +42,7 @@ export const RecordCallButton = ({
   }, [call, isCallRecordingInProgress]);
 
   return (
-    <Restricted
+    <CallPermissionsWrapper
       requiredGrants={[
         OwnCapability.START_RECORD_CALL,
         OwnCapability.STOP_RECORD_CALL,
@@ -63,6 +65,6 @@ export const RecordCallButton = ({
           />
         )}
       </CompositeButton>
-    </Restricted>
+    </CallPermissionsWrapper>
   );
 };

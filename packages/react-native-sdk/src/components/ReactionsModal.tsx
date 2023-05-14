@@ -13,7 +13,6 @@ const reactions: StreamReaction[] = [
     custom: {},
   },
   {
-    // TODO OL: use `prompt` type?
     type: 'raised-hand',
     emoji_code: ':raise-hand:',
     custom: {},

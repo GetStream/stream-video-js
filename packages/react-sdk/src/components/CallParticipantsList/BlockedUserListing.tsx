@@ -1,7 +1,9 @@
-import { useCall } from '@stream-io/video-react-bindings';
+import {
+  CallPermissionsWrapper,
+  useCall,
+} from '@stream-io/video-react-bindings';
 import { OwnCapability } from '@stream-io/video-client';
 
-import { Restricted } from '../Moderation';
 import { TextButton } from '../Button';
 
 export const BlockedUserListing = ({ data }: { data: string[] }) => {
@@ -30,9 +32,9 @@ const BlockedUserListingItem = ({ userId }: { userId: string }) => {
       <div className="str-video__participant-listing-item__display-name">
         {userId}
       </div>
-      <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
+      <CallPermissionsWrapper requiredGrants={[OwnCapability.BLOCK_USERS]}>
         <TextButton onClick={unblockUserClickHandler}>Unblock</TextButton>
-      </Restricted>
+      </CallPermissionsWrapper>
     </div>
   );
 };

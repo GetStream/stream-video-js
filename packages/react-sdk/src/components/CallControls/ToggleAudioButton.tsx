@@ -5,13 +5,13 @@ import {
   useHasPermissions,
   useLocalParticipant,
   useI18n,
+  CallPermissionsWrapper,
 } from '@stream-io/video-react-bindings';
 
 import { useMediaDevices } from '../../core/contexts';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { CompositeButton, IconButton } from '../Button';
 import { PermissionNotification } from '../Notification';
-import { Restricted } from '../Moderation';
 
 export type ToggleAudioPreviewButtonProps = { caption?: string };
 
@@ -88,7 +88,7 @@ export const ToggleAudioPublishingButton = ({
   ]);
 
   return (
-    <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
+    <CallPermissionsWrapper requiredGrants={[OwnCapability.SEND_AUDIO]}>
       <PermissionNotification
         permission={OwnCapability.SEND_AUDIO}
         isAwaitingApproval={isAwaitingApproval}
@@ -107,6 +107,6 @@ export const ToggleAudioPublishingButton = ({
           />
         </CompositeButton>
       </PermissionNotification>
-    </Restricted>
+    </CallPermissionsWrapper>
   );
 };

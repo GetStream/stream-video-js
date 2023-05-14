@@ -1,8 +1,10 @@
-import { PropsWithChildren } from 'react';
 import { OwnCapability } from '@stream-io/video-client';
-import { useCall, useOwnCapabilities } from '@stream-io/video-react-bindings';
 
-type RestrictedProps = PropsWithChildren<{
+import { PropsWithChildren } from 'react';
+import { useCall } from '../contexts';
+import { useOwnCapabilities } from '../hooks';
+
+type CallPermissionsWrapperProps = PropsWithChildren<{
   /**
    * OwnCapabilities of the participant - grants they have available
    */
@@ -18,15 +20,15 @@ type RestrictedProps = PropsWithChildren<{
   requireAll?: boolean;
 }>;
 
-export const Restricted = ({
+export const CallPermissionsWrapper = ({
   availableGrants: availableGrantsFromProps,
   requiredGrants,
   requireAll = true,
   children,
-}: RestrictedProps) => {
+}: CallPermissionsWrapperProps) => {
   const call = useCall();
   const ownCapabilities = useOwnCapabilities();
-  const availableGrants = availableGrantsFromProps || ownCapabilities;
+  const availableGrants = availableGrantsFromProps ?? ownCapabilities;
   const hasPermissions = requiredGrants[requireAll ? 'every' : 'some'](
     (capability) => availableGrants.includes(capability),
   );

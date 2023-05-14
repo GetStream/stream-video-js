@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  CallPermissionsWrapper,
   useCall,
   useHasPermissions,
   useLocalParticipant,
@@ -10,7 +11,6 @@ import { CompositeButton, IconButton } from '../Button/';
 import { useMediaDevices } from '../../core/contexts';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
-import { Restricted } from '../Moderation';
 
 export type ToggleCameraPreviewButtonProps = { caption?: string };
 
@@ -85,7 +85,7 @@ export const ToggleCameraPublishingButton = ({
   ]);
 
   return (
-    <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
+    <CallPermissionsWrapper requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <PermissionNotification
         permission={OwnCapability.SEND_VIDEO}
         isAwaitingApproval={isAwaitingApproval}
@@ -104,6 +104,6 @@ export const ToggleCameraPublishingButton = ({
           />
         </CompositeButton>
       </PermissionNotification>
-    </Restricted>
+    </CallPermissionsWrapper>
   );
 };

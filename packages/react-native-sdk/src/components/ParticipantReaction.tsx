@@ -12,7 +12,7 @@ export type ReactionProps = {
   hideAfterTimeoutInMs?: number;
 };
 
-export const ParticipantReactions = (props: ReactionProps) => {
+export const ParticipantReaction = (props: ReactionProps) => {
   const {
     reactionMappings = defaultEmojiReactions,
     reaction,
@@ -20,11 +20,11 @@ export const ParticipantReactions = (props: ReactionProps) => {
     hideAfterTimeoutInMs = 5500,
   } = props;
   const call = useCall();
-  const [isShowing, setIsShowing] = useState(false);
+  const [isShowing, setIsShowing] = useState<boolean>(false);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
-    if (reaction && call) {
+    if (call) {
       setIsShowing(true);
       timeoutId = setTimeout(() => {
         setIsShowing(false);
@@ -34,22 +34,26 @@ export const ParticipantReactions = (props: ReactionProps) => {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [call, hideAfterTimeoutInMs, reaction, sessionId]);
+  }, [call, hideAfterTimeoutInMs, sessionId]);
 
   const { emoji_code } = reaction;
 
-  if (!emoji_code) return null;
+  if (!isShowing || !emoji_code) return null;
 
-  const renderEmoji =
-    typeof reactionMappings[emoji_code] === 'string' ? (
-      <Text style={styles.reaction}>{reactionMappings[emoji_code]}</Text>
-    ) : (
-      <View style={[styles.svgContainerStyle, theme.icon.md]}>
-        {reactionMappings[emoji_code]}
+  if (typeof reactionMappings[emoji_code] !== 'string') {
+    return (
+      <View style={styles.container}>
+        <View style={[styles.svgContainerStyle, theme.icon.md]}>
+          {reactionMappings[emoji_code]}
+        </View>
       </View>
     );
-
-  return isShowing ? <View style={styles.container}>{renderEmoji}</View> : null;
+  }
+  return (
+    <View style={styles.container}>
+      <Text style={styles.reaction}>{reactionMappings[emoji_code]}</Text>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({

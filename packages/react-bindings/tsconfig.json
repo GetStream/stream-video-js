@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
+    "outDir": "dist",
     "module": "ES2015",
     "target": "ES2015",
     "lib": ["esnext"],
@@ -16,5 +16,6 @@
     "sourceMap": true,
     "jsx": "react-jsxdev"
   },
-  "include": ["./src", "index.ts"]
+  "include": ["./src", "index.ts"],
+  "exclude": ["dist/**/*"]
 }
