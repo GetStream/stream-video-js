@@ -1,5 +1,5 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
-import { Call, CallingState, JoinCallRequest } from '@stream-io/video-client';
+import { Call, CallingState, JoinCallData } from '@stream-io/video-client';
 import {
   StreamCallProvider,
   useStreamVideoClient,
@@ -33,7 +33,7 @@ export type StreamMeetingProps = InitStreamMeeting & {
   /**
    * An optional data to pass when joining the call.
    */
-  data?: JoinCallRequest;
+  data?: JoinCallData;
 
   /**
    * An optional props to pass to the `MediaDevicesProvider`.
