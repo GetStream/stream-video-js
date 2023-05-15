@@ -47,9 +47,6 @@ jobs:
       - name: Test packages
         run: yarn test:ci:all
 
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@master
-
       - name: Version and release packages
         if: ${{ github.ref_name == 'main' }}
         env:
