@@ -1,36 +1,37 @@
-import { MouseEventHandler, useCallback } from 'react';
+import * as React from 'react';
 import { Call } from '@stream-io/video-client';
-import { IconButton } from '../Button/';
+import { MouseEventHandler, useCallback } from 'react';
+import { IconButton } from '../Button';
 
-export type CancelCallButtonProps = {
+export type AcceptCallButtonProps = {
   call?: Call;
   disabled?: boolean;
   onClick?: MouseEventHandler<HTMLButtonElement>;
-  onLeave?: () => void;
+  onAccept?: () => void;
 };
 
-export const CancelCallButton = ({
+export const AcceptCallButton = ({
   call,
   disabled,
+  onAccept,
   onClick,
-  onLeave,
-}: CancelCallButtonProps) => {
+}: AcceptCallButtonProps) => {
   const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(
     async (e) => {
       if (onClick) {
         onClick(e);
       } else if (call) {
-        await call.leave();
-        onLeave?.();
+        await call.join();
+        onAccept?.();
       }
     },
-    [onClick, onLeave, call],
+    [onClick, onAccept, call],
   );
   return (
     <IconButton
       disabled={disabled}
-      icon="call-end"
-      variant="danger"
+      icon="call-accept"
+      variant="success"
       onClick={handleClick}
     />
   );
