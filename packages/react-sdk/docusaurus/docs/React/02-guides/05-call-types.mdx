@@ -8,10 +8,11 @@ This page needs more refinement, concretely:
 
 - Fill the table about the settings for the respective call types
 - Add data to the default settings table
+- Explain what the different features do (for example `opus_dtx_enabled`)
+- Add code example to show how you can set the call type: `client.call("default", "test-call")`
+  :::
 
-:::
-
-The Video SDK uses a set of pre-defined call types that come with different default permissions.
+The Video SDK uses a set of pre-defined call types that come with different default permissions and feature configurations.
 Depending on your use case you can also extend those and use custom types that suit your needs.
 
 Let's start with some clarification on naming.
@@ -115,7 +116,7 @@ In general, it makes sense to have a solid setup of roles as it makes handling p
 
 ## Call Capabilities
 
-A capability defines the actions that a certain is allowed to perform on a call. There are many different
+A capability defines the actions that a certain user is allowed to perform on a call. There are many different
 available (see a full list in the [next chapter](#default-settings)). Each user has a certain set of capabilities attached to them.
 You can change these default capabilities in the dashboard. It is also possible to dynamically change these.
 
@@ -123,7 +124,7 @@ That means that if a user has permission to assign new capabilities they can ass
 This is our approach to an effective permission system.
 
 :::tip
-If you want to learn more about doing this, head over to the [Permissions and Capabilities](../../advanced/03-permissions-and-capabilities) chapter.
+If you want to learn more about doing this, head over to the [Permissions and Capabilities](../../guides/permissions-and-moderation) chapter.
 :::
 
 ## Default settings
