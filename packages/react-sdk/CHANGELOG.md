@@ -2,6 +2,36 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.33](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.32...@stream-io/video-react-sdk-0.0.1-alpha.33) (2023-05-15)
+
+
+
+## [0.0.1-alpha.32](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.31...@stream-io/video-react-sdk-0.0.1-alpha.32) (2023-05-15)
+
+
+### Features
+
+* **react-sdk:** add pending call panel components ([#494](https://github.com/GetStream/stream-video-js/issues/494)) ([d492a8b](https://github.com/GetStream/stream-video-js/commit/d492a8bfa5e05f8d0e1e9ca2d378518b21230f2d))
+
+
+
+## [0.0.1-alpha.31](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.30...@stream-io/video-react-sdk-0.0.1-alpha.31) (2023-05-15)
+
+
+### Features
+
+* faster join flow ([#499](https://github.com/GetStream/stream-video-js/issues/499)) ([898341b](https://github.com/GetStream/stream-video-js/commit/898341b26495412acea7d9e08c0c8f9b0b54e3b3))
+
+
+
+## [0.0.1-alpha.30](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.29...@stream-io/video-react-sdk-0.0.1-alpha.30) (2023-05-15)
+
+
+
+## [0.0.1-alpha.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.28...@stream-io/video-react-sdk-0.0.1-alpha.29) (2023-05-12)
+
+
+
 ## [0.0.1-alpha.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.27...@stream-io/video-react-sdk-0.0.1-alpha.28) (2023-05-12)
 
 

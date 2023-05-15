@@ -2,6 +2,22 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.28...@stream-io/video-react-bindings-0.0.1-alpha.29) (2023-05-15)
+
+
+
+## [0.0.1-alpha.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.27...@stream-io/video-react-bindings-0.0.1-alpha.28) (2023-05-15)
+
+
+
+## [0.0.1-alpha.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.26...@stream-io/video-react-bindings-0.0.1-alpha.27) (2023-05-15)
+
+
+
+## [0.0.1-alpha.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.25...@stream-io/video-react-bindings-0.0.1-alpha.26) (2023-05-15)
+
+
+
 ## [0.0.1-alpha.25](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.24...@stream-io/video-react-bindings-0.0.1-alpha.25) (2023-05-12)
 
 
