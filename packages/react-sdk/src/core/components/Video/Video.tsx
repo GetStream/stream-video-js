@@ -1,45 +1,60 @@
 import {
-  DetailedHTMLProps,
+  ComponentType,
   useCallback,
   useEffect,
   useRef,
   useState,
-  VideoHTMLAttributes,
+  ComponentPropsWithoutRef,
 } from 'react';
 import {
-  Call,
   DebounceType,
   SfuModels,
   StreamVideoParticipant,
   VisibilityState,
 } from '@stream-io/video-client';
 import clsx from 'clsx';
-import { VideoPlaceholder } from './VideoPlaceholder';
+import {
+  VideoPlaceholder as DefaultVideoPlaceholder,
+  VideoPlaceholderProps,
+} from './VideoPlaceholder';
 import { BaseVideo } from './BaseVideo';
+import { useCall } from '@stream-io/video-react-bindings';
 
-export const Video = (
-  props: DetailedHTMLProps<
-    VideoHTMLAttributes<HTMLVideoElement>,
-    HTMLVideoElement
-  > & {
-    call: Call;
-    kind: 'video' | 'screen';
-    participant: StreamVideoParticipant;
-    setVideoElementRef?: (element: HTMLElement | null) => void;
-  },
-) => {
-  const { call, kind, participant, className, setVideoElementRef, ...rest } =
-    props;
-  const { sessionId, videoStream, screenShareStream, publishedTracks } =
-    participant;
+export type VideoProps = ComponentPropsWithoutRef<'video'> & {
+  kind: 'video' | 'screen';
+  participant: StreamVideoParticipant;
+  setVideoElementRef?: (element: HTMLElement | null) => void;
+  VideoPlaceholder?: ComponentType<VideoPlaceholderProps>;
+};
+
+export const Video = ({
+  kind,
+  participant,
+  className,
+  setVideoElementRef,
+  VideoPlaceholder = DefaultVideoPlaceholder,
+  ...rest
+}: VideoProps) => {
+  const {
+    sessionId,
+    videoStream,
+    screenShareStream,
+    publishedTracks,
+    viewportVisibilityState,
+    isLoggedInUser,
+    userId,
+  } = participant;
+
+  const call = useCall();
 
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
     null,
   );
+
   // const [videoTrackMuted, setVideoTrackMuted] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const viewportVisibilityRef = useRef<VisibilityState | undefined>(
-    participant.viewportVisibilityState,
+    viewportVisibilityState,
   );
 
   const stream = kind === 'video' ? videoStream : screenShareStream;
@@ -75,7 +90,7 @@ export const Video = (
 
   const displayPlaceholder =
     !isPublishingTrack ||
-    (participant.viewportVisibilityState === VisibilityState.INVISIBLE &&
+    (viewportVisibilityState === VisibilityState.INVISIBLE &&
       !screenShareStream) ||
     !videoPlaying;
 
@@ -85,6 +100,8 @@ export const Video = (
       dimension?: SfuModels.VideoDimension,
       type: DebounceType = DebounceType.SLOW,
     ) => {
+      if (!call) return;
+
       call.updateSubscriptionsPartial(
         kind,
         {
@@ -98,17 +115,14 @@ export const Video = (
     [call, kind, sessionId],
   );
 
-  // handle generic subscription updates
-
   // handle visibility subscription updates
   useEffect(() => {
-    viewportVisibilityRef.current = participant.viewportVisibilityState;
+    viewportVisibilityRef.current = viewportVisibilityState;
 
-    if (!videoElement || !isPublishingTrack || participant.isLoggedInUser)
-      return;
+    if (!videoElement || !isPublishingTrack || isLoggedInUser) return;
 
     const isInvisibleVVS =
-      participant.viewportVisibilityState === VisibilityState.INVISIBLE;
+      viewportVisibilityState === VisibilityState.INVISIBLE;
 
     updateSubscription(
       isInvisibleVVS
@@ -121,16 +135,15 @@ export const Video = (
     );
   }, [
     updateSubscription,
-    participant.viewportVisibilityState,
+    viewportVisibilityState,
     videoElement,
     isPublishingTrack,
-    participant.isLoggedInUser,
+    isLoggedInUser,
   ]);
 
   // handle resize subscription updates
   useEffect(() => {
-    if (!videoElement || !isPublishingTrack || participant.isLoggedInUser)
-      return;
+    if (!videoElement || !isPublishingTrack || isLoggedInUser) return;
 
     const resizeObserver = new ResizeObserver(() => {
       const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
@@ -163,14 +176,14 @@ export const Video = (
   }, [
     updateSubscription,
     videoElement,
-    participant.viewportVisibilityState,
+    viewportVisibilityState,
     isPublishingTrack,
-    participant.isLoggedInUser,
+    isLoggedInUser,
   ]);
 
+  // handle generic subscription updates
   useEffect(() => {
-    if (!isPublishingTrack || !videoElement || participant.isLoggedInUser)
-      return;
+    if (!isPublishingTrack || !videoElement || isLoggedInUser) return;
 
     updateSubscription(
       {
@@ -183,12 +196,7 @@ export const Video = (
     return () => {
       updateSubscription(undefined, DebounceType.FAST);
     };
-  }, [
-    updateSubscription,
-    videoElement,
-    isPublishingTrack,
-    participant.isLoggedInUser,
-  ]);
+  }, [updateSubscription, videoElement, isPublishingTrack, isLoggedInUser]);
 
   const [isWideMode, setIsWideMode] = useState(true);
   useEffect(() => {
@@ -210,16 +218,19 @@ export const Video = (
     };
   }, [stream, videoElement]);
 
+  if (!call) return null;
+
   return (
     <>
       <BaseVideo
         {...rest}
         stream={stream}
-        className={clsx(className, {
-          'str-video__video--wide': isWideMode,
+        className={clsx(className, 'str-video__video', {
           'str-video__video--tall': !isWideMode,
+          'str-video__video--mirror': isLoggedInUser && kind === 'video',
+          'str-video__video--screen-share': kind === 'screen',
         })}
-        data-user-id={participant.userId}
+        data-user-id={userId}
         data-session-id={sessionId}
         ref={(ref) => {
           setVideoElement(ref);
