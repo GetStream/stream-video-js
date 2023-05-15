@@ -1,5 +1,7 @@
 import { FC, useCallback } from 'react';
 import classnames from 'classnames';
+import { isMobile, isTablet } from 'mobile-device-detect';
+import screenfull from 'screenfull';
 
 import {
   Feedback as FeedbackIcon,
@@ -15,8 +17,6 @@ import CallStats from '../CallStats';
 import Feedback from '../Feedback';
 import DeviceSettings from '../DeviceSettings';
 import Recordings from '../Recordings';
-
-import { toggleFullScreen } from '../../utils/useToggleFullScreen';
 
 import { useModalContext } from '../../contexts/ModalContext';
 
@@ -56,7 +56,11 @@ export const SettingsPanel: FC<Props> = ({
   }, [callId, setComponent]);
 
   const handleFullScreen = useCallback(() => {
-    toggleFullScreen();
+    if (screenfull.isEnabled && screenfull.isFullscreen === false) {
+      screenfull.request();
+    } else {
+      screenfull.exit();
+    }
   }, []);
 
   const handleRecording = useCallback(() => {
@@ -73,10 +77,12 @@ export const SettingsPanel: FC<Props> = ({
     <>
       <div className={rootClassName}>
         <ul className={styles.list}>
-          <li className={styles.item} onClick={handleFullScreen}>
-            <FullScreen className={styles.settingsIcon} />
-            Full screen
-          </li>
+          {screenfull.isEnabled && (
+            <li className={styles.item} onClick={handleFullScreen}>
+              <FullScreen className={styles.settingsIcon} />
+              Full screen
+            </li>
+          )}
           <li className={styles.item} onClick={() => handleToggleCallState()}>
             <Info className={styles.settingsIcon} />
             Statistics
@@ -103,13 +109,15 @@ export const SettingsPanel: FC<Props> = ({
             <Record className={styles.settingsIcon} />
             Record
           </li>
-          <li
-            className={classnames(styles.item, styles.share)}
-            onClick={handleShareScreen}
-          >
-            <ShareScreen className={styles.settingsIcon} />
-            Share screen
-          </li>
+          {!isMobile && !isTablet && (
+            <li
+              className={classnames(styles.item, styles.share)}
+              onClick={handleShareScreen}
+            >
+              <ShareScreen className={styles.settingsIcon} />
+              Share screen
+            </li>
+          )}
         </ul>
       </div>
     </>
