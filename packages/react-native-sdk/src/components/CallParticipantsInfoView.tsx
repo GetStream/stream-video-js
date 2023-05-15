@@ -4,6 +4,7 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import {
+  CallPermissionsWrapper,
   useCall,
   useConnectedUser,
   useParticipants,
@@ -22,7 +23,6 @@ import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
-import { CallPermissionsWrapper } from './CallPermissionsWrapper';
 
 type CallParticipantInfoViewType = {
   participant: StreamVideoParticipant;

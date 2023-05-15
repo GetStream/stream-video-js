@@ -13,17 +13,16 @@ import {
 } from './types';
 import LoginScreen from './src/screens/LoginScreen';
 import { NavigationHeader } from './src/components/NavigationHeader';
-import { useAuth } from './src/hooks/useAuth';
-import AuthenticatingProgressScreen from './src/screens/AuthenticatingProgress';
 import {
   prontoCallId$,
   useProntoLinkEffect,
 } from './src/hooks/useProntoLinkEffect';
 import {
   IncomingCallView,
-  LobbyView,
   OutgoingCallView,
   StreamVideoCall,
+  UserResponse,
+  useCreateStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import {
   AppGlobalContextProvider,
@@ -49,6 +48,9 @@ import translations from './src/translations';
 
 import Logger from 'react-native-webrtc/src/Logger';
 import { v4 as uuidv4 } from 'uuid';
+import { LobbyViewScreen } from './src/screens/Meeting/LobbyViewScreen';
+import { GuestModeScreen } from './src/screens/Meeting/GuestModeScreen';
+import { createToken } from './src/modules/helpers/jwt';
 
 // @ts-expect-error
 Logger.enable(false);
@@ -73,7 +75,12 @@ const Meeting = () => {
       />
       <MeetingStack.Screen
         name="LobbyViewScreen"
-        component={LobbyView}
+        component={LobbyViewScreen}
+        options={{ headerShown: false }}
+      />
+      <MeetingStack.Screen
+        name="GuestModeScreen"
+        component={GuestModeScreen}
         options={{ headerShown: false }}
       />
       <MeetingStack.Screen
@@ -152,8 +159,18 @@ const Login = () => {
 const StackNavigator = () => {
   const appMode = useAppGlobalStoreValue((store) => store.appMode);
   const callId = useAppGlobalStoreValue((store) => store.callId);
+  const username = useAppGlobalStoreValue((store) => store.username);
+  const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
+  const [tokenToUse, setTokenToUse] = React.useState<string | undefined>(
+    undefined,
+  );
+
+  const apiKey = process.env.STREAM_API_KEY as string;
+  const secretKey = process.env.STREAM_API_SECRET as string;
+
+  const client = useAppGlobalStoreValue((store) => store.client);
+
   const setState = useAppGlobalStoreSetState();
-  const { authenticationInProgress } = useAuth();
   const callNavigation =
     useNavigation<NativeStackNavigationProp<RingingStackParamList>>();
   const meetingNavigation =
@@ -166,6 +183,41 @@ const StackNavigator = () => {
   useProntoLinkEffect();
   useIosPushEffect();
   useCallKeepEffect();
+
+  const user: UserResponse = {
+    id: username!!,
+    name: username,
+    role: 'admin',
+    teams: ['team-1, team-2'],
+    image: userImageUrl,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    custom: {},
+  };
+
+  useEffect(() => {
+    const intitializeToken = async () => {
+      if (username) {
+        const token = await createToken(username, secretKey);
+        setTokenToUse(token);
+      }
+    };
+
+    intitializeToken();
+  }, [secretKey, username]);
+
+  const _client = useCreateStreamVideoClient({
+    apiKey,
+    tokenOrProvider: tokenToUse,
+    user: user,
+    options: {
+      preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
+    },
+  });
+
+  useEffect(() => {
+    setState({ client: _client });
+  });
 
   useEffect(() => {
     const subscription = prontoCallId$.subscribe((prontoCallId) => {
@@ -229,20 +281,15 @@ const StackNavigator = () => {
     onCallRejected,
   ]);
 
-  const { videoClient } = useAuth();
-  if (!videoClient) {
+  if (!username || !client) {
     return <Login />;
-  }
-
-  if (authenticationInProgress) {
-    return <AuthenticatingProgressScreen />;
   }
 
   return (
     <StreamVideoCall
       callId={callId}
       callCycleHandlers={callCycleHandlers}
-      client={videoClient}
+      client={client}
       translationsOverrides={translations}
     >
       <Stack.Navigator>

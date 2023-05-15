@@ -119,11 +119,17 @@ export type LoginStackParamList = {
   LoginScreen: undefined;
 };
 
+export type LobbyViewScreenParams = {
+  guestUserId: string;
+  mode: string;
+};
+
 export type MeetingStackParamList = {
   JoinMeetingScreen: undefined;
   MeetingScreen: undefined;
   CallParticipantsInfoScreen: undefined;
-  LobbyViewScreen: undefined;
+  LobbyViewScreen: Partial<LobbyViewScreenParams>;
+  GuestModeScreen: undefined;
 };
 
 export type RingingStackParamList = {

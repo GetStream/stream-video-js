@@ -31,7 +31,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const setState = useAppGlobalStoreSetState();
 
   const joinCallHandler = useCallback(() => {
-    navigation.navigate('LobbyViewScreen');
+    navigation.navigate('LobbyViewScreen', {});
   }, [navigation]);
 
   const handleCopyInviteLink = useCallback(
