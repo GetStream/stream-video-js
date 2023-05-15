@@ -172,7 +172,7 @@ Once a ring call is initiated, call members start to receive ring call events (`
 The array of all [`Call`](../../call-engine/Call) objects representing created pending (not accepted, rejected, neither ended) calls is continuously updated in response to each new call creation. You can use this array of [`Call`](../../call-engine/Call) objects to display **incoming** or **outgoing calls** in your application's UI. In our app the top-level [`Video`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/components/Video/Video.tsx) component observes the changes using the [`useCalls`](../../call-engine/hooks-and-contexts#usecalls) hook and re-renders the UI to reflect the changes:
 
 ```tsx
-import { StreamCallProvider, useCalls } from '@stream-io/video-react-sdk';
+import { StreamMeeting, useCalls } from '@stream-io/video-react-sdk';
 
 import { CallPanel } from './CallPanel';
 
@@ -182,9 +182,9 @@ export const Video = () => {
   return (
     <>
       {calls.map((call) => (
-        <StreamCallProvider call={call} key={call.cid}>
+        <StreamMeeting call={call} autoJoin={false} key={call.cid}>
           <CallPanel />
-        </StreamCallProvider>
+        </StreamMeeting>
       ))}
     </>
   );
@@ -222,7 +222,7 @@ import { useChatContext } from 'stream-chat-react';
 export const ChannelPreviewCallControls = () => {
   const { channel: activeChannel } = useChatContext();
 // highlight-next-line
-  // the Call instance is passed down from StreamCallProvider
+  // the Call instance is passed down from StreamCallProvider located in StreamMeeting
   const call = useCall();
   const callingState = useCallCallingState();
 
