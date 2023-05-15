@@ -27321,6 +27321,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mobile-device-detect@npm:^0.4.3":
+  version: 0.4.3
+  resolution: "mobile-device-detect@npm:0.4.3"
+  checksum: 2da4a9fce70d22555f419c13844275c5bb64896378163672d35878347825392426da256043f47e9e3395fa9fc9a07e7e5149ef17c18b1e43ad746a5bef42829f
+  languageName: node
+  linkType: hard
+
 "modify-values@npm:^1.0.0":
   version: 1.0.1
   resolution: "modify-values@npm:1.0.1"
@@ -32190,6 +32197,7 @@ __metadata:
     geojson: ^0.5.0
     gleap: ^10.0.5
     mapbox-gl: ^2.12.0
+    mobile-device-detect: ^0.4.3
     nanoid: ^4.0.2
     postcss: ^8.4.21
     qrcode.react: ^3.1.0
@@ -32201,6 +32209,7 @@ __metadata:
     react-tooltip: ^5.8.3
     react-transition-group: ^4.4.5
     sass: ^1.62.1
+    screenfull: ^6.0.2
     stream-chat: ^8.4.1
     stream-chat-css: ^1.0.23
     stream-chat-react: ^10.7.0
@@ -33538,6 +33547,13 @@ __metadata:
     ajv-formats: ^2.1.1
     ajv-keywords: ^5.0.0
   checksum: c843e92fdd1a5c145dbb6ffdae33e501867f9703afac67bdf35a685e49f85b1dcc10ea250033175a64bd9d31f0555bc6785b8359da0c90bcea30cf6dfbb55a8f
+  languageName: node
+  linkType: hard
+
+"screenfull@npm:^6.0.2":
+  version: 6.0.2
+  resolution: "screenfull@npm:6.0.2"
+  checksum: 56a541da09241ae7c97115cc31245623c09230bcbebb93636871e955b545f26c7dcdb2299795234a0a21bff5d5401b7329b22609becf4c381a9e22347acf87ba
   languageName: node
   linkType: hard
 
