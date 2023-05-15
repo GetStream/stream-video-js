@@ -17,7 +17,8 @@ import {
   CallPermissionsWrapper,
   useCall,
 } from '@stream-io/video-react-bindings';
-import { StreamVideoRN } from '../utils/StreamVideoRN';
+import { useCallback, useState } from 'react';
+import { ReactionModal } from './ReactionsModal';
 
 /**
  * Shows a list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
@@ -28,6 +29,8 @@ import { StreamVideoRN } from '../utils/StreamVideoRN';
  * | ![call-controls-view](https://user-images.githubusercontent.com/25864161/217349666-af0f3278-393e-449d-b30e-2d1b196abe5e.png) |
  */
 export const CallControlsView = () => {
+  const [isReactionModalActive, setIsReactionModalActive] =
+    useState<boolean>(false);
   const {
     isAudioMuted,
     isVideoMuted,
@@ -37,24 +40,33 @@ export const CallControlsView = () => {
     toggleCameraFacingMode,
   } = useCallControls();
   const call = useCall();
-  const { onOpenReactionsModal } = StreamVideoRN.config;
 
   const handleHangUpCall = () => call?.leave();
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
   };
 
+  const onOpenReactionsModalHandler = useCallback(() => {
+    setIsReactionModalActive(true);
+  }, [setIsReactionModalActive]);
+
   return (
     <View style={styles.container}>
       <CallPermissionsWrapper requiredGrants={[OwnCapability.CREATE_REACTION]}>
         <CallControlsButton
-          onPress={onOpenReactionsModal}
+          onPress={onOpenReactionsModalHandler}
           color={theme.light.static_white}
           style={styles.button}
         >
           <Reaction color={theme.light.static_black} />
         </CallControlsButton>
       </CallPermissionsWrapper>
+      {isReactionModalActive && (
+        <ReactionModal
+          isReactionModalActive={isReactionModalActive}
+          setIsReactionModalActive={setIsReactionModalActive}
+        />
+      )}
       <CallControlsButton
         color={theme.light.static_white}
         onPress={() => null}

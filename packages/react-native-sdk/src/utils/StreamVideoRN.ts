@@ -1,15 +1,24 @@
+import { StreamReaction } from '@stream-io/video-client';
+import { defaultEmojiReactions } from '../constants';
+
+type StreamReactionType = StreamReaction & {
+  icon: string | JSX.Element;
+};
+
 type StreamVideoConfig = {
   /**
    * Handler called when the participants info button is pressed in the active call screen.
    */
   onOpenCallParticipantsInfoView?: () => void;
   /**
-   * Handler called when the reactions button is pressed in the call participant's view.
+   * Supported Reactions
    */
-  onOpenReactionsModal?: () => void;
+  supportedReactions: StreamReactionType[];
 };
 
-const DEFAULT_STREAM_VIDEO_CONFIG = {};
+const DEFAULT_STREAM_VIDEO_CONFIG = {
+  supportedReactions: defaultEmojiReactions,
+};
 
 export class StreamVideoRN {
   /**

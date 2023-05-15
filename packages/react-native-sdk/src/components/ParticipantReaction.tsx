@@ -1,24 +1,19 @@
 import { useEffect, useState } from 'react';
 import { StreamReaction } from '@stream-io/video-client';
-import { defaultEmojiReactions } from '../constants';
 import { StyleSheet, Text, View } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
 import { theme } from '../theme';
+import { StreamVideoRN } from '../utils';
 
 export type ReactionProps = {
-  reactionMappings?: Record<string, string | JSX.Element>;
   reaction: StreamReaction;
   sessionId: string;
   hideAfterTimeoutInMs?: number;
 };
 
 export const ParticipantReaction = (props: ReactionProps) => {
-  const {
-    reactionMappings = defaultEmojiReactions,
-    reaction,
-    sessionId,
-    hideAfterTimeoutInMs = 5500,
-  } = props;
+  const { supportedReactions } = StreamVideoRN.config;
+  const { reaction, sessionId, hideAfterTimeoutInMs = 5500 } = props;
   const call = useCall();
   const [isShowing, setIsShowing] = useState<boolean>(false);
 
@@ -40,18 +35,22 @@ export const ParticipantReaction = (props: ReactionProps) => {
 
   if (!isShowing || !emoji_code) return null;
 
-  if (typeof reactionMappings[emoji_code] !== 'string') {
+  const currentReaction = supportedReactions.find(
+    (supportedReaction) => supportedReaction.emoji_code === reaction.emoji_code,
+  );
+
+  if (typeof currentReaction?.icon !== 'string') {
     return (
       <View style={styles.container}>
         <View style={[styles.svgContainerStyle, theme.icon.md]}>
-          {reactionMappings[emoji_code]}
+          {currentReaction?.icon}
         </View>
       </View>
     );
   }
   return (
     <View style={styles.container}>
-      <Text style={styles.reaction}>{reactionMappings[emoji_code]}</Text>
+      <Text style={styles.reaction}>{currentReaction.icon}</Text>
     </View>
   );
 };

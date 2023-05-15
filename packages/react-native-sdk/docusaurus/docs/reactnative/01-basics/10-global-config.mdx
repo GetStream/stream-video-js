@@ -37,10 +37,10 @@ Handler called when the participants info button is pressed in the active call s
 | ------------ | ----------- |
 | `() => void` | `undefined` |
 
-### `onOpenReactionsModal`
+### `supportedReactions`
 
-Handler called when the reactions button is pressed in the call participant's view.
+Reactions that are supported in the app.
 
-| Type         | Default     |
-| ------------ | ----------- |
-| `() => void` | `undefined` |
+| Type                                                 | Default                                                                                                                                                                                                              |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `StreamReaction & {icon: string `\|` JSX.Element}`[] | `[{type: 'reaction', emoji_code: ':like:', custom: {}, icon: '👍'},{type: 'raised-hand', emoji_code: ':raise-hand:', custom: {}, icon: '✋'},{type: 'reaction', emoji_code: ':fireworks:', custom: {}, icon: '🎉'}]` |
