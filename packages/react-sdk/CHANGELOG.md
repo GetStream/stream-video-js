@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.31](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.30...@stream-io/video-react-sdk-0.0.1-alpha.31) (2023-05-15)
+
+
+### Features
+
+* faster join flow ([#499](https://github.com/GetStream/stream-video-js/issues/499)) ([898341b](https://github.com/GetStream/stream-video-js/commit/898341b26495412acea7d9e08c0c8f9b0b54e3b3))
+
+
+
 ## [0.0.1-alpha.30](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.29...@stream-io/video-react-sdk-0.0.1-alpha.30) (2023-05-15)
 
 
