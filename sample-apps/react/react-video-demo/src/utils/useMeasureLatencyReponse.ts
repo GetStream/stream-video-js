@@ -1,7 +1,5 @@
-import {
-  DatacenterResponse,
-  GetCallEdgeServerRequest,
-} from '@stream-io/video-react-sdk';
+import { GetCallEdgeServerRequest } from '@stream-io/video-react-sdk';
+import { EdgeResponse } from '@stream-io/video-client';
 
 const toSeconds = (ms: number) => ms / 1000;
 
@@ -49,7 +47,7 @@ export const measureResourceLoadLatencyTo = async (
  * @param measureTimeoutAfterMs the hard-limit for the whole measure process.
  */
 export const measureLatencyToEdges = async (
-  edges: DatacenterResponse[],
+  edges: EdgeResponse[],
   {
     attempts = 3,
     attemptTimeoutAfterMs = 1000,
@@ -67,10 +65,10 @@ export const measureLatencyToEdges = async (
     for (const edge of edges) {
       measurements.push(
         measureResourceLoadLatencyTo(
-          edge.latency_url,
+          edge.latency_test_url,
           attemptTimeoutAfterMs,
         ).then((latency) => {
-          (latencyByEdge[edge.name] ??= []).push(latency);
+          (latencyByEdge[edge.id] ??= []).push(latency);
         }),
       );
     }

@@ -38,6 +38,7 @@ describe('Publisher', () => {
     sfuClient = new StreamSfuClient(
       dispatcher,
       'https://getstream.io/',
+      'https://getstream.io/ws',
       'token',
     );
 
