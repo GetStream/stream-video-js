@@ -40,6 +40,7 @@ import {
   SendEventResponse,
   SendReactionRequest,
   SendReactionResponse,
+  SFUResponse,
   StopLiveResponse,
   UnblockUserRequest,
   UnblockUserResponse,
@@ -447,8 +448,10 @@ export class Call {
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
 
-    this.watching = true;
-    this.clientStore.registerCall(this);
+    if (this.streamClient._hasConnectionID()) {
+      this.watching = true;
+      this.clientStore.registerCall(this);
+    }
 
     return response;
   };
@@ -471,8 +474,10 @@ export class Call {
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
 
-    this.watching = true;
-    this.clientStore.registerCall(this);
+    if (this.streamClient._hasConnectionID()) {
+      this.watching = true;
+      this.clientStore.registerCall(this);
+    }
 
     return response;
   };
@@ -491,6 +496,7 @@ export class Call {
       throw new Error(`Illegal State: Already joined.`);
     }
 
+    const previousCallingState = this.state.callingState;
     this.state.setCallingState(CallingState.JOINING);
 
     if (data?.ring && !this.ringing) {
@@ -503,16 +509,30 @@ export class Call {
       await this.sendEvent({ type: 'call.accepted' });
     }
 
-    const call = await join(this.streamClient, this.type, this.id, data);
-    this.state.setMetadata(call.metadata);
-    this.state.setMembers(call.members);
+    let sfuServer: SFUResponse;
+    let sfuToken: string;
+    let connectionConfig: RTCConfiguration | undefined;
+    try {
+      const call = await join(this.streamClient, this.type, this.id, data);
+      this.state.setMetadata(call.metadata);
+      this.state.setMembers(call.members);
+      connectionConfig = call.connectionConfig;
+      sfuServer = call.sfuServer;
+      sfuToken = call.token;
 
-    this.watching = true;
-    this.clientStore.registerCall(this);
+      if (this.streamClient._hasConnectionID()) {
+        this.watching = true;
+        this.clientStore.registerCall(this);
+      }
+    } catch (error) {
+      // restore the previous call state if the join-flow fails
+      this.state.setCallingState(previousCallingState);
+      throw error;
+    }
 
     // FIXME OL: remove once cascading is implemented
-    let sfuUrl = call.sfuServer.url;
-    let sfuWsUrl = call.sfuServer.ws_endpoint;
+    let sfuUrl = sfuServer.url;
+    let sfuWsUrl = sfuServer.ws_endpoint;
     if (
       typeof window !== 'undefined' &&
       window.location &&
@@ -520,16 +540,16 @@ export class Call {
     ) {
       const params = new URLSearchParams(window.location.search);
       const sfuUrlParam = params.get('sfuUrl');
-      sfuUrl = sfuUrlParam || call.sfuServer.url;
+      sfuUrl = sfuUrlParam || sfuServer.url;
       const sfuWsUrlParam = params.get('sfuWsUrl');
-      sfuWsUrl = sfuWsUrlParam || call.sfuServer.ws_endpoint;
+      sfuWsUrl = sfuWsUrlParam || sfuServer.ws_endpoint;
     }
 
     const sfuClient = (this.sfuClient = new StreamSfuClient(
       this.dispatcher,
       sfuUrl,
       sfuWsUrl,
-      call.token,
+      sfuToken,
     ));
 
     /**
@@ -626,7 +646,7 @@ export class Call {
     this.subscriber = createSubscriber({
       sfuClient,
       dispatcher: this.dispatcher,
-      connectionConfig: call.connectionConfig,
+      connectionConfig,
       onTrack: this.handleOnTrack,
     });
 
@@ -636,7 +656,7 @@ export class Call {
     this.publisher = new Publisher({
       sfuClient,
       state: this.state,
-      connectionConfig: call.connectionConfig,
+      connectionConfig,
       isDtxEnabled,
       isRedEnabled,
       preferredVideoCodec: this.streamClient.options.preferredVideoCodec,
@@ -646,7 +666,7 @@ export class Call {
       subscriber: this.subscriber,
       publisher: this.publisher,
       state: this.state,
-      edgeName: call.sfuServer.edge_name,
+      edgeName: sfuServer.edge_name,
     });
 
     try {
@@ -1419,6 +1439,7 @@ export class Call {
   /**
    * Returns a list of Edge Serves for current call.
    *
+   * @deprecated merged with `call.join`.
    * @param data the data.
    */
   getEdgeServer = (data: GetCallEdgeServerRequest) => {
