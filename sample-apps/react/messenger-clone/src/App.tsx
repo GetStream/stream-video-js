@@ -13,6 +13,8 @@ import { UserList } from './components/UserList';
 import { useCreateChatClient } from './hooks';
 import { userFromToken } from './utils/userFromToken';
 
+import './styles/index.scss';
+
 import type { StreamChatType } from './types/chat';
 
 const App = () => {
