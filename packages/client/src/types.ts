@@ -4,6 +4,7 @@ import type {
 } from './gen/video/sfu/models/models';
 import type {
   CallResponse,
+  JoinCallRequest,
   MemberResponse,
   ReactionResponse,
 } from './gen/coordinator';
@@ -205,3 +206,8 @@ export type CallConstructor = {
    */
   clientStore: StreamVideoWriteableStateStore;
 };
+
+/**
+ * The options to pass to {@link Call.join} method.
+ */
+export type JoinCallData = Omit<JoinCallRequest, 'location'>;

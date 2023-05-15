@@ -14,7 +14,6 @@ import {
   StreamVideo,
   useCreateStreamVideoClient,
   User,
-  DatacenterResponse,
 } from '@stream-io/video-react-sdk';
 import { FeatureCollection, Geometry } from 'geojson';
 
@@ -92,19 +91,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   useEffect(() => {
     async function fetchEdges() {
       const response: GetEdgesResponse = await client.edges();
-
-      const dataCenterResponse: DatacenterResponse[] = response.edges.map(
-        (edge) => ({
-          coordinates: {
-            latitude: edge.latitude,
-            longitude: edge.longitude,
-          },
-          latency_url: edge.latency_test_url,
-          name: edge.id,
-        }),
-      );
-
-      const latencies = await measureLatencyToEdges(dataCenterResponse);
+      const latencies = await measureLatencyToEdges(response.edges);
 
       const edgeId: string = Object.keys(latencies).reduce((acc, curr) => {
         const lowestCurr = Math.min(...latencies[curr]);
