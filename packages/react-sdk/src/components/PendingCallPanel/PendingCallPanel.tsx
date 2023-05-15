@@ -48,6 +48,11 @@ export const PendingCallPanel = () => {
         {membersToShow.map((user) => (
           <div key={user.id} className="str-video__call-panel__member-box">
             <Avatar name={user.name} imageSrc={user.image} />
+            {user.name && (
+              <div className="str-video__member_details">
+                <span className="str-video__member_name">{user.name}</span>
+              </div>
+            )}
           </div>
         ))}
       </div>

@@ -26,6 +26,14 @@
         -webkit-mask-composite: xor;
         mask-composite: exclude;
       }
+
+      .str-video__member_details {
+        background-color: var(--str-video__background-color4);
+        color: var(--str-video__text-color1);
+        border-radius: 4px;
+        font-size: 12px;
+        line-height: 16px;
+      }
     }
   }
 }
