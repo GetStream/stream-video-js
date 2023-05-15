@@ -1,5 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import classnames from 'classnames';
+import { isMobile, isTablet } from 'mobile-device-detect';
 
 import ControlMenu from '../ControlMenu';
 import Button from '../Button';
@@ -119,15 +120,17 @@ export const Footer: FC<Props> = ({
           </>
         </Button>
 
-        <Button
-          className={styles.shareScreen}
-          label="Share"
-          color={isScreenSharing ? 'active' : 'secondary'}
-          shape="square"
-          onClick={toggleShareScreen}
-        >
-          <ShareScreen />
-        </Button>
+        {!isMobile && !isTablet && (
+          <Button
+            className={styles.shareScreen}
+            label="Share"
+            color={isScreenSharing ? 'active' : 'secondary'}
+            shape="square"
+            onClick={toggleShareScreen}
+          >
+            <ShareScreen />
+          </Button>
+        )}
 
         <ControlButton
           className={styles.reactions}
