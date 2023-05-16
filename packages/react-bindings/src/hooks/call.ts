@@ -141,7 +141,7 @@ export const useCallCallingState = () => {
  *
  * @category Call State
  */
-export const useStartedAt = () => {
+export const useCallStartedAt = () => {
   const { startedAt$ } = useCallState();
   return useObservableValue(startedAt$);
 };
