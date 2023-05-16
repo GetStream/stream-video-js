@@ -19,6 +19,7 @@ import DeviceSettings from '../DeviceSettings';
 import Recordings from '../Recordings';
 
 import { useModalContext } from '../../contexts/ModalContext';
+import { usePanelContext } from '../../contexts/PanelContext';
 
 import styles from './SettingsPanel.module.css';
 
@@ -27,7 +28,6 @@ export type Props = {
   callId?: string;
   toggleRecording?(): void;
   toggleShareScreen?(): void;
-  closePanel?(): void;
 };
 
 export const SettingsPanel: FC<Props> = ({
@@ -35,9 +35,9 @@ export const SettingsPanel: FC<Props> = ({
   callId,
   toggleRecording,
   toggleShareScreen,
-  closePanel,
 }) => {
   const { setComponent } = useModalContext();
+  const { toggleSettings } = usePanelContext();
 
   const handleFeedback = useCallback(() => {
     setComponent(<Feedback callId={callId} inMeeting={true} />);
@@ -56,6 +56,7 @@ export const SettingsPanel: FC<Props> = ({
   }, [callId, setComponent]);
 
   const handleFullScreen = useCallback(() => {
+    toggleSettings();
     if (screenfull.isEnabled && screenfull.isFullscreen === false) {
       screenfull.request();
     } else {
@@ -64,10 +65,12 @@ export const SettingsPanel: FC<Props> = ({
   }, []);
 
   const handleRecording = useCallback(() => {
+    toggleSettings();
     toggleRecording?.();
   }, [toggleRecording]);
 
   const handleShareScreen = useCallback(() => {
+    toggleSettings();
     toggleShareScreen?.();
   }, [toggleShareScreen]);
 
@@ -80,7 +83,7 @@ export const SettingsPanel: FC<Props> = ({
           {screenfull.isEnabled && (
             <li className={styles.item} onClick={handleFullScreen}>
               <FullScreen className={styles.settingsIcon} />
-              Full screen
+              {screenfull.isEnabled ? 'Exit full screen' : 'Full screen'}
             </li>
           )}
           <li className={styles.item} onClick={() => handleToggleCallState()}>

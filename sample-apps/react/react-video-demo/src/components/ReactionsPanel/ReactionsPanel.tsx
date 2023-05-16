@@ -2,6 +2,8 @@ import { FC, useCallback } from 'react';
 import classnames from 'classnames';
 import { StreamReaction, useCall } from '@stream-io/video-react-sdk';
 
+import { usePanelContext } from '../../contexts/PanelContext';
+
 import styles from './ReactionsPanel.module.css';
 
 export const defaultEmojiReactions: Record<
@@ -36,8 +38,11 @@ export type Props = {
 export const ReactionsPanel: FC<Props> = ({ className }) => {
   const activeCall = useCall();
 
+  const { toggleReaction } = usePanelContext();
+
   const sendReaction = useCallback(
     (reaction: StreamReaction) => {
+      toggleReaction();
       activeCall?.sendReaction(reaction);
     },
     [activeCall],
