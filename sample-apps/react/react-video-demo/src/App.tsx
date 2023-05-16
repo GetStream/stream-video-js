@@ -34,6 +34,7 @@ import { useCreateStreamChatClient } from './hooks/useChatClient';
 import { tour } from '../data/tour';
 
 import './App.css';
+import { is } from 'date-fns/locale';
 
 export type Props = {
   logo: string;
@@ -96,6 +97,13 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     let markerTimer: ReturnType<typeof setTimeout>;
 
     async function fetchEdges() {
+      if (isCallActive) {
+        if (markerTimer) {
+          clearTimeout(markerTimer);
+        }
+        return;
+      }
+
       const response: GetEdgesResponse = await client.edges();
       const latencies = await measureLatencyToEdges(response.edges);
 
@@ -131,7 +139,9 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
         setEdges(features);
       }
 
-      markerTimer = setTimeout(fetchEdges, Math.random() * FETCH_EDGE_TIMOUT);
+      if (!isCallActive) {
+        markerTimer = setTimeout(fetchEdges, Math.random() * FETCH_EDGE_TIMOUT);
+      }
     }
 
     fetchEdges();
@@ -139,7 +149,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     return () => {
       clearTimeout(markerTimer);
     };
-  }, [edges]);
+  }, [edges, isCallActive]);
 
   const joinMeeting = useCallback(async () => {
     setIsJoiningCall(true);

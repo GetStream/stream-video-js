@@ -12,7 +12,7 @@
 }
 
 .callContainer {
-  @apply overflow-hidden border-2 border-video-transparent bg-video-grey-600/50 relative mt-5 mb-5 rounded-container w-full h-[275px];
+  @apply overflow-hidden border-2 border-video-transparent bg-video-grey-600/50 relative mt-5 mb-5 rounded-container w-full max-h-[275px];
 }
 
 .callContainer.audioEnabled {
