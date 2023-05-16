@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.146](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.145...client0.0.1-alpha.146) (2023-05-16)
+
+
+### Bug Fixes
+
+* correct audio_room call type name ([#502](https://github.com/GetStream/stream-video-js/issues/502)) ([c15d129](https://github.com/GetStream/stream-video-js/commit/c15d129df1dd0d587ef4b2796a989fd0b161237a))
+
+
+
 ## [0.0.1-alpha.145](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.144...client0.0.1-alpha.145) (2023-05-16)
 
 
