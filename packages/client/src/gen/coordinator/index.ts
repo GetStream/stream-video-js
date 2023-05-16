@@ -969,12 +969,6 @@ export interface CallResponse {
   starts_at?: string;
   /**
    *
-   * @type {TargetResolutionResponse}
-   * @memberof CallResponse
-   */
-  target_resolution: TargetResolutionResponse;
-  /**
-   *
    * @type {string}
    * @memberof CallResponse
    */
@@ -3257,31 +3251,6 @@ export interface TargetResolutionRequest {
    * @memberof TargetResolutionRequest
    */
   width?: number;
-}
-/**
- *
- * @export
- * @interface TargetResolutionResponse
- */
-export interface TargetResolutionResponse {
-  /**
-   *
-   * @type {number}
-   * @memberof TargetResolutionResponse
-   */
-  bitrate: number;
-  /**
-   *
-   * @type {number}
-   * @memberof TargetResolutionResponse
-   */
-  height: number;
-  /**
-   *
-   * @type {number}
-   * @memberof TargetResolutionResponse
-   */
-  width: number;
 }
 /**
  *
