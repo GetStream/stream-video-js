@@ -133,7 +133,6 @@ export const Participant: FC<Props> = ({
         kind="video"
         muted={participant.isLoggedInUser}
         autoPlay
-        call={call}
         className={styles.video}
       />
 
