@@ -91,6 +91,9 @@ export const Img: FC<{
   placeholder: ReactNode;
 }> = ({ className, src, placeholder }) => {
   const doesExist = useMemo(() => {
+    if (src === '') {
+      return false;
+    }
     const img = new Image();
     img.src = src;
 
@@ -107,7 +110,9 @@ export const Img: FC<{
     }
   }, [src]);
 
-  if (doesExist) {
+  console.log(doesExist, src);
+
+  if (doesExist && src !== '') {
     return <img alt="avatar" className={className} src={src} />;
   }
   return <>{placeholder}</>;
