@@ -2,10 +2,8 @@ import { FC, useCallback, useState } from 'react';
 import classnames from 'classnames';
 import {
   SfuModels,
-  useAudioPublisher,
   useLocalParticipant,
   useMediaDevices,
-  useVideoPublisher,
 } from '@stream-io/video-react-sdk';
 
 import ControlButton, { PanelButton } from '../ControlButton';
@@ -43,6 +41,8 @@ export const ControlMenu: FC<Props> = ({
     switchDevice,
     toggleAudioMuteState,
     toggleVideoMuteState,
+    publishVideoStream,
+    publishAudioStream,
     initialVideoState,
     initialAudioEnabled,
     isAudioOutputChangeSupported,
@@ -57,16 +57,6 @@ export const ControlMenu: FC<Props> = ({
   const isAudioMuted = preview
     ? !initialAudioEnabled
     : !localParticipant?.publishedTracks.includes(SfuModels.TrackType.AUDIO);
-
-  const publishVideoStream = useVideoPublisher({
-    initialVideoMuted,
-    videoDeviceId: selectedVideoDeviceId,
-  });
-
-  const publishAudioStream = useAudioPublisher({
-    initialAudioMuted,
-    audioDeviceId: selectedAudioInputDeviceId,
-  });
 
   const disableVideo = useCallback(() => {
     call.stopPublish(SfuModels.TrackType.VIDEO);
