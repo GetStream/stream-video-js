@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.145](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.144...client0.0.1-alpha.145) (2023-05-16)
+
+
+### Features
+
+* Participant Count and Call StartedAt ([#504](https://github.com/GetStream/stream-video-js/issues/504)) ([c071139](https://github.com/GetStream/stream-video-js/commit/c071139c0c1fc2401941fc38bed077be0875b470))
+
+
+
 ## [0.0.1-alpha.144](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.143...client0.0.1-alpha.144) (2023-05-16)
 
 
