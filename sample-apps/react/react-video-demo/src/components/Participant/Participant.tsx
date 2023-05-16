@@ -1,10 +1,12 @@
 import { FC, useState, useEffect } from 'react';
 import classnames from 'classnames';
-import { Call, SfuModels, VisibilityState } from '@stream-io/video-client';
 import {
   StreamVideoParticipant,
   Video,
   Audio,
+  Call,
+  SfuModels,
+  VisibilityState,
 } from '@stream-io/video-react-sdk';
 
 import { MicMuted, Signal } from '../Icons';
@@ -127,7 +129,6 @@ export const Participant: FC<Props> = ({
   return (
     <div className={rootClassNames} ref={setTrackedElement}>
       <Video
-        call={call}
         participant={participant}
         kind="video"
         muted={participant.isLoggedInUser}

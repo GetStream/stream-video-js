@@ -33,7 +33,7 @@
 .str-video__call-controls__button {
   padding: 0.5rem;
 
-  &--variant-danger {
+  &--variant-danger, &--variant-success {
     padding: 0.5rem 1rem;
   }
 
@@ -55,6 +55,11 @@
     }
 
     &--call-end {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    &--call-accept {
       width: 1.5rem;
       height: 1.5rem;
     }

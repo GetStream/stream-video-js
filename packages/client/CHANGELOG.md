@@ -2,6 +2,36 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.142](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.141...client0.0.1-alpha.142) (2023-05-15)
+
+
+
+## [0.0.1-alpha.141](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.140...client0.0.1-alpha.141) (2023-05-15)
+
+
+
+## [0.0.1-alpha.140](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.139...client0.0.1-alpha.140) (2023-05-15)
+
+
+### Bug Fixes
+
+* restore previous call state if `join` fails ([#500](https://github.com/GetStream/stream-video-js/issues/500)) ([0fc8927](https://github.com/GetStream/stream-video-js/commit/0fc892765cbd72a740134ddb06b2d851ac54f299)), closes [#499](https://github.com/GetStream/stream-video-js/issues/499)
+
+
+
+## [0.0.1-alpha.139](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.138...client0.0.1-alpha.139) (2023-05-15)
+
+
+### Features
+
+* faster join flow ([#499](https://github.com/GetStream/stream-video-js/issues/499)) ([898341b](https://github.com/GetStream/stream-video-js/commit/898341b26495412acea7d9e08c0c8f9b0b54e3b3))
+
+
+
+## [0.0.1-alpha.138](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.137...client0.0.1-alpha.138) (2023-05-15)
+
+
+
 ## [0.0.1-alpha.137](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.136...client0.0.1-alpha.137) (2023-05-12)
 
 

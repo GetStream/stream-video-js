@@ -7,6 +7,7 @@ export * from './DeviceSettings';
 export * from './LoadingIndicator';
 export * from './Menu';
 export * from './Notification';
+export * from './PendingCallPanel';
 export * from './Permissions';
 export * from './StreamCall';
 export * from './StreamMeeting';

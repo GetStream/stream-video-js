@@ -1,36 +1,28 @@
 import { useMemo } from 'react';
-import type {
-  ChannelFilters,
-  ChannelOptions,
-  ChannelSort,
-  UserResponse,
-} from 'stream-chat';
+import type { UserResponse } from 'stream-chat';
+import { Chat } from 'stream-chat-react';
 import {
-  Channel,
-  ChannelList,
-  Chat,
-  MessageInput,
-  MessageList,
-  Thread,
-  Window,
-} from 'stream-chat-react';
-import { ChannelHeader } from './components/ChannelHeader';
-import Video from './components/Video/Video';
-import { CustomChannelSearch } from './components/CustomChannelSearch';
-import { CustomEventComponent } from './components/CustomEventComponent';
+  StreamTheme,
+  StreamVideo,
+  useCreateStreamVideoClient,
+} from '@stream-io/video-react-sdk';
+import { Channel } from './components/Channel';
 import { Sidebar } from './components/Sidebar';
+import { Video } from './components/Video';
 import { UserList } from './components/UserList';
-import { useClient } from './hooks';
+import { useCreateChatClient } from './hooks';
 import { userFromToken } from './utils/userFromToken';
+
+import './styles/index.scss';
 
 import type { StreamChatType } from './types/chat';
 
-const apiKey = import.meta.env.VITE_STREAM_KEY as string;
-
-const Root = () => {
+const App = () => {
   const params = new Proxy(new URLSearchParams(window.location.search), {
     get: (searchParams, property) => searchParams.get(property as string),
   }) as unknown as Record<string, string | null>;
+
+  const apiKey = import.meta.env.VITE_STREAM_KEY as string;
 
   const userToken = params.ut ?? (import.meta.env.VITE_USER_TOKEN as string);
 
@@ -38,54 +30,42 @@ const Root = () => {
 
   if (!user?.id) return <UserList />;
 
-  return <App user={user} userToken={userToken} />;
+  return <Root apiKey={apiKey} user={user} userToken={userToken} />;
 };
 
-const App = ({
+const Root = ({
+  apiKey,
   user,
   userToken,
 }: {
+  apiKey: string;
   user: UserResponse<StreamChatType>;
   userToken: string;
 }) => {
-  const client = useClient<StreamChatType>({
+  const chatClient = useCreateChatClient<StreamChatType>({
     apiKey,
-    userData: user,
     tokenOrProvider: userToken,
+    userData: user,
+  });
+  const videoClient = useCreateStreamVideoClient({
+    apiKey,
+    tokenOrProvider: userToken,
+    user,
   });
 
-  const filters: ChannelFilters = {
-    members: { $in: [user.id] },
-    type: 'messaging',
-  };
-  const options: ChannelOptions = { limit: 10, presence: true, state: true };
-  const sort: ChannelSort = { last_message_at: -1, updated_at: -1 };
-
-  if (!client) return null;
+  if (!chatClient) return null;
 
   return (
-    <Chat client={client}>
-      <Video>
-        <Sidebar>
-          <ChannelList
-            filters={filters}
-            options={options}
-            showChannelSearch
-            sort={sort}
-            ChannelSearch={CustomChannelSearch}
-          />
-        </Sidebar>
-        <Channel MessageSystem={CustomEventComponent}>
-          <Window>
-            <ChannelHeader />
-            <MessageList />
-            <MessageInput focus />
-          </Window>
-          <Thread />
-        </Channel>
-      </Video>
-    </Chat>
+    <StreamTheme as="main" className="main-container">
+      <Chat client={chatClient}>
+        <StreamVideo client={videoClient}>
+          <Sidebar user={user} />
+          <Channel />
+          <Video />
+        </StreamVideo>
+      </Chat>
+    </StreamTheme>
   );
 };
 
-export default Root;
+export default App;

@@ -143,7 +143,8 @@
   --str-video__box-shadow-color: rgba(0, 0, 0, 0.18);
 
   /* Used for online indicator and success messages */
-  --str-video__info-color: var(--str-video__green500);
+  --str-video__info-color: var(--str-video__green400);
+  --str-video__info-color--accent: var(--str-video__green500);
 }
 
 .str-video__theme-dark {
@@ -173,5 +174,6 @@
   --str-video__opaque-surface-background-color: rgba(250, 250, 250, 0.85);
   --str-video__opaque-surface-text-color: var(--str-video__grey900);
   --str-video__box-shadow-color: rgba(0, 0, 0, 0.8);
-  --str-video__info-color: var(--str-video__green500);
+  --str-video__info-color: var(--str-video__green400);
+  --str-video__info-color--accent: var(--str-video__green500);
 }

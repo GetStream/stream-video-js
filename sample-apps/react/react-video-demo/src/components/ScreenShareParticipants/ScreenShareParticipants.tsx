@@ -59,7 +59,6 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
                 <Video
                   className={styles.screenShare}
                   participant={firstScreenSharingParticipant}
-                  call={call}
                   kind="screen"
                   autoPlay
                   muted
@@ -111,7 +110,6 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
                 <Video
                   className={styles.screenShare}
                   participant={firstScreenSharingParticipant}
-                  call={call}
                   kind="screen"
                   autoPlay
                   muted
