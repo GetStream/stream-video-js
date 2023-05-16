@@ -710,7 +710,7 @@ export class Call {
       // 2. in parallel, wait for the SFU to send us the "joinResponse"
       // this will throw an error if the SFU rejects the join request or
       // fails to respond in time
-      const { callState } = await this.waitForJoinResponse();
+      const { callState, participantCount } = await this.waitForJoinResponse();
       const currentParticipants = callState?.participants || [];
       this.state.setParticipants(
         currentParticipants.map<StreamVideoParticipant>((participant) => ({
@@ -719,6 +719,7 @@ export class Call {
           viewportVisibilityState: VisibilityState.UNKNOWN,
         })),
       );
+      this.state.setParticipantCount(participantCount);
 
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
