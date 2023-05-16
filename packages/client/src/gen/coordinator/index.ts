@@ -145,6 +145,12 @@ export interface AudioSettings {
    * @type {boolean}
    * @memberof AudioSettings
    */
+  mic_default_on: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettings
+   */
   opus_dtx_enabled: boolean;
   /**
    *
@@ -152,6 +158,12 @@ export interface AudioSettings {
    * @memberof AudioSettings
    */
   redundant_coding_enabled: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettings
+   */
+  speaker_default_on: boolean;
 }
 /**
  *
@@ -170,6 +182,12 @@ export interface AudioSettingsRequest {
    * @type {boolean}
    * @memberof AudioSettingsRequest
    */
+  mic_default_on?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettingsRequest
+   */
   opus_dtx_enabled?: boolean;
   /**
    *
@@ -177,6 +195,12 @@ export interface AudioSettingsRequest {
    * @memberof AudioSettingsRequest
    */
   redundant_coding_enabled?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettingsRequest
+   */
+  speaker_default_on?: boolean;
 }
 /**
  *
@@ -943,6 +967,12 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   starts_at?: string;
+  /**
+   *
+   * @type {TargetResolutionResponse}
+   * @memberof CallResponse
+   */
+  target_resolution: TargetResolutionResponse;
   /**
    *
    * @type {string}
@@ -3181,6 +3211,81 @@ export interface StopLiveResponse {
 /**
  *
  * @export
+ * @interface TargetResolution
+ */
+export interface TargetResolution {
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolution
+   */
+  bitrate: number;
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolution
+   */
+  height: number;
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolution
+   */
+  width: number;
+}
+/**
+ *
+ * @export
+ * @interface TargetResolutionRequest
+ */
+export interface TargetResolutionRequest {
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolutionRequest
+   */
+  bitrate?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolutionRequest
+   */
+  height?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolutionRequest
+   */
+  width?: number;
+}
+/**
+ *
+ * @export
+ * @interface TargetResolutionResponse
+ */
+export interface TargetResolutionResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolutionResponse
+   */
+  bitrate: number;
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolutionResponse
+   */
+  height: number;
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolutionResponse
+   */
+  width: number;
+}
+/**
+ *
+ * @export
  * @interface TranscriptionSettings
  */
 export interface TranscriptionSettings {
@@ -3688,8 +3793,38 @@ export interface VideoSettings {
    * @type {boolean}
    * @memberof VideoSettings
    */
+  camera_default_on: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof VideoSettings
+   */
+  camera_facing: VideoSettingsCameraFacingEnum;
+  /**
+   *
+   * @type {boolean}
+   * @memberof VideoSettings
+   */
   enabled: boolean;
+  /**
+   *
+   * @type {TargetResolution}
+   * @memberof VideoSettings
+   */
+  target_resolution: TargetResolution;
 }
+
+/**
+ * @export
+ */
+export const VideoSettingsCameraFacingEnum = {
+  FRONT: 'front',
+  BACK: 'back',
+  EXTERNAL: 'external',
+} as const;
+export type VideoSettingsCameraFacingEnum =
+  (typeof VideoSettingsCameraFacingEnum)[keyof typeof VideoSettingsCameraFacingEnum];
+
 /**
  *
  * @export
@@ -3707,8 +3842,38 @@ export interface VideoSettingsRequest {
    * @type {boolean}
    * @memberof VideoSettingsRequest
    */
+  camera_default_on?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof VideoSettingsRequest
+   */
+  camera_facing?: VideoSettingsRequestCameraFacingEnum;
+  /**
+   *
+   * @type {boolean}
+   * @memberof VideoSettingsRequest
+   */
   enabled?: boolean;
+  /**
+   *
+   * @type {TargetResolutionRequest}
+   * @memberof VideoSettingsRequest
+   */
+  target_resolution?: TargetResolutionRequest;
 }
+
+/**
+ * @export
+ */
+export const VideoSettingsRequestCameraFacingEnum = {
+  FRONT: 'front',
+  BACK: 'back',
+  EXTERNAL: 'external',
+} as const;
+export type VideoSettingsRequestCameraFacingEnum =
+  (typeof VideoSettingsRequestCameraFacingEnum)[keyof typeof VideoSettingsRequestCameraFacingEnum];
+
 /**
  *
  * @export
