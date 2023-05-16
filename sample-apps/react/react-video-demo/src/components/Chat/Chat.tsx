@@ -62,7 +62,7 @@ export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
     >
       <Window>
         <MessageList />
-        <MessageInput overrideSubmitHandler={overrideSubmitHandler} />
+        <MessageInput />
       </Window>
     </Channel>
   );

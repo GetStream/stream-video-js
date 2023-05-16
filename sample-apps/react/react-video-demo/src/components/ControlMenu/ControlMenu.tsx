@@ -1,4 +1,4 @@
-import { FC, useCallback } from 'react';
+import { FC, useCallback, useState } from 'react';
 import classnames from 'classnames';
 import {
   SfuModels,
@@ -8,7 +8,7 @@ import {
   useVideoPublisher,
 } from '@stream-io/video-react-sdk';
 
-import ControlButton from '../ControlButton';
+import ControlButton, { PanelButton } from '../ControlButton';
 import ControlMenuPanel from '../ControlMenuPanel';
 import Portal from '../Portal';
 
@@ -31,6 +31,8 @@ export const ControlMenu: FC<Props> = ({
   initialVideoMuted,
   preview,
 }) => {
+  const [isAudioOutputVisible, setAudioOutputVisible] =
+    useState<boolean>(false);
   const {
     selectedAudioInputDeviceId,
     selectedVideoDeviceId,
@@ -98,17 +100,22 @@ export const ControlMenu: FC<Props> = ({
     }
   }, [localParticipant, isAudioMuted, preview]);
 
+  const toggleAudioOutputPanel = useCallback(() => {
+    setAudioOutputVisible(!isAudioOutputVisible);
+  }, [isAudioOutputVisible]);
+
   const rootClassName = classnames(styles.root, className);
 
   return (
     <div className={rootClassName}>
       {isAudioOutputChangeSupported ? (
-        <ControlButton
+        <PanelButton
           className={styles.speakerButton}
           prefix={<Speaker />}
           portalId="audio-output-settings"
           label="Audio"
-          showPanel={false}
+          showPanel={isAudioOutputVisible}
+          onClick={() => toggleAudioOutputPanel()}
           panel={
             <Portal
               className={styles.audioSettings}
@@ -132,7 +139,6 @@ export const ControlMenu: FC<Props> = ({
         prefix={isAudioMuted ? <MicMuted /> : <Mic />}
         portalId="audio-settings"
         label="Mic"
-        showPanel={false}
         panel={
           <Portal className={styles.audioSettings} selector="audio-settings">
             <ControlMenuPanel
@@ -152,7 +158,6 @@ export const ControlMenu: FC<Props> = ({
         prefix={isVideoMuted ? <VideoOff /> : <Video />}
         portalId="camera-settings"
         label="Video"
-        showPanel={false}
         panel={
           <Portal className={styles.cameraSettings} selector="camera-settings">
             <ControlMenuPanel
