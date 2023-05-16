@@ -77,6 +77,7 @@ export const Feedback: FC<Props> = ({ className, callId, inMeeting }) => {
     maxAmount: 5,
   });
   const [feedbackSent, setFeedbackSent] = useState<boolean>(false);
+  const [errorMessage, setError] = useState<string | null>(null);
 
   const { close, isVisible } = useModalContext();
 
@@ -103,7 +104,7 @@ export const Feedback: FC<Props> = ({ className, callId, inMeeting }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          values,
+          ...values,
           page_url:
             callId && inMeeting
               ? `${endpointUrl}?id=${callId}&meeting=true`
@@ -111,7 +112,11 @@ export const Feedback: FC<Props> = ({ className, callId, inMeeting }) => {
         }),
       });
 
-      setFeedbackSent(true);
+      if (response.status !== 200) {
+        setError('Something went wrong, please try again.');
+      } else {
+        setFeedbackSent(true);
+      }
     },
     debugForm: false,
   });
@@ -128,6 +133,10 @@ export const Feedback: FC<Props> = ({ className, callId, inMeeting }) => {
 
   const rootClassName = classnames(styles.feedback, className);
   const sentClassName = classnames(styles.sent, className);
+
+  const descriptionClassName = classnames(styles.description, {
+    [styles.error]: errorMessage,
+  });
 
   if (feedbackSent) {
     return (
@@ -160,8 +169,10 @@ export const Feedback: FC<Props> = ({ className, callId, inMeeting }) => {
     return (
       <div className={rootClassName}>
         <h4 className={styles.heading}>How was your calling experience?</h4>
-        <p className={styles.description}>
-          We are eager to improve our video product.
+        <p className={descriptionClassName}>
+          {errorMessage
+            ? errorMessage
+            : 'We are eager to improve our video product.'}
         </p>
         <Form className={styles.form}>
           <Input
@@ -173,7 +184,7 @@ export const Feedback: FC<Props> = ({ className, callId, inMeeting }) => {
           />
           <TextArea
             className={styles.textarea}
-            name="reason"
+            name="message"
             placeholder="Let us know what we can do to make it better"
           />
           <div className={styles.footer}>

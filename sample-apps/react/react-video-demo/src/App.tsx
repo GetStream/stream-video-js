@@ -82,7 +82,9 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const callType: string = 'default';
   const [callId] = useState(() => {
     if (incomingCallId) return incomingCallId;
-    return `${uniqueNamesGenerator(config)}-${uuidv1().split('-')[0]}`;
+    const id = `${uniqueNamesGenerator(config)}-${uuidv1().split('-')[0]}`;
+    window.location.search = `?id=${id}`;
+    return id;
   });
   const [activeCall] = useState(() => client.call(callType, callId));
 

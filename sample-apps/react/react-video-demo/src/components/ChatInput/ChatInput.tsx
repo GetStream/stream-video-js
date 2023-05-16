@@ -126,32 +126,32 @@ export const ChatInput = () => {
           </div>
         )}
 
-        <div className="str-chat__message-input-inner">
-          <div
-            className="str-chat__file-input-container"
-            data-testid="file-upload-button"
-          >
+        <div className={styles.inputInner}>
+          <div className={styles.inputContainer}>
             <UploadButton
               accept={acceptedFiles?.join(',')}
               aria-label="File upload"
-              className="str-chat__file-input"
-              data-testid="file-input"
+              className={styles.fileInput}
               disabled={!isUploadEnabled || maxFilesLeft === 0}
               id={id}
               multiple={multipleUploads}
               onFileChange={uploadNewFiles}
             />
-            <label className="str-chat__file-input-label" htmlFor={id}>
-              <Attachment />
+            <label className={styles.inputLabel} htmlFor={id}>
+              <Attachment className={styles.attachment} />
             </label>
           </div>
           <div onClick={handleCommandsClick}>
             <Bolt className={styles.bolt} />
           </div>
-          <div className="str-chat__message-textarea-container">
-            {isUploadEnabled && !!numberOfUploads && <AttachmentPreviewList />}
+          <div className={styles.textareaContainer}>
+            <div className={styles.previewContainer}>
+              {isUploadEnabled && !!numberOfUploads && (
+                <AttachmentPreviewList />
+              )}
+            </div>
 
-            <div className="str-chat__message-textarea-with-emoji-picker">
+            <div className={styles.input}>
               <ChatAutoComplete
                 onChange={onChange}
                 placeholder="Say something"

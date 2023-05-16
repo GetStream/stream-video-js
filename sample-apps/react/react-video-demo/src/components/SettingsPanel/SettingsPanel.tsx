@@ -1,5 +1,7 @@
 import { FC, useCallback } from 'react';
 import classnames from 'classnames';
+import { isMobile, isTablet } from 'mobile-device-detect';
+import screenfull from 'screenfull';
 
 import {
   Feedback as FeedbackIcon,
@@ -16,9 +18,8 @@ import Feedback from '../Feedback';
 import DeviceSettings from '../DeviceSettings';
 import Recordings from '../Recordings';
 
-import { toggleFullScreen } from '../../utils/useToggleFullScreen';
-
 import { useModalContext } from '../../contexts/ModalContext';
+import { usePanelContext } from '../../contexts/PanelContext';
 
 import styles from './SettingsPanel.module.css';
 
@@ -27,7 +28,6 @@ export type Props = {
   callId?: string;
   toggleRecording?(): void;
   toggleShareScreen?(): void;
-  closePanel?(): void;
 };
 
 export const SettingsPanel: FC<Props> = ({
@@ -35,9 +35,9 @@ export const SettingsPanel: FC<Props> = ({
   callId,
   toggleRecording,
   toggleShareScreen,
-  closePanel,
 }) => {
   const { setComponent } = useModalContext();
+  const { toggleSettings } = usePanelContext();
 
   const handleFeedback = useCallback(() => {
     setComponent(<Feedback callId={callId} inMeeting={true} />);
@@ -56,14 +56,21 @@ export const SettingsPanel: FC<Props> = ({
   }, [callId, setComponent]);
 
   const handleFullScreen = useCallback(() => {
-    toggleFullScreen();
+    toggleSettings();
+    if (screenfull.isEnabled && screenfull.isFullscreen === false) {
+      screenfull.request();
+    } else {
+      screenfull.exit();
+    }
   }, []);
 
   const handleRecording = useCallback(() => {
+    toggleSettings();
     toggleRecording?.();
   }, [toggleRecording]);
 
   const handleShareScreen = useCallback(() => {
+    toggleSettings();
     toggleShareScreen?.();
   }, [toggleShareScreen]);
 
@@ -73,10 +80,12 @@ export const SettingsPanel: FC<Props> = ({
     <>
       <div className={rootClassName}>
         <ul className={styles.list}>
-          <li className={styles.item} onClick={handleFullScreen}>
-            <FullScreen className={styles.settingsIcon} />
-            Full screen
-          </li>
+          {screenfull.isEnabled && (
+            <li className={styles.item} onClick={handleFullScreen}>
+              <FullScreen className={styles.settingsIcon} />
+              {screenfull.isEnabled ? 'Exit full screen' : 'Full screen'}
+            </li>
+          )}
           <li className={styles.item} onClick={() => handleToggleCallState()}>
             <Info className={styles.settingsIcon} />
             Statistics
@@ -103,13 +112,15 @@ export const SettingsPanel: FC<Props> = ({
             <Record className={styles.settingsIcon} />
             Record
           </li>
-          <li
-            className={classnames(styles.item, styles.share)}
-            onClick={handleShareScreen}
-          >
-            <ShareScreen className={styles.settingsIcon} />
-            Share screen
-          </li>
+          {!isMobile && !isTablet && (
+            <li
+              className={classnames(styles.item, styles.share)}
+              onClick={handleShareScreen}
+            >
+              <ShareScreen className={styles.settingsIcon} />
+              Share screen
+            </li>
+          )}
         </ul>
       </div>
     </>
