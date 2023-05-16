@@ -64,6 +64,17 @@ export const ParticipantsSlider: FC<Props> = ({
 }) => {
   const breakpoint = useBreakpoint();
   const [derivedMode, setMode] = useState<'horizontal' | 'vertical'>(mode);
+  const [scrollWrapper, setScrollWrapper] = useState<HTMLDivElement | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!scrollWrapper || !call) return;
+
+    const cleanup = call.viewportTracker.setViewport(scrollWrapper);
+
+    return () => cleanup();
+  }, [scrollWrapper, call]);
 
   useEffect(() => {
     if (breakpoint === 'xs' || breakpoint === 'sm') {
@@ -93,6 +104,7 @@ export const ParticipantsSlider: FC<Props> = ({
     return (
       <div
         id="participant-slider"
+        ref={setScrollWrapper}
         className={rootClassName}
         style={{
           height: derivedMode === 'vertical' ? `${height}px` : undefined,

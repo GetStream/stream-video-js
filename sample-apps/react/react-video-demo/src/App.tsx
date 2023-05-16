@@ -49,6 +49,8 @@ const config: Config = {
   style: 'lowerCase',
 };
 
+const FETCH_EDGE_TIMOUT = 10000;
+
 const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const [isCallActive, setIsCallActive] = useState(false);
   const [callHasEnded, setCallHasEnded] = useState(false);
@@ -91,6 +93,8 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   }, []);
 
   useEffect(() => {
+    let markerTimer: ReturnType<typeof setTimeout>;
+
     async function fetchEdges() {
       const response: GetEdgesResponse = await client.edges();
       const latencies = await measureLatencyToEdges(response.edges);
@@ -122,11 +126,20 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
         latency: latency,
       });
 
-      const features = createGeoJsonFeatures(response.edges);
-      setEdges(features);
+      if (!edges) {
+        const features = createGeoJsonFeatures(response.edges);
+        setEdges(features);
+      }
+
+      markerTimer = setTimeout(fetchEdges, Math.random() * FETCH_EDGE_TIMOUT);
     }
+
     fetchEdges();
-  }, []);
+
+    return () => {
+      clearTimeout(markerTimer);
+    };
+  }, [edges]);
 
   const joinMeeting = useCallback(async () => {
     setIsJoiningCall(true);

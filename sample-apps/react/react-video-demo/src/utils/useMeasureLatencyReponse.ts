@@ -12,6 +12,7 @@ const toSeconds = (ms: number) => ms / 1000;
 export const measureResourceLoadLatencyTo = async (
   endpoint: string,
   timeoutAfterMs: number = 1000,
+  convertToSeconds: boolean = false,
 ) => {
   const start = Date.now();
   const controller = new AbortController();
@@ -25,7 +26,10 @@ export const measureResourceLoadLatencyTo = async (
       signal: controller.signal,
     });
     const latency = Date.now() - start;
-    return toSeconds(latency);
+    if (convertToSeconds) {
+      return toSeconds(latency);
+    }
+    return latency;
   } catch (e) {
     console.debug(`failed to measure latency to ${endpoint}`, e);
     return -1; // indicate error in measurement
