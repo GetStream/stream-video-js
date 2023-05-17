@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.48](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.47...@stream-io/video-react-sdk-0.0.1-alpha.48) (2023-05-17)
+
+
+### Features
+
+* Support for server-side driven stream resolution ([#516](https://github.com/GetStream/stream-video-js/issues/516)) ([cae1169](https://github.com/GetStream/stream-video-js/commit/cae11695fe4aa11bd5e168b00ffd6ea35e2524a2))
+
+
+
 ## [0.0.1-alpha.47](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.46...@stream-io/video-react-sdk-0.0.1-alpha.47) (2023-05-17)
 
 
