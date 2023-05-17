@@ -6,7 +6,7 @@ import {
   SfuModels,
 } from '@stream-io/video-client';
 import {
-  CallPermissionsWrapper,
+  Restricted,
   useHasOngoingScreenShare,
   useHasPermissions,
   useLocalParticipant,
@@ -37,7 +37,7 @@ export const ScreenShareButton = ({
     }
   }, [hasPermission]);
   return (
-    <CallPermissionsWrapper requiredGrants={[OwnCapability.SCREENSHARE]}>
+    <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
       <PermissionNotification
         permission={OwnCapability.SCREENSHARE}
         isAwaitingApproval={isAwaitingApproval}
@@ -80,6 +80,6 @@ export const ScreenShareButton = ({
           />
         </CompositeButton>
       </PermissionNotification>
-    </CallPermissionsWrapper>
+    </Restricted>
   );
 };

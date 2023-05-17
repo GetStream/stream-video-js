@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { ComponentProps, ComponentType, forwardRef } from 'react';
 import {
-  CallPermissionsWrapper,
+  Restricted,
   useCall,
   useConnectedUser,
 } from '@stream-io/video-react-bindings';
@@ -174,16 +174,16 @@ export const ParticipantActionsContextMenu = ({
         <Icon icon="pin" />
         {participant.pinnedAt ? 'Unpin' : 'Pin'}
       </GenericMenuButtonItem>
-      <CallPermissionsWrapper requiredGrants={[OwnCapability.BLOCK_USERS]}>
+      <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
         <GenericMenuButtonItem onClick={blockUser}>
           <Icon icon="not-allowed" />
           Block
         </GenericMenuButtonItem>
-      </CallPermissionsWrapper>
+      </Restricted>
       {/* <GenericMenuButtonItem disabled onClick={kickUserClickHandler}>
         Kick
       </GenericMenuButtonItem> */}
-      <CallPermissionsWrapper requiredGrants={[OwnCapability.MUTE_USERS]}>
+      <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
         <GenericMenuButtonItem
           disabled={
             !participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)
@@ -213,10 +213,8 @@ export const ParticipantActionsContextMenu = ({
           <Icon icon="no-audio" />
           Mute audio
         </GenericMenuButtonItem>
-      </CallPermissionsWrapper>
-      <CallPermissionsWrapper
-        requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}
-      >
+      </Restricted>
+      <Restricted requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}>
         <GenericMenuButtonItem
           onClick={grantPermission(OwnCapability.SEND_AUDIO)}
         >
@@ -248,7 +246,7 @@ export const ParticipantActionsContextMenu = ({
         >
           Disable screen sharing
         </GenericMenuButtonItem>
-      </CallPermissionsWrapper>
+      </Restricted>
     </GenericMenu>
   );
 };

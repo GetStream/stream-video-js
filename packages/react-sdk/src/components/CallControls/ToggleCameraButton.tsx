@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  CallPermissionsWrapper,
+  Restricted,
   useCall,
   useHasPermissions,
   useLocalParticipant,
@@ -85,7 +85,7 @@ export const ToggleCameraPublishingButton = ({
   ]);
 
   return (
-    <CallPermissionsWrapper requiredGrants={[OwnCapability.SEND_VIDEO]}>
+    <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <PermissionNotification
         permission={OwnCapability.SEND_VIDEO}
         isAwaitingApproval={isAwaitingApproval}
@@ -104,6 +104,6 @@ export const ToggleCameraPublishingButton = ({
           />
         </CompositeButton>
       </PermissionNotification>
-    </CallPermissionsWrapper>
+    </Restricted>
   );
 };

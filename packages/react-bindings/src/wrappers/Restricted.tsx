@@ -4,7 +4,7 @@ import { PropsWithChildren } from 'react';
 import { useCall } from '../contexts';
 import { useOwnCapabilities } from '../hooks';
 
-type CallPermissionsWrapperProps = PropsWithChildren<{
+type RestrictedProps = PropsWithChildren<{
   /**
    * OwnCapabilities of the participant - grants they have available
    */
@@ -20,12 +20,12 @@ type CallPermissionsWrapperProps = PropsWithChildren<{
   requireAll?: boolean;
 }>;
 
-export const CallPermissionsWrapper = ({
+export const Restricted = ({
   availableGrants: availableGrantsFromProps,
   requiredGrants,
   requireAll = true,
   children,
-}: CallPermissionsWrapperProps) => {
+}: RestrictedProps) => {
   const call = useCall();
   const ownCapabilities = useOwnCapabilities();
   const availableGrants = availableGrantsFromProps ?? ownCapabilities;

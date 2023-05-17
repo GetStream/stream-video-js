@@ -6,7 +6,7 @@ import {
   ComponentProps,
 } from 'react';
 import {
-  CallPermissionsWrapper,
+  Restricted,
   useCall,
   useCallMetadata,
   useOwnCapabilities,
@@ -141,12 +141,12 @@ const CallParticipantListContentHeader = ({
       <div className="str-video__participant-list__content-header-title">
         <span>{UserListTypes[userListType]}</span>
         {userListType === 'active' && (
-          <CallPermissionsWrapper
+          <Restricted
             availableGrants={ownCapabilities} // TODO: remove this line once Oliver's PR lands
             requiredGrants={[OwnCapability.MUTE_USERS]}
           >
             <TextButton onClick={muteAll}>Mute all</TextButton>
-          </CallPermissionsWrapper>
+          </Restricted>
         )}
       </div>
     </div>
