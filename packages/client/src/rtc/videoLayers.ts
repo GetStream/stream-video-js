@@ -5,7 +5,7 @@ export type OptimalVideoLayer = RTCRtpEncodingParameters & {
 
 export const findOptimalVideoLayers = (
   videoTrack: MediaStreamTrack,
-  maxBitrate: number = 3000000,
+  maxBitrate: number = 1250000,
 ) => {
   const optimalVideoLayers: OptimalVideoLayer[] = [];
   const settings = videoTrack.getSettings();
