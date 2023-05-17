@@ -1,14 +1,14 @@
 import {
-  PendingCallPanel,
   CallingState,
   CallParticipantsView,
-  useCall,
-  useCallCallingState,
+  CancelCallButton,
+  PendingCallPanel,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
   ToggleAudioPublishingButton,
-  ToggleCameraPublishingButton,
-  CancelCallButton,
+  ToggleVideoPublishingButton,
+  useCall,
+  useCallCallingState,
   useCallMetadata,
 } from '@stream-io/video-react-sdk';
 import { useChatContext } from 'stream-chat-react';
@@ -43,7 +43,7 @@ export const CallPanel = () => {
           <SpeakingWhileMutedNotification>
             <ToggleAudioPublishingButton />
           </SpeakingWhileMutedNotification>
-          <ToggleCameraPublishingButton />
+          <ToggleVideoPublishingButton />
           <CancelCallButton call={call} />
         </div>
       </div>

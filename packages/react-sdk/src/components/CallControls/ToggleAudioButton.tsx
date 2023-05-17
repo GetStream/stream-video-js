@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import {
+  Restricted,
   useCall,
   useHasPermissions,
   useI18n,
-  Restricted,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 
@@ -77,8 +77,12 @@ export const ToggleAudioPublishingButton = (
         });
       return;
     }
-    if (isAudioMute && hasPermission) {
-      await publishAudioStream();
+    if (isAudioMute) {
+      if (hasPermission) {
+        await publishAudioStream();
+      } else {
+        console.log('Cannot publish audio stream. Insufficient permissions.');
+      }
     } else {
       stopPublishingAudio();
     }

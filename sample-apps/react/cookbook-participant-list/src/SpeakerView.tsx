@@ -18,7 +18,7 @@ import {
   SpeakingWhileMutedNotification,
   StreamVideoParticipant,
   ToggleAudioPublishingButton,
-  ToggleCameraPublishingButton,
+  ToggleVideoPublishingButton,
   useCall,
   useParticipants,
   VisibilityState,
@@ -70,7 +70,7 @@ export const SpeakerView = () => {
         <SpeakingWhileMutedNotification>
           <ToggleAudioPublishingButton />
         </SpeakingWhileMutedNotification>
-        <ToggleCameraPublishingButton />
+        <ToggleVideoPublishingButton />
         {call && (
           <CancelCallButton
             call={call}
