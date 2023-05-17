@@ -58,6 +58,7 @@ export const LobbyView = () => {
     try {
       await call?.join({ create: true });
     } catch (error) {
+      console.log(error);
       if (error instanceof AxiosError) {
         console.log('Error joining call', error);
         Alert.alert(error.response?.data.message);

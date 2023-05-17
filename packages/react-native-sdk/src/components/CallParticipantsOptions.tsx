@@ -29,18 +29,26 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
   const ownCapabilities = useOwnCapabilities();
   const call = useCall();
 
-  const grantPermission = (permission: string) => () => {
-    call?.updateUserPermissions({
+  const grantPermission = async (permission: string) => {
+    await call?.updateUserPermissions({
       user_id: participant.userId,
       grant_permissions: [permission],
     });
   };
 
-  const revokePermission = (permission: string) => () => {
-    call?.updateUserPermissions({
+  const revokePermission = async (permission: string) => {
+    await call?.updateUserPermissions({
       user_id: participant.userId,
       revoke_permissions: [permission],
     });
+  };
+
+  const muteUser = async (userId: string, mediaType: 'audio' | 'video') => {
+    await call?.muteUser(userId, mediaType);
+  };
+
+  const blockUser = async (userId: string) => {
+    await call?.blockUser(userId);
   };
 
   const callMediaStreamMutePermissions: (CallParticipantOptionType | null)[] =
@@ -49,16 +57,16 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
           participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)
             ? {
                 title: 'Mute Video',
-                onPressHandler: () => {
-                  call?.muteUser(participant.userId, 'video');
+                onPressHandler: async () => {
+                  await muteUser(participant.userId, 'video');
                 },
               }
             : null,
           participant.publishedTracks.includes(SfuModels.TrackType.AUDIO)
             ? {
                 title: 'Mute Audio',
-                onPressHandler: () => {
-                  call?.muteUser(participant.userId, 'audio');
+                onPressHandler: async () => {
+                  await muteUser(participant.userId, 'audio');
                 },
               }
             : null,
@@ -71,27 +79,33 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
           {
             icon: <VideoDisabled color={theme.light.text_high_emphasis} />,
             title: 'Disable Video',
-            onPressHandler: revokePermission(OwnCapability.SEND_VIDEO),
+            onPressHandler: async () =>
+              await revokePermission(OwnCapability.SEND_VIDEO),
           },
           {
             title: 'Disable Audio',
-            onPressHandler: revokePermission(OwnCapability.SEND_AUDIO),
+            onPressHandler: async () =>
+              await revokePermission(OwnCapability.SEND_AUDIO),
           },
           {
             title: 'Allow Audio',
-            onPressHandler: grantPermission(OwnCapability.SEND_AUDIO),
+            onPressHandler: async () =>
+              await grantPermission(OwnCapability.SEND_AUDIO),
           },
           {
             title: 'Allow Video',
-            onPressHandler: grantPermission(OwnCapability.SEND_VIDEO),
+            onPressHandler: async () =>
+              await grantPermission(OwnCapability.SEND_VIDEO),
           },
           {
             title: 'Allow Screen Sharing',
-            onPressHandler: grantPermission(OwnCapability.SCREENSHARE),
+            onPressHandler: async () =>
+              await grantPermission(OwnCapability.SCREENSHARE),
           },
           {
             title: 'Disable Screen Sharing',
-            onPressHandler: revokePermission(OwnCapability.SCREENSHARE),
+            onPressHandler: async () =>
+              await revokePermission(OwnCapability.SCREENSHARE),
           },
         ]
       : [];
@@ -100,7 +114,7 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
     ownCapabilities.includes(OwnCapability.BLOCK_USERS)
       ? {
           title: 'Block',
-          onPressHandler: () => call?.blockUser(participant.userId),
+          onPressHandler: async () => await blockUser(participant.userId),
         }
       : null,
     ...callMediaStreamMutePermissions,

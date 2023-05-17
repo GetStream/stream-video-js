@@ -46,7 +46,7 @@ export const PermissionRequests = () => {
       permissions.map((permission) => {
         return Alert.alert(
           'Permissions Request',
-          messageForPermission(user.name || user.id, permission),
+          messageForPermission(user.name ?? user.id, permission),
           [
             {
               text: 'Reject',
