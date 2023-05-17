@@ -4,7 +4,7 @@ import {
   CallingState,
   CallParticipantsView,
   LoadingIndicator,
-  StreamMeeting,
+  StreamCall,
   StreamVideo,
   useCall,
   useCallCallingState,
@@ -34,14 +34,14 @@ export default function App() {
 
   return (
     <StreamVideo client={client}>
-      <StreamMeeting
+      <StreamCall
         callType="default"
         callId={callId}
         autoJoin={false}
         data={{ create: true }}
       >
         <UI />
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   );
 }
