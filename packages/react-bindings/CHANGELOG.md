@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.41](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.40...@stream-io/video-react-bindings-0.0.1-alpha.41) (2023-05-17)
+
+
+### Bug Fixes
+
+* reorganize call control buttons ([#514](https://github.com/GetStream/stream-video-js/issues/514)) ([ed1df9c](https://github.com/GetStream/stream-video-js/commit/ed1df9c230d20c2f08d0d97e2eaa962d22c7fc36))
+
+
+
+## [0.0.1-alpha.40](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.39...@stream-io/video-react-bindings-0.0.1-alpha.40) (2023-05-17)
+
+
+### Features
+
+* **react-native:** add reactions support ([#440](https://github.com/GetStream/stream-video-js/issues/440)) ([353a9c9](https://github.com/GetStream/stream-video-js/commit/353a9c99d8b954267191f44168cb21a6490a3eeb))
+
+
+
 ## [0.0.1-alpha.39](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.38...@stream-io/video-react-bindings-0.0.1-alpha.39) (2023-05-17)
 
 

@@ -5,7 +5,7 @@ import {
   RecordCallButton,
   ScreenShareButton,
   ToggleAudioPublishingButton,
-  ToggleCameraPublishingButton,
+  ToggleVideoPublishingButton,
 } from './index';
 import { SpeakingWhileMutedNotification } from '../Notification';
 
@@ -25,7 +25,7 @@ export const CallControls = (props: CallControlsProps) => {
       <SpeakingWhileMutedNotification>
         <ToggleAudioPublishingButton />
       </SpeakingWhileMutedNotification>
-      <ToggleCameraPublishingButton />
+      <ToggleVideoPublishingButton />
       <CancelCallButton call={call} onLeave={onLeave} />
     </div>
   );

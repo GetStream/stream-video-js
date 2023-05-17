@@ -19,8 +19,7 @@ import {
   SpeakingWhileMutedNotification,
   StreamCallProvider,
   ToggleAudioPublishingButton,
-  ToggleCameraPublishingButton,
-  ToggleParticipantListButton,
+  ToggleVideoPublishingButton,
   useCall,
   useCallCallingState,
 } from '@stream-io/video-react-sdk';
@@ -43,6 +42,7 @@ import {
 import { useWatchChannel } from '../hooks';
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 import { Stage } from './Stage';
+import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 
 const contents = {
   'error-join': {
@@ -190,7 +190,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
               <SpeakingWhileMutedNotification>
                 <ToggleAudioPublishingButton />
               </SpeakingWhileMutedNotification>
-              <ToggleCameraPublishingButton />
+              <ToggleVideoPublishingButton />
               <CancelCallButton call={activeCall} onLeave={onLeave} />
             </div>
             <div className="str-video__call-controls--group">
