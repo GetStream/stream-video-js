@@ -4,18 +4,18 @@ description: How to build a live stream experience using Stream's React Video SD
 ---
 
 ## Quickstart
-In this quickstart, we'll build a live streaming experience that's similar to Twitch.
+In this quickstart, we'll build a live-streaming experience that is similar to Twitch.
 
 - The live stream will run on Stream's Edge network of servers around the world
-- You can use ultra-low latency (WebRTC) based live streaming or HLS (slight delay, but better buffering)
-- We'll show how to publish to the live stream from your browser
-- Stream enables you to scale to millions of viewers
-- You can have multiple active participants in the live stream
+- We can use ultra-low latency ([WebRTC](https://webrtc.org/)) based live streaming or [HLS](https://en.wikipedia.org/wiki/HTTP_Live_Streaming) (slight delay, but better buffering)
+- We will go through the process of publishing the live stream from the browser
+- Stream enables us to automatically scale to millions of viewers (no actions required from your side)
+- We even show how to have multiple active participants in the live stream
 
-The app that we are going to build would work in two modes: Host (presenter) and Viewer (audience).
+The app that we are going to build will work in two modes: Host (presenter) and Viewer (audience).
 
 The host will be able to publish the live stream and the viewers will be able to watch the live stream.
-If you want to see a fully-fledged example, check out this [sample app.](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/livestream-app)
+If you want to see a full-blown example, check out this [sample app.](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/livestream-app)
 
 Let's get started.
 
@@ -27,7 +27,7 @@ Before going into the code, let's make sure we have everything we need.
   - `yarn install @stream-io/video-react-sdk` or
   - `npm install @stream-io/video-react-sdk`
 - Setup a Stream account at [GetStream's Dashboard](https://dashboard.getstream.io) or use your existing one
-  - We will need your API key and secret
+  - We will need an API key and secret to run the project
 
 ## Step 2 - Setup the host mode
 
@@ -38,10 +38,10 @@ In this tutorial, we will skip the details on how a `StreamVideoClient` can be s
 [Authenticating your Users](../../guides/01-authentication/)
 :::
 
-In the snippet below, we create a connection to the Stream Edge server for the live stream host, we join the call and we publish our audio and video to the live stream.
+In the code snippet provided, we establish a connection to the Stream Edge server as the live stream host. We then proceed to join the call and publish our audio and video content to the live stream.
 In this example, we use the predefined `<PaginatedGridLayout>` for the live stream.
 
-In case you want to have a more custom layout, you can build your own. See [Building Custom Layouts.](../ui-cookbook/participant-list/)
+If you prefer a more customized layout, you can build your own. See our article about [Building Custom Layouts.](../ui-cookbook/participant-list/)
 
 
 ```tsx
@@ -94,6 +94,7 @@ const BackstageUI = () => {
   // useMediaDevices() hook provides you quick access to the Browser's MediaDevices API
   // and a few helper methods to manage your audio and video streams.
   const { publishVideoStream, publishAudioStream } = useMediaDevices();
+
   useEffect(() => {
     if (!call) return;
     if (callState === CallingState.JOINED) {
@@ -102,6 +103,7 @@ const BackstageUI = () => {
       publishAudioStream();
     }
   }, [call, callState, publishAudioStream, publishVideoStream]);
+
   return (
     <>
       <BackstageHeader />
@@ -144,9 +146,9 @@ The button should be able to toggle the live stream on and off. For that purpose
 - [`useIsCallBroadcastingInProgress`](../04-call-engine/hooks-and-contexts.md#useiscallbroadcastinginprogress)
 
 
-The `useCall` hook provides you with the current call object. This is useful when you want to access the call object from a component that is deep in the component tree with the `<StreamMeeting />` component as a predecessor.
+The `useCall` hook provides us with the current call object. This is useful when we want to access the call object from a component that is deep in the component tree with the `<StreamMeeting />` component as a predecessor.
 
-On the other hand, the `useIsCallBroadcastingInProgress` hook provides you with the current broadcasting state of the call. This is useful when you want to show the current state of the live stream or build custom UI components or flows based on this call state.
+On the other hand, the `useIsCallBroadcastingInProgress` hook gives us the current broadcasting state of the call. This is helpful when we want to show the current state of the live stream or build custom UI components or flows based on this call state.
 
 The [`call`](../04-call-engine/Call.md) instance itself provides two methods for starting and stopping the live stream: 
 - [`call.startBroadcasting()`](../04-call-engine/Call.md#startbroadcasting) and 
@@ -177,7 +179,7 @@ const ToggleLivestreamButton = () => {
 Starting and stopping a live stream for the viewers is an operation that takes a few seconds to complete.
 It is a good practice to show a loading indicator while the operation is in progress.
 
-There are two ways how you can do that:
+There are two ways how we can do that:
 - have a `useEffect` that would run whenever the we have initiated a change in the broadcasting state of the call until the value of `isBroadcasting` toggles.
 - attach an event listener to the call object and follow the delivery of `call.broadcasting_started` and `call.broadcasting_stopped` events. Read more about events [here.](../10-advanced/06-events.mdx)
 :::
@@ -199,7 +201,7 @@ Anonymous users can't establish a WebSocket connection to our backend, therefore
 This means that the viewer won't know when the call starts or stops broadcasting.
 
 To circumvent this limitation, the Viewer app should be able to be notified by the Host app or some other backend service when the call starts or stops broadcasting.
-Alternatively, you can keep polling the backend for the current state of the call. See [Querying Calls.](../02-guides/06-querying-calls.mdx)
+Alternatively, you can keep polling the backend for the current state of the call. For more details on this, see [Querying Calls.](../02-guides/06-querying-calls.mdx)
 :::
 
 ```tsx
@@ -329,7 +331,7 @@ export const HLSLivestreamUI = () => {
 };
 ```
 
-Having this done, we should have a fully functional live streaming experience for the viewers based on HLS.
+Having done this, we now have a fully functional live-streaming experience for the viewers based on HLS.
 
 :::tip
 For simplicity, a few things are omitted from the code snippet above. For the full-blown and working example,
