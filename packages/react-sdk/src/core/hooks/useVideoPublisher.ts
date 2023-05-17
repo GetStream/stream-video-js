@@ -5,6 +5,7 @@ import {
   getVideoStream,
   OwnCapability,
   SfuModels,
+  VideoSettingsCameraFacingEnum,
   watchForAddedDefaultVideoDevice,
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
@@ -45,7 +46,8 @@ export const useVideoPublisher = ({
   );
 
   const metadata = useCallMetadata();
-  const targetResolution = metadata?.settings.video.target_resolution;
+  const videoSettings = metadata?.settings.video;
+  const targetResolution = videoSettings?.target_resolution;
   const publishVideoStream = useCallback(async () => {
     if (!call) return;
     if (!call.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)) {
@@ -56,6 +58,7 @@ export const useVideoPublisher = ({
         deviceId: videoDeviceId,
         width: targetResolution?.width,
         height: targetResolution?.height,
+        facingMode: toFacingMode(videoSettings?.camera_facing),
       });
       await call.publishVideoStream(videoStream, { preferredCodec });
     } catch (e) {
@@ -67,6 +70,7 @@ export const useVideoPublisher = ({
     targetResolution?.height,
     targetResolution?.width,
     videoDeviceId,
+    videoSettings?.camera_facing,
   ]);
 
   useEffect(() => {
@@ -134,4 +138,15 @@ export const useVideoPublisher = ({
   }, [videoDeviceId, call, participant?.videoStream, isPublishingVideo]);
 
   return publishVideoStream;
+};
+
+const toFacingMode = (value: VideoSettingsCameraFacingEnum | undefined) => {
+  switch (value) {
+    case VideoSettingsCameraFacingEnum.FRONT:
+      return 'user';
+    case VideoSettingsCameraFacingEnum.BACK:
+      return 'environment';
+    default:
+      return undefined;
+  }
 };
