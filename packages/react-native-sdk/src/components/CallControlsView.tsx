@@ -13,10 +13,7 @@ import {
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
 import { OwnCapability } from '@stream-io/video-client';
-import {
-  CallPermissionsWrapper,
-  useCall,
-} from '@stream-io/video-react-bindings';
+import { Restricted, useCall } from '@stream-io/video-react-bindings';
 import { useCallback, useState } from 'react';
 import { ReactionModal } from './ReactionsModal';
 
@@ -52,7 +49,7 @@ export const CallControlsView = () => {
 
   return (
     <View style={styles.container}>
-      <CallPermissionsWrapper requiredGrants={[OwnCapability.CREATE_REACTION]}>
+      <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
         <CallControlsButton
           onPress={onOpenReactionsModalHandler}
           color={theme.light.static_white}
@@ -60,13 +57,11 @@ export const CallControlsView = () => {
         >
           <Reaction color={theme.light.static_black} />
         </CallControlsButton>
-      </CallPermissionsWrapper>
-      {isReactionModalActive && (
-        <ReactionModal
-          isReactionModalActive={isReactionModalActive}
-          setIsReactionModalActive={setIsReactionModalActive}
-        />
-      )}
+      </Restricted>
+      <ReactionModal
+        isReactionModalActive={isReactionModalActive}
+        setIsReactionModalActive={setIsReactionModalActive}
+      />
       <CallControlsButton
         color={theme.light.static_white}
         onPress={() => null}

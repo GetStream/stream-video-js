@@ -11,7 +11,9 @@ type StreamVideoConfig = {
    */
   onOpenCallParticipantsInfoView?: () => void;
   /**
-   * Supported Reactions
+   * Reactions that are to be supported in the app.
+   *
+   * Note: This is an array of reactions that is rendered in the Reaction list and reactions can be choosed from it.
    */
   supportedReactions: StreamReactionType[];
 };

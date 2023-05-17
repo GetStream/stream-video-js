@@ -1,8 +1,5 @@
 import { OwnCapability, StreamReaction } from '@stream-io/video-client';
-import {
-  CallPermissionsWrapper,
-  useCall,
-} from '@stream-io/video-react-bindings';
+import { Restricted, useCall } from '@stream-io/video-react-bindings';
 
 import { CompositeButton, IconButton } from '../Button';
 import { defaultEmojiReactions } from '../Reaction';
@@ -31,7 +28,7 @@ export const ReactionsButton = ({
   reactions = defaultReactions,
 }: ReactionsButtonProps) => {
   return (
-    <CallPermissionsWrapper requiredGrants={[OwnCapability.CREATE_REACTION]}>
+    <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
       <CompositeButton
         active={false}
         caption="Reactions"
@@ -46,7 +43,7 @@ export const ReactionsButton = ({
           }}
         />
       </CompositeButton>
-    </CallPermissionsWrapper>
+    </Restricted>
   );
 };
 

@@ -1,1 +1,1 @@
-export * from './CallPermissionsWrapper';
+export * from './Restricted';
