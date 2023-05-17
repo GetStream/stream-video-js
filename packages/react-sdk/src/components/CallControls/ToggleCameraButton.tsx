@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  Restricted,
   useCall,
   useHasPermissions,
   useLocalParticipant,
@@ -10,7 +11,6 @@ import { CompositeButton, IconButton } from '../Button/';
 import { useMediaDevices } from '../../core/contexts';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
-import { Restricted } from '../Moderation';
 
 export type ToggleCameraPreviewButtonProps = { caption?: string };
 

@@ -6,12 +6,16 @@ import {
   Mic,
   MicOff,
   PhoneDown,
+  Reaction,
   Video,
   VideoSlash,
 } from '../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
-import { useCall } from '@stream-io/video-react-bindings';
+import { OwnCapability } from '@stream-io/video-client';
+import { Restricted, useCall } from '@stream-io/video-react-bindings';
+import { useCallback, useState } from 'react';
+import { ReactionModal } from './ReactionsModal';
 
 /**
  * Shows a list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
@@ -22,6 +26,8 @@ import { useCall } from '@stream-io/video-react-bindings';
  * | ![call-controls-view](https://user-images.githubusercontent.com/25864161/217349666-af0f3278-393e-449d-b30e-2d1b196abe5e.png) |
  */
 export const CallControlsView = () => {
+  const [isReactionModalActive, setIsReactionModalActive] =
+    useState<boolean>(false);
   const {
     isAudioMuted,
     isVideoMuted,
@@ -37,8 +43,25 @@ export const CallControlsView = () => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
   };
 
+  const onOpenReactionsModalHandler = useCallback(() => {
+    setIsReactionModalActive(true);
+  }, [setIsReactionModalActive]);
+
   return (
     <View style={styles.container}>
+      <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
+        <CallControlsButton
+          onPress={onOpenReactionsModalHandler}
+          color={theme.light.static_white}
+          style={styles.button}
+        >
+          <Reaction color={theme.light.static_black} />
+        </CallControlsButton>
+      </Restricted>
+      <ReactionModal
+        isReactionModalActive={isReactionModalActive}
+        setIsReactionModalActive={setIsReactionModalActive}
+      />
       <CallControlsButton
         color={theme.light.static_white}
         onPress={() => null}

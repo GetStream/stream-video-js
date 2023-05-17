@@ -4,6 +4,7 @@ import {
   useCall,
   useHasPermissions,
   useI18n,
+  Restricted,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 
@@ -11,7 +12,6 @@ import { useMediaDevices } from '../../core';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { CompositeButton, IconButton } from '../Button';
 import { PermissionNotification } from '../Notification';
-import { Restricted } from '../Moderation';
 
 export type ToggleAudioPreviewButtonProps = { caption?: string };
 
