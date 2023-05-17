@@ -6,8 +6,11 @@ title: Custom Call Layout
 ## Introduction
 
 The purpose of this guide is to help developers understand how to build a custom call layout
-using Stream React Video SDK. The guide will cover the necessary steps to connect to Stream's edge infrastructure,
-join a call, and build the layout.
+using Stream React Video SDK. The guide will cover the necessary steps:
+
+1. connecting to Stream's edge infrastructure
+2. joining a call
+3. building the layout
 
 ## About the sample application
 
@@ -99,8 +102,9 @@ export const App = () => {
     },
   });
 
+  // highlight-start
   // will load the call ID from the URL query params,
-  // or generate a random one in case it is not present.
+  // or generate a random one in case it is not present
   const [callId, setCallId] = useState(() => {
     const params = new URLSearchParams(
       window.location.search || window.location.hash,
@@ -108,11 +112,14 @@ export const App = () => {
 
     return params.get('call_id') || randomId();
   });
+  // highlight-end
 
   return (
     <StreamVideo client={client}>
-      <StreamCall callId={callId} callType="default" data={{ create: true }}>
+      {/* highlight-next-line */}
+      <StreamCall callId={callId} callType="default" input={{ create: true }}>
         <SpeakerView />
+        {/* highlight-next-line */}
       </StreamCall>
     </StreamVideo>
   );
@@ -343,7 +350,7 @@ const hasScreenShare = (p: StreamVideoParticipant) =>
 
 ### Bandwidth and CPU optimizations with `ViewportTracker`
 
-In calls with large number of participants your horizontal list will grow past viewable boundaries. Each of these `ParticipantView` components will keep subscribing to the video stream and will keep playing it even if they're not visible to the user which is wasteful and CPU and bandwidth heavy. To mitigate this issue each `Call` instance contains one `ViewportTracker` instance (`call.viewportTracker`) with `observe` and `setViewport` methods. `ParticipantView` component already utilises this functionality under the hood (`observe`) so all you need to do is to call `setViewport` with your horizontal list element as an argument and you're set.
+In calls with a large number of participants, your horizontal list will grow past viewable boundaries. Each of these `ParticipantView` components will keep subscribing to the video stream and will keep playing it even if they're not visible to the user which is wasteful because of heavy CPU and bandwidth usage. To mitigate this issue each `Call` instance contains one `ViewportTracker` instance (`call.viewportTracker`) with `observe` and `setViewport` methods. The `ParticipantView` component already utilizes this functionality under the hood (`observe`) so all we need to do is to call `setViewport` with your horizontal list element as an argument and we're set.
 
 ```tsx
 export const SpeakerView = () => {
@@ -424,10 +431,10 @@ const hasScreenShare = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 ```
 
-Now these changes will ensure that you only subscribe to the video streams you actually see on your screen. And that's it. We have successfully built our custom layout. At last, you can find the running example of this guide [here](https://github.com/GetStream/stream-video-js/sample-apps/react/cookbook-participant-list).
+Now these changes will ensure that we only subscribe to the video streams users actually see on their screens. And that's it. We have successfully built our custom layout. At last, you can find the running example of this guide [here](https://github.com/GetStream/stream-video-js/sample-apps/react/cookbook-participant-list).
 
 :::note
-Tutorial does not include the styling of the component, but you can find the full code in the [SpeakerView.scss](https://github.com/GetStream/stream-video-js/blob/main/sample-apps/react/cookbook-participant-list/src/SpeakerView.scss) file.
+The tutorial does not include the styling of the component, but you can find the full code in the [SpeakerView.scss](https://github.com/GetStream/stream-video-js/blob/main/sample-apps/react/cookbook-participant-list/src/SpeakerView.scss) file.
 :::
 
 ## Further customization

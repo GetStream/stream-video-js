@@ -7,25 +7,27 @@ import ParticipantViewUIImage from '../assets/ui-cookbook/14-layout-customizatio
 
 ## Introduction
 
-In this guide you'll learn how to customize default call layouts and how to apply custom video placeholder and UI component to `ParticipantView` component. We recommend using the `ParticipantView` component provided by the SDK because it handles rendering your video, manages video quality updates, subscriptions, and visibility state when the element is not in the visible viewport. By following this guide, you'll be able to tailor the call layouts and visual elements according to your specific needs while leveraging the capabilities provided by the `ParticipantView` component.
+In this guide, you'll learn how to customize default call layouts and how to apply custom video placeholder and UI components to the `ParticipantView` component. We recommend using the `ParticipantView` component provided by the SDK because it handles rendering your video. It also manages video quality updates, subscriptions, and visibility state when the element is not in the visible viewport. By following this guide, you'll be able to tailor the call layouts and visual elements according to your specific needs while leveraging the capabilities provided by the `ParticipantView` component.
 
 ### Purpose of the `ParticipantViewUI` and `VideoPlaceholder` templates
 
-`ParticipantView` comes by default with certain participant information displayed in the "box" - such as mute states of either video or audio, quality indicator, participant's name, reactions etc. which are displayed over the video element positioned absolutely (see picture). By utilizing the `ParticipantViewUI` prop, you can extend the `ParticipantView` component with custom UI elements specific to each participant. This allows you to tailor the visual representation of the participant based on your application's requirements and design.
+`ParticipantView` comes by default with certain participant information displayed in the "box" - such as mute states of either video or audio, quality indicator, participant's name, reactions, etc. which are displayed over the video element positioned absolutely (see picture). By utilizing the `ParticipantViewUI` property, we can extend the `ParticipantView` component with custom UI elements specific to each participant. This allows us to tailor the visual representation of the participant based on our application's requirements and design.
 
 <img src={ParticipantViewUIImage} alt="ParticipantViewUI elements" />
 
-The `VideoPlaceholder` prop allows you to replace the default placeholder displayed over the video element when the video is not playing. This placeholder is positioned absolutely over the video element\*. It provides you with the flexibility to customize the placeholder's appearance and content according to your needs.
+The `VideoPlaceholder` property allows us to replace the default placeholder displayed over the video element when the video is not playing. This placeholder is positioned absolutely over the video element. It provides us with the flexibility to customize the placeholder's appearance and content according to our needs.
 
 :::caution
-\*your custom `VideoPlaceholder` component should be able to accept `style` prop coming from `ParticipantView` to allow for absolute positioning
+Our custom `VideoPlaceholder` component should be able to accept a `style` property coming from `ParticipantView` to allow for absolute positioning.
 :::
 
 ## Customization in SDK provided layout components (preferred way)
 
-We highly recommend using layout components provided by the SDK as modification of the `ParticipantViewUI` in these call layouts is a possiblity. You can follow [this guide](./13-custom-call-layout.mdx) to build your own call layout.
+We highly recommend using layout components provided by the SDK as it is possible to modify the `ParticipantViewUI` in these call layouts. You can follow [this guide](./13-custom-call-layout.mdx) to build your own call layout.
 
 ### `PaginatedGridLayout`
+
+Call layout for large calls where `ParticipantView` elements are equally sized, you have the ability to customize the `ParticipantViewUI` and `VideoPlaceholder` components using their respective properties of this component.
 
 ```tsx
 import {
@@ -69,7 +71,7 @@ const App = ({ client, callId }) => {
 
 ### `SpeakerLayout`
 
-`SpeakerLayout` component allows you to tweak participant UI in the spotlight and in the scrollable bar independently.
+The `SpeakerLayout` component allows you to tweak participant UI in the spotlight and in the scrollable bar independently.
 
 ```tsx
 import {
@@ -128,13 +130,13 @@ const App = ({ client, callId }) => {
 
 ## Standalone `ParticipantView` customization (in custom call layouts)
 
-`ParticipantViewUI` prop accepts three possible values:
+The `ParticipantViewUI` property accepts three possible values:
 
 - `ReactElement` - find out what's considered a ReactElement in the [React documentation](https://react.dev/reference/react/isValidElement)
-- component which accepts `participant` as prop (use type `ParticipantViewUIProps`)
+- component which accepts `participant` as a prop (use type `ParticipantViewUIProps`)
 - `null` if you wish to not render any UI
 
-Following example shows utilization of `ParticipantViewUI` prop by passing down `ReactElement`:
+The following example shows the utilization of the `ParticipantViewUI` prop by passing down `ReactElement`:
 
 ```tsx
 import { type PropsWithChildren } from 'react';
