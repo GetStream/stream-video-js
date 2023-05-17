@@ -134,3 +134,14 @@ export const useCallCallingState = () => {
   const { callingState$ } = useCallState();
   return useObservableValue(callingState$);
 };
+
+/**
+ * Utility hook providing the actual start time of the call.
+ * Useful for calculating the call duration.
+ *
+ * @category Call State
+ */
+export const useCallStartedAt = () => {
+  const { startedAt$ } = useCallState();
+  return useObservableValue(startedAt$);
+};

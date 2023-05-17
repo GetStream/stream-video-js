@@ -1,7 +1,5 @@
-import {
-  DatacenterResponse,
-  GetCallEdgeServerRequest,
-} from '@stream-io/video-react-sdk';
+import { GetCallEdgeServerRequest } from '@stream-io/video-react-sdk';
+import { EdgeResponse } from '@stream-io/video-client';
 
 const toSeconds = (ms: number) => ms / 1000;
 
@@ -14,6 +12,7 @@ const toSeconds = (ms: number) => ms / 1000;
 export const measureResourceLoadLatencyTo = async (
   endpoint: string,
   timeoutAfterMs: number = 1000,
+  convertToSeconds: boolean = false,
 ) => {
   const start = Date.now();
   const controller = new AbortController();
@@ -27,7 +26,10 @@ export const measureResourceLoadLatencyTo = async (
       signal: controller.signal,
     });
     const latency = Date.now() - start;
-    return toSeconds(latency);
+    if (convertToSeconds) {
+      return toSeconds(latency);
+    }
+    return latency;
   } catch (e) {
     console.debug(`failed to measure latency to ${endpoint}`, e);
     return -1; // indicate error in measurement
@@ -49,7 +51,7 @@ export const measureResourceLoadLatencyTo = async (
  * @param measureTimeoutAfterMs the hard-limit for the whole measure process.
  */
 export const measureLatencyToEdges = async (
-  edges: DatacenterResponse[],
+  edges: EdgeResponse[],
   {
     attempts = 3,
     attemptTimeoutAfterMs = 1000,
@@ -67,10 +69,10 @@ export const measureLatencyToEdges = async (
     for (const edge of edges) {
       measurements.push(
         measureResourceLoadLatencyTo(
-          edge.latency_url,
+          edge.latency_test_url,
           attemptTimeoutAfterMs,
         ).then((latency) => {
-          (latencyByEdge[edge.name] ??= []).push(latency);
+          (latencyByEdge[edge.id] ??= []).push(latency);
         }),
       );
     }

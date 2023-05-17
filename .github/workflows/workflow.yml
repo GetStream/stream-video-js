@@ -1,4 +1,4 @@
-name: Test and release
+name: Test and deploy dogfood
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -52,18 +52,6 @@ jobs:
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
-
-      - name: Version and release packages
-        if: ${{ github.ref_name == 'main' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
-          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
-          yarn config set npmRegistryServer https://registry.npmjs.org/
-          yarn config set npmAuthToken ${{ secrets.NPM_TOKEN }}
-          yarn release
 
       # Vercel deployment: Dogfood (Preview)
       - name: Vercel Pull Configuration Dogfood (Preview)

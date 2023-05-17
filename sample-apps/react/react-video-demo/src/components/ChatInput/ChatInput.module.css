@@ -2,8 +2,19 @@
   @apply flex items-center justify-between bg-video-grey-800 border-t-2 border-video-grey-450 pr-2 pt-2;
 }
 
-.container {
-  @apply flex p-2 items-center w-full;
+.textareaContainer {
+  @apply w-full;
+}
+
+.inputInner {
+  @apply flex pt-2 pb-2 items-center w-full;
+}
+
+.fileInput {
+  @apply hidden;
+}
+.inputContainer {
+  @apply flex p-2 items-center;
 }
 
 .attachment {
@@ -23,7 +34,7 @@
 }
 
 .input {
-  @apply w-full;
+  @apply w-full pr-2;
 }
 .input textarea {
   @apply bg-video-grey-800 border-2 text-sm pt-1 pb-1 pl-2 pr-2 border-video-grey-450 text-video-grey-400 w-full rounded-full;

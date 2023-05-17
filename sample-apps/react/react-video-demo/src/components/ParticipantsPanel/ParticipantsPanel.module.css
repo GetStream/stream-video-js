@@ -40,7 +40,7 @@
 }
 
 .media {
-  @apply flex;
+  @apply flex items-center;
 }
 
 .video,

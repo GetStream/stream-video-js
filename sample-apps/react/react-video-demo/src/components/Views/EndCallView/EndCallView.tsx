@@ -25,10 +25,20 @@ export const EndCallView: FC<Props> = ({ className }) => {
           with all the features and scalability your users demand.
         </p>
         <div className={styles.ctas}>
-          <Button color="primary" shape="oval" onClick={() => {}}>
+          <Button
+            className={styles.cta}
+            color="primary"
+            shape="oval"
+            onClick={() => {}}
+          >
             TALK TO AN EXPERT
           </Button>
-          <Button color="primary" shape="oval" onClick={() => {}}>
+          <Button
+            className={styles.cta}
+            color="primary"
+            shape="oval"
+            onClick={() => {}}
+          >
             SDK Tutorials
           </Button>
         </div>

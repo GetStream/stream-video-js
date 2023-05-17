@@ -1,10 +1,7 @@
 import { FC, useRef, useState, useEffect } from 'react';
-import { createRoot } from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 import { FeatureCollection, Geometry } from 'geojson';
 import classnames from 'classnames';
-
-import LatencyMapPopup from '../LatencyMapPopup';
 
 import styles from './LatencyMap.module.css';
 
@@ -59,25 +56,6 @@ export const LatencyMap: FC<Props> = ({
 
               setHoverId(point.id);
             }
-
-            if (popUpRef && popUpRef.current) {
-              const coordinates = point.geometry.coordinates.slice();
-
-              const popupNode = document.createElement('div');
-
-              const root = createRoot(popupNode!);
-              root.render(
-                <LatencyMapPopup
-                  city={point.properties.continent}
-                  countryCode={point.properties.countryCode}
-                  abbriviation={point.properties.abbriviation}
-                />,
-              );
-              popUpRef.current
-                .setLngLat(coordinates)
-                .setDOMContent(popupNode)
-                .addTo(map.current);
-            }
           }
         }
       });
@@ -99,10 +77,6 @@ export const LatencyMap: FC<Props> = ({
               { hover: false },
             );
             setHoverId(undefined);
-          }
-
-          if (popUpRef && popUpRef.current) {
-            popUpRef.current.remove();
           }
         }
       });
@@ -134,7 +108,7 @@ export const LatencyMap: FC<Props> = ({
               type: 'FeatureCollection',
               features: [...mapSource._data.features, feature],
             });
-            appendMarkerTimer = setTimeout(appendMarker, Math.random() * 1500);
+            appendMarkerTimer = setTimeout(appendMarker, Math.random() * 150);
           }
         }
 
@@ -189,6 +163,7 @@ export const LatencyMap: FC<Props> = ({
       projection: {
         name: 'mercator',
       },
+      dragPan: false,
       container: mapContainer.current,
       style: 'mapbox://styles/zwaardje/clhf9caar013j01qt07ib4bea',
       center: [lng, lat],

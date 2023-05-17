@@ -3,13 +3,15 @@ import { Call } from '@stream-io/video-client';
 import { IconButton } from '../Button/';
 
 export type CancelCallButtonProps = {
-  call: Call;
+  call?: Call;
+  disabled?: boolean;
   onClick?: MouseEventHandler<HTMLButtonElement>;
   onLeave?: () => void;
 };
 
 export const CancelCallButton = ({
   call,
+  disabled,
   onClick,
   onLeave,
 }: CancelCallButtonProps) => {
@@ -24,5 +26,12 @@ export const CancelCallButton = ({
     },
     [onClick, onLeave, call],
   );
-  return <IconButton icon="call-end" variant="danger" onClick={handleClick} />;
+  return (
+    <IconButton
+      disabled={disabled}
+      icon="call-end"
+      variant="danger"
+      onClick={handleClick}
+    />
+  );
 };

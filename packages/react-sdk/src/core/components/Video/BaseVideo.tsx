@@ -1,18 +1,9 @@
-import {
-  DetailedHTMLProps,
-  ForwardedRef,
-  forwardRef,
-  useEffect,
-  useState,
-  VideoHTMLAttributes,
-} from 'react';
-import clsx from 'clsx';
+import { ComponentPropsWithRef, forwardRef, useEffect, useState } from 'react';
 import { Browsers } from '@stream-io/video-client';
 
-export type VideoProps = DetailedHTMLProps<
-  VideoHTMLAttributes<HTMLVideoElement>,
-  HTMLVideoElement
-> & {
+import { applyElementRef } from '../../../utilities';
+
+export type BaseVideoProps = ComponentPropsWithRef<'video'> & {
   stream?: MediaStream;
 };
 
@@ -20,19 +11,11 @@ export type VideoProps = DetailedHTMLProps<
  * @description Extends video element with `stream` property
  * (`srcObject`) to reactively handle stream changes
  */
-export const BaseVideo = forwardRef<HTMLVideoElement, VideoProps>(
+export const BaseVideo = forwardRef<HTMLVideoElement, BaseVideoProps>(
   ({ stream, ...rest }, ref) => {
     const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
       null,
     );
-    const setRef: ForwardedRef<HTMLVideoElement> = (instance) => {
-      setVideoElement(instance);
-      if (typeof ref === 'function') {
-        (ref as (instance: HTMLVideoElement | null) => void)(instance);
-      } else if (ref) {
-        ref.current = instance;
-      }
-    };
 
     useEffect(() => {
       if (!videoElement || !stream) return;
@@ -60,8 +43,10 @@ export const BaseVideo = forwardRef<HTMLVideoElement, VideoProps>(
         autoPlay
         playsInline
         {...rest}
-        className={clsx('str-video__base-video', rest.className)}
-        ref={setRef}
+        ref={(element) => {
+          applyElementRef(ref, element);
+          setVideoElement(element);
+        }}
       />
     );
   },
