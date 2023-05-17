@@ -43,12 +43,20 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
     });
   };
 
-  const muteUser = async (userId: string, mediaType: 'audio' | 'video') => {
-    await call?.muteUser(userId, mediaType);
+  const muteUser = async (mediaType: 'audio' | 'video') => {
+    await call?.muteUser(participant.userId, mediaType);
   };
 
-  const blockUser = async (userId: string) => {
-    await call?.blockUser(userId);
+  const muteUserAudio = () => {
+    muteUser('audio');
+  };
+
+  const muteUserVideo = () => {
+    muteUser('video');
+  };
+
+  const blockUser = () => {
+    call?.blockUser(participant.userId);
   };
 
   const callMediaStreamMutePermissions: (CallParticipantOptionType | null)[] =
@@ -57,17 +65,13 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
           participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)
             ? {
                 title: 'Mute Video',
-                onPressHandler: async () => {
-                  await muteUser(participant.userId, 'video');
-                },
+                onPressHandler: muteUserVideo,
               }
             : null,
           participant.publishedTracks.includes(SfuModels.TrackType.AUDIO)
             ? {
                 title: 'Mute Audio',
-                onPressHandler: async () => {
-                  await muteUser(participant.userId, 'audio');
-                },
+                onPressHandler: muteUserAudio,
               }
             : null,
         ]
@@ -114,7 +118,7 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
     ownCapabilities.includes(OwnCapability.BLOCK_USERS)
       ? {
           title: 'Block',
-          onPressHandler: async () => await blockUser(participant.userId),
+          onPressHandler: blockUser,
         }
       : null,
     ...callMediaStreamMutePermissions,
