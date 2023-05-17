@@ -2,12 +2,11 @@ import { FC, useCallback, useState } from 'react';
 import classnames from 'classnames';
 import {
   SfuModels,
+  useAudioInputDevices,
+  useAudioOutputDevices,
   useLocalParticipant,
   useMediaDevices,
-  useObserveAudioInputDevices,
-  useObserveAudioOutputDevices,
-  useObserveVideoDevices,
-  useVideoPublisher,
+  useVideoDevices,
 } from '@stream-io/video-react-sdk';
 
 import ControlButton, { PanelButton } from '../ControlButton';
@@ -50,9 +49,9 @@ export const ControlMenu: FC<Props> = ({
   } = useMediaDevices();
 
   const localParticipant = useLocalParticipant();
-  const videoDevices = useObserveVideoDevices();
-  const audioInputDevices = useObserveAudioInputDevices();
-  const audioOutputDevices = useObserveAudioOutputDevices();
+  const videoDevices = useVideoDevices();
+  const audioInputDevices = useAudioInputDevices();
+  const audioOutputDevices = useAudioOutputDevices();
 
   const isVideoMuted = preview
     ? !initialVideoState.enabled

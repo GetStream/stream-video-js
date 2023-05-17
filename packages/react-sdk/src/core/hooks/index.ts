@@ -1,4 +1,4 @@
 export * from './useAudioPublisher';
-export * from './useObserveDevices';
+export * from './useDevices';
 export * from './useVideoPublisher';
 export * from './useTrackElementVisibility';

@@ -11,8 +11,8 @@ import { BaseVideo } from '../../core/components/Video';
 import {
   DEVICE_STATE,
   useMediaDevices,
-  useObserveUnavailableVideoDevices,
-  useObserveVideoDevices,
+  useOnUnavailableVideoDevices,
+  useVideoDevices,
 } from '../../core';
 import { LoadingIndicator } from '../LoadingIndicator';
 
@@ -61,10 +61,10 @@ export const VideoPreview = ({
   // When there are 0 video devices (e.g. when laptop lid closed),
   // we do not restart the video automatically when the device is again available,
   // but rather leave turning the video on manually to the user.
-  useObserveUnavailableVideoDevices(() =>
+  useOnUnavailableVideoDevices(() =>
     setInitialVideoState(DEVICE_STATE.stopped),
   );
-  const videoDevices = useObserveVideoDevices();
+  const videoDevices = useVideoDevices();
 
   useEffect(() => {
     if (!initialVideoState.enabled) return;

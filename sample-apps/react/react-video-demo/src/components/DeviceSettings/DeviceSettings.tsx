@@ -2,9 +2,9 @@ import { FC, useCallback, useState } from 'react';
 
 import {
   useMediaDevices,
-  useObserveAudioInputDevices,
-  useObserveAudioOutputDevices,
-  useObserveVideoDevices,
+  useAudioInputDevices,
+  useAudioOutputDevices,
+  useVideoDevices,
 } from '@stream-io/video-react-sdk';
 
 import { Cog } from '../Icons';
@@ -29,9 +29,9 @@ export const DeviceSettings: FC<Props> = ({ className }) => {
     selectedAudioOutputDeviceId,
     switchDevice,
   } = useMediaDevices();
-  const videoDevices = useObserveVideoDevices();
-  const audioInputDevices = useObserveAudioInputDevices();
-  const audioOutputDevices = useObserveAudioOutputDevices();
+  const videoDevices = useVideoDevices();
+  const audioInputDevices = useAudioInputDevices();
+  const audioOutputDevices = useAudioOutputDevices();
   const { close } = useModalContext();
 
   const [audioInputId, setAudioInputId] = useState<string>();

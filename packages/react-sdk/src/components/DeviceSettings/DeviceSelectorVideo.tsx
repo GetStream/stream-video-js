@@ -1,5 +1,5 @@
 import { DeviceSelector } from './DeviceSelector';
-import { useMediaDevices, useObserveVideoDevices } from '../../core';
+import { useMediaDevices, useVideoDevices } from '../../core';
 
 export type DeviceSelectorVideoProps = {
   title?: string;
@@ -7,7 +7,7 @@ export type DeviceSelectorVideoProps = {
 
 export const DeviceSelectorVideo = ({ title }: DeviceSelectorVideoProps) => {
   const { selectedVideoDeviceId, switchDevice } = useMediaDevices();
-  const videoDevices = useObserveVideoDevices();
+  const videoDevices = useVideoDevices();
 
   return (
     <DeviceSelector

@@ -11,7 +11,7 @@ import {
  * @param observeDevices
  * @category Device Management
  */
-export const useObserveDevices = (
+export const useDevices = (
   observeDevices: () => Observable<MediaDeviceInfo[]>,
 ) => {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -31,21 +31,19 @@ export const useObserveDevices = (
  * Observes changes and maintains an array of connected video input devices
  * @category Device Management
  */
-export const useObserveVideoDevices = () => useObserveDevices(getVideoDevices);
+export const useVideoDevices = () => useDevices(getVideoDevices);
 
 /**
  * Observes changes and maintains an array of connected audio input devices
  * @category Device Management
  */
-export const useObserveAudioInputDevices = () =>
-  useObserveDevices(getAudioDevices);
+export const useAudioInputDevices = () => useDevices(getAudioDevices);
 
 /**
  * Observes changes and maintains an array of connected audio output devices
  * @category Device Management
  */
-export const useObserveAudioOutputDevices = () =>
-  useObserveDevices(getAudioOutputDevices);
+export const useAudioOutputDevices = () => useDevices(getAudioOutputDevices);
 
 /**
  * Verifies that newly selected device id exists among the registered devices.
@@ -123,7 +121,7 @@ export const useAudioOutputDeviceFallback = (
  * @param onDisconnect
  * @category Device Management
  */
-export const useObserveUnavailableDevices = (
+export const useOnUnavailableDevices = (
   observeDevices: () => Observable<MediaDeviceInfo[]>,
   onDisconnect: () => void,
 ) => {
@@ -143,5 +141,5 @@ export const useObserveUnavailableDevices = (
  * @param onDisconnect
  * @category Device Management
  */
-export const useObserveUnavailableVideoDevices = (onDisconnect: () => void) =>
-  useObserveUnavailableDevices(getVideoDevices, onDisconnect);
+export const useOnUnavailableVideoDevices = (onDisconnect: () => void) =>
+  useOnUnavailableDevices(getVideoDevices, onDisconnect);
