@@ -1,4 +1,8 @@
-import { ButtonWithIconProps, CompositeButton, IconButton } from '../Button/';
+import {
+  ButtonWithIconProps,
+  CompositeButton,
+  IconButton,
+} from '@stream-io/video-react-sdk';
 
 export type ToggleParticipantListButtonProps = { caption?: string } & Omit<
   ButtonWithIconProps,

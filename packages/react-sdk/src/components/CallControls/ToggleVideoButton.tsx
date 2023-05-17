@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  Restricted,
   useCall,
   useHasPermissions,
   useLocalParticipant,
@@ -10,13 +11,12 @@ import { CompositeButton, IconButton } from '../Button/';
 import { DEVICE_STATE, useMediaDevices } from '../../core';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
-import { Restricted } from '../Moderation';
 
-export type ToggleCameraPreviewButtonProps = { caption?: string };
+export type ToggleVideoPreviewButtonProps = { caption?: string };
 
-export const ToggleCameraPreviewButton = ({
+export const ToggleVideoPreviewButton = ({
   caption = 'Video',
-}: ToggleCameraPreviewButtonProps) => {
+}: ToggleVideoPreviewButtonProps) => {
   const { toggleInitialVideoMuteState, initialVideoState } = useMediaDevices();
 
   return (
@@ -33,13 +33,13 @@ export const ToggleCameraPreviewButton = ({
   );
 };
 
-type ToggleCameraPublishingButtonProps = {
+type ToggleVideoPublishingButtonProps = {
   caption?: string;
 };
 
-export const ToggleCameraPublishingButton = ({
+export const ToggleVideoPublishingButton = ({
   caption = 'Video',
-}: ToggleCameraPublishingButtonProps) => {
+}: ToggleVideoPublishingButtonProps) => {
   const { publishVideoStream, stopPublishingVideo, setInitialVideoState } =
     useMediaDevices();
   const localParticipant = useLocalParticipant();
@@ -72,9 +72,13 @@ export const ToggleCameraPublishingButton = ({
         });
       return;
     }
-    if (isVideoMute && hasPermission) {
-      setInitialVideoState(DEVICE_STATE.playing);
-      await publishVideoStream();
+    if (isVideoMute) {
+      if (hasPermission) {
+        setInitialVideoState(DEVICE_STATE.playing);
+        await publishVideoStream();
+      } else {
+        console.log('Cannot publish video. Insufficient permissions.');
+      }
     } else {
       stopPublishingVideo();
     }

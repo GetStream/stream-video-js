@@ -15,3 +15,4 @@ export * from './VideoOff';
 export * from './Cross';
 export * from './ScreenShare';
 export * from './ArrowRight';
+export * from './Reaction';

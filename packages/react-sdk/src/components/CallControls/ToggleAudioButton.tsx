@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import {
+  Restricted,
   useCall,
   useHasPermissions,
   useI18n,
@@ -11,7 +12,6 @@ import { useMediaDevices } from '../../core';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { CompositeButton, IconButton } from '../Button';
 import { PermissionNotification } from '../Notification';
-import { Restricted } from '../Moderation';
 
 export type ToggleAudioPreviewButtonProps = { caption?: string };
 
@@ -79,9 +79,13 @@ export const ToggleAudioPublishingButton = (
         });
       return;
     }
-    if (isAudioMute && hasPermission) {
-      setInitialAudioEnabled(true);
-      await publishAudioStream();
+    if (isAudioMute) {
+      if (hasPermission) {
+        setInitialAudioEnabled(true);
+        await publishAudioStream();
+      } else {
+        console.log('Cannot publish audio stream. Insufficient permissions.');
+      }
     } else {
       stopPublishingAudio();
     }
