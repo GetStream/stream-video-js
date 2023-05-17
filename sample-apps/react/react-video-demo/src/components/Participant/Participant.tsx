@@ -5,8 +5,8 @@ import {
   Call,
   SfuModels,
   VisibilityState,
-  StreamReaction,
   ParticipantView,
+  StreamReaction,
 } from '@stream-io/video-react-sdk';
 
 import { MicMuted, Signal } from '../Icons';
