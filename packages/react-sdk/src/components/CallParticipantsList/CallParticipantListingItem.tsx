@@ -1,6 +1,10 @@
 import clsx from 'clsx';
 import { ComponentProps, ComponentType, forwardRef } from 'react';
-import { useCall, useConnectedUser } from '@stream-io/video-react-bindings';
+import {
+  Restricted,
+  useCall,
+  useConnectedUser,
+} from '@stream-io/video-react-bindings';
 import {
   OwnCapability,
   SfuModels,
@@ -13,7 +17,6 @@ import {
   MenuToggle,
   ToggleMenuButtonProps,
 } from '../Menu';
-import { Restricted } from '../Moderation';
 import { WithTooltip } from '../Tooltip';
 import { Icon } from '../Icon';
 

@@ -2,6 +2,31 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.45](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.44...@stream-io/video-react-sdk-0.0.1-alpha.45) (2023-05-17)
+
+
+### Features
+
+* **react-native:** add reactions support ([#440](https://github.com/GetStream/stream-video-js/issues/440)) ([353a9c9](https://github.com/GetStream/stream-video-js/commit/353a9c99d8b954267191f44168cb21a6490a3eeb))
+
+
+
+## [0.0.1-alpha.44](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.43...@stream-io/video-react-sdk-0.0.1-alpha.44) (2023-05-17)
+
+
+
+## [0.0.1-alpha.43](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.42...@stream-io/video-react-sdk-0.0.1-alpha.43) (2023-05-16)
+
+
+
+## [0.0.1-alpha.42](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.41...@stream-io/video-react-sdk-0.0.1-alpha.42) (2023-05-16)
+
+
+
+## [0.0.1-alpha.41](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.40...@stream-io/video-react-sdk-0.0.1-alpha.41) (2023-05-16)
+
+
+
 ## [0.0.1-alpha.40](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.39...@stream-io/video-react-sdk-0.0.1-alpha.40) (2023-05-16)
 
 

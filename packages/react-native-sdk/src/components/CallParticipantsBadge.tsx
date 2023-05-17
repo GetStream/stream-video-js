@@ -1,18 +1,12 @@
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Participants } from '../icons';
 import { useParticipants } from '@stream-io/video-react-bindings';
 import { theme } from '../theme';
-interface CallParticipantsBadgeProps {
-  /**
-   * Handler called when the participants info button is pressed in the active call screen.
-   */
-  onOpenCallParticipantsInfoView: () => void;
-}
+import { StreamVideoRN } from '../utils/StreamVideoRN';
 
-export const CallParticipantsBadge = ({
-  onOpenCallParticipantsInfoView,
-}: CallParticipantsBadgeProps) => {
+export const CallParticipantsBadge = () => {
   const participants = useParticipants();
+  const { onOpenCallParticipantsInfoView } = StreamVideoRN.config;
 
   return (
     <Pressable
@@ -31,9 +25,6 @@ export const CallParticipantsBadge = ({
 
 const styles = StyleSheet.create({
   participantIcon: {
-    position: 'absolute',
-    right: 2 * theme.spacing.lg,
-    top: Platform.OS === 'ios' ? 3 * theme.spacing.lg : theme.spacing.lg,
     zIndex: 2,
   },
   svgContainerStyle: {},
@@ -44,7 +35,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     left: theme.spacing.lg,
     top: theme.spacing.lg,
-    zIndex: 4,
+    zIndex: 2,
   },
   badgeText: {
     color: theme.light.static_white,

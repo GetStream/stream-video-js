@@ -1,9 +1,8 @@
 import { OwnCapability, StreamReaction } from '@stream-io/video-client';
-import { useCall } from '@stream-io/video-react-bindings';
+import { Restricted, useCall } from '@stream-io/video-react-bindings';
 
 import { CompositeButton, IconButton } from '../Button';
 import { defaultEmojiReactions } from '../Reaction';
-import { Restricted } from '../Moderation';
 
 export const defaultReactions: StreamReaction[] = [
   {

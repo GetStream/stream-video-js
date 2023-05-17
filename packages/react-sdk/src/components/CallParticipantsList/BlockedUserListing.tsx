@@ -1,7 +1,6 @@
-import { useCall } from '@stream-io/video-react-bindings';
+import { Restricted, useCall } from '@stream-io/video-react-bindings';
 import { OwnCapability } from '@stream-io/video-client';
 
-import { Restricted } from '../Moderation';
 import { TextButton } from '../Button';
 
 export const BlockedUserListing = ({ data }: { data: string[] }) => {

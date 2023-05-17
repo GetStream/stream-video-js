@@ -6,6 +6,7 @@ import {
   ComponentProps,
 } from 'react';
 import {
+  Restricted,
   useCall,
   useCallMetadata,
   useOwnCapabilities,
@@ -30,7 +31,6 @@ import { EmptyParticipantSearchList } from './EmptyParticipantSearchList';
 import { LoadingIndicator } from '../LoadingIndicator';
 import { SearchInput, SearchResults } from '../Search';
 import { useSearch, UseSearchParams } from '../Search/hooks';
-import { Restricted } from '../Moderation';
 import {
   GenericMenu,
   GenericMenuButtonItem,
