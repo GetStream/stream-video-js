@@ -30,6 +30,8 @@ We highly recommend using layout components provided by the SDK as modification 
 ```tsx
 import {
   PaginatedGridLayout,
+  StreamVideo,
+  StreamCall,
   type ParticipantViewUIProps,
   type VideoPlaceholderProps,
 } from '@stream-io/video-react-sdk';
@@ -54,12 +56,12 @@ const CustomVideoPlaceholder = ({
 const App = ({ client, callId }) => {
   return (
     <StreamVideo client={client}>
-      <StreamMeeting callId={callId}>
+      <StreamCall callId={callId}>
         <PaginatedGridLayout
           VideoPlaceholder={CustomVideoPlaceholder}
           ParticipantViewUI={CustomParticipantViewUI}
         />
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   );
 };
@@ -72,6 +74,8 @@ const App = ({ client, callId }) => {
 ```tsx
 import {
   SpeakerLayout,
+  StreamVideo,
+  StreamCall,
   type ParticipantViewUIProps,
   type VideoPlaceholderProps,
 } from '@stream-io/video-react-sdk';
@@ -110,13 +114,13 @@ const CustomVideoPlaceholder = ({
 const App = ({ client, callId }) => {
   return (
     <StreamVideo client={client}>
-      <StreamMeeting callId={callId}>
+      <StreamCall callId={callId}>
         <SpeakerLayout
           VideoPlaceholder={CustomVideoPlaceholder}
           ParticipantViewUIBar={CustomParticipantViewUIBar}
           ParticipantViewUISpotlight={CustomParticipantViewUISpotlight}
         />
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   );
 };
