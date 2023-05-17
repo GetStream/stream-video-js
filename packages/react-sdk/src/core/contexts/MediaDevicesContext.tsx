@@ -88,8 +88,8 @@ const DEFAULT_DEVICE_ID = 'default';
  */
 export type MediaDevicesContextAPI = {
   disposeOfMediaStream: (stream: MediaStream) => void;
-  getAudioStream: (deviceId?: string) => Promise<MediaStream>;
-  getVideoStream: (deviceId?: string) => Promise<MediaStream>;
+  getAudioStream: typeof getAudioStream;
+  getVideoStream: typeof getVideoStream;
   isAudioOutputChangeSupported: boolean;
   initialAudioEnabled: boolean;
   initialVideoState: DeviceState;

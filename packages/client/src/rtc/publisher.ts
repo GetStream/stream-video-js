@@ -136,9 +136,11 @@ export class Publisher {
     };
 
     if (!transceiver) {
+      const metadata = this.state.metadata;
+      const maxBitrate = metadata?.settings.video.target_resolution.bitrate;
       const videoEncodings =
         trackType === TrackType.VIDEO
-          ? findOptimalVideoLayers(track)
+          ? findOptimalVideoLayers(track, maxBitrate)
           : undefined;
 
       const codecPreferences = this.getCodecPreferences(
@@ -357,6 +359,8 @@ export class Publisher {
     offer.sdp = sdp;
     await this.publisher.setLocalDescription(offer);
 
+    const metadata = this.state.metadata;
+    const maxBitrate = metadata?.settings.video.target_resolution.bitrate;
     const trackInfos = this.publisher
       .getTransceivers()
       .filter((t) => t.direction === 'sendonly' && !!t.sender.track)
@@ -370,7 +374,7 @@ export class Publisher {
         const track = transceiver.sender.track!;
         const optimalLayers =
           trackType === TrackType.VIDEO
-            ? findOptimalVideoLayers(track)
+            ? findOptimalVideoLayers(track, maxBitrate)
             : trackType === TrackType.SCREEN_SHARE
             ? findOptimalScreenSharingLayers(track)
             : [];
@@ -395,7 +399,7 @@ export class Publisher {
           // FIXME OL: adjust these values
           stereo: false,
           dtx: this.isDtxEnabled,
-          red: false,
+          red: this.isRedEnabled,
         };
       });
 
