@@ -1,15 +1,6 @@
-import { ReactNode, useMemo } from 'react';
-import { useChatContext } from 'stream-chat-react';
-import {
-  StreamMeeting,
-  StreamVideo,
-  useCalls,
-  useCreateStreamVideoClient,
-  User,
-} from '@stream-io/video-react-sdk';
+import { StreamMeeting, useCalls } from '@stream-io/video-react-sdk';
 
-import { CallPanel } from './CallPanel/CallPanel';
-import { StreamChatType } from '../../types/chat';
+import { CallPanel } from './CallPanel';
 
 export const Video = () => {
   const calls = useCalls();
@@ -23,32 +14,3 @@ export const Video = () => {
     </>
   );
 };
-
-const VideoAdapter = ({ children }: { children: ReactNode }) => {
-  const { client } = useChatContext<StreamChatType>();
-
-  const user = useMemo<User>(
-    () => ({
-      id: client.user!.id,
-      name: client.user!.name,
-      role: client.user!.role,
-      image: client.user!.image,
-    }),
-    [client.user],
-  );
-
-  const videoClient = useCreateStreamVideoClient({
-    apiKey: import.meta.env.VITE_STREAM_KEY,
-    tokenOrProvider: client._getToken(),
-    user,
-  });
-
-  return (
-    <StreamVideo client={videoClient}>
-      {children}
-      <Video />
-    </StreamVideo>
-  );
-};
-
-export default VideoAdapter;

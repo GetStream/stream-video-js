@@ -1,6 +1,6 @@
 $scope-name: 'str-video__speaker-layout';
 
-.str-video__speaker-layout--wrapper {
+.str-video__speaker-layout__wrapper {
   flex-grow: 1;
   overflow-y: hidden;
 }
@@ -14,40 +14,48 @@ $scope-name: 'str-video__speaker-layout';
   gap: 1rem;
   padding-inline: 2px; // to see "speaking" outline
 
-  .str-video__participant {
+  .str-video__participant-view {
     aspect-ratio: 16/9;
   }
 
-  .str-video__speaker-layout--spotlight {
+  .str-video__speaker-layout__spotlight {
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 0;
 
-    .str-video__participant {
+    .str-video__participant-view {
       width: 100%;
       max-width: 110vh;
     }
 
-    .str-video__screen-share {
-      outline: none; // disable "speaking" outline for screen-share video
+    .str-video__participant-view--speaking:has(
+        .str-video__video--screen-share
+      ) {
+      outline: none;
+    }
+
+    .str-video__participant-view:has(.str-video__video--screen-share) {
       border-radius: unset;
+    }
+
+    .str-video__video--screen-share {
       object-fit: contain;
     }
 
-    .str-video__participant_details,
+    .str-video__participant-details,
     .str-video__call-controls__button {
       opacity: 1;
     }
   }
 
-  .str-video__speaker-layout--participants-bar-buttons-wrapper {
+  .str-video__speaker-layout__participants-bar-buttons-wrapper {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
 
-    .str-video__speaker-layout--participants-bar-button-left {
+    .str-video__speaker-layout__participants-bar--button-left {
       position: absolute;
       left: 0.5rem;
       z-index: 1;
@@ -57,7 +65,7 @@ $scope-name: 'str-video__speaker-layout';
         height: 0.8rem;
       }
     }
-    .str-video__speaker-layout--participants-bar-button-right {
+    .str-video__speaker-layout__participants-bar--button-right {
       position: absolute;
       right: 0.5rem;
       z-index: 1;
@@ -69,19 +77,19 @@ $scope-name: 'str-video__speaker-layout';
     }
   }
 
-  .str-video__speaker-layout--participants-bar-wrapper {
+  .str-video__speaker-layout__participants-bar-wrapper {
     overflow-x: auto;
     scrollbar-width: none;
     &::-webkit-scrollbar {
       display: none;
     }
 
-    .str-video__speaker-layout--participants-bar {
+    .str-video__speaker-layout__participants-bar {
       display: flex;
       flex-direction: row;
       align-items: center;
 
-      .str-video__speaker-layout--participant-tile {
+      .str-video__speaker-layout__participant-tile {
         width: 280px;
         min-width: 280px;
         max-width: 25vh;

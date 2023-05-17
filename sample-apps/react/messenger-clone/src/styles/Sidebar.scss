@@ -1,4 +1,6 @@
 #sidebar {
+  display: flex;
+  flex-direction: column;
   border-inline-end: var(--str-chat__channel-list-border-inline-end);
 
   .str-chat__channel-list {
@@ -10,4 +12,10 @@
       rotate: 180deg;
     }
   }
+}
+
+#sidebar-footer {
+  display: flex;
+  width: 100%;
+  padding: 0.5rem;
 }

@@ -10,6 +10,7 @@ import ChatPanel from '../ChatPanel';
 import PoweredBy from '../PoweredBy';
 
 import { usePanelContext } from '../../contexts/PanelContext';
+import { useTourContext, StepNames } from '../../contexts/TourContext';
 
 import styles from './Sidebar.module.css';
 
@@ -24,10 +25,15 @@ export const Sidebar: FC<Props> = ({ chatClient, callId, participants }) => {
   const participantsRef = useRef(null);
 
   const { isChatVisible, isParticipantsVisible } = usePanelContext();
+  const { current: currenTourStep } = useTourContext();
 
   return (
     <div className={styles.sidebar}>
-      <InvitePanel className={styles.invitePanel} callId={callId} />
+      <InvitePanel
+        className={styles.invitePanel}
+        callId={callId}
+        isFocused={currenTourStep === StepNames.Invite}
+      />
       <CSSTransition
         nodeRef={participantsRef}
         in={isParticipantsVisible}

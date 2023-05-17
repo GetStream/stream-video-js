@@ -2,6 +2,71 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.27...@stream-io/i18n-0.0.1-alpha.28) (2023-05-17)
+
+
+
+## [0.0.1-alpha.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.26...@stream-io/i18n-0.0.1-alpha.27) (2023-05-16)
+
+
+
+## [0.0.1-alpha.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.25...@stream-io/i18n-0.0.1-alpha.26) (2023-05-16)
+
+
+
+## [0.0.1-alpha.25](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.24...@stream-io/i18n-0.0.1-alpha.25) (2023-05-16)
+
+
+
+## [0.0.1-alpha.24](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.23...@stream-io/i18n-0.0.1-alpha.24) (2023-05-16)
+
+
+
+## [0.0.1-alpha.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.22...@stream-io/i18n-0.0.1-alpha.23) (2023-05-16)
+
+
+
+## [0.0.1-alpha.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.21...@stream-io/i18n-0.0.1-alpha.22) (2023-05-16)
+
+
+
+## [0.0.1-alpha.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.21...@stream-io/i18n-0.0.1-alpha.22) (2023-05-16)
+
+
+
+## [0.0.1-alpha.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.20...@stream-io/i18n-0.0.1-alpha.21) (2023-05-16)
+
+
+
+## [0.0.1-alpha.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.19...@stream-io/i18n-0.0.1-alpha.20) (2023-05-16)
+
+
+
+## [0.0.1-alpha.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.18...@stream-io/i18n-0.0.1-alpha.19) (2023-05-15)
+
+
+
+## [0.0.1-alpha.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.17...@stream-io/i18n-0.0.1-alpha.18) (2023-05-15)
+
+
+
+## [0.0.1-alpha.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.16...@stream-io/i18n-0.0.1-alpha.17) (2023-05-15)
+
+
+### Features
+
+* **react-sdk:** add pending call panel components ([#494](https://github.com/GetStream/stream-video-js/issues/494)) ([d492a8b](https://github.com/GetStream/stream-video-js/commit/d492a8bfa5e05f8d0e1e9ca2d378518b21230f2d))
+
+
+
+## [0.0.1-alpha.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.15...@stream-io/i18n-0.0.1-alpha.16) (2023-05-15)
+
+
+
+## [0.0.1-alpha.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.14...@stream-io/i18n-0.0.1-alpha.15) (2023-05-15)
+
+
+
 ## [0.0.1-alpha.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.13...@stream-io/i18n-0.0.1-alpha.14) (2023-05-12)
 
 

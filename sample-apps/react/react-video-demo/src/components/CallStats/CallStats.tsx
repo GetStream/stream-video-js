@@ -42,8 +42,6 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
 
   const { close } = useModalContext();
 
-  console.log('STATSSS', callStatsReport);
-
   useEffect(() => {
     if (!callStatsReport) return;
     if (!previousStats.current) {

@@ -14,7 +14,6 @@ import {
   StreamVideo,
   useCreateStreamVideoClient,
   User,
-  DatacenterResponse,
 } from '@stream-io/video-react-sdk';
 import { FeatureCollection, Geometry } from 'geojson';
 
@@ -35,6 +34,7 @@ import { useCreateStreamChatClient } from './hooks/useChatClient';
 import { tour } from '../data/tour';
 
 import './App.css';
+import { is } from 'date-fns/locale';
 
 export type Props = {
   logo: string;
@@ -49,6 +49,8 @@ const config: Config = {
   separator: '-',
   style: 'lowerCase',
 };
+
+const FETCH_EDGE_TIMOUT = 10000;
 
 const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const [isCallActive, setIsCallActive] = useState(false);
@@ -81,7 +83,9 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const callType: string = 'default';
   const [callId] = useState(() => {
     if (incomingCallId) return incomingCallId;
-    return `${uniqueNamesGenerator(config)}-${uuidv1().split('-')[0]}`;
+    const id = `${uniqueNamesGenerator(config)}-${uuidv1().split('-')[0]}`;
+    window.location.search = `?id=${id}`;
+    return id;
   });
   const [activeCall] = useState(() => client.call(callType, callId));
 
@@ -90,21 +94,18 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   }, []);
 
   useEffect(() => {
+    let markerTimer: ReturnType<typeof setTimeout>;
+
     async function fetchEdges() {
+      if (isCallActive) {
+        if (markerTimer) {
+          clearTimeout(markerTimer);
+        }
+        return;
+      }
+
       const response: GetEdgesResponse = await client.edges();
-
-      const dataCenterResponse: DatacenterResponse[] = response.edges.map(
-        (edge) => ({
-          coordinates: {
-            latitude: edge.latitude,
-            longitude: edge.longitude,
-          },
-          latency_url: edge.latency_test_url,
-          name: edge.id,
-        }),
-      );
-
-      const latencies = await measureLatencyToEdges(dataCenterResponse);
+      const latencies = await measureLatencyToEdges(response.edges);
 
       const edgeId: string = Object.keys(latencies).reduce((acc, curr) => {
         const lowestCurr = Math.min(...latencies[curr]);
@@ -133,11 +134,22 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
         latency: latency,
       });
 
-      const features = createGeoJsonFeatures(response.edges);
-      setEdges(features);
+      if (!edges) {
+        const features = createGeoJsonFeatures(response.edges);
+        setEdges(features);
+      }
+
+      if (!isCallActive) {
+        markerTimer = setTimeout(fetchEdges, Math.random() * FETCH_EDGE_TIMOUT);
+      }
     }
+
     fetchEdges();
-  }, []);
+
+    return () => {
+      clearTimeout(markerTimer);
+    };
+  }, [edges, isCallActive]);
 
   const joinMeeting = useCallback(async () => {
     setIsJoiningCall(true);

@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-client",
-  "version": "0.0.1-alpha.137",
+  "version": "0.0.1-alpha.152",
   "packageManager": "yarn@3.2.4",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -44,7 +44,7 @@
     "ws": "^8.13.0"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.5.2",
+    "@openapitools/openapi-generator-cli": "^2.6.0",
     "@rollup/plugin-replace": "^5.0.2",
     "@rollup/plugin-typescript": "^11.1.0",
     "@types/jsonwebtoken": "^9.0.1",
