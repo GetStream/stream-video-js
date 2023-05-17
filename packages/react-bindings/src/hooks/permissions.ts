@@ -21,7 +21,7 @@ export const useHasPermissions = (...permissions: OwnCapability[]) => {
  *
  * @category Call State
  */
-export const useOwnCapabilities = () => {
+export const useOwnCapabilities = (): OwnCapability[] => {
   const metadata = useCallMetadata();
   return metadata?.own_capabilities || [];
 };

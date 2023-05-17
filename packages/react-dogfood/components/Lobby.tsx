@@ -4,7 +4,7 @@ import {
   checkIfAudioOutputChangeSupported,
   ToggleAudioOutputButton,
   ToggleAudioPreviewButton,
-  ToggleCameraPreviewButton,
+  ToggleVideoPreviewButton,
   useI18n,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
@@ -84,7 +84,7 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
                 }}
               >
                 <ToggleAudioPreviewButton />
-                <ToggleCameraPreviewButton />
+                <ToggleVideoPreviewButton />
                 {isAudioOutputChangeSupported && <ToggleAudioOutputButton />}
               </div>
             )}

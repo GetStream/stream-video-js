@@ -5,7 +5,7 @@ import {
   CancelCallButton,
   LoadingIndicator,
   ToggleAudioPublishingButton,
-  ToggleCameraPublishingButton,
+  ToggleVideoPublishingButton,
   useCall,
   useIsCallBroadcastingInProgress,
 } from '@stream-io/video-react-sdk';
@@ -16,7 +16,7 @@ export const BackstageControls = () => {
   return (
     <div className="backstage-controls">
       <ToggleAudioPublishingButton caption="" />
-      <ToggleCameraPublishingButton caption="" />
+      <ToggleVideoPublishingButton caption="" />
       <CancelCallButton call={call} />
       <ToggleLivestreamButton call={call} />
     </div>

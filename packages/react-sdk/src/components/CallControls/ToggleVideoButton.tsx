@@ -8,15 +8,15 @@ import {
 
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import { CompositeButton, IconButton } from '../Button/';
-import { useMediaDevices } from '../../core/contexts';
+import { useMediaDevices } from '../../core';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 
-export type ToggleCameraPreviewButtonProps = { caption?: string };
+export type ToggleVideoPreviewButtonProps = { caption?: string };
 
-export const ToggleCameraPreviewButton = ({
+export const ToggleVideoPreviewButton = ({
   caption = 'Video',
-}: ToggleCameraPreviewButtonProps) => {
+}: ToggleVideoPreviewButtonProps) => {
   const { toggleVideoMuteState, initialVideoState } = useMediaDevices();
 
   return (
@@ -33,13 +33,13 @@ export const ToggleCameraPreviewButton = ({
   );
 };
 
-type ToggleCameraPublishingButtonProps = {
+type ToggleVideoPublishingButtonProps = {
   caption?: string;
 };
 
-export const ToggleCameraPublishingButton = ({
+export const ToggleVideoPublishingButton = ({
   caption = 'Video',
-}: ToggleCameraPublishingButtonProps) => {
+}: ToggleVideoPublishingButtonProps) => {
   const { publishVideoStream, stopPublishingVideo } = useMediaDevices();
   const localParticipant = useLocalParticipant();
   const isVideoMute = !localParticipant?.publishedTracks.includes(
@@ -71,8 +71,12 @@ export const ToggleCameraPublishingButton = ({
         });
       return;
     }
-    if (isVideoMute && hasPermission) {
-      await publishVideoStream();
+    if (isVideoMute) {
+      if (hasPermission) {
+        await publishVideoStream();
+      } else {
+        console.log('Cannot publish video. Insufficient permissions.');
+      }
     } else {
       stopPublishingVideo();
     }
