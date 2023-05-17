@@ -11,6 +11,7 @@ import {
 import {
   useCall,
   useCallCallingState,
+  useCallMetadata,
   useCallState,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
@@ -43,6 +44,8 @@ export const useVideoPublisher = ({
     SfuModels.TrackType.VIDEO,
   );
 
+  const metadata = useCallMetadata();
+  const targetResolution = metadata?.settings.video.target_resolution;
   const publishVideoStream = useCallback(async () => {
     if (!call) return;
     if (!call.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)) {
@@ -51,12 +54,20 @@ export const useVideoPublisher = ({
     try {
       const videoStream = await getVideoStream({
         deviceId: videoDeviceId,
+        width: targetResolution?.width,
+        height: targetResolution?.height,
       });
       await call.publishVideoStream(videoStream, { preferredCodec });
     } catch (e) {
       console.log('Failed to publish video stream', e);
     }
-  }, [call, preferredCodec, videoDeviceId]);
+  }, [
+    call,
+    preferredCodec,
+    targetResolution?.height,
+    targetResolution?.width,
+    videoDeviceId,
+  ]);
 
   useEffect(() => {
     if (callingState === CallingState.JOINED && !initialVideoMuted) {
