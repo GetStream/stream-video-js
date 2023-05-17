@@ -1,6 +1,11 @@
 import { FC, useCallback, useState } from 'react';
 
-import { useMediaDevices } from '@stream-io/video-react-sdk';
+import {
+  useMediaDevices,
+  useAudioInputDevices,
+  useAudioOutputDevices,
+  useVideoDevices,
+} from '@stream-io/video-react-sdk';
 
 import { Cog } from '../Icons';
 
@@ -19,15 +24,14 @@ export type Props = {
 export const DeviceSettings: FC<Props> = ({ className }) => {
   const {
     selectedVideoDeviceId,
-    audioInputDevices,
     isAudioOutputChangeSupported,
     selectedAudioInputDeviceId,
     selectedAudioOutputDeviceId,
-    videoDevices,
-    audioOutputDevices,
     switchDevice,
   } = useMediaDevices();
-
+  const videoDevices = useVideoDevices();
+  const audioInputDevices = useAudioInputDevices();
+  const audioOutputDevices = useAudioOutputDevices();
   const { close } = useModalContext();
 
   const [audioInputId, setAudioInputId] = useState<string>();
