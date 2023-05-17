@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 import {
   CallingState,
   PaginatedGridLayout,
-  StreamMeeting,
+  StreamCall,
   useCall,
   useCallCallingState,
   useConnectedUser,
@@ -18,7 +18,7 @@ export const Backstage = () => {
   if (!callId) return <h3>No Call ID is provided</h3>;
   if (!connectedUser) return <h3>Loading...</h3>;
   return (
-    <StreamMeeting
+    <StreamCall
       callType="default" // FIXME OL: change to 'livestream'
       callId={callId}
       autoJoin={true}
@@ -35,7 +35,7 @@ export const Backstage = () => {
       }}
     >
       <BackstageUI />
-    </StreamMeeting>
+    </StreamCall>
   );
 };
 

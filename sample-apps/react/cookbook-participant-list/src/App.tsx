@@ -3,7 +3,7 @@ import { createTheme, ThemeProvider } from '@mui/material';
 import { CallSetup } from './CallSetup';
 import { useEffect, useState } from 'react';
 import {
-  StreamMeeting,
+  StreamCall,
   StreamTheme,
   StreamVideo,
   useCreateStreamVideoClient,
@@ -45,14 +45,14 @@ const App = () => {
         {!callId && <CallSetup onJoin={setCallId} />}
         {callId && (
           <StreamVideo client={client}>
-            <StreamMeeting
+            <StreamCall
               callId={callId}
               callType="default"
               data={{ create: true }}
               autoJoin
             >
               <SpeakerView />
-            </StreamMeeting>
+            </StreamCall>
           </StreamVideo>
         )}
       </ThemeProvider>

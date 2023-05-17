@@ -18,9 +18,9 @@ type InitWithCallInstance = {
   callType?: never;
 };
 
-type InitStreamMeeting = InitWithCallCID | InitWithCallInstance;
+type InitStreamCall = InitWithCallCID | InitWithCallInstance;
 
-export type StreamMeetingProps = InitStreamMeeting & {
+export type StreamCallProps = InitStreamCall & {
   /**
    * If true, the call will be joined automatically.
    * Set it to true if you want to join the call immediately.
@@ -41,7 +41,7 @@ export type StreamMeetingProps = InitStreamMeeting & {
   mediaDevicesProviderProps?: MediaDevicesProviderProps;
 };
 
-export const StreamMeeting = ({
+export const StreamCall = ({
   children,
   callId,
   callType,
@@ -49,7 +49,7 @@ export const StreamMeeting = ({
   autoJoin = false,
   data,
   mediaDevicesProviderProps,
-}: PropsWithChildren<StreamMeetingProps>) => {
+}: PropsWithChildren<StreamCallProps>) => {
   const client = useStreamVideoClient();
   const [activeCall, setActiveCall] = useState<Call | undefined>(() => {
     if (call) return call;

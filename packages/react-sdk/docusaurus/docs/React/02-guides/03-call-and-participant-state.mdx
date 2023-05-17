@@ -98,7 +98,7 @@ The full list of available client state hooks are available in the [Hooks and Co
 
 ## Observe call state
 
-To observe call state you can use [`StreamMeeting` component](TODO link):
+To observe call state you can use [`StreamCall` component](TODO link):
 
 ```tsx
 import {
@@ -120,12 +120,12 @@ export default function App() {
   return (
     <StreamVideo client={client}>
       <Header></Header>
-      <StreamMeeting
+      <StreamCall
         callType="default"
         callId="test-call"
         autoJoin={true}
         data={{ create: true }}
-      ></StreamMeeting>
+      ></StreamCall>
     </StreamVideo>
   );
 }
@@ -158,14 +158,14 @@ export default function App() {
   return (
     <StreamVideo client={client}>
       <Header></Header>
-      <StreamMeeting
+      <StreamCall
         callType="default"
         callId="test-call"
         autoJoin={true}
         data={{ create: true }}
       >
         <Call />
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   );
 }
@@ -192,4 +192,4 @@ This approach makes it possible to access the call state and be notified about c
 
 The list of call state hooks can be found on the [Hooks and Contexts page](../../call-engine/hooks-and-contexts#call-state).
 
-The `StreamMeeting` component uses the [`StreamCallProvider`](../../call-engine/hooks-and-contexts/#streamcallprovider) under the hood.
+The `StreamCall` component uses the [`StreamCallProvider`](../../call-engine/hooks-and-contexts/#streamcallprovider) under the hood.
