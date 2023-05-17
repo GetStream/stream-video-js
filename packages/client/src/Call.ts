@@ -76,6 +76,7 @@ import {
 } from 'rxjs';
 import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
 import { JoinResponse } from './gen/video/sfu/event/events';
+import { Timestamp } from './gen/google/protobuf/timestamp';
 import {
   createStatsReporter,
   StatsReporter,
@@ -712,6 +713,10 @@ export class Call {
       // fails to respond in time
       const { callState } = await this.waitForJoinResponse();
       const currentParticipants = callState?.participants || [];
+      const participantCount = callState?.participantCount;
+      const startedAt = callState?.startedAt
+        ? Timestamp.toDate(callState.startedAt)
+        : new Date();
       this.state.setParticipants(
         currentParticipants.map<StreamVideoParticipant>((participant) => ({
           ...participant,
@@ -719,6 +724,9 @@ export class Call {
           viewportVisibilityState: VisibilityState.UNKNOWN,
         })),
       );
+      this.state.setParticipantCount(participantCount?.total || 0);
+      this.state.setAnonymousParticipantCount(participantCount?.anonymous || 0);
+      this.state.setStartedAt(startedAt);
 
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);

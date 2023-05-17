@@ -25,6 +25,7 @@ import {
   Error as Error$,
   ICETrickle as ICETrickle$,
   Participant,
+  ParticipantCount,
   PeerType,
   TrackType,
   TrackUnpublishReason,
@@ -208,9 +209,9 @@ export interface HealthCheckRequest {}
  */
 export interface HealthCheckResponse {
   /**
-   * @generated from protobuf field: uint32 participant_count = 1;
+   * @generated from protobuf field: stream.video.sfu.models.ParticipantCount participant_count = 1;
    */
-  participantCount: number;
+  participantCount?: ParticipantCount;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.TrackPublished
@@ -304,10 +305,6 @@ export interface JoinResponse {
    * @generated from protobuf field: stream.video.sfu.models.CallState call_state = 1;
    */
   callState?: CallState;
-  /**
-   * @generated from protobuf field: uint32 participant_count = 2;
-   */
-  participantCount: number;
 }
 /**
  * ParticipantJoined is fired when a user joins a call
@@ -1367,13 +1364,13 @@ class HealthCheckResponse$Type extends MessageType<HealthCheckResponse> {
       {
         no: 1,
         name: 'participant_count',
-        kind: 'scalar',
-        T: 13 /*ScalarType.UINT32*/,
+        kind: 'message',
+        T: () => ParticipantCount,
       },
     ]);
   }
   create(value?: PartialMessage<HealthCheckResponse>): HealthCheckResponse {
-    const message = { participantCount: 0 };
+    const message = {};
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
       enumerable: false,
       value: this,
@@ -1393,8 +1390,13 @@ class HealthCheckResponse$Type extends MessageType<HealthCheckResponse> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* uint32 participant_count */ 1:
-          message.participantCount = reader.uint32();
+        case /* stream.video.sfu.models.ParticipantCount participant_count */ 1:
+          message.participantCount = ParticipantCount.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.participantCount,
+          );
           break;
         default:
           let u = options.readUnknownField;
@@ -1420,9 +1422,13 @@ class HealthCheckResponse$Type extends MessageType<HealthCheckResponse> {
     writer: IBinaryWriter,
     options: BinaryWriteOptions,
   ): IBinaryWriter {
-    /* uint32 participant_count = 1; */
-    if (message.participantCount !== 0)
-      writer.tag(1, WireType.Varint).uint32(message.participantCount);
+    /* stream.video.sfu.models.ParticipantCount participant_count = 1; */
+    if (message.participantCount)
+      ParticipantCount.internalBinaryWrite(
+        message.participantCount,
+        writer.tag(1, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -1790,16 +1796,10 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
   constructor() {
     super('stream.video.sfu.event.JoinResponse', [
       { no: 1, name: 'call_state', kind: 'message', T: () => CallState },
-      {
-        no: 2,
-        name: 'participant_count',
-        kind: 'scalar',
-        T: 13 /*ScalarType.UINT32*/,
-      },
     ]);
   }
   create(value?: PartialMessage<JoinResponse>): JoinResponse {
-    const message = { participantCount: 0 };
+    const message = {};
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
       enumerable: false,
       value: this,
@@ -1826,9 +1826,6 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
             options,
             message.callState,
           );
-          break;
-        case /* uint32 participant_count */ 2:
-          message.participantCount = reader.uint32();
           break;
         default:
           let u = options.readUnknownField;
@@ -1861,9 +1858,6 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
         writer.tag(1, WireType.LengthDelimited).fork(),
         options,
       ).join();
-    /* uint32 participant_count = 2; */
-    if (message.participantCount !== 0)
-      writer.tag(2, WireType.Varint).uint32(message.participantCount);
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(

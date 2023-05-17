@@ -9,6 +9,13 @@ import {
 
 import { useBreakpoint } from '../hooks/useBreakpoints';
 
+export enum StepNames {
+  Build = 1,
+  Network = 2,
+  Experience = 3,
+  Invite = 4,
+}
+
 type Step = {
   header: string;
   explanation: string;

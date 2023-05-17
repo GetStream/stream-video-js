@@ -20,13 +20,52 @@ import { Struct } from '../../../google/protobuf/struct';
 import { Timestamp } from '../../../google/protobuf/timestamp';
 
 /**
+ * CallState is the current state of the call
+ * as seen by an SFU.
+ *
  * @generated from protobuf message stream.video.sfu.models.CallState
  */
 export interface CallState {
   /**
+   * participants is the list of participants in the call.
+   * In large calls, the list could be truncated in which
+   * case, the list of participants contains fewer participants
+   * than the counts returned in participant_count. Anonymous
+   * participants are **NOT** included in the list.
+   *
    * @generated from protobuf field: repeated stream.video.sfu.models.Participant participants = 1;
    */
   participants: Participant[];
+  /**
+   * started_at is the time the call session actually started.
+   *
+   * @generated from protobuf field: google.protobuf.Timestamp started_at = 2;
+   */
+  startedAt?: Timestamp;
+  /**
+   * participant_count contains the summary of the counts.
+   *
+   * @generated from protobuf field: stream.video.sfu.models.ParticipantCount participant_count = 3;
+   */
+  participantCount?: ParticipantCount;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.models.ParticipantCount
+ */
+export interface ParticipantCount {
+  /**
+   * Total number of participants in the call including
+   * the anonymous participants.
+   *
+   * @generated from protobuf field: uint32 total = 1;
+   */
+  total: number;
+  /**
+   * Total number of anonymous participants in the call.
+   *
+   * @generated from protobuf field: uint32 anonymous = 2;
+   */
+  anonymous: number;
 }
 /**
  * those who are online in the call
@@ -604,6 +643,13 @@ class CallState$Type extends MessageType<CallState> {
         repeat: 1 /*RepeatType.PACKED*/,
         T: () => Participant,
       },
+      { no: 2, name: 'started_at', kind: 'message', T: () => Timestamp },
+      {
+        no: 3,
+        name: 'participant_count',
+        kind: 'message',
+        T: () => ParticipantCount,
+      },
     ]);
   }
   create(value?: PartialMessage<CallState>): CallState {
@@ -630,6 +676,22 @@ class CallState$Type extends MessageType<CallState> {
         case /* repeated stream.video.sfu.models.Participant participants */ 1:
           message.participants.push(
             Participant.internalBinaryRead(reader, reader.uint32(), options),
+          );
+          break;
+        case /* google.protobuf.Timestamp started_at */ 2:
+          message.startedAt = Timestamp.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.startedAt,
+          );
+          break;
+        case /* stream.video.sfu.models.ParticipantCount participant_count */ 3:
+          message.participantCount = ParticipantCount.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.participantCount,
           );
           break;
         default:
@@ -663,6 +725,20 @@ class CallState$Type extends MessageType<CallState> {
         writer.tag(1, WireType.LengthDelimited).fork(),
         options,
       ).join();
+    /* google.protobuf.Timestamp started_at = 2; */
+    if (message.startedAt)
+      Timestamp.internalBinaryWrite(
+        message.startedAt,
+        writer.tag(2, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
+    /* stream.video.sfu.models.ParticipantCount participant_count = 3; */
+    if (message.participantCount)
+      ParticipantCount.internalBinaryWrite(
+        message.participantCount,
+        writer.tag(3, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -677,6 +753,85 @@ class CallState$Type extends MessageType<CallState> {
  * @generated MessageType for protobuf message stream.video.sfu.models.CallState
  */
 export const CallState = new CallState$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ParticipantCount$Type extends MessageType<ParticipantCount> {
+  constructor() {
+    super('stream.video.sfu.models.ParticipantCount', [
+      { no: 1, name: 'total', kind: 'scalar', T: 13 /*ScalarType.UINT32*/ },
+      { no: 2, name: 'anonymous', kind: 'scalar', T: 13 /*ScalarType.UINT32*/ },
+    ]);
+  }
+  create(value?: PartialMessage<ParticipantCount>): ParticipantCount {
+    const message = { total: 0, anonymous: 0 };
+    globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
+      enumerable: false,
+      value: this,
+    });
+    if (value !== undefined)
+      reflectionMergePartial<ParticipantCount>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: ParticipantCount,
+  ): ParticipantCount {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* uint32 total */ 1:
+          message.total = reader.uint32();
+          break;
+        case /* uint32 anonymous */ 2:
+          message.anonymous = reader.uint32();
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: ParticipantCount,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
+    /* uint32 total = 1; */
+    if (message.total !== 0)
+      writer.tag(1, WireType.Varint).uint32(message.total);
+    /* uint32 anonymous = 2; */
+    if (message.anonymous !== 0)
+      writer.tag(2, WireType.Varint).uint32(message.anonymous);
+    let u = options.writeUnknownFields;
+    if (u !== false)
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.ParticipantCount
+ */
+export const ParticipantCount = new ParticipantCount$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Participant$Type extends MessageType<Participant> {
   constructor() {

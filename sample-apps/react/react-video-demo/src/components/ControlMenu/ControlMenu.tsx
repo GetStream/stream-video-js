@@ -2,7 +2,6 @@ import { FC, useCallback, useState } from 'react';
 import classnames from 'classnames';
 import {
   SfuModels,
-  useAudioPublisher,
   useLocalParticipant,
   useMediaDevices,
   useObserveAudioInputDevices,
@@ -43,6 +42,8 @@ export const ControlMenu: FC<Props> = ({
     switchDevice,
     toggleInitialAudioMuteState,
     toggleInitialVideoMuteState,
+    publishVideoStream,
+    publishAudioStream,
     initialVideoState,
     initialAudioEnabled,
     isAudioOutputChangeSupported,
@@ -60,16 +61,6 @@ export const ControlMenu: FC<Props> = ({
   const isAudioMuted = preview
     ? !initialAudioEnabled
     : !localParticipant?.publishedTracks.includes(SfuModels.TrackType.AUDIO);
-
-  const publishVideoStream = useVideoPublisher({
-    initialVideoMuted,
-    videoDeviceId: selectedVideoDeviceId,
-  });
-
-  const publishAudioStream = useAudioPublisher({
-    initialAudioMuted,
-    audioDeviceId: selectedAudioInputDeviceId,
-  });
 
   const disableVideo = useCallback(() => {
     call.stopPublish(SfuModels.TrackType.VIDEO);

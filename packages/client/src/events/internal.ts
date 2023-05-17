@@ -56,7 +56,10 @@ export const watchParticipantCountChanged = (
 ) => {
   return dispatcher.on('healthCheckResponse', (e) => {
     if (e.eventPayload.oneofKind !== 'healthCheckResponse') return;
-    const healthCheckResponse = e.eventPayload.healthCheckResponse;
-    state.setParticipantCount(healthCheckResponse.participantCount);
+    const { participantCount } = e.eventPayload.healthCheckResponse;
+    if (participantCount) {
+      state.setParticipantCount(participantCount.total);
+      state.setAnonymousParticipantCount(participantCount.anonymous);
+    }
   });
 };

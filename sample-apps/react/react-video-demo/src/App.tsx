@@ -34,6 +34,7 @@ import { useCreateStreamChatClient } from './hooks/useChatClient';
 import { tour } from '../data/tour';
 
 import './App.css';
+import { is } from 'date-fns/locale';
 
 export type Props = {
   logo: string;
@@ -48,6 +49,8 @@ const config: Config = {
   separator: '-',
   style: 'lowerCase',
 };
+
+const FETCH_EDGE_TIMOUT = 10000;
 
 const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const [isCallActive, setIsCallActive] = useState(false);
@@ -91,7 +94,16 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   }, []);
 
   useEffect(() => {
+    let markerTimer: ReturnType<typeof setTimeout>;
+
     async function fetchEdges() {
+      if (isCallActive) {
+        if (markerTimer) {
+          clearTimeout(markerTimer);
+        }
+        return;
+      }
+
       const response: GetEdgesResponse = await client.edges();
       const latencies = await measureLatencyToEdges(response.edges);
 
@@ -122,11 +134,22 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
         latency: latency,
       });
 
-      const features = createGeoJsonFeatures(response.edges);
-      setEdges(features);
+      if (!edges) {
+        const features = createGeoJsonFeatures(response.edges);
+        setEdges(features);
+      }
+
+      if (!isCallActive) {
+        markerTimer = setTimeout(fetchEdges, Math.random() * FETCH_EDGE_TIMOUT);
+      }
     }
+
     fetchEdges();
-  }, []);
+
+    return () => {
+      clearTimeout(markerTimer);
+    };
+  }, [edges, isCallActive]);
 
   const joinMeeting = useCallback(async () => {
     setIsJoiningCall(true);

@@ -66,3 +66,14 @@ export const useParticipantCount = () => {
   const { participantCount$ } = useCallState();
   return useObservableValue(participantCount$);
 };
+
+/**
+ * Returns the approximate anonymous participant count of the active call.
+ * The regular participants are not included in this count. It is computed on the server.
+ *
+ * @category Call State
+ */
+export const useAnonymousParticipantCount = () => {
+  const { anonymousParticipantCount$ } = useCallState();
+  return useObservableValue(anonymousParticipantCount$);
+};

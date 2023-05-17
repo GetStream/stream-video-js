@@ -41,7 +41,7 @@ export const DeviceSettings: FC<Props> = ({ className }) => {
     [],
   );
 
-  const handleSelectAudioDevice = useCallback(
+  const handleSelectAudioInputDevice = useCallback(
     (_: string, audioInputDeviceId: string) => {
       setAudioInputId(audioInputDeviceId);
     },
@@ -55,18 +55,17 @@ export const DeviceSettings: FC<Props> = ({ className }) => {
     [],
   );
 
-  const save = useCallback(() => {
+  const save = useCallback(async () => {
     if (videoInputId) {
-      switchDevice('videoinput', videoInputId);
+      await switchDevice('videoinput', videoInputId);
     }
 
     if (audioInputId) {
-      console.log('bwaaaaaa', audioInputId);
-      switchDevice('audioinput', audioInputId);
+      await switchDevice('audioinput', audioInputId);
     }
 
     if (audioOutputId && isAudioOutputChangeSupported) {
-      switchDevice('audiooutput', audioOutputId);
+      await switchDevice('audiooutput', audioOutputId);
     }
 
     close();
@@ -87,7 +86,7 @@ export const DeviceSettings: FC<Props> = ({ className }) => {
           title="Select an Audio Output"
           devices={audioOutputDevices}
           selectedDeviceId={selectedAudioOutputDeviceId}
-          selectDevice={handleSelectAudioDevice}
+          selectDevice={handleSelectAudioOutputDevice}
         />
       ) : null}
       <DeviceList
@@ -95,7 +94,7 @@ export const DeviceSettings: FC<Props> = ({ className }) => {
         title="Select an Audio Input"
         devices={audioInputDevices}
         selectedDeviceId={selectedAudioInputDeviceId}
-        selectDevice={handleSelectAudioOutputDevice}
+        selectDevice={handleSelectAudioInputDevice}
       />
       <div className={styles.footer}>
         <Button
