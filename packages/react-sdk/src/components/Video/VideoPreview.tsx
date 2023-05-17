@@ -67,7 +67,6 @@ export const VideoPreview = ({
   const videoDevices = useObserveVideoDevices();
 
   useEffect(() => {
-    console.log('XXX initialVideoState', initialVideoState);
     if (!initialVideoState.enabled) return;
 
     getVideoStream(selectedVideoDeviceId)

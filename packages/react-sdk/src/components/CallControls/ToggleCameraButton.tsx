@@ -7,7 +7,7 @@ import {
 
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import { CompositeButton, IconButton } from '../Button/';
-import { useMediaDevices } from '../../core';
+import { DEVICE_STATE, useMediaDevices } from '../../core';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 import { Restricted } from '../Moderation';
@@ -40,7 +40,8 @@ type ToggleCameraPublishingButtonProps = {
 export const ToggleCameraPublishingButton = ({
   caption = 'Video',
 }: ToggleCameraPublishingButtonProps) => {
-  const { publishVideoStream, stopPublishingVideo } = useMediaDevices();
+  const { publishVideoStream, stopPublishingVideo, setInitialVideoState } =
+    useMediaDevices();
   const localParticipant = useLocalParticipant();
   const isVideoMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
@@ -72,6 +73,7 @@ export const ToggleCameraPublishingButton = ({
       return;
     }
     if (isVideoMute && hasPermission) {
+      setInitialVideoState(DEVICE_STATE.playing);
       await publishVideoStream();
     } else {
       stopPublishingVideo();
@@ -81,6 +83,7 @@ export const ToggleCameraPublishingButton = ({
     hasPermission,
     isVideoMute,
     publishVideoStream,
+    setInitialVideoState,
     stopPublishingVideo,
   ]);
 
