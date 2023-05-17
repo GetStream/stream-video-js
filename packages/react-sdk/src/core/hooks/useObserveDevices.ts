@@ -9,6 +9,7 @@ import {
 /**
  * Observes changes in connected devices and maintains an up-to-date array of connected MediaDeviceInfo objects.
  * @param observeDevices
+ * @category Device Management
  */
 export const useObserveDevices = (
   observeDevices: () => Observable<MediaDeviceInfo[]>,
@@ -28,17 +29,20 @@ export const useObserveDevices = (
 
 /**
  * Observes changes and maintains an array of connected video input devices
+ * @category Device Management
  */
 export const useObserveVideoDevices = () => useObserveDevices(getVideoDevices);
 
 /**
  * Observes changes and maintains an array of connected audio input devices
+ * @category Device Management
  */
 export const useObserveAudioInputDevices = () =>
   useObserveDevices(getAudioDevices);
 
 /**
  * Observes changes and maintains an array of connected audio output devices
+ * @category Device Management
  */
 export const useObserveAudioOutputDevices = () =>
   useObserveDevices(getAudioOutputDevices);
@@ -49,6 +53,7 @@ export const useObserveAudioOutputDevices = () =>
  * @param devices$
  * @param switchToDefaultDevice
  * @param selectedDeviceId
+ * @category Device Management
  */
 export const useDeviceFallback = (
   devices$: Observable<MediaDeviceInfo[]>,
@@ -74,6 +79,7 @@ export const useDeviceFallback = (
  * If the selected device id is not found among existing devices, switches to the default video device.
  * @param switchToDefaultDevice
  * @param selectedDeviceId
+ * @category Device Management
  */
 export const useVideoDeviceFallback = (
   switchToDefaultDevice: () => void,
@@ -86,6 +92,7 @@ export const useVideoDeviceFallback = (
  * If the selected device id is not found among existing devices, switches to the default audio input device.
  * @param switchToDefaultDevice
  * @param selectedDeviceId
+ * @category Device Management
  */
 export const useAudioInputDeviceFallback = (
   switchToDefaultDevice: () => void,
@@ -98,6 +105,7 @@ export const useAudioInputDeviceFallback = (
  * If the selected device id is not found among existing devices, switches to the default audio output device.
  * @param switchToDefaultDevice
  * @param selectedDeviceId
+ * @category Device Management
  */
 export const useAudioOutputDeviceFallback = (
   switchToDefaultDevice: () => void,
@@ -113,6 +121,7 @@ export const useAudioOutputDeviceFallback = (
  * Observes devices of certain kind are made unavailable and executes onDisconnect callback
  * @param observeDevices
  * @param onDisconnect
+ * @category Device Management
  */
 export const useObserveUnavailableDevices = (
   observeDevices: () => Observable<MediaDeviceInfo[]>,
@@ -132,6 +141,7 @@ export const useObserveUnavailableDevices = (
 /**
  * Observes disconnect of all video devices and executes onDisconnect callback
  * @param onDisconnect
+ * @category Device Management
  */
 export const useObserveUnavailableVideoDevices = (onDisconnect: () => void) =>
   useObserveUnavailableDevices(getVideoDevices, onDisconnect);
