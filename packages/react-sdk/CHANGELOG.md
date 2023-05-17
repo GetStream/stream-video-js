@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.46](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.45...@stream-io/video-react-sdk-0.0.1-alpha.46) (2023-05-17)
+
+
+### Bug Fixes
+
+* reorganize call control buttons ([#514](https://github.com/GetStream/stream-video-js/issues/514)) ([ed1df9c](https://github.com/GetStream/stream-video-js/commit/ed1df9c230d20c2f08d0d97e2eaa962d22c7fc36))
+
+
+
 ## [0.0.1-alpha.45](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.44...@stream-io/video-react-sdk-0.0.1-alpha.45) (2023-05-17)
 
 
