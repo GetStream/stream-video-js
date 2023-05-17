@@ -80,7 +80,7 @@ export const Preview = {
           setInitialAudioMuted,
         }}
       >
-        <MediaDevicesProvider enumerate>{children}</MediaDevicesProvider>
+        <MediaDevicesProvider>{children}</MediaDevicesProvider>
       </PreviewContext.Provider>
     );
   },

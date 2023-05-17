@@ -18,7 +18,8 @@ export type ToggleAudioPreviewButtonProps = { caption?: string };
 export const ToggleAudioPreviewButton = ({
   caption,
 }: ToggleAudioPreviewButtonProps) => {
-  const { initialAudioEnabled, toggleAudioMuteState } = useMediaDevices();
+  const { initialAudioEnabled, toggleInitialAudioMuteState } =
+    useMediaDevices();
   const { t } = useI18n();
 
   return (
@@ -29,7 +30,7 @@ export const ToggleAudioPreviewButton = ({
     >
       <IconButton
         icon={initialAudioEnabled ? 'mic' : 'mic-off'}
-        onClick={toggleAudioMuteState}
+        onClick={toggleInitialAudioMuteState}
       />
     </CompositeButton>
   );
@@ -42,7 +43,8 @@ export type ToggleAudioPublishingButtonProps = {
 export const ToggleAudioPublishingButton = (
   props: ToggleAudioPublishingButtonProps,
 ) => {
-  const { publishAudioStream, stopPublishingAudio } = useMediaDevices();
+  const { publishAudioStream, stopPublishingAudio, setInitialAudioEnabled } =
+    useMediaDevices();
   const localParticipant = useLocalParticipant();
   const { t } = useI18n();
 
@@ -78,6 +80,7 @@ export const ToggleAudioPublishingButton = (
       return;
     }
     if (isAudioMute && hasPermission) {
+      setInitialAudioEnabled(true);
       await publishAudioStream();
     } else {
       stopPublishingAudio();
@@ -87,6 +90,7 @@ export const ToggleAudioPublishingButton = (
     hasPermission,
     isAudioMute,
     publishAudioStream,
+    setInitialAudioEnabled,
     stopPublishingAudio,
   ]);
 

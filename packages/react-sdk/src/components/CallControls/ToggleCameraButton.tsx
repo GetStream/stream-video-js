@@ -7,7 +7,7 @@ import {
 
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import { CompositeButton, IconButton } from '../Button/';
-import { useMediaDevices } from '../../core/contexts';
+import { useMediaDevices } from '../../core';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 import { Restricted } from '../Moderation';
@@ -17,7 +17,7 @@ export type ToggleCameraPreviewButtonProps = { caption?: string };
 export const ToggleCameraPreviewButton = ({
   caption = 'Video',
 }: ToggleCameraPreviewButtonProps) => {
-  const { toggleVideoMuteState, initialVideoState } = useMediaDevices();
+  const { toggleInitialVideoMuteState, initialVideoState } = useMediaDevices();
 
   return (
     <CompositeButton
@@ -27,7 +27,7 @@ export const ToggleCameraPreviewButton = ({
     >
       <IconButton
         icon={initialVideoState.enabled ? 'camera' : 'camera-off'}
-        onClick={toggleVideoMuteState}
+        onClick={toggleInitialVideoMuteState}
       />
     </CompositeButton>
   );

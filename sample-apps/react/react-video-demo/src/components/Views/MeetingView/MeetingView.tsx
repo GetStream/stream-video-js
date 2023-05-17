@@ -199,7 +199,7 @@ export const View: FC<Props & Meeting> = ({
 export const MeetingView: FC<Props> = (props) => {
   const { call: activeCall, ...rest } = props;
   return (
-    <MediaDevicesProvider enumerate>
+    <MediaDevicesProvider>
       <View call={activeCall} {...rest} />
     </MediaDevicesProvider>
   );

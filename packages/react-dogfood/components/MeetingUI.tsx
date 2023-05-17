@@ -250,7 +250,6 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
   return (
     <StreamCallProvider call={activeCall}>
       <MediaDevicesProvider
-        enumerate
         initialAudioEnabled={!deviceSettings?.isAudioMute}
         initialVideoEnabled={!deviceSettings?.isVideoMute}
         initialVideoInputDeviceId={deviceSettings?.selectedVideoDeviceId}

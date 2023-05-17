@@ -5,6 +5,9 @@ import {
   useAudioPublisher,
   useLocalParticipant,
   useMediaDevices,
+  useObserveAudioInputDevices,
+  useObserveAudioOutputDevices,
+  useObserveVideoDevices,
   useVideoPublisher,
 } from '@stream-io/video-react-sdk';
 
@@ -37,18 +40,18 @@ export const ControlMenu: FC<Props> = ({
     selectedAudioInputDeviceId,
     selectedVideoDeviceId,
     selectedAudioOutputDeviceId,
-    audioInputDevices,
-    audioOutputDevices,
-    videoDevices,
     switchDevice,
-    toggleAudioMuteState,
-    toggleVideoMuteState,
+    toggleInitialAudioMuteState,
+    toggleInitialVideoMuteState,
     initialVideoState,
     initialAudioEnabled,
     isAudioOutputChangeSupported,
   } = useMediaDevices();
 
   const localParticipant = useLocalParticipant();
+  const videoDevices = useObserveVideoDevices();
+  const audioInputDevices = useObserveAudioInputDevices();
+  const audioOutputDevices = useObserveAudioOutputDevices();
 
   const isVideoMuted = preview
     ? !initialVideoState.enabled
@@ -86,19 +89,19 @@ export const ControlMenu: FC<Props> = ({
 
   const video = useCallback(() => {
     if (preview) {
-      toggleVideoMuteState();
+      toggleInitialVideoMuteState();
     } else {
       isVideoMuted ? enableVideo() : disableVideo();
     }
-  }, [localParticipant, isVideoMuted, preview]);
+  }, [toggleInitialVideoMuteState, localParticipant, isVideoMuted, preview]);
 
   const audio = useCallback(() => {
     if (preview) {
-      toggleAudioMuteState();
+      toggleInitialAudioMuteState();
     } else {
       isAudioMuted ? enableAudio() : disableAudio();
     }
-  }, [localParticipant, isAudioMuted, preview]);
+  }, [toggleInitialAudioMuteState, localParticipant, isAudioMuted, preview]);
 
   const toggleAudioOutputPanel = useCallback(() => {
     setAudioOutputVisible(!isAudioOutputVisible);
