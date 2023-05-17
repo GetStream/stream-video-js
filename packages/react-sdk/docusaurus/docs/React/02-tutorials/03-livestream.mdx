@@ -295,8 +295,10 @@ export const ViewerApp = () => {
         call={activeCall} 
         // we don't want to join this call, as that would switch to WebRTC-based live streaming.
         // we are going to use HLS.js to play the live stream
+// highlight-next-line
         autoJoin={false}
       >
+// highlight-next-line
         <HLSLivestreamUI />
       </StreamMeeting>
     </StreamVideo>
