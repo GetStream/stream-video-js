@@ -2,12 +2,12 @@ import { StreamVideoClient } from '@stream-io/video-client';
 import createStoreContext from './createStoreContext';
 
 interface AppGlobalStore {
-  username?: string;
+  username: string;
   userImageUrl?: string;
   loopbackMyVideo: boolean;
   callId: string;
   callType: string;
-  appMode: 'Meeting' | 'Ringing' | 'None';
+  appMode: 'Meeting' | 'Call' | 'Guest' | 'None';
   client: StreamVideoClient | undefined;
 }
 
@@ -17,10 +17,10 @@ export const {
   useStoreSetState: useAppGlobalStoreSetState,
 } = createStoreContext<AppGlobalStore>(
   {
-    username: undefined,
+    username: '',
     userImageUrl: '',
     loopbackMyVideo: false,
-    appMode: 'Meeting',
+    appMode: 'None',
     callId: '',
     callType: 'default',
     client: undefined,

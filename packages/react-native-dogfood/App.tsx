@@ -6,13 +6,16 @@ import {
   NativeStackNavigationProp,
 } from '@react-navigation/native-stack';
 import {
+  GuestModeParamList,
   LoginStackParamList,
   MeetingStackParamList,
-  RingingStackParamList,
+  CallStackParamList,
   RootStackParamList,
 } from './types';
 import LoginScreen from './src/screens/LoginScreen';
 import { NavigationHeader } from './src/components/NavigationHeader';
+import { useAuth } from './src/hooks/useAuth';
+import AuthenticatingProgressScreen from './src/screens/AuthenticatingProgress';
 import {
   prontoCallId$,
   useProntoLinkEffect,
@@ -21,8 +24,6 @@ import {
   IncomingCallView,
   OutgoingCallView,
   StreamVideoCall,
-  UserResponse,
-  useCreateStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import {
   AppGlobalContextProvider,
@@ -49,8 +50,8 @@ import translations from './src/translations';
 import Logger from 'react-native-webrtc/src/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import { LobbyViewScreen } from './src/screens/Meeting/LobbyViewScreen';
-import { GuestModeScreen } from './src/screens/Meeting/GuestModeScreen';
-import { createToken } from './src/modules/helpers/jwt';
+import { GuestModeScreen } from './src/screens/Guest/GuestModeScreen';
+import { GuestLobbyViewScreen } from './src/screens/Guest/GuestLobbyViewScreen';
 
 // @ts-expect-error
 Logger.enable(false);
@@ -58,7 +59,8 @@ Logger.enable(false);
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LoginStack = createNativeStackNavigator<LoginStackParamList>();
 const MeetingStack = createNativeStackNavigator<MeetingStackParamList>();
-const RingingStack = createNativeStackNavigator<RingingStackParamList>();
+const CallStack = createNativeStackNavigator<CallStackParamList>();
+const GuestStack = createNativeStackNavigator<GuestModeParamList>();
 
 if (Platform.OS === 'android') {
   setFirebaseHandler();
@@ -78,11 +80,7 @@ const Meeting = () => {
         component={LobbyViewScreen}
         options={{ headerShown: false }}
       />
-      <MeetingStack.Screen
-        name="GuestModeScreen"
-        component={GuestModeScreen}
-        options={{ headerShown: false }}
-      />
+
       <MeetingStack.Screen
         name="MeetingScreen"
         component={MeetingScreen}
@@ -96,34 +94,34 @@ const Meeting = () => {
   );
 };
 
-const Ringing = () => {
+const Call = () => {
   return (
-    <RingingStack.Navigator>
-      <RingingStack.Screen
+    <CallStack.Navigator>
+      <CallStack.Screen
         name="JoinCallScreen"
         component={JoinCallScreen}
         options={{ header: NavigationHeader }}
       />
-      <RingingStack.Screen
+      <CallStack.Screen
         name="CallScreen"
         component={CallScreen}
         options={{ headerShown: false }}
       />
-      <RingingStack.Screen
+      <CallStack.Screen
         name="IncomingCallScreen"
         component={IncomingCallView}
         options={{ headerShown: false }}
       />
-      <RingingStack.Screen
+      <CallStack.Screen
         name="OutgoingCallScreen"
         component={OutgoingCallView}
         options={{ headerShown: false }}
       />
-      <MeetingStack.Screen
+      <CallStack.Screen
         name="CallParticipantsInfoScreen"
         component={CallParticipantsInfoScreen}
       />
-    </RingingStack.Navigator>
+    </CallStack.Navigator>
   );
 };
 
@@ -156,23 +154,30 @@ const Login = () => {
   );
 };
 
+const Guest = () => {
+  return (
+    <GuestStack.Navigator>
+      <GuestStack.Screen
+        name="GuestModeScreen"
+        component={GuestModeScreen}
+        options={{ headerShown: false }}
+      />
+      <GuestStack.Screen
+        name="GuestLobbyViewScreen"
+        component={GuestLobbyViewScreen}
+        options={{ headerShown: false }}
+      />
+    </GuestStack.Navigator>
+  );
+};
+
 const StackNavigator = () => {
   const appMode = useAppGlobalStoreValue((store) => store.appMode);
   const callId = useAppGlobalStoreValue((store) => store.callId);
-  const username = useAppGlobalStoreValue((store) => store.username);
-  const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
-  const [tokenToUse, setTokenToUse] = React.useState<string | undefined>(
-    undefined,
-  );
-
-  const apiKey = process.env.STREAM_API_KEY as string;
-  const secretKey = process.env.STREAM_API_SECRET as string;
-
-  const client = useAppGlobalStoreValue((store) => store.client);
-
   const setState = useAppGlobalStoreSetState();
+  const { authenticationInProgress } = useAuth();
   const callNavigation =
-    useNavigation<NativeStackNavigationProp<RingingStackParamList>>();
+    useNavigation<NativeStackNavigationProp<CallStackParamList>>();
   const meetingNavigation =
     useNavigation<NativeStackNavigationProp<MeetingStackParamList>>();
   const setRandomCallId = React.useCallback(() => {
@@ -184,40 +189,36 @@ const StackNavigator = () => {
   useIosPushEffect();
   useCallKeepEffect();
 
-  const user: UserResponse = {
-    id: username!!,
-    name: username,
-    role: 'admin',
-    teams: ['team-1, team-2'],
-    image: userImageUrl,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    custom: {},
-  };
-
-  useEffect(() => {
-    const intitializeToken = async () => {
-      if (username) {
-        const token = await createToken(username, secretKey);
-        setTokenToUse(token);
-      }
-    };
-
-    intitializeToken();
-  }, [secretKey, username]);
-
-  const _client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: tokenToUse,
-    user: user,
-    options: {
-      preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
-    },
-  });
-
-  useEffect(() => {
-    setState({ client: _client });
-  });
+  let mode;
+  switch (appMode) {
+    case 'Meeting':
+      mode = (
+        <Stack.Screen
+          name="Meeting"
+          component={Meeting}
+          options={{ headerShown: false }}
+        />
+      );
+      break;
+    case 'Call':
+      mode = (
+        <Stack.Screen
+          name="Call"
+          component={Call}
+          options={{ headerShown: false }}
+        />
+      );
+      break;
+    case 'Guest':
+      mode = (
+        <Stack.Screen
+          name="Guest"
+          component={Guest}
+          options={{ headerShown: false }}
+        />
+      );
+      break;
+  }
 
   useEffect(() => {
     const subscription = prontoCallId$.subscribe((prontoCallId) => {
@@ -228,7 +229,8 @@ const StackNavigator = () => {
         prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
       }
     });
-    if (appMode === 'Ringing') {
+
+    if (appMode === 'Call') {
       setRandomCallId();
     }
 
@@ -281,32 +283,23 @@ const StackNavigator = () => {
     onCallRejected,
   ]);
 
-  if (!username || !client) {
+  const { videoClient } = useAuth();
+  if (!videoClient) {
     return <Login />;
+  }
+
+  if (authenticationInProgress) {
+    return <AuthenticatingProgressScreen />;
   }
 
   return (
     <StreamVideoCall
       callId={callId}
       callCycleHandlers={callCycleHandlers}
-      client={client}
+      client={videoClient}
       translationsOverrides={translations}
     >
-      <Stack.Navigator>
-        {appMode === 'Meeting' ? (
-          <Stack.Screen
-            name="Meeting"
-            component={Meeting}
-            options={{ headerShown: false }}
-          />
-        ) : appMode === 'Ringing' ? (
-          <Stack.Screen
-            name="Ringing"
-            component={Ringing}
-            options={{ headerShown: false }}
-          />
-        ) : null}
-      </Stack.Navigator>
+      <Stack.Navigator>{mode}</Stack.Navigator>
     </StreamVideoCall>
   );
 };

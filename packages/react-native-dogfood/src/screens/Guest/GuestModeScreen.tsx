@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { theme, useCall } from '@stream-io/video-react-native-sdk';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { MeetingStackParamList } from '../../../types';
+import { GuestModeParamList } from '../../../types';
 
 type GuestModeScreenProps = NativeStackScreenProps<
-  MeetingStackParamList,
+  GuestModeParamList,
   'GuestModeScreen'
 >;
 
@@ -21,9 +21,15 @@ export const GuestModeScreen = ({ navigation }: GuestModeScreenProps) => {
   }, [call]);
 
   const joinAsGuestHandler = () => {
-    navigation.navigate('LobbyViewScreen', {
+    navigation.navigate('GuestLobbyViewScreen', {
       guestUserId: username,
       mode: 'guest',
+    });
+  };
+
+  const joinAnonymously = () => {
+    navigation.navigate('GuestLobbyViewScreen', {
+      mode: 'anon',
     });
   };
 
@@ -50,7 +56,7 @@ export const GuestModeScreen = ({ navigation }: GuestModeScreenProps) => {
         <Pressable style={styles.joinButton} onPress={joinAsGuestHandler}>
           <Text style={styles.joinButtonText}>Join As Guest</Text>
         </Pressable>
-        <Pressable style={styles.anonymousButton} onPress={() => {}}>
+        <Pressable style={styles.anonymousButton} onPress={joinAnonymously}>
           <Text style={styles.anonymousButtonText}>Continue Anonymously</Text>
         </Pressable>
       </View>

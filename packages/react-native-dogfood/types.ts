@@ -114,25 +114,24 @@ export interface RTCDataChannel extends EventTarget {
 
 export type EventHandler = (event: SfuEvent) => void;
 
-export type LoginStackParamList = {
-  ChooseFlowScreen: undefined;
-  LoginScreen: undefined;
-};
-
 export type LobbyViewScreenParams = {
   guestUserId: string;
   mode: string;
+};
+
+export type LoginStackParamList = {
+  ChooseFlowScreen: undefined;
+  LoginScreen: undefined;
 };
 
 export type MeetingStackParamList = {
   JoinMeetingScreen: undefined;
   MeetingScreen: undefined;
   CallParticipantsInfoScreen: undefined;
-  LobbyViewScreen: Partial<LobbyViewScreenParams>;
-  GuestModeScreen: undefined;
+  LobbyViewScreen: undefined;
 };
 
-export type RingingStackParamList = {
+export type CallStackParamList = {
   JoinCallScreen: undefined;
   CallScreen: undefined;
   IncomingCallScreen: undefined;
@@ -140,9 +139,14 @@ export type RingingStackParamList = {
   CallParticipantsInfoScreen: undefined;
 };
 
+export type GuestModeParamList = {
+  GuestModeScreen: undefined;
+  GuestLobbyViewScreen: Partial<LobbyViewScreenParams>;
+};
+
 export type RootStackParamList = {
   Login: undefined;
-  ActiveCallScreen: undefined;
   Meeting: undefined;
-  Ringing: undefined;
+  Call: undefined;
+  Guest: undefined;
 };

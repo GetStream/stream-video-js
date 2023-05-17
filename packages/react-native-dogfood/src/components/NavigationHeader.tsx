@@ -54,7 +54,7 @@ export const NavigationHeader = () => {
             ]);
 
             appStoreSetState({
-              username: undefined,
+              username: '',
               userImageUrl: '',
             });
           } catch (error) {
