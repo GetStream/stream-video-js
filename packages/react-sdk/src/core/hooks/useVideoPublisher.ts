@@ -49,7 +49,9 @@ export const useVideoPublisher = ({
       throw new Error(`No permission to publish video`);
     }
     try {
-      const videoStream = await getVideoStream(videoDeviceId);
+      const videoStream = await getVideoStream({
+        deviceId: videoDeviceId,
+      });
       await call.publishVideoStream(videoStream, { preferredCodec });
     } catch (e) {
       console.log('Failed to publish video stream', e);
@@ -97,14 +99,18 @@ export const useVideoPublisher = ({
         // We need to stop the original track first in order
         // we can retrieve the new default device stream
         track.stop();
-        const videoStream = await getVideoStream('default');
+        const videoStream = await getVideoStream({
+          deviceId: 'default',
+        });
         await call.publishVideoStream(videoStream);
       },
     );
 
     const handleTrackEnded = async () => {
       if (selectedVideoDeviceId === videoDeviceId) {
-        const videoStream = await getVideoStream(videoDeviceId);
+        const videoStream = await getVideoStream({
+          deviceId: videoDeviceId,
+        });
         await call.publishVideoStream(videoStream);
       }
     };
