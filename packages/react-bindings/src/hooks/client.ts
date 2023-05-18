@@ -57,7 +57,7 @@ export const useCreateStreamVideoClient = ({
             console.error(`Failed to establish connection`, err);
           });
       }
-      if (user.id && user.image) {
+      if (user.id && user.image && tokenOrProvider) {
         return client.connectUser(user, tokenOrProvider).catch((err) => {
           console.error(`Failed to establish connection`, err);
         });

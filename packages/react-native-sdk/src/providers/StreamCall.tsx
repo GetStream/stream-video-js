@@ -44,10 +44,10 @@ export const StreamCall = ({
     const newCall = videoClient.call(callType, callId);
     setCall(newCall);
 
-    return () => {
-      newCall.leave().catch((e) => console.log(e));
-      setCall(undefined);
-    };
+    // return () => {
+    //   newCall.leave().catch((e) => console.log(e));
+    //   setCall(undefined);
+    // };
   }, [callId, callType, videoClient]);
 
   return (

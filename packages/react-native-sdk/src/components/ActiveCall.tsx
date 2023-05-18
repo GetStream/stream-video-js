@@ -23,6 +23,7 @@ export interface ActiveCallProps {
    * Note: when there is atleast one screen share, the mode is automatically set to 'spotlight'.
    */
   mode?: 'grid' | 'spotlight';
+  onLeave: () => void;
 }
 /**
  * View for an active call, includes call controls and participant handling.
@@ -42,7 +43,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
     verifyAndroidBluetoothPermissions();
     return () => {
       // ensure that if this component is unmounted, the call is left.
-      activeCallRef.current?.leave();
+      // activeCallRef.current?.leave();
     };
   }, []);
 
@@ -52,7 +53,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
-  const { mode = 'grid' } = props;
+  const { mode = 'grid', onLeave } = props;
   const hasScreenShare = useHasOngoingScreenShare();
 
   useIncallManager({ media: 'video', auto: true });
@@ -89,7 +90,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
         )}
       </View>
       <View onLayout={onLayout} style={styles.callControlsWrapper}>
-        <CallControlsView />
+        <CallControlsView onLeave={onLeave} />
       </View>
     </View>
   );

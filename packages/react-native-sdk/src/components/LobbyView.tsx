@@ -1,11 +1,7 @@
 import React from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
-import {
-  useCall,
-  useConnectedUser,
-  useStreamVideoClient,
-} from '@stream-io/video-react-bindings';
+import { useConnectedUser } from '@stream-io/video-react-bindings';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
@@ -13,7 +9,7 @@ import { useMutingState } from '../hooks/useMutingState';
 import { useLocalVideoStream } from '../hooks';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
-import { AxiosError, StreamVideoParticipant } from '@stream-io/video-client';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
 
 const ParticipantStatus = () => {
@@ -36,9 +32,12 @@ const ParticipantStatus = () => {
   );
 };
 
-export const LobbyView = () => {
+export type LobbyViewProps = {
+  onJoin: () => void;
+};
+
+export const LobbyView = ({ onJoin }: LobbyViewProps) => {
   const localVideoStream = useLocalVideoStream();
-  const videoClient = useStreamVideoClient();
   const connectedUser = useConnectedUser();
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useMutingState();
@@ -58,15 +57,6 @@ export const LobbyView = () => {
     <Video color={theme.light.static_black} />
   );
 
-  const call = useCall();
-
-  const joinCallHandler = async () => {
-    try {
-      await call?.join({ create: true });
-    } catch (error) {
-      console.log('Error joining call', error);
-    }
-  };
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,
     // @ts-ignore
@@ -129,7 +119,7 @@ export const LobbyView = () => {
             You are about to join a test call at Stream. 3 more people are in
             the call now.
           </Text>
-          <Pressable style={styles.joinButton} onPress={joinCallHandler}>
+          <Pressable style={styles.joinButton} onPress={onJoin}>
             <Text style={styles.joinButtonText}>Join</Text>
           </Pressable>
         </View>

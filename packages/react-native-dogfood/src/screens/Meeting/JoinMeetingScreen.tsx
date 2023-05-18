@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Button,
   StyleSheet,
@@ -22,24 +22,23 @@ type JoinMeetingScreenProps = NativeStackScreenProps<
 >;
 
 const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
-  const callID = useAppGlobalStoreValue((store) => store.callId);
+  const [callId, setCallId] = useState<string>('');
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
   const { navigation } = props;
-
-  const setState = useAppGlobalStoreSetState();
+  const appStoreSetState = useAppGlobalStoreSetState();
 
   const joinCallHandler = useCallback(() => {
-    navigation.navigate('LobbyViewScreen');
-  }, [navigation]);
+    navigation.navigate('MeetingScreen', { callId });
+  }, [navigation, callId]);
 
   const handleCopyInviteLink = useCallback(
     () =>
       Clipboard.setString(
-        `https://stream-calls-dogfood.vercel.app/join/${callID}/`,
+        `https://stream-calls-dogfood.vercel.app/join/${callId}/`,
       ),
-    [callID],
+    [callId],
   );
 
   return (
@@ -51,9 +50,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           color="blue"
           onPress={() => {
             const randomCallID = meetingId();
-            setState(() => ({
-              callId: randomCallID,
-            }));
+            setCallId(randomCallID);
           }}
         />
       </View>
@@ -61,19 +58,17 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
         style={styles.textInput}
         placeholder={'Type your call ID here...'}
         placeholderTextColor={'#8C8C8CFF'}
-        value={callID}
+        value={callId}
         autoCapitalize="none"
         autoCorrect={false}
         onChangeText={(text) => {
-          setState(() => ({
-            callId: text.trim().split(' ').join('-'),
-          }));
+          setCallId(text.trim().split(' ').join('-'));
         }}
       />
       <Button
-        title={'Create or Join call with callID: ' + callID}
+        title={'Create or Join call with callID: ' + callId}
         color="blue"
-        disabled={!callID}
+        disabled={!callId}
         onPress={joinCallHandler}
       />
       <View style={styles.switchContainer}>
@@ -81,7 +76,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
         <Switch
           value={loopbackMyVideo}
           onChange={() => {
-            setState((prevState) => ({
+            appStoreSetState((prevState) => ({
               loopbackMyVideo: !prevState.loopbackMyVideo,
             }));
           }}

@@ -56,14 +56,12 @@ export const GuestLobbyViewScreen = ({ route }: LobbyViewScreenProps) => {
   useEffect(() => {
     if (call) {
       const intitializeToken = async () => {
-        if (mode === 'anon') {
-          // anonymous user tokens must have "!anon" as the user_id
-          const token = await createToken('!anon', secretKey, {
-            user_id: '!anon',
-            call_cids: [`${call?.type}:${call?.id}`],
-          });
-          setTokenToUse(token);
-        }
+        // anonymous user tokens must have "!anon" as the user_id
+        const token = await createToken('!anon', secretKey, {
+          user_id: '!anon',
+          call_cids: [`${call?.type}:${call?.id}`],
+        });
+        setTokenToUse(token);
       };
 
       intitializeToken();

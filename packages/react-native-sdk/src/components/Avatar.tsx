@@ -36,7 +36,7 @@ export const Avatar = (props: AvatarProps) => {
     radius = DEFAULT_AVATAR_RADIUS,
   } = props;
   const label = useMemo(
-    () => getInitialsOfName(name || userId) || '?',
+    () => (name || userId ? getInitialsOfName(name || userId) : '?'),
     [name, userId],
   );
   const imageUrl = image;

@@ -52,8 +52,8 @@ export const useCallCycleEffect = (
 
     if (isIncomingCall) return onCallIncoming();
     if (isOutgoingCall) return onCallOutgoing();
-    if (isActiveCall) return onCallJoined();
-    if (isCallHungUp) return onCallHungUp();
+    // if (isActiveCall) return onCallJoined();
+    // if (isCallHungUp) return onCallHungUp();
     if (isCallRejected) return onCallRejected();
   }, [
     callingState,

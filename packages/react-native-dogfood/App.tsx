@@ -45,13 +45,13 @@ import { useIosPushEffect } from './src/hooks/useIosPushEffect';
 import { Platform } from 'react-native';
 import { useCallKeepEffect } from './src/hooks/useCallkeepEffect';
 import { navigationRef } from './src/utils/staticNavigationUtils';
-import translations from './src/translations';
 
 import Logger from 'react-native-webrtc/src/Logger';
 import { v4 as uuidv4 } from 'uuid';
-import { LobbyViewScreen } from './src/screens/Meeting/LobbyViewScreen';
 import { GuestModeScreen } from './src/screens/Guest/GuestModeScreen';
 import { GuestLobbyViewScreen } from './src/screens/Guest/GuestLobbyViewScreen';
+import { GuestMeetingScreen } from './src/screens/Guest/GuestMeetingScreen';
+import { GuestCallParticipantsInfoScreen } from './src/screens/Guest/GuestCallParticipantsInfoScreen';
 
 // @ts-expect-error
 Logger.enable(false);
@@ -75,12 +75,6 @@ const Meeting = () => {
         component={JoinMeetingScreen}
         options={{ header: NavigationHeader }}
       />
-      <MeetingStack.Screen
-        name="LobbyViewScreen"
-        component={LobbyViewScreen}
-        options={{ headerShown: false }}
-      />
-
       <MeetingStack.Screen
         name="MeetingScreen"
         component={MeetingScreen}
@@ -167,19 +161,30 @@ const Guest = () => {
         component={GuestLobbyViewScreen}
         options={{ headerShown: false }}
       />
+      <GuestStack.Screen
+        name="GuestMeetingScreen"
+        component={GuestMeetingScreen}
+        options={{ headerShown: false }}
+      />
+      <GuestStack.Screen
+        name="GuestCallParticipantsInfoScreen"
+        component={GuestCallParticipantsInfoScreen}
+      />
     </GuestStack.Navigator>
   );
 };
 
 const StackNavigator = () => {
   const appMode = useAppGlobalStoreValue((store) => store.appMode);
-  const callId = useAppGlobalStoreValue((store) => store.callId);
+  const username = useAppGlobalStoreValue((store) => store.username);
+  const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const setState = useAppGlobalStoreSetState();
   const { authenticationInProgress } = useAuth();
   const callNavigation =
     useNavigation<NativeStackNavigationProp<CallStackParamList>>();
-  const meetingNavigation =
-    useNavigation<NativeStackNavigationProp<MeetingStackParamList>>();
+
+  const guestNavigation =
+    useNavigation<NativeStackNavigationProp<GuestModeParamList>>();
   const setRandomCallId = React.useCallback(() => {
     setState({
       callId: uuidv4().toLowerCase(),
@@ -238,12 +243,12 @@ const StackNavigator = () => {
   }, [appMode, setRandomCallId, setState]);
 
   const onCallJoined = React.useCallback(() => {
-    if (appMode === 'Meeting') {
-      meetingNavigation.navigate('MeetingScreen');
+    if (appMode === 'Guest') {
+      guestNavigation.navigate('GuestMeetingScreen');
     } else {
       callNavigation.navigate('CallScreen');
     }
-  }, [appMode, callNavigation, meetingNavigation]);
+  }, [appMode, callNavigation, guestNavigation]);
 
   const onCallIncoming = React.useCallback(() => {
     callNavigation.navigate('IncomingCallScreen');
@@ -254,13 +259,13 @@ const StackNavigator = () => {
   }, [callNavigation]);
 
   const onCallHungUp = React.useCallback(() => {
-    if (appMode === 'Meeting') {
-      meetingNavigation.navigate('JoinMeetingScreen');
+    if (appMode === 'Guest') {
+      guestNavigation.navigate('GuestModeScreen');
     } else {
       callNavigation.navigate('JoinCallScreen');
       setRandomCallId();
     }
-  }, [appMode, callNavigation, meetingNavigation, setRandomCallId]);
+  }, [appMode, callNavigation, guestNavigation, setRandomCallId]);
 
   const onCallRejected = React.useCallback(() => {
     callNavigation.navigate('JoinCallScreen');
@@ -283,8 +288,7 @@ const StackNavigator = () => {
     onCallRejected,
   ]);
 
-  const { videoClient } = useAuth();
-  if (!videoClient) {
+  if (!(username && userImageUrl)) {
     return <Login />;
   }
 
@@ -292,16 +296,7 @@ const StackNavigator = () => {
     return <AuthenticatingProgressScreen />;
   }
 
-  return (
-    <StreamVideoCall
-      callId={callId}
-      callCycleHandlers={callCycleHandlers}
-      client={videoClient}
-      translationsOverrides={translations}
-    >
-      <Stack.Navigator>{mode}</Stack.Navigator>
-    </StreamVideoCall>
-  );
+  return <Stack.Navigator>{mode}</Stack.Navigator>;
 };
 
 export default function App() {

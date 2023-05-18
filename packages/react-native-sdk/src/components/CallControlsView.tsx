@@ -15,11 +15,14 @@ import { theme } from '../theme';
 import { OwnCapability } from '@stream-io/video-client';
 import {
   CallPermissionsWrapper,
-  useCall,
   useOwnCapabilities,
 } from '@stream-io/video-react-bindings';
 import { StreamVideoRN } from '../utils/StreamVideoRN';
 import { PermissionNotification } from './PermissionsNotification';
+
+type CallControlsViewProps = {
+  onLeave: () => void;
+};
 
 /**
  * Shows a list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
@@ -29,7 +32,7 @@ import { PermissionNotification } from './PermissionsNotification';
  * | :--- |
  * | ![call-controls-view](https://user-images.githubusercontent.com/25864161/217349666-af0f3278-393e-449d-b30e-2d1b196abe5e.png) |
  */
-export const CallControlsView = () => {
+export const CallControlsView = ({ onLeave }: CallControlsViewProps) => {
   const {
     isAudioMuted,
     isVideoMuted,
@@ -38,11 +41,9 @@ export const CallControlsView = () => {
     toggleAudioMuted,
     toggleCameraFacingMode,
   } = useCallControls();
-  const call = useCall();
   const ownCapabilities = useOwnCapabilities();
   const { onOpenReactionsModal } = StreamVideoRN.config;
 
-  const handleHangUpCall = () => call?.leave();
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
   };
@@ -126,7 +127,7 @@ export const CallControlsView = () => {
       </CallPermissionsWrapper>
       <CallPermissionsWrapper requiredGrants={[OwnCapability.END_CALL]}>
         <CallControlsButton
-          onPress={handleHangUpCall}
+          onPress={onLeave}
           color={theme.light.error}
           style={[styles.button, { shadowColor: theme.light.error }]}
         >
