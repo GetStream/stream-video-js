@@ -47,16 +47,16 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
     await call?.muteUser(participant.userId, mediaType);
   };
 
-  const muteUserAudio = () => {
-    muteUser('audio');
+  const muteUserAudio = async () => {
+    await muteUser('audio');
   };
 
-  const muteUserVideo = () => {
-    muteUser('video');
+  const muteUserVideo = async () => {
+    await muteUser('video');
   };
 
-  const blockUser = () => {
-    call?.blockUser(participant.userId);
+  const blockUser = async () => {
+    await call?.blockUser(participant.userId);
   };
 
   const callMediaStreamMutePermissions: (CallParticipantOptionType | null)[] =
