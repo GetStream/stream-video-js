@@ -1118,7 +1118,7 @@ export class Call {
   };
 
   /**
-   * Sends a reaction to the other call participants.
+   * Sends a reaction to the other call participants. This is a local action, it won't send any WebSocket messages.
    *
    * @param reaction the reaction to send.
    */
