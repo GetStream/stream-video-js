@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { characters } from '../hosts/Hosts';
 import {
   Call,
-  StreamCallProvider,
+  StreamCall,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
@@ -59,10 +59,10 @@ export const Viewers = () => {
 
   return (
     <StreamVideo client={client}>
-      <StreamCallProvider call={activeCall}>
+      <StreamCall call={activeCall}>
         {!callId && <SetupForm />}
         {callId && <Outlet />}
-      </StreamCallProvider>
+      </StreamCall>
     </StreamVideo>
   );
 };

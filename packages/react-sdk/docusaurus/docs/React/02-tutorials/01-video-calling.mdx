@@ -94,7 +94,7 @@ The <a href="https://github.com/GetStream/stream-video-js/tree/main/sample-apps/
 
 1. Creates a [`StreamVideoClient`](../../call-engine/StreamVideoClient) instance and establishes a WS connection (hook `useCreateStreamVideoClient`)
 2. Provides the `StreamVideoClient` instance to children through [`StreamVideo`](../../call-engine/hooks-and-contexts#streamvideo) provider
-3. Creates a call instance and provides it to children (by [`StreamMeeting`](../../TODO))
+3. Creates a call instance and provides it to children (by [`StreamCall`](../../TODO))
 4. Renders the app UI
 
 :::note
@@ -115,7 +115,7 @@ import {
   CallingState,
   CallParticipantsView,
   LoadingIndicator,
-  StreamMeeting,
+  StreamCall,
   StreamVideo,
   useCall,
   useCallCallingState,
@@ -145,14 +145,14 @@ export default function App() {
 
   return (
     <StreamVideo client={client}>
-      <StreamMeeting
+      <StreamCall
         callType="default"
         callId={callId}
         autoJoin={false}
         data={{ create: true }}
       >
         <UI />
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   );
 }
@@ -160,7 +160,7 @@ export default function App() {
 
 ### The app UI component
 
-In the UI component we heavily rely on the [`Call` object](../../call-engine/Call) created and provided through [`StreamMeeting`](../../TODO) component. The `Call` object exposes an API to control a call (create, join, leave, etc.). The call connection state can be observed through [`CallingState` object](../../call-engine/hooks-and-contexts#usecallcallingstate) that is constantly updated in response to connection changes. It also lets us know, when we can start to send audio and video data to the server as we do in the `useEffect` hook in our example.
+In the UI component we heavily rely on the [`Call` object](../../call-engine/Call) created and provided through [`StreamCall`](../../TODO) component. The `Call` object exposes an API to control a call (create, join, leave, etc.). The call connection state can be observed through [`CallingState` object](../../call-engine/hooks-and-contexts#usecallcallingstate) that is constantly updated in response to connection changes. It also lets us know, when we can start to send audio and video data to the server as we do in the `useEffect` hook in our example.
 
 ```tsx
 import { useEffect, useMemo } from 'react';
@@ -169,7 +169,7 @@ import {
   CallingState,
   CallParticipantsView,
   LoadingIndicator,
-  StreamMeeting,
+  StreamCall,
   StreamVideo,
   useCall,
   useCallCallingState,

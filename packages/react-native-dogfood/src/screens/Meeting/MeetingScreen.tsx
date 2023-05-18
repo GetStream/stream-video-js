@@ -3,6 +3,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   StreamCall,
   StreamVideo,
+  StreamVideoRN,
   useCall,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
@@ -56,6 +57,14 @@ export const MeetingScreen = (props: Props) => {
       stopForegroundService();
     };
   }, [activeCall]);
+
+  const onOpenCallParticipantsInfoViewHandler = () => {
+    navigation.navigate('CallParticipantsInfoScreen');
+  };
+
+  StreamVideoRN.setConfig({
+    onOpenCallParticipantsInfoView: onOpenCallParticipantsInfoViewHandler,
+  });
 
   return (
     <StreamVideo client={client} translationsOverrides={translations}>

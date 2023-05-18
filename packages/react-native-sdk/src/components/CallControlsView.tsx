@@ -14,10 +14,11 @@ import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
 import { OwnCapability } from '@stream-io/video-client';
 import {
-  CallPermissionsWrapper,
+  Restricted,
   useOwnCapabilities,
 } from '@stream-io/video-react-bindings';
-import { StreamVideoRN } from '../utils/StreamVideoRN';
+import { useCallback, useState } from 'react';
+import { ReactionModal } from './ReactionsModal';
 import { PermissionNotification } from './PermissionsNotification';
 
 type CallControlsViewProps = {
@@ -33,6 +34,8 @@ type CallControlsViewProps = {
  * | ![call-controls-view](https://user-images.githubusercontent.com/25864161/217349666-af0f3278-393e-449d-b30e-2d1b196abe5e.png) |
  */
 export const CallControlsView = ({ onLeave }: CallControlsViewProps) => {
+  const [isReactionModalActive, setIsReactionModalActive] =
+    useState<boolean>(false);
   const {
     isAudioMuted,
     isVideoMuted,
@@ -42,23 +45,30 @@ export const CallControlsView = ({ onLeave }: CallControlsViewProps) => {
     toggleCameraFacingMode,
   } = useCallControls();
   const ownCapabilities = useOwnCapabilities();
-  const { onOpenReactionsModal } = StreamVideoRN.config;
 
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
   };
 
+  const onOpenReactionsModalHandler = useCallback(() => {
+    setIsReactionModalActive(true);
+  }, [setIsReactionModalActive]);
+
   return (
     <View style={styles.container}>
-      <CallPermissionsWrapper requiredGrants={[OwnCapability.CREATE_REACTION]}>
+      <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
         <CallControlsButton
-          onPress={onOpenReactionsModal}
+          onPress={onOpenReactionsModalHandler}
           color={theme.light.static_white}
           style={styles.button}
         >
           <Reaction color={theme.light.static_black} />
         </CallControlsButton>
-      </CallPermissionsWrapper>
+      </Restricted>
+      <ReactionModal
+        isReactionModalActive={isReactionModalActive}
+        setIsReactionModalActive={setIsReactionModalActive}
+      />
       <CallControlsButton
         color={theme.light.static_white}
         onPress={() => null}
@@ -67,7 +77,7 @@ export const CallControlsView = ({ onLeave }: CallControlsViewProps) => {
       >
         <Chat color={theme.light.static_black} />
       </CallControlsButton>
-      <CallPermissionsWrapper requiredGrants={[OwnCapability.SEND_VIDEO]}>
+      <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
         <PermissionNotification
           permission={OwnCapability.SEND_VIDEO}
           messageApproved="You can now share your video."
@@ -87,7 +97,7 @@ export const CallControlsView = ({ onLeave }: CallControlsViewProps) => {
             )}
           </CallControlsButton>
         </PermissionNotification>
-      </CallPermissionsWrapper>
+      </Restricted>
 
       <PermissionNotification
         permission={OwnCapability.SEND_AUDIO}
@@ -95,7 +105,7 @@ export const CallControlsView = ({ onLeave }: CallControlsViewProps) => {
         messageAwaitingApproval="Awaiting for an approval to speak."
         messageRevoked="You can no longer speak."
       >
-        <CallPermissionsWrapper requiredGrants={[OwnCapability.SEND_AUDIO]}>
+        <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
           <CallControlsButton
             onPress={toggleAudioMuted}
             color={muteStatusColor(isAudioMuted)}
@@ -108,9 +118,9 @@ export const CallControlsView = ({ onLeave }: CallControlsViewProps) => {
               <Mic color={theme.light.static_black} />
             )}
           </CallControlsButton>
-        </CallPermissionsWrapper>
+        </Restricted>
       </PermissionNotification>
-      <CallPermissionsWrapper requiredGrants={[OwnCapability.SEND_VIDEO]}>
+      <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
         <CallControlsButton
           onPress={toggleCameraFacingMode}
           color={muteStatusColor(!isCameraOnFrontFacingMode)}
@@ -124,8 +134,8 @@ export const CallControlsView = ({ onLeave }: CallControlsViewProps) => {
             }
           />
         </CallControlsButton>
-      </CallPermissionsWrapper>
-      <CallPermissionsWrapper requiredGrants={[OwnCapability.END_CALL]}>
+      </Restricted>
+      <Restricted requiredGrants={[OwnCapability.END_CALL]}>
         <CallControlsButton
           onPress={onLeave}
           color={theme.light.error}
@@ -133,7 +143,7 @@ export const CallControlsView = ({ onLeave }: CallControlsViewProps) => {
         >
           <PhoneDown color={theme.light.static_white} />
         </CallControlsButton>
-      </CallPermissionsWrapper>
+      </Restricted>
     </View>
   );
 };

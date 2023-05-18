@@ -10,17 +10,14 @@ import {
   defaultSortPreset,
   IconButton,
   LoadingIndicator,
-  MediaDevicesProvider,
   noopComparator,
   PermissionRequests,
   ReactionsButton,
   RecordCallButton,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
-  StreamCallProvider,
   ToggleAudioPublishingButton,
-  ToggleCameraPublishingButton,
-  ToggleParticipantListButton,
+  ToggleVideoPublishingButton,
   useCall,
   useCallCallingState,
 } from '@stream-io/video-react-sdk';
@@ -36,13 +33,10 @@ import {
   UnreadCountBadge,
 } from '.';
 import { ActiveCallHeader } from './ActiveCallHeader';
-import {
-  DeviceSettingsCaptor,
-  getDeviceSettings,
-} from './DeviceSettingsCaptor';
 import { useWatchChannel } from '../hooks';
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 import { Stage } from './Stage';
+import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 
 const contents = {
   'error-join': {
@@ -139,7 +133,6 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
     }
   }, [activeCall, isSortingDisabled]);
 
-  const deviceSettings = getDeviceSettings();
   let ComponentToRender: JSX.Element | null = null;
   if (show === 'error-join' || show === 'error-leave') {
     ComponentToRender = (
@@ -190,7 +183,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
               <SpeakingWhileMutedNotification>
                 <ToggleAudioPublishingButton />
               </SpeakingWhileMutedNotification>
-              <ToggleCameraPublishingButton />
+              <ToggleVideoPublishingButton />
               <CancelCallButton call={activeCall} onLeave={onLeave} />
             </div>
             <div className="str-video__call-controls--group">
@@ -247,21 +240,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
     );
   }
 
-  return (
-    <StreamCallProvider call={activeCall}>
-      <MediaDevicesProvider
-        enumerate
-        initialAudioEnabled={!deviceSettings?.isAudioMute}
-        initialVideoEnabled={!deviceSettings?.isVideoMute}
-        initialVideoInputDeviceId={deviceSettings?.selectedVideoDeviceId}
-        initialAudioInputDeviceId={deviceSettings?.selectedAudioInputDeviceId}
-        initialAudioOutputDeviceId={deviceSettings?.selectedAudioOutputDeviceId}
-      >
-        {ComponentToRender}
-        <DeviceSettingsCaptor />
-      </MediaDevicesProvider>
-    </StreamCallProvider>
-  );
+  return ComponentToRender;
 };
 
 type ErrorPageProps = {

@@ -5,7 +5,7 @@ description: How to integrate chat & video
 
 import ImageShowcase from '@site/src/components/ImageShowcase';
 
-import IncomingCallsImage from '../assets/10-advanced/06-chat-with-video/incoming-calls.png'
+import IncomingCallsImage from '../assets/10-advanced/06-chat-with-video/incoming-calls.png';
 
 In this tutorial we will guide you through the process of embedding video calling capabilities into a chat application. We will cover the following topics:
 
@@ -124,13 +124,13 @@ export const CreateCallButton = () => {
 
   const createCall = useCallback(() => {
     videoClient?.call('default', meetingId()).getOrCreate({
-// highlight-next-line
+      // highlight-next-line
       ring: true,
       data: {
         custom: {
           channelCid: channel.cid,
         },
-// highlight-next-line
+        // highlight-next-line
         members: Object.values(channel.state.members).reduce<MemberRequest[]>(
           (acc, member) => {
             if (member.user_id !== client.user?.id) {
@@ -172,19 +172,19 @@ Once a ring call is initiated, call members start to receive ring call events (`
 The array of all [`Call`](../../call-engine/Call) objects representing created pending (not accepted, rejected, neither ended) calls is continuously updated in response to each new call creation. You can use this array of [`Call`](../../call-engine/Call) objects to display **incoming** or **outgoing calls** in your application's UI. In our app the top-level [`Video`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/components/Video/Video.tsx) component observes the changes using the [`useCalls`](../../call-engine/hooks-and-contexts#usecalls) hook and re-renders the UI to reflect the changes:
 
 ```tsx
-import { StreamMeeting, useCalls } from '@stream-io/video-react-sdk';
+import { StreamCall, useCalls } from '@stream-io/video-react-sdk';
 
 import { CallPanel } from './CallPanel';
 
 export const Video = () => {
-    //highlight-next-line
+  //highlight-next-line
   const calls = useCalls();
   return (
     <>
       {calls.map((call) => (
-        <StreamMeeting call={call} autoJoin={false} key={call.cid}>
+        <StreamCall call={call} autoJoin={false} key={call.cid}>
           <CallPanel />
-        </StreamMeeting>
+        </StreamCall>
       ))}
     </>
   );
@@ -198,13 +198,13 @@ To identify an outgoing call, use the [`Call.isCreatedByMe`](../../call-engine/C
 In our demo app, we reflect the incoming calls state in channel list. Channel preview shows buttons to accept or reject the incoming call. The outgoing call or incoming call in an active channel is represented by a [`CallPanel` component](todo doc link) floating above the chat UI:
 
 <ImageShowcase
-    items={[
-        {
-            image: IncomingCallsImage,
-            caption: 'Incoming calls in channel preview',
-            alt: "Image of incoming calls in channel preview",
-        },
-    ]}
+  items={[
+    {
+      image: IncomingCallsImage,
+      caption: 'Incoming calls in channel preview',
+      alt: 'Image of incoming calls in channel preview',
+    },
+  ]}
 />
 
 This is done by embedding [custom component `ChannelPreviewCallControls`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/components/ChannelPreview/ChannelPreviewCallControls.tsx) in a [`ChannelPreview` component](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/components/ChannelPreview/ChannelPreview.tsx):
@@ -221,8 +221,8 @@ import { useChatContext } from 'stream-chat-react';
 
 export const ChannelPreviewCallControls = () => {
   const { channel: activeChannel } = useChatContext();
-// highlight-next-line
-  // the Call instance is passed down from StreamCallProvider located in StreamMeeting
+  // highlight-next-line
+  // the Call instance is passed down from StreamCallProvider located in StreamCall
   const call = useCall();
   const callingState = useCallCallingState();
 
@@ -260,7 +260,7 @@ Each call can pass through different states as already described in the [Calling
 ```tsx
 import {
   PendingCallPanel,
-// highlight-next-line
+  // highlight-next-line
   CallingState,
   CallParticipantsView,
   useCall,
@@ -268,7 +268,7 @@ import {
   ScreenShareButton,
   SpeakingWhileMutedNotification,
   ToggleAudioPublishingButton,
-  ToggleCameraPublishingButton,
+  ToggleVideoPublishingButton,
   CancelCallButton,
   useCallMetadata,
 } from '@stream-io/video-react-sdk';
@@ -278,7 +278,7 @@ import { useDraggable } from '../../hooks';
 
 export const CallPanel = () => {
   const call = useCall();
-// highlight-next-line
+  // highlight-next-line
   const callingState = useCallCallingState();
   const metadata = useCallMetadata();
   const { channel: activeChannel } = useChatContext();
@@ -290,11 +290,11 @@ export const CallPanel = () => {
   const callingToActiveChannel =
     activeChannel?.cid === metadata?.custom.channelCid;
 
-// highlight-next-line
+  // highlight-next-line
   if (CallingState.RINGING === callingState && !callingToActiveChannel)
     return null;
 
-// highlight-next-line
+  // highlight-next-line
   if (callingState === CallingState.JOINED) {
     return (
       <div
@@ -307,13 +307,13 @@ export const CallPanel = () => {
           <SpeakingWhileMutedNotification>
             <ToggleAudioPublishingButton />
           </SpeakingWhileMutedNotification>
-          <ToggleCameraPublishingButton />
+          <ToggleVideoPublishingButton />
           <CancelCallButton call={call} />
         </div>
       </div>
     );
   } else if (
-// highlight-next-line
+    // highlight-next-line
     [CallingState.RINGING, CallingState.JOINING].includes(callingState)
   ) {
     return (
@@ -346,9 +346,9 @@ Our [`PendingCallControls`](todo doc link) attaches the following callback to th
 
 ```tsx
 <CancelCallButton
-    onClick={() => {
-      call.leave({ reject: true });
-    }}bled}
+  onClick={() => {
+    call.leave({ reject: true });
+  }}
 />
 ```
 
@@ -359,8 +359,8 @@ The default callback of the [`CancelCallButton`](todo doc link) button is pure `
 <CancelCallButton call={call} />
 ```
 
-
 ## Adding default styles
+
 In order the default styles that come with both the chat and video SDKs can be applied, we import them into the file [`index.scss`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/style/index.scss):
 
 ```scss
@@ -414,7 +414,7 @@ const Root = ({
   if (!chatClient) return null;
 
   return (
-// highlight-next-line
+    // highlight-next-line
     <StreamTheme as="main" className="main-container">
       <Chat client={chatClient}>
         <StreamVideo client={videoClient}>
@@ -423,10 +423,8 @@ const Root = ({
           <Video />
         </StreamVideo>
       </Chat>
-{/*// highlight-next-line*/}
+      {/*// highlight-next-line*/}
     </StreamTheme>
   );
 };
 ```
-
-

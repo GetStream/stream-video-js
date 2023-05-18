@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from 'react';
-import { Call, StreamReaction } from '@stream-io/video-client';
+import { Call, StreamReaction } from '@stream-io/video-react-sdk';
 import classnames from 'classnames';
 
 import styles from './Reaction.module.css';

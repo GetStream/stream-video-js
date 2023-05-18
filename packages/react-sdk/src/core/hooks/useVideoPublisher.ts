@@ -5,12 +5,14 @@ import {
   getVideoStream,
   OwnCapability,
   SfuModels,
+  VideoSettingsCameraFacingEnum,
   watchForAddedDefaultVideoDevice,
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
 import {
   useCall,
   useCallCallingState,
+  useCallMetadata,
   useCallState,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
@@ -43,18 +45,33 @@ export const useVideoPublisher = ({
     SfuModels.TrackType.VIDEO,
   );
 
+  const metadata = useCallMetadata();
+  const videoSettings = metadata?.settings.video;
+  const targetResolution = videoSettings?.target_resolution;
   const publishVideoStream = useCallback(async () => {
     if (!call) return;
     if (!call.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)) {
       throw new Error(`No permission to publish video`);
     }
     try {
-      const videoStream = await getVideoStream(videoDeviceId);
+      const videoStream = await getVideoStream({
+        deviceId: videoDeviceId,
+        width: targetResolution?.width,
+        height: targetResolution?.height,
+        facingMode: toFacingMode(videoSettings?.camera_facing),
+      });
       await call.publishVideoStream(videoStream, { preferredCodec });
     } catch (e) {
       console.log('Failed to publish video stream', e);
     }
-  }, [call, preferredCodec, videoDeviceId]);
+  }, [
+    call,
+    preferredCodec,
+    targetResolution?.height,
+    targetResolution?.width,
+    videoDeviceId,
+    videoSettings?.camera_facing,
+  ]);
 
   useEffect(() => {
     if (callingState === CallingState.JOINED && !initialVideoMuted) {
@@ -97,14 +114,18 @@ export const useVideoPublisher = ({
         // We need to stop the original track first in order
         // we can retrieve the new default device stream
         track.stop();
-        const videoStream = await getVideoStream('default');
+        const videoStream = await getVideoStream({
+          deviceId: 'default',
+        });
         await call.publishVideoStream(videoStream);
       },
     );
 
     const handleTrackEnded = async () => {
       if (selectedVideoDeviceId === videoDeviceId) {
-        const videoStream = await getVideoStream(videoDeviceId);
+        const videoStream = await getVideoStream({
+          deviceId: videoDeviceId,
+        });
         await call.publishVideoStream(videoStream);
       }
     };
@@ -117,4 +138,15 @@ export const useVideoPublisher = ({
   }, [videoDeviceId, call, participant?.videoStream, isPublishingVideo]);
 
   return publishVideoStream;
+};
+
+const toFacingMode = (value: VideoSettingsCameraFacingEnum | undefined) => {
+  switch (value) {
+    case VideoSettingsCameraFacingEnum.FRONT:
+      return 'user';
+    case VideoSettingsCameraFacingEnum.BACK:
+      return 'environment';
+    default:
+      return undefined;
+  }
 };

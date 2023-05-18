@@ -2,6 +2,93 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.160](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.159...client0.0.1-alpha.160) (2023-05-18)
+
+
+
+## [0.0.1-alpha.159](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.158...client0.0.1-alpha.159) (2023-05-18)
+
+
+
+## [0.0.1-alpha.158](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.157...client0.0.1-alpha.158) (2023-05-18)
+
+
+
+## [0.0.1-alpha.157](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.156...client0.0.1-alpha.157) (2023-05-17)
+
+
+
+## [0.0.1-alpha.156](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.155...client0.0.1-alpha.156) (2023-05-17)
+
+
+### Features
+
+* Support for server-side driven stream resolution ([#516](https://github.com/GetStream/stream-video-js/issues/516)) ([cae1169](https://github.com/GetStream/stream-video-js/commit/cae11695fe4aa11bd5e168b00ffd6ea35e2524a2))
+
+
+
+## [0.0.1-alpha.155](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.154...client0.0.1-alpha.155) (2023-05-17)
+
+
+
+## [0.0.1-alpha.154](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.153...client0.0.1-alpha.154) (2023-05-17)
+
+
+
+## [0.0.1-alpha.153](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.152...client0.0.1-alpha.153) (2023-05-17)
+
+
+
+## [0.0.1-alpha.152](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.151...client0.0.1-alpha.152) (2023-05-17)
+
+
+
+## [0.0.1-alpha.151](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.150...client0.0.1-alpha.151) (2023-05-16)
+
+
+
+## [0.0.1-alpha.150](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.149...client0.0.1-alpha.150) (2023-05-16)
+
+
+
+## [0.0.1-alpha.149](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.148...client0.0.1-alpha.149) (2023-05-16)
+
+
+
+## [0.0.1-alpha.148](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.147...client0.0.1-alpha.148) (2023-05-16)
+
+
+
+## [0.0.1-alpha.147](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.146...client0.0.1-alpha.147) (2023-05-16)
+
+
+
+## [0.0.1-alpha.146](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.145...client0.0.1-alpha.146) (2023-05-16)
+
+
+### Bug Fixes
+
+* correct audio_room call type name ([#502](https://github.com/GetStream/stream-video-js/issues/502)) ([c15d129](https://github.com/GetStream/stream-video-js/commit/c15d129df1dd0d587ef4b2796a989fd0b161237a))
+
+
+
+## [0.0.1-alpha.145](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.144...client0.0.1-alpha.145) (2023-05-16)
+
+
+### Features
+
+* Participant Count and Call StartedAt ([#504](https://github.com/GetStream/stream-video-js/issues/504)) ([c071139](https://github.com/GetStream/stream-video-js/commit/c071139c0c1fc2401941fc38bed077be0875b470))
+
+
+
+## [0.0.1-alpha.144](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.143...client0.0.1-alpha.144) (2023-05-16)
+
+
+
+## [0.0.1-alpha.143](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.142...client0.0.1-alpha.143) (2023-05-16)
+
+
+
 ## [0.0.1-alpha.142](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.141...client0.0.1-alpha.142) (2023-05-15)
 
 

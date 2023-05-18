@@ -1,14 +1,15 @@
-import { FC, useCallback } from 'react';
+import { FC, useCallback, useState } from 'react';
 import classnames from 'classnames';
 import {
   SfuModels,
-  useAudioPublisher,
+  useAudioInputDevices,
+  useAudioOutputDevices,
   useLocalParticipant,
   useMediaDevices,
-  useVideoPublisher,
+  useVideoDevices,
 } from '@stream-io/video-react-sdk';
 
-import ControlButton from '../ControlButton';
+import ControlButton, { PanelButton } from '../ControlButton';
 import ControlMenuPanel from '../ControlMenuPanel';
 import Portal from '../Portal';
 
@@ -31,22 +32,26 @@ export const ControlMenu: FC<Props> = ({
   initialVideoMuted,
   preview,
 }) => {
+  const [isAudioOutputVisible, setAudioOutputVisible] =
+    useState<boolean>(false);
   const {
     selectedAudioInputDeviceId,
     selectedVideoDeviceId,
     selectedAudioOutputDeviceId,
-    audioInputDevices,
-    audioOutputDevices,
-    videoDevices,
     switchDevice,
-    toggleAudioMuteState,
-    toggleVideoMuteState,
+    toggleInitialAudioMuteState,
+    toggleInitialVideoMuteState,
+    publishVideoStream,
+    publishAudioStream,
     initialVideoState,
     initialAudioEnabled,
     isAudioOutputChangeSupported,
   } = useMediaDevices();
 
   const localParticipant = useLocalParticipant();
+  const videoDevices = useVideoDevices();
+  const audioInputDevices = useAudioInputDevices();
+  const audioOutputDevices = useAudioOutputDevices();
 
   const isVideoMuted = preview
     ? !initialVideoState.enabled
@@ -55,16 +60,6 @@ export const ControlMenu: FC<Props> = ({
   const isAudioMuted = preview
     ? !initialAudioEnabled
     : !localParticipant?.publishedTracks.includes(SfuModels.TrackType.AUDIO);
-
-  const publishVideoStream = useVideoPublisher({
-    initialVideoMuted,
-    videoDeviceId: selectedVideoDeviceId,
-  });
-
-  const publishAudioStream = useAudioPublisher({
-    initialAudioMuted,
-    audioDeviceId: selectedAudioInputDeviceId,
-  });
 
   const disableVideo = useCallback(() => {
     call.stopPublish(SfuModels.TrackType.VIDEO);
@@ -84,31 +79,36 @@ export const ControlMenu: FC<Props> = ({
 
   const video = useCallback(() => {
     if (preview) {
-      toggleVideoMuteState();
+      toggleInitialVideoMuteState();
     } else {
       isVideoMuted ? enableVideo() : disableVideo();
     }
-  }, [localParticipant, isVideoMuted, preview]);
+  }, [toggleInitialVideoMuteState, localParticipant, isVideoMuted, preview]);
 
   const audio = useCallback(() => {
     if (preview) {
-      toggleAudioMuteState();
+      toggleInitialAudioMuteState();
     } else {
       isAudioMuted ? enableAudio() : disableAudio();
     }
-  }, [localParticipant, isAudioMuted, preview]);
+  }, [toggleInitialAudioMuteState, localParticipant, isAudioMuted, preview]);
+
+  const toggleAudioOutputPanel = useCallback(() => {
+    setAudioOutputVisible(!isAudioOutputVisible);
+  }, [isAudioOutputVisible]);
 
   const rootClassName = classnames(styles.root, className);
 
   return (
     <div className={rootClassName}>
       {isAudioOutputChangeSupported ? (
-        <ControlButton
+        <PanelButton
           className={styles.speakerButton}
           prefix={<Speaker />}
           portalId="audio-output-settings"
           label="Audio"
-          showPanel={false}
+          showPanel={isAudioOutputVisible}
+          onClick={() => toggleAudioOutputPanel()}
           panel={
             <Portal
               className={styles.audioSettings}
@@ -132,7 +132,6 @@ export const ControlMenu: FC<Props> = ({
         prefix={isAudioMuted ? <MicMuted /> : <Mic />}
         portalId="audio-settings"
         label="Mic"
-        showPanel={false}
         panel={
           <Portal className={styles.audioSettings} selector="audio-settings">
             <ControlMenuPanel
@@ -152,7 +151,6 @@ export const ControlMenu: FC<Props> = ({
         prefix={isVideoMuted ? <VideoOff /> : <Video />}
         portalId="camera-settings"
         label="Video"
-        showPanel={false}
         panel={
           <Portal className={styles.cameraSettings} selector="camera-settings">
             <ControlMenuPanel

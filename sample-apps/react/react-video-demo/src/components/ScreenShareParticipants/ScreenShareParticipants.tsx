@@ -34,7 +34,11 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
   useEffect(() => {
     if (wrapper) {
       const resizeObserver = new ResizeObserver((event) => {
-        setWrapperHeight(event[0].contentBoxSize[0].blockSize);
+        if (!event[0]?.contentBoxSize) {
+          setWrapperHeight(event[0].contentRect.height);
+        } else {
+          setWrapperHeight(event[0].contentBoxSize[0].blockSize);
+        }
       });
 
       if (wrapper) {

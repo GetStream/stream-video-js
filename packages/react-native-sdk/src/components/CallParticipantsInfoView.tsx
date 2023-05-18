@@ -4,7 +4,7 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import {
-  CallPermissionsWrapper,
+  Restricted,
   useCall,
   useConnectedUser,
   useParticipants,
@@ -117,11 +117,11 @@ const InnerCallParticipantsInfoView = () => {
   return (
     <>
       <View style={styles.buttonGroup}>
-        <CallPermissionsWrapper requiredGrants={[OwnCapability.MUTE_USERS]}>
+        <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
           <Pressable style={styles.button} onPress={muteAllParticipantsHandler}>
             <Text style={styles.buttonText}>Mute All</Text>
           </Pressable>
-        </CallPermissionsWrapper>
+        </Restricted>
       </View>
       <FlatList
         data={participants}

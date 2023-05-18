@@ -6,6 +6,7 @@ $scope-name: 'str-video__participant-view';
   width: 100%;
   max-width: 1280px;
   max-height: 100%;
+  min-height: 0;
   aspect-ratio: 4/3;
 
   display: flex;

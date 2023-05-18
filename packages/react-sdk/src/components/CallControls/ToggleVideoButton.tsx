@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  CallPermissionsWrapper,
+  Restricted,
   useCall,
   useHasPermissions,
   useLocalParticipant,
@@ -8,16 +8,16 @@ import {
 
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import { CompositeButton, IconButton } from '../Button/';
-import { useMediaDevices } from '../../core/contexts';
+import { DEVICE_STATE, useMediaDevices } from '../../core';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 
-export type ToggleCameraPreviewButtonProps = { caption?: string };
+export type ToggleVideoPreviewButtonProps = { caption?: string };
 
-export const ToggleCameraPreviewButton = ({
+export const ToggleVideoPreviewButton = ({
   caption = 'Video',
-}: ToggleCameraPreviewButtonProps) => {
-  const { toggleVideoMuteState, initialVideoState } = useMediaDevices();
+}: ToggleVideoPreviewButtonProps) => {
+  const { toggleInitialVideoMuteState, initialVideoState } = useMediaDevices();
 
   return (
     <CompositeButton
@@ -27,20 +27,21 @@ export const ToggleCameraPreviewButton = ({
     >
       <IconButton
         icon={initialVideoState.enabled ? 'camera' : 'camera-off'}
-        onClick={toggleVideoMuteState}
+        onClick={toggleInitialVideoMuteState}
       />
     </CompositeButton>
   );
 };
 
-type ToggleCameraPublishingButtonProps = {
+type ToggleVideoPublishingButtonProps = {
   caption?: string;
 };
 
-export const ToggleCameraPublishingButton = ({
+export const ToggleVideoPublishingButton = ({
   caption = 'Video',
-}: ToggleCameraPublishingButtonProps) => {
-  const { publishVideoStream, stopPublishingVideo } = useMediaDevices();
+}: ToggleVideoPublishingButtonProps) => {
+  const { publishVideoStream, stopPublishingVideo, setInitialVideoState } =
+    useMediaDevices();
   const localParticipant = useLocalParticipant();
   const isVideoMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
@@ -71,8 +72,13 @@ export const ToggleCameraPublishingButton = ({
         });
       return;
     }
-    if (isVideoMute && hasPermission) {
-      await publishVideoStream();
+    if (isVideoMute) {
+      if (hasPermission) {
+        setInitialVideoState(DEVICE_STATE.playing);
+        await publishVideoStream();
+      } else {
+        console.log('Cannot publish video. Insufficient permissions.');
+      }
     } else {
       stopPublishingVideo();
     }
@@ -81,11 +87,12 @@ export const ToggleCameraPublishingButton = ({
     hasPermission,
     isVideoMute,
     publishVideoStream,
+    setInitialVideoState,
     stopPublishingVideo,
   ]);
 
   return (
-    <CallPermissionsWrapper requiredGrants={[OwnCapability.SEND_VIDEO]}>
+    <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <PermissionNotification
         permission={OwnCapability.SEND_VIDEO}
         isAwaitingApproval={isAwaitingApproval}
@@ -104,6 +111,6 @@ export const ToggleCameraPublishingButton = ({
           />
         </CompositeButton>
       </PermissionNotification>
-    </CallPermissionsWrapper>
+    </Restricted>
   );
 };

@@ -1,75 +1,74 @@
 import { StreamReaction } from '@stream-io/video-client';
-import { Pressable, StyleSheet, View, Text } from 'react-native';
+import { Pressable, StyleSheet, View, Text, Modal } from 'react-native';
 
 import { theme } from '../theme';
 import { useCallback } from 'react';
 import { useCall } from '@stream-io/video-react-bindings';
-import { defaultEmojiReactions } from '../constants';
-
-const reactions: StreamReaction[] = [
-  {
-    type: 'reaction',
-    emoji_code: ':like:',
-    custom: {},
-  },
-  {
-    type: 'raised-hand',
-    emoji_code: ':raise-hand:',
-    custom: {},
-  },
-  {
-    type: 'reaction',
-    emoji_code: ':fireworks:',
-    custom: {},
-  },
-  { type: 'reaction', emoji_code: ':heart:', custom: {} },
-  { type: 'reaction', emoji_code: ':rocket:', custom: {} },
-];
+import { StreamVideoRN } from '../utils';
+import { Cross } from '../icons';
 
 type ReactionModalType = {
-  setReactionModal: React.Dispatch<React.SetStateAction<boolean>>;
+  isReactionModalActive: boolean;
+  setIsReactionModalActive: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const ReactionModal = (props: ReactionModalType) => {
-  const { setReactionModal } = props;
+  const { isReactionModalActive, setIsReactionModalActive } = props;
   const onCloseReactionsModal = useCallback(() => {
-    setReactionModal(false);
-  }, [setReactionModal]);
+    setIsReactionModalActive(false);
+  }, [setIsReactionModalActive]);
   const call = useCall();
+  const { supportedReactions } = StreamVideoRN.config;
 
   const sendReaction = async (reaction: StreamReaction) => {
     await call?.sendReaction(reaction);
+    setIsReactionModalActive(false);
   };
 
   return (
-    <Pressable
-      style={[styles.container, StyleSheet.absoluteFill]}
-      onPress={onCloseReactionsModal}
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={isReactionModalActive}
+      onRequestClose={onCloseReactionsModal}
     >
-      <View style={styles.menu}>
-        <View style={styles.reactions}>
-          {reactions.map((reaction) => (
+      <View style={styles.container}>
+        <View style={styles.menu}>
+          <View style={styles.reactions}>
+            {supportedReactions.map((reaction) => (
+              <Pressable
+                onPress={() => sendReaction(reaction)}
+                key={reaction.emoji_code}
+                style={styles.reaction}
+              >
+                <Text>
+                  {reaction.emoji_code &&
+                    supportedReactions.find(
+                      (supportedReaction) =>
+                        supportedReaction.emoji_code === reaction.emoji_code,
+                    )?.icon}
+                </Text>
+              </Pressable>
+            ))}
             <Pressable
-              onPress={() => sendReaction(reaction)}
-              key={reaction.emoji_code}
+              style={[styles.closeIcon, theme.icon.sm]}
+              onPress={onCloseReactionsModal}
             >
-              <Text>
-                {reaction.emoji_code &&
-                  defaultEmojiReactions[reaction.emoji_code]}
-              </Text>
+              <Cross color={theme.light.primary} />
             </Pressable>
-          ))}
+          </View>
         </View>
       </View>
-    </Pressable>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: theme.padding.xl,
-    zIndex: 5,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   menu: {
     backgroundColor: theme.light.bars,
@@ -82,5 +81,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: theme.padding.md,
   },
+  reaction: {
+    marginHorizontal: theme.margin.md,
+  },
   svgContainerStyle: {},
+  closeIcon: {
+    marginLeft: theme.margin.md,
+  },
 });

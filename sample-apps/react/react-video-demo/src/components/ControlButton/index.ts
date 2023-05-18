@@ -1,1 +1,1 @@
-export { ControlButton as default } from './ControlButton';
+export { ControlButton as default, PanelButton } from './ControlButton';
