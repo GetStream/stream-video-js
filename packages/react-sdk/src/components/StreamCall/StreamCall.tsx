@@ -32,9 +32,9 @@ export type StreamCallProps = InitStreamCall & {
   autoJoin?: boolean;
 
   /**
-   * If true, the call will be loaded automatically.
+   * If true, the call data will be loaded automatically from the server.
    *
-   * This property is useful for the scenarios where you declarative create
+   * This property is useful for the scenarios where you declaratively create
    * the call instance by using the `callId` and `callType` props,
    * and you have a UI that depends on the call metadata.
    *
