@@ -2,20 +2,39 @@ import { PropsWithChildren, useEffect, useState } from 'react';
 import { Call, CallingState, JoinCallData } from '@stream-io/video-client';
 import {
   StreamCallProvider,
+  useConnectedUser,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { MediaDevicesProvider, MediaDevicesProviderProps } from '../../core';
 
 type InitWithCallCID = {
-  callId: string;
+  /**
+   * The call type.
+   */
   callType: string;
+  /**
+   * The call id.
+   */
+  callId: string;
+  /**
+   * The call instance to use.
+   */
   call?: never;
 };
 
 type InitWithCallInstance = {
+  /**
+   * The call instance to use.
+   */
   call: Call | undefined;
-  callId?: never;
+  /**
+   * The call type.
+   */
   callType?: never;
+  /**
+   * The call id.
+   */
+  callId?: never;
 };
 
 type InitStreamCall = InitWithCallCID | InitWithCallInstance;
@@ -29,6 +48,28 @@ export type StreamCallProps = InitStreamCall & {
    * @default false.
    */
   autoJoin?: boolean;
+
+  /**
+   * If true, the call data will be loaded automatically from the server.
+   *
+   * This property is useful for the scenarios where you declaratively create
+   * the call instance by using the `callId` and `callType` props,
+   * and you have a UI that depends on the call metadata.
+   *
+   * @example
+   * ```jsx
+   * <StreamCall callId="call-id" callType="call-type" autoLoad>
+   *   <CallMetadata /> // has access to `call.metadata` although not joined yet
+   *   <CallUI />
+   *   <CallControls />
+   * </StreamCall>
+   * ```
+   *
+   * This property is ignored if you pass the `call` prop or enable `autoJoin`.
+   *
+   * @default true.
+   */
+  autoLoad?: boolean;
 
   /**
    * An optional data to pass when joining the call.
@@ -47,6 +88,7 @@ export const StreamCall = ({
   callType,
   call,
   autoJoin = false,
+  autoLoad = true,
   data,
   mediaDevicesProviderProps,
 }: PropsWithChildren<StreamCallProps>) => {
@@ -65,6 +107,34 @@ export const StreamCall = ({
       setActiveCall(newCall);
     }
   }, [activeCall, callId, callType, client]);
+
+  const connectedUser = useConnectedUser();
+  useEffect(() => {
+    // run the effect only when the user is connected and the call
+    // is created declaratively by using the `callId` and `callType` props.
+    if (!connectedUser) return;
+    if (activeCall && callType && callId && autoLoad && !autoJoin) {
+      activeCall
+        .getOrCreate({
+          ring: data?.ring,
+          data: data?.data,
+          members_limit: data?.members_limit,
+        })
+        .catch((err) => {
+          console.error(`Failed to get or create call`, err);
+        });
+    }
+  }, [
+    activeCall,
+    autoJoin,
+    autoLoad,
+    callId,
+    callType,
+    connectedUser,
+    data?.data,
+    data?.members_limit,
+    data?.ring,
+  ]);
 
   useEffect(() => {
     if (autoJoin && activeCall?.state.callingState === CallingState.IDLE) {

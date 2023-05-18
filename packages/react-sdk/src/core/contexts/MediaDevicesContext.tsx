@@ -19,6 +19,7 @@ import {
 import {
   useCall,
   useCallCallingState,
+  useCallMetadata,
   useCallState,
 } from '@stream-io/video-react-bindings';
 
@@ -114,7 +115,6 @@ const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
  * @internal
  */
 export type MediaDevicesProviderProps = PropsWithChildren<{
-  enumerate?: boolean;
   initialAudioEnabled?: boolean;
   initialVideoEnabled?: boolean;
   initialAudioInputDeviceId?: string;
@@ -141,6 +141,7 @@ export const MediaDevicesProvider = ({
   const call = useCall();
   const callingState = useCallCallingState();
   const callState = useCallState();
+  const metadata = useCallMetadata();
   const { localParticipant$ } = callState;
 
   const [selectedAudioInputDeviceId, selectAudioInputDeviceId] = useState<
@@ -162,6 +163,23 @@ export const MediaDevicesProvider = ({
   const [initialVideoState, setInitialVideoState] = useState<DeviceState>(() =>
     initialVideoEnabled ? DEVICE_STATE.starting : DEVICE_STATE.uninitialized,
   );
+
+  const settings = metadata?.settings;
+  useEffect(() => {
+    if (
+      !settings ||
+      ![CallingState.IDLE, CallingState.RINGING].includes(callingState)
+    ) {
+      return;
+    }
+    const { audio, video } = settings;
+    if (typeof initialAudioEnabled === 'undefined' && audio.mic_default_on) {
+      setInitialAudioEnabled(audio.mic_default_on);
+    }
+    if (typeof initialVideoEnabled === 'undefined' && video.camera_default_on) {
+      setInitialVideoState(DEVICE_STATE.starting);
+    }
+  }, [callingState, initialAudioEnabled, initialVideoEnabled, settings]);
 
   const publishVideoStream = useVideoPublisher({
     initialVideoMuted: !initialVideoState.enabled,
