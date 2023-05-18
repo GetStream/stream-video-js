@@ -2,6 +2,7 @@ import { PropsWithChildren, useEffect, useState } from 'react';
 import { Call, CallingState, JoinCallData } from '@stream-io/video-client';
 import {
   StreamCallProvider,
+  useConnectedUser,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import { MediaDevicesProvider, MediaDevicesProviderProps } from '../../core';
@@ -31,6 +32,28 @@ export type StreamCallProps = InitStreamCall & {
   autoJoin?: boolean;
 
   /**
+   * If true, the call will be loaded automatically.
+   *
+   * This property is useful for the scenarios where you declarative create
+   * the call instance by using the `callId` and `callType` props,
+   * and you have a UI that depends on the call metadata.
+   *
+   * @example
+   * ```jsx
+   * <StreamCall callId="call-id" callType="call-type" autoLoad>
+   *   <CallMetadata /> // has access to `call.metadata` although not joined yet
+   *   <CallUI />
+   *   <CallControls />
+   * </StreamCall>
+   * ```
+   *
+   * This property is ignored if you pass the `call` prop.
+   *
+   * @default true.
+   */
+  autoLoad?: boolean;
+
+  /**
    * An optional data to pass when joining the call.
    */
   data?: JoinCallData;
@@ -47,6 +70,7 @@ export const StreamCall = ({
   callType,
   call,
   autoJoin = false,
+  autoLoad = true,
   data,
   mediaDevicesProviderProps,
 }: PropsWithChildren<StreamCallProps>) => {
@@ -65,6 +89,18 @@ export const StreamCall = ({
       setActiveCall(newCall);
     }
   }, [activeCall, callId, callType, client]);
+
+  const connectedUser = useConnectedUser();
+  useEffect(() => {
+    if (!connectedUser) return;
+    // run the effect only when the user is connected and the call
+    // is created declarative by using the `callId` and `callType` props.
+    if (activeCall && callType && callId && autoLoad) {
+      activeCall.getOrCreate(data).catch((err) => {
+        console.error(`Failed to get or create call`, err);
+      });
+    }
+  }, [activeCall, autoLoad, callId, callType, connectedUser, data]);
 
   useEffect(() => {
     if (autoJoin && activeCall?.state.callingState === CallingState.IDLE) {

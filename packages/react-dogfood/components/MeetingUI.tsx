@@ -10,14 +10,12 @@ import {
   defaultSortPreset,
   IconButton,
   LoadingIndicator,
-  MediaDevicesProvider,
   noopComparator,
   PermissionRequests,
   ReactionsButton,
   RecordCallButton,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
-  StreamCallProvider,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCall,
@@ -35,10 +33,6 @@ import {
   UnreadCountBadge,
 } from '.';
 import { ActiveCallHeader } from './ActiveCallHeader';
-import {
-  DeviceSettingsCaptor,
-  getDeviceSettings,
-} from './DeviceSettingsCaptor';
 import { useWatchChannel } from '../hooks';
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 import { Stage } from './Stage';
@@ -139,7 +133,6 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
     }
   }, [activeCall, isSortingDisabled]);
 
-  const deviceSettings = getDeviceSettings();
   let ComponentToRender: JSX.Element | null = null;
   if (show === 'error-join' || show === 'error-leave') {
     ComponentToRender = (
@@ -247,20 +240,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
     );
   }
 
-  return (
-    <StreamCallProvider call={activeCall}>
-      <MediaDevicesProvider
-        initialAudioEnabled={!deviceSettings?.isAudioMute}
-        initialVideoEnabled={!deviceSettings?.isVideoMute}
-        initialVideoInputDeviceId={deviceSettings?.selectedVideoDeviceId}
-        initialAudioInputDeviceId={deviceSettings?.selectedAudioInputDeviceId}
-        initialAudioOutputDeviceId={deviceSettings?.selectedAudioOutputDeviceId}
-      >
-        {ComponentToRender}
-        <DeviceSettingsCaptor />
-      </MediaDevicesProvider>
-    </StreamCallProvider>
-  );
+  return ComponentToRender;
 };
 
 type ErrorPageProps = {
