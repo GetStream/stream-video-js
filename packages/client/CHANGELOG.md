@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.159](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.158...client0.0.1-alpha.159) (2023-05-18)
+
+
+
+## [0.0.1-alpha.158](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.157...client0.0.1-alpha.158) (2023-05-18)
+
+
+
+## [0.0.1-alpha.157](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.156...client0.0.1-alpha.157) (2023-05-17)
+
+
+
+## [0.0.1-alpha.156](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.155...client0.0.1-alpha.156) (2023-05-17)
+
+
+### Features
+
+* Support for server-side driven stream resolution ([#516](https://github.com/GetStream/stream-video-js/issues/516)) ([cae1169](https://github.com/GetStream/stream-video-js/commit/cae11695fe4aa11bd5e168b00ffd6ea35e2524a2))
+
+
+
 ## [0.0.1-alpha.155](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.154...client0.0.1-alpha.155) (2023-05-17)
 
 

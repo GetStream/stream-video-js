@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import {
   JoinCallData,
-  StreamMeeting,
+  StreamCall,
   StreamVideo,
   useCreateStreamVideoClient,
   User,
@@ -118,14 +118,14 @@ const App = () => {
                 }}
               >
                 {callId && (
-                  <StreamMeeting
+                  <StreamCall
                     callId={callId}
                     callType={callType}
                     data={callInput}
                     autoJoin
                   >
                     <MeetingUI />
-                  </StreamMeeting>
+                  </StreamCall>
                 )}
               </Box>
             </Box>

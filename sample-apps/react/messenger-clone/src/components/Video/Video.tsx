@@ -1,4 +1,4 @@
-import { StreamMeeting, useCalls } from '@stream-io/video-react-sdk';
+import { StreamCall, useCalls } from '@stream-io/video-react-sdk';
 
 import { CallPanel } from './CallPanel';
 
@@ -7,9 +7,9 @@ export const Video = () => {
   return (
     <>
       {calls.map((call) => (
-        <StreamMeeting call={call} autoJoin={false} key={call.cid}>
+        <StreamCall call={call} autoJoin={false} key={call.cid}>
           <CallPanel />
-        </StreamMeeting>
+        </StreamCall>
       ))}
     </>
   );

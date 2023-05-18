@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import {
   PaginatedGridLayout,
-  StreamMeeting,
+  StreamCall,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
@@ -35,9 +35,9 @@ export const WebRTCLivestream = () => {
 
   return (
     <StreamVideo client={client}>
-      <StreamMeeting callType="default" callId={callId!} autoJoin={true}>
+      <StreamCall callType="default" callId={callId!} autoJoin={true}>
         <WebRTCLivestreamUI />
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   );
 };

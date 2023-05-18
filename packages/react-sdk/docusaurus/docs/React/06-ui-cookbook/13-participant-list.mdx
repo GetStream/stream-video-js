@@ -80,7 +80,7 @@ In our example, we are going to get the call ID and type from the URL query para
 
 Once we have that information, we can join the call by choosing one of the two options:
 
-1. Declarative, using the [`<StreamMeeting />`](TODO#streammeeting) component.
+1. Declarative, using the [`<StreamCall />`](TODO#streamcall) component.
 2. Imperative, using the [`StreamVideoClient`](../04-call-engine/StreamVideoClient.md) API methods (advanced usage).
 
 In our example, we are going to use the declarative approach because it is easier to understand and
@@ -111,19 +111,19 @@ export const App = () => {
 
   return (
     <StreamVideo client={client}>
-      <StreamMeeting
+      <StreamCall
         callId={callId}
         callType="default"
         input={{ create: true }}
       >
         <SpeakerView />
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   );
 };
 ```
 
-Behind the scenes, the `<StreamMeeting />` component will set up and join a new [Call](../04-call-engine/Call.md) instance,
+Behind the scenes, the `<StreamCall />` component will set up and join a new [Call](../04-call-engine/Call.md) instance,
 and will expose the [CallState](../04-call-engine/hooks-and-contexts.md/#streamcallprovider) object down in the component tree through a [React Context](https://react.dev/learn/passing-data-deeply-with-context).
 
 You can read more about this mechanism as part of our [React Bindings and Hooks documentation](../../call-engine/01-call-engine-overview).

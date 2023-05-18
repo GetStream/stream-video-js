@@ -100,14 +100,14 @@ export type MediaDevicesContextAPI = {
    * @param deviceId
    * @returns
    */
-  getAudioStream: (deviceId?: string) => Promise<MediaStream>;
+  getAudioStream: typeof getAudioStream;
   /**
    * Returns a 'videoinput' media stream with the given `deviceId`, if no `deviceId` is provided, it uses the first available device.
    *
    * @param deviceId
    * @returns
    */
-  getVideoStream: (deviceId?: string) => Promise<MediaStream>;
+  getVideoStream: typeof getVideoStream;
   /**
    * [Tells if the browser supports audio output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId).
    */

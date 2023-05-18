@@ -13,13 +13,13 @@ This guide shows how to create, join, leave, and end call rooms and ring calls. 
 
 <SDKSpecific name="react">
 
-The easiest way to join a call is to use the `StreamMeeting` component:
+The easiest way to join a call is to use the `StreamCall` component:
 
 ```tsx
 import {
   CallingState,
   useCreateStreamVideoClient,
-  StreamMeeting,
+  StreamCall,
   StreamVideo,
   useCall,
   useCallCallingState,
@@ -37,14 +37,14 @@ export default function App() {
   });
   return (
     <StreamVideo client={client}>
-      <StreamMeeting
+      <StreamCall
         callType="default"
         callId="test-call"
         autoJoin={true}
         data={{ create: true }}
       >
         <MeetingUI />
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   );
 }
@@ -136,7 +136,7 @@ The easiest way to watch for incoming and outgoing calls is to use the [`useCall
 import {
   CallingState,
   useCreateStreamVideoClient,
-  StreamMeeting,
+  StreamCall,
   StreamVideo,
   useCall,
   useCallCallingState,
@@ -166,9 +166,9 @@ const Calls = () => {
     <>
       {calls.map((call) => (
         // Note that we set autoJoin to false, as the joining is handled by the signal flow, it's not automatical
-        <StreamMeeting call={call} autoJoin={false} key={call.cid}>
+        <StreamCall call={call} autoJoin={false} key={call.cid}>
           <CallUI></CallUI>
-        </StreamMeeting>
+        </StreamCall>
       ))}
     </>
   );
