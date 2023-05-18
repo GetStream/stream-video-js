@@ -8,15 +8,33 @@ import {
 import { MediaDevicesProvider, MediaDevicesProviderProps } from '../../core';
 
 type InitWithCallCID = {
-  callId: string;
+  /**
+   * The call type.
+   */
   callType: string;
+  /**
+   * The call id.
+   */
+  callId: string;
+  /**
+   * The call instance to use.
+   */
   call?: never;
 };
 
 type InitWithCallInstance = {
+  /**
+   * The call instance to use.
+   */
   call: Call | undefined;
-  callId?: never;
+  /**
+   * The call type.
+   */
   callType?: never;
+  /**
+   * The call id.
+   */
+  callId?: never;
 };
 
 type InitStreamCall = InitWithCallCID | InitWithCallInstance;
@@ -47,7 +65,7 @@ export type StreamCallProps = InitStreamCall & {
    * </StreamCall>
    * ```
    *
-   * This property is ignored if you pass the `call` prop.
+   * This property is ignored if you pass the `call` prop or enable `autoJoin`.
    *
    * @default true.
    */
@@ -92,15 +110,31 @@ export const StreamCall = ({
 
   const connectedUser = useConnectedUser();
   useEffect(() => {
-    if (!connectedUser) return;
     // run the effect only when the user is connected and the call
-    // is created declarative by using the `callId` and `callType` props.
-    if (activeCall && callType && callId && autoLoad) {
-      activeCall.getOrCreate(data).catch((err) => {
-        console.error(`Failed to get or create call`, err);
-      });
+    // is created declaratively by using the `callId` and `callType` props.
+    if (!connectedUser) return;
+    if (activeCall && callType && callId && autoLoad && !autoJoin) {
+      activeCall
+        .getOrCreate({
+          ring: data?.ring,
+          data: data?.data,
+          members_limit: data?.members_limit,
+        })
+        .catch((err) => {
+          console.error(`Failed to get or create call`, err);
+        });
     }
-  }, [activeCall, autoLoad, callId, callType, connectedUser, data]);
+  }, [
+    activeCall,
+    autoJoin,
+    autoLoad,
+    callId,
+    callType,
+    connectedUser,
+    data?.data,
+    data?.members_limit,
+    data?.ring,
+  ]);
 
   useEffect(() => {
     if (autoJoin && activeCall?.state.callingState === CallingState.IDLE) {
