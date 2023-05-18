@@ -111,7 +111,7 @@ export const App = () => {
 
   return (
     <StreamVideo client={client}>
-      <StreamCall callId={callId} callType="default" input={{ create: true }}>
+      <StreamCall callId={callId} callType="default" data={{ create: true }}>
         <SpeakerView />
       </StreamCall>
     </StreamVideo>
