@@ -122,11 +122,11 @@ export const useAudioOutputDeviceFallback = (
  * @category Device Management
  */
 export const useOnUnavailableDevices = (
-  observeDevices: () => Observable<MediaDeviceInfo[]>,
+  observeDevices: Observable<MediaDeviceInfo[]>,
   onDisconnect: () => void,
 ) => {
   useEffect(() => {
-    const subscription = observeDevices()
+    const subscription = observeDevices
       .pipe(pairwise())
       .subscribe(([prev, current]) => {
         if (prev.length > 0 && current.length === 0) onDisconnect();
@@ -142,4 +142,20 @@ export const useOnUnavailableDevices = (
  * @category Device Management
  */
 export const useOnUnavailableVideoDevices = (onDisconnect: () => void) =>
-  useOnUnavailableDevices(getVideoDevices, onDisconnect);
+  useOnUnavailableDevices(getVideoDevices(), onDisconnect);
+
+/**
+ * Observes disconnect of all audio input devices and executes onDisconnect callback
+ * @param onDisconnect
+ * @category Device Management
+ */
+export const useOnUnavailableAudioInputDevices = (onDisconnect: () => void) =>
+  useOnUnavailableDevices(getAudioDevices(), onDisconnect);
+
+/**
+ * Observes disconnect of all audio output devices and executes onDisconnect callback
+ * @param onDisconnect
+ * @category Device Management
+ */
+export const useOnUnavailableAudioOutputDevices = (onDisconnect: () => void) =>
+  useOnUnavailableDevices(getAudioOutputDevices(), onDisconnect);
