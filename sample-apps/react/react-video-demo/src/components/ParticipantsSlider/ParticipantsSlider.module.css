@@ -58,6 +58,7 @@
   max-height: 100%;
   border-radius: 12px;
   aspect-ratio: auto;
+  overflow: hidden;
 }
 .participant.horizontal video {
   border-radius: 12px;

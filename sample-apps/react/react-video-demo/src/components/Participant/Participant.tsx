@@ -21,6 +21,35 @@ export type Props = {
   sinkId?: string;
 };
 
+export const VideoPlaceholder: FC<{
+  participant: StreamVideoParticipant;
+  hasAudio: boolean;
+  sessionId: string;
+  call: Call;
+  className?: string;
+}> = ({ participant, hasAudio, sessionId, call, className }) => {
+  const disabledPreviewClassNames = classnames(
+    className,
+    styles.disabledPreview,
+  );
+
+  return (
+    <div className={disabledPreviewClassNames}>
+      <div className={styles.fallAvatarContainer}>
+        <div className={styles.fallbackInitial}>
+          {participant.name?.split('')[0]}
+        </div>
+      </div>
+      <Overlay
+        name={participant.name}
+        hasAudio={hasAudio}
+        call={call}
+        sessionId={sessionId}
+      />
+    </div>
+  );
+};
+
 export const Overlay: FC<{
   name?: string;
   hasAudio?: boolean;
@@ -115,24 +144,15 @@ export const Participant: FC<Props> = ({ className, call, participant }) => {
     className,
   );
 
-  const disabledPreviewClassNames = classnames(
-    className,
-    styles.disabledPreview,
-  );
-
   if (!hasVideo) {
     return (
-      <div className={disabledPreviewClassNames}>
-        <div className={styles.fallbackAvatar}>
-          {participant.name?.split('')[0]}
-        </div>
-        <Overlay
-          name={participant.name}
-          hasAudio={hasAudio}
-          call={call}
-          sessionId={sessionId}
-        />
-      </div>
+      <VideoPlaceholder
+        call={call}
+        className={className}
+        participant={participant}
+        hasAudio={hasAudio}
+        sessionId={sessionId}
+      />
     );
   }
 
@@ -141,6 +161,9 @@ export const Participant: FC<Props> = ({ className, call, participant }) => {
       participant={participant}
       className={rootClassNames}
       ref={setTrackedElement}
+      VideoPlaceholder={() => {
+        return <div className={styles.placeholder}></div>;
+      }}
       ParticipantViewUI={
         <Overlay
           connectionQuality={connectionQualityAsString}

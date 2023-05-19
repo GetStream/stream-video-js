@@ -34,7 +34,6 @@ import { useCreateStreamChatClient } from './hooks/useChatClient';
 import { tour } from '../data/tour';
 
 import './App.css';
-import { is } from 'date-fns/locale';
 
 export type Props = {
   logo: string;

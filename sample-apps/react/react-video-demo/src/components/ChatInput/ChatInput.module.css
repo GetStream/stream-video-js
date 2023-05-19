@@ -3,7 +3,11 @@
 }
 
 .textareaContainer {
-  @apply w-full;
+  @apply w-full relative;
+}
+
+.previewContainer {
+  @apply absolute bottom-0 mb-[40px];
 }
 
 .inputInner {
