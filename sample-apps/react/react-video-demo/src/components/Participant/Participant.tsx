@@ -26,24 +26,23 @@ export const Overlay: FC<{
   hasAudio?: boolean;
   connectionQuality?: string | boolean;
   reaction?: StreamReaction;
-  sessionId: string;
   call: Call;
-}> = ({ name, hasAudio, connectionQuality, reaction, sessionId, call }) => {
+  sessionId: string;
+}> = ({ name, hasAudio, connectionQuality, reaction, call, sessionId }) => {
   const connectionQualityClassNames = classnames(styles.connectionQualityIcon, {
     [styles?.[`${connectionQuality}`]]: Boolean(connectionQuality),
   });
 
   return (
     <div className={styles.videoOverlay}>
-      {reaction && (
+      {reaction ? (
         <Reaction
-          className={styles.reaction}
           reaction={reaction}
-          sessionId={sessionId}
+          className={styles.reaction}
           call={call}
+          sessionId={sessionId}
         />
-      )}
-
+      ) : null}
       <div className={styles.name}>
         {name}
         {!hasAudio ? <MicMuted className={styles.micMuted} /> : null}
@@ -57,18 +56,12 @@ export const Overlay: FC<{
   );
 };
 
-export const Participant: FC<Props> = ({
-  className,
-  call,
-  participant,
-  sinkId,
-}) => {
+export const Participant: FC<Props> = ({ className, call, participant }) => {
   const {
     publishedTracks,
     isSpeaking,
     isDominantSpeaker,
     connectionQuality,
-    audioStream,
     sessionId,
     reaction,
   } = participant;
@@ -136,7 +129,6 @@ export const Participant: FC<Props> = ({
         <Overlay
           name={participant.name}
           hasAudio={hasAudio}
-          reaction={reaction}
           call={call}
           sessionId={sessionId}
         />
@@ -145,20 +137,20 @@ export const Participant: FC<Props> = ({
   }
 
   return (
-    <div className={rootClassNames} ref={setTrackedElement}>
-      <ParticipantView
-        participant={participant}
-        ParticipantViewUI={
-          <Overlay
-            connectionQuality={connectionQualityAsString}
-            name={participant.name}
-            hasAudio={hasAudio}
-            reaction={reaction}
-            call={call}
-            sessionId={sessionId}
-          />
-        }
-      />
-    </div>
+    <ParticipantView
+      participant={participant}
+      className={rootClassNames}
+      ref={setTrackedElement}
+      ParticipantViewUI={
+        <Overlay
+          connectionQuality={connectionQualityAsString}
+          name={participant.name}
+          hasAudio={hasAudio}
+          reaction={reaction}
+          call={call}
+          sessionId={sessionId}
+        />
+      }
+    />
   );
 };

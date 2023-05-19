@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useRouter } from 'next/router';
 import {
   StreamCall,
@@ -15,6 +15,10 @@ import {
 import { useGleap } from '../../hooks/useGleap';
 import { useSettings } from '../../context/SettingsContext';
 import translations from '../../translations';
+import {
+  DeviceSettingsCaptor,
+  getDeviceSettings,
+} from '../../components/DeviceSettingsCaptor';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
@@ -23,16 +27,9 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   } = useSettings();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
-
   const { userToken, user, apiKey, gleapApiKey } = props;
 
-  const [initialTokenProvided, setInitialTokenProvided] = useState(false);
   const tokenProvider = useCallback(async () => {
-    if (!initialTokenProvided) {
-      setInitialTokenProvided(true);
-      return userToken;
-    }
-
     const { token } = await fetch(
       '/api/auth/create-token?' +
         new URLSearchParams({
@@ -41,8 +38,8 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         }),
       {},
     ).then((res) => res.json());
-    return token;
-  }, [apiKey, initialTokenProvided, user.id, userToken]);
+    return token as string;
+  }, [apiKey, user.id]);
 
   const client = useCreateStreamVideoClient({
     apiKey,
@@ -58,6 +55,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
   useGleap(gleapApiKey, client, user);
 
+  const settings = getDeviceSettings();
   return (
     <>
       <Head>
@@ -69,8 +67,21 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         language={language}
         translationsOverrides={translations}
       >
-        <StreamCall callId={callId} callType={callType} autoJoin={false}>
+        <StreamCall
+          callId={callId}
+          callType={callType}
+          autoJoin={false}
+          autoLoad={true}
+          mediaDevicesProviderProps={{
+            initialAudioEnabled: !settings?.isAudioMute,
+            initialVideoEnabled: !settings?.isVideoMute,
+            initialVideoInputDeviceId: settings?.selectedVideoDeviceId,
+            initialAudioInputDeviceId: settings?.selectedAudioInputDeviceId,
+            initialAudioOutputDeviceId: settings?.selectedAudioOutputDeviceId,
+          }}
+        >
           <MeetingUI chatClient={chatClient} />
+          <DeviceSettingsCaptor />
         </StreamCall>
       </StreamVideo>
     </>
