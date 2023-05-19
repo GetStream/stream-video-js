@@ -1,6 +1,6 @@
 ---
 id: participant-list
-title: _Custom Participants List Layout
+title: Custom Participants List Layout
 ---
 
 ## Introduction
@@ -111,11 +111,7 @@ export const App = () => {
 
   return (
     <StreamVideo client={client}>
-      <StreamCall
-        callId={callId}
-        callType="default"
-        input={{ create: true }}
-      >
+      <StreamCall callId={callId} callType="default" input={{ create: true }}>
         <SpeakerView />
       </StreamCall>
     </StreamVideo>
