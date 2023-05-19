@@ -192,7 +192,7 @@ When using custom comparator in combination with the `useParticipants` hook, ple
 Otherwise, you might end up with unexpected behavior (unexpected re-renders, etc.).
 
 Our proposal is to use stateless comparators defined outside of the component's scope.
-In case you need to use a stateful comparator, please make sure to memoize it using [`React.useMemo`](https://reactjs.org/docs/hooks-reference.html#usememo) or [`React.useCallback`](https://reactjs.org/docs/hooks-reference.html#usecallback) hooks.
+In case you need to use a stateful comparator, please make sure to memoize it using [`React.useMemo`](https://react.dev/reference/react/useMemo) or [`React.useCallback`](https://react.dev/reference/react/useCallback) hooks.
 
 ```ts
 // stateless comparator
