@@ -111,7 +111,7 @@ export const App = () => {
 
   return (
     <StreamVideo client={client}>
-      <StreamCall callId={callId} callType="default" input={{ create: true }}>
+      <StreamCall callId={callId} callType="default" data={{ create: true }}>
         <SpeakerView />
       </StreamCall>
     </StreamVideo>
@@ -200,7 +200,7 @@ const hasScreenShare = (p: StreamVideoParticipant) =>
 The React SDK comes with some default sorting logic for the participants in the call.
 
 :::info
-You can read more about this in the [Sorting API](//TODO).
+You can read more about this in the [Sorting API](../../guides/sorting-api).
 :::
 
 The Participant Sorting API is customizable and allows us to define our custom sorting logic in case the default
