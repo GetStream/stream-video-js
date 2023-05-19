@@ -187,6 +187,34 @@ const myComparator = combineComparators(/* ... */);
 const participants = useParticipants({ sortBy: myComparator });
 ```
 
+:::caution
+When using custom comparator in combination with the `useParticipants` hook, please make sure to provide a stable reference to the comparator.
+Otherwise, you might end up with unexpected behavior (unexpected re-renders, etc.).
+
+Our proposal is to use stateless comparators defined outside of the component's scope.
+In case you need to use a stateful comparator, please make sure to memoize it using [`React.useMemo`](https://reactjs.org/docs/hooks-reference.html#usememo) or [`React.useCallback`](https://reactjs.org/docs/hooks-reference.html#usecallback) hooks.
+
+```ts
+// stateless comparator
+const myStatelessComparator = combineComparators(/* ... */);
+
+export const MyComponent = () => {
+  // component scope
+  const participants1 = useParticipants({ sortBy: myStatelessComparator });
+
+  // memoized comparator
+  const myStatefulComparator = React.useMemo(
+    () => combineComparators(/* ... */),
+    [dependency1, dependency2],
+  );
+  const participants2 = useParticipants({ sortBy: myStatefulComparator });
+
+  // ...
+};
+```
+
+:::
+
 ## Built-in sorting presets
 
 To further simplify participant sorting, the Participant Sorting API offers built-in presets.
