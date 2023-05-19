@@ -26,7 +26,7 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
 
   useEffect(() => {
     if (inputRef && inputRef.current) {
-      inputRef.current.value = `${window.location.href}?id=${callId}`;
+      inputRef.current.value = `${window.location.href}`;
     }
   }, [inputRef, callId]);
 
@@ -79,9 +79,7 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
       {canShare && (
         <Button
           className={styles.share}
-          onClick={() =>
-            navigator.share({ url: `${window.location.href}?id=${callId}` })
-          }
+          onClick={() => navigator.share({ url: `${window.location.href}` })}
           color="primary"
         >
           Share
