@@ -19,10 +19,13 @@ The `Comparator<T>` API is the foundation upon which the Participant Sorting API
 It defines a function type `Comparator<T>` that takes two arguments `a` and `b` of type `T` and returns `-1`, `0`, or `1` based on the comparison between the two items.
 This API allows developers to create custom comparators tailored to their specific needs.
 
+Ultimately, this API can be used in conjunction with the `Array.sort` method to sort any type of data.
+
 ```ts
 import {
   Comparator,
   combineComparators,
+  conditional,
   descending,
 } from '@stream-io/video-react-sdk';
 
@@ -45,16 +48,39 @@ const byId: Comparator<Participant> = (a, b) => {
   return 0;
 };
 
+// comparator that sorts by age in ascending order
+const byAge: Comparator<Participant> = (a, b) => {
+  if (a.age < b.age) return -1;
+  if (a.age > b.age) return 1;
+  return 0;
+};
+
 // creates a new comparator that sorts by name in descending order
 const byNameDescending: Comparator<Participant> = descending(byName);
 
+// `conditional` creates a new comparator that applies the provided comparator only
+// if the provided predicate returns `true`. The `predicate` itself, takes the two arguments
+// and returns a boolean value.
+const byAgeIfEnabled: Comparator<Participant> = conditional(
+  (a, b) => opts.isSortByAgeEnabled,
+)(descending(byAge));
+
 // combineComparator creates a new Comparator<T> that combines the provided comparators in one.
-// this comparator will sort by name in descending order and then by id in ascending order
-const sortingCriteria = combineComparators(byNameDescending, byId);
+// this comparator will sort by name in descending order, by age if enabled,
+// and then by id in ascending order
+const sortingCriteria = combineComparators(
+  byNameDescending,
+  byAgeIfEnabled,
+  byId,
+);
+
+// participants array
+const sorted = [p1, p2, p3].sort(sortingCriteria);
 ```
 
 :::tip
 The `Comparator<T>` API is quite generic and can be used to sort any type of data.
+Works great in pair with browser's [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) API.
 :::
 
 ## Built-in common comparators
@@ -66,13 +92,13 @@ The built-in common comparators include:
 
 - `dominantSpeaker`: Sorts participants based on their dominance in the call.
 - `speaking`: Sorts participants based on whether they are currently speaking.
-- `screenSharing`: Sorts participants based on whether they are currently screensharing.
+- `screenSharing`: Sorts participants based on whether they are currently screen sharing.
 - `publishingVideo`: Sorts participants based on whether they are currently publishing video.
 - `publishingAudio`: Sorts participants based on whether they are currently publishing audio.
 - `pinned`: Sorts participants based on whether they are pinned in the user interface.
 - `reactionType(type)`: Sorts participants based on the type of reaction they have.
 - `role(...roles)`: Sorts participants based on their assigned role.
-- `name`: Sorts participants based on their name.
+- `name`: Sorts participants based on their names.
 
 All of these comparators are available in the `@stream-io/video-react-sdk` package and can be imported as follows:
 
@@ -88,42 +114,12 @@ import {
   role,
   name,
 } from '@stream-io/video-react-sdk';
+
+// ...
 ```
 
 These built-in comparators serve as a starting point for sorting participants
 and can be used individually or combined to create more complex sorting criteria.
-
-## Built-in sorting presets
-
-To further simplify participant sorting, the Participant Sorting API offers built-in presets.
-These presets are pre-configured sorting criteria linked to specific call types, reducing the effort required to define sorting rules.
-
-The following presets are available:
-
-- `defaultSortPreset`: The default sorting preset applicable to general call scenarios.
-- `speakerLayoutSortPreset`: A preset specifically designed for the [`'default'` call type](../02-guides/05-call-types.mdx#default), optimizing participant sorting for speaker layout view.
-- `livestreamOrAudioRoomSortPreset`: A preset tailored for the [`'livestream'`](../02-guides/05-call-types.mdx#livestream) and [`'audio_room'`](../02-guides/05-call-types.mdx#audio-room) call types, ensuring optimal participant sorting in livestream or audio room scenarios.
-
-These presets are directly applied to the [Call's sorting mechanism](todo docs link).
-For custom call types, unless specified otherwise, our SDK would use the `defaultSortPreset` preset.
-
-All of these presets are available in the `@stream-io/video-react-sdk` package and can be imported as follows:
-
-```ts
-import {
-  defaultSortPreset,
-  speakerLayoutSortPreset,
-  livestreamOrAudioRoomSortPreset,
-} from '@stream-io/video-react-sdk';
-```
-
-:::tip
-
-For your custom call types, you can define your own participant sorting presets and register them generally in the SDK.
-
-Check the next section to learn how.
-
-:::
 
 ## Sorting customization on the call level
 
@@ -168,14 +164,69 @@ const comparator = combineComparators(
 call.setSortParticipantsBy(comparator);
 ```
 
+:::note
+In some scenarios, we might want to have special sorting criteria for a specific component in our app.
+For example, in the participant list component, we might want to sort participants by name.
+:::
+
+For this purpose, we have extended the built-in [`useParticipants`](../../call-engine/hooks-and-contexts#useparticipants) hook with a `sortBy: Comparator<StreamVideoParticipant>` option parameter.
+
+```ts
+import {
+  useParticipants,
+  combineComparators,
+  name,
+} from '@stream-io/video-react-sdk';
+
+// this will override the call's default sorting criteria
+// and will return a list of participants sorted by name
+const participants = useParticipants({ sortBy: name });
+
+// you can also provide your custom comparator
+const myComparator = combineComparators(/* ... */);
+const participants = useParticipants({ sortBy: myComparator });
+```
+
+## Built-in sorting presets
+
+To further simplify participant sorting, the Participant Sorting API offers built-in presets.
+These presets are pre-configured sorting criteria linked to specific call types, reducing the effort required to define sorting rules.
+
+The following presets are available:
+
+- `defaultSortPreset`: The default sorting preset applicable to general call scenarios.
+- `speakerLayoutSortPreset`: A preset specifically designed for the [`'default'` call type](../02-guides/05-call-types.mdx#default), optimizing participant sorting for speaker layout view.
+- `livestreamOrAudioRoomSortPreset`: A preset tailored for the [`'livestream'`](../02-guides/05-call-types.mdx#livestream) and [`'audio_room'`](../02-guides/05-call-types.mdx#audio-room) call types, ensuring optimal participant sorting in livestream or audio room scenarios.
+
+These presets are directly applied to the [Call's sorting mechanism](../../call-engine/Call#setsortparticipantsby).
+For custom call types, unless specified otherwise, our SDK would use the `defaultSortPreset` preset.
+
+All of these presets are available in the `@stream-io/video-react-sdk` package and can be imported as follows:
+
+```ts
+import {
+  defaultSortPreset,
+  speakerLayoutSortPreset,
+  livestreamOrAudioRoomSortPreset,
+} from '@stream-io/video-react-sdk';
+```
+
+:::tip
+
+For your custom call types, you can define your participant sorting presets and register them generally in the SDK.
+
+Check the next section to learn how.
+
+:::
+
 ## Sorting customization on the call type
 
 Sometimes, you want to keep your UI components free from sorting logic and instead, define sorting criteria per call type.
-In order to do so, you can register your own sorting presets for your custom call types or override the existing ones
+To do so, you can register your sorting presets for your custom call types or override the existing ones
 by using our SDK's `CallTypes` registry.
 
 ```ts
-import { combineComparators, CallTypes } from '@stream-io/video-react-sdk';
+import { combineComparators, CallTypes, CallType } from '@stream-io/video-react-sdk';
 
 // setup your custom sorting preset
 const myCustomSortPreset = combineComparators(/* ... */);
@@ -200,5 +251,5 @@ This can be achieved by setting our special `noopComparator` as the sorting crit
 import { noopComparator, useCall } from '@stream-io/video-react-sdk';
 
 const call = useCall();
-call.setSortParticipantsBy(noopComparator);
+call.setSortParticipantsBy(noopComparator());
 ```
