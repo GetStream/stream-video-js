@@ -15,15 +15,12 @@ import { theme } from '../theme';
 import { OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
+  useCall,
   useOwnCapabilities,
 } from '@stream-io/video-react-bindings';
 import { useCallback, useState } from 'react';
 import { ReactionModal } from './ReactionsModal';
 import { PermissionNotification } from './PermissionsNotification';
-
-type CallControlsViewProps = {
-  onLeave: () => void;
-};
 
 /**
  * Shows a list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
@@ -33,7 +30,7 @@ type CallControlsViewProps = {
  * | :--- |
  * | ![call-controls-view](https://user-images.githubusercontent.com/25864161/217349666-af0f3278-393e-449d-b30e-2d1b196abe5e.png) |
  */
-export const CallControlsView = ({ onLeave }: CallControlsViewProps) => {
+export const CallControlsView = () => {
   const [isReactionModalActive, setIsReactionModalActive] =
     useState<boolean>(false);
   const {
@@ -45,6 +42,15 @@ export const CallControlsView = ({ onLeave }: CallControlsViewProps) => {
     toggleCameraFacingMode,
   } = useCallControls();
   const ownCapabilities = useOwnCapabilities();
+  const call = useCall();
+
+  const onCallHangup = async () => {
+    try {
+      await call?.leave();
+    } catch (err) {
+      throw err;
+    }
+  };
 
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
@@ -137,7 +143,7 @@ export const CallControlsView = ({ onLeave }: CallControlsViewProps) => {
       </Restricted>
       <Restricted requiredGrants={[OwnCapability.END_CALL]}>
         <CallControlsButton
-          onPress={onLeave}
+          onPress={onCallHangup}
           color={theme.light.error}
           style={[styles.button, { shadowColor: theme.light.error }]}
         >

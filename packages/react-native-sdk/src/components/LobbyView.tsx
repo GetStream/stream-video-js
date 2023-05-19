@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
-import { useConnectedUser } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useConnectedUser,
+  useParticipantCount,
+} from '@stream-io/video-react-bindings';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
@@ -33,10 +37,13 @@ const ParticipantStatus = () => {
 };
 
 export type LobbyViewProps = {
-  onJoin: () => void;
+  /**
+   * Decides whether to show the view preview component and the call controls to join the call with audio/video muted/unmuted.
+   */
+  enablePreview?: boolean;
 };
 
-export const LobbyView = ({ onJoin }: LobbyViewProps) => {
+export const LobbyView = ({ enablePreview }: LobbyViewProps) => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
@@ -45,6 +52,17 @@ export const LobbyView = ({ onJoin }: LobbyViewProps) => {
     (store) => store.isCameraOnFrontFacingMode,
   );
   const isVideoAvailable = !!localVideoStream && !isVideoMuted;
+  const count = useParticipantCount();
+  const call = useCall();
+
+  const onJoinCallHandler = useCallback(async () => {
+    try {
+      await call?.join({ create: true });
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  }, [call]);
 
   const MicIcon = isAudioMuted ? (
     <MicOff color={theme.light.static_white} />
@@ -73,53 +91,57 @@ export const LobbyView = ({ onJoin }: LobbyViewProps) => {
       <View style={styles.content}>
         <Text style={styles.heading}>Before Joining</Text>
         <Text style={styles.subHeading}>Setup your audio and video</Text>
-        <View style={styles.videoView}>
-          {isVideoAvailable ? (
-            <VideoRenderer
-              mirror={isCameraOnFrontFacingMode}
-              mediaStream={localVideoStream}
-              objectFit="cover"
-              style={styles.stream}
-            />
-          ) : (
-            <Avatar participant={connectedUserAsParticipant} />
-          )}
-          <ParticipantStatus />
-        </View>
-        <View style={styles.buttonGroup}>
-          <CallControlsButton
-            onPress={toggleAudioState}
-            color={muteStatusColor(isAudioMuted)}
-            style={[
-              styles.button,
-              theme.button.md,
-              {
-                shadowColor: muteStatusColor(isAudioMuted),
-              },
-            ]}
-          >
-            {MicIcon}
-          </CallControlsButton>
-          <CallControlsButton
-            onPress={toggleVideoState}
-            color={muteStatusColor(isVideoMuted)}
-            style={[
-              styles.button,
-              theme.button.md,
-              {
-                shadowColor: muteStatusColor(isVideoMuted),
-              },
-            ]}
-          >
-            {VideoIcon}
-          </CallControlsButton>
-        </View>
+        {enablePreview && (
+          <View style={styles.videoView}>
+            {isVideoAvailable ? (
+              <VideoRenderer
+                mirror={isCameraOnFrontFacingMode}
+                mediaStream={localVideoStream}
+                objectFit="cover"
+                style={styles.stream}
+              />
+            ) : (
+              <Avatar participant={connectedUserAsParticipant} />
+            )}
+            <ParticipantStatus />
+          </View>
+        )}
+        {enablePreview && (
+          <View style={styles.buttonGroup}>
+            <CallControlsButton
+              onPress={toggleAudioState}
+              color={muteStatusColor(isAudioMuted)}
+              style={[
+                styles.button,
+                theme.button.md,
+                {
+                  shadowColor: muteStatusColor(isAudioMuted),
+                },
+              ]}
+            >
+              {MicIcon}
+            </CallControlsButton>
+            <CallControlsButton
+              onPress={toggleVideoState}
+              color={muteStatusColor(isVideoMuted)}
+              style={[
+                styles.button,
+                theme.button.md,
+                {
+                  shadowColor: muteStatusColor(isVideoMuted),
+                },
+              ]}
+            >
+              {VideoIcon}
+            </CallControlsButton>
+          </View>
+        )}
         <View style={styles.info}>
           <Text style={styles.infoText}>
-            You are about to join a test call at Stream. 3 more people are in
-            the call now.
+            You are about to join a test call at Stream. {count} more people are
+            in the call now.
           </Text>
-          <Pressable style={styles.joinButton} onPress={onJoin}>
+          <Pressable style={styles.joinButton} onPress={onJoinCallHandler}>
             <Text style={styles.joinButtonText}>Join</Text>
           </Pressable>
         </View>

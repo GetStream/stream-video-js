@@ -114,8 +114,9 @@ export interface RTCDataChannel extends EventTarget {
 
 export type EventHandler = (event: SfuEvent) => void;
 
-export type LobbyViewScreenParams = {
-  guestUserId: string;
+export type GuestMeetingScreenParams = {
+  guestUserId?: string;
+  guestCallId: string;
   mode: string;
 };
 
@@ -127,7 +128,8 @@ export type LoginStackParamList = {
 export type MeetingStackParamList = {
   JoinMeetingScreen: undefined;
   MeetingScreen: { callId: string };
-  CallParticipantsInfoScreen: undefined;
+  GuestModeScreen: { callId: string };
+  GuestMeetingScreen: GuestMeetingScreenParams;
 };
 
 export type CallStackParamList = {
@@ -138,16 +140,15 @@ export type CallStackParamList = {
   CallParticipantsInfoScreen: undefined;
 };
 
-export type GuestModeParamList = {
-  GuestModeScreen: undefined;
-  GuestLobbyViewScreen: Partial<LobbyViewScreenParams>;
-  GuestMeetingScreen: undefined;
-  GuestCallParticipantsInfoScreen: undefined;
-};
-
 export type RootStackParamList = {
   Login: undefined;
   Meeting: undefined;
   Call: undefined;
-  Guest: undefined;
 };
+
+export type ScreenTypes =
+  | 'lobby'
+  | 'error-join'
+  | 'error-leave'
+  | 'loading'
+  | 'active-call';

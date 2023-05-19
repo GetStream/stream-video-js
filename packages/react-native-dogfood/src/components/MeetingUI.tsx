@@ -1,79 +1,83 @@
-import React, { useCallback, useState } from 'react';
+import React from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   ActiveCall,
   ActiveCallProps,
-  LobbyView,
-  StreamVideoRN,
   useCall,
 } from '@stream-io/video-react-native-sdk';
-import { MeetingStackParamList } from '../../types';
-import { SafeAreaView, StyleSheet, Text } from 'react-native';
+import { MeetingStackParamList, ScreenTypes } from '../../types';
+import { Button, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { theme } from '@stream-io/video-react-native-sdk/dist/src/theme';
 import { ParticipantListButtons } from '../components/ParticipantListButtons';
-import AuthenticatingProgressScreen from '../screens/AuthenticatingProgress';
+import { LobbyViewComponent } from './LobbyViewComponent';
+import { AuthenticationProgress } from './AuthenticatingProgress';
 
-type Props = NativeStackScreenProps<MeetingStackParamList, 'MeetingScreen'>;
+type Props = NativeStackScreenProps<
+  MeetingStackParamList,
+  'MeetingScreen' | 'GuestMeetingScreen'
+> & {
+  callId: string;
+  mode?: string;
+  show: ScreenTypes;
+  setShow: React.Dispatch<React.SetStateAction<ScreenTypes>>;
+};
 type Mode = NonNullable<ActiveCallProps['mode']>;
 
-export const MeetingUI = ({ navigation }: Props) => {
-  const [selectedMode, setMode] = React.useState<Mode>('grid');
-  const [show, setShow] = useState<
-    'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call'
-  >('lobby');
+export const MeetingUI = ({
+  callId,
+  mode,
+  navigation,
+  route,
+  show,
+  setShow,
+}: Props) => {
+  const [selectedMode, setSelectedMode] = React.useState<Mode>('grid');
+  const call = useCall();
 
-  const activeCall = useCall();
-
-  const onJoin = useCallback(async () => {
-    setShow('loading');
-    try {
-      await activeCall?.join({ create: true });
-      setShow('active-call');
-    } catch (e) {
-      console.error(e);
-      setShow('error-join');
-    }
-  }, [activeCall]);
-
-  const onLeave = useCallback(async () => {
-    setShow('loading');
-    try {
-      setShow('lobby');
-      await activeCall?.leave();
-      navigation.goBack();
-    } catch (e) {
-      console.error(e);
-      setShow('error-leave');
-    }
-  }, [navigation, activeCall]);
-
-  const onOpenCallParticipantsInfoViewHandler = () => {
-    navigation.navigate('CallParticipantsInfoScreen');
+  const returnToHomeHandler = () => {
+    navigation.navigate('JoinMeetingScreen');
   };
 
-  StreamVideoRN.setConfig({
-    onOpenCallParticipantsInfoView: onOpenCallParticipantsInfoViewHandler,
-  });
+  const backToLobbyHandler = () => {
+    setShow('lobby');
+  };
 
   let ComponentToRender: JSX.Element | null = null;
 
   if (show === 'error-join' || show === 'error-leave') {
     ComponentToRender = (
-      <Text style={styles.errorText}>Error Joining Call</Text>
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Error Joining Call</Text>
+        <Button title="Return to Home" onPress={returnToHomeHandler} />
+        <Button title="Back to Lobby" onPress={backToLobbyHandler} />
+      </View>
     );
   } else if (show === 'lobby') {
-    ComponentToRender = <LobbyView onJoin={onJoin} />;
-  } else if (show === 'loading') {
-    ComponentToRender = <AuthenticatingProgressScreen />;
-  } else if (!activeCall) {
     ComponentToRender = (
-      <Text style={styles.errorText}>Lost Active Call Connection</Text>
+      <LobbyViewComponent
+        callId={callId}
+        mode={mode}
+        {...{ navigation, route }}
+      />
+    );
+  } else if (show === 'loading') {
+    ComponentToRender = <AuthenticationProgress />;
+  } else if (!call) {
+    ComponentToRender = (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Lost Active Call Connection</Text>
+        <Button title="Return to Home" onPress={returnToHomeHandler} />
+        <Button title="Back to Lobby" onPress={backToLobbyHandler} />
+      </View>
     );
   } else {
     ComponentToRender = (
       <SafeAreaView style={styles.wrapper}>
-        <ParticipantListButtons selectedMode={selectedMode} setMode={setMode} />
-        <ActiveCall mode={selectedMode} onLeave={onLeave} />
+        <ParticipantListButtons
+          selectedMode={selectedMode}
+          setMode={setSelectedMode}
+        />
+        <ActiveCall mode={selectedMode} />
       </SafeAreaView>
     );
   }
@@ -82,6 +86,11 @@ export const MeetingUI = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: theme.light.static_grey,
+  },
   wrapper: {
     flex: 1,
     backgroundColor: theme.light.static_grey,

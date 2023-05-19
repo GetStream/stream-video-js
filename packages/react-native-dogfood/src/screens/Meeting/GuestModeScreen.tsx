@@ -2,16 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { theme, useCall } from '@stream-io/video-react-native-sdk';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { GuestModeParamList } from '../../../types';
+import { MeetingStackParamList } from '../../../types';
 
 type GuestModeScreenProps = NativeStackScreenProps<
-  GuestModeParamList,
+  MeetingStackParamList,
   'GuestModeScreen'
 >;
 
-export const GuestModeScreen = ({ navigation }: GuestModeScreenProps) => {
+export const GuestModeScreen = ({
+  navigation,
+  route,
+}: GuestModeScreenProps) => {
   const call = useCall();
-  const [callId, setCallId] = useState<string>('');
+  const [callId, setCallId] = useState<string>(route.params.callId);
   const [username, setUsername] = useState<string>('Guest');
 
   useEffect(() => {
@@ -21,15 +24,17 @@ export const GuestModeScreen = ({ navigation }: GuestModeScreenProps) => {
   }, [call]);
 
   const joinAsGuestHandler = () => {
-    navigation.navigate('GuestLobbyViewScreen', {
-      guestUserId: username,
+    navigation.navigate('GuestMeetingScreen', {
       mode: 'guest',
+      guestUserId: username,
+      guestCallId: callId,
     });
   };
 
   const joinAnonymously = () => {
-    navigation.navigate('GuestLobbyViewScreen', {
+    navigation.navigate('GuestMeetingScreen', {
       mode: 'anon',
+      guestCallId: callId,
     });
   };
 

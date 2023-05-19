@@ -5,7 +5,6 @@ import {
   useCall,
   useHasPermissions,
   useI18n,
-  CallPermissionsWrapper,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 
@@ -100,7 +99,7 @@ export const ToggleAudioPublishingButton = (
   ]);
 
   return (
-    <CallPermissionsWrapper requiredGrants={[OwnCapability.SEND_AUDIO]}>
+    <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
       <PermissionNotification
         permission={OwnCapability.SEND_AUDIO}
         isAwaitingApproval={isAwaitingApproval}
@@ -119,6 +118,6 @@ export const ToggleAudioPublishingButton = (
           />
         </CompositeButton>
       </PermissionNotification>
-    </CallPermissionsWrapper>
+    </Restricted>
   );
 };

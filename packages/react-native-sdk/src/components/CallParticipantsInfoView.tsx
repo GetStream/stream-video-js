@@ -12,12 +12,13 @@ import {
 import {
   Alert,
   FlatList,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { ArrowRight, MicOff, ScreenShare, VideoSlash } from '../icons';
+import { ArrowRight, Cross, MicOff, ScreenShare, VideoSlash } from '../icons';
 import React, { useCallback, useState } from 'react';
 import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
@@ -46,7 +47,6 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
     SfuModels.TrackType.SCREEN_SHARE,
   );
   const showYouLabel = participant.userId === connectedUser?.id;
-  console.log({ showYouLabel });
 
   return (
     <View style={styles.participant}>
@@ -84,9 +84,19 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   );
 };
 
-export const CallParticipantsInfoView = () => {
-  return <InnerCallParticipantsInfoView />;
-};
+export interface CallParticipantsInfoViewType {
+  /**
+   * Boolean that decided whether the CallPartcipantsInfoView modal should be open or not.
+   */
+  isCallParticipantsViewVisible: boolean;
+  /**
+   * SetState function to set the value of the boolean field `isCallParticipantsViewVisible` depending upon whether the CallPartcipantsInfoView modal should be open or not.
+   */
+  setIsCallParticipantsViewVisible: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
+}
+
 /**
  * Shows information about the call, it's participants in the call and
  * their mute states, handler to trigger options (TBD, permissions not impl)
@@ -96,7 +106,10 @@ export const CallParticipantsInfoView = () => {
  * | :--- | :----: |
  * |![call-participants-info-view-1](https://user-images.githubusercontent.com/25864161/217341952-1e875bc3-e31f-42eb-918b-307eace116b1.png) | ![call-participants-info-view-2](https://user-images.githubusercontent.com/25864161/217341960-5016b678-d1a5-4ecf-bb4b-e463987b9cae.png)|
  **/
-const InnerCallParticipantsInfoView = () => {
+export const CallParticipantsInfoView = ({
+  isCallParticipantsViewVisible,
+  setIsCallParticipantsViewVisible,
+}: CallParticipantsInfoViewType) => {
   const participants = useParticipants();
   const [selectedParticipant, setSelectedParticipant] = useState<
     StreamVideoParticipant | undefined
@@ -114,38 +127,96 @@ const InnerCallParticipantsInfoView = () => {
       });
   };
 
+  const onCloseCallParticipantsViewVisible = () => {
+    setIsCallParticipantsViewVisible(false);
+  };
+
   return (
-    <>
-      <View style={styles.buttonGroup}>
-        <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
-          <Pressable style={styles.button} onPress={muteAllParticipantsHandler}>
-            <Text style={styles.buttonText}>Mute All</Text>
-          </Pressable>
-        </Restricted>
-      </View>
-      <FlatList
-        data={participants}
-        keyExtractor={(item) => `participant-info-${item.sessionId}`}
-        renderItem={({ item: participant }) => (
-          <CallParticipantInfoItem
-            participant={participant}
-            setSelectedParticipant={setSelectedParticipant}
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={isCallParticipantsViewVisible}
+      onRequestClose={onCloseCallParticipantsViewVisible}
+    >
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.leftHeaderElement} />
+            <Text style={styles.headerText}>
+              Participants ({participants.length})
+            </Text>
+            <Pressable
+              style={[styles.closeIcon, theme.icon.sm]}
+              onPress={onCloseCallParticipantsViewVisible}
+            >
+              <Cross color={theme.light.primary} />
+            </Pressable>
+          </View>
+          <View style={styles.buttonGroup}>
+            <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
+              <Pressable
+                style={styles.button}
+                onPress={muteAllParticipantsHandler}
+              >
+                <Text style={styles.buttonText}>Mute All</Text>
+              </Pressable>
+            </Restricted>
+          </View>
+          <FlatList
+            data={participants}
+            keyExtractor={(item) => `participant-info-${item.sessionId}`}
+            renderItem={({ item: participant }) => (
+              <CallParticipantInfoItem
+                participant={participant}
+                setSelectedParticipant={setSelectedParticipant}
+              />
+            )}
           />
-        )}
-      />
-      {selectedParticipant && (
-        <View style={[StyleSheet.absoluteFill, styles.modal]}>
-          <CallParticipantOptions
-            participant={selectedParticipant}
-            setSelectedParticipant={setSelectedParticipant}
-          />
+          {selectedParticipant && (
+            <View style={[StyleSheet.absoluteFill, styles.modal]}>
+              <CallParticipantOptions
+                participant={selectedParticipant}
+                setSelectedParticipant={setSelectedParticipant}
+              />
+            </View>
+          )}
         </View>
-      )}
-    </>
+      </View>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  content: {
+    flex: 1,
+    backgroundColor: theme.light.bars,
+    borderRadius: theme.rounded.md,
+    marginVertical: theme.margin.lg,
+    marginHorizontal: theme.margin.md,
+  },
+  header: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: theme.padding.md,
+    width: '100%',
+  },
+  leftHeaderElement: {
+    paddingLeft: theme.padding.md,
+    flex: 1,
+  },
+  headerText: {
+    ...theme.fonts.bodyBold,
+  },
+  closeIcon: {
+    flex: 1,
+  },
   buttonGroup: {},
   button: {
     backgroundColor: theme.light.primary,

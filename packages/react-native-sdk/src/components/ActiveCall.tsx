@@ -23,7 +23,6 @@ export interface ActiveCallProps {
    * Note: when there is atleast one screen share, the mode is automatically set to 'spotlight'.
    */
   mode?: 'grid' | 'spotlight';
-  onLeave: () => void;
 }
 /**
  * View for an active call, includes call controls and participant handling.
@@ -53,7 +52,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
-  const { mode = 'grid', onLeave } = props;
+  const { mode = 'grid' } = props;
   const hasScreenShare = useHasOngoingScreenShare();
 
   useIncallManager({ media: 'video', auto: true });
@@ -90,7 +89,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
         )}
       </View>
       <View onLayout={onLayout} style={styles.callControlsWrapper}>
-        <CallControlsView onLeave={onLeave} />
+        <CallControlsView />
       </View>
     </View>
   );
