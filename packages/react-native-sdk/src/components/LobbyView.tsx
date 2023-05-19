@@ -43,7 +43,7 @@ export type LobbyViewProps = {
   enablePreview?: boolean;
 };
 
-export const LobbyView = ({ enablePreview }: LobbyViewProps) => {
+export const LobbyView = ({ enablePreview = true }: LobbyViewProps) => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
@@ -78,7 +78,7 @@ export const LobbyView = ({ enablePreview }: LobbyViewProps) => {
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,
     // @ts-ignore
-    image: connectedUser?.imageUrl,
+    image: connectedUser?.image,
     name: connectedUser?.name,
   } as StreamVideoParticipant;
 

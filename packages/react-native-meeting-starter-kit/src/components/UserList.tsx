@@ -9,14 +9,14 @@ import {
 } from 'react-native';
 import {users} from '../data/users';
 import {useAppContext} from '../context/AppContext';
-import {User} from '@stream-io/video-client';
+import {UserType} from '../types';
 
 export const UserList = () => {
   const {loginHandler} = useAppContext();
 
   const moveToCallLobby = useCallback(
-    (user: User) => {
-      loginHandler(user);
+    (user: UserType) => {
+      loginHandler({...user, image: user.imageUrl});
     },
     [loginHandler],
   );
