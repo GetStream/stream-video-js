@@ -5,6 +5,7 @@ import {
   CallParticipantsView,
   LoadingIndicator,
   StreamCall,
+  StreamTheme,
   StreamVideo,
   useCall,
   useCallCallingState,
@@ -40,7 +41,9 @@ export default function App() {
         autoJoin={false}
         data={{ create: true }}
       >
-        <UI />
+        <StreamTheme>
+          <UI />
+        </StreamTheme>
       </StreamCall>
     </StreamVideo>
   );
@@ -59,7 +62,7 @@ export const UI = () => {
   }, [publishVideoStream, publishAudioStream, callingState]);
 
   return (
-    <div className={`str-video light`}>
+    <>
       {callingState === CallingState.JOINED ? (
         <div className="str-video__call">
           <div className="str-video__call__header">
@@ -75,6 +78,6 @@ export const UI = () => {
         ) ? (
         <button onClick={() => call.join()}>Join</button>
       ) : null}
-    </div>
+    </>
   );
 };
