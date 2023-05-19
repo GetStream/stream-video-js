@@ -30,7 +30,6 @@ import {
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
   GoLiveResponse,
-  JoinCallRequest,
   ListRecordingsResponse,
   MuteUsersRequest,
   MuteUsersResponse,
@@ -41,6 +40,7 @@ import {
   SendEventResponse,
   SendReactionRequest,
   SendReactionResponse,
+  SFUResponse,
   StopLiveResponse,
   UnblockUserRequest,
   UnblockUserResponse,
@@ -51,11 +51,12 @@ import {
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
 } from './gen/coordinator';
-import { join, watch } from './rtc/flows/join';
+import { join } from './rtc/flows/join';
 import {
   CallConstructor,
   CallLeaveOptions,
   DebounceType,
+  JoinCallData,
   PublishOptions,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
@@ -75,6 +76,7 @@ import {
 } from 'rxjs';
 import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
 import { JoinResponse } from './gen/video/sfu/event/events';
+import { Timestamp } from './gen/google/protobuf/timestamp';
 import {
   createStatsReporter,
   StatsReporter,
@@ -171,26 +173,6 @@ export class Call {
    * @private
    */
   private readonly leaveCallHooks: Function[] = [];
-
-  private get preferredAudioCodec() {
-    const audioSettings = this.data?.settings.audio;
-    let preferredCodec =
-      audioSettings?.redundant_coding_enabled === undefined
-        ? 'opus'
-        : audioSettings.redundant_coding_enabled
-        ? 'red'
-        : 'opus';
-    if (
-      typeof window !== 'undefined' &&
-      window.location &&
-      window.location.search
-    ) {
-      const queryParams = new URLSearchParams(window.location.search);
-      preferredCodec = queryParams.get('codec') || preferredCodec;
-    }
-
-    return preferredCodec;
-  }
 
   private readonly streamClientBasePath: string;
   private streamClientEventHandlers = new Map<Function, CallEventHandler>();
@@ -467,6 +449,11 @@ export class Call {
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
 
+    if (this.streamClient._hasConnectionID()) {
+      this.watching = true;
+      this.clientStore.registerCall(this);
+    }
+
     return response;
   };
 
@@ -488,27 +475,10 @@ export class Call {
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
 
-    this.clientStore.registerCall(this);
-
-    return response;
-  };
-
-  /**
-   * Will start to watch for call related WebSocket events, but it won't join the call. If you watch a call you'll be notified about WebSocket events, but you won't be able to publish your audio and video, and you won't be able to see and hear others. You won't show up in the list of joined participants.
-   *
-   * @param data
-   */
-  watch = async (data?: JoinCallRequest) => {
-    const response = await watch(this.streamClient, this.type, this.id, data);
-    this.state.setMetadata(response.call);
-    this.state.setMembers(response.members);
-
-    if (data?.ring && !this.ringing) {
-      this.ringingSubject.next(true);
+    if (this.streamClient._hasConnectionID()) {
+      this.watching = true;
+      this.clientStore.registerCall(this);
     }
-
-    this.watching = true;
-    this.clientStore.registerCall(this);
 
     return response;
   };
@@ -518,7 +488,7 @@ export class Call {
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
-  join = async (data?: JoinCallRequest) => {
+  join = async (data?: JoinCallData) => {
     if (
       [CallingState.JOINED, CallingState.JOINING].includes(
         this.state.callingState,
@@ -527,6 +497,7 @@ export class Call {
       throw new Error(`Illegal State: Already joined.`);
     }
 
+    const previousCallingState = this.state.callingState;
     this.state.setCallingState(CallingState.JOINING);
 
     if (data?.ring && !this.ringing) {
@@ -539,15 +510,30 @@ export class Call {
       await this.sendEvent({ type: 'call.accepted' });
     }
 
-    const call = await join(this.streamClient, this.type, this.id, data);
-    this.state.setMetadata(call.metadata);
-    this.state.setMembers(call.members);
+    let sfuServer: SFUResponse;
+    let sfuToken: string;
+    let connectionConfig: RTCConfiguration | undefined;
+    try {
+      const call = await join(this.streamClient, this.type, this.id, data);
+      this.state.setMetadata(call.metadata);
+      this.state.setMembers(call.members);
+      connectionConfig = call.connectionConfig;
+      sfuServer = call.sfuServer;
+      sfuToken = call.token;
 
-    this.watching = true;
-    this.clientStore.registerCall(this);
+      if (this.streamClient._hasConnectionID()) {
+        this.watching = true;
+        this.clientStore.registerCall(this);
+      }
+    } catch (error) {
+      // restore the previous call state if the join-flow fails
+      this.state.setCallingState(previousCallingState);
+      throw error;
+    }
 
     // FIXME OL: remove once cascading is implemented
-    let sfuUrl = call.sfuServer.url;
+    let sfuUrl = sfuServer.url;
+    let sfuWsUrl = sfuServer.ws_endpoint;
     if (
       typeof window !== 'undefined' &&
       window.location &&
@@ -555,13 +541,16 @@ export class Call {
     ) {
       const params = new URLSearchParams(window.location.search);
       const sfuUrlParam = params.get('sfuUrl');
-      sfuUrl = sfuUrlParam || call.sfuServer.url;
+      sfuUrl = sfuUrlParam || sfuServer.url;
+      const sfuWsUrlParam = params.get('sfuWsUrl');
+      sfuWsUrl = sfuWsUrlParam || sfuServer.ws_endpoint;
     }
 
     const sfuClient = (this.sfuClient = new StreamSfuClient(
       this.dispatcher,
       sfuUrl,
-      call.token,
+      sfuWsUrl,
+      sfuToken,
     ));
 
     /**
@@ -658,37 +647,27 @@ export class Call {
     this.subscriber = createSubscriber({
       sfuClient,
       dispatcher: this.dispatcher,
-      connectionConfig: call.connectionConfig,
+      connectionConfig,
       onTrack: this.handleOnTrack,
     });
 
     const audioSettings = this.data?.settings.audio;
-    let isDtxEnabled =
-      audioSettings?.opus_dtx_enabled === undefined
-        ? false
-        : audioSettings?.opus_dtx_enabled;
-    // TODO: SZ: Remove once SFU team don't need this
-    if (
-      typeof window !== 'undefined' &&
-      window.location &&
-      window.location.search
-    ) {
-      const queryParams = new URLSearchParams(window.location.search);
-      isDtxEnabled = queryParams.get('dtx') === 'false' ? false : isDtxEnabled;
-    }
-    console.log('DTX enabled', isDtxEnabled);
+    const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
+    const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
     this.publisher = new Publisher({
       sfuClient,
       state: this.state,
-      connectionConfig: call.connectionConfig,
+      connectionConfig,
       isDtxEnabled,
+      isRedEnabled,
+      preferredVideoCodec: this.streamClient.options.preferredVideoCodec,
     });
 
     this.statsReporter = createStatsReporter({
       subscriber: this.subscriber,
       publisher: this.publisher,
       state: this.state,
-      edgeName: call.sfuServer.edge_name,
+      edgeName: sfuServer.edge_name,
     });
 
     try {
@@ -720,7 +699,13 @@ export class Call {
         // prepare a generic SDP and send it to the SFU.
         // this is a throw-away SDP that the SFU will use to determine
         // the capabilities of the client (codec support, etc.)
-        .then(() => getGenericSdp('recvonly', this.preferredAudioCodec))
+        .then(() =>
+          getGenericSdp(
+            'recvonly',
+            isRedEnabled,
+            this.streamClient.options.preferredVideoCodec,
+          ),
+        )
         .then((sdp) => sfuClient.join({ subscriberSdp: sdp || '' }));
 
       // 2. in parallel, wait for the SFU to send us the "joinResponse"
@@ -728,6 +713,10 @@ export class Call {
       // fails to respond in time
       const { callState } = await this.waitForJoinResponse();
       const currentParticipants = callState?.participants || [];
+      const participantCount = callState?.participantCount;
+      const startedAt = callState?.startedAt
+        ? Timestamp.toDate(callState.startedAt)
+        : new Date();
       this.state.setParticipants(
         currentParticipants.map<StreamVideoParticipant>((participant) => ({
           ...participant,
@@ -735,6 +724,9 @@ export class Call {
           viewportVisibilityState: VisibilityState.UNKNOWN,
         })),
       );
+      this.state.setParticipantCount(participantCount?.total || 0);
+      this.state.setAnonymousParticipantCount(participantCount?.anonymous || 0);
+      this.state.setStartedAt(startedAt);
 
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
@@ -827,9 +819,6 @@ export class Call {
       audioStream,
       audioTrack,
       TrackType.AUDIO,
-      {
-        preferredCodec: this.preferredAudioCodec,
-      },
     );
   };
 
@@ -1027,7 +1016,7 @@ export class Call {
   };
 
   /**
-   * Resets the last sent reaction for the user holding the given `sessionId`.
+   * Resets the last sent reaction for the user holding the given `sessionId`. This is a local action, it won't reset the reaction on the backend.
    *
    * @param sessionId the session id.
    */
@@ -1458,6 +1447,7 @@ export class Call {
   /**
    * Returns a list of Edge Serves for current call.
    *
+   * @deprecated merged with `call.join`.
    * @param data the data.
    */
   getEdgeServer = (data: GetCallEdgeServerRequest) => {

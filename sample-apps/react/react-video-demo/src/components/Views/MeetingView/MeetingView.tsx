@@ -4,7 +4,6 @@ import { StreamChat } from 'stream-chat';
 import {
   Call,
   getScreenShareStream,
-  MediaDevicesProvider,
   SfuModels,
   useCurrentCallStatsReport,
   useHasOngoingScreenShare,
@@ -198,9 +197,5 @@ export const View: FC<Props & Meeting> = ({
 
 export const MeetingView: FC<Props> = (props) => {
   const { call: activeCall, ...rest } = props;
-  return (
-    <MediaDevicesProvider enumerate>
-      <View call={activeCall} {...rest} />
-    </MediaDevicesProvider>
-  );
+  return <View call={activeCall} {...rest} />;
 };

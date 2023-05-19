@@ -45,3 +45,21 @@ export const watchConnectionQualityChanged = (
     );
   });
 };
+
+/**
+ * Updates the approximate number of participants in the call by peeking at the
+ * health check events that our SFU sends.
+ */
+export const watchParticipantCountChanged = (
+  dispatcher: Dispatcher,
+  state: CallState,
+) => {
+  return dispatcher.on('healthCheckResponse', (e) => {
+    if (e.eventPayload.oneofKind !== 'healthCheckResponse') return;
+    const { participantCount } = e.eventPayload.healthCheckResponse;
+    if (participantCount) {
+      state.setParticipantCount(participantCount.total);
+      state.setAnonymousParticipantCount(participantCount.anonymous);
+    }
+  });
+};

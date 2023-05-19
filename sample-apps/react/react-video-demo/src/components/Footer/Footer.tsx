@@ -1,9 +1,10 @@
 import { FC, useEffect, useState } from 'react';
 import classnames from 'classnames';
+import { isMobile, isTablet } from 'mobile-device-detect';
 
 import ControlMenu from '../ControlMenu';
 import Button from '../Button';
-import ControlButton from '../ControlButton';
+import { PanelButton } from '../ControlButton';
 import {
   Chat,
   People,
@@ -56,16 +57,17 @@ export const Footer: FC<Props> = ({
   const {
     isChatVisible,
     isParticipantsVisible,
+    isSettingsVisible,
+    isReactionVisible,
     toggleChat,
     toggleParticipants,
+    toggleSettings,
+    toggleReaction,
   } = usePanelContext();
-
-  const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(false);
-  const [showReactionsPanel] = useState<boolean>(false);
 
   useEffect(() => {
     if (isVisible) {
-      setShowSettingsPanel(false);
+      toggleSettings();
     }
   }, [isVisible]);
 
@@ -77,10 +79,11 @@ export const Footer: FC<Props> = ({
   return (
     <section className={styles.footer}>
       <div className={styles.settingsContainer}>
-        <ControlButton
+        <PanelButton
           className={styles.settings}
           portalId="settings"
-          showPanel={showSettingsPanel}
+          showPanel={isSettingsVisible}
+          onClick={() => toggleSettings()}
           label="More"
           panel={
             <Portal className={styles.settingsPortal} selector="settings">
@@ -118,20 +121,23 @@ export const Footer: FC<Props> = ({
           </>
         </Button>
 
-        <Button
-          className={styles.shareScreen}
-          label="Share"
-          color={isScreenSharing ? 'active' : 'secondary'}
-          shape="square"
-          onClick={toggleShareScreen}
-        >
-          <ShareScreen />
-        </Button>
+        {!isMobile && !isTablet && (
+          <Button
+            className={styles.shareScreen}
+            label="Share"
+            color={isScreenSharing ? 'active' : 'secondary'}
+            shape="square"
+            onClick={toggleShareScreen}
+          >
+            <ShareScreen />
+          </Button>
+        )}
 
-        <ControlButton
+        <PanelButton
           className={styles.reactions}
           portalId="reactions"
-          showPanel={showReactionsPanel}
+          showPanel={isReactionVisible}
+          onClick={() => toggleReaction()}
           label="Reaction"
           panel={
             <Portal className={styles.reactionsPortal} selector="reactions">

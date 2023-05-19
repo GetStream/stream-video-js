@@ -101,6 +101,29 @@ export class CallState {
   );
 
   /**
+   * The time the call session actually started.
+   *
+   * @internal
+   */
+  private startedAtSubject = new BehaviorSubject<Date | undefined>(undefined);
+
+  /**
+   * The server-side counted number of participants connected to the current call.
+   * This number includes the anonymous participants as well.
+   *
+   * @internal
+   */
+  private participantCountSubject = new BehaviorSubject<number>(0);
+
+  /**
+   * The server-side counted number of anonymous participants connected to the current call.
+   * This number excludes the regular participants.
+   *
+   * @internal
+   */
+  private anonymousParticipantCountSubject = new BehaviorSubject<number>(0);
+
+  /**
    * All participants of the current call (including the logged-in user).
    *
    * @internal
@@ -139,13 +162,31 @@ export class CallState {
   >(undefined);
 
   // Derived state
+
+  /**
+   * The time the call session actually started.
+   * Useful for displaying the call duration.
+   */
+  startedAt$: Observable<Date | undefined>;
+
+  /**
+   * The server-side counted number of participants connected to the current call.
+   * This number includes the anonymous participants as well.
+   */
+  participantCount$: Observable<number>;
+
+  /**
+   * The server-side counted number of anonymous participants connected to the current call.
+   * This number excludes the regular participants.
+   */
+  anonymousParticipantCount$: Observable<number>;
+
   /**
    * All participants of the current call (this includes the current user and other participants as well).
    */
   participants$: Observable<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >;
-  /**
 
   /**
    * Remote participants of the current call (this includes every participant except the logged-in user).
@@ -255,6 +296,11 @@ export class CallState {
       distinctUntilChanged(),
     );
 
+    this.startedAt$ = this.startedAtSubject.asObservable();
+    this.participantCount$ = this.participantCountSubject.asObservable();
+    this.anonymousParticipantCount$ =
+      this.anonymousParticipantCountSubject.asObservable();
+
     this.callStatsReport$ = this.callStatsReportSubject.asObservable();
     this.callPermissionRequest$ =
       this.callPermissionRequestSubject.asObservable();
@@ -296,6 +342,60 @@ export class CallState {
    * @return the updated value.
    */
   setCurrentValue = RxUtils.setCurrentValue;
+
+  /**
+   * The server-side counted number of participants connected to the current call.
+   * This number includes the anonymous participants as well.
+   */
+  get participantCount() {
+    return this.getCurrentValue(this.participantCount$);
+  }
+
+  /**
+   * Sets the number of participants in the current call.
+   *
+   * @internal
+   * @param count the number of participants.
+   */
+  setParticipantCount = (count: Patch<number>) => {
+    return this.setCurrentValue(this.participantCountSubject, count);
+  };
+
+  /**
+   * The time the call session actually started.
+   * Useful for displaying the call duration.
+   */
+  get startedAt() {
+    return this.getCurrentValue(this.startedAt$);
+  }
+
+  /**
+   * Sets the time the call session actually started.
+   *
+   * @internal
+   * @param startedAt the time the call session actually started.
+   */
+  setStartedAt = (startedAt: Patch<Date | undefined>) => {
+    return this.setCurrentValue(this.startedAtSubject, startedAt);
+  };
+
+  /**
+   * The server-side counted number of anonymous participants connected to the current call.
+   * This number includes the anonymous participants as well.
+   */
+  get anonymousParticipantCount() {
+    return this.getCurrentValue(this.anonymousParticipantCount$);
+  }
+
+  /**
+   * Sets the number of anonymous participants in the current call.
+   *
+   * @internal
+   * @param count the number of anonymous participants.
+   */
+  setAnonymousParticipantCount = (count: Patch<number>) => {
+    return this.setCurrentValue(this.anonymousParticipantCountSubject, count);
+  };
 
   /**
    * The list of participants in the current call.

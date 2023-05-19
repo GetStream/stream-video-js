@@ -6,15 +6,12 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { map, pairwise, take } from 'rxjs';
+import { map } from 'rxjs';
 import {
   CallingState,
   checkIfAudioOutputChangeSupported,
   disposeOfMediaStream,
-  getAudioDevices,
-  getAudioOutputDevices,
   getAudioStream,
-  getVideoDevices,
   getVideoStream,
   SfuModels,
   watchForDisconnectedAudioOutputDevice,
@@ -22,10 +19,17 @@ import {
 import {
   useCall,
   useCallCallingState,
+  useCallMetadata,
   useCallState,
 } from '@stream-io/video-react-bindings';
 
-import { useAudioPublisher, useVideoPublisher } from '../hooks';
+import {
+  useAudioInputDeviceFallback,
+  useAudioOutputDeviceFallback,
+  useAudioPublisher,
+  useVideoDeviceFallback,
+  useVideoPublisher,
+} from '../hooks';
 
 type EnabledStateType = 'starting' | 'playing';
 type DisabledStateType = 'uninitialized' | 'stopped';
@@ -60,7 +64,7 @@ const DEVICE_STATE_TOGGLE: Record<DeviceStateType, 'starting' | 'stopped'> = {
 };
 
 /**
- * Exclude types from documentaiton site, but we should still add doc comments
+ * Exclude types from documentation site, but we should still add doc comments
  * @internal
  */
 export const DEVICE_STATE: {
@@ -77,85 +81,175 @@ export const DEVICE_STATE: {
   error: { type: 'error', message: '', enabled: false },
 };
 
+const DEFAULT_DEVICE_ID = 'default';
+
 /**
- * Exclude types from documentaiton site, but we should still add doc comments
- * @internal
+ * API to control device enablement, device selection and media stream access for a call.
+ * @category Device Management
  */
 export type MediaDevicesContextAPI = {
-  audioInputDevices: MediaDeviceInfo[];
-  audioOutputDevices: MediaDeviceInfo[];
-  videoDevices: MediaDeviceInfo[];
+  /**
+   * Deactivates MediaStream (stops and removes tracks) to be later garbage collected
+   *
+   * @param stream MediaStream
+   * @returns void
+   */
   disposeOfMediaStream: (stream: MediaStream) => void;
-  getAudioStream: (deviceId?: string) => Promise<MediaStream>;
-  getVideoStream: (deviceId?: string) => Promise<MediaStream>;
+  /**
+   * Returns an 'audioinput' media stream with the given `deviceId`, if no `deviceId` is provided, it uses the first available device.
+   *
+   * @param deviceId
+   * @returns
+   */
+  getAudioStream: typeof getAudioStream;
+  /**
+   * Returns a 'videoinput' media stream with the given `deviceId`, if no `deviceId` is provided, it uses the first available device.
+   *
+   * @param deviceId
+   * @returns
+   */
+  getVideoStream: typeof getVideoStream;
+  /**
+   * [Tells if the browser supports audio output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId).
+   */
   isAudioOutputChangeSupported: boolean;
+  /**
+   * Signals whether audio stream will be published when the call is joined.
+   */
   initialAudioEnabled: boolean;
+  /**
+   * Signals whether audio stream will be published when the call is joined.
+   */
   initialVideoState: DeviceState;
-  publishVideoStream: () => Promise<void>;
+  /**
+   * Publishes audio stream for currently selected audio input (microphone) device to other call participants.
+   */
   publishAudioStream: () => Promise<void>;
+  /**
+   * Publishes video stream for currently selected video input (camera) device to other call participants.
+   */
+  publishVideoStream: () => Promise<void>;
+  /**
+   * Stops publishing audio stream for currently selected audio input (microphone) device to other call participants.
+   */
   stopPublishingAudio: () => void;
+  /**
+   * Stops publishing video stream for currently selected video input (camera) device to other call participants.
+   */
   stopPublishingVideo: () => void;
+  /**
+   * Sets the initialAudioEnabled flag to a given boolean value.
+   * The latest value set will be used to decide, whether audio stream will be published when joining a call.
+   * @param enabled
+   */
+  setInitialAudioEnabled: (enabled: boolean) => void;
+
+  /**
+   * Sets the initialVideoState to a given DeviceState value.
+   * The latest value set will be used to decide, whether video stream will be published when joining a call.
+   * @param enabled
+   */
   setInitialVideoState: (state: DeviceState) => void;
+  /**
+   * Stores audio input device (microphone) id which is used to publish user's sound to other call participants.
+   */
   selectedAudioInputDeviceId?: string;
+  /**
+   * Stores audio output device (speaker) id used to reproduce incoming audio from other call participants.
+   */
   selectedAudioOutputDeviceId?: string;
+  /**
+   * Stores video input device (camera) id which is used to publish user's video to other call participants.
+   */
   selectedVideoDeviceId?: string;
+  /**
+   * Function should be used to change selected device id.
+   * The change is later reflected in selectedAudioInputDeviceId, selectedAudioOutputDeviceId or selectedVideoDeviceId depending on kind parameter.
+   * @param kind
+   * @param deviceId
+   */
   switchDevice: (kind: MediaDeviceKind, deviceId?: string) => void;
-  toggleAudioMuteState: () => void;
-  toggleVideoMuteState: () => void;
+  /**
+   * Sets the initialAudioEnabled flag by negating the current state value.
+   * The latest value set will be used to decide, whether audio stream will be published when joining a call.
+   * @param enabled
+   */
+  toggleInitialAudioMuteState: () => void;
+  /**
+   * Sets the initialVideoState by toggling  the current state DeviceState value.
+   * The latest value set will be used to decide, whether video stream will be published when joining a call.
+   * @param enabled
+   */
+  toggleInitialVideoMuteState: () => void;
 };
 
 const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
 
 /**
- * Exclude types from documentaiton site, but we should still add doc comments
- * @internal
+ * Configuration parameters for MediaDevicesProvider.
+ * @category Device Management
  */
-export type MediaDevicesProviderProps = PropsWithChildren<{
-  enumerate?: boolean;
+export type MediaDevicesProviderProps = {
+  /**
+   * Provides external control over the initial audio input (microphone) enablement. Overrides the default false.
+   */
   initialAudioEnabled?: boolean;
+  /**
+   * Provides external control over the initial video input (camera) enablement. Overrides the default false.
+   */
   initialVideoEnabled?: boolean;
+  /**
+   * Allows to override the default audio input (microphone) stream to be published. Overrides the default string 'default'.
+   */
   initialAudioInputDeviceId?: string;
+  /**
+   * Allows to override the default audio output (speaker) device to reproduce incoming audio from the SFU. Overrides the default string 'default'.
+   */
   initialAudioOutputDeviceId?: string;
+  /**
+   * Allows to override the default video input (camera) stream to be published. Overrides the default string 'default'.
+   */
   initialVideoInputDeviceId?: string;
-}>;
+};
 
-// todo: republish the stream, when a new default device connected
 /**
+ * Context provider that internally puts in place mechanisms that:
+ * 1. fall back to selecting a default device when trying to switch to a non-existent device
+ * 2. fall back to a default device when an active device is disconnected
+ * 3. stop publishing a media stream when a non-default device is disconnected
+ * 4. republish a media stream from the newly connected default device
+ * 5. republish a media stream when a new device is selected
  *
- * @param param0
+ * Provides `MediaDevicesContextAPI` that allow the integrators to handle:
+ * 1. the initial device state enablement (for example apt for lobby scenario)
+ * 2. media stream retrieval and disposal
+ * 3. media stream publishing
+ * 4. specific device selection
+ * @param params
  * @returns
  *
  * @category Device Management
  */
 export const MediaDevicesProvider = ({
   children,
-  enumerate = true,
   initialAudioEnabled,
   initialVideoEnabled,
-  initialVideoInputDeviceId = 'default',
-  initialAudioOutputDeviceId = 'default',
-  initialAudioInputDeviceId = 'default',
-}: MediaDevicesProviderProps) => {
+  initialVideoInputDeviceId = DEFAULT_DEVICE_ID,
+  initialAudioOutputDeviceId = DEFAULT_DEVICE_ID,
+  initialAudioInputDeviceId = DEFAULT_DEVICE_ID,
+}: PropsWithChildren<MediaDevicesProviderProps>) => {
   const call = useCall();
   const callingState = useCallCallingState();
   const callState = useCallState();
+  const metadata = useCallMetadata();
   const { localParticipant$ } = callState;
 
-  const [audioInputDevices, setAudioInputDevices] = useState<MediaDeviceInfo[]>(
-    [],
-  );
-  const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
-  const [audioOutputDevices, setAudioOutputDevices] = useState<
-    MediaDeviceInfo[]
-  >([]);
-
-  const [selectedAudioInputDeviceId, setSelectedAudioInputDeviceId] = useState<
+  const [selectedAudioInputDeviceId, selectAudioInputDeviceId] = useState<
     MediaDevicesContextAPI['selectedAudioInputDeviceId']
   >(initialAudioInputDeviceId);
-  const [selectedAudioOutputDeviceId, setSelectedAudioOutputDeviceId] =
-    useState<MediaDevicesContextAPI['selectedAudioOutputDeviceId']>(
-      initialAudioOutputDeviceId,
-    );
+  const [selectedAudioOutputDeviceId, selectAudioOutputDeviceId] = useState<
+    MediaDevicesContextAPI['selectedAudioOutputDeviceId']
+  >(initialAudioOutputDeviceId);
   const [selectedVideoDeviceId, selectVideoDeviceId] = useState<
     MediaDevicesContextAPI['selectedVideoDeviceId']
   >(initialVideoInputDeviceId);
@@ -163,12 +257,29 @@ export const MediaDevicesProvider = ({
   const [isAudioOutputChangeSupported] = useState<boolean>(() =>
     checkIfAudioOutputChangeSupported(),
   );
-  const [initAudioEnabled, setInitAudioEnabled] = useState<boolean>(
+  const [initAudioEnabled, setInitialAudioEnabled] = useState<boolean>(
     !!initialAudioEnabled,
   );
   const [initialVideoState, setInitialVideoState] = useState<DeviceState>(() =>
     initialVideoEnabled ? DEVICE_STATE.starting : DEVICE_STATE.uninitialized,
   );
+
+  const settings = metadata?.settings;
+  useEffect(() => {
+    if (
+      !settings ||
+      ![CallingState.IDLE, CallingState.RINGING].includes(callingState)
+    ) {
+      return;
+    }
+    const { audio, video } = settings;
+    if (typeof initialAudioEnabled === 'undefined' && audio.mic_default_on) {
+      setInitialAudioEnabled(audio.mic_default_on);
+    }
+    if (typeof initialVideoEnabled === 'undefined' && video.camera_default_on) {
+      setInitialVideoState(DEVICE_STATE.starting);
+    }
+  }, [callingState, initialAudioEnabled, initialVideoEnabled, settings]);
 
   const publishVideoStream = useVideoPublisher({
     initialVideoMuted: !initialVideoState.enabled,
@@ -184,7 +295,7 @@ export const MediaDevicesProvider = ({
       callingState === CallingState.IDLE ||
       callingState === CallingState.RINGING
     ) {
-      setInitAudioEnabled(false);
+      setInitialAudioEnabled(false);
     } else {
       call?.stopPublish(SfuModels.TrackType.AUDIO);
     }
@@ -201,11 +312,14 @@ export const MediaDevicesProvider = ({
     }
   }, [call, callingState]);
 
-  const toggleAudioMuteState = useCallback(
-    () => setInitAudioEnabled((prev) => !prev),
+  const toggleInitialAudioMuteState = useCallback(
+    () =>
+      setInitialAudioEnabled((prev) => {
+        return !prev;
+      }),
     [],
   );
-  const toggleVideoMuteState = useCallback(
+  const toggleInitialVideoMuteState = useCallback(
     () =>
       setInitialVideoState((prev) => {
         const newType = DEVICE_STATE_TOGGLE[prev.type];
@@ -220,96 +334,27 @@ export const MediaDevicesProvider = ({
         selectVideoDeviceId(deviceId);
       }
       if (kind === 'audioinput') {
-        setSelectedAudioInputDeviceId(deviceId);
+        selectAudioInputDeviceId(deviceId);
       }
       if (kind === 'audiooutput') {
-        setSelectedAudioOutputDeviceId(deviceId);
+        selectAudioOutputDeviceId(deviceId);
       }
     },
     [],
   );
 
-  useEffect(() => {
-    if (!enumerate) return;
-
-    const validateInitialInputDeviceId = getAudioDevices()
-      .pipe(take(1))
-      .subscribe((devices) => {
-        const initialDeviceFound = devices.find(
-          (device) => device.deviceId === initialAudioInputDeviceId,
-        );
-        if (!initialDeviceFound) {
-          setSelectedAudioInputDeviceId('default');
-        }
-      });
-
-    const subscription = getAudioDevices().subscribe(setAudioInputDevices);
-
-    return () => {
-      subscription.unsubscribe();
-      validateInitialInputDeviceId.unsubscribe();
-    };
-  }, [enumerate, initialAudioInputDeviceId]);
-
-  useEffect(() => {
-    if (!enumerate) return;
-
-    const validateInitialInputDeviceId = getVideoDevices()
-      .pipe(take(1))
-      .subscribe((devices) => {
-        const initialDeviceFound = devices.find(
-          (device) => device.deviceId === initialVideoInputDeviceId,
-        );
-        if (!initialDeviceFound) {
-          selectVideoDeviceId('default');
-        }
-      });
-
-    const subscription = getVideoDevices().subscribe(setVideoDevices);
-
-    return () => {
-      subscription.unsubscribe();
-      validateInitialInputDeviceId.unsubscribe();
-    };
-  }, [enumerate, initialVideoInputDeviceId]);
-
-  useEffect(() => {
-    if (!enumerate) return;
-
-    const validateInitialInputDeviceId = getAudioOutputDevices()
-      .pipe(take(1))
-      .subscribe((devices) => {
-        const initialDeviceFound = devices.find(
-          (device) => device.deviceId === initialAudioOutputDeviceId,
-        );
-        if (!initialDeviceFound) {
-          setSelectedAudioOutputDeviceId('default');
-        }
-      });
-
-    const subscription = getAudioOutputDevices().subscribe(
-      setAudioOutputDevices,
-    );
-    return () => {
-      subscription.unsubscribe();
-      validateInitialInputDeviceId.unsubscribe();
-    };
-  }, [enumerate, initialAudioOutputDeviceId]);
-
-  useEffect(() => {
-    const subscription = getVideoDevices()
-      .pipe(pairwise())
-      .subscribe(([prev, current]) => {
-        // When there are 0 video devices (e.g. when laptop lid closed),
-        // we do not restart the video automatically when the device is again available,
-        // but rather leave this to the user.
-        if (prev.length > 0 && current.length === 0) {
-          setInitialVideoState(DEVICE_STATE.stopped);
-        }
-      });
-
-    return () => subscription.unsubscribe();
-  }, [videoDevices.length]);
+  useAudioInputDeviceFallback(
+    () => switchDevice('audioinput', DEFAULT_DEVICE_ID),
+    selectedAudioInputDeviceId,
+  );
+  useAudioOutputDeviceFallback(
+    () => switchDevice('audiooutput', DEFAULT_DEVICE_ID),
+    selectedAudioOutputDeviceId,
+  );
+  useVideoDeviceFallback(
+    () => switchDevice('videoinput', DEFAULT_DEVICE_ID),
+    selectedVideoDeviceId,
+  );
 
   useEffect(() => {
     if (!call || callingState !== CallingState.JOINED) return;
@@ -321,7 +366,7 @@ export const MediaDevicesProvider = ({
     const subscription = watchForDisconnectedAudioOutputDevice(
       localParticipant$.pipe(map((p) => p?.audioOutputDeviceId)),
     ).subscribe(async () => {
-      setSelectedAudioOutputDeviceId('default');
+      selectAudioOutputDeviceId(DEFAULT_DEVICE_ID);
     });
     return () => {
       subscription.unsubscribe();
@@ -329,9 +374,6 @@ export const MediaDevicesProvider = ({
   }, [localParticipant$]);
 
   const contextValue: MediaDevicesContextAPI = {
-    audioInputDevices,
-    videoDevices,
-    audioOutputDevices,
     disposeOfMediaStream,
     getAudioStream,
     getVideoStream,
@@ -342,9 +384,10 @@ export const MediaDevicesProvider = ({
     switchDevice,
     initialAudioEnabled: initAudioEnabled,
     initialVideoState,
+    setInitialAudioEnabled,
     setInitialVideoState,
-    toggleAudioMuteState,
-    toggleVideoMuteState,
+    toggleInitialAudioMuteState,
+    toggleInitialVideoMuteState,
     publishAudioStream,
     publishVideoStream,
     stopPublishingAudio,
@@ -359,7 +402,7 @@ export const MediaDevicesProvider = ({
 };
 
 /**
- *
+ * Context consumer retrieving MediaDevicesContextAPI.
  * @returns
  *
  * @category Device Management

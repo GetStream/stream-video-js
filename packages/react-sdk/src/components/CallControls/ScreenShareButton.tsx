@@ -6,13 +6,13 @@ import {
   SfuModels,
 } from '@stream-io/video-client';
 import {
+  Restricted,
   useHasOngoingScreenShare,
   useHasPermissions,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 import { CompositeButton, IconButton } from '../Button/';
 import { PermissionNotification } from '../Notification';
-import { Restricted } from '../Moderation';
 
 export type ScreenShareButtonProps = {
   call: Call;

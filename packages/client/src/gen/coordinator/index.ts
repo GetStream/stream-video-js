@@ -93,28 +93,40 @@ export type APIErrorCodeEnum =
 /**
  *
  * @export
- * @interface APNSNotificationSettings
+ * @interface APNS
  */
-export interface APNSNotificationSettings {
+export interface APNS {
   /**
    *
-   * @type {{ [key: string]: EventNotification; }}
-   * @memberof APNSNotificationSettings
+   * @type {string}
+   * @memberof APNS
    */
-  EventTemplates: { [key: string]: EventNotification };
+  body: string;
+  /**
+   *
+   * @type {string}
+   * @memberof APNS
+   */
+  title: string;
 }
 /**
  *
  * @export
- * @interface APNSNotificationSettingsRequest
+ * @interface APNSRequest
  */
-export interface APNSNotificationSettingsRequest {
+export interface APNSRequest {
   /**
    *
-   * @type {{ [key: string]: EventNotificationRequest; }}
-   * @memberof APNSNotificationSettingsRequest
+   * @type {string}
+   * @memberof APNSRequest
    */
-  EventTemplates?: { [key: string]: EventNotificationRequest };
+  body?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof APNSRequest
+   */
+  title?: string;
 }
 /**
  *
@@ -133,6 +145,12 @@ export interface AudioSettings {
    * @type {boolean}
    * @memberof AudioSettings
    */
+  mic_default_on: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettings
+   */
   opus_dtx_enabled: boolean;
   /**
    *
@@ -140,6 +158,12 @@ export interface AudioSettings {
    * @memberof AudioSettings
    */
   redundant_coding_enabled: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettings
+   */
+  speaker_default_on: boolean;
 }
 /**
  *
@@ -158,6 +182,12 @@ export interface AudioSettingsRequest {
    * @type {boolean}
    * @memberof AudioSettingsRequest
    */
+  mic_default_on?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettingsRequest
+   */
   opus_dtx_enabled?: boolean;
   /**
    *
@@ -165,6 +195,12 @@ export interface AudioSettingsRequest {
    * @memberof AudioSettingsRequest
    */
   redundant_coding_enabled?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettingsRequest
+   */
+  speaker_default_on?: boolean;
 }
 /**
  *
@@ -450,6 +486,37 @@ export interface CallIngressResponse {
    * @memberof CallIngressResponse
    */
   rtmp: RTMPIngress;
+}
+/**
+ * This event is sent when a call is started. Clients receiving this event should start the call.
+ * @export
+ * @interface CallLiveStartedEvent
+ */
+export interface CallLiveStartedEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallLiveStartedEvent
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallLiveStartedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallLiveStartedEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.live_started" in this case
+   * @type {string}
+   * @memberof CallLiveStartedEvent
+   */
+  type: string;
 }
 /**
  * This event is sent when one or more members are added to a call
@@ -841,6 +908,12 @@ export interface CallResponse {
    */
   created_by: UserResponse;
   /**
+   *
+   * @type {string}
+   * @memberof CallResponse
+   */
+  current_session_id: string;
+  /**
    * Custom data for this object
    * @type {{ [key: string]: any; }}
    * @memberof CallResponse
@@ -918,6 +991,154 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   updated_at: string;
+}
+/**
+ * This event is sent when a call session ends
+ * @export
+ * @interface CallSessionEndedEvent
+ */
+export interface CallSessionEndedEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallSessionEndedEvent
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionEndedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionEndedEvent
+   */
+  created_at: string;
+  /**
+   * Call session ID
+   * @type {string}
+   * @memberof CallSessionEndedEvent
+   */
+  session_id: string;
+  /**
+   * The type of event: "call.session_ended" in this case
+   * @type {string}
+   * @memberof CallSessionEndedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when a participant joins a call session
+ * @export
+ * @interface CallSessionParticipantJoinedEvent
+ */
+export interface CallSessionParticipantJoinedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionParticipantJoinedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionParticipantJoinedEvent
+   */
+  created_at: string;
+  /**
+   * Call session ID
+   * @type {string}
+   * @memberof CallSessionParticipantJoinedEvent
+   */
+  session_id: string;
+  /**
+   * The type of event: "call.session_participant_joined" in this case
+   * @type {string}
+   * @memberof CallSessionParticipantJoinedEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallSessionParticipantJoinedEvent
+   */
+  user: UserResponse;
+}
+/**
+ * This event is sent when a participant leaves a call session
+ * @export
+ * @interface CallSessionParticipantLeftEvent
+ */
+export interface CallSessionParticipantLeftEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionParticipantLeftEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionParticipantLeftEvent
+   */
+  created_at: string;
+  /**
+   * Call session ID
+   * @type {string}
+   * @memberof CallSessionParticipantLeftEvent
+   */
+  session_id: string;
+  /**
+   * The type of event: "call.session_participant_left" in this case
+   * @type {string}
+   * @memberof CallSessionParticipantLeftEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallSessionParticipantLeftEvent
+   */
+  user: UserResponse;
+}
+/**
+ * This event is sent when a call session starts
+ * @export
+ * @interface CallSessionStartedEvent
+ */
+export interface CallSessionStartedEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallSessionStartedEvent
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionStartedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionStartedEvent
+   */
+  created_at: string;
+  /**
+   * Call session ID
+   * @type {string}
+   * @memberof CallSessionStartedEvent
+   */
+  session_id: string;
+  /**
+   * The type of event: "call.session_started" in this case
+   * @type {string}
+   * @memberof CallSessionStartedEvent
+   */
+  type: string;
 }
 /**
  *
@@ -1212,25 +1433,6 @@ export interface ConnectedEvent {
 /**
  *
  * @export
- * @interface Coordinates
- */
-export interface Coordinates {
-  /**
-   *
-   * @type {number}
-   * @memberof Coordinates
-   */
-  latitude: number;
-  /**
-   *
-   * @type {number}
-   * @memberof Coordinates
-   */
-  longitude: number;
-}
-/**
- *
- * @export
  * @interface CreateCallTypeRequest
  */
 export interface CreateCallTypeRequest {
@@ -1467,31 +1669,6 @@ export interface CustomVideoEvent {
 /**
  *
  * @export
- * @interface DatacenterResponse
- */
-export interface DatacenterResponse {
-  /**
-   *
-   * @type {Coordinates}
-   * @memberof DatacenterResponse
-   */
-  coordinates: Coordinates;
-  /**
-   *
-   * @type {string}
-   * @memberof DatacenterResponse
-   */
-  latency_url: string;
-  /**
-   *
-   * @type {string}
-   * @memberof DatacenterResponse
-   */
-  name: string;
-}
-/**
- *
- * @export
  * @interface Device
  */
 export interface Device {
@@ -1531,6 +1708,12 @@ export interface Device {
    * @memberof Device
    */
   push_provider_name?: string;
+  /**
+   * When true the token is for Apple VoIP push notifications
+   * @type {boolean}
+   * @memberof Device
+   */
+  voip?: boolean;
 }
 /**
  *
@@ -1615,40 +1798,40 @@ export interface EndCallResponse {
 /**
  *
  * @export
- * @interface EventNotification
+ * @interface EventNotificationSettings
  */
-export interface EventNotification {
+export interface EventNotificationSettings {
   /**
    *
-   * @type {string}
-   * @memberof EventNotification
+   * @type {APNS}
+   * @memberof EventNotificationSettings
    */
-  body: string;
+  apns: APNS;
   /**
    *
-   * @type {string}
-   * @memberof EventNotification
+   * @type {boolean}
+   * @memberof EventNotificationSettings
    */
-  title: string;
+  enabled: boolean;
 }
 /**
  *
  * @export
- * @interface EventNotificationRequest
+ * @interface EventNotificationSettingsRequest
  */
-export interface EventNotificationRequest {
+export interface EventNotificationSettingsRequest {
   /**
    *
-   * @type {string}
-   * @memberof EventNotificationRequest
+   * @type {APNSRequest}
+   * @memberof EventNotificationSettingsRequest
    */
-  body?: string;
+  apns?: APNSRequest;
   /**
    *
-   * @type {string}
-   * @memberof EventNotificationRequest
+   * @type {boolean}
+   * @memberof EventNotificationSettingsRequest
    */
-  title?: string;
+  enabled?: boolean;
 }
 /**
  *
@@ -2022,7 +2205,7 @@ export interface JoinCallRequest {
    * @type {string}
    * @memberof JoinCallRequest
    */
-  datacenter_hinted_id?: string;
+  location: string;
   /**
    *
    * @type {number}
@@ -2062,16 +2245,16 @@ export interface JoinCallResponse {
   created: boolean;
   /**
    *
+   * @type {Credentials}
+   * @memberof JoinCallResponse
+   */
+  credentials: Credentials;
+  /**
+   *
    * @type {string}
    * @memberof JoinCallResponse
    */
   duration: string;
-  /**
-   *
-   * @type {Array<DatacenterResponse>}
-   * @memberof JoinCallResponse
-   */
-  edges: Array<DatacenterResponse>;
   /**
    *
    * @type {Array<MemberResponse>}
@@ -2274,16 +2457,28 @@ export interface MuteUsersResponse {
 export interface NotificationSettings {
   /**
    *
-   * @type {APNSNotificationSettings}
+   * @type {EventNotificationSettings}
    * @memberof NotificationSettings
    */
-  apns_notification_settings: APNSNotificationSettings;
+  call_created: EventNotificationSettings;
+  /**
+   *
+   * @type {EventNotificationSettings}
+   * @memberof NotificationSettings
+   */
+  call_live_started: EventNotificationSettings;
   /**
    *
    * @type {boolean}
    * @memberof NotificationSettings
    */
   enabled: boolean;
+  /**
+   *
+   * @type {EventNotificationSettings}
+   * @memberof NotificationSettings
+   */
+  session_started: EventNotificationSettings;
 }
 /**
  *
@@ -2293,16 +2488,28 @@ export interface NotificationSettings {
 export interface NotificationSettingsRequest {
   /**
    *
-   * @type {APNSNotificationSettingsRequest}
+   * @type {EventNotificationSettingsRequest}
    * @memberof NotificationSettingsRequest
    */
-  apns_notification_settings?: APNSNotificationSettingsRequest;
+  call_created?: EventNotificationSettingsRequest;
+  /**
+   *
+   * @type {EventNotificationSettingsRequest}
+   * @memberof NotificationSettingsRequest
+   */
+  call_live_started?: EventNotificationSettingsRequest;
   /**
    *
    * @type {boolean}
    * @memberof NotificationSettingsRequest
    */
   enabled?: boolean;
+  /**
+   *
+   * @type {EventNotificationSettingsRequest}
+   * @memberof NotificationSettingsRequest
+   */
+  session_started?: EventNotificationSettingsRequest;
 }
 
 /**
@@ -2836,6 +3043,12 @@ export interface SFUResponse {
    * @memberof SFUResponse
    */
   url: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SFUResponse
+   */
+  ws_endpoint: string;
 }
 /**
  *
@@ -2988,6 +3201,56 @@ export interface StopLiveResponse {
    * @memberof StopLiveResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface TargetResolution
+ */
+export interface TargetResolution {
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolution
+   */
+  bitrate: number;
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolution
+   */
+  height: number;
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolution
+   */
+  width: number;
+}
+/**
+ *
+ * @export
+ * @interface TargetResolutionRequest
+ */
+export interface TargetResolutionRequest {
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolutionRequest
+   */
+  bitrate?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolutionRequest
+   */
+  height?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof TargetResolutionRequest
+   */
+  width?: number;
 }
 /**
  *
@@ -3456,18 +3719,29 @@ export type VideoEvent =
   | ({ type: 'call.broadcasting_stopped' } & CallBroadcastingStoppedEvent)
   | ({ type: 'call.created' } & CallCreatedEvent)
   | ({ type: 'call.ended' } & CallEndedEvent)
+  | ({ type: 'call.live_started' } & CallLiveStartedEvent)
   | ({ type: 'call.member_added' } & CallMemberAddedEvent)
   | ({ type: 'call.member_removed' } & CallMemberRemovedEvent)
   | ({ type: 'call.member_updated' } & CallMemberUpdatedEvent)
+  | ({
+      type: 'call.member_updated_permission';
+    } & CallMemberUpdatedPermissionEvent)
   | ({ type: 'call.permission_request' } & PermissionRequestEvent)
   | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)
   | ({ type: 'call.reaction_new' } & CallReactionEvent)
   | ({ type: 'call.recording_started' } & CallRecordingStartedEvent)
   | ({ type: 'call.recording_stopped' } & CallRecordingStoppedEvent)
   | ({ type: 'call.rejected' } & CallRejectedEvent)
+  | ({ type: 'call.session_ended' } & CallSessionEndedEvent)
+  | ({
+      type: 'call.session_participant_joined';
+    } & CallSessionParticipantJoinedEvent)
+  | ({
+      type: 'call.session_participant_left';
+    } & CallSessionParticipantLeftEvent)
+  | ({ type: 'call.session_started' } & CallSessionStartedEvent)
   | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
   | ({ type: 'call.updated' } & CallUpdatedEvent)
-  | ({ type: 'call.updated_permission' } & CallMemberUpdatedPermissionEvent)
   | ({ type: 'connection.ok' } & ConnectedEvent)
   | ({ type: 'custom' } & CustomVideoEvent)
   | ({ type: 'health.check' } & HealthCheckEvent);
@@ -3488,8 +3762,38 @@ export interface VideoSettings {
    * @type {boolean}
    * @memberof VideoSettings
    */
+  camera_default_on: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof VideoSettings
+   */
+  camera_facing: VideoSettingsCameraFacingEnum;
+  /**
+   *
+   * @type {boolean}
+   * @memberof VideoSettings
+   */
   enabled: boolean;
+  /**
+   *
+   * @type {TargetResolution}
+   * @memberof VideoSettings
+   */
+  target_resolution: TargetResolution;
 }
+
+/**
+ * @export
+ */
+export const VideoSettingsCameraFacingEnum = {
+  FRONT: 'front',
+  BACK: 'back',
+  EXTERNAL: 'external',
+} as const;
+export type VideoSettingsCameraFacingEnum =
+  (typeof VideoSettingsCameraFacingEnum)[keyof typeof VideoSettingsCameraFacingEnum];
+
 /**
  *
  * @export
@@ -3507,8 +3811,38 @@ export interface VideoSettingsRequest {
    * @type {boolean}
    * @memberof VideoSettingsRequest
    */
+  camera_default_on?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof VideoSettingsRequest
+   */
+  camera_facing?: VideoSettingsRequestCameraFacingEnum;
+  /**
+   *
+   * @type {boolean}
+   * @memberof VideoSettingsRequest
+   */
   enabled?: boolean;
+  /**
+   *
+   * @type {TargetResolutionRequest}
+   * @memberof VideoSettingsRequest
+   */
+  target_resolution?: TargetResolutionRequest;
 }
+
+/**
+ * @export
+ */
+export const VideoSettingsRequestCameraFacingEnum = {
+  FRONT: 'front',
+  BACK: 'back',
+  EXTERNAL: 'external',
+} as const;
+export type VideoSettingsRequestCameraFacingEnum =
+  (typeof VideoSettingsRequestCameraFacingEnum)[keyof typeof VideoSettingsRequestCameraFacingEnum];
+
 /**
  *
  * @export

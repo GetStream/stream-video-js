@@ -85,6 +85,11 @@
     -webkit-mask-image: var(--str-video__icon--call-end);
   }
 
+  &--call-accept {
+    mask-image: var(--str-video__icon--call-accept);
+    -webkit-mask-image: var(--str-video__icon--call-accept);
+  }
+
   &--info {
     -webkit-mask-image: var(--str-video__icon--info-icon);
     mask-image: var(--str-video__icon--info-icon);
@@ -149,7 +154,7 @@
     mask-image: var(--str-video__icon--settings);
     -webkit-mask-image: var(--str-video__icon--settings);
   }
-  
+
   &--refresh {
     mask-image: var(--str-video__icon--refresh);
     -webkit-mask-image: var(--str-video__icon--refresh);

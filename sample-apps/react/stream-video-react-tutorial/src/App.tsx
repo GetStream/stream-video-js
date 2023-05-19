@@ -4,7 +4,8 @@ import {
   CallingState,
   CallParticipantsView,
   LoadingIndicator,
-  StreamMeeting,
+  StreamCall,
+  StreamTheme,
   StreamVideo,
   useCall,
   useCallCallingState,
@@ -34,14 +35,16 @@ export default function App() {
 
   return (
     <StreamVideo client={client}>
-      <StreamMeeting
+      <StreamCall
         callType="default"
         callId={callId}
         autoJoin={false}
         data={{ create: true }}
       >
-        <UI />
-      </StreamMeeting>
+        <StreamTheme>
+          <UI />
+        </StreamTheme>
+      </StreamCall>
     </StreamVideo>
   );
 }
@@ -59,7 +62,7 @@ export const UI = () => {
   }, [publishVideoStream, publishAudioStream, callingState]);
 
   return (
-    <div className={`str-video light`}>
+    <>
       {callingState === CallingState.JOINED ? (
         <div className="str-video__call">
           <div className="str-video__call__header">
@@ -75,6 +78,6 @@ export const UI = () => {
         ) ? (
         <button onClick={() => call.join()}>Join</button>
       ) : null}
-    </div>
+    </>
   );
 };

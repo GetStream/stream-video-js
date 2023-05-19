@@ -18,6 +18,8 @@ export interface StreamCallProviderProps {
  * @returns
  *
  * @category Call State
+ *
+ * @react If you're using the React SDK we recommend using the `StreamCall` component that wraps the `StreamCallProvider`. You only need to use the `StreamCallProvider` for advanced use-cases.
  */
 export const StreamCallProvider = (
   props: PropsWithChildren<StreamCallProviderProps>,

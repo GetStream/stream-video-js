@@ -24,7 +24,6 @@ export const ControlButton: FC<Props> = ({
   label,
   prefix,
   panel,
-  showPanel,
   onClick,
   children,
   portalId,
@@ -33,15 +32,13 @@ export const ControlButton: FC<Props> = ({
 
   const container: any = useRef();
 
-  useEffect(() => {
-    if (showPanel !== undefined) {
-      setActive(showPanel);
-    }
-  }, [showPanel]);
-
-  const togglePanel = useCallback(() => {
+  const handleIndicatorClick = useCallback(() => {
     setActive(!active);
   }, [active]);
+
+  const handleClick = useCallback(() => {
+    onClick?.();
+  }, [active, panel, onClick]);
 
   const closePanel = useCallback(() => {
     if (active) {
@@ -52,21 +49,21 @@ export const ControlButton: FC<Props> = ({
   const rootClassName = classnames(
     styles.root,
     {
-      [styles.active]: active || showPanel,
+      [styles.active]: active,
     },
     className,
   );
 
   const toggleClassName = classnames(styles.toggle, {
-    [styles.active]: active || showPanel,
+    [styles.active]: active,
   });
 
   const toggleIndicatorClassName = classnames(styles.toggleIndicator, {
-    [styles.active]: active || showPanel,
+    [styles.active]: active,
   });
 
   const toggleIconClassName = classnames(styles.toggleIcon, {
-    [styles.active]: active || showPanel,
+    [styles.active]: active,
   });
 
   useOnClickOutside(container, closePanel);
@@ -77,21 +74,97 @@ export const ControlButton: FC<Props> = ({
         {portalId ? (
           <div id={portalId} className={styles.portalContainer} />
         ) : null}
-        {panel && (active || showPanel) !== false && panel}
+        {panel && active !== false && panel}
         <div className={rootClassName}>
           <div className={toggleClassName}>
             <Button
               className={styles.button}
               color="transparent"
               shape="square"
-              onClick={onClick ? onClick : togglePanel}
+              onClick={() => handleClick()}
             >
               {prefix}
               {children}
             </Button>
             <div
               className={toggleIndicatorClassName}
-              onClick={() => togglePanel()}
+              onClick={() => handleIndicatorClick()}
+            >
+              <ChevronUp className={toggleIconClassName} />
+            </div>
+          </div>
+          {label ? <span className={styles.label}>{label}</span> : null}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export const PanelButton: FC<Props> = ({
+  className,
+  label,
+  prefix,
+  panel,
+  showPanel,
+  onClick,
+  children,
+  portalId,
+}) => {
+  const container: any = useRef();
+
+  const handleClick = useCallback(() => {
+    onClick?.();
+  }, [onClick]);
+
+  const handleClose = useCallback(() => {
+    if (showPanel) {
+      onClick?.();
+    }
+  }, [onClick, showPanel]);
+
+  const rootClassName = classnames(
+    styles.root,
+    {
+      [styles.active]: showPanel,
+    },
+    className,
+  );
+
+  const toggleClassName = classnames(styles.toggle, {
+    [styles.active]: showPanel,
+  });
+
+  const toggleIndicatorClassName = classnames(styles.toggleIndicator, {
+    [styles.active]: showPanel,
+  });
+
+  const toggleIconClassName = classnames(styles.toggleIcon, {
+    [styles.active]: showPanel,
+  });
+
+  useOnClickOutside(container, handleClose);
+
+  return (
+    <>
+      <div ref={container} className={styles.container}>
+        {portalId ? (
+          <div id={portalId} className={styles.portalContainer} />
+        ) : null}
+        {panel && showPanel !== false && panel}
+        <div className={rootClassName}>
+          <div className={toggleClassName}>
+            <Button
+              className={styles.button}
+              color="transparent"
+              shape="square"
+              onClick={() => handleClick()}
+            >
+              {prefix}
+              {children}
+            </Button>
+            <div
+              className={toggleIndicatorClassName}
+              onClick={() => handleClick()}
             >
               <ChevronUp className={toggleIconClassName} />
             </div>

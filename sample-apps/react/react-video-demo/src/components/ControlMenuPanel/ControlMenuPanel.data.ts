@@ -11,7 +11,6 @@ export const KichinSink: Props = {
     },
   ],
   title: 'Settings',
-  label: 'Audio and Video settings',
   selectDevice: () => {
     console.log('selected device');
   },

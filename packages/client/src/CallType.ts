@@ -117,7 +117,7 @@ export const CallTypes = new CallTypesRegistry([
   new CallType('livestream', {
     sortParticipantsBy: livestreamOrAudioRoomSortPreset,
   }),
-  new CallType('audio-room', {
+  new CallType('audio_room', {
     sortParticipantsBy: livestreamOrAudioRoomSortPreset,
   }),
 ]);

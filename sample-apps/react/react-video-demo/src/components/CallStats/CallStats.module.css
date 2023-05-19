@@ -31,7 +31,7 @@
 
 .header {
   grid-area: header;
-  @apply text-video-white flex items-center sm:pl-4;
+  @apply text-video-white flex items-center sm:pl-4 text-xl font-bold;
 }
 
 .cog {
@@ -80,7 +80,7 @@
 }
 
 .content {
-  @apply text-video-white mt-4;
+  @apply text-video-white mt-4 h-[50vh];
   grid-area: content;
   overflow-y: scroll;
 }

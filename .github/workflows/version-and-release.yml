@@ -1,0 +1,60 @@
+name: Version and release
+env:
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: version-and-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  version-and-release:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: ESLint Cache
+        uses: actions/cache@v3
+        with:
+          path: './.eslintcache'
+          key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}-${{ hashFiles('.eslintcache') }}
+
+      - name: Install Dependencies
+        run: yarn install --immutable
+
+      - name: Lint Packages
+        run: yarn lint:ci:all
+
+      - name: Build packages
+        run: NODE_ENV=production yarn build:all
+
+      - name: Test packages
+        run: yarn test:ci:all
+
+      - name: Version and release packages
+        if: ${{ github.ref_name == 'main' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+          yarn config set npmRegistryServer https://registry.npmjs.org/
+          yarn config set npmAuthToken ${{ secrets.NPM_TOKEN }}
+          yarn release

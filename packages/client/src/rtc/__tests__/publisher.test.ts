@@ -38,6 +38,7 @@ describe('Publisher', () => {
     sfuClient = new StreamSfuClient(
       dispatcher,
       'https://getstream.io/',
+      'https://getstream.io/ws',
       'token',
     );
 
@@ -49,6 +50,7 @@ describe('Publisher', () => {
       sfuClient,
       state,
       isDtxEnabled: true,
+      isRedEnabled: true,
     });
   });
 

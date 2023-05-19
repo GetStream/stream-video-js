@@ -1,6 +1,5 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 import { v1 as uuidv1 } from 'uuid';
-import Gleap from 'gleap';
 
 import {
   adjectives,
@@ -9,6 +8,7 @@ import {
 } from 'unique-names-generator';
 
 import {
+  GetEdgesResponse,
   MediaDevicesProvider,
   StreamCallProvider,
   StreamVideo,
@@ -28,11 +28,13 @@ import { PanelProvider } from './contexts/PanelContext';
 
 import { createGeoJsonFeatures } from './utils/useCreateGeoJsonFeatures';
 import { generateUser } from './utils/useGenerateUser';
+import { measureLatencyToEdges } from './utils/useMeasureLatencyReponse';
 import { useCreateStreamChatClient } from './hooks/useChatClient';
 
 import { tour } from '../data/tour';
 
 import './App.css';
+import { is } from 'date-fns/locale';
 
 export type Props = {
   logo: string;
@@ -48,11 +50,16 @@ const config: Config = {
   style: 'lowerCase',
 };
 
+const FETCH_EDGE_TIMOUT = 10000;
+
 const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const [isCallActive, setIsCallActive] = useState(false);
   const [callHasEnded, setCallHasEnded] = useState(false);
   const [edges, setEdges] = useState<FeatureCollection<Geometry>>();
-  const [fastestEdge, setFastestEdge] = useState<any>();
+  const [fastestEdge, setFastestEdge] = useState<{
+    id: string;
+    latency: number;
+  }>();
   const [isjoiningCall, setIsJoiningCall] = useState(false);
 
   const { setSteps } = useTourContext();
@@ -76,7 +83,9 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const callType: string = 'default';
   const [callId] = useState(() => {
     if (incomingCallId) return incomingCallId;
-    return `${uniqueNamesGenerator(config)}-${uuidv1().split('-')[0]}`;
+    const id = `${uniqueNamesGenerator(config)}-${uuidv1().split('-')[0]}`;
+    window.location.search = `?id=${id}`;
+    return id;
   });
   const [activeCall] = useState(() => client.call(callType, callId));
 
@@ -85,18 +94,62 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   }, []);
 
   useEffect(() => {
-    async function fetchEdges() {
-      const response: any = await client.edges();
-      const fastedEdges = response.edges.sort(
-        (a: any, b: any) => a.latency - b.latency,
-      );
-      setFastestEdge(fastedEdges[0]);
+    let markerTimer: ReturnType<typeof setTimeout>;
 
-      const features = createGeoJsonFeatures(response.edges);
-      setEdges(features);
+    async function fetchEdges() {
+      if (isCallActive) {
+        if (markerTimer) {
+          clearTimeout(markerTimer);
+        }
+        return;
+      }
+
+      const response: GetEdgesResponse = await client.edges();
+      const latencies = await measureLatencyToEdges(response.edges);
+
+      const edgeId: string = Object.keys(latencies).reduce((acc, curr) => {
+        const lowestCurr = Math.min(...latencies[curr]);
+
+        if (lowestCurr === -1) {
+          return acc;
+        }
+
+        if (acc) {
+          const lowestAcc = Math.min(...latencies[acc]);
+
+          if (lowestCurr < lowestAcc) {
+            return curr;
+          } else {
+            return acc;
+          }
+        }
+
+        return curr;
+      });
+
+      const latency = Math.min(...latencies[edgeId]);
+
+      setFastestEdge({
+        id: edgeId,
+        latency: latency,
+      });
+
+      if (!edges) {
+        const features = createGeoJsonFeatures(response.edges);
+        setEdges(features);
+      }
+
+      if (!isCallActive) {
+        markerTimer = setTimeout(fetchEdges, Math.random() * FETCH_EDGE_TIMOUT);
+      }
     }
+
     fetchEdges();
-  }, []);
+
+    return () => {
+      clearTimeout(markerTimer);
+    };
+  }, [edges, isCallActive]);
 
   const joinMeeting = useCallback(async () => {
     setIsJoiningCall(true);
@@ -154,14 +207,12 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
 };
 
 const App: FC = () => {
-  const logo = '/images/icons/stream-logo.svg';
+  const logo = `${import.meta.env.BASE_URL}images/icons/stream-logo.svg`;
   const [user, setUser] = useState<User>();
   const [token, setToken] = useState<string>();
 
   const location = window?.document?.location;
   const callId = new URL(location.href).searchParams.get('id');
-
-  Gleap.initialize(import.meta.env.VITE_GLEAP_KEY);
 
   useEffect(() => {
     async function fetchUser() {

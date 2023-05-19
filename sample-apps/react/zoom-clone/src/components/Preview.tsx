@@ -80,7 +80,7 @@ export const Preview = {
           setInitialAudioMuted,
         }}
       >
-        <MediaDevicesProvider enumerate>{children}</MediaDevicesProvider>
+        <MediaDevicesProvider>{children}</MediaDevicesProvider>
       </PreviewContext.Provider>
     );
   },
@@ -99,7 +99,7 @@ export const Preview = {
 
       if (initialAudioMuted) return;
 
-      getAudioStream(selectedAudioInputDeviceId)
+      getAudioStream({ deviceId: selectedAudioInputDeviceId })
         .then((ms) => {
           if (interrupted) return disposeOfMediaStream(ms);
 
@@ -148,7 +148,7 @@ export const Preview = {
 
       if (initialVideoMuted) return;
 
-      getVideoStream(selectedVideoDeviceId)
+      getVideoStream({ deviceId: selectedVideoDeviceId })
         .then((ms) => {
           if (interrupted) return disposeOfMediaStream(ms);
 

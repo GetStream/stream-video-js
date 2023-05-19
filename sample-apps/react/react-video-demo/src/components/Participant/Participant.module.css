@@ -9,17 +9,18 @@
 .videoOverlay {
   @apply absolute top-0 left-0 w-full h-full flex items-center justify-center;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
 }
 
 .reaction {
-  @apply absolute top-0 right-0 mr-8 h-full flex items-center;
+  @apply absolute top-0 right-0 mr-10 h-full flex items-center;
   z-index: 150;
 }
 
 .reaction span {
   @apply absolute top-0 mt-4;
   animation: move 5s infinite;
+  font-size: 30px;
 }
 
 .noVideo {

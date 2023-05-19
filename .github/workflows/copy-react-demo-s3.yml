@@ -25,7 +25,7 @@ jobs:
       VITE_VIDEO_USER_NAME: ${{vars.VIDEO_DEMO_USER_NAME}}
       VITE_VIDEO_USER_TOKEN: ${{secrets.VIDEO_DEMO_USER_TOKEN}}
       VITE_MAPBOX_GL_TOKEN: ${{secrets.VIDEO_DEMO_MAPBOX_GL_TOKEN}}
-
+      VITE_VIDEO_DEMO_SENTRY_DNS: ${{secrets.VIDEO_DEMO_SENTRY_DNS}}
     steps:
      - name: Checkout
        uses: actions/checkout@v3
@@ -47,9 +47,14 @@ jobs:
      - name: Test packages
        run: yarn test:ci:all
 
-     - name: Build React Demo
-       run: yarn build:react:video-demo
-    
+     - name: Build React Demo staging
+       if: ${{ github.ref_name != 'main' }}
+       run: yarn build:react:video-demo --mode staging
+
+     - name: Build React Demo production
+       if: ${{ github.ref_name == 'main' }}
+       run: yarn build:react:video-demo --mode production
+
      - name: Setup AWS credentials
        uses: aws-actions/configure-aws-credentials@v2
        with:

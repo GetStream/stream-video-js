@@ -11,15 +11,12 @@ import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
 import { useIncallManager } from '../hooks/useIncallManager';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
+import { verifyAndroidBluetoothPermissions } from '../utils/verifyAndroidBluetoothPermissions';
 
 /**
  * Props to be passed for the ActiveCall component.
  */
 export interface ActiveCallProps {
-  /**
-   * Handler called when the participants info button is pressed in the active call screen.
-   */
-  onOpenCallParticipantsInfoView: () => void;
   /**
    * The mode of the call view. Defaults to 'grid'.
    * Note: when there is atleast one screen share, the mode is automatically set to 'spotlight'.
@@ -40,6 +37,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
   activeCallRef.current = activeCall;
 
   useEffect(() => {
+    // when the component mounts, we ask for necessary permissions.
+    verifyAndroidBluetoothPermissions();
     return () => {
       // ensure that if this component is unmounted, the call is left.
       activeCallRef.current?.leave();
@@ -52,7 +51,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
-  const { onOpenCallParticipantsInfoView, mode = 'grid' } = props;
+  const { mode = 'grid' } = props;
   const hasScreenShare = useHasOngoingScreenShare();
 
   useIncallManager({ media: 'video', auto: true });
@@ -71,9 +70,10 @@ const InnerActiveCall = (props: ActiveCallProps) => {
 
   return (
     <View style={styles.container}>
-      <CallParticipantsBadge
-        onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
-      />
+      <View style={styles.iconGroup}>
+        <CallParticipantsBadge />
+      </View>
+
       <View
         style={[
           styles.callParticipantsWrapper,
@@ -100,4 +100,16 @@ const styles = StyleSheet.create({
   },
   callParticipantsWrapper: { flex: 1 },
   callControlsWrapper: { position: 'absolute', bottom: 0, left: 0, right: 0 },
+  svgContainerStyle: {
+    zIndex: 2,
+    marginRight: theme.margin.md,
+    marginTop: theme.margin.sm,
+  },
+  iconGroup: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    marginRight: theme.margin.md,
+  },
 });

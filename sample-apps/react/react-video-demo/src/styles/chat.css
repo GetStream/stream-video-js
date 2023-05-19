@@ -16,5 +16,5 @@
 }
 
 .str-chat__list {
-  @apply max-h-[200px] overflow-y-scroll;
+  @apply md:max-h-[200px] md:overflow-y-scroll;
 }

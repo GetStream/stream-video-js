@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Call, OwnCapability } from '@stream-io/video-client';
-import { useIsCallRecordingInProgress } from '@stream-io/video-react-bindings';
+import {
+  Restricted,
+  useIsCallRecordingInProgress,
+} from '@stream-io/video-react-bindings';
 import { CompositeButton, IconButton } from '../Button/';
 import { LoadingIndicator } from '../LoadingIndicator';
-import { Restricted } from '../Moderation';
 
 export type RecordCallButtonProps = {
   call: Call;

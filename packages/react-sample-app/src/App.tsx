@@ -6,8 +6,8 @@ import {
   ThemeProvider,
 } from '@mui/material';
 import {
-  JoinCallRequest,
-  StreamMeeting,
+  JoinCallData,
+  StreamCall,
   StreamVideo,
   useCreateStreamVideoClient,
   User,
@@ -44,7 +44,7 @@ const App = () => {
   });
   const [callId, setCallId] = useState<string | undefined>(undefined);
   const [callType, setCallType] = useState<string>('default');
-  const [callInput, setCallInput] = useState<JoinCallRequest | undefined>(
+  const [callInput, setCallInput] = useState<JoinCallData | undefined>(
     undefined,
   );
   const [errorMessage] = useState('');
@@ -118,14 +118,14 @@ const App = () => {
                 }}
               >
                 {callId && (
-                  <StreamMeeting
+                  <StreamCall
                     callId={callId}
                     callType={callType}
                     data={callInput}
                     autoJoin
                   >
                     <MeetingUI />
-                  </StreamMeeting>
+                  </StreamCall>
                 )}
               </Box>
             </Box>

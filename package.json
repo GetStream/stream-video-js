@@ -34,7 +34,7 @@
     "build:react-native:deps": "yarn build:client && yarn build:i18n && yarn build:react:bindings && yarn build:react-native:sdk",
     "build:vercel": "yarn build:react:deps && yarn build:react:dogfood",
     "build:react:app": "yarn build:react:deps && yarn workspace @stream-io/video-react-sample-app run build",
-    "build:react:video-demo": "yarn build:react:deps && yarn workspace react-video-demo run build",
+    "build:react:video-demo": "yarn build:react:deps && yarn workspace react-video-demo run build:website",
     "start:egress": "yarn workspace @stream-io/egress-composite start",
     "build:egress": "yarn workspace @stream-io/egress-composite build",
     "build:all": "yarn workspaces foreach -v --topological-dev run build",
@@ -52,7 +52,7 @@
     "generate-docs:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run generate-docs",
     "start:docs:react": "yarn workspace @stream-io/video-react-sdk run start:docs ",
     "bootstrap": "scripts/bootstrap-rn.sh",
-    "release": "nx affected --target version --base=origin/main~1 --head=origin/main --parallel=1",
+    "release": "nx run-many --target version --parallel=1",
     "release:18n": "yarn workspace @stream-io/i18n npm publish --access=public",
     "release:react-bindings": "yarn workspace @stream-io/video-react-bindings npm publish --access=public",
     "release:react-sdk": "yarn workspace @stream-io/video-react-sdk npm publish --access=public"
@@ -75,9 +75,11 @@
     "nx": "16.0.1",
     "prettier": "^2.8.4",
     "typescript": "^4.9.5",
-    "vercel": "^28.16.15"
+    "vercel": "^29.3.0"
   },
   "resolutions": {
-    "react-native-pure-jwt@^3.0.1": "patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch"
+    "react-native-pure-jwt@^3.0.1": "patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch",
+    "react-native-incall-manager@^4.0.0": "patch:react-native-incall-manager@npm%3A4.0.1#./.yarn/patches/react-native-incall-manager-npm-4.0.1-b8859eeb2a.patch",
+    "react-native-incall-manager@^4.0.1": "patch:react-native-incall-manager@npm%3A4.0.1#./.yarn/patches/react-native-incall-manager-npm-4.0.1-b8859eeb2a.patch"
   }
 }

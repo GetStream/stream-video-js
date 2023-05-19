@@ -27,12 +27,6 @@ export const isSfuEvent = (
   return Object.prototype.hasOwnProperty.call(sfuEventKinds, eventName);
 };
 
-export type SfuEventKindMap = {
-  [key in SfuEventKinds]: {
-    eventPayload: Extract<SfuEvent['eventPayload'], { oneofKind: key }>;
-  };
-};
-
 export type SfuEventListener = (event: SfuEvent) => void;
 
 export class Dispatcher {
@@ -56,20 +50,20 @@ export class Dispatcher {
     }
   };
 
-  on = (eventName: string, fn: SfuEventListener) => {
+  on = (eventName: SfuEventKinds, fn: SfuEventListener) => {
     (this.subscribers[eventName] ??= []).push(fn);
     return () => {
       this.off(eventName, fn);
     };
   };
 
-  off = (eventName: string, fn: SfuEventListener) => {
+  off = (eventName: SfuEventKinds, fn: SfuEventListener) => {
     this.subscribers[eventName] = (this.subscribers[eventName] || []).filter(
       (f) => f !== fn,
     );
   };
 
-  offAll = (eventName?: string) => {
+  offAll = (eventName?: SfuEventKinds) => {
     if (eventName) {
       this.subscribers[eventName] = [];
     } else {

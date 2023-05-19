@@ -6,6 +6,8 @@ import { Copy, UserChecked, Reload } from '../Icons';
 import Panel from '../Panel';
 import Button from '../Button';
 
+import { useBreakpoint } from '../../hooks/useBreakpoints';
+
 import styles from './InvitePanel.module.css';
 
 export type Props = {
@@ -24,7 +26,7 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
 
   useEffect(() => {
     if (inputRef && inputRef.current) {
-      inputRef.current.value = `${window.location.href}?id=${callId}`;
+      inputRef.current.value = `${window.location.href}`;
     }
   }, [inputRef, callId]);
 
@@ -77,9 +79,7 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
       {canShare && (
         <Button
           className={styles.share}
-          onClick={() =>
-            navigator.share({ url: `${window.location.href}?id=${callId}` })
-          }
+          onClick={() => navigator.share({ url: `${window.location.href}` })}
           color="primary"
         >
           Share
@@ -91,6 +91,14 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
 
 export const InvitePanel: FC<Props> = ({ className, isFocused, callId }) => {
   const [showQr, setShowQr] = useState(false);
+
+  const breakpoint = useBreakpoint();
+
+  useEffect(() => {
+    if (breakpoint === 'lg') {
+      setShowQr(true);
+    }
+  }, [breakpoint]);
 
   const handleToggleDisplayQr = useCallback(() => {
     setShowQr(!showQr);

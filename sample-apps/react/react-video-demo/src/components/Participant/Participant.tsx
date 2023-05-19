@@ -1,10 +1,12 @@
 import { FC, useState, useEffect } from 'react';
 import classnames from 'classnames';
-import { Call, SfuModels, VisibilityState } from '@stream-io/video-client';
 import {
   StreamVideoParticipant,
-  Video,
-  Audio,
+  Call,
+  SfuModels,
+  VisibilityState,
+  ParticipantView,
+  StreamReaction,
 } from '@stream-io/video-react-sdk';
 
 import { MicMuted, Signal } from '../Icons';
@@ -23,13 +25,24 @@ export const Overlay: FC<{
   name?: string;
   hasAudio?: boolean;
   connectionQuality?: string | boolean;
-}> = ({ name, hasAudio, connectionQuality }) => {
+  reaction?: StreamReaction;
+  call: Call;
+  sessionId: string;
+}> = ({ name, hasAudio, connectionQuality, reaction, call, sessionId }) => {
   const connectionQualityClassNames = classnames(styles.connectionQualityIcon, {
     [styles?.[`${connectionQuality}`]]: Boolean(connectionQuality),
   });
 
   return (
     <div className={styles.videoOverlay}>
+      {reaction ? (
+        <Reaction
+          reaction={reaction}
+          className={styles.reaction}
+          call={call}
+          sessionId={sessionId}
+        />
+      ) : null}
       <div className={styles.name}>
         {name}
         {!hasAudio ? <MicMuted className={styles.micMuted} /> : null}
@@ -43,18 +56,12 @@ export const Overlay: FC<{
   );
 };
 
-export const Participant: FC<Props> = ({
-  className,
-  call,
-  participant,
-  sinkId,
-}) => {
+export const Participant: FC<Props> = ({ className, call, participant }) => {
   const {
     publishedTracks,
     isSpeaking,
     isDominantSpeaker,
     connectionQuality,
-    audioStream,
     sessionId,
     reaction,
   } = participant;
@@ -119,42 +126,31 @@ export const Participant: FC<Props> = ({
         <div className={styles.fallbackAvatar}>
           {participant.name?.split('')[0]}
         </div>
-        <Overlay name={participant.name} hasAudio={hasAudio} />
+        <Overlay
+          name={participant.name}
+          hasAudio={hasAudio}
+          call={call}
+          sessionId={sessionId}
+        />
       </div>
     );
   }
 
   return (
-    <div className={rootClassNames} ref={setTrackedElement}>
-      <Video
-        call={call}
-        participant={participant}
-        kind="video"
-        muted={participant.isLoggedInUser}
-        autoPlay
-        className={styles.video}
-      />
-
-      <Audio
-        muted={participant.isLoggedInUser}
-        sinkId={sinkId}
-        audioStream={audioStream}
-      />
-
-      {reaction && (
-        <Reaction
-          className={styles.reaction}
+    <ParticipantView
+      participant={participant}
+      className={rootClassNames}
+      ref={setTrackedElement}
+      ParticipantViewUI={
+        <Overlay
+          connectionQuality={connectionQualityAsString}
+          name={participant.name}
+          hasAudio={hasAudio}
           reaction={reaction}
-          sessionId={sessionId}
           call={call}
+          sessionId={sessionId}
         />
-      )}
-
-      <Overlay
-        connectionQuality={connectionQualityAsString}
-        name={participant.name}
-        hasAudio={hasAudio}
-      />
-    </div>
+      }
+    />
   );
 };

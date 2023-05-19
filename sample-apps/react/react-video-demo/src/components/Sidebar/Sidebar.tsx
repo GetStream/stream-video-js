@@ -6,9 +6,11 @@ import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
 import InvitePanel from '../InvitePanel';
 import ParticipantsPanel from '../ParticipantsPanel';
 import ChatPanel from '../ChatPanel';
-import { StreamMark } from '../Icons';
+
+import PoweredBy from '../PoweredBy';
 
 import { usePanelContext } from '../../contexts/PanelContext';
+import { useTourContext, StepNames } from '../../contexts/TourContext';
 
 import styles from './Sidebar.module.css';
 
@@ -23,10 +25,15 @@ export const Sidebar: FC<Props> = ({ chatClient, callId, participants }) => {
   const participantsRef = useRef(null);
 
   const { isChatVisible, isParticipantsVisible } = usePanelContext();
+  const { current: currenTourStep } = useTourContext();
 
   return (
     <div className={styles.sidebar}>
-      <InvitePanel className={styles.invitePanel} callId={callId} />
+      <InvitePanel
+        className={styles.invitePanel}
+        callId={callId}
+        isFocused={currenTourStep === StepNames.Invite}
+      />
       <CSSTransition
         nodeRef={participantsRef}
         in={isParticipantsVisible}
@@ -71,10 +78,7 @@ export const Sidebar: FC<Props> = ({ chatClient, callId, participants }) => {
           ) : null}
         </div>
       </CSSTransition>
-      <div className={styles.branding}>
-        <StreamMark className={styles.logo} />
-        <span>Powered by Stream</span>
-      </div>
+      <PoweredBy className={styles.branding} />
     </div>
   );
 };
