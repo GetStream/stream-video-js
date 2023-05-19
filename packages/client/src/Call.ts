@@ -355,6 +355,7 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = async ({ reject = false }: CallLeaveOptions = {}) => {
+    // TODO: handle case when leave is called during JOINING
     const callingState = this.state.callingState;
     if (callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');

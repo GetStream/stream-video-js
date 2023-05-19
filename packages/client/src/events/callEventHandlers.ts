@@ -26,12 +26,63 @@ import {
   watchTrackUnpublished,
   watchUnblockedUser,
 } from '../events';
+import {
+  CallEventTypes,
+  StreamCallEvent,
+} from '../coordinator/connection/types';
+import { watchCallLiveStarted } from './backstage';
+import {
+  watchCallMemberAdded,
+  watchCallMemberRemoved,
+  watchCallMemberUpdated,
+  watchCallMemberUpdatedPermission,
+} from './members';
+
+type RingCallEvents = Extract<
+  CallEventTypes,
+  'call.accepted' | 'call.rejected'
+>;
+
+// call.created is handled by the StreamVideoClient
+// custom events should be handled by integrators
+type AllCallEvents = Exclude<
+  CallEventTypes,
+  'call.created' | 'custom' | RingCallEvents
+>;
 
 export const registerEventHandlers = (
   call: Call,
   state: CallState,
   dispatcher: Dispatcher,
 ) => {
+  const coordinatorEvents: {
+    [key in AllCallEvents]: (e: StreamCallEvent) => void;
+  } = {
+    'call.blocked_user': watchBlockedUser(state),
+    'call.broadcasting_started': watchCallBroadcastingStarted(state),
+    'call.broadcasting_stopped': watchCallBroadcastingStopped(state),
+    'call.ended': watchCallEnded(call),
+    'call.live_started': watchCallLiveStarted(state),
+    'call.member_added': watchCallMemberAdded(state),
+    'call.member_removed': watchCallMemberRemoved(state),
+    'call.member_updated': watchCallMemberUpdated(state),
+    'call.member_updated_permission': watchCallMemberUpdatedPermission(state),
+    'call.permission_request': watchCallPermissionRequest(state),
+    'call.permissions_updated': watchCallPermissionsUpdated(state),
+    'call.reaction_new': watchNewReactions(state),
+    'call.recording_started': watchCallRecordingStarted(state),
+    'call.recording_stopped': watchCallRecordingStopped(state),
+    'call.session_ended': (event: StreamCallEvent) =>
+      console.log(`Received ${event.type} event`, event),
+    'call.session_participant_joined': (event: StreamCallEvent) =>
+      console.log(`Received ${event.type} event`, event),
+    'call.session_participant_left': (event: StreamCallEvent) =>
+      console.log(`Received ${event.type} event`, event),
+    'call.session_started': (event: StreamCallEvent) =>
+      console.log(`Received ${event.type} event`, event),
+    'call.unblocked_user': watchUnblockedUser(state),
+    'call.updated': watchCallUpdated(state),
+  };
   const eventHandlers = [
     watchChangePublishQuality(dispatcher, call),
     watchConnectionQualityChanged(dispatcher, state),
@@ -46,22 +97,13 @@ export const registerEventHandlers = (
     watchAudioLevelChanged(dispatcher, state),
     watchDominantSpeakerChanged(dispatcher, state),
 
-    call.on('call.updated', watchCallUpdated(state)),
-
-    call.on('call.blocked_user', watchBlockedUser(state)),
-    call.on('call.unblocked_user', watchUnblockedUser(state)),
-
-    call.on('call.reaction_new', watchNewReactions(state)),
-
-    call.on('call.recording_started', watchCallRecordingStarted(state)),
-    call.on('call.recording_stopped', watchCallRecordingStopped(state)),
-    call.on('call.broadcasting_started', watchCallBroadcastingStarted(state)),
-    call.on('call.broadcasting_stopped', watchCallBroadcastingStopped(state)),
-
-    call.on('call.permission_request', watchCallPermissionRequest(state)),
-    call.on('call.permissions_updated', watchCallPermissionsUpdated(state)),
     call.on('callGrantsUpdated', watchCallGrantsUpdated(state)),
   ];
+
+  Object.keys(coordinatorEvents).forEach((event) => {
+    const eventName = event as AllCallEvents;
+    eventHandlers.push(call.on(eventName, coordinatorEvents[eventName]));
+  });
 
   if (call.ringing) {
     // these events are only relevant when the call is ringing
@@ -74,11 +116,17 @@ export const registerEventHandlers = (
 };
 
 export const registerRingingCallEventHandlers = (call: Call) => {
-  const eventHandlers = [
-    call.on('call.accepted', watchCallAccepted(call)),
-    call.on('call.rejected', watchCallRejected(call)),
-    call.on('call.ended', watchCallEnded(call)),
-  ];
+  const coordinatorRingEvents: {
+    [key in RingCallEvents]: (e: StreamCallEvent) => void;
+  } = {
+    'call.accepted': watchCallAccepted(call),
+    'call.rejected': watchCallRejected(call),
+  };
+
+  const eventHandlers = Object.keys(coordinatorRingEvents).map((event) => {
+    const eventName = event as RingCallEvents;
+    return call.on(eventName, coordinatorRingEvents[eventName]);
+  });
 
   return () => {
     eventHandlers.forEach((unsubscribe) => unsubscribe());

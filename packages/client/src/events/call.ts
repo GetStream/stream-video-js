@@ -47,7 +47,11 @@ export const watchCallRejected = (call: Call) => {
 export const watchCallEnded = (call: Call) => {
   return async function onCallCancelled(event: StreamVideoEvent) {
     if (event.type !== 'call.ended') return;
-    if (call.state.callingState === CallingState.RINGING) {
+    if (
+      call.state.callingState === CallingState.RINGING ||
+      call.state.callingState === CallingState.JOINED ||
+      call.state.callingState === CallingState.JOINING
+    ) {
       await call.leave();
     }
   };
