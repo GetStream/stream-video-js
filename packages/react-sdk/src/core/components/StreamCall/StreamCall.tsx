@@ -5,7 +5,10 @@ import {
   useConnectedUser,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import { MediaDevicesProvider, MediaDevicesProviderProps } from '../../core';
+import {
+  MediaDevicesProvider,
+  MediaDevicesProviderProps,
+} from '../../contexts';
 
 type InitWithCallCID = {
   /**
