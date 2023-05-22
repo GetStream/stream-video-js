@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
 import {
   useCall,
@@ -13,7 +13,7 @@ import { useMutingState } from '../hooks/useMutingState';
 import { useLocalVideoStream } from '../hooks';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import { AxiosError, StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
 
 const ParticipantStatus = () => {
@@ -55,15 +55,6 @@ export const LobbyView = ({ enablePreview = true }: LobbyViewProps) => {
   const count = useParticipantCount();
   const call = useCall();
 
-  const onJoinCallHandler = useCallback(async () => {
-    try {
-      await call?.join({ create: true });
-    } catch (err) {
-      console.log(err);
-      throw err;
-    }
-  }, [call]);
-
   const MicIcon = isAudioMuted ? (
     <MicOff color={theme.light.static_white} />
   ) : (
@@ -74,6 +65,17 @@ export const LobbyView = ({ enablePreview = true }: LobbyViewProps) => {
   ) : (
     <Video color={theme.light.static_black} />
   );
+
+  const onJoinCallHandler = useCallback(async () => {
+    try {
+      await call?.join({ create: true });
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        console.log('Error joining call', error);
+        Alert.alert(error.response?.data.message);
+      }
+    }
+  }, [call]);
 
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,

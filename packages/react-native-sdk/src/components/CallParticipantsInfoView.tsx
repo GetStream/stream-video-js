@@ -35,9 +35,11 @@ type CallParticipantInfoViewType = {
 const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   const { participant, setSelectedParticipant } = props;
   const connectedUser = useConnectedUser();
+  const participantIsLoggedInUser = participant.userId === connectedUser?.id;
+
   const optionsOpenHandler = useCallback(() => {
-    setSelectedParticipant(participant);
-  }, [participant, setSelectedParticipant]);
+    if (!participantIsLoggedInUser) setSelectedParticipant(participant);
+  }, [participant, setSelectedParticipant, participantIsLoggedInUser]);
 
   if (!participant) return null;
   const { publishedTracks } = participant;
@@ -46,15 +48,14 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   const isScreenSharing = publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
   );
-  const showYouLabel = participant.userId === connectedUser?.id;
 
   return (
-    <View style={styles.participant}>
+    <Pressable style={styles.participant} onPress={optionsOpenHandler}>
       <Avatar radius={theme.avatar.xs} participant={participant} />
 
       <Text style={styles.name}>
         {(participant.name || generateParticipantTitle(participant.userId)) +
-          (showYouLabel ? ' (You)' : '')}
+          (participantIsLoggedInUser ? ' (You)' : '')}
       </Text>
       <View style={styles.icons}>
         {isScreenSharing && (
@@ -72,15 +73,13 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
             <VideoSlash color={theme.light.error} />
           </View>
         )}
-        {/* Disablling it until we support permissions */}
-        <Pressable
-          style={[styles.svgContainerStyle, theme.icon.sm]}
-          onPress={optionsOpenHandler}
-        >
-          <ArrowRight color={theme.light.text_high_emphasis} />
-        </Pressable>
+        {!participantIsLoggedInUser && (
+          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+            <ArrowRight color={theme.light.text_high_emphasis} />
+          </View>
+        )}
       </View>
-    </View>
+    </Pressable>
   );
 };
 
@@ -116,15 +115,13 @@ export const CallParticipantsInfoView = ({
   >(undefined);
   const call = useCall();
 
-  const muteAllParticipantsHandler = () => {
-    call
-      ?.muteAllUsers('audio')
-      .then((response) => {
-        Alert.alert('Users Muted Successfully');
-      })
-      .catch((error) => {
-        console.log('Error muting users', error);
-      });
+  const muteAllParticipantsHandler = async () => {
+    try {
+      await call?.muteAllUsers('audio');
+      Alert.alert('Users Muted Successfully');
+    } catch (error) {
+      console.log('Error muting users', error);
+    }
   };
 
   const onCloseCallParticipantsViewVisible = () => {

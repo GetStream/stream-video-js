@@ -9,7 +9,7 @@ import { generateParticipantTitle } from '../utils';
 import { useCallback } from 'react';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
-import { useCall, useOwnCapabilities } from '@stream-io/video-react-bindings';
+import { useCall, useHasPermissions } from '@stream-io/video-react-bindings';
 
 type CallParticipantOptionType = {
   title: string;
@@ -26,81 +26,114 @@ type CallParticipantOptionsType = {
 
 export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
   const { participant, setSelectedParticipant } = props;
-  const ownCapabilities = useOwnCapabilities();
   const call = useCall();
 
-  const grantPermission = (permission: string) => () => {
-    call?.updateUserPermissions({
+  const grantPermission = async (permission: string) => {
+    await call?.updateUserPermissions({
       user_id: participant.userId,
       grant_permissions: [permission],
     });
   };
 
-  const revokePermission = (permission: string) => () => {
-    call?.updateUserPermissions({
+  const revokePermission = async (permission: string) => {
+    await call?.updateUserPermissions({
       user_id: participant.userId,
       revoke_permissions: [permission],
     });
   };
 
+  const muteUser = async (mediaType: 'audio' | 'video') => {
+    await call?.muteUser(participant.userId, mediaType);
+  };
+
+  const muteUserAudio = async () => {
+    await muteUser('audio');
+  };
+
+  const muteUserVideo = async () => {
+    await muteUser('video');
+  };
+
+  const blockUser = async () => {
+    await call?.blockUser(participant.userId);
+  };
+
+  const userHasMuteUsersCapability = useHasPermissions(
+    OwnCapability.MUTE_USERS,
+  );
+  const userHasUpdateCallPermissionsCapability = useHasPermissions(
+    OwnCapability.UPDATE_CALL_PERMISSIONS,
+  );
+  const userHasBlockUserCapability = useHasPermissions(
+    OwnCapability.BLOCK_USERS,
+  );
+  const participantCanPublishVideo = participant.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
+  const participantCanPublishAudio = participant.publishedTracks.includes(
+    SfuModels.TrackType.AUDIO,
+  );
+
   const callMediaStreamMutePermissions: (CallParticipantOptionType | null)[] =
-    ownCapabilities.includes(OwnCapability.MUTE_USERS)
+    userHasMuteUsersCapability
       ? [
-          participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)
+          participantCanPublishVideo
             ? {
                 title: 'Mute Video',
-                onPressHandler: () => {
-                  call?.muteUser(participant.userId, 'video');
-                },
+                onPressHandler: muteUserVideo,
               }
             : null,
-          participant.publishedTracks.includes(SfuModels.TrackType.AUDIO)
+          participantCanPublishAudio
             ? {
                 title: 'Mute Audio',
-                onPressHandler: () => {
-                  call?.muteUser(participant.userId, 'audio');
-                },
+                onPressHandler: muteUserAudio,
               }
             : null,
         ]
       : [];
 
   const callMediaStreamPermissions: (CallParticipantOptionType | null)[] =
-    ownCapabilities.includes(OwnCapability.UPDATE_CALL_PERMISSIONS)
+    userHasUpdateCallPermissionsCapability
       ? [
           {
             icon: <VideoDisabled color={theme.light.text_high_emphasis} />,
             title: 'Disable Video',
-            onPressHandler: revokePermission(OwnCapability.SEND_VIDEO),
+            onPressHandler: async () =>
+              await revokePermission(OwnCapability.SEND_VIDEO),
           },
           {
             title: 'Disable Audio',
-            onPressHandler: revokePermission(OwnCapability.SEND_AUDIO),
+            onPressHandler: async () =>
+              await revokePermission(OwnCapability.SEND_AUDIO),
           },
           {
             title: 'Allow Audio',
-            onPressHandler: grantPermission(OwnCapability.SEND_AUDIO),
+            onPressHandler: async () =>
+              await grantPermission(OwnCapability.SEND_AUDIO),
           },
           {
             title: 'Allow Video',
-            onPressHandler: grantPermission(OwnCapability.SEND_VIDEO),
+            onPressHandler: async () =>
+              await grantPermission(OwnCapability.SEND_VIDEO),
           },
           {
             title: 'Allow Screen Sharing',
-            onPressHandler: grantPermission(OwnCapability.SCREENSHARE),
+            onPressHandler: async () =>
+              await grantPermission(OwnCapability.SCREENSHARE),
           },
           {
             title: 'Disable Screen Sharing',
-            onPressHandler: revokePermission(OwnCapability.SCREENSHARE),
+            onPressHandler: async () =>
+              await revokePermission(OwnCapability.SCREENSHARE),
           },
         ]
       : [];
 
   const options: (CallParticipantOptionType | null)[] = [
-    ownCapabilities.includes(OwnCapability.BLOCK_USERS)
+    userHasBlockUserCapability
       ? {
           title: 'Block',
-          onPressHandler: () => call?.blockUser(participant.userId),
+          onPressHandler: blockUser,
         }
       : null,
     ...callMediaStreamMutePermissions,
@@ -135,21 +168,28 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
         </View>
         <View style={styles.options}>
           {options.map((option, index) => {
+            if (!option) {
+              return null;
+            }
             const applyBottomPadding =
               index < options.length - 1 ? styles.borderBottom : null;
+
+            const onPressHandler = () => {
+              option?.onPressHandler();
+              onCloseParticipantOptions();
+            };
+
             return (
-              option && (
-                <Pressable
-                  style={[applyBottomPadding, styles.option]}
-                  key={option.title}
-                  onPress={option.onPressHandler}
-                >
-                  <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-                    {option.icon}
-                  </View>
-                  <Text style={styles.title}>{option.title}</Text>
-                </Pressable>
-              )
+              <Pressable
+                style={[applyBottomPadding, styles.option]}
+                key={option.title}
+                onPress={onPressHandler}
+              >
+                <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+                  {option.icon}
+                </View>
+                <Text style={styles.title}>{option.title}</Text>
+              </Pressable>
             );
           })}
         </View>

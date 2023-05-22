@@ -64,7 +64,7 @@ const DEVICE_STATE_TOGGLE: Record<DeviceStateType, 'starting' | 'stopped'> = {
 };
 
 /**
- * Exclude types from documentaiton site, but we should still add doc comments
+ * Exclude types from documentation site, but we should still add doc comments
  * @internal
  */
 export const DEVICE_STATE: {
@@ -84,48 +84,148 @@ export const DEVICE_STATE: {
 const DEFAULT_DEVICE_ID = 'default';
 
 /**
- * Exclude types from documentaiton site, but we should still add doc comments
- * @internal
+ * API to control device enablement, device selection and media stream access for a call.
+ * @category Device Management
  */
 export type MediaDevicesContextAPI = {
+  /**
+   * Deactivates MediaStream (stops and removes tracks) to be later garbage collected
+   *
+   * @param stream MediaStream
+   * @returns void
+   */
   disposeOfMediaStream: (stream: MediaStream) => void;
+  /**
+   * Returns an 'audioinput' media stream with the given `deviceId`, if no `deviceId` is provided, it uses the first available device.
+   *
+   * @param deviceId
+   * @returns
+   */
   getAudioStream: typeof getAudioStream;
+  /**
+   * Returns a 'videoinput' media stream with the given `deviceId`, if no `deviceId` is provided, it uses the first available device.
+   *
+   * @param deviceId
+   * @returns
+   */
   getVideoStream: typeof getVideoStream;
+  /**
+   * [Tells if the browser supports audio output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId).
+   */
   isAudioOutputChangeSupported: boolean;
+  /**
+   * Signals whether audio stream will be published when the call is joined.
+   */
   initialAudioEnabled: boolean;
+  /**
+   * Signals whether audio stream will be published when the call is joined.
+   */
   initialVideoState: DeviceState;
-  publishVideoStream: () => Promise<void>;
+  /**
+   * Publishes audio stream for currently selected audio input (microphone) device to other call participants.
+   */
   publishAudioStream: () => Promise<void>;
+  /**
+   * Publishes video stream for currently selected video input (camera) device to other call participants.
+   */
+  publishVideoStream: () => Promise<void>;
+  /**
+   * Stops publishing audio stream for currently selected audio input (microphone) device to other call participants.
+   */
   stopPublishingAudio: () => void;
+  /**
+   * Stops publishing video stream for currently selected video input (camera) device to other call participants.
+   */
   stopPublishingVideo: () => void;
+  /**
+   * Sets the initialAudioEnabled flag to a given boolean value.
+   * The latest value set will be used to decide, whether audio stream will be published when joining a call.
+   * @param enabled
+   */
   setInitialAudioEnabled: (enabled: boolean) => void;
+
+  /**
+   * Sets the initialVideoState to a given DeviceState value.
+   * The latest value set will be used to decide, whether video stream will be published when joining a call.
+   * @param enabled
+   */
   setInitialVideoState: (state: DeviceState) => void;
+  /**
+   * Stores audio input device (microphone) id which is used to publish user's sound to other call participants.
+   */
   selectedAudioInputDeviceId?: string;
+  /**
+   * Stores audio output device (speaker) id used to reproduce incoming audio from other call participants.
+   */
   selectedAudioOutputDeviceId?: string;
+  /**
+   * Stores video input device (camera) id which is used to publish user's video to other call participants.
+   */
   selectedVideoDeviceId?: string;
+  /**
+   * Function should be used to change selected device id.
+   * The change is later reflected in selectedAudioInputDeviceId, selectedAudioOutputDeviceId or selectedVideoDeviceId depending on kind parameter.
+   * @param kind
+   * @param deviceId
+   */
   switchDevice: (kind: MediaDeviceKind, deviceId?: string) => void;
+  /**
+   * Sets the initialAudioEnabled flag by negating the current state value.
+   * The latest value set will be used to decide, whether audio stream will be published when joining a call.
+   * @param enabled
+   */
   toggleInitialAudioMuteState: () => void;
+  /**
+   * Sets the initialVideoState by toggling  the current state DeviceState value.
+   * The latest value set will be used to decide, whether video stream will be published when joining a call.
+   * @param enabled
+   */
   toggleInitialVideoMuteState: () => void;
 };
 
 const MediaDevicesContext = createContext<MediaDevicesContextAPI | null>(null);
 
 /**
- * Exclude types from documentaiton site, but we should still add doc comments
- * @internal
+ * Configuration parameters for MediaDevicesProvider.
+ * @category Device Management
  */
-export type MediaDevicesProviderProps = PropsWithChildren<{
+export type MediaDevicesProviderProps = {
+  /**
+   * Provides external control over the initial audio input (microphone) enablement. Overrides the default false.
+   */
   initialAudioEnabled?: boolean;
+  /**
+   * Provides external control over the initial video input (camera) enablement. Overrides the default false.
+   */
   initialVideoEnabled?: boolean;
+  /**
+   * Allows to override the default audio input (microphone) stream to be published. Overrides the default string 'default'.
+   */
   initialAudioInputDeviceId?: string;
+  /**
+   * Allows to override the default audio output (speaker) device to reproduce incoming audio from the SFU. Overrides the default string 'default'.
+   */
   initialAudioOutputDeviceId?: string;
+  /**
+   * Allows to override the default video input (camera) stream to be published. Overrides the default string 'default'.
+   */
   initialVideoInputDeviceId?: string;
-}>;
+};
 
-// todo: republish the stream, when a new default device connected
 /**
+ * Context provider that internally puts in place mechanisms that:
+ * 1. fall back to selecting a default device when trying to switch to a non-existent device
+ * 2. fall back to a default device when an active device is disconnected
+ * 3. stop publishing a media stream when a non-default device is disconnected
+ * 4. republish a media stream from the newly connected default device
+ * 5. republish a media stream when a new device is selected
  *
- * @param param0
+ * Provides `MediaDevicesContextAPI` that allow the integrators to handle:
+ * 1. the initial device state enablement (for example apt for lobby scenario)
+ * 2. media stream retrieval and disposal
+ * 3. media stream publishing
+ * 4. specific device selection
+ * @param params
  * @returns
  *
  * @category Device Management
@@ -137,7 +237,7 @@ export const MediaDevicesProvider = ({
   initialVideoInputDeviceId = DEFAULT_DEVICE_ID,
   initialAudioOutputDeviceId = DEFAULT_DEVICE_ID,
   initialAudioInputDeviceId = DEFAULT_DEVICE_ID,
-}: MediaDevicesProviderProps) => {
+}: PropsWithChildren<MediaDevicesProviderProps>) => {
   const call = useCall();
   const callingState = useCallCallingState();
   const callState = useCallState();
@@ -302,7 +402,7 @@ export const MediaDevicesProvider = ({
 };
 
 /**
- *
+ * Context consumer retrieving MediaDevicesContextAPI.
  * @returns
  *
  * @category Device Management

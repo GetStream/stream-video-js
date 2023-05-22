@@ -2,6 +2,39 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.167](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.166...client0.0.1-alpha.167) (2023-05-22)
+
+
+### Features
+
+* **react-native:** add permissions support ([#445](https://github.com/GetStream/stream-video-js/issues/445)) ([e077aeb](https://github.com/GetStream/stream-video-js/commit/e077aeba95e42abaf0e5e3c1d58b344507ec52e2))
+
+
+
+## [0.0.1-alpha.166](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.165...client0.0.1-alpha.166) (2023-05-19)
+
+
+
+## [0.0.1-alpha.165](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.164...client0.0.1-alpha.165) (2023-05-19)
+
+
+
+## [0.0.1-alpha.164](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.163...client0.0.1-alpha.164) (2023-05-19)
+
+
+
+## [0.0.1-alpha.163](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.162...client0.0.1-alpha.163) (2023-05-19)
+
+
+
+## [0.0.1-alpha.162](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.161...client0.0.1-alpha.162) (2023-05-19)
+
+
+
+## [0.0.1-alpha.161](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.160...client0.0.1-alpha.161) (2023-05-19)
+
+
+
 ## [0.0.1-alpha.160](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.159...client0.0.1-alpha.160) (2023-05-18)
 
 
