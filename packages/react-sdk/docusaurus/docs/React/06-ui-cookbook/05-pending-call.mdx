@@ -56,6 +56,7 @@ import {
   useCallMembers,
   useCallMetadata,
   useMediaDevices,
+  VideoPreview,
 } from '@stream-io/video-react-sdk';
 
 type PendingCallPanelProps = {
@@ -150,7 +151,8 @@ We display relevant users' avatars with `CallMembers` component.
 
 ```tsx
 import {
-  UserResponse
+  Avatar,
+  UserResponse,
 } from '@stream-io/video-react-sdk';
 
 type CallMembersProps = {
@@ -223,8 +225,11 @@ The toggle video and audio buttons are just wrappers around pre-built button com
 :::
 ```tsx
 import {
+  AcceptCallButton,
   useCall,
   CallingState,
+  CancelCallButton,
+  IconButton,
   useCallCallingState,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
