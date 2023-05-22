@@ -88,8 +88,8 @@ describe('member events', () => {
     handler({
       type: 'call.member_updated_permission',
       members: [
-        { ...user0, user: { role: 'host' } },
-        { ...user1, user: { role: 'viewer' } },
+        { ...user1, role: 'viewer' },
+        { ...user0, role: 'host' },
       ],
     } as StreamVideoEvent);
 

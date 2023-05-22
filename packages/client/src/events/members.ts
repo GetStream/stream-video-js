@@ -35,7 +35,7 @@ export const watchCallMemberUpdatedPermission = (state: CallState) => {
           (m) => m.user_id === member.user_id,
         );
         if (memberUpdate) {
-          member.user.role = memberUpdate.user.role;
+          member.user.role = memberUpdate.role!;
           member = { ...member };
         }
         return member;
