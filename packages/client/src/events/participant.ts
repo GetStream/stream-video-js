@@ -49,11 +49,20 @@ export const watchTrackPublished = (
   return dispatcher.on('trackPublished', (e) => {
     if (e.eventPayload.oneofKind !== 'trackPublished') return;
     const {
-      trackPublished: { type, sessionId },
+      trackPublished: { type, sessionId, participant },
     } = e.eventPayload;
-    state.updateParticipant(sessionId, (p) => ({
-      publishedTracks: [...p.publishedTracks, type].filter(unique),
-    }));
+
+    // An optimization for large calls.
+    // After a certain threshold, the SFU would stop emitting `participantJoined`
+    // events, and instead, it would only provide the participant's information
+    // once they start publishing a track.
+    if (participant) {
+      state.updateOrAddParticipant(participant.sessionId, participant);
+    } else {
+      state.updateParticipant(sessionId, (p) => ({
+        publishedTracks: [...p.publishedTracks, type].filter(unique),
+      }));
+    }
   });
 };
 
@@ -68,11 +77,17 @@ export const watchTrackUnpublished = (
   return dispatcher.on('trackUnpublished', (e) => {
     if (e.eventPayload.oneofKind !== 'trackUnpublished') return;
     const {
-      trackUnpublished: { type, sessionId },
+      trackUnpublished: { type, sessionId, participant },
     } = e.eventPayload;
-    state.updateParticipant(sessionId, (p) => ({
-      publishedTracks: p.publishedTracks.filter((t) => t !== type),
-    }));
+
+    // An optimization for large calls. See `watchTrackPublished`.
+    if (participant) {
+      state.updateOrAddParticipant(participant.sessionId, participant);
+    } else {
+      state.updateParticipant(sessionId, (p) => ({
+        publishedTracks: p.publishedTracks.filter((t) => t !== type),
+      }));
+    }
   });
 };
 
