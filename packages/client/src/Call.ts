@@ -34,6 +34,7 @@ import {
   MuteUsersRequest,
   MuteUsersResponse,
   OwnCapability,
+  QueryMembersRequest,
   RequestPermissionRequest,
   RequestPermissionResponse,
   SendEventRequest,
@@ -1395,6 +1396,19 @@ export class Call {
   setParticipantPinnedAt = (sessionId: string, pinnedAt?: number): void => {
     this.state.updateParticipant(sessionId, {
       pinnedAt,
+    });
+  };
+
+  /**
+   * Query call members with filter query. The result won't be stored in call state.
+   * @param request
+   * @returns
+   */
+  queryMembers = (request: Omit<QueryMembersRequest, 'type' | 'id'>) => {
+    return this.streamClient.post<QueryMembersRequest>('/call/members', {
+      ...request,
+      id: this.id,
+      type: this.type,
     });
   };
 
