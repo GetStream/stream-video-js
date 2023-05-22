@@ -709,12 +709,6 @@ export interface CallNotificationEvent {
    */
   created_at: string;
   /**
-   *
-   * @type {boolean}
-   * @memberof CallNotificationEvent
-   */
-  ringing: boolean;
-  /**
    * Call session ID
    * @type {string}
    * @memberof CallNotificationEvent
@@ -726,6 +720,12 @@ export interface CallNotificationEvent {
    * @memberof CallNotificationEvent
    */
   type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallNotificationEvent
+   */
+  user: UserResponse;
 }
 /**
  *
@@ -1076,6 +1076,49 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   updated_at: string;
+}
+/**
+ * This event is sent to all call members to notify they are getting called
+ * @export
+ * @interface CallRingEvent
+ */
+export interface CallRingEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallRingEvent
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRingEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRingEvent
+   */
+  created_at: string;
+  /**
+   * Call session ID
+   * @type {string}
+   * @memberof CallRingEvent
+   */
+  session_id: string;
+  /**
+   * The type of event: "call.notification" in this case
+   * @type {string}
+   * @memberof CallRingEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallRingEvent
+   */
+  user: UserResponse;
 }
 /**
  * This event is sent when a call session ends
@@ -2173,13 +2216,13 @@ export interface GetOrCreateCallRequest {
    */
   members_limit?: number;
   /**
-   *
+   * if provided it sends a notification event to the members for this call
    * @type {boolean}
    * @memberof GetOrCreateCallRequest
    */
   notify?: boolean;
   /**
-   * if provided it overrides the default ring setting for this call
+   * if provided it sends a ring event to the members for this call
    * @type {boolean}
    * @memberof GetOrCreateCallRequest
    */
@@ -2615,6 +2658,12 @@ export interface NotificationSettings {
   call_notification: EventNotificationSettings;
   /**
    *
+   * @type {EventNotificationSettings}
+   * @memberof NotificationSettings
+   */
+  call_ring: EventNotificationSettings;
+  /**
+   *
    * @type {boolean}
    * @memberof NotificationSettings
    */
@@ -2644,6 +2693,12 @@ export interface NotificationSettingsRequest {
    * @memberof NotificationSettingsRequest
    */
   call_notification?: EventNotificationSettingsRequest;
+  /**
+   *
+   * @type {EventNotificationSettingsRequest}
+   * @memberof NotificationSettingsRequest
+   */
+  call_ring?: EventNotificationSettingsRequest;
   /**
    *
    * @type {boolean}
@@ -3982,6 +4037,7 @@ export type VideoEvent =
   | ({ type: 'call.recording_started' } & CallRecordingStartedEvent)
   | ({ type: 'call.recording_stopped' } & CallRecordingStoppedEvent)
   | ({ type: 'call.rejected' } & CallRejectedEvent)
+  | ({ type: 'call.ring' } & CallRingEvent)
   | ({ type: 'call.session_ended' } & CallSessionEndedEvent)
   | ({
       type: 'call.session_participant_joined';
