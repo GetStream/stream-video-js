@@ -137,10 +137,10 @@ export class Publisher {
 
     if (!transceiver) {
       const metadata = this.state.metadata;
-      const maxBitrate = metadata?.settings.video.target_resolution.bitrate;
+      const targetResolution = metadata?.settings.video.target_resolution;
       const videoEncodings =
         trackType === TrackType.VIDEO
-          ? findOptimalVideoLayers(track, maxBitrate)
+          ? findOptimalVideoLayers(track, targetResolution)
           : undefined;
 
       const codecPreferences = this.getCodecPreferences(
@@ -360,7 +360,7 @@ export class Publisher {
     await this.publisher.setLocalDescription(offer);
 
     const metadata = this.state.metadata;
-    const maxBitrate = metadata?.settings.video.target_resolution.bitrate;
+    const targetResolution = metadata?.settings.video.target_resolution;
     const trackInfos = this.publisher
       .getTransceivers()
       .filter((t) => t.direction === 'sendonly' && !!t.sender.track)
@@ -374,7 +374,7 @@ export class Publisher {
         const track = transceiver.sender.track!;
         const optimalLayers =
           trackType === TrackType.VIDEO
-            ? findOptimalVideoLayers(track, maxBitrate)
+            ? findOptimalVideoLayers(track, targetResolution)
             : trackType === TrackType.SCREEN_SHARE
             ? findOptimalScreenSharingLayers(track)
             : [];
