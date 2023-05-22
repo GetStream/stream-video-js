@@ -35,17 +35,18 @@ export const ToggleAudioButton = () => {
 
   const handleRequestPermission = useCallback(
     async (permission: OwnCapability) => {
-      if (call?.permissionsContext.canRequest(permission)) {
-        setIsAwaitingApproval(true);
-        try {
-          await call.requestPermissions({ permissions: [permission] });
-        } catch (error) {
-          if (error instanceof AxiosError) {
-            console.log(
-              'RequestPermissions failed',
-              error.response?.data.message,
-            );
-          }
+      if (!call?.permissionsContext.canRequest(permission)) {
+        return;
+      }
+      setIsAwaitingApproval(true);
+      try {
+        await call.requestPermissions({ permissions: [permission] });
+      } catch (error) {
+        if (error instanceof AxiosError) {
+          console.log(
+            'RequestPermissions failed',
+            error.response?.data.message,
+          );
         }
       }
     },
@@ -53,15 +54,15 @@ export const ToggleAudioButton = () => {
   );
 
   const handleToggleAudioButton = () => {
-    if (!userHasSendAudioCapability) {
-      if (!isAwaitingApproval) {
-        handleRequestPermission(OwnCapability.SEND_AUDIO);
-      } else {
-        Alert.alert('Awaiting for an approval to speak.');
-      }
+    if (userHasSendAudioCapability) {
+      toggleAudioMuted();
       return;
     }
-    toggleAudioMuted();
+    if (!isAwaitingApproval) {
+      handleRequestPermission(OwnCapability.SEND_AUDIO);
+    } else {
+      Alert.alert('Awaiting for an approval to speak.');
+    }
   };
 
   return (

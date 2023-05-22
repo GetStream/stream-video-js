@@ -29,17 +29,18 @@ export const ToggleVideoButton = () => {
 
   const handleRequestPermission = useCallback(
     async (permission: OwnCapability) => {
-      if (call?.permissionsContext.canRequest(permission)) {
-        setIsAwaitingApproval(true);
-        try {
-          await call.requestPermissions({ permissions: [permission] });
-        } catch (error) {
-          if (error instanceof AxiosError) {
-            console.log(
-              'RequestPermissions failed',
-              error.response?.data.message,
-            );
-          }
+      if (!call?.permissionsContext.canRequest(permission)) {
+        return;
+      }
+      setIsAwaitingApproval(true);
+      try {
+        await call.requestPermissions({ permissions: [permission] });
+      } catch (error) {
+        if (error instanceof AxiosError) {
+          console.log(
+            'RequestPermissions failed',
+            error.response?.data.message,
+          );
         }
       }
     },
@@ -53,15 +54,15 @@ export const ToggleVideoButton = () => {
   });
 
   const handleToggleVideoButton = () => {
-    if (!userHasSendVideoCapability) {
-      if (!isAwaitingApproval) {
-        handleRequestPermission(OwnCapability.SEND_VIDEO);
-      } else {
-        Alert.alert('Awaiting for an approval to share your video.');
-      }
+    if (userHasSendVideoCapability) {
+      toggleVideoMuted();
       return;
     }
-    toggleVideoMuted();
+    if (!isAwaitingApproval) {
+      handleRequestPermission(OwnCapability.SEND_VIDEO);
+    } else {
+      Alert.alert('Awaiting for an approval to share your video.');
+    }
   };
 
   return (

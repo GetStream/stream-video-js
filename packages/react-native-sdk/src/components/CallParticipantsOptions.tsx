@@ -74,12 +74,6 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
     SfuModels.TrackType.AUDIO,
   );
 
-  console.log({
-    userHasBlockUserCapability,
-    userHasMuteUsersCapability,
-    userHasUpdateCallPermissionsCapability,
-  });
-
   const callMediaStreamMutePermissions: (CallParticipantOptionType | null)[] =
     userHasMuteUsersCapability
       ? [
@@ -174,6 +168,9 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
         </View>
         <View style={styles.options}>
           {options.map((option, index) => {
+            if (!option) {
+              return null;
+            }
             const applyBottomPadding =
               index < options.length - 1 ? styles.borderBottom : null;
 
@@ -182,9 +179,6 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
               onCloseParticipantOptions();
             };
 
-            if (!option) {
-              return null;
-            }
             return (
               <Pressable
                 style={[applyBottomPadding, styles.option]}

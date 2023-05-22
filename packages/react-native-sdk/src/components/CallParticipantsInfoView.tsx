@@ -72,7 +72,6 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
             <VideoSlash color={theme.light.error} />
           </View>
         )}
-        {/* Disablling it until we support permissions */}
         {!participantIsLoggedInUser && (
           <View style={[styles.svgContainerStyle, theme.icon.sm]}>
             <ArrowRight color={theme.light.text_high_emphasis} />
