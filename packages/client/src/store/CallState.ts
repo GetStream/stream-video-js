@@ -605,29 +605,6 @@ export class CallState {
   };
 
   /**
-   * Updates a participant in the current call identified by the given `sessionId`.
-   * If a participant with matching `sessionId` can't be found, the provided
-   * `participant` is added to the list of participants.
-   *
-   * @param sessionId the session ID of the participant to update.
-   * @param participant the participant to update or add.
-   */
-  updateOrAddParticipant = (
-    sessionId: string,
-    participant: StreamVideoParticipant,
-  ) => {
-    if (!this.findParticipantBySessionId(sessionId)) {
-      return this.setParticipants((participants) => [
-        ...participants,
-        participant,
-      ]);
-    }
-    return this.setParticipants((participants) =>
-      participants.map((p) => (p.sessionId === sessionId ? participant : p)),
-    );
-  };
-
-  /**
    * Updates all participants in the current call whose session ID is in the given `sessionIds`.
    * If no patches are provided, this operation is no-op.
    *
