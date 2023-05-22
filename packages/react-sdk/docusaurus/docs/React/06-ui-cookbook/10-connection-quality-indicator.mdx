@@ -15,7 +15,7 @@ In this guide you'll learn how to build and implement your own primitive connect
 
 ### How to reach the state
 
-Each (`StreamVideoParticipant`)[TODO: link] has a `connectionQuality` property which by itself is just a number representation of values in a `SfuModels.ConnectionQuality` enum. To get readable format out of it we'll just pass the `connectionQuality` variable as a key to said enum:
+Each (`StreamVideoParticipant`)[TODO: link] has a `connectionQuality` property which by itself is just a numeric representation of values in a `SfuModels.ConnectionQuality` enum. To get a readable format out of it we'll just pass the `connectionQuality` variable as a key to said enum:
 
 ```tsx
 import { SfuModels } from '@stream-io/video-react-sdk';
@@ -28,7 +28,7 @@ console.log(readableConnectionQuality); // -> EXCELLENT
 
 ### Connection quality indicator component
 
-You'll most likely be displaying this indicator component inside each participant box ((ParticipantView)[TODO: link]) within a call layout, you can learn more about `ParticipantViewUI` customizations in [this guide](./14-participant-view-customizations.mdx).
+You'll most likely be displaying this indicator component inside each participant box ((ParticipantView)[TODO: link]) within a call layout, you can learn more about `ParticipantViewUI` customizations in [the participant view customizations guide](./14-participant-view-customizations.mdx).
 
 ```tsx
 import {
@@ -44,12 +44,12 @@ const ConnectionQualityIndicator = ({
 
   return (
     <span>
-      {'⭐️'.repeat(connectionQuality)} - {readableConnectionQuality}
+      {'⭐️'.repeat(participant.connectionQuality)} - {readableConnectionQuality}
     </span>
   );
 };
 
-// pass it down to call layout components or directly to ParticipantView component
+// pass down to call layout components or directly to ParticipantView component in your own call layout
 const CustomParticipantViewUI = ({ participant }: ParticipantViewUIProps) => (
   <>
     <ConnectionQualityIndicator participant={participant} />
