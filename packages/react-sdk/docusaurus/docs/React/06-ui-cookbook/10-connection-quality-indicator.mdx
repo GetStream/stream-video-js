@@ -1,0 +1,59 @@
+---
+id: connection-quality-indicator
+title: Connection Quality Indicator
+---
+
+## Introduction
+
+Network conditions are not always perfect so instead of playing guessing games as to why is someone's video so blurry our default `ParticipantViewUI` component comes equipped with connection quality indicator which provides general information about that participants network conditions in three states:
+
+- poor
+- good
+- excellent
+
+In this guide you'll learn how to build and implement your own primitive connection quality indicator.
+
+### How to reach the state
+
+Each (`StreamVideoParticipant`)[TODO: link] has a `connectionQuality` property which by itself is just a number representation of values in a `SfuModels.ConnectionQuality` enum. To get readable format out of it we'll just pass the `connectionQuality` variable as a key to said enum:
+
+```tsx
+import { SfuModels } from '@stream-io/video-react-sdk';
+
+const readableConnectionQuality =
+  SfuModels.ConnectionQuality[participant.connectionQuality];
+
+console.log(readableConnectionQuality); // -> EXCELLENT
+```
+
+### Connection quality indicator component
+
+You'll most likely be displaying this indicator component inside each participant box ((ParticipantView)[TODO: link]) within a call layout, you can learn more about `ParticipantViewUI` customizations in [this guide](./14-participant-view-customizations.mdx).
+
+```tsx
+import {
+  SfuModels,
+  type ParticipantViewUIProps,
+} from '@stream-io/video-react-sdk';
+
+const ConnectionQualityIndicator = ({
+  participant,
+}: ParticipantViewUIProps) => {
+  const readableConnectionQuality =
+    SfuModels.ConnectionQuality[participant.connectionQuality];
+
+  return (
+    <span>
+      {'⭐️'.repeat(connectionQuality)} - {readableConnectionQuality}
+    </span>
+  );
+};
+
+// pass it down to call layout components or directly to ParticipantView component
+const CustomParticipantViewUI = ({ participant }: ParticipantViewUIProps) => (
+  <>
+    <ConnectionQualityIndicator participant={participant} />
+    {/* other UI components... */}
+  </>
+);
+```
