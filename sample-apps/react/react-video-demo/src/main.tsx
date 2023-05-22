@@ -7,7 +7,7 @@ import * as Sentry from '@sentry/react';
 import './index.css';
 import TagManager from 'react-gtm-module';
 
-if (import.meta.env.MODE === 'production') {
+if (import.meta.env.MODE === 'production' && import.meta.env.VITE_GTM_ID) {
   const tagManagerArgs = {
     gtmId: import.meta.env.VITE_GTM_ID,
     dataLayer: {
