@@ -66,10 +66,6 @@ export const Participant: FC<Props> = ({ className, call, participant }) => {
     reaction,
   } = participant;
 
-  const [trackedElement, setTrackedElement] = useState<HTMLDivElement | null>(
-    null,
-  );
-
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
 
@@ -78,27 +74,6 @@ export const Participant: FC<Props> = ({ className, call, participant }) => {
     String(SfuModels.ConnectionQuality[connectionQuality]).toLowerCase();
 
   const isPinned = !!participant.pinnedAt;
-
-  useEffect(() => {
-    if (!trackedElement) return;
-
-    const unobserve = call.viewportTracker.observe(trackedElement, (entry) => {
-      call.state.updateParticipant(sessionId, (p) => ({
-        ...p,
-        viewportVisibilityState: entry.isIntersecting
-          ? VisibilityState.VISIBLE
-          : VisibilityState.INVISIBLE,
-      }));
-    });
-
-    return () => {
-      unobserve();
-      call.state.updateParticipant(sessionId, (p) => ({
-        ...p,
-        viewportVisibilityState: VisibilityState.UNKNOWN,
-      }));
-    };
-  }, [trackedElement, call.viewportTracker, call.state, sessionId]);
 
   const rootClassNames = classnames(
     styles.root,
@@ -140,7 +115,6 @@ export const Participant: FC<Props> = ({ className, call, participant }) => {
     <ParticipantView
       participant={participant}
       className={rootClassNames}
-      ref={setTrackedElement}
       ParticipantViewUI={
         <Overlay
           connectionQuality={connectionQualityAsString}
