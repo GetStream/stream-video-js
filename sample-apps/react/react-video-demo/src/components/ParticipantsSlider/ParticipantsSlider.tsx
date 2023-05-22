@@ -152,6 +152,7 @@ export const ParticipantsSlider: FC<Props> = ({
                   call={call}
                   className={participantClassName}
                   participant={participant}
+                  slider={derivedMode}
                 />
               </SwiperSlide>
             );
