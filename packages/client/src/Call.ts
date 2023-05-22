@@ -707,7 +707,12 @@ export class Call {
             this.streamClient.options.preferredVideoCodec,
           ),
         )
-        .then((sdp) => sfuClient.join({ subscriberSdp: sdp || '' }));
+        .then((sdp) =>
+          sfuClient.join({
+            subscriberSdp: sdp || '',
+            clientDetails,
+          }),
+        );
 
       // 2. in parallel, wait for the SFU to send us the "joinResponse"
       // this will throw an error if the SFU rejects the join request or
