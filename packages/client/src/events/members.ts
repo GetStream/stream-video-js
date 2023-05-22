@@ -5,7 +5,7 @@ import { CallState } from '../store';
  * Watches for `call.member_added` events.
  */
 export const watchCallMemberAdded = (state: CallState) => {
-  return function onCallRecordingStarted(event: StreamVideoEvent) {
+  return function onCallMemberAdded(event: StreamVideoEvent) {
     if (event.type !== 'call.member_added') return;
     state.setMembers((members) => [...members, ...event.members]);
   };
@@ -15,7 +15,7 @@ export const watchCallMemberAdded = (state: CallState) => {
  * Watches for `call.member_removed` events.
  */
 export const watchCallMemberRemoved = (state: CallState) => {
-  return function onCallRecordingStarted(event: StreamVideoEvent) {
+  return function onCallMemberRemoved(event: StreamVideoEvent) {
     if (event.type !== 'call.member_removed') return;
     state.setMembers((members) =>
       members.filter((m) => event.members.indexOf(m.user_id) === -1),
@@ -27,7 +27,7 @@ export const watchCallMemberRemoved = (state: CallState) => {
  * Watches for `call.member_updated_permission` events.
  */
 export const watchCallMemberUpdatedPermission = (state: CallState) => {
-  return function onCallRecordingStarted(event: StreamVideoEvent) {
+  return function onCallMemberUpdated(event: StreamVideoEvent) {
     if (event.type !== 'call.member_updated_permission') return;
     state.setMembers((members) =>
       members.map((member) => {
@@ -48,7 +48,7 @@ export const watchCallMemberUpdatedPermission = (state: CallState) => {
  * Watches for `call.member_updated` events.
  */
 export const watchCallMemberUpdated = (state: CallState) => {
-  return function onCallRecordingStarted(event: StreamVideoEvent) {
+  return function onCallMemberUpdated(event: StreamVideoEvent) {
     if (event.type !== 'call.member_updated') return;
     state.setMembers((members) =>
       members.map((member) => {
