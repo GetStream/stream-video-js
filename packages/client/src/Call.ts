@@ -1016,7 +1016,7 @@ export class Call {
   };
 
   /**
-   * Resets the last sent reaction for the user holding the given `sessionId`.
+   * Resets the last sent reaction for the user holding the given `sessionId`. This is a local action, it won't reset the reaction on the backend.
    *
    * @param sessionId the session id.
    */

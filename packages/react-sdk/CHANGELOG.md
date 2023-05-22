@@ -2,6 +2,39 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.58](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.57...@stream-io/video-react-sdk-0.0.1-alpha.58) (2023-05-19)
+
+
+
+## [0.0.1-alpha.57](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.56...@stream-io/video-react-sdk-0.0.1-alpha.57) (2023-05-19)
+
+
+
+## [0.0.1-alpha.56](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.55...@stream-io/video-react-sdk-0.0.1-alpha.56) (2023-05-19)
+
+
+
+## [0.0.1-alpha.55](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.54...@stream-io/video-react-sdk-0.0.1-alpha.55) (2023-05-19)
+
+
+
+## [0.0.1-alpha.54](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.53...@stream-io/video-react-sdk-0.0.1-alpha.54) (2023-05-19)
+
+
+
+## [0.0.1-alpha.53](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.52...@stream-io/video-react-sdk-0.0.1-alpha.53) (2023-05-19)
+
+
+
+## [0.0.1-alpha.52](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.51...@stream-io/video-react-sdk-0.0.1-alpha.52) (2023-05-18)
+
+
+### Features
+
+* server-side defaults for mic and camera ([#519](https://github.com/GetStream/stream-video-js/issues/519)) ([30c248e](https://github.com/GetStream/stream-video-js/commit/30c248edaca74888a2bfeaa1bb1c2599ad8a5c2f))
+
+
+
 ## [0.0.1-alpha.51](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.50...@stream-io/video-react-sdk-0.0.1-alpha.51) (2023-05-18)
 
 

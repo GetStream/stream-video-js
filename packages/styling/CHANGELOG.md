@@ -2,6 +2,34 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.36](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.35...@stream-io/video-styling-0.0.1-alpha.36) (2023-05-19)
+
+
+
+## [0.0.1-alpha.35](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.34...@stream-io/video-styling-0.0.1-alpha.35) (2023-05-19)
+
+
+
+## [0.0.1-alpha.34](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.33...@stream-io/video-styling-0.0.1-alpha.34) (2023-05-19)
+
+
+
+## [0.0.1-alpha.33](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.32...@stream-io/video-styling-0.0.1-alpha.33) (2023-05-19)
+
+
+
+## [0.0.1-alpha.32](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.31...@stream-io/video-styling-0.0.1-alpha.32) (2023-05-19)
+
+
+
+## [0.0.1-alpha.31](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.30...@stream-io/video-styling-0.0.1-alpha.31) (2023-05-19)
+
+
+
+## [0.0.1-alpha.30](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.29...@stream-io/video-styling-0.0.1-alpha.30) (2023-05-18)
+
+
+
 ## [0.0.1-alpha.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.28...@stream-io/video-styling-0.0.1-alpha.29) (2023-05-18)
 
 
