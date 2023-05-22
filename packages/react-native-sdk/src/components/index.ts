@@ -9,5 +9,5 @@ export * from './CallParticipantsView';
 export * from './CallControlsView';
 export * from './CallParticipantsInfoView';
 export * from './LobbyView';
-export * from './PermissionsNotification';
+export * from './PermissionNotification';
 export * from './ReactionsModal';

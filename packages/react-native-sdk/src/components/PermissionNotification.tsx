@@ -1,13 +1,8 @@
 import { AxiosError, OwnCapability } from '@stream-io/video-client';
 import { useCall, useHasPermissions } from '@stream-io/video-react-bindings';
-import {
-  PropsWithChildren,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable } from 'react-native';
+import { usePrevious } from '../utils/usePrevious';
 
 export type PermissionNotificationProps = PropsWithChildren<{
   /**
@@ -43,7 +38,7 @@ export const PermissionNotification = (props: PermissionNotificationProps) => {
     children,
   } = props;
   const hasPermission = useHasPermissions(permission);
-  const previousHasPermission = useRef(hasPermission);
+  const previousHasPermission = usePrevious(hasPermission);
 
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
   const call = useCall();
@@ -67,19 +62,17 @@ export const PermissionNotification = (props: PermissionNotificationProps) => {
   }, [hasPermission]);
 
   useEffect(() => {
-    if (hasPermission && !previousHasPermission.current) {
-      previousHasPermission.current = true;
+    if (hasPermission && !previousHasPermission) {
       showGrantedNotification();
-    } else if (!hasPermission && previousHasPermission.current) {
-      previousHasPermission.current = false;
+    } else if (!hasPermission && previousHasPermission) {
       showRevokedNotification();
     } else if (!hasPermission && isAwaitingApproval) {
-      previousHasPermission.current = false;
       showApprovalRequestNotification();
     }
   }, [
     isAwaitingApproval,
     hasPermission,
+    previousHasPermission,
     showGrantedNotification,
     showRevokedNotification,
     showApprovalRequestNotification,
@@ -88,16 +81,16 @@ export const PermissionNotification = (props: PermissionNotificationProps) => {
   const handleRequestPermission = useCallback(async () => {
     if (call?.permissionsContext.canRequest(permission)) {
       setIsAwaitingApproval(true);
-      await call
-        .requestPermissions({ permissions: [permission] })
-        .catch((error) => {
-          if (error instanceof AxiosError) {
-            console.log(
-              'RequestPermissions failed',
-              error.response?.data.message,
-            );
-          }
-        });
+      try {
+        await call.requestPermissions({ permissions: [permission] });
+      } catch (error) {
+        if (error instanceof AxiosError) {
+          console.log(
+            'RequestPermissions failed',
+            error.response?.data.message,
+          );
+        }
+      }
     }
   }, [call, permission]);
 

@@ -3,10 +3,10 @@ import { useCall, useHasPermissions } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
 
-export const PermissionRequests = () => {
+export const usePermissionsRequest = () => {
   const call = useCall();
 
-  const canUpdateCallPermissions = useHasPermissions(
+  const userHasUpdateCallPermissionsCapability = useHasPermissions(
     OwnCapability.UPDATE_CALL_PERMISSIONS,
   );
 
@@ -27,11 +27,14 @@ export const PermissionRequests = () => {
     (request: PermissionRequestEvent, allow: boolean) => {
       return async () => {
         const { user, permissions } = request;
-        console.log({ allow, user, permissions });
-        if (allow) {
-          await call?.grantPermissions(user.id, permissions);
-        } else {
-          await call?.revokePermissions(user.id, permissions);
+        try {
+          if (allow) {
+            await call?.grantPermissions(user.id, permissions);
+          } else {
+            await call?.revokePermissions(user.id, permissions);
+          }
+        } catch (err) {
+          console.log(err);
         }
       };
     },
@@ -39,7 +42,7 @@ export const PermissionRequests = () => {
   );
 
   useEffect(() => {
-    if (!call || !canUpdateCallPermissions) return;
+    if (!call || !userHasUpdateCallPermissionsCapability) return;
     return call.on('call.permission_request', (event) => {
       if (event.type !== 'call.permission_request') return;
       const { user, permissions } = event;
@@ -60,7 +63,5 @@ export const PermissionRequests = () => {
         );
       });
     });
-  }, [call, canUpdateCallPermissions, handleUpdatePermission]);
-
-  return <></>;
+  }, [call, userHasUpdateCallPermissionsCapability, handleUpdatePermission]);
 };

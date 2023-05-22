@@ -13,11 +13,11 @@ import {
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
 import { OwnCapability } from '@stream-io/video-client';
-import { PermissionNotification } from './PermissionsNotification';
+import { PermissionNotification } from './PermissionNotification';
 import {
   Restricted,
   useCall,
-  useOwnCapabilities,
+  useHasPermissions,
 } from '@stream-io/video-react-bindings';
 import { useCallback, useState } from 'react';
 import { ReactionModal } from './ReactionsModal';
@@ -42,7 +42,12 @@ export const CallControlsView = () => {
     toggleCameraFacingMode,
   } = useCallControls();
   const call = useCall();
-  const ownCapabilities = useOwnCapabilities();
+  const userHasSendVideoCapability = useHasPermissions(
+    OwnCapability.SEND_VIDEO,
+  );
+  const userHasSendAudioCapability = useHasPermissions(
+    OwnCapability.SEND_AUDIO,
+  );
 
   const handleHangUpCall = () => call?.leave();
   const muteStatusColor = (status: boolean) => {
@@ -87,7 +92,7 @@ export const CallControlsView = () => {
             onPress={toggleVideoMuted}
             color={muteStatusColor(isVideoMuted)}
             style={!isVideoMuted ? styles.button : null}
-            disabled={!ownCapabilities.includes(OwnCapability.SEND_VIDEO)}
+            disabled={!userHasSendVideoCapability}
           >
             {isVideoMuted ? (
               <VideoSlash color={theme.light.static_white} />
@@ -109,7 +114,7 @@ export const CallControlsView = () => {
             onPress={toggleAudioMuted}
             color={muteStatusColor(isAudioMuted)}
             style={!isAudioMuted ? styles.button : null}
-            disabled={!ownCapabilities.includes(OwnCapability.SEND_AUDIO)}
+            disabled={!userHasSendAudioCapability}
           >
             {isAudioMuted ? (
               <MicOff color={theme.light.static_white} />
