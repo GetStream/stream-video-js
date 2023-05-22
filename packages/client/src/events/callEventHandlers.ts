@@ -4,7 +4,6 @@ import { CallState } from '../store';
 import {
   watchAudioLevelChanged,
   watchBlockedUser,
-  watchCallAccepted,
   watchCallBroadcastingStarted,
   watchCallBroadcastingStopped,
   watchCallEnded,
@@ -75,7 +74,6 @@ export const registerEventHandlers = (
 
 export const registerRingingCallEventHandlers = (call: Call) => {
   const eventHandlers = [
-    call.on('call.accepted', watchCallAccepted(call)),
     call.on('call.rejected', watchCallRejected(call)),
     call.on('call.ended', watchCallEnded(call)),
   ];
