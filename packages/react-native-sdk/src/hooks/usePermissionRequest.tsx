@@ -3,7 +3,7 @@ import { useCall, useHasPermissions } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
 
-export const usePermissionsRequest = () => {
+export const usePermissionRequest = () => {
   const call = useCall();
 
   const userHasUpdateCallPermissionsCapability = useHasPermissions(

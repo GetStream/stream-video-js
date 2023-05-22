@@ -2,7 +2,7 @@ import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
 import { CallingState } from '@stream-io/video-client';
 import { CallCycleHandlersType } from '../providers';
-import { usePrevious } from '../utils/usePrevious';
+import { usePrevious } from '../utils/hooks/usePrevious';
 
 const NON_ACTIVE_CALLING_STATES = [CallingState.UNKNOWN, CallingState.IDLE];
 /**

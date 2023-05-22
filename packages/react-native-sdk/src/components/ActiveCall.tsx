@@ -10,7 +10,7 @@ import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
 import { useIncallManager } from '../hooks/useIncallManager';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
-import { usePermissionsRequest } from '../hooks/usePermissionRequest';
+import { usePermissionRequest } from '../hooks/usePermissionRequest';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { verifyAndroidBluetoothPermissions } from '../utils/verifyAndroidBluetoothPermissions';
 
@@ -57,7 +57,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
 
   useIncallManager({ media: 'video', auto: true });
   usePublishMediaStreams();
-  usePermissionsRequest();
+  usePermissionRequest();
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     setHeight(

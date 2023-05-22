@@ -1,5 +1,6 @@
 import { Call, User, UserResponse } from '@stream-io/video-client';
 import { MAX_AVATARS_IN_VIEW } from '../constants';
+import { theme } from '../theme';
 
 // Utility to join strings with commas and 'and'
 export const generateCallTitle = (memberUserIds: string[]) => {
@@ -56,6 +57,10 @@ export const getMembersForIncomingCall = (
   members.push(callCreatedBy);
 
   return members;
+};
+
+export const muteStatusColor = (status: boolean) => {
+  return status ? theme.light.overlay_dark : theme.light.static_white;
 };
 
 export * from './StreamVideoRN';

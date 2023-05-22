@@ -1,26 +1,14 @@
 import { StyleSheet, View } from 'react-native';
 import { useCallControls } from '../hooks/useCallControls';
-import {
-  CameraSwitch,
-  Chat,
-  Mic,
-  MicOff,
-  PhoneDown,
-  Reaction,
-  Video,
-  VideoSlash,
-} from '../icons';
+import { CameraSwitch, Chat, PhoneDown, Reaction } from '../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
 import { OwnCapability } from '@stream-io/video-client';
-import { PermissionNotification } from './PermissionNotification';
-import {
-  Restricted,
-  useCall,
-  useHasPermissions,
-} from '@stream-io/video-react-bindings';
+import { Restricted, useCall } from '@stream-io/video-react-bindings';
 import { useCallback, useState } from 'react';
 import { ReactionModal } from './ReactionsModal';
+import { ToggleAudioButton } from './ToggleAudioButton';
+import { ToggleVideoButton } from './ToggleVideoButton';
 
 /**
  * Shows a list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
@@ -33,21 +21,10 @@ import { ReactionModal } from './ReactionsModal';
 export const CallControlsView = () => {
   const [isReactionModalActive, setIsReactionModalActive] =
     useState<boolean>(false);
-  const {
-    isAudioMuted,
-    isVideoMuted,
-    isCameraOnFrontFacingMode,
-    toggleVideoMuted,
-    toggleAudioMuted,
-    toggleCameraFacingMode,
-  } = useCallControls();
+
+  const { isCameraOnFrontFacingMode, toggleCameraFacingMode } =
+    useCallControls();
   const call = useCall();
-  const userHasSendVideoCapability = useHasPermissions(
-    OwnCapability.SEND_VIDEO,
-  );
-  const userHasSendAudioCapability = useHasPermissions(
-    OwnCapability.SEND_AUDIO,
-  );
 
   const handleHangUpCall = () => call?.leave();
   const muteStatusColor = (status: boolean) => {
@@ -81,49 +58,8 @@ export const CallControlsView = () => {
       >
         <Chat color={theme.light.static_black} />
       </CallControlsButton>
-      <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
-        <PermissionNotification
-          permission={OwnCapability.SEND_VIDEO}
-          messageApproved="You can now share your video."
-          messageAwaitingApproval="Awaiting for an approval to share your video."
-          messageRevoked="You can no longer share your video."
-        >
-          <CallControlsButton
-            onPress={toggleVideoMuted}
-            color={muteStatusColor(isVideoMuted)}
-            style={!isVideoMuted ? styles.button : null}
-            disabled={!userHasSendVideoCapability}
-          >
-            {isVideoMuted ? (
-              <VideoSlash color={theme.light.static_white} />
-            ) : (
-              <Video color={theme.light.static_black} />
-            )}
-          </CallControlsButton>
-        </PermissionNotification>
-      </Restricted>
-
-      <PermissionNotification
-        permission={OwnCapability.SEND_AUDIO}
-        messageApproved="You can now speak."
-        messageAwaitingApproval="Awaiting for an approval to speak."
-        messageRevoked="You can no longer speak."
-      >
-        <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
-          <CallControlsButton
-            onPress={toggleAudioMuted}
-            color={muteStatusColor(isAudioMuted)}
-            style={!isAudioMuted ? styles.button : null}
-            disabled={!userHasSendAudioCapability}
-          >
-            {isAudioMuted ? (
-              <MicOff color={theme.light.static_white} />
-            ) : (
-              <Mic color={theme.light.static_black} />
-            )}
-          </CallControlsButton>
-        </Restricted>
-      </PermissionNotification>
+      <ToggleVideoButton />
+      <ToggleAudioButton />
       <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
         <CallControlsButton
           onPress={toggleCameraFacingMode}
