@@ -53,13 +53,13 @@ export const ToggleAudioButton = () => {
     [call],
   );
 
-  const handleToggleAudioButton = () => {
+  const handleToggleAudioButton = async () => {
     if (userHasSendAudioCapability) {
-      toggleAudioMuted();
+      await toggleAudioMuted();
       return;
     }
     if (!isAwaitingApproval) {
-      handleRequestPermission(OwnCapability.SEND_AUDIO);
+      await handleRequestPermission(OwnCapability.SEND_AUDIO);
     } else {
       Alert.alert('Awaiting for an approval to speak.');
     }

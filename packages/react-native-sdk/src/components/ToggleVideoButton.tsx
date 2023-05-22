@@ -53,13 +53,13 @@ export const ToggleVideoButton = () => {
     messageRevoked: 'You can no longer share your video.',
   });
 
-  const handleToggleVideoButton = () => {
+  const handleToggleVideoButton = async () => {
     if (userHasSendVideoCapability) {
-      toggleVideoMuted();
+      await toggleVideoMuted();
       return;
     }
     if (!isAwaitingApproval) {
-      handleRequestPermission(OwnCapability.SEND_VIDEO);
+      await handleRequestPermission(OwnCapability.SEND_VIDEO);
     } else {
       Alert.alert('Awaiting for an approval to share your video.');
     }

@@ -46,7 +46,7 @@ export const usePermissionRequest = () => {
     return call.on('call.permission_request', (event) => {
       if (event.type !== 'call.permission_request') return;
       const { user, permissions } = event;
-      permissions.map((permission) => {
+      permissions.forEach((permission) => {
         return Alert.alert(
           'Permissions Request',
           messageForPermission(user.name ?? user.id, permission),
