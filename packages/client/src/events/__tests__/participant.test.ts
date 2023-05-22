@@ -122,8 +122,14 @@ describe('Participant events', () => {
       const handler = watchTrackPublished(dispatcher, state);
       expect(handler).toBeDefined();
 
-      // @ts-ignore setup one participant
-      state.setParticipants([{ sessionId: 'session-id', publishedTracks: [] }]);
+      state.setParticipants([
+        // @ts-ignore setup one participant
+        {
+          sessionId: 'session-id',
+          publishedTracks: [],
+          screenShareDimension: { width: 100, height: 100 },
+        },
+      ]);
 
       dispatcher.dispatch({
         eventPayload: {
@@ -146,6 +152,7 @@ describe('Participant events', () => {
         userId: 'user-id',
         sessionId: 'session-id',
         publishedTracks: [TrackType.VIDEO, TrackType.AUDIO],
+        screenShareDimension: { width: 100, height: 100 },
       });
     });
   });
@@ -221,6 +228,7 @@ describe('Participant events', () => {
           userId: 'user-id',
           sessionId: 'session-id',
           publishedTracks: [TrackType.AUDIO, TrackType.VIDEO],
+          videoDimension: { width: 10, height: 10 },
         },
       ]);
 
@@ -247,6 +255,7 @@ describe('Participant events', () => {
         sessionId: 'session-id',
         trackLookupPrefix: 'track-lookup-prefix',
         publishedTracks: [TrackType.VIDEO],
+        videoDimension: { width: 10, height: 10 },
       });
     });
   });

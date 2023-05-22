@@ -623,7 +623,15 @@ export class CallState {
       ]);
     }
     return this.setParticipants((participants) =>
-      participants.map((p) => (p.sessionId === sessionId ? participant : p)),
+      participants.map((p) => {
+        if (p.sessionId === sessionId) {
+          return {
+            ...p,
+            ...participant,
+          };
+        }
+        return p;
+      }),
     );
   };
 
