@@ -56,7 +56,7 @@ export const registerEventHandlers = (
   dispatcher: Dispatcher,
 ) => {
   const coordinatorEvents: {
-    [key in AllCallEvents]: (e: StreamCallEvent) => void;
+    [key in AllCallEvents]: (e: StreamCallEvent) => any;
   } = {
     'call.blocked_user': watchBlockedUser(state),
     'call.broadcasting_started': watchCallBroadcastingStarted(state),
@@ -117,7 +117,7 @@ export const registerEventHandlers = (
 
 export const registerRingingCallEventHandlers = (call: Call) => {
   const coordinatorRingEvents: {
-    [key in RingCallEvents]: (e: StreamCallEvent) => void;
+    [key in RingCallEvents]: (e: StreamCallEvent) => any;
   } = {
     'call.accepted': watchCallAccepted(call),
     'call.rejected': watchCallRejected(call),
