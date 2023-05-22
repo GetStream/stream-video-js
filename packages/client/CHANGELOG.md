@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.170](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.169...client0.0.1-alpha.170) (2023-05-22)
+
+
+### Features
+
+* missing WS events and endpoints ([#527](https://github.com/GetStream/stream-video-js/issues/527)) ([1bb49f4](https://github.com/GetStream/stream-video-js/commit/1bb49f479485007dcc505066694d2e463ab00777))
+
+
+
 ## [0.0.1-alpha.169](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.168...client0.0.1-alpha.169) (2023-05-22)
 
 
