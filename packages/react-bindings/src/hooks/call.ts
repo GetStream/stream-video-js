@@ -22,6 +22,16 @@ export const useIsCallBroadcastingInProgress = () => {
 };
 
 /**
+ * Utility hook which provides information whether the current call is live.
+ *
+ * @category Call State
+ */
+export const useIsCallLive = () => {
+  const metadata = useCallMetadata();
+  return !metadata?.backstage;
+};
+
+/**
  * Utility hook which provides a boolean indicating whether there is
  * a participant in the current call which shares their screen.
  *

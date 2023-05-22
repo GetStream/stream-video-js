@@ -34,6 +34,7 @@ import {
   MuteUsersRequest,
   MuteUsersResponse,
   OwnCapability,
+  QueryMembersRequest,
   RequestPermissionRequest,
   RequestPermissionResponse,
   SendEventRequest,
@@ -355,6 +356,7 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = async ({ reject = false }: CallLeaveOptions = {}) => {
+    // TODO: handle case when leave is called during JOINING
     const callingState = this.state.callingState;
     if (callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
@@ -706,7 +708,12 @@ export class Call {
             this.streamClient.options.preferredVideoCodec,
           ),
         )
-        .then((sdp) => sfuClient.join({ subscriberSdp: sdp || '' }));
+        .then((sdp) =>
+          sfuClient.join({
+            subscriberSdp: sdp || '',
+            clientDetails,
+          }),
+        );
 
       // 2. in parallel, wait for the SFU to send us the "joinResponse"
       // this will throw an error if the SFU rejects the join request or
@@ -1389,6 +1396,19 @@ export class Call {
   setParticipantPinnedAt = (sessionId: string, pinnedAt?: number): void => {
     this.state.updateParticipant(sessionId, {
       pinnedAt,
+    });
+  };
+
+  /**
+   * Query call members with filter query. The result won't be stored in call state.
+   * @param request
+   * @returns
+   */
+  queryMembers = (request: Omit<QueryMembersRequest, 'type' | 'id'>) => {
+    return this.streamClient.post<QueryMembersRequest>('/call/members', {
+      ...request,
+      id: this.id,
+      type: this.type,
     });
   };
 
