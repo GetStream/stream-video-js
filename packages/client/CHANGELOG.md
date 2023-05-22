@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.169](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.168...client0.0.1-alpha.169) (2023-05-22)
+
+
+### Bug Fixes
+
+* Revert "feat: Participant information from track events" ([#532](https://github.com/GetStream/stream-video-js/issues/532)) ([4a00166](https://github.com/GetStream/stream-video-js/commit/4a00166986b176aedac2a92eed1c03686cdf23d9)), closes [GetStream/stream-video-js#526](https://github.com/GetStream/stream-video-js/issues/526)
+
+
+
 ## [0.0.1-alpha.168](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.167...client0.0.1-alpha.168) (2023-05-22)
 
 
