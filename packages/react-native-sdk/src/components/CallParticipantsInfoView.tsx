@@ -1,8 +1,24 @@
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
-import { useParticipants } from '@stream-io/video-react-bindings';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
-import { MicOff, ScreenShare, VideoSlash } from '../icons';
-import React, { useState } from 'react';
+import {
+  OwnCapability,
+  SfuModels,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
+import {
+  Restricted,
+  useCall,
+  useConnectedUser,
+  useParticipants,
+} from '@stream-io/video-react-bindings';
+import {
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { ArrowRight, MicOff, ScreenShare, VideoSlash } from '../icons';
+import React, { useCallback, useState } from 'react';
 import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
@@ -16,14 +32,13 @@ type CallParticipantInfoViewType = {
 };
 
 const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
-  const {
-    participant,
-    //  setSelectedParticipant
-  } = props;
+  const { participant, setSelectedParticipant } = props;
+  const connectedUser = useConnectedUser();
+  const participantIsLoggedInUser = participant.userId === connectedUser?.id;
 
-  // const optionsOpenHandler = useCallback(() => {
-  //   setSelectedParticipant(participant);
-  // }, [participant, setSelectedParticipant]);
+  const optionsOpenHandler = useCallback(() => {
+    if (!participantIsLoggedInUser) setSelectedParticipant(participant);
+  }, [participant, setSelectedParticipant, participantIsLoggedInUser]);
 
   if (!participant) return null;
   const { publishedTracks } = participant;
@@ -32,16 +47,14 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   const isScreenSharing = publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
   );
-  const showYouLabel = participant.isLoggedInUser;
 
   return (
-    <View style={styles.participant}>
+    <Pressable style={styles.participant} onPress={optionsOpenHandler}>
       <Avatar radius={theme.avatar.xs} participant={participant} />
 
       <Text style={styles.name}>
-        {participant.name ||
-          generateParticipantTitle(participant.userId) +
-            (showYouLabel ? ' (You)' : '')}
+        {(participant.name || generateParticipantTitle(participant.userId)) +
+          (participantIsLoggedInUser ? ' (You)' : '')}
       </Text>
       <View style={styles.icons}>
         {isScreenSharing && (
@@ -59,12 +72,13 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
             <VideoSlash color={theme.light.error} />
           </View>
         )}
-        {/* Disablling it until we support permissions */}
-        {/* <Pressable style={[styles.svgContainerStyle, theme.icon.sm]} onPress={optionsOpenHandler}>
-          <ArrowRight color={theme.light.text_high_emphasis} />
-        </Pressable> */}
+        {!participantIsLoggedInUser && (
+          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+            <ArrowRight color={theme.light.text_high_emphasis} />
+          </View>
+        )}
       </View>
-    </View>
+    </Pressable>
   );
 };
 
@@ -85,9 +99,26 @@ const InnerCallParticipantsInfoView = () => {
   const [selectedParticipant, setSelectedParticipant] = useState<
     StreamVideoParticipant | undefined
   >(undefined);
+  const call = useCall();
+
+  const muteAllParticipantsHandler = async () => {
+    try {
+      await call?.muteAllUsers('audio');
+      Alert.alert('Users Muted Successfully');
+    } catch (error) {
+      console.log('Error muting users', error);
+    }
+  };
 
   return (
     <>
+      <View style={styles.buttonGroup}>
+        <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
+          <Pressable style={styles.button} onPress={muteAllParticipantsHandler}>
+            <Text style={styles.buttonText}>Mute All</Text>
+          </Pressable>
+        </Restricted>
+      </View>
       <FlatList
         data={participants}
         keyExtractor={(item) => `participant-info-${item.sessionId}`}
@@ -111,6 +142,18 @@ const InnerCallParticipantsInfoView = () => {
 };
 
 const styles = StyleSheet.create({
+  buttonGroup: {},
+  button: {
+    backgroundColor: theme.light.primary,
+    borderRadius: theme.rounded.lg,
+    padding: theme.padding.md,
+    margin: theme.margin.lg,
+  },
+  buttonText: {
+    textAlign: 'center',
+    color: theme.light.static_white,
+    ...theme.fonts.subtitleBold,
+  },
   participant: {
     paddingHorizontal: theme.padding.sm,
     paddingVertical: theme.padding.xs,

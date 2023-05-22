@@ -11,6 +11,7 @@ import type {
 import type { StreamClient } from './coordinator/connection/client';
 import type { Comparator } from './sorting';
 import type { StreamVideoWriteableStateStore } from './store';
+import { AxiosError } from 'axios';
 
 export type StreamReaction = Pick<
   ReactionResponse,
@@ -211,3 +212,5 @@ export type CallConstructor = {
  * The options to pass to {@link Call.join} method.
  */
 export type JoinCallData = Omit<JoinCallRequest, 'location'>;
+
+export { AxiosError };
