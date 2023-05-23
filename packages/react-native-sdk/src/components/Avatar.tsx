@@ -42,6 +42,7 @@ export const Avatar = (props: AvatarProps) => {
   const imageUrl = image;
   return (
     <View
+      accessibilityLabel={'participant-avatar'}
       style={{
         ...styles.container,
         borderRadius: radius / 2,
