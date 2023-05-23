@@ -444,9 +444,14 @@ export class Call {
   /**
    * Loads the information about the call.
    */
-  get = async () => {
+  get = async (params?: {
+    ring?: boolean;
+    notify?: boolean;
+    members_limit?: number;
+  }) => {
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
+      params,
     );
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
@@ -470,10 +475,6 @@ export class Call {
       GetOrCreateCallRequest
     >(this.streamClientBasePath, data);
 
-    if (data?.ring && !this.ringing) {
-      this.ringingSubject.next(true);
-    }
-
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
 
@@ -483,6 +484,14 @@ export class Call {
     }
 
     return response;
+  };
+
+  ring = async (): Promise<GetCallResponse> => {
+    return await this.get({ ring: true });
+  };
+
+  notify = async (): Promise<GetCallResponse> => {
+    return await this.get({ notify: true });
   };
 
   /**
@@ -501,16 +510,6 @@ export class Call {
 
     const previousCallingState = this.state.callingState;
     this.state.setCallingState(CallingState.JOINING);
-
-    if (data?.ring && !this.ringing) {
-      this.ringingSubject.next(true);
-    }
-
-    if (this.ringing && !this.isCreatedByMe) {
-      // Signals other users that I have accepted the incoming call.
-      // Causes the `call.accepted` event to be emitted to all the call members.
-      await this.sendEvent({ type: 'call.accepted' });
-    }
 
     let sfuServer: SFUResponse;
     let sfuToken: string;
@@ -1489,5 +1488,13 @@ export class Call {
       `${this.streamClientBasePath}/event`,
       event,
     );
+  };
+
+  accept = async () => {
+    return this.streamClient.post(`${this.streamClientBasePath}/accept`);
+  };
+
+  reject = async () => {
+    return this.streamClient.post(`${this.streamClientBasePath}/reject`);
   };
 }

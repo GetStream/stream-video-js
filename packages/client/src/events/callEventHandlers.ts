@@ -82,6 +82,10 @@ export const registerEventHandlers = (
       console.log(`Received ${event.type} event`, event),
     'call.unblocked_user': watchUnblockedUser(state),
     'call.updated': watchCallUpdated(state),
+    'call.notification': (event: StreamCallEvent) =>
+      console.log(`Received ${event.type} event`, event),
+    'call.ring': (event: StreamCallEvent) =>
+      console.log(`Received ${event.type} event`, event),
   };
   const eventHandlers = [
     watchChangePublishQuality(dispatcher, call),

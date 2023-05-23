@@ -99,7 +99,7 @@ export class StreamVideoClient {
     // FIXME: OL: unregister the event listeners.
     this.on('call.created', (event: StreamVideoEvent) => {
       if (event.type !== 'call.created') return;
-      const { call, members, ringing } = event;
+      const { call, members } = event;
       if (user.id === call.created_by.id) {
         console.warn('Received `call.created` sent by the current user');
         return;
@@ -112,7 +112,7 @@ export class StreamVideoClient {
           id: call.id,
           metadata: call,
           members,
-          ringing,
+          ringing: false, //TODO: remove ringing from here
           clientStore: this.writeableStateStore,
         }),
       );
@@ -177,13 +177,13 @@ export class StreamVideoClient {
    * Creates a new call.
    *
    * @param type the type of the call.
-   * @param id the id of the call.
+   * @param id the id of the call, if not provided a unique random value is used
    */
   call = (type: string, id: string) => {
     return new Call({
       streamClient: this.streamClient,
-      id,
-      type,
+      id: id,
+      type: type,
       clientStore: this.writeableStateStore,
     });
   };
