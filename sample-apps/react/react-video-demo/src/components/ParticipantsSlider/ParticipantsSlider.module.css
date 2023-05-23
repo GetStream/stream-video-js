@@ -39,9 +39,7 @@
 }
 
 .slide.horizontal {
-  max-height: 150px;
-  min-width: 30%;
-  max-width: 55%;
+  @apply min-w-[30%] max-w-[55%] max-h-[125px];
 }
 
 @media screen(md) {

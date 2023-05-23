@@ -20,8 +20,14 @@
 }
 
 .disabledPreview {
-  @apply flex items-center justify-center text-video-white text-sm bg-video-grey-700 w-full h-[275px];
+  @apply flex items-center justify-center text-video-white text-sm bg-video-grey-700 w-full h-[190px];
   border-radius: 10px;
+}
+
+@media screen(md) {
+  .disabledPreview {
+    @apply h-[275px];
+  }
 }
 
 .fallbackAvatar {
