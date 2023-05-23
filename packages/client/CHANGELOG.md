@@ -5,6 +5,15 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 ## [0.0.1-alpha.174](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.173...client0.0.1-alpha.174) (2023-05-23)
 
 
+### Features
+
+* conditional target video bitrate downscaling ([#537](https://github.com/GetStream/stream-video-js/issues/537)) ([134341b](https://github.com/GetStream/stream-video-js/commit/134341b213d690e78de87f30cf0751e24ae64ca4)), closes [#516](https://github.com/GetStream/stream-video-js/issues/516)
+
+
+
+## [0.0.1-alpha.174](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.173...client0.0.1-alpha.174) (2023-05-23)
+
+
 
 ## [0.0.1-alpha.173](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.172...client0.0.1-alpha.173) (2023-05-23)
 
