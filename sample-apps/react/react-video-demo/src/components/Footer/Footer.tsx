@@ -66,7 +66,7 @@ export const Footer: FC<Props> = ({
   } = usePanelContext();
 
   useEffect(() => {
-    if (isVisible) {
+    if (isVisible && isSettingsVisible) {
       toggleSettings();
     }
   }, [isVisible]);

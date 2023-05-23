@@ -1,6 +1,7 @@
 .root {
   @apply flex flex-col bg-video-grey-500 rounded-container  mb-4;
   box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+  pointer-events: initial;
 }
 
 .header {
