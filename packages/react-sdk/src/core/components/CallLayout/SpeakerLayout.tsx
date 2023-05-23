@@ -17,8 +17,8 @@ import {
 } from '@stream-io/video-react-bindings';
 
 import {
-  ParticipantView,
   DefaultParticipantViewUI,
+  ParticipantView,
   ParticipantViewProps,
   ParticipantViewUIProps,
 } from '../ParticipantView';
@@ -165,8 +165,8 @@ export const SpeakerLayout = ({
   );
 };
 
-const hasScreenShare = (p: StreamVideoParticipant) =>
-  p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
+const hasScreenShare = (p?: StreamVideoParticipant) =>
+  !!p?.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 
 const loggedIn: Comparator<StreamVideoParticipant> = (a, b) => {
   if (a.isLoggedInUser) return 1;

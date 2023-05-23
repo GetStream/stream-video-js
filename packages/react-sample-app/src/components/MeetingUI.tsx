@@ -1,5 +1,5 @@
 import {
-  CallControls,
+  DefaultCallControls,
   DeviceSettings,
   Stage,
   useCall,
@@ -15,7 +15,7 @@ export const MeetingUI = () => {
         <DeviceSettings />
       </div>
       <Stage call={activeCall} />
-      <CallControls call={activeCall} />
+      <DefaultCallControls />
     </div>
   );
 };

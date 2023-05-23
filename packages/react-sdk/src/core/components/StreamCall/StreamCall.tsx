@@ -64,7 +64,7 @@ export type StreamCallProps = InitStreamCall & {
    * <StreamCall callId="call-id" callType="call-type" autoLoad>
    *   <CallMetadata /> // has access to `call.metadata` although not joined yet
    *   <CallUI />
-   *   <CallControls />
+   *   <DefaultCallControls />
    * </StreamCall>
    * ```
    *

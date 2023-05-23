@@ -168,7 +168,7 @@ In the UI component we heavily rely on the [`Call` object](../../call-engine/Cal
 ```tsx
 import { useEffect, useMemo } from 'react';
 import {
-  CallControls,
+  DefaultCallControls,
   CallingState,
   CallParticipantsView,
   LoadingIndicator,
@@ -211,7 +211,7 @@ export const UI = () => {
             <h4 className="str-video__call__header-title">Call: {call.cid}</h4>
           </div>
           <CallParticipantsView call={call} />
-          <CallControls call={call} />
+          <DefaultCallControls />
         </div>
       ) : callingState === CallingState.JOINING ? (
         <LoadingIndicator text="Connecting ..." />

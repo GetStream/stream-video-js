@@ -1,5 +1,5 @@
 import {
-  CallControls,
+  DefaultCallControls,
   DeviceSettings,
   Stage,
   useCall,
@@ -30,10 +30,7 @@ export const MeetingUI = ({ children }: PropsWithChildren) => {
       </div>
       <Stage call={activeCall} />
       <div className="relative flex justify-center items-center">
-        <CallControls
-          call={activeCall}
-          onLeave={() => navigate('/call/lobby')}
-        />
+        <DefaultCallControls onLeave={() => navigate('/call/lobby')} />
         {children}
       </div>
     </div>
