@@ -3,6 +3,26 @@ import { StreamVideoEvent } from '../coordinator/connection/types';
 import { Call } from '../Call';
 
 /**
+ * Event handler that watched the delivery of `call.accepted`.
+ * Once the event is received, the call is joined.
+ */
+export const watchCallAccepted = (call: Call) => {
+  return async function onCallAccepted(event: StreamVideoEvent) {
+    if (
+      event.type !== 'call.accepted' ||
+      // We want to discard the event if it's from the current user
+      event.user.id === call.currentUserId
+    ) {
+      return;
+    }
+    const { state } = call;
+    if (state.callingState === CallingState.RINGING) {
+      await call.join();
+    }
+  };
+};
+
+/**
  * Event handler that watches delivery of `call.rejected` Websocket event.
  * Once the event is received, the call is left.
  */
