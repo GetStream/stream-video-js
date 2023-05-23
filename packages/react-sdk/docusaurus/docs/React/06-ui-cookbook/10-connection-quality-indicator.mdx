@@ -11,7 +11,7 @@ Network conditions are not always perfect so instead of playing guessing games a
 - good
 - excellent
 
-In this guide you'll learn how to build and implement your own primitive connection quality indicator.
+In this guide we'll learn how to build and implement our own primitive connection quality indicator.
 
 ### How to reach the state
 
@@ -49,7 +49,6 @@ const ConnectionQualityIndicator = ({
   );
 };
 
-// pass down to call layout components or directly to ParticipantView component in your own call layout
 const CustomParticipantViewUI = ({ participant }: ParticipantViewUIProps) => (
   <>
     <ConnectionQualityIndicator participant={participant} />
@@ -57,3 +56,7 @@ const CustomParticipantViewUI = ({ participant }: ParticipantViewUIProps) => (
   </>
 );
 ```
+
+## Final steps
+
+Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the aforementioned [participant view customizations guide](./14-participant-view-customization.mdx).
