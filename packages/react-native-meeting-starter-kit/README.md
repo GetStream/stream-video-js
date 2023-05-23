@@ -33,6 +33,7 @@ The following are the installation steps to run the application:
 
 The following are the steps to run the E2E tests:
 
+- Install [maestro](https://github.com/mobile-dev-inc/maestro) CLI tool
 - Install [stream-video-buddy](https://github.com/GetStream/stream-video-buddy) CLI tool
 - Launch the simulator and install the test app
 - Authorize stream-video-buddy by running `stream-video-buddy auth`
