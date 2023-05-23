@@ -13,13 +13,13 @@ This guide shows how to create, join, leave, and end call rooms and ring calls. 
 
 <SDKSpecific name="react">
 
-The easiest way to join a call is to use the `StreamMeeting` component:
+The easiest way to join a call is to use the `StreamCall` component:
 
 ```tsx
 import {
   CallingState,
   useCreateStreamVideoClient,
-  StreamMeeting,
+  StreamCall,
   StreamVideo,
   useCall,
   useCallCallingState,
@@ -37,14 +37,15 @@ export default function App() {
   });
   return (
     <StreamVideo client={client}>
-      <StreamMeeting
+      <StreamCall
         callType="default"
         callId="test-call"
         autoJoin={true}
+        autoLoad={true}
         data={{ create: true }}
       >
         <MeetingUI />
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   );
 }
@@ -64,7 +65,16 @@ const MeetingUI = () => {
 
 You can configure the call using the `data` props, see below for more information on the possible options.
 
-If you set the `autoJoin` prop to `false` the call won't be joined (nor will it be created if it's a new call).
+If you set the `autoJoin` prop to `false` the call won't be joined.
+
+Please also note the `autoLoad` prop. If set to `true` (the default value), the call will be created and loaded from our backend automatically.
+If set to `false`, you will need to either join the call or explicitly invoke `call.get() / getOrCreate()` in order to load its metadata from our backend.
+
+:::note
+By loading a call, the call will be automatically subscribed to receive WebSocket events from our backend although it hasn't been joined yet.
+
+This is useful if you want to show come call information on the UI before joining the call.
+:::
 
 </SDKSpecific>
 
@@ -136,7 +146,7 @@ The easiest way to watch for incoming and outgoing calls is to use the [`useCall
 import {
   CallingState,
   useCreateStreamVideoClient,
-  StreamMeeting,
+  StreamCall,
   StreamVideo,
   useCall,
   useCallCallingState,
@@ -166,9 +176,9 @@ const Calls = () => {
     <>
       {calls.map((call) => (
         // Note that we set autoJoin to false, as the joining is handled by the signal flow, it's not automatical
-        <StreamMeeting call={call} autoJoin={false} key={call.cid}>
+        <StreamCall call={call} autoJoin={false} key={call.cid}>
           <CallUI></CallUI>
-        </StreamMeeting>
+        </StreamCall>
       ))}
     </>
   );

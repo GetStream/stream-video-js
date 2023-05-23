@@ -83,7 +83,7 @@ export const SettingsPanel: FC<Props> = ({
           {screenfull.isEnabled && (
             <li className={styles.item} onClick={handleFullScreen}>
               <FullScreen className={styles.settingsIcon} />
-              {screenfull.isEnabled ? 'Exit full screen' : 'Full screen'}
+              {screenfull.isFullscreen ? 'Exit full screen' : 'Full screen'}
             </li>
           )}
           <li className={styles.item} onClick={() => handleToggleCallState()}>

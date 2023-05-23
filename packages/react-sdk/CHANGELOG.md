@@ -2,6 +2,109 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.69](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.68...@stream-io/video-react-sdk-0.0.1-alpha.69) (2023-05-23)
+
+
+
+## [0.0.1-alpha.68](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.67...@stream-io/video-react-sdk-0.0.1-alpha.68) (2023-05-23)
+
+
+
+## [0.0.1-alpha.67](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.66...@stream-io/video-react-sdk-0.0.1-alpha.67) (2023-05-23)
+
+
+
+## [0.0.1-alpha.66](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.65...@stream-io/video-react-sdk-0.0.1-alpha.66) (2023-05-23)
+
+
+
+## [0.0.1-alpha.65](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.64...@stream-io/video-react-sdk-0.0.1-alpha.65) (2023-05-23)
+
+
+
+## [0.0.1-alpha.64](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.63...@stream-io/video-react-sdk-0.0.1-alpha.64) (2023-05-22)
+
+
+
+## [0.0.1-alpha.63](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.62...@stream-io/video-react-sdk-0.0.1-alpha.63) (2023-05-22)
+
+
+
+## [0.0.1-alpha.62](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.61...@stream-io/video-react-sdk-0.0.1-alpha.62) (2023-05-22)
+
+
+### Features
+
+* missing WS events and endpoints ([#527](https://github.com/GetStream/stream-video-js/issues/527)) ([1bb49f4](https://github.com/GetStream/stream-video-js/commit/1bb49f479485007dcc505066694d2e463ab00777))
+
+
+
+## [0.0.1-alpha.61](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.60...@stream-io/video-react-sdk-0.0.1-alpha.61) (2023-05-22)
+
+
+
+## [0.0.1-alpha.60](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.59...@stream-io/video-react-sdk-0.0.1-alpha.60) (2023-05-22)
+
+
+
+## [0.0.1-alpha.59](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.58...@stream-io/video-react-sdk-0.0.1-alpha.59) (2023-05-22)
+
+
+
+## [0.0.1-alpha.58](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.57...@stream-io/video-react-sdk-0.0.1-alpha.58) (2023-05-19)
+
+
+
+## [0.0.1-alpha.57](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.56...@stream-io/video-react-sdk-0.0.1-alpha.57) (2023-05-19)
+
+
+
+## [0.0.1-alpha.56](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.55...@stream-io/video-react-sdk-0.0.1-alpha.56) (2023-05-19)
+
+
+
+## [0.0.1-alpha.55](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.54...@stream-io/video-react-sdk-0.0.1-alpha.55) (2023-05-19)
+
+
+
+## [0.0.1-alpha.54](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.53...@stream-io/video-react-sdk-0.0.1-alpha.54) (2023-05-19)
+
+
+
+## [0.0.1-alpha.53](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.52...@stream-io/video-react-sdk-0.0.1-alpha.53) (2023-05-19)
+
+
+
+## [0.0.1-alpha.52](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.51...@stream-io/video-react-sdk-0.0.1-alpha.52) (2023-05-18)
+
+
+### Features
+
+* server-side defaults for mic and camera ([#519](https://github.com/GetStream/stream-video-js/issues/519)) ([30c248e](https://github.com/GetStream/stream-video-js/commit/30c248edaca74888a2bfeaa1bb1c2599ad8a5c2f))
+
+
+
+## [0.0.1-alpha.51](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.50...@stream-io/video-react-sdk-0.0.1-alpha.51) (2023-05-18)
+
+
+
+## [0.0.1-alpha.50](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.49...@stream-io/video-react-sdk-0.0.1-alpha.50) (2023-05-18)
+
+
+
+## [0.0.1-alpha.49](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.48...@stream-io/video-react-sdk-0.0.1-alpha.49) (2023-05-17)
+
+
+
+## [0.0.1-alpha.48](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.47...@stream-io/video-react-sdk-0.0.1-alpha.48) (2023-05-17)
+
+
+### Features
+
+* Support for server-side driven stream resolution ([#516](https://github.com/GetStream/stream-video-js/issues/516)) ([cae1169](https://github.com/GetStream/stream-video-js/commit/cae11695fe4aa11bd5e168b00ffd6ea35e2524a2))
+
+
+
 ## [0.0.1-alpha.47](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.46...@stream-io/video-react-sdk-0.0.1-alpha.47) (2023-05-17)
 
 

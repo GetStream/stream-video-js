@@ -69,7 +69,7 @@ export const VideoPreview = ({
   useEffect(() => {
     if (!initialVideoState.enabled) return;
 
-    getVideoStream(selectedVideoDeviceId)
+    getVideoStream({ deviceId: selectedVideoDeviceId })
       .then((s) => {
         setStream((previousStream) => {
           if (previousStream) {

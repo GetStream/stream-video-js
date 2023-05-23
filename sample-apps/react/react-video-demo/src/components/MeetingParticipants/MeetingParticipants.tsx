@@ -5,6 +5,7 @@ import {
   useLocalParticipant,
   useRemoteParticipants,
   StreamVideoParticipant,
+  useParticipants,
 } from '@stream-io/video-react-sdk';
 
 import { SfuModels } from '@stream-io/video-client';
@@ -29,6 +30,8 @@ export const MeetingParticipants: FC<Props> = ({
   const [maxParticipants, setMaxParticipants] = useState<number>();
   const localParticipant = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
+
+  const [participantInSpotlight, ...otherParticipants] = useParticipants();
 
   const breakpoint = useBreakpoint();
 
@@ -62,12 +65,11 @@ export const MeetingParticipants: FC<Props> = ({
     return (
       <div className={rootClassNames}>
         <div className={gridClassNames}>
-          {localParticipant && (
+          {participantInSpotlight && (
             <Participant
               call={call}
               className={localParticipantClassNames}
-              participant={localParticipant}
-              sinkId={localParticipant.audioOutputDeviceId}
+              participant={participantInSpotlight}
             />
           )}
 
@@ -97,7 +99,7 @@ export const MeetingParticipants: FC<Props> = ({
               <ParticipantsSlider
                 call={call}
                 mode="horizontal"
-                participants={remoteParticipants}
+                participants={otherParticipants}
               />
             </div>
           )}

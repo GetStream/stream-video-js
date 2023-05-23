@@ -14,7 +14,7 @@ import {
   VisibilityState,
 } from '@stream-io/video-client';
 import { theme } from '../theme';
-import { useDebouncedValue } from '../utils/useDebouncedValue';
+import { useDebouncedValue } from '../utils/hooks/useDebouncedValue';
 import { useCall } from '@stream-io/video-react-bindings';
 
 type FlatListProps = React.ComponentProps<

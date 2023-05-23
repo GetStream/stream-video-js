@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StreamMeeting } from '@stream-io/video-react-sdk';
+import { StreamCall } from '@stream-io/video-react-sdk';
 import { useParams } from 'react-router-dom';
 
 import { MeetingUI } from './MeetingUI';
@@ -10,7 +10,7 @@ export const Call = () => {
   const [chatOpen, setChatOpen] = useState(false);
   return (
     <div className="flex w-full h-full">
-      <StreamMeeting
+      <StreamCall
         callId={callId!}
         callType="default"
         data={{ create: true }}
@@ -24,7 +24,7 @@ export const Call = () => {
             {chatOpen ? 'Close' : 'Open'} chat
           </button>
         </MeetingUI>
-      </StreamMeeting>
+      </StreamCall>
 
       {chatOpen && <ChatSidebar />}
     </div>

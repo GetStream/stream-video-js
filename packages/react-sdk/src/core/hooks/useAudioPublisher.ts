@@ -47,7 +47,9 @@ export const useAudioPublisher = ({
       throw new Error(`No permission to publish audio`);
     }
     try {
-      const audioStream = await getAudioStream(audioDeviceId);
+      const audioStream = await getAudioStream({
+        deviceId: audioDeviceId,
+      });
       await call.publishAudioStream(audioStream);
     } catch (e) {
       console.log('Failed to publish audio stream', e);
@@ -95,14 +97,18 @@ export const useAudioPublisher = ({
         // We need to stop the original track first in order
         // we can retrieve the new default device stream
         track.stop();
-        const audioStream = await getAudioStream('default');
+        const audioStream = await getAudioStream({
+          deviceId: 'default',
+        });
         await call.publishAudioStream(audioStream);
       },
     );
 
     const handleTrackEnded = async () => {
       if (selectedAudioDeviceId === audioDeviceId) {
-        const audioStream = await getAudioStream(audioDeviceId);
+        const audioStream = await getAudioStream({
+          deviceId: audioDeviceId,
+        });
         await call.publishAudioStream(audioStream);
       }
     };

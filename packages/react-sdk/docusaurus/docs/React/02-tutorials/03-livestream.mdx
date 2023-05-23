@@ -33,7 +33,7 @@ Before going into the code, let's make sure we have everything we need.
 ## Step 2 - Setup the host mode
 
 Hosts will communicate with each other in real-time.
-For that purpose, we will use the SDK-provided `<StreamMeeting /`> component to establish a WebRTC-based call for the hosts.
+For that purpose, we will use the SDK-provided `<StreamCall /`> component to establish a WebRTC-based call for the hosts.
 
 :::note
 In this tutorial, we will skip the details on how a `StreamVideoClient` can be set up. You can read more about it on the following page:
@@ -53,7 +53,7 @@ import {
   useMediaDevices,
   CancelCallButton,
   PaginatedGridLayout,
-  StreamMeeting,
+  StreamCall,
   StreamVideo,
   ToggleAudioPublishingButton,
   ToggleCameraPublishingButton,
@@ -70,7 +70,7 @@ export const HostApp = () => {
 
   return (
     <StreamVideo client={client}>
-      <StreamMeeting
+      <StreamCall
         callType="livestream"
         callId="some-random-call-id"
         autoJoin={true}
@@ -83,7 +83,7 @@ export const HostApp = () => {
         }}
       >
         <BackstageUI />
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   )
 }
@@ -145,7 +145,7 @@ The button should be able to toggle the live stream on and off. For that purpose
 - [`useCall`](../04-call-engine/hooks-and-contexts.md#usecall) and
 - [`useIsCallBroadcastingInProgress`](../04-call-engine/hooks-and-contexts.md#useiscallbroadcastinginprogress)
 
-The `useCall` hook provides us with the current call object. This is useful when we want to access the call object from a component that is deep in the component tree with the `<StreamMeeting />` component as a predecessor.
+The `useCall` hook provides us with the current call object. This is useful when we want to access the call object from a component that is deep in the component tree with the `<StreamCall />` component as a predecessor.
 
 On the other hand, the `useIsCallBroadcastingInProgress` hook gives us the current broadcasting state of the call. This is helpful when we want to show the current state of the live stream or build custom UI components or flows based on this call state.
 
@@ -199,7 +199,7 @@ A viewer can join a live stream in two ways:
 
 ### WebRTC-based live streaming
 
-For the WebRTC, we are going to use the same `<StreamMeeting />` component as in the host mode. The only difference is that we are going to use an anonymous user for the viewer.
+For the WebRTC, we are going to use the same `<StreamCall />` component as in the host mode. The only difference is that we are going to use an anonymous user for the viewer.
 
 :::caution
 
@@ -218,7 +218,7 @@ import {
   CallingState,
   LoadingIndicator,
   PaginatedGridLayout,
-  StreamMeeting,
+  StreamCall,
   StreamVideo,
 } from '@stream-io/video-react-sdk';
 
@@ -255,9 +255,9 @@ export const ViewerApp = (props) => {
 
   return (
     <StreamVideo client={client}>
-      <StreamMeeting call={activeCall} autoJoin={true}>
+      <StreamCall call={activeCall} autoJoin={true}>
         <WebRTCLivestreamUI />
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   );
 };
@@ -302,14 +302,14 @@ export const ViewerApp = () => {
   const [activeCall] = client.queryCalls({...});
   return (
     <StreamVideo client={client}>
-      <StreamMeeting
+      <StreamCall
         call={activeCall}
         // we don't want to join this call, as that would switch to WebRTC-based live streaming.
         // we are going to use HLS.js to play the live stream
         autoJoin={false}
       >
         <HLSLivestreamUI />
-      </StreamMeeting>
+      </StreamCall>
     </StreamVideo>
   )
 }

@@ -5,13 +5,6 @@ description: Explanation of call permissions and moderation features
 
 import SDKSpecific from '../SDKSpecific';
 
-:::warning
-This page needs more refinement, concretely:
-
-- Give a conceptual overview of our permission system (roles, app vs call level roles, how own_capabilities is computed)
-
-:::
-
 ## Introduction
 
 In many types of calls, there is a requirement for providing different users with certain permissions and capabilities.
@@ -19,6 +12,23 @@ A typical example is a webinar where the host wants to control who can speak or 
 
 The Stream Video SDK provides a certain set of permissions and capabilities
 that can be used to control the behavior of participants in a call.
+
+## Conceptual overview
+
+### Roles
+
+The Stream Video API allows assigning roles to users. Each user has a global role, and they will also have a call-level role for each call they join. The Stream Video API provides a set of predefined roles, but it's also possible to create your own roles.
+
+### Call types
+
+[Call types](../../guides/10-configuring-call-types/) also allow for a more granular control system:
+
+- you can enable/disable certain features on a call type level
+- you can configure how each call-level role works on a call type level
+
+### Capabilities
+
+Based on a user's roles and the call type settings, we can determine which actions are allowed for a user joined to a specific call.
 
 ## Permissions
 
@@ -172,3 +182,5 @@ const ownCapabilities = useOwnCapabilities();
 ```
 
 </SDKSpecific>
+
+Capabilities will have the type [`OwnCapability`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/gen/coordinator/index.ts).

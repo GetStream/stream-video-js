@@ -19,6 +19,37 @@ export type Props = {
   call: Call;
   participant: StreamVideoParticipant;
   sinkId?: string;
+  slider?: 'horizontal' | 'vertical';
+};
+
+export const VideoPlaceholder: FC<{
+  participant: StreamVideoParticipant;
+  hasAudio: boolean;
+  sessionId: string;
+  call: Call;
+  className?: string;
+  slider?: 'horizontal' | 'vertical';
+}> = ({ participant, hasAudio, sessionId, call, className }) => {
+  const disabledPreviewClassNames = classnames(
+    className,
+    styles.disabledPreview,
+  );
+
+  return (
+    <div className={disabledPreviewClassNames}>
+      <div className={styles.fallAvatarContainer}>
+        <div className={styles.fallbackInitial}>
+          {participant.name?.split('')[0]}
+        </div>
+      </div>
+      <Overlay
+        name={participant.name}
+        hasAudio={hasAudio}
+        call={call}
+        sessionId={sessionId}
+      />
+    </div>
+  );
 };
 
 export const Overlay: FC<{
@@ -26,26 +57,37 @@ export const Overlay: FC<{
   hasAudio?: boolean;
   connectionQuality?: string | boolean;
   reaction?: StreamReaction;
-  sessionId: string;
   call: Call;
-}> = ({ name, hasAudio, connectionQuality, reaction, sessionId, call }) => {
+  sessionId: string;
+  slider?: 'horizontal' | 'vertical';
+}> = ({
+  name,
+  hasAudio,
+  connectionQuality,
+  reaction,
+  call,
+  sessionId,
+  slider,
+}) => {
+  const videoOverlayClassNames = classnames(styles.videoOverlay, {
+    [styles?.[`${slider}`]]: Boolean(slider),
+  });
   const connectionQualityClassNames = classnames(styles.connectionQualityIcon, {
     [styles?.[`${connectionQuality}`]]: Boolean(connectionQuality),
   });
 
   return (
-    <div className={styles.videoOverlay}>
-      {reaction && (
+    <div className={videoOverlayClassNames}>
+      {reaction ? (
         <Reaction
-          className={styles.reaction}
           reaction={reaction}
-          sessionId={sessionId}
+          className={styles.reaction}
           call={call}
+          sessionId={sessionId}
         />
-      )}
-
-      <div className={styles.name}>
-        {name}
+      ) : null}
+      <div className={styles.nameContainer}>
+        <div className={styles.name}>{name}</div>
         {!hasAudio ? <MicMuted className={styles.micMuted} /> : null}
       </div>
       {connectionQuality ? (
@@ -61,21 +103,16 @@ export const Participant: FC<Props> = ({
   className,
   call,
   participant,
-  sinkId,
+  slider,
 }) => {
   const {
     publishedTracks,
     isSpeaking,
     isDominantSpeaker,
     connectionQuality,
-    audioStream,
     sessionId,
     reaction,
   } = participant;
-
-  const [trackedElement, setTrackedElement] = useState<HTMLDivElement | null>(
-    null,
-  );
 
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
@@ -85,27 +122,6 @@ export const Participant: FC<Props> = ({
     String(SfuModels.ConnectionQuality[connectionQuality]).toLowerCase();
 
   const isPinned = !!participant.pinnedAt;
-
-  useEffect(() => {
-    if (!trackedElement) return;
-
-    const unobserve = call.viewportTracker.observe(trackedElement, (entry) => {
-      call.state.updateParticipant(sessionId, (p) => ({
-        ...p,
-        viewportVisibilityState: entry.isIntersecting
-          ? VisibilityState.VISIBLE
-          : VisibilityState.INVISIBLE,
-      }));
-    });
-
-    return () => {
-      unobserve();
-      call.state.updateParticipant(sessionId, (p) => ({
-        ...p,
-        viewportVisibilityState: VisibilityState.UNKNOWN,
-      }));
-    };
-  }, [trackedElement, call.viewportTracker, call.state, sessionId]);
 
   const rootClassNames = classnames(
     styles.root,
@@ -122,43 +138,42 @@ export const Participant: FC<Props> = ({
     className,
   );
 
-  const disabledPreviewClassNames = classnames(
-    className,
-    styles.disabledPreview,
-  );
+  // if (!hasVideo) {
+  //   return (
+  //     <VideoPlaceholder
+  //       call={call}
+  //       className={rootClassNames}
+  //       participant={participant}
+  //       hasAudio={hasAudio}
+  //       sessionId={sessionId}
+  //     />
+  //   );
+  // }
 
-  if (!hasVideo) {
-    return (
-      <div className={disabledPreviewClassNames}>
-        <div className={styles.fallbackAvatar}>
-          {participant.name?.split('')[0]}
+  return (
+    <ParticipantView
+      participant={participant}
+      className={rootClassNames}
+      VideoPlaceholder={() => (
+        <div className={styles.placeholder}>
+          <div className={styles.fallAvatarContainer}>
+            <div className={styles.fallbackInitial}>
+              {participant.name?.split('')[0]}
+            </div>
+          </div>
         </div>
+      )}
+      ParticipantViewUI={
         <Overlay
+          connectionQuality={connectionQualityAsString}
           name={participant.name}
           hasAudio={hasAudio}
           reaction={reaction}
           call={call}
           sessionId={sessionId}
+          slider={slider}
         />
-      </div>
-    );
-  }
-
-  return (
-    <div className={rootClassNames} ref={setTrackedElement}>
-      <ParticipantView
-        participant={participant}
-        ParticipantViewUI={
-          <Overlay
-            connectionQuality={connectionQualityAsString}
-            name={participant.name}
-            hasAudio={hasAudio}
-            reaction={reaction}
-            call={call}
-            sessionId={sessionId}
-          />
-        }
-      />
-    </div>
+      }
+    />
   );
 };

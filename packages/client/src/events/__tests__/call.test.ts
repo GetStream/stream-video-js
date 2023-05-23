@@ -148,7 +148,7 @@ describe('Call ringing events', () => {
       expect(call.leave).toHaveBeenCalled();
     });
 
-    it(`will not leave the call if joined`, async () => {
+    it(`will leave the call if joined`, async () => {
       const call = fakeCall();
       vi.spyOn(call, 'join').mockImplementation(async () => {
         console.log(`TEST: join() called`);
@@ -167,12 +167,29 @@ describe('Call ringing events', () => {
       // @ts-ignore
       await handler(event);
 
+      expect(call.leave).toHaveBeenCalled();
+    });
+
+    it(`will not leave the call if idle`, async () => {
+      const ringing = false;
+      const call = fakeCall(ringing);
+      vi.spyOn(call, 'leave').mockImplementation(async () => {
+        console.log(`TEST: leave() called`);
+      });
+
+      const handler = watchCallEnded(call);
+
+      // @ts-ignore
+      const event: CallEndedEvent = { type: 'call.ended' };
+      // @ts-ignore
+      await handler(event);
+
       expect(call.leave).not.toHaveBeenCalled();
     });
   });
 });
 
-const fakeCall = () => {
+const fakeCall = (ring = true) => {
   const store = new StreamVideoWriteableStateStore();
   store.setConnectedUser({
     id: 'test-user-id',
@@ -183,6 +200,6 @@ const fakeCall = () => {
     id: '12345',
     clientStore: store,
     streamClient: client,
-    ringing: true,
+    ringing: ring,
   });
 };

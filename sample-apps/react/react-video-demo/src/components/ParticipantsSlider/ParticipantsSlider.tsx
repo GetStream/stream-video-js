@@ -147,14 +147,13 @@ export const ParticipantsSlider: FC<Props> = ({
 
             return (
               <SwiperSlide key={index} className={slideClassName}>
-                <div key={`participant-${index}`}>
-                  <Participant
-                    key={participant.sessionId}
-                    call={call}
-                    className={participantClassName}
-                    participant={participant}
-                  />
-                </div>
+                <Participant
+                  key={participant.sessionId}
+                  call={call}
+                  className={participantClassName}
+                  participant={participant}
+                  slider={derivedMode}
+                />
               </SwiperSlide>
             );
           })}
