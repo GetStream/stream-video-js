@@ -1,0 +1,18 @@
+appId: org.reactjs.native.example.StreamReactNativeMeetingStarterKit
+---
+
+- runScript: js/call_id.js
+- runScript: js/page_objects.js
+- launchApp
+- tapOn: ${output.loginPage.sara}
+- tapOn: ${output.callDetailsPage.callIdInputField}
+- inputText: ${output.call_id}
+- tapOn: ${output.callDetailsPage.startCallButton}
+- tapOn: ${output.lobbyPage.joinButton}
+- runScript:
+     file: js/video_buddy.js
+     env:
+       call_id: ${output.call_id}
+       call_duration: 30
+       user_count: 5
+- assertVisible: "6"

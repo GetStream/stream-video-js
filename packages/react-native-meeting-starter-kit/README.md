@@ -28,3 +28,13 @@ The following are the installation steps to run the application:
 - Move to `cd packages/react-native-meeting-starter-kit`.
 - Pod install for iOS using `npx pod-install` or `cd ios && pod install`.
 - Run `yarn start` and `yarn run android` to run the application on Android, and, `yarn run ios` to run it on iOS.
+
+### Running the E2E tests
+
+The following are the steps to run the E2E tests:
+
+- Install [stream-video-buddy](https://github.com/GetStream/stream-video-buddy) CLI tool
+- Launch the simulator and install the test app
+- Authorize stream-video-buddy by running `stream-video-buddy auth`
+- Start the HTTP server by running `node e2e/server.js`
+- Start the test flow by running `maestro test e2e/flow.yaml`
