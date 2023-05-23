@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.61](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.60...@stream-io/video-react-native-sdk-0.0.1-alpha.61) (2023-05-23)
+
+
+### Features
+
+* floating local video view is draggable ([#525](https://github.com/GetStream/stream-video-js/issues/525)) ([7823220](https://github.com/GetStream/stream-video-js/commit/78232203c7fcec1ddd5770fc66f05fb5ce17338f))
+
+
+
 ## [0.0.1-alpha.60](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.59...@stream-io/video-react-native-sdk-0.0.1-alpha.60) (2023-05-22)
 
 
