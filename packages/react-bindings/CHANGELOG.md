@@ -20,6 +20,15 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 
 
 
+## [0.0.1-alpha.61](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.60...@stream-io/video-react-bindings-0.0.1-alpha.61) (2023-05-23)
+
+
+### Features
+
+* Add useCallPermissionRequest hook ([#538](https://github.com/GetStream/stream-video-js/issues/538)) ([185af85](https://github.com/GetStream/stream-video-js/commit/185af854637befc06c2e9f4bd4a816a8f1d18faf))
+
+
+
 ## [0.0.1-alpha.60](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.59...@stream-io/video-react-bindings-0.0.1-alpha.60) (2023-05-23)
 
 
