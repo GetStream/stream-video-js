@@ -1,10 +1,10 @@
 import {
+  ComponentPropsWithoutRef,
   ComponentType,
   useCallback,
   useEffect,
   useRef,
   useState,
-  ComponentPropsWithoutRef,
 } from 'react';
 import {
   DebounceType,
@@ -14,9 +14,9 @@ import {
 } from '@stream-io/video-client';
 import clsx from 'clsx';
 import {
-  VideoPlaceholder as DefaultVideoPlaceholder,
+  DefaultVideoPlaceholder,
   VideoPlaceholderProps,
-} from './VideoPlaceholder';
+} from './DefaultVideoPlaceholder';
 import { BaseVideo } from './BaseVideo';
 import { useCall } from '@stream-io/video-react-bindings';
 

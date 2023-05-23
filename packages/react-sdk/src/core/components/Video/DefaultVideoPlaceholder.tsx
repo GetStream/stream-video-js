@@ -5,7 +5,7 @@ export type VideoPlaceholderProps = {
   participant: StreamVideoParticipant;
 } & ComponentPropsWithRef<'div'>;
 
-export const VideoPlaceholder = forwardRef<
+export const DefaultVideoPlaceholder = forwardRef<
   HTMLDivElement,
   VideoPlaceholderProps
 >(({ participant, style }, ref) => {
