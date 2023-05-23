@@ -1,5 +1,12 @@
-import React from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import React, { useRef } from 'react';
+import {
+  Animated,
+  PanResponder,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { VideoRenderer } from './VideoRenderer';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
@@ -54,29 +61,59 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
+  const pan = useRef(new Animated.ValueXY()).current;
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], {
+        useNativeDriver: false,
+      }),
+      onPanResponderRelease: () => {
+        pan.extractOffset();
+      },
+    }),
+  ).current;
+
   if (!localParticipant) return null;
 
   const isVideoMuted = !localParticipant.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
   );
 
-  if (isVideoMuted && layout === 'floating') {
+  if (layout === 'fullscreen') {
     return (
-      <View style={style}>
-        <View style={styles.icon}>
-          <VideoSlash color={theme.light.static_white} />
-        </View>
-      </View>
+      <VideoRenderer
+        mirror={isCameraOnFrontFacingMode}
+        mediaStream={localParticipant.videoStream}
+        style={style}
+        zOrder={zOrder}
+      />
     );
   }
 
   return (
-    <VideoRenderer
-      mirror={isCameraOnFrontFacingMode}
-      mediaStream={localParticipant.videoStream}
-      style={style}
-      zOrder={zOrder}
-    />
+    <Animated.View
+      style={{
+        zIndex: 5,
+        transform: [{ translateX: pan.x }, { translateY: pan.y }],
+      }}
+      {...panResponder.panHandlers}
+    >
+      {isVideoMuted ? (
+        <View style={style}>
+          <View style={styles.icon}>
+            <VideoSlash color={theme.light.static_white} />
+          </View>
+        </View>
+      ) : (
+        <VideoRenderer
+          mirror={isCameraOnFrontFacingMode}
+          mediaStream={localParticipant.videoStream}
+          style={style}
+          zOrder={zOrder}
+        />
+      )}
+    </Animated.View>
   );
 };
 
