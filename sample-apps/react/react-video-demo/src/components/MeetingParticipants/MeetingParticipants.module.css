@@ -8,7 +8,7 @@
 
 @media screen(sm) {
   .root {
-    @apply max-w-[80%];
+    @apply max-w-[80%] min-w-[80%];
   }
 
   .root.slider {
@@ -17,7 +17,7 @@
 }
 
 .meetingGrid {
-  @apply grid p-4  gap-y-3 gap-x-3;
+  @apply grid p-4  gap-y-3 gap-x-3 min-w-[100%];
 }
 
 .meetingGrid.slider {
@@ -124,7 +124,7 @@
 
 .meetingGrid-2 .remoteParticipant,
 .meetingGrid-2 .localParticipant {
-  @apply w-full max-h-[225px];
+  @apply w-full max-h-[225px] h-full;
   aspect-ratio: 16/9;
 }
 

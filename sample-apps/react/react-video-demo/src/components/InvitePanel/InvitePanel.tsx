@@ -26,7 +26,12 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
 
   useEffect(() => {
     if (inputRef && inputRef.current) {
-      inputRef.current.value = `${window.location.href}`;
+      const hasId = new URL(location.href).searchParams.has('id');
+      if (hasId) {
+        inputRef.current.value = `${window.location.href}`;
+      } else {
+        inputRef.current.value = `${window.location.href}?id=${callId}`;
+      }
     }
   }, [inputRef, callId]);
 
