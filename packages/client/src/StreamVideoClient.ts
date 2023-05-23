@@ -28,7 +28,6 @@ import type {
   TokenOrProvider,
   User,
 } from './coordinator/connection/types';
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -180,10 +179,10 @@ export class StreamVideoClient {
    * @param type the type of the call.
    * @param id the id of the call, if not provided a unique random value is used
    */
-  call = (type: string, id?: string) => {
+  call = (type: string, id: string) => {
     return new Call({
       streamClient: this.streamClient,
-      id: id || uuidv4(),
+      id: id,
       type: type,
       clientStore: this.writeableStateStore,
     });
