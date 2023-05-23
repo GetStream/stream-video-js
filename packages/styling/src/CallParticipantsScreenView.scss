@@ -88,19 +88,7 @@
     }
   }
 
-  .str-video__screen-share {
-    min-height: 0;
-    object-fit: contain;
-  }
-
-  .str-video__video--wide {
-    width: 100%;
-    height: 100%;
-  }
-
-  .str-video__video--tall {
-    height: 100%;
-    width: 100%;
+  .str-video__video--screen-share {
     object-fit: contain;
   }
 }

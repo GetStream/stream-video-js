@@ -1,34 +1,21 @@
-import { useEffect, useState } from 'react';
-import {
-  StreamCallProvider,
-  useActiveCall,
-  useStreamVideoClient,
-} from '@stream-io/video-react-sdk';
+import { useState } from 'react';
+import { StreamCall } from '@stream-io/video-react-sdk';
 import { useParams } from 'react-router-dom';
 
 import { MeetingUI } from './MeetingUI';
 import { ChatSidebar } from './ChatSidebar';
 
 export const Call = () => {
-  const client = useStreamVideoClient();
   const { callId } = useParams();
   const [chatOpen, setChatOpen] = useState(false);
-  const activeCall = useActiveCall();
-
-  useEffect(() => {
-    const call = client?.call('default', callId as string);
-    const joining = call?.join({ create: true });
-
-    return () => {
-      joining?.then(() => call?.leave());
-    };
-  }, [callId, client]);
-
-  if (!activeCall) return <div>Loading...</div>;
-
   return (
     <div className="flex w-full h-full">
-      <StreamCallProvider call={activeCall}>
+      <StreamCall
+        callId={callId!}
+        callType="default"
+        data={{ create: true }}
+        autoJoin
+      >
         <MeetingUI>
           <button
             onClick={() => setChatOpen((pv) => !pv)}
@@ -37,9 +24,9 @@ export const Call = () => {
             {chatOpen ? 'Close' : 'Open'} chat
           </button>
         </MeetingUI>
+      </StreamCall>
 
-        {chatOpen && <ChatSidebar />}
-      </StreamCallProvider>
+      {chatOpen && <ChatSidebar />}
     </div>
   );
 };

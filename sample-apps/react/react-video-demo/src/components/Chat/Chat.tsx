@@ -12,6 +12,11 @@ import {
 
 import ChatInput from '../ChatInput';
 import { ChatRound } from '../Icons';
+import GiphyPreview from '../GiphyPreview';
+
+import { GiphyContextProvider } from '../../contexts/GiphyContext';
+
+import { useOverrideSubmit } from '../../utils/useOverwriteChatSubmitHandler';
 
 import 'stream-chat-react/dist/css/v2/index.css';
 import styles from './Chat.module.css';
@@ -41,6 +46,7 @@ export const NoMessages = () => {
 
 export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
   const { client, setActiveChannel } = useChatContext();
+  const overrideSubmitHandler = useOverrideSubmit();
 
   useEffect(() => {
     const channel = client.channel(channelType, channelId);
@@ -49,7 +55,11 @@ export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
   }, [channelId, client, setActiveChannel]);
 
   return (
-    <Channel Input={ChatInput} EmptyStateIndicator={NoMessages}>
+    <Channel
+      Input={() => <ChatInput />}
+      EmptyStateIndicator={NoMessages}
+      GiphyPreviewMessage={GiphyPreview}
+    >
       <Window>
         <MessageList />
         <MessageInput />
@@ -64,7 +74,9 @@ export const Chat: FC<Props> = (props) => {
 
   return (
     <StreamChat theme="str-chat__theme-dark" client={client}>
-      <ActiveChat {...props} />
+      <GiphyContextProvider>
+        <ActiveChat {...props} />
+      </GiphyContextProvider>
     </StreamChat>
   );
 };

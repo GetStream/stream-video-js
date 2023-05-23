@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from 'react';
 import { FeatureCollection, Geometry } from 'geojson';
 
-import { User } from '@stream-io/video-client';
+import { User } from '@stream-io/video-react-sdk';
 
 import LobbyPanel from '../../LobbyPanel';
 import Header from '../../Header';
@@ -25,7 +25,10 @@ export type Props = {
   joinCall(): void;
   callId: string;
   edges?: FeatureCollection<Geometry>;
-  fastestEdge: any;
+  fastestEdge?: {
+    id: string;
+    latency: number;
+  };
   isjoiningCall: boolean;
 };
 

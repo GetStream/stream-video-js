@@ -7,6 +7,7 @@
     "ios": "react-native run-ios",
     "ios-device": "react-native run-ios --device",
     "start": "react-native start",
+    "build": "tsc",
     "clean-install": "rm -rf node_modules && yarn cache clean && yarn install",
     "test": "jest",
     "lint": "eslint ."
@@ -40,7 +41,7 @@
     "react-native-url-polyfill": "^1.3.0",
     "react-native-voip-push-notification": "~3.3.1",
     "react-native-webrtc": "~106.0.4",
-    "rxjs": "~7.5.7",
+    "rxjs": "~7.8.1",
     "text-encoding-polyfill": "^0.6.7",
     "uuid": "^9.0.0"
   },

@@ -1,7 +1,11 @@
-import { useActiveCall } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
-import { getAudioStream, getVideoStream } from '@stream-io/video-client';
+import {
+  OwnCapability,
+  getAudioStream,
+  getVideoStream,
+} from '@stream-io/video-client';
 import { useEffect } from 'react';
 
 /**
@@ -10,12 +14,18 @@ import { useEffect } from 'react';
  * @category Device Management
  */
 export const usePublishMediaStreams = () => {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
   const { audioDevice, currentVideoDevice } = useMediaDevices();
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const isAudioMuted = useStreamVideoStoreValue((store) => store.isAudioMuted);
 
   useEffect(() => {
+    if (
+      !activeCall?.permissionsContext.hasPermission(OwnCapability.SEND_AUDIO)
+    ) {
+      console.log(`No permission to publish audio`);
+      return;
+    }
     if (audioDevice && !isAudioMuted) {
       getAudioStream(audioDevice.deviceId)
         .then((stream) => activeCall?.publishAudioStream(stream))
@@ -26,6 +36,12 @@ export const usePublishMediaStreams = () => {
   }, [activeCall, audioDevice, isAudioMuted]);
 
   useEffect(() => {
+    if (
+      !activeCall?.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)
+    ) {
+      console.log(`No permission to publish video`);
+      return;
+    }
     if (currentVideoDevice && !isVideoMuted) {
       getVideoStream(currentVideoDevice.deviceId)
         .then((stream) => {

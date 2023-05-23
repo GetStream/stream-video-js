@@ -3,7 +3,6 @@ import {
   concatMap,
   debounceTime,
   filter,
-  firstValueFrom,
   from,
   map,
   merge,
@@ -11,7 +10,6 @@ import {
   pairwise,
   shareReplay,
 } from 'rxjs';
-import { isChrome } from '../helpers/browsers';
 
 const getDevices = (constraints?: MediaStreamConstraints) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
@@ -42,43 +40,29 @@ const getDevices = (constraints?: MediaStreamConstraints) => {
 export const checkIfAudioOutputChangeSupported = () => {
   if (typeof document === 'undefined') return false;
   const element = document.createElement('audio');
-  const isFeatureSupported = (element as any).sinkId !== undefined;
-
-  return isFeatureSupported;
+  return (element as any).sinkId !== undefined;
 };
 
 /**
  * The default constraints used to request audio devices.
  */
-const audioDeviceConstraints = ((): MediaStreamConstraints => {
-  if (isChrome()) {
-    return {
-      audio: {
-        // @ts-expect-error Non-standard shape for Google Chrome
-        optional: [
-          { autoGainControl: true },
-          { noiseSuppression: true },
-          { echoCancellation: true },
-        ],
-      },
-    };
-  }
-  // other browsers
-  return {
-    audio: {
-      autoGainControl: true,
-      noiseSuppression: true,
-      echoCancellation: true,
-    },
-  };
-})();
+const audioDeviceConstraints = {
+  audio: {
+    autoGainControl: true,
+    noiseSuppression: true,
+    echoCancellation: true,
+  },
+} satisfies MediaStreamConstraints;
 
 /**
  * The default constraints used to request video devices.
  */
-const videoDeviceConstraints: MediaStreamConstraints = {
-  video: { width: 960, height: 540 },
-};
+const videoDeviceConstraints = {
+  video: {
+    width: 1280,
+    height: 720,
+  },
+} satisfies MediaStreamConstraints;
 
 // Audio and video devices are requested in two separate requests: that way users will be presented with two separate prompts -> they can give access to just camera, or just microphone
 const deviceChange$ = new Observable((subscriber) => {
@@ -146,71 +130,53 @@ export const getAudioOutputDevices = () => {
   );
 };
 
-const getStream = async (
-  kind: Exclude<MediaDeviceKind, 'audiooutput'>,
-  deviceId?: string,
-) => {
-  if (!deviceId) {
-    const allDevices = await firstValueFrom(
-      kind === 'audioinput' ? getAudioDevices() : getVideoDevices(),
-    );
-    if (allDevices.length === 0) {
-      throw new Error(`No available ${kind} device found`);
-    }
-    // TODO: store last used device in local storage and use that value
-    const selectedDevice = allDevices[0];
-    deviceId = selectedDevice.deviceId;
-  }
-  const type = kind === 'audioinput' ? 'audio' : 'video';
-  const defaultConstraints =
-    type === 'audio' ? audioDeviceConstraints : videoDeviceConstraints;
-
-  // merge the default constraints with the deviceId
-  const constraints: MediaStreamConstraints = {
-    [type]: {
-      ...(defaultConstraints[type] as MediaTrackConstraints),
-      // deviceId,
-    },
-  };
-
-  if (isChrome() && type === 'audio') {
-    // @ts-expect-error
-    constraints['audio']!.mandatory = {
-      sourceId: deviceId,
-    };
-  } else {
-    // @ts-expect-error
-    constraints[type]!.deviceId = deviceId;
-  }
-
+const getStream = async (constraints: MediaStreamConstraints) => {
   try {
     return await navigator.mediaDevices.getUserMedia(constraints);
   } catch (e) {
-    console.error(`Failed to get ${type} stream for device ${deviceId}`, e);
+    console.error(`Failed get user media`, constraints, e);
     throw e;
   }
 };
 
 /**
- * Returns an 'audioinput' media stream with the given `deviceId`, if no `deviceId` is provided, it uses the first available device.
+ * Returns an audio media stream that fulfills the given constraints.
+ * If no constraints are provided, it uses the browser's default ones.
  *
  * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
- * @param deviceId
- * @returns
+ * @param trackConstraints the constraints to use when requesting the stream.
+ * @returns the new `MediaStream` fulfilling the given constraints.
  */
-export const getAudioStream = async (deviceId?: string) => {
-  return getStream('audioinput', deviceId);
+export const getAudioStream = async (
+  trackConstraints?: MediaTrackConstraints,
+) => {
+  const constraints: MediaStreamConstraints = {
+    audio: {
+      ...audioDeviceConstraints.audio,
+      ...trackConstraints,
+    },
+  };
+  return getStream(constraints);
 };
 
 /**
- * Returns a 'videoinput' media stream with the given `deviceId`, if no `deviceId` is provided, it uses the first available device.
+ * Returns a video media stream that fulfills the given constraints.
+ * If no constraints are provided, it uses the browser's default ones.
  *
  * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
- * @param deviceId
- * @returns
+ * @param trackConstraints the constraints to use when requesting the stream.
+ * @returns a new `MediaStream` fulfilling the given constraints.
  */
-export const getVideoStream = async (deviceId?: string) => {
-  return getStream('videoinput', deviceId);
+export const getVideoStream = async (
+  trackConstraints?: MediaTrackConstraints,
+) => {
+  const constraints: MediaStreamConstraints = {
+    video: {
+      ...videoDeviceConstraints.video,
+      ...trackConstraints,
+    },
+  };
+  return getStream(constraints);
 };
 
 /**
@@ -224,8 +190,7 @@ export const getVideoStream = async (deviceId?: string) => {
  * @param options any additional options to pass to the [`getDisplayMedia`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia) API.
  */
 export const getScreenShareStream = async (
-  // TODO OL: switch to `DisplayMediaStreamConstraints` once Angular supports it
-  options?: Record<string, any>,
+  options?: DisplayMediaStreamOptions,
 ) => {
   try {
     return await navigator.mediaDevices.getDisplayMedia({

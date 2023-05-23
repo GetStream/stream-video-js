@@ -35,8 +35,6 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         handleRemoveNotification(notification.id);
       }, 5000);
 
-      console.log(notificationTimers);
-
       const timers = (notificationTimers[notification.id] = notificationTimer);
 
       updateNotificationTimers(timers);

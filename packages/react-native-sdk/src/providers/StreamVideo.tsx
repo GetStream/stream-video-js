@@ -5,10 +5,6 @@ import {
 import React, { PropsWithChildren } from 'react';
 import { Provider } from '../contexts/StreamVideoContext';
 import { MediaDevicesProvider } from '../contexts/MediaDevicesContext';
-import {
-  CallCycleProvider,
-  CallCycleHandlersType,
-} from '../contexts/CallCycleContext';
 
 /**
  *
@@ -17,19 +13,9 @@ import {
  *
  * @category Client State
  */
-export const StreamVideo = (
-  props: PropsWithChildren<
-    StreamVideoProps & { callCycleHandlers?: CallCycleHandlersType }
-  >,
-) => {
-  const {
-    callCycleHandlers = {},
-    client,
-    children,
-    translationsOverrides,
-    i18nInstance,
-    language,
-  } = props;
+export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
+  const { client, children, translationsOverrides, i18nInstance, language } =
+    props;
 
   return (
     <StreamVideoProvider
@@ -38,11 +24,9 @@ export const StreamVideo = (
       i18nInstance={i18nInstance}
       language={language}
     >
-      <CallCycleProvider callCycleHandlers={callCycleHandlers}>
-        <MediaDevicesProvider>
-          <Provider>{children}</Provider>
-        </MediaDevicesProvider>
-      </CallCycleProvider>
+      <MediaDevicesProvider>
+        <Provider>{children}</Provider>
+      </MediaDevicesProvider>
     </StreamVideoProvider>
   );
 };

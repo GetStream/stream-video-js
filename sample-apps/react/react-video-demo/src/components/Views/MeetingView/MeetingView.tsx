@@ -1,19 +1,17 @@
-import { FC, useCallback, useState, useEffect, useMemo } from 'react';
+import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { StreamChat } from 'stream-chat';
-import { getScreenShareStream, SfuModels } from '@stream-io/video-client';
 
 import {
+  Call,
+  getScreenShareStream,
+  SfuModels,
   useCurrentCallStatsReport,
-  useStreamVideoClient,
-  useIsCallRecordingInProgress,
-  useActiveCall,
-  useParticipants,
-  useLocalParticipant,
   useHasOngoingScreenShare,
-  StreamCallProvider,
-} from '@stream-io/video-react-bindings';
-
-import { MediaDevicesProvider } from '@stream-io/video-react-sdk';
+  useIsCallRecordingInProgress,
+  useLocalParticipant,
+  useParticipants,
+  useStreamVideoClient,
+} from '@stream-io/video-react-sdk';
 
 import Header from '../../Header';
 import Footer from '../../Footer';
@@ -31,6 +29,7 @@ import '@stream-io/video-styling/dist/css/styles.css';
 
 export type Props = {
   loading?: boolean;
+  call: Call;
   callId: string;
   callType: string;
   isCallActive: boolean;
@@ -40,7 +39,7 @@ export type Props = {
 };
 
 export type Meeting = {
-  call?: any;
+  call?: Call;
   loading?: boolean;
 };
 
@@ -61,7 +60,7 @@ export const View: FC<Props & Meeting> = ({
   const cid = `videocall:${callId}`;
   const channelWatched = useWatchChannel({ chatClient, channelId: callId });
 
-  const { current, setSteps } = useTourContext();
+  const { setSteps } = useTourContext();
 
   const client = useStreamVideoClient();
   const participants = useParticipants();
@@ -164,7 +163,6 @@ export const View: FC<Props & Meeting> = ({
       sidebar={
         <Sidebar
           callId={callId}
-          current={current}
           chatClient={chatClient}
           participants={participants}
         />
@@ -198,15 +196,6 @@ export const View: FC<Props & Meeting> = ({
 };
 
 export const MeetingView: FC<Props> = (props) => {
-  const activeCall: any = useActiveCall();
-
-  if (!activeCall) return null;
-
-  return (
-    <StreamCallProvider call={activeCall}>
-      <MediaDevicesProvider enumerate>
-        <View call={activeCall} {...props} />
-      </MediaDevicesProvider>
-    </StreamCallProvider>
-  );
+  const { call: activeCall, ...rest } = props;
+  return <View call={activeCall} {...rest} />;
 };

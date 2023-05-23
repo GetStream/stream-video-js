@@ -1,5 +1,5 @@
 import { PropsWithChildren } from 'react';
-import { OwnCapability } from '@stream-io/video-client';
+import { OwnCapability } from '@stream-io/video-react-sdk';
 
 type RestrictedProps = PropsWithChildren<{
   /**

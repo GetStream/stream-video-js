@@ -2,14 +2,12 @@ import {
   CallControls,
   DeviceSettings,
   Stage,
-  useActiveCall,
+  useCall,
 } from '@stream-io/video-react-sdk';
 
 export const MeetingUI = () => {
-  const activeCall = useActiveCall();
-
+  const activeCall = useCall();
   if (!activeCall || !activeCall.cid) return null;
-
   return (
     <div className="str-video__call">
       <div className="str-video__call-header">

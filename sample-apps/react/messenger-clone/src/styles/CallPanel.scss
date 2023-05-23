@@ -1,155 +1,28 @@
-.rmc__call-panel-backdrop {
+.rmc__call-panel-wrapper {
   position: absolute;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  backdrop-filter: blur(5px);
-  justify-content: center;
-  align-items: center;
+  top: 60px;
+  right: 20px;
 }
 
-.rmc__call-panel {
-  display: flex;
-  background: #b4b7bb;
-  border-radius: 10px;
-  max-width: 60%;
-  width: 60%;
-  max-height: 90%;
-  position: relative;
-
-  justify-content: center;
-  align-items: flex-end;
-
-  .rmc__button-controls {
-    position: absolute;
+.str-video__call-panel {
+  .rmc__active-call-controls {
     bottom: 10px;
     display: flex;
+    justify-content: center;
     gap: 10px;
-
-    .rmc__button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px;
-      color: white;
-      border-radius: 9999px;
-      border: unset;
-
-      &:hover {
-        filter: brightness(97%);
-      }
-    }
-    .rmc__button--green {
-      background: rgb(30, 180, 30);
-    }
-    .rmc__button--red {
-      background: rgb(177, 53, 53);
-    }
-    .rmc__button--transparent {
-      background-color: rgba($color: #ffff, $alpha: 0.1);
-      border: 1px solid white;
-    }
   }
 
-  .rmc__participant-placeholder--backdrop {
-    backdrop-filter: blur(15px);
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    border-radius: 10px;
-  }
-
-  .rmc__participant-placeholder--avatar {
-    border-radius: 9999px;
-    object-fit: cover;
-    position: absolute;
-    z-index: 2;
-  }
-
-  .rmc__participant-placeholder--avatar-background {
-    border-radius: 10px;
-    object-fit: cover;
-    width: 100%;
-    height: 100%;
-  }
-
-  .rmc__primary-participant-placeholder {
-    height: 640px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: lightgrey;
-    border-radius: 10px;
-
-    & .rmc__participant-placeholder--avatar {
-      width: 200px;
-      height: 200px;
-    }
-  }
-
-  .rmc__secondary-participant-placeholder {
-    height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: lightgrey;
-    border-radius: 10px;
-
-    & .rmc__participant-placeholder--avatar {
-      width: 100px;
-      height: 100px;
-    }
+  .str-video__call-controls__button--variant-danger {
+    height: fit-content;
   }
 
   .str-video__participant,
   .str-video__video-container {
     display: flex;
   }
+}
 
-  .rmc__primary-participant-wrapper,
-  .rmc__secondary-participant-wrapper {
-    .str-video__video-container {
-      position: relative;
-      display: flex;
-    }
-    .str-video__participant_details {
-      position: absolute;
-      right: 10px;
-      bottom: 10px;
-      color: white;
-      background-color: rgba($color: #000000, $alpha: 0.2);
-      padding: 5px;
-      border-radius: 10px;
-    }
-
-    & video {
-      border-radius: 10px;
-    }
-  }
-
-  .rmc__secondary-participant-wrapper {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    z-index: 1;
-
-    width: 30%;
-
-    .str-video__participant,
-    .str-video__video-container,
-    .str-video__remote-video {
-      width: 100%;
-    }
-  }
-
-  .rmc__primary-participant-wrapper {
-    width: 100%;
-
-    .str-video__participant,
-    .str-video__video-container,
-    .str-video__remote-video {
-      width: 100%;
-    }
-  }
+.str-video__participant_details,
+.str-video__notification {
+  color: #fff;
 }

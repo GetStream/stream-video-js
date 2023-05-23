@@ -3,14 +3,25 @@
 }
 
 .layoutContainer {
-  @apply grid relative z-10 w-full;
+  @apply grid pt-5 md:pt-0 relative z-10 w-full;
   height: calc(100vh - 20px);
   pointer-events: none;
-  grid-template-rows: 60px calc(100vh - 60px);
+  grid-template-rows: 100vh;
 
-  grid-template-areas:
-    'header'
-    'body';
+  grid-template-areas: 'body';
+}
+
+@media screen(md) {
+  .layoutContainer {
+    @apply grid relative z-10 w-full;
+    height: calc(100vh - 20px);
+    pointer-events: none;
+    grid-template-rows: 30px calc(100vh - 30px);
+
+    grid-template-areas:
+      'header'
+      'body';
+  }
 }
 
 .latencyMap {
@@ -22,12 +33,12 @@
 }
 
 .header {
-  @apply h-10 p-4;
+  @apply hidden md:flex h-10 pl-4 pr-4 pt-4;
   grid-area: header;
 }
 
 .body {
   grid-area: body;
-  @apply flex justify-center items-start sm:items-center;
+  @apply flex justify-center items-center;
   pointer-events: none;
 }

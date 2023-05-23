@@ -1,10 +1,12 @@
 import { FC, useEffect, useRef, useState } from 'react';
-import { CallStatsReport } from '@stream-io/video-client';
+import {
+  CallStatsReport,
+  useCurrentCallStatsReport,
+} from '@stream-io/video-react-sdk';
 import classnames from 'classnames';
-import { useCurrentCallStatsReport } from '@stream-io/video-react-bindings';
 
 import StatCard from '../StatCard';
-import { Cog, Close, Info, Latency, BarGraph } from '../Icons';
+import { BarGraph, Close, Cog, Info, Latency } from '../Icons';
 import Button from '../Button';
 import Tooltip from '../Tooltip';
 import CallStatsLatencyChart from '../CallStatsLatencyChart';
@@ -39,8 +41,6 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
   const callStatsReport = useCurrentCallStatsReport();
 
   const { close } = useModalContext();
-
-  console.log('STATSSS', callStatsReport);
 
   useEffect(() => {
     if (!callStatsReport) return;

@@ -1,101 +1,85 @@
+import { useCallback, useEffect } from 'react';
+import { map } from 'rxjs';
 import {
-  Call,
-  disposeOfMediaStream,
+  CallingState,
   getVideoStream,
   OwnCapability,
   SfuModels,
+  VideoSettingsCameraFacingEnum,
   watchForAddedDefaultVideoDevice,
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
-import { useCallback, useEffect, useRef } from 'react';
-import { map } from 'rxjs';
+import {
+  useCall,
+  useCallCallingState,
+  useCallMetadata,
+  useCallState,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
 import { useDebugPreferredVideoCodec } from '../../components/Debug/useIsDebugMode';
 
 /**
- * Exclude types from documentaiton site, but we should still add doc comments
  * @internal
- *
- * */
+ */
 export type VideoPublisherInit = {
-  call?: Call;
   initialVideoMuted?: boolean;
   videoDeviceId?: string;
 };
 
 /**
- *
- * @param param0
- * @returns
- *
  * @internal
- *
  * @category Device Management
  */
 export const useVideoPublisher = ({
-  call,
   initialVideoMuted,
   videoDeviceId,
 }: VideoPublisherInit) => {
-  // FIXME OL: cleanup
-  const callState = call?.state;
-  const { localParticipant$ } = callState || {};
-  // helper reference to determine initial publishing of the media stream
-  const initialPublishExecuted = useRef<boolean>(false);
-  const participant = localParticipant$
-    ? callState?.localParticipant
-    : undefined;
+  const call = useCall();
+  const callState = useCallState();
+  const callingState = useCallCallingState();
+  const participant = useLocalParticipant();
+  const { localParticipant$ } = callState;
+
   const preferredCodec = useDebugPreferredVideoCodec();
   const isPublishingVideo = participant?.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
   );
 
+  const metadata = useCallMetadata();
+  const videoSettings = metadata?.settings.video;
+  const targetResolution = videoSettings?.target_resolution;
   const publishVideoStream = useCallback(async () => {
     if (!call) return;
     if (!call.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)) {
-      console.log(`No permission to publish video`);
-      return;
+      throw new Error(`No permission to publish video`);
     }
     try {
-      const videoStream = await getVideoStream(videoDeviceId);
+      const videoStream = await getVideoStream({
+        deviceId: videoDeviceId,
+        width: targetResolution?.width,
+        height: targetResolution?.height,
+        facingMode: toFacingMode(videoSettings?.camera_facing),
+      });
       await call.publishVideoStream(videoStream, { preferredCodec });
     } catch (e) {
       console.log('Failed to publish video stream', e);
     }
-  }, [call, preferredCodec, videoDeviceId]);
+  }, [
+    call,
+    preferredCodec,
+    targetResolution?.height,
+    targetResolution?.width,
+    videoDeviceId,
+    videoSettings?.camera_facing,
+  ]);
 
   useEffect(() => {
-    let interrupted = false;
-
-    if (!call && initialPublishExecuted.current) {
-      initialPublishExecuted.current = false;
+    if (callingState === CallingState.JOINED && !initialVideoMuted) {
+      publishVideoStream().catch((e) => {
+        console.error('Failed to publish video stream', e);
+      });
     }
-
-    if (
-      !call ||
-      !call.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO) ||
-      // FIXME: remove "&& !initialPublishExecuted.current" and make
-      // sure initialVideoMuted is not changing during active call
-      (initialVideoMuted && !initialPublishExecuted.current) ||
-      (!isPublishingVideo && initialPublishExecuted.current)
-    ) {
-      return;
-    }
-
-    getVideoStream(videoDeviceId).then((stream) => {
-      if (interrupted) {
-        return disposeOfMediaStream(stream);
-      }
-
-      initialPublishExecuted.current = true;
-      return call.publishVideoStream(stream, { preferredCodec });
-    });
-
-    return () => {
-      interrupted = true;
-      call.stopPublish(SfuModels.TrackType.VIDEO);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoDeviceId, call, preferredCodec]);
+  }, [callingState, initialVideoMuted, publishVideoStream]);
 
   useEffect(() => {
     if (!localParticipant$) return;
@@ -130,14 +114,18 @@ export const useVideoPublisher = ({
         // We need to stop the original track first in order
         // we can retrieve the new default device stream
         track.stop();
-        const videoStream = await getVideoStream('default');
+        const videoStream = await getVideoStream({
+          deviceId: 'default',
+        });
         await call.publishVideoStream(videoStream);
       },
     );
 
     const handleTrackEnded = async () => {
       if (selectedVideoDeviceId === videoDeviceId) {
-        const videoStream = await getVideoStream(videoDeviceId);
+        const videoStream = await getVideoStream({
+          deviceId: videoDeviceId,
+        });
         await call.publishVideoStream(videoStream);
       }
     };
@@ -150,4 +138,15 @@ export const useVideoPublisher = ({
   }, [videoDeviceId, call, participant?.videoStream, isPublishingVideo]);
 
   return publishVideoStream;
+};
+
+const toFacingMode = (value: VideoSettingsCameraFacingEnum | undefined) => {
+  switch (value) {
+    case VideoSettingsCameraFacingEnum.FRONT:
+      return 'user';
+    case VideoSettingsCameraFacingEnum.BACK:
+      return 'environment';
+    default:
+      return undefined;
+  }
 };

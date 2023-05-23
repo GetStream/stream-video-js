@@ -1,14 +1,13 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useRouter } from 'next/router';
 import {
-  MediaDevicesProvider,
+  StreamCall,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useCreateStreamChatClient } from '../../hooks';
-import { LoadingScreen, MeetingUI } from '../../components';
-import { getDeviceSettings } from '../../components/DeviceSettingsCaptor';
+import { MeetingUI } from '../../components';
 import {
   getServerSideCredentialsProps,
   ServerSideCredentialsProps,
@@ -16,6 +15,10 @@ import {
 import { useGleap } from '../../hooks/useGleap';
 import { useSettings } from '../../context/SettingsContext';
 import translations from '../../translations';
+import {
+  DeviceSettingsCaptor,
+  getDeviceSettings,
+} from '../../components/DeviceSettingsCaptor';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
@@ -24,16 +27,9 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   } = useSettings();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
-
   const { userToken, user, apiKey, gleapApiKey } = props;
 
-  const [initialTokenProvided, setInitialTokenProvided] = useState(false);
   const tokenProvider = useCallback(async () => {
-    if (!initialTokenProvided) {
-      setInitialTokenProvided(true);
-      return userToken;
-    }
-
     const { token } = await fetch(
       '/api/auth/create-token?' +
         new URLSearchParams({
@@ -42,8 +38,8 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         }),
       {},
     ).then((res) => res.json());
-    return token;
-  }, [apiKey, initialTokenProvided, user.id, userToken]);
+    return token as string;
+  }, [apiKey, user.id]);
 
   const client = useCreateStreamVideoClient({
     apiKey,
@@ -58,12 +54,8 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   });
 
   useGleap(gleapApiKey, client, user);
-  const deviceSettings = getDeviceSettings();
 
-  if (!client) {
-    return <LoadingScreen />;
-  }
-
+  const settings = getDeviceSettings();
   return (
     <>
       <Head>
@@ -75,22 +67,22 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         language={language}
         translationsOverrides={translations}
       >
-        <MediaDevicesProvider
-          enumerate
-          initialAudioEnabled={!deviceSettings?.isAudioMute}
-          initialVideoEnabled={!deviceSettings?.isVideoMute}
-          initialVideoInputDeviceId={deviceSettings?.selectedVideoDeviceId}
-          initialAudioInputDeviceId={deviceSettings?.selectedAudioInputDeviceId}
-          initialAudioOutputDeviceId={
-            deviceSettings?.selectedAudioOutputDeviceId
-          }
+        <StreamCall
+          callId={callId}
+          callType={callType}
+          autoJoin={false}
+          autoLoad={true}
+          mediaDevicesProviderProps={{
+            initialAudioEnabled: !settings?.isAudioMute,
+            initialVideoEnabled: !settings?.isVideoMute,
+            initialVideoInputDeviceId: settings?.selectedVideoDeviceId,
+            initialAudioInputDeviceId: settings?.selectedAudioInputDeviceId,
+            initialAudioOutputDeviceId: settings?.selectedAudioOutputDeviceId,
+          }}
         >
-          <MeetingUI
-            chatClient={chatClient}
-            callId={callId}
-            callType={callType}
-          />
-        </MediaDevicesProvider>
+          <MeetingUI chatClient={chatClient} />
+          <DeviceSettingsCaptor />
+        </StreamCall>
       </StreamVideo>
     </>
   );

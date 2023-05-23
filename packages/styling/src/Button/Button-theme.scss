@@ -71,6 +71,14 @@
     }
   }
 
+  &--variant-success {
+    background-color: var(--str-video__info-color);
+
+    &:hover {
+      background-color: var(--str-video__info-color--accent);
+    }
+  }
+
   &--enabled {
     background: var(--str-video__text-color3);
   }

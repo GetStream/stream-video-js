@@ -1,5 +1,9 @@
 import React, {useCallback} from 'react';
-import {ActiveCall, useActiveCall} from '@stream-io/video-react-native-sdk';
+import {
+  ActiveCall,
+  StreamVideoRN,
+  useCall,
+} from '@stream-io/video-react-native-sdk';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import {NavigationStackParamsList} from '../types';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -12,21 +16,23 @@ type ActiveCallScreenProps = NativeStackScreenProps<
 >;
 
 export function ActiveCallScreen({navigation}: ActiveCallScreenProps) {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
   const insets = useSafeAreaInsets();
 
   const onOpenCallParticipantsInfoViewHandler = useCallback(() => {
     navigation.navigate('CallParticipantsInfoScreen');
   }, [navigation]);
 
+  StreamVideoRN.setConfig({
+    onOpenCallParticipantsInfoView: onOpenCallParticipantsInfoViewHandler,
+  });
+
   if (!activeCall) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
   return (
     <View style={[styles.wrapper, {paddingTop: insets.top}]}>
-      <ActiveCall
-        onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
-      />
+      <ActiveCall />
     </View>
   );
 }

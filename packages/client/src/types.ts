@@ -2,7 +2,16 @@ import type {
   Participant,
   VideoDimension,
 } from './gen/video/sfu/models/models';
-import { ReactionResponse } from './gen/coordinator';
+import type {
+  CallResponse,
+  JoinCallRequest,
+  MemberResponse,
+  ReactionResponse,
+} from './gen/coordinator';
+import type { StreamClient } from './coordinator/connection/client';
+import type { Comparator } from './sorting';
+import type { StreamVideoWriteableStateStore } from './store';
+import { AxiosError } from 'axios';
 
 export type StreamReaction = Pick<
   ReactionResponse,
@@ -131,3 +140,77 @@ export type SubscriptionChanges = {
 export type PublishOptions = {
   preferredCodec?: string | null;
 };
+
+export type CallLeaveOptions = {
+  /**
+   * If true, the caller will get a `call.rejected` event.
+   * Has an effect only if the call is in the `ringing` state.
+   *
+   * @default `false`.
+   */
+  reject?: boolean;
+};
+
+/**
+ * The options to pass to {@link Call} constructor.
+ */
+export type CallConstructor = {
+  /**
+   * The streamClient instance to use.
+   */
+  streamClient: StreamClient;
+
+  /**
+   * The Call type.
+   */
+  type: string;
+
+  /**
+   * The Call ID.
+   */
+  id: string;
+
+  /**
+   * An optional {@link CallResponse} metadata from the backend.
+   * If provided, the call will be initialized with the data from this object.
+   * This is useful when initializing a new "pending call" from an event.
+   */
+  metadata?: CallResponse;
+
+  /**
+   * An optional list of {@link MemberResponse} from the backend.
+   * If provided, the call will be initialized with the data from this object.
+   * This is useful when initializing a new "pending call" from an event.
+   */
+  members?: MemberResponse[];
+
+  /**
+   * Flags the call as a ringing call.
+   * @default false
+   */
+  ringing?: boolean;
+
+  /**
+   * Set to true if this call instance should receive updates from the backend.
+   *
+   * @default false.
+   */
+  watching?: boolean;
+
+  /**
+   * The default comparator to use when sorting participants.
+   */
+  sortParticipantsBy?: Comparator<StreamVideoParticipant>;
+
+  /**
+   * The state store of the client
+   */
+  clientStore: StreamVideoWriteableStateStore;
+};
+
+/**
+ * The options to pass to {@link Call.join} method.
+ */
+export type JoinCallData = Omit<JoinCallRequest, 'location'>;
+
+export { AxiosError };

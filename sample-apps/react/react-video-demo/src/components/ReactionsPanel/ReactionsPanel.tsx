@@ -1,7 +1,8 @@
 import { FC, useCallback } from 'react';
 import classnames from 'classnames';
-import { StreamReaction } from '@stream-io/video-client';
-import { useActiveCall } from '@stream-io/video-react-bindings';
+import { StreamReaction, useCall } from '@stream-io/video-react-sdk';
+
+import { usePanelContext } from '../../contexts/PanelContext';
 
 import styles from './ReactionsPanel.module.css';
 
@@ -35,10 +36,13 @@ export type Props = {
 };
 
 export const ReactionsPanel: FC<Props> = ({ className }) => {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
+
+  const { toggleReaction } = usePanelContext();
 
   const sendReaction = useCallback(
     (reaction: StreamReaction) => {
+      toggleReaction();
       activeCall?.sendReaction(reaction);
     },
     [activeCall],

@@ -65,12 +65,12 @@ export const Panel: FC<Props> = ({
 
         {close ? (
           <Button
-            className={styles.toggle}
+            className={styles.close}
             color="secondary"
             onClick={close}
             shape="square"
           >
-            <Close className={arrowClassName} />
+            <Close className={styles.cross} />
           </Button>
         ) : null}
       </div>

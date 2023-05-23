@@ -4,11 +4,7 @@ import {
   getVideoStream,
   SfuModels,
 } from '@stream-io/video-client';
-import {
-  useActiveCall,
-  useCallCallingState,
-  useLocalParticipant,
-} from '@stream-io/video-react-bindings';
+import { useCall, useLocalParticipant } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect, useRef } from 'react';
 import {
   useStreamVideoStoreSetState,
@@ -16,7 +12,6 @@ import {
 } from '../contexts/StreamVideoContext';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
 import { useAppStateListener } from '../utils/useAppStateListener';
-import { Alert } from 'react-native';
 import { useIsOnline } from './useIsOnline';
 
 /**
@@ -27,7 +22,7 @@ import { useIsOnline } from './useIsOnline';
  */
 export const useCallControls = () => {
   const localParticipant = useLocalParticipant();
-  const call = useActiveCall();
+  const call = useCall();
   const setState = useStreamVideoStoreSetState();
   const isOnline = useIsOnline();
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(

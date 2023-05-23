@@ -1,4 +1,5 @@
-import { AggregatedStatsReport } from '@stream-io/video-client';
+import { AggregatedStatsReport } from '@stream-io/video-react-sdk';
+
 export const toFrameSize = (stats: AggregatedStatsReport) => {
   const {
     highestFrameWidth: w,

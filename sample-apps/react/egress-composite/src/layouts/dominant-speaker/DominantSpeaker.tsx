@@ -1,7 +1,8 @@
 import {
-  ParticipantBox,
+  DefaultParticipantViewUI,
+  ParticipantView,
   SfuModels,
-  useActiveCall,
+  useCall,
   useParticipants,
 } from '@stream-io/video-react-sdk';
 import { useSpotlightParticipant } from './useSpotlightParticipant';
@@ -10,7 +11,7 @@ import './Spotlight.scss';
 import { AudioTracks } from './AudioTracks';
 
 export const DominantSpeaker = () => {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
   const speakerInSpotlight = useSpotlightParticipant();
   const participants = useParticipants();
   const setParticipantVideoRef = useEgressReadyWhenAnyParticipantMounts(
@@ -23,12 +24,17 @@ export const DominantSpeaker = () => {
     <>
       <div className="spotlight-container">
         {speakerInSpotlight && (
-          <ParticipantBox
+          <ParticipantView
             participant={speakerInSpotlight}
-            call={activeCall}
-            indicatorsVisible={false}
             setVideoElementRef={setParticipantVideoRef}
             muteAudio
+            ParticipantViewUI={
+              <DefaultParticipantViewUI
+                participant={speakerInSpotlight}
+                indicatorsVisible={false}
+                showMenuButton={false}
+              />
+            }
           />
         )}
       </div>

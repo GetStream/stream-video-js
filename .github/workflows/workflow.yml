@@ -1,4 +1,4 @@
-name: Test and release
+name: Test and deploy dogfood
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -45,17 +45,13 @@ jobs:
         run: yarn lint:ci:all
 
       - name: Build packages
-        run: yarn build:all
+        run: NODE_ENV=production yarn build:all
 
       - name: Test packages
         run: yarn test:ci:all
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
-
-      - name: Release packages
-        if: always()
-        run: echo 'TODO'
 
       # Vercel deployment: Dogfood (Preview)
       - name: Vercel Pull Configuration Dogfood (Preview)

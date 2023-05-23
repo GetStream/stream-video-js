@@ -12,15 +12,26 @@ import {
   findOptimalVideoLayers,
 } from './videoLayers';
 import { getPreferredCodecs } from './codecs';
-import { trackTypeToParticipantStreamKey } from './helpers/tracks';
+import {
+  trackTypeToDeviceIdKey,
+  trackTypeToParticipantStreamKey,
+} from './helpers/tracks';
 import { CallState } from '../store';
 import { PublishOptions } from '../types';
+import { isReactNative } from '../helpers/platforms';
+import {
+  removeCodec,
+  setPreferredCodec,
+  toggleDtx,
+} from '../helpers/sdp-munging';
 
 export type PublisherOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
   connectionConfig?: RTCConfiguration;
   isDtxEnabled: boolean;
+  isRedEnabled: boolean;
+  preferredVideoCodec?: string;
 };
 
 /**
@@ -50,12 +61,16 @@ export class Publisher {
     [TrackType.UNSPECIFIED]: undefined,
   };
   private isDtxEnabled: boolean;
+  private isRedEnabled: boolean;
+  private preferredVideoCodec?: string;
 
   constructor({
     connectionConfig,
     sfuClient,
     state,
     isDtxEnabled,
+    isRedEnabled,
+    preferredVideoCodec,
   }: PublisherOpts) {
     const pc = new RTCPeerConnection(connectionConfig);
     pc.addEventListener('icecandidate', this.onIceCandidate);
@@ -75,6 +90,8 @@ export class Publisher {
     this.sfuClient = sfuClient;
     this.state = state;
     this.isDtxEnabled = isDtxEnabled;
+    this.isRedEnabled = isRedEnabled;
+    this.preferredVideoCodec = preferredVideoCodec;
   }
 
   /**
@@ -108,15 +125,22 @@ export class Publisher {
      */
     const handleTrackEnded = async () => {
       console.log(`Track ${TrackType[trackType]} has ended, notifying the SFU`);
-      await this.notifyTrackMuteStateChanged(mediaStream, trackType, true);
+      await this.notifyTrackMuteStateChanged(
+        mediaStream,
+        track,
+        trackType,
+        true,
+      );
       // clean-up, this event listener needs to run only once.
       track.removeEventListener('ended', handleTrackEnded);
     };
 
     if (!transceiver) {
+      const metadata = this.state.metadata;
+      const targetResolution = metadata?.settings.video.target_resolution;
       const videoEncodings =
         trackType === TrackType.VIDEO
-          ? findOptimalVideoLayers(track)
+          ? findOptimalVideoLayers(track, targetResolution)
           : undefined;
 
       const codecPreferences = this.getCodecPreferences(
@@ -158,7 +182,12 @@ export class Publisher {
       await transceiver.sender.replaceTrack(track);
     }
 
-    await this.notifyTrackMuteStateChanged(mediaStream, trackType, false);
+    await this.notifyTrackMuteStateChanged(
+      mediaStream,
+      track,
+      trackType,
+      false,
+    );
   };
 
   /**
@@ -166,7 +195,7 @@ export class Publisher {
    * Underlying track will be stopped and removed from the publisher.
    * @param trackType the track type to unpublish.
    */
-  unpublishStream = (trackType: TrackType) => {
+  unpublishStream = async (trackType: TrackType) => {
     const transceiver = this.publisher
       .getTransceivers()
       .find((t) => t === this.transceiverRegistry[trackType] && t.sender.track);
@@ -176,12 +205,18 @@ export class Publisher {
       transceiver.sender.track.readyState === 'live'
     ) {
       transceiver.sender.track.stop();
-      return this.notifyTrackMuteStateChanged(undefined, trackType, true);
+      return this.notifyTrackMuteStateChanged(
+        undefined,
+        transceiver.sender.track,
+        trackType,
+        true,
+      );
     }
   };
 
   private notifyTrackMuteStateChanged = async (
     mediaStream: MediaStream | undefined,
+    track: MediaStreamTrack,
     trackType: TrackType,
     isMuted: boolean,
   ) => {
@@ -195,12 +230,17 @@ export class Publisher {
         [audioOrVideoOrScreenShareStream]: undefined,
       }));
     } else {
-      this.state.updateParticipant(this.sfuClient.sessionId, (p) => ({
-        publishedTracks: p.publishedTracks.includes(trackType)
-          ? p.publishedTracks
-          : [...p.publishedTracks, trackType],
-        [audioOrVideoOrScreenShareStream]: mediaStream,
-      }));
+      const deviceId = track.getSettings().deviceId;
+      const audioOrVideoDeviceKey = trackTypeToDeviceIdKey(trackType);
+      this.state.updateParticipant(this.sfuClient.sessionId, (p) => {
+        return {
+          publishedTracks: p.publishedTracks.includes(trackType)
+            ? p.publishedTracks
+            : [...p.publishedTracks, trackType],
+          ...(audioOrVideoDeviceKey && { [audioOrVideoDeviceKey]: deviceId }),
+          [audioOrVideoOrScreenShareStream]: mediaStream,
+        };
+      });
     }
   };
 
@@ -274,8 +314,13 @@ export class Publisher {
       return getPreferredCodecs('video', preferredCodec || 'vp8');
     }
     if (trackType === TrackType.AUDIO) {
-      const matchedOnly = preferredCodec === 'opus';
-      return getPreferredCodecs('audio', preferredCodec || 'opus', matchedOnly);
+      const defaultAudioCodec = this.isRedEnabled ? 'red' : 'opus';
+      const codecToRemove = !this.isRedEnabled ? 'red' : undefined;
+      return getPreferredCodecs(
+        'audio',
+        preferredCodec ?? defaultAudioCodec,
+        codecToRemove,
+      );
     }
   };
 
@@ -294,14 +339,28 @@ export class Publisher {
   private onNegotiationNeeded = async () => {
     console.log('AAA onNegotiationNeeded');
     const offer = await this.publisher.createOffer();
-    if (this.isDtxEnabled && offer.sdp) {
-      offer.sdp = offer.sdp.replace(
-        'useinbandfec=1',
-        'useinbandfec=1;usedtx=1',
-      );
+    let sdp = offer.sdp;
+    if (sdp) {
+      toggleDtx(sdp, this.isDtxEnabled);
+      if (isReactNative()) {
+        if (this.preferredVideoCodec) {
+          sdp = setPreferredCodec(sdp, 'video', this.preferredVideoCodec);
+        }
+        sdp = setPreferredCodec(
+          sdp,
+          'audio',
+          this.isRedEnabled ? 'red' : 'opus',
+        );
+        if (!this.isRedEnabled) {
+          sdp = removeCodec(sdp, 'audio', 'red');
+        }
+      }
     }
+    offer.sdp = sdp;
     await this.publisher.setLocalDescription(offer);
 
+    const metadata = this.state.metadata;
+    const targetResolution = metadata?.settings.video.target_resolution;
     const trackInfos = this.publisher
       .getTransceivers()
       .filter((t) => t.direction === 'sendonly' && !!t.sender.track)
@@ -315,7 +374,7 @@ export class Publisher {
         const track = transceiver.sender.track!;
         const optimalLayers =
           trackType === TrackType.VIDEO
-            ? findOptimalVideoLayers(track)
+            ? findOptimalVideoLayers(track, targetResolution)
             : trackType === TrackType.SCREEN_SHARE
             ? findOptimalScreenSharingLayers(track)
             : [];
@@ -340,7 +399,7 @@ export class Publisher {
           // FIXME OL: adjust these values
           stereo: false,
           dtx: this.isDtxEnabled,
-          red: false,
+          red: this.isRedEnabled,
         };
       });
 

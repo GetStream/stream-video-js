@@ -1,9 +1,10 @@
 import { FC, useEffect, useState } from 'react';
 import classnames from 'classnames';
+import { isMobile, isTablet } from 'mobile-device-detect';
 
 import ControlMenu from '../ControlMenu';
 import Button from '../Button';
-import ControlButton from '../ControlButton';
+import { PanelButton } from '../ControlButton';
 import {
   Chat,
   People,
@@ -19,7 +20,6 @@ import Portal from '../Portal';
 import SettingsPanel from '../SettingsPanel';
 import ReactionsPanel from '../ReactionsPanel';
 
-import { useTourContext, StepNames } from '../../contexts/TourContext';
 import { useModalContext } from '../../contexts/ModalContext';
 import { usePanelContext } from '../../contexts/PanelContext';
 
@@ -53,41 +53,23 @@ export const Footer: FC<Props> = ({
   participantCount,
   leave,
 }) => {
-  const { current } = useTourContext();
   const { isVisible } = useModalContext();
   const {
     isChatVisible,
     isParticipantsVisible,
+    isSettingsVisible,
+    isReactionVisible,
     toggleChat,
     toggleParticipants,
+    toggleSettings,
+    toggleReaction,
   } = usePanelContext();
 
-  const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(true);
-  const [showReactionsPanel, setShowReactionsPanel] = useState<boolean>(false);
-
   useEffect(() => {
-    if (isVisible && showSettingsPanel) {
-      setShowSettingsPanel(false);
+    if (isVisible) {
+      toggleSettings();
     }
-  }, [showSettingsPanel, isVisible]);
-
-  useEffect(() => {
-    if (current === StepNames.Chat && isChatVisible === false) {
-      toggleChat();
-    }
-
-    if (current === StepNames.Settings && showSettingsPanel === false) {
-      setShowSettingsPanel(true);
-    }
-  }, [current, isChatVisible]);
-
-  useEffect(() => {
-    setShowSettingsPanel(isVisible || current === StepNames.Settings);
-  }, [isVisible, current]);
-
-  const settingsClassNames = classnames(styles.settings, {
-    [styles.active]: current === StepNames.Settings,
-  });
+  }, [isVisible]);
 
   const recordClassNames = classnames(styles.record, {
     [styles.recording]: isRecording,
@@ -97,11 +79,11 @@ export const Footer: FC<Props> = ({
   return (
     <section className={styles.footer}>
       <div className={styles.settingsContainer}>
-        <ControlButton
-          className={settingsClassNames}
+        <PanelButton
+          className={styles.settings}
           portalId="settings"
-          onClick={() => setShowSettingsPanel(!showSettingsPanel)}
-          showPanel={showSettingsPanel}
+          showPanel={isSettingsVisible}
+          onClick={() => toggleSettings()}
           label="More"
           panel={
             <Portal className={styles.settingsPortal} selector="settings">
@@ -139,21 +121,23 @@ export const Footer: FC<Props> = ({
           </>
         </Button>
 
-        <Button
-          className={styles.shareScreen}
-          label="Share"
-          color={isScreenSharing ? 'active' : 'secondary'}
-          shape="square"
-          onClick={toggleShareScreen}
-        >
-          <ShareScreen />
-        </Button>
+        {!isMobile && !isTablet && (
+          <Button
+            className={styles.shareScreen}
+            label="Share"
+            color={isScreenSharing ? 'active' : 'secondary'}
+            shape="square"
+            onClick={toggleShareScreen}
+          >
+            <ShareScreen />
+          </Button>
+        )}
 
-        <ControlButton
+        <PanelButton
           className={styles.reactions}
           portalId="reactions"
-          onClick={() => setShowReactionsPanel(!showReactionsPanel)}
-          showPanel={showReactionsPanel}
+          showPanel={isReactionVisible}
+          onClick={() => toggleReaction()}
           label="Reaction"
           panel={
             <Portal className={styles.reactionsPortal} selector="reactions">
@@ -184,13 +168,7 @@ export const Footer: FC<Props> = ({
         <Button
           className={styles.chat}
           label="Chat"
-          color={
-            current === StepNames.Chat
-              ? 'primary'
-              : isChatVisible
-              ? 'active'
-              : 'secondary'
-          }
+          color={isChatVisible ? 'active' : 'secondary'}
           shape="square"
           onClick={() => toggleChat()}
         >

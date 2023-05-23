@@ -1,19 +1,16 @@
-import { FC, useState, useEffect } from 'react';
-import { FreeMode, Grid as GridModule, Navigation, Mousewheel } from 'swiper';
+import { FC, useEffect, useState } from 'react';
+import { FreeMode, Grid as GridModule, Mousewheel, Navigation } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
-
 import classnames from 'classnames';
-
-import { ParticipantBox } from '@stream-io/video-react-sdk';
-import { Call, StreamVideoParticipant } from '@stream-io/video-client';
+import { Call, StreamVideoParticipant } from '@stream-io/video-react-sdk';
+import { SfuModels } from '@stream-io/video-client';
 
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from '../Icons';
+import Participant from '../Participant';
 
 import { useBreakpoint } from '../../hooks/useBreakpoints';
 
 import styles from './ParticipantsSlider.module.css';
-
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -65,9 +62,19 @@ export const ParticipantsSlider: FC<Props> = ({
   participants,
   height,
 }) => {
-  const localParticipant = useLocalParticipant();
   const breakpoint = useBreakpoint();
   const [derivedMode, setMode] = useState<'horizontal' | 'vertical'>(mode);
+  const [scrollWrapper, setScrollWrapper] = useState<HTMLDivElement | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!scrollWrapper || !call) return;
+
+    const cleanup = call.viewportTracker.setViewport(scrollWrapper);
+
+    return () => cleanup();
+  }, [scrollWrapper, call]);
 
   useEffect(() => {
     if (breakpoint === 'xs' || breakpoint === 'sm') {
@@ -93,14 +100,11 @@ export const ParticipantsSlider: FC<Props> = ({
     [styles?.[derivedMode]]: derivedMode,
   });
 
-  const participantClassName = classnames(styles.participant, {
-    [styles?.[derivedMode]]: derivedMode,
-  });
-
   if (derivedMode) {
     return (
       <div
         id="participant-slider"
+        ref={setScrollWrapper}
         className={rootClassName}
         style={{
           height: derivedMode === 'vertical' ? `${height}px` : undefined,
@@ -131,19 +135,28 @@ export const ParticipantsSlider: FC<Props> = ({
           }}
           className={swiperClassName}
         >
-          {participants?.map((participant, index) => (
-            <SwiperSlide key={index} className={slideClassName}>
-              <div key={`participant-${index}`}>
-                <ParticipantBox
+          {participants?.map((participant, index) => {
+            const particpantHasVideo = participant.publishedTracks.includes(
+              SfuModels.TrackType.VIDEO,
+            );
+
+            const participantClassName = classnames(styles.participant, {
+              [styles?.[derivedMode]]: derivedMode,
+              [styles.videoDisabled]: !particpantHasVideo,
+            });
+
+            return (
+              <SwiperSlide key={index} className={slideClassName}>
+                <Participant
                   key={participant.sessionId}
-                  participant={participant}
-                  className={participantClassName}
                   call={call}
-                  sinkId={localParticipant?.audioOutputDeviceId}
+                  className={participantClassName}
+                  participant={participant}
+                  slider={derivedMode}
                 />
-              </div>
-            </SwiperSlide>
-          ))}
+              </SwiperSlide>
+            );
+          })}
         </Swiper>
       </div>
     );

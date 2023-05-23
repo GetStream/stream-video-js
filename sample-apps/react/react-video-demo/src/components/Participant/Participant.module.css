@@ -1,0 +1,120 @@
+.root {
+  @apply flex relative;
+}
+
+.video {
+  border-radius: 12px;
+}
+
+.reaction {
+  @apply absolute top-0 right-0 mr-10 h-full flex items-center;
+  z-index: 150;
+}
+
+.reaction span {
+  @apply absolute top-0 mt-4;
+  animation: move 5s infinite;
+  font-size: 30px;
+}
+
+.noVideo {
+  @apply flex w-full h-full bg-video-grey-700;
+  border-radius: 12px;
+}
+
+.noAudio {
+}
+
+.isDominantSpeaker {
+  @apply border-2 border-video-stream-500;
+}
+.isSpeaking {
+  @apply border-2 border-video-stream-500;
+}
+
+.isPinned {
+}
+
+/* Overlay  */
+
+.videoOverlay {
+  @apply absolute top-0 left-0 w-full h-full flex items-center justify-center;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.nameContainer {
+  @apply flex items-center absolute bottom-0 left-0 mb-4 ml-4 bg-video-grey-800 p-2 pt-1 pb-1;
+  border-radius: 4px;
+}
+
+.videoOverlay.horizontal .nameContainer {
+  @apply mb-2 ml-2;
+}
+.name {
+  @apply text-xs text-video-white max-w-[50px];
+  border-radius: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@media screen(md) {
+  .name {
+    @apply max-w-[150px];
+  }
+}
+
+@media screen(lg) {
+  .name {
+    @apply max-w-full;
+  }
+}
+
+.connectionQuality {
+  @apply flex items-center absolute bottom-0 right-0 mb-4 mr-4 text-xs bg-video-grey-800  text-video-white;
+  border-radius: 4px;
+}
+
+.videoOverlay.horizontal .connectionQuality {
+  @apply top-0 mt-2 mr-2 bottom-[auto];
+}
+
+@media screen(md) {
+  .videoOverlay.horizontal .connectionQuality {
+    @apply top-auto mb-4 mr-4 bottom-0;
+  }
+}
+
+.micMuted {
+  @apply ml-1 h-4 w-4 text-video-red-600;
+}
+
+/* end overlay */
+
+/* disabled video */
+.disabledPreview {
+  @apply flex relative items-center justify-center text-video-white text-sm bg-video-grey-700 h-full;
+  border-radius: 12px;
+}
+
+.fallAvatarContainer {
+  @apply w-full h-full flex items-center justify-center;
+}
+
+.fallbackInitial {
+  @apply flex items-center justify-center uppercase text-xl font-bold bg-video-stream-500 text-video-white h-10 w-10 rounded-full;
+}
+
+@media screen(md) {
+  .fallbackInitial {
+    @apply h-20 w-20 text-2xl;
+  }
+}
+
+.placeholder {
+  @apply flex absolute left-0 top-0 items-center justify-center text-video-white text-sm bg-video-grey-700 h-full w-full;
+  border-radius: 12px;
+}
+
+/* end disabled video */

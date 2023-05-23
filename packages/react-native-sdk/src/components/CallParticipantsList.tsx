@@ -14,8 +14,8 @@ import {
   VisibilityState,
 } from '@stream-io/video-client';
 import { theme } from '../theme';
-import { useDebouncedValue } from '../utils/useDebouncedValue';
-import { useActiveCall } from '@stream-io/video-react-bindings';
+import { useDebouncedValue } from '../utils/hooks/useDebouncedValue';
+import { useCall } from '@stream-io/video-react-bindings';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant | StreamVideoLocalParticipant>
@@ -62,7 +62,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
 
   // we use a ref to store the active call object
   // so that it can be used in the onViewableItemsChanged callback
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
   const activeCallRef = useRef(activeCall);
   activeCallRef.current = activeCall;
   // This is the function that gets called when the user scrolls the list of participants.

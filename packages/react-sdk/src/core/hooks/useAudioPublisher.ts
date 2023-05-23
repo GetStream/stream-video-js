@@ -1,46 +1,41 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
+import { map } from 'rxjs';
 import {
-  Call,
-  disposeOfMediaStream,
+  CallingState,
   getAudioStream,
   OwnCapability,
   SfuModels,
   watchForAddedDefaultAudioDevice,
   watchForDisconnectedAudioDevice,
 } from '@stream-io/video-client';
-import { map } from 'rxjs';
+import {
+  useCall,
+  useCallCallingState,
+  useCallState,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
 
 /**
- * Exclude types from documentaiton site, but we should still add doc comments
  * @internal
  */
 export type AudioPublisherInit = {
-  call?: Call;
   initialAudioMuted?: boolean;
   audioDeviceId?: string;
 };
 
 /**
- *
- * @param param0
- * @returns
- *
  * @internal
- *
  * @category Device Management
  */
 export const useAudioPublisher = ({
-  call,
   initialAudioMuted,
   audioDeviceId,
 }: AudioPublisherInit) => {
-  const callState = call?.state;
-  const { localParticipant$ } = callState || {};
-  // helper reference to determine initial publishing of the media stream
-  const initialPublishExecuted = useRef<boolean>(false);
-  const participant = localParticipant$
-    ? callState?.localParticipant
-    : undefined;
+  const call = useCall();
+  const callState = useCallState();
+  const callingState = useCallCallingState();
+  const participant = useLocalParticipant();
+  const { localParticipant$ } = callState;
 
   const isPublishingAudio = participant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
@@ -49,11 +44,12 @@ export const useAudioPublisher = ({
   const publishAudioStream = useCallback(async () => {
     if (!call) return;
     if (!call.permissionsContext.hasPermission(OwnCapability.SEND_AUDIO)) {
-      console.log(`No permission to publish audio`);
-      return;
+      throw new Error(`No permission to publish audio`);
     }
     try {
-      const audioStream = await getAudioStream(audioDeviceId);
+      const audioStream = await getAudioStream({
+        deviceId: audioDeviceId,
+      });
       await call.publishAudioStream(audioStream);
     } catch (e) {
       console.log('Failed to publish audio stream', e);
@@ -61,38 +57,12 @@ export const useAudioPublisher = ({
   }, [audioDeviceId, call]);
 
   useEffect(() => {
-    let interrupted = false;
-
-    if (!call && initialPublishExecuted.current) {
-      initialPublishExecuted.current = false;
+    if (callingState === CallingState.JOINED && !initialAudioMuted) {
+      publishAudioStream().catch((e) => {
+        console.error('Failed to publish audio stream', e);
+      });
     }
-
-    if (
-      !call ||
-      !call.permissionsContext.hasPermission(OwnCapability.SEND_AUDIO) ||
-      // FIXME: remove "&& !initialPublishExecuted.current" and make
-      // sure initialAudioMuted is not changing during active call
-      (initialAudioMuted && !initialPublishExecuted.current) ||
-      (!isPublishingAudio && initialPublishExecuted.current)
-    ) {
-      return;
-    }
-
-    getAudioStream(audioDeviceId).then((stream) => {
-      if (interrupted) {
-        return disposeOfMediaStream(stream);
-      }
-
-      initialPublishExecuted.current = true;
-      return call.publishAudioStream(stream);
-    });
-
-    return () => {
-      interrupted = true;
-      call.stopPublish(SfuModels.TrackType.AUDIO);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [call, audioDeviceId]);
+  }, [callingState, initialAudioMuted, publishAudioStream]);
 
   useEffect(() => {
     if (!localParticipant$) return;
@@ -127,14 +97,18 @@ export const useAudioPublisher = ({
         // We need to stop the original track first in order
         // we can retrieve the new default device stream
         track.stop();
-        const audioStream = await getAudioStream('default');
+        const audioStream = await getAudioStream({
+          deviceId: 'default',
+        });
         await call.publishAudioStream(audioStream);
       },
     );
 
     const handleTrackEnded = async () => {
       if (selectedAudioDeviceId === audioDeviceId) {
-        const audioStream = await getAudioStream(audioDeviceId);
+        const audioStream = await getAudioStream({
+          deviceId: audioDeviceId,
+        });
         await call.publishAudioStream(audioStream);
       }
     };

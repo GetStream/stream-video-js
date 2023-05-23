@@ -7,13 +7,14 @@ import {
   StreamVideoParticipant,
   VisibilityState,
 } from '@stream-io/video-client';
-import { useActiveCall } from '@stream-io/video-react-bindings';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
 import { useStreamVideoStoreValue } from '../contexts';
 import { MicOff, ScreenShare, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { palette } from '../theme/constants';
+import { ParticipantReaction } from './ParticipantReaction';
+import { useCall } from '@stream-io/video-react-bindings';
 
 /**
  * Props to be passed for the ParticipantView component.
@@ -56,7 +57,7 @@ interface ParticipantViewProps {
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
   const { participant, kind, isVisible = true, disableAudio } = props;
-  const call = useActiveCall();
+  const call = useCall();
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const { isSpeaking, isLoggedInUser, publishedTracks } = participant;
@@ -68,6 +69,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
+  const { reaction, sessionId } = participant;
 
   /**
    * This effect updates the participant's viewportVisibilityState
@@ -227,6 +229,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         />
       ) : (
         <Avatar participant={participant} />
+      )}
+      {reaction && (
+        <ParticipantReaction reaction={reaction} sessionId={sessionId} />
       )}
       {isAudioAvailable && (
         <RTCView streamURL={(audioStream as MediaStream).toURL()} />

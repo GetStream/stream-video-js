@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import {
   ActiveCall,
-  useActiveCall,
-  useIncomingCalls,
-  useRingCall,
-  theme,
   ActiveCallProps,
+  StreamVideoRN,
+  theme,
+  useCall,
+  useIncomingCalls,
 } from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
@@ -21,9 +21,8 @@ type Props = NativeStackScreenProps<RingingStackParamList, 'CallScreen'>;
 type Mode = NonNullable<ActiveCallProps['mode']>;
 
 export const CallScreen = ({ navigation }: Props) => {
-  const activeCall = useActiveCall();
+  const call = useCall();
   const [incomingCall] = useIncomingCalls();
-  const { answerCall } = useRingCall();
   const [selectedMode, setMode] = React.useState<Mode>('grid');
 
   useEffect(() => {
@@ -32,39 +31,41 @@ export const CallScreen = ({ navigation }: Props) => {
       return;
     }
     const subscription = callkeepCallId$.subscribe((callkeepCallId) => {
-      if (callkeepCallId) {
-        // TODO: check if callId is the same call as incoming call
-        answerCall();
-        callkeepCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
+      if (!callkeepCallId || !call) {
+        return;
       }
+      // TODO: check if callId is the same call as incoming call
+      call.join();
+      callkeepCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
     });
     return () => subscription.unsubscribe();
-  }, [answerCall, incomingCall]);
+  }, [call, incomingCall]);
 
   useEffect(() => {
-    if (!activeCall) {
+    if (!call) {
       return;
     }
     startForegroundService();
     return () => {
       stopForegroundService();
     };
-  }, [activeCall]);
+  }, [call]);
 
   const onOpenCallParticipantsInfoViewHandler = () => {
     navigation.navigate('CallParticipantsInfoScreen');
   };
 
-  if (!activeCall) {
+  StreamVideoRN.setConfig({
+    onOpenCallParticipantsInfoView: onOpenCallParticipantsInfoViewHandler,
+  });
+
+  if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
   return (
     <SafeAreaView style={styles.wrapper}>
       <ParticipantListButtons selectedMode={selectedMode} setMode={setMode} />
-      <ActiveCall
-        onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
-        mode={selectedMode}
-      />
+      <ActiveCall mode={selectedMode} />
     </SafeAreaView>
   );
 };

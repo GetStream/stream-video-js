@@ -1,13 +1,12 @@
 import { GetServerSidePropsContext } from 'next';
 import {
-  MediaDevicesProvider,
+  StreamCall,
   StreamVideo,
   useCreateStreamVideoClient,
   UserResponse,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { getDeviceSettings } from '../../../components/DeviceSettingsCaptor';
 import { MeetingUI } from '../../../components';
 import { createToken } from '../../../helpers/jwt';
 import { useEffect, useState } from 'react';
@@ -60,7 +59,6 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   }, [client, guestUserId, mode]);
 
   useGleap(gleapApiKey, client, userToConnect);
-  const deviceSettings = getDeviceSettings();
   return (
     <>
       <Head>
@@ -68,18 +66,9 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <StreamVideo client={client}>
-        <MediaDevicesProvider
-          enumerate
-          initialAudioEnabled={!deviceSettings?.isAudioMute}
-          initialVideoEnabled={!deviceSettings?.isVideoMute}
-          initialVideoInputDeviceId={deviceSettings?.selectedVideoDeviceId}
-          initialAudioInputDeviceId={deviceSettings?.selectedAudioInputDeviceId}
-          initialAudioOutputDeviceId={
-            deviceSettings?.selectedAudioOutputDeviceId
-          }
-        >
-          <MeetingUI callId={callId} callType={callType} />
-        </MediaDevicesProvider>
+        <StreamCall callId={callId} callType={callType} autoJoin={false}>
+          <MeetingUI enablePreview={mode !== 'anon'} />
+        </StreamCall>
       </StreamVideo>
     </>
   );
