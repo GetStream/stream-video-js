@@ -12,7 +12,7 @@ import {
 } from '../contexts/StreamVideoContext';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
 import { useAppStateListener } from '../utils/hooks/useAppStateListener';
-import { useIsOnline } from './useIsOnline';
+import NetInfo from '@react-native-community/netinfo';
 
 /**
  * A helper hook which exposes audio, video mute and camera facing mode and
@@ -23,8 +23,8 @@ import { useIsOnline } from './useIsOnline';
 export const useCallControls = () => {
   const localParticipant = useLocalParticipant();
   const call = useCall();
+  const isOnlineRef = useRef(true);
   const setState = useStreamVideoStoreSetState();
-  const isOnline = useIsOnline();
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
@@ -46,7 +46,7 @@ export const useCallControls = () => {
     try {
       // Client picks up the default audio stream.
       // For mobile devices there will always be one audio input
-      if (audioDevice) {
+      if (audioDevice && isOnlineRef.current) {
         const audioStream = await getAudioStream(audioDevice.deviceId);
         if (call) {
           await call.publishAudioStream(audioStream);
@@ -59,7 +59,7 @@ export const useCallControls = () => {
 
   const publishVideoStream = useCallback(async () => {
     try {
-      if (isOnline && currentVideoDevice) {
+      if (currentVideoDevice && isOnlineRef.current) {
         const videoStream = await getVideoStream(currentVideoDevice.deviceId);
         if (call) {
           await call.publishVideoStream(videoStream);
@@ -68,7 +68,7 @@ export const useCallControls = () => {
     } catch (e) {
       console.log('Failed to publish video stream', e);
     }
-  }, [call, currentVideoDevice, isOnline]);
+  }, [call, currentVideoDevice]);
 
   /** Refs to keep track of whether the user has published the track before going offline  */
   const isAudioPublishedRef = useRef(false);
@@ -92,32 +92,37 @@ export const useCallControls = () => {
    */
   useEffect(() => {
     if (!call) return;
-    if (isOnline) {
-      // Note: while doing rejoining we unpublish the streams first
-      // so we get the published info before calling rejoin
-      const isAudioPublished = isAudioPublishedRef.current;
-      const isVideoPublished = isVideoPublishedRef.current;
-      if (call.state.callingState === CallingState.OFFLINE) {
-        call
-          .rejoin?.()
-          .then(() => {
-            if (isAudioPublished) {
-              publishAudioStreamRef.current();
-            }
-            if (isVideoPublished) {
-              publishVideoStreamRef.current();
-            }
-          })
-          .catch(() => {
-            call.state.setCallingState(CallingState.RECONNECTING_FAILED);
-          });
-      }
-    } else {
-      if (call.state.callingState !== CallingState.OFFLINE) {
+
+    const unsubscribe = NetInfo.addEventListener(async (state) => {
+      const { isConnected, isInternetReachable } = state;
+      const isOnline = isConnected !== false && isInternetReachable !== false;
+      isOnlineRef.current = isOnline;
+      const isCurrentStateOffline =
+        call.state.callingState === CallingState.OFFLINE;
+      if (!isOnline && !isCurrentStateOffline) {
         call.state.setCallingState(CallingState.OFFLINE);
+      } else if (isOnline && isCurrentStateOffline && call.rejoin) {
+        // Note: while doing rejoining we unpublish the streams first
+        // so we get the published info before calling rejoin
+        const isAudioPublished = isAudioPublishedRef.current;
+        const isVideoPublished = isVideoPublishedRef.current;
+        try {
+          await call.rejoin();
+          if (isAudioPublished) {
+            await publishAudioStreamRef.current();
+          }
+          if (isVideoPublished) {
+            await publishVideoStreamRef.current();
+          }
+        } catch (e) {
+          console.error('Failed to rejoin', e);
+          call.state.setCallingState(CallingState.RECONNECTING_FAILED);
+        }
       }
-    }
-  }, [call, isOnline]);
+    });
+
+    return unsubscribe;
+  }, [call]);
 
   const toggleVideoMuted = useCallback(async () => {
     if (isVideoMuted) {
