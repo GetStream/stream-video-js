@@ -9,15 +9,15 @@ export const createWebSocketSignalChannel = (opts: {
   ws.binaryType = 'arraybuffer'; // do we need this?
 
   ws.addEventListener('error', (e) => {
-    console.error('Error', e);
+    console.log('Signaling WS channel error', e);
   });
 
   ws.addEventListener('close', (e) => {
-    console.warn('Signalling channel is closed', e);
+    console.log('Signaling WS channel is closed', e);
   });
 
   ws.addEventListener('open', (e) => {
-    console.log('Signalling channel is open', e);
+    console.log('Signaling WS channel is open', e);
   });
 
   if (onMessage) {
