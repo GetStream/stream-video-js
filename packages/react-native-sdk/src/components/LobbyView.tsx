@@ -36,14 +36,7 @@ const ParticipantStatus = () => {
   );
 };
 
-export type LobbyViewProps = {
-  /**
-   * Decides whether to show the view preview component and the call controls to join the call with audio/video muted/unmuted.
-   */
-  enablePreview?: boolean;
-};
-
-export const LobbyView = ({ enablePreview = true }: LobbyViewProps) => {
+export const LobbyView = () => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
@@ -70,8 +63,8 @@ export const LobbyView = ({ enablePreview = true }: LobbyViewProps) => {
     try {
       await call?.join({ create: true });
     } catch (error) {
+      console.log('Error joining call:', error);
       if (error instanceof AxiosError) {
-        console.log('Error joining call', error);
         Alert.alert(error.response?.data.message);
       }
     }
@@ -93,7 +86,7 @@ export const LobbyView = ({ enablePreview = true }: LobbyViewProps) => {
       <View style={styles.content}>
         <Text style={styles.heading}>Before Joining</Text>
         <Text style={styles.subHeading}>Setup your audio and video</Text>
-        {enablePreview && (
+        {connectedUser && (
           <View style={styles.videoView}>
             {isVideoAvailable ? (
               <VideoRenderer
@@ -108,7 +101,7 @@ export const LobbyView = ({ enablePreview = true }: LobbyViewProps) => {
             <ParticipantStatus />
           </View>
         )}
-        {enablePreview && (
+        {connectedUser && (
           <View style={styles.buttonGroup}>
             <CallControlsButton
               onPress={toggleAudioState}
@@ -140,8 +133,8 @@ export const LobbyView = ({ enablePreview = true }: LobbyViewProps) => {
         )}
         <View style={styles.info}>
           <Text style={styles.infoText}>
-            You are about to join a test call at Stream. {count} more people are
-            in the call now.
+            You are about to join a call with id {call?.id} at Stream. {count}{' '}
+            more people are in the call now.
           </Text>
           <Pressable style={styles.joinButton} onPress={onJoinCallHandler}>
             <Text style={styles.joinButtonText}>Join</Text>
