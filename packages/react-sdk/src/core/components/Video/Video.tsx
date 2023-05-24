@@ -23,7 +23,7 @@ import { useCall } from '@stream-io/video-react-bindings';
 export type VideoProps = ComponentPropsWithoutRef<'video'> & {
   kind: 'video' | 'screen';
   participant: StreamVideoParticipant;
-  setVideoElementRef?: (element: HTMLElement | null) => void;
+  setElement?: (element: HTMLElement | null) => void;
   VideoPlaceholder?: ComponentType<VideoPlaceholderProps>;
 };
 
@@ -31,7 +31,7 @@ export const Video = ({
   kind,
   participant,
   className,
-  setVideoElementRef,
+  setElement,
   VideoPlaceholder = DefaultVideoPlaceholder,
   ...rest
 }: VideoProps) => {
@@ -234,14 +234,14 @@ export const Video = ({
         data-session-id={sessionId}
         ref={(ref) => {
           setVideoElement(ref);
-          setVideoElementRef?.(ref);
+          setElement?.(ref);
         }}
       />
       {displayPlaceholder && (
         <VideoPlaceholder
           style={{ position: 'absolute' }}
           participant={participant}
-          ref={setVideoElementRef}
+          ref={setElement}
         />
       )}
     </>

@@ -1,4 +1,11 @@
-import { forwardRef, ComponentType, useState, ReactElement } from 'react';
+import { useContext, useMemo } from 'react';
+import {
+  forwardRef,
+  ComponentType,
+  useState,
+  ReactElement,
+  createContext,
+} from 'react';
 import clsx from 'clsx';
 import {
   SfuModels,
@@ -9,11 +16,19 @@ import {
 import { Audio } from '../Audio';
 import { Video, VideoProps } from '../Video';
 import { useTrackElementVisibility } from '../../hooks';
-import {
-  DefaultParticipantViewUI,
-  ParticipantViewUIProps,
-} from './DefaultParticipantViewUI';
+import { DefaultParticipantViewUI } from './DefaultParticipantViewUI';
 import { isComponentType, applyElementToRef } from '../../../utilities';
+
+type ParticipantViewContextValue = Pick<ParticipantViewProps, 'participant'> & {
+  participantViewElement: HTMLDivElement | null;
+};
+
+const ParticipantViewContext = createContext<
+  ParticipantViewContextValue | undefined
+>(undefined);
+
+export const useParticipantViewContext = () =>
+  useContext(ParticipantViewContext) as ParticipantViewContextValue;
 
 export type ParticipantViewProps = {
   /**
@@ -26,10 +41,7 @@ export type ParticipantViewProps = {
    * pass `null` if you wish to not render anything
    * @default DefaultParticipantViewUI
    */
-  ParticipantViewUI?:
-    | ComponentType<ParticipantViewUIProps>
-    | ReactElement
-    | null;
+  ParticipantViewUI?: ComponentType | ReactElement | null;
 
   /**
    * In supported browsers, this sets the default audio output.
@@ -48,7 +60,7 @@ export type ParticipantViewProps = {
   muteAudio?: boolean;
 
   /**
-   * A function meant for exposing the "native" element ref to the integrators.
+   * A function meant for exposing the "native" element to the integrators.
    * The element can either be:
    * - `<video />` for participants with enabled video.
    * - `<div />` for participants with disabled video. This ref would point to
@@ -56,7 +68,7 @@ export type ParticipantViewProps = {
    *
    * @param element the element ref.
    */
-  setVideoElementRef?: (element: HTMLElement | null) => void;
+  setElement?: VideoProps['setElement'];
 
   /**
    * Custom class applied to the root DOM element.
@@ -71,10 +83,10 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       sinkId,
       videoKind = 'video',
       muteAudio,
-      setVideoElementRef,
+      setElement,
       className,
       VideoPlaceholder,
-      ParticipantViewUI = DefaultParticipantViewUI as ComponentType<ParticipantViewUIProps>,
+      ParticipantViewUI = DefaultParticipantViewUI as ComponentType,
     },
     ref,
   ) => {
@@ -99,6 +111,11 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       trackedElement,
     });
 
+    const participantViewContextValue = useMemo(
+      () => ({ participant, participantViewElement: trackedElement }),
+      [participant, trackedElement],
+    );
+
     return (
       <div
         ref={(element) => {
@@ -113,24 +130,26 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
           className,
         )}
       >
-        <Audio
-          // mute the local participant, as we don't want to hear ourselves
-          muted={isLoggedInUser || muteAudio}
-          sinkId={sinkId}
-          audioStream={audioStream}
-        />
-        <Video
-          VideoPlaceholder={VideoPlaceholder}
-          participant={participant}
-          kind={videoKind}
-          setVideoElementRef={setVideoElementRef}
-          autoPlay
-        />
-        {isComponentType(ParticipantViewUI) ? (
-          <ParticipantViewUI participant={participant} />
-        ) : (
-          ParticipantViewUI
-        )}
+        <ParticipantViewContext.Provider value={participantViewContextValue}>
+          <Audio
+            // mute the local participant, as we don't want to hear ourselves
+            muted={isLoggedInUser || muteAudio}
+            sinkId={sinkId}
+            audioStream={audioStream}
+          />
+          <Video
+            VideoPlaceholder={VideoPlaceholder}
+            participant={participant}
+            kind={videoKind}
+            setElement={setElement}
+            autoPlay
+          />
+          {isComponentType(ParticipantViewUI) ? (
+            <ParticipantViewUI />
+          ) : (
+            ParticipantViewUI
+          )}
+        </ParticipantViewContext.Provider>
       </div>
     );
   },

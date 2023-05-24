@@ -31,7 +31,7 @@ export const DominantSpeakerScreenShare = () => {
           kind="screen"
           autoPlay
           muted
-          setVideoElementRef={setParticipantVideoRef}
+          setElement={setParticipantVideoRef}
         />
         <span>
           Presenter:{' '}
@@ -42,7 +42,6 @@ export const DominantSpeakerScreenShare = () => {
             participant={screenSharingParticipant}
             ParticipantViewUI={
               <DefaultParticipantViewUI
-                participant={screenSharingParticipant}
                 indicatorsVisible={false}
                 showMenuButton={false}
               />

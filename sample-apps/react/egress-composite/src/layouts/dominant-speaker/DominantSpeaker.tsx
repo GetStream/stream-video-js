@@ -26,11 +26,10 @@ export const DominantSpeaker = () => {
         {speakerInSpotlight && (
           <ParticipantView
             participant={speakerInSpotlight}
-            setVideoElementRef={setParticipantVideoRef}
+            setElement={setParticipantVideoRef}
             muteAudio
             ParticipantViewUI={
               <DefaultParticipantViewUI
-                participant={speakerInSpotlight}
                 indicatorsVisible={false}
                 showMenuButton={false}
               />
